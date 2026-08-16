@@ -38,13 +38,14 @@ These are camera decisions. Levels and character scripts should not fake them wi
 
 ## Aim intent
 
-The camera center produces a world-space aim point. The upper body, rifle and muzzle all consume that same point.
+Raw player yaw/pitch produces a world-space aim point independently of collision. The camera, upper body, rifle and muzzle all consume or display that intent without allowing camera collision to rewrite it.
 
-1. Cast from the camera center into the world.
-2. Preserve a clear visual lane from the camera to that point.
+1. Cast from the player aim pivot along raw yaw/pitch.
+2. Project that point into the legal camera and use a bounded soft reticle only when wall parallax requires it.
 3. Rotate the torso within anatomical yaw and pitch limits.
 4. Aim the rifle directly at the world point.
 5. Solve both hands back onto the rifle grips.
+6. Trace again from the authoritative muzzle so geometry can block the shot.
 
 The muzzle does not simply fire along an unrelated body-facing vector. Camera intent, animation and weapon convergence must agree.
 
@@ -80,3 +81,10 @@ The player supplies movement, orientation, stance, and aim intent.
 The camera solves its own world transform every frame.
 
 The preferred shot is the target. Collision and framing correction are temporary deviations from that shot.
+
+## Deterministic state boundary
+
+The continuous solver is reported through five stable states: preferred,
+compressed, post-solved, perched and release. Obstruction entry may transition
+immediately; non-safety transitions require a short dwell. Solver detail is not
+gameplay authority and must never be replicated in multiplayer.

@@ -14,6 +14,10 @@ mkdir -p "$report_dir"
   --automated-test --interior-turn-test --wall-audit-report --clean-hud >/dev/null
 "$godot_bin" --headless --log-file "$report_dir/roof.log" --path "$project_dir" --quit-after 180 -- \
   --automated-test --roof-test --downward-aim-test --camera-report --clean-hud >/dev/null
+"$godot_bin" --headless --log-file "$report_dir/audit-recorder.log" --path "$project_dir" --quit-after 150 -- \
+  --automated-test --movement-test --audit-record-test --clean-hud >/dev/null
+"$godot_bin" --headless --log-file "$report_dir/multiplayer-contract.log" --path "$project_dir" --quit-after 90 -- \
+  --automated-test --multiplayer-contract-test --clean-hud >/dev/null
 
 for report in "$report_dir"/*.log; do
   if rg -q 'SCRIPT ERROR|Parse Error' "$report"; then
@@ -27,7 +31,7 @@ check_camera_motion() {
   local label="$2"
   local maximum_step="$3"
   awk -F, -v label="$label" -v limit="$maximum_step" '
-    BEGIN { maximum = 0.0; unreadable = 0; frames = 0 }
+    BEGIN { maximum = 0.0; unreadable = 0; frames = 0; flips = 0; last_transition = -1000 }
     /^WALL_AUDIT/ {
       if (have_previous) {
         dx = $4 - previous_x
@@ -42,10 +46,17 @@ check_camera_motion() {
       have_previous = 1
       frames++
       if ($8 < 0.05 || $8 > 0.95 || $9 < 0.02 || $9 > 0.99) unreadable++
+      state = $14
+      if (state != previous_state) {
+        if (state == state_before_previous && $2 - last_transition <= 15) flips++
+        state_before_previous = previous_state
+        previous_state = state
+        last_transition = $2
+      }
     }
     END {
-      printf "%s: %d frames, max camera step %.3f m, unreadable %d\n", label, frames, maximum, unreadable
-      if (frames == 0 || maximum > limit || unreadable > 0) exit 1
+      printf "%s: %d frames, max camera step %.3f m, unreadable %d, state flips %d\n", label, frames, maximum, unreadable, flips
+      if (frames == 0 || maximum > limit || unreadable > 0 || flips > 0) exit 1
     }
   ' "$report"
 }
@@ -59,5 +70,17 @@ if ! rg -q 'CAMERA_REPORT .*"pitch_deg":-45.0.*"reticle_x":0.5.*"reticle_y":0.5.
   exit 1
 fi
 print "rooftop downward aim: raw -45° pitch and centered reticle"
+
+if ! rg -q 'AUDIT_RECORD_TEST Saved [1-9][0-9]* frames' "$report_dir/audit-recorder.log"; then
+  print -u2 "FAIL: camera audit recorder did not save frame telemetry"
+  exit 1
+fi
+print "camera audit recorder: CSV telemetry saved"
+
+if ! rg -q 'MULTIPLAYER_CONTRACT accepted=true camera_state_leak=false' "$report_dir/multiplayer-contract.log"; then
+  print -u2 "FAIL: multiplayer aim contract was rejected or leaked camera state"
+  exit 1
+fi
+print "multiplayer contract: authoritative trace accepted, no camera state sent"
 
 print "Camera regression reports: $report_dir"

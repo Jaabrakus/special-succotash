@@ -1,6 +1,38 @@
-# SOCOM-141 Camera Lab — v2.0.5 continuous wall camera
+# SOCOM-141 Camera Lab — v2.1 camera workbench
 
 A runnable Godot 4 prototype for developing a SOCOM-style independent tactical camera and body/aim relationship.
+
+## v2.1: visible camera workbench, replay audit, and multiplayer boundary
+
+The default debug view now includes a separate spectator viewport. It shows the
+operator and all three camera results at once: blue is the preferred boom,
+yellow is the collision/post-solve result, green is the rendered camera, and
+white/red is the weapon aim path. The gameplay camera cannot render this debug
+layer. Press `V` to hide the spectator view or `H` for a completely clean
+capture.
+
+Press `P` to open live sliders for distance, height, FOV, head placement,
+perched height, and wall transition speeds. Opening the panel releases the
+mouse; closing it restores mouse-look. `Reset values` returns to the verified
+v2.0.5 values, while `Save preset` writes a timestamped JSON preset without
+modifying source files.
+
+Press `F9` to record a real play session and `F9` again to stop. CSV reports
+contain camera position, framing, state, collision result, step, speed,
+acceleration, jerk, transition count, and rapid A/B/A flip count. `F10` replays
+the most recent in-memory player pose and raw yaw/pitch stream through the live
+camera solver. Reports and presets are written to the Godot user-data
+`camera_audits` folder displayed in the workbench.
+
+The camera now exposes five stable states—`PREFERRED`, `COMPRESSED`,
+`POST-SOLVED`, `PERCHED`, and `RELEASE`—with a short non-safety dwell to prevent
+state chatter. Collision entry remains immediate. Multiplayer code must keep
+this complete camera system client-local; only sequenced yaw/pitch and aim
+direction are eligible to cross the network, and the server owns the muzzle
+origin and repeats the shot trace.
+
+Rollback before the workbench is tagged `v2.0.5-workbench-base`. See
+`docs/camera_workbench.md` and `docs/multiplayer_camera_contract.md`.
 
 ## v2.0.5: continuous wall-entry and orbit transitions
 

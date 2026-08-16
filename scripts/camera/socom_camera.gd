@@ -1,6 +1,14 @@
 class_name SocomCameraRig
 extends Node3D
 
+enum CameraState {
+    PREFERRED,
+    COMPRESSED,
+    POST_SOLVED,
+    PERCHED,
+    RELEASE
+}
+
 var target: Node3D
 var head_marker: Node3D
 var torso_marker: Node3D
@@ -71,6 +79,10 @@ var camera_collision_shape := SphereShape3D.new()
 var collision_cast_count: int = 0
 var collision_solver_usec: int = 0
 var wall_context_amount: float = 0.0
+var camera_state: int = CameraState.PREFERRED
+var camera_state_age: float = 0.0
+var camera_state_transition_count: int = 0
+var aim_intent_sequence: int = 0
 
 var camera: Camera3D
 var orbit_input_enabled: bool = true
@@ -108,7 +120,7 @@ func _unhandled_input(event: InputEvent) -> void:
         pitch = clampf(pitch, deg_to_rad(profile.pitch_min_deg), deg_to_rad(profile.pitch_max_deg))
     elif event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
         Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-    elif event is InputEventMouseButton and event.pressed:
+    elif orbit_input_enabled and event is InputEventMouseButton and event.pressed:
         Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 func _physics_process(delta: float) -> void:
@@ -238,6 +250,7 @@ func _physics_process(delta: float) -> void:
     _update_collision_crane_view(delta)
     _update_wall_camera_state(delta)
     _update_tight_space_state(delta)
+    _update_deterministic_camera_state(delta)
 
     excursion = collision_camera_position - preferred_camera_position
 
@@ -256,8 +269,8 @@ func _physics_process(delta: float) -> void:
             collision_camera_position,
             delta,
             (
-                collision_active
-                or wall_context_amount > 0.05
+                camera_state != CameraState.PREFERRED
+                or collision_active
                 or collision_crane_view_amount > 0.01
             ),
             movement_response
@@ -321,6 +334,57 @@ func _update_wall_camera_state(delta: float) -> void:
         context_target,
         1.0 - exp(-context_response * delta)
     )
+
+
+func _update_deterministic_camera_state(delta: float) -> void:
+    camera_state_age += delta
+    var requested := CameraState.PREFERRED
+    if collision_crane_active or collision_crane_view_amount >= 0.55:
+        requested = CameraState.PERCHED
+    elif collision_active and post_collision_reframe:
+        requested = CameraState.POST_SOLVED
+    elif collision_active:
+        requested = CameraState.COMPRESSED
+    elif (
+        camera_state != CameraState.PREFERRED
+        and (
+            wall_context_amount > 0.04
+            or current_camera_position.distance_to(collision_camera_position)
+                > profile.wall_branch_transition_distance
+        )
+    ):
+        requested = CameraState.RELEASE
+
+    if requested == camera_state:
+        return
+
+    # Obstruction entry is immediate for fairness. Non-safety transitions use
+    # a short dwell so noisy solver labels cannot produce A/B/A camera states.
+    var safety_entry: bool = (
+        requested == CameraState.COMPRESSED
+        or requested == CameraState.POST_SOLVED
+        or requested == CameraState.PERCHED
+    )
+    if not safety_entry and camera_state_age < 0.12:
+        return
+    camera_state = requested
+    camera_state_age = 0.0
+    camera_state_transition_count += 1
+
+
+func get_camera_state_name() -> String:
+    match camera_state:
+        CameraState.PREFERRED:
+            return "PREFERRED"
+        CameraState.COMPRESSED:
+            return "COMPRESSED"
+        CameraState.POST_SOLVED:
+            return "POST-SOLVED"
+        CameraState.PERCHED:
+            return "PERCHED"
+        CameraState.RELEASE:
+            return "RELEASE"
+    return "UNKNOWN"
 
 
 func _smooth_legal_camera_position(
@@ -1567,6 +1631,31 @@ func _update_shot_validation() -> void:
     elif collider is Object:
         shot_collider_name = (collider as Object).get_class()
 
+
+func build_local_aim_intent() -> Dictionary:
+    # Multiplayer boundary: camera placement and wall-solving state remain
+    # entirely local. A shot sends only sequenced aim intent; the server must
+    # replace the reported muzzle with its authoritative character muzzle and
+    # repeat collision in the authoritative world.
+    if target == null:
+        return {}
+    var mannequin := target.get_node_or_null("Mannequin") as SocomTestMannequin
+    if mannequin == null or mannequin.muzzle_marker == null:
+        return {}
+    var muzzle := mannequin.muzzle_marker.global_position
+    var direction := (aim_point - muzzle).normalized()
+    if direction.length_squared() < 0.99:
+        direction = _forward_direction()
+    aim_intent_sequence += 1
+    return SocomAimIntent.create(
+        aim_intent_sequence,
+        Engine.get_physics_frames(),
+        yaw,
+        pitch,
+        muzzle,
+        direction
+    ).to_payload()
+
 func _update_reticle_position(delta: float) -> void:
     var center := Vector2(0.5, 0.5)
     var desired := center
@@ -1655,6 +1744,9 @@ func get_debug_data() -> Dictionary:
         "reticle_dynamic_amount": reticle_dynamic_amount,
         "collision_cast_count": collision_cast_count,
         "collision_solver_usec": collision_solver_usec,
+        "camera_state": get_camera_state_name(),
+        "camera_state_age": camera_state_age,
+        "camera_state_transitions": camera_state_transition_count,
         "wall_context_amount": wall_context_amount,
         "terrain_slope_deg": terrain_slope_deg,
         "terrain_crop_relaxation": terrain_crop_relaxation,

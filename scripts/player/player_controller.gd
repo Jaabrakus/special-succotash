@@ -8,8 +8,12 @@ extends CharacterBody3D
 @export var gravity: float = 22.0
 
 var movement_yaw: float = 0.0
+var replay_override_active: bool = false
 
 func _physics_process(delta: float) -> void:
+    if replay_override_active:
+        velocity = Vector3.ZERO
+        return
     var input := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
     var automated_world_direction := Vector3.ZERO
     if OS.get_cmdline_user_args().has("--movement-test"):

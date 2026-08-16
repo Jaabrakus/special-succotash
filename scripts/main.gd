@@ -13,6 +13,16 @@ var debug_hud_visible: bool = true
 var roof_test_active: bool = false
 var indoor_test_active: bool = false
 var wall_test_active: bool = false
+var camera_visualizer: SocomCameraVisualizer
+var audit_recorder: SocomCameraAuditRecorder
+var spectator_panel: Control
+var spectator_camera: Camera3D
+var workbench_panel: Control
+var workbench_status: Label
+var workbench_visible: bool = false
+var camera_visualizer_visible: bool = true
+var workbench_sliders: Dictionary = {}
+var workbench_defaults: Dictionary = {}
 
 const REFERENCE_FRAME_PATH := "res://reference/reference_frame.png"
 const ENVIRONMENT_SHADER := """
@@ -52,7 +62,12 @@ func _ready() -> void:
     elif OS.get_cmdline_user_args().has("--movement-test"):
         player.global_position = Vector3(-3.0, 0.05, -10.0)
     _build_camera()
+    _build_camera_tools()
     _build_ui()
+    if OS.get_cmdline_user_args().has("--capture-workbench"):
+        _set_workbench_visible(true)
+    if OS.get_cmdline_user_args().has("--audit-record-test"):
+        audit_recorder.start_recording()
 
 
 func _ensure_input_map() -> void:
@@ -69,6 +84,10 @@ func _ensure_input_map() -> void:
     _add_key_action("toggle_indoor_test", KEY_I)
     _add_key_action("toggle_wall_test", KEY_B)
     _add_key_action("toggle_debug_hud", KEY_H)
+    _add_key_action("toggle_camera_workbench", KEY_P)
+    _add_key_action("toggle_camera_visualizer", KEY_V)
+    _add_key_action("toggle_camera_recording", KEY_F9)
+    _add_key_action("replay_camera_recording", KEY_F10)
 
 func _add_key_action(action: StringName, keycode: Key) -> void:
     if not InputMap.has_action(action):
@@ -79,6 +98,8 @@ func _add_key_action(action: StringName, keycode: Key) -> void:
         InputMap.action_add_event(action, event)
 
 func _process(_delta: float) -> void:
+    _update_camera_tool_input()
+    _update_spectator_camera()
     if Input.is_action_just_pressed("toggle_debug_hud"):
         debug_hud_visible = not debug_hud_visible
         if debug_label:
@@ -87,6 +108,14 @@ func _process(_delta: float) -> void:
             calibration_visible = false
         if calibration_overlay:
             calibration_overlay.visible = calibration_visible and debug_hud_visible
+        if spectator_panel:
+            spectator_panel.visible = debug_hud_visible and camera_visualizer_visible
+        if not debug_hud_visible:
+            _set_workbench_visible(false)
+        if camera_visualizer:
+            camera_visualizer.visible_in_workbench = (
+                debug_hud_visible and camera_visualizer_visible
+            )
     _update_calibration_input()
     if Input.is_action_just_pressed("toggle_roof_test"):
         roof_test_active = not roof_test_active
@@ -111,9 +140,23 @@ func _process(_delta: float) -> void:
     _update_crosshair(d)
     var report_frame: int = 60 if OS.get_cmdline_user_args().has("--movement-test") else 120
     var process_frame: int = Engine.get_process_frames()
+    if (
+        OS.get_cmdline_user_args().has("--audit-record-test")
+        and process_frame == 120
+        and audit_recorder.recording
+    ):
+        audit_recorder.stop_recording()
+        print("AUDIT_RECORD_TEST ", audit_recorder.get_status())
+    if (
+        OS.get_cmdline_user_args().has("--capture-workbench")
+        and process_frame == 30
+    ):
+        var capture := get_viewport().get_texture().get_image()
+        capture.save_png("/private/tmp/socom-camera-workbench.png")
+        print("WORKBENCH_CAPTURE /private/tmp/socom-camera-workbench.png")
     if OS.get_cmdline_user_args().has("--wall-audit-report"):
         print(
-            "WALL_AUDIT,%d,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%d,%.3f,%.6f,%d"
+            "WALL_AUDIT,%d,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%d,%.3f,%.6f,%d,%s"
             % [
                 process_frame,
                 d.yaw_deg,
@@ -126,11 +169,36 @@ func _process(_delta: float) -> void:
                 int(d.collision_active),
                 d.wall_escape_angle_deg,
                 d.wall_context_amount,
-                d.collision_solver_usec
+                d.collision_solver_usec,
+                d.camera_state
             ]
         )
     if OS.get_cmdline_user_args().has("--transition-audit"):
         print("CAMERA_TRANSITION ", JSON.stringify(d))
+    if (
+        OS.get_cmdline_user_args().has("--multiplayer-contract-test")
+        and process_frame == 60
+    ):
+        var intent := camera_rig.build_local_aim_intent()
+        var mannequin := player.get_node("Mannequin") as SocomTestMannequin
+        var muzzle := mannequin.muzzle_marker.global_position
+        var exclude: Array[RID] = [player.get_rid()]
+        var trace := SocomShotAuthority.validate_and_trace(
+            get_world_3d(),
+            intent,
+            muzzle,
+            exclude,
+            camera_rig.profile.aim_distance
+        )
+        var leaks_camera_state: bool = (
+            intent.has("camera_position")
+            or intent.has("fov")
+            or intent.has("collision")
+        )
+        print(
+            "MULTIPLAYER_CONTRACT accepted=%s camera_state_leak=%s"
+            % [str(trace.get("accepted", false)), str(leaks_camera_state)]
+        )
     var wall_turn_sample: bool = (
         OS.get_cmdline_user_args().has("--wall-turn-test")
         and process_frame in [30, 60, 90, 120, 180, 240, 360, 480, 600, 720]
@@ -139,8 +207,8 @@ func _process(_delta: float) -> void:
         print("CAMERA_REPORT ", JSON.stringify(d))
     debug_label.text = (
         "SOCOM-141 CAMERA LAB\n"
-        + "WASD move | Shift run | Mouse orbit | R reset | C calibration | H clean HUD | T roof | I interior | B wall\n"
-        + "v2.0.5 continuous wall-entry + branch slew\n\n"
+        + "WASD move | Shift run | Mouse orbit | R reset | H clean HUD | V camera view | P tune | F9 record | F10 replay\n"
+        + "v2.1 camera workbench + multiplayer aim boundary\n\n"
         + "Vertical FOV     %5.1f°\n" % d.fov
         + "Camera distance %5.2f m\n" % d.distance
         + "Camera height   %5.2f m above player\n" % d.height_above_player
@@ -154,6 +222,7 @@ func _process(_delta: float) -> void:
         + "Compression     %5.1f%%  overhead %5.1f%%  interior %5.1f%%\n" % [d.boom_compression * 100.0, d.overhead_confinement * 100.0, d.interior_amount * 100.0]
         + "Wall close      %s  boom zoom\n" % ("ACTIVE" if d.collision_active else "idle")
         + "Wall state      %5.1f%%  deterministic boom\n" % [d.wall_context_amount * 100.0]
+        + "State machine   %s  age %.2fs  transitions %d\n" % [d.camera_state, d.camera_state_age, d.camera_state_transitions]
         + "Wall crane      %s  blend %4.0f%%  convergence %.2f m\n" % ["ACTIVE" if d.collision_crane_active else "idle", d.collision_crane_view_amount * 100.0, d.collision_crane_look_ahead]
         + "Soft reticle    X %.3f  Y %.3f  authority %4.0f%%\n" % [d.reticle_x, d.reticle_y, d.reticle_dynamic_amount * 100.0]
         + "Geometry cull    DISABLED (fair sightlines)\n"
@@ -308,6 +377,25 @@ func _build_camera() -> void:
     else:
         camera_rig.yaw = player.global_rotation.y
 
+
+func _build_camera_tools() -> void:
+    camera_visualizer = SocomCameraVisualizer.new()
+    camera_visualizer.name = "CameraBoomVisualizer"
+    camera_visualizer.camera_rig = camera_rig
+    camera_visualizer.player = player
+    camera_visualizer.mannequin = player.get_node("Mannequin") as SocomTestMannequin
+    camera_visualizer.visible_in_workbench = debug_hud_visible
+    add_child(camera_visualizer)
+
+    # Debug geometry exists only on layer 20. The gameplay camera never renders
+    # it; the separate workbench viewport deliberately includes it.
+    camera_rig.camera.set_cull_mask_value(SocomCameraVisualizer.DEBUG_LAYER, false)
+
+    audit_recorder = SocomCameraAuditRecorder.new()
+    audit_recorder.name = "CameraAuditRecorder"
+    audit_recorder.configure(camera_rig, player)
+    add_child(audit_recorder)
+
 func _build_ui() -> void:
     var layer := CanvasLayer.new()
     add_child(layer)
@@ -326,6 +414,206 @@ func _build_ui() -> void:
     layer.add_child(crosshair)
 
     _build_calibration_overlay(layer)
+    _build_camera_workbench(layer)
+
+
+func _build_camera_workbench(layer: CanvasLayer) -> void:
+    spectator_panel = PanelContainer.new()
+    spectator_panel.name = "CameraSpectatorPanel"
+    spectator_panel.anchor_left = 1.0
+    spectator_panel.anchor_right = 1.0
+    spectator_panel.offset_left = -410.0
+    spectator_panel.offset_right = -18.0
+    spectator_panel.offset_top = 18.0
+    spectator_panel.offset_bottom = 292.0
+    spectator_panel.visible = debug_hud_visible and camera_visualizer_visible
+    layer.add_child(spectator_panel)
+
+    var spectator_stack := VBoxContainer.new()
+    spectator_panel.add_child(spectator_stack)
+    var title := Label.new()
+    title.text = "CAMERA WORKBENCH VIEW  [V hide | P tune]"
+    title.add_theme_font_size_override("font_size", 14)
+    spectator_stack.add_child(title)
+
+    var viewport_container := SubViewportContainer.new()
+    viewport_container.custom_minimum_size = Vector2(380, 214)
+    viewport_container.stretch = true
+    viewport_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    spectator_stack.add_child(viewport_container)
+    var spectator_viewport := SubViewport.new()
+    spectator_viewport.size = Vector2i(760, 428)
+    spectator_viewport.world_3d = get_viewport().world_3d
+    spectator_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+    viewport_container.add_child(spectator_viewport)
+    spectator_camera = Camera3D.new()
+    spectator_camera.current = true
+    spectator_camera.fov = 52.0
+    spectator_camera.set_cull_mask_value(SocomCameraVisualizer.DEBUG_LAYER, true)
+    spectator_viewport.add_child(spectator_camera)
+
+    var legend := Label.new()
+    legend.text = "BLUE preferred  •  YELLOW legal  •  GREEN rendered  •  WHITE/RED aim"
+    legend.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+    legend.add_theme_font_size_override("font_size", 11)
+    spectator_stack.add_child(legend)
+
+    workbench_panel = PanelContainer.new()
+    workbench_panel.name = "CameraTuningPanel"
+    workbench_panel.anchor_left = 1.0
+    workbench_panel.anchor_right = 1.0
+    workbench_panel.offset_left = -410.0
+    workbench_panel.offset_right = -18.0
+    workbench_panel.offset_top = 304.0
+    workbench_panel.offset_bottom = 702.0
+    workbench_panel.visible = false
+    layer.add_child(workbench_panel)
+
+    var tuning_stack := VBoxContainer.new()
+    workbench_panel.add_child(tuning_stack)
+    var tuning_title := Label.new()
+    tuning_title.text = "LIVE TUNING — temporary until saved"
+    tuning_title.add_theme_font_size_override("font_size", 14)
+    tuning_stack.add_child(tuning_title)
+
+    _add_workbench_slider(tuning_stack, "Open distance", &"distance", 2.4, 5.5, 0.05)
+    _add_workbench_slider(tuning_stack, "Open height", &"height", 0.8, 3.5, 0.05)
+    _add_workbench_slider(tuning_stack, "Vertical FOV", &"vertical_fov", 45.0, 80.0, 0.5)
+    _add_workbench_slider(tuning_stack, "Head screen Y", &"desired_head_y", 0.55, 0.90, 0.005)
+    _add_workbench_slider(tuning_stack, "Perched max height", &"close_wall_crane_max_height", 2.5, 5.5, 0.05)
+    _add_workbench_slider(tuning_stack, "Wall linear speed", &"wall_branch_max_linear_speed", 2.0, 15.0, 0.25)
+    _add_workbench_slider(tuning_stack, "Wall angular speed", &"wall_branch_max_angular_speed_deg", 35.0, 240.0, 5.0)
+
+    var button_row := GridContainer.new()
+    button_row.columns = 2
+    tuning_stack.add_child(button_row)
+    var record_button := Button.new()
+    record_button.text = "Record [F9]"
+    record_button.pressed.connect(audit_recorder.toggle_recording)
+    button_row.add_child(record_button)
+    var replay_button := Button.new()
+    replay_button.text = "Replay last [F10]"
+    replay_button.pressed.connect(audit_recorder.start_replay)
+    button_row.add_child(replay_button)
+    var reset_button := Button.new()
+    reset_button.text = "Reset values"
+    reset_button.pressed.connect(_reset_workbench_values)
+    button_row.add_child(reset_button)
+    var save_button := Button.new()
+    save_button.text = "Save preset"
+    save_button.pressed.connect(_save_workbench_preset)
+    button_row.add_child(save_button)
+
+    workbench_status = Label.new()
+    workbench_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+    workbench_status.add_theme_font_size_override("font_size", 12)
+    tuning_stack.add_child(workbench_status)
+
+
+func _add_workbench_slider(
+    parent: Control,
+    label_text: String,
+    property_name: StringName,
+    minimum: float,
+    maximum: float,
+    increment: float
+) -> void:
+    var row := HBoxContainer.new()
+    parent.add_child(row)
+    var label := Label.new()
+    label.text = label_text
+    label.custom_minimum_size.x = 145.0
+    row.add_child(label)
+    var slider := HSlider.new()
+    slider.custom_minimum_size.x = 170.0
+    slider.min_value = minimum
+    slider.max_value = maximum
+    slider.step = increment
+    slider.value = float(camera_rig.profile.get(property_name))
+    row.add_child(slider)
+    var value_label := Label.new()
+    value_label.custom_minimum_size.x = 54.0
+    value_label.text = "%.3f" % slider.value
+    row.add_child(value_label)
+    workbench_defaults[property_name] = slider.value
+    workbench_sliders[property_name] = slider
+    slider.value_changed.connect(
+        _on_workbench_slider_changed.bind(property_name, value_label)
+    )
+
+
+func _on_workbench_slider_changed(
+    value: float,
+    property_name: StringName,
+    value_label: Label
+) -> void:
+    camera_rig.profile.set(property_name, value)
+    value_label.text = "%.3f" % value
+
+
+func _update_camera_tool_input() -> void:
+    if Input.is_action_just_pressed("toggle_camera_workbench") and debug_hud_visible:
+        _set_workbench_visible(not workbench_visible)
+    if Input.is_action_just_pressed("toggle_camera_visualizer") and debug_hud_visible:
+        camera_visualizer_visible = not camera_visualizer_visible
+        if spectator_panel:
+            spectator_panel.visible = camera_visualizer_visible
+        if camera_visualizer:
+            camera_visualizer.visible_in_workbench = camera_visualizer_visible
+    if Input.is_action_just_pressed("toggle_camera_recording"):
+        audit_recorder.toggle_recording()
+    if Input.is_action_just_pressed("replay_camera_recording"):
+        audit_recorder.start_replay()
+
+
+func _set_workbench_visible(enabled: bool) -> void:
+    workbench_visible = enabled and debug_hud_visible
+    if workbench_panel:
+        workbench_panel.visible = workbench_visible
+    if workbench_visible:
+        Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+        camera_rig.orbit_input_enabled = false
+    else:
+        Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+        if audit_recorder == null or not audit_recorder.replaying:
+            camera_rig.orbit_input_enabled = true
+
+
+func _update_spectator_camera() -> void:
+    if spectator_camera == null or player == null or camera_rig == null:
+        return
+    var center := (player.global_position + camera_rig.global_position) * 0.5
+    center.y += 0.85
+    spectator_camera.global_position = center + Vector3(4.25, 3.25, 4.25)
+    spectator_camera.look_at(center, Vector3.UP)
+    if workbench_status:
+        workbench_status.text = (
+            "State: %s | %s\nLogs: %s"
+            % [
+                camera_rig.get_camera_state_name(),
+                audit_recorder.get_status(),
+                audit_recorder.get_report_directory()
+            ]
+        )
+
+
+func _reset_workbench_values() -> void:
+    for property_name in workbench_defaults:
+        var slider := workbench_sliders[property_name] as HSlider
+        slider.value = float(workbench_defaults[property_name])
+
+
+func _save_workbench_preset() -> void:
+    DirAccess.make_dir_recursive_absolute(audit_recorder.get_report_directory())
+    var stamp := Time.get_datetime_string_from_system().replace(":", "-")
+    var path := "user://camera_audits/camera_preset_%s.json" % stamp
+    var values := {}
+    for property_name in workbench_sliders:
+        values[str(property_name)] = float(camera_rig.profile.get(property_name))
+    var file := FileAccess.open(path, FileAccess.WRITE)
+    if file:
+        file.store_string(JSON.stringify(values, "  "))
+        workbench_status.text = "Preset saved: %s" % ProjectSettings.globalize_path(path)
 
 func _update_crosshair(data: Dictionary) -> void:
     if crosshair == null:
