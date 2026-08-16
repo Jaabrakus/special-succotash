@@ -3,6 +3,7 @@ extends Node3D
 
 const AimIntentScript := preload("res://scripts/network/socom_aim_intent.gd")
 const CameraProfileScript := preload("res://scripts/camera/camera_profile.gd")
+const VIRTUAL_WALL_OBSERVER_LAYER := 19
 
 enum CameraState {
     PREFERRED,
@@ -28,6 +29,7 @@ var collision_camera_position := Vector3.ZERO
 var excursion := Vector3.ZERO
 var collision_active := false
 var collision_name := "CLEAR"
+var collision_blocker_node: Node3D
 var terrain_slope_deg: float = 0.0
 var terrain_crop_relaxation: float = 0.0
 var framing_correction: float = 0.0
@@ -104,6 +106,8 @@ var camera_tether_rebased: bool = false
 var composition_recovery_active: bool = false
 var composition_hard_rebase: bool = false
 var composition_hard_rebase_count: int = 0
+var virtual_wall_occluder: Node3D
+var virtual_wall_original_layers: Dictionary = {}
 
 var camera: Camera3D
 var orbit_input_enabled: bool = true
@@ -118,6 +122,7 @@ func _ready() -> void:
     camera.keep_aspect = Camera3D.KEEP_HEIGHT
     camera.near = 0.08
     add_child(camera)
+    camera.set_cull_mask_value(VIRTUAL_WALL_OBSERVER_LAYER, false)
     camera_collision_shape.radius = profile.camera_collision_radius
     current_fov = profile.vertical_fov
     orbit_input_enabled = not OS.get_cmdline_user_args().has("--automated-test")
@@ -126,6 +131,7 @@ func _ready() -> void:
         or OS.get_cmdline_user_args().has("--interior-turn-test")
         or OS.get_cmdline_user_args().has("--wall-entry-test")
         or OS.get_cmdline_user_args().has("--wall-follow-test")
+        or OS.get_cmdline_user_args().has("--camera-stress-test")
     )
     if OS.get_cmdline_user_args().has("--upward-aim-test"):
         pitch = deg_to_rad(20.0)
@@ -156,7 +162,12 @@ func _physics_process(delta: float) -> void:
     _follow_target_translation()
     var rendered_frame_start: Vector3 = current_camera_position
     if automated_wall_turn:
-        yaw -= deg_to_rad(38.0) * delta
+        var automated_turn_speed := (
+            150.0
+            if OS.get_cmdline_user_args().has("--camera-stress-test")
+            else 38.0
+        )
+        yaw -= deg_to_rad(automated_turn_speed) * delta
     yaw = wrapf(yaw, -PI, PI)
 
     _update_movement_follow(delta)
@@ -225,15 +236,21 @@ func _physics_process(delta: float) -> void:
             post_validated_score = _post_solve_projection_score(validated_projection)
             post_validated_clearance = _candidate_has_subject_clearance(validated_position)
             post_validated_head_distance = validated_position.distance_to(head_marker.global_position)
+            var validated_current_branch: bool = _shares_current_camera_branch(
+                validated_position
+            )
             # A legal, readable composition is the primary acceptance rule.
             # Requiring its numeric score to beat an already-broken close shot
             # rejected useful wall escapes and put the camera back on the raw
             # preferred pass. The score remains a fallback for edge projections.
             if (
-                _candidate_is_subject_readable(validated_position)
-                or (
-                    post_validated_clearance
-                    and post_validated_score <= post_initial_score + 0.001
+                validated_current_branch
+                and (
+                    _candidate_is_subject_readable(validated_position)
+                    or (
+                        post_validated_clearance
+                        and post_validated_score <= post_initial_score + 0.001
+                    )
                 )
             ):
                 _apply_collision_result(validated_result)
@@ -323,10 +340,7 @@ func _physics_process(delta: float) -> void:
         or collision_active
         or wall_context_amount > 0.01
     )
-    if (
-        close_transition_active
-        and rendered_frame_start != Vector3.ZERO
-    ):
+    if close_transition_active and rendered_frame_start != Vector3.ZERO:
         var rendered_motion: Vector3 = (
             current_camera_position - rendered_frame_start
         )
@@ -359,6 +373,7 @@ func _physics_process(delta: float) -> void:
         camera_tether_rebased = true
 
     global_position = current_camera_position
+    _update_virtual_wall_occluder()
     _orient_camera(delta)
     _update_weapon_aim_point()
     var mannequin = target.get_node_or_null("Mannequin") if target else null
@@ -407,7 +422,15 @@ func _enforce_rendered_composition(
     if rendered_error <= profile.rendered_head_soft_limit_x:
         return rendered_position
 
-    var legal_projection := _subject_projection(legal_position, true)
+    var recovery_position := legal_position
+    if collision_active and virtual_camera_position != Vector3.ZERO:
+        var virtual_projection := _subject_projection(
+            virtual_camera_position,
+            true
+        )
+        if bool(virtual_projection.visible):
+            recovery_position = virtual_camera_position
+    var legal_projection := _subject_projection(recovery_position, true)
     if not bool(legal_projection.visible):
         return rendered_position
     var legal_error: float = absf(
@@ -417,36 +440,73 @@ func _enforce_rendered_composition(
         return rendered_position
 
     composition_recovery_active = true
-    # Once the subject is effectively gone, continuity has already failed its
-    # job. Cut to the current frame's volume-validated solve. This changes only
-    # local presentation and cannot alter weapon or server authority.
+    var exclude: Array[RID] = []
+    if target is CollisionObject3D:
+        exclude.append((target as CollisionObject3D).get_rid())
+
+    # Once the subject is effectively gone, continuity has failed—but an
+    # emergency correction must still travel through local free space. A cut
+    # to a distant legal endpoint can cross a wall and is the visible snap the
+    # regression test catches. Search one bounded, improving lens step instead.
     if (
         not rendered_visible
         or rendered_error >= profile.rendered_head_hard_limit_x
     ):
         composition_hard_rebase = true
         composition_hard_rebase_count += 1
-        return legal_position
+        var local_recovery := _advance_local_lens_toward(
+            rendered_position,
+            recovery_position,
+            profile.wall_branch_max_linear_speed * delta,
+            exclude
+        )
+        if local_recovery != rendered_position:
+            return local_recovery
+        # There is no continuous physical route when the desired orbit crosses
+        # the wall plane itself. Continue the post-solved virtual lens through
+        # that infinitesimal transition instead of freezing input or cutting to
+        # the far branch. Rendering/visibility policy owns the occluder; weapon
+        # and multiplayer authority remain tied to the player-side rays.
+        return _virtual_composition_step(
+            rendered_position,
+            recovery_position,
+            profile.wall_branch_max_linear_speed * delta
+        )
 
-    var candidate := rendered_position.move_toward(
-        legal_position,
+    # Begin the virtual crossing at the soft guard, before the operator reaches
+    # the edge. A topological wall crossing can briefly move sideways before it
+    # improves projection, so requiring every intermediate step to score better
+    # recreates the freeze.
+    return _virtual_composition_step(
+        rendered_position,
+        recovery_position,
         profile.composition_recovery_speed * delta
     )
-    var exclude: Array[RID] = []
-    if target is CollisionObject3D:
-        exclude.append((target as CollisionObject3D).get_rid())
-    var local_cast := _cast_camera_volume(rendered_position, candidate, exclude)
-    var anchor := target.global_position + Vector3.UP * profile.collision_anchor_height
-    var anchor_cast := _cast_camera_volume(anchor, candidate, exclude)
-    if local_cast.safe_fraction < 0.999 or anchor_cast.safe_fraction < 0.999:
-        return rendered_position
-    var candidate_projection := _subject_projection(candidate)
-    if not bool(candidate_projection.visible):
-        return rendered_position
-    var candidate_error: float = absf(
-        float(candidate_projection.x) - current_head_target_x
+
+func _virtual_composition_step(
+    from_position: Vector3,
+    destination: Vector3,
+    maximum_step: float
+) -> Vector3:
+    # A straight chord between a compressed wall lens and the preferred boom
+    # can be too close and too high midway through the crossing. Clear the wall
+    # plane at the already readable height first, then settle vertically once
+    # the preferred horizontal boom is close.
+    var horizontal_destination := Vector3(
+        destination.x,
+        from_position.y,
+        destination.z
     )
-    return candidate if candidate_error < rendered_error else rendered_position
+    var horizontal_distance := Vector2(
+        destination.x - from_position.x,
+        destination.z - from_position.z
+    ).length()
+    if horizontal_distance > profile.wall_branch_transition_distance:
+        return from_position.move_toward(
+            horizontal_destination,
+            maximum_step
+        )
+    return from_position.move_toward(destination, maximum_step)
 
 func _follow_target_translation() -> void:
     var target_position := target.global_position
@@ -484,10 +544,50 @@ func _follow_target_translation() -> void:
     if last_readable_post_solve_position != Vector3.ZERO:
         last_readable_post_solve_position += applied_motion
 
+func _update_virtual_wall_occluder() -> void:
+    if target == null or current_camera_position == Vector3.ZERO:
+        _set_virtual_wall_occluder(null)
+        return
+    var virtual_separation := current_camera_position.distance_to(
+        collision_camera_position
+    )
+    if not collision_active or virtual_separation < 0.20:
+        _set_virtual_wall_occluder(null)
+        return
+    _set_virtual_wall_occluder(collision_blocker_node)
+
+func _set_virtual_wall_occluder(blocker: Node3D) -> void:
+    if blocker == virtual_wall_occluder:
+        return
+    for instance_id in virtual_wall_original_layers:
+        var instance := instance_from_id(int(instance_id)) as GeometryInstance3D
+        if instance:
+            instance.layers = int(virtual_wall_original_layers[instance_id])
+    virtual_wall_original_layers.clear()
+    virtual_wall_occluder = blocker
+    if blocker == null:
+        return
+    var geometry_nodes: Array[Node] = blocker.find_children(
+        "*",
+        "GeometryInstance3D",
+        true,
+        false
+    )
+    if blocker is GeometryInstance3D:
+        geometry_nodes.append(blocker)
+    for node in geometry_nodes:
+        var geometry := node as GeometryInstance3D
+        if geometry == null:
+            continue
+        virtual_wall_original_layers[geometry.get_instance_id()] = geometry.layers
+        geometry.set_layer_mask_value(VIRTUAL_WALL_OBSERVER_LAYER, true)
+        geometry.set_layer_mask_value(1, false)
+
 func _apply_collision_result(result: Dictionary) -> void:
     collision_camera_position = result.position
     collision_active = result.collided
     collision_name = result.collider_name
+    collision_blocker_node = result.get("collider_node") as Node3D
     wall_escape_active = result.escaped
     wall_escape_angle_deg = result.escape_angle_deg
     local_cutout_active = result.local_cutout
@@ -722,11 +822,16 @@ func _smooth_legal_camera_position(
     if target is CollisionObject3D:
         exclude.append((target as CollisionObject3D).get_rid())
     var candidate_cast := _cast_camera_volume(anchor, candidate, exclude)
-    var candidate_readable: bool = (
-        near_body_crop_active
-        or transition_crop_active
-        or _candidate_is_subject_readable(candidate)
-    )
+    var candidate_projection := _subject_projection(candidate)
+    var candidate_readable: bool = _candidate_is_subject_readable(candidate)
+    # Close shots may intentionally crop the lower body, but they may never
+    # use that crop permission to lose the operator horizontally. That stale
+    # branch was what left the lens parked on a wall while the player moved on.
+    if near_body_crop_active or transition_crop_active:
+        candidate_readable = (
+            bool(candidate_projection.visible)
+            and _projection_keeps_horizontal_subject(candidate_projection)
+        )
     if branch_transition and not near_body_crop_active and not transition_crop_active:
         candidate_readable = _projection_is_reframeable(
             _subject_projection(candidate)
@@ -768,12 +873,15 @@ func _smooth_legal_camera_position(
             continuity_candidate,
             exclude
         )
-        var continuity_readable := (
-            near_body_crop_active
-            or _projection_is_reframeable(
-                _subject_projection(continuity_candidate)
-            )
+        var continuity_projection := _subject_projection(continuity_candidate)
+        var continuity_readable := _projection_is_reframeable(
+            continuity_projection
         )
+        if near_body_crop_active:
+            continuity_readable = (
+                bool(continuity_projection.visible)
+                and _projection_keeps_horizontal_subject(continuity_projection)
+            )
         if not near_body_crop_active and collision_crane_view_amount > 0.01:
             continuity_readable = _projection_is_reframeable(
                 _subject_projection_to(
@@ -913,6 +1021,10 @@ func _advance_local_lens_toward(
     if absf(requested.z) > 0.001:
         directions.append(Vector3.BACK * signf(requested.z))
 
+    var from_projection := _subject_projection(from_position)
+    var from_error := INF
+    if bool(from_projection.visible):
+        from_error = absf(float(from_projection.x) - current_head_target_x)
     var best_position := from_position
     var best_distance: float = requested_length
     for direction in directions:
@@ -928,10 +1040,16 @@ func _advance_local_lens_toward(
         ):
             continue
         var candidate_projection := _subject_projection(candidate)
+        if not bool(candidate_projection.visible):
+            continue
+        var candidate_x: float = float(candidate_projection.x)
+        var candidate_error: float = absf(candidate_x - current_head_target_x)
+        # Inside the normal ownership guard, prefer progress toward the legal
+        # endpoint. Outside it, every accepted micro-step must actively recover
+        # the operator toward screen center.
         if (
-            not bool(candidate_projection.visible)
-            or float(candidate_projection.x) < 0.18
-            or float(candidate_projection.x) > 0.82
+            (candidate_x < 0.18 or candidate_x > 0.82)
+            and candidate_error >= from_error - 0.0001
         ):
             continue
         var remaining: float = candidate.distance_to(destination)
@@ -971,6 +1089,20 @@ func _preferred_position() -> Vector3:
         )
         + forward * (downward_crane_amount * profile.max_downward_camera_forward)
         + side * (shot_shoulder + downward_crane_amount * profile.max_downward_camera_side)
+    )
+
+func _low_stance_amount() -> float:
+    if target == null or head_marker == null:
+        return 0.0
+    var head_height: float = head_marker.global_position.y - target.global_position.y
+    var stance_range: float = maxf(
+        profile.low_stance_head_height_start - profile.low_stance_head_height_full,
+        0.001
+    )
+    return clampf(
+        (profile.low_stance_head_height_start - head_height) / stance_range,
+        0.0,
+        1.0
     )
 
 func _update_environment_state(delta: float) -> void:
@@ -1074,6 +1206,7 @@ func _solve_collision(desired: Vector3) -> Dictionary:
             "position": desired,
             "collided": false,
             "collider_name": "CLEAR",
+            "collider_node": null,
             "escaped": false,
             "escape_angle_deg": 0.0,
             "local_cutout": false,
@@ -1082,6 +1215,7 @@ func _solve_collision(desired: Vector3) -> Dictionary:
         }
 
     var collider_name := "CAMERA VOLUME"
+    var collider_node: Node3D = null
     var hit_query := PhysicsRayQueryParameters3D.create(anchor, desired)
     hit_query.exclude = exclude
     hit_query.collide_with_areas = false
@@ -1090,6 +1224,8 @@ func _solve_collision(desired: Vector3) -> Dictionary:
         var collider: Variant = center_hit.get("collider")
         if collider is Node:
             collider_name = str((collider as Node).name)
+            if collider is Node3D:
+                collider_node = collider as Node3D
         elif collider is Object:
             collider_name = (collider as Object).get_class()
 
@@ -1108,6 +1244,7 @@ func _solve_collision(desired: Vector3) -> Dictionary:
             "position": compressed_position,
             "collided": true,
             "collider_name": "%s / BOOM COMPRESSED" % collider_name,
+            "collider_node": collider_node,
             "escaped": false,
             "escape_angle_deg": 0.0,
             "local_cutout": false,
@@ -1197,6 +1334,7 @@ func _solve_collision(desired: Vector3) -> Dictionary:
             "position": best_candidate,
             "collided": true,
             "collider_name": "%s / MICRO ADJUST" % collider_name,
+            "collider_node": collider_node,
             "escaped": escaped_sideways,
             "escape_angle_deg": escape_angle,
             "local_cutout": false,
@@ -1211,6 +1349,7 @@ func _solve_collision(desired: Vector3) -> Dictionary:
         "position": compressed_position,
         "collided": true,
         "collider_name": "%s / PHYSICAL CLOSE" % collider_name,
+        "collider_node": collider_node,
         "escaped": false,
         "escape_angle_deg": 0.0,
         "local_cutout": false,
@@ -1249,16 +1388,12 @@ func _solve_better_post_collision(
     if overhead_confinement < 0.25:
         orbit_angles = [
             0.0,
-            12.0, -12.0,
-            24.0, -24.0,
+            18.0, -18.0,
             36.0, -36.0,
-            42.0, -42.0,
-            48.0, -48.0,
-            54.0, -54.0,
             60.0, -60.0
         ]
-    var radius_scales: Array[float] = [1.0, 0.82, 0.66]
-    var lift_offsets: Array[float] = [0.0, 0.35, 0.70]
+    var radius_scales: Array[float] = [1.0, 0.70]
+    var lift_offsets: Array[float] = [0.0, 0.60]
     for angle_deg in orbit_angles:
         var rotated_offset: Vector3 = (
             Basis(Vector3.UP, deg_to_rad(angle_deg)) * desired_offset
@@ -1462,8 +1597,8 @@ func _solve_virtual_camera_surface(
     var wall_tangent := Vector3.UP.cross(normal).normalized()
     if wall_tangent.length_squared() > 0.5:
         for tangent_value in [
-            -3.00, -2.40, -1.80, -1.20, -0.60,
-            0.60, 1.20, 1.80, 2.40, 3.00
+            -3.00, -1.80, -0.60,
+            0.60, 1.80, 3.00
         ]:
             var tangent_point := (
                 projected_virtual
@@ -1472,12 +1607,11 @@ func _solve_virtual_camera_surface(
             candidates.append(tangent_point)
             candidates.append(tangent_point + Vector3.DOWN * 0.25)
             candidates.append(tangent_point + Vector3.UP * 0.35)
-    for scale_value in [0.90, 0.78, 0.66, 0.54]:
+    for scale_value in [0.90, 0.70, 0.54]:
         var scale: float = float(scale_value)
         var retracted := anchor + (projected_virtual - anchor) * scale
         candidates.append(retracted)
         candidates.append(retracted + Vector3.UP * 0.25)
-        candidates.append(retracted + Vector3.UP * 0.50)
         candidates.append(retracted + Vector3.UP * 0.75)
 
     var best := Vector3.ZERO
@@ -1614,6 +1748,58 @@ func _candidate_has_subject_clearance(candidate: Vector3) -> bool:
         candidate.distance_to(target.global_position) >= profile.min_camera_target_distance
         and candidate.distance_to(head_marker.global_position) >= profile.min_subject_camera_distance
     )
+
+func _shares_current_camera_branch(candidate: Vector3) -> bool:
+    if target == null or current_camera_position == Vector3.ZERO:
+        return true
+    var anchor := (
+        target.global_position
+        + Vector3.UP * float(profile.collision_anchor_height)
+    )
+    var current_offset := current_camera_position - anchor
+    var candidate_offset := candidate - anchor
+    if current_offset.length_squared() < 0.001 or candidate_offset.length_squared() < 0.001:
+        return true
+    var branch_angle := current_offset.normalized().angle_to(
+        candidate_offset.normalized()
+    )
+    return (
+        branch_angle <= deg_to_rad(8.0)
+        or current_camera_position.distance_to(candidate)
+            <= profile.wall_branch_transition_distance
+    )
+
+func _camera_marker_visibility(marker: Node3D) -> Dictionary:
+    if marker == null or target == null:
+        return {"visible": true, "blocker": "CLEAR"}
+    var query := PhysicsRayQueryParameters3D.create(
+        global_position,
+        marker.global_position
+    )
+    query.collide_with_areas = false
+    query.hit_from_inside = true
+    if target is CollisionObject3D:
+        query.exclude = [(target as CollisionObject3D).get_rid()]
+    var hit: Dictionary = get_world_3d().direct_space_state.intersect_ray(query)
+    if hit.is_empty():
+        return {"visible": true, "blocker": "CLEAR"}
+    var collider: Variant = hit.get("collider")
+    var blocker := "GEOMETRY"
+    if collider is Node:
+        blocker = str((collider as Node).name)
+    elif collider is Object:
+        blocker = (collider as Object).get_class()
+    return {"visible": false, "blocker": blocker}
+
+func _camera_subject_visibility() -> Dictionary:
+    var head_result := _camera_marker_visibility(head_marker)
+    var torso_result := _camera_marker_visibility(torso_marker)
+    return {
+        "head_visible": bool(head_result.visible),
+        "head_blocker": str(head_result.blocker),
+        "torso_visible": bool(torso_result.visible),
+        "torso_blocker": str(torso_result.blocker),
+    }
 
 func _candidate_is_subject_readable(candidate: Vector3) -> bool:
     if not _candidate_has_subject_clearance(candidate):
@@ -1756,6 +1942,7 @@ func _solve_framing(candidate: Vector3) -> Vector3:
 
     # The head is the primary anchor. The pelvis is a crop guardrail rather than a
     # second hard target, so gait animation cannot make the camera hunt each frame.
+    var low_stance_amount := _low_stance_amount()
     var pelvis_weight: float = lerpf(
         profile.pelvis_framing_weight,
         profile.pelvis_framing_weight * profile.tight_space_pelvis_weight_scale,
@@ -1766,6 +1953,8 @@ func _solve_framing(candidate: Vector3) -> Vector3:
         profile.feet_framing_weight * profile.tight_space_feet_weight_scale,
         tight_space_amount
     )
+    pelvis_weight *= lerpf(1.0, profile.low_stance_pelvis_weight_scale, low_stance_amount)
+    feet_weight *= lerpf(1.0, profile.low_stance_feet_weight_scale, low_stance_amount)
     # Looking over a ledge is an aiming state, not a request to preserve a
     # full-body portrait. Let the head/torso anchors spend the lower body.
     pelvis_weight *= lerpf(1.0, 0.20, downward_aim_amount)
@@ -1800,6 +1989,10 @@ func _solve_framing(candidate: Vector3) -> Vector3:
         max_height_correction,
         maxf(max_height_correction, profile.wall_escape_max_framing_height_correction),
         wall_context_amount
+    )
+    max_height_correction = maxf(
+        max_height_correction,
+        low_stance_amount * profile.max_low_stance_camera_drop
     )
     if absf(combined_height_response) > 0.0001:
         framing_correction = clampf(
@@ -1988,7 +2181,11 @@ func _measure_overhead_confinement() -> float:
 
 func _limit_excursion(candidate: Vector3) -> Vector3:
     var delta := candidate - preferred_camera_position
-    var allowed_drop: float = profile.max_drop + tight_space_amount * profile.max_tight_space_extra_drop
+    var allowed_drop: float = (
+        profile.max_drop
+        + tight_space_amount * profile.max_tight_space_extra_drop
+        + _low_stance_amount() * profile.max_low_stance_camera_drop
+    )
     var allowed_raise: float = lerpf(
         profile.max_raise,
         profile.downward_max_framing_height_correction,
@@ -2173,6 +2370,7 @@ func get_debug_data() -> Dictionary:
     var aim_screen_y := -1.0
     var camera_weapon_angle_deg := 0.0
     var camera_aim_angle_deg := 0.0
+    var subject_visibility := _camera_subject_visibility()
     var rendered_view_yaw_deg := rad_to_deg(yaw)
     if head_marker and camera:
         head_x = camera.unproject_position(head_marker.global_position).x / maxf(viewport_size.x, 1.0)
@@ -2265,6 +2463,10 @@ func get_debug_data() -> Dictionary:
         "aim_screen_y": aim_screen_y,
         "camera_weapon_angle_deg": camera_weapon_angle_deg,
         "camera_aim_angle_deg": camera_aim_angle_deg,
+        "camera_head_visible": subject_visibility.head_visible,
+        "camera_head_blocker": subject_visibility.head_blocker,
+        "camera_torso_visible": subject_visibility.torso_visible,
+        "camera_torso_blocker": subject_visibility.torso_blocker,
         "rendered_view_yaw_deg": rendered_view_yaw_deg,
         "collision_cast_count": collision_cast_count,
         "collision_solver_usec": collision_solver_usec,
@@ -2275,6 +2477,11 @@ func get_debug_data() -> Dictionary:
         "composition_recovery_active": composition_recovery_active,
         "composition_hard_rebase": composition_hard_rebase,
         "composition_hard_rebase_count": composition_hard_rebase_count,
+        "virtual_wall_occluder": (
+            str(virtual_wall_occluder.name)
+            if virtual_wall_occluder
+            else "CLEAR"
+        ),
         "wall_context_amount": wall_context_amount,
         "terrain_slope_deg": terrain_slope_deg,
         "terrain_crop_relaxation": terrain_crop_relaxation,

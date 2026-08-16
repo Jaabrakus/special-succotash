@@ -117,12 +117,19 @@ extends Resource
 @export_range(0.0, 0.25, 0.001) var close_wall_reticle_max_y: float = 0.14
 @export var close_wall_reticle_response: float = 16.0
 @export var wall_branch_max_angular_speed_deg: float = 110.0
-@export var wall_branch_max_linear_speed: float = 4.0
+@export var wall_branch_max_linear_speed: float = 8.8
 @export var wall_branch_transition_distance: float = 0.35
 @export var post_solve_position_continuity_weight: float = 0.55
-@export_range(0.05, 0.35, 0.01) var rendered_head_soft_limit_x: float = 0.20
+@export_range(0.05, 0.35, 0.01) var rendered_head_soft_limit_x: float = 0.05
 @export_range(0.10, 0.48, 0.01) var rendered_head_hard_limit_x: float = 0.38
-@export var composition_recovery_speed: float = 6.0
+@export var composition_recovery_speed: float = 12.0
+
+@export_group("Stance Framing")
+@export var low_stance_head_height_start: float = 1.85
+@export var low_stance_head_height_full: float = 0.75
+@export var max_low_stance_camera_drop: float = 1.45
+@export_range(0.0, 1.0, 0.01) var low_stance_pelvis_weight_scale: float = 0.08
+@export_range(0.0, 1.0, 0.01) var low_stance_feet_weight_scale: float = 0.0
 
 @export_group("Movement Follow")
 @export var movement_lead_time: float = 0.0
