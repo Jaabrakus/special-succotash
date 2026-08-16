@@ -274,9 +274,10 @@ func _process(_delta: float) -> void:
     debug_label.text = (
         "SOCOM-141 CAMERA LAB\n"
         + "WASD move | Shift run | Mouse orbit | R reset | H clean HUD | V camera view | P tune | F9 record | F10 replay\n"
-        + "v2.2.4 screen-tethered multiplayer camera\n\n"
+        + "v2.3 Combined Assault preferred shot\n\n"
         + "Vertical FOV     %5.1f°\n" % d.fov
-        + "Camera distance %5.2f m\n" % d.distance
+        + "Rear boom       %5.2f m behind player\n" % d.rear_boom_distance
+        + "Camera range    %5.2f m diagonal to player\n" % d.distance
         + "Camera height   %5.2f m above player\n" % d.height_above_player
         + "Head screen     X %5.3f / %.3f  Y %5.3f / %.3f\n" % [d.head_x, d.head_target_x, d.head_y, d.head_target_y]
         + "Torso screen Y  %5.3f  target %.3f\n" % [d.torso_y, d.torso_target_y]
@@ -550,7 +551,7 @@ func _build_camera_workbench(layer: CanvasLayer) -> void:
     tuning_title.add_theme_font_size_override("font_size", 14)
     tuning_stack.add_child(tuning_title)
 
-    _add_workbench_slider(tuning_stack, "Open distance", &"distance", 2.4, 5.5, 0.05)
+    _add_workbench_slider(tuning_stack, "Open distance", &"distance", 2.0, 5.5, 0.05)
     _add_workbench_slider(tuning_stack, "Open height", &"height", 0.8, 3.5, 0.05)
     _add_workbench_slider(tuning_stack, "Vertical FOV", &"vertical_fov", 45.0, 80.0, 0.5)
     _add_workbench_slider(tuning_stack, "Head screen Y", &"desired_head_y", 0.55, 0.90, 0.005)

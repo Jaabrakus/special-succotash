@@ -2105,9 +2105,18 @@ func get_debug_data() -> Dictionary:
                 camera_forward.angle_to(weapon_to_aim)
             )
 
+    var rear_boom_distance: float = 0.0
+    if target:
+        var yaw_back: Vector3 = Basis(Vector3.UP, yaw) * Vector3.BACK
+        rear_boom_distance = maxf(
+            (global_position - target.global_position).dot(yaw_back),
+            0.0
+        )
+
     return {
         "fov": camera.fov if camera else profile.vertical_fov,
         "distance": global_position.distance_to(target.global_position) if target else 0.0,
+        "rear_boom_distance": rear_boom_distance,
         "height_above_player": global_position.y - target.global_position.y if target else 0.0,
         "head_x": head_x,
         "head_y": head_y,
