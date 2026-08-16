@@ -13,11 +13,18 @@ turning debug values into permanent game rules.
 
 ## Colors
 
-- Blue: unconstrained preferred camera position.
-- Yellow: legal collision/post-solve target.
-- Green: camera position actually rendered after continuity filtering.
-- White: clear muzzle-to-aim path.
-- Red: muzzle obstruction before the displayed aim point.
+- Dim blue: backward boom from the player anchor to the unconstrained preferred
+  lens position.
+- Dim yellow: backward boom to the legal collision/post-solve lens target.
+- Dim green: backward boom to the lens position actually rendered after
+  continuity filtering.
+- Bright cyan: the rendered camera's forward optical ray.
+- Bright white: the weapon's forward muzzle-to-aim ray.
+- Bright red: the weapon ray is obstructed before the displayed aim point.
+
+The three dim lines visualize camera placement and are not aim directions. Only
+compare the two bright forward rays when auditing camera/weapon alignment. The
+HUD `Ray audit` value reports their actual angular difference.
 
 ## Audit interpretation
 

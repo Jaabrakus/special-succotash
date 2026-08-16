@@ -47,6 +47,12 @@ Gun yaw and pitch remain immediate and independent. In the exceptional perched
 state, the bounded soft reticle displays gun/camera parallax while the camera
 finishes its legal transition; muzzle obstruction remains authoritative.
 
+The camera workbench distinguishes placement from direction: dim blue, yellow,
+and green segments point backward to candidate/rendered lens positions, while
+bright cyan and white point forward along the rendered camera and weapon rays.
+The on-screen ray audit reports the angular difference between those two
+forward rays so boom displacement cannot be mistaken for aim divergence.
+
 `tools/run_camera_regression.sh` now reproduces the reported sequence: approach
 the wall, remain perched while turning, back away, and keep turning. It also
 checks the existing wall sweep, tight interior, and rooftop downward aim. The

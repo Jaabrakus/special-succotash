@@ -1701,6 +1701,10 @@ func get_debug_data() -> Dictionary:
     var torso_y := -1.0
     var pelvis_y := -1.0
     var feet_y := -1.0
+    var aim_screen_x := -1.0
+    var aim_screen_y := -1.0
+    var camera_weapon_angle_deg := 0.0
+    var camera_aim_angle_deg := 0.0
     if head_marker and camera:
         head_x = camera.unproject_position(head_marker.global_position).x / maxf(viewport_size.x, 1.0)
         head_y = camera.unproject_position(head_marker.global_position).y / maxf(viewport_size.y, 1.0)
@@ -1710,6 +1714,21 @@ func get_debug_data() -> Dictionary:
         pelvis_y = camera.unproject_position(pelvis_marker.global_position).y / maxf(viewport_size.y, 1.0)
     if feet_marker and camera:
         feet_y = camera.unproject_position(feet_marker.global_position).y / maxf(viewport_size.y, 1.0)
+    if camera and aim_point != Vector3.ZERO and not camera.is_position_behind(aim_point):
+        var aim_pixels := camera.unproject_position(aim_point)
+        aim_screen_x = aim_pixels.x / maxf(viewport_size.x, 1.0)
+        aim_screen_y = aim_pixels.y / maxf(viewport_size.y, 1.0)
+        var camera_forward: Vector3 = -camera.global_basis.z.normalized()
+        var camera_to_aim: Vector3 = (aim_point - camera.global_position).normalized()
+        camera_aim_angle_deg = rad_to_deg(camera_forward.angle_to(camera_to_aim))
+        var mannequin = target.get_node_or_null("Mannequin") if target else null
+        if mannequin and mannequin.muzzle_marker:
+            var weapon_to_aim: Vector3 = (
+                aim_point - mannequin.muzzle_marker.global_position
+            ).normalized()
+            camera_weapon_angle_deg = rad_to_deg(
+                camera_forward.angle_to(weapon_to_aim)
+            )
 
     return {
         "fov": camera.fov if camera else profile.vertical_fov,
@@ -1745,6 +1764,10 @@ func get_debug_data() -> Dictionary:
         "reticle_x": reticle_screen_normalized.x,
         "reticle_y": reticle_screen_normalized.y,
         "reticle_dynamic_amount": reticle_dynamic_amount,
+        "aim_screen_x": aim_screen_x,
+        "aim_screen_y": aim_screen_y,
+        "camera_weapon_angle_deg": camera_weapon_angle_deg,
+        "camera_aim_angle_deg": camera_aim_angle_deg,
         "collision_cast_count": collision_cast_count,
         "collision_solver_usec": collision_solver_usec,
         "camera_state": get_camera_state_name(),

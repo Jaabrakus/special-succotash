@@ -45,10 +45,25 @@ func _process(_delta: float) -> void:
 
     _lines.clear_surfaces()
     _lines.surface_begin(Mesh.PRIMITIVE_LINES, _line_material)
-    _segment(anchor, camera_rig.preferred_camera_position, Color(0.20, 0.78, 1.0))
-    _segment(anchor, camera_rig.collision_camera_position, Color(1.0, 0.75, 0.20))
-    _segment(anchor, camera_rig.global_position, Color(0.25, 1.0, 0.42))
-    _segment(muzzle, camera_rig.aim_point, (
+    # These three muted lines are camera booms: they point from the player
+    # anchor backward to candidate lens positions. They are not view/aim rays.
+    _segment(anchor, camera_rig.preferred_camera_position, Color(0.08, 0.32, 0.48))
+    _segment(anchor, camera_rig.collision_camera_position, Color(0.46, 0.34, 0.06))
+    _segment(anchor, camera_rig.global_position, Color(0.08, 0.38, 0.16))
+
+    # Compare like with like: the bright cyan optical ray and white/red weapon
+    # ray both point forward for the same fixed display distance.
+    var ray_length := 7.0
+    var camera_forward: Vector3 = -camera_rig.camera.global_basis.z.normalized()
+    var weapon_forward: Vector3 = (camera_rig.aim_point - muzzle).normalized()
+    if weapon_forward.length_squared() < 0.99:
+        weapon_forward = camera_forward
+    _segment(
+        camera_rig.global_position,
+        camera_rig.global_position + camera_forward * ray_length,
+        Color(0.15, 0.95, 1.0)
+    )
+    _segment(muzzle, muzzle + weapon_forward * ray_length, (
         Color(1.0, 0.24, 0.18)
         if camera_rig.shot_blocked
         else Color(1.0, 1.0, 1.0)

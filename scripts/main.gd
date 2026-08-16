@@ -232,6 +232,7 @@ func _process(_delta: float) -> void:
         + "State machine   %s  age %.2fs  transitions %d\n" % [d.camera_state, d.camera_state_age, d.camera_state_transitions]
         + "Wall crane      %s  blend %4.0f%%  convergence %.2f m\n" % ["ACTIVE" if d.collision_crane_active else "idle", d.collision_crane_view_amount * 100.0, d.collision_crane_look_ahead]
         + "Soft reticle    X %.3f  Y %.3f  authority %4.0f%%\n" % [d.reticle_x, d.reticle_y, d.reticle_dynamic_amount * 100.0]
+        + "Ray audit       camera↔weapon %.2f°  aim screen X %.3f Y %.3f\n" % [d.camera_weapon_angle_deg, d.aim_screen_x, d.aim_screen_y]
         + "Geometry cull    DISABLED (fair sightlines)\n"
         + "Movement lead   %5.1f%%  X %+.2f  Z %+.2f\n" % [d.movement_speed_ratio * 100.0, d.movement_lead.x, d.movement_lead.z]
         + "Downward intent %5.1f%%  crane %5.1f%%  ledge +%.2f m  aim %s\n" % [d.downward_aim_amount * 100.0, d.downward_crane_amount * 100.0, d.downward_ledge_raise, d.aim_collider]
@@ -460,7 +461,7 @@ func _build_camera_workbench(layer: CanvasLayer) -> void:
     spectator_viewport.add_child(spectator_camera)
 
     var legend := Label.new()
-    legend.text = "BLUE preferred  •  YELLOW legal  •  GREEN rendered  •  WHITE/RED aim"
+    legend.text = "DIM = backward booms  •  CYAN = camera view  •  WHITE/RED = weapon aim"
     legend.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
     legend.add_theme_font_size_override("font_size", 11)
     spectator_stack.add_child(legend)
