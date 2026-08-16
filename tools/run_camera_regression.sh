@@ -91,6 +91,16 @@ check_camera_motion "$report_dir/wall-turn.log" "wall sweep" 0.25
 check_camera_motion "$report_dir/wall-follow.log" "player leaves wall" 0.25
 check_camera_motion "$report_dir/interior.log" "tight interior" 0.25
 
+if ! rg -q '"virtual_wall_occluder":"LeftWall"' "$report_dir/wall-entry.log"; then
+  print -u2 "FAIL: rear-wall aim scenario never crossed the virtual wall"
+  exit 1
+fi
+if rg '"virtual_wall_occluder":"LeftWall"' "$report_dir/wall-entry.log" | rg -q '"aim_collider":"LeftWall"'; then
+  print -u2 "FAIL: hidden wall behind the player captured the forward reticle"
+  exit 1
+fi
+print "rear-wall aim: hidden wall ignored by forward reticle acquisition"
+
 if ! awk -F, '/^WALL_AUDIT/ && $10 == 1 { found = 1 } END { exit !found }' "$report_dir/wall-follow.log"; then
   print -u2 "FAIL: player-leaves-wall scenario never entered camera collision"
   exit 1
