@@ -14,12 +14,15 @@ var pelvis_marker: Marker3D
 var feet_marker: Marker3D
 var muzzle_marker: Marker3D
 
+var skeleton_root: Node3D
 var pelvis_bone: Node3D
 var spine_bone: Node3D
 var chest_bone: Node3D
 var neck_bone: Node3D
 var head_bone: Node3D
 var weapon_bone: Node3D
+var left_hand_bone: Node3D
+var right_hand_bone: Node3D
 var head_mesh: MeshInstance3D
 var helmet_mesh: MeshInstance3D
 
@@ -39,6 +42,9 @@ var left_hand_mesh: MeshInstance3D
 var right_hand_mesh: MeshInstance3D
 var left_grip_target: Marker3D
 var right_grip_target: Marker3D
+var attachment_sockets: Dictionary = {}
+var proxy_visuals: Array[GeometryInstance3D] = []
+var proxy_visuals_visible: bool = true
 
 var gait_time: float = 0.0
 var gait_strength: float = 0.0
@@ -233,12 +239,17 @@ func _build_rig() -> void:
     var boot := _material(Color(0.07, 0.075, 0.07))
     var weapon := _material(Color(0.055, 0.06, 0.058))
 
-    # Bone-like Node3D hierarchy. This deliberately mirrors a production skeleton:
-    # pelvis -> spine -> chest -> neck -> head, with limbs parented at joints.
+    # Gameplay logic owns this lightweight logical skeleton. The calibration
+    # body below is only one visual skin; Sprite3D, MeshInstance3D, equipment,
+    # and a future imported rig can mount to the same named sockets.
+    skeleton_root = Node3D.new()
+    skeleton_root.name = "SkeletonRoot"
+    add_child(skeleton_root)
+
     pelvis_bone = Node3D.new()
     pelvis_bone.name = "PelvisBone"
     pelvis_bone.position = Vector3(0, 0.93, 0)
-    add_child(pelvis_bone)
+    skeleton_root.add_child(pelvis_bone)
     _box_on(pelvis_bone, "Pelvis", Vector3(0.54, 0.28, 0.30), Vector3.ZERO, uniform)
 
     spine_bone = Node3D.new()
@@ -273,6 +284,7 @@ func _build_rig() -> void:
     _build_legs(uniform, boot)
     _build_rifle(weapon)
     _build_markers()
+    _build_attachment_sockets()
 
 func set_near_camera_crop(active: bool) -> void:
     # Keep the complete operator in the workbench spectator layer while the
@@ -296,7 +308,11 @@ func _build_arms(uniform: StandardMaterial3D, skin: StandardMaterial3D) -> void:
     left_elbow.rotation_degrees = Vector3(-68, -8, 7)
     left_shoulder.add_child(left_elbow)
     left_forearm_mesh = _capsule_on(left_elbow, "LeftForearm", 0.065, 0.42, Vector3(0, -0.21, 0), uniform)
-    left_hand_mesh = _sphere_on(left_elbow, "LeftHand", 0.082, Vector3(0, -0.44, 0), skin)
+    left_hand_bone = Node3D.new()
+    left_hand_bone.name = "LeftHandBone"
+    left_hand_bone.position = Vector3(0, -0.44, 0)
+    left_elbow.add_child(left_hand_bone)
+    left_hand_mesh = _sphere_on(left_hand_bone, "LeftHand", 0.082, Vector3.ZERO, skin)
 
     right_shoulder = Node3D.new()
     right_shoulder.name = "RightShoulderBone"
@@ -311,7 +327,11 @@ func _build_arms(uniform: StandardMaterial3D, skin: StandardMaterial3D) -> void:
     right_elbow.rotation_degrees = Vector3(-79, 7, -5)
     right_shoulder.add_child(right_elbow)
     right_forearm_mesh = _capsule_on(right_elbow, "RightForearm", 0.065, 0.42, Vector3(0, -0.21, 0), uniform)
-    right_hand_mesh = _sphere_on(right_elbow, "RightHand", 0.082, Vector3(0, -0.44, 0), skin)
+    right_hand_bone = Node3D.new()
+    right_hand_bone.name = "RightHandBone"
+    right_hand_bone.position = Vector3(0, -0.44, 0)
+    right_elbow.add_child(right_hand_bone)
+    right_hand_mesh = _sphere_on(right_hand_bone, "RightHand", 0.082, Vector3.ZERO, skin)
 
 func _build_legs(uniform: StandardMaterial3D, boot: StandardMaterial3D) -> void:
     left_hip = Node3D.new()
@@ -375,18 +395,18 @@ func _solve_weapon_hands() -> void:
     _solve_arm_ik(
         left_shoulder,
         left_elbow,
+        left_hand_bone,
         left_upper_arm_mesh,
         left_forearm_mesh,
-        left_hand_mesh,
         left_grip_target.global_position,
         (-lateral + Vector3.DOWN * 0.35).normalized()
     )
     _solve_arm_ik(
         right_shoulder,
         right_elbow,
+        right_hand_bone,
         right_upper_arm_mesh,
         right_forearm_mesh,
-        right_hand_mesh,
         right_grip_target.global_position,
         (lateral + Vector3.DOWN * 0.35).normalized()
     )
@@ -394,9 +414,9 @@ func _solve_weapon_hands() -> void:
 func _solve_arm_ik(
     shoulder: Node3D,
     elbow: Node3D,
+    hand: Node3D,
     upper_mesh: MeshInstance3D,
     forearm_mesh: MeshInstance3D,
-    hand_mesh: MeshInstance3D,
     hand_target: Vector3,
     pole_direction: Vector3
 ) -> void:
@@ -423,7 +443,8 @@ func _solve_arm_ik(
 
     var elbow_position: Vector3 = shoulder_position + direction * elbow_along + projected_pole * elbow_height
     elbow.global_position = elbow_position
-    hand_mesh.global_position = hand_target
+    hand.global_position = hand_target
+    hand.global_basis = weapon_bone.global_basis
     _align_limb_mesh(upper_mesh, shoulder_position, elbow_position, 0.46)
     _align_limb_mesh(forearm_mesh, elbow_position, hand_target, 0.42)
 
@@ -459,6 +480,87 @@ func _build_markers() -> void:
     feet_marker.position = Vector3(0.0, 0.04, 0.0)
     add_child(feet_marker)
 
+func _build_attachment_sockets() -> void:
+    # Stable public names are the contract between animation/gameplay and art.
+    # A replacement visual never needs to know how this calibration proxy was
+    # assembled; it only asks for one of these sockets.
+    _register_socket(&"root", skeleton_root)
+    _register_socket(&"pelvis", pelvis_bone)
+    _register_socket(&"spine", spine_bone)
+    _register_socket(&"chest", chest_bone)
+    _register_socket(&"neck", neck_bone)
+    _register_socket(&"head", head_bone)
+    _register_socket(&"left_shoulder", left_shoulder)
+    _register_socket(&"left_elbow", left_elbow)
+    _register_socket(&"left_hand", left_hand_bone)
+    _register_socket(&"right_shoulder", right_shoulder)
+    _register_socket(&"right_elbow", right_elbow)
+    _register_socket(&"right_hand", right_hand_bone)
+    _register_socket(&"left_hip", left_hip)
+    _register_socket(&"left_knee", left_knee)
+    _register_socket(&"right_hip", right_hip)
+    _register_socket(&"right_knee", right_knee)
+    _register_socket(&"weapon", weapon_bone)
+    _register_socket(&"muzzle", muzzle_marker)
+
+    _register_socket(&"face", _socket_on(head_bone, "FaceSocket", Vector3(0, 0.01, -0.23)))
+    _register_socket(&"helmet", _socket_on(head_bone, "HelmetSocket", Vector3(0, 0.14, 0)))
+    _register_socket(&"back", _socket_on(chest_bone, "BackSocket", Vector3(0, -0.04, 0.24)))
+    _register_socket(&"left_foot", _socket_on(left_knee, "LeftFootSocket", Vector3(0, -0.56, -0.07)))
+    _register_socket(&"right_foot", _socket_on(right_knee, "RightFootSocket", Vector3(0, -0.56, -0.07)))
+
+func _register_socket(socket_name: StringName, socket: Node3D) -> void:
+    attachment_sockets[socket_name] = socket
+
+func _socket_on(parent: Node3D, socket_name: String, position: Vector3) -> Marker3D:
+    var socket := Marker3D.new()
+    socket.name = socket_name
+    socket.position = position
+    parent.add_child(socket)
+    return socket
+
+func get_attachment_socket(socket_name: StringName) -> Node3D:
+    return attachment_sockets.get(socket_name) as Node3D
+
+func get_attachment_socket_names() -> Array[StringName]:
+    var names: Array[StringName] = []
+    for socket_name in attachment_sockets:
+        names.append(socket_name as StringName)
+    names.sort()
+    return names
+
+func mount_visual(
+    socket_name: StringName,
+    visual: Node3D,
+    keep_global_transform: bool = false
+) -> bool:
+    var socket := get_attachment_socket(socket_name)
+    if socket == null or visual == null:
+        return false
+    if visual.get_parent() == null:
+        socket.add_child(visual)
+    else:
+        visual.reparent(socket, keep_global_transform)
+    if not keep_global_transform:
+        visual.transform = Transform3D.IDENTITY
+    visual.set_meta("socom_attachment", true)
+    visual.set_meta("socom_socket", socket_name)
+    return true
+
+func clear_mounted_visuals(socket_name: StringName) -> void:
+    var socket := get_attachment_socket(socket_name)
+    if socket == null:
+        return
+    for child in socket.get_children():
+        if child.has_meta("socom_attachment"):
+            child.queue_free()
+
+func set_proxy_visuals_visible(active: bool) -> void:
+    proxy_visuals_visible = active
+    for visual in proxy_visuals:
+        if is_instance_valid(visual):
+            visual.visible = active
+
 func _box_on(parent: Node3D, part_name: String, size: Vector3, position: Vector3, material: StandardMaterial3D) -> MeshInstance3D:
     var part := MeshInstance3D.new()
     part.name = part_name
@@ -468,6 +570,7 @@ func _box_on(parent: Node3D, part_name: String, size: Vector3, position: Vector3
     part.mesh = mesh
     part.position = position
     parent.add_child(part)
+    proxy_visuals.append(part)
     return part
 
 func _sphere_on(parent: Node3D, part_name: String, radius: float, position: Vector3, material: StandardMaterial3D) -> MeshInstance3D:
@@ -480,6 +583,7 @@ func _sphere_on(parent: Node3D, part_name: String, radius: float, position: Vect
     part.mesh = mesh
     part.position = position
     parent.add_child(part)
+    proxy_visuals.append(part)
     return part
 
 func _cylinder_on(parent: Node3D, part_name: String, radius: float, height: float, position: Vector3, material: StandardMaterial3D) -> MeshInstance3D:
@@ -493,6 +597,7 @@ func _cylinder_on(parent: Node3D, part_name: String, radius: float, height: floa
     part.mesh = mesh
     part.position = position
     parent.add_child(part)
+    proxy_visuals.append(part)
     return part
 
 func _capsule_on(parent: Node3D, part_name: String, radius: float, height: float, position: Vector3, material: StandardMaterial3D) -> MeshInstance3D:
@@ -505,6 +610,7 @@ func _capsule_on(parent: Node3D, part_name: String, radius: float, height: float
     part.mesh = mesh
     part.position = position
     parent.add_child(part)
+    proxy_visuals.append(part)
     return part
 
 func _material(color: Color) -> StandardMaterial3D:
