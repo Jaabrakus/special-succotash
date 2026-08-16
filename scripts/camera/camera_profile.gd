@@ -112,6 +112,10 @@ extends Resource
 @export_range(0.0, 0.35, 0.001) var close_wall_reticle_max_x: float = 0.20
 @export_range(0.0, 0.25, 0.001) var close_wall_reticle_max_y: float = 0.14
 @export var close_wall_reticle_response: float = 16.0
+@export var wall_branch_max_angular_speed_deg: float = 110.0
+@export var wall_branch_max_linear_speed: float = 8.0
+@export var wall_branch_transition_distance: float = 0.35
+@export var post_solve_position_continuity_weight: float = 0.55
 
 @export_group("Movement Follow")
 @export var movement_lead_time: float = 0.0

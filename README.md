@@ -1,6 +1,25 @@
-# SOCOM-141 Camera Lab — v2.0 restored baseline
+# SOCOM-141 Camera Lab — v2.0.5 continuous wall camera
 
 A runnable Godot 4 prototype for developing a SOCOM-style independent tactical camera and body/aim relationship.
+
+## v2.0.5: continuous wall-entry and orbit transitions
+
+The collision solver may still discover different legal boom branches while
+the operator backs into a wall and turns, but the rendered camera can no longer
+jump directly between them. Branch changes now have positional continuity,
+angular and linear speed limits, and a legal-ray retraction/hold stage. Every
+intermediate lens position is volume-cast again, so smoothing never becomes a
+see-through-wall exploit.
+
+Gun yaw and pitch remain immediate and independent. In the exceptional perched
+state, the bounded soft reticle displays gun/camera parallax while the camera
+finishes its legal transition; muzzle obstruction remains authoritative.
+
+`tools/run_camera_regression.sh` now reproduces the reported sequence: approach
+the wall, remain perched while turning, back away, and keep turning. It also
+checks the existing wall sweep, tight interior, and rooftop downward aim. The
+original failing sequence moved the camera `6.99 m` in one update; the guarded
+sequence is capped at approximately `0.133 m` with no unreadable frames.
 
 ## v2.0.4: gun-camera soft reticle convergence
 

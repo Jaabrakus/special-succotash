@@ -91,6 +91,7 @@ func _ready() -> void:
     automated_wall_turn = (
         OS.get_cmdline_user_args().has("--wall-turn-test")
         or OS.get_cmdline_user_args().has("--interior-turn-test")
+        or OS.get_cmdline_user_args().has("--wall-entry-test")
     )
     if OS.get_cmdline_user_args().has("--upward-aim-test"):
         pitch = deg_to_rad(20.0)
@@ -254,7 +255,11 @@ func _physics_process(delta: float) -> void:
         current_camera_position = _smooth_legal_camera_position(
             collision_camera_position,
             delta,
-            collision_active or wall_context_amount > 0.05,
+            (
+                collision_active
+                or wall_context_amount > 0.05
+                or collision_crane_view_amount > 0.01
+            ),
             movement_response
         )
 
@@ -282,10 +287,20 @@ func _apply_collision_result(result: Dictionary) -> void:
         ))
 
 func _update_collision_crane_view(delta: float) -> void:
-    var view_target: float = 1.0 if collision_crane_active else 0.0
+    var branch_transition_active: bool = (
+        collision_crane_view_amount > 0.01
+        and current_camera_position != Vector3.ZERO
+        and current_camera_position.distance_to(collision_camera_position)
+            > profile.wall_branch_transition_distance
+    )
+    var view_target: float = (
+        1.0
+        if collision_crane_active or branch_transition_active
+        else 0.0
+    )
     var response: float = (
         profile.close_wall_crane_enter_response
-        if collision_crane_active
+        if view_target > 0.5
         else profile.close_wall_crane_exit_response
     )
     collision_crane_view_amount = lerpf(
@@ -360,11 +375,34 @@ func _smooth_legal_camera_position(
         ):
             return transition_candidate
 
-    # The boom direction follows input immediately. Collision is therefore
-    # incapable of consuming or lagging yaw: it controls only how far the lens
-    # may extend on the requested ray. Compression must be immediate for
-    # safety; outward release is damped to prevent a wall-exit pop.
+    # Raw aim follows input immediately. The visible lens normally follows the
+    # requested boom, but a close-wall branch change slews between fully legal
+    # rays while the gun/reticle keep the player's yaw and pitch authoritative.
+    # Outward release remains damped to prevent a wall-exit pop.
     var current_length: float = current_offset.length()
+    var current_direction: Vector3 = (
+        current_offset / current_length
+        if current_length > 0.001
+        else desired_offset.normalized()
+    )
+    var desired_direction := desired_offset.normalized()
+    var next_direction := desired_direction
+    var branch_angle: float = acos(clampf(
+        current_direction.dot(desired_direction),
+        -1.0,
+        1.0
+    ))
+    var branch_transition: bool = (
+        close_context and branch_angle > deg_to_rad(0.5)
+    )
+    if branch_transition:
+        var maximum_angle_step := (
+            deg_to_rad(profile.wall_branch_max_angular_speed_deg) * delta
+        )
+        next_direction = current_direction.slerp(
+            desired_direction,
+            minf(1.0, maximum_angle_step / maxf(branch_angle, 0.0001))
+        ).normalized()
     var next_length: float = desired_length
     if desired_length > current_length:
         var release_response: float = (
@@ -383,19 +421,34 @@ func _smooth_legal_camera_position(
         release_step = minf(release_step, release_speed * delta)
         next_length = minf(current_length + release_step, desired_length)
 
-    var candidate: Vector3 = anchor + desired_offset.normalized() * next_length
+    var candidate: Vector3 = anchor + next_direction * next_length
+    if branch_transition:
+        var candidate_motion := candidate - current_camera_position
+        var maximum_linear_step: float = (
+            profile.wall_branch_max_linear_speed * delta
+        )
+        if candidate_motion.length() > maximum_linear_step:
+            candidate = (
+                current_camera_position
+                + candidate_motion.normalized() * maximum_linear_step
+            )
     var exclude: Array[RID] = []
     if target is CollisionObject3D:
         exclude.append((target as CollisionObject3D).get_rid())
     var candidate_cast := _cast_camera_volume(anchor, candidate, exclude)
     var candidate_readable: bool = _candidate_is_subject_readable(candidate)
-    if collision_crane_active:
+    if branch_transition:
+        candidate_readable = _projection_is_reframeable(
+            _subject_projection(candidate)
+        )
+    if collision_crane_active or collision_crane_view_amount > 0.01:
         candidate_readable = _projection_is_reframeable(
             _subject_projection_to(
                 candidate,
                 candidate + _perched_view_direction(
                     candidate,
-                    collision_crane_look_ahead
+                    collision_crane_look_ahead,
+                    smoothstep(0.0, 1.0, collision_crane_view_amount)
                 ) * profile.look_ahead_distance
             )
         )
@@ -404,6 +457,69 @@ func _smooth_legal_camera_position(
         and candidate_readable
     ):
         return candidate
+
+    # A blocked intermediate angle does not make the solver's distant legal
+    # endpoint safe to render this frame. Returning `desired` here used to
+    # bypass the branch slew entirely and teleport the lens to the opposite
+    # side of the operator. Retract on the currently rendered legal ray until
+    # a continuous angular route opens. Aim remains authoritative through the
+    # independent gun ray and bounded reticle while the camera clears the wall.
+    if branch_transition:
+        var continuity_length: float = maxf(
+            profile.min_camera_target_distance + profile.camera_collision_radius,
+            current_length - profile.wall_branch_max_linear_speed * delta
+        )
+        var continuity_candidate := anchor + current_direction * continuity_length
+        var continuity_cast := _cast_camera_volume(
+            anchor,
+            continuity_candidate,
+            exclude
+        )
+        var continuity_readable := _projection_is_reframeable(
+            _subject_projection(continuity_candidate)
+        )
+        if collision_crane_view_amount > 0.01:
+            continuity_readable = _projection_is_reframeable(
+                _subject_projection_to(
+                    continuity_candidate,
+                    continuity_candidate + _perched_view_direction(
+                        continuity_candidate,
+                        collision_crane_look_ahead,
+                        smoothstep(0.0, 1.0, collision_crane_view_amount)
+                    ) * profile.look_ahead_distance
+                )
+            )
+        if (
+            continuity_cast.safe_fraction >= 0.999
+            and continuity_readable
+        ):
+            return continuity_candidate
+
+        # The current world-space lens is the last known rendered shot. It is
+        # preferable to hold one frame than cross geometry or snap branches.
+        # This check is repeated against the live player anchor, so movement
+        # cannot preserve a stale position after it ceases to be legal.
+        var hold_cast := _cast_camera_volume(
+            anchor,
+            current_camera_position,
+            exclude
+        )
+        var hold_readable := _projection_is_reframeable(
+            _subject_projection(current_camera_position)
+        )
+        if collision_crane_view_amount > 0.01:
+            hold_readable = _projection_is_reframeable(
+                _subject_projection_to(
+                    current_camera_position,
+                    current_camera_position + _perched_view_direction(
+                        current_camera_position,
+                        collision_crane_look_ahead,
+                        smoothstep(0.0, 1.0, collision_crane_view_amount)
+                    ) * profile.look_ahead_distance
+                )
+            )
+        if hold_cast.safe_fraction >= 0.999 and hold_readable:
+            return current_camera_position
     return desired
 
 func _preferred_position() -> Vector3:
@@ -758,6 +874,10 @@ func _solve_better_post_collision(
                 score += absf(angle_deg) * 0.012
                 score += absf(1.0 - radius_scale) * 0.35
                 score += lift * 0.12
+                if current_camera_position != Vector3.ZERO:
+                    score += destination.distance_to(current_camera_position) * (
+                        profile.post_solve_position_continuity_weight
+                    )
                 if not best_is_readable or score < best_score:
                     best_is_readable = true
                     best_score = score
@@ -791,6 +911,10 @@ func _solve_better_post_collision(
                 continue
             var score: float = _post_solve_projection_score(projection)
             score += destination.distance_to(best_position) * 0.08
+            if current_camera_position != Vector3.ZERO:
+                score += destination.distance_to(current_camera_position) * (
+                    profile.post_solve_position_continuity_weight
+                )
             if score < best_score:
                 best_score = score
                 best_position = destination

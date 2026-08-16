@@ -41,6 +41,7 @@ func _ready() -> void:
     wall_test_active = (
         OS.get_cmdline_user_args().has("--wall-test")
         or OS.get_cmdline_user_args().has("--wall-turn-test")
+        or OS.get_cmdline_user_args().has("--wall-entry-test")
     )
     if roof_test_active:
         _set_roof_test_position(true)
@@ -128,6 +129,8 @@ func _process(_delta: float) -> void:
                 d.collision_solver_usec
             ]
         )
+    if OS.get_cmdline_user_args().has("--transition-audit"):
+        print("CAMERA_TRANSITION ", JSON.stringify(d))
     var wall_turn_sample: bool = (
         OS.get_cmdline_user_args().has("--wall-turn-test")
         and process_frame in [30, 60, 90, 120, 180, 240, 360, 480, 600, 720]
@@ -137,7 +140,7 @@ func _process(_delta: float) -> void:
     debug_label.text = (
         "SOCOM-141 CAMERA LAB\n"
         + "WASD move | Shift run | Mouse orbit | R reset | C calibration | H clean HUD | T roof | I interior | B wall\n"
-        + "v2.0.4 gun-camera soft reticle convergence\n\n"
+        + "v2.0.5 continuous wall-entry + branch slew\n\n"
         + "Vertical FOV     %5.1f°\n" % d.fov
         + "Camera distance %5.2f m\n" % d.distance
         + "Camera height   %5.2f m above player\n" % d.height_above_player
@@ -258,7 +261,11 @@ func _set_indoor_test_position(enabled: bool) -> void:
 func _set_wall_test_position(enabled: bool) -> void:
     player.velocity = Vector3.ZERO
     if enabled:
-        player.global_position = Vector3(-3.72, 0.05, -1.0)
+        player.global_position = (
+            Vector3(-2.55, 0.05, -1.0)
+            if OS.get_cmdline_user_args().has("--wall-entry-test")
+            else Vector3(-3.72, 0.05, -1.0)
+        )
         if camera_rig:
             camera_rig.yaw = deg_to_rad(20.0)
             camera_rig.pitch = deg_to_rad(-6.0)

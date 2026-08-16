@@ -11,8 +11,16 @@ var movement_yaw: float = 0.0
 
 func _physics_process(delta: float) -> void:
     var input := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
+    var automated_world_direction := Vector3.ZERO
     if OS.get_cmdline_user_args().has("--movement-test"):
         input = Vector2(1.0, 0.0)
+    elif OS.get_cmdline_user_args().has("--wall-entry-test"):
+        input = Vector2.ZERO
+        var test_frame := Engine.get_physics_frames()
+        if test_frame < 150:
+            automated_world_direction = Vector3.LEFT
+        elif test_frame >= 420 and test_frame < 540:
+            automated_world_direction = Vector3.RIGHT
     elif OS.get_cmdline_user_args().has("--automated-test"):
         input = Vector2.ZERO
     var camera := get_viewport().get_camera_3d()
@@ -28,6 +36,8 @@ func _physics_process(delta: float) -> void:
         right = right.normalized()
 
     var desired_dir := (right * input.x + forward * -input.y)
+    if automated_world_direction != Vector3.ZERO:
+        desired_dir = automated_world_direction
     if desired_dir.length_squared() > 1.0:
         desired_dir = desired_dir.normalized()
 
