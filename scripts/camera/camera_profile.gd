@@ -104,6 +104,12 @@ extends Resource
 @export var collision_release_max_radial_speed: float = 4.5
 @export var wall_context_enter_response: float = 12.0
 @export var wall_context_exit_response: float = 4.5
+@export var close_wall_crane_max_height: float = 3.75
+@export var close_wall_crane_aim_height: float = 1.45
+@export var close_wall_crane_default_look_ahead: float = 3.0
+@export var close_wall_crane_trigger_head_distance: float = 0.85
+@export var close_wall_crane_enter_response: float = 9.0
+@export var close_wall_crane_exit_response: float = 12.0
 
 @export_group("Movement Follow")
 @export var movement_lead_time: float = 0.0

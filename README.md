@@ -2,6 +2,22 @@
 
 A runnable Godot 4 prototype for developing a SOCOM-style independent tactical camera and body/aim relationship.
 
+## v2.0.3: close-wall crane continuity
+
+Only when the operator is perched directly against an outdoor wall and the
+two-stage search reaches an angle with no new readable boom, the camera no
+longer collapses from the last good shot into the operator's head. The last
+rendered volume-clear, subject-clear position becomes a continuity seed, and
+the post-solver probes progressively higher positions on the same legal side of
+the wall. Ordinary wall contact and enclosed rooms keep their existing solve.
+
+The camera never passes through the wall: every held or raised position is
+volume-cast again from the player anchor. This removes the discontinuous
+`2.78 m` to `2.03 m` inner-head snap visible in the reported wall transition.
+The rendered perched-wall view eases toward a near point driven by the current
+input so the upper body remains readable; gameplay aim remains the raw player
+yaw/pitch ray, and muzzle collision continues to block shots through walls.
+
 ## v2.0.2: two-stage close-wall post-solve
 
 Collision now supplies only a legal boundary seed. The camera first runs its

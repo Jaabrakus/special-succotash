@@ -61,6 +61,11 @@ var post_validated_score: float = -1.0
 var post_validated_clearance: bool = false
 var post_initial_head_distance: float = -1.0
 var post_validated_head_distance: float = -1.0
+var last_readable_post_solve_position := Vector3.ZERO
+var collision_crane_active: bool = false
+var collision_crane_look_ahead: float = 3.0
+var collision_crane_aim_height: float = 1.45
+var collision_crane_view_amount: float = 0.0
 var camera_collision_shape := SphereShape3D.new()
 var collision_cast_count: int = 0
 var collision_solver_usec: int = 0
@@ -128,6 +133,11 @@ func _physics_process(delta: float) -> void:
     # Framing must measure the same projection that will be rendered this frame.
     # Updating FOV after composition caused a one-frame scale/pop disagreement.
     _update_dynamic_fov(delta)
+
+    # A crane view is a result of this frame's collision solve, never an input
+    # to the preferred-shot composition pass. Clearing it here prevents the
+    # previous wall frame from biasing the next open/preferred solve.
+    collision_crane_active = false
 
     preferred_camera_position = _preferred_position()
     var composed_position := _solve_framing(preferred_camera_position)
@@ -213,7 +223,17 @@ func _physics_process(delta: float) -> void:
         # in the collision name instead of exposing a raw fallback state.
         post_collision_reframe = true
 
+    # Keep one fixed legal composition anchor for crane continuity. A
+    # constrained frame never overwrites it, so repeated frames cannot
+    # accumulate height or walk the camera away from the player.
+    if (
+        _candidate_has_subject_clearance(collision_camera_position)
+        and _candidate_is_reframeable(collision_camera_position)
+    ):
+        last_readable_post_solve_position = collision_camera_position
+
     collision_solver_usec = Time.get_ticks_usec() - collision_solve_started
+    _update_collision_crane_view(delta)
     _update_wall_camera_state(delta)
     _update_tight_space_state(delta)
 
@@ -252,6 +272,29 @@ func _apply_collision_result(result: Dictionary) -> void:
     local_cutout_active = result.local_cutout
     local_cutout_center = result.cutout_center
     local_cutout_node = result.cutout_node
+    collision_crane_active = bool(result.get("crane_active", false))
+    if collision_crane_active:
+        collision_crane_look_ahead = float(result.get(
+            "crane_look_ahead",
+            profile.close_wall_crane_default_look_ahead
+        ))
+        collision_crane_aim_height = float(result.get(
+            "crane_aim_height",
+            profile.close_wall_crane_aim_height
+        ))
+
+func _update_collision_crane_view(delta: float) -> void:
+    var view_target: float = 1.0 if collision_crane_active else 0.0
+    var response: float = (
+        profile.close_wall_crane_enter_response
+        if collision_crane_active
+        else profile.close_wall_crane_exit_response
+    )
+    collision_crane_view_amount = lerpf(
+        collision_crane_view_amount,
+        view_target,
+        1.0 - exp(-response * delta)
+    )
 
 func _update_wall_camera_state(delta: float) -> void:
     var context_target: float = 1.0 if collision_active else 0.0
@@ -283,6 +326,42 @@ func _smooth_legal_camera_position(
     if desired_length < 0.001:
         return desired
 
+    # The perched-wall solve can move from the last ordinary legal shot to a
+    # slightly higher continuity shot. Interpolate that short legal-side move
+    # directly before applying the radial boom release below; otherwise the
+    # direction change can turn a 30 cm rise into a one-frame position pop.
+    if collision_crane_active:
+        var transition_weight: float = 1.0 - exp(
+            -profile.close_wall_crane_enter_response * delta
+        )
+        var transition_candidate := current_camera_position
+        if current_camera_position.y < desired.y - 0.02:
+            # Rise on the known legal side first. The direct diagonal between
+            # two legal endpoints can still clip the wall's top corner.
+            transition_candidate.y = lerpf(
+                current_camera_position.y,
+                desired.y,
+                transition_weight
+            )
+        else:
+            transition_candidate = current_camera_position.lerp(
+                desired,
+                transition_weight
+            )
+        var transition_exclude: Array[RID] = []
+        if target is CollisionObject3D:
+            transition_exclude.append((target as CollisionObject3D).get_rid())
+        var transition_cast := _cast_camera_volume(
+            current_camera_position,
+            transition_candidate,
+            transition_exclude
+        )
+        if (
+            transition_cast.safe_fraction >= 0.999
+            and _candidate_has_subject_clearance(transition_candidate)
+        ):
+            return transition_candidate
+
     # The boom direction follows input immediately. Collision is therefore
     # incapable of consuming or lagging yaw: it controls only how far the lens
     # may extend on the requested ray. Compression must be immediate for
@@ -311,9 +390,20 @@ func _smooth_legal_camera_position(
     if target is CollisionObject3D:
         exclude.append((target as CollisionObject3D).get_rid())
     var candidate_cast := _cast_camera_volume(anchor, candidate, exclude)
+    var candidate_readable: bool = _candidate_is_subject_readable(candidate)
+    if collision_crane_active:
+        candidate_readable = _projection_is_reframeable(
+            _subject_projection_to(
+                candidate,
+                _close_wall_aim_point(
+                    collision_crane_look_ahead,
+                    collision_crane_aim_height
+                )
+            )
+        )
     if (
         candidate_cast.safe_fraction >= 0.999
-        and _candidate_is_subject_readable(candidate)
+        and candidate_readable
     ):
         return candidate
     return desired
@@ -392,13 +482,39 @@ func _composed_view_pitch() -> float:
     )
 
 func _look_target() -> Vector3:
-    return _look_target_from(global_position)
+    var raw_direction := _forward_direction()
+    if collision_crane_view_amount < 0.001:
+        return global_position + raw_direction * profile.look_ahead_distance
+    var crane_direction := (
+        _close_wall_aim_point(
+            collision_crane_look_ahead,
+            collision_crane_aim_height
+        ) - global_position
+    ).normalized()
+    var composed_direction := raw_direction.slerp(
+        crane_direction,
+        smoothstep(0.0, 1.0, collision_crane_view_amount)
+    ).normalized()
+    return global_position + composed_direction * profile.look_ahead_distance
 
 func _look_target_from(camera_position: Vector3, _force_collision_context: bool = false) -> Vector3:
-    # View authority belongs exclusively to raw yaw/pitch input. Camera
-    # collision may shorten or raise the boom, but it never substitutes a
-    # player-relative convergence target that redirects the centered reticle.
+    # Preferred and ordinary collision candidates always preserve the raw
+    # yaw/pitch direction. The final perched-wall emergency view is composed
+    # separately in _look_target() and never feeds back into this solver.
     return camera_position + _forward_direction() * profile.look_ahead_distance
+
+func _close_wall_aim_point(look_ahead: float, aim_height: float = -1.0) -> Vector3:
+    var selected_height: float = (
+        collision_crane_aim_height
+        if aim_height < 0.0
+        else aim_height
+    )
+    return (
+        target.global_position
+        + movement_lead
+        + Vector3.UP * selected_height
+        + _forward_direction() * look_ahead
+    )
 
 func _solve_collision(desired: Vector3) -> Dictionary:
     var anchor := target.global_position + Vector3.UP * profile.collision_anchor_height
@@ -575,6 +691,17 @@ func _solve_better_post_collision(
         and _projection_is_reframeable(best_projection)
     )
     var best_escape_angle: float = float(initial_result.escape_angle_deg)
+    var continuity_crane_hold: bool = false
+    var continuity_look_ahead: float = profile.close_wall_crane_default_look_ahead
+    var continuity_aim_height: float = profile.close_wall_crane_aim_height
+    var physical_seed_head_distance: float = initial_position.distance_to(
+        head_marker.global_position
+    )
+    var perched_close_to_wall: bool = (
+        overhead_confinement < 0.25
+        and physical_seed_head_distance
+            < profile.close_wall_crane_trigger_head_distance
+    )
 
     # Low rooms keep the established centerline-only behavior. Their regular
     # post-pass normally succeeds; these vertical candidates are a final legal
@@ -594,7 +721,6 @@ func _solve_better_post_collision(
         ]
     var radius_scales: Array[float] = [1.0, 0.82, 0.66]
     var lift_offsets: Array[float] = [0.0, 0.35, 0.70]
-
     for angle_deg in orbit_angles:
         var rotated_offset: Vector3 = (
             Basis(Vector3.UP, deg_to_rad(angle_deg)) * desired_offset
@@ -655,15 +781,89 @@ func _solve_better_post_collision(
                 best_score = score
                 best_position = destination
 
+    # Never let a failed search collapse from a readable wall shot into the
+    # operator's head. Keep the last rendered legal camera as the continuity
+    # seed and test progressively higher positions on that same legal side of
+    # the wall. A blind world-space hold would let the operator leave frame as
+    # yaw changes, so each raised lens is scored against a near point on the
+    # live raw aim ray. Input/weapon authority remains unchanged.
+    if not best_is_readable and perched_close_to_wall:
+        # Start from the camera the player actually saw last frame. The legal
+        # collision target can be ahead of the damped rendered lens by several
+        # decimeters; using that target as the seed caused the remaining pop.
+        var continuity_seed: Vector3 = current_camera_position
+        if (
+            continuity_seed == Vector3.ZERO
+            or not _candidate_has_subject_clearance(continuity_seed)
+        ):
+            continuity_seed = last_readable_post_solve_position
+        var continuity_destinations: Array[Vector3] = [continuity_seed]
+        var max_crane_height: float = (
+            target.global_position.y + profile.close_wall_crane_max_height
+        )
+        for lift_value in [0.25, 0.50, 0.75, 1.00, 1.25, 1.50]:
+            var raised_destination := continuity_seed + Vector3.UP * float(lift_value)
+            raised_destination.y = minf(raised_destination.y, max_crane_height)
+            continuity_destinations.append(raised_destination)
+        var continuity_score := INF
+        var crane_look_aheads: Array[float] = [
+            0.50, 0.75, 1.0, 1.25, 1.75, 2.25, 3.0, 4.0, 5.5
+        ]
+        var crane_aim_heights: Array[float] = [
+            1.45, 1.85, 2.25, 2.65, 3.05, 3.45
+        ]
+        for destination in continuity_destinations:
+            var candidate_cast := _cast_camera_volume(anchor, destination, exclude)
+            if candidate_cast.safe_fraction < 0.999:
+                continue
+            if not _candidate_has_subject_clearance(destination):
+                continue
+            for look_ahead in crane_look_aheads:
+                for aim_height in crane_aim_heights:
+                    var projection := _subject_projection_to(
+                        destination,
+                        _close_wall_aim_point(look_ahead, aim_height)
+                    )
+                    if not _projection_is_reframeable(projection):
+                        continue
+                    var score: float = _post_solve_projection_score(projection)
+                    score += destination.distance_to(continuity_seed) * 0.15
+                    score += absf(
+                        look_ahead - profile.close_wall_crane_default_look_ahead
+                    ) * 0.015
+                    score += absf(
+                        aim_height - profile.close_wall_crane_aim_height
+                    ) * 0.01
+                    if score < continuity_score:
+                        continuity_score = score
+                        continuity_look_ahead = look_ahead
+                        continuity_aim_height = aim_height
+                        best_position = destination
+                        best_projection = projection
+                        continuity_crane_hold = true
+
     var solved_result: Dictionary = initial_result.duplicate()
     solved_result.position = best_position
     solved_result.collided = true
     solved_result.escaped = absf(best_escape_angle) > 0.01
     solved_result.escape_angle_deg = best_escape_angle
+    solved_result.crane_active = continuity_crane_hold
+    solved_result.crane_look_ahead = (
+        continuity_look_ahead
+        if continuity_crane_hold
+        else profile.close_wall_crane_default_look_ahead
+    )
+    solved_result.crane_aim_height = (
+        continuity_aim_height
+        if continuity_crane_hold
+        else profile.close_wall_crane_aim_height
+    )
     var collision_base_name: String = str(initial_result.collider_name)
     collision_base_name = collision_base_name.replace(" / PHYSICAL CLOSE", "")
     if best_is_readable:
         solved_result.collider_name = "%s / BETTER POST-SOLVED" % collision_base_name
+    elif continuity_crane_hold:
+        solved_result.collider_name = "%s / POST-SOLVED CRANE HOLD" % collision_base_name
     else:
         # Geometry still owns the boundary, but the result remains inside the
         # post-solve pipeline and is reconsidered next frame rather than entering
@@ -685,14 +885,18 @@ func _cast_camera_volume(anchor: Vector3, destination: Vector3, exclude: Array[R
     return {"safe_fraction": safe_fraction}
 
 func _subject_projection(candidate: Vector3, force_collision_context: bool = false) -> Dictionary:
+    return _subject_projection_to(
+        candidate,
+        _look_target_from(candidate, force_collision_context)
+    )
+
+func _subject_projection_to(candidate: Vector3, look_target: Vector3) -> Dictionary:
     if head_marker == null or camera == null:
         return {"visible": true, "x": current_head_target_x, "y": current_head_target_y, "distance": 99.0}
     # Project analytically. The previous version temporarily moved and rotated
     # the live camera node for every candidate; a blocked boom can evaluate
     # hundreds of candidates, making close quarters visibly hitch.
-    var direction := (
-        _look_target_from(candidate, force_collision_context) - candidate
-    ).normalized()
+    var direction := (look_target - candidate).normalized()
     if direction.length_squared() < 0.0001:
         return {"visible": false, "x": -99.0, "y": -99.0, "distance": 0.0}
     var candidate_basis := Basis.looking_at(direction, Vector3.UP, false)
@@ -1160,8 +1364,9 @@ func _limit_excursion(candidate: Vector3) -> Vector3:
 
 func _orient_camera(_delta: float) -> void:
     var desired_basis := _basis_looking_at(_look_target())
-    # Mouse aim is immediate and never damped by camera collision. Positional
-    # boom release remains smoothed independently.
+    # Gameplay aim remains immediate and independent below. Only the special
+    # perched-wall composition blends its rendered view to avoid a visual pop.
+    # Positional boom release remains smoothed independently.
     global_basis = desired_basis
 
 func _snap_orientation() -> void:
@@ -1279,6 +1484,10 @@ func get_debug_data() -> Dictionary:
         "post_validated_clearance": post_validated_clearance,
         "post_initial_head_distance": post_initial_head_distance,
         "post_validated_head_distance": post_validated_head_distance,
+        "collision_crane_active": collision_crane_active,
+        "collision_crane_look_ahead": collision_crane_look_ahead,
+        "collision_crane_aim_height": collision_crane_aim_height,
+        "collision_crane_view_amount": collision_crane_view_amount,
         "collision_cast_count": collision_cast_count,
         "collision_solver_usec": collision_solver_usec,
         "wall_context_amount": wall_context_amount,
