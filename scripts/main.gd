@@ -212,7 +212,43 @@ func _process(_delta: float) -> void:
             intent,
             muzzle,
             exclude,
-            camera_rig.profile.aim_distance
+            camera_rig.profile.aim_distance,
+            -1,
+            Engine.get_physics_frames()
+        )
+        var accepted_sequence: int = int(intent.sequence)
+        var replay_trace: Dictionary = ShotAuthorityScript.validate_and_trace(
+            get_world_3d(),
+            intent,
+            muzzle,
+            exclude,
+            camera_rig.profile.aim_distance,
+            accepted_sequence,
+            Engine.get_physics_frames()
+        )
+        var spoofed_intent: Dictionary = intent.duplicate()
+        spoofed_intent.sequence = accepted_sequence + 1
+        spoofed_intent.direction = -Vector3(intent.direction)
+        var spoof_trace: Dictionary = ShotAuthorityScript.validate_and_trace(
+            get_world_3d(),
+            spoofed_intent,
+            muzzle,
+            exclude,
+            camera_rig.profile.aim_distance,
+            accepted_sequence,
+            Engine.get_physics_frames()
+        )
+        var future_intent: Dictionary = intent.duplicate()
+        future_intent.sequence = accepted_sequence + 1
+        future_intent.simulation_tick = Engine.get_physics_frames() + 30
+        var future_trace: Dictionary = ShotAuthorityScript.validate_and_trace(
+            get_world_3d(),
+            future_intent,
+            muzzle,
+            exclude,
+            camera_rig.profile.aim_distance,
+            accepted_sequence,
+            Engine.get_physics_frames()
         )
         var leaks_camera_state: bool = (
             intent.has("camera_position")
@@ -220,8 +256,14 @@ func _process(_delta: float) -> void:
             or intent.has("collision")
         )
         print(
-            "MULTIPLAYER_CONTRACT accepted=%s camera_state_leak=%s"
-            % [str(trace.get("accepted", false)), str(leaks_camera_state)]
+            "MULTIPLAYER_CONTRACT accepted=%s camera_state_leak=%s replay=%s spoof=%s future=%s"
+            % [
+                str(trace.get("accepted", false)),
+                str(leaks_camera_state),
+                str(replay_trace.get("reason", "ACCEPTED")),
+                str(spoof_trace.get("reason", "ACCEPTED")),
+                str(future_trace.get("reason", "ACCEPTED"))
+            ]
         )
     var wall_turn_sample: bool = (
         OS.get_cmdline_user_args().has("--wall-turn-test")
@@ -232,7 +274,7 @@ func _process(_delta: float) -> void:
     debug_label.text = (
         "SOCOM-141 CAMERA LAB\n"
         + "WASD move | Shift run | Mouse orbit | R reset | H clean HUD | V camera view | P tune | F9 record | F10 replay\n"
-        + "v2.2.3 player-tethered wall camera\n\n"
+        + "v2.2.4 screen-tethered multiplayer camera\n\n"
         + "Vertical FOV     %5.1f°\n" % d.fov
         + "Camera distance %5.2f m\n" % d.distance
         + "Camera height   %5.2f m above player\n" % d.height_above_player
@@ -247,6 +289,7 @@ func _process(_delta: float) -> void:
         + "Wall close      %s  boom zoom\n" % ("ACTIVE" if d.collision_active else "idle")
         + "Wall state      %5.1f%%  deterministic boom\n" % [d.wall_context_amount * 100.0]
         + "State machine   %s  age %.2fs  transitions %d\n" % [d.camera_state, d.camera_state_age, d.camera_state_transitions]
+        + "Composition     %s  hard rebases %d\n" % ["RECOVERING" if d.composition_recovery_active else "stable", d.composition_hard_rebase_count]
         + "Wall crane      %s  blend %4.0f%%  convergence %.2f m\n" % ["ACTIVE" if d.collision_crane_active else "idle", d.collision_crane_view_amount * 100.0, d.collision_crane_look_ahead]
         + "Virtual wall    %s  close %s  transition %s  head crop %s\n" % ["SLIDING" if d.surface_slide_active else "idle", "ACTIVE" if d.near_body_crop_active else "idle", "ACTIVE" if d.transition_crop_active else "idle", "ACTIVE" if d.near_body_geometry_hidden else "idle"]
         + "Soft reticle    X %.3f  Y %.3f  authority %4.0f%%\n" % [d.reticle_x, d.reticle_y, d.reticle_dynamic_amount * 100.0]

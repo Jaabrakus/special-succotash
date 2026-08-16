@@ -24,12 +24,26 @@ contains no camera transform or collision state.
 - World collision and damage application.
 
 The server rejects malformed direction vectors and implausible reported muzzle
-positions. It then traces from its own muzzle through its own collision world.
+positions. It also rejects stale/replayed sequences, stale or future simulation
+ticks, out-of-range angles, and directions that disagree with the reported
+yaw/pitch intent. It then traces from its own muzzle through its own collision world.
 `SocomShotAuthority.validate_and_trace()` documents and prototypes this boundary;
 it is not a complete networking, rewind, damage or anti-cheat implementation.
+
+The caller must retain `last_accepted_sequence` per peer and supply the current
+authoritative simulation tick. A successful result returns the accepted sequence
+and tick so the peer state can advance only after validation.
 
 ## Remote players
 
 Remote clients receive replicated body/weapon state and confirmed shot events.
 They do not receive another player's camera or reticle. Animation may consume
 replicated aim yaw/pitch, but camera smoothing never changes hit validation.
+
+## Camera recovery
+
+Player-distance and screen-space tether recovery are presentation-only. A hard
+camera rebase never changes the local aim intent, authoritative muzzle origin,
+server collision query, or replicated body state. This is important: recovering
+from a stale wall lens cannot grant a shot through geometry or alter server hit
+results.

@@ -100,6 +100,9 @@ var aim_intent_sequence: int = 0
 var previous_target_position := Vector3.ZERO
 var target_position_initialized: bool = false
 var camera_tether_rebased: bool = false
+var composition_recovery_active: bool = false
+var composition_hard_rebase: bool = false
+var composition_hard_rebase_count: int = 0
 
 var camera: Camera3D
 var orbit_input_enabled: bool = true
@@ -121,6 +124,7 @@ func _ready() -> void:
         OS.get_cmdline_user_args().has("--wall-turn-test")
         or OS.get_cmdline_user_args().has("--interior-turn-test")
         or OS.get_cmdline_user_args().has("--wall-entry-test")
+        or OS.get_cmdline_user_args().has("--wall-follow-test")
     )
     if OS.get_cmdline_user_args().has("--upward-aim-test"):
         pitch = deg_to_rad(20.0)
@@ -299,6 +303,12 @@ func _physics_process(delta: float) -> void:
             movement_response
         )
 
+    current_camera_position = _enforce_rendered_composition(
+        current_camera_position,
+        collision_camera_position,
+        delta
+    )
+
     # A rendered lens can never remain at an obsolete world-space wall point
     # after the player has left. Normal motion is handled by the translation
     # follower above; this tether is the spawn/teleport and impossible-route
@@ -344,6 +354,64 @@ func reset_camera_to_target() -> void:
     camera_state_age = 0.0
     previous_target_position = target.global_position if target else Vector3.ZERO
     target_position_initialized = target != null
+
+func _enforce_rendered_composition(
+    rendered_position: Vector3,
+    legal_position: Vector3,
+    delta: float
+) -> Vector3:
+    composition_recovery_active = false
+    composition_hard_rebase = false
+    var rendered_projection := _subject_projection(rendered_position)
+    var rendered_visible: bool = bool(rendered_projection.visible)
+    var rendered_error: float = INF
+    if rendered_visible:
+        rendered_error = absf(
+            float(rendered_projection.x) - current_head_target_x
+        )
+    if rendered_error <= profile.rendered_head_soft_limit_x:
+        return rendered_position
+
+    var legal_projection := _subject_projection(legal_position, true)
+    if not bool(legal_projection.visible):
+        return rendered_position
+    var legal_error: float = absf(
+        float(legal_projection.x) - current_head_target_x
+    )
+    if legal_error >= rendered_error - 0.001:
+        return rendered_position
+
+    composition_recovery_active = true
+    # Once the subject is effectively gone, continuity has already failed its
+    # job. Cut to the current frame's volume-validated solve. This changes only
+    # local presentation and cannot alter weapon or server authority.
+    if (
+        not rendered_visible
+        or rendered_error >= profile.rendered_head_hard_limit_x
+    ):
+        composition_hard_rebase = true
+        composition_hard_rebase_count += 1
+        return legal_position
+
+    var candidate := rendered_position.move_toward(
+        legal_position,
+        profile.composition_recovery_speed * delta
+    )
+    var exclude: Array[RID] = []
+    if target is CollisionObject3D:
+        exclude.append((target as CollisionObject3D).get_rid())
+    var local_cast := _cast_camera_volume(rendered_position, candidate, exclude)
+    var anchor := target.global_position + Vector3.UP * profile.collision_anchor_height
+    var anchor_cast := _cast_camera_volume(anchor, candidate, exclude)
+    if local_cast.safe_fraction < 0.999 or anchor_cast.safe_fraction < 0.999:
+        return rendered_position
+    var candidate_projection := _subject_projection(candidate)
+    if not bool(candidate_projection.visible):
+        return rendered_position
+    var candidate_error: float = absf(
+        float(candidate_projection.x) - current_head_target_x
+    )
+    return candidate if candidate_error < rendered_error else rendered_position
 
 func _follow_target_translation() -> void:
     var target_position := target.global_position
@@ -2091,6 +2159,9 @@ func get_debug_data() -> Dictionary:
         "camera_state_age": camera_state_age,
         "camera_state_transitions": camera_state_transition_count,
         "camera_tether_rebased": camera_tether_rebased,
+        "composition_recovery_active": composition_recovery_active,
+        "composition_hard_rebase": composition_hard_rebase,
+        "composition_hard_rebase_count": composition_hard_rebase_count,
         "wall_context_amount": wall_context_amount,
         "terrain_slope_deg": terrain_slope_deg,
         "terrain_crop_relaxation": terrain_crop_relaxation,

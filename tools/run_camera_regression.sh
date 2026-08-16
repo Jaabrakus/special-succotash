@@ -20,6 +20,8 @@ mkdir -p "$report_dir"
   --automated-test --movement-test --audit-record-test --clean-hud >/dev/null
 "$godot_bin" --headless --log-file "$report_dir/multiplayer-contract.log" --path "$project_dir" --quit-after 90 -- \
   --automated-test --multiplayer-contract-test --clean-hud >/dev/null
+"$godot_bin" --headless --log-file "$report_dir/multiplayer-wall-contract.log" --path "$project_dir" --quit-after 90 -- \
+  --automated-test --wall-follow-test --multiplayer-contract-test --clean-hud >/dev/null
 
 for report in "$report_dir"/*.log; do
   if rg -q 'SCRIPT ERROR|Parse Error' "$report"; then
@@ -107,10 +109,14 @@ if ! rg -q 'AUDIT_RECORD_TEST Saved [1-9][0-9]* frames' "$report_dir/audit-recor
 fi
 print "camera audit recorder: CSV telemetry saved"
 
-if ! rg -q 'MULTIPLAYER_CONTRACT accepted=true camera_state_leak=false' "$report_dir/multiplayer-contract.log"; then
-  print -u2 "FAIL: multiplayer aim contract was rejected or leaked camera state"
+if ! rg -q 'MULTIPLAYER_CONTRACT accepted=true camera_state_leak=false replay=STALE_SEQUENCE spoof=DIRECTION_ANGLE_MISMATCH future=FUTURE_TICK' "$report_dir/multiplayer-contract.log"; then
+  print -u2 "FAIL: multiplayer aim contract accepted invalid input, rejected valid input, or leaked camera state"
   exit 1
 fi
-print "multiplayer contract: authoritative trace accepted, no camera state sent"
+if ! rg -q 'MULTIPLAYER_CONTRACT accepted=true camera_state_leak=false replay=STALE_SEQUENCE spoof=DIRECTION_ANGLE_MISMATCH future=FUTURE_TICK' "$report_dir/multiplayer-wall-contract.log"; then
+  print -u2 "FAIL: close-wall camera changed authoritative multiplayer aim validation"
+  exit 1
+fi
+print "multiplayer contract: open and close-wall traces accepted; replay, spoof and future-tick input rejected; no camera state sent"
 
 print "Camera regression reports: $report_dir"

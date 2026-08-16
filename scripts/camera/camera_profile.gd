@@ -120,6 +120,9 @@ extends Resource
 @export var wall_branch_max_linear_speed: float = 4.0
 @export var wall_branch_transition_distance: float = 0.35
 @export var post_solve_position_continuity_weight: float = 0.55
+@export_range(0.05, 0.35, 0.01) var rendered_head_soft_limit_x: float = 0.20
+@export_range(0.10, 0.48, 0.01) var rendered_head_hard_limit_x: float = 0.38
+@export var composition_recovery_speed: float = 6.0
 
 @export_group("Movement Follow")
 @export var movement_lead_time: float = 0.0

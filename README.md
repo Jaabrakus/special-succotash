@@ -1,6 +1,26 @@
-# SOCOM-141 Camera Lab — v2.2.3 player-tethered wall camera
+# SOCOM-141 Camera Lab — v2.2.4 screen-tethered multiplayer camera
 
 A runnable Godot 4 prototype for developing a SOCOM-style independent tactical camera and body/aim relationship.
+
+## v2.2.4: screen tether and multiplayer validation
+
+Player distance alone is not enough to identify a stale wall lens. The rendered
+camera now has a second client-local tether in screen space: recovery begins
+when the head moves 0.20 from its target X, and an unreadable 0.38 displacement
+rebases to the current frame's volume-validated legal solve. This prevents wall
+continuity from retaining a camera that is physically nearby but compositionally
+detached from the player.
+
+The server-side aim prototype now validates monotonic sequences, simulation-tick
+age, wrapped yaw, bounded pitch, normalized direction, reported muzzle proximity,
+and direction/angle agreement. Regression rejects replayed, future-tick and
+direction-spoofed packets. Camera position, FOV, collision, framing and recovery
+state remain client-only.
+
+The linked reCOM `zCamera` source was audited as an architectural reference; see
+`docs/recom_zcamera_audit.md`. Its exposed structure confirms a player-relative
+tether/aim/goal model, but the current reverse-engineered `APTeatherCam` body is
+empty, so it cannot supply a literal one-to-one collision implementation.
 
 ## v2.2.3: player-tethered wall camera
 
