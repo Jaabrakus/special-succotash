@@ -97,6 +97,7 @@ extends Resource
 @export var collision_close_distance: float = 1.35
 @export var min_subject_camera_distance: float = 1.00
 @export var min_camera_target_distance: float = 1.20
+@export var max_rendered_target_distance: float = 5.50
 @export var max_raise: float = 0.70
 @export var max_collision_drop: float = 1.25
 @export var max_drop: float = 0.35

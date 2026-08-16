@@ -42,6 +42,9 @@ and back to A within 15 physics frames.
 The regression suite separately measures physical lens contact and rendered
 view freeze. Lens contact is allowed—the point of a collision constraint is to
 remain on the wall boundary—but view yaw must continue following input.
+It also measures the live player-to-camera tether. A camera may compress at a
+wall but may never preserve that old world-space position after the player has
+moved away or teleported.
 
 The live sliders alter only the in-memory camera profile. Save preset creates a
 timestamped JSON file; it does not silently rewrite the verified defaults.

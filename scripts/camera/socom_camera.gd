@@ -97,6 +97,9 @@ var camera_state: int = CameraState.PREFERRED
 var camera_state_age: float = 0.0
 var camera_state_transition_count: int = 0
 var aim_intent_sequence: int = 0
+var previous_target_position := Vector3.ZERO
+var target_position_initialized: bool = false
+var camera_tether_rebased: bool = false
 
 var camera: Camera3D
 var orbit_input_enabled: bool = true
@@ -144,6 +147,8 @@ func _physics_process(delta: float) -> void:
     if Input.is_action_just_pressed("reset_camera"):
         yaw = target.global_rotation.y
         pitch = deg_to_rad(-2.0)
+        reset_camera_to_target()
+    _follow_target_translation()
     if automated_wall_turn:
         yaw -= deg_to_rad(38.0) * delta
     yaw = wrapf(yaw, -PI, PI)
@@ -294,6 +299,20 @@ func _physics_process(delta: float) -> void:
             movement_response
         )
 
+    # A rendered lens can never remain at an obsolete world-space wall point
+    # after the player has left. Normal motion is handled by the translation
+    # follower above; this tether is the spawn/teleport and impossible-route
+    # invariant. A fresh collision solve is always safer than a multi-second
+    # stale camera hold.
+    camera_tether_rebased = false
+    if (
+        current_camera_position.distance_to(target.global_position)
+        > profile.max_rendered_target_distance
+    ):
+        current_camera_position = collision_camera_position
+        transition_crop_active = false
+        camera_tether_rebased = true
+
     global_position = current_camera_position
     _orient_camera(delta)
     var mannequin = target.get_node_or_null("Mannequin") if target else null
@@ -308,6 +327,59 @@ func _physics_process(delta: float) -> void:
     _update_aim_point()
     _update_shot_validation()
     _update_reticle_position(delta)
+
+func reset_camera_to_target() -> void:
+    current_camera_position = Vector3.ZERO
+    preferred_camera_position = Vector3.ZERO
+    virtual_camera_position = Vector3.ZERO
+    collision_camera_position = Vector3.ZERO
+    last_readable_post_solve_position = Vector3.ZERO
+    wall_context_amount = 0.0
+    tight_space_amount = 0.0
+    collision_crane_view_amount = 0.0
+    surface_slide_active = false
+    near_body_crop_active = false
+    transition_crop_active = false
+    camera_state = CameraState.PREFERRED
+    camera_state_age = 0.0
+    previous_target_position = target.global_position if target else Vector3.ZERO
+    target_position_initialized = target != null
+
+func _follow_target_translation() -> void:
+    var target_position := target.global_position
+    if not target_position_initialized:
+        previous_target_position = target_position
+        target_position_initialized = true
+        return
+    var target_motion := target_position - previous_target_position
+    previous_target_position = target_position
+    if target_motion.length_squared() < 0.0000001:
+        return
+    # Spawn/test teleports get a fresh solve. Smoothing a camera across the map
+    # is both slower and less readable than rebasing on the new player pose.
+    if target_motion.length() > 1.50:
+        reset_camera_to_target()
+        return
+    if current_camera_position == Vector3.ZERO:
+        return
+
+    var exclude: Array[RID] = []
+    if target is CollisionObject3D:
+        exclude.append((target as CollisionObject3D).get_rid())
+    var translated := current_camera_position + target_motion
+    var translation_cast := _cast_camera_volume(
+        current_camera_position,
+        translated,
+        exclude
+    )
+    var applied_motion: Vector3 = target_motion * clampf(
+        float(translation_cast.safe_fraction),
+        0.0,
+        1.0
+    )
+    current_camera_position += applied_motion
+    if last_readable_post_solve_position != Vector3.ZERO:
+        last_readable_post_solve_position += applied_motion
 
 func _apply_collision_result(result: Dictionary) -> void:
     collision_camera_position = result.position
@@ -2018,6 +2090,7 @@ func get_debug_data() -> Dictionary:
         "camera_state": get_camera_state_name(),
         "camera_state_age": camera_state_age,
         "camera_state_transitions": camera_state_transition_count,
+        "camera_tether_rebased": camera_tether_rebased,
         "wall_context_amount": wall_context_amount,
         "terrain_slope_deg": terrain_slope_deg,
         "terrain_crop_relaxation": terrain_crop_relaxation,

@@ -1,6 +1,19 @@
-# SOCOM-141 Camera Lab — v2.2.2 close-wide camera
+# SOCOM-141 Camera Lab — v2.2.3 player-tethered wall camera
 
 A runnable Godot 4 prototype for developing a SOCOM-style independent tactical camera and body/aim relationship.
+
+## v2.2.3: player-tethered wall camera
+
+The rendered lens now carries the player's world translation every frame while
+the collision solve remains free to compress it. Spawn and test-location
+teleports request a fresh legal shot immediately, and a final 5.50 m tether
+prevents any impossible route from retaining an obsolete wall position. This
+fixes the failure where the player could travel away while the camera remained
+parked on the original wall.
+
+The regression suite contains a player-leaves-wall scenario that begins with a
+physically compressed lens, moves the player away, and fails on excessive
+camera distance or horizontal loss even when near-body cropping is active.
 
 ## v2.2.2: close-wide camera and centered wall recovery
 

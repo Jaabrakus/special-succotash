@@ -10,6 +10,8 @@ mkdir -p "$report_dir"
   --automated-test --wall-entry-test --wall-audit-report --transition-audit --clean-hud >/dev/null
 "$godot_bin" --headless --log-file "$report_dir/wall-turn.log" --path "$project_dir" --quit-after 730 -- \
   --automated-test --wall-test --wall-turn-test --wall-audit-report --clean-hud >/dev/null
+"$godot_bin" --headless --log-file "$report_dir/wall-follow.log" --path "$project_dir" --quit-after 650 -- \
+  --automated-test --wall-follow-test --wall-audit-report --clean-hud >/dev/null
 "$godot_bin" --headless --log-file "$report_dir/interior.log" --path "$project_dir" --quit-after 610 -- \
   --automated-test --interior-turn-test --wall-audit-report --clean-hud >/dev/null
 "$godot_bin" --headless --log-file "$report_dir/roof.log" --path "$project_dir" --quit-after 180 -- \
@@ -31,7 +33,7 @@ check_camera_motion() {
   local label="$2"
   local maximum_step="$3"
   awk -F, -v label="$label" -v limit="$maximum_step" '
-    BEGIN { maximum = 0.0; unreadable = 0; horizontal_lost = 0; frames = 0; flips = 0; last_transition = -1000; position_frozen = 0; maximum_position_frozen = 0; view_frozen = 0; maximum_view_frozen = 0 }
+    BEGIN { maximum = 0.0; unreadable = 0; horizontal_lost = 0; tether_lost = 0; frames = 0; flips = 0; last_transition = -1000; position_frozen = 0; maximum_position_frozen = 0; view_frozen = 0; maximum_view_frozen = 0 }
     /^WALL_AUDIT/ {
       if (have_previous) {
         dx = $4 - previous_x
@@ -66,6 +68,7 @@ check_camera_motion() {
       # ownership. This catches a legal lens that remains stuck on an old wall
       # while the operator slides out of the shot.
       if ($8 < 0.18 || $8 > 0.82) horizontal_lost++
+      if ($7 > 5.50) tether_lost++
       state = $14
       if (state != previous_state) {
         if (state == state_before_previous && $2 - last_transition <= 15) flips++
@@ -75,15 +78,22 @@ check_camera_motion() {
       }
     }
     END {
-      printf "%s: %d frames, max camera step %.3f m, unreadable %d, horizontal lost %d, state flips %d, max lens contact %d, max view freeze %d\n", label, frames, maximum, unreadable, horizontal_lost, flips, maximum_position_frozen, maximum_view_frozen
-      if (frames == 0 || maximum > limit || unreadable > 0 || horizontal_lost > 0 || flips > 0 || maximum_view_frozen > 2) exit 1
+      printf "%s: %d frames, max camera step %.3f m, unreadable %d, horizontal lost %d, tether lost %d, state flips %d, max lens contact %d, max view freeze %d\n", label, frames, maximum, unreadable, horizontal_lost, tether_lost, flips, maximum_position_frozen, maximum_view_frozen
+      if (frames == 0 || maximum > limit || unreadable > 0 || horizontal_lost > 0 || tether_lost > 0 || flips > 0 || maximum_view_frozen > 2) exit 1
     }
   ' "$report"
 }
 
 check_camera_motion "$report_dir/wall-entry.log" "wall entry/turn/exit" 0.15
 check_camera_motion "$report_dir/wall-turn.log" "wall sweep" 0.25
+check_camera_motion "$report_dir/wall-follow.log" "player leaves wall" 0.25
 check_camera_motion "$report_dir/interior.log" "tight interior" 0.25
+
+if ! awk -F, '/^WALL_AUDIT/ && $10 == 1 { found = 1 } END { exit !found }' "$report_dir/wall-follow.log"; then
+  print -u2 "FAIL: player-leaves-wall scenario never entered camera collision"
+  exit 1
+fi
+print "player leaves wall: began physically compressed, then retained player tether"
 
 if ! rg -q 'CAMERA_REPORT .*"pitch_deg":-45.0.*"reticle_x":0.5.*"reticle_y":0.5.*"view_pitch_deg":-45.0' "$report_dir/roof.log"; then
   print -u2 "FAIL: rooftop downward aim lost raw pitch or centered reticle"

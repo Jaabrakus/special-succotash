@@ -25,6 +25,11 @@ func _physics_process(delta: float) -> void:
             automated_world_direction = Vector3.LEFT
         elif test_frame >= 420 and test_frame < 540:
             automated_world_direction = Vector3.RIGHT
+    elif OS.get_cmdline_user_args().has("--wall-follow-test"):
+        input = Vector2.ZERO
+        var follow_frame := Engine.get_physics_frames()
+        if follow_frame < 600:
+            automated_world_direction = Vector3.RIGHT
     elif OS.get_cmdline_user_args().has("--automated-test"):
         input = Vector2.ZERO
     var camera := get_viewport().get_camera_3d()

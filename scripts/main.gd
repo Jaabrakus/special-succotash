@@ -59,6 +59,7 @@ func _ready() -> void:
         OS.get_cmdline_user_args().has("--wall-test")
         or OS.get_cmdline_user_args().has("--wall-turn-test")
         or OS.get_cmdline_user_args().has("--wall-entry-test")
+        or OS.get_cmdline_user_args().has("--wall-follow-test")
     )
     if roof_test_active:
         _set_roof_test_position(true)
@@ -231,7 +232,7 @@ func _process(_delta: float) -> void:
     debug_label.text = (
         "SOCOM-141 CAMERA LAB\n"
         + "WASD move | Shift run | Mouse orbit | R reset | H clean HUD | V camera view | P tune | F9 record | F10 replay\n"
-        + "v2.2.2 close-wide camera + centered wall recovery\n\n"
+        + "v2.2.3 player-tethered wall camera\n\n"
         + "Vertical FOV     %5.1f°\n" % d.fov
         + "Camera distance %5.2f m\n" % d.distance
         + "Camera height   %5.2f m above player\n" % d.height_above_player
@@ -357,12 +358,16 @@ func _set_wall_test_position(enabled: bool) -> void:
     if enabled:
         player.global_position = (
             Vector3(-2.55, 0.05, -1.0)
-            if OS.get_cmdline_user_args().has("--wall-entry-test")
+            if (
+                OS.get_cmdline_user_args().has("--wall-entry-test")
+                or OS.get_cmdline_user_args().has("--wall-follow-test")
+            )
             else Vector3(-3.72, 0.05, -1.0)
         )
         if camera_rig:
             camera_rig.yaw = deg_to_rad(20.0)
             camera_rig.pitch = deg_to_rad(-6.0)
+            camera_rig.reset_camera_to_target()
     else:
         player.global_position = Vector3(0.0, 0.05, 0.5)
         _reset_test_camera()
@@ -371,6 +376,7 @@ func _reset_test_camera() -> void:
     if camera_rig:
         camera_rig.yaw = player.global_rotation.y
         camera_rig.pitch = deg_to_rad(-2.0)
+        camera_rig.reset_camera_to_target()
 
 func _build_camera() -> void:
     camera_rig = CameraRigScript.new()
@@ -384,8 +390,8 @@ func _build_camera() -> void:
     add_child(camera_rig)
     if wall_test_active:
         camera_rig.yaw = (
-            deg_to_rad(20.0)
-            if OS.get_cmdline_user_args().has("--wall-turn-test")
+            deg_to_rad(-90.0)
+            if OS.get_cmdline_user_args().has("--wall-follow-test")
             else deg_to_rad(20.0)
         )
         camera_rig.pitch = deg_to_rad(-6.0)
