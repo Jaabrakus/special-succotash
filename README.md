@@ -2,6 +2,19 @@
 
 A runnable Godot 4 prototype for developing a SOCOM-style independent tactical camera and body/aim relationship.
 
+## v2.0.2: two-stage close-wall post-solve
+
+Collision now supplies only a legal boundary seed. The camera first runs its
+normal screen-space composition pass; if that pass cannot recover a readable
+shot, a second bounded post-solver searches fully volume-cast boom angles and
+then refines its best result locally. The solver no longer enters a separate
+`PHYSICAL FALLBACK` camera mode.
+
+The stronger search is outdoor-only. Low rooms retain the proven centerline and
+vertical post-solve, preserving interior stability and immediate aim authority.
+At the hard wall samples that previously left the lens about `0.25–0.32 m` from
+the head, the better post-solver now recovers legal shots around `3.8–4.0 m`.
+
 ## v2.0.1: close-wall post-solve guard
 
 Every visible collision-compressed shot now receives a legal post-collision

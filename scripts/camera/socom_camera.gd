@@ -151,6 +151,7 @@ func _physics_process(delta: float) -> void:
         var initial_collision_name := collision_name
         var initial_wall_escape := wall_escape_active
         var initial_escape_angle := wall_escape_angle_deg
+        var initial_collision_result := collision_result
         var initial_collision_position := collision_camera_position
         var initial_projection := _subject_projection(initial_collision_position, true)
         post_initial_score = _post_solve_projection_score(initial_projection)
@@ -159,6 +160,7 @@ func _physics_process(delta: float) -> void:
         # second pass. The old reframeable gate skipped this block whenever the
         # head had already crossed the screen guard, leaving the HUD on
         # "preferred pass" and allowing the lens to crowd the operator.
+        var normal_post_solve_applied: bool = false
         if bool(initial_projection.visible):
             var reframed_position := _solve_framing(collision_camera_position)
             var reframed_bounded := _limit_excursion(reframed_position)
@@ -180,7 +182,7 @@ func _physics_process(delta: float) -> void:
                 )
             ):
                 _apply_collision_result(validated_result)
-                post_collision_reframe = true
+                normal_post_solve_applied = true
                 # A later cast may report CLEAR because its starting position
                 # was already moved away from the original blocker. Preserve
                 # the obstruction state so response/tight framing do not flicker.
@@ -189,6 +191,27 @@ func _physics_process(delta: float) -> void:
                     collision_name = "%s / REFRAMED" % initial_collision_name
                     wall_escape_active = initial_wall_escape
                     wall_escape_angle_deg = initial_escape_angle
+
+        # If the normal composition pass cannot produce a legal readable shot,
+        # do not stop at its physical seed. Run a second bounded post-solve over
+        # volume-cast boom angles, then refine the best result locally. This is
+        # collision -> post-solve -> better post-solve, never collision -> stop.
+        if not normal_post_solve_applied:
+            var better_result := _solve_better_post_collision(
+                initial_collision_result,
+                bounded_position
+            )
+            _apply_collision_result(better_result)
+            var better_position: Vector3 = better_result.position
+            var better_projection := _subject_projection(better_position, true)
+            post_validated_score = _post_solve_projection_score(better_projection)
+            post_validated_clearance = _candidate_has_subject_clearance(better_position)
+            post_validated_head_distance = better_position.distance_to(head_marker.global_position)
+
+        # This flag now means the collision result completed the post-solve
+        # pipeline. Whether the second stage found an improvement is recorded
+        # in the collision name instead of exposing a raw fallback state.
+        post_collision_reframe = true
 
     collision_solver_usec = Time.get_ticks_usec() - collision_solve_started
     _update_wall_camera_state(delta)
@@ -533,6 +556,120 @@ func _solve_collision(desired: Vector3) -> Dictionary:
         "cutout_center": Vector3.ZERO,
         "cutout_node": null
     }
+
+func _solve_better_post_collision(
+    initial_result: Dictionary,
+    requested_position: Vector3
+) -> Dictionary:
+    var anchor := target.global_position + Vector3.UP * profile.collision_anchor_height
+    var exclude: Array[RID] = []
+    if target is CollisionObject3D:
+        exclude.append((target as CollisionObject3D).get_rid())
+
+    var initial_position: Vector3 = initial_result.position
+    var best_position: Vector3 = initial_position
+    var best_projection := _subject_projection(initial_position, true)
+    var best_score: float = _post_solve_projection_score(best_projection)
+    var best_is_readable: bool = (
+        _candidate_has_subject_clearance(initial_position)
+        and _projection_is_reframeable(best_projection)
+    )
+    var best_escape_angle: float = float(initial_result.escape_angle_deg)
+
+    # Low rooms keep the established centerline-only behavior. Their regular
+    # post-pass normally succeeds; these vertical candidates are a final legal
+    # refinement without reintroducing corner-to-corner shoulder jumps.
+    var desired_offset: Vector3 = requested_position - anchor
+    var orbit_angles: Array[float] = [0.0]
+    if overhead_confinement < 0.25:
+        orbit_angles = [
+            0.0,
+            12.0, -12.0,
+            24.0, -24.0,
+            36.0, -36.0,
+            42.0, -42.0,
+            48.0, -48.0,
+            54.0, -54.0,
+            60.0, -60.0
+        ]
+    var radius_scales: Array[float] = [1.0, 0.82, 0.66]
+    var lift_offsets: Array[float] = [0.0, 0.35, 0.70]
+
+    for angle_deg in orbit_angles:
+        var rotated_offset: Vector3 = (
+            Basis(Vector3.UP, deg_to_rad(angle_deg)) * desired_offset
+        )
+        for radius_scale in radius_scales:
+            for lift in lift_offsets:
+                var destination: Vector3 = (
+                    anchor
+                    + rotated_offset * radius_scale
+                    + Vector3.UP * lift
+                )
+                var candidate_cast := _cast_camera_volume(anchor, destination, exclude)
+                if candidate_cast.safe_fraction < 0.999:
+                    continue
+                if not _candidate_has_subject_clearance(destination):
+                    continue
+                var projection := _subject_projection(destination, true)
+                if not _projection_is_reframeable(projection):
+                    continue
+                var score: float = _post_solve_projection_score(projection)
+                score += absf(angle_deg) * 0.012
+                score += absf(1.0 - radius_scale) * 0.35
+                score += lift * 0.12
+                if not best_is_readable or score < best_score:
+                    best_is_readable = true
+                    best_score = score
+                    best_position = destination
+                    best_escape_angle = angle_deg
+
+    # The coarse post-solve establishes a legal boom. Compose once more from
+    # that position and probe a small local neighborhood, accepting only fully
+    # volume-clear improvements. This is the "better post-solve" stage.
+    if best_is_readable:
+        var camera_right: Vector3 = Basis(Vector3.UP, yaw) * Vector3.RIGHT
+        var refinement_destinations: Array[Vector3] = [
+            _solve_framing(best_position),
+            best_position + Vector3.UP * 0.15,
+            best_position + Vector3.DOWN * 0.15,
+            best_position + camera_right * 0.15,
+            best_position + camera_right * -0.15,
+            best_position + camera_right * 0.30,
+            best_position + camera_right * -0.30,
+            best_position + Vector3.UP * 0.15 + camera_right * 0.15,
+            best_position + Vector3.UP * 0.15 + camera_right * -0.15
+        ]
+        for destination in refinement_destinations:
+            var candidate_cast := _cast_camera_volume(anchor, destination, exclude)
+            if candidate_cast.safe_fraction < 0.999:
+                continue
+            if not _candidate_has_subject_clearance(destination):
+                continue
+            var projection := _subject_projection(destination, true)
+            if not _projection_is_reframeable(projection):
+                continue
+            var score: float = _post_solve_projection_score(projection)
+            score += destination.distance_to(best_position) * 0.08
+            if score < best_score:
+                best_score = score
+                best_position = destination
+
+    var solved_result: Dictionary = initial_result.duplicate()
+    solved_result.position = best_position
+    solved_result.collided = true
+    solved_result.escaped = absf(best_escape_angle) > 0.01
+    solved_result.escape_angle_deg = best_escape_angle
+    var collision_base_name: String = str(initial_result.collider_name)
+    collision_base_name = collision_base_name.replace(" / PHYSICAL CLOSE", "")
+    if best_is_readable:
+        solved_result.collider_name = "%s / BETTER POST-SOLVED" % collision_base_name
+    else:
+        # Geometry still owns the boundary, but the result remains inside the
+        # post-solve pipeline and is reconsidered next frame rather than entering
+        # a separate forced fallback mode.
+        solved_result.collider_name = "%s / POST-SOLVED CONSTRAINED" % collision_base_name
+    return solved_result
 
 func _cast_camera_volume(anchor: Vector3, destination: Vector3, exclude: Array[RID]) -> Dictionary:
     collision_cast_count += 1

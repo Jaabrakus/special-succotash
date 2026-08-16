@@ -135,7 +135,7 @@ func _process(_delta: float) -> void:
     debug_label.text = (
         "SOCOM-141 CAMERA LAB\n"
         + "WASD move | Shift run | Mouse orbit | R reset | C calibration | H clean HUD | T roof | I interior | B wall\n"
-        + "v2.0.1 close-wall post-solve guard\n\n"
+        + "v2.0.2 two-stage close-wall post-solve\n\n"
         + "Vertical FOV     %5.1f°\n" % d.fov
         + "Camera distance %5.2f m\n" % d.distance
         + "Camera height   %5.2f m above player\n" % d.height_above_player
@@ -157,7 +157,7 @@ func _process(_delta: float) -> void:
         + "Collision frame  %s\n" % (
             "POST-SOLVED"
             if d.post_collision_reframe
-            else ("PHYSICAL FALLBACK" if d.collision_active else "preferred pass")
+            else ("POST-SOLVED CONSTRAINED" if d.collision_active else "preferred pass")
         )
         + "Camera solve     %.2f ms  %d casts\n" % [d.collision_solver_usec / 1000.0, d.collision_cast_count]
         + "Yaw / Pitch     %5.1f° / %5.1f°  view %5.1f°\n" % [d.yaw_deg, d.pitch_deg, d.view_pitch_deg]
