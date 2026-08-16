@@ -135,7 +135,7 @@ func _process(_delta: float) -> void:
     debug_label.text = (
         "SOCOM-141 CAMERA LAB\n"
         + "WASD move | Shift run | Mouse orbit | R reset | C calibration | H clean HUD | T roof | I interior | B wall\n"
-        + "v2.0 clean capture + close lens guard\n\n"
+        + "v2.0.1 close-wall post-solve guard\n\n"
         + "Vertical FOV     %5.1f°\n" % d.fov
         + "Camera distance %5.2f m\n" % d.distance
         + "Camera height   %5.2f m above player\n" % d.height_above_player
@@ -154,7 +154,11 @@ func _process(_delta: float) -> void:
         + "Downward intent %5.1f%%  crane %5.1f%%  ledge +%.2f m  aim %s\n" % [d.downward_aim_amount * 100.0, d.downward_crane_amount * 100.0, d.downward_ledge_raise, d.aim_collider]
         + "Framing sample  HX %.3f  HY %.3f  T %.3f  P %.3f  F %.3f\n" % [d.measured_head_x, d.measured_head_y, d.measured_torso_y, d.measured_pelvis_y, d.measured_feet_y]
         + "Framing offset  side %+.3f  height %+.3f\n" % [d.framing_side_correction, d.framing_correction]
-        + "Collision frame  %s\n" % ("POST-SOLVED" if d.post_collision_reframe else "preferred pass")
+        + "Collision frame  %s\n" % (
+            "POST-SOLVED"
+            if d.post_collision_reframe
+            else ("PHYSICAL FALLBACK" if d.collision_active else "preferred pass")
+        )
         + "Camera solve     %.2f ms  %d casts\n" % [d.collision_solver_usec / 1000.0, d.collision_cast_count]
         + "Yaw / Pitch     %5.1f° / %5.1f°  view %5.1f°\n" % [d.yaw_deg, d.pitch_deg, d.view_pitch_deg]
         + "Excursion       X %+5.2f  Y %+5.2f  Z %+5.2f\n" % [d.excursion.x, d.excursion.y, d.excursion.z]

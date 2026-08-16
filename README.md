@@ -2,6 +2,20 @@
 
 A runnable Godot 4 prototype for developing a SOCOM-style independent tactical camera and body/aim relationship.
 
+## v2.0.1: close-wall post-solve guard
+
+Every visible collision-compressed shot now receives a legal post-collision
+composition attempt, including shots whose head projection has already crossed
+the old reframeable screen gate. A corrected position is accepted when it is
+subject-readable, or when it preserves clearance and improves composition.
+
+Outdoor side candidates are cast from the desired boom so they can recover a
+legal close-wall shot instead of merely shifting an already crushed lens beside
+the operator's head. Low rooms remain vertical-only. The automated close-wall
+sample now resolves at about `2.92 m` and reports `POST-SOLVED`; the 610-frame
+interior turn remains on-center with zero off-screen frames. The exact rollback
+tag remains `v2.0-pre-enclosed-good`.
+
 ## Current build: exact pre-enclosed-space v2.0 rollback
 
 This is reconstructed from the recorded v2.0 file changes immediately before

@@ -56,6 +56,11 @@ var movement_speed_ratio: float = 0.0
 var movement_lateral_ratio: float = 0.0
 var framing_side_correction: float = 0.0
 var post_collision_reframe: bool = false
+var post_initial_score: float = -1.0
+var post_validated_score: float = -1.0
+var post_validated_clearance: bool = false
+var post_initial_head_distance: float = -1.0
+var post_validated_head_distance: float = -1.0
 var camera_collision_shape := SphereShape3D.new()
 var collision_cast_count: int = 0
 var collision_solver_usec: int = 0
@@ -132,6 +137,11 @@ func _physics_process(delta: float) -> void:
     var collision_result := _solve_collision(bounded_position)
     _apply_collision_result(collision_result)
     post_collision_reframe = false
+    post_initial_score = -1.0
+    post_validated_score = -1.0
+    post_validated_clearance = false
+    post_initial_head_distance = -1.0
+    post_validated_head_distance = -1.0
 
     # Collision can completely change the composition that was solved above.
     # Recompose from the legal collision result, then volume-cast that correction
@@ -141,23 +151,44 @@ func _physics_process(delta: float) -> void:
         var initial_collision_name := collision_name
         var initial_wall_escape := wall_escape_active
         var initial_escape_angle := wall_escape_angle_deg
-        # One correction plus one legality cast is enough once candidate
-        # projection no longer mutates the live rig. The old two-iteration loop
-        # could repeat the complete orbit search three times in one physics tick.
-        if _candidate_is_reframeable(collision_camera_position):
+        var initial_collision_position := collision_camera_position
+        var initial_projection := _subject_projection(initial_collision_position, true)
+        post_initial_score = _post_solve_projection_score(initial_projection)
+        post_initial_head_distance = initial_collision_position.distance_to(head_marker.global_position)
+        # A close collision result is precisely when composition needs its
+        # second pass. The old reframeable gate skipped this block whenever the
+        # head had already crossed the screen guard, leaving the HUD on
+        # "preferred pass" and allowing the lens to crowd the operator.
+        if bool(initial_projection.visible):
             var reframed_position := _solve_framing(collision_camera_position)
             var reframed_bounded := _limit_excursion(reframed_position)
             var validated_result := _solve_collision(reframed_bounded)
-            _apply_collision_result(validated_result)
-            post_collision_reframe = true
-            # A later cast may report CLEAR because its starting position was
-            # already moved away from the original blocker. Preserve the
-            # obstruction state so response and tight framing do not flicker.
-            if not collision_active:
-                collision_active = true
-                collision_name = "%s / REFRAMED" % initial_collision_name
-                wall_escape_active = initial_wall_escape
-                wall_escape_angle_deg = initial_escape_angle
+            var validated_position: Vector3 = validated_result.position
+            var validated_projection := _subject_projection(validated_position, true)
+            post_validated_score = _post_solve_projection_score(validated_projection)
+            post_validated_clearance = _candidate_has_subject_clearance(validated_position)
+            post_validated_head_distance = validated_position.distance_to(head_marker.global_position)
+            # A legal, readable composition is the primary acceptance rule.
+            # Requiring its numeric score to beat an already-broken close shot
+            # rejected useful wall escapes and put the camera back on the raw
+            # preferred pass. The score remains a fallback for edge projections.
+            if (
+                _candidate_is_subject_readable(validated_position)
+                or (
+                    post_validated_clearance
+                    and post_validated_score <= post_initial_score + 0.001
+                )
+            ):
+                _apply_collision_result(validated_result)
+                post_collision_reframe = true
+                # A later cast may report CLEAR because its starting position
+                # was already moved away from the original blocker. Preserve
+                # the obstruction state so response/tight framing do not flicker.
+                if not collision_active:
+                    collision_active = true
+                    collision_name = "%s / REFRAMED" % initial_collision_name
+                    wall_escape_active = initial_wall_escape
+                    wall_escape_angle_deg = initial_escape_angle
 
     collision_solver_usec = Time.get_ticks_usec() - collision_solve_started
     _update_wall_camera_state(delta)
@@ -400,10 +431,11 @@ func _solve_collision(desired: Vector3) -> Dictionary:
             "cutout_node": null
         }
 
-    # If the direct compressed shot cannot retain the character, test only a
-    # tiny PS2-style vertical correction set. The collision camera never moves
-    # sideways off the player/reticle centerline, so there is no circular orbit
-    # election, opposite-side flip, or close-room shoulder jump.
+    # If the direct compressed shot cannot retain the character, test a tiny
+    # PS2-style correction set. Outdoor walls get a few deterministic lateral
+    # candidates so the lens can remain behind the operator instead of entering
+    # the head. Enclosed rooms stay vertical-only, preventing the old shoulder
+    # jump and opposite-side flip regression.
     var micro_offsets: Array[Vector3] = [
         Vector3.UP * 0.20,
         Vector3.UP * 0.40,
@@ -413,9 +445,24 @@ func _solve_collision(desired: Vector3) -> Dictionary:
         Vector3.UP * 1.50,
         Vector3.DOWN * 0.20
     ]
+    var camera_right: Vector3 = Basis(Vector3.UP, yaw) * Vector3.RIGHT
     var micro_destinations: Array[Vector3] = []
     for adjustment in micro_offsets:
         micro_destinations.append(compressed_position + adjustment)
+    # Outdoor side escape must begin from the desired boom. Offsetting an
+    # already-crushed lens leaves it beside the head; offsetting the desired
+    # shot lets the volume cast recover the proven ~3 m close-wall position.
+    if overhead_confinement < 0.25:
+        for side_value in [0.25, 0.45]:
+            var side: float = float(side_value)
+            micro_destinations.append(desired + camera_right * side)
+            micro_destinations.append(desired + camera_right * -side)
+            micro_destinations.append(
+                desired + Vector3.UP * 0.30 + camera_right * side
+            )
+            micro_destinations.append(
+                desired + Vector3.UP * 0.30 + camera_right * -side
+            )
     # If the compressed lens is resting on the blocker, rising from that exact
     # boundary can still graze it. Try progressively shorter versions of the
     # same boom with extra height—the classic closer-and-higher wall response.
@@ -428,10 +475,11 @@ func _solve_collision(desired: Vector3) -> Dictionary:
             )
     var best_candidate := Vector3.ZERO
     var best_score := INF
+    var best_side_amount: float = 0.0
     for adjusted_destination in micro_destinations:
-        # Raise/drop the already-compressed lens. Applying the adjustment to
-        # the original long boom caused the collision fraction to scale a
-        # 1.5 m requested rise down to only a few centimeters.
+        # Every correction is re-cast as a camera volume. Vertical corrections
+        # originate at the compressed lens; outdoor side corrections originate
+        # at the desired boom so they can recover useful subject distance.
         var adjusted_cast := _cast_camera_volume(anchor, adjusted_destination, exclude)
         var candidate: Vector3 = anchor + (
             adjusted_destination - anchor
@@ -450,14 +498,23 @@ func _solve_collision(desired: Vector3) -> Dictionary:
         if score < best_score:
             best_score = score
             best_candidate = candidate
+            best_side_amount = (candidate - compressed_position).dot(camera_right)
 
     if best_score < INF:
+        var escaped_sideways: bool = absf(best_side_amount) > 0.01
+        var escape_angle: float = 0.0
+        if escaped_sideways:
+            var boom_length: float = maxf(
+                (compressed_position - anchor).length(),
+                0.001
+            )
+            escape_angle = rad_to_deg(atan2(best_side_amount, boom_length))
         return {
             "position": best_candidate,
             "collided": true,
             "collider_name": "%s / MICRO ADJUST" % collider_name,
-            "escaped": false,
-            "escape_angle_deg": 0.0,
+            "escaped": escaped_sideways,
+            "escape_angle_deg": escape_angle,
             "local_cutout": false,
             "cutout_center": Vector3.ZERO,
             "cutout_node": null
@@ -541,6 +598,18 @@ func _projection_is_reframeable(projection: Dictionary) -> bool:
 
 func _candidate_is_reframeable(candidate: Vector3) -> bool:
     return _projection_is_reframeable(_subject_projection(candidate))
+
+func _post_solve_projection_score(projection: Dictionary) -> float:
+    if not bool(projection.visible):
+        return INF
+    var distance: float = float(projection.distance)
+    var score: float = (
+        absf(float(projection.x) - current_head_target_x) * 10.0
+        + absf(float(projection.y) - current_head_target_y) * 4.0
+    )
+    if distance < profile.min_subject_camera_distance:
+        score += (profile.min_subject_camera_distance - distance) * 20.0
+    return score
 
 func _candidate_has_subject_clearance(candidate: Vector3) -> bool:
     if target == null or head_marker == null:
@@ -1068,6 +1137,11 @@ func get_debug_data() -> Dictionary:
         "framing_correction": framing_correction,
         "framing_side_correction": framing_side_correction,
         "post_collision_reframe": post_collision_reframe,
+        "post_initial_score": post_initial_score,
+        "post_validated_score": post_validated_score,
+        "post_validated_clearance": post_validated_clearance,
+        "post_initial_head_distance": post_initial_head_distance,
+        "post_validated_head_distance": post_validated_head_distance,
         "collision_cast_count": collision_cast_count,
         "collision_solver_usec": collision_solver_usec,
         "wall_context_amount": wall_context_amount,
