@@ -2,10 +2,10 @@ class_name SocomCameraProfile
 extends Resource
 
 @export_group("Preferred Shot")
-@export var distance: float = 2.40
+@export var distance: float = 2.20
 @export var height: float = 2.05
 @export var shoulder_offset: float = 0.0
-@export var vertical_fov: float = 71.0
+@export var vertical_fov: float = 74.0
 @export var close_level_fov: float = 80.0
 @export_range(0.0, 1.0, 0.01) var close_fov_start_compression: float = 0.48
 @export_range(0.0, 1.0, 0.01) var close_fov_full_compression: float = 0.78
@@ -21,10 +21,10 @@ extends Resource
 @export_group("Downward Aim Authority")
 @export var downward_aim_start_deg: float = -18.0
 @export var downward_aim_full_deg: float = -52.0
-@export var downward_distance: float = 3.15
+@export var downward_distance: float = 2.95
 @export var downward_height: float = 1.45
 @export var downward_shoulder_offset: float = 0.0
-@export var downward_fov: float = 58.0
+@export var downward_fov: float = 60.0
 @export var steep_downward_fov: float = 42.0
 @export var downward_fov_response: float = 12.0
 @export var max_downward_camera_raise: float = 1.90

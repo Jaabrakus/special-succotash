@@ -13,6 +13,7 @@ var _line_instance := MeshInstance3D.new()
 var _current_marker := MeshInstance3D.new()
 var _preferred_marker := MeshInstance3D.new()
 var _collision_marker := MeshInstance3D.new()
+var _aim_marker := MeshInstance3D.new()
 var _line_material := StandardMaterial3D.new()
 
 
@@ -28,6 +29,7 @@ func _ready() -> void:
     _configure_marker(_current_marker, Color(0.25, 1.0, 0.42), 0.15)
     _configure_marker(_preferred_marker, Color(0.20, 0.78, 1.0), 0.11)
     _configure_marker(_collision_marker, Color(1.0, 0.75, 0.20), 0.12)
+    _configure_marker(_aim_marker, Color(1.0, 1.0, 1.0), 0.10)
 
 
 func _process(_delta: float) -> void:
@@ -51,19 +53,24 @@ func _process(_delta: float) -> void:
     _segment(anchor, camera_rig.collision_camera_position, Color(0.46, 0.34, 0.06))
     _segment(anchor, camera_rig.global_position, Color(0.08, 0.38, 0.16))
 
-    # Compare like with like: the bright cyan optical ray and white/red weapon
-    # ray both point forward for the same fixed display distance.
+    # The gameplay target can be hundreds of metres away. For the workbench,
+    # draw a seven-metre scale model of that same convergence relationship so
+    # the camera and weapon visibly terminate on one shared crosshair point.
     var ray_length := 7.0
-    var camera_forward: Vector3 = -camera_rig.camera.global_basis.z.normalized()
-    var weapon_forward: Vector3 = (camera_rig.aim_point - muzzle).normalized()
-    if weapon_forward.length_squared() < 0.99:
-        weapon_forward = camera_forward
+    var aim_origin: Vector3 = (
+        player.global_position
+        + Vector3.UP * float(camera_rig.profile.look_height)
+    )
+    var shared_direction: Vector3 = (camera_rig.weapon_aim_point - aim_origin).normalized()
+    if shared_direction.length_squared() < 0.99:
+        shared_direction = -camera_rig.camera.global_basis.z.normalized()
+    var display_target: Vector3 = aim_origin + shared_direction * ray_length
     _segment(
         camera_rig.global_position,
-        camera_rig.global_position + camera_forward * ray_length,
+        display_target,
         Color(0.15, 0.95, 1.0)
     )
-    _segment(muzzle, muzzle + weapon_forward * ray_length, (
+    _segment(muzzle, display_target, (
         Color(1.0, 0.24, 0.18)
         if camera_rig.shot_blocked
         else Color(1.0, 1.0, 1.0)
@@ -73,6 +80,7 @@ func _process(_delta: float) -> void:
     _current_marker.global_position = camera_rig.global_position
     _preferred_marker.global_position = camera_rig.preferred_camera_position
     _collision_marker.global_position = camera_rig.collision_camera_position
+    _aim_marker.global_position = display_target
 
 
 func _segment(from: Vector3, to: Vector3, color: Color) -> void:

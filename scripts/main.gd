@@ -274,7 +274,7 @@ func _process(_delta: float) -> void:
     debug_label.text = (
         "SOCOM-141 CAMERA LAB\n"
         + "WASD move | Shift run | Mouse orbit | R reset | H clean HUD | V camera view | P tune | F9 record | F10 replay\n"
-        + "v2.3 Combined Assault preferred shot\n\n"
+        + "v2.4 close camera + shared crosshair target\n\n"
         + "Vertical FOV     %5.1f°\n" % d.fov
         + "Rear boom       %5.2f m behind player\n" % d.rear_boom_distance
         + "Camera range    %5.2f m diagonal to player\n" % d.distance
@@ -321,6 +321,7 @@ func _process(_delta: float) -> void:
             + "Torso pitch     %+5.1f°\n" % a.torso_pitch_deg
             + "Head extra yaw  %+5.1f°\n" % a.head_yaw_deg
             + "Weapon aim err  %.3f°\n" % a.weapon_aim_error_deg
+            + "Weapon tuck     %5.1f%%\n" % (a.weapon_obstruction_amount * 100.0)
             + "Shot path       %s  impact %s\n" % [("BLOCKED" if d.shot_blocked else "CLEAR"), d.shot_collider]
             + "Hand grip error L %.3f  R %.3f" % [a.left_hand_error, a.right_hand_error]
         )
@@ -528,7 +529,7 @@ func _build_camera_workbench(layer: CanvasLayer) -> void:
     spectator_viewport.add_child(spectator_camera)
 
     var legend := Label.new()
-    legend.text = "DIM = backward booms  •  CYAN = camera view  •  WHITE/RED = weapon aim"
+    legend.text = "DIM = backward booms  •  BRIGHT RAYS = shared crosshair target (7 m scale)"
     legend.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
     legend.add_theme_font_size_override("font_size", 11)
     spectator_stack.add_child(legend)

@@ -46,6 +46,10 @@ var torso_yaw: float = 0.0
 var torso_pitch: float = 0.0
 var head_yaw: float = 0.0
 var weapon_aim_error_deg: float = 0.0
+var weapon_obstruction_amount: float = 0.0
+var weapon_cover_offset := Vector3.ZERO
+var weapon_cover_pose_found: bool = true
+var weapon_rest_position := Vector3(0.12, -0.02, -0.23)
 
 @export_group("Upper-body aim")
 @export var torso_yaw_limit_deg: float = 52.0
@@ -55,6 +59,13 @@ var weapon_aim_error_deg: float = 0.0
 @export var head_extra_yaw_deg: float = 18.0
 @export var head_follow_response: float = 14.0
 @export var weapon_pitch_scale: float = 0.85
+@export var weapon_obstruction_distance: float = 1.0
+@export var weapon_obstruction_retract: float = 0.42
+@export var weapon_obstruction_raise: float = 0.14
+@export var weapon_cover_side_step: float = 0.20
+@export var weapon_cover_raise: float = 0.20
+@export var weapon_obstruction_enter_response: float = 18.0
+@export var weapon_obstruction_exit_response: float = 8.0
 
 func _ready() -> void:
     _build_rig()
@@ -112,10 +123,41 @@ func _animate_upper_body(player: CharacterBody3D, delta: float) -> void:
 
     chest_bone.rotation.y = torso_yaw
     chest_bone.rotation.x = torso_pitch * 0.42
-    if rig.aim_point != Vector3.ZERO:
-        weapon_bone.look_at(rig.aim_point, Vector3.UP)
+    # Solve the weapon against the shared camera target, not against a second
+    # independently projected crosshair. Near cover the rifle first searches a
+    # few restrained shoulder poses. The arms follow those grip targets through
+    # IK; if none has a clean muzzle path, the rifle tucks and the shot remains
+    # blocked instead of firing through geometry.
+    var desired_cover_offset := Vector3.ZERO
+    if rig.weapon_aim_point != Vector3.ZERO:
+        desired_cover_offset = _find_clear_weapon_offset(player, rig.weapon_aim_point)
+    var obstruction_target: float = 0.0
+    if not weapon_cover_pose_found:
+        obstruction_target = 1.0
+        desired_cover_offset = (
+            Vector3.BACK * weapon_obstruction_retract
+            + Vector3.UP * weapon_obstruction_raise
+        )
+    var obstruction_response: float = (
+        weapon_obstruction_enter_response
+        if desired_cover_offset.length() > weapon_cover_offset.length()
+        else weapon_obstruction_exit_response
+    )
+    weapon_cover_offset = weapon_cover_offset.lerp(
+        desired_cover_offset,
+        1.0 - exp(-obstruction_response * delta)
+    )
+    weapon_obstruction_amount = lerpf(
+        weapon_obstruction_amount,
+        obstruction_target,
+        1.0 - exp(-obstruction_response * delta)
+    )
+    weapon_bone.position = weapon_rest_position + weapon_cover_offset
+
+    if rig.weapon_aim_point != Vector3.ZERO:
+        weapon_bone.look_at(rig.weapon_aim_point, Vector3.UP)
         var weapon_forward: Vector3 = -muzzle_marker.global_basis.z
-        var desired_weapon_direction: Vector3 = (rig.aim_point - muzzle_marker.global_position).normalized()
+        var desired_weapon_direction: Vector3 = (rig.weapon_aim_point - muzzle_marker.global_position).normalized()
         weapon_aim_error_deg = rad_to_deg(acos(clampf(weapon_forward.dot(desired_weapon_direction), -1.0, 1.0)))
 
     # Head can finish a little more of the turn than the ribcage, like a person
@@ -127,6 +169,62 @@ func _animate_upper_body(player: CharacterBody3D, delta: float) -> void:
     head_bone.rotation.y = head_yaw
     head_bone.rotation.x = torso_pitch * 0.25
     _solve_weapon_hands()
+
+func _find_clear_weapon_offset(player: CharacterBody3D, target_point: Vector3) -> Vector3:
+    var saved_position: Vector3 = weapon_bone.position
+    var saved_basis: Basis = weapon_bone.basis
+    var candidates: Array[Vector3] = [
+        Vector3.ZERO,
+        Vector3.UP * weapon_cover_raise,
+        Vector3.LEFT * weapon_cover_side_step,
+        Vector3.RIGHT * weapon_cover_side_step,
+        Vector3.LEFT * weapon_cover_side_step + Vector3.UP * weapon_cover_raise,
+        Vector3.RIGHT * weapon_cover_side_step + Vector3.UP * weapon_cover_raise,
+    ]
+    var selected := Vector3.ZERO
+    var found: bool = false
+    for candidate in candidates:
+        weapon_bone.position = weapon_rest_position + candidate
+        weapon_bone.look_at(target_point, Vector3.UP)
+        if not _weapon_pose_blocked(player, target_point):
+            selected = candidate
+            found = true
+            break
+    weapon_bone.position = saved_position
+    weapon_bone.basis = saved_basis
+    weapon_cover_pose_found = found
+    return selected if found else Vector3.ZERO
+
+func _weapon_pose_blocked(player: CharacterBody3D, target_point: Vector3) -> bool:
+    if target_point == Vector3.ZERO:
+        return false
+    if (
+        _pose_segment_blocked(player, weapon_bone.global_position, muzzle_marker.global_position)
+        or _pose_segment_blocked(player, left_shoulder.global_position, left_grip_target.global_position)
+        or _pose_segment_blocked(player, right_shoulder.global_position, right_grip_target.global_position)
+    ):
+        return true
+    var query := PhysicsRayQueryParameters3D.create(
+        muzzle_marker.global_position,
+        target_point
+    )
+    query.collide_with_areas = false
+    query.exclude = [player.get_rid()]
+    var result: Dictionary = get_world_3d().direct_space_state.intersect_ray(query)
+    return (
+        not result.is_empty()
+        and Vector3(result["position"]).distance_to(target_point) > 0.08
+    )
+
+func _pose_segment_blocked(
+    player: CharacterBody3D,
+    segment_start: Vector3,
+    segment_end: Vector3
+) -> bool:
+    var query := PhysicsRayQueryParameters3D.create(segment_start, segment_end)
+    query.collide_with_areas = false
+    query.exclude = [player.get_rid()]
+    return not get_world_3d().direct_space_state.intersect_ray(query).is_empty()
 
 func _build_rig() -> void:
     var uniform := _material(Color(0.20, 0.24, 0.22))
@@ -245,7 +343,7 @@ func _build_legs(uniform: StandardMaterial3D, boot: StandardMaterial3D) -> void:
 func _build_rifle(material: StandardMaterial3D) -> void:
     weapon_bone = Node3D.new()
     weapon_bone.name = "RifleAimBone"
-    weapon_bone.position = Vector3(0.12, -0.02, -0.23)
+    weapon_bone.position = weapon_rest_position
     chest_bone.add_child(weapon_bone)
 
     _box_on(weapon_bone, "RifleReceiver", Vector3(0.13, 0.14, 0.58), Vector3(0, 0, -0.22), material)
@@ -422,6 +520,7 @@ func get_aim_debug_data() -> Dictionary:
         "head_yaw_deg": rad_to_deg(head_yaw),
         "muzzle": muzzle_marker.global_position if muzzle_marker else Vector3.ZERO,
         "weapon_aim_error_deg": weapon_aim_error_deg,
+        "weapon_obstruction_amount": weapon_obstruction_amount,
         "left_hand_error": left_hand_mesh.global_position.distance_to(left_grip_target.global_position) if left_hand_mesh and left_grip_target else -1.0,
         "right_hand_error": right_hand_mesh.global_position.distance_to(right_grip_target.global_position) if right_hand_mesh and right_grip_target else -1.0
     }

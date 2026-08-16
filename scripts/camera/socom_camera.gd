@@ -41,6 +41,7 @@ var downward_aim_amount: float = 0.0
 var downward_crane_amount: float = 0.0
 var downward_ledge_raise: float = 0.0
 var aim_point := Vector3.ZERO
+var weapon_aim_point := Vector3.ZERO
 var aim_hit := false
 var aim_collider_name := "OPEN"
 var shot_point := Vector3.ZERO
@@ -153,6 +154,7 @@ func _physics_process(delta: float) -> void:
         pitch = deg_to_rad(-2.0)
         reset_camera_to_target()
     _follow_target_translation()
+    var rendered_frame_start: Vector3 = current_camera_position
     if automated_wall_turn:
         yaw -= deg_to_rad(38.0) * delta
     yaw = wrapf(yaw, -PI, PI)
@@ -167,6 +169,9 @@ func _physics_process(delta: float) -> void:
         * profile.mid_downward_ledge_raise
     )
     _update_environment_state(delta)
+    # Raw player yaw/pitch owns one camera-independent crosshair target. Camera
+    # placement, collision and animation may react to it, but never rewrite it.
+    _update_aim_point()
     # Framing must measure the same projection that will be rendered this frame.
     # Updating FOV after composition caused a one-frame scale/pop disagreement.
     _update_dynamic_fov(delta)
@@ -309,6 +314,36 @@ func _physics_process(delta: float) -> void:
         delta
     )
 
+    # Final presentation invariant: no solver branch may bypass the close-wall
+    # speed limit. Validate the short local lens move instead of the obstructed
+    # player-to-camera boom, which keeps the camera outside geometry while it
+    # travels smoothly around the virtual wall surface.
+    var close_transition_active: bool = (
+        camera_state != CameraState.PREFERRED
+        or collision_active
+        or wall_context_amount > 0.01
+    )
+    if (
+        close_transition_active
+        and rendered_frame_start != Vector3.ZERO
+    ):
+        var rendered_motion: Vector3 = (
+            current_camera_position - rendered_frame_start
+        )
+        var rendered_maximum_step: float = (
+            profile.wall_branch_max_linear_speed * delta
+        )
+        if rendered_motion.length() > rendered_maximum_step:
+            var rendered_exclude: Array[RID] = []
+            if target is CollisionObject3D:
+                rendered_exclude.append((target as CollisionObject3D).get_rid())
+            current_camera_position = _advance_local_lens_toward(
+                rendered_frame_start,
+                current_camera_position,
+                rendered_maximum_step,
+                rendered_exclude
+            )
+
     # A rendered lens can never remain at an obsolete world-space wall point
     # after the player has left. Normal motion is handled by the translation
     # follower above; this tether is the spawn/teleport and impossible-route
@@ -325,6 +360,7 @@ func _physics_process(delta: float) -> void:
 
     global_position = current_camera_position
     _orient_camera(delta)
+    _update_weapon_aim_point()
     var mannequin = target.get_node_or_null("Mannequin") if target else null
     near_body_geometry_hidden = (
         near_body_crop_active
@@ -334,7 +370,6 @@ func _physics_process(delta: float) -> void:
     if mannequin and mannequin.has_method("set_near_camera_crop"):
         mannequin.set_near_camera_crop(near_body_geometry_hidden)
     _update_visual_crop_state()
-    _update_aim_point()
     _update_shot_validation()
     _update_reticle_position(delta)
 
@@ -667,10 +702,9 @@ func _smooth_legal_camera_position(
         next_length = minf(current_length + release_step, desired_length)
 
     var candidate: Vector3 = anchor + next_direction * next_length
-    # Constrained outward/sideways recovery is always speed-limited, including
-    # the frame where near-body mode hands back to a distant post-solved shot.
-    # Inward compression on the same boom remains immediate for occlusion
-    # safety; that is the only transition allowed to exceed this visual cap.
+    # Constrained outward/sideways recovery is speed-limited here. The final
+    # presentation invariant below also catches any emergency solver branch
+    # that would otherwise bypass this local slew.
     if (
         branch_transition
         or (close_context and desired_length >= current_length - 0.001)
@@ -853,6 +887,59 @@ func _smooth_surface_slide_position(
 
     return current_camera_position
 
+func _advance_local_lens_toward(
+    from_position: Vector3,
+    destination: Vector3,
+    maximum_step: float,
+    exclude: Array[RID]
+) -> Vector3:
+    var requested: Vector3 = destination - from_position
+    var requested_length: float = requested.length()
+    if requested_length < 0.001:
+        return destination
+
+    var step: float = minf(maximum_step, requested_length)
+    var directions: Array[Vector3] = [requested.normalized()]
+    var horizontal := Vector3(requested.x, 0.0, requested.z)
+    if horizontal.length_squared() > 0.0001:
+        var horizontal_direction := horizontal.normalized()
+        directions.append(horizontal_direction)
+        directions.append(horizontal_direction.rotated(Vector3.UP, PI * 0.5))
+        directions.append(horizontal_direction.rotated(Vector3.UP, -PI * 0.5))
+    if absf(requested.y) > 0.001:
+        directions.append(Vector3.UP * signf(requested.y))
+    if absf(requested.x) > 0.001:
+        directions.append(Vector3.RIGHT * signf(requested.x))
+    if absf(requested.z) > 0.001:
+        directions.append(Vector3.BACK * signf(requested.z))
+
+    var best_position := from_position
+    var best_distance: float = requested_length
+    for direction in directions:
+        var candidate: Vector3 = from_position + direction.normalized() * step
+        var local_cast := _cast_camera_volume(
+            from_position,
+            candidate,
+            exclude
+        )
+        if (
+            local_cast.safe_fraction < 0.999
+            or not _candidate_has_subject_clearance(candidate)
+        ):
+            continue
+        var candidate_projection := _subject_projection(candidate)
+        if (
+            not bool(candidate_projection.visible)
+            or float(candidate_projection.x) < 0.18
+            or float(candidate_projection.x) > 0.82
+        ):
+            continue
+        var remaining: float = candidate.distance_to(destination)
+        if remaining < best_distance - 0.0001:
+            best_distance = remaining
+            best_position = candidate
+    return best_position
+
 func _preferred_position() -> Vector3:
     var anchor := target.global_position + movement_lead + Vector3.UP * 1.05
     var yaw_basis := Basis(Vector3.UP, yaw)
@@ -927,14 +1014,16 @@ func _composed_view_pitch() -> float:
     )
 
 func _look_target() -> Vector3:
-    # Camera orientation is the virtual camera: raw player yaw/pitch always
-    # wins. Collision constrains lens position only.
+    # Converge the rendered optical axis on the same camera-independent point
+    # used by the weapon. At normal ranges this preserves raw yaw/pitch while
+    # removing the parallel-ray mismatch visible in the workbench.
+    if aim_point != Vector3.ZERO and global_position.distance_to(aim_point) > 0.1:
+        return aim_point
     return global_position + _forward_direction() * profile.look_ahead_distance
 
 func _look_target_from(camera_position: Vector3, _force_collision_context: bool = false) -> Vector3:
-    # Preferred and ordinary collision candidates always preserve the raw
-    # yaw/pitch direction. The final perched-wall emergency view is composed
-    # separately in _look_target() and never feeds back into this solver.
+    if aim_point != Vector3.ZERO and camera_position.distance_to(aim_point) > 0.1:
+        return aim_point
     return camera_position + _forward_direction() * profile.look_ahead_distance
 
 func _close_wall_aim_point(look_ahead: float) -> Vector3:
@@ -1944,11 +2033,9 @@ func _basis_looking_at(point: Vector3) -> Basis:
     return Basis.looking_at(direction, Vector3.UP, false)
 
 func _update_aim_point() -> void:
-    # Camera collision is allowed to move the lens, but it must not redirect the
-    # character's intent into the wall that displaced it. Select the gameplay
-    # aim point from the player pivot and raw yaw/pitch direction. The muzzle ray
-    # below remains authoritative, so a wall in front of the weapon still blocks
-    # the shot even when the camera can see around it.
+    # Raw player yaw/pitch owns a distant, camera-independent view point. Keeping
+    # collision out of this value prevents a nearby wall hit from becoming an
+    # orbit pivot and dragging the operator out of frame.
     var origin: Vector3 = (
         target.global_position
         + movement_lead
@@ -1956,6 +2043,18 @@ func _update_aim_point() -> void:
     )
     var direction: Vector3 = _forward_direction()
     var destination: Vector3 = origin + direction * profile.aim_distance
+    aim_point = destination
+
+func _update_weapon_aim_point() -> void:
+    # Once the legal rendered lens is known, cast through the fixed center
+    # reticle. This produces the one exact world point shared by the camera,
+    # weapon pose and authoritative muzzle trace without feeding camera
+    # collision back into orbit control.
+    var origin: Vector3 = camera.global_position
+    var destination: Vector3 = (
+        origin - camera.global_basis.z.normalized() * profile.aim_distance
+    )
+    weapon_aim_point = destination
     var query := PhysicsRayQueryParameters3D.create(origin, destination)
     query.collide_with_areas = false
     if target is CollisionObject3D:
@@ -1965,20 +2064,19 @@ func _update_aim_point() -> void:
     aim_hit = not result.is_empty()
     aim_collider_name = "OPEN"
     if aim_hit:
-        aim_point = result["position"]
+        var hit_position: Vector3 = result["position"]
+        weapon_aim_point = hit_position
         var collider: Variant = result.get("collider")
         if collider is Node:
             aim_collider_name = str((collider as Node).name)
         elif collider is Object:
             aim_collider_name = (collider as Object).get_class()
-    else:
-        aim_point = destination
 
 func _update_shot_validation() -> void:
-    shot_point = aim_point
+    shot_point = weapon_aim_point
     shot_blocked = false
     shot_collider_name = aim_collider_name
-    if target == null or aim_point == Vector3.ZERO:
+    if target == null or weapon_aim_point == Vector3.ZERO:
         return
 
     var mannequin = target.get_node_or_null("Mannequin")
@@ -1986,7 +2084,7 @@ func _update_shot_validation() -> void:
         return
 
     var muzzle_position: Vector3 = mannequin.muzzle_marker.global_position
-    var query := PhysicsRayQueryParameters3D.create(muzzle_position, aim_point)
+    var query := PhysicsRayQueryParameters3D.create(muzzle_position, weapon_aim_point)
     query.collide_with_areas = false
     if target is CollisionObject3D:
         query.exclude = [(target as CollisionObject3D).get_rid()]
@@ -1996,7 +2094,7 @@ func _update_shot_validation() -> void:
         return
 
     shot_point = result["position"]
-    var remaining_to_reticle_hit: float = shot_point.distance_to(aim_point)
+    var remaining_to_reticle_hit: float = shot_point.distance_to(weapon_aim_point)
     shot_blocked = remaining_to_reticle_hit > 0.08
     var collider: Variant = result.get("collider")
     if collider is Node:
@@ -2016,7 +2114,7 @@ func build_local_aim_intent() -> Dictionary:
     if mannequin == null or mannequin.muzzle_marker == null:
         return {}
     var muzzle: Vector3 = mannequin.muzzle_marker.global_position
-    var direction: Vector3 = (aim_point - muzzle).normalized()
+    var direction: Vector3 = (weapon_aim_point - muzzle).normalized()
     if direction.length_squared() < 0.99:
         direction = _forward_direction()
     aim_intent_sequence += 1
@@ -2035,11 +2133,11 @@ func _update_reticle_position(delta: float) -> void:
     reticle_dynamic_amount = collision_crane_view_amount
     if (
         reticle_dynamic_amount > 0.001
-        and aim_point != Vector3.ZERO
-        and not camera.is_position_behind(aim_point)
+        and weapon_aim_point != Vector3.ZERO
+        and not camera.is_position_behind(weapon_aim_point)
     ):
         var viewport_size := get_viewport().get_visible_rect().size
-        var projected_pixels := camera.unproject_position(aim_point)
+        var projected_pixels := camera.unproject_position(weapon_aim_point)
         var projected := Vector2(
             projected_pixels.x / maxf(viewport_size.x, 1.0),
             projected_pixels.y / maxf(viewport_size.y, 1.0)
@@ -2085,8 +2183,8 @@ func get_debug_data() -> Dictionary:
         pelvis_y = camera.unproject_position(pelvis_marker.global_position).y / maxf(viewport_size.y, 1.0)
     if feet_marker and camera:
         feet_y = camera.unproject_position(feet_marker.global_position).y / maxf(viewport_size.y, 1.0)
-    if camera and aim_point != Vector3.ZERO and not camera.is_position_behind(aim_point):
-        var aim_pixels := camera.unproject_position(aim_point)
+    if camera and weapon_aim_point != Vector3.ZERO and not camera.is_position_behind(weapon_aim_point):
+        var aim_pixels := camera.unproject_position(weapon_aim_point)
         aim_screen_x = aim_pixels.x / maxf(viewport_size.x, 1.0)
         aim_screen_y = aim_pixels.y / maxf(viewport_size.y, 1.0)
         var camera_forward: Vector3 = -camera.global_basis.z.normalized()
@@ -2094,12 +2192,12 @@ func get_debug_data() -> Dictionary:
             -camera_forward.x,
             -camera_forward.z
         ))
-        var camera_to_aim: Vector3 = (aim_point - camera.global_position).normalized()
+        var camera_to_aim: Vector3 = (weapon_aim_point - camera.global_position).normalized()
         camera_aim_angle_deg = rad_to_deg(camera_forward.angle_to(camera_to_aim))
         var mannequin = target.get_node_or_null("Mannequin") if target else null
         if mannequin and mannequin.muzzle_marker:
             var weapon_to_aim: Vector3 = (
-                aim_point - mannequin.muzzle_marker.global_position
+                weapon_aim_point - mannequin.muzzle_marker.global_position
             ).normalized()
             camera_weapon_angle_deg = rad_to_deg(
                 camera_forward.angle_to(weapon_to_aim)
@@ -2111,6 +2209,12 @@ func get_debug_data() -> Dictionary:
         rear_boom_distance = maxf(
             (global_position - target.global_position).dot(yaw_back),
             0.0
+        )
+    var weapon_obstruction_amount: float = 0.0
+    var debug_mannequin = target.get_node_or_null("Mannequin") if target else null
+    if debug_mannequin and debug_mannequin.has_method("get_aim_debug_data"):
+        weapon_obstruction_amount = float(
+            debug_mannequin.get_aim_debug_data().weapon_obstruction_amount
         )
 
     return {
@@ -2192,10 +2296,12 @@ func get_debug_data() -> Dictionary:
         "downward_ledge_raise": downward_ledge_raise,
         "aim_hit": aim_hit,
         "aim_collider": aim_collider_name,
-        "aim_point": aim_point,
+        "aim_point": weapon_aim_point,
+        "camera_intent_point": aim_point,
         "shot_point": shot_point,
         "shot_blocked": shot_blocked,
         "shot_collider": shot_collider_name,
+        "weapon_obstruction_amount": weapon_obstruction_amount,
         "excursion": excursion,
         "virtual_camera_position": virtual_camera_position,
         "collision_camera_position": collision_camera_position,
