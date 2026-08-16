@@ -31,7 +31,7 @@ check_camera_motion() {
   local label="$2"
   local maximum_step="$3"
   awk -F, -v label="$label" -v limit="$maximum_step" '
-    BEGIN { maximum = 0.0; unreadable = 0; frames = 0; flips = 0; last_transition = -1000 }
+    BEGIN { maximum = 0.0; unreadable = 0; frames = 0; flips = 0; last_transition = -1000; position_frozen = 0; maximum_position_frozen = 0; view_frozen = 0; maximum_view_frozen = 0 }
     /^WALL_AUDIT/ {
       if (have_previous) {
         dx = $4 - previous_x
@@ -39,13 +39,29 @@ check_camera_motion() {
         dz = $6 - previous_z
         step = sqrt(dx * dx + dy * dy + dz * dz)
         if (step > maximum) maximum = step
+        yaw_step = $3 - previous_yaw
+        if (yaw_step < 0) yaw_step = -yaw_step
+        if (yaw_step > 0.05 && $10 == 1) {
+          if (step < 0.003) position_frozen++
+          else position_frozen = 0
+          if (position_frozen > maximum_position_frozen) maximum_position_frozen = position_frozen
+          view_step = $16 - previous_view_yaw
+          if (view_step < 0) view_step = -view_step
+          if (view_step > 180) view_step = 360 - view_step
+          if (view_step < 0.05) view_frozen++
+          else view_frozen = 0
+          if (view_frozen > maximum_view_frozen) maximum_view_frozen = view_frozen
+        }
       }
       previous_x = $4
       previous_y = $5
       previous_z = $6
+      previous_yaw = $3
+      previous_view_yaw = $16
       have_previous = 1
       frames++
-      if ($8 < 0.05 || $8 > 0.95 || $9 < 0.02 || $9 > 0.99) unreadable++
+      near_body = $15 + 0
+      if (!near_body && ($8 < 0.05 || $8 > 0.95 || $9 < 0.02 || $9 > 0.99)) unreadable++
       state = $14
       if (state != previous_state) {
         if (state == state_before_previous && $2 - last_transition <= 15) flips++
@@ -55,8 +71,8 @@ check_camera_motion() {
       }
     }
     END {
-      printf "%s: %d frames, max camera step %.3f m, unreadable %d, state flips %d\n", label, frames, maximum, unreadable, flips
-      if (frames == 0 || maximum > limit || unreadable > 0 || flips > 0) exit 1
+      printf "%s: %d frames, max camera step %.3f m, unreadable %d, state flips %d, max lens contact %d, max view freeze %d\n", label, frames, maximum, unreadable, flips, maximum_position_frozen, maximum_view_frozen
+      if (frames == 0 || maximum > limit || unreadable > 0 || flips > 0 || maximum_view_frozen > 2) exit 1
     }
   ' "$report"
 }

@@ -71,7 +71,10 @@ func _ready() -> void:
     _build_camera()
     _build_camera_tools()
     _build_ui()
-    if OS.get_cmdline_user_args().has("--capture-workbench"):
+    if (
+        OS.get_cmdline_user_args().has("--capture-workbench")
+        or OS.get_cmdline_user_args().has("--capture-wall-surface")
+    ):
         _set_workbench_visible(true)
     if OS.get_cmdline_user_args().has("--audit-record-test"):
         audit_recorder.start_recording()
@@ -161,9 +164,16 @@ func _process(_delta: float) -> void:
         var capture := get_viewport().get_texture().get_image()
         capture.save_png("/private/tmp/socom-camera-workbench.png")
         print("WORKBENCH_CAPTURE /private/tmp/socom-camera-workbench.png")
+    if (
+        OS.get_cmdline_user_args().has("--capture-wall-surface")
+        and process_frame == 430
+    ):
+        var wall_capture := get_viewport().get_texture().get_image()
+        wall_capture.save_png("/private/tmp/socom-wall-surface.png")
+        print("WALL_SURFACE_CAPTURE /private/tmp/socom-wall-surface.png")
     if OS.get_cmdline_user_args().has("--wall-audit-report"):
         print(
-            "WALL_AUDIT,%d,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%d,%.3f,%.6f,%d,%s"
+            "WALL_AUDIT,%d,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%d,%.3f,%.6f,%d,%s,%d,%.6f"
             % [
                 process_frame,
                 d.yaw_deg,
@@ -177,7 +187,13 @@ func _process(_delta: float) -> void:
                 d.wall_escape_angle_deg,
                 d.wall_context_amount,
                 d.collision_solver_usec,
-                d.camera_state
+                d.camera_state,
+                int(
+                    d.near_body_crop_active
+                    or d.transition_crop_active
+                    or d.surface_slide_active
+                ),
+                d.rendered_view_yaw_deg
             ]
         )
     if OS.get_cmdline_user_args().has("--transition-audit"):
@@ -215,7 +231,7 @@ func _process(_delta: float) -> void:
     debug_label.text = (
         "SOCOM-141 CAMERA LAB\n"
         + "WASD move | Shift run | Mouse orbit | R reset | H clean HUD | V camera view | P tune | F9 record | F10 replay\n"
-        + "v2.1 camera workbench + multiplayer aim boundary\n\n"
+        + "v2.2 virtual wall-surface camera\n\n"
         + "Vertical FOV     %5.1f°\n" % d.fov
         + "Camera distance %5.2f m\n" % d.distance
         + "Camera height   %5.2f m above player\n" % d.height_above_player
@@ -231,6 +247,7 @@ func _process(_delta: float) -> void:
         + "Wall state      %5.1f%%  deterministic boom\n" % [d.wall_context_amount * 100.0]
         + "State machine   %s  age %.2fs  transitions %d\n" % [d.camera_state, d.camera_state_age, d.camera_state_transitions]
         + "Wall crane      %s  blend %4.0f%%  convergence %.2f m\n" % ["ACTIVE" if d.collision_crane_active else "idle", d.collision_crane_view_amount * 100.0, d.collision_crane_look_ahead]
+        + "Virtual wall    %s  close %s  transition %s  head crop %s\n" % ["SLIDING" if d.surface_slide_active else "idle", "ACTIVE" if d.near_body_crop_active else "idle", "ACTIVE" if d.transition_crop_active else "idle", "ACTIVE" if d.near_body_geometry_hidden else "idle"]
         + "Soft reticle    X %.3f  Y %.3f  authority %4.0f%%\n" % [d.reticle_x, d.reticle_y, d.reticle_dynamic_amount * 100.0]
         + "Ray audit       camera↔weapon %.2f°  aim screen X %.3f Y %.3f\n" % [d.camera_weapon_angle_deg, d.aim_screen_x, d.aim_screen_y]
         + "Geometry cull    DISABLED (fair sightlines)\n"
@@ -488,7 +505,7 @@ func _build_camera_workbench(layer: CanvasLayer) -> void:
     _add_workbench_slider(tuning_stack, "Open height", &"height", 0.8, 3.5, 0.05)
     _add_workbench_slider(tuning_stack, "Vertical FOV", &"vertical_fov", 45.0, 80.0, 0.5)
     _add_workbench_slider(tuning_stack, "Head screen Y", &"desired_head_y", 0.55, 0.90, 0.005)
-    _add_workbench_slider(tuning_stack, "Perched max height", &"close_wall_crane_max_height", 2.5, 5.5, 0.05)
+    _add_workbench_slider(tuning_stack, "Wall lens radius", &"camera_collision_radius", 0.09, 0.24, 0.005)
     _add_workbench_slider(tuning_stack, "Wall linear speed", &"wall_branch_max_linear_speed", 2.0, 15.0, 0.25)
     _add_workbench_slider(tuning_stack, "Wall angular speed", &"wall_branch_max_angular_speed_deg", 35.0, 240.0, 5.0)
 
@@ -556,6 +573,8 @@ func _on_workbench_slider_changed(
     value_label: Label
 ) -> void:
     camera_rig.profile.set(property_name, value)
+    if property_name == &"camera_collision_radius":
+        camera_rig.camera_collision_shape.radius = value
     value_label.text = "%.3f" % value
 
 

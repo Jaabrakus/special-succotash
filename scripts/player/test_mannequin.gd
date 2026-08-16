@@ -20,6 +20,8 @@ var chest_bone: Node3D
 var neck_bone: Node3D
 var head_bone: Node3D
 var weapon_bone: Node3D
+var head_mesh: MeshInstance3D
+var helmet_mesh: MeshInstance3D
 
 var left_shoulder: Node3D
 var right_shoulder: Node3D
@@ -164,13 +166,23 @@ func _build_rig() -> void:
     head_bone.name = "HeadAimBone"
     head_bone.position = Vector3(0, 0.19, 0)
     neck_bone.add_child(head_bone)
-    _sphere_on(head_bone, "Head", 0.22, Vector3.ZERO, skin)
-    _box_on(head_bone, "Helmet", Vector3(0.46, 0.16, 0.43), Vector3(0, 0.14, 0), gear)
+    head_mesh = _sphere_on(head_bone, "Head", 0.22, Vector3.ZERO, skin)
+    helmet_mesh = _box_on(head_bone, "Helmet", Vector3(0.46, 0.16, 0.43), Vector3(0, 0.14, 0), gear)
+    head_mesh.set_layer_mask_value(20, true)
+    helmet_mesh.set_layer_mask_value(20, true)
 
     _build_arms(uniform, skin)
     _build_legs(uniform, boot)
     _build_rifle(weapon)
     _build_markers()
+
+func set_near_camera_crop(active: bool) -> void:
+    # Keep the complete operator in the workbench spectator layer while the
+    # gameplay camera omits only geometry intersecting its near plane.
+    if head_mesh:
+        head_mesh.set_layer_mask_value(1, not active)
+    if helmet_mesh:
+        helmet_mesh.set_layer_mask_value(1, not active)
 
 func _build_arms(uniform: StandardMaterial3D, skin: StandardMaterial3D) -> void:
     left_shoulder = Node3D.new()

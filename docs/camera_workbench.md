@@ -26,12 +26,22 @@ The three dim lines visualize camera placement and are not aim directions. Only
 compare the two bright forward rays when auditing camera/weapon alignment. The
 HUD `Ray audit` value reports their actual angular difference.
 
+`Virtual wall` reports the v2.2 constraint phases. `SLIDING` means the free
+virtual lens is being projected onto a wall surface. `close` means the rendered
+lens is following a collision-safe compressed boom because no distant surface
+shot can preserve the input direction. `transition` is a bounded route between
+legal shots; it can crop the operator briefly but cannot freeze view yaw.
+
 ## Audit interpretation
 
 `step_m` catches positional snaps. Acceleration and jerk catch a camera that
 travels only a short distance but changes speed or direction abruptly. State
 transitions identify mode churn. A flip means the state returned from A to B
 and back to A within 15 physics frames.
+
+The regression suite separately measures physical lens contact and rendered
+view freeze. Lens contact is allowed—the point of a collision constraint is to
+remain on the wall boundary—but view yaw must continue following input.
 
 The live sliders alter only the in-memory camera profile. Save preset creates a
 timestamped JSON file; it does not silently rewrite the verified defaults.

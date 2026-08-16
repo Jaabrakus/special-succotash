@@ -88,7 +88,10 @@ extends Resource
 @export_range(0.0, 1.0, 0.001) var wall_escape_head_y: float = 0.84
 @export_group("Collision / Excursion")
 @export var collision_anchor_height: float = 1.95
-@export var camera_collision_radius: float = 0.24
+# Sized to the 60-degree camera's near-plane diagonal plus margin. The former
+# 0.24 m gameplay capsule was twice as conservative as the rendered lens and
+# removed the close orbit needed to glide past a wall behind the operator.
+@export var camera_collision_radius: float = 0.12
 @export var collision_margin: float = 0.025
 @export var min_distance: float = 2.20
 @export var collision_close_distance: float = 1.35

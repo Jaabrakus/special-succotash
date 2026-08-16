@@ -1,6 +1,25 @@
-# SOCOM-141 Camera Lab — v2.1 camera workbench
+# SOCOM-141 Camera Lab — v2.2 virtual wall-surface camera
 
 A runnable Godot 4 prototype for developing a SOCOM-style independent tactical camera and body/aim relationship.
+
+## v2.2: virtual camera with a collision-constrained rendered lens
+
+Close walls no longer steer or freeze the view. A free virtual camera follows
+raw yaw and pitch every frame, while the rendered lens is projected onto the
+player-facing wall surface. The lens may remain physically pressed against a
+wall during an impossible orbit, but the optical direction continues one-for-
+one with input; automated wall tests now fail if rendered view yaw stalls.
+
+The collision probe is sized to the actual near-plane footprint rather than the
+former oversized gameplay sphere. When no distant surface position can retain
+the operator, the lens follows the collision-safe compressed virtual boom. Only
+head and helmet geometry intersecting the near lens is omitted from the gameplay
+camera; the workbench spectator continues to show the complete operator.
+
+No wall is culled and no camera collision state changes weapon intent. The
+server-owned muzzle trace and multiplayer aim boundary remain unchanged. The
+workbench exposes `Wall lens radius` so the collision skin can be inspected and
+tuned without editing the solver.
 
 ## v2.1: visible camera workbench, replay audit, and multiplayer boundary
 
