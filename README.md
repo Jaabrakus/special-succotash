@@ -2,6 +2,20 @@
 
 A runnable Godot 4 prototype for developing a SOCOM-style independent tactical camera and body/aim relationship.
 
+## v2.0.4: gun-camera soft reticle convergence
+
+The perched-wall state now uses a bounded soft reticle instead of forcing the
+camera to pitch toward a close composition point. The gun's raw aim ray selects
+one authoritative world point; the legal camera projects that point onto the
+screen, and the reticle moves within a small safe region to show the remaining
+parallax. Camera composition corrects horizontally only and preserves raw input
+pitch exactly, so close-wall collision cannot force the view downward.
+
+The rifle and camera therefore meet at the same displayed aim point while the
+muzzle ray remains authoritative for obstruction. A blocked muzzle changes the
+reticle color and cannot shoot through geometry. Away from the perched-wall
+state, the reticle stays at the exact center as before.
+
 ## v2.0.3: close-wall crane continuity
 
 Only when the operator is perched directly against an outdoor wall and the

@@ -3,6 +3,7 @@ extends Node3D
 var player: SocomTestPlayer
 var camera_rig: SocomCameraRig
 var debug_label: Label
+var crosshair: Label
 var calibration_overlay: Control
 var calibration_texture: TextureRect
 var calibration_status: Label
@@ -106,6 +107,7 @@ func _process(_delta: float) -> void:
     if camera_rig == null or debug_label == null:
         return
     var d := camera_rig.get_debug_data()
+    _update_crosshair(d)
     var report_frame: int = 60 if OS.get_cmdline_user_args().has("--movement-test") else 120
     var process_frame: int = Engine.get_process_frames()
     if OS.get_cmdline_user_args().has("--wall-audit-report"):
@@ -135,7 +137,7 @@ func _process(_delta: float) -> void:
     debug_label.text = (
         "SOCOM-141 CAMERA LAB\n"
         + "WASD move | Shift run | Mouse orbit | R reset | C calibration | H clean HUD | T roof | I interior | B wall\n"
-        + "v2.0.3 close-wall crane continuity\n\n"
+        + "v2.0.4 gun-camera soft reticle convergence\n\n"
         + "Vertical FOV     %5.1f°\n" % d.fov
         + "Camera distance %5.2f m\n" % d.distance
         + "Camera height   %5.2f m above player\n" % d.height_above_player
@@ -150,6 +152,7 @@ func _process(_delta: float) -> void:
         + "Wall close      %s  boom zoom\n" % ("ACTIVE" if d.collision_active else "idle")
         + "Wall state      %5.1f%%  deterministic boom\n" % [d.wall_context_amount * 100.0]
         + "Wall crane      %s  blend %4.0f%%  convergence %.2f m\n" % ["ACTIVE" if d.collision_crane_active else "idle", d.collision_crane_view_amount * 100.0, d.collision_crane_look_ahead]
+        + "Soft reticle    X %.3f  Y %.3f  authority %4.0f%%\n" % [d.reticle_x, d.reticle_y, d.reticle_dynamic_amount * 100.0]
         + "Geometry cull    DISABLED (fair sightlines)\n"
         + "Movement lead   %5.1f%%  X %+.2f  Z %+.2f\n" % [d.movement_speed_ratio * 100.0, d.movement_lead.x, d.movement_lead.z]
         + "Downward intent %5.1f%%  crane %5.1f%%  ledge +%.2f m  aim %s\n" % [d.downward_aim_amount * 100.0, d.downward_crane_amount * 100.0, d.downward_ledge_raise, d.aim_collider]
@@ -308,14 +311,28 @@ func _build_ui() -> void:
     debug_label.add_theme_font_size_override("font_size", 16)
     layer.add_child(debug_label)
 
-    var crosshair := Label.new()
+    crosshair = Label.new()
     crosshair.text = "+"
     crosshair.add_theme_font_size_override("font_size", 24)
-    crosshair.set_anchors_preset(Control.PRESET_CENTER)
-    crosshair.position = Vector2(-7, -14)
+    crosshair.position = get_viewport().get_visible_rect().size * 0.5 + Vector2(-7, -14)
+    crosshair.mouse_filter = Control.MOUSE_FILTER_IGNORE
     layer.add_child(crosshair)
 
     _build_calibration_overlay(layer)
+
+func _update_crosshair(data: Dictionary) -> void:
+    if crosshair == null:
+        return
+    var viewport_size := get_viewport().get_visible_rect().size
+    crosshair.position = Vector2(
+        float(data.reticle_x) * viewport_size.x - 7.0,
+        float(data.reticle_y) * viewport_size.y - 14.0
+    )
+    crosshair.modulate = (
+        Color(1.0, 0.42, 0.30)
+        if bool(data.shot_blocked)
+        else Color.WHITE
+    )
 
 func _build_calibration_overlay(layer: CanvasLayer) -> void:
     calibration_overlay = Control.new()

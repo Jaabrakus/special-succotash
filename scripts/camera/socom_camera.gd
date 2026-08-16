@@ -64,8 +64,9 @@ var post_validated_head_distance: float = -1.0
 var last_readable_post_solve_position := Vector3.ZERO
 var collision_crane_active: bool = false
 var collision_crane_look_ahead: float = 3.0
-var collision_crane_aim_height: float = 1.45
 var collision_crane_view_amount: float = 0.0
+var reticle_screen_normalized := Vector2(0.5, 0.5)
+var reticle_dynamic_amount: float = 0.0
 var camera_collision_shape := SphereShape3D.new()
 var collision_cast_count: int = 0
 var collision_solver_usec: int = 0
@@ -262,6 +263,7 @@ func _physics_process(delta: float) -> void:
     _update_visual_crop_state()
     _update_aim_point()
     _update_shot_validation()
+    _update_reticle_position(delta)
 
 func _apply_collision_result(result: Dictionary) -> void:
     collision_camera_position = result.position
@@ -277,10 +279,6 @@ func _apply_collision_result(result: Dictionary) -> void:
         collision_crane_look_ahead = float(result.get(
             "crane_look_ahead",
             profile.close_wall_crane_default_look_ahead
-        ))
-        collision_crane_aim_height = float(result.get(
-            "crane_aim_height",
-            profile.close_wall_crane_aim_height
         ))
 
 func _update_collision_crane_view(delta: float) -> void:
@@ -395,10 +393,10 @@ func _smooth_legal_camera_position(
         candidate_readable = _projection_is_reframeable(
             _subject_projection_to(
                 candidate,
-                _close_wall_aim_point(
-                    collision_crane_look_ahead,
-                    collision_crane_aim_height
-                )
+                candidate + _perched_view_direction(
+                    candidate,
+                    collision_crane_look_ahead
+                ) * profile.look_ahead_distance
             )
         )
     if (
@@ -485,16 +483,11 @@ func _look_target() -> Vector3:
     var raw_direction := _forward_direction()
     if collision_crane_view_amount < 0.001:
         return global_position + raw_direction * profile.look_ahead_distance
-    var crane_direction := (
-        _close_wall_aim_point(
-            collision_crane_look_ahead,
-            collision_crane_aim_height
-        ) - global_position
-    ).normalized()
-    var composed_direction := raw_direction.slerp(
-        crane_direction,
+    var composed_direction := _perched_view_direction(
+        global_position,
+        collision_crane_look_ahead,
         smoothstep(0.0, 1.0, collision_crane_view_amount)
-    ).normalized()
+    )
     return global_position + composed_direction * profile.look_ahead_distance
 
 func _look_target_from(camera_position: Vector3, _force_collision_context: bool = false) -> Vector3:
@@ -503,18 +496,40 @@ func _look_target_from(camera_position: Vector3, _force_collision_context: bool 
     # separately in _look_target() and never feeds back into this solver.
     return camera_position + _forward_direction() * profile.look_ahead_distance
 
-func _close_wall_aim_point(look_ahead: float, aim_height: float = -1.0) -> Vector3:
-    var selected_height: float = (
-        collision_crane_aim_height
-        if aim_height < 0.0
-        else aim_height
-    )
+func _close_wall_aim_point(look_ahead: float) -> Vector3:
     return (
         target.global_position
         + movement_lead
-        + Vector3.UP * selected_height
+        + Vector3.UP * profile.look_height
         + _forward_direction() * look_ahead
     )
+
+func _perched_view_direction(
+    camera_position: Vector3,
+    look_ahead: float,
+    horizontal_correction: float = 1.0
+) -> Vector3:
+    # Wall composition is horizontal only. Raw pitch is copied exactly so
+    # collision can never force the player to look at the floor or ceiling.
+    var raw_direction := _forward_direction()
+    var raw_flat := Vector3(raw_direction.x, 0.0, raw_direction.z).normalized()
+    var convergence_delta := _close_wall_aim_point(look_ahead) - camera_position
+    var convergence_flat := Vector3(
+        convergence_delta.x,
+        0.0,
+        convergence_delta.z
+    ).normalized()
+    if convergence_flat.length_squared() < 0.0001:
+        convergence_flat = raw_flat
+    var corrected_flat := raw_flat.slerp(
+        convergence_flat,
+        clampf(horizontal_correction, 0.0, 1.0)
+    ).normalized()
+    var horizontal_length := sqrt(maxf(1.0 - raw_direction.y * raw_direction.y, 0.0))
+    return (
+        corrected_flat * horizontal_length
+        + Vector3.UP * raw_direction.y
+    ).normalized()
 
 func _solve_collision(desired: Vector3) -> Dictionary:
     var anchor := target.global_position + Vector3.UP * profile.collision_anchor_height
@@ -693,7 +708,6 @@ func _solve_better_post_collision(
     var best_escape_angle: float = float(initial_result.escape_angle_deg)
     var continuity_crane_hold: bool = false
     var continuity_look_ahead: float = profile.close_wall_crane_default_look_ahead
-    var continuity_aim_height: float = profile.close_wall_crane_aim_height
     var physical_seed_head_distance: float = initial_position.distance_to(
         head_marker.global_position
     )
@@ -809,9 +823,6 @@ func _solve_better_post_collision(
         var crane_look_aheads: Array[float] = [
             0.50, 0.75, 1.0, 1.25, 1.75, 2.25, 3.0, 4.0, 5.5
         ]
-        var crane_aim_heights: Array[float] = [
-            1.45, 1.85, 2.25, 2.65, 3.05, 3.45
-        ]
         for destination in continuity_destinations:
             var candidate_cast := _cast_camera_volume(anchor, destination, exclude)
             if candidate_cast.safe_fraction < 0.999:
@@ -819,28 +830,26 @@ func _solve_better_post_collision(
             if not _candidate_has_subject_clearance(destination):
                 continue
             for look_ahead in crane_look_aheads:
-                for aim_height in crane_aim_heights:
-                    var projection := _subject_projection_to(
+                var projection := _subject_projection_to(
+                    destination,
+                    destination + _perched_view_direction(
                         destination,
-                        _close_wall_aim_point(look_ahead, aim_height)
-                    )
-                    if not _projection_is_reframeable(projection):
-                        continue
-                    var score: float = _post_solve_projection_score(projection)
-                    score += destination.distance_to(continuity_seed) * 0.15
-                    score += absf(
-                        look_ahead - profile.close_wall_crane_default_look_ahead
-                    ) * 0.015
-                    score += absf(
-                        aim_height - profile.close_wall_crane_aim_height
-                    ) * 0.01
-                    if score < continuity_score:
-                        continuity_score = score
-                        continuity_look_ahead = look_ahead
-                        continuity_aim_height = aim_height
-                        best_position = destination
-                        best_projection = projection
-                        continuity_crane_hold = true
+                        look_ahead
+                    ) * profile.look_ahead_distance
+                )
+                if not _projection_is_reframeable(projection):
+                    continue
+                var score: float = _post_solve_projection_score(projection)
+                score += destination.distance_to(continuity_seed) * 0.15
+                score += absf(
+                    look_ahead - profile.close_wall_crane_default_look_ahead
+                ) * 0.015
+                if score < continuity_score:
+                    continuity_score = score
+                    continuity_look_ahead = look_ahead
+                    best_position = destination
+                    best_projection = projection
+                    continuity_crane_hold = true
 
     var solved_result: Dictionary = initial_result.duplicate()
     solved_result.position = best_position
@@ -852,11 +861,6 @@ func _solve_better_post_collision(
         continuity_look_ahead
         if continuity_crane_hold
         else profile.close_wall_crane_default_look_ahead
-    )
-    solved_result.crane_aim_height = (
-        continuity_aim_height
-        if continuity_crane_hold
-        else profile.close_wall_crane_aim_height
     )
     var collision_base_name: String = str(initial_result.collider_name)
     collision_base_name = collision_base_name.replace(" / PHYSICAL CLOSE", "")
@@ -1439,6 +1443,41 @@ func _update_shot_validation() -> void:
     elif collider is Object:
         shot_collider_name = (collider as Object).get_class()
 
+func _update_reticle_position(delta: float) -> void:
+    var center := Vector2(0.5, 0.5)
+    var desired := center
+    reticle_dynamic_amount = collision_crane_view_amount
+    if (
+        reticle_dynamic_amount > 0.001
+        and aim_point != Vector3.ZERO
+        and not camera.is_position_behind(aim_point)
+    ):
+        var viewport_size := get_viewport().get_visible_rect().size
+        var projected_pixels := camera.unproject_position(aim_point)
+        var projected := Vector2(
+            projected_pixels.x / maxf(viewport_size.x, 1.0),
+            projected_pixels.y / maxf(viewport_size.y, 1.0)
+        )
+        var offset := projected - center
+        var maximum := Vector2(
+            profile.close_wall_reticle_max_x,
+            profile.close_wall_reticle_max_y
+        )
+        var elliptical := Vector2(
+            offset.x / maxf(maximum.x, 0.001),
+            offset.y / maxf(maximum.y, 0.001)
+        )
+        if elliptical.length() > 1.0:
+            elliptical = elliptical.normalized()
+        desired = center + Vector2(
+            elliptical.x * maximum.x,
+            elliptical.y * maximum.y
+        ) * reticle_dynamic_amount
+    reticle_screen_normalized = reticle_screen_normalized.lerp(
+        desired,
+        1.0 - exp(-profile.close_wall_reticle_response * delta)
+    )
+
 func get_debug_data() -> Dictionary:
     var viewport_size := get_viewport().get_visible_rect().size
     var head_x := -1.0
@@ -1486,8 +1525,10 @@ func get_debug_data() -> Dictionary:
         "post_validated_head_distance": post_validated_head_distance,
         "collision_crane_active": collision_crane_active,
         "collision_crane_look_ahead": collision_crane_look_ahead,
-        "collision_crane_aim_height": collision_crane_aim_height,
         "collision_crane_view_amount": collision_crane_view_amount,
+        "reticle_x": reticle_screen_normalized.x,
+        "reticle_y": reticle_screen_normalized.y,
+        "reticle_dynamic_amount": reticle_dynamic_amount,
         "collision_cast_count": collision_cast_count,
         "collision_solver_usec": collision_solver_usec,
         "wall_context_amount": wall_context_amount,
