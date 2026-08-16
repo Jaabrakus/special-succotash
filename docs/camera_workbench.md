@@ -47,6 +47,10 @@ The live sliders alter only the in-memory camera profile. Save preset creates a
 timestamped JSON file; it does not silently rewrite the verified defaults.
 Always run `tools/run_camera_regression.sh` before promoting a preset.
 
+The verified v2.2.1 open-distance default is `3.00 m`. It affects the normal
+outdoor preferred shot only; the interior and downward-aim distances have
+separate controls in the camera profile.
+
 ## Reverting
 
 - `v2.0.5-workbench-base`: exact build before the workbench/state layer.

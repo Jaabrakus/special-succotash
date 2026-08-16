@@ -2,7 +2,7 @@ class_name SocomCameraProfile
 extends Resource
 
 @export_group("Preferred Shot")
-@export var distance: float = 3.50
+@export var distance: float = 3.00
 @export var height: float = 2.05
 @export var shoulder_offset: float = 0.0
 @export var vertical_fov: float = 60.0

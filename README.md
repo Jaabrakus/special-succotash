@@ -1,6 +1,13 @@
-# SOCOM-141 Camera Lab — v2.2 virtual wall-surface camera
+# SOCOM-141 Camera Lab — v2.2.1 tighter outdoor preferred shot
 
 A runnable Godot 4 prototype for developing a SOCOM-style independent tactical camera and body/aim relationship.
+
+## v2.2.1: tighter outdoor preferred shot
+
+The normal open-world boom is 3.00 m instead of 3.50 m. This enlarges the
+operator and puts the feet decisively below the frame instead of showing most
+of the body during level traversal. Interior, wall-surface, collision,
+downward-aim, reticle, and weapon rules are unchanged.
 
 ## v2.2: virtual camera with a collision-constrained rendered lens
 

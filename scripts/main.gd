@@ -231,7 +231,7 @@ func _process(_delta: float) -> void:
     debug_label.text = (
         "SOCOM-141 CAMERA LAB\n"
         + "WASD move | Shift run | Mouse orbit | R reset | H clean HUD | V camera view | P tune | F9 record | F10 replay\n"
-        + "v2.2 virtual wall-surface camera\n\n"
+        + "v2.2.1 tighter outdoor preferred shot\n\n"
         + "Vertical FOV     %5.1f°\n" % d.fov
         + "Camera distance %5.2f m\n" % d.distance
         + "Camera height   %5.2f m above player\n" % d.height_above_player
