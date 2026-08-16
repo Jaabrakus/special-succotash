@@ -2247,9 +2247,29 @@ func _update_weapon_aim_point() -> void:
     # reticle. This produces the one exact world point shared by the camera,
     # weapon pose and authoritative muzzle trace without feeding camera
     # collision back into orbit control.
-    var origin: Vector3 = camera.global_position
+    var lens_origin: Vector3 = camera.global_position
+    var direction: Vector3 = -camera.global_basis.z.normalized()
+    # A virtual wall camera is allowed to render from the far side of a wall
+    # behind the operator. Do not let that deliberately hidden rear surface
+    # become the center-reticle target. Begin acquisition on the same center
+    # ray at the operator's depth plane; forward cover is still hittable and
+    # the independent muzzle trace still prevents shooting through it.
+    var player_aim_origin: Vector3 = (
+        target.global_position
+        + movement_lead
+        + Vector3.UP * profile.look_height
+    )
+    var player_depth: float = maxf(
+        (player_aim_origin - lens_origin).dot(direction),
+        0.0
+    )
+    var acquisition_depth: float = minf(
+        player_depth + maxf(camera.near, 0.05),
+        profile.aim_distance - 0.10
+    )
+    var origin: Vector3 = lens_origin + direction * acquisition_depth
     var destination: Vector3 = (
-        origin - camera.global_basis.z.normalized() * profile.aim_distance
+        lens_origin + direction * profile.aim_distance
     )
     weapon_aim_point = destination
     var query := PhysicsRayQueryParameters3D.create(origin, destination)
