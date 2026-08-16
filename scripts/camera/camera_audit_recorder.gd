@@ -3,8 +3,8 @@ extends Node
 
 const AUDIT_DIRECTORY := "user://camera_audits"
 
-var camera_rig: SocomCameraRig
-var player: SocomTestPlayer
+var camera_rig
+var player
 var recording: bool = false
 var replaying: bool = false
 var frames: Array[Dictionary] = []
@@ -31,7 +31,7 @@ func _ready() -> void:
     process_physics_priority = 100
 
 
-func configure(new_camera_rig: SocomCameraRig, new_player: SocomTestPlayer) -> void:
+func configure(new_camera_rig, new_player) -> void:
     camera_rig = new_camera_rig
     player = new_player
 
@@ -124,25 +124,25 @@ func _physics_process(delta: float) -> void:
 
 
 func _capture_frame(delta: float) -> void:
-    var data := camera_rig.get_debug_data()
-    var camera_position := camera_rig.global_position
+    var data: Dictionary = camera_rig.get_debug_data()
+    var camera_position: Vector3 = camera_rig.global_position
     var first_sample := frames.is_empty()
-    var step := (
+    var step: float = (
         0.0
         if first_sample
         else camera_position.distance_to(_last_camera_position)
     )
-    var velocity := (
+    var velocity: Vector3 = (
         Vector3.ZERO
         if first_sample
         else (camera_position - _last_camera_position) / maxf(delta, 0.0001)
     )
-    var acceleration := (
+    var acceleration: Vector3 = (
         Vector3.ZERO
         if first_sample
         else (velocity - _last_velocity) / maxf(delta, 0.0001)
     )
-    var jerk := (
+    var jerk: Vector3 = (
         Vector3.ZERO
         if first_sample
         else (acceleration - _last_acceleration) / maxf(delta, 0.0001)

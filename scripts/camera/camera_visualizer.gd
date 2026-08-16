@@ -3,9 +3,9 @@ extends Node3D
 
 const DEBUG_LAYER := 20
 
-var camera_rig: SocomCameraRig
-var player: SocomTestPlayer
-var mannequin: SocomTestMannequin
+var camera_rig
+var player
+var mannequin
 var visible_in_workbench: bool = true
 
 var _lines := ImmediateMesh.new()
@@ -35,11 +35,11 @@ func _process(_delta: float) -> void:
     if not visible_in_workbench or camera_rig == null or player == null:
         return
 
-    var anchor := (
+    var anchor: Vector3 = (
         player.global_position
-        + Vector3.UP * camera_rig.profile.collision_anchor_height
+        + Vector3.UP * float(camera_rig.profile.collision_anchor_height)
     )
-    var muzzle := player.global_position + Vector3.UP * 1.35
+    var muzzle: Vector3 = player.global_position + Vector3.UP * 1.35
     if mannequin and mannequin.muzzle_marker:
         muzzle = mannequin.muzzle_marker.global_position
 

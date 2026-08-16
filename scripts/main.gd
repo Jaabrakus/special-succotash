@@ -1,7 +1,14 @@
 extends Node3D
 
-var player: SocomTestPlayer
-var camera_rig: SocomCameraRig
+const PlayerScript := preload("res://scripts/player/player_controller.gd")
+const MannequinScript := preload("res://scripts/player/test_mannequin.gd")
+const CameraRigScript := preload("res://scripts/camera/socom_camera.gd")
+const CameraVisualizerScript := preload("res://scripts/camera/camera_visualizer.gd")
+const CameraAuditRecorderScript := preload("res://scripts/camera/camera_audit_recorder.gd")
+const ShotAuthorityScript := preload("res://scripts/network/socom_shot_authority.gd")
+
+var player
+var camera_rig
 var debug_label: Label
 var crosshair: Label
 var calibration_overlay: Control
@@ -13,8 +20,8 @@ var debug_hud_visible: bool = true
 var roof_test_active: bool = false
 var indoor_test_active: bool = false
 var wall_test_active: bool = false
-var camera_visualizer: SocomCameraVisualizer
-var audit_recorder: SocomCameraAuditRecorder
+var camera_visualizer: Node3D
+var audit_recorder: Node
 var spectator_panel: Control
 var spectator_camera: Camera3D
 var workbench_panel: Control
@@ -136,7 +143,7 @@ func _process(_delta: float) -> void:
         _set_wall_test_position(wall_test_active)
     if camera_rig == null or debug_label == null:
         return
-    var d := camera_rig.get_debug_data()
+    var d: Dictionary = camera_rig.get_debug_data()
     _update_crosshair(d)
     var report_frame: int = 60 if OS.get_cmdline_user_args().has("--movement-test") else 120
     var process_frame: int = Engine.get_process_frames()
@@ -179,11 +186,11 @@ func _process(_delta: float) -> void:
         OS.get_cmdline_user_args().has("--multiplayer-contract-test")
         and process_frame == 60
     ):
-        var intent := camera_rig.build_local_aim_intent()
-        var mannequin := player.get_node("Mannequin") as SocomTestMannequin
-        var muzzle := mannequin.muzzle_marker.global_position
+        var intent: Dictionary = camera_rig.build_local_aim_intent()
+        var mannequin = player.get_node("Mannequin")
+        var muzzle: Vector3 = mannequin.muzzle_marker.global_position
         var exclude: Array[RID] = [player.get_rid()]
-        var trace := SocomShotAuthority.validate_and_trace(
+        var trace: Dictionary = ShotAuthorityScript.validate_and_trace(
             get_world_3d(),
             intent,
             muzzle,
@@ -242,9 +249,9 @@ func _process(_delta: float) -> void:
         + "Camera state    %s\n" % ("ELEVATED / COMPRESSED" if d.collision_active else "PREFERRED SHOT")
     )
 
-    var mannequin := player.get_node("Mannequin") as SocomTestMannequin
+    var mannequin = player.get_node("Mannequin")
     if mannequin:
-        var a := mannequin.get_aim_debug_data()
+        var a: Dictionary = mannequin.get_aim_debug_data()
         debug_label.text += (
             "\n\nBODY AIM\n"
             + "Torso yaw       %+5.1f°\n" % a.torso_yaw_deg
@@ -296,7 +303,7 @@ func _build_environment() -> void:
         add_child(marker)
 
 func _build_player() -> void:
-    player = SocomTestPlayer.new()
+    player = PlayerScript.new()
     player.name = "Player"
     player.position = Vector3(0, 0.05, 0.5)
     add_child(player)
@@ -309,7 +316,7 @@ func _build_player() -> void:
     collider.position.y = 0.925
     player.add_child(collider)
 
-    var mannequin := SocomTestMannequin.new()
+    var mannequin = MannequinScript.new()
     mannequin.name = "Mannequin"
     player.add_child(mannequin)
 
@@ -348,10 +355,10 @@ func _reset_test_camera() -> void:
         camera_rig.pitch = deg_to_rad(-2.0)
 
 func _build_camera() -> void:
-    camera_rig = SocomCameraRig.new()
+    camera_rig = CameraRigScript.new()
     camera_rig.name = "IndependentCameraRig"
     camera_rig.target = player
-    var mannequin := player.get_node("Mannequin") as SocomTestMannequin
+    var mannequin = player.get_node("Mannequin")
     camera_rig.head_marker = mannequin.head_marker
     camera_rig.torso_marker = mannequin.torso_marker
     camera_rig.pelvis_marker = mannequin.pelvis_marker
@@ -379,19 +386,19 @@ func _build_camera() -> void:
 
 
 func _build_camera_tools() -> void:
-    camera_visualizer = SocomCameraVisualizer.new()
+    camera_visualizer = CameraVisualizerScript.new()
     camera_visualizer.name = "CameraBoomVisualizer"
     camera_visualizer.camera_rig = camera_rig
     camera_visualizer.player = player
-    camera_visualizer.mannequin = player.get_node("Mannequin") as SocomTestMannequin
+    camera_visualizer.mannequin = player.get_node("Mannequin")
     camera_visualizer.visible_in_workbench = debug_hud_visible
     add_child(camera_visualizer)
 
     # Debug geometry exists only on layer 20. The gameplay camera never renders
     # it; the separate workbench viewport deliberately includes it.
-    camera_rig.camera.set_cull_mask_value(SocomCameraVisualizer.DEBUG_LAYER, false)
+    camera_rig.camera.set_cull_mask_value(CameraVisualizerScript.DEBUG_LAYER, false)
 
-    audit_recorder = SocomCameraAuditRecorder.new()
+    audit_recorder = CameraAuditRecorderScript.new()
     audit_recorder.name = "CameraAuditRecorder"
     audit_recorder.configure(camera_rig, player)
     add_child(audit_recorder)
@@ -449,7 +456,7 @@ func _build_camera_workbench(layer: CanvasLayer) -> void:
     spectator_camera = Camera3D.new()
     spectator_camera.current = true
     spectator_camera.fov = 52.0
-    spectator_camera.set_cull_mask_value(SocomCameraVisualizer.DEBUG_LAYER, true)
+    spectator_camera.set_cull_mask_value(CameraVisualizerScript.DEBUG_LAYER, true)
     spectator_viewport.add_child(spectator_camera)
 
     var legend := Label.new()
@@ -582,7 +589,9 @@ func _set_workbench_visible(enabled: bool) -> void:
 func _update_spectator_camera() -> void:
     if spectator_camera == null or player == null or camera_rig == null:
         return
-    var center := (player.global_position + camera_rig.global_position) * 0.5
+    var center: Vector3 = (
+        player.global_position + camera_rig.global_position
+    ) * 0.5
     center.y += 0.85
     spectator_camera.global_position = center + Vector3(4.25, 3.25, 4.25)
     spectator_camera.look_at(center, Vector3.UP)

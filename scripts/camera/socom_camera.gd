@@ -1,6 +1,9 @@
 class_name SocomCameraRig
 extends Node3D
 
+const AimIntentScript := preload("res://scripts/network/socom_aim_intent.gd")
+const CameraProfileScript := preload("res://scripts/camera/camera_profile.gd")
+
 enum CameraState {
     PREFERRED,
     COMPRESSED,
@@ -14,7 +17,7 @@ var head_marker: Node3D
 var torso_marker: Node3D
 var pelvis_marker: Node3D
 var feet_marker: Node3D
-var profile := SocomCameraProfile.new()
+var profile := CameraProfileScript.new()
 
 var yaw: float = 0.0
 var pitch: float = deg_to_rad(-2.0)
@@ -396,9 +399,9 @@ func _smooth_legal_camera_position(
     if target == null or current_camera_position == Vector3.ZERO:
         return desired
 
-    var anchor := target.global_position + Vector3.UP * profile.collision_anchor_height
-    var current_offset := current_camera_position - anchor
-    var desired_offset := desired - anchor
+    var anchor: Vector3 = target.global_position + Vector3.UP * float(profile.collision_anchor_height)
+    var current_offset: Vector3 = current_camera_position - anchor
+    var desired_offset: Vector3 = desired - anchor
     var desired_length: float = desired_offset.length()
     if desired_length < 0.001:
         return desired
@@ -449,7 +452,7 @@ func _smooth_legal_camera_position(
         if current_length > 0.001
         else desired_offset.normalized()
     )
-    var desired_direction := desired_offset.normalized()
+    var desired_direction: Vector3 = desired_offset.normalized()
     var next_direction := desired_direction
     var branch_angle: float = acos(clampf(
         current_direction.dot(desired_direction),
@@ -460,8 +463,8 @@ func _smooth_legal_camera_position(
         close_context and branch_angle > deg_to_rad(0.5)
     )
     if branch_transition:
-        var maximum_angle_step := (
-            deg_to_rad(profile.wall_branch_max_angular_speed_deg) * delta
+        var maximum_angle_step: float = (
+            deg_to_rad(float(profile.wall_branch_max_angular_speed_deg)) * delta
         )
         next_direction = current_direction.slerp(
             desired_direction,
@@ -533,7 +536,7 @@ func _smooth_legal_camera_position(
             profile.min_camera_target_distance + profile.camera_collision_radius,
             current_length - profile.wall_branch_max_linear_speed * delta
         )
-        var continuity_candidate := anchor + current_direction * continuity_length
+        var continuity_candidate: Vector3 = anchor + current_direction * continuity_length
         var continuity_cast := _cast_camera_volume(
             anchor,
             continuity_candidate,
@@ -712,7 +715,7 @@ func _perched_view_direction(
     ).normalized()
 
 func _solve_collision(desired: Vector3) -> Dictionary:
-    var anchor := target.global_position + Vector3.UP * profile.collision_anchor_height
+    var anchor: Vector3 = target.global_position + Vector3.UP * float(profile.collision_anchor_height)
     var space := get_world_3d().direct_space_state
     var exclude: Array[RID] = []
     if target is CollisionObject3D:
@@ -872,7 +875,7 @@ func _solve_better_post_collision(
     initial_result: Dictionary,
     requested_position: Vector3
 ) -> Dictionary:
-    var anchor := target.global_position + Vector3.UP * profile.collision_anchor_height
+    var anchor: Vector3 = target.global_position + Vector3.UP * float(profile.collision_anchor_height)
     var exclude: Array[RID] = []
     if target is CollisionObject3D:
         exclude.append((target as CollisionObject3D).get_rid())
@@ -1608,7 +1611,7 @@ func _update_shot_validation() -> void:
     if target == null or aim_point == Vector3.ZERO:
         return
 
-    var mannequin := target.get_node_or_null("Mannequin") as SocomTestMannequin
+    var mannequin = target.get_node_or_null("Mannequin")
     if mannequin == null or mannequin.muzzle_marker == null:
         return
 
@@ -1639,22 +1642,22 @@ func build_local_aim_intent() -> Dictionary:
     # repeat collision in the authoritative world.
     if target == null:
         return {}
-    var mannequin := target.get_node_or_null("Mannequin") as SocomTestMannequin
+    var mannequin = target.get_node_or_null("Mannequin")
     if mannequin == null or mannequin.muzzle_marker == null:
         return {}
-    var muzzle := mannequin.muzzle_marker.global_position
-    var direction := (aim_point - muzzle).normalized()
+    var muzzle: Vector3 = mannequin.muzzle_marker.global_position
+    var direction: Vector3 = (aim_point - muzzle).normalized()
     if direction.length_squared() < 0.99:
         direction = _forward_direction()
     aim_intent_sequence += 1
-    return SocomAimIntent.create(
+    return AimIntentScript.create(
         aim_intent_sequence,
         Engine.get_physics_frames(),
         yaw,
         pitch,
         muzzle,
         direction
-    ).to_payload()
+    )
 
 func _update_reticle_position(delta: float) -> void:
     var center := Vector2(0.5, 0.5)

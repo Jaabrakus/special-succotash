@@ -88,7 +88,7 @@ func _animate_locomotion(player: CharacterBody3D, delta: float) -> void:
     spine_bone.rotation.z = sin(gait_time) * deg_to_rad(1.4) * gait_strength
 
 func _animate_upper_body(player: CharacterBody3D, delta: float) -> void:
-    var rig := get_tree().get_first_node_in_group("socom_camera_rig") as SocomCameraRig
+    var rig = get_tree().get_first_node_in_group("socom_camera_rig")
     if rig == null:
         return
 
