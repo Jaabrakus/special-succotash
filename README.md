@@ -1,6 +1,19 @@
-# SOCOM-141 Camera Lab — v2.2.1 tighter outdoor preferred shot
+# SOCOM-141 Camera Lab — v2.2.2 close-wide camera
 
 A runnable Godot 4 prototype for developing a SOCOM-style independent tactical camera and body/aim relationship.
+
+## v2.2.2: close-wide camera and centered wall recovery
+
+The normal physical boom is now 2.50 m with a 70° vertical lens. This produces
+essentially the same tight upper-body scale as the former 3.00 m / 60° pairing
+while requiring half a meter less empty space behind the operator.
+
+Close-wall post-solve candidates must retain horizontal ownership of the
+operator. If a wall-surface endpoint would leave the character at the edge of
+the frame, the camera uses the collision-safe point on the current virtual boom
+instead of retaining an old wall-side lens. Constrained recovery is speed-limited
+and the regression suite now fails even near-body frames that lose the operator
+horizontally.
 
 ## v2.2.1: tighter outdoor preferred shot
 

@@ -2,10 +2,10 @@ class_name SocomCameraProfile
 extends Resource
 
 @export_group("Preferred Shot")
-@export var distance: float = 3.00
+@export var distance: float = 2.50
 @export var height: float = 2.05
 @export var shoulder_offset: float = 0.0
-@export var vertical_fov: float = 60.0
+@export var vertical_fov: float = 70.0
 @export var close_level_fov: float = 80.0
 @export_range(0.0, 1.0, 0.01) var close_fov_start_compression: float = 0.48
 @export_range(0.0, 1.0, 0.01) var close_fov_full_compression: float = 0.78
@@ -116,7 +116,7 @@ extends Resource
 @export_range(0.0, 0.25, 0.001) var close_wall_reticle_max_y: float = 0.14
 @export var close_wall_reticle_response: float = 16.0
 @export var wall_branch_max_angular_speed_deg: float = 110.0
-@export var wall_branch_max_linear_speed: float = 8.0
+@export var wall_branch_max_linear_speed: float = 4.0
 @export var wall_branch_transition_distance: float = 0.35
 @export var post_solve_position_continuity_weight: float = 0.55
 

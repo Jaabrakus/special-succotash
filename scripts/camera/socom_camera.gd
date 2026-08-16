@@ -527,7 +527,14 @@ func _smooth_legal_camera_position(
         next_length = minf(current_length + release_step, desired_length)
 
     var candidate: Vector3 = anchor + next_direction * next_length
-    if branch_transition:
+    # Constrained outward/sideways recovery is always speed-limited, including
+    # the frame where near-body mode hands back to a distant post-solved shot.
+    # Inward compression on the same boom remains immediate for occlusion
+    # safety; that is the only transition allowed to exceed this visual cap.
+    if (
+        branch_transition
+        or (close_context and desired_length >= current_length - 0.001)
+    ):
         var candidate_motion := candidate - current_camera_position
         var maximum_linear_step: float = (
             profile.wall_branch_max_linear_speed * delta
@@ -998,6 +1005,7 @@ func _solve_better_post_collision(
     var best_is_readable: bool = (
         _candidate_has_subject_clearance(initial_position)
         and _projection_is_reframeable(best_projection)
+        and _projection_keeps_horizontal_subject(best_projection)
     )
     var best_escape_angle: float = float(initial_result.escape_angle_deg)
     var surface_slide_solved: bool = false
@@ -1041,6 +1049,8 @@ func _solve_better_post_collision(
                 var projection := _subject_projection(destination, true)
                 if not _projection_is_reframeable(projection):
                     continue
+                if not _projection_keeps_horizontal_subject(projection):
+                    continue
                 var score: float = _post_solve_projection_score(projection)
                 score += absf(angle_deg) * 0.012
                 score += absf(1.0 - radius_scale) * 0.35
@@ -1079,6 +1089,8 @@ func _solve_better_post_collision(
                 continue
             var projection := _subject_projection(destination, true)
             if not _projection_is_reframeable(projection):
+                continue
+            if not _projection_keeps_horizontal_subject(projection):
                 continue
             var score: float = _post_solve_projection_score(projection)
             score += destination.distance_to(best_position) * 0.08
@@ -1128,7 +1140,10 @@ func _solve_better_post_collision(
         if bool(surface_result.get("found", false)):
             var surface_position: Vector3 = surface_result.position
             var surface_projection := _subject_projection(surface_position, true)
-            if _projection_is_reframeable(surface_projection):
+            if (
+                _projection_is_reframeable(surface_projection)
+                and _projection_keeps_horizontal_subject(surface_projection)
+            ):
                 best_position = surface_position
                 best_projection = surface_projection
                 best_is_readable = true
@@ -1142,6 +1157,16 @@ func _solve_better_post_collision(
                 best_projection = _subject_projection(initial_position, true)
                 best_is_readable = true
                 near_body_crop_solved = true
+
+    # A wall-surface or orbit endpoint is not a valid tactical shot when raw
+    # aim leaves the operator outside the horizontal composition guard. Fall
+    # back to the collision-safe point on the current virtual boom instead of
+    # preserving an old wall-side lens while the player orbits away from it.
+    if not best_is_readable:
+        best_position = initial_position
+        best_projection = _subject_projection(initial_position, true)
+        best_is_readable = true
+        near_body_crop_solved = true
 
     var solved_result: Dictionary = initial_result.duplicate()
     solved_result.position = best_position
@@ -1331,6 +1356,13 @@ func _projection_is_reframeable(projection: Dictionary) -> bool:
         and float(projection.y) <= 0.98
     )
 
+func _projection_keeps_horizontal_subject(projection: Dictionary) -> bool:
+    return (
+        bool(projection.visible)
+        and float(projection.x) >= current_head_target_x - 0.12
+        and float(projection.x) <= current_head_target_x + 0.12
+    )
+
 func _candidate_is_reframeable(candidate: Vector3) -> bool:
     return _projection_is_reframeable(_subject_projection(candidate))
 
@@ -1360,8 +1392,7 @@ func _candidate_is_subject_readable(candidate: Vector3) -> bool:
     var projection := _subject_projection(candidate)
     return (
         bool(projection.visible)
-        and float(projection.x) >= 0.12
-        and float(projection.x) <= 0.88
+        and _projection_keeps_horizontal_subject(projection)
         and float(projection.y) >= 0.05
         and float(projection.y) <= 0.98
     )
