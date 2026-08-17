@@ -10,6 +10,7 @@ extends Node3D
 
 const OPERATOR_SCENE := preload("res://assets/characters/operator3d/socom_141_operator_animated.glb")
 const MIXAMO_SKIN_SCENE := preload("res://assets/characters/operator3d/mixamo_beta_skin.glb")
+const DEFAULT_ANIMATION_PROFILE := preload("res://assets/characters/operator3d/default_animation_profile.tres")
 
 const LEGACY_LOOPING_CLIPS: Array[StringName] = [
     &"idle_rifle", &"idle_crouch", &"idle_prone", &"rifle_aim", &"rifle_lowered",
@@ -29,6 +30,8 @@ const LEGACY_LOOPING_CLIPS: Array[StringName] = [
 @export_range(0.0, 60.0, 0.5) var chest_pitch_limit_deg: float = 28.0
 @export_range(0.0, 90.0, 0.5) var head_yaw_limit_deg: float = 56.0
 @export_range(0.0, 60.0, 0.5) var head_pitch_limit_deg: float = 34.0
+
+var animation_profile: SocomOperatorAnimationProfile
 
 var model_root: Node3D
 var animation_player: AnimationPlayer
@@ -77,6 +80,9 @@ func _ready() -> void:
     if skeleton == null:
         push_error("SOCOM operator GLB has no Skeleton3D")
         return
+    if animation_profile == null:
+        animation_profile = DEFAULT_ANIMATION_PROFILE
+    animation_profile.install_overrides(animation_player)
     _install_mixamo_skin()
     _cache_aim_bones()
     _configure_animation_loops()
@@ -353,6 +359,8 @@ func _build_animation_tree() -> void:
     animation_tree.active = true
 
 func _request_clip(clip_name: StringName, blend_seconds: float = 0.08) -> void:
+    if animation_profile != null:
+        clip_name = animation_profile.resolve_clip(clip_name)
     if clip_name == current_clip or not available_clips.has(clip_name):
         return
     current_clip = clip_name

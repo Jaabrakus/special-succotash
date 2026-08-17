@@ -61,6 +61,7 @@ func _ready() -> void:
         or OS.get_cmdline_user_args().has("--wall-turn-test")
         or OS.get_cmdline_user_args().has("--wall-entry-test")
         or OS.get_cmdline_user_args().has("--wall-follow-test")
+        or OS.get_cmdline_user_args().has("--camera-stress-test")
     )
     if roof_test_active:
         _set_roof_test_position(true)
@@ -88,6 +89,11 @@ func _ensure_input_map() -> void:
     _add_key_action("move_left", KEY_A)
     _add_key_action("move_right", KEY_D)
     _add_key_action("run", KEY_SHIFT)
+    _add_key_action("jump", KEY_SPACE)
+    _add_key_action("crouch", KEY_X)
+    _add_key_action("prone", KEY_Z)
+    _add_key_action("dive", KEY_Q)
+    _add_key_action("roll", KEY_E)
     _add_key_action("reset_camera", KEY_R)
     _add_key_action("toggle_calibration", KEY_C)
     _add_key_action("calibration_opacity_down", KEY_BRACKETLEFT)
@@ -175,7 +181,7 @@ func _process(_delta: float) -> void:
         print("WALL_SURFACE_CAPTURE /private/tmp/socom-wall-surface.png")
     if OS.get_cmdline_user_args().has("--wall-audit-report"):
         print(
-            "WALL_AUDIT,%d,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%d,%.3f,%.6f,%d,%s,%d,%.6f"
+            "WALL_AUDIT,%d,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f,%d,%.3f,%.6f,%d,%s,%d,%.6f,%d,%s,%d,%s,%.3f,%d"
             % [
                 process_frame,
                 d.yaw_deg,
@@ -195,7 +201,13 @@ func _process(_delta: float) -> void:
                     or d.transition_crop_active
                     or d.surface_slide_active
                 ),
-                d.rendered_view_yaw_deg
+                d.rendered_view_yaw_deg,
+                int(d.camera_head_visible),
+                d.camera_head_blocker,
+                int(d.camera_torso_visible),
+                d.camera_torso_blocker,
+                d.camera_weapon_angle_deg,
+                d.composition_hard_rebase_count
             ]
         )
     if OS.get_cmdline_user_args().has("--transition-audit"):
@@ -274,7 +286,8 @@ func _process(_delta: float) -> void:
         print("CAMERA_REPORT ", JSON.stringify(d))
     debug_label.text = (
         "SOCOM-141 CAMERA LAB\n"
-        + "WASD move | Shift run | Mouse orbit | R reset | H clean HUD | V camera view | P tune | F9 record | F10 replay\n"
+        + "WASD move | Shift run | Space jump | X crouch | Z prone | Q dive | E roll\n"
+        + "Mouse orbit | R reset | H clean HUD | V camera view | P tune | F9 record | F10 replay\n"
         + "v2.4 close camera + shared crosshair target\n\n"
         + "Vertical FOV     %5.1f°\n" % d.fov
         + "Rear boom       %5.2f m behind player\n" % d.rear_boom_distance
@@ -407,6 +420,7 @@ func _set_wall_test_position(enabled: bool) -> void:
             if (
                 OS.get_cmdline_user_args().has("--wall-entry-test")
                 or OS.get_cmdline_user_args().has("--wall-follow-test")
+                or OS.get_cmdline_user_args().has("--camera-stress-test")
             )
             else Vector3(-3.72, 0.05, -1.0)
         )
