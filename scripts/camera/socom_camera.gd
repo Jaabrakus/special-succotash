@@ -1,7 +1,7 @@
 class_name SocomCameraRig
 extends Node3D
 
-const AimIntentScript := preload("res://scripts/network/socom_aim_intent.gd")
+const CameraAimResolverScript := preload("res://scripts/camera/camera_aim_resolver.gd")
 const CameraDebugSnapshotScript := preload("res://scripts/camera/camera_debug_snapshot.gd")
 const CameraInputControllerScript := preload("res://scripts/camera/camera_input_controller.gd")
 const CameraProfileScript := preload("res://scripts/camera/camera_profile.gd")
@@ -36,6 +36,7 @@ var mouse_string_debug_visible: bool = true
 var mouse_aim_model := MouseAimModelScript.new()
 var aim_input_controller := CameraInputControllerScript.new()
 var subject_projector := CameraSubjectProjectorScript.new()
+var aim_resolver := CameraAimResolverScript.new()
 var mouse_intent_yaw: float:
     get:
         return mouse_aim_model.intent_yaw
@@ -151,6 +152,7 @@ func _ready() -> void:
     add_to_group("socom_camera_rig")
     aim_input_controller.configure(mouse_aim_model)
     subject_projector.configure(self)
+    aim_resolver.configure(self)
     camera = Camera3D.new()
     camera.name = "Camera3D"
     camera.current = true
@@ -2443,118 +2445,16 @@ func _basis_looking_at(point: Vector3) -> Basis:
     return Basis.looking_at(direction, Vector3.UP, false)
 
 func _update_aim_point() -> void:
-    # Raw yaw/pitch owns a distant, camera-independent intent point. Do not
-    # replace this optical guide with a close collision hit: feeding a nearby
-    # point back into camera orientation creates a pitch/composition loop.
-    var origin: Vector3 = (
-        target.global_position
-        + movement_lead
-        + Vector3.UP * profile.look_height
-    )
-    var direction: Vector3 = _forward_direction()
-    var destination: Vector3 = origin + direction * profile.aim_distance
-    aim_point = destination
+    aim_resolver.update_aim_point()
 
 func _update_weapon_aim_point() -> void:
-    # Cast through the visible cursor only after the rendered lens is known.
-    # Acquisition begins just beyond the operator's depth plane, so a surface
-    # touching the camera behind the character cannot become a forward target.
-    # This ray chooses a display target; it never changes yaw, pitch or the
-    # camera-independent intent point above.
-    var viewport_size := get_viewport().get_visible_rect().size
-    var cursor_pixels := Vector2(
-        reticle_screen_normalized.x * viewport_size.x,
-        reticle_screen_normalized.y * viewport_size.y
-    )
-    var lens_origin: Vector3 = camera.project_ray_origin(cursor_pixels)
-    var direction: Vector3 = camera.project_ray_normal(cursor_pixels).normalized()
-    var player_aim_origin: Vector3 = (
-        target.global_position
-        + movement_lead
-        + Vector3.UP * profile.look_height
-    )
-    var player_depth: float = maxf(
-        (player_aim_origin - lens_origin).dot(direction),
-        0.0
-    )
-    var acquisition_depth: float = minf(
-        player_depth + maxf(camera.near, 0.05),
-        profile.aim_distance - 0.10
-    )
-    var origin: Vector3 = lens_origin + direction * acquisition_depth
-    var destination: Vector3 = lens_origin + direction * profile.aim_distance
-    weapon_aim_point = destination
-    var query := PhysicsRayQueryParameters3D.create(origin, destination)
-    query.collide_with_areas = false
-    if target is CollisionObject3D:
-        query.exclude = [(target as CollisionObject3D).get_rid()]
-
-    var result: Dictionary = get_world_3d().direct_space_state.intersect_ray(query)
-    aim_hit = not result.is_empty()
-    aim_collider_name = "OPEN"
-    if aim_hit:
-        weapon_aim_point = result["position"]
-        var collider: Variant = result.get("collider")
-        if collider is Node:
-            aim_collider_name = str((collider as Node).name)
-        elif collider is Object:
-            aim_collider_name = (collider as Object).get_class()
+    aim_resolver.update_weapon_aim_point()
 
 func _update_shot_validation() -> void:
-    shot_point = weapon_aim_point
-    shot_blocked = false
-    shot_collider_name = aim_collider_name
-    if target == null or weapon_aim_point == Vector3.ZERO:
-        return
-
-    var mannequin = target.get_node_or_null("Mannequin")
-    if mannequin == null or mannequin.muzzle_marker == null:
-        return
-
-    var muzzle_position: Vector3 = mannequin.muzzle_marker.global_position
-    var query := PhysicsRayQueryParameters3D.create(muzzle_position, weapon_aim_point)
-    query.collide_with_areas = false
-    if target is CollisionObject3D:
-        query.exclude = [(target as CollisionObject3D).get_rid()]
-
-    var result: Dictionary = get_world_3d().direct_space_state.intersect_ray(query)
-    if result.is_empty():
-        return
-
-    shot_point = result["position"]
-    var remaining_to_reticle_hit: float = shot_point.distance_to(weapon_aim_point)
-    shot_blocked = remaining_to_reticle_hit > 0.08
-    var collider: Variant = result.get("collider")
-    if collider is Node:
-        shot_collider_name = str((collider as Node).name)
-    elif collider is Object:
-        shot_collider_name = (collider as Object).get_class()
-
+    aim_resolver.update_shot_validation()
 
 func build_local_aim_intent() -> Dictionary:
-    # Multiplayer boundary: camera placement and wall-solving state remain
-    # entirely local. A shot sends only sequenced aim intent; the server must
-    # replace the reported muzzle with its authoritative character muzzle and
-    # repeat collision in the authoritative world.
-    if target == null:
-        return {}
-    var mannequin = target.get_node_or_null("Mannequin")
-    if mannequin == null or mannequin.muzzle_marker == null:
-        return {}
-    var muzzle: Vector3 = mannequin.muzzle_marker.global_position
-    var direction: Vector3 = (weapon_aim_point - muzzle).normalized()
-    if direction.length_squared() < 0.99:
-        direction = _forward_direction()
-    var intent_angles := _direction_to_yaw_pitch(direction)
-    aim_intent_sequence += 1
-    return AimIntentScript.create(
-        aim_intent_sequence,
-        Engine.get_physics_frames(),
-        intent_angles.x,
-        intent_angles.y,
-        muzzle,
-        direction
-    )
+    return aim_resolver.build_local_aim_intent()
 
 func _update_reticle_position(_delta: float) -> void:
     # The shot reticle is authoritative and permanently centered. Mouse input
@@ -2739,11 +2639,7 @@ func _mouse_edge_axis(value: float) -> float:
     return signf(value) * pow(normalized, profile.mouse_edge_turn_curve)
 
 func _direction_to_yaw_pitch(direction: Vector3) -> Vector2:
-    var normalized := direction.normalized()
-    return Vector2(
-        wrapf(atan2(-normalized.x, -normalized.z), -PI, PI),
-        asin(clampf(normalized.y, -1.0, 1.0))
-    )
+    return aim_resolver.direction_to_yaw_pitch(direction)
 
 func _build_mouse_cursor_guide() -> void:
     mouse_cursor_guide_layer = CanvasLayer.new()
