@@ -29,6 +29,9 @@ extends Resource
 @export_range(0.5, 6.0, 0.1) var mouse_string_pitch_limit_deg: float = 2.5
 @export var mouse_string_yaw_response: float = 40.0
 @export var mouse_string_pitch_response: float = 44.0
+@export var mouse_string_debug_dot_visible: bool = true
+@export_range(2.0, 12.0, 0.5) var mouse_string_debug_dot_radius: float = 5.0
+@export_range(0.0, 1.0, 0.05) var mouse_string_debug_opacity: float = 0.90
 
 @export_group("Mouse Cursor Cage")
 @export var mouse_cursor_cage_enabled: bool = false
