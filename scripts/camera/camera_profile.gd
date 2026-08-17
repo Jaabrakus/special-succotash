@@ -24,7 +24,7 @@ extends Resource
 @export var scoped_orbit_pitch_response: float = 32.0
 
 @export_group("Mouse Aim String")
-@export var mouse_aim_string_enabled: bool = true
+@export var mouse_aim_string_enabled: bool = false
 @export_range(0.5, 8.0, 0.1) var mouse_string_yaw_limit_deg: float = 5.0
 @export_range(0.5, 6.0, 0.1) var mouse_string_pitch_limit_deg: float = 3.25
 @export var mouse_string_yaw_response: float = 40.0
