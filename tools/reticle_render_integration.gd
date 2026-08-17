@@ -16,55 +16,54 @@ func _run() -> void:
     var crosshair: Label = scene.crosshair
     var initial_crosshair: Vector2 = crosshair.position
     Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
-    var event := InputEventMouseMotion.new()
-    event.relative = Vector2(96.0, -54.0)
-    # Headless macOS cannot enter captured mouse mode, so inject the same
-    # handler selected by _unhandled_input after verifying live-mode flags.
     _expect(
         rig.orbit_input_enabled and rig.mouse_aim_string_enabled,
-        "live camera selects the blue-target mouse handler"
+        "live camera selects persistent-blue mouse handling"
     )
-    rig._apply_mouse_aim_string_input(event.relative)
+    rig._apply_mouse_aim_string_input(Vector2(96.0, -54.0))
+    var fixed_blue: Vector2 = rig.get_mouse_string_screen_normalized()
+    var white_before: Vector2 = rig.get_mouse_string_follower_screen_normalized()
     await physics_frame
     await process_frame
+    var white_after: Vector2 = rig.get_mouse_string_follower_screen_normalized()
 
     _expect(
-        rig.get_mouse_string_screen_normalized().distance_to(Vector2(0.5, 0.5)) > 0.02,
-        "real mouse handler moves transient blue outside the deadzone"
+        fixed_blue.distance_to(Vector2(0.5, 0.5)) > 0.02,
+        "real mouse input places blue away from center"
     )
     _expect(
-        rig.reticle_screen_normalized.is_equal_approx(Vector2(0.5, 0.5)),
-        "rendered white shot reticle remains centered during aim"
+        white_after.distance_to(fixed_blue) < white_before.distance_to(fixed_blue),
+        "rendered white camera follower travels toward blue"
     )
     _expect(
-        crosshair.position.distance_to(initial_crosshair) < 0.1,
-        "main HUD plus remains fixed at screen center"
+        rig.get_mouse_string_screen_normalized().distance_to(fixed_blue) < 0.000001,
+        "rendered blue destination does not return to center"
+    )
+    _expect(
+        rig.reticle_screen_normalized.is_equal_approx(Vector2(0.5, 0.5))
+        and crosshair.position.distance_to(initial_crosshair) < 0.1,
+        "authoritative HUD reticle remains fixed at screen center"
     )
     _expect(
         absf(rig.aim_yaw) > 0.0001 or absf(rig.aim_pitch) > 0.0001,
-        "active blue motion turns the centered camera aim"
+        "camera aim follows white toward the mouse-owned blue destination"
     )
 
-    var blue_distance_before_release: float = (
-        rig.get_mouse_string_screen_normalized().distance_to(Vector2(0.5, 0.5))
-    )
-    for _frame in range(3):
-        await physics_frame
-        await process_frame
-    var aim_when_input_ended := Vector2(rig.aim_yaw, rig.aim_pitch)
-    _expect(
-        blue_distance_before_release > 0.02
-        and not rig.mouse_aim_model.motion_active
-        and rig.get_mouse_string_screen_normalized().is_equal_approx(Vector2(0.5, 0.5)),
-        "idle gesture hides blue before its invisible center reset"
-    )
-    for _frame in range(3):
+    for _frame in range(180):
         await physics_frame
         await process_frame
     _expect(
-        absf(rig.aim_yaw - aim_when_input_ended.x) < 0.000001
-        and absf(rig.aim_pitch - aim_when_input_ended.y) < 0.000001,
-        "hidden blue reset does not continue camera aim"
+        rig.get_mouse_string_screen_normalized().distance_to(fixed_blue) < 0.000001,
+        "blue remains persistent after camera follow finishes"
+    )
+    var stopped_aim := Vector2(rig.aim_yaw, rig.aim_pitch)
+    for _frame in range(30):
+        await physics_frame
+        await process_frame
+    _expect(
+        absf(rig.aim_yaw - stopped_aim.x) < 0.000001
+        and absf(rig.aim_pitch - stopped_aim.y) < 0.000001,
+        "camera stops once white and blue outlines touch"
     )
 
     scene.queue_free()

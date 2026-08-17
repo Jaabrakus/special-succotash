@@ -12,67 +12,68 @@ func _run() -> void:
     root.add_child(camera)
     await process_frame
 
-    _expect(camera.profile.mouse_aim_string_enabled, "transient blue mouse indicator is default")
-    _expect(not camera.profile.mouse_cursor_cage_enabled, "legacy moving reticle is disabled")
+    _expect(camera.profile.mouse_aim_string_enabled, "persistent blue destination is default")
+    _expect(not camera.profile.mouse_cursor_cage_enabled, "legacy cursor cage is disabled")
     _expect(
         camera.profile.mouse_string_deadzone_radius_px
         > camera.profile.mouse_string_blue_radius_px,
-        "white centered deadzone is visibly larger than blue"
+        "white camera follower is visibly larger than blue"
     )
     camera.set_aim_angles(0.0, 0.0, true)
     camera.set_mouse_aim_string_enabled(true)
 
-    var visual_touch_distance: float = (
+    var touch_distance: float = (
         camera.profile.mouse_string_deadzone_radius_px
         + camera.profile.mouse_string_blue_radius_px
     )
-    camera._apply_mouse_aim_string_input(Vector2(visual_touch_distance, 0.0))
+    camera._apply_mouse_aim_string_input(Vector2(touch_distance, 0.0))
     camera._update_mouse_aim_string(1.0 / 60.0)
     _expect(
-        camera.reticle_screen_normalized.is_equal_approx(Vector2(0.5, 0.5)),
-        "white shot reticle remains exactly centered"
+        camera.get_mouse_string_follower_screen_normalized().is_equal_approx(
+            Vector2(0.5, 0.5)
+        ),
+        "white follower waits while its outline touches blue"
     )
     _expect(
         absf(camera.aim_yaw) < 0.000001 and absf(camera.aim_pitch) < 0.000001,
-        "aim stops when blue and white outlines touch"
+        "touching outlines request no camera movement"
     )
 
     camera.set_mouse_aim_string_enabled(false)
     camera.set_mouse_aim_string_enabled(true)
     camera._apply_mouse_aim_string_input(Vector2(96.0, -54.0))
-    var blue_during_motion: Vector2 = camera.get_mouse_string_screen_normalized()
+    var fixed_blue: Vector2 = camera.get_mouse_string_screen_normalized()
+    var white_before: Vector2 = camera.get_mouse_string_follower_screen_normalized()
     camera._update_mouse_aim_string(1.0 / 60.0)
+    var white_after: Vector2 = camera.get_mouse_string_follower_screen_normalized()
     _expect(
-        blue_during_motion.distance_to(Vector2(0.5, 0.5)) > 0.03,
-        "mouse motion pushes blue outside the centered deadzone"
+        white_after.distance_to(fixed_blue) < white_before.distance_to(fixed_blue),
+        "white camera follower moves toward blue"
+    )
+    _expect(
+        camera.get_mouse_string_screen_normalized().distance_to(fixed_blue) < 0.000001,
+        "camera follow never moves or recenters blue"
     )
     _expect(
         camera.aim_yaw < 0.0 and camera.aim_pitch > 0.0,
-        "centered camera aim turns toward active blue motion"
+        "camera aim travels with the white follower toward blue"
     )
     _expect(
         camera.reticle_screen_normalized.is_equal_approx(Vector2(0.5, 0.5)),
-        "turning camera never moves the centered white reticle"
+        "authoritative HUD reticle remains fixed at screen center"
     )
 
-    var blue_distance_before_release: float = (
-        camera.get_mouse_string_screen_normalized().distance_to(Vector2(0.5, 0.5))
-    )
-    for _frame in range(3):
-        camera._update_mouse_aim_string(1.0 / 60.0)
-    var aim_when_input_ended := Vector2(camera.aim_yaw, camera.aim_pitch)
-    _expect(
-        blue_distance_before_release > 0.03
-        and not camera.mouse_aim_model.motion_active
-        and camera.get_mouse_string_screen_normalized().is_equal_approx(Vector2(0.5, 0.5)),
-        "ended mouse gesture hides blue and resets it invisibly"
-    )
-    for _frame in range(3):
+    var viewport_size: Vector2 = camera.get_viewport().get_visible_rect().size
+    for _frame in range(180):
         camera._update_mouse_aim_string(1.0 / 60.0)
     _expect(
-        absf(_signed_angle(camera.aim_yaw, aim_when_input_ended.x)) < 0.000001
-        and absf(camera.aim_pitch - aim_when_input_ended.y) < 0.000001,
-        "hidden blue reset has no camera authority"
+        absf(camera.mouse_aim_model.separation_pixels(viewport_size, camera.profile) - touch_distance)
+        < 0.1,
+        "white follower stops exactly when its outline touches blue"
+    )
+    _expect(
+        camera.get_mouse_string_screen_normalized().distance_to(fixed_blue) < 0.000001,
+        "blue remains where the mouse placed it after follow completes"
     )
     var stopped_aim := Vector2(camera.aim_yaw, camera.aim_pitch)
     for _frame in range(30):
@@ -80,14 +81,15 @@ func _run() -> void:
     _expect(
         absf(_signed_angle(camera.aim_yaw, stopped_aim.x)) < 0.000001
         and absf(camera.aim_pitch - stopped_aim.y) < 0.000001,
-        "camera has zero idle drift after blue refreshes"
+        "camera stops without blue returning to center"
     )
 
     camera.set_mouse_aim_string_enabled(false)
     _expect(
         camera.reticle_screen_normalized.is_equal_approx(Vector2(0.5, 0.5))
-        and camera.mouse_aim_model.target_deflection.is_zero_approx(),
-        "switching modes preserves centered neutral state"
+        and camera.mouse_aim_model.target_deflection.is_zero_approx()
+        and camera.mouse_aim_model.follower_deflection.is_zero_approx(),
+        "explicit mode reset clears both debug markers"
     )
 
     camera.queue_free()

@@ -23,7 +23,9 @@ func _draw() -> void:
     if camera_rig == null:
         return
     var viewport_size: Vector2 = get_viewport_rect().size
-    var center := viewport_size * 0.5
+    var center: Vector2 = (
+        camera_rig.get_mouse_string_follower_screen_normalized() * viewport_size
+    )
     var endpoint: Vector2 = (
         camera_rig.get_mouse_string_screen_normalized() * viewport_size
     )
@@ -31,8 +33,8 @@ func _draw() -> void:
     var color := Color(0.20, 0.72, 1.0, opacity)
     var deadzone_radius: float = camera_rig.profile.mouse_string_deadzone_radius_px
     var blue_radius: float = camera_rig.profile.mouse_string_blue_radius_px
-    # The centered white circle is both the fixed shot reticle and the camera
-    # deadzone. Blue must leave it while the mouse is moving to request aim.
+    # The HUD '+' remains centered and authoritative. This separate white
+    # camera follower moves toward persistent blue until their outlines touch.
     draw_circle(center, deadzone_radius, Color(1.0, 1.0, 1.0, opacity * 0.035))
     draw_arc(
         center,
@@ -44,22 +46,19 @@ func _draw() -> void:
         2.0,
         true
     )
-    # Blue exists only for an active mouse gesture. It never animates home:
-    # releasing the mouse hides it, and the next gesture starts at center.
-    if camera_rig.mouse_aim_model.motion_active:
-        draw_line(center, endpoint, Color(color, opacity * 0.45), 1.5, true)
-        draw_circle(
-            endpoint,
-            blue_radius,
-            Color(0.06, 0.28, 0.42, opacity * 0.65)
-        )
-        draw_arc(
-            endpoint,
-            blue_radius,
-            0.0,
-            TAU,
-            24,
-            color,
-            2.0,
-            true
-        )
+    draw_line(center, endpoint, Color(color, opacity * 0.45), 1.5, true)
+    draw_circle(
+        endpoint,
+        blue_radius,
+        Color(0.06, 0.28, 0.42, opacity * 0.65)
+    )
+    draw_arc(
+        endpoint,
+        blue_radius,
+        0.0,
+        TAU,
+        24,
+        color,
+        2.0,
+        true
+    )
