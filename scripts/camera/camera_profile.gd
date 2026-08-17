@@ -23,6 +23,13 @@ extends Resource
 @export var scoped_orbit_yaw_response: float = 30.0
 @export var scoped_orbit_pitch_response: float = 32.0
 
+@export_group("Controller Aim")
+@export_range(0.05, 0.35, 0.01) var controller_deadzone: float = 0.18
+@export_range(0.05, 0.50, 0.01) var controller_activation_threshold: float = 0.22
+@export_range(0.8, 2.5, 0.05) var controller_response_curve: float = 1.45
+@export_range(60.0, 300.0, 5.0) var controller_yaw_speed_deg: float = 165.0
+@export_range(45.0, 220.0, 5.0) var controller_pitch_speed_deg: float = 105.0
+
 @export_group("Mouse Aim String")
 @export var mouse_aim_string_enabled: bool = true
 @export_range(0.5, 8.0, 0.1) var mouse_string_yaw_limit_deg: float = 5.0
