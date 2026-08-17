@@ -36,7 +36,10 @@ func _run() -> void:
     )
     _expect(
         rig.reticle_screen_normalized.is_equal_approx(Vector2(0.5, 0.5))
-        and crosshair.position.distance_to(initial_crosshair) < 0.1,
+        and crosshair.position.distance_to(initial_crosshair) < 0.1
+        and (crosshair.position + crosshair.size * 0.5).distance_to(
+            viewport_size * 0.5
+        ) < 0.1,
         "white circle and HUD reticle remain fixed at screen center"
     )
     _expect(
