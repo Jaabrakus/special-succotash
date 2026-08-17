@@ -23,8 +23,15 @@ extends Resource
 @export var scoped_orbit_yaw_response: float = 30.0
 @export var scoped_orbit_pitch_response: float = 32.0
 
+@export_group("Mouse Aim String")
+@export var mouse_aim_string_enabled: bool = true
+@export_range(0.5, 8.0, 0.1) var mouse_string_yaw_limit_deg: float = 3.5
+@export_range(0.5, 6.0, 0.1) var mouse_string_pitch_limit_deg: float = 2.5
+@export var mouse_string_yaw_response: float = 40.0
+@export var mouse_string_pitch_response: float = 44.0
+
 @export_group("Mouse Cursor Cage")
-@export var mouse_cursor_cage_enabled: bool = true
+@export var mouse_cursor_cage_enabled: bool = false
 @export_range(0.25, 0.495, 0.001) var mouse_cage_half_width: float = 0.48
 @export_range(0.25, 0.495, 0.001) var mouse_cage_half_height: float = 0.46
 @export_range(0.50, 0.98, 0.01) var mouse_edge_turn_start: float = 0.88

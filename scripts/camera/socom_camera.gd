@@ -26,6 +26,9 @@ var aim_pitch: float = deg_to_rad(-2.0)
 var yaw: float = 0.0
 var pitch: float = deg_to_rad(-2.0)
 var orbit_drag_enabled: bool = true
+var mouse_aim_string_enabled: bool = true
+var mouse_intent_yaw: float = 0.0
+var mouse_intent_pitch: float = deg_to_rad(-2.0)
 var initial_orbit_sync_pending: bool = true
 var current_camera_position := Vector3.ZERO
 var preferred_camera_position := Vector3.ZERO
@@ -146,6 +149,10 @@ func _ready() -> void:
         profile.mouse_cursor_cage_enabled
         and not OS.get_cmdline_user_args().has("--automated-test")
     )
+    mouse_aim_string_enabled = (
+        profile.mouse_aim_string_enabled
+        and not OS.get_cmdline_user_args().has("--automated-test")
+    )
     automated_wall_turn = (
         OS.get_cmdline_user_args().has("--wall-turn-test")
         or OS.get_cmdline_user_args().has("--interior-turn-test")
@@ -161,6 +168,8 @@ func _ready() -> void:
         pitch = deg_to_rad(-45.0)
     aim_yaw = yaw
     aim_pitch = pitch
+    mouse_intent_yaw = aim_yaw
+    mouse_intent_pitch = aim_pitch
     _build_mouse_cursor_guide()
     Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
@@ -168,6 +177,8 @@ func _unhandled_input(event: InputEvent) -> void:
     if orbit_input_enabled and event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
         if mouse_cursor_cage_enabled:
             _accumulate_mouse_cursor(event.relative)
+        elif mouse_aim_string_enabled:
+            _apply_mouse_aim_string_input(event.relative)
         else:
             set_aim_angles(
                 aim_yaw - event.relative.x * profile.mouse_sensitivity,
@@ -176,7 +187,7 @@ func _unhandled_input(event: InputEvent) -> void:
     elif event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
         Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
     elif event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_M:
-        set_mouse_cursor_cage_enabled(not mouse_cursor_cage_enabled)
+        set_mouse_aim_string_enabled(not mouse_aim_string_enabled)
     elif orbit_input_enabled and event is InputEventMouseButton and event.pressed:
         Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
@@ -196,6 +207,8 @@ func _physics_process(delta: float) -> void:
         aim_pitch = deg_to_rad(-2.0)
         yaw = aim_yaw
         pitch = aim_pitch
+        mouse_intent_yaw = aim_yaw
+        mouse_intent_pitch = aim_pitch
         mouse_cursor_deflection = Vector2.ZERO
         reset_camera_to_target()
     _follow_target_translation()
@@ -209,6 +222,8 @@ func _physics_process(delta: float) -> void:
         yaw -= deg_to_rad(automated_turn_speed) * delta
         aim_yaw = yaw
     else:
+        if mouse_aim_string_enabled and orbit_input_enabled:
+            _update_mouse_aim_string(delta)
         if (
             mouse_cursor_cage_enabled
             and orbit_input_enabled
@@ -2744,6 +2759,15 @@ func get_debug_data() -> Dictionary:
         "reticle_y": reticle_screen_normalized.y,
         "reticle_dynamic_amount": reticle_dynamic_amount,
         "mouse_cursor_cage_enabled": mouse_cursor_cage_enabled,
+        "mouse_aim_string_enabled": mouse_aim_string_enabled,
+        "mouse_intent_yaw_deg": rad_to_deg(mouse_intent_yaw),
+        "mouse_intent_pitch_deg": rad_to_deg(mouse_intent_pitch),
+        "mouse_string_yaw_stretch_deg": rad_to_deg(
+            fposmod(mouse_intent_yaw - aim_yaw + PI, TAU) - PI
+        ),
+        "mouse_string_pitch_stretch_deg": rad_to_deg(
+            mouse_intent_pitch - aim_pitch
+        ),
         "mouse_cursor_x": mouse_cursor_deflection.x,
         "mouse_cursor_y": mouse_cursor_deflection.y,
         "mouse_edge_turn_x": mouse_edge_turn.x,
@@ -2825,6 +2849,8 @@ func set_aim_angles(new_yaw: float, new_pitch: float, snap_orbit: bool = false) 
         deg_to_rad(profile.pitch_min_deg),
         deg_to_rad(profile.pitch_max_deg)
     )
+    mouse_intent_yaw = aim_yaw
+    mouse_intent_pitch = aim_pitch
     if snap_orbit or not orbit_drag_enabled:
         yaw = aim_yaw
         pitch = aim_pitch
@@ -2841,6 +2867,62 @@ func _sync_aim_to_orbit() -> void:
         pitch,
         deg_to_rad(profile.pitch_min_deg),
         deg_to_rad(profile.pitch_max_deg)
+    )
+    mouse_intent_yaw = aim_yaw
+    mouse_intent_pitch = aim_pitch
+
+func set_mouse_aim_string_enabled(enabled: bool) -> void:
+    mouse_aim_string_enabled = enabled
+    mouse_intent_yaw = aim_yaw
+    mouse_intent_pitch = aim_pitch
+    if enabled:
+        set_mouse_cursor_cage_enabled(false)
+
+func _apply_mouse_aim_string_input(relative_motion: Vector2) -> void:
+    mouse_intent_yaw = wrapf(
+        mouse_intent_yaw - relative_motion.x * profile.mouse_sensitivity,
+        -PI,
+        PI
+    )
+    mouse_intent_pitch = clampf(
+        mouse_intent_pitch - relative_motion.y * profile.mouse_sensitivity,
+        deg_to_rad(profile.pitch_min_deg),
+        deg_to_rad(profile.pitch_max_deg)
+    )
+
+    # Once the string is taut, excess mouse motion carries the visible aim.
+    # This keeps a fast flick fast while retaining only a short elastic tail.
+    var yaw_limit := deg_to_rad(profile.mouse_string_yaw_limit_deg)
+    var yaw_stretch := fposmod(mouse_intent_yaw - aim_yaw + PI, TAU) - PI
+    if absf(yaw_stretch) > yaw_limit:
+        aim_yaw = wrapf(
+            mouse_intent_yaw - signf(yaw_stretch) * yaw_limit,
+            -PI,
+            PI
+        )
+
+    var pitch_limit := deg_to_rad(profile.mouse_string_pitch_limit_deg)
+    var pitch_stretch := mouse_intent_pitch - aim_pitch
+    if absf(pitch_stretch) > pitch_limit:
+        aim_pitch = clampf(
+            mouse_intent_pitch - signf(pitch_stretch) * pitch_limit,
+            deg_to_rad(profile.pitch_min_deg),
+            deg_to_rad(profile.pitch_max_deg)
+        )
+
+func _update_mouse_aim_string(delta: float) -> void:
+    var dt := clampf(delta, 0.0, 0.05)
+    aim_yaw = _damp_angle(
+        aim_yaw,
+        mouse_intent_yaw,
+        profile.mouse_string_yaw_response,
+        dt
+    )
+    aim_pitch = _damp(
+        aim_pitch,
+        mouse_intent_pitch,
+        profile.mouse_string_pitch_response,
+        dt
     )
 
 func _update_orbit_trail(delta: float, scoped_view: bool) -> void:
@@ -2860,6 +2942,8 @@ func _update_orbit_trail(delta: float, scoped_view: bool) -> void:
 
 func set_mouse_cursor_cage_enabled(enabled: bool) -> void:
     mouse_cursor_cage_enabled = enabled
+    if enabled:
+        mouse_aim_string_enabled = false
     mouse_cursor_deflection = Vector2.ZERO
     mouse_edge_turn = Vector2.ZERO
     _update_reticle_position(0.0)
