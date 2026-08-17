@@ -18,10 +18,20 @@ extends Resource
 @export var pitch_min_deg: float = -60.0
 @export var pitch_max_deg: float = 28.0
 @export var orbit_trail_enabled: bool = true
-@export var orbit_yaw_response: float = 13.5
-@export var orbit_pitch_response: float = 16.0
-@export var aiming_orbit_yaw_response: float = 26.0
-@export var aiming_orbit_pitch_response: float = 24.0
+@export var orbit_yaw_response: float = 22.0
+@export var orbit_pitch_response: float = 24.0
+@export var scoped_orbit_yaw_response: float = 30.0
+@export var scoped_orbit_pitch_response: float = 32.0
+
+@export_group("Mouse Cursor Cage")
+@export var mouse_cursor_cage_enabled: bool = true
+@export_range(0.01, 0.12, 0.001) var mouse_cage_half_width: float = 0.045
+@export_range(0.01, 0.12, 0.001) var mouse_cage_half_height: float = 0.040
+@export_range(0.10, 0.95, 0.01) var mouse_edge_turn_start: float = 0.58
+@export var mouse_edge_yaw_speed_deg: float = 210.0
+@export var mouse_edge_pitch_speed_deg: float = 135.0
+@export_range(0.5, 3.0, 0.05) var mouse_edge_turn_curve: float = 1.35
+@export_range(0.0, 1.0, 0.01) var mouse_cage_guide_opacity: float = 0.22
 
 @export_group("Downward Aim Authority")
 @export var downward_aim_start_deg: float = -18.0

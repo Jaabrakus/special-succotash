@@ -495,7 +495,11 @@ This is intentionally a calibration rig, not final character art or final animat
 - Independent camera entity; it is not parented to the player
 - Elevated trailing observer position
 - Forward-biased tactical viewing cone
-- Mouse yaw and pitch
+- Optional mouse cursor cage: fine crosshair movement inside the center box,
+  continuous joystick-like camera turn in its outer band
+- Raw centered mouse fallback
+- Standard weapons retain one tactical camera; tighter response is reserved
+  for a future explicit sniper/scope mode
 - Screen-space head framing using `Camera3D.unproject_position()`
 - World collision ray from player anchor to preferred camera position
 - Upward collision escape search
@@ -512,14 +516,15 @@ This is intentionally a calibration rig, not final character art or final animat
 3. Run the project.
 4. `WASD` move.
 5. `Shift` run.
-6. Mouse controls the independent camera/aim direction.
+6. Mouse moves the crosshair inside the center cage; its outer band turns the camera.
 7. `R` resets the camera.
-8. `C` toggles the SOCOM reference calibration overlay.
-9. `[` and `]` change reference-frame opacity.
-10. `T` toggles the rooftop downward-aim test.
-11. `I` toggles the interior compression test.
-12. `B` toggles the back-to-wall escape test.
-13. `Esc` releases the mouse.
+8. `M` toggles between the cursor cage and raw centered mouse control.
+9. `C` toggles the SOCOM reference calibration overlay.
+10. `[` and `]` change reference-frame opacity.
+11. `T` toggles the rooftop downward-aim test.
+12. `I` toggles the interior compression test.
+13. `B` toggles the back-to-wall escape test.
+14. `Esc` releases the mouse.
 
 Press `T` to move between the ground lab and the roof-edge test. On the roof, aim downward over the parapet. The camera gains limited height/forward authority, the rifle converges on the screen-center world point, and both hands remain attached to their weapon grips.
 

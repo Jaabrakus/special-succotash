@@ -170,6 +170,8 @@ func _capture_frame(delta: float) -> void:
         "pitch": camera_rig.pitch,
         "aim_yaw": camera_rig.aim_yaw,
         "aim_pitch": camera_rig.aim_pitch,
+        "mouse_cursor_cage_enabled": camera_rig.mouse_cursor_cage_enabled,
+        "mouse_cursor_deflection": camera_rig.mouse_cursor_deflection,
         "state": state
     }
     frames.append(snapshot)
@@ -206,6 +208,14 @@ func _apply_replay_frame() -> void:
     camera_rig.pitch = float(snapshot.pitch)
     camera_rig.aim_yaw = float(snapshot.get("aim_yaw", snapshot.yaw))
     camera_rig.aim_pitch = float(snapshot.get("aim_pitch", snapshot.pitch))
+    camera_rig.mouse_cursor_cage_enabled = bool(
+        snapshot.get("mouse_cursor_cage_enabled", false)
+    )
+    camera_rig.mouse_cursor_deflection = snapshot.get(
+        "mouse_cursor_deflection",
+        Vector2.ZERO
+    )
+    camera_rig._update_reticle_position(0.0)
     _replay_index += 1
 
 

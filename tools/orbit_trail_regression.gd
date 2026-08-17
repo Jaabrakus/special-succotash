@@ -54,8 +54,8 @@ func _run() -> void:
     camera.set_aim_angles(0.0, deg_to_rad(-2.0), true)
     camera.set_aim_angles(deg_to_rad(60.0), deg_to_rad(-20.0))
     camera._update_orbit_trail(1.0 / 60.0, true)
-    var aiming_error := _angle_error(camera.yaw, camera.aim_yaw)
-    _expect(aiming_error < normal_error, "aiming tightens the orbit response")
+    var scoped_error := _angle_error(camera.yaw, camera.aim_yaw)
+    _expect(scoped_error < normal_error, "explicit scope mode tightens the orbit response")
 
     camera.set_orbit_trail_enabled(false)
     _expect(_angle_error(camera.yaw, camera.aim_yaw) < 0.000001, "rigid fallback snaps yaw")
@@ -94,13 +94,15 @@ func _check_multiplayer_contract() -> void:
     var payload: Dictionary = camera.build_local_aim_intent()
     _expect(not payload.is_empty(), "orbit camera builds multiplayer aim intent")
     if not payload.is_empty():
+        var payload_direction: Vector3 = payload.direction
+        var expected_angles := _direction_to_yaw_pitch(payload_direction)
         _expect(
-            _angle_error(float(payload.yaw), camera.aim_yaw) < 0.000001,
-            "network yaw serializes aim intent rather than trailing orbit"
+            _angle_error(float(payload.yaw), expected_angles.x) < 0.000001,
+            "network yaw serializes the authoritative shot ray"
         )
         _expect(
-            absf(float(payload.pitch) - camera.aim_pitch) < 0.000001,
-            "network pitch serializes aim intent rather than trailing orbit"
+            absf(float(payload.pitch) - expected_angles.y) < 0.000001,
+            "network pitch serializes the authoritative shot ray"
         )
         _expect(
             _angle_error(camera.yaw, camera.aim_yaw) > deg_to_rad(1.0),
@@ -129,6 +131,13 @@ func _direction(yaw: float, pitch: float) -> Vector3:
 
 func _angle_error(from: float, to: float) -> float:
     return absf(fposmod(to - from + PI, TAU) - PI)
+
+func _direction_to_yaw_pitch(direction: Vector3) -> Vector2:
+    var normalized := direction.normalized()
+    return Vector2(
+        wrapf(atan2(-normalized.x, -normalized.z), -PI, PI),
+        asin(clampf(normalized.y, -1.0, 1.0))
+    )
 
 func _expect(condition: bool, label: String) -> void:
     if condition:
