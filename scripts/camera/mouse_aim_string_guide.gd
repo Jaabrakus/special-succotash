@@ -23,23 +23,25 @@ func _draw() -> void:
     if camera_rig == null:
         return
     var viewport_size: Vector2 = get_viewport_rect().size
-    var center := viewport_size * 0.5
+    var center: Vector2 = camera_rig.reticle_screen_normalized * viewport_size
     var endpoint: Vector2 = (
         camera_rig.get_mouse_string_screen_normalized() * viewport_size
     )
     var opacity: float = camera_rig.profile.mouse_string_debug_opacity
     var color := Color(0.20, 0.72, 1.0, opacity)
     var slack_radius: float = camera_rig.profile.mouse_string_slack_radius_px
-    # Stationary ring: blue input is free while its center remains inside.
-    draw_circle(center, slack_radius, Color(color, opacity * 0.055))
+    var reticle_radius: float = camera_rig.profile.mouse_string_reticle_radius_px
+    # White is the actual shot reticle. It follows blue until its center
+    # reaches the blue outline; camera collision never moves either marker.
+    draw_circle(center, reticle_radius, Color(1.0, 1.0, 1.0, opacity * 0.035))
     draw_arc(
         center,
-        slack_radius,
+        reticle_radius,
         0.0,
         TAU,
         32,
-        Color(color, opacity * 0.32),
-        1.0,
+        Color(1.0, 1.0, 1.0, opacity * 0.88),
+        2.0,
         true
     )
     draw_line(center, endpoint, Color(color, opacity * 0.45), 1.5, true)

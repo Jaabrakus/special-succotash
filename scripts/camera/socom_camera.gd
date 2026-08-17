@@ -225,6 +225,7 @@ func _physics_process(delta: float) -> void:
         pitch = aim_pitch
         mouse_intent_yaw = aim_yaw
         mouse_intent_pitch = aim_pitch
+        mouse_aim_model.reset(Vector2(aim_yaw, aim_pitch))
         mouse_cursor_deflection = Vector2.ZERO
         reset_camera_to_target()
     _follow_target_translation()
@@ -246,7 +247,7 @@ func _physics_process(delta: float) -> void:
             and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
         ):
             _update_mouse_cursor_turn(delta)
-        else:
+        elif not mouse_aim_string_enabled:
             mouse_edge_turn = Vector2.ZERO
         if orbit_drag_enabled:
             # Standard SOCOM weapons have no ADS camera. The tighter response
@@ -2658,6 +2659,13 @@ func _update_reticle_position(_delta: float) -> void:
     # The game viewport is the mouse container. Crosshair motion remains normal
     # through its interior; only the thin outer band produces continuous turn.
     # Camera collision never writes this input-owned position.
+    if mouse_aim_string_enabled:
+        reticle_dynamic_amount = maxf(
+            absf(mouse_aim_model.reticle_deflection.x),
+            absf(mouse_aim_model.reticle_deflection.y)
+        )
+        reticle_screen_normalized = mouse_aim_model.reticle_screen_normalized(profile)
+        return
     if not mouse_cursor_cage_enabled:
         reticle_dynamic_amount = 0.0
         reticle_screen_normalized = Vector2(0.5, 0.5)
@@ -2715,8 +2723,8 @@ func _sync_aim_to_orbit() -> void:
 
 func set_mouse_aim_string_enabled(enabled: bool) -> void:
     mouse_aim_string_enabled = enabled
-    mouse_intent_yaw = aim_yaw
-    mouse_intent_pitch = aim_pitch
+    mouse_aim_model.reset(Vector2(aim_yaw, aim_pitch))
+    _update_reticle_position(0.0)
     if enabled:
         set_mouse_cursor_cage_enabled(false)
 
@@ -2727,34 +2735,38 @@ func _apply_raw_mouse_input(relative_motion: Vector2) -> void:
     )
 
 func _apply_mouse_aim_string_input(relative_motion: Vector2) -> void:
-    var bounded_aim: Vector2 = mouse_aim_model.apply_motion(
+    mouse_aim_model.apply_motion(
         relative_motion,
-        Vector2(aim_yaw, aim_pitch),
+        get_viewport().get_visible_rect().size,
         profile
     )
-    aim_yaw = bounded_aim.x
-    aim_pitch = bounded_aim.y
 
 func _update_mouse_aim_string(delta: float) -> void:
     var viewport_size := get_viewport().get_visible_rect().size
-    var updated_aim: Vector2 = mouse_aim_model.update_aim(
-        Vector2(aim_yaw, aim_pitch),
+    mouse_aim_model.update_reticle(
         delta,
-        profile,
         viewport_size,
-        camera.fov if camera != null else profile.vertical_fov
-    )
-    aim_yaw = updated_aim.x
-    aim_pitch = updated_aim.y
-
-func get_mouse_string_screen_normalized() -> Vector2:
-    var viewport_size := get_viewport().get_visible_rect().size
-    return mouse_aim_model.screen_normalized(
-        viewport_size,
-        camera.fov if camera != null else profile.vertical_fov,
-        Vector2(aim_yaw, aim_pitch),
         profile
     )
+    mouse_edge_turn = mouse_aim_model.edge_turn(profile)
+    var dt := clampf(delta, 0.0, 0.05)
+    aim_yaw = wrapf(
+        aim_yaw
+        - deg_to_rad(profile.mouse_edge_yaw_speed_deg) * mouse_edge_turn.x * dt,
+        -PI,
+        PI
+    )
+    aim_pitch = clampf(
+        aim_pitch
+        - deg_to_rad(profile.mouse_edge_pitch_speed_deg) * mouse_edge_turn.y * dt,
+        deg_to_rad(profile.pitch_min_deg),
+        deg_to_rad(profile.pitch_max_deg)
+    )
+    mouse_aim_model.sync_aim(Vector2(aim_yaw, aim_pitch))
+    _update_reticle_position(delta)
+
+func get_mouse_string_screen_normalized() -> Vector2:
+    return mouse_aim_model.target_screen_normalized(profile)
 
 func get_operator_alignment_screen_normalized() -> Vector2:
     return get_mouse_string_screen_normalized()

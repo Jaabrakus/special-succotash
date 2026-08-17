@@ -33,6 +33,7 @@ extends Resource
 @export_range(0.5, 3.0, 0.05) var mouse_string_tension_curve: float = 1.35
 @export var mouse_string_debug_dot_visible: bool = true
 @export_range(2.0, 16.0, 0.5) var mouse_string_slack_radius_px: float = 9.0
+@export_range(6.0, 24.0, 0.5) var mouse_string_reticle_radius_px: float = 13.0
 @export_range(0.0, 1.0, 0.05) var mouse_string_debug_opacity: float = 0.90
 
 @export_group("Mouse Cursor Cage")
