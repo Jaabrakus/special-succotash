@@ -3,6 +3,7 @@ extends Node3D
 
 const AimIntentScript := preload("res://scripts/network/socom_aim_intent.gd")
 const CameraProfileScript := preload("res://scripts/camera/camera_profile.gd")
+const MouseAimModelScript := preload("res://scripts/camera/mouse_aim_model.gd")
 const MouseCursorGuideScript := preload("res://scripts/camera/mouse_cursor_guide.gd")
 const MouseAimStringGuideScript := preload("res://scripts/camera/mouse_aim_string_guide.gd")
 const VIRTUAL_WALL_OBSERVER_LAYER := 19
@@ -29,8 +30,17 @@ var pitch: float = deg_to_rad(-2.0)
 var orbit_drag_enabled: bool = true
 var mouse_aim_string_enabled: bool = true
 var mouse_string_debug_visible: bool = true
-var mouse_intent_yaw: float = 0.0
-var mouse_intent_pitch: float = deg_to_rad(-2.0)
+var mouse_aim_model := MouseAimModelScript.new()
+var mouse_intent_yaw: float:
+    get:
+        return mouse_aim_model.intent_yaw
+    set(value):
+        mouse_aim_model.intent_yaw = value
+var mouse_intent_pitch: float:
+    get:
+        return mouse_aim_model.intent_pitch
+    set(value):
+        mouse_aim_model.intent_pitch = value
 var initial_orbit_sync_pending: bool = true
 var current_camera_position := Vector3.ZERO
 var preferred_camera_position := Vector3.ZERO
@@ -2893,103 +2903,30 @@ func _apply_raw_mouse_input(relative_motion: Vector2) -> void:
     )
 
 func _apply_mouse_aim_string_input(relative_motion: Vector2) -> void:
-    mouse_intent_yaw = wrapf(
-        mouse_intent_yaw - relative_motion.x * profile.mouse_sensitivity,
-        -PI,
-        PI
+    var bounded_aim: Vector2 = mouse_aim_model.apply_motion(
+        relative_motion,
+        Vector2(aim_yaw, aim_pitch),
+        profile
     )
-    mouse_intent_pitch = clampf(
-        mouse_intent_pitch - relative_motion.y * profile.mouse_sensitivity,
-        deg_to_rad(profile.pitch_min_deg),
-        deg_to_rad(profile.pitch_max_deg)
-    )
-
-    # Preserve a bounded visible lead. A fast flick can carry the aim, but the
-    # remaining blue target is still finite and will be caught exactly once.
-    var yaw_limit := deg_to_rad(profile.mouse_string_yaw_limit_deg)
-    var yaw_stretch := fposmod(mouse_intent_yaw - aim_yaw + PI, TAU) - PI
-    if absf(yaw_stretch) > yaw_limit:
-        aim_yaw = wrapf(
-            mouse_intent_yaw - signf(yaw_stretch) * yaw_limit,
-            -PI,
-            PI
-        )
-
-    var pitch_limit := deg_to_rad(profile.mouse_string_pitch_limit_deg)
-    var pitch_stretch := mouse_intent_pitch - aim_pitch
-    if absf(pitch_stretch) > pitch_limit:
-        aim_pitch = clampf(
-            mouse_intent_pitch - signf(pitch_stretch) * pitch_limit,
-            deg_to_rad(profile.pitch_min_deg),
-            deg_to_rad(profile.pitch_max_deg)
-        )
+    aim_yaw = bounded_aim.x
+    aim_pitch = bounded_aim.y
 
 func _update_mouse_aim_string(delta: float) -> void:
-    var dt := clampf(delta, 0.0, 0.05)
-    var yaw_error := fposmod(mouse_intent_yaw - aim_yaw + PI, TAU) - PI
-    var pitch_error := mouse_intent_pitch - aim_pitch
-    var yaw_tension := _mouse_string_tension(
-        yaw_error,
-        deg_to_rad(profile.mouse_string_yaw_limit_deg)
+    var updated_aim: Vector2 = mouse_aim_model.update_aim(
+        Vector2(aim_yaw, aim_pitch),
+        delta,
+        profile
     )
-    var pitch_tension := _mouse_string_tension(
-        pitch_error,
-        deg_to_rad(profile.mouse_string_pitch_limit_deg)
-    )
-    if yaw_tension > 0.0:
-        var yaw_response := lerpf(
-            profile.mouse_string_min_response,
-            profile.mouse_string_yaw_response,
-            yaw_tension
-        )
-        aim_yaw = _damp_angle(aim_yaw, mouse_intent_yaw, yaw_response, dt)
-    if pitch_tension > 0.0:
-        var pitch_response := lerpf(
-            profile.mouse_string_min_response,
-            profile.mouse_string_pitch_response,
-            pitch_tension
-        )
-        aim_pitch = _damp(aim_pitch, mouse_intent_pitch, pitch_response, dt)
-
-func _mouse_string_tension(error: float, limit: float) -> float:
-    var deadzone := deg_to_rad(profile.mouse_string_deadzone_deg)
-    var magnitude := absf(error)
-    if magnitude <= deadzone:
-        return 0.0
-    var normalized := clampf(
-        inverse_lerp(deadzone, maxf(limit, deadzone + 0.0001), magnitude),
-        0.0,
-        1.0
-    )
-    return pow(normalized, profile.mouse_string_tension_curve)
+    aim_yaw = updated_aim.x
+    aim_pitch = updated_aim.y
 
 func get_mouse_string_screen_normalized() -> Vector2:
     var viewport_size := get_viewport().get_visible_rect().size
-    var aspect := viewport_size.x / maxf(viewport_size.y, 1.0)
-    var vertical_fov := deg_to_rad(
-        camera.fov if camera != null else profile.vertical_fov
-    )
-    var vertical_half := maxf(vertical_fov * 0.5, 0.001)
-    var horizontal_half := atan(tan(vertical_half) * aspect)
-    var yaw_limit := deg_to_rad(profile.mouse_string_yaw_limit_deg)
-    var pitch_limit := deg_to_rad(profile.mouse_string_pitch_limit_deg)
-    var yaw_stretch := clampf(
-        fposmod(mouse_intent_yaw - aim_yaw + PI, TAU) - PI,
-        -yaw_limit,
-        yaw_limit
-    )
-    var pitch_stretch := clampf(
-        mouse_intent_pitch - aim_pitch,
-        -pitch_limit,
-        pitch_limit
-    )
-    var screen_offset := Vector2(
-        -tan(yaw_stretch) / maxf(tan(horizontal_half), 0.001),
-        -tan(pitch_stretch) / maxf(tan(vertical_half), 0.001)
-    ) * 0.5
-    return (Vector2(0.5, 0.5) + screen_offset).clamp(
-        Vector2.ZERO,
-        Vector2.ONE
+    return mouse_aim_model.screen_normalized(
+        viewport_size,
+        camera.fov if camera != null else profile.vertical_fov,
+        Vector2(aim_yaw, aim_pitch),
+        profile
     )
 
 func get_operator_alignment_screen_normalized() -> Vector2:
