@@ -18,5 +18,5 @@ if ! grep -q "OPERATOR_ANIMATION_REGRESSION PASS" "$REPORT_PATH"; then
     exit 1
 fi
 
-echo "Operator animation regression: 65-bone humanoid contract, root/weapon controls, 122 clips, transitions, obstruction poses, recovery, actions, and gestures passed"
+echo "Operator animation regression: 65-bone contract, 122 authored clips, 23 curated Mixamo clips, transitions, obstruction, recovery, actions, and gestures passed"
 echo "Operator animation report: $REPORT_PATH"
