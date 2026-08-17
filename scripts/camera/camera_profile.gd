@@ -27,13 +27,11 @@ extends Resource
 @export var mouse_aim_string_enabled: bool = true
 @export_range(0.5, 8.0, 0.1) var mouse_string_yaw_limit_deg: float = 5.0
 @export_range(0.5, 6.0, 0.1) var mouse_string_pitch_limit_deg: float = 3.25
-@export var mouse_string_min_response: float = 7.0
-@export var mouse_string_yaw_response: float = 40.0
-@export var mouse_string_pitch_response: float = 44.0
 @export_range(0.5, 3.0, 0.05) var mouse_string_tension_curve: float = 1.35
 @export var mouse_string_debug_dot_visible: bool = true
-@export_range(2.0, 16.0, 0.5) var mouse_string_slack_radius_px: float = 9.0
-@export_range(6.0, 24.0, 0.5) var mouse_string_reticle_radius_px: float = 13.0
+@export_range(10.0, 48.0, 1.0) var mouse_string_deadzone_radius_px: float = 24.0
+@export_range(3.0, 12.0, 0.5) var mouse_string_blue_radius_px: float = 6.0
+@export_range(0.016, 0.15, 0.005) var mouse_string_idle_reset_seconds: float = 0.055
 @export_range(0.0, 1.0, 0.05) var mouse_string_debug_opacity: float = 0.90
 
 @export_group("Mouse Cursor Cage")
