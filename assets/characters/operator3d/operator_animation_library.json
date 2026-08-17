@@ -1,5 +1,5 @@
 {
-  "format": "SOCOM-141 skeletal animation library v2",
+  "format": "SOCOM-141 skeletal animation library v3",
   "fps": 30,
   "source_blend": "socom_141_operator_animation_source.blend",
   "runtime_glb": "socom_141_operator_animated.glb",
@@ -145,7 +145,7 @@
     "mixamorig:LeftToeBase",
     "mixamorig:LeftToe_End"
   ],
-  "clip_count": 122,
+  "clip_count": 145,
   "clips": [
     {
       "name": "combat_ready_crouch_fire",
@@ -708,6 +708,167 @@
       "loop": false
     },
     {
+      "name": "mx_combat_ready_idle",
+      "start_frame": 1,
+      "end_frame": 64,
+      "duration_seconds": 2.1,
+      "loop": true
+    },
+    {
+      "name": "mx_kneel_to_prone",
+      "start_frame": 1,
+      "end_frame": 60,
+      "duration_seconds": 1.967,
+      "loop": false
+    },
+    {
+      "name": "mx_low_ready_idle",
+      "start_frame": 1,
+      "end_frame": 64,
+      "duration_seconds": 2.1,
+      "loop": true
+    },
+    {
+      "name": "mx_low_ready_run_back_left",
+      "start_frame": 1,
+      "end_frame": 16,
+      "duration_seconds": 0.5,
+      "loop": true
+    },
+    {
+      "name": "mx_low_ready_run_back_right",
+      "start_frame": 1,
+      "end_frame": 16,
+      "duration_seconds": 0.5,
+      "loop": true
+    },
+    {
+      "name": "mx_low_ready_run_backward",
+      "start_frame": 1,
+      "end_frame": 16,
+      "duration_seconds": 0.5,
+      "loop": true
+    },
+    {
+      "name": "mx_low_ready_run_forward",
+      "start_frame": 1,
+      "end_frame": 16,
+      "duration_seconds": 0.5,
+      "loop": true
+    },
+    {
+      "name": "mx_low_ready_run_forward_left",
+      "start_frame": 1,
+      "end_frame": 16,
+      "duration_seconds": 0.5,
+      "loop": true
+    },
+    {
+      "name": "mx_low_ready_run_forward_right",
+      "start_frame": 1,
+      "end_frame": 16,
+      "duration_seconds": 0.5,
+      "loop": true
+    },
+    {
+      "name": "mx_low_ready_run_left",
+      "start_frame": 1,
+      "end_frame": 16,
+      "duration_seconds": 0.5,
+      "loop": true
+    },
+    {
+      "name": "mx_low_ready_run_right",
+      "start_frame": 1,
+      "end_frame": 16,
+      "duration_seconds": 0.5,
+      "loop": true
+    },
+    {
+      "name": "mx_low_ready_walk_back_left",
+      "start_frame": 1,
+      "end_frame": 31,
+      "duration_seconds": 1.0,
+      "loop": true
+    },
+    {
+      "name": "mx_low_ready_walk_back_right",
+      "start_frame": 1,
+      "end_frame": 31,
+      "duration_seconds": 1.0,
+      "loop": true
+    },
+    {
+      "name": "mx_low_ready_walk_backward",
+      "start_frame": 1,
+      "end_frame": 31,
+      "duration_seconds": 1.0,
+      "loop": true
+    },
+    {
+      "name": "mx_low_ready_walk_forward",
+      "start_frame": 1,
+      "end_frame": 31,
+      "duration_seconds": 1.0,
+      "loop": true
+    },
+    {
+      "name": "mx_low_ready_walk_forward_left",
+      "start_frame": 1,
+      "end_frame": 31,
+      "duration_seconds": 1.0,
+      "loop": true
+    },
+    {
+      "name": "mx_low_ready_walk_forward_right",
+      "start_frame": 1,
+      "end_frame": 31,
+      "duration_seconds": 1.0,
+      "loop": true
+    },
+    {
+      "name": "mx_low_ready_walk_left",
+      "start_frame": 1,
+      "end_frame": 31,
+      "duration_seconds": 1.0,
+      "loop": true
+    },
+    {
+      "name": "mx_low_ready_walk_right",
+      "start_frame": 1,
+      "end_frame": 31,
+      "duration_seconds": 1.0,
+      "loop": true
+    },
+    {
+      "name": "mx_prone_backward",
+      "start_frame": 1,
+      "end_frame": 58,
+      "duration_seconds": 1.9,
+      "loop": true
+    },
+    {
+      "name": "mx_prone_forward",
+      "start_frame": 1,
+      "end_frame": 71,
+      "duration_seconds": 2.333,
+      "loop": true
+    },
+    {
+      "name": "mx_rifle_reload",
+      "start_frame": 1,
+      "end_frame": 100,
+      "duration_seconds": 3.3,
+      "loop": false
+    },
+    {
+      "name": "mx_running_dive_roll",
+      "start_frame": 1,
+      "end_frame": 63,
+      "duration_seconds": 2.067,
+      "loop": false
+    },
+    {
       "name": "prone_crawl_backward",
       "start_frame": 1,
       "end_frame": 41,
@@ -1001,5 +1162,129 @@
       "duration_seconds": 1.233,
       "loop": false
     }
-  ]
+  ],
+  "retarget_pipeline": {
+    "format": "reference-pose global rotation transfer",
+    "source_root": "Basic Shooter Pack",
+    "source_reference": "Pro Rifle Pack/idle.fbx",
+    "horizontal_root_motion": "stripped; CharacterBody authoritative",
+    "curated_clip_count": 23,
+    "curated_clips": [
+      {
+        "name": "mx_low_ready_idle",
+        "source": "Pro Rifle Pack/idle.fbx",
+        "loop": true
+      },
+      {
+        "name": "mx_combat_ready_idle",
+        "source": "Pro Rifle Pack/idle aiming.fbx",
+        "loop": true
+      },
+      {
+        "name": "mx_low_ready_walk_forward",
+        "source": "Pro Rifle Pack/walk forward.fbx",
+        "loop": true
+      },
+      {
+        "name": "mx_low_ready_walk_forward_left",
+        "source": "Pro Rifle Pack/walk forward left.fbx",
+        "loop": true
+      },
+      {
+        "name": "mx_low_ready_walk_left",
+        "source": "Pro Rifle Pack/walk left.fbx",
+        "loop": true
+      },
+      {
+        "name": "mx_low_ready_walk_back_left",
+        "source": "Pro Rifle Pack/walk backward left.fbx",
+        "loop": true
+      },
+      {
+        "name": "mx_low_ready_walk_backward",
+        "source": "Pro Rifle Pack/walk backward.fbx",
+        "loop": true
+      },
+      {
+        "name": "mx_low_ready_walk_back_right",
+        "source": "Pro Rifle Pack/walk backward right.fbx",
+        "loop": true
+      },
+      {
+        "name": "mx_low_ready_walk_right",
+        "source": "Pro Rifle Pack/walk right.fbx",
+        "loop": true
+      },
+      {
+        "name": "mx_low_ready_walk_forward_right",
+        "source": "Pro Rifle Pack/walk forward right.fbx",
+        "loop": true
+      },
+      {
+        "name": "mx_low_ready_run_forward",
+        "source": "Pro Rifle Pack/run forward.fbx",
+        "loop": true
+      },
+      {
+        "name": "mx_low_ready_run_forward_left",
+        "source": "Pro Rifle Pack/run forward left.fbx",
+        "loop": true
+      },
+      {
+        "name": "mx_low_ready_run_left",
+        "source": "Pro Rifle Pack/run left.fbx",
+        "loop": true
+      },
+      {
+        "name": "mx_low_ready_run_back_left",
+        "source": "Pro Rifle Pack/run backward left.fbx",
+        "loop": true
+      },
+      {
+        "name": "mx_low_ready_run_backward",
+        "source": "Pro Rifle Pack/run backward.fbx",
+        "loop": true
+      },
+      {
+        "name": "mx_low_ready_run_back_right",
+        "source": "Pro Rifle Pack/run backward right.fbx",
+        "loop": true
+      },
+      {
+        "name": "mx_low_ready_run_right",
+        "source": "Pro Rifle Pack/run right.fbx",
+        "loop": true
+      },
+      {
+        "name": "mx_low_ready_run_forward_right",
+        "source": "Pro Rifle Pack/run forward right.fbx",
+        "loop": true
+      },
+      {
+        "name": "mx_rifle_reload",
+        "source": "Reloading.fbx",
+        "loop": false
+      },
+      {
+        "name": "mx_running_dive_roll",
+        "source": "Running Dive Roll.fbx",
+        "loop": false
+      },
+      {
+        "name": "mx_kneel_to_prone",
+        "source": "Rifle Kneel To Prone.fbx",
+        "loop": false
+      },
+      {
+        "name": "mx_prone_forward",
+        "source": "Prone Forward.fbx",
+        "loop": true
+      },
+      {
+        "name": "mx_prone_backward",
+        "source": "Moving Backward In Prone Position.fbx",
+        "loop": true
+      }
+    ]
+  }
 }

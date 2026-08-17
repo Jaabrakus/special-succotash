@@ -33,14 +33,14 @@ func _run() -> void:
     await process_frame
 
     _expect(driver.animation_tree != null and driver.animation_tree.active, "AnimationTree is active")
-    _expect(driver.get_clip_names().size() == 122, "all 122 authored clips are available")
+    _expect(driver.get_clip_names().size() == 145, "all 122 authored and 23 curated clips are available")
     _expect(bool(driver.get_visual_debug_data().get("visual_only", false)), "driver declares visual-only authority")
     _check_skeleton(driver)
     _check_required_clips(driver)
 
     driver.set_visual_inputs(Vector2.ZERO, &"STANDING", 0.0, 0.0, 0.0, false, 0.0)
     _advance(driver)
-    _expect(driver.current_clip == &"low_ready_idle", "standing low-ready idle")
+    _expect(driver.current_clip == &"mx_low_ready_idle", "standing curated low-ready idle")
 
     var directions := {
         "forward": Vector2(0.0, 1.0),
@@ -56,10 +56,10 @@ func _run() -> void:
         var direction: Vector2 = directions[suffix]
         driver.set_visual_inputs(direction, &"STANDING", 0.0, 0.0, 0.0, false, 0.0, 0.45)
         _advance(driver)
-        _expect(driver.current_clip == StringName("low_ready_walk_%s" % suffix), "low-ready walk %s" % suffix)
+        _expect(driver.current_clip == StringName("mx_low_ready_walk_%s" % suffix), "curated low-ready walk %s" % suffix)
         driver.set_visual_inputs(direction, &"STANDING", 0.0, 0.0, 0.0, false, 0.0, 0.90)
         _advance(driver)
-        _expect(driver.current_clip == StringName("low_ready_run_%s" % suffix), "low-ready run %s" % suffix)
+        _expect(driver.current_clip == StringName("mx_low_ready_run_%s" % suffix), "curated low-ready run %s" % suffix)
         driver.set_visual_inputs(direction, &"CROUCHED", 0.0, 0.0, 0.0, false, 0.0, 0.55)
         _advance(driver)
         _expect(driver.current_clip == StringName("low_ready_crouch_%s" % suffix), "low-ready crouch %s" % suffix)
@@ -74,14 +74,14 @@ func _run() -> void:
     _advance(driver)
     _expect(driver.current_clip == &"low_ready_raise", "ready-weight crossing plays raise")
     _advance(driver, 10.0)
-    _expect(driver.current_clip == &"combat_ready_idle", "raised weapon settles at combat-ready idle")
+    _expect(driver.current_clip == &"mx_combat_ready_idle", "raised weapon settles at curated combat-ready idle")
 
     driver.set_visual_inputs(Vector2.ZERO, &"STANDING", 0.4, -0.2, 1.0, true, 0.0)
     _advance(driver)
     _expect(driver.current_clip == &"combat_ready_fire", "firing edge plays standing recoil")
     driver.set_visual_inputs(Vector2.ZERO, &"STANDING", 0.4, -0.2, 1.0, false, 0.0)
     _advance(driver, 10.0)
-    _expect(driver.current_clip == &"combat_ready_idle", "recoil returns to combat-ready idle")
+    _expect(driver.current_clip == &"mx_combat_ready_idle", "recoil returns to curated combat-ready idle")
 
     for posture_name in [&"STANDING", &"CROUCHED", &"PRONE"]:
         driver.set_visual_inputs(Vector2.ZERO, posture_name, 0.0, 0.0, 1.0, false, 0.85)
@@ -97,7 +97,7 @@ func _run() -> void:
     _advance(driver)
     _expect(driver.current_clip == &"combat_ready_lower", "ready-weight crossing plays lower")
     _advance(driver, 10.0)
-    _expect(driver.current_clip == &"low_ready_idle", "lower settles at low ready")
+    _expect(driver.current_clip == &"mx_low_ready_idle", "lower settles at curated low ready")
 
     _check_recovery(driver, &"jump", 1.0, &"low_ready_recover_jump")
     _check_recovery(driver, &"dive", 1.0, &"low_ready_recover_dive")
@@ -110,6 +110,12 @@ func _run() -> void:
     _expect(driver.play_action(&"gesture_go"), "legacy squad gesture remains requestable")
     _advance(driver)
     _expect(driver.current_clip == &"gesture_go", "requested gesture reaches AnimationTree")
+    _expect(driver.play_action(&"mx_rifle_reload"), "curated Mixamo reload is requestable")
+    _advance(driver)
+    _expect(driver.current_clip == &"mx_rifle_reload", "curated reload reaches AnimationTree")
+    _expect(driver.play_action(&"mx_running_dive_roll"), "curated Mixamo dive roll is requestable")
+    _advance(driver)
+    _expect(driver.current_clip == &"mx_running_dive_roll", "curated dive roll reaches AnimationTree")
 
     driver.queue_free()
     _finish()
@@ -130,6 +136,16 @@ func _check_required_clips(driver) -> void:
         required.append(StringName("low_ready_prone_%s" % suffix))
     for clip_name in required:
         _expect(driver.has_clip(clip_name), "clip exists: %s" % clip_name)
+    var curated: Array[StringName] = [
+        &"mx_low_ready_idle", &"mx_combat_ready_idle", &"mx_rifle_reload",
+        &"mx_running_dive_roll", &"mx_kneel_to_prone", &"mx_prone_forward",
+        &"mx_prone_backward",
+    ]
+    for prefix in ["mx_low_ready_walk", "mx_low_ready_run"]:
+        for suffix in ["forward", "forward_right", "right", "back_right", "backward", "back_left", "left", "forward_left"]:
+            curated.append(StringName("%s_%s" % [prefix, suffix]))
+    for clip_name in curated:
+        _expect(driver.has_clip(clip_name), "curated clip exists: %s" % clip_name)
 
 func _check_skeleton(driver) -> void:
     _expect(driver.skeleton != null, "runtime skeleton exists")

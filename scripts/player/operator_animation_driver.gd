@@ -23,6 +23,7 @@ const LEGACY_LOOPING_CLIPS: Array[StringName] = [
 ]
 
 @export_group("Visual aim limits")
+@export var use_curated_mixamo_clips: bool = true
 @export_range(0.0, 90.0, 0.5) var chest_yaw_limit_deg: float = 42.0
 @export_range(0.0, 60.0, 0.5) var chest_pitch_limit_deg: float = 28.0
 @export_range(0.0, 90.0, 0.5) var head_yaw_limit_deg: float = 56.0
@@ -76,7 +77,7 @@ func _ready() -> void:
     _cache_aim_bones()
     _configure_animation_loops()
     _build_animation_tree()
-    _request_clip(&"low_ready_idle" if available_clips.has(&"low_ready_idle") else &"idle_rifle")
+    _request_clip(_curated_or(&"mx_low_ready_idle", &"low_ready_idle"))
 
 func _process(delta: float) -> void:
     if animation_tree == null:
@@ -193,7 +194,7 @@ func _select_visual_clip() -> StringName:
                 return &"combat_ready_prone_idle"
             if posture == &"CROUCHED":
                 return &"combat_ready_crouch_idle"
-            return &"combat_ready_idle"
+            return _curated_or(&"mx_combat_ready_idle", &"combat_ready_idle")
         return _combat_locomotion_clip()
     return _low_ready_locomotion_clip()
 
@@ -203,14 +204,15 @@ func _low_ready_locomotion_clip() -> StringName:
             return &"low_ready_prone_idle"
         if posture == &"CROUCHED":
             return &"low_ready_crouch_idle"
-        return &"low_ready_idle"
+        return _curated_or(&"mx_low_ready_idle", &"low_ready_idle")
     if posture == &"PRONE":
         return StringName("low_ready_prone_%s" % _prone_direction_suffix(movement_direction))
     var direction_name := _direction_suffix(movement_direction)
     if posture == &"CROUCHED":
         return StringName("low_ready_crouch_%s" % direction_name)
     var prefix := "low_ready_run" if movement_speed_normalized >= 0.72 else "low_ready_walk"
-    return StringName("%s_%s" % [prefix, direction_name])
+    var fallback := StringName("%s_%s" % [prefix, direction_name])
+    return _curated_or(StringName("mx_%s_%s" % [prefix, direction_name]), fallback)
 
 func _combat_locomotion_clip() -> StringName:
     if posture == &"PRONE":
@@ -222,7 +224,14 @@ func _combat_locomotion_clip() -> StringName:
     if posture == &"CROUCHED":
         return StringName("crouch_%s" % direction_name)
     var prefix := "run" if movement_speed_normalized >= 0.72 else "walk"
-    return StringName("%s_%s" % [prefix, direction_name])
+    var fallback := StringName("%s_%s" % [prefix, direction_name])
+    var curated_prefix := "mx_low_ready_run" if prefix == "run" else "mx_low_ready_walk"
+    return _curated_or(StringName("%s_%s" % [curated_prefix, direction_name]), fallback)
+
+func _curated_or(curated: StringName, fallback: StringName) -> StringName:
+    if use_curated_mixamo_clips and available_clips.has(curated):
+        return curated
+    return fallback
 
 func _consume_automatic_action_request() -> StringName:
     if _queued_recovery != &"":
@@ -359,7 +368,10 @@ func _is_looping_clip(clip_name: StringName) -> bool:
         or text.begins_with("low_ready_run_")
         or text.begins_with("low_ready_crouch_")
         or text.begins_with("low_ready_prone_")
+        or text.begins_with("mx_low_ready_walk_")
+        or text.begins_with("mx_low_ready_run_")
         or text in [
+            "mx_low_ready_idle", "mx_combat_ready_idle",
             "low_ready_idle", "low_ready_crouch_idle", "low_ready_prone_idle",
             "combat_ready_idle", "combat_ready_crouch_idle", "combat_ready_prone_idle",
             "compressed_ready_idle", "compressed_ready_crouch", "compressed_ready_prone",

@@ -576,6 +576,7 @@ def save_and_export(armature, actions):
     manifest_path = os.path.join(OUT, "operator_animation_library.json")
 
     bpy.context.scene.render.fps = FPS
+    bpy.context.preferences.filepaths.save_version = 0
     bpy.context.scene.frame_start = 1
     bpy.context.scene.frame_end = 90
     bpy.context.scene["asset_purpose"] = "Original SOCOM-141 PS2-era tactical operator"
