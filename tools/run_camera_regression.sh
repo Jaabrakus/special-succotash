@@ -13,7 +13,7 @@ mkdir -p "$report_dir"
 "$godot_bin" --headless --log-file "$report_dir/wall-follow.log" --path "$project_dir" --quit-after 650 -- \
   --automated-test --wall-follow-test --wall-audit-report --clean-hud >/dev/null
 "$godot_bin" --headless --log-file "$report_dir/interior.log" --path "$project_dir" --quit-after 610 -- \
-  --automated-test --interior-turn-test --wall-audit-report --clean-hud >/dev/null
+  --automated-test --interior-turn-test --wall-audit-report --camera-report --clean-hud >/dev/null
 "$godot_bin" --headless --log-file "$report_dir/roof.log" --path "$project_dir" --quit-after 180 -- \
   --automated-test --roof-test --downward-aim-test --camera-report --clean-hud >/dev/null
 "$godot_bin" --headless --log-file "$report_dir/audit-recorder.log" --path "$project_dir" --quit-after 150 -- \
@@ -102,6 +102,24 @@ if ! awk -F, '/^WALL_AUDIT/ && $10 == 1 { found = 1 } END { exit !found }' "$rep
   exit 1
 fi
 print "player leaves wall: began physically compressed, then retained player tether"
+
+for intent_report in \
+  "$report_dir/wall-entry.log" \
+  "$report_dir/wall-turn.log" \
+  "$report_dir/wall-follow.log" \
+  "$report_dir/interior.log"; do
+  if rg -P -q '"reticle_dynamic_amount":(?!0\.0)|"reticle_x":(?!0\.5)|"reticle_y":(?!0\.5)' "$intent_report"; then
+    print -u2 "FAIL: collision or environment state moved the authoritative reticle"
+    exit 1
+  fi
+done
+print "aim ownership: reticle remained exactly centered through every wall state"
+
+if ! rg -q 'CAMERA_REPORT .*"pitch_deg":-2.0.*"reticle_x":0.5.*"reticle_y":0.5.*"view_pitch_deg":-2.0' "$report_dir/interior.log"; then
+  print -u2 "FAIL: interior state redirected raw pitch or moved the reticle"
+  exit 1
+fi
+print "interior aim: raw pitch preserved without environment bias"
 
 if ! rg -q 'CAMERA_REPORT .*"pitch_deg":-45.0.*"reticle_x":0.5.*"reticle_y":0.5.*"view_pitch_deg":-45.0' "$report_dir/roof.log"; then
   print -u2 "FAIL: rooftop downward aim lost raw pitch or centered reticle"
