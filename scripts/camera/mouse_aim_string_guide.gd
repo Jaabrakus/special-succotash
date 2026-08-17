@@ -11,7 +11,7 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
     visible = (
         camera_rig != null
-        and camera_rig.orbit_drag_enabled
+        and camera_rig.mouse_aim_string_enabled
         and camera_rig.mouse_string_debug_visible
         and camera_rig.orbit_input_enabled
         and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
@@ -25,7 +25,7 @@ func _draw() -> void:
     var viewport_size: Vector2 = get_viewport_rect().size
     var center := viewport_size * 0.5
     var endpoint: Vector2 = (
-        camera_rig.get_operator_alignment_screen_normalized() * viewport_size
+        camera_rig.get_mouse_string_screen_normalized() * viewport_size
     )
     var opacity: float = camera_rig.profile.mouse_string_debug_opacity
     var color := Color(0.20, 0.72, 1.0, opacity)
