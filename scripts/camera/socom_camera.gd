@@ -8,9 +8,11 @@ const CameraFramingSolverScript := preload("res://scripts/camera/camera_framing_
 const CameraFramePipelineScript := preload("res://scripts/camera/camera_frame_pipeline.gd")
 const CameraDebugSnapshotScript := preload("res://scripts/camera/camera_debug_snapshot.gd")
 const CameraInputControllerScript := preload("res://scripts/camera/camera_input_controller.gd")
+const CameraInputPresenterScript := preload("res://scripts/camera/camera_input_presenter.gd")
 const CameraProfileScript := preload("res://scripts/camera/camera_profile.gd")
 const CameraPreferredShotSolverScript := preload("res://scripts/camera/camera_preferred_shot_solver.gd")
 const CameraRecoverySolverScript := preload("res://scripts/camera/camera_recovery_solver.gd")
+const CameraRuntimeSupportScript := preload("res://scripts/camera/camera_runtime_support.gd")
 const CameraStateControllerScript := preload("res://scripts/camera/camera_state_controller.gd")
 const CameraSubjectProjectorScript := preload("res://scripts/camera/camera_subject_projector.gd")
 const MouseAimModelScript := preload("res://scripts/camera/mouse_aim_model.gd")
@@ -45,6 +47,8 @@ var framing_solver := CameraFramingSolverScript.new()
 var collision_solver := CameraCollisionSolverScript.new()
 var recovery_solver := CameraRecoverySolverScript.new()
 var frame_pipeline := CameraFramePipelineScript.new()
+var input_presenter := CameraInputPresenterScript.new()
+var runtime_support := CameraRuntimeSupportScript.new()
 var mouse_intent_yaw: float:
     get:
         return mouse_aim_model.intent_yaw
@@ -169,6 +173,8 @@ func _init() -> void:
     collision_solver.configure(self)
     recovery_solver.configure(self)
     frame_pipeline.configure(self)
+    input_presenter.configure(self)
+    runtime_support.configure(self)
 
 func _ready() -> void:
     add_to_group("socom_camera_rig")
@@ -285,76 +291,13 @@ func _physical_branch_recovery(
         exclude
     )
 func _follow_target_translation() -> void:
-    target_translation_blocked = false
-    var target_position := target.global_position
-    if not target_position_initialized:
-        previous_target_position = target_position
-        target_position_initialized = true
-        return
-    var target_motion := target_position - previous_target_position
-    previous_target_position = target_position
-    if target_motion.length_squared() < 0.0000001:
-        return
-    # Spawn/test teleports get a fresh solve. Smoothing a camera across the map
-    # is both slower and less readable than rebasing on the new player pose.
-    if target_motion.length() > 1.50:
-        reset_camera_to_target()
-        return
-    if current_camera_position == Vector3.ZERO:
-        return
-
-    var exclude: Array[RID] = []
-    if target is CollisionObject3D:
-        exclude.append((target as CollisionObject3D).get_rid())
-    var translated := current_camera_position + target_motion
-    var translation_cast := _cast_camera_volume(
-        current_camera_position,
-        translated,
-        exclude
-    )
-    var applied_motion: Vector3 = target_motion * clampf(
-        float(translation_cast.safe_fraction),
-        0.0,
-        1.0
-    )
-    target_translation_blocked = float(translation_cast.safe_fraction) < 0.999
-    current_camera_position += applied_motion
-    if last_readable_post_solve_position != Vector3.ZERO:
-        last_readable_post_solve_position += applied_motion
+    runtime_support._follow_target_translation()
 
 func _update_virtual_wall_occluder() -> void:
-    # Solid world geometry always remains visible. Camera recovery is physical
-    # now, so concealing the blocker would only reveal unfair information from
-    # rooms or buildings behind it.
-    _set_virtual_wall_occluder(null)
+    runtime_support._update_virtual_wall_occluder()
 
 func _set_virtual_wall_occluder(blocker: Node3D) -> void:
-    if blocker == virtual_wall_occluder:
-        return
-    for instance_id in virtual_wall_original_layers:
-        var instance := instance_from_id(int(instance_id)) as GeometryInstance3D
-        if instance:
-            instance.layers = int(virtual_wall_original_layers[instance_id])
-    virtual_wall_original_layers.clear()
-    virtual_wall_occluder = blocker
-    if blocker == null:
-        return
-    var geometry_nodes: Array[Node] = blocker.find_children(
-        "*",
-        "GeometryInstance3D",
-        true,
-        false
-    )
-    if blocker is GeometryInstance3D:
-        geometry_nodes.append(blocker)
-    for node in geometry_nodes:
-        var geometry := node as GeometryInstance3D
-        if geometry == null:
-            continue
-        virtual_wall_original_layers[geometry.get_instance_id()] = geometry.layers
-        geometry.set_layer_mask_value(VIRTUAL_WALL_OBSERVER_LAYER, true)
-        geometry.set_layer_mask_value(1, false)
-
+    runtime_support._set_virtual_wall_occluder(blocker)
 func _apply_collision_result(result: Dictionary) -> void:
     state_controller.apply_collision_result(result)
 
@@ -566,188 +509,65 @@ func _update_shot_validation() -> void:
 func build_local_aim_intent() -> Dictionary:
     return aim_resolver.build_local_aim_intent()
 
-func _update_reticle_position(_delta: float) -> void:
-    # The shot reticle is authoritative and permanently centered. Mouse input
-    # moves only the transient blue indicator; camera collision owns neither.
-    if mouse_aim_string_enabled:
-        reticle_dynamic_amount = 0.0
-        reticle_screen_normalized = Vector2(0.5, 0.5)
-        return
-    if not mouse_cursor_cage_enabled:
-        reticle_dynamic_amount = 0.0
-        reticle_screen_normalized = Vector2(0.5, 0.5)
-        return
-    reticle_dynamic_amount = maxf(
-        absf(mouse_cursor_deflection.x),
-        absf(mouse_cursor_deflection.y)
-    )
-    reticle_screen_normalized = get_mouse_cursor_screen_normalized()
+func _update_reticle_position(delta: float) -> void:
+    input_presenter._update_reticle_position(delta)
 
 func get_mouse_cursor_screen_normalized() -> Vector2:
-    return Vector2(0.5, 0.5) + Vector2(
-        mouse_cursor_deflection.x * profile.mouse_cage_half_width,
-        mouse_cursor_deflection.y * profile.mouse_cage_half_height
-    )
+    return input_presenter.get_mouse_cursor_screen_normalized()
 
 func get_debug_data() -> Dictionary:
     return CameraDebugSnapshotScript.build(self)
 
-func _damp(current: float, target_val: float, rate: float, dt: float) -> float:
-    return lerpf(current, target_val, 1.0 - exp(-rate * dt))
-
-func _damp_angle(current: float, target_val: float, rate: float, dt: float) -> float:
-    var diff := fposmod(target_val - current + PI, TAU) - PI
-    return current + diff * (1.0 - exp(-rate * dt))
-
 func set_aim_angles(new_yaw: float, new_pitch: float, snap_orbit: bool = false) -> void:
-    aim_yaw = wrapf(new_yaw, -PI, PI)
-    aim_pitch = clampf(
-        new_pitch,
-        deg_to_rad(profile.pitch_min_deg),
-        deg_to_rad(profile.pitch_max_deg)
-    )
-    mouse_intent_yaw = aim_yaw
-    mouse_intent_pitch = aim_pitch
-    if snap_orbit or not orbit_drag_enabled:
-        yaw = aim_yaw
-        pitch = aim_pitch
+    input_presenter.set_aim_angles(new_yaw, new_pitch, snap_orbit)
 
 func set_orbit_trail_enabled(enabled: bool) -> void:
-    orbit_drag_enabled = enabled
-    if not orbit_drag_enabled:
-        yaw = aim_yaw
-        pitch = aim_pitch
+    input_presenter.set_orbit_trail_enabled(enabled)
 
 func _sync_aim_to_orbit() -> void:
-    aim_yaw = wrapf(yaw, -PI, PI)
-    aim_pitch = clampf(
-        pitch,
-        deg_to_rad(profile.pitch_min_deg),
-        deg_to_rad(profile.pitch_max_deg)
-    )
-    mouse_intent_yaw = aim_yaw
-    mouse_intent_pitch = aim_pitch
+    input_presenter._sync_aim_to_orbit()
 
 func set_mouse_aim_string_enabled(enabled: bool) -> void:
-    mouse_aim_string_enabled = enabled
-    mouse_aim_model.reset(Vector2(aim_yaw, aim_pitch))
-    _update_reticle_position(0.0)
-    if enabled:
-        set_mouse_cursor_cage_enabled(false)
+    input_presenter.set_mouse_aim_string_enabled(enabled)
 
 func _apply_raw_mouse_input(relative_motion: Vector2) -> void:
-    aim_input_controller.activate_mouse(Vector2(aim_yaw, aim_pitch))
-    set_aim_angles(
-        aim_yaw - relative_motion.x * profile.mouse_sensitivity,
-        aim_pitch - relative_motion.y * profile.mouse_sensitivity
-    )
+    input_presenter._apply_raw_mouse_input(relative_motion)
 
 func _apply_mouse_aim_string_input(relative_motion: Vector2) -> void:
-    aim_input_controller.apply_mouse_motion(
-        relative_motion,
-        Vector2(aim_yaw, aim_pitch),
-        profile
-    )
+    input_presenter._apply_mouse_aim_string_input(relative_motion)
 
 func _update_mouse_aim_string(delta: float) -> void:
-    var current_aim := Vector2(aim_yaw, aim_pitch)
-    var updated_aim: Vector2 = aim_input_controller.update_mouse_aim(
-        current_aim,
-        delta,
-        profile
-    )
-    mouse_edge_turn = mouse_aim_model.aim_error_normalized(current_aim, profile)
-    aim_yaw = updated_aim.x
-    aim_pitch = updated_aim.y
-    _update_reticle_position(delta)
+    input_presenter._update_mouse_aim_string(delta)
 
 func _update_controller_aim(delta: float) -> void:
-    var updated_aim: Vector2 = aim_input_controller.update_controller_aim(
-        Vector2(aim_yaw, aim_pitch),
-        aim_input_controller.controller_stick(),
-        delta,
-        profile
-    )
-    aim_yaw = updated_aim.x
-    aim_pitch = updated_aim.y
-    mouse_edge_turn = Vector2.ZERO
-    _update_reticle_position(delta)
+    input_presenter._update_controller_aim(delta)
 
 func is_controller_aim_active() -> bool:
-    return aim_input_controller.is_controller_active()
+    return input_presenter.is_controller_aim_active()
 
 func get_active_aim_device_name() -> String:
-    return aim_input_controller.active_device_name()
+    return input_presenter.get_active_aim_device_name()
 
 func get_mouse_string_screen_normalized() -> Vector2:
-    return mouse_aim_model.target_screen_normalized(
-        get_viewport().get_visible_rect().size
-    )
+    return input_presenter.get_mouse_string_screen_normalized()
 
 func get_operator_alignment_screen_normalized() -> Vector2:
-    return get_mouse_string_screen_normalized()
+    return input_presenter.get_operator_alignment_screen_normalized()
 
 func _update_orbit_trail(delta: float, scoped_view: bool) -> void:
-    var dt := clampf(delta, 0.0, 0.05)
-    var yaw_rate: float = (
-        profile.scoped_orbit_yaw_response
-        if scoped_view
-        else profile.orbit_yaw_response
-    )
-    var pitch_rate: float = (
-        profile.scoped_orbit_pitch_response
-        if scoped_view
-        else profile.orbit_pitch_response
-    )
-    yaw = _damp_angle(yaw, aim_yaw, yaw_rate, dt)
-    pitch = _damp(pitch, aim_pitch, pitch_rate, dt)
+    input_presenter._update_orbit_trail(delta, scoped_view)
 
 func set_mouse_cursor_cage_enabled(enabled: bool) -> void:
-    mouse_cursor_cage_enabled = enabled
-    if enabled:
-        mouse_aim_string_enabled = false
-    mouse_cursor_deflection = Vector2.ZERO
-    mouse_edge_turn = Vector2.ZERO
-    _update_reticle_position(0.0)
+    input_presenter.set_mouse_cursor_cage_enabled(enabled)
 
 func _accumulate_mouse_cursor(relative_motion: Vector2) -> void:
-    var viewport_size := get_viewport().get_visible_rect().size
-    var half_extent_pixels := Vector2(
-        maxf(viewport_size.x * profile.mouse_cage_half_width, 1.0),
-        maxf(viewport_size.y * profile.mouse_cage_half_height, 1.0)
-    )
-    mouse_cursor_deflection += Vector2(
-        relative_motion.x / half_extent_pixels.x,
-        relative_motion.y / half_extent_pixels.y
-    )
-    mouse_cursor_deflection.x = clampf(mouse_cursor_deflection.x, -1.0, 1.0)
-    mouse_cursor_deflection.y = clampf(mouse_cursor_deflection.y, -1.0, 1.0)
-    _update_reticle_position(0.0)
+    input_presenter._accumulate_mouse_cursor(relative_motion)
 
 func _update_mouse_cursor_turn(delta: float) -> void:
-    mouse_edge_turn = Vector2(
-        _mouse_edge_axis(mouse_cursor_deflection.x),
-        _mouse_edge_axis(mouse_cursor_deflection.y)
-    )
-    var dt := clampf(delta, 0.0, 0.05)
-    aim_yaw = wrapf(
-        aim_yaw - deg_to_rad(profile.mouse_edge_yaw_speed_deg) * mouse_edge_turn.x * dt,
-        -PI,
-        PI
-    )
-    aim_pitch = clampf(
-        aim_pitch - deg_to_rad(profile.mouse_edge_pitch_speed_deg) * mouse_edge_turn.y * dt,
-        deg_to_rad(profile.pitch_min_deg),
-        deg_to_rad(profile.pitch_max_deg)
-    )
+    input_presenter._update_mouse_cursor_turn(delta)
 
 func _mouse_edge_axis(value: float) -> float:
-    var magnitude := absf(value)
-    if magnitude <= profile.mouse_edge_turn_start:
-        return 0.0
-    var normalized := inverse_lerp(profile.mouse_edge_turn_start, 1.0, magnitude)
-    return signf(value) * pow(normalized, profile.mouse_edge_turn_curve)
-
+    return input_presenter._mouse_edge_axis(value)
 func _direction_to_yaw_pitch(direction: Vector3) -> Vector2:
     return aim_resolver.direction_to_yaw_pitch(direction)
 
