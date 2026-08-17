@@ -367,8 +367,14 @@ func _is_looping_clip(clip_name: StringName) -> bool:
     )
 
 func _cache_aim_bones() -> void:
-    for bone_name in [&"chest", &"head", &"weapon"]:
-        _bone_indices[bone_name] = skeleton.find_bone(bone_name)
+    var runtime_bones := {
+        # Godot converts the Mixamo colon to an underscore when importing GLB.
+        &"chest": &"mixamorig_Spine2",
+        &"head": &"mixamorig_Head",
+        &"weapon": &"weapon",
+    }
+    for logical_name: StringName in runtime_bones:
+        _bone_indices[logical_name] = skeleton.find_bone(runtime_bones[logical_name])
 
 func _find_animation_player(node: Node) -> AnimationPlayer:
     if node is AnimationPlayer:

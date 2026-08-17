@@ -2,6 +2,26 @@ extends SceneTree
 
 const DRIVER_SCRIPT := preload("res://scripts/player/operator_animation_driver.gd")
 
+const MIXAMO_HUMANOID_BONES: Array[StringName] = [
+    &"mixamorig:Hips",
+    &"mixamorig:Spine", &"mixamorig:Spine1", &"mixamorig:Spine2",
+    &"mixamorig:Neck", &"mixamorig:Head", &"mixamorig:HeadTop_End",
+    &"mixamorig:RightShoulder", &"mixamorig:RightArm", &"mixamorig:RightForeArm", &"mixamorig:RightHand",
+    &"mixamorig:RightHandThumb1", &"mixamorig:RightHandThumb2", &"mixamorig:RightHandThumb3", &"mixamorig:RightHandThumb4",
+    &"mixamorig:RightHandIndex1", &"mixamorig:RightHandIndex2", &"mixamorig:RightHandIndex3", &"mixamorig:RightHandIndex4",
+    &"mixamorig:RightHandMiddle1", &"mixamorig:RightHandMiddle2", &"mixamorig:RightHandMiddle3", &"mixamorig:RightHandMiddle4",
+    &"mixamorig:RightHandRing1", &"mixamorig:RightHandRing2", &"mixamorig:RightHandRing3", &"mixamorig:RightHandRing4",
+    &"mixamorig:RightHandPinky1", &"mixamorig:RightHandPinky2", &"mixamorig:RightHandPinky3", &"mixamorig:RightHandPinky4",
+    &"mixamorig:LeftShoulder", &"mixamorig:LeftArm", &"mixamorig:LeftForeArm", &"mixamorig:LeftHand",
+    &"mixamorig:LeftHandThumb1", &"mixamorig:LeftHandThumb2", &"mixamorig:LeftHandThumb3", &"mixamorig:LeftHandThumb4",
+    &"mixamorig:LeftHandIndex1", &"mixamorig:LeftHandIndex2", &"mixamorig:LeftHandIndex3", &"mixamorig:LeftHandIndex4",
+    &"mixamorig:LeftHandMiddle1", &"mixamorig:LeftHandMiddle2", &"mixamorig:LeftHandMiddle3", &"mixamorig:LeftHandMiddle4",
+    &"mixamorig:LeftHandRing1", &"mixamorig:LeftHandRing2", &"mixamorig:LeftHandRing3", &"mixamorig:LeftHandRing4",
+    &"mixamorig:LeftHandPinky1", &"mixamorig:LeftHandPinky2", &"mixamorig:LeftHandPinky3", &"mixamorig:LeftHandPinky4",
+    &"mixamorig:RightUpLeg", &"mixamorig:RightLeg", &"mixamorig:RightFoot", &"mixamorig:RightToeBase", &"mixamorig:RightToe_End",
+    &"mixamorig:LeftUpLeg", &"mixamorig:LeftLeg", &"mixamorig:LeftFoot", &"mixamorig:LeftToeBase", &"mixamorig:LeftToe_End",
+]
+
 var failures: Array[String] = []
 
 func _initialize() -> void:
@@ -15,6 +35,7 @@ func _run() -> void:
     _expect(driver.animation_tree != null and driver.animation_tree.active, "AnimationTree is active")
     _expect(driver.get_clip_names().size() == 122, "all 122 authored clips are available")
     _expect(bool(driver.get_visual_debug_data().get("visual_only", false)), "driver declares visual-only authority")
+    _check_skeleton(driver)
     _check_required_clips(driver)
 
     driver.set_visual_inputs(Vector2.ZERO, &"STANDING", 0.0, 0.0, 0.0, false, 0.0)
@@ -109,6 +130,22 @@ func _check_required_clips(driver) -> void:
         required.append(StringName("low_ready_prone_%s" % suffix))
     for clip_name in required:
         _expect(driver.has_clip(clip_name), "clip exists: %s" % clip_name)
+
+func _check_skeleton(driver) -> void:
+    _expect(driver.skeleton != null, "runtime skeleton exists")
+    if driver.skeleton == null:
+        return
+    _expect(MIXAMO_HUMANOID_BONES.size() == 65, "expected humanoid contract contains 65 bones")
+    var found := 0
+    for bone_name in MIXAMO_HUMANOID_BONES:
+        var runtime_name := StringName(String(bone_name).replace(":", "_"))
+        if driver.skeleton.find_bone(runtime_name) >= 0:
+            found += 1
+        else:
+            _expect(false, "skeleton bone exists: %s" % bone_name)
+    _expect(found == 65, "runtime skeleton exposes all 65 humanoid bones")
+    _expect(driver.skeleton.find_bone(&"root") >= 0, "runtime skeleton retains gameplay root control")
+    _expect(driver.skeleton.find_bone(&"weapon") >= 0, "runtime skeleton retains weapon control")
 
 func _check_recovery(driver, kind: StringName, side: float, expected: StringName) -> void:
     driver.request_recovery(kind, side)

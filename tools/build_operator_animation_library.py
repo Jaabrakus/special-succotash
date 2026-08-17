@@ -20,6 +20,53 @@ TAU = math.tau
 DEG = math.pi / 180.0
 
 
+MIXAMO_HUMANOID_BONES = [
+    "mixamorig:Hips",
+    "mixamorig:Spine", "mixamorig:Spine1", "mixamorig:Spine2",
+    "mixamorig:Neck", "mixamorig:Head", "mixamorig:HeadTop_End",
+    "mixamorig:RightShoulder", "mixamorig:RightArm", "mixamorig:RightForeArm", "mixamorig:RightHand",
+    "mixamorig:RightHandThumb1", "mixamorig:RightHandThumb2", "mixamorig:RightHandThumb3", "mixamorig:RightHandThumb4",
+    "mixamorig:RightHandIndex1", "mixamorig:RightHandIndex2", "mixamorig:RightHandIndex3", "mixamorig:RightHandIndex4",
+    "mixamorig:RightHandMiddle1", "mixamorig:RightHandMiddle2", "mixamorig:RightHandMiddle3", "mixamorig:RightHandMiddle4",
+    "mixamorig:RightHandRing1", "mixamorig:RightHandRing2", "mixamorig:RightHandRing3", "mixamorig:RightHandRing4",
+    "mixamorig:RightHandPinky1", "mixamorig:RightHandPinky2", "mixamorig:RightHandPinky3", "mixamorig:RightHandPinky4",
+    "mixamorig:LeftShoulder", "mixamorig:LeftArm", "mixamorig:LeftForeArm", "mixamorig:LeftHand",
+    "mixamorig:LeftHandThumb1", "mixamorig:LeftHandThumb2", "mixamorig:LeftHandThumb3", "mixamorig:LeftHandThumb4",
+    "mixamorig:LeftHandIndex1", "mixamorig:LeftHandIndex2", "mixamorig:LeftHandIndex3", "mixamorig:LeftHandIndex4",
+    "mixamorig:LeftHandMiddle1", "mixamorig:LeftHandMiddle2", "mixamorig:LeftHandMiddle3", "mixamorig:LeftHandMiddle4",
+    "mixamorig:LeftHandRing1", "mixamorig:LeftHandRing2", "mixamorig:LeftHandRing3", "mixamorig:LeftHandRing4",
+    "mixamorig:LeftHandPinky1", "mixamorig:LeftHandPinky2", "mixamorig:LeftHandPinky3", "mixamorig:LeftHandPinky4",
+    "mixamorig:RightUpLeg", "mixamorig:RightLeg", "mixamorig:RightFoot", "mixamorig:RightToeBase", "mixamorig:RightToe_End",
+    "mixamorig:LeftUpLeg", "mixamorig:LeftLeg", "mixamorig:LeftFoot", "mixamorig:LeftToeBase", "mixamorig:LeftToe_End",
+]
+
+LOGICAL_BONE_MAP = {
+    "root": "root",
+    "pelvis": "mixamorig:Hips",
+    "spine": "mixamorig:Spine1",
+    "chest": "mixamorig:Spine2",
+    "neck": "mixamorig:Neck",
+    "head": "mixamorig:Head",
+    "upper_arm.L": "mixamorig:LeftArm",
+    "forearm.L": "mixamorig:LeftForeArm",
+    "hand.L": "mixamorig:LeftHand",
+    "upper_arm.R": "mixamorig:RightArm",
+    "forearm.R": "mixamorig:RightForeArm",
+    "hand.R": "mixamorig:RightHand",
+    "upper_leg.L": "mixamorig:LeftUpLeg",
+    "lower_leg.L": "mixamorig:LeftLeg",
+    "foot.L": "mixamorig:LeftFoot",
+    "upper_leg.R": "mixamorig:RightUpLeg",
+    "lower_leg.R": "mixamorig:RightLeg",
+    "foot.R": "mixamorig:RightFoot",
+    "weapon": "weapon",
+}
+
+
+def actual_bone_name(name):
+    return LOGICAL_BONE_MAP.get(name, name)
+
+
 def output_dir():
     args = sys.argv
     if "--" in args and len(args) > args.index("--") + 1:
@@ -29,6 +76,9 @@ def output_dir():
 
 OUT = output_dir()
 os.makedirs(OUT, exist_ok=True)
+PROJECT_ROOT = os.path.abspath(os.path.join(OUT, "..", "..", ".."))
+SOURCE_DIR = os.path.join(PROJECT_ROOT, "art_source", "operator3d")
+os.makedirs(SOURCE_DIR, exist_ok=True)
 
 
 def clear_scene():
@@ -59,7 +109,7 @@ def apply_object_transform(obj):
 
 
 def skin_to_bone(obj, armature, bone_name):
-    group = obj.vertex_groups.new(name=bone_name)
+    group = obj.vertex_groups.new(name=actual_bone_name(bone_name))
     group.add(list(range(len(obj.data.vertices))), 1.0, "REPLACE")
     modifier = obj.modifiers.new(name="Armature", type="ARMATURE")
     modifier.object = armature
@@ -127,25 +177,63 @@ def make_rig():
             bone.parent = data.edit_bones[parent]
         return bone
 
-    add("root", (0, 0, 0), (0, 0, 0.20), deform=False)
-    add("pelvis", (0, 0, 0.92), (0, 0, 1.08), "root")
-    add("spine", (0, 0, 1.06), (0, 0, 1.34), "pelvis")
-    add("chest", (0, 0, 1.32), (0, 0, 1.58), "spine")
-    add("neck", (0, 0, 1.57), (0, 0, 1.73), "chest")
-    add("head", (0, 0, 1.71), (0, 0, 2.03), "neck")
-    add("upper_arm.L", (-0.34, 0, 1.53), (-0.34, 0, 1.20), "chest")
-    add("forearm.L", (-0.34, 0, 1.20), (-0.34, 0, 0.90), "upper_arm.L")
-    add("hand.L", (-0.34, 0, 0.90), (-0.34, 0, 0.76), "forearm.L")
-    add("upper_arm.R", (0.34, 0, 1.53), (0.34, 0, 1.20), "chest")
-    add("forearm.R", (0.34, 0, 1.20), (0.34, 0, 0.90), "upper_arm.R")
-    add("hand.R", (0.34, 0, 0.90), (0.34, 0, 0.76), "forearm.R")
-    add("upper_leg.L", (-0.16, 0, 0.93), (-0.16, 0, 0.51), "pelvis")
-    add("lower_leg.L", (-0.16, 0, 0.51), (-0.16, 0, 0.10), "upper_leg.L")
-    add("foot.L", (-0.16, 0, 0.10), (-0.16, -0.24, 0.07), "lower_leg.L")
-    add("upper_leg.R", (0.16, 0, 0.93), (0.16, 0, 0.51), "pelvis")
-    add("lower_leg.R", (0.16, 0, 0.51), (0.16, 0, 0.10), "upper_leg.R")
-    add("foot.R", (0.16, 0, 0.10), (0.16, -0.24, 0.07), "lower_leg.R")
-    add("weapon", (0.08, -0.12, 1.43), (0.08, -0.78, 1.43), "chest")
+    # Keep this as a skeleton node in Godot. Locomotion code still owns world
+    # movement; the bone only stores visual offsets and imported root motion.
+    add("root", (0, 0, 0), (0, 0, 0.20))
+    add("mixamorig:Hips", (0, 0, 0.92), (0, 0, 1.06), "root")
+    add("mixamorig:Spine", (0, 0, 1.04), (0, 0, 1.20), "mixamorig:Hips")
+    add("mixamorig:Spine1", (0, 0, 1.18), (0, 0, 1.38), "mixamorig:Spine")
+    add("mixamorig:Spine2", (0, 0, 1.36), (0, 0, 1.58), "mixamorig:Spine1")
+    add("mixamorig:Neck", (0, 0, 1.57), (0, 0, 1.73), "mixamorig:Spine2")
+    add("mixamorig:Head", (0, 0, 1.71), (0, 0, 2.03), "mixamorig:Neck")
+    add("mixamorig:HeadTop_End", (0, 0, 2.03), (0, 0, 2.15), "mixamorig:Head")
+
+    def add_arm(side, x):
+        prefix = f"mixamorig:{side}"
+        shoulder_x = 0.22 if x > 0 else -0.22
+        add(f"{prefix}Shoulder", (0, 0, 1.54), (shoulder_x, 0, 1.53), "mixamorig:Spine2")
+        add(f"{prefix}Arm", (x, 0, 1.53), (x, 0, 1.20), f"{prefix}Shoulder")
+        add(f"{prefix}ForeArm", (x, 0, 1.20), (x, 0, 0.90), f"{prefix}Arm")
+        add(f"{prefix}Hand", (x, 0, 0.90), (x, -0.02, 0.78), f"{prefix}ForeArm")
+        finger_offsets = {
+            "Thumb": (0.055 if x > 0 else -0.055, -0.012),
+            "Index": (0.030 if x > 0 else -0.030, 0.010),
+            "Middle": (0.008 if x > 0 else -0.008, 0.000),
+            "Ring": (-0.016 if x > 0 else 0.016, -0.008),
+            "Pinky": (-0.038 if x > 0 else 0.038, -0.016),
+        }
+        for finger, (x_offset, z_offset) in finger_offsets.items():
+            parent = f"{prefix}Hand"
+            start = (x + x_offset, -0.018, 0.82 + z_offset)
+            for joint in range(1, 5):
+                end = (start[0], start[1] - 0.035, start[2] - 0.008)
+                name = f"{prefix}Hand{finger}{joint}"
+                add(name, start, end, parent)
+                parent = name
+                start = end
+
+    add_arm("Right", 0.34)
+    add_arm("Left", -0.34)
+
+    def add_leg(side, x):
+        prefix = f"mixamorig:{side}"
+        add(f"{prefix}UpLeg", (x, 0, 0.93), (x, 0, 0.51), "mixamorig:Hips")
+        add(f"{prefix}Leg", (x, 0, 0.51), (x, 0, 0.10), f"{prefix}UpLeg")
+        add(f"{prefix}Foot", (x, 0, 0.10), (x, -0.24, 0.07), f"{prefix}Leg")
+        add(f"{prefix}ToeBase", (x, -0.24, 0.07), (x, -0.36, 0.06), f"{prefix}Foot")
+        add(f"{prefix}Toe_End", (x, -0.36, 0.06), (x, -0.43, 0.06), f"{prefix}ToeBase")
+
+    add_leg("Right", 0.16)
+    add_leg("Left", -0.16)
+    # Gameplay attachment control. It is deliberately outside the 65-bone
+    # Mixamo humanoid set, but remains deforming so glTF keeps the rifle skin.
+    add("weapon", (0.08, -0.12, 1.43), (0.08, -0.78, 1.43), "mixamorig:Spine2")
+
+    humanoid_names = {bone.name for bone in data.edit_bones if bone.name.startswith("mixamorig:")}
+    if humanoid_names != set(MIXAMO_HUMANOID_BONES):
+        missing = sorted(set(MIXAMO_HUMANOID_BONES) - humanoid_names)
+        extra = sorted(humanoid_names - set(MIXAMO_HUMANOID_BONES))
+        raise RuntimeError(f"65-bone Mixamo skeleton mismatch; missing={missing}, extra={extra}")
     bpy.ops.object.mode_set(mode="POSE")
     for pose_bone in armature.pose.bones:
         pose_bone.rotation_mode = "XYZ"
@@ -259,7 +347,7 @@ def key_action(armature, name, length, keys, loop=False, root_locations=None, ro
     armature.animation_data.action = action
     for frame, pose in keys:
         for bone_name in BONES:
-            pb = armature.pose.bones[bone_name]
+            pb = armature.pose.bones[actual_bone_name(bone_name)]
             pb.rotation_mode = "XYZ"
             rotation = pose.get(bone_name, (0, 0, 0))
             pb.rotation_euler = tuple(angle * DEG for angle in rotation)
@@ -483,7 +571,7 @@ def build_animations(armature):
 
 
 def save_and_export(armature, actions):
-    blend_path = os.path.join(OUT, "socom_141_operator_animation_source.blend")
+    blend_path = os.path.join(SOURCE_DIR, "socom_141_operator_animation_source.blend")
     glb_path = os.path.join(OUT, "socom_141_operator_animated.glb")
     manifest_path = os.path.join(OUT, "operator_animation_library.json")
 
@@ -517,10 +605,14 @@ def save_and_export(armature, actions):
     )
 
     manifest = {
-        "format": "SOCOM-141 skeletal animation library v1",
+        "format": "SOCOM-141 skeletal animation library v2",
         "fps": FPS,
         "source_blend": os.path.basename(blend_path),
         "runtime_glb": os.path.basename(glb_path),
+        "skeleton_format": "Mixamo-compatible humanoid",
+        "humanoid_bone_count": len(MIXAMO_HUMANOID_BONES),
+        "humanoid_bones": MIXAMO_HUMANOID_BONES,
+        "control_bones": ["root", "weapon"],
         "skeleton": [bone.name for bone in armature.data.bones],
         "clip_count": len(actions),
         "clips": [
