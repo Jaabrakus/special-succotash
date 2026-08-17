@@ -6,6 +6,7 @@ const CameraRigScript := preload("res://scripts/camera/socom_camera.gd")
 const CameraVisualizerScript := preload("res://scripts/camera/camera_visualizer.gd")
 const CameraAuditRecorderScript := preload("res://scripts/camera/camera_audit_recorder.gd")
 const ShotAuthorityScript := preload("res://scripts/network/socom_shot_authority.gd")
+const RETICLE_BOX_SIZE := Vector2(32.0, 32.0)
 
 var player
 var camera_rig
@@ -485,9 +486,15 @@ func _build_ui() -> void:
     crosshair = Label.new()
     crosshair.text = "+"
     crosshair.add_theme_font_size_override("font_size", 24)
-    crosshair.position = get_viewport().get_visible_rect().size * 0.5 + Vector2(-7, -14)
+    crosshair.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    crosshair.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+    crosshair.size = RETICLE_BOX_SIZE
     crosshair.mouse_filter = Control.MOUSE_FILTER_IGNORE
     layer.add_child(crosshair)
+    crosshair.position = (
+        get_viewport().get_visible_rect().size * 0.5
+        - crosshair.size * 0.5
+    )
 
     _build_calibration_overlay(layer)
     _build_camera_workbench(layer)
@@ -699,10 +706,11 @@ func _update_crosshair(data: Dictionary) -> void:
     if crosshair == null:
         return
     var viewport_size := get_viewport().get_visible_rect().size
+    crosshair.size = RETICLE_BOX_SIZE
     crosshair.position = Vector2(
-        float(data.reticle_x) * viewport_size.x - 7.0,
-        float(data.reticle_y) * viewport_size.y - 14.0
-    )
+        float(data.reticle_x) * viewport_size.x,
+        float(data.reticle_y) * viewport_size.y
+    ) - crosshair.size * 0.5
     crosshair.modulate = (
         Color(1.0, 0.42, 0.30)
         if bool(data.shot_blocked)
