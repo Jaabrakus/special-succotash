@@ -3,6 +3,7 @@ extends Node3D
 
 const AimIntentScript := preload("res://scripts/network/socom_aim_intent.gd")
 const CameraProfileScript := preload("res://scripts/camera/camera_profile.gd")
+const MouseCursorGuideScript := preload("res://scripts/camera/mouse_cursor_guide.gd")
 const VIRTUAL_WALL_OBSERVER_LAYER := 19
 
 enum CameraState {
@@ -96,6 +97,11 @@ var surface_slide_target_x: float = -99.0
 var surface_slide_target_y: float = -99.0
 var reticle_screen_normalized := Vector2(0.5, 0.5)
 var reticle_dynamic_amount: float = 0.0
+var mouse_cursor_cage_enabled: bool = true
+var mouse_cursor_deflection := Vector2.ZERO
+var mouse_edge_turn := Vector2.ZERO
+var mouse_cursor_guide_layer: CanvasLayer
+var mouse_cursor_guide: Control
 var camera_collision_shape := SphereShape3D.new()
 var collision_cast_count: int = 0
 var collision_solver_usec: int = 0
@@ -136,6 +142,10 @@ func _ready() -> void:
         profile.orbit_trail_enabled
         and not OS.get_cmdline_user_args().has("--automated-test")
     )
+    mouse_cursor_cage_enabled = (
+        profile.mouse_cursor_cage_enabled
+        and not OS.get_cmdline_user_args().has("--automated-test")
+    )
     automated_wall_turn = (
         OS.get_cmdline_user_args().has("--wall-turn-test")
         or OS.get_cmdline_user_args().has("--interior-turn-test")
@@ -151,19 +161,22 @@ func _ready() -> void:
         pitch = deg_to_rad(-45.0)
     aim_yaw = yaw
     aim_pitch = pitch
+    _build_mouse_cursor_guide()
     Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 func _unhandled_input(event: InputEvent) -> void:
     if orbit_input_enabled and event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-        aim_yaw -= event.relative.x * profile.mouse_sensitivity
-        aim_pitch -= event.relative.y * profile.mouse_sensitivity
-        aim_pitch = clampf(aim_pitch, deg_to_rad(profile.pitch_min_deg), deg_to_rad(profile.pitch_max_deg))
-        aim_yaw = wrapf(aim_yaw, -PI, PI)
-        if not orbit_drag_enabled:
-            yaw = aim_yaw
-            pitch = aim_pitch
+        if mouse_cursor_cage_enabled:
+            _accumulate_mouse_cursor(event.relative)
+        else:
+            set_aim_angles(
+                aim_yaw - event.relative.x * profile.mouse_sensitivity,
+                aim_pitch - event.relative.y * profile.mouse_sensitivity
+            )
     elif event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
         Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+    elif event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_M:
+        set_mouse_cursor_cage_enabled(not mouse_cursor_cage_enabled)
     elif orbit_input_enabled and event is InputEventMouseButton and event.pressed:
         Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
@@ -183,6 +196,7 @@ func _physics_process(delta: float) -> void:
         aim_pitch = deg_to_rad(-2.0)
         yaw = aim_yaw
         pitch = aim_pitch
+        mouse_cursor_deflection = Vector2.ZERO
         reset_camera_to_target()
     _follow_target_translation()
     var rendered_frame_start: Vector3 = current_camera_position
@@ -194,12 +208,22 @@ func _physics_process(delta: float) -> void:
         )
         yaw -= deg_to_rad(automated_turn_speed) * delta
         aim_yaw = yaw
-    elif orbit_drag_enabled:
-        var is_aiming: bool = Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT) or (InputMap.has_action("aim_down_sights") and Input.is_action_pressed("aim_down_sights"))
-        _update_orbit_trail(delta, is_aiming)
     else:
-        yaw = aim_yaw
-        pitch = aim_pitch
+        if (
+            mouse_cursor_cage_enabled
+            and orbit_input_enabled
+            and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
+        ):
+            _update_mouse_cursor_turn(delta)
+        else:
+            mouse_edge_turn = Vector2.ZERO
+        if orbit_drag_enabled:
+            # Standard SOCOM weapons have no ADS camera. The tighter response
+            # is reserved for a future explicit sniper/scope state.
+            _update_orbit_trail(delta, false)
+        else:
+            yaw = aim_yaw
+            pitch = aim_pitch
     yaw = wrapf(yaw, -PI, PI)
 
     _update_movement_follow(delta)
@@ -441,6 +465,7 @@ func _physics_process(delta: float) -> void:
     global_position = current_camera_position
     _update_virtual_wall_occluder()
     _orient_camera(delta)
+    _update_reticle_position(delta)
     _update_weapon_aim_point()
     var mannequin = target.get_node_or_null("Mannequin") if target else null
     near_body_geometry_hidden = (
@@ -452,11 +477,12 @@ func _physics_process(delta: float) -> void:
         mannequin.set_near_camera_crop(near_body_geometry_hidden)
     _update_visual_crop_state()
     _update_shot_validation()
-    _update_reticle_position(delta)
 
 func reset_camera_to_target() -> void:
     _sync_aim_to_orbit()
     initial_orbit_sync_pending = false
+    mouse_cursor_deflection = Vector2.ZERO
+    mouse_edge_turn = Vector2.ZERO
     current_camera_position = Vector3.ZERO
     preferred_camera_position = Vector3.ZERO
     virtual_camera_position = Vector3.ZERO
@@ -2497,13 +2523,18 @@ func _update_aim_point() -> void:
     aim_point = destination
 
 func _update_weapon_aim_point() -> void:
-    # Cast through the centered reticle only after the rendered lens is known.
+    # Cast through the visible cursor only after the rendered lens is known.
     # Acquisition begins just beyond the operator's depth plane, so a surface
     # touching the camera behind the character cannot become a forward target.
     # This ray chooses a display target; it never changes yaw, pitch or the
     # camera-independent intent point above.
-    var lens_origin: Vector3 = camera.global_position
-    var direction: Vector3 = -camera.global_basis.z.normalized()
+    var viewport_size := get_viewport().get_visible_rect().size
+    var cursor_pixels := Vector2(
+        reticle_screen_normalized.x * viewport_size.x,
+        reticle_screen_normalized.y * viewport_size.y
+    )
+    var lens_origin: Vector3 = camera.project_ray_origin(cursor_pixels)
+    var direction: Vector3 = camera.project_ray_normal(cursor_pixels).normalized()
     var player_aim_origin: Vector3 = (
         target.global_position
         + movement_lead
@@ -2581,21 +2612,32 @@ func build_local_aim_intent() -> Dictionary:
     var direction: Vector3 = (weapon_aim_point - muzzle).normalized()
     if direction.length_squared() < 0.99:
         direction = _forward_direction()
+    var intent_angles := _direction_to_yaw_pitch(direction)
     aim_intent_sequence += 1
     return AimIntentScript.create(
         aim_intent_sequence,
         Engine.get_physics_frames(),
-        aim_yaw,
-        aim_pitch,
+        intent_angles.x,
+        intent_angles.y,
         muzzle,
         direction
     )
 
 func _update_reticle_position(_delta: float) -> void:
-    # SOCOM-style invariant: the reticle represents player intent and therefore
-    # never follows collision, crane, FOV, or camera recovery states.
-    reticle_dynamic_amount = 0.0
-    reticle_screen_normalized = Vector2(0.5, 0.5)
+    # The reticle mirrors a hidden cursor trapped in a small center cage. Camera
+    # collision never writes this state; only mouse input can move it.
+    if not mouse_cursor_cage_enabled:
+        reticle_dynamic_amount = 0.0
+        reticle_screen_normalized = Vector2(0.5, 0.5)
+        return
+    reticle_dynamic_amount = maxf(
+        absf(mouse_cursor_deflection.x),
+        absf(mouse_cursor_deflection.y)
+    )
+    reticle_screen_normalized = Vector2(0.5, 0.5) + Vector2(
+        mouse_cursor_deflection.x * profile.mouse_cage_half_width,
+        mouse_cursor_deflection.y * profile.mouse_cage_half_height
+    )
 
 func get_debug_data() -> Dictionary:
     var viewport_size := get_viewport().get_visible_rect().size
@@ -2697,6 +2739,11 @@ func get_debug_data() -> Dictionary:
         "reticle_x": reticle_screen_normalized.x,
         "reticle_y": reticle_screen_normalized.y,
         "reticle_dynamic_amount": reticle_dynamic_amount,
+        "mouse_cursor_cage_enabled": mouse_cursor_cage_enabled,
+        "mouse_cursor_x": mouse_cursor_deflection.x,
+        "mouse_cursor_y": mouse_cursor_deflection.y,
+        "mouse_edge_turn_x": mouse_edge_turn.x,
+        "mouse_edge_turn_y": mouse_edge_turn.y,
         "aim_screen_x": aim_screen_x,
         "aim_screen_y": aim_screen_y,
         "camera_weapon_angle_deg": camera_weapon_angle_deg,
@@ -2792,17 +2839,78 @@ func _sync_aim_to_orbit() -> void:
         deg_to_rad(profile.pitch_max_deg)
     )
 
-func _update_orbit_trail(delta: float, is_aiming: bool) -> void:
+func _update_orbit_trail(delta: float, scoped_view: bool) -> void:
     var dt := clampf(delta, 0.0, 0.05)
     var yaw_rate: float = (
-        profile.aiming_orbit_yaw_response
-        if is_aiming
+        profile.scoped_orbit_yaw_response
+        if scoped_view
         else profile.orbit_yaw_response
     )
     var pitch_rate: float = (
-        profile.aiming_orbit_pitch_response
-        if is_aiming
+        profile.scoped_orbit_pitch_response
+        if scoped_view
         else profile.orbit_pitch_response
     )
     yaw = _damp_angle(yaw, aim_yaw, yaw_rate, dt)
     pitch = _damp(pitch, aim_pitch, pitch_rate, dt)
+
+func set_mouse_cursor_cage_enabled(enabled: bool) -> void:
+    mouse_cursor_cage_enabled = enabled
+    mouse_cursor_deflection = Vector2.ZERO
+    mouse_edge_turn = Vector2.ZERO
+    _update_reticle_position(0.0)
+
+func _accumulate_mouse_cursor(relative_motion: Vector2) -> void:
+    var viewport_size := get_viewport().get_visible_rect().size
+    var half_extent_pixels := Vector2(
+        maxf(viewport_size.x * profile.mouse_cage_half_width, 1.0),
+        maxf(viewport_size.y * profile.mouse_cage_half_height, 1.0)
+    )
+    mouse_cursor_deflection += Vector2(
+        relative_motion.x / half_extent_pixels.x,
+        relative_motion.y / half_extent_pixels.y
+    )
+    mouse_cursor_deflection.x = clampf(mouse_cursor_deflection.x, -1.0, 1.0)
+    mouse_cursor_deflection.y = clampf(mouse_cursor_deflection.y, -1.0, 1.0)
+    _update_reticle_position(0.0)
+
+func _update_mouse_cursor_turn(delta: float) -> void:
+    mouse_edge_turn = Vector2(
+        _mouse_edge_axis(mouse_cursor_deflection.x),
+        _mouse_edge_axis(mouse_cursor_deflection.y)
+    )
+    var dt := clampf(delta, 0.0, 0.05)
+    aim_yaw = wrapf(
+        aim_yaw - deg_to_rad(profile.mouse_edge_yaw_speed_deg) * mouse_edge_turn.x * dt,
+        -PI,
+        PI
+    )
+    aim_pitch = clampf(
+        aim_pitch - deg_to_rad(profile.mouse_edge_pitch_speed_deg) * mouse_edge_turn.y * dt,
+        deg_to_rad(profile.pitch_min_deg),
+        deg_to_rad(profile.pitch_max_deg)
+    )
+
+func _mouse_edge_axis(value: float) -> float:
+    var magnitude := absf(value)
+    if magnitude <= profile.mouse_edge_turn_start:
+        return 0.0
+    var normalized := inverse_lerp(profile.mouse_edge_turn_start, 1.0, magnitude)
+    return signf(value) * pow(normalized, profile.mouse_edge_turn_curve)
+
+func _direction_to_yaw_pitch(direction: Vector3) -> Vector2:
+    var normalized := direction.normalized()
+    return Vector2(
+        wrapf(atan2(-normalized.x, -normalized.z), -PI, PI),
+        asin(clampf(normalized.y, -1.0, 1.0))
+    )
+
+func _build_mouse_cursor_guide() -> void:
+    mouse_cursor_guide_layer = CanvasLayer.new()
+    mouse_cursor_guide_layer.name = "MouseCursorCageLayer"
+    mouse_cursor_guide_layer.layer = 90
+    add_child(mouse_cursor_guide_layer)
+    mouse_cursor_guide = MouseCursorGuideScript.new()
+    mouse_cursor_guide.name = "MouseCursorCageGuide"
+    mouse_cursor_guide.camera_rig = self
+    mouse_cursor_guide_layer.add_child(mouse_cursor_guide)
