@@ -28,7 +28,7 @@ extends Resource
 @export_range(0.5, 8.0, 0.1) var mouse_string_yaw_limit_deg: float = 5.0
 @export_range(0.5, 6.0, 0.1) var mouse_string_pitch_limit_deg: float = 3.25
 @export_range(0.5, 3.0, 0.05) var mouse_string_tension_curve: float = 1.35
-@export var mouse_string_debug_dot_visible: bool = true
+@export var mouse_string_debug_dot_visible: bool = false
 @export_range(6.0, 20.0, 1.0) var mouse_string_deadzone_radius_px: float = 10.0
 @export_range(3.0, 8.0, 0.5) var mouse_string_blue_radius_px: float = 5.0
 @export_range(24.0, 72.0, 1.0) var mouse_string_max_lead_px: float = 40.0

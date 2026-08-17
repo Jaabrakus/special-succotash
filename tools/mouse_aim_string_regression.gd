@@ -14,6 +14,7 @@ func _run() -> void:
     await process_frame
 
     _expect(camera.profile.mouse_aim_string_enabled, "refactored aim model is default")
+    _expect(not camera.mouse_string_debug_visible, "white and blue calibration guides default hidden")
     _expect(not camera.profile.mouse_cursor_cage_enabled, "legacy moving reticle is disabled")
     _expect(
         camera.profile.mouse_string_max_lead_px <= 48.0,
