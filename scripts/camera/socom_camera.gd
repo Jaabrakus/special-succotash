@@ -4,6 +4,7 @@ extends Node3D
 const AimIntentScript := preload("res://scripts/network/socom_aim_intent.gd")
 const CameraProfileScript := preload("res://scripts/camera/camera_profile.gd")
 const MouseCursorGuideScript := preload("res://scripts/camera/mouse_cursor_guide.gd")
+const MouseAimStringGuideScript := preload("res://scripts/camera/mouse_aim_string_guide.gd")
 const VIRTUAL_WALL_OBSERVER_LAYER := 19
 
 enum CameraState {
@@ -27,6 +28,7 @@ var yaw: float = 0.0
 var pitch: float = deg_to_rad(-2.0)
 var orbit_drag_enabled: bool = true
 var mouse_aim_string_enabled: bool = true
+var mouse_string_debug_visible: bool = true
 var mouse_intent_yaw: float = 0.0
 var mouse_intent_pitch: float = deg_to_rad(-2.0)
 var initial_orbit_sync_pending: bool = true
@@ -105,6 +107,8 @@ var mouse_cursor_deflection := Vector2.ZERO
 var mouse_edge_turn := Vector2.ZERO
 var mouse_cursor_guide_layer: CanvasLayer
 var mouse_cursor_guide: Control
+var mouse_string_guide_layer: CanvasLayer
+var mouse_string_guide: Control
 var camera_collision_shape := SphereShape3D.new()
 var collision_cast_count: int = 0
 var collision_solver_usec: int = 0
@@ -153,6 +157,7 @@ func _ready() -> void:
         profile.mouse_aim_string_enabled
         and not OS.get_cmdline_user_args().has("--automated-test")
     )
+    mouse_string_debug_visible = profile.mouse_string_debug_dot_visible
     automated_wall_turn = (
         OS.get_cmdline_user_args().has("--wall-turn-test")
         or OS.get_cmdline_user_args().has("--interior-turn-test")
@@ -171,6 +176,7 @@ func _ready() -> void:
     mouse_intent_yaw = aim_yaw
     mouse_intent_pitch = aim_pitch
     _build_mouse_cursor_guide()
+    _build_mouse_aim_string_guide()
     Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -188,6 +194,8 @@ func _unhandled_input(event: InputEvent) -> void:
         Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
     elif event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_M:
         set_mouse_aim_string_enabled(not mouse_aim_string_enabled)
+    elif event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_N:
+        mouse_string_debug_visible = not mouse_string_debug_visible
     elif orbit_input_enabled and event is InputEventMouseButton and event.pressed:
         Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
@@ -2760,6 +2768,9 @@ func get_debug_data() -> Dictionary:
         "reticle_dynamic_amount": reticle_dynamic_amount,
         "mouse_cursor_cage_enabled": mouse_cursor_cage_enabled,
         "mouse_aim_string_enabled": mouse_aim_string_enabled,
+        "mouse_string_debug_visible": mouse_string_debug_visible,
+        "mouse_string_dot_x": get_mouse_string_screen_normalized().x,
+        "mouse_string_dot_y": get_mouse_string_screen_normalized().y,
         "mouse_intent_yaw_deg": rad_to_deg(mouse_intent_yaw),
         "mouse_intent_pitch_deg": rad_to_deg(mouse_intent_pitch),
         "mouse_string_yaw_stretch_deg": rad_to_deg(
@@ -2925,6 +2936,25 @@ func _update_mouse_aim_string(delta: float) -> void:
         dt
     )
 
+func get_mouse_string_screen_normalized() -> Vector2:
+    var viewport_size := get_viewport().get_visible_rect().size
+    var aspect := viewport_size.x / maxf(viewport_size.y, 1.0)
+    var vertical_fov := deg_to_rad(
+        camera.fov if camera != null else profile.vertical_fov
+    )
+    var vertical_half := maxf(vertical_fov * 0.5, 0.001)
+    var horizontal_half := atan(tan(vertical_half) * aspect)
+    var yaw_stretch := fposmod(mouse_intent_yaw - aim_yaw + PI, TAU) - PI
+    var pitch_stretch := mouse_intent_pitch - aim_pitch
+    var screen_offset := Vector2(
+        -tan(yaw_stretch) / maxf(tan(horizontal_half), 0.001),
+        -tan(pitch_stretch) / maxf(tan(vertical_half), 0.001)
+    ) * 0.5
+    return (Vector2(0.5, 0.5) + screen_offset).clamp(
+        Vector2.ZERO,
+        Vector2.ONE
+    )
+
 func _update_orbit_trail(delta: float, scoped_view: bool) -> void:
     var dt := clampf(delta, 0.0, 0.05)
     var yaw_rate: float = (
@@ -3002,3 +3032,13 @@ func _build_mouse_cursor_guide() -> void:
     mouse_cursor_guide.name = "MouseCursorCageGuide"
     mouse_cursor_guide.camera_rig = self
     mouse_cursor_guide_layer.add_child(mouse_cursor_guide)
+
+func _build_mouse_aim_string_guide() -> void:
+    mouse_string_guide_layer = CanvasLayer.new()
+    mouse_string_guide_layer.name = "MouseAimStringLayer"
+    mouse_string_guide_layer.layer = 91
+    add_child(mouse_string_guide_layer)
+    mouse_string_guide = MouseAimStringGuideScript.new()
+    mouse_string_guide.name = "MouseAimStringGuide"
+    mouse_string_guide.camera_rig = self
+    mouse_string_guide_layer.add_child(mouse_string_guide)

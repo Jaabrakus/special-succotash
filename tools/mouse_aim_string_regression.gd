@@ -34,6 +34,9 @@ func _run() -> void:
         camera.reticle_screen_normalized.is_equal_approx(Vector2(0.5, 0.5)),
         "visible reticle remains centered"
     )
+    var endpoint: Vector2 = camera.get_mouse_string_screen_normalized()
+    _expect(endpoint.x < 0.5, "leftward hidden input draws the blue dot left of center")
+    _expect(endpoint.y > 0.5, "downward hidden input draws the blue dot below center")
 
     var yaw_before_flick: float = camera.aim_yaw
     camera._apply_mouse_aim_string_input(Vector2(-1000.0, 0.0))
@@ -54,6 +57,10 @@ func _run() -> void:
     _expect(
         absf(_signed_angle(camera.aim_yaw, camera.mouse_intent_yaw)) < deg_to_rad(0.01),
         "yaw string settles quickly"
+    )
+    _expect(
+        camera.get_mouse_string_screen_normalized().distance_to(Vector2(0.5, 0.5)) < 0.001,
+        "blue endpoint collapses back onto the centered reticle"
     )
 
     camera.set_mouse_aim_string_enabled(false)
