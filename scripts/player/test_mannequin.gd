@@ -106,6 +106,7 @@ func _process(delta: float) -> void:
         return
 
     _animate_locomotion(player, delta)
+    _sync_production_animation(player)
     var motion_state: StringName = (
         StringName(player.call("get_motion_state_name"))
         if player.has_method("get_motion_state_name")
@@ -321,33 +322,43 @@ func _animate_upper_body(player: CharacterBody3D, delta: float) -> void:
     head_bone.rotation.x = torso_pitch * 0.25
     _solve_weapon_hands()
 
-    if production_animation != null:
-        var local_velocity := player.global_basis.inverse() * player.velocity
-        var visual_direction := Vector2(local_velocity.x, -local_velocity.z)
-        var normalized_speed := clampf(visual_direction.length() / 6.5, 0.0, 1.0)
-        if visual_direction.length_squared() > 0.001:
-            visual_direction = visual_direction.normalized() * normalized_speed
-        var posture_name: StringName = (
-            StringName(player.call("get_posture_name"))
-            if player.has_method("get_posture_name")
-            else &"STANDING"
-        )
-        var state_name: StringName = (
-            StringName(player.call("get_motion_state_name"))
-            if player.has_method("get_motion_state_name")
-            else &"STANDING"
-        )
-        production_animation.set_visual_inputs(
-            visual_direction,
-            posture_name,
-            relative_yaw,
-            aim_pitch,
-            1.0,
-            false,
-            weapon_obstruction_amount,
-            normalized_speed,
-            state_name
-        )
+func _sync_production_animation(player: CharacterBody3D) -> void:
+    if production_animation == null:
+        return
+    var rig := get_tree().get_first_node_in_group("socom_camera_rig")
+    if rig == null:
+        return
+    var relative_yaw: float = (
+        float(player.call("get_aim_relative_yaw"))
+        if player.has_method("get_aim_relative_yaw")
+        else wrapf(float(rig.get("aim_yaw")) - player.global_rotation.y, -PI, PI)
+    )
+    var local_velocity := player.global_basis.inverse() * player.velocity
+    var visual_direction := Vector2(local_velocity.x, -local_velocity.z)
+    var normalized_speed := clampf(visual_direction.length() / 6.5, 0.0, 1.0)
+    if visual_direction.length_squared() > 0.001:
+        visual_direction = visual_direction.normalized() * normalized_speed
+    var posture_name: StringName = (
+        StringName(player.call("get_posture_name"))
+        if player.has_method("get_posture_name")
+        else &"STANDING"
+    )
+    var state_name: StringName = (
+        StringName(player.call("get_motion_state_name"))
+        if player.has_method("get_motion_state_name")
+        else &"STANDING"
+    )
+    production_animation.set_visual_inputs(
+        visual_direction,
+        posture_name,
+        relative_yaw,
+        float(rig.get("aim_pitch")),
+        1.0,
+        false,
+        weapon_obstruction_amount,
+        normalized_speed,
+        state_name
+    )
 
 func _find_clear_weapon_offset(player: CharacterBody3D, target_point: Vector3) -> Vector3:
     var saved_position: Vector3 = weapon_bone.position
