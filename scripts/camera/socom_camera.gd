@@ -2731,37 +2731,24 @@ func _apply_raw_mouse_input(relative_motion: Vector2) -> void:
     )
 
 func _apply_mouse_aim_string_input(relative_motion: Vector2) -> void:
-    mouse_aim_model.apply_motion(
-        relative_motion,
-        get_viewport().get_visible_rect().size,
-        profile
-    )
+    mouse_aim_model.apply_motion(relative_motion, profile)
 
 func _update_mouse_aim_string(delta: float) -> void:
-    var viewport_size := get_viewport().get_visible_rect().size
-    mouse_edge_turn = mouse_aim_model.update_turn(
+    var current_aim := Vector2(aim_yaw, aim_pitch)
+    var updated_aim: Vector2 = mouse_aim_model.update_aim(
+        current_aim,
         delta,
-        viewport_size,
         profile
     )
-    var dt := clampf(delta, 0.0, 0.05)
-    aim_yaw = wrapf(
-        aim_yaw
-        - deg_to_rad(profile.mouse_edge_yaw_speed_deg) * mouse_edge_turn.x * dt,
-        -PI,
-        PI
-    )
-    aim_pitch = clampf(
-        aim_pitch
-        - deg_to_rad(profile.mouse_edge_pitch_speed_deg) * mouse_edge_turn.y * dt,
-        deg_to_rad(profile.pitch_min_deg),
-        deg_to_rad(profile.pitch_max_deg)
-    )
-    mouse_aim_model.sync_aim(Vector2(aim_yaw, aim_pitch))
+    mouse_edge_turn = mouse_aim_model.aim_error_normalized(current_aim, profile)
+    aim_yaw = updated_aim.x
+    aim_pitch = updated_aim.y
     _update_reticle_position(delta)
 
 func get_mouse_string_screen_normalized() -> Vector2:
-    return mouse_aim_model.target_screen_normalized(profile)
+    return mouse_aim_model.target_screen_normalized(
+        get_viewport().get_visible_rect().size
+    )
 
 func get_operator_alignment_screen_normalized() -> Vector2:
     return get_mouse_string_screen_normalized()

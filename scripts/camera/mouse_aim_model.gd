@@ -1,91 +1,104 @@
 class_name SocomMouseAimModel
 extends RefCounted
 
-## Persistent blue mouse destination around a permanently centered reticle.
-## Blue is written only by mouse input and never recenters itself. While mouse
-## motion is active, its displacement outside the white deadzone requests turn.
+## Mouse input, aim intent, and presentation are deliberately separate:
+## - blue_offset_pixels is a small persistent visualization only;
+## - intent_yaw/pitch is the actual mouse-owned destination;
+## - the camera rig follows that destination at a frame-rate-independent rate.
 
 var intent_yaw: float = 0.0
 var intent_pitch: float = deg_to_rad(-2.0)
-var target_deflection := Vector2.ZERO
-var motion_age: float = 999.0
-var motion_active: bool = false
+var blue_offset_pixels := Vector2.ZERO
 
 func reset(aim_angles: Vector2) -> void:
     intent_yaw = wrapf(aim_angles.x, -PI, PI)
     intent_pitch = aim_angles.y
-    target_deflection = Vector2.ZERO
-    motion_age = 999.0
-    motion_active = false
+    blue_offset_pixels = Vector2.ZERO
 
-func sync_aim(aim_angles: Vector2) -> void:
+func sync_to_aim(aim_angles: Vector2) -> void:
     intent_yaw = wrapf(aim_angles.x, -PI, PI)
     intent_pitch = aim_angles.y
 
-func apply_motion(
-    relative_motion: Vector2,
-    viewport_size: Vector2,
-    profile: Resource
-) -> void:
-    var half_extent := _half_extent_pixels(viewport_size, profile)
-    target_deflection += Vector2(
-        relative_motion.x / half_extent.x,
-        relative_motion.y / half_extent.y
-    )
-    target_deflection = target_deflection.clamp(-Vector2.ONE, Vector2.ONE)
-    motion_age = 0.0
-    motion_active = true
+func apply_motion(relative_motion: Vector2, profile: Resource) -> void:
+    blue_offset_pixels += relative_motion
+    var maximum_lead: float = profile.mouse_string_max_lead_px
+    if blue_offset_pixels.length() > maximum_lead:
+        blue_offset_pixels = blue_offset_pixels.normalized() * maximum_lead
 
-func update_turn(
-    delta: float,
-    viewport_size: Vector2,
-    profile: Resource
-) -> Vector2:
-    var dt := clampf(delta, 0.0, 0.05)
-    motion_age += dt
-    if motion_age > profile.mouse_string_idle_stop_seconds:
-        motion_active = false
-        return Vector2.ZERO
-
-    var target_pixels := target_offset_pixels(viewport_size, profile)
-    var distance := target_pixels.length()
     var touch_distance: float = (
         profile.mouse_string_deadzone_radius_px
         + profile.mouse_string_blue_radius_px
     )
-    if distance <= touch_distance:
-        return Vector2.ZERO
+    if blue_offset_pixels.length() <= touch_distance:
+        return
 
-    var half_extent := _half_extent_pixels(viewport_size, profile)
-    var maximum_distance := maxf(half_extent.length(), touch_distance + 0.001)
-    var normalized := clampf(
-        inverse_lerp(touch_distance, maximum_distance, distance),
-        0.0,
-        1.0
+    # Raw relative motion continues to update aim even when the visual blue
+    # marker has reached its small cap. This preserves unlimited mouse turning.
+    intent_yaw = wrapf(
+        intent_yaw - relative_motion.x * profile.mouse_sensitivity,
+        -PI,
+        PI
     )
-    var strength := pow(
-        smoothstep(0.0, 1.0, normalized),
-        profile.mouse_string_tension_curve
-    )
-    return target_pixels.normalized() * strength
-
-func target_screen_normalized(profile: Resource) -> Vector2:
-    return _deflection_screen_normalized(target_deflection, profile)
-
-func target_offset_pixels(viewport_size: Vector2, profile: Resource) -> Vector2:
-    return target_deflection * _half_extent_pixels(viewport_size, profile)
-
-func _half_extent_pixels(viewport_size: Vector2, profile: Resource) -> Vector2:
-    return Vector2(
-        maxf(viewport_size.x * profile.mouse_cage_half_width, 1.0),
-        maxf(viewport_size.y * profile.mouse_cage_half_height, 1.0)
+    intent_pitch = clampf(
+        intent_pitch - relative_motion.y * profile.mouse_sensitivity,
+        deg_to_rad(profile.pitch_min_deg),
+        deg_to_rad(profile.pitch_max_deg)
     )
 
-func _deflection_screen_normalized(
-    deflection: Vector2,
+func update_aim(
+    aim_angles: Vector2,
+    delta: float,
     profile: Resource
 ) -> Vector2:
-    return (Vector2(0.5, 0.5) + Vector2(
-        deflection.x * profile.mouse_cage_half_width,
-        deflection.y * profile.mouse_cage_half_height
-    )).clamp(Vector2.ZERO, Vector2.ONE)
+    var dt := clampf(delta, 0.0, 0.05)
+    var updated := aim_angles
+    updated.x = _damp_angle(
+        updated.x,
+        intent_yaw,
+        profile.mouse_string_aim_yaw_response,
+        dt
+    )
+    updated.y = _damp(
+        updated.y,
+        intent_pitch,
+        profile.mouse_string_aim_pitch_response,
+        dt
+    )
+    if absf(_angle_difference(updated.x, intent_yaw)) < 0.000001:
+        updated.x = intent_yaw
+    if absf(updated.y - intent_pitch) < 0.000001:
+        updated.y = intent_pitch
+    return updated
+
+func aim_error_normalized(aim_angles: Vector2, profile: Resource) -> Vector2:
+    return Vector2(
+        clampf(
+            _angle_difference(aim_angles.x, intent_yaw)
+            / maxf(deg_to_rad(profile.mouse_string_yaw_limit_deg), 0.0001),
+            -1.0,
+            1.0
+        ),
+        clampf(
+            (intent_pitch - aim_angles.y)
+            / maxf(deg_to_rad(profile.mouse_string_pitch_limit_deg), 0.0001),
+            -1.0,
+            1.0
+        )
+    )
+
+func target_screen_normalized(viewport_size: Vector2) -> Vector2:
+    return Vector2(
+        0.5 + blue_offset_pixels.x / maxf(viewport_size.x, 1.0),
+        0.5 + blue_offset_pixels.y / maxf(viewport_size.y, 1.0)
+    ).clamp(Vector2.ZERO, Vector2.ONE)
+
+func _angle_difference(from: float, to: float) -> float:
+    return fposmod(to - from + PI, TAU) - PI
+
+func _damp(current: float, target_value: float, rate: float, dt: float) -> float:
+    return lerpf(current, target_value, 1.0 - exp(-rate * dt))
+
+func _damp_angle(current: float, target_value: float, rate: float, dt: float) -> float:
+    return current + _angle_difference(current, target_value) * (
+        1.0 - exp(-rate * dt)
+    )
