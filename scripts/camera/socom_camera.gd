@@ -1326,20 +1326,23 @@ func _calculate_downward_aim_amount() -> float:
     )
 
 func _forward_direction() -> Vector3:
+    # This is gameplay aim, not camera composition. Environment state may move
+    # the rendered lens, change FOV, or crop the operator, but it may never add
+    # pitch/yaw to the player's input. Keeping this function raw also makes the
+    # network yaw/pitch pair describe the exact same direction in every camera
+    # state.
     var yaw_basis := Basis(Vector3.UP, yaw)
     var yaw_forward := yaw_basis * Vector3.FORWARD
     var right := yaw_basis * Vector3.RIGHT
-    var pitch_basis := Basis(right, _composed_view_pitch())
+    var pitch_basis := Basis(right, pitch)
     return (pitch_basis * yaw_forward).normalized()
 
 func _composed_view_pitch() -> float:
-    var interior_bias: float = (
-        deg_to_rad(profile.interior_view_pitch_bias_deg)
-        * interior_amount
-        * (1.0 - downward_aim_amount)
-    )
+    # Retained as a camera-composition hook for tooling, but it intentionally
+    # mirrors raw input. The old interior bias silently redirected aim whenever
+    # a ceiling was detected.
     return clampf(
-        pitch + interior_bias,
+        pitch,
         deg_to_rad(profile.pitch_min_deg),
         deg_to_rad(profile.pitch_max_deg)
     )
@@ -2447,9 +2450,9 @@ func _basis_looking_at(point: Vector3) -> Basis:
     return Basis.looking_at(direction, Vector3.UP, false)
 
 func _update_aim_point() -> void:
-    # Raw player yaw/pitch owns a distant, camera-independent view point. Keeping
-    # collision out of this value prevents a nearby wall hit from becoming an
-    # orbit pivot and dragging the operator out of frame.
+    # Raw yaw/pitch owns a distant, camera-independent intent point. Do not
+    # replace this optical guide with a close collision hit: feeding a nearby
+    # point back into camera orientation creates a pitch/composition loop.
     var origin: Vector3 = (
         target.global_position
         + movement_lead
@@ -2460,17 +2463,13 @@ func _update_aim_point() -> void:
     aim_point = destination
 
 func _update_weapon_aim_point() -> void:
-    # Once the legal rendered lens is known, cast through the fixed center
-    # reticle. This produces the one exact world point shared by the camera,
-    # weapon pose and authoritative muzzle trace without feeding camera
-    # collision back into orbit control.
+    # Cast through the centered reticle only after the rendered lens is known.
+    # Acquisition begins just beyond the operator's depth plane, so a surface
+    # touching the camera behind the character cannot become a forward target.
+    # This ray chooses a display target; it never changes yaw, pitch or the
+    # camera-independent intent point above.
     var lens_origin: Vector3 = camera.global_position
     var direction: Vector3 = -camera.global_basis.z.normalized()
-    # A virtual wall camera is allowed to render from the far side of a wall
-    # behind the operator. Do not let that deliberately hidden rear surface
-    # become the center-reticle target. Begin acquisition on the same center
-    # ray at the operator's depth plane; forward cover is still hittable and
-    # the independent muzzle trace still prevents shooting through it.
     var player_aim_origin: Vector3 = (
         target.global_position
         + movement_lead
@@ -2485,9 +2484,7 @@ func _update_weapon_aim_point() -> void:
         profile.aim_distance - 0.10
     )
     var origin: Vector3 = lens_origin + direction * acquisition_depth
-    var destination: Vector3 = (
-        lens_origin + direction * profile.aim_distance
-    )
+    var destination: Vector3 = lens_origin + direction * profile.aim_distance
     weapon_aim_point = destination
     var query := PhysicsRayQueryParameters3D.create(origin, destination)
     query.collide_with_areas = false
@@ -2498,8 +2495,7 @@ func _update_weapon_aim_point() -> void:
     aim_hit = not result.is_empty()
     aim_collider_name = "OPEN"
     if aim_hit:
-        var hit_position: Vector3 = result["position"]
-        weapon_aim_point = hit_position
+        weapon_aim_point = result["position"]
         var collider: Variant = result.get("collider")
         if collider is Node:
             aim_collider_name = str((collider as Node).name)
@@ -2561,40 +2557,11 @@ func build_local_aim_intent() -> Dictionary:
         direction
     )
 
-func _update_reticle_position(delta: float) -> void:
-    var center := Vector2(0.5, 0.5)
-    var desired := center
-    reticle_dynamic_amount = collision_crane_view_amount
-    if (
-        reticle_dynamic_amount > 0.001
-        and weapon_aim_point != Vector3.ZERO
-        and not camera.is_position_behind(weapon_aim_point)
-    ):
-        var viewport_size := get_viewport().get_visible_rect().size
-        var projected_pixels := camera.unproject_position(weapon_aim_point)
-        var projected := Vector2(
-            projected_pixels.x / maxf(viewport_size.x, 1.0),
-            projected_pixels.y / maxf(viewport_size.y, 1.0)
-        )
-        var offset := projected - center
-        var maximum := Vector2(
-            profile.close_wall_reticle_max_x,
-            profile.close_wall_reticle_max_y
-        )
-        var elliptical := Vector2(
-            offset.x / maxf(maximum.x, 0.001),
-            offset.y / maxf(maximum.y, 0.001)
-        )
-        if elliptical.length() > 1.0:
-            elliptical = elliptical.normalized()
-        desired = center + Vector2(
-            elliptical.x * maximum.x,
-            elliptical.y * maximum.y
-        ) * reticle_dynamic_amount
-    reticle_screen_normalized = reticle_screen_normalized.lerp(
-        desired,
-        1.0 - exp(-profile.close_wall_reticle_response * delta)
-    )
+func _update_reticle_position(_delta: float) -> void:
+    # SOCOM-style invariant: the reticle represents player intent and therefore
+    # never follows collision, crane, FOV, or camera recovery states.
+    reticle_dynamic_amount = 0.0
+    reticle_screen_normalized = Vector2(0.5, 0.5)
 
 func get_debug_data() -> Dictionary:
     var viewport_size := get_viewport().get_visible_rect().size
