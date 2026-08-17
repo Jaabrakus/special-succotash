@@ -55,6 +55,22 @@ func _run() -> void:
     )
 
     var first_distance: float = endpoint.distance_to(Vector2(0.5, 0.5))
+    var deadzone: float = deg_to_rad(camera.profile.mouse_string_deadzone_deg)
+    var yaw_limit: float = deg_to_rad(camera.profile.mouse_string_yaw_limit_deg)
+    var near_tension: float = camera.mouse_aim_model.tension(
+        deadzone + deg_to_rad(0.05),
+        yaw_limit,
+        camera.profile
+    )
+    var far_tension: float = camera.mouse_aim_model.tension(
+        yaw_limit,
+        yaw_limit,
+        camera.profile
+    )
+    _expect(
+        near_tension < 0.01 and far_tension > 0.99,
+        "catch tension eases in near slack and strengthens at full lead"
+    )
     camera._update_mouse_aim_string(1.0 / 60.0)
     var caught_distance: float = (
         camera.get_mouse_string_screen_normalized().distance_to(Vector2(0.5, 0.5))
@@ -64,16 +80,22 @@ func _run() -> void:
         "centered aim closes the finite distance to the blue target"
     )
 
+    var crossed_deadzone := false
     for _frame in range(180):
         camera._update_mouse_aim_string(1.0 / 60.0)
+        if (
+            absf(_signed_angle(camera.aim_yaw, camera.mouse_intent_yaw))
+            < deadzone - 0.00001
+        ):
+            crossed_deadzone = true
     var remaining_yaw: float = absf(_signed_angle(camera.aim_yaw, camera.mouse_intent_yaw))
     var remaining_pitch: float = absf(camera.mouse_intent_pitch - camera.aim_pitch)
-    var deadzone: float = deg_to_rad(camera.profile.mouse_string_deadzone_deg)
     _expect(
         remaining_yaw <= deadzone + 0.0001
         and remaining_pitch <= deadzone + 0.0001,
         "blue target settles inside the center slack zone"
     )
+    _expect(not crossed_deadzone, "smooth catch never overshoots the slack boundary")
     var caught_aim := Vector2(camera.aim_yaw, camera.aim_pitch)
     for _frame in range(30):
         camera._update_mouse_aim_string(1.0 / 60.0)
