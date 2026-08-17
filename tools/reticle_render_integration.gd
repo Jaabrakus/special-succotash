@@ -18,52 +18,47 @@ func _run() -> void:
     Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
     _expect(
         rig.orbit_input_enabled and rig.mouse_aim_string_enabled,
-        "live camera selects persistent-blue mouse handling"
+        "live camera selects persistent-blue turn handling"
     )
     rig._apply_mouse_aim_string_input(Vector2(96.0, -54.0))
     var fixed_blue: Vector2 = rig.get_mouse_string_screen_normalized()
-    var white_before: Vector2 = rig.get_mouse_string_follower_screen_normalized()
     await physics_frame
     await process_frame
-    var white_after: Vector2 = rig.get_mouse_string_follower_screen_normalized()
 
     _expect(
         fixed_blue.distance_to(Vector2(0.5, 0.5)) > 0.02,
         "real mouse input places blue away from center"
     )
     _expect(
-        white_after.distance_to(fixed_blue) < white_before.distance_to(fixed_blue),
-        "rendered white camera follower travels toward blue"
-    )
-    _expect(
         rig.get_mouse_string_screen_normalized().distance_to(fixed_blue) < 0.000001,
-        "rendered blue destination does not return to center"
+        "rendered blue destination remains where the mouse placed it"
     )
     _expect(
         rig.reticle_screen_normalized.is_equal_approx(Vector2(0.5, 0.5))
         and crosshair.position.distance_to(initial_crosshair) < 0.1,
-        "authoritative HUD reticle remains fixed at screen center"
+        "white circle and HUD reticle remain fixed at screen center"
     )
     _expect(
         absf(rig.aim_yaw) > 0.0001 or absf(rig.aim_pitch) > 0.0001,
-        "camera aim follows white toward the mouse-owned blue destination"
+        "camera aim under the fixed reticle turns toward blue"
     )
 
-    for _frame in range(180):
+    for _frame in range(3):
         await physics_frame
         await process_frame
-    _expect(
-        rig.get_mouse_string_screen_normalized().distance_to(fixed_blue) < 0.000001,
-        "blue remains persistent after camera follow finishes"
-    )
     var stopped_aim := Vector2(rig.aim_yaw, rig.aim_pitch)
+    _expect(
+        not rig.mouse_aim_model.motion_active
+        and rig.get_mouse_string_screen_normalized().distance_to(fixed_blue) < 0.000001,
+        "mouse idle stops camera while blue remains persistent"
+    )
     for _frame in range(30):
         await physics_frame
         await process_frame
     _expect(
         absf(rig.aim_yaw - stopped_aim.x) < 0.000001
         and absf(rig.aim_pitch - stopped_aim.y) < 0.000001,
-        "camera stops once white and blue outlines touch"
+        "persistent blue has no camera authority without mouse motion"
     )
 
     scene.queue_free()
