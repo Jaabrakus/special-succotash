@@ -44,19 +44,22 @@ func _draw() -> void:
         2.0,
         true
     )
-    draw_line(center, endpoint, Color(color, opacity * 0.45), 1.5, true)
-    draw_circle(
-        endpoint,
-        blue_radius,
-        Color(0.06, 0.28, 0.42, opacity * 0.65)
-    )
-    draw_arc(
-        endpoint,
-        blue_radius,
-        0.0,
-        TAU,
-        24,
-        color,
-        2.0,
-        true
-    )
+    # Blue exists only for an active mouse gesture. It never animates home:
+    # releasing the mouse hides it, and the next gesture starts at center.
+    if camera_rig.mouse_aim_model.motion_active:
+        draw_line(center, endpoint, Color(color, opacity * 0.45), 1.5, true)
+        draw_circle(
+            endpoint,
+            blue_radius,
+            Color(0.06, 0.28, 0.42, opacity * 0.65)
+        )
+        draw_arc(
+            endpoint,
+            blue_radius,
+            0.0,
+            TAU,
+            24,
+            color,
+            2.0,
+            true
+        )
