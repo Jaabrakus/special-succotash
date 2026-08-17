@@ -20,8 +20,11 @@ var pelvis_marker: Node3D
 var feet_marker: Node3D
 var profile := CameraProfileScript.new()
 
+var aim_yaw: float = 0.0
+var aim_pitch: float = deg_to_rad(-2.0)
 var yaw: float = 0.0
 var pitch: float = deg_to_rad(-2.0)
+var orbit_drag_enabled: bool = true
 var current_camera_position := Vector3.ZERO
 var preferred_camera_position := Vector3.ZERO
 var virtual_camera_position := Vector3.ZERO
@@ -128,6 +131,7 @@ func _ready() -> void:
     camera_collision_shape.radius = profile.camera_collision_radius
     current_fov = profile.vertical_fov
     orbit_input_enabled = not OS.get_cmdline_user_args().has("--automated-test")
+    orbit_drag_enabled = not OS.get_cmdline_user_args().has("--automated-test")
     automated_wall_turn = (
         OS.get_cmdline_user_args().has("--wall-turn-test")
         or OS.get_cmdline_user_args().has("--interior-turn-test")
@@ -141,13 +145,19 @@ func _ready() -> void:
         pitch = deg_to_rad(-58.0)
     elif OS.get_cmdline_user_args().has("--downward-aim-test"):
         pitch = deg_to_rad(-45.0)
+    aim_yaw = yaw
+    aim_pitch = pitch
     Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 func _unhandled_input(event: InputEvent) -> void:
     if orbit_input_enabled and event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-        yaw -= event.relative.x * profile.mouse_sensitivity
-        pitch -= event.relative.y * profile.mouse_sensitivity
-        pitch = clampf(pitch, deg_to_rad(profile.pitch_min_deg), deg_to_rad(profile.pitch_max_deg))
+        aim_yaw -= event.relative.x * profile.mouse_sensitivity
+        aim_pitch -= event.relative.y * profile.mouse_sensitivity
+        aim_pitch = clampf(aim_pitch, deg_to_rad(profile.pitch_min_deg), deg_to_rad(profile.pitch_max_deg))
+        aim_yaw = wrapf(aim_yaw, -PI, PI)
+        if not orbit_drag_enabled:
+            yaw = aim_yaw
+            pitch = aim_pitch
     elif event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
         Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
     elif orbit_input_enabled and event is InputEventMouseButton and event.pressed:
@@ -158,8 +168,10 @@ func _physics_process(delta: float) -> void:
         return
 
     if Input.is_action_just_pressed("reset_camera"):
-        yaw = target.global_rotation.y
-        pitch = deg_to_rad(-2.0)
+        aim_yaw = target.global_rotation.y
+        aim_pitch = deg_to_rad(-2.0)
+        yaw = aim_yaw
+        pitch = aim_pitch
         reset_camera_to_target()
     _follow_target_translation()
     var rendered_frame_start: Vector3 = current_camera_position
@@ -170,6 +182,17 @@ func _physics_process(delta: float) -> void:
             else 38.0
         )
         yaw -= deg_to_rad(automated_turn_speed) * delta
+        aim_yaw = yaw
+    elif orbit_drag_enabled:
+        var dt := clampf(delta, 0.0, 0.05)
+        var is_aiming: bool = Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT) or (InputMap.has_action("aim_down_sights") and Input.is_action_pressed("aim_down_sights"))
+        var yaw_rate: float = 26.0 if is_aiming else 13.5
+        var pitch_rate: float = 24.0 if is_aiming else 16.0
+        yaw = _damp_angle(yaw, aim_yaw, yaw_rate, dt)
+        pitch = _damp(pitch, aim_pitch, pitch_rate, dt)
+    else:
+        yaw = aim_yaw
+        pitch = aim_pitch
     yaw = wrapf(yaw, -PI, PI)
 
     _update_movement_follow(delta)
@@ -1331,10 +1354,12 @@ func _forward_direction() -> Vector3:
     # pitch/yaw to the player's input. Keeping this function raw also makes the
     # network yaw/pitch pair describe the exact same direction in every camera
     # state.
-    var yaw_basis := Basis(Vector3.UP, yaw)
+    var target_yaw := aim_yaw if orbit_drag_enabled else yaw
+    var target_pitch := aim_pitch if orbit_drag_enabled else pitch
+    var yaw_basis := Basis(Vector3.UP, target_yaw)
     var yaw_forward := yaw_basis * Vector3.FORWARD
     var right := yaw_basis * Vector3.RIGHT
-    var pitch_basis := Basis(right, pitch)
+    var pitch_basis := Basis(right, target_pitch)
     return (pitch_basis * yaw_forward).normalized()
 
 func _composed_view_pitch() -> float:
@@ -2721,5 +2746,14 @@ func get_debug_data() -> Dictionary:
         "collision_active": collision_active,
         "yaw_deg": rad_to_deg(yaw),
         "pitch_deg": rad_to_deg(pitch),
+        "aim_yaw_deg": rad_to_deg(aim_yaw),
+        "aim_pitch_deg": rad_to_deg(aim_pitch),
         "view_pitch_deg": rad_to_deg(_composed_view_pitch())
     }
+
+func _damp(current: float, target_val: float, rate: float, dt: float) -> float:
+    return lerpf(current, target_val, 1.0 - exp(-rate * dt))
+
+func _damp_angle(current: float, target_val: float, rate: float, dt: float) -> float:
+    var diff := fposmod(target_val - current + PI, TAU) - PI
+    return current + diff * (1.0 - exp(-rate * dt))
