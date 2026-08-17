@@ -2,6 +2,7 @@ class_name SocomCameraRig
 extends Node3D
 
 const AimIntentScript := preload("res://scripts/network/socom_aim_intent.gd")
+const CameraDebugSnapshotScript := preload("res://scripts/camera/camera_debug_snapshot.gd")
 const CameraProfileScript := preload("res://scripts/camera/camera_profile.gd")
 const MouseAimModelScript := preload("res://scripts/camera/mouse_aim_model.gd")
 const MouseCursorGuideScript := preload("res://scripts/camera/mouse_cursor_guide.gd")
@@ -2674,184 +2675,7 @@ func get_mouse_cursor_screen_normalized() -> Vector2:
     )
 
 func get_debug_data() -> Dictionary:
-    var viewport_size := get_viewport().get_visible_rect().size
-    var head_x := -1.0
-    var head_y := -1.0
-    var torso_y := -1.0
-    var pelvis_y := -1.0
-    var feet_y := -1.0
-    var aim_screen_x := -1.0
-    var aim_screen_y := -1.0
-    var camera_weapon_angle_deg := 0.0
-    var camera_aim_angle_deg := 0.0
-    var subject_visibility := _camera_subject_visibility()
-    var rendered_view_yaw_deg := rad_to_deg(yaw)
-    if head_marker and camera:
-        head_x = camera.unproject_position(head_marker.global_position).x / maxf(viewport_size.x, 1.0)
-        head_y = camera.unproject_position(head_marker.global_position).y / maxf(viewport_size.y, 1.0)
-    if torso_marker and camera:
-        torso_y = camera.unproject_position(torso_marker.global_position).y / maxf(viewport_size.y, 1.0)
-    if pelvis_marker and camera:
-        pelvis_y = camera.unproject_position(pelvis_marker.global_position).y / maxf(viewport_size.y, 1.0)
-    if feet_marker and camera:
-        feet_y = camera.unproject_position(feet_marker.global_position).y / maxf(viewport_size.y, 1.0)
-    if camera and weapon_aim_point != Vector3.ZERO and not camera.is_position_behind(weapon_aim_point):
-        var aim_pixels := camera.unproject_position(weapon_aim_point)
-        aim_screen_x = aim_pixels.x / maxf(viewport_size.x, 1.0)
-        aim_screen_y = aim_pixels.y / maxf(viewport_size.y, 1.0)
-        var camera_forward: Vector3 = -camera.global_basis.z.normalized()
-        rendered_view_yaw_deg = rad_to_deg(atan2(
-            -camera_forward.x,
-            -camera_forward.z
-        ))
-        var camera_to_aim: Vector3 = (weapon_aim_point - camera.global_position).normalized()
-        camera_aim_angle_deg = rad_to_deg(camera_forward.angle_to(camera_to_aim))
-        var mannequin = target.get_node_or_null("Mannequin") if target else null
-        if mannequin and mannequin.muzzle_marker:
-            var weapon_to_aim: Vector3 = (
-                weapon_aim_point - mannequin.muzzle_marker.global_position
-            ).normalized()
-            camera_weapon_angle_deg = rad_to_deg(
-                camera_forward.angle_to(weapon_to_aim)
-            )
-
-    var rear_boom_distance: float = 0.0
-    if target:
-        var yaw_back: Vector3 = Basis(Vector3.UP, yaw) * Vector3.BACK
-        rear_boom_distance = maxf(
-            (global_position - target.global_position).dot(yaw_back),
-            0.0
-        )
-    var weapon_obstruction_amount: float = 0.0
-    var debug_mannequin = target.get_node_or_null("Mannequin") if target else null
-    if debug_mannequin and debug_mannequin.has_method("get_aim_debug_data"):
-        weapon_obstruction_amount = float(
-            debug_mannequin.get_aim_debug_data().weapon_obstruction_amount
-        )
-
-    return {
-        "fov": camera.fov if camera else profile.vertical_fov,
-        "distance": global_position.distance_to(target.global_position) if target else 0.0,
-        "rear_boom_distance": rear_boom_distance,
-        "height_above_player": global_position.y - target.global_position.y if target else 0.0,
-        "head_x": head_x,
-        "head_y": head_y,
-        "torso_y": torso_y,
-        "pelvis_y": pelvis_y,
-        "feet_y": feet_y,
-        "head_target_x": current_head_target_x,
-        "head_target_y": current_head_target_y,
-        "torso_target_y": current_torso_target_y,
-        "pelvis_target_y": current_pelvis_target_y,
-        "feet_target_y": current_feet_target_y,
-        "measured_head_x": measured_head_x,
-        "measured_head_y": measured_head_y,
-        "measured_torso_y": measured_torso_y,
-        "measured_pelvis_y": measured_pelvis_y,
-        "measured_feet_y": measured_feet_y,
-        "pelvis_crop_state": pelvis_crop_state,
-        "framing_correction": framing_correction,
-        "framing_side_correction": framing_side_correction,
-        "post_collision_reframe": post_collision_reframe,
-        "post_initial_score": post_initial_score,
-        "post_validated_score": post_validated_score,
-        "post_validated_clearance": post_validated_clearance,
-        "post_initial_head_distance": post_initial_head_distance,
-        "post_validated_head_distance": post_validated_head_distance,
-        "collision_crane_active": collision_crane_active,
-        "collision_crane_look_ahead": collision_crane_look_ahead,
-        "collision_crane_view_amount": collision_crane_view_amount,
-        "surface_slide_active": surface_slide_active,
-        "near_body_crop_active": near_body_crop_active,
-        "near_body_geometry_hidden": near_body_geometry_hidden,
-        "transition_crop_active": transition_crop_active,
-        "surface_slide_candidates": surface_slide_candidate_count,
-        "surface_slide_clear": surface_slide_clear_count,
-        "surface_slide_readable": surface_slide_readable_count,
-        "surface_slide_target_x": surface_slide_target_x,
-        "surface_slide_target_y": surface_slide_target_y,
-        "reticle_x": reticle_screen_normalized.x,
-        "reticle_y": reticle_screen_normalized.y,
-        "reticle_dynamic_amount": reticle_dynamic_amount,
-        "mouse_cursor_cage_enabled": mouse_cursor_cage_enabled,
-        "mouse_aim_string_enabled": mouse_aim_string_enabled,
-        "mouse_string_debug_visible": mouse_string_debug_visible,
-        "mouse_string_dot_x": get_mouse_string_screen_normalized().x,
-        "mouse_string_dot_y": get_mouse_string_screen_normalized().y,
-        "mouse_intent_yaw_deg": rad_to_deg(mouse_intent_yaw),
-        "mouse_intent_pitch_deg": rad_to_deg(mouse_intent_pitch),
-        "mouse_string_yaw_stretch_deg": rad_to_deg(
-            fposmod(mouse_intent_yaw - aim_yaw + PI, TAU) - PI
-        ),
-        "mouse_string_pitch_stretch_deg": rad_to_deg(
-            mouse_intent_pitch - aim_pitch
-        ),
-        "mouse_cursor_x": mouse_cursor_deflection.x,
-        "mouse_cursor_y": mouse_cursor_deflection.y,
-        "mouse_edge_turn_x": mouse_edge_turn.x,
-        "mouse_edge_turn_y": mouse_edge_turn.y,
-        "aim_screen_x": aim_screen_x,
-        "aim_screen_y": aim_screen_y,
-        "camera_weapon_angle_deg": camera_weapon_angle_deg,
-        "camera_aim_angle_deg": camera_aim_angle_deg,
-        "camera_head_visible": subject_visibility.head_visible,
-        "camera_head_blocker": subject_visibility.head_blocker,
-        "camera_torso_visible": subject_visibility.torso_visible,
-        "camera_torso_blocker": subject_visibility.torso_blocker,
-        "rendered_view_yaw_deg": rendered_view_yaw_deg,
-        "collision_cast_count": collision_cast_count,
-        "collision_solver_usec": collision_solver_usec,
-        "camera_state": get_camera_state_name(),
-        "camera_state_age": camera_state_age,
-        "camera_state_transitions": camera_state_transition_count,
-        "camera_tether_rebased": camera_tether_rebased,
-        "composition_recovery_active": composition_recovery_active,
-        "composition_hard_rebase": composition_hard_rebase,
-        "composition_hard_rebase_count": composition_hard_rebase_count,
-        "physical_recovery_state": physical_recovery_state,
-        "virtual_wall_occluder": (
-            str(virtual_wall_occluder.name)
-            if virtual_wall_occluder
-            else "CLEAR"
-        ),
-        "wall_context_amount": wall_context_amount,
-        "terrain_slope_deg": terrain_slope_deg,
-        "terrain_crop_relaxation": terrain_crop_relaxation,
-        "boom_compression": boom_compression,
-        "overhead_confinement": overhead_confinement,
-        "tight_space_amount": tight_space_amount,
-        "interior_amount": interior_amount,
-        "framing_mode": framing_mode,
-        "wall_escape_active": wall_escape_active,
-        "wall_escape_angle_deg": wall_escape_angle_deg,
-        "local_cutout_active": local_cutout_active,
-        "local_cutout_center": local_cutout_center,
-        "local_cutout_node": str(local_cutout_node.name) if local_cutout_node else "CLEAR",
-        "movement_lead": movement_lead,
-        "movement_speed_ratio": movement_speed_ratio,
-        "movement_lateral_ratio": movement_lateral_ratio,
-        "downward_aim_amount": downward_aim_amount,
-        "downward_crane_amount": downward_crane_amount,
-        "downward_ledge_raise": downward_ledge_raise,
-        "aim_hit": aim_hit,
-        "aim_collider": aim_collider_name,
-        "aim_point": weapon_aim_point,
-        "camera_intent_point": aim_point,
-        "shot_point": shot_point,
-        "shot_blocked": shot_blocked,
-        "shot_collider": shot_collider_name,
-        "weapon_obstruction_amount": weapon_obstruction_amount,
-        "excursion": excursion,
-        "virtual_camera_position": virtual_camera_position,
-        "collision_camera_position": collision_camera_position,
-        "collision": collision_name,
-        "collision_active": collision_active,
-        "yaw_deg": rad_to_deg(yaw),
-        "pitch_deg": rad_to_deg(pitch),
-        "aim_yaw_deg": rad_to_deg(aim_yaw),
-        "aim_pitch_deg": rad_to_deg(aim_pitch),
-        "view_pitch_deg": rad_to_deg(_composed_view_pitch())
-    }
+    return CameraDebugSnapshotScript.build(self)
 
 func _damp(current: float, target_val: float, rate: float, dt: float) -> float:
     return lerpf(current, target_val, 1.0 - exp(-rate * dt))
@@ -2912,10 +2736,13 @@ func _apply_mouse_aim_string_input(relative_motion: Vector2) -> void:
     aim_pitch = bounded_aim.y
 
 func _update_mouse_aim_string(delta: float) -> void:
+    var viewport_size := get_viewport().get_visible_rect().size
     var updated_aim: Vector2 = mouse_aim_model.update_aim(
         Vector2(aim_yaw, aim_pitch),
         delta,
-        profile
+        profile,
+        viewport_size,
+        camera.fov if camera != null else profile.vertical_fov
     )
     aim_yaw = updated_aim.x
     aim_pitch = updated_aim.y
