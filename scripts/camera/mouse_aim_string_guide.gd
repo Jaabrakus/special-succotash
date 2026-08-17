@@ -12,6 +12,7 @@ func _process(_delta: float) -> void:
     visible = (
         camera_rig != null
         and camera_rig.mouse_aim_string_enabled
+        and not camera_rig.is_controller_aim_active()
         and camera_rig.mouse_string_debug_visible
         and camera_rig.orbit_input_enabled
         and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED

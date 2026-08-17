@@ -3,6 +3,7 @@ extends Node3D
 
 const AimIntentScript := preload("res://scripts/network/socom_aim_intent.gd")
 const CameraDebugSnapshotScript := preload("res://scripts/camera/camera_debug_snapshot.gd")
+const CameraInputControllerScript := preload("res://scripts/camera/camera_input_controller.gd")
 const CameraProfileScript := preload("res://scripts/camera/camera_profile.gd")
 const MouseAimModelScript := preload("res://scripts/camera/mouse_aim_model.gd")
 const MouseCursorGuideScript := preload("res://scripts/camera/mouse_cursor_guide.gd")
@@ -32,6 +33,7 @@ var orbit_drag_enabled: bool = true
 var mouse_aim_string_enabled: bool = true
 var mouse_string_debug_visible: bool = true
 var mouse_aim_model := MouseAimModelScript.new()
+var aim_input_controller := CameraInputControllerScript.new()
 var mouse_intent_yaw: float:
     get:
         return mouse_aim_model.intent_yaw
@@ -145,6 +147,7 @@ var automated_wall_turn: bool = false
 
 func _ready() -> void:
     add_to_group("socom_camera_rig")
+    aim_input_controller.configure(mouse_aim_model)
     camera = Camera3D.new()
     camera.name = "Camera3D"
     camera.current = true
@@ -204,6 +207,8 @@ func _unhandled_input(event: InputEvent) -> void:
         set_mouse_aim_string_enabled(not mouse_aim_string_enabled)
     elif event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_N:
         mouse_string_debug_visible = not mouse_string_debug_visible
+    elif orbit_input_enabled and aim_input_controller.is_controller_look_event(event, profile):
+        aim_input_controller.activate_controller(Vector2(aim_yaw, aim_pitch))
     elif orbit_input_enabled and event is InputEventMouseButton and event.pressed:
         Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
@@ -239,10 +244,13 @@ func _physics_process(delta: float) -> void:
         yaw -= deg_to_rad(automated_turn_speed) * delta
         aim_yaw = yaw
     else:
-        if mouse_aim_string_enabled and orbit_input_enabled:
+        if aim_input_controller.is_controller_active() and orbit_input_enabled:
+            _update_controller_aim(delta)
+        elif mouse_aim_string_enabled and orbit_input_enabled:
             _update_mouse_aim_string(delta)
         if (
             mouse_cursor_cage_enabled
+            and aim_input_controller.is_mouse_active()
             and orbit_input_enabled
             and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
         ):
@@ -2725,17 +2733,22 @@ func set_mouse_aim_string_enabled(enabled: bool) -> void:
         set_mouse_cursor_cage_enabled(false)
 
 func _apply_raw_mouse_input(relative_motion: Vector2) -> void:
+    aim_input_controller.activate_mouse(Vector2(aim_yaw, aim_pitch))
     set_aim_angles(
         aim_yaw - relative_motion.x * profile.mouse_sensitivity,
         aim_pitch - relative_motion.y * profile.mouse_sensitivity
     )
 
 func _apply_mouse_aim_string_input(relative_motion: Vector2) -> void:
-    mouse_aim_model.apply_motion(relative_motion, profile)
+    aim_input_controller.apply_mouse_motion(
+        relative_motion,
+        Vector2(aim_yaw, aim_pitch),
+        profile
+    )
 
 func _update_mouse_aim_string(delta: float) -> void:
     var current_aim := Vector2(aim_yaw, aim_pitch)
-    var updated_aim: Vector2 = mouse_aim_model.update_aim(
+    var updated_aim: Vector2 = aim_input_controller.update_mouse_aim(
         current_aim,
         delta,
         profile
@@ -2744,6 +2757,24 @@ func _update_mouse_aim_string(delta: float) -> void:
     aim_yaw = updated_aim.x
     aim_pitch = updated_aim.y
     _update_reticle_position(delta)
+
+func _update_controller_aim(delta: float) -> void:
+    var updated_aim: Vector2 = aim_input_controller.update_controller_aim(
+        Vector2(aim_yaw, aim_pitch),
+        aim_input_controller.controller_stick(),
+        delta,
+        profile
+    )
+    aim_yaw = updated_aim.x
+    aim_pitch = updated_aim.y
+    mouse_edge_turn = Vector2.ZERO
+    _update_reticle_position(delta)
+
+func is_controller_aim_active() -> bool:
+    return aim_input_controller.is_controller_active()
+
+func get_active_aim_device_name() -> String:
+    return aim_input_controller.active_device_name()
 
 func get_mouse_string_screen_normalized() -> Vector2:
     return mouse_aim_model.target_screen_normalized(
