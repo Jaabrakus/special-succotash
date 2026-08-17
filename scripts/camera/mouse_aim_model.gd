@@ -44,15 +44,10 @@ func update_turn(
     var dt := clampf(delta, 0.0, 0.05)
     motion_age += dt
     if motion_age > profile.mouse_string_idle_reset_seconds:
+        # End the gesture without showing a return trip. The guide hides blue
+        # before this reset is rendered, so the next gesture begins at center.
         motion_active = false
-        # The camera relinquishes authority immediately, but the input marker
-        # returns independently so releasing the mouse never causes a pop.
-        target_deflection = target_deflection.lerp(
-            Vector2.ZERO,
-            1.0 - exp(-profile.mouse_string_recenter_response * dt)
-        )
-        if target_deflection.length_squared() < 0.00000025:
-            target_deflection = Vector2.ZERO
+        target_deflection = Vector2.ZERO
         return Vector2.ZERO
 
     var target_pixels := target_offset_pixels(viewport_size, profile)

@@ -60,26 +60,19 @@ func _run() -> void:
     )
     for _frame in range(3):
         camera._update_mouse_aim_string(1.0 / 60.0)
-    var blue_during_return: Vector2 = camera.get_mouse_string_screen_normalized()
     var aim_when_input_ended := Vector2(camera.aim_yaw, camera.aim_pitch)
     _expect(
-        not blue_during_return.is_equal_approx(Vector2(0.5, 0.5))
-        and blue_during_return.distance_to(Vector2(0.5, 0.5))
-        < blue_distance_before_release,
-        "blue eases toward center instead of snapping on mouse release"
+        blue_distance_before_release > 0.03
+        and not camera.mouse_aim_model.motion_active
+        and camera.get_mouse_string_screen_normalized().is_equal_approx(Vector2(0.5, 0.5)),
+        "ended mouse gesture hides blue and resets it invisibly"
     )
     for _frame in range(3):
         camera._update_mouse_aim_string(1.0 / 60.0)
     _expect(
         absf(_signed_angle(camera.aim_yaw, aim_when_input_ended.x)) < 0.000001
         and absf(camera.aim_pitch - aim_when_input_ended.y) < 0.000001,
-        "visual blue return has no camera authority"
-    )
-    for _frame in range(40):
-        camera._update_mouse_aim_string(1.0 / 60.0)
-    _expect(
-        camera.get_mouse_string_screen_normalized().is_equal_approx(Vector2(0.5, 0.5)),
-        "blue completes its smooth return to center"
+        "hidden blue reset has no camera authority"
     )
     var stopped_aim := Vector2(camera.aim_yaw, camera.aim_pitch)
     for _frame in range(30):
