@@ -124,10 +124,13 @@ func _test_aim_relative_strafing(scene: Node, player: CharacterBody3D) -> void:
 
 func _test_jump(player: CharacterBody3D) -> void:
     var start_y := player.global_position.y
+    Input.action_press(&"move_forward")
+    await _step_physics(2)
     Input.action_press(&"jump")
     await _step_physics(2)
     Input.action_release(&"jump")
-    _expect(_state(player) == &"AIRBORNE", "jump enters the airborne state")
+    Input.action_release(&"move_forward")
+    _expect(_state(player) == &"AIRBORNE", "moving Space remains a jump, never a dive-prone")
     _expect(player.velocity.y > 0.0, "jump applies upward velocity")
     await _step_physics(8)
     await _capture_pose("jump_airborne")

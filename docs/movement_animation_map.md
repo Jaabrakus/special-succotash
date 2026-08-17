@@ -9,6 +9,9 @@ The lower body remains aim-facing during ordinary strafes and backpedals. It onl
 catches up after the torso reaches the exported 42-degree twist limit, matching
 the visible chest rig so aim and footwork cannot disagree.
 
+Input actions are unambiguous: Space always jumps, including while moving; Z is
+the separate dive-to-prone action; X controls crouch; and Q toggles ordinary prone.
+
 ## Loop matrix
 
 Each standing/crouched locomotion family supports eight directions:

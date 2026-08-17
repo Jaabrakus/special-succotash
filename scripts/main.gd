@@ -91,8 +91,8 @@ func _ensure_input_map() -> void:
     _add_key_action("run", KEY_SHIFT)
     _add_key_action("jump", KEY_SPACE)
     _add_key_action("crouch", KEY_X)
-    _add_key_action("prone", KEY_Z)
-    _add_key_action("dive", KEY_Q)
+    _add_key_action("prone", KEY_Q)
+    _add_key_action("dive", KEY_Z)
     _add_key_action("roll", KEY_E)
     _add_key_action("reset_camera", KEY_R)
     _add_key_action("toggle_calibration", KEY_C)
@@ -110,10 +110,15 @@ func _ensure_input_map() -> void:
 func _add_key_action(action: StringName, keycode: Key) -> void:
     if not InputMap.has_action(action):
         InputMap.add_action(action, 0.25)
-    if InputMap.action_get_events(action).is_empty():
-        var event := InputEventKey.new()
-        event.physical_keycode = keycode
-        InputMap.action_add_event(action, event)
+    for existing_event in InputMap.action_get_events(action):
+        if (
+            existing_event is InputEventKey
+            and existing_event.physical_keycode == keycode
+        ):
+            return
+    var event := InputEventKey.new()
+    event.physical_keycode = keycode
+    InputMap.action_add_event(action, event)
 
 func _process(_delta: float) -> void:
     _update_camera_tool_input()
@@ -286,7 +291,7 @@ func _process(_delta: float) -> void:
         print("CAMERA_REPORT ", JSON.stringify(d))
     debug_label.text = (
         "SOCOM-141 CAMERA LAB\n"
-        + "WASD move | Shift run | Space jump | X crouch | Z prone | Q dive | E roll\n"
+        + "WASD move | Shift run | Space jump | X crouch | Z dive-prone | Q prone | E roll\n"
         + "Mouse orbit | R reset | H clean HUD | V camera view | P tune | F9 record | F10 replay\n"
         + "v2.4 close camera + shared crosshair target\n\n"
         + "Vertical FOV     %5.1f°\n" % d.fov
