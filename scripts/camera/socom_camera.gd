@@ -31,6 +31,7 @@ var mouse_aim_string_enabled: bool = true
 var mouse_string_debug_visible: bool = true
 var mouse_intent_yaw: float = 0.0
 var mouse_intent_pitch: float = deg_to_rad(-2.0)
+var mouse_string_deflection := Vector2.ZERO
 var initial_orbit_sync_pending: bool = true
 var current_camera_position := Vector3.ZERO
 var preferred_camera_position := Vector3.ZERO
@@ -190,7 +191,7 @@ func _unhandled_input(event: InputEvent) -> void:
     elif event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
         Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
     elif event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_M:
-        set_orbit_trail_enabled(not orbit_drag_enabled)
+        set_mouse_aim_string_enabled(not mouse_aim_string_enabled)
     elif event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_N:
         mouse_string_debug_visible = not mouse_string_debug_visible
     elif orbit_input_enabled and event is InputEventMouseButton and event.pressed:
@@ -214,6 +215,7 @@ func _physics_process(delta: float) -> void:
         pitch = aim_pitch
         mouse_intent_yaw = aim_yaw
         mouse_intent_pitch = aim_pitch
+        mouse_string_deflection = Vector2.ZERO
         mouse_cursor_deflection = Vector2.ZERO
         reset_camera_to_target()
     _follow_target_translation()
@@ -2766,15 +2768,17 @@ func get_debug_data() -> Dictionary:
         "mouse_cursor_cage_enabled": mouse_cursor_cage_enabled,
         "mouse_aim_string_enabled": mouse_aim_string_enabled,
         "mouse_string_debug_visible": mouse_string_debug_visible,
-        "mouse_string_dot_x": get_operator_alignment_screen_normalized().x,
-        "mouse_string_dot_y": get_operator_alignment_screen_normalized().y,
+        "mouse_string_dot_x": get_mouse_string_screen_normalized().x,
+        "mouse_string_dot_y": get_mouse_string_screen_normalized().y,
+        "mouse_string_x": mouse_string_deflection.x,
+        "mouse_string_y": mouse_string_deflection.y,
         "mouse_intent_yaw_deg": rad_to_deg(mouse_intent_yaw),
         "mouse_intent_pitch_deg": rad_to_deg(mouse_intent_pitch),
-        "mouse_string_yaw_stretch_deg": rad_to_deg(
-            fposmod(yaw - aim_yaw + PI, TAU) - PI
+        "mouse_string_yaw_stretch_deg": (
+            mouse_string_deflection.x * profile.mouse_string_yaw_limit_deg
         ),
-        "mouse_string_pitch_stretch_deg": rad_to_deg(
-            pitch - aim_pitch
+        "mouse_string_pitch_stretch_deg": (
+            mouse_string_deflection.y * profile.mouse_string_pitch_limit_deg
         ),
         "mouse_cursor_x": mouse_cursor_deflection.x,
         "mouse_cursor_y": mouse_cursor_deflection.y,
@@ -2883,6 +2887,7 @@ func set_mouse_aim_string_enabled(enabled: bool) -> void:
     mouse_aim_string_enabled = enabled
     mouse_intent_yaw = aim_yaw
     mouse_intent_pitch = aim_pitch
+    mouse_string_deflection = Vector2.ZERO
     if enabled:
         set_mouse_cursor_cage_enabled(false)
 
@@ -2893,56 +2898,49 @@ func _apply_raw_mouse_input(relative_motion: Vector2) -> void:
     )
 
 func _apply_mouse_aim_string_input(relative_motion: Vector2) -> void:
-    mouse_intent_yaw = wrapf(
-        mouse_intent_yaw - relative_motion.x * profile.mouse_sensitivity,
+    var extent := _mouse_string_pixel_extent()
+    mouse_string_deflection += Vector2(
+        relative_motion.x / extent.x,
+        relative_motion.y / extent.y
+    )
+    mouse_string_deflection = mouse_string_deflection.clamp(
+        -Vector2.ONE,
+        Vector2.ONE
+    )
+
+func _update_mouse_aim_string(delta: float) -> void:
+    var turn := Vector2(
+        _mouse_string_axis(mouse_string_deflection.x),
+        _mouse_string_axis(mouse_string_deflection.y)
+    )
+    var dt := clampf(delta, 0.0, 0.05)
+    aim_yaw = wrapf(
+        aim_yaw - deg_to_rad(profile.mouse_string_yaw_speed_deg) * turn.x * dt,
         -PI,
         PI
     )
-    mouse_intent_pitch = clampf(
-        mouse_intent_pitch - relative_motion.y * profile.mouse_sensitivity,
+    aim_pitch = clampf(
+        aim_pitch - deg_to_rad(profile.mouse_string_pitch_speed_deg) * turn.y * dt,
         deg_to_rad(profile.pitch_min_deg),
         deg_to_rad(profile.pitch_max_deg)
     )
+    # These fields remain the replicated authoritative aim, not a second
+    # hidden cursor. Mouse ownership lives only in mouse_string_deflection.
+    mouse_intent_yaw = aim_yaw
+    mouse_intent_pitch = aim_pitch
 
-    # Once the string is taut, excess mouse motion carries the visible aim.
-    # This keeps a fast flick fast while retaining only a short elastic tail.
-    var yaw_limit := deg_to_rad(profile.mouse_string_yaw_limit_deg)
-    var yaw_stretch := fposmod(mouse_intent_yaw - aim_yaw + PI, TAU) - PI
-    if absf(yaw_stretch) > yaw_limit:
-        aim_yaw = wrapf(
-            mouse_intent_yaw - signf(yaw_stretch) * yaw_limit,
-            -PI,
-            PI
-        )
-
-    var pitch_limit := deg_to_rad(profile.mouse_string_pitch_limit_deg)
-    var pitch_stretch := mouse_intent_pitch - aim_pitch
-    if absf(pitch_stretch) > pitch_limit:
-        aim_pitch = clampf(
-            mouse_intent_pitch - signf(pitch_stretch) * pitch_limit,
-            deg_to_rad(profile.pitch_min_deg),
-            deg_to_rad(profile.pitch_max_deg)
-        )
-
-func _update_mouse_aim_string(delta: float) -> void:
-    var dt := clampf(delta, 0.0, 0.05)
-    aim_yaw = _damp_angle(
-        aim_yaw,
-        mouse_intent_yaw,
-        profile.mouse_string_yaw_response,
-        dt
+func _mouse_string_axis(value: float) -> float:
+    var magnitude := absf(value)
+    if magnitude <= profile.mouse_string_deadzone:
+        return 0.0
+    var normalized := inverse_lerp(
+        profile.mouse_string_deadzone,
+        1.0,
+        magnitude
     )
-    aim_pitch = _damp(
-        aim_pitch,
-        mouse_intent_pitch,
-        profile.mouse_string_pitch_response,
-        dt
-    )
+    return signf(value) * pow(normalized, profile.mouse_string_turn_curve)
 
-func get_mouse_string_screen_normalized() -> Vector2:
-    return get_operator_alignment_screen_normalized()
-
-func get_operator_alignment_screen_normalized() -> Vector2:
+func _mouse_string_pixel_extent() -> Vector2:
     var viewport_size := get_viewport().get_visible_rect().size
     var aspect := viewport_size.x / maxf(viewport_size.y, 1.0)
     var vertical_fov := deg_to_rad(
@@ -2950,29 +2948,46 @@ func get_operator_alignment_screen_normalized() -> Vector2:
     )
     var vertical_half := maxf(vertical_fov * 0.5, 0.001)
     var horizontal_half := atan(tan(vertical_half) * aspect)
-    # The marker shows the presentation/body orientation that is still
-    # catching the immediate, authoritative aim. Clamp only the drawing; the
-    # actual boom and torso continue following their normal dynamics.
-    var yaw_limit := deg_to_rad(profile.mouse_string_yaw_limit_deg)
-    var pitch_limit := deg_to_rad(profile.mouse_string_pitch_limit_deg)
-    var yaw_stretch := clampf(
-        fposmod(yaw - aim_yaw + PI, TAU) - PI,
-        -yaw_limit,
-        yaw_limit
+    return Vector2(
+        maxf(
+            viewport_size.x * 0.5
+            * tan(deg_to_rad(profile.mouse_string_yaw_limit_deg))
+            / maxf(tan(horizontal_half), 0.001),
+            1.0
+        ),
+        maxf(
+            viewport_size.y * 0.5
+            * tan(deg_to_rad(profile.mouse_string_pitch_limit_deg))
+            / maxf(tan(vertical_half), 0.001),
+            1.0
+        )
     )
-    var pitch_stretch := clampf(
-        pitch - aim_pitch,
-        -pitch_limit,
-        pitch_limit
+
+func get_mouse_string_screen_normalized() -> Vector2:
+    var viewport_size := get_viewport().get_visible_rect().size
+    var aspect := viewport_size.x / maxf(viewport_size.y, 1.0)
+    var vertical_fov := deg_to_rad(
+        camera.fov if camera != null else profile.vertical_fov
     )
+    var vertical_half := maxf(vertical_fov * 0.5, 0.001)
+    var horizontal_half := atan(tan(vertical_half) * aspect)
     var screen_offset := Vector2(
-        -tan(yaw_stretch) / maxf(tan(horizontal_half), 0.001),
-        -tan(pitch_stretch) / maxf(tan(vertical_half), 0.001)
+        tan(
+            deg_to_rad(profile.mouse_string_yaw_limit_deg)
+            * mouse_string_deflection.x
+        ) / maxf(tan(horizontal_half), 0.001),
+        tan(
+            deg_to_rad(profile.mouse_string_pitch_limit_deg)
+            * mouse_string_deflection.y
+        ) / maxf(tan(vertical_half), 0.001)
     ) * 0.5
     return (Vector2(0.5, 0.5) + screen_offset).clamp(
         Vector2.ZERO,
         Vector2.ONE
     )
+
+func get_operator_alignment_screen_normalized() -> Vector2:
+    return get_mouse_string_screen_normalized()
 
 func _update_orbit_trail(delta: float, scoped_view: bool) -> void:
     var dt := clampf(delta, 0.0, 0.05)

@@ -12,53 +12,65 @@ func _run() -> void:
     root.add_child(camera)
     await process_frame
 
-    _expect(not camera.profile.mouse_aim_string_enabled, "raw mouse is the default aim mode")
+    _expect(camera.profile.mouse_aim_string_enabled, "mouse-owned blue input is the default aim mode")
     _expect(not camera.profile.mouse_cursor_cage_enabled, "moving-reticle cage is not the default")
     camera.set_aim_angles(0.0, 0.0, true)
+    camera.set_mouse_aim_string_enabled(true)
 
-    var motion := Vector2(25.0, -10.0)
-    var expected_yaw: float = -motion.x * camera.profile.mouse_sensitivity
-    var expected_pitch: float = -motion.y * camera.profile.mouse_sensitivity
-    camera._apply_raw_mouse_input(motion)
+    var initial_aim := Vector2(camera.aim_yaw, camera.aim_pitch)
+    var extent: Vector2 = camera._mouse_string_pixel_extent()
+    camera._apply_mouse_aim_string_input(Vector2(extent.x * 0.6, -extent.y * 0.5))
+    var endpoint: Vector2 = camera.get_mouse_string_screen_normalized()
     _expect(
-        absf(_signed_angle(camera.aim_yaw, expected_yaw)) < 0.000001,
-        "raw mouse updates authoritative yaw immediately"
+        endpoint.x > 0.5 and endpoint.y < 0.5,
+        "mouse moves the blue input before it moves the centered aim"
     )
     _expect(
-        absf(camera.aim_pitch - expected_pitch) < 0.000001,
-        "raw mouse updates authoritative pitch immediately"
+        absf(_signed_angle(camera.aim_yaw, initial_aim.x)) < 0.000001
+        and absf(camera.aim_pitch - initial_aim.y) < 0.000001,
+        "moving the blue input does not teleport the authoritative aim"
     )
+    camera._update_mouse_aim_string(1.0 / 60.0)
     _expect(
-        absf(_signed_angle(camera.mouse_intent_yaw, camera.aim_yaw)) < 0.000001,
-        "raw mouse leaves no pending hidden yaw"
+        camera.aim_yaw < initial_aim.x and camera.aim_pitch > initial_aim.y,
+        "centered aim turns toward the mouse-owned blue input"
     )
     _expect(
         camera.reticle_screen_normalized.is_equal_approx(Vector2(0.5, 0.5)),
-        "visible reticle remains centered"
+        "white shot reticle remains centered"
     )
 
-    camera.set_aim_angles(0.0, 0.0, true)
-    camera.set_aim_angles(deg_to_rad(-20.0), deg_to_rad(10.0))
+    var held_deflection: Vector2 = camera.mouse_string_deflection
+    var aim_after_first_turn: float = camera.aim_yaw
+    for _frame in range(30):
+        camera._update_mouse_aim_string(1.0 / 60.0)
     _expect(
-        camera._forward_direction().angle_to(_direction(camera.aim_yaw, camera.aim_pitch)) < 0.0001,
-        "reticle and shot direction use immediate aim"
+        camera.mouse_string_deflection.is_equal_approx(held_deflection),
+        "camera movement never pulls the blue input back to center"
     )
-    var endpoint: Vector2 = camera.get_operator_alignment_screen_normalized()
-    _expect(endpoint.x < 0.5, "trailing body marker stays behind a rightward turn")
-    _expect(endpoint.y > 0.5, "trailing body marker stays below an upward turn")
+    _expect(
+        camera.aim_yaw < aim_after_first_turn,
+        "holding blue away from center continuously turns the camera"
+    )
 
-    var fixed_aim_yaw: float = camera.aim_yaw
-    var fixed_aim_pitch: float = camera.aim_pitch
-    for _frame in range(60):
-        camera._update_orbit_trail(1.0 / 60.0, false)
+    camera.mouse_string_deflection = Vector2.ZERO
+    var stopped_aim := Vector2(camera.aim_yaw, camera.aim_pitch)
+    camera._update_mouse_aim_string(1.0 / 30.0)
     _expect(
-        absf(_signed_angle(camera.aim_yaw, fixed_aim_yaw)) < 0.000001
-        and absf(camera.aim_pitch - fixed_aim_pitch) < 0.000001,
-        "presentation follow never moves aim after the mouse stops"
+        absf(_signed_angle(camera.aim_yaw, stopped_aim.x)) < 0.000001
+        and absf(camera.aim_pitch - stopped_aim.y) < 0.000001,
+        "returning blue to center stops the turn"
     )
+
+    camera._apply_mouse_aim_string_input(extent * 10.0)
     _expect(
-        camera.get_operator_alignment_screen_normalized().distance_to(Vector2(0.5, 0.5)) < 0.001,
-        "blue body marker settles onto the centered reticle"
+        camera.mouse_string_deflection.is_equal_approx(Vector2.ONE),
+        "blue input is safely clamped to its visible range"
+    )
+    camera.set_mouse_aim_string_enabled(false)
+    _expect(
+        camera.mouse_string_deflection.is_zero_approx(),
+        "switching to raw mouse clears pending virtual-stick input"
     )
 
     camera.queue_free()
@@ -67,12 +79,6 @@ func _run() -> void:
 
 func _signed_angle(from: float, to: float) -> float:
     return fposmod(to - from + PI, TAU) - PI
-
-func _direction(yaw: float, pitch: float) -> Vector3:
-    var yaw_basis := Basis(Vector3.UP, yaw)
-    var forward := yaw_basis * Vector3.FORWARD
-    var right := yaw_basis * Vector3.RIGHT
-    return (Basis(right, pitch) * forward).normalized()
 
 func _expect(condition: bool, label: String) -> void:
     if condition:
