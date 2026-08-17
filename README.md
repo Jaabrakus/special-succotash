@@ -495,8 +495,8 @@ This is intentionally a calibration rig, not final character art or final animat
 - Independent camera entity; it is not parented to the player
 - Elevated trailing observer position
 - Forward-biased tactical viewing cone
-- Optional hidden mouse cursor cage: the crosshair remains centered while the
-  background cursor produces joystick-like camera turn in the cage's outer band
+- Optional viewport cursor container: the crosshair follows normal mouse motion
+  across the game screen and produces continuous camera turn at the outer edge
 - Raw centered mouse fallback
 - Standard weapons retain one tactical camera; tighter response is reserved
   for a future explicit sniper/scope mode
@@ -516,7 +516,7 @@ This is intentionally a calibration rig, not final character art or final animat
 3. Run the project.
 4. `WASD` move.
 5. `Shift` run.
-6. Mouse moves invisibly inside the center cage; its outer band turns the camera while the crosshair stays centered.
+6. Mouse moves the crosshair normally across the game screen; holding it in the outer edge band turns the camera continuously.
 7. `R` resets the camera.
 8. `M` toggles between the cursor cage and raw centered mouse control.
 9. `C` toggles the SOCOM reference calibration overlay.
