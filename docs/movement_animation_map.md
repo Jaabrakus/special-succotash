@@ -5,6 +5,10 @@ select animation files. `SocomOperatorAnimationDriver` converts that intent into
 logical animation slot, and `default_animation_profile.tres` maps the slot to an
 imported or replacement clip.
 
+The lower body remains aim-facing during ordinary strafes and backpedals. It only
+catches up after the torso reaches the exported 42-degree twist limit, matching
+the visible chest rig so aim and footwork cannot disagree.
+
 ## Loop matrix
 
 Each standing/crouched locomotion family supports eight directions:

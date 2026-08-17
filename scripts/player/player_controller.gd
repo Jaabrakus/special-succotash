@@ -11,7 +11,7 @@ const OperatorOrientationController := preload("res://scripts/player/operator_or
 
 @export_group("Locomotion orientation")
 @export_range(1.0, 30.0, 0.5) var idle_turn_response: float = 9.0
-@export_range(20.0, 85.0, 1.0) var torso_turn_in_place_limit_deg: float = 52.0
+@export_range(20.0, 85.0, 1.0) var torso_turn_in_place_limit_deg: float = 42.0
 
 @export_group("Tactical mobility")
 @export var crouch_speed: float = 2.6
