@@ -18,13 +18,17 @@ func _run() -> void:
     camera.mouse_cursor_deflection = Vector2(0.40, -0.30)
     camera._update_reticle_position(0.0)
     _expect(
-        camera.reticle_screen_normalized.is_equal_approx(
+        camera.get_mouse_cursor_screen_normalized().is_equal_approx(
             Vector2(0.5, 0.5) + Vector2(
                 0.40 * camera.profile.mouse_cage_half_width,
                 -0.30 * camera.profile.mouse_cage_half_height
             )
         ),
-        "visible reticle mirrors hidden cursor inside cage"
+        "hidden cursor moves inside the background cage"
+    )
+    _expect(
+        camera.reticle_screen_normalized.is_equal_approx(Vector2(0.5, 0.5)),
+        "visible crosshair remains centered while hidden cursor moves"
     )
 
     var center_yaw: float = camera.aim_yaw
@@ -56,7 +60,7 @@ func _run() -> void:
     camera.set_mouse_cursor_cage_enabled(false)
     _expect(
         camera.reticle_screen_normalized.is_equal_approx(Vector2(0.5, 0.5)),
-        "raw-mouse fallback restores centered reticle"
+        "raw-mouse fallback retains centered reticle"
     )
 
     camera.queue_free()
@@ -86,11 +90,11 @@ func _check_camera_lab_contract() -> void:
     var data: Dictionary = camera.get_debug_data()
     _expect(
         absf(float(data.aim_screen_x) - float(data.reticle_x)) < 0.005,
-        "weapon target projects onto displaced reticle X"
+        "weapon target projects onto centered reticle X"
     )
     _expect(
         absf(float(data.aim_screen_y) - float(data.reticle_y)) < 0.005,
-        "weapon target projects onto displaced reticle Y"
+        "weapon target projects onto centered reticle Y"
     )
 
     var payload: Dictionary = camera.build_local_aim_intent()
@@ -100,7 +104,7 @@ func _check_camera_lab_contract() -> void:
         -1,
         Engine.get_physics_frames()
     )
-    _expect(bool(validation.accepted), "server accepts displaced reticle aim intent")
+    _expect(bool(validation.accepted), "server accepts centered reticle aim intent")
     _expect(
         not payload.has("camera_position") and not payload.has("mouse_cursor_deflection"),
         "cursor cage and camera placement remain client-local"
