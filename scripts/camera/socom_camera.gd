@@ -2624,17 +2624,13 @@ func build_local_aim_intent() -> Dictionary:
     )
 
 func _update_reticle_position(_delta: float) -> void:
-    # The reticle mirrors a hidden cursor trapped in a small center cage. Camera
-    # collision never writes this state; only mouse input can move it.
-    if not mouse_cursor_cage_enabled:
-        reticle_dynamic_amount = 0.0
-        reticle_screen_normalized = Vector2(0.5, 0.5)
-        return
-    reticle_dynamic_amount = maxf(
-        absf(mouse_cursor_deflection.x),
-        absf(mouse_cursor_deflection.y)
-    )
-    reticle_screen_normalized = Vector2(0.5, 0.5) + Vector2(
+    # The cursor cage is an invisible background input device. Its position may
+    # turn the camera, but the SOCOM reticle and weapon ray remain centered.
+    reticle_dynamic_amount = 0.0
+    reticle_screen_normalized = Vector2(0.5, 0.5)
+
+func get_mouse_cursor_screen_normalized() -> Vector2:
+    return Vector2(0.5, 0.5) + Vector2(
         mouse_cursor_deflection.x * profile.mouse_cage_half_width,
         mouse_cursor_deflection.y * profile.mouse_cage_half_height
     )
