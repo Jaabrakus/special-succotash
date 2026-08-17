@@ -18,8 +18,7 @@ func _run() -> void:
     camera.set_mouse_aim_string_enabled(true)
 
     var initial_aim := Vector2(camera.aim_yaw, camera.aim_pitch)
-    var extent: Vector2 = camera._mouse_string_pixel_extent()
-    camera._apply_mouse_aim_string_input(Vector2(extent.x * 0.6, -extent.y * 0.5))
+    camera._apply_mouse_aim_string_input(Vector2(25.0, -10.0))
     var endpoint: Vector2 = camera.get_mouse_string_screen_normalized()
     _expect(
         endpoint.x > 0.5 and endpoint.y < 0.5,
@@ -40,37 +39,43 @@ func _run() -> void:
         "white shot reticle remains centered"
     )
 
-    var held_deflection: Vector2 = camera.mouse_string_deflection
-    var aim_after_first_turn: float = camera.aim_yaw
+    var first_distance: float = endpoint.distance_to(Vector2(0.5, 0.5))
+    camera._update_mouse_aim_string(1.0 / 60.0)
+    var caught_distance: float = (
+        camera.get_mouse_string_screen_normalized().distance_to(Vector2(0.5, 0.5))
+    )
+    _expect(
+        caught_distance < first_distance,
+        "centered aim closes the finite distance to the blue target"
+    )
+
+    for _frame in range(90):
+        camera._update_mouse_aim_string(1.0 / 60.0)
+    _expect(
+        camera.get_mouse_string_screen_normalized().distance_to(Vector2(0.5, 0.5)) < 0.001,
+        "blue target returns to center after the aim catches it"
+    )
+    var caught_aim := Vector2(camera.aim_yaw, camera.aim_pitch)
     for _frame in range(30):
         camera._update_mouse_aim_string(1.0 / 60.0)
     _expect(
-        camera.mouse_string_deflection.is_equal_approx(held_deflection),
-        "camera movement never pulls the blue input back to center"
-    )
-    _expect(
-        camera.aim_yaw < aim_after_first_turn,
-        "holding blue away from center continuously turns the camera"
+        absf(_signed_angle(camera.aim_yaw, caught_aim.x)) < 0.000001
+        and absf(camera.aim_pitch - caught_aim.y) < 0.000001,
+        "camera stops automatically after catching the finite target"
     )
 
-    camera.mouse_string_deflection = Vector2.ZERO
-    var stopped_aim := Vector2(camera.aim_yaw, camera.aim_pitch)
-    camera._update_mouse_aim_string(1.0 / 30.0)
+    var settled_endpoint := camera.get_mouse_string_screen_normalized()
+    camera._update_orbit_trail(1.0 / 30.0, false)
     _expect(
-        absf(_signed_angle(camera.aim_yaw, stopped_aim.x)) < 0.000001
-        and absf(camera.aim_pitch - stopped_aim.y) < 0.000001,
-        "returning blue to center stops the turn"
+        camera.get_mouse_string_screen_normalized().distance_to(settled_endpoint) < 0.000001,
+        "presentation camera follow does not own or reverse the blue target"
     )
 
-    camera._apply_mouse_aim_string_input(extent * 10.0)
-    _expect(
-        camera.mouse_string_deflection.is_equal_approx(Vector2.ONE),
-        "blue input is safely clamped to its visible range"
-    )
     camera.set_mouse_aim_string_enabled(false)
     _expect(
-        camera.mouse_string_deflection.is_zero_approx(),
-        "switching to raw mouse clears pending virtual-stick input"
+        absf(_signed_angle(camera.mouse_intent_yaw, camera.aim_yaw)) < 0.000001
+        and absf(camera.mouse_intent_pitch - camera.aim_pitch) < 0.000001,
+        "switching to raw mouse clears pending blue target"
     )
 
     camera.queue_free()
