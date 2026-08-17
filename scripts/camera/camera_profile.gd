@@ -25,13 +25,13 @@ extends Resource
 
 @export_group("Mouse Cursor Cage")
 @export var mouse_cursor_cage_enabled: bool = true
-@export_range(0.02, 0.25, 0.001) var mouse_cage_half_width: float = 0.18
-@export_range(0.02, 0.25, 0.001) var mouse_cage_half_height: float = 0.14
-@export_range(0.10, 0.95, 0.01) var mouse_edge_turn_start: float = 0.72
+@export_range(0.25, 0.495, 0.001) var mouse_cage_half_width: float = 0.48
+@export_range(0.25, 0.495, 0.001) var mouse_cage_half_height: float = 0.46
+@export_range(0.50, 0.98, 0.01) var mouse_edge_turn_start: float = 0.88
 @export var mouse_edge_yaw_speed_deg: float = 210.0
 @export var mouse_edge_pitch_speed_deg: float = 135.0
 @export_range(0.5, 3.0, 0.05) var mouse_edge_turn_curve: float = 1.35
-@export_range(0.0, 1.0, 0.01) var mouse_cage_guide_opacity: float = 0.22
+@export_range(0.0, 1.0, 0.01) var mouse_cage_guide_opacity: float = 0.14
 
 @export_group("Downward Aim Authority")
 @export var downward_aim_start_deg: float = -18.0
