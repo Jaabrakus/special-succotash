@@ -2656,15 +2656,11 @@ func build_local_aim_intent() -> Dictionary:
     )
 
 func _update_reticle_position(_delta: float) -> void:
-    # The game viewport is the mouse container. Crosshair motion remains normal
-    # through its interior; only the thin outer band produces continuous turn.
-    # Camera collision never writes this input-owned position.
+    # The shot reticle is authoritative and permanently centered. Mouse input
+    # moves only the transient blue indicator; camera collision owns neither.
     if mouse_aim_string_enabled:
-        reticle_dynamic_amount = maxf(
-            absf(mouse_aim_model.reticle_deflection.x),
-            absf(mouse_aim_model.reticle_deflection.y)
-        )
-        reticle_screen_normalized = mouse_aim_model.reticle_screen_normalized(profile)
+        reticle_dynamic_amount = 0.0
+        reticle_screen_normalized = Vector2(0.5, 0.5)
         return
     if not mouse_cursor_cage_enabled:
         reticle_dynamic_amount = 0.0
@@ -2743,12 +2739,11 @@ func _apply_mouse_aim_string_input(relative_motion: Vector2) -> void:
 
 func _update_mouse_aim_string(delta: float) -> void:
     var viewport_size := get_viewport().get_visible_rect().size
-    mouse_aim_model.update_reticle(
+    mouse_edge_turn = mouse_aim_model.update_turn(
         delta,
         viewport_size,
         profile
     )
-    mouse_edge_turn = mouse_aim_model.edge_turn(profile)
     var dt := clampf(delta, 0.0, 0.05)
     aim_yaw = wrapf(
         aim_yaw
