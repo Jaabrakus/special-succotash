@@ -106,6 +106,8 @@ var camera_tether_rebased: bool = false
 var composition_recovery_active: bool = false
 var composition_hard_rebase: bool = false
 var composition_hard_rebase_count: int = 0
+var target_translation_blocked: bool = false
+var physical_recovery_state: String = "idle"
 var virtual_wall_occluder: Node3D
 var virtual_wall_original_layers: Dictionary = {}
 
@@ -302,6 +304,15 @@ func _physics_process(delta: float) -> void:
 
     excursion = collision_camera_position - preferred_camera_position
 
+    # A side strafe can block the old camera's world-space translation even
+    # though this frame has already solved a new legal player-relative shot.
+    # Seed presentation from that fresh result so the camera cannot remain on
+    # the wall while the player walks away. The final local speed limit below
+    # still makes the visible correction bounded whenever a legal route exists.
+    if target_translation_blocked:
+        current_camera_position = collision_camera_position
+        transition_crop_active = false
+
     var movement_response: float = lerpf(
         profile.normal_return_response,
         profile.movement_camera_response,
@@ -345,7 +356,11 @@ func _physics_process(delta: float) -> void:
             current_camera_position - rendered_frame_start
         )
         var rendered_maximum_step: float = (
-            profile.wall_branch_max_linear_speed * delta
+            (
+                profile.wall_branch_max_linear_speed
+                if collision_active
+                else profile.composition_recovery_speed
+            ) * delta
         )
         if rendered_motion.length() > rendered_maximum_step:
             var rendered_exclude: Array[RID] = []
@@ -358,12 +373,33 @@ func _physics_process(delta: float) -> void:
                 rendered_exclude
             )
 
+    camera_tether_rebased = false
+    # Fairness beats continuity when no continuous branch exists. Never leave
+    # the operator off-screen for multiple frames and never render a boom that
+    # crosses solid geometry. Both fallbacks use this frame's physical solve;
+    # outward release remains smoothed by the ordinary path above.
+    var final_exclude: Array[RID] = []
+    if target is CollisionObject3D:
+        final_exclude.append((target as CollisionObject3D).get_rid())
+    var final_anchor: Vector3 = (
+        target.global_position
+        + Vector3.UP * float(profile.collision_anchor_height)
+    )
+    var final_boom_cast := _cast_camera_volume(
+        final_anchor,
+        current_camera_position,
+        final_exclude
+    )
+    if float(final_boom_cast.safe_fraction) < 0.999:
+        current_camera_position = collision_camera_position
+        transition_crop_active = false
+        camera_tether_rebased = true
+
     # A rendered lens can never remain at an obsolete world-space wall point
     # after the player has left. Normal motion is handled by the translation
     # follower above; this tether is the spawn/teleport and impossible-route
     # invariant. A fresh collision solve is always safer than a multi-second
     # stale camera hold.
-    camera_tether_rebased = false
     if (
         current_camera_position.distance_to(target.global_position)
         > profile.max_rendered_target_distance
@@ -400,6 +436,8 @@ func reset_camera_to_target() -> void:
     surface_slide_active = false
     near_body_crop_active = false
     transition_crop_active = false
+    target_translation_blocked = false
+    composition_hard_rebase_count = 0
     camera_state = CameraState.PREFERRED
     camera_state_age = 0.0
     previous_target_position = target.global_position if target else Vector3.ZERO
@@ -412,6 +450,7 @@ func _enforce_rendered_composition(
 ) -> Vector3:
     composition_recovery_active = false
     composition_hard_rebase = false
+    physical_recovery_state = "idle"
     var rendered_projection := _subject_projection(rendered_position)
     var rendered_visible: bool = bool(rendered_projection.visible)
     var rendered_error: float = INF
@@ -422,14 +461,10 @@ func _enforce_rendered_composition(
     if rendered_error <= profile.rendered_head_soft_limit_x:
         return rendered_position
 
+    # Recovery may only target the collision solver's physical endpoint. The
+    # former virtual endpoint could sit beyond a wall and required hiding that
+    # wall to make the shot appear valid.
     var recovery_position := legal_position
-    if collision_active and virtual_camera_position != Vector3.ZERO:
-        var virtual_projection := _subject_projection(
-            virtual_camera_position,
-            true
-        )
-        if bool(virtual_projection.visible):
-            recovery_position = virtual_camera_position
     var legal_projection := _subject_projection(recovery_position, true)
     if not bool(legal_projection.visible):
         return rendered_position
@@ -454,7 +489,7 @@ func _enforce_rendered_composition(
     ):
         composition_hard_rebase = true
         composition_hard_rebase_count += 1
-        var local_recovery := _advance_local_lens_toward(
+        var local_recovery := _physical_branch_recovery(
             rendered_position,
             recovery_position,
             profile.wall_branch_max_linear_speed * delta,
@@ -462,53 +497,204 @@ func _enforce_rendered_composition(
         )
         if local_recovery != rendered_position:
             return local_recovery
-        # There is no continuous physical route when the desired orbit crosses
-        # the wall plane itself. Continue the post-solved virtual lens through
-        # that infinitesimal transition instead of freezing input or cutting to
-        # the far branch. Rendering/visibility policy owns the occluder; weapon
-        # and multiplayer authority remain tied to the player-side rays.
-        return _virtual_composition_step(
-            rendered_position,
-            recovery_position,
-            profile.wall_branch_max_linear_speed * delta
-        )
+        return recovery_position
 
-    # Begin the virtual crossing at the soft guard, before the operator reaches
-    # the edge. A topological wall crossing can briefly move sideways before it
-    # improves projection, so requiring every intermediate step to score better
-    # recreates the freeze.
-    return _virtual_composition_step(
+    # At the soft guard, take only a volume-validated local step toward the
+    # legal physical shot.
+    return _physical_branch_recovery(
         rendered_position,
         recovery_position,
-        profile.composition_recovery_speed * delta
+        profile.composition_recovery_speed * delta,
+        exclude
     )
 
-func _virtual_composition_step(
+func _physical_branch_recovery(
     from_position: Vector3,
     destination: Vector3,
-    maximum_step: float
+    maximum_step: float,
+    exclude: Array[RID]
 ) -> Vector3:
-    # A straight chord between a compressed wall lens and the preferred boom
-    # can be too close and too high midway through the crossing. Clear the wall
-    # plane at the already readable height first, then settle vertically once
-    # the preferred horizontal boom is close.
-    var horizontal_destination := Vector3(
-        destination.x,
-        from_position.y,
-        destination.z
+    # A solid wall can separate two otherwise legal orbit endpoints. The
+    # physical route is the classic spring-arm route: retract on the current
+    # player ray, rotate while close, then let normal release extend the boom.
+    # Starting this at the soft composition guard prevents both the stale-wall
+    # hold and an emergency opposite-branch cut.
+    var anchor: Vector3 = (
+        target.global_position
+        + Vector3.UP * float(profile.collision_anchor_height)
     )
-    var horizontal_distance := Vector2(
-        destination.x - from_position.x,
-        destination.z - from_position.z
-    ).length()
-    if horizontal_distance > profile.wall_branch_transition_distance:
-        return from_position.move_toward(
-            horizontal_destination,
-            maximum_step
+    var current_offset: Vector3 = from_position - anchor
+    var destination_offset: Vector3 = destination - anchor
+    var current_length: float = current_offset.length()
+    var destination_length: float = destination_offset.length()
+    if current_length < 0.001 or destination_length < 0.001:
+        return destination
+
+    var current_direction: Vector3 = current_offset / current_length
+    var destination_direction: Vector3 = destination_offset / destination_length
+    var branch_angle: float = current_direction.angle_to(destination_direction)
+    var close_length: float = (
+        profile.min_camera_target_distance
+        + profile.camera_collision_radius
+        + profile.collision_margin
+    )
+    var candidate := from_position
+    if branch_angle > deg_to_rad(8.0) and current_length > close_length + 0.01:
+        physical_recovery_state = "RETRACT"
+        candidate = anchor + current_direction * maxf(
+            close_length,
+            current_length - maximum_step
         )
-    return from_position.move_toward(destination, maximum_step)
+    elif branch_angle > deg_to_rad(0.5):
+        physical_recovery_state = "ROTATE"
+        var angular_step: float = minf(
+            branch_angle,
+            deg_to_rad(profile.wall_branch_max_angular_speed_deg)
+                * get_process_delta_time()
+        )
+        var rotated_direction := current_direction.slerp(
+            destination_direction,
+            angular_step / maxf(branch_angle, 0.0001)
+        ).normalized()
+        candidate = anchor + rotated_direction * minf(
+            current_length,
+            close_length
+        )
+    else:
+        return _advance_local_lens_toward(
+            from_position,
+            destination,
+            maximum_step,
+            exclude
+        )
+
+    var anchor_cast := _cast_camera_volume(anchor, candidate, exclude)
+    var local_cast := _cast_camera_volume(from_position, candidate, exclude)
+    if (
+        float(anchor_cast.safe_fraction) >= 0.999
+        and float(local_cast.safe_fraction) >= 0.999
+        and _candidate_has_subject_clearance(candidate)
+    ):
+        return candidate
+
+    var candidate_projection := _subject_projection(candidate)
+    var candidate_head_distance: float = candidate.distance_to(
+        head_marker.global_position
+    )
+    if (
+        physical_recovery_state == "RETRACT"
+        and float(anchor_cast.safe_fraction) >= 0.999
+        and float(local_cast.safe_fraction) >= 0.999
+        and bool(candidate_projection.visible)
+        and float(candidate_projection.x) >= 0.05
+        and float(candidate_projection.x) <= 0.95
+        and float(candidate_projection.y) >= 0.02
+        and float(candidate_projection.y) <= 1.02
+        and candidate_head_distance >= 0.70
+    ):
+        physical_recovery_state = "RETRACT CLOSE"
+        return candidate
+
+    # The current wall shot can already be inside the nominal head-clearance
+    # radius. Retracting farther would make that worse. First rotate at the
+    # current radius; this often increases clearance without changing zoom.
+    var recovery_angle_step: float = minf(
+        branch_angle,
+        maximum_step / maxf(current_length, 0.001)
+    )
+    var recovery_direction := current_direction.slerp(
+        destination_direction,
+        recovery_angle_step / maxf(branch_angle, 0.0001)
+    ).normalized()
+    var rotate_candidate := anchor + recovery_direction * current_length
+    var rotate_anchor_cast := _cast_camera_volume(
+        anchor,
+        rotate_candidate,
+        exclude
+    )
+    var rotate_local_cast := _cast_camera_volume(
+        from_position,
+        rotate_candidate,
+        exclude
+    )
+    var current_head_distance: float = from_position.distance_to(
+        head_marker.global_position
+    )
+    var current_projection := _subject_projection(from_position)
+    var rotate_projection := _subject_projection(rotate_candidate)
+    var current_projection_error: float = (
+        absf(float(current_projection.x) - current_head_target_x)
+        if bool(current_projection.visible)
+        else INF
+    )
+    var rotate_projection_error: float = (
+        absf(float(rotate_projection.x) - current_head_target_x)
+        if bool(rotate_projection.visible)
+        else INF
+    )
+    if (
+        float(rotate_anchor_cast.safe_fraction) >= 0.999
+        and float(rotate_local_cast.safe_fraction) >= 0.999
+        and bool(rotate_projection.visible)
+        and float(rotate_projection.x) >= 0.05
+        and float(rotate_projection.x) <= 0.95
+        and float(rotate_projection.y) >= 0.02
+        and float(rotate_projection.y) <= 1.02
+        and (
+            _candidate_has_subject_clearance(rotate_candidate)
+            or rotate_projection_error
+                < current_projection_error - 0.0001
+        )
+    ):
+        physical_recovery_state = "ROTATE WIDE"
+        return rotate_candidate
+
+    # If the arc is blocked, rise locally on the same player side until the
+    # clearance opens. Never spend vertical composition past the frame guard.
+    var maximum_height: float = (
+        target.global_position.y + profile.close_wall_crane_max_height
+    )
+    var lift_candidate := from_position + Vector3.UP * maximum_step
+    lift_candidate.y = minf(lift_candidate.y, maximum_height)
+    var lift_anchor_cast := _cast_camera_volume(anchor, lift_candidate, exclude)
+    var lift_local_cast := _cast_camera_volume(
+        from_position,
+        lift_candidate,
+        exclude
+    )
+    var lift_head_distance: float = lift_candidate.distance_to(
+        head_marker.global_position
+    )
+    var lift_projection := _subject_projection(lift_candidate)
+    if (
+        lift_candidate != from_position
+        and float(lift_anchor_cast.safe_fraction) >= 0.999
+        and float(lift_local_cast.safe_fraction) >= 0.999
+        and _projection_is_reframeable(lift_projection)
+        and (
+            _candidate_has_subject_clearance(lift_candidate)
+            or lift_head_distance > current_head_distance + 0.001
+        )
+    ):
+        physical_recovery_state = "LIFT"
+        return lift_candidate
+    physical_recovery_state = "BLOCKED rotcast %.2f/%.2f rot %.2f,%.2f err %.2f>%.2f" % [
+        float(rotate_anchor_cast.safe_fraction),
+        float(rotate_local_cast.safe_fraction),
+        float(rotate_projection.x),
+        float(rotate_projection.y),
+        rotate_projection_error,
+        current_projection_error
+    ]
+    return _advance_local_lens_toward(
+        from_position,
+        destination,
+        maximum_step,
+        exclude
+    )
 
 func _follow_target_translation() -> void:
+    target_translation_blocked = false
     var target_position := target.global_position
     if not target_position_initialized:
         previous_target_position = target_position
@@ -540,21 +726,16 @@ func _follow_target_translation() -> void:
         0.0,
         1.0
     )
+    target_translation_blocked = float(translation_cast.safe_fraction) < 0.999
     current_camera_position += applied_motion
     if last_readable_post_solve_position != Vector3.ZERO:
         last_readable_post_solve_position += applied_motion
 
 func _update_virtual_wall_occluder() -> void:
-    if target == null or current_camera_position == Vector3.ZERO:
-        _set_virtual_wall_occluder(null)
-        return
-    var virtual_separation := current_camera_position.distance_to(
-        collision_camera_position
-    )
-    if not collision_active or virtual_separation < 0.20:
-        _set_virtual_wall_occluder(null)
-        return
-    _set_virtual_wall_occluder(collision_blocker_node)
+    # Solid world geometry always remains visible. Camera recovery is physical
+    # now, so concealing the blocker would only reveal unfair information from
+    # rooms or buildings behind it.
+    _set_virtual_wall_occluder(null)
 
 func _set_virtual_wall_occluder(blocker: Node3D) -> void:
     if blocker == virtual_wall_occluder:
@@ -1011,9 +1192,10 @@ func _advance_local_lens_toward(
     var horizontal := Vector3(requested.x, 0.0, requested.z)
     if horizontal.length_squared() > 0.0001:
         var horizontal_direction := horizontal.normalized()
-        directions.append(horizontal_direction)
-        directions.append(horizontal_direction.rotated(Vector3.UP, PI * 0.5))
-        directions.append(horizontal_direction.rotated(Vector3.UP, -PI * 0.5))
+        for angle in [0.0, 45.0, -45.0, 90.0, -90.0, 135.0, -135.0, 180.0]:
+            directions.append(
+                horizontal_direction.rotated(Vector3.UP, deg_to_rad(float(angle)))
+            )
     if absf(requested.y) > 0.001:
         directions.append(Vector3.UP * signf(requested.y))
     if absf(requested.x) > 0.001:
@@ -1027,6 +1209,7 @@ func _advance_local_lens_toward(
         from_error = absf(float(from_projection.x) - current_head_target_x)
     var best_position := from_position
     var best_distance: float = requested_length
+    var best_error: float = from_error
     for direction in directions:
         var candidate: Vector3 = from_position + direction.normalized() * step
         var local_cast := _cast_camera_volume(
@@ -1034,10 +1217,16 @@ func _advance_local_lens_toward(
             candidate,
             exclude
         )
-        if (
-            local_cast.safe_fraction < 0.999
-            or not _candidate_has_subject_clearance(candidate)
-        ):
+        if local_cast.safe_fraction < 0.999:
+            continue
+        var candidate_clearance: bool = _candidate_has_subject_clearance(candidate)
+        if not candidate_clearance:
+            candidate_clearance = (
+                near_body_crop_active
+                and candidate.distance_to(target.global_position)
+                    >= profile.camera_collision_radius + profile.collision_margin
+            )
+        if not candidate_clearance:
             continue
         var candidate_projection := _subject_projection(candidate)
         if not bool(candidate_projection.visible):
@@ -1053,8 +1242,18 @@ func _advance_local_lens_toward(
         ):
             continue
         var remaining: float = candidate.distance_to(destination)
-        if remaining < best_distance - 0.0001:
+        var recovering_horizontal: bool = (
+            from_error > profile.rendered_head_soft_limit_x
+        )
+        if (
+            (recovering_horizontal and candidate_error < best_error - 0.0001)
+            or (
+                not recovering_horizontal
+                and remaining < best_distance - 0.0001
+            )
+        ):
             best_distance = remaining
+            best_error = candidate_error
             best_position = candidate
     return best_position
 
@@ -1390,10 +1589,12 @@ func _solve_better_post_collision(
             0.0,
             18.0, -18.0,
             36.0, -36.0,
-            60.0, -60.0
+            60.0, -60.0,
+            78.0, -78.0,
+            90.0, -90.0
         ]
-    var radius_scales: Array[float] = [1.0, 0.70]
-    var lift_offsets: Array[float] = [0.0, 0.60]
+    var radius_scales: Array[float] = [1.0, 0.82, 0.66]
+    var lift_offsets: Array[float] = [0.0, 0.35, 0.70, 1.05]
     for angle_deg in orbit_angles:
         var rotated_offset: Vector3 = (
             Basis(Vector3.UP, deg_to_rad(angle_deg)) * desired_offset
@@ -1466,34 +1667,17 @@ func _solve_better_post_collision(
                 best_score = score
                 best_position = destination
 
-    # A readable endpoint is not a usable camera move when it sits on another
-    # orbit branch behind the blocker. Keep following the close virtual boom
-    # until the angular route opens instead of selecting a target that the
-    # continuity stage can only hold against forever.
-    if best_is_readable and current_camera_position != Vector3.ZERO:
-        var current_offset := current_camera_position - anchor
-        var best_offset := best_position - anchor
-        if current_offset.length_squared() > 0.001 and best_offset.length_squared() > 0.001:
-            var branch_angle := current_offset.normalized().angle_to(
-                best_offset.normalized()
-            )
-            if (
-                branch_angle > deg_to_rad(8.0)
-                and current_camera_position.distance_to(best_position)
-                    > profile.wall_branch_transition_distance
-            ):
-                best_is_readable = false
+    # The endpoint may sit on a different orbit branch, but it remains useful:
+    # presentation now reaches it with a physical retract-rotate-extend move.
+    # Rejecting it here was what forced the old virtual wall crossing.
 
-    # Treat the preferred lens as a free virtual camera. When that point lies
-    # beyond a nearby wall, project it back onto the wall's player-facing
-    # constraint plane. The resulting lens follows input continuously along
-    # the surface instead of holding an older world-space camera position.
+    # At a side-on corner, the direct orbit arc may be blocked even though a
+    # legal tangent route exists along the player-facing wall plane. Reuse the
+    # surface solver only when it produces a fully readable physical endpoint;
+    # unlike the former virtual-wall mode, the blocker remains rendered.
     if not best_is_readable and overhead_confinement < 0.25:
         var continuity_seed: Vector3 = current_camera_position
-        if (
-            continuity_seed == Vector3.ZERO
-            or not _candidate_has_subject_clearance(continuity_seed)
-        ):
+        if continuity_seed == Vector3.ZERO:
             continuity_seed = last_readable_post_solve_position
         var surface_result := _solve_virtual_camera_surface(
             anchor,
@@ -1505,22 +1689,55 @@ func _solve_better_post_collision(
             var surface_position: Vector3 = surface_result.position
             var surface_projection := _subject_projection(surface_position, true)
             if (
-                _projection_is_reframeable(surface_projection)
+                _candidate_has_subject_clearance(surface_position)
+                and _projection_is_reframeable(surface_projection)
                 and _projection_keeps_horizontal_subject(surface_projection)
             ):
                 best_position = surface_position
                 best_projection = surface_projection
+                best_score = _post_solve_projection_score(surface_projection)
                 best_is_readable = true
                 surface_slide_solved = true
                 solved_surface_normal = surface_result.normal
-            else:
-                # No surface point can preserve both view direction and the
-                # operator. Follow the collision-safe compressed virtual boom
-                # and crop only head geometry intersecting the near lens.
-                best_position = initial_position
-                best_projection = _subject_projection(initial_position, true)
-                best_is_readable = true
-                near_body_crop_solved = true
+
+    # If the preferred-side search is completely enclosed, search higher on
+    # the currently rendered player-side ray before accepting a near-body
+    # fallback. These candidates remain volume-clear and keep solid geometry
+    # visible while buying enough subject distance for a readable close shot.
+    if not best_is_readable and current_camera_position != Vector3.ZERO:
+        var current_offset: Vector3 = current_camera_position - anchor
+        var current_length: float = current_offset.length()
+        if current_length > 0.001:
+            var current_direction: Vector3 = current_offset / current_length
+            for radius_scale in [1.0, 0.85, 0.70, 0.55]:
+                for lift in [0.25, 0.50, 0.75, 1.00, 1.25]:
+                    var destination := (
+                        anchor
+                        + current_direction * current_length * float(radius_scale)
+                        + Vector3.UP * float(lift)
+                    )
+                    var candidate_cast := _cast_camera_volume(
+                        anchor,
+                        destination,
+                        exclude
+                    )
+                    if float(candidate_cast.safe_fraction) < 0.999:
+                        continue
+                    if not _candidate_has_subject_clearance(destination):
+                        continue
+                    var projection := _subject_projection(destination, true)
+                    if (
+                        not _projection_is_reframeable(projection)
+                        or not _projection_keeps_horizontal_subject(projection)
+                    ):
+                        continue
+                    var score: float = _post_solve_projection_score(projection)
+                    score += destination.distance_to(current_camera_position) * 0.12
+                    if not best_is_readable or score < best_score:
+                        best_is_readable = true
+                        best_score = score
+                        best_position = destination
+                        best_projection = projection
 
     # A wall-surface or orbit endpoint is not a valid tactical shot when raw
     # aim leaves the operator outside the horizontal composition guard. Fall
@@ -2497,6 +2714,7 @@ func get_debug_data() -> Dictionary:
         "composition_recovery_active": composition_recovery_active,
         "composition_hard_rebase": composition_hard_rebase,
         "composition_hard_rebase_count": composition_hard_rebase_count,
+        "physical_recovery_state": physical_recovery_state,
         "virtual_wall_occluder": (
             str(virtual_wall_occluder.name)
             if virtual_wall_occluder
