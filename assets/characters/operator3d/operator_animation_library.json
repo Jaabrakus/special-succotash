@@ -1,0 +1,884 @@
+{
+  "format": "SOCOM-141 skeletal animation library v1",
+  "fps": 30,
+  "source_blend": "socom_141_operator_animation_source.blend",
+  "runtime_glb": "socom_141_operator_animated.glb",
+  "skeleton": [
+    "root",
+    "pelvis",
+    "spine",
+    "chest",
+    "neck",
+    "head",
+    "upper_arm.L",
+    "forearm.L",
+    "hand.L",
+    "upper_arm.R",
+    "forearm.R",
+    "hand.R",
+    "weapon",
+    "upper_leg.L",
+    "lower_leg.L",
+    "foot.L",
+    "upper_leg.R",
+    "lower_leg.R",
+    "foot.R"
+  ],
+  "clip_count": 122,
+  "clips": [
+    {
+      "name": "combat_ready_crouch_fire",
+      "start_frame": 1,
+      "end_frame": 8,
+      "duration_seconds": 0.233,
+      "loop": false
+    },
+    {
+      "name": "combat_ready_crouch_idle",
+      "start_frame": 1,
+      "end_frame": 61,
+      "duration_seconds": 2.0,
+      "loop": true
+    },
+    {
+      "name": "combat_ready_fire",
+      "start_frame": 1,
+      "end_frame": 8,
+      "duration_seconds": 0.233,
+      "loop": false
+    },
+    {
+      "name": "combat_ready_idle",
+      "start_frame": 1,
+      "end_frame": 61,
+      "duration_seconds": 2.0,
+      "loop": true
+    },
+    {
+      "name": "combat_ready_lower",
+      "start_frame": 1,
+      "end_frame": 16,
+      "duration_seconds": 0.5,
+      "loop": false
+    },
+    {
+      "name": "combat_ready_prone_fire",
+      "start_frame": 1,
+      "end_frame": 8,
+      "duration_seconds": 0.233,
+      "loop": false
+    },
+    {
+      "name": "combat_ready_prone_idle",
+      "start_frame": 1,
+      "end_frame": 61,
+      "duration_seconds": 2.0,
+      "loop": true
+    },
+    {
+      "name": "compressed_ready_crouch",
+      "start_frame": 1,
+      "end_frame": 41,
+      "duration_seconds": 1.333,
+      "loop": true
+    },
+    {
+      "name": "compressed_ready_idle",
+      "start_frame": 1,
+      "end_frame": 41,
+      "duration_seconds": 1.333,
+      "loop": true
+    },
+    {
+      "name": "compressed_ready_prone",
+      "start_frame": 1,
+      "end_frame": 41,
+      "duration_seconds": 1.333,
+      "loop": true
+    },
+    {
+      "name": "crouch_back_left",
+      "start_frame": 1,
+      "end_frame": 37,
+      "duration_seconds": 1.2,
+      "loop": true
+    },
+    {
+      "name": "crouch_back_right",
+      "start_frame": 1,
+      "end_frame": 37,
+      "duration_seconds": 1.2,
+      "loop": true
+    },
+    {
+      "name": "crouch_backward",
+      "start_frame": 1,
+      "end_frame": 37,
+      "duration_seconds": 1.2,
+      "loop": true
+    },
+    {
+      "name": "crouch_forward",
+      "start_frame": 1,
+      "end_frame": 37,
+      "duration_seconds": 1.2,
+      "loop": true
+    },
+    {
+      "name": "crouch_forward_left",
+      "start_frame": 1,
+      "end_frame": 37,
+      "duration_seconds": 1.2,
+      "loop": true
+    },
+    {
+      "name": "crouch_forward_right",
+      "start_frame": 1,
+      "end_frame": 37,
+      "duration_seconds": 1.2,
+      "loop": true
+    },
+    {
+      "name": "crouch_left",
+      "start_frame": 1,
+      "end_frame": 37,
+      "duration_seconds": 1.2,
+      "loop": true
+    },
+    {
+      "name": "crouch_right",
+      "start_frame": 1,
+      "end_frame": 37,
+      "duration_seconds": 1.2,
+      "loop": true
+    },
+    {
+      "name": "death_back",
+      "start_frame": 1,
+      "end_frame": 48,
+      "duration_seconds": 1.567,
+      "loop": false
+    },
+    {
+      "name": "death_front",
+      "start_frame": 1,
+      "end_frame": 48,
+      "duration_seconds": 1.567,
+      "loop": false
+    },
+    {
+      "name": "death_left",
+      "start_frame": 1,
+      "end_frame": 48,
+      "duration_seconds": 1.567,
+      "loop": false
+    },
+    {
+      "name": "death_right",
+      "start_frame": 1,
+      "end_frame": 48,
+      "duration_seconds": 1.567,
+      "loop": false
+    },
+    {
+      "name": "dive_forward",
+      "start_frame": 1,
+      "end_frame": 24,
+      "duration_seconds": 0.767,
+      "loop": false
+    },
+    {
+      "name": "gesture_acknowledge",
+      "start_frame": 1,
+      "end_frame": 42,
+      "duration_seconds": 1.367,
+      "loop": false
+    },
+    {
+      "name": "gesture_go",
+      "start_frame": 1,
+      "end_frame": 42,
+      "duration_seconds": 1.367,
+      "loop": false
+    },
+    {
+      "name": "gesture_hold",
+      "start_frame": 1,
+      "end_frame": 42,
+      "duration_seconds": 1.367,
+      "loop": false
+    },
+    {
+      "name": "gesture_point",
+      "start_frame": 1,
+      "end_frame": 42,
+      "duration_seconds": 1.367,
+      "loop": false
+    },
+    {
+      "name": "gesture_regroup",
+      "start_frame": 1,
+      "end_frame": 42,
+      "duration_seconds": 1.367,
+      "loop": false
+    },
+    {
+      "name": "hit_back",
+      "start_frame": 1,
+      "end_frame": 18,
+      "duration_seconds": 0.567,
+      "loop": false
+    },
+    {
+      "name": "hit_front",
+      "start_frame": 1,
+      "end_frame": 18,
+      "duration_seconds": 0.567,
+      "loop": false
+    },
+    {
+      "name": "hit_left",
+      "start_frame": 1,
+      "end_frame": 18,
+      "duration_seconds": 0.567,
+      "loop": false
+    },
+    {
+      "name": "hit_right",
+      "start_frame": 1,
+      "end_frame": 18,
+      "duration_seconds": 0.567,
+      "loop": false
+    },
+    {
+      "name": "idle_crouch",
+      "start_frame": 1,
+      "end_frame": 61,
+      "duration_seconds": 2.0,
+      "loop": true
+    },
+    {
+      "name": "idle_prone",
+      "start_frame": 1,
+      "end_frame": 61,
+      "duration_seconds": 2.0,
+      "loop": true
+    },
+    {
+      "name": "idle_rifle",
+      "start_frame": 1,
+      "end_frame": 61,
+      "duration_seconds": 2.0,
+      "loop": true
+    },
+    {
+      "name": "interact_door",
+      "start_frame": 1,
+      "end_frame": 44,
+      "duration_seconds": 1.433,
+      "loop": false
+    },
+    {
+      "name": "interact_pickup",
+      "start_frame": 1,
+      "end_frame": 40,
+      "duration_seconds": 1.3,
+      "loop": false
+    },
+    {
+      "name": "interact_plant",
+      "start_frame": 1,
+      "end_frame": 64,
+      "duration_seconds": 2.1,
+      "loop": false
+    },
+    {
+      "name": "interact_use",
+      "start_frame": 1,
+      "end_frame": 46,
+      "duration_seconds": 1.5,
+      "loop": false
+    },
+    {
+      "name": "jump_airborne",
+      "start_frame": 1,
+      "end_frame": 25,
+      "duration_seconds": 0.8,
+      "loop": true
+    },
+    {
+      "name": "jump_land",
+      "start_frame": 1,
+      "end_frame": 18,
+      "duration_seconds": 0.567,
+      "loop": false
+    },
+    {
+      "name": "jump_takeoff",
+      "start_frame": 1,
+      "end_frame": 14,
+      "duration_seconds": 0.433,
+      "loop": false
+    },
+    {
+      "name": "low_ready_crouch_back_left",
+      "start_frame": 1,
+      "end_frame": 37,
+      "duration_seconds": 1.2,
+      "loop": true
+    },
+    {
+      "name": "low_ready_crouch_back_right",
+      "start_frame": 1,
+      "end_frame": 37,
+      "duration_seconds": 1.2,
+      "loop": true
+    },
+    {
+      "name": "low_ready_crouch_backward",
+      "start_frame": 1,
+      "end_frame": 37,
+      "duration_seconds": 1.2,
+      "loop": true
+    },
+    {
+      "name": "low_ready_crouch_forward",
+      "start_frame": 1,
+      "end_frame": 37,
+      "duration_seconds": 1.2,
+      "loop": true
+    },
+    {
+      "name": "low_ready_crouch_forward_left",
+      "start_frame": 1,
+      "end_frame": 37,
+      "duration_seconds": 1.2,
+      "loop": true
+    },
+    {
+      "name": "low_ready_crouch_forward_right",
+      "start_frame": 1,
+      "end_frame": 37,
+      "duration_seconds": 1.2,
+      "loop": true
+    },
+    {
+      "name": "low_ready_crouch_idle",
+      "start_frame": 1,
+      "end_frame": 61,
+      "duration_seconds": 2.0,
+      "loop": true
+    },
+    {
+      "name": "low_ready_crouch_left",
+      "start_frame": 1,
+      "end_frame": 37,
+      "duration_seconds": 1.2,
+      "loop": true
+    },
+    {
+      "name": "low_ready_crouch_right",
+      "start_frame": 1,
+      "end_frame": 37,
+      "duration_seconds": 1.2,
+      "loop": true
+    },
+    {
+      "name": "low_ready_idle",
+      "start_frame": 1,
+      "end_frame": 61,
+      "duration_seconds": 2.0,
+      "loop": true
+    },
+    {
+      "name": "low_ready_prone_backward",
+      "start_frame": 1,
+      "end_frame": 41,
+      "duration_seconds": 1.333,
+      "loop": true
+    },
+    {
+      "name": "low_ready_prone_forward",
+      "start_frame": 1,
+      "end_frame": 41,
+      "duration_seconds": 1.333,
+      "loop": true
+    },
+    {
+      "name": "low_ready_prone_idle",
+      "start_frame": 1,
+      "end_frame": 61,
+      "duration_seconds": 2.0,
+      "loop": true
+    },
+    {
+      "name": "low_ready_prone_left",
+      "start_frame": 1,
+      "end_frame": 41,
+      "duration_seconds": 1.333,
+      "loop": true
+    },
+    {
+      "name": "low_ready_prone_right",
+      "start_frame": 1,
+      "end_frame": 41,
+      "duration_seconds": 1.333,
+      "loop": true
+    },
+    {
+      "name": "low_ready_raise",
+      "start_frame": 1,
+      "end_frame": 16,
+      "duration_seconds": 0.5,
+      "loop": false
+    },
+    {
+      "name": "low_ready_recover_dive",
+      "start_frame": 1,
+      "end_frame": 16,
+      "duration_seconds": 0.5,
+      "loop": false
+    },
+    {
+      "name": "low_ready_recover_jump",
+      "start_frame": 1,
+      "end_frame": 14,
+      "duration_seconds": 0.433,
+      "loop": false
+    },
+    {
+      "name": "low_ready_recover_roll_left",
+      "start_frame": 1,
+      "end_frame": 14,
+      "duration_seconds": 0.433,
+      "loop": false
+    },
+    {
+      "name": "low_ready_recover_roll_right",
+      "start_frame": 1,
+      "end_frame": 14,
+      "duration_seconds": 0.433,
+      "loop": false
+    },
+    {
+      "name": "low_ready_run_back_left",
+      "start_frame": 1,
+      "end_frame": 25,
+      "duration_seconds": 0.8,
+      "loop": true
+    },
+    {
+      "name": "low_ready_run_back_right",
+      "start_frame": 1,
+      "end_frame": 25,
+      "duration_seconds": 0.8,
+      "loop": true
+    },
+    {
+      "name": "low_ready_run_backward",
+      "start_frame": 1,
+      "end_frame": 25,
+      "duration_seconds": 0.8,
+      "loop": true
+    },
+    {
+      "name": "low_ready_run_forward",
+      "start_frame": 1,
+      "end_frame": 25,
+      "duration_seconds": 0.8,
+      "loop": true
+    },
+    {
+      "name": "low_ready_run_forward_left",
+      "start_frame": 1,
+      "end_frame": 25,
+      "duration_seconds": 0.8,
+      "loop": true
+    },
+    {
+      "name": "low_ready_run_forward_right",
+      "start_frame": 1,
+      "end_frame": 25,
+      "duration_seconds": 0.8,
+      "loop": true
+    },
+    {
+      "name": "low_ready_run_left",
+      "start_frame": 1,
+      "end_frame": 25,
+      "duration_seconds": 0.8,
+      "loop": true
+    },
+    {
+      "name": "low_ready_run_right",
+      "start_frame": 1,
+      "end_frame": 25,
+      "duration_seconds": 0.8,
+      "loop": true
+    },
+    {
+      "name": "low_ready_walk_back_left",
+      "start_frame": 1,
+      "end_frame": 33,
+      "duration_seconds": 1.067,
+      "loop": true
+    },
+    {
+      "name": "low_ready_walk_back_right",
+      "start_frame": 1,
+      "end_frame": 33,
+      "duration_seconds": 1.067,
+      "loop": true
+    },
+    {
+      "name": "low_ready_walk_backward",
+      "start_frame": 1,
+      "end_frame": 33,
+      "duration_seconds": 1.067,
+      "loop": true
+    },
+    {
+      "name": "low_ready_walk_forward",
+      "start_frame": 1,
+      "end_frame": 33,
+      "duration_seconds": 1.067,
+      "loop": true
+    },
+    {
+      "name": "low_ready_walk_forward_left",
+      "start_frame": 1,
+      "end_frame": 33,
+      "duration_seconds": 1.067,
+      "loop": true
+    },
+    {
+      "name": "low_ready_walk_forward_right",
+      "start_frame": 1,
+      "end_frame": 33,
+      "duration_seconds": 1.067,
+      "loop": true
+    },
+    {
+      "name": "low_ready_walk_left",
+      "start_frame": 1,
+      "end_frame": 33,
+      "duration_seconds": 1.067,
+      "loop": true
+    },
+    {
+      "name": "low_ready_walk_right",
+      "start_frame": 1,
+      "end_frame": 33,
+      "duration_seconds": 1.067,
+      "loop": true
+    },
+    {
+      "name": "medical_self_bandage",
+      "start_frame": 1,
+      "end_frame": 74,
+      "duration_seconds": 2.433,
+      "loop": false
+    },
+    {
+      "name": "medical_treat_teammate",
+      "start_frame": 1,
+      "end_frame": 90,
+      "duration_seconds": 2.967,
+      "loop": false
+    },
+    {
+      "name": "prone_crawl_backward",
+      "start_frame": 1,
+      "end_frame": 41,
+      "duration_seconds": 1.333,
+      "loop": true
+    },
+    {
+      "name": "prone_crawl_forward",
+      "start_frame": 1,
+      "end_frame": 41,
+      "duration_seconds": 1.333,
+      "loop": true
+    },
+    {
+      "name": "prone_turn_left",
+      "start_frame": 1,
+      "end_frame": 37,
+      "duration_seconds": 1.2,
+      "loop": true
+    },
+    {
+      "name": "prone_turn_right",
+      "start_frame": 1,
+      "end_frame": 37,
+      "duration_seconds": 1.2,
+      "loop": true
+    },
+    {
+      "name": "recover_crouch",
+      "start_frame": 1,
+      "end_frame": 18,
+      "duration_seconds": 0.567,
+      "loop": false
+    },
+    {
+      "name": "recover_prone",
+      "start_frame": 1,
+      "end_frame": 22,
+      "duration_seconds": 0.7,
+      "loop": false
+    },
+    {
+      "name": "rifle_aim",
+      "start_frame": 1,
+      "end_frame": 31,
+      "duration_seconds": 1.0,
+      "loop": true
+    },
+    {
+      "name": "rifle_fire",
+      "start_frame": 1,
+      "end_frame": 8,
+      "duration_seconds": 0.233,
+      "loop": false
+    },
+    {
+      "name": "rifle_lowered",
+      "start_frame": 1,
+      "end_frame": 41,
+      "duration_seconds": 1.333,
+      "loop": true
+    },
+    {
+      "name": "rifle_reload",
+      "start_frame": 1,
+      "end_frame": 58,
+      "duration_seconds": 1.9,
+      "loop": false
+    },
+    {
+      "name": "roll_left",
+      "start_frame": 1,
+      "end_frame": 22,
+      "duration_seconds": 0.7,
+      "loop": false
+    },
+    {
+      "name": "roll_right",
+      "start_frame": 1,
+      "end_frame": 22,
+      "duration_seconds": 0.7,
+      "loop": false
+    },
+    {
+      "name": "run_back_left",
+      "start_frame": 1,
+      "end_frame": 25,
+      "duration_seconds": 0.8,
+      "loop": true
+    },
+    {
+      "name": "run_back_right",
+      "start_frame": 1,
+      "end_frame": 25,
+      "duration_seconds": 0.8,
+      "loop": true
+    },
+    {
+      "name": "run_backward",
+      "start_frame": 1,
+      "end_frame": 25,
+      "duration_seconds": 0.8,
+      "loop": true
+    },
+    {
+      "name": "run_forward",
+      "start_frame": 1,
+      "end_frame": 25,
+      "duration_seconds": 0.8,
+      "loop": true
+    },
+    {
+      "name": "run_forward_left",
+      "start_frame": 1,
+      "end_frame": 25,
+      "duration_seconds": 0.8,
+      "loop": true
+    },
+    {
+      "name": "run_forward_right",
+      "start_frame": 1,
+      "end_frame": 25,
+      "duration_seconds": 0.8,
+      "loop": true
+    },
+    {
+      "name": "run_left",
+      "start_frame": 1,
+      "end_frame": 25,
+      "duration_seconds": 0.8,
+      "loop": true
+    },
+    {
+      "name": "run_right",
+      "start_frame": 1,
+      "end_frame": 25,
+      "duration_seconds": 0.8,
+      "loop": true
+    },
+    {
+      "name": "start_backward",
+      "start_frame": 1,
+      "end_frame": 14,
+      "duration_seconds": 0.433,
+      "loop": false
+    },
+    {
+      "name": "start_forward",
+      "start_frame": 1,
+      "end_frame": 14,
+      "duration_seconds": 0.433,
+      "loop": false
+    },
+    {
+      "name": "start_left",
+      "start_frame": 1,
+      "end_frame": 14,
+      "duration_seconds": 0.433,
+      "loop": false
+    },
+    {
+      "name": "start_right",
+      "start_frame": 1,
+      "end_frame": 14,
+      "duration_seconds": 0.433,
+      "loop": false
+    },
+    {
+      "name": "stop_backward",
+      "start_frame": 1,
+      "end_frame": 16,
+      "duration_seconds": 0.5,
+      "loop": false
+    },
+    {
+      "name": "stop_forward",
+      "start_frame": 1,
+      "end_frame": 16,
+      "duration_seconds": 0.5,
+      "loop": false
+    },
+    {
+      "name": "stop_left",
+      "start_frame": 1,
+      "end_frame": 16,
+      "duration_seconds": 0.5,
+      "loop": false
+    },
+    {
+      "name": "stop_right",
+      "start_frame": 1,
+      "end_frame": 16,
+      "duration_seconds": 0.5,
+      "loop": false
+    },
+    {
+      "name": "turn_left_180",
+      "start_frame": 1,
+      "end_frame": 30,
+      "duration_seconds": 0.967,
+      "loop": false
+    },
+    {
+      "name": "turn_left_90",
+      "start_frame": 1,
+      "end_frame": 20,
+      "duration_seconds": 0.633,
+      "loop": false
+    },
+    {
+      "name": "turn_right_180",
+      "start_frame": 1,
+      "end_frame": 30,
+      "duration_seconds": 0.967,
+      "loop": false
+    },
+    {
+      "name": "turn_right_90",
+      "start_frame": 1,
+      "end_frame": 20,
+      "duration_seconds": 0.633,
+      "loop": false
+    },
+    {
+      "name": "walk_back_left",
+      "start_frame": 1,
+      "end_frame": 33,
+      "duration_seconds": 1.067,
+      "loop": true
+    },
+    {
+      "name": "walk_back_right",
+      "start_frame": 1,
+      "end_frame": 33,
+      "duration_seconds": 1.067,
+      "loop": true
+    },
+    {
+      "name": "walk_backward",
+      "start_frame": 1,
+      "end_frame": 33,
+      "duration_seconds": 1.067,
+      "loop": true
+    },
+    {
+      "name": "walk_forward",
+      "start_frame": 1,
+      "end_frame": 33,
+      "duration_seconds": 1.067,
+      "loop": true
+    },
+    {
+      "name": "walk_forward_left",
+      "start_frame": 1,
+      "end_frame": 33,
+      "duration_seconds": 1.067,
+      "loop": true
+    },
+    {
+      "name": "walk_forward_right",
+      "start_frame": 1,
+      "end_frame": 33,
+      "duration_seconds": 1.067,
+      "loop": true
+    },
+    {
+      "name": "walk_left",
+      "start_frame": 1,
+      "end_frame": 33,
+      "duration_seconds": 1.067,
+      "loop": true
+    },
+    {
+      "name": "walk_right",
+      "start_frame": 1,
+      "end_frame": 33,
+      "duration_seconds": 1.067,
+      "loop": true
+    },
+    {
+      "name": "weapon_switch_primary",
+      "start_frame": 1,
+      "end_frame": 38,
+      "duration_seconds": 1.233,
+      "loop": false
+    },
+    {
+      "name": "weapon_switch_secondary",
+      "start_frame": 1,
+      "end_frame": 38,
+      "duration_seconds": 1.233,
+      "loop": false
+    }
+  ]
+}
