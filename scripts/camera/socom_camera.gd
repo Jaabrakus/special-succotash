@@ -5,6 +5,7 @@ const AimIntentScript := preload("res://scripts/network/socom_aim_intent.gd")
 const CameraDebugSnapshotScript := preload("res://scripts/camera/camera_debug_snapshot.gd")
 const CameraInputControllerScript := preload("res://scripts/camera/camera_input_controller.gd")
 const CameraProfileScript := preload("res://scripts/camera/camera_profile.gd")
+const CameraSubjectProjectorScript := preload("res://scripts/camera/camera_subject_projector.gd")
 const MouseAimModelScript := preload("res://scripts/camera/mouse_aim_model.gd")
 const MouseCursorGuideScript := preload("res://scripts/camera/mouse_cursor_guide.gd")
 const MouseAimStringGuideScript := preload("res://scripts/camera/mouse_aim_string_guide.gd")
@@ -34,6 +35,7 @@ var mouse_aim_string_enabled: bool = true
 var mouse_string_debug_visible: bool = true
 var mouse_aim_model := MouseAimModelScript.new()
 var aim_input_controller := CameraInputControllerScript.new()
+var subject_projector := CameraSubjectProjectorScript.new()
 var mouse_intent_yaw: float:
     get:
         return mouse_aim_model.intent_yaw
@@ -148,6 +150,7 @@ var automated_wall_turn: bool = false
 func _ready() -> void:
     add_to_group("socom_camera_rig")
     aim_input_controller.configure(mouse_aim_model)
+    subject_projector.configure(self)
     camera = Camera3D.new()
     camera.name = "Camera3D"
     camera.current = true
@@ -1987,150 +1990,40 @@ func _cast_camera_volume(anchor: Vector3, destination: Vector3, exclude: Array[R
     return {"safe_fraction": safe_fraction}
 
 func _subject_projection(candidate: Vector3, force_collision_context: bool = false) -> Dictionary:
-    return _subject_projection_to(
-        candidate,
-        _look_target_from(candidate, force_collision_context)
-    )
+    return subject_projector.subject_projection(candidate, force_collision_context)
 
 func _subject_projection_to(candidate: Vector3, look_target: Vector3) -> Dictionary:
-    if head_marker == null or camera == null:
-        return {"visible": true, "x": current_head_target_x, "y": current_head_target_y, "distance": 99.0}
-    # Project analytically. The previous version temporarily moved and rotated
-    # the live camera node for every candidate; a blocked boom can evaluate
-    # hundreds of candidates, making close quarters visibly hitch.
-    var direction := (look_target - candidate).normalized()
-    if direction.length_squared() < 0.0001:
-        return {"visible": false, "x": -99.0, "y": -99.0, "distance": 0.0}
-    var candidate_basis := Basis.looking_at(direction, Vector3.UP, false)
-    var local_head: Vector3 = candidate_basis.transposed() * (head_marker.global_position - candidate)
-    var depth: float = -local_head.z
-    var visible: bool = depth > camera.near
-    var head_x := -99.0
-    var head_y := -99.0
-    if visible:
-        var viewport_size := get_viewport().get_visible_rect().size
-        var aspect: float = maxf(viewport_size.x, 1.0) / maxf(viewport_size.y, 1.0)
-        var half_height: float = depth * tan(deg_to_rad(camera.fov) * 0.5)
-        var half_width: float = half_height * aspect
-        head_x = 0.5 + local_head.x / maxf(half_width * 2.0, 0.0001)
-        head_y = 0.5 - local_head.y / maxf(half_height * 2.0, 0.0001)
-    var head_distance: float = candidate.distance_to(head_marker.global_position)
-    return {"visible": visible, "x": head_x, "y": head_y, "distance": head_distance}
+    return subject_projector.subject_projection_to(candidate, look_target)
 
 func _projection_keeps_subject(projection: Dictionary) -> bool:
-    if not bool(projection.visible):
-        return false
-    var head_tolerance_above: float = lerpf(0.22, 0.16, interior_amount)
-    return (
-        float(projection.distance) >= profile.min_subject_camera_distance
-        and float(projection.x) >= current_head_target_x - 0.09
-        and float(projection.x) <= current_head_target_x + 0.09
-        and float(projection.y) >= current_head_target_y - head_tolerance_above
-        and float(projection.y) <= current_head_target_y + 0.14
-    )
+    return subject_projector.projection_keeps_subject(projection)
 
 func _projection_is_reframeable(projection: Dictionary) -> bool:
-    return (
-        bool(projection.visible)
-        and float(projection.distance) >= profile.min_subject_camera_distance
-        and float(projection.x) >= 0.05
-        and float(projection.x) <= 0.95
-        and float(projection.y) >= 0.05
-        and float(projection.y) <= 0.98
-    )
+    return subject_projector.projection_is_reframeable(projection)
 
 func _projection_keeps_horizontal_subject(projection: Dictionary) -> bool:
-    return (
-        bool(projection.visible)
-        and float(projection.x) >= current_head_target_x - 0.12
-        and float(projection.x) <= current_head_target_x + 0.12
-    )
+    return subject_projector.projection_keeps_horizontal_subject(projection)
 
 func _candidate_is_reframeable(candidate: Vector3) -> bool:
-    return _projection_is_reframeable(_subject_projection(candidate))
+    return subject_projector.candidate_is_reframeable(candidate)
 
 func _post_solve_projection_score(projection: Dictionary) -> float:
-    if not bool(projection.visible):
-        return INF
-    var distance: float = float(projection.distance)
-    var score: float = (
-        absf(float(projection.x) - current_head_target_x) * 10.0
-        + absf(float(projection.y) - current_head_target_y) * 4.0
-    )
-    if distance < profile.min_subject_camera_distance:
-        score += (profile.min_subject_camera_distance - distance) * 20.0
-    return score
+    return subject_projector.post_solve_projection_score(projection)
 
 func _candidate_has_subject_clearance(candidate: Vector3) -> bool:
-    if target == null or head_marker == null:
-        return true
-    return (
-        candidate.distance_to(target.global_position) >= profile.min_camera_target_distance
-        and candidate.distance_to(head_marker.global_position) >= profile.min_subject_camera_distance
-    )
+    return subject_projector.candidate_has_subject_clearance(candidate)
 
 func _shares_current_camera_branch(candidate: Vector3) -> bool:
-    if target == null or current_camera_position == Vector3.ZERO:
-        return true
-    var anchor := (
-        target.global_position
-        + Vector3.UP * float(profile.collision_anchor_height)
-    )
-    var current_offset := current_camera_position - anchor
-    var candidate_offset := candidate - anchor
-    if current_offset.length_squared() < 0.001 or candidate_offset.length_squared() < 0.001:
-        return true
-    var branch_angle := current_offset.normalized().angle_to(
-        candidate_offset.normalized()
-    )
-    return (
-        branch_angle <= deg_to_rad(8.0)
-        or current_camera_position.distance_to(candidate)
-            <= profile.wall_branch_transition_distance
-    )
+    return subject_projector.shares_current_camera_branch(candidate)
 
 func _camera_marker_visibility(marker: Node3D) -> Dictionary:
-    if marker == null or target == null:
-        return {"visible": true, "blocker": "CLEAR"}
-    var query := PhysicsRayQueryParameters3D.create(
-        global_position,
-        marker.global_position
-    )
-    query.collide_with_areas = false
-    query.hit_from_inside = true
-    if target is CollisionObject3D:
-        query.exclude = [(target as CollisionObject3D).get_rid()]
-    var hit: Dictionary = get_world_3d().direct_space_state.intersect_ray(query)
-    if hit.is_empty():
-        return {"visible": true, "blocker": "CLEAR"}
-    var collider: Variant = hit.get("collider")
-    var blocker := "GEOMETRY"
-    if collider is Node:
-        blocker = str((collider as Node).name)
-    elif collider is Object:
-        blocker = (collider as Object).get_class()
-    return {"visible": false, "blocker": blocker}
+    return subject_projector.camera_marker_visibility(marker)
 
 func _camera_subject_visibility() -> Dictionary:
-    var head_result := _camera_marker_visibility(head_marker)
-    var torso_result := _camera_marker_visibility(torso_marker)
-    return {
-        "head_visible": bool(head_result.visible),
-        "head_blocker": str(head_result.blocker),
-        "torso_visible": bool(torso_result.visible),
-        "torso_blocker": str(torso_result.blocker),
-    }
+    return subject_projector.camera_subject_visibility()
 
 func _candidate_is_subject_readable(candidate: Vector3) -> bool:
-    if not _candidate_has_subject_clearance(candidate):
-        return false
-    var projection := _subject_projection(candidate)
-    return (
-        bool(projection.visible)
-        and _projection_keeps_horizontal_subject(projection)
-        and float(projection.y) >= 0.05
-        and float(projection.y) <= 0.98
-    )
+    return subject_projector.candidate_is_subject_readable(candidate)
 
 func _solve_framing(candidate: Vector3) -> Vector3:
     if head_marker == null or torso_marker == null or pelvis_marker == null or feet_marker == null:
