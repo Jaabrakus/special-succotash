@@ -5,19 +5,14 @@ const CameraAimResolverScript := preload("res://scripts/camera/camera_aim_resolv
 const CameraDebugSnapshotScript := preload("res://scripts/camera/camera_debug_snapshot.gd")
 const CameraInputControllerScript := preload("res://scripts/camera/camera_input_controller.gd")
 const CameraProfileScript := preload("res://scripts/camera/camera_profile.gd")
+const CameraStateControllerScript := preload("res://scripts/camera/camera_state_controller.gd")
 const CameraSubjectProjectorScript := preload("res://scripts/camera/camera_subject_projector.gd")
 const MouseAimModelScript := preload("res://scripts/camera/mouse_aim_model.gd")
 const MouseCursorGuideScript := preload("res://scripts/camera/mouse_cursor_guide.gd")
 const MouseAimStringGuideScript := preload("res://scripts/camera/mouse_aim_string_guide.gd")
 const VIRTUAL_WALL_OBSERVER_LAYER := 19
 
-enum CameraState {
-    PREFERRED,
-    COMPRESSED,
-    POST_SOLVED,
-    PERCHED,
-    RELEASE
-}
+const CameraState = CameraStateControllerScript.CameraState
 
 var target: Node3D
 var head_marker: Node3D
@@ -37,6 +32,7 @@ var mouse_aim_model := MouseAimModelScript.new()
 var aim_input_controller := CameraInputControllerScript.new()
 var subject_projector := CameraSubjectProjectorScript.new()
 var aim_resolver := CameraAimResolverScript.new()
+var state_controller := CameraStateControllerScript.new()
 var mouse_intent_yaw: float:
     get:
         return mouse_aim_model.intent_yaw
@@ -153,6 +149,7 @@ func _ready() -> void:
     aim_input_controller.configure(mouse_aim_model)
     subject_projector.configure(self)
     aim_resolver.configure(self)
+    state_controller.configure(self)
     camera = Camera3D.new()
     camera.name = "Camera3D"
     camera.current = true
@@ -868,104 +865,19 @@ func _set_virtual_wall_occluder(blocker: Node3D) -> void:
         geometry.set_layer_mask_value(1, false)
 
 func _apply_collision_result(result: Dictionary) -> void:
-    collision_camera_position = result.position
-    collision_active = result.collided
-    collision_name = result.collider_name
-    collision_blocker_node = result.get("collider_node") as Node3D
-    wall_escape_active = result.escaped
-    wall_escape_angle_deg = result.escape_angle_deg
-    local_cutout_active = result.local_cutout
-    local_cutout_center = result.cutout_center
-    local_cutout_node = result.cutout_node
-    collision_crane_active = bool(result.get("crane_active", false))
-    surface_slide_active = bool(result.get("surface_slide_active", false))
-    surface_slide_normal = result.get("surface_slide_normal", Vector3.ZERO)
-    near_body_crop_active = bool(result.get("near_body_crop_active", false))
-    if collision_crane_active:
-        collision_crane_look_ahead = float(result.get(
-            "crane_look_ahead",
-            profile.close_wall_crane_default_look_ahead
-        ))
+    state_controller.apply_collision_result(result)
 
 func _update_collision_crane_view(delta: float) -> void:
-    # The old branch-transition feedback kept this blend at 100% whenever the
-    # rendered and requested lenses stayed apart. That turned a one-frame
-    # continuity hold into a permanent camera-orientation lock.
-    var view_target: float = 1.0 if collision_crane_active else 0.0
-    var response: float = (
-        profile.close_wall_crane_enter_response
-        if view_target > 0.5
-        else profile.close_wall_crane_exit_response
-    )
-    collision_crane_view_amount = lerpf(
-        collision_crane_view_amount,
-        view_target,
-        1.0 - exp(-response * delta)
-    )
+    state_controller.update_collision_crane_view(delta)
 
 func _update_wall_camera_state(delta: float) -> void:
-    var context_target: float = 1.0 if collision_active else 0.0
-    var context_response: float = (
-        profile.wall_context_enter_response
-        if collision_active
-        else profile.wall_context_exit_response
-    )
-    wall_context_amount = lerpf(
-        wall_context_amount,
-        context_target,
-        1.0 - exp(-context_response * delta)
-    )
-
+    state_controller.update_wall_context(delta)
 
 func _update_deterministic_camera_state(delta: float) -> void:
-    camera_state_age += delta
-    var requested := CameraState.PREFERRED
-    if collision_crane_active or collision_crane_view_amount >= 0.55:
-        requested = CameraState.PERCHED
-    elif collision_active and post_collision_reframe:
-        requested = CameraState.POST_SOLVED
-    elif collision_active:
-        requested = CameraState.COMPRESSED
-    elif (
-        camera_state != CameraState.PREFERRED
-        and (
-            wall_context_amount > 0.04
-            or current_camera_position.distance_to(collision_camera_position)
-                > profile.wall_branch_transition_distance
-        )
-    ):
-        requested = CameraState.RELEASE
-
-    if requested == camera_state:
-        return
-
-    # Obstruction entry is immediate for fairness. Non-safety transitions use
-    # a short dwell so noisy solver labels cannot produce A/B/A camera states.
-    var safety_entry: bool = (
-        requested == CameraState.COMPRESSED
-        or requested == CameraState.POST_SOLVED
-        or requested == CameraState.PERCHED
-    )
-    if not safety_entry and camera_state_age < 0.12:
-        return
-    camera_state = requested
-    camera_state_age = 0.0
-    camera_state_transition_count += 1
-
+    state_controller.update_state(delta)
 
 func get_camera_state_name() -> String:
-    match camera_state:
-        CameraState.PREFERRED:
-            return "PREFERRED"
-        CameraState.COMPRESSED:
-            return "COMPRESSED"
-        CameraState.POST_SOLVED:
-            return "POST-SOLVED"
-        CameraState.PERCHED:
-            return "PERCHED"
-        CameraState.RELEASE:
-            return "RELEASE"
-    return "UNKNOWN"
+    return state_controller.state_name(camera_state)
 
 
 func _smooth_legal_camera_position(
