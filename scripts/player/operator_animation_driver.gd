@@ -9,6 +9,7 @@ extends Node3D
 ## additive skeleton pose offsets.
 
 const OPERATOR_SCENE := preload("res://assets/characters/operator3d/socom_141_operator_animated.glb")
+const MIXAMO_SKIN_SCENE := preload("res://assets/characters/operator3d/mixamo_beta_skin.glb")
 
 const LEGACY_LOOPING_CLIPS: Array[StringName] = [
     &"idle_rifle", &"idle_crouch", &"idle_prone", &"rifle_aim", &"rifle_lowered",
@@ -34,6 +35,8 @@ var animation_player: AnimationPlayer
 var animation_tree: AnimationTree
 var transition_node: AnimationNodeTransition
 var skeleton: Skeleton3D
+var skin_root: Node3D
+var skin_skeleton: Skeleton3D
 var current_clip: StringName = &""
 var requested_action: StringName = &""
 var requested_action_remaining: float = 0.0
@@ -74,6 +77,7 @@ func _ready() -> void:
     if skeleton == null:
         push_error("SOCOM operator GLB has no Skeleton3D")
         return
+    _install_mixamo_skin()
     _cache_aim_bones()
     _configure_animation_loops()
     _build_animation_tree()
@@ -101,6 +105,7 @@ func _process(delta: float) -> void:
         _request_clip(_select_visual_clip())
 
     _apply_visual_aim_offsets()
+    _sync_mixamo_skin_pose()
     _previous_ready_weight = weapon_ready_weight
     _previous_firing = firing
     _previous_movement_state = movement_state
@@ -405,6 +410,49 @@ func _find_skeleton(node: Node) -> Skeleton3D:
         if found:
             return found
     return null
+
+func _install_mixamo_skin() -> void:
+    skin_root = MIXAMO_SKIN_SCENE.instantiate() as Node3D
+    skin_root.name = "VisibleMixamoSkin"
+    skin_root.rotation.y = PI
+    add_child(skin_root)
+    skin_skeleton = _find_skeleton(skin_root)
+    if skin_skeleton == null:
+        push_error("Mixamo Beta skin GLB has no Skeleton3D")
+        return
+    _set_operator_body_visible(model_root, false)
+    _sync_mixamo_skin_pose()
+
+func _set_operator_body_visible(node: Node, visible: bool) -> void:
+    if node is GeometryInstance3D:
+        var geometry := node as GeometryInstance3D
+        # The project-authored rifle remains attached to the weapon control.
+        geometry.visible = visible or String(geometry.name).begins_with("Rifle")
+    for child in node.get_children():
+        _set_operator_body_visible(child, visible)
+
+func _sync_mixamo_skin_pose() -> void:
+    if skeleton == null or skin_skeleton == null:
+        return
+    # Bone global poses are expressed in each Skeleton3D's local space. The
+    # Mixamo FBX retains its centimeter scale and axis-conversion parent, so
+    # convert through world space instead of copying numeric transforms.
+    var target_to_skin := (
+        skin_skeleton.global_transform.affine_inverse()
+        * skeleton.global_transform
+    )
+    var target_to_skin_rotation := target_to_skin.basis.orthonormalized()
+    for source_index in range(skeleton.get_bone_count()):
+        var bone_name := skeleton.get_bone_name(source_index)
+        var skin_index := skin_skeleton.find_bone(bone_name)
+        if skin_index < 0:
+            continue
+        var target_pose := skeleton.get_bone_global_pose(source_index)
+        var skin_pose := Transform3D(
+            target_to_skin_rotation * target_pose.basis.orthonormalized(),
+            target_to_skin * target_pose.origin
+        )
+        skin_skeleton.set_bone_global_pose(skin_index, skin_pose)
 
 func _get_player() -> CharacterBody3D:
     var node: Node = get_parent()
