@@ -23,9 +23,7 @@ func _draw() -> void:
     if camera_rig == null:
         return
     var viewport_size: Vector2 = get_viewport_rect().size
-    var center: Vector2 = (
-        camera_rig.get_mouse_string_follower_screen_normalized() * viewport_size
-    )
+    var center := viewport_size * 0.5
     var endpoint: Vector2 = (
         camera_rig.get_mouse_string_screen_normalized() * viewport_size
     )
@@ -33,8 +31,8 @@ func _draw() -> void:
     var color := Color(0.20, 0.72, 1.0, opacity)
     var deadzone_radius: float = camera_rig.profile.mouse_string_deadzone_radius_px
     var blue_radius: float = camera_rig.profile.mouse_string_blue_radius_px
-    # The HUD '+' remains centered and authoritative. This separate white
-    # camera follower moves toward persistent blue until their outlines touch.
+    # White stays locked to the authoritative HUD '+'. Persistent blue sets
+    # turn direction only while the mouse is moving outside this deadzone.
     draw_circle(center, deadzone_radius, Color(1.0, 1.0, 1.0, opacity * 0.035))
     draw_arc(
         center,

@@ -1,20 +1,22 @@
 class_name SocomMouseAimModel
 extends RefCounted
 
-## Persistent blue mouse destination plus a white camera follower. Blue is
-## written only by mouse input and never recenters itself. The white follower
-## carries camera aim toward blue until their visible outlines touch.
+## Persistent blue mouse destination around a permanently centered reticle.
+## Blue is written only by mouse input and never recenters itself. While mouse
+## motion is active, its displacement outside the white deadzone requests turn.
 
 var intent_yaw: float = 0.0
 var intent_pitch: float = deg_to_rad(-2.0)
 var target_deflection := Vector2.ZERO
-var follower_deflection := Vector2.ZERO
+var motion_age: float = 999.0
+var motion_active: bool = false
 
 func reset(aim_angles: Vector2) -> void:
     intent_yaw = wrapf(aim_angles.x, -PI, PI)
     intent_pitch = aim_angles.y
     target_deflection = Vector2.ZERO
-    follower_deflection = Vector2.ZERO
+    motion_age = 999.0
+    motion_active = false
 
 func sync_aim(aim_angles: Vector2) -> void:
     intent_yaw = wrapf(aim_angles.x, -PI, PI)
@@ -31,18 +33,22 @@ func apply_motion(
         relative_motion.y / half_extent.y
     )
     target_deflection = target_deflection.clamp(-Vector2.ONE, Vector2.ONE)
+    motion_age = 0.0
+    motion_active = true
 
-func update_follower(
+func update_turn(
     delta: float,
     viewport_size: Vector2,
     profile: Resource
 ) -> Vector2:
     var dt := clampf(delta, 0.0, 0.05)
+    motion_age += dt
+    if motion_age > profile.mouse_string_idle_stop_seconds:
+        motion_active = false
+        return Vector2.ZERO
+
     var target_pixels := target_offset_pixels(viewport_size, profile)
-    var half_extent := _half_extent_pixels(viewport_size, profile)
-    var follower_pixels := follower_deflection * half_extent
-    var separation := target_pixels - follower_pixels
-    var distance := separation.length()
+    var distance := target_pixels.length()
     var touch_distance: float = (
         profile.mouse_string_deadzone_radius_px
         + profile.mouse_string_blue_radius_px
@@ -50,29 +56,21 @@ func update_follower(
     if distance <= touch_distance:
         return Vector2.ZERO
 
-    var boundary := target_pixels - separation.normalized() * touch_distance
-    var next_follower := follower_pixels.lerp(
-        boundary,
-        1.0 - exp(-profile.mouse_string_follow_response * dt)
+    var half_extent := _half_extent_pixels(viewport_size, profile)
+    var maximum_distance := maxf(half_extent.length(), touch_distance + 0.001)
+    var normalized := clampf(
+        inverse_lerp(touch_distance, maximum_distance, distance),
+        0.0,
+        1.0
     )
-    if next_follower.distance_to(boundary) < 0.05:
-        next_follower = boundary
-    var movement := next_follower - follower_pixels
-    follower_deflection = Vector2(
-        next_follower.x / half_extent.x,
-        next_follower.y / half_extent.y
-    ).clamp(-Vector2.ONE, Vector2.ONE)
-    return movement
+    var strength := pow(
+        smoothstep(0.0, 1.0, normalized),
+        profile.mouse_string_tension_curve
+    )
+    return target_pixels.normalized() * strength
 
 func target_screen_normalized(profile: Resource) -> Vector2:
     return _deflection_screen_normalized(target_deflection, profile)
-
-func follower_screen_normalized(profile: Resource) -> Vector2:
-    return _deflection_screen_normalized(follower_deflection, profile)
-
-func separation_pixels(viewport_size: Vector2, profile: Resource) -> float:
-    var half_extent := _half_extent_pixels(viewport_size, profile)
-    return ((target_deflection - follower_deflection) * half_extent).length()
 
 func target_offset_pixels(viewport_size: Vector2, profile: Resource) -> Vector2:
     return target_deflection * _half_extent_pixels(viewport_size, profile)

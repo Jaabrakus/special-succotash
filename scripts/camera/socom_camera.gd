@@ -2739,24 +2739,21 @@ func _apply_mouse_aim_string_input(relative_motion: Vector2) -> void:
 
 func _update_mouse_aim_string(delta: float) -> void:
     var viewport_size := get_viewport().get_visible_rect().size
-    var follower_motion: Vector2 = mouse_aim_model.update_follower(
+    mouse_edge_turn = mouse_aim_model.update_turn(
         delta,
         viewport_size,
         profile
     )
-    mouse_edge_turn = Vector2(
-        follower_motion.x / maxf(viewport_size.x * profile.mouse_cage_half_width, 1.0),
-        follower_motion.y / maxf(viewport_size.y * profile.mouse_cage_half_height, 1.0)
-    )
+    var dt := clampf(delta, 0.0, 0.05)
     aim_yaw = wrapf(
         aim_yaw
-        - follower_motion.x * profile.mouse_sensitivity,
+        - deg_to_rad(profile.mouse_edge_yaw_speed_deg) * mouse_edge_turn.x * dt,
         -PI,
         PI
     )
     aim_pitch = clampf(
         aim_pitch
-        - follower_motion.y * profile.mouse_sensitivity,
+        - deg_to_rad(profile.mouse_edge_pitch_speed_deg) * mouse_edge_turn.y * dt,
         deg_to_rad(profile.pitch_min_deg),
         deg_to_rad(profile.pitch_max_deg)
     )
@@ -2765,9 +2762,6 @@ func _update_mouse_aim_string(delta: float) -> void:
 
 func get_mouse_string_screen_normalized() -> Vector2:
     return mouse_aim_model.target_screen_normalized(profile)
-
-func get_mouse_string_follower_screen_normalized() -> Vector2:
-    return mouse_aim_model.follower_screen_normalized(profile)
 
 func get_operator_alignment_screen_normalized() -> Vector2:
     return get_mouse_string_screen_normalized()
