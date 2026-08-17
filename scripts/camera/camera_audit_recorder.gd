@@ -168,6 +168,8 @@ func _capture_frame(delta: float) -> void:
         "player_rotation_y": player.global_rotation.y,
         "yaw": camera_rig.yaw,
         "pitch": camera_rig.pitch,
+        "aim_yaw": camera_rig.aim_yaw,
+        "aim_pitch": camera_rig.aim_pitch,
         "state": state
     }
     frames.append(snapshot)
@@ -202,6 +204,8 @@ func _apply_replay_frame() -> void:
     player.velocity = Vector3.ZERO
     camera_rig.yaw = float(snapshot.yaw)
     camera_rig.pitch = float(snapshot.pitch)
+    camera_rig.aim_yaw = float(snapshot.get("aim_yaw", snapshot.yaw))
+    camera_rig.aim_pitch = float(snapshot.get("aim_pitch", snapshot.pitch))
     _replay_index += 1
 
 

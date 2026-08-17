@@ -42,3 +42,13 @@ and original Godot code; it does not copy literal reCOM implementation code.
 The added world-distance tether and screen-space tether are safety invariants
 around that model. They ensure smoothing cannot preserve an obsolete wall-side
 lens when the controlled player has already left it.
+
+## Orbit-trail interpretation
+
+Footage supports recreating a small difference between immediate player aim
+intent and the rendered tether orbit. The available reverse-engineered camera
+bodies do not prove the original response rates, however, so the SOCOM-141
+values are exposed as profile tuning rather than described as recovered Zipper
+constants. The trail affects only presentation: reticle, weapon ray, and the
+multiplayer yaw/pitch payload continue to use immediate aim intent. Collision
+still operates on the rendered lens through the existing post-solve pipeline.

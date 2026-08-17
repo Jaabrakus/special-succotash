@@ -25,6 +25,7 @@ var aim_pitch: float = deg_to_rad(-2.0)
 var yaw: float = 0.0
 var pitch: float = deg_to_rad(-2.0)
 var orbit_drag_enabled: bool = true
+var initial_orbit_sync_pending: bool = true
 var current_camera_position := Vector3.ZERO
 var preferred_camera_position := Vector3.ZERO
 var virtual_camera_position := Vector3.ZERO
@@ -131,7 +132,10 @@ func _ready() -> void:
     camera_collision_shape.radius = profile.camera_collision_radius
     current_fov = profile.vertical_fov
     orbit_input_enabled = not OS.get_cmdline_user_args().has("--automated-test")
-    orbit_drag_enabled = not OS.get_cmdline_user_args().has("--automated-test")
+    orbit_drag_enabled = (
+        profile.orbit_trail_enabled
+        and not OS.get_cmdline_user_args().has("--automated-test")
+    )
     automated_wall_turn = (
         OS.get_cmdline_user_args().has("--wall-turn-test")
         or OS.get_cmdline_user_args().has("--interior-turn-test")
@@ -167,6 +171,13 @@ func _physics_process(delta: float) -> void:
     if target == null or camera == null:
         return
 
+    # The lab selects scenario yaw/pitch immediately after add_child() returns,
+    # which is after _ready(). Capture that final initial orbit once so the
+    # camera cannot ease back toward stale startup intent on its first frame.
+    if initial_orbit_sync_pending:
+        _sync_aim_to_orbit()
+        initial_orbit_sync_pending = false
+
     if Input.is_action_just_pressed("reset_camera"):
         aim_yaw = target.global_rotation.y
         aim_pitch = deg_to_rad(-2.0)
@@ -184,12 +195,8 @@ func _physics_process(delta: float) -> void:
         yaw -= deg_to_rad(automated_turn_speed) * delta
         aim_yaw = yaw
     elif orbit_drag_enabled:
-        var dt := clampf(delta, 0.0, 0.05)
         var is_aiming: bool = Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT) or (InputMap.has_action("aim_down_sights") and Input.is_action_pressed("aim_down_sights"))
-        var yaw_rate: float = 26.0 if is_aiming else 13.5
-        var pitch_rate: float = 24.0 if is_aiming else 16.0
-        yaw = _damp_angle(yaw, aim_yaw, yaw_rate, dt)
-        pitch = _damp(pitch, aim_pitch, pitch_rate, dt)
+        _update_orbit_trail(delta, is_aiming)
     else:
         yaw = aim_yaw
         pitch = aim_pitch
@@ -448,6 +455,8 @@ func _physics_process(delta: float) -> void:
     _update_reticle_position(delta)
 
 func reset_camera_to_target() -> void:
+    _sync_aim_to_orbit()
+    initial_orbit_sync_pending = false
     current_camera_position = Vector3.ZERO
     preferred_camera_position = Vector3.ZERO
     virtual_camera_position = Vector3.ZERO
@@ -2576,8 +2585,8 @@ func build_local_aim_intent() -> Dictionary:
     return AimIntentScript.create(
         aim_intent_sequence,
         Engine.get_physics_frames(),
-        yaw,
-        pitch,
+        aim_yaw,
+        aim_pitch,
         muzzle,
         direction
     )
@@ -2757,3 +2766,43 @@ func _damp(current: float, target_val: float, rate: float, dt: float) -> float:
 func _damp_angle(current: float, target_val: float, rate: float, dt: float) -> float:
     var diff := fposmod(target_val - current + PI, TAU) - PI
     return current + diff * (1.0 - exp(-rate * dt))
+
+func set_aim_angles(new_yaw: float, new_pitch: float, snap_orbit: bool = false) -> void:
+    aim_yaw = wrapf(new_yaw, -PI, PI)
+    aim_pitch = clampf(
+        new_pitch,
+        deg_to_rad(profile.pitch_min_deg),
+        deg_to_rad(profile.pitch_max_deg)
+    )
+    if snap_orbit or not orbit_drag_enabled:
+        yaw = aim_yaw
+        pitch = aim_pitch
+
+func set_orbit_trail_enabled(enabled: bool) -> void:
+    orbit_drag_enabled = enabled
+    if not orbit_drag_enabled:
+        yaw = aim_yaw
+        pitch = aim_pitch
+
+func _sync_aim_to_orbit() -> void:
+    aim_yaw = wrapf(yaw, -PI, PI)
+    aim_pitch = clampf(
+        pitch,
+        deg_to_rad(profile.pitch_min_deg),
+        deg_to_rad(profile.pitch_max_deg)
+    )
+
+func _update_orbit_trail(delta: float, is_aiming: bool) -> void:
+    var dt := clampf(delta, 0.0, 0.05)
+    var yaw_rate: float = (
+        profile.aiming_orbit_yaw_response
+        if is_aiming
+        else profile.orbit_yaw_response
+    )
+    var pitch_rate: float = (
+        profile.aiming_orbit_pitch_response
+        if is_aiming
+        else profile.orbit_pitch_response
+    )
+    yaw = _damp_angle(yaw, aim_yaw, yaw_rate, dt)
+    pitch = _damp(pitch, aim_pitch, pitch_rate, dt)

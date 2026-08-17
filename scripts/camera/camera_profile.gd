@@ -17,6 +17,11 @@ extends Resource
 @export var mouse_sensitivity: float = 0.0024
 @export var pitch_min_deg: float = -60.0
 @export var pitch_max_deg: float = 28.0
+@export var orbit_trail_enabled: bool = true
+@export var orbit_yaw_response: float = 13.5
+@export var orbit_pitch_response: float = 16.0
+@export var aiming_orbit_yaw_response: float = 26.0
+@export var aiming_orbit_pitch_response: float = 24.0
 
 @export_group("Downward Aim Authority")
 @export var downward_aim_start_deg: float = -18.0
