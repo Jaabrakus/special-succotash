@@ -6,6 +6,7 @@ const CameraCompositionControllerScript := preload("res://scripts/camera/camera_
 const CameraDebugSnapshotScript := preload("res://scripts/camera/camera_debug_snapshot.gd")
 const CameraInputControllerScript := preload("res://scripts/camera/camera_input_controller.gd")
 const CameraProfileScript := preload("res://scripts/camera/camera_profile.gd")
+const CameraPreferredShotSolverScript := preload("res://scripts/camera/camera_preferred_shot_solver.gd")
 const CameraStateControllerScript := preload("res://scripts/camera/camera_state_controller.gd")
 const CameraSubjectProjectorScript := preload("res://scripts/camera/camera_subject_projector.gd")
 const MouseAimModelScript := preload("res://scripts/camera/mouse_aim_model.gd")
@@ -35,6 +36,7 @@ var subject_projector := CameraSubjectProjectorScript.new()
 var aim_resolver := CameraAimResolverScript.new()
 var state_controller := CameraStateControllerScript.new()
 var composition_controller := CameraCompositionControllerScript.new()
+var preferred_shot_solver := CameraPreferredShotSolverScript.new()
 var mouse_intent_yaw: float:
     get:
         return mouse_aim_model.intent_yaw
@@ -146,13 +148,18 @@ var camera: Camera3D
 var orbit_input_enabled: bool = true
 var automated_wall_turn: bool = false
 
-func _ready() -> void:
-    add_to_group("socom_camera_rig")
+func _init() -> void:
+    # Solvers must also work in isolated unit tests before this node enters a
+    # scene tree. _ready repeats no ownership work; it only builds live nodes.
     aim_input_controller.configure(mouse_aim_model)
     subject_projector.configure(self)
     aim_resolver.configure(self)
     state_controller.configure(self)
     composition_controller.configure(self)
+    preferred_shot_solver.configure(self)
+
+func _ready() -> void:
+    add_to_group("socom_camera_rig")
     camera = Camera3D.new()
     camera.name = "Camera3D"
     camera.current = true
@@ -1276,144 +1283,42 @@ func _advance_local_lens_toward(
     return best_position
 
 func _preferred_position() -> Vector3:
-    var anchor := target.global_position + movement_lead + Vector3.UP * 1.05
-    var yaw_basis := Basis(Vector3.UP, yaw)
-    var back := yaw_basis * Vector3.BACK
-    var side := yaw_basis * Vector3.RIGHT
-
-    var forward := yaw_basis * Vector3.FORWARD
-    var base_distance: float = lerpf(profile.distance, profile.interior_distance, interior_amount)
-    var base_height: float = lerpf(profile.height, profile.interior_height, interior_amount)
-    var base_shoulder: float = lerpf(
-        profile.shoulder_offset,
-        profile.interior_shoulder_offset,
-        interior_amount
-    )
-    var shot_distance: float = lerpf(base_distance, profile.downward_distance, downward_crane_amount)
-    var shot_height: float = lerpf(base_height, profile.downward_height, downward_crane_amount)
-    var shot_shoulder: float = lerpf(
-        base_shoulder,
-        profile.downward_shoulder_offset,
-        downward_crane_amount
-    )
-    return (
-        anchor
-        + back * shot_distance
-        + Vector3.UP * (
-            shot_height
-            + downward_crane_amount * profile.max_downward_camera_raise
-            + downward_ledge_raise
-        )
-        + forward * (downward_crane_amount * profile.max_downward_camera_forward)
-        + side * (shot_shoulder + downward_crane_amount * profile.max_downward_camera_side)
-    )
+    return preferred_shot_solver.preferred_position()
 
 func _low_stance_amount() -> float:
-    if target == null or head_marker == null:
-        return 0.0
-    var head_height: float = head_marker.global_position.y - target.global_position.y
-    var stance_range: float = maxf(
-        profile.low_stance_head_height_start - profile.low_stance_head_height_full,
-        0.001
-    )
-    return clampf(
-        (profile.low_stance_head_height_start - head_height) / stance_range,
-        0.0,
-        1.0
-    )
+    return preferred_shot_solver.low_stance_amount()
 
 func _update_environment_state(delta: float) -> void:
-    overhead_confinement = _measure_overhead_confinement()
-    var target_interior: float = smoothstep(0.08, 0.62, overhead_confinement)
-    interior_amount = lerpf(
-        interior_amount,
-        target_interior,
-        1.0 - exp(-profile.interior_state_response * delta)
-    )
+    preferred_shot_solver.update_environment_state(delta)
 
 func _calculate_downward_aim_amount() -> float:
-    var pitch_deg: float = rad_to_deg(pitch)
-    var pitch_range: float = maxf(
-        absf(profile.downward_aim_full_deg - profile.downward_aim_start_deg),
-        0.001
-    )
-    return clampf(
-        (profile.downward_aim_start_deg - pitch_deg) / pitch_range,
-        0.0,
-        1.0
-    )
+    return preferred_shot_solver.downward_aim_amount()
 
 func _forward_direction() -> Vector3:
-    # This is gameplay aim, not camera composition. Environment state may move
-    # the rendered lens, change FOV, or crop the operator, but it may never add
-    # pitch/yaw to the player's input. Keeping this function raw also makes the
-    # network yaw/pitch pair describe the exact same direction in every camera
-    # state.
-    var target_yaw := aim_yaw if orbit_drag_enabled else yaw
-    var target_pitch := aim_pitch if orbit_drag_enabled else pitch
-    var yaw_basis := Basis(Vector3.UP, target_yaw)
-    var yaw_forward := yaw_basis * Vector3.FORWARD
-    var right := yaw_basis * Vector3.RIGHT
-    var pitch_basis := Basis(right, target_pitch)
-    return (pitch_basis * yaw_forward).normalized()
+    return preferred_shot_solver.forward_direction()
 
 func _composed_view_pitch() -> float:
-    # Retained as a camera-composition hook for tooling, but it intentionally
-    # mirrors raw input. The old interior bias silently redirected aim whenever
-    # a ceiling was detected.
-    return clampf(
-        pitch,
-        deg_to_rad(profile.pitch_min_deg),
-        deg_to_rad(profile.pitch_max_deg)
-    )
+    return preferred_shot_solver.composed_view_pitch()
 
 func _look_target() -> Vector3:
-    # Converge the rendered optical axis on the same camera-independent point
-    # used by the weapon. At normal ranges this preserves raw yaw/pitch while
-    # removing the parallel-ray mismatch visible in the workbench.
-    if aim_point != Vector3.ZERO and global_position.distance_to(aim_point) > 0.1:
-        return aim_point
-    return global_position + _forward_direction() * profile.look_ahead_distance
+    return preferred_shot_solver.look_target_from(global_position)
 
 func _look_target_from(camera_position: Vector3, _force_collision_context: bool = false) -> Vector3:
-    if aim_point != Vector3.ZERO and camera_position.distance_to(aim_point) > 0.1:
-        return aim_point
-    return camera_position + _forward_direction() * profile.look_ahead_distance
+    return preferred_shot_solver.look_target_from(camera_position)
 
 func _close_wall_aim_point(look_ahead: float) -> Vector3:
-    return (
-        target.global_position
-        + movement_lead
-        + Vector3.UP * profile.look_height
-        + _forward_direction() * look_ahead
-    )
+    return preferred_shot_solver.close_wall_aim_point(look_ahead)
 
 func _perched_view_direction(
     camera_position: Vector3,
     look_ahead: float,
     horizontal_correction: float = 1.0
 ) -> Vector3:
-    # Wall composition is horizontal only. Raw pitch is copied exactly so
-    # collision can never force the player to look at the floor or ceiling.
-    var raw_direction := _forward_direction()
-    var raw_flat := Vector3(raw_direction.x, 0.0, raw_direction.z).normalized()
-    var convergence_delta := _close_wall_aim_point(look_ahead) - camera_position
-    var convergence_flat := Vector3(
-        convergence_delta.x,
-        0.0,
-        convergence_delta.z
-    ).normalized()
-    if convergence_flat.length_squared() < 0.0001:
-        convergence_flat = raw_flat
-    var corrected_flat := raw_flat.slerp(
-        convergence_flat,
-        clampf(horizontal_correction, 0.0, 1.0)
-    ).normalized()
-    var horizontal_length := sqrt(maxf(1.0 - raw_direction.y * raw_direction.y, 0.0))
-    return (
-        corrected_flat * horizontal_length
-        + Vector3.UP * raw_direction.y
-    ).normalized()
+    return preferred_shot_solver.perched_view_direction(
+        camera_position,
+        look_ahead,
+        horizontal_correction
+    )
 
 func _solve_collision(desired: Vector3) -> Dictionary:
     var anchor: Vector3 = target.global_position + Vector3.UP * float(profile.collision_anchor_height)
