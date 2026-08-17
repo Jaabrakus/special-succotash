@@ -45,12 +45,34 @@ func _run() -> void:
         "active blue motion turns the centered camera aim"
     )
 
-    for _frame in range(8):
+    var blue_distance_before_release: float = (
+        rig.get_mouse_string_screen_normalized().distance_to(Vector2(0.5, 0.5))
+    )
+    for _frame in range(3):
+        await physics_frame
+        await process_frame
+    var blue_during_return: Vector2 = rig.get_mouse_string_screen_normalized()
+    var aim_when_input_ended := Vector2(rig.aim_yaw, rig.aim_pitch)
+    _expect(
+        not blue_during_return.is_equal_approx(Vector2(0.5, 0.5))
+        and blue_during_return.distance_to(Vector2(0.5, 0.5))
+        < blue_distance_before_release,
+        "blue display eases back instead of snapping after mouse becomes idle"
+    )
+    for _frame in range(3):
+        await physics_frame
+        await process_frame
+    _expect(
+        absf(rig.aim_yaw - aim_when_input_ended.x) < 0.000001
+        and absf(rig.aim_pitch - aim_when_input_ended.y) < 0.000001,
+        "rendered blue return does not continue camera aim"
+    )
+    for _frame in range(40):
         await physics_frame
         await process_frame
     _expect(
         rig.get_mouse_string_screen_normalized().is_equal_approx(Vector2(0.5, 0.5)),
-        "blue display refreshes to center after mouse becomes idle"
+        "blue display completes its smooth return to center"
     )
 
     scene.queue_free()
