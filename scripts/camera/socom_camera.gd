@@ -2,6 +2,7 @@ class_name SocomCameraRig
 extends Node3D
 
 const CameraAimResolverScript := preload("res://scripts/camera/camera_aim_resolver.gd")
+const CameraCompositionControllerScript := preload("res://scripts/camera/camera_composition_controller.gd")
 const CameraDebugSnapshotScript := preload("res://scripts/camera/camera_debug_snapshot.gd")
 const CameraInputControllerScript := preload("res://scripts/camera/camera_input_controller.gd")
 const CameraProfileScript := preload("res://scripts/camera/camera_profile.gd")
@@ -33,6 +34,7 @@ var aim_input_controller := CameraInputControllerScript.new()
 var subject_projector := CameraSubjectProjectorScript.new()
 var aim_resolver := CameraAimResolverScript.new()
 var state_controller := CameraStateControllerScript.new()
+var composition_controller := CameraCompositionControllerScript.new()
 var mouse_intent_yaw: float:
     get:
         return mouse_aim_model.intent_yaw
@@ -150,6 +152,7 @@ func _ready() -> void:
     subject_projector.configure(self)
     aim_resolver.configure(self)
     state_controller.configure(self)
+    composition_controller.configure(self)
     camera = Camera3D.new()
     camera.name = "Camera3D"
     camera.current = true
@@ -2149,196 +2152,25 @@ func _solve_framing(candidate: Vector3) -> Vector3:
     return candidate + camera_right * framing_side_correction + Vector3.UP * framing_correction
 
 func _update_terrain_crop_relaxation() -> void:
-    terrain_slope_deg = 0.0
-    terrain_crop_relaxation = 0.0
-    if not target is CharacterBody3D:
-        return
-
-    var body := target as CharacterBody3D
-    if not body.is_on_floor():
-        return
-
-    var floor_normal: Vector3 = body.get_floor_normal()
-    terrain_slope_deg = rad_to_deg(floor_normal.angle_to(Vector3.UP))
-    var slope_ratio: float = clampf(
-        terrain_slope_deg / maxf(profile.terrain_full_relaxation_deg, 0.001),
-        0.0,
-        1.0
-    )
-    terrain_crop_relaxation = slope_ratio * profile.max_terrain_pelvis_reveal
+    composition_controller.update_terrain_crop_relaxation()
 
 func _update_visual_crop_state() -> void:
-    if pelvis_marker == null or feet_marker == null or camera == null:
-        pelvis_crop_state = "UNKNOWN"
-        return
-
-    var viewport_height: float = maxf(get_viewport().get_visible_rect().size.y, 1.0)
-    var final_pelvis_y: float = camera.unproject_position(pelvis_marker.global_position).y / viewport_height
-    var final_feet_y: float = camera.unproject_position(feet_marker.global_position).y / viewport_height
-    # At steep top-down pitch the projected feet can sit numerically close to
-    # the pelvis even when the entire lower body is below the frame. Classify
-    # the pelvis first so the debug state matches what is actually visible.
-    if final_pelvis_y > 1.02:
-        pelvis_crop_state = "UPPER BODY ONLY"
-    elif final_feet_y <= 1.0:
-        pelvis_crop_state = "LEGS + FEET"
-    elif final_feet_y <= 1.16:
-        pelvis_crop_state = "LEGS, FEET CROPPED"
-    elif final_pelvis_y <= 0.98:
-        pelvis_crop_state = "THIGHS / WAIST CROP"
-    else:
-        pelvis_crop_state = "UPPER BODY ONLY"
+    composition_controller.update_visual_crop_state()
 
 func _update_tight_space_state(delta: float) -> void:
-    var anchor: Vector3 = target.global_position + Vector3.UP * profile.collision_anchor_height
-    var preferred_boom: float = anchor.distance_to(preferred_camera_position)
-    var collision_boom: float = anchor.distance_to(collision_camera_position)
-    boom_compression = 0.0
-    if collision_active:
-        boom_compression = clampf(
-            1.0 - collision_boom / maxf(preferred_boom, 0.001),
-            0.0,
-            1.0
-        )
-
-    var compression_range: float = maxf(
-        profile.tight_space_full_compression - profile.tight_space_compression_start,
-        0.001
-    )
-    var compression_tightness: float = clampf(
-        (boom_compression - profile.tight_space_compression_start) / compression_range,
-        0.0,
-        1.0
-    )
-    if collision_active:
-        compression_tightness = maxf(compression_tightness, 0.12)
-    if wall_escape_active:
-        compression_tightness = maxf(compression_tightness, profile.wall_escape_min_tightness)
-    var target_tightness: float = maxf(compression_tightness, overhead_confinement)
-    tight_space_amount = lerpf(
-        tight_space_amount,
-        target_tightness,
-        1.0 - exp(-profile.tight_space_response * delta)
-    )
-    tight_space_pelvis_crop = tight_space_amount * profile.max_tight_space_pelvis_crop
-
-    if tight_space_amount >= 0.55:
-        framing_mode = "TIGHT UPPER BODY"
-    elif tight_space_amount >= 0.08:
-        framing_mode = "CONSTRAINED CROP"
-    else:
-        framing_mode = "OUTDOOR TACTICAL"
+    composition_controller.update_tight_space_state(delta)
 
 func _update_dynamic_fov(delta: float) -> void:
-    # The crane increases subject distance, so a controlled lens blend preserves
-    # the upper-body scale. It runs before framing and uses the same smooth state
-    # curve as the crane, avoiding the former projection mismatch and pitch pop.
-    var target_fov: float = lerpf(
-        profile.vertical_fov,
-        profile.downward_fov,
-        downward_crane_amount
-    )
-    var steep_lens_amount: float = smoothstep(0.82, 1.0, downward_aim_amount)
-    target_fov = lerpf(target_fov, profile.steep_downward_fov, steep_lens_amount)
-    # v2.0 pre-enclosed baseline: when geometry forces a level camera very
-    # close, widen the lens without moving the camera or redirecting aim.
-    # Downward rooftop aim retains its purpose-built narrower lens.
-    var close_lens_amount: float = smoothstep(
-        profile.close_fov_start_compression,
-        profile.close_fov_full_compression,
-        boom_compression
-    ) * (1.0 - downward_aim_amount)
-    target_fov = lerpf(
-        target_fov,
-        maxf(target_fov, profile.close_level_fov),
-        close_lens_amount
-    )
-    var lens_response: float = maxf(
-        profile.downward_fov_response,
-        profile.close_fov_response * close_lens_amount
-    )
-    current_fov = lerpf(
-        current_fov,
-        target_fov,
-        1.0 - exp(-lens_response * delta)
-    )
-    camera.fov = current_fov
+    composition_controller.update_dynamic_fov(delta)
 
 func _update_movement_follow(delta: float) -> void:
-    if not target is CharacterBody3D:
-        movement_lead = Vector3.ZERO
-        movement_speed_ratio = 0.0
-        movement_lateral_ratio = 0.0
-        return
-
-    var body := target as CharacterBody3D
-    var horizontal_velocity := Vector3(body.velocity.x, 0.0, body.velocity.z)
-    var horizontal_speed: float = horizontal_velocity.length()
-    movement_speed_ratio = clampf(horizontal_speed / maxf(profile.movement_full_speed, 0.001), 0.0, 1.0)
-    var camera_right: Vector3 = Basis(Vector3.UP, yaw) * Vector3.RIGHT
-    movement_lateral_ratio = clampf(
-        horizontal_velocity.dot(camera_right) / maxf(profile.movement_full_speed, 0.001),
-        -1.0,
-        1.0
-    )
-    var desired_lead: Vector3 = horizontal_velocity * profile.movement_lead_time
-    if desired_lead.length() > profile.max_movement_lead:
-        desired_lead = desired_lead.normalized() * profile.max_movement_lead
-    var response: float = profile.movement_lead_response if horizontal_speed > 0.05 else profile.movement_return_response
-    movement_lead = movement_lead.lerp(desired_lead, 1.0 - exp(-response * delta))
+    composition_controller.update_movement_follow(delta)
 
 func _measure_overhead_confinement() -> float:
-    if head_marker == null:
-        return 0.0
-
-    var origin: Vector3 = head_marker.global_position + Vector3.UP * 0.08
-    var destination: Vector3 = origin + Vector3.UP * profile.ceiling_probe_distance
-    var query := PhysicsRayQueryParameters3D.create(origin, destination)
-    query.collide_with_areas = false
-    if target is CollisionObject3D:
-        query.exclude = [(target as CollisionObject3D).get_rid()]
-
-    var hit: Dictionary = get_world_3d().direct_space_state.intersect_ray(query)
-    if hit.is_empty():
-        return 0.0
-
-    var hit_position: Vector3 = hit["position"]
-    var clearance: float = origin.distance_to(hit_position)
-    return clampf(1.0 - clearance / maxf(profile.ceiling_probe_distance, 0.001), 0.0, 1.0)
+    return composition_controller.measure_overhead_confinement()
 
 func _limit_excursion(candidate: Vector3) -> Vector3:
-    var delta := candidate - preferred_camera_position
-    var allowed_drop: float = (
-        profile.max_drop
-        + tight_space_amount * profile.max_tight_space_extra_drop
-        + _low_stance_amount() * profile.max_low_stance_camera_drop
-    )
-    var allowed_raise: float = lerpf(
-        profile.max_raise,
-        profile.downward_max_framing_height_correction,
-        downward_aim_amount
-    )
-    delta.y = clampf(delta.y, -allowed_drop, allowed_raise)
-
-    var yaw_basis := Basis(Vector3.UP, yaw)
-    var right := yaw_basis * Vector3.RIGHT
-    var back := yaw_basis * Vector3.BACK
-    var local_side := delta.dot(right)
-    var local_depth := delta.dot(back)
-    var local_vertical := delta.y
-
-    var allowed_side: float = lerpf(
-        profile.max_side_excursion,
-        profile.max_wall_escape_side_excursion,
-        maxf(tight_space_amount, wall_context_amount)
-    )
-    local_side = clamp(local_side, -allowed_side, allowed_side)
-    # Collision is allowed to compress nearly to the anchor when geometry demands it.
-    # The solver first tries to escape upward; this lower bound only prevents crossing
-    # through the player anchor to the wrong side.
-    local_depth = clamp(local_depth, -(profile.distance - 0.15), 0.5)
-
-    return preferred_camera_position + right * local_side + back * local_depth + Vector3.UP * local_vertical
+    return composition_controller.limit_excursion(candidate)
 
 func _orient_camera(_delta: float) -> void:
     var desired_basis := _basis_looking_at(_look_target())
