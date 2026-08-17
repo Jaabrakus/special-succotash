@@ -174,8 +174,7 @@ func _capture_frame(delta: float) -> void:
         "mouse_intent_yaw": camera_rig.mouse_intent_yaw,
         "mouse_intent_pitch": camera_rig.mouse_intent_pitch,
         "mouse_target_deflection": camera_rig.mouse_aim_model.target_deflection,
-        "mouse_motion_age": camera_rig.mouse_aim_model.motion_age,
-        "mouse_motion_active": camera_rig.mouse_aim_model.motion_active,
+        "mouse_follower_deflection": camera_rig.mouse_aim_model.follower_deflection,
         "mouse_cursor_cage_enabled": camera_rig.mouse_cursor_cage_enabled,
         "mouse_cursor_deflection": camera_rig.mouse_cursor_deflection,
         "state": state
@@ -227,11 +226,9 @@ func _apply_replay_frame() -> void:
         "mouse_target_deflection",
         Vector2.ZERO
     )
-    camera_rig.mouse_aim_model.motion_age = float(
-        snapshot.get("mouse_motion_age", 999.0)
-    )
-    camera_rig.mouse_aim_model.motion_active = bool(
-        snapshot.get("mouse_motion_active", false)
+    camera_rig.mouse_aim_model.follower_deflection = snapshot.get(
+        "mouse_follower_deflection",
+        Vector2.ZERO
     )
     camera_rig.mouse_cursor_cage_enabled = bool(
         snapshot.get("mouse_cursor_cage_enabled", false)
