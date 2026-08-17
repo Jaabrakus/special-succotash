@@ -186,14 +186,11 @@ func _unhandled_input(event: InputEvent) -> void:
         elif mouse_aim_string_enabled:
             _apply_mouse_aim_string_input(event.relative)
         else:
-            set_aim_angles(
-                aim_yaw - event.relative.x * profile.mouse_sensitivity,
-                aim_pitch - event.relative.y * profile.mouse_sensitivity
-            )
+            _apply_raw_mouse_input(event.relative)
     elif event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
         Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
     elif event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_M:
-        set_mouse_aim_string_enabled(not mouse_aim_string_enabled)
+        set_orbit_trail_enabled(not orbit_drag_enabled)
     elif event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_N:
         mouse_string_debug_visible = not mouse_string_debug_visible
     elif orbit_input_enabled and event is InputEventMouseButton and event.pressed:
@@ -2769,15 +2766,15 @@ func get_debug_data() -> Dictionary:
         "mouse_cursor_cage_enabled": mouse_cursor_cage_enabled,
         "mouse_aim_string_enabled": mouse_aim_string_enabled,
         "mouse_string_debug_visible": mouse_string_debug_visible,
-        "mouse_string_dot_x": get_mouse_string_screen_normalized().x,
-        "mouse_string_dot_y": get_mouse_string_screen_normalized().y,
+        "mouse_string_dot_x": get_operator_alignment_screen_normalized().x,
+        "mouse_string_dot_y": get_operator_alignment_screen_normalized().y,
         "mouse_intent_yaw_deg": rad_to_deg(mouse_intent_yaw),
         "mouse_intent_pitch_deg": rad_to_deg(mouse_intent_pitch),
         "mouse_string_yaw_stretch_deg": rad_to_deg(
-            fposmod(mouse_intent_yaw - aim_yaw + PI, TAU) - PI
+            fposmod(yaw - aim_yaw + PI, TAU) - PI
         ),
         "mouse_string_pitch_stretch_deg": rad_to_deg(
-            mouse_intent_pitch - aim_pitch
+            pitch - aim_pitch
         ),
         "mouse_cursor_x": mouse_cursor_deflection.x,
         "mouse_cursor_y": mouse_cursor_deflection.y,
@@ -2889,6 +2886,12 @@ func set_mouse_aim_string_enabled(enabled: bool) -> void:
     if enabled:
         set_mouse_cursor_cage_enabled(false)
 
+func _apply_raw_mouse_input(relative_motion: Vector2) -> void:
+    set_aim_angles(
+        aim_yaw - relative_motion.x * profile.mouse_sensitivity,
+        aim_pitch - relative_motion.y * profile.mouse_sensitivity
+    )
+
 func _apply_mouse_aim_string_input(relative_motion: Vector2) -> void:
     mouse_intent_yaw = wrapf(
         mouse_intent_yaw - relative_motion.x * profile.mouse_sensitivity,
@@ -2937,6 +2940,9 @@ func _update_mouse_aim_string(delta: float) -> void:
     )
 
 func get_mouse_string_screen_normalized() -> Vector2:
+    return get_operator_alignment_screen_normalized()
+
+func get_operator_alignment_screen_normalized() -> Vector2:
     var viewport_size := get_viewport().get_visible_rect().size
     var aspect := viewport_size.x / maxf(viewport_size.y, 1.0)
     var vertical_fov := deg_to_rad(
@@ -2944,8 +2950,21 @@ func get_mouse_string_screen_normalized() -> Vector2:
     )
     var vertical_half := maxf(vertical_fov * 0.5, 0.001)
     var horizontal_half := atan(tan(vertical_half) * aspect)
-    var yaw_stretch := fposmod(mouse_intent_yaw - aim_yaw + PI, TAU) - PI
-    var pitch_stretch := mouse_intent_pitch - aim_pitch
+    # The marker shows the presentation/body orientation that is still
+    # catching the immediate, authoritative aim. Clamp only the drawing; the
+    # actual boom and torso continue following their normal dynamics.
+    var yaw_limit := deg_to_rad(profile.mouse_string_yaw_limit_deg)
+    var pitch_limit := deg_to_rad(profile.mouse_string_pitch_limit_deg)
+    var yaw_stretch := clampf(
+        fposmod(yaw - aim_yaw + PI, TAU) - PI,
+        -yaw_limit,
+        yaw_limit
+    )
+    var pitch_stretch := clampf(
+        pitch - aim_pitch,
+        -pitch_limit,
+        pitch_limit
+    )
     var screen_offset := Vector2(
         -tan(yaw_stretch) / maxf(tan(horizontal_half), 0.001),
         -tan(pitch_stretch) / maxf(tan(vertical_half), 0.001)
