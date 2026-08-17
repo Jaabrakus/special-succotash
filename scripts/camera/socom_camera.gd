@@ -3,6 +3,7 @@ extends Node3D
 
 const CameraAimResolverScript := preload("res://scripts/camera/camera_aim_resolver.gd")
 const CameraCompositionControllerScript := preload("res://scripts/camera/camera_composition_controller.gd")
+const CameraFramingSolverScript := preload("res://scripts/camera/camera_framing_solver.gd")
 const CameraDebugSnapshotScript := preload("res://scripts/camera/camera_debug_snapshot.gd")
 const CameraInputControllerScript := preload("res://scripts/camera/camera_input_controller.gd")
 const CameraProfileScript := preload("res://scripts/camera/camera_profile.gd")
@@ -37,6 +38,7 @@ var aim_resolver := CameraAimResolverScript.new()
 var state_controller := CameraStateControllerScript.new()
 var composition_controller := CameraCompositionControllerScript.new()
 var preferred_shot_solver := CameraPreferredShotSolverScript.new()
+var framing_solver := CameraFramingSolverScript.new()
 var mouse_intent_yaw: float:
     get:
         return mouse_aim_model.intent_yaw
@@ -157,6 +159,7 @@ func _init() -> void:
     state_controller.configure(self)
     composition_controller.configure(self)
     preferred_shot_solver.configure(self)
+    framing_solver.configure(self)
 
 func _ready() -> void:
     add_to_group("socom_camera_rig")
@@ -1848,214 +1851,7 @@ func _candidate_is_subject_readable(candidate: Vector3) -> bool:
     return subject_projector.candidate_is_subject_readable(candidate)
 
 func _solve_framing(candidate: Vector3) -> Vector3:
-    if head_marker == null or torso_marker == null or pelvis_marker == null or feet_marker == null:
-        return candidate
-
-    # Temporarily place the rig for screen-space measurement.
-    var old_pos := global_position
-    var old_basis := global_basis
-    global_position = candidate
-    _snap_orientation()
-
-    var viewport_size := get_viewport().get_visible_rect().size
-    var head_screen: Vector2 = camera.unproject_position(head_marker.global_position)
-    var torso_screen: Vector2 = camera.unproject_position(torso_marker.global_position)
-    var pelvis_screen: Vector2 = camera.unproject_position(pelvis_marker.global_position)
-    var feet_screen: Vector2 = camera.unproject_position(feet_marker.global_position)
-    var head_x: float = head_screen.x / maxf(viewport_size.x, 1.0)
-    var head_y: float = head_screen.y / maxf(viewport_size.y, 1.0)
-    var torso_y: float = torso_screen.y / maxf(viewport_size.y, 1.0)
-    var pelvis_y: float = pelvis_screen.y / maxf(viewport_size.y, 1.0)
-    var feet_y: float = feet_screen.y / maxf(viewport_size.y, 1.0)
-    measured_head_x = head_x
-    measured_head_y = head_y
-    measured_torso_y = torso_y
-    measured_pelvis_y = pelvis_y
-    measured_feet_y = feet_y
-
-    # Measure the local screen response instead of assuming a fixed conversion
-    # between world height and screen height. This remains stable across pitch,
-    # collision compression and steep rooftop views.
-    var probe_height: float = maxf(profile.framing_probe_height, 0.01)
-    global_position = candidate + Vector3.UP * probe_height
-    _snap_orientation()
-    var probe_head_y: float = camera.unproject_position(head_marker.global_position).y / maxf(viewport_size.y, 1.0)
-    var probe_torso_y: float = camera.unproject_position(torso_marker.global_position).y / maxf(viewport_size.y, 1.0)
-    var probe_pelvis_y: float = camera.unproject_position(pelvis_marker.global_position).y / maxf(viewport_size.y, 1.0)
-    var probe_feet_y: float = camera.unproject_position(feet_marker.global_position).y / maxf(viewport_size.y, 1.0)
-    var head_height_response: float = (probe_head_y - head_y) / probe_height
-    var torso_height_response: float = (probe_torso_y - torso_y) / probe_height
-    var pelvis_height_response: float = (probe_pelvis_y - pelvis_y) / probe_height
-    var feet_height_response: float = (probe_feet_y - feet_y) / probe_height
-
-    global_position = candidate
-    _snap_orientation()
-    var camera_right: Vector3 = global_basis.x.normalized()
-    var probe_side: float = maxf(profile.framing_probe_side, 0.01)
-    global_position = candidate + camera_right * probe_side
-    _snap_orientation()
-    var probe_head_x: float = camera.unproject_position(head_marker.global_position).x / maxf(viewport_size.x, 1.0)
-    var head_side_response: float = (probe_head_x - head_x) / probe_side
-
-    global_position = old_pos
-    global_basis = old_basis
-
-    _update_terrain_crop_relaxation()
-    current_head_target_y = lerpf(
-        profile.desired_head_y,
-        profile.downward_aim_head_y,
-        downward_aim_amount
-    )
-    var steep_head_drop: float = smoothstep(0.82, 1.0, downward_aim_amount)
-    current_head_target_y = lerpf(
-        current_head_target_y,
-        profile.steep_downward_head_y,
-        steep_head_drop
-    )
-    current_head_target_x = profile.desired_head_x
-    current_head_target_x -= movement_lateral_ratio * profile.movement_head_x_shift
-    current_head_target_y = lerpf(current_head_target_y, profile.tight_space_head_y, tight_space_amount)
-    current_head_target_y = lerpf(current_head_target_y, profile.interior_head_y, interior_amount)
-    current_torso_target_y = lerpf(
-        profile.desired_torso_y,
-        profile.interior_torso_y,
-        interior_amount
-    )
-    var wall_head_weight: float = (
-        (1.0 - overhead_confinement) * wall_context_amount
-    )
-    current_head_target_x = lerpf(current_head_target_x, profile.wall_escape_head_x, wall_head_weight)
-    current_head_target_y = lerpf(current_head_target_y, profile.wall_escape_head_y, wall_head_weight)
-    var base_pelvis_target: float = lerpf(
-        profile.desired_pelvis_y,
-        profile.downward_aim_pelvis_y,
-        downward_aim_amount
-    )
-    base_pelvis_target = lerpf(base_pelvis_target, profile.interior_pelvis_y, interior_amount)
-    current_pelvis_target_y = (
-        base_pelvis_target
-        - terrain_crop_relaxation
-        + tight_space_pelvis_crop
-    )
-    current_feet_target_y = profile.desired_feet_y - terrain_crop_relaxation
-    var pelvis_target: float = current_pelvis_target_y
-    var pelvis_min: float = pelvis_target - profile.pelvis_crop_tolerance_above
-    var pelvis_max: float = pelvis_target + profile.pelvis_crop_tolerance_below
-    var feet_min: float = current_feet_target_y - profile.feet_crop_tolerance_above
-    var feet_max: float = current_feet_target_y + profile.feet_crop_tolerance_below
-
-    var head_x_error: float = head_x - current_head_target_x
-    var head_error: float = head_y - current_head_target_y
-    var torso_error: float = torso_y - current_torso_target_y
-    var pelvis_error: float = 0.0
-    pelvis_crop_state = "CROPPED"
-    if pelvis_y < pelvis_min:
-        pelvis_error = pelvis_y - pelvis_min
-    elif pelvis_y > pelvis_max:
-        pelvis_error = pelvis_y - pelvis_max
-
-    # Open space keeps some lower-body context without hard-locking the boots.
-    # The influence fades as geometry compresses the boom so indoor framing can
-    # intentionally spend the legs and then the lower torso.
-    var feet_error: float = 0.0
-    if feet_y < feet_min:
-        feet_error = feet_y - feet_min
-    elif feet_y > feet_max:
-        feet_error = feet_y - feet_max
-
-    var visual_pelvis_min: float = lerpf(0.88, 0.78, downward_aim_amount) - terrain_crop_relaxation
-    var visual_pelvis_max: float = lerpf(1.08, 0.94, downward_aim_amount)
-    if pelvis_y < visual_pelvis_min:
-        pelvis_crop_state = "TOO MUCH LEG"
-    elif pelvis_y > visual_pelvis_max:
-        pelvis_crop_state = "UPPER BODY ONLY"
-
-    if absf(head_error) < profile.framing_deadzone:
-        head_error = 0.0
-    if absf(head_x_error) < profile.framing_deadzone:
-        head_x_error = 0.0
-
-    # The head is the primary anchor. The pelvis is a crop guardrail rather than a
-    # second hard target, so gait animation cannot make the camera hunt each frame.
-    var low_stance_amount := _low_stance_amount()
-    var pelvis_weight: float = lerpf(
-        profile.pelvis_framing_weight,
-        profile.pelvis_framing_weight * profile.tight_space_pelvis_weight_scale,
-        tight_space_amount
-    )
-    var feet_weight: float = lerpf(
-        profile.feet_framing_weight,
-        profile.feet_framing_weight * profile.tight_space_feet_weight_scale,
-        tight_space_amount
-    )
-    pelvis_weight *= lerpf(1.0, profile.low_stance_pelvis_weight_scale, low_stance_amount)
-    feet_weight *= lerpf(1.0, profile.low_stance_feet_weight_scale, low_stance_amount)
-    # Looking over a ledge is an aiming state, not a request to preserve a
-    # full-body portrait. Let the head/torso anchors spend the lower body.
-    pelvis_weight *= lerpf(1.0, 0.20, downward_aim_amount)
-    feet_weight *= 1.0 - downward_aim_amount
-    var torso_weight: float = (
-        profile.torso_framing_weight
-        * lerpf(1.0, 0.15, downward_crane_amount)
-    )
-    var combined_error: float = (
-        head_error * profile.head_framing_weight
-        + torso_error * torso_weight
-        + pelvis_error * pelvis_weight
-        + feet_error * feet_weight
-    )
-    var combined_height_response: float = (
-        head_height_response * profile.head_framing_weight
-        + torso_height_response * torso_weight
-        + (pelvis_height_response * pelvis_weight if pelvis_error != 0.0 else 0.0)
-        + (feet_height_response * feet_weight if feet_error != 0.0 else 0.0)
-    )
-    var max_height_correction: float = lerpf(
-        profile.max_framing_height_correction,
-        profile.downward_max_framing_height_correction,
-        downward_aim_amount
-    )
-    max_height_correction = lerpf(
-        max_height_correction,
-        profile.interior_max_framing_height_correction,
-        interior_amount
-    )
-    max_height_correction = lerpf(
-        max_height_correction,
-        maxf(max_height_correction, profile.wall_escape_max_framing_height_correction),
-        wall_context_amount
-    )
-    max_height_correction = maxf(
-        max_height_correction,
-        low_stance_amount * profile.max_low_stance_camera_drop
-    )
-    if absf(combined_height_response) > 0.0001:
-        framing_correction = clampf(
-            -combined_error / combined_height_response,
-            -max_height_correction,
-            max_height_correction
-        )
-    else:
-        framing_correction = clampf(
-            -combined_error * profile.framing_gain,
-            -max_height_correction,
-            max_height_correction
-        )
-    var max_side_correction: float = lerpf(
-        profile.max_framing_side_correction,
-        profile.wall_escape_max_framing_side_correction,
-        wall_context_amount
-    )
-    if absf(head_side_response) > 0.0001:
-        framing_side_correction = clampf(
-            -head_x_error / head_side_response,
-            -max_side_correction,
-            max_side_correction
-        )
-    else:
-        framing_side_correction = 0.0
-    return candidate + camera_right * framing_side_correction + Vector3.UP * framing_correction
-
+    return framing_solver.solve(candidate)
 func _update_terrain_crop_relaxation() -> void:
     composition_controller.update_terrain_crop_relaxation()
 
