@@ -35,6 +35,11 @@ func _run() -> void:
     _expect(driver.animation_tree != null and driver.animation_tree.active, "AnimationTree is active")
     _expect(driver.get_clip_names().size() == 145, "all 122 authored and 23 curated clips are available")
     _expect(bool(driver.get_visual_debug_data().get("visual_only", false)), "driver declares visual-only authority")
+    _expect(driver.skin_skeleton != null, "visible Mixamo skin skeleton exists")
+    _expect(
+        driver.skin_skeleton != null and driver.skin_skeleton.get_bone_count() == 65,
+        "visible Mixamo skin retains its native 65-bone skeleton"
+    )
     _check_skeleton(driver)
     _check_required_clips(driver)
 

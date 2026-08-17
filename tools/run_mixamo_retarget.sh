@@ -12,4 +12,10 @@ MIXAMO_ROOT="${MIXAMO_ROOT:-/Users/kiwimango/Downloads/socom_141_camera_lab/Basi
     "$PROJECT_DIR/assets/characters/operator3d/socom_141_operator_animated.glb" \
     "$PROJECT_DIR/assets/characters/operator3d/operator_animation_library.json"
 
-echo "Curated Mixamo animations baked into the 65-bone SOCOM operator"
+"$BLENDER_BIN" \
+    --background \
+    --python "$PROJECT_DIR/tools/export_mixamo_skin.py" -- \
+    "$MIXAMO_ROOT/Rifle Aiming Idle.fbx" \
+    "$PROJECT_DIR/assets/characters/operator3d/mixamo_beta_skin.glb"
+
+echo "Curated Mixamo animations baked and visible Beta skin exported for the 65-bone SOCOM operator"
