@@ -29,15 +29,28 @@ func _draw() -> void:
     )
     var opacity: float = camera_rig.profile.mouse_string_debug_opacity
     var color := Color(0.20, 0.72, 1.0, opacity)
+    var slack_radius: float = camera_rig.profile.mouse_string_slack_radius_px
+    # Stationary ring: blue input is free while its center remains inside.
+    draw_circle(center, slack_radius, Color(color, opacity * 0.055))
+    draw_arc(
+        center,
+        slack_radius,
+        0.0,
+        TAU,
+        32,
+        Color(color, opacity * 0.32),
+        1.0,
+        true
+    )
     draw_line(center, endpoint, Color(color, opacity * 0.45), 1.5, true)
     draw_circle(
         endpoint,
-        camera_rig.profile.mouse_string_debug_dot_radius,
+        slack_radius,
         Color(0.06, 0.28, 0.42, opacity * 0.65)
     )
     draw_arc(
         endpoint,
-        camera_rig.profile.mouse_string_debug_dot_radius,
+        slack_radius,
         0.0,
         TAU,
         24,
