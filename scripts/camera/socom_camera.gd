@@ -2926,18 +2926,42 @@ func _apply_mouse_aim_string_input(relative_motion: Vector2) -> void:
 
 func _update_mouse_aim_string(delta: float) -> void:
     var dt := clampf(delta, 0.0, 0.05)
-    aim_yaw = _damp_angle(
-        aim_yaw,
-        mouse_intent_yaw,
-        profile.mouse_string_yaw_response,
-        dt
+    var yaw_error := fposmod(mouse_intent_yaw - aim_yaw + PI, TAU) - PI
+    var pitch_error := mouse_intent_pitch - aim_pitch
+    var yaw_tension := _mouse_string_tension(
+        yaw_error,
+        deg_to_rad(profile.mouse_string_yaw_limit_deg)
     )
-    aim_pitch = _damp(
-        aim_pitch,
-        mouse_intent_pitch,
-        profile.mouse_string_pitch_response,
-        dt
+    var pitch_tension := _mouse_string_tension(
+        pitch_error,
+        deg_to_rad(profile.mouse_string_pitch_limit_deg)
     )
+    if yaw_tension > 0.0:
+        var yaw_response := lerpf(
+            profile.mouse_string_min_response,
+            profile.mouse_string_yaw_response,
+            yaw_tension
+        )
+        aim_yaw = _damp_angle(aim_yaw, mouse_intent_yaw, yaw_response, dt)
+    if pitch_tension > 0.0:
+        var pitch_response := lerpf(
+            profile.mouse_string_min_response,
+            profile.mouse_string_pitch_response,
+            pitch_tension
+        )
+        aim_pitch = _damp(aim_pitch, mouse_intent_pitch, pitch_response, dt)
+
+func _mouse_string_tension(error: float, limit: float) -> float:
+    var deadzone := deg_to_rad(profile.mouse_string_deadzone_deg)
+    var magnitude := absf(error)
+    if magnitude <= deadzone:
+        return 0.0
+    var normalized := clampf(
+        inverse_lerp(deadzone, maxf(limit, deadzone + 0.0001), magnitude),
+        0.0,
+        1.0
+    )
+    return pow(normalized, profile.mouse_string_tension_curve)
 
 func get_mouse_string_screen_normalized() -> Vector2:
     var viewport_size := get_viewport().get_visible_rect().size
