@@ -20,6 +20,10 @@ func _run() -> void:
         rig.orbit_input_enabled and rig.mouse_aim_string_enabled,
         "live camera selects refactored mouse aim model"
     )
+    _expect(
+        not rig.mouse_string_debug_visible,
+        "white and blue calibration feedback is hidden in normal play"
+    )
     rig._apply_mouse_aim_string_input(Vector2(96.0, -54.0))
     var fixed_blue: Vector2 = rig.get_mouse_string_screen_normalized()
     await physics_frame
