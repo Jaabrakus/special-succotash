@@ -17,6 +17,21 @@ func _run() -> void:
     camera.set_aim_angles(0.0, 0.0, true)
     camera.set_mouse_aim_string_enabled(true)
 
+    var slack_motion := Vector2(
+        deg_to_rad(camera.profile.mouse_string_deadzone_deg * 0.5)
+        / camera.profile.mouse_sensitivity,
+        0.0
+    )
+    camera._apply_mouse_aim_string_input(slack_motion)
+    var slack_endpoint: Vector2 = camera.get_mouse_string_screen_normalized()
+    camera._update_mouse_aim_string(1.0 / 30.0)
+    _expect(
+        slack_endpoint.x > 0.5 and absf(camera.aim_yaw) < 0.000001,
+        "small blue movement has free deadzone slack"
+    )
+    camera.set_mouse_aim_string_enabled(false)
+    camera.set_mouse_aim_string_enabled(true)
+
     var initial_aim := Vector2(camera.aim_yaw, camera.aim_pitch)
     camera._apply_mouse_aim_string_input(Vector2(25.0, -10.0))
     var endpoint: Vector2 = camera.get_mouse_string_screen_normalized()
@@ -49,11 +64,15 @@ func _run() -> void:
         "centered aim closes the finite distance to the blue target"
     )
 
-    for _frame in range(90):
+    for _frame in range(180):
         camera._update_mouse_aim_string(1.0 / 60.0)
+    var remaining_yaw: float = absf(_signed_angle(camera.aim_yaw, camera.mouse_intent_yaw))
+    var remaining_pitch: float = absf(camera.mouse_intent_pitch - camera.aim_pitch)
+    var deadzone: float = deg_to_rad(camera.profile.mouse_string_deadzone_deg)
     _expect(
-        camera.get_mouse_string_screen_normalized().distance_to(Vector2(0.5, 0.5)) < 0.001,
-        "blue target returns to center after the aim catches it"
+        remaining_yaw <= deadzone + 0.0001
+        and remaining_pitch <= deadzone + 0.0001,
+        "blue target settles inside the center slack zone"
     )
     var caught_aim := Vector2(camera.aim_yaw, camera.aim_pitch)
     for _frame in range(30):
