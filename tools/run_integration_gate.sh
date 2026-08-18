@@ -1,0 +1,87 @@
+#!/bin/zsh
+set -euo pipefail
+
+project_dir="${0:A:h:h}"
+godot_bin="${GODOT_BIN:-/Users/kiwimango/Downloads/Godot.app/Contents/MacOS/Godot}"
+mode="${1:-quick}"
+report_dir="${TMPDIR:-/private/tmp}/socom-integration-gate"
+canonical_branch="movement-animation-integration"
+
+if [[ "$mode" != "quick" && "$mode" != "full" ]]; then
+  print -u2 "Usage: $0 [quick|full]"
+  exit 2
+fi
+
+mkdir -p "$report_dir"
+current_branch="$(git -C "$project_dir" branch --show-current)"
+if [[ "$current_branch" != "$canonical_branch" ]]; then
+  print -u2 "FAIL: this is $current_branch; canonical integration is $canonical_branch"
+  exit 1
+fi
+
+dirty_state="$(git -C "$project_dir" status --porcelain)"
+if [[ -n "$dirty_state" ]]; then
+  print "NOTICE: integration worktree contains in-progress changes:"
+  print "$dirty_state"
+  if [[ "${REQUIRE_CLEAN:-0}" == "1" ]]; then
+    print -u2 "FAIL: promotion requires a clean integration worktree"
+    exit 1
+  fi
+fi
+
+print "SOCOM-141 $mode integration gate"
+print "Project: $project_dir"
+print "Branch:  $current_branch"
+
+"$godot_bin" \
+  --headless \
+  --rendering-method gl_compatibility \
+  --log-file "$report_dir/project-parse.log" \
+  --path "$project_dir" \
+  --editor \
+  --quit
+if rg -q 'SCRIPT ERROR|Parse Error' "$report_dir/project-parse.log"; then
+  print -u2 "FAIL: project parse reported a script error"
+  exit 1
+fi
+
+run_godot_check() {
+  local label="$1"
+  local script_path="$2"
+  local pass_marker="$3"
+  local log_path="$report_dir/${label}.log"
+  print "Running $label"
+  "$godot_bin" \
+    --headless \
+    --rendering-method gl_compatibility \
+    --log-file "$log_path" \
+    --path "$project_dir" \
+    --script "$script_path"
+  if rg -q 'SCRIPT ERROR|Parse Error|_CHECK FAIL|_REGRESSION FAIL' "$log_path"; then
+    print -u2 "FAIL: $label reported an error"
+    exit 1
+  fi
+  if ! rg -q "$pass_marker" "$log_path"; then
+    print -u2 "FAIL: $label did not print its pass marker"
+    exit 1
+  fi
+}
+
+run_godot_check "manifest" "res://tools/integration_manifest_regression.gd" "INTEGRATION_MANIFEST_REGRESSION PASS"
+"$project_dir/tools/run_operator_config_validation.sh"
+"$project_dir/tools/run_operator_animation_regression.sh"
+"$project_dir/tools/run_operator_weapon_pose_regression.sh"
+"$project_dir/tools/run_mobility_regression.sh"
+run_godot_check "gun-lab" "res://tools/gun_lab_animation_catalog_regression.gd" "GUN_LAB_ANIMATION_CATALOG_REGRESSION PASS"
+run_godot_check "prone-grounding" "res://tools/prone_grounding_regression.gd" "PRONE_GROUNDING_REGRESSION PASS"
+
+if [[ "$mode" == "full" ]]; then
+  "$project_dir/tools/run_operator_locomotion_quality_regression.sh"
+  "$project_dir/tools/run_operator_pose_tool_regression.sh"
+  "$project_dir/tools/run_input_device_ownership_regression.sh"
+  "$project_dir/tools/run_reticle_render_integration.sh"
+  "$project_dir/tools/run_camera_regression.sh"
+fi
+
+print "SOCOM-141 $mode integration gate PASS"
+print "Reports: $report_dir"
