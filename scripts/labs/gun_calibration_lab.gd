@@ -38,6 +38,7 @@ var skeleton: Skeleton3D
 var animation_player: AnimationPlayer
 var runtime_posture_layer: SocomOperatorPostureLayer
 var preview_posture: StringName = &"STANDING"
+var preview_hip_level_trim_deg: float = 4.5
 var stance_buttons: Dictionary = {}
 
 # Bone Indices
@@ -227,6 +228,7 @@ var dynamic_reticle: SocomDynamicReticle
 var fire_debug_mesh := ImmediateMesh.new()
 var fire_debug_instance: MeshInstance3D
 var fire_debug_material: StandardMaterial3D
+var show_muzzle_convergence: bool = true
 var show_barrel_axis: bool = false
 var show_camera_aim: bool = false
 var show_last_shot: bool = false
@@ -705,6 +707,21 @@ func _build_handling_animation_ui(parent: VBoxContainer) -> void:
 	auto_button.tooltip_text = "Choose the safest imported clips for this weapon family."
 	auto_button.pressed.connect(_auto_build_animation_set)
 	parent.add_child(auto_button)
+
+	_add_slider(
+		parent,
+		"preview_hip_level",
+		"Preview Hip Level",
+		0.0,
+		10.0,
+		preview_hip_level_trim_deg,
+		func(value: float): preview_hip_level_trim_deg = value
+	)
+	var hip_help := Label.new()
+	hip_help.text = "Additive preview correction only — source animation clips are never rewritten."
+	hip_help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	hip_help.add_theme_font_size_override("font_size", 10)
+	parent.add_child(hip_help)
 
 	var clip_names: Array = animation_catalog.clip_paths.keys() if animation_catalog else []
 	clip_names.sort_custom(func(a, b): return String(a).naturalnocasecmp_to(String(b)) < 0)
@@ -1888,7 +1905,7 @@ func _apply_runtime_posture_preview() -> void:
 		preview_posture,
 		0.0,
 		aim_target,
-		1.20
+		preview_hip_level_trim_deg
 	)
 
 
@@ -3423,6 +3440,13 @@ func _build_studio_ui() -> void:
 
 	fire_vbox.add_child(HSeparator.new())
 	var layers_title := Label.new(); layers_title.text = "TRAJECTORY STUDY LAYERS"; fire_vbox.add_child(layers_title)
+	var convergence_toggle := CheckButton.new()
+	convergence_toggle.name = "MuzzleConvergenceToggle"
+	convergence_toggle.text = "Lime — muzzle → reticle convergence"
+	convergence_toggle.tooltip_text = "Shows the physical muzzle socket converging on the fixed reticle's world target."
+	convergence_toggle.button_pressed = show_muzzle_convergence
+	convergence_toggle.toggled.connect(func(enabled: bool): show_muzzle_convergence = enabled)
+	fire_vbox.add_child(convergence_toggle)
 	var barrel_toggle := CheckButton.new()
 	barrel_toggle.text = "Red — physical barrel axis"
 	barrel_toggle.toggled.connect(func(enabled: bool): show_barrel_axis = enabled)
@@ -3525,7 +3549,7 @@ func _update_fire_debug_lines() -> void:
 	if fire_debug_instance == null:
 		return
 	fire_debug_mesh.clear_surfaces()
-	if not show_barrel_axis and not show_camera_aim and not show_last_shot:
+	if not show_muzzle_convergence and not show_barrel_axis and not show_camera_aim and not show_last_shot:
 		fire_debug_instance.visible = false
 		return
 	fire_debug_instance.visible = true
@@ -3535,6 +3559,16 @@ func _update_fire_debug_lines() -> void:
 		if current_aim_target != Vector3.ZERO
 		else _camera_aim_sample().position
 	)
+	# This is the authoritative third-person relationship: the screen reticle
+	# remains camera-centered while the physical muzzle converges on the same
+	# world point. Moving the reticle onto the nearby muzzle marker would add
+	# incorrect parallax and make the point of impact depend on camera distance.
+	if show_muzzle_convergence and muzzle_marker:
+		_add_fire_debug_segment(
+			muzzle_marker.global_position,
+			target,
+			Color(0.55, 1.0, 0.18)
+		)
 	if show_barrel_axis and current_weapon_mesh and muzzle_marker:
 		var barrel_base := current_weapon_mesh.to_global(_calibrated_barrel_base())
 		var barrel_direction := (muzzle_marker.global_position - barrel_base).normalized()

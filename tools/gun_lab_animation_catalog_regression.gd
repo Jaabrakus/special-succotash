@@ -34,6 +34,15 @@ func _run() -> void:
 		"gun lab uses the gameplay squared-shoulder posture layer"
 	)
 	_expect(
+		float(lab.get("preview_hip_level_trim_deg")) >= 4.0,
+		"gun lab levels the presentation hips without rewriting source clips"
+	)
+	_expect(
+		bool(lab.get("show_muzzle_convergence"))
+		and lab.find_child("MuzzleConvergenceToggle", true, false) != null,
+		"muzzle-to-reticle convergence is visible and user-toggleable"
+	)
+	_expect(
 		lab.find_child("StanceStanding", true, false) != null
 		and lab.find_child("StanceCrouched", true, false) != null
 		and lab.find_child("StanceProne", true, false) != null,
@@ -52,6 +61,12 @@ func _run() -> void:
 			(lab.get("cam") as Camera3D).global_position
 		) > 1.0,
 		"center camera ray provides the firing-range aim authority"
+	)
+	lab.call("_update_fire_debug_lines")
+	var fire_debug := lab.get("fire_debug_instance") as MeshInstance3D
+	_expect(
+		fire_debug != null and fire_debug.visible,
+		"the physical muzzle visibly converges on the centered reticle target"
 	)
 	if reticle_preview != null:
 		reticle_preview.call("notify_shot", 3, 1.0)
