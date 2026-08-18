@@ -53,24 +53,30 @@ func _process(_delta: float) -> void:
     _segment(anchor, camera_rig.collision_camera_position, Color(0.46, 0.34, 0.06))
     _segment(anchor, camera_rig.global_position, Color(0.08, 0.38, 0.16))
 
-    # The gameplay target can be hundreds of metres away. For the workbench,
-    # draw a seven-metre scale model of that same convergence relationship so
-    # the camera and weapon visibly terminate on one shared crosshair point.
+    # Draw each real direction for seven metres. Do not force both debug rays
+    # into one nearby display point: that old visualization made a nearly
+    # parallel long-range zero look like the rifle fired sharply upward.
     var ray_length := 7.0
-    var aim_origin: Vector3 = (
-        player.global_position
-        + Vector3.UP * float(camera_rig.profile.look_height)
+    var view_direction: Vector3 = (
+        camera_rig.view_aim_point - camera_rig.global_position
+    ).normalized()
+    if view_direction.length_squared() < 0.99:
+        view_direction = -camera_rig.camera.global_basis.z.normalized()
+    var ballistic_direction: Vector3 = (
+        camera_rig.weapon_aim_point - muzzle
+    ).normalized()
+    if ballistic_direction.length_squared() < 0.99:
+        ballistic_direction = view_direction
+    var view_display_target: Vector3 = (
+        camera_rig.global_position + view_direction * ray_length
     )
-    var shared_direction: Vector3 = (camera_rig.weapon_aim_point - aim_origin).normalized()
-    if shared_direction.length_squared() < 0.99:
-        shared_direction = -camera_rig.camera.global_basis.z.normalized()
-    var display_target: Vector3 = aim_origin + shared_direction * ray_length
+    var weapon_display_target: Vector3 = muzzle + ballistic_direction * ray_length
     _segment(
         camera_rig.global_position,
-        display_target,
+        view_display_target,
         Color(0.15, 0.95, 1.0)
     )
-    _segment(muzzle, display_target, (
+    _segment(muzzle, weapon_display_target, (
         Color(1.0, 0.24, 0.18)
         if camera_rig.shot_blocked
         else Color(1.0, 1.0, 1.0)
@@ -80,7 +86,7 @@ func _process(_delta: float) -> void:
     _current_marker.global_position = camera_rig.global_position
     _preferred_marker.global_position = camera_rig.preferred_camera_position
     _collision_marker.global_position = camera_rig.collision_camera_position
-    _aim_marker.global_position = display_target
+    _aim_marker.global_position = view_display_target
 
 
 func _segment(from: Vector3, to: Vector3, color: Color) -> void:

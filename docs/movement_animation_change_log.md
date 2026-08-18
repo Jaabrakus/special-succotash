@@ -28,8 +28,9 @@ Restore point before this pass: commit `46d35fe` on branch
 
 - Separated the close camera acquisition point from the ballistic/animation aim
   target.
-- The ballistic target remains exactly on the reticle ray, uses a minimum 18 m
-  convergence distance, and limits muzzle/view parallax to 7 degrees.
+- The ballistic target remains exactly on the reticle ray. The subsequent
+  gunplay pass extends its combat zero to a minimum 45 m and limits
+  muzzle/view parallax to 2 degrees.
 - Close walls still block the muzzle trace. They no longer force the rifle to
   angle sharply upward merely to touch a near camera-ray hit.
 - The existing 65-bone weapon pose solver consumes the stabilized target and
@@ -48,3 +49,52 @@ Restore point before this pass: commit `46d35fe` on branch
 - Tightened planted-foot slip to 4.6 cm/frame mean and 5.6 cm/frame p95.
 - Tightened directional pose change to 12 degrees/frame p95 and 25 degrees max.
 - Added ballistic convergence-angle and centered-ray checks to weapon-pose tests.
+
+## 2026-08-17 SOCOM strafe-fire pass
+
+Restore point before this pass: commit `24303c0` on branch
+`movement-animation-integration`.
+
+### Reference findings
+
+- Reviewed the four supplied SOCOM clips as movement/gunplay references.
+- The operator remains rifle-ready through quick lateral battles; there is no
+  conventional ADS transition, and the opening moving burst reads materially
+  tighter than a generic run-and-gun cone.
+- The old workbench display forced camera and rifle rays into one artificial
+  seven-metre endpoint. That made a long-range zero look like a steep upward
+  bullet trajectory even when gameplay convergence was much farther away.
+
+### Live weapon path
+
+- Added a left-click weapon controller to the camera lab. Each shot is built
+  from the camera's sequenced aim intent, validated at the authoritative muzzle,
+  and raycast from that muzzle with deterministic dispersion.
+- Kept camera position out of the multiplayer payload. Accepted shots expose a
+  monotonic sequence, simulation tick, actual fired direction, impact point,
+  spread, and hit result for a future server/damage layer.
+- The first two shots receive the tighter SOCOM-style opening accuracy while
+  moving; recoil bloom begins on the third sustained shot and recovers quickly
+  after trigger release.
+- Replaced global random spread with deterministic per-shot seeding so client
+  prediction and server replay can reproduce the same cone.
+
+### Honest parallax and debug view
+
+- Extended the minimum combat zero from 18 m to 45 m and reduced maximum
+  camera/barrel convergence from 7 degrees to 2 degrees. Nearby geometry can no
+  longer pull the rifle sharply upward toward the centered reticle.
+- The arms and rifle still adapt to the solved barrel direction; muzzle
+  obstruction remains authoritative, so the player cannot fire through a wall.
+- The workbench now draws the actual view and barrel directions independently
+  for seven metres instead of fabricating a shared nearby endpoint.
+
+### Regression result
+
+- Added `weapon_fire_regression.gd` covering live wiring, cadence rejection,
+  deterministic authoritative direction, opening-pair accuracy, sustained-fire
+  bloom, multiplayer sequences, tracer truth, and the two-degree convergence
+  ceiling.
+- Weapon-fire, 65-bone weapon-pose, and full camera regression suites pass.
+- Full camera suite remains at 0.147 m maximum wall step with zero unreadable,
+  lost-tether, state-flip, or wall-visibility failures.

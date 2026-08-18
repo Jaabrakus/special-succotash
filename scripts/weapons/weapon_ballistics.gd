@@ -18,13 +18,14 @@ signal shot_fired(origin: Vector3, end_point: Vector3, hit_target: bool)
 @export var max_range: float = 120.0
 
 # Bloom & Dispersion Parameters (Degrees)
-@export var base_spread_deg: float = 0.45
-@export var moving_spread_deg: float = 1.6
-@export var full_gait_spread_deg: float = 3.2
+@export var base_spread_deg: float = 0.28
+@export var moving_spread_deg: float = 0.75
+@export var full_gait_spread_deg: float = 1.05
 @export var airborne_spread_deg: float = 4.8
-@export var max_recoil_bloom_deg: float = 3.8
-@export var bloom_per_shot_deg: float = 0.42
-@export var bloom_recovery_speed: float = 9.0 # Rapid decay on pause
+@export var max_recoil_bloom_deg: float = 2.4
+@export var bloom_per_shot_deg: float = 0.32
+@export var bloom_recovery_speed: float = 10.0 # Rapid decay on pause
+@export_range(0.1, 1.0, 0.05) var opening_burst_motion_multiplier: float = 0.35
 
 var fire_interval: float = 0.10
 var fire_cooldown: float = 0.0
@@ -66,6 +67,8 @@ func calculate_current_spread(
         motion_spread = moving_spread_deg
 
     # 3. Total spread
+    if continuous_shot_count <= 2:
+        motion_spread *= opening_burst_motion_multiplier
     total_current_spread_deg = (base_spread_deg * stance_mult) + (motion_spread * stance_mult) + current_recoil_bloom
     return total_current_spread_deg
 
@@ -78,6 +81,24 @@ func try_fire(
     space_state: PhysicsDirectSpaceState3D,
     exclude_rids: Array[RID] = []
 ) -> Dictionary:
+    var forward_dir := (aim_target_pos - muzzle_pos).normalized()
+    return try_fire_direction(
+        muzzle_pos,
+        forward_dir,
+        space_state,
+        exclude_rids
+    )
+
+func try_fire_direction(
+    muzzle_pos: Vector3,
+    aim_direction: Vector3,
+    space_state: PhysicsDirectSpaceState3D,
+    exclude_rids: Array[RID] = [],
+    deterministic_seed: int = 0,
+    posture: StringName = &"STANDING",
+    movement_speed_norm: float = 0.0,
+    is_airborne: bool = false
+) -> Dictionary:
     if fire_cooldown > 0.0:
         return { "fired": false }
 
@@ -85,21 +106,24 @@ func try_fire(
     continuous_shot_count += 1
     is_firing_held = true
 
-    # SOCOM II 2-Round Burst Rule:
-    # Shots 1 & 2 in a burst add NO recoil bloom!
     if continuous_shot_count > 2:
         current_recoil_bloom = minf(
             max_recoil_bloom_deg,
             current_recoil_bloom + bloom_per_shot_deg
         )
 
-    # Calculate trajectory with dispersion cone
-    var forward_dir := (aim_target_pos - muzzle_pos).normalized()
+    calculate_current_spread(posture, movement_speed_norm, is_airborne)
+
+    var forward_dir := aim_direction.normalized()
+    if forward_dir.length_squared() < 0.99:
+        return {"fired": false, "reason": "INVALID_DIRECTION"}
     var spread_rad := deg_to_rad(total_current_spread_deg)
-    
+    var random := RandomNumberGenerator.new()
+    random.seed = deterministic_seed if deterministic_seed != 0 else continuous_shot_count
+
     # Uniform disk dispersion inside cone
-    var random_angle := randf() * TAU
-    var random_radius := sqrt(randf()) * spread_rad
+    var random_angle := random.randf() * TAU
+    var random_radius := sqrt(random.randf()) * spread_rad
     var spread_offset := (
         Vector3(cos(random_angle), sin(random_angle), 0.0) * random_radius
     )
@@ -129,6 +153,8 @@ func try_fire(
         "fired": true,
         "hit_pos": hit_pos,
         "hit_collider": hit_collider,
+        "direction": final_dir,
+        "spread_deg": total_current_spread_deg,
         "normal": result.get("normal", Vector3.UP),
         "continuous_count": continuous_shot_count
     }

@@ -24,6 +24,8 @@ mkdir -p "$report_dir"
   --automated-test --multiplayer-contract-test --clean-hud >/dev/null
 "$godot_bin" --headless --log-file "$report_dir/multiplayer-wall-contract.log" --path "$project_dir" --quit-after 90 -- \
   --automated-test --wall-follow-test --multiplayer-contract-test --clean-hud >/dev/null
+"$godot_bin" --headless --log-file "$report_dir/weapon-fire.log" --path "$project_dir" \
+  --script res://tools/weapon_fire_regression.gd >/dev/null
 
 for report in "$report_dir"/*.log; do
   if grep -q -E 'SCRIPT ERROR|Parse Error' "$report"; then
@@ -150,5 +152,11 @@ if ! grep -E -q 'MULTIPLAYER_CONTRACT accepted=true camera_state_leak=false repl
   exit 1
 fi
 print "multiplayer contract: open and close-wall traces accepted; replay, spoof and future-tick input rejected; no camera state sent"
+
+if ! grep -q 'WEAPON_FIRE_REGRESSION PASS' "$report_dir/weapon-fire.log"; then
+  print -u2 "FAIL: authoritative weapon-fire regression did not pass"
+  exit 1
+fi
+print "weapon fire: authoritative muzzle, opening strafe pair, cadence, bloom, and sequence checks passed"
 
 print "Camera regression reports: $report_dir"

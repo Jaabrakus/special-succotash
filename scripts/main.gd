@@ -7,6 +7,7 @@ const CameraVisualizerScript := preload("res://scripts/camera/camera_visualizer.
 const CameraAuditRecorderScript := preload("res://scripts/camera/camera_audit_recorder.gd")
 const BodyStackOverlayScript := preload("res://scripts/ui/operator_body_stack_overlay.gd")
 const ShotAuthorityScript := preload("res://scripts/network/socom_shot_authority.gd")
+const WeaponControllerScript := preload("res://scripts/weapons/socom_weapon_controller.gd")
 const RETICLE_BOX_SIZE := Vector2(32.0, 32.0)
 const OPERATOR_TUNING_PATH := "res://config/operator_movement_tuning.json"
 
@@ -26,6 +27,7 @@ var roof_test_active: bool = false
 var indoor_test_active: bool = false
 var wall_test_active: bool = false
 var camera_visualizer: Node3D
+var weapon_controller
 var audit_recorder: Node
 var spectator_panel: Control
 var spectator_camera: Camera3D
@@ -92,6 +94,7 @@ func _ready() -> void:
     elif OS.get_cmdline_user_args().has("--movement-test"):
         player.global_position = Vector3(-3.0, 0.05, -10.0)
     _build_camera()
+    _build_weapon_controller()
     _build_camera_tools()
     _build_ui()
     if anim_studio_visible:
@@ -134,6 +137,20 @@ func _ensure_input_map() -> void:
     _add_key_action("replay_camera_recording", KEY_F10)
     _add_key_action("toggle_anim_studio", KEY_F5)
     _add_key_action("crouch", KEY_C)
+    _add_mouse_action("fire", MOUSE_BUTTON_LEFT)
+
+func _add_mouse_action(action: StringName, button_index: MouseButton) -> void:
+    if not InputMap.has_action(action):
+        InputMap.add_action(action, 0.10)
+    for existing_event in InputMap.action_get_events(action):
+        if (
+            existing_event is InputEventMouseButton
+            and existing_event.button_index == button_index
+        ):
+            return
+    var event := InputEventMouseButton.new()
+    event.button_index = button_index
+    InputMap.action_add_event(action, event)
 
 func _add_key_action(action: StringName, keycode: Key) -> void:
     if not InputMap.has_action(action):
@@ -331,7 +348,7 @@ func _process(_delta: float) -> void:
         "SOCOM-141 CAMERA LAB\n"
         + "WASD move | Space jump | X crouch/hold prone | Z dive-prone | Q prone | E roll\n"
         + "Mouse orbit | R reset | H clean HUD | K body stack | V camera view | P tune | F9 record | F10 replay\n"
-        + "v2.4 close camera + shared crosshair target\n\n"
+        + "v2.5 SOCOM burst fire + long-zero barrel aim\n\n"
         + "Vertical FOV     %5.1f°\n" % d.fov
         + "Rear boom       %5.2f m behind player\n" % d.rear_boom_distance
         + "Camera range    %5.2f m diagonal to player\n" % d.distance
@@ -513,6 +530,13 @@ func _build_camera() -> void:
         camera_rig.yaw = player.global_rotation.y
 
 
+func _build_weapon_controller() -> void:
+    weapon_controller = WeaponControllerScript.new()
+    weapon_controller.name = "WeaponController"
+    add_child(weapon_controller)
+    weapon_controller.configure(player, camera_rig)
+
+
 func _build_camera_tools() -> void:
     camera_visualizer = CameraVisualizerScript.new()
     camera_visualizer.name = "CameraBoomVisualizer"
@@ -606,7 +630,7 @@ func _build_camera_workbench(layer: CanvasLayer) -> void:
     spectator_viewport.add_child(spectator_camera)
 
     var legend := Label.new()
-    legend.text = "DIM = backward booms  •  BRIGHT RAYS = shared crosshair target (7 m scale)"
+    legend.text = "DIM = backward booms  •  CYAN = view  •  WHITE/RED = actual barrel ray (7 m scale)"
     legend.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
     legend.add_theme_font_size_override("font_size", 11)
     spectator_stack.add_child(legend)
