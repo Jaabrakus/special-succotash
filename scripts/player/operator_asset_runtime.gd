@@ -139,17 +139,38 @@ func _attach_weapon() -> void:
 	_apply_material_recursive(weapon_model, material)
 	pivot.add_child(weapon_model)
 
-	# Gameplay-facing sockets live on the calibrated weapon mesh. They are kept
-	# independent of the operator skin so swapping a character cannot break fire.
+	# Gameplay-facing sockets live in normalized weapon space. The imported AK
+	# mesh has asset-specific transforms, while this parent is deliberately
+	# cancelled against the operator scale, so these positions remain metres.
+	# The arm solver consumes the same contract for every future weapon skin.
+	var trigger_grip := Marker3D.new()
+	trigger_grip.name = "Socket_RightHand"
+	trigger_grip.position = Vector3.ZERO
+	weapon_node.add_child(trigger_grip)
+
+	var support_grip := Marker3D.new()
+	support_grip.name = "Socket_LeftHand"
+	support_grip.position = Vector3(-0.22, -0.01, -0.08)
+	# The placeholder AK has no authored foregrip socket. The solver may refine
+	# this marker to its anatomically reachable fallback. Imported weapons set
+	# this metadata true after calibration and retain their fixed socket.
+	support_grip.set_meta("authored_weapon_socket", false)
+	weapon_node.add_child(support_grip)
+
 	var muzzle := Marker3D.new()
 	muzzle.name = "Socket_Muzzle"
-	muzzle.position = Vector3(0.70, 0.02, 0.0)
-	weapon_model.add_child(muzzle)
+	muzzle.position = Vector3(0.0, 0.0, -0.70)
+	weapon_node.add_child(muzzle)
+
+	var barrel_base := Marker3D.new()
+	barrel_base.name = "Socket_BarrelBase"
+	barrel_base.position = Vector3(0.0, 0.0, -0.12)
+	weapon_node.add_child(barrel_base)
 
 	var ejection := Marker3D.new()
 	ejection.name = "Socket_Ejection"
-	ejection.position = Vector3(0.05, 0.03, 0.06)
-	weapon_model.add_child(ejection)
+	ejection.position = Vector3(0.05, 0.03, -0.10)
+	weapon_node.add_child(ejection)
 
 	weapon_node.add_child(pivot)
 	weapon_attachment.add_child(weapon_node)

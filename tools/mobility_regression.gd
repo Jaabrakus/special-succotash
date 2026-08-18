@@ -53,6 +53,8 @@ func _run() -> void:
     await _tap(&"crouch")
     _expect(_state(player) == &"STANDING", "stance controls return to standing")
 
+    await _test_stance_clearance(scene, player)
+
     await _test_jump(player)
     await _test_dive(player)
     await _test_prone_backward_animation(player)
@@ -62,6 +64,28 @@ func _run() -> void:
     await _test_roll(player, &"move_left", -1.0, "left")
 
     _finish()
+
+func _test_stance_clearance(scene: Node, player: CharacterBody3D) -> void:
+    await _tap(&"crouch")
+    _expect(_state(player) == &"CROUCHED", "clearance test begins crouched")
+    var ceiling := StaticBody3D.new()
+    ceiling.name = "RegressionLowCeiling"
+    var ceiling_shape := CollisionShape3D.new()
+    var box := BoxShape3D.new()
+    box.size = Vector3(1.4, 0.20, 1.4)
+    ceiling_shape.shape = box
+    ceiling.add_child(ceiling_shape)
+    scene.add_child(ceiling)
+    ceiling.global_position = player.global_position + Vector3.UP * 1.48
+    await _step_physics(2)
+    var blocked_stand: bool = bool(player.call("_try_set_posture", 0))
+    _expect(not blocked_stand, "low ceiling rejects the standing stance")
+    _expect(_state(player) == &"CROUCHED", "failed clearance keeps the crouched collider")
+    ceiling.queue_free()
+    await _step_physics(2)
+    var clear_stand: bool = bool(player.call("_try_set_posture", 0))
+    _expect(clear_stand, "standing succeeds after overhead clearance returns")
+    _expect(_state(player) == &"STANDING", "clearance recovery restores standing")
 
 func _test_analog_gait_selection(player: CharacterBody3D) -> void:
     Input.action_press(&"move_right", 0.4)

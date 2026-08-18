@@ -486,17 +486,11 @@ func _weapon_pose_blocked(player: CharacterBody3D, target_point: Vector3) -> boo
         or _pose_segment_blocked(player, right_shoulder.global_position, right_grip_target.global_position)
     ):
         return true
-    var query := PhysicsRayQueryParameters3D.create(
-        muzzle_marker.global_position,
-        target_point
-    )
-    query.collide_with_areas = false
-    query.exclude = [player.get_rid()]
-    var result: Dictionary = get_world_3d().direct_space_state.intersect_ray(query)
-    return (
-        not result.is_empty()
-        and Vector3(result["position"]).distance_to(target_point) > 0.08
-    )
+    # The shared aim target is normally on a wall, floor, or actor. Hitting that
+    # selected surface is not a weapon obstruction. Cover posing is driven only
+    # by geometry inside the operator-to-muzzle and shoulder-to-grip envelope;
+    # ballistics separately owns the muzzle-to-target line of fire.
+    return false
 
 func _pose_segment_blocked(
     player: CharacterBody3D,

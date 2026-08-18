@@ -14,6 +14,7 @@ const WeaponPoseSolver := preload("res://scripts/player/operator_weapon_pose_sol
 
 @export_group("Runtime route")
 @export var use_modern_locomotion: bool = true
+@export var use_weapon_socket_contract: bool = true
 
 @export_group("Visual tuning")
 @export var trooper_scale: float = 62.0
@@ -127,6 +128,7 @@ func _ready() -> void:
 	ik_contract.bind(skeleton, weapon_node)
 	weapon_pose_solver = WeaponPoseSolver.new()
 	weapon_pose_solver.name = "WeaponPoseSolver"
+	weapon_pose_solver.use_weapon_socket_contract = use_weapon_socket_contract
 	add_child(weapon_pose_solver)
 	weapon_pose_solver.bind(skeleton, weapon_node)
 	_request_clip(&"idle_rifle")

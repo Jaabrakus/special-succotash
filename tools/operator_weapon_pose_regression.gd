@@ -47,6 +47,11 @@ func _run() -> void:
 	var solver = driver.get("weapon_pose_solver")
 	_expect(solver != null, "weapon-pose solver is installed")
 	if solver != null:
+		var initial_pose: Dictionary = solver.call("get_debug_state")
+		_expect(
+			bool(initial_pose.get("socket_contract_active", false)),
+			"production rifle exposes trigger, support, and muzzle sockets"
+		)
 		var before_position := player.global_position
 		var before_velocity := player.velocity
 		var before_target: Vector3 = rig.get("weapon_aim_point")
@@ -63,6 +68,64 @@ func _run() -> void:
 			Vector3(rig.get("weapon_aim_point")).distance_to(before_target) < 0.001,
 			"visual arm solver never rewrites shared aim authority"
 		)
+
+		# Force the visual solver into a close-cover pose without changing the
+		# gameplay target. This isolates the obstruction contract from whichever
+		# lab wall the centered camera ray currently selected.
+		driver.set_process(false)
+		for _frame in range(24):
+			solver.call(
+				"apply",
+				0.0,
+				float(rig.get("aim_pitch")),
+				&"PRONE",
+				&"PRONE",
+				1.0,
+				1.0,
+				&"",
+				before_target,
+				player,
+				1.0 / 60.0
+			)
+		var blocked_pose: Dictionary = solver.call("get_debug_state")
+		_expect(bool(blocked_pose.get("shot_blocked", false)), "close cover enters a blocked weapon state")
+		_expect(
+			StringName(blocked_pose.get("cover_pose_name", &"")) == &"PRONE_TUCK",
+			"prone close cover selects its stance-specific tuck"
+		)
+		_expect(
+			float(blocked_pose.get("weapon_aim_error_deg", 0.0)) >= 12.0,
+			"blocked rifle lowers instead of spinning through the wall"
+		)
+		_expect(
+			Vector3(blocked_pose.get("aim_target", Vector3.ZERO)).distance_to(before_target) < 0.001,
+			"cover pose preserves the shared reticle target"
+		)
+		_expect(
+			player.global_position.distance_to(before_position) < 0.001,
+			"cover pose never pushes the authoritative player"
+		)
+		for _frame in range(36):
+			solver.call(
+				"apply",
+				0.0,
+				float(rig.get("aim_pitch")),
+				&"PRONE",
+				&"PRONE",
+				1.0,
+				0.0,
+				&"",
+				before_target,
+				player,
+				1.0 / 60.0
+			)
+		var recovered_pose: Dictionary = solver.call("get_debug_state")
+		_expect(not bool(recovered_pose.get("shot_blocked", true)), "weapon recovers from cover without a stuck state")
+		_expect(
+			float(recovered_pose.get("weapon_aim_error_deg", 180.0)) <= 0.10,
+			"clear weapon returns to the shared reticle ray"
+		)
+		driver.set_process(true)
 
 	scene.queue_free()
 	_finish()

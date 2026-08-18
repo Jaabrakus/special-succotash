@@ -13,6 +13,7 @@ const ARM_BONES := {
 @export_category("Response")
 @export_range(1.0, 30.0, 0.5) var enter_response: float = 18.0
 @export_range(1.0, 30.0, 0.5) var exit_response: float = 12.0
+@export_range(1.0, 30.0, 0.5) var cover_response: float = 16.0
 
 @export_category("Rifle Pose")
 @export_range(0.45, 0.90, 0.01) var trigger_reach_ratio: float = 0.72
@@ -40,8 +41,18 @@ const ARM_BONES := {
 @export_range(25.0, 90.0, 1.0) var maximum_wrist_correction_deg: float = 72.0
 @export var weapon_forward_local := Vector3.BACK
 
+@export_category("Weapon Socket Contract")
+@export var use_weapon_socket_contract: bool = true
+@export_range(0.0, 45.0, 1.0) var blocked_low_ready_pitch_deg: float = 24.0
+@export_range(0.0, 45.0, 1.0) var blocked_crouch_pitch_deg: float = 20.0
+@export_range(0.0, 45.0, 1.0) var blocked_prone_pitch_deg: float = 16.0
+@export_range(0.0, 1.0, 0.05) var blocked_pose_threshold: float = 0.55
+
 var skeleton: Skeleton3D
 var weapon_node: Node3D
+var trigger_socket: Marker3D
+var support_socket: Marker3D
+var muzzle_socket: Marker3D
 var trigger_hand_target: Marker3D
 var support_hand_target: Marker3D
 var right_elbow_pole: Marker3D
@@ -64,11 +75,29 @@ var right_elbow_angle_deg: float = 0.0
 var left_elbow_angle_deg: float = 0.0
 var weapon_aim_error_deg: float = 0.0
 var wrist_correction_deg: float = 0.0
+var cover_pose_amount: float = 0.0
+var cover_pose_name: StringName = &"CLEAR"
+var shot_blocked: bool = false
+var socket_contract_active: bool = false
+var adaptive_support_socket: bool = false
 
 
 func bind(target_skeleton: Skeleton3D, attached_weapon: Node3D) -> void:
 	skeleton = target_skeleton
 	weapon_node = attached_weapon
+	trigger_socket = _find_weapon_socket("Socket_RightHand")
+	support_socket = _find_weapon_socket("Socket_LeftHand")
+	muzzle_socket = _find_weapon_socket("Socket_Muzzle")
+	socket_contract_active = (
+		use_weapon_socket_contract
+		and trigger_socket != null
+		and support_socket != null
+		and muzzle_socket != null
+	)
+	adaptive_support_socket = (
+		support_socket != null
+		and not bool(support_socket.get_meta("authored_weapon_socket", false))
+	)
 	bone_indices.clear()
 	if skeleton == null:
 		return
@@ -147,7 +176,23 @@ func apply(
 
 	var right_reach := _arm_length(&"right")
 	var left_reach := _arm_length(&"left")
-	var tuck := clampf(obstruction_amount, 0.0, 1.0)
+	var obstruction_target := clampf(obstruction_amount, 0.0, 1.0)
+	cover_pose_amount = lerpf(
+		cover_pose_amount,
+		obstruction_target,
+		1.0 - exp(-cover_response * clampf(delta, 0.0, 0.05))
+	)
+	var tuck := cover_pose_amount
+	shot_blocked = cover_pose_amount >= blocked_pose_threshold
+	cover_pose_name = (
+		(
+			&"PRONE_TUCK"
+			if posture == &"PRONE"
+			else (&"CROUCH_LOW_READY" if posture == &"CROUCHED" else &"LOW_READY")
+		)
+		if shot_blocked
+		else (&"REFRAMING" if cover_pose_amount > 0.02 else &"CLEAR")
+	)
 	var trigger_ratio := lerpf(trigger_reach_ratio, tucked_reach_ratio, tuck)
 	var raw_trigger_position := (
 		shoulder_center
@@ -207,7 +252,18 @@ func apply(
 		_solve_arm(&"right", trigger_hand_target, right_elbow_pole)
 		_solve_arm(&"left", support_hand_target, left_elbow_pole)
 	skeleton.force_update_all_bone_transforms()
-	_align_weapon_to_aim(aim_direction)
+	if socket_contract_active:
+		_place_socketed_weapon(trigger_position, aim_direction, body_forward)
+		if adaptive_support_socket:
+			support_socket.global_position = support_position
+		trigger_hand_target.global_position = trigger_socket.global_position
+		support_hand_target.global_position = support_socket.global_position
+		if not adaptive_support_socket:
+			_solve_arm(&"left", support_hand_target, left_elbow_pole)
+			skeleton.force_update_all_bone_transforms()
+		_update_socket_weapon_error()
+	else:
+		_align_weapon_to_aim(aim_direction)
 	_update_errors()
 
 
@@ -230,7 +286,61 @@ func get_debug_state() -> Dictionary:
 		"left_elbow_angle_deg": left_elbow_angle_deg,
 		"weapon_aim_error_deg": weapon_aim_error_deg,
 		"wrist_correction_deg": wrist_correction_deg,
+		"socket_contract_active": socket_contract_active,
+		"adaptive_support_socket": adaptive_support_socket,
+		"cover_pose_amount": cover_pose_amount,
+		"cover_pose_name": cover_pose_name,
+		"shot_blocked": shot_blocked,
 	}
+
+
+func _find_weapon_socket(socket_name: String) -> Marker3D:
+	if weapon_node == null:
+		return null
+	return weapon_node.find_child(socket_name, true, false) as Marker3D
+
+
+func _place_socketed_weapon(
+	trigger_goal: Vector3,
+	aim_direction: Vector3,
+	body_forward: Vector3
+) -> void:
+	if weapon_node == null or trigger_socket == null:
+		return
+	var blocked_pitch_deg := blocked_low_ready_pitch_deg
+	if last_posture == &"CROUCHED":
+		blocked_pitch_deg = blocked_crouch_pitch_deg
+	elif last_posture == &"PRONE":
+		blocked_pitch_deg = blocked_prone_pitch_deg
+	var low_ready_direction := (
+		body_forward.rotated(
+			body_forward.cross(Vector3.UP).normalized(),
+			-deg_to_rad(blocked_pitch_deg)
+		)
+	).normalized()
+	if low_ready_direction.length_squared() < 0.50:
+		low_ready_direction = aim_direction
+	var render_direction := aim_direction.slerp(low_ready_direction, cover_pose_amount)
+	var stable_up := Vector3.UP
+	if absf(render_direction.dot(stable_up)) > 0.96:
+		stable_up = Vector3.FORWARD
+	var world_scale := weapon_node.global_basis.get_scale()
+	weapon_node.global_basis = Basis.looking_at(
+		render_direction.normalized(),
+		stable_up,
+		false
+	).scaled(world_scale)
+	weapon_node.global_position += trigger_goal - trigger_socket.global_position
+
+
+func _update_socket_weapon_error() -> void:
+	if muzzle_socket == null or trigger_socket == null:
+		return
+	var barrel_direction := (muzzle_socket.global_position - trigger_socket.global_position).normalized()
+	if barrel_direction.length_squared() < 0.50:
+		return
+	weapon_aim_error_deg = rad_to_deg(barrel_direction.angle_to(last_aim_direction))
+	wrist_correction_deg = 0.0
 
 
 func _build_targets() -> void:
