@@ -387,8 +387,9 @@ func _apply_prone_axis_alignment(
 	target_pitch: float
 ) -> void:
 	var hips_index := int(bone_indices.get(&"hips", -1))
+	var spine_index := int(bone_indices.get(&"spine", -1))
 	var head_index := int(bone_indices.get(&"head", -1))
-	if hips_index < 0 or head_index < 0 or weight <= 0.001:
+	if hips_index < 0 or spine_index < 0 or head_index < 0 or weight <= 0.001:
 		last_prone_axis_input_error_deg = 0.0
 		last_prone_axis_correction_deg = 0.0
 		last_prone_axis_residual_error_deg = 0.0
@@ -421,29 +422,58 @@ func _apply_prone_axis_alignment(
 
 	var full_correction := Quaternion(current_axis, desired_axis)
 	var correction := Quaternion.IDENTITY.slerp(full_correction, correction_fraction)
-	var current_global_rotation := hip_pose.basis.get_rotation_quaternion().normalized()
-	var desired_global_rotation := (correction * current_global_rotation).normalized()
-	var parent_index := skeleton.get_bone_parent(hips_index)
-	var parent_rotation := Quaternion.IDENTITY
-	if parent_index >= 0:
-		parent_rotation = (
-			skeleton.get_bone_global_pose(parent_index).basis.get_rotation_quaternion().normalized()
-		)
-	var rest_rotation := skeleton.get_bone_rest(hips_index).basis.get_rotation_quaternion().normalized()
-	var local_basis_rotation := (parent_rotation * rest_rotation).normalized()
-	var desired_pose_rotation := (
-		local_basis_rotation.inverse() * desired_global_rotation
-	).normalized()
-	skeleton.set_bone_pose_rotation(hips_index, desired_pose_rotation)
+	# Straighten only the upper-body branch. Rotating the hips also rotates both
+	# leg chains and was lifting prone knees/feet roughly half a metre off the
+	# ground. The pelvis remains the measured anchor while Spine carries the
+	# correction toward the head.
+	_apply_global_bone_correction(spine_index, correction)
 	skeleton.force_update_all_bone_transforms()
 	var corrected_axis := (
 		skeleton.get_bone_global_pose(head_index).origin
 		- skeleton.get_bone_global_pose(hips_index).origin
 	)
+	# Rotating around Spine instead of Hips changes the lever arm slightly. Ease
+	# the residual correction in over the last part of the prone blend so landing
+	# from a dive cannot leave a briefly crooked torso or create a one-frame snap.
+	# The pelvis and both leg chains remain untouched throughout.
+	if corrected_axis.length_squared() > 0.000001:
+		var residual_error := corrected_axis.normalized().angle_to(desired_axis)
+		var settle_weight := smoothstep(0.85, 0.98, clampf(weight, 0.0, 1.0))
+		if residual_error > deg_to_rad(0.10) and settle_weight > 0.0001:
+			_apply_global_bone_correction(
+				spine_index,
+				Quaternion.IDENTITY.slerp(
+					Quaternion(corrected_axis.normalized(), desired_axis),
+					settle_weight
+				)
+			)
+			skeleton.force_update_all_bone_transforms()
+			corrected_axis = (
+				skeleton.get_bone_global_pose(head_index).origin
+				- skeleton.get_bone_global_pose(hips_index).origin
+			)
 	last_prone_axis_residual_error_deg = (
 		rad_to_deg(corrected_axis.normalized().angle_to(desired_axis))
 		if corrected_axis.length_squared() > 0.000001
 		else 0.0
+	)
+
+
+func _apply_global_bone_correction(bone_index: int, correction: Quaternion) -> void:
+	var bone_pose := skeleton.get_bone_global_pose(bone_index)
+	var current_global_rotation := bone_pose.basis.get_rotation_quaternion().normalized()
+	var desired_global_rotation := (correction * current_global_rotation).normalized()
+	var parent_index := skeleton.get_bone_parent(bone_index)
+	var parent_rotation := Quaternion.IDENTITY
+	if parent_index >= 0:
+		parent_rotation = (
+			skeleton.get_bone_global_pose(parent_index).basis.get_rotation_quaternion().normalized()
+		)
+	var rest_rotation := skeleton.get_bone_rest(bone_index).basis.get_rotation_quaternion().normalized()
+	var local_basis_rotation := (parent_rotation * rest_rotation).normalized()
+	skeleton.set_bone_pose_rotation(
+		bone_index,
+		(local_basis_rotation.inverse() * desired_global_rotation).normalized()
 	)
 
 

@@ -1,0 +1,64 @@
+{
+  "arm_rig_pose": {
+    "left_elbow": {
+      "bend": 0.0,
+      "twist": 0.0
+    },
+    "left_shoulder": {
+      "pitch": 0.0,
+      "roll": 0.0,
+      "yaw": 0.0
+    },
+    "left_wrist": {
+      "pitch": 0.0,
+      "roll": 0.0,
+      "yaw": 0.0
+    }
+  },
+  "ballistics": {
+    "base_spread_deg": 0.4,
+    "bloom_per_shot_deg": 1.2,
+    "bloom_recovery_speed": 14.0,
+    "damage": 34,
+    "fire_rate_rpm": 650,
+    "is_silenced": false
+  },
+  "camo_skin": "Factory Classic (Wood & Steel)",
+  "category": "Assault Rifles",
+  "display_name": "AssaultRifle_1",
+  "grip_offset": {
+    "pos_x": 0.0,
+    "pos_y": 0.0,
+    "pos_z": 0.0,
+    "rot_x": 0.0,
+    "rot_y": 0.0,
+    "rot_z": 0.0
+  },
+  "model_fbx": "res://assets/weapons/modular_pack/AssaultRifle_1.fbx",
+  "normalized_scale": 1.0,
+  "scope_attachment": "None",
+  "silencer_attachment": "None",
+  "weapon_id": "assaultrifle_1",
+  "weapon_sockets": {
+    "ejection_port": {
+      "x": 0.0500000007450581,
+      "y": 0.0299999993294477,
+      "z": 0.0599999986588955
+    },
+    "left_hand_ik_target": {
+      "x": 0.200000002980232,
+      "y": -0.0299999993294477,
+      "z": 0.0
+    },
+    "muzzle_socket": {
+      "x": 0.699999988079071,
+      "y": 0.0199999995529652,
+      "z": 0.0
+    },
+    "optic_rail": {
+      "x": 0.0500000007450581,
+      "y": 0.0799999982118607,
+      "z": 0.0
+    }
+  }
+}

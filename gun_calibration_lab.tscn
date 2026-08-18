@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://gun_calibration_lab_001"]
+
+[ext_resource type="Script" path="res://scripts/labs/gun_calibration_lab.gd" id="1_gunlab"]
+
+[node name="GunCalibrationLab" type="Node3D"]
+script = ExtResource("1_gunlab")
