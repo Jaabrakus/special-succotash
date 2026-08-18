@@ -19,6 +19,23 @@ STATE = MODULE_DIR / "animation_studio_state.gd"
 ENTRY = ROOT / "scripts/labs/operator_animation_lab.gd"
 MARKER = "# BEGIN GENERATED CROSS-LAYER CONTRACT"
 
+# This order is the real inheritance path. A method only needs a parsing stub
+# when code in an earlier layer references behavior owned by a later layer.
+LAYER_ORDER = [
+    MODULE_DIR / "animation_studio_workspace.gd",
+    MODULE_DIR / "animation_studio_model.gd",
+    MODULE_DIR / "animation_studio_pose_runtime.gd",
+    MODULE_DIR / "animation_studio_pose_authoring.gd",
+    MODULE_DIR / "animation_studio_playback.gd",
+    MODULE_DIR / "animation_studio_sequence.gd",
+    MODULE_DIR / "animation_studio_weapon.gd",
+    MODULE_DIR / "animation_studio_stage.gd",
+    MODULE_DIR / "animation_studio_view.gd",
+    MODULE_DIR / "animation_studio_view_controls.gd",
+    MODULE_DIR / "animation_studio_routes.gd",
+    ENTRY,
+]
+
 RETURN_DEFAULTS = {
     "Animation": "null",
     "AnimationPlayer": "null",
@@ -56,20 +73,31 @@ def main() -> None:
         state_text = state_text.split(MARKER, 1)[0].rstrip() + "\n"
 
     methods: dict[str, str] = {}
-    paths = sorted(path for path in MODULE_DIR.glob("*.gd") if path != STATE)
-    paths.append(ENTRY)
-    for path in paths:
+    owners: dict[str, int] = {}
+    for layer_index, path in enumerate(LAYER_ORDER):
         for name, declaration in declarations(path):
             if name in methods and methods[name] != declaration:
                 raise RuntimeError(f"Conflicting signature for {name}")
             methods[name] = declaration
+            owners[name] = layer_index
+
+    required_contract: set[str] = set()
+    for layer_index, path in enumerate(LAYER_ORDER):
+        source = path.read_text()
+        # Declarations are ownership, not cross-layer references.
+        source_without_declarations = re.sub(r"(?m)^func\s+[^\n]+:$", "", source)
+        for name, owner_index in owners.items():
+            if owner_index <= layer_index:
+                continue
+            if re.search(rf"(?<![A-Za-z0-9_]){re.escape(name)}(?![A-Za-z0-9_])", source_without_declarations):
+                required_contract.add(name)
 
     lines = [
         "",
         MARKER,
         "# Parsing contract only. Every method is overridden by a named feature layer.",
     ]
-    for name in sorted(methods):
+    for name in sorted(required_contract):
         declaration = methods[name]
         return_match = re.search(r"\s->\s*([^:]+):$", declaration)
         return_type = return_match.group(1).strip() if return_match else "void"
@@ -81,7 +109,10 @@ def main() -> None:
             raise RuntimeError(f"No contract default for return type {return_type} ({name})")
         lines.extend([declaration, implementation, ""])
     STATE.write_text(state_text.rstrip() + "\n" + "\n".join(lines).rstrip() + "\n")
-    print(f"Animation Studio layer contract: {len(methods)} methods")
+    print(
+        "Animation Studio layer contract: "
+        f"{len(required_contract)} forward dependencies (from {len(methods)} feature methods)"
+    )
 
 
 if __name__ == "__main__":
