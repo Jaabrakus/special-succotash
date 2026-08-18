@@ -39,6 +39,9 @@ var current_mode: ReticleMode = ReticleMode.COMBAT
 var hit_marker_timer: float = 0.0
 var screen_center_override: Vector2 = Vector2.ZERO
 var shot_gap_impulse: float = 0.0
+var shot_bounce_age: float = 99.0
+var shot_bounce_duration: float = 0.070
+var shot_bounce_amplitude: float = 0.0
 
 func _ready() -> void:
     mouse_filter = MOUSE_FILTER_IGNORE
@@ -52,6 +55,7 @@ func _process(delta: float) -> void:
         0.0,
         1.0 - exp(-shot_kick_return * delta)
     )
+    shot_bounce_age += delta
     if hit_marker_timer > 0.0:
         hit_marker_timer = maxf(0.0, hit_marker_timer - delta)
     queue_redraw()
@@ -72,12 +76,19 @@ func notify_hit() -> void:
     hit_marker_timer = 0.15
 
 func notify_shot(shot_index: int = 1, intensity: float = 1.0) -> void:
-    # Reference footage keeps the precision dot fixed and expands all four
-    # marks evenly. An off-center tick group reads as a second aim point and
-    # makes mouse fire feel like the sight is chasing recoil.
+    # Resolve the bullet before this presentation impulse. The complete tick
+    # group pops upward, then returns before the next trained cadence; it never
+    # drags the authoritative center point or the shot that already fired.
+    shot_bounce_age = 0.0
+    shot_bounce_amplitude = minf(
+        maximum_shot_kick_pixels,
+        shot_kick_pixels * clampf(intensity, 0.25, 2.0)
+    )
+    # A small simultaneous opening keeps the reticle readable without turning
+    # the per-shot kick into generic radial-only bloom.
     shot_gap_impulse = minf(
         maximum_shot_kick_pixels,
-        shot_gap_impulse + shot_kick_pixels * clampf(intensity, 0.25, 2.0)
+        shot_gap_impulse + shot_kick_pixels * 0.22 * clampf(intensity, 0.25, 2.0)
     )
 
 func apply_profile(profile: Dictionary) -> void:
@@ -89,6 +100,7 @@ func apply_profile(profile: Dictionary) -> void:
     maximum_shot_kick_pixels = float(
         profile.get("maximum_shot_kick_px", maximum_shot_kick_pixels)
     )
+    shot_bounce_duration = float(profile.get("shot_bounce_duration", shot_bounce_duration))
     target_gap = clampf(target_gap, base_gap, max_bloom_gap)
 
 func _draw() -> void:
@@ -109,7 +121,7 @@ func _draw() -> void:
         draw_arc(center, current_gap + tick_length * 0.5, 0, TAU, 32, bloom_ring_color, 1.2, true)
 
     # 3. Four Dynamic Ticks (Top, Bottom, Left, Right with Drop-Shadow Outline)
-    var tick_center := center
+    var tick_center := center + Vector2(0.0, -shot_bounce_amplitude * _shot_bounce_weight())
     var g := current_gap + shot_gap_impulse
     var l := tick_length
     var t := tick_thickness
@@ -133,6 +145,16 @@ func _draw() -> void:
         var hm_size := 8.0
         draw_line(center + Vector2(-hm_size, -hm_size), center + Vector2(hm_size, hm_size), hm_color, 2.0)
         draw_line(center + Vector2(hm_size, -hm_size), center + Vector2(-hm_size, hm_size), hm_color, 2.0)
+
+func _shot_bounce_weight() -> float:
+    var phase := shot_bounce_age / maxf(shot_bounce_duration, 0.001)
+    if phase >= 1.0:
+        return 0.0
+    if phase < 0.16:
+        return smoothstep(0.0, 0.16, phase)
+    if phase < 0.38:
+        return lerpf(1.0, 0.88, (phase - 0.16) / 0.22)
+    return 0.88 * (1.0 - smoothstep(0.38, 1.0, phase))
 
 func _draw_interact_brackets(center: Vector2, color: Color) -> void:
     # Classic ladder / context bracket box

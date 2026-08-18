@@ -23,10 +23,14 @@ func _run() -> void:
 	var picker := lab.get("all_animation_select") as OptionButton
 	var gun_tabs := lab.find_child("GunLabTabs", true, false) as TabContainer
 	var reticle_preview := lab.find_child("SharedWeaponReticlePreview", true, false)
-	_expect(gun_tabs != null and gun_tabs.get_tab_count() == 2, "gun lab exposes connected rig and firing tabs")
+	_expect(gun_tabs != null and gun_tabs.get_tab_count() == 3, "gun lab exposes rig, firing, and composure tabs")
 	_expect(
 		gun_tabs != null and gun_tabs.get_tab_title(1) == "Reticle & Fire",
 		"the second gun tab edits reticle and fire behavior"
+	)
+	_expect(
+		gun_tabs != null and gun_tabs.get_tab_title(2) == "Composure",
+		"the third gun tab edits the shared composure profile"
 	)
 	_expect(reticle_preview != null, "gun lab previews the shared gameplay reticle")
 	_expect(

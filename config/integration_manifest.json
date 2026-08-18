@@ -16,6 +16,8 @@
         "res://scripts/camera/camera_aim_resolver.gd",
         "res://scripts/player/test_mannequin.gd",
         "res://scripts/player/operator_animation_driver.gd",
+        "res://scripts/player/operator_procedural_pose_profile.gd",
+        "res://scripts/ui/operator_pose_tuner.gd",
         "res://scripts/weapons/weapon_rig_contract.gd",
         "res://scripts/weapons/socom_weapon_controller.gd",
         "res://scripts/network/socom_shot_authority.gd"
@@ -31,6 +33,7 @@
         "res://scripts/player/operator_asset_runtime.gd",
         "res://scripts/player/operator_locomotion_blend_tree.gd",
         "res://scripts/player/operator_posture_layer.gd",
+        "res://scripts/player/operator_procedural_pose_profile.gd",
         "res://scripts/player/operator_ik_contract.gd"
       ]
     },
@@ -43,7 +46,20 @@
         "res://scripts/player/operator_animation_profile.gd",
         "res://scripts/weapons/weapon_animation_profile.gd",
         "res://scripts/weapons/weapon_rig_contract.gd",
+        "res://scripts/weapons/operator_composure.gd",
         "res://scripts/player/weapon_ownership_contract.gd"
+      ]
+    },
+    {
+      "id": "composure",
+      "label": "Reticle + Composure Lab",
+      "scene": "res://composure_reticle_lab.tscn",
+      "controller": "res://scripts/labs/composure_reticle_lab.gd",
+      "shared_contracts": [
+        "res://scripts/weapons/operator_composure.gd",
+        "res://scripts/weapons/weapon_rig_contract.gd",
+        "res://scripts/weapons/socom_weapon_controller.gd",
+        "res://scripts/ui/socom_dynamic_reticle.gd"
       ]
     }
   ],
@@ -83,6 +99,7 @@
       "res://tools/mobility_regression.gd",
       "res://tools/gun_lab_animation_catalog_regression.gd",
       "res://tools/weapon_rig_integration_regression.gd",
+      "res://tools/operator_composure_regression.gd",
       "res://tools/prone_grounding_regression.gd"
     ],
     "full": [

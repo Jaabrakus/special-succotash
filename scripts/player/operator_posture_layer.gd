@@ -4,6 +4,10 @@ extends RefCounted
 ## Distributes camera-authoritative aim over the anatomical upper-body chain.
 ## It never rotates hips and therefore cannot change gameplay orientation.
 
+const ProceduralPoseProfile := preload(
+	"res://scripts/player/operator_procedural_pose_profile.gd"
+)
+
 const BONE_CANDIDATES: Dictionary = {
 	&"hips": [&"mixamorig_Hips"],
 	&"spine": [&"mixamorig_Spine"],
@@ -58,6 +62,7 @@ var last_shoulder_level_error_cm: float = 0.0
 var last_default_hip_roll_input_deg: float = 0.0
 var last_default_hip_roll_trim_deg: float = 0.0
 var last_default_hip_roll_output_deg: float = 0.0
+var procedural_profile := ProceduralPoseProfile.new()
 
 
 func bind(target_skeleton: Skeleton3D, neutral_pose_hip_rotation := Quaternion.IDENTITY) -> void:
@@ -68,6 +73,34 @@ func bind(target_skeleton: Skeleton3D, neutral_pose_hip_rotation := Quaternion.I
 		return
 	for logical_name: StringName in BONE_CANDIDATES:
 		bone_indices[logical_name] = _first_bone(BONE_CANDIDATES[logical_name])
+	procedural_profile.load_project_profile()
+
+
+func set_procedural_rotation_degrees(
+	posture_name: StringName,
+	bone_name: StringName,
+	rotation_degrees: Vector3
+) -> void:
+	procedural_profile.set_rotation_degrees(
+		posture_name,
+		bone_name,
+		rotation_degrees
+	)
+
+
+func get_procedural_rotation_degrees(
+	posture_name: StringName,
+	bone_name: StringName
+) -> Vector3:
+	return procedural_profile.get_rotation_degrees(posture_name, bone_name)
+
+
+func save_procedural_profile() -> bool:
+	return procedural_profile.save_project_profile()
+
+
+func reload_procedural_profile() -> bool:
+	return procedural_profile.load_project_profile()
 
 
 func apply(
@@ -98,6 +131,7 @@ func apply(
 		prone_axis_max_correction,
 		prone_axis_target_pitch
 	)
+	_apply_procedural_profile(posture_name)
 	var torso_yaw := clampf(aim_yaw, -chest_yaw_limit, chest_yaw_limit)
 	var torso_pitch := clampf(aim_pitch, -chest_pitch_limit, chest_pitch_limit)
 	var head_yaw := clampf(aim_yaw, -head_yaw_limit, head_yaw_limit)
@@ -527,6 +561,26 @@ func _apply_bone_additive(
 	var base_rotation := skeleton.get_bone_pose_rotation(index)
 	var additive := Quaternion(Vector3.UP, yaw) * Quaternion(Vector3.RIGHT, pitch)
 	skeleton.set_bone_pose_rotation(index, pre_rotation * base_rotation * additive)
+
+
+func _apply_procedural_profile(posture_name: StringName) -> void:
+	for bone_name: StringName in ProceduralPoseProfile.SUPPORTED_BONES:
+		var degrees := procedural_profile.get_rotation_degrees(posture_name, bone_name)
+		if degrees.is_zero_approx():
+			continue
+		var index := int(bone_indices.get(bone_name, -1))
+		if index < 0:
+			continue
+		var additive := (
+			Quaternion(Vector3.UP, deg_to_rad(degrees.y))
+			* Quaternion(Vector3.RIGHT, deg_to_rad(degrees.x))
+			* Quaternion(Vector3.FORWARD, deg_to_rad(degrees.z))
+		).normalized()
+		var base_rotation := skeleton.get_bone_pose_rotation(index)
+		skeleton.set_bone_pose_rotation(
+			index,
+			(base_rotation * additive).normalized()
+		)
 
 
 func _first_bone(candidates: Array) -> int:

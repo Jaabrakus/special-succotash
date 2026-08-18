@@ -98,7 +98,8 @@ func try_fire_direction(
     deterministic_seed: int = 0,
     posture: StringName = &"STANDING",
     movement_speed_norm: float = 0.0,
-    is_airborne: bool = false
+    is_airborne: bool = false,
+    dispersion_multiplier: float = 1.0
 ) -> Dictionary:
     if fire_cooldown > 0.0:
         return { "fired": false }
@@ -124,7 +125,8 @@ func try_fire_direction(
 
     # Uniform disk dispersion inside cone
     var random_angle := random.randf() * TAU
-    var random_radius := sqrt(random.randf()) * spread_rad
+    var applied_dispersion_multiplier := clampf(dispersion_multiplier, 0.0, 2.0)
+    var random_radius := sqrt(random.randf()) * spread_rad * applied_dispersion_multiplier
     var spread_offset := (
         Vector3(cos(random_angle), sin(random_angle), 0.0) * random_radius
     )
@@ -157,6 +159,7 @@ func try_fire_direction(
         "hit_collider": hit_collider,
         "direction": final_dir,
         "spread_deg": total_current_spread_deg,
+        "dispersion_multiplier": applied_dispersion_multiplier,
         "normal": result.get("normal", Vector3.UP),
         "continuous_count": continuous_shot_count,
         "muzzle_velocity_mps": muzzle_velocity_mps,

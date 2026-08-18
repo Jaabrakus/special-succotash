@@ -9,6 +9,7 @@ extends Node
 const Ballistics := preload("res://scripts/weapons/weapon_ballistics.gd")
 const ShotAuthority := preload("res://scripts/network/socom_shot_authority.gd")
 const WeaponContract := preload("res://scripts/weapons/weapon_rig_contract.gd")
+const Composure := preload("res://scripts/weapons/operator_composure.gd")
 
 signal authoritative_shot(result: Dictionary)
 
@@ -19,6 +20,11 @@ var ballistics
 var input_enabled: bool = true
 var last_accepted_sequence: int = -1
 var last_result: Dictionary = {}
+var composure = Composure.new()
+var composure_profile: Dictionary = {}
+var _movement_ratio: float = 0.0
+var _turning_ratio: float = 0.0
+var _last_camera_yaw: float = 0.0
 var reticle_profile: Dictionary = {
 	"base_gap_px": 10.0,
 	"max_gap_px": 46.0,
@@ -37,6 +43,7 @@ func configure(target_player: CharacterBody3D, target_camera) -> void:
 	ballistics.name = "WeaponBallistics"
 	add_child(ballistics)
 	_apply_equipped_ballistics()
+	_last_camera_yaw = float(camera_rig.yaw) if camera_rig != null else 0.0
 
 
 func _apply_equipped_ballistics() -> void:
@@ -49,6 +56,10 @@ func _apply_equipped_ballistics() -> void:
 	var saved_reticle: Variant = config.get("reticle", {})
 	if saved_reticle is Dictionary:
 		reticle_profile.merge((saved_reticle as Dictionary), true)
+	var saved_composure: Variant = config.get("composure", {})
+	if saved_composure is Dictionary:
+		composure_profile = (saved_composure as Dictionary).duplicate(true)
+		composure.configure_weapon(composure_profile)
 	ballistics.fire_rate_rpm = float(values.get("fire_rate_rpm", ballistics.fire_rate_rpm))
 	ballistics.damage_per_shot = float(values.get("damage", ballistics.damage_per_shot))
 	ballistics.muzzle_velocity_mps = float(values.get("muzzle_velocity_mps", ballistics.muzzle_velocity_mps))
@@ -57,6 +68,29 @@ func _apply_equipped_ballistics() -> void:
 	ballistics.max_recoil_bloom_deg = float(values.get("max_recoil_bloom_deg", ballistics.max_recoil_bloom_deg))
 	ballistics.bloom_recovery_speed = float(values.get("bloom_recovery_speed", ballistics.bloom_recovery_speed))
 	ballistics.fire_interval = 60.0 / maxf(60.0, ballistics.fire_rate_rpm)
+
+
+func _physics_process(delta: float) -> void:
+	if player == null or camera_rig == null:
+		return
+	var horizontal_speed := Vector2(player.velocity.x, player.velocity.z).length()
+	var maximum_speed := maxf(float(player.get("move_speed")), 0.001)
+	_movement_ratio = clampf(horizontal_speed / maximum_speed, 0.0, 1.0)
+	var current_yaw := float(camera_rig.yaw)
+	var yaw_speed := absf(angle_difference(_last_camera_yaw, current_yaw)) / maxf(delta, 0.0001)
+	_turning_ratio = clampf(yaw_speed / deg_to_rad(180.0), 0.0, 1.0)
+	_last_camera_yaw = current_yaw
+	var posture_name: StringName = (
+		StringName(player.call("get_posture_name"))
+		if player.has_method("get_posture_name")
+		else &"STANDING"
+	)
+	var stance := OperatorComposure.Stance.STANDING
+	if posture_name == &"CROUCHED":
+		stance = OperatorComposure.Stance.CROUCHED
+	elif posture_name == &"PRONE":
+		stance = OperatorComposure.Stance.PRONE
+	composure.advance(delta, _movement_ratio, _turning_ratio, stance)
 
 
 func _process(_delta: float) -> void:
@@ -100,9 +134,7 @@ func request_fire() -> Dictionary:
 	if not bool(validation.get("accepted", false)):
 		return {"fired": false, "reason": validation.get("reason", "REJECTED")}
 
-	var horizontal_speed := Vector2(player.velocity.x, player.velocity.z).length()
-	var maximum_speed := maxf(float(player.get("move_speed")), 0.001)
-	var movement_ratio := clampf(horizontal_speed / maximum_speed, 0.0, 1.0)
+	var movement_ratio := _movement_ratio
 	var posture_name: StringName = (
 		StringName(player.call("get_posture_name"))
 		if player.has_method("get_posture_name")
@@ -110,6 +142,12 @@ func request_fire() -> Dictionary:
 	)
 	var seed: int = int(payload.sequence) * 73856093 ^ int(payload.simulation_tick) * 19349663
 	var exclude: Array[RID] = [player.get_rid()]
+	var next_shot_in_burst := int(ballistics.continuous_shot_count) + 1
+	var dispersion_multiplier := composure.get_shot_dispersion_multiplier(
+		next_shot_in_burst,
+		_movement_ratio,
+		_turning_ratio
+	)
 	var result: Dictionary = ballistics.try_fire_direction(
 		muzzle,
 		Vector3(validation.direction),
@@ -118,10 +156,20 @@ func request_fire() -> Dictionary:
 		seed,
 		posture_name,
 		movement_ratio,
-		not player.is_on_floor()
+		not player.is_on_floor(),
+		dispersion_multiplier
 	)
 	if not bool(result.get("fired", false)):
 		return result
+	var opening_stress_multiplier := float(
+		composure_profile.get("opening_stress_multiplier", 0.28)
+		if next_shot_in_burst <= 2
+		else 1.0
+	)
+	composure.notify_shot(1.0, opening_stress_multiplier)
+	result["composure"] = composure.get_composure()
+	result["precision_core_scale"] = composure.get_precision_core_scale()
+	result["reticle_bounce"] = composure.get_shot_bounce()
 	var rendered_barrel_direction := (
 		Vector3(mannequin.get_active_barrel_direction())
 		if mannequin.has_method("get_active_barrel_direction")
@@ -160,3 +208,10 @@ func set_input_enabled(enabled: bool) -> void:
 	input_enabled = enabled
 	if not enabled and ballistics != null:
 		ballistics.release_trigger()
+
+
+func get_reticle_spread_normalized() -> float:
+	var ballistic_spread := 0.0
+	if ballistics != null:
+		ballistic_spread = ballistics.get_normalized_spread()
+	return maxf(ballistic_spread, composure.get_visual_bloom())

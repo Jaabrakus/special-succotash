@@ -631,6 +631,43 @@ func set_visual_inputs(
 	peek_amount = clampf(peek, -1.0, 1.0)
 
 
+func set_pose_preview_paused(paused: bool) -> void:
+	if animation_player != null:
+		animation_player.speed_scale = 0.0 if paused else 1.0
+
+
+func set_procedural_pose_rotation(
+	posture_name: StringName,
+	bone_name: StringName,
+	rotation_degrees: Vector3
+) -> void:
+	if posture_layer != null:
+		posture_layer.set_procedural_rotation_degrees(
+			posture_name,
+			bone_name,
+			rotation_degrees
+		)
+
+
+func get_procedural_pose_rotation(
+	posture_name: StringName,
+	bone_name: StringName
+) -> Vector3:
+	return (
+		posture_layer.get_procedural_rotation_degrees(posture_name, bone_name)
+		if posture_layer != null
+		else Vector3.ZERO
+	)
+
+
+func save_procedural_pose_profile() -> bool:
+	return posture_layer != null and posture_layer.save_procedural_profile()
+
+
+func reload_procedural_pose_profile() -> bool:
+	return posture_layer != null and posture_layer.reload_procedural_profile()
+
+
 func get_animation_debug_state() -> Dictionary:
 	var snapshot := {
 		"gameplay_state": movement_state,

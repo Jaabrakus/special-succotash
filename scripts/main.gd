@@ -6,6 +6,7 @@ const CameraRigScript := preload("res://scripts/camera/socom_camera.gd")
 const CameraVisualizerScript := preload("res://scripts/camera/camera_visualizer.gd")
 const CameraAuditRecorderScript := preload("res://scripts/camera/camera_audit_recorder.gd")
 const BodyStackOverlayScript := preload("res://scripts/ui/operator_body_stack_overlay.gd")
+const PoseTunerScript := preload("res://scripts/ui/operator_pose_tuner.gd")
 const ShotAuthorityScript := preload("res://scripts/network/socom_shot_authority.gd")
 const WeaponControllerScript := preload("res://scripts/weapons/socom_weapon_controller.gd")
 const DynamicReticleScript := preload("res://scripts/ui/socom_dynamic_reticle.gd")
@@ -46,6 +47,7 @@ var anim_studio_panel: PanelContainer
 var anim_studio_visible: bool = true
 var anim_studio_state_label: Label
 var anim_tuning_sliders: Dictionary = {}
+var pose_tuner_panel: SocomOperatorPoseTuner
 var operator_tuning: Dictionary = {}
 var target_dummies: Array[Node] = []
 var target_range_active: bool = true
@@ -708,6 +710,10 @@ func _build_ui() -> void:
     _build_calibration_overlay(layer)
     _build_camera_workbench(layer)
     _build_animation_studio(layer)
+    pose_tuner_panel = PoseTunerScript.new()
+    pose_tuner_panel.name = "OperatorPoseTuner"
+    layer.add_child(pose_tuner_panel)
+    pose_tuner_panel.configure(_get_animation_driver(), player)
 
 
 func _build_camera_workbench(layer: CanvasLayer) -> void:
@@ -942,13 +948,8 @@ func _update_crosshair(data: Dictionary) -> void:
             and hit.collider.has_method("take_bullet_damage")
         )
     var spread_normalized := 0.0
-    if weapon_controller != null and weapon_controller.ballistics != null:
-        spread_normalized = clampf(
-            float(weapon_controller.ballistics.total_current_spread_deg)
-            / maxf(float(weapon_controller.ballistics.max_recoil_bloom_deg), 0.001),
-            0.0,
-            1.0
-        )
+    if weapon_controller != null:
+        spread_normalized = weapon_controller.get_reticle_spread_normalized()
     dynamic_reticle.update_reticle_state(
         spread_normalized, target_locked, screen_position
     )
@@ -1091,6 +1092,19 @@ func _build_animation_studio(layer: CanvasLayer) -> void:
     reload_button.text = "Reload movement tuning JSON"
     reload_button.pressed.connect(_reload_operator_tuning)
     vbox.add_child(reload_button)
+
+    var pose_button := Button.new()
+    pose_button.text = "Pause + Edit Procedural Spine Pose"
+    pose_button.tooltip_text = (
+        "Freeze the current operator pose, add stance-aware spine corrections, "
+        + "and save them for every compatible animation."
+    )
+    pose_button.add_theme_color_override("font_color", Color(0.45, 1.0, 0.65))
+    pose_button.pressed.connect(func():
+        if pose_tuner_panel:
+            pose_tuner_panel.set_open(not pose_tuner_panel.visible)
+    )
+    vbox.add_child(pose_button)
 
     _add_animation_tuning_slider(
         vbox, "State Blend", 0.02, 0.40,
@@ -1308,6 +1322,8 @@ func _set_animation_studio_visible(enabled: bool) -> void:
     anim_studio_visible = enabled
     if anim_studio_panel:
         anim_studio_panel.visible = enabled
+    if not enabled and pose_tuner_panel:
+        pose_tuner_panel.set_open(false)
     _set_animation_studio_input_mode(enabled)
 
 func _set_animation_studio_input_mode(enabled: bool) -> void:

@@ -11,6 +11,7 @@ const OperatorAnimationProfile := preload("res://scripts/player/operator_animati
 const WeaponAnimationProfile := preload("res://scripts/weapons/weapon_animation_profile.gd")
 const WeaponOwnershipContract := preload("res://scripts/player/weapon_ownership_contract.gd")
 const OperatorPostureLayer := preload("res://scripts/player/operator_posture_layer.gd")
+const OperatorComposureScript := preload("res://scripts/weapons/operator_composure.gd")
 const DynamicReticleScript := preload("res://scripts/ui/socom_dynamic_reticle.gd")
 const WEAPON_BASE_PATH := "res://assets/weapons/modular_pack/"
 const HAND_GIZMO_ARROW_LENGTH := 0.21
@@ -154,6 +155,13 @@ var reticle_maximum_shot_kick_px: float = 18.0
 var current_bloom: float = 0.0
 var fire_cooldown: float = 0.0
 var burst_shot_count: int = 0
+var composure := OperatorComposureScript.new()
+var composure_preview_movement: float = 0.0
+var composure_preview_turning: float = 0.0
+var composure_opening_stress_multiplier: float = 0.28
+var composure_graze_damage_scale: float = 0.38
+var composure_readout: Label
+var composure_profile_title: Label
 var fire_input_held: bool = false
 var current_aim_target := Vector3.ZERO
 var is_reloading: bool = false
@@ -441,6 +449,13 @@ func _process(delta: float) -> void:
 		or (Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) and dragged_dot_id == "")
 	) and not is_orbiting and not is_panning and not is_reloading
 	_update_bloom_recovery(delta, fire_input_held)
+	composure.advance(
+		delta,
+		composure_preview_movement,
+		composure_preview_turning,
+		_composure_stance()
+	)
+	_update_composure_readout()
 
 	if fire_input_held:
 		if fire_cooldown <= 0.0:
@@ -2306,6 +2321,22 @@ func _try_load_saved_profile(w_id: String) -> void:
 					reticle_shot_kick_px = float(reticle_values.get("shot_kick_px", reticle_shot_kick_px))
 					reticle_shot_kick_return = float(reticle_values.get("shot_kick_return", reticle_shot_kick_return))
 					reticle_maximum_shot_kick_px = float(reticle_values.get("maximum_shot_kick_px", reticle_maximum_shot_kick_px))
+				var composure_profile: Variant = d.get("composure", {})
+				if composure_profile is Dictionary:
+					var composure_values := composure_profile as Dictionary
+					composure.configure_weapon(composure_values)
+					composure_opening_stress_multiplier = float(
+						composure_values.get(
+							"opening_stress_multiplier",
+							composure_opening_stress_multiplier
+						)
+					)
+					composure_graze_damage_scale = float(
+						composure_values.get(
+							"graze_damage_scale",
+							composure_graze_damage_scale
+						)
+					)
 				user_scale_multiplier = float(d.get("user_scale_multiplier", user_scale_multiplier))
 			file.close()
 	_refresh_fire_controls()
@@ -2326,6 +2357,9 @@ func _reset_fire_profile_defaults() -> void:
 	reticle_shot_kick_px = 6.0
 	reticle_shot_kick_return = 18.0
 	reticle_maximum_shot_kick_px = 18.0
+	composure = OperatorComposureScript.new()
+	composure_opening_stress_multiplier = 0.28
+	composure_graze_damage_scale = 0.38
 	current_bloom = 0.0
 	burst_shot_count = 0
 
@@ -2333,6 +2367,8 @@ func _reset_fire_profile_defaults() -> void:
 func _refresh_fire_controls() -> void:
 	if fire_profile_title:
 		fire_profile_title.text = "RETICLE & FIRE — %s" % weapon_name
+	if composure_profile_title:
+		composure_profile_title.text = "COMPOSURE — %s" % weapon_name
 	_update_slider_value("rpm", float(fire_rate_rpm))
 	_update_slider_value("dmg", float(damage_per_shot))
 	_update_slider_value("muzzle_velocity", muzzle_velocity_mps)
@@ -2346,6 +2382,20 @@ func _refresh_fire_controls() -> void:
 	_update_slider_value("reticle_kick", reticle_shot_kick_px)
 	_update_slider_value("reticle_return", reticle_shot_kick_return)
 	_update_slider_value("reticle_kick_limit", reticle_maximum_shot_kick_px)
+	_update_slider_value("composure_shot_stress", composure.shot_stress)
+	_update_slider_value("composure_movement_stress", composure.movement_stress)
+	_update_slider_value("composure_turning_stress", composure.turning_stress)
+	_update_slider_value("composure_attack", composure.stress_attack_speed)
+	_update_slider_value("composure_recovery", composure.recovery_speed)
+	_update_slider_value("composure_core", composure.minimum_core_scale)
+	_update_slider_value("composure_spring", composure.visual_spring)
+	_update_slider_value("composure_damping", composure.visual_damping)
+	_update_slider_value("composure_bounce_time", composure.shot_bounce_duration)
+	_update_slider_value("composure_bounce_strength", composure.shot_bounce_strength)
+	_update_slider_value("composure_opening", composure_opening_stress_multiplier)
+	_update_slider_value("composure_moving_first", composure.moving_first_shot_multiplier)
+	_update_slider_value("composure_second", composure.second_shot_multiplier)
+	_update_slider_value("composure_graze", composure_graze_damage_scale)
 	_apply_reticle_preview_profile()
 
 
@@ -2578,7 +2628,36 @@ func _stance_spread_multiplier() -> float:
 
 
 func _current_total_spread_deg() -> float:
-	return base_spread_deg * _stance_spread_multiplier() + current_bloom
+	var composure_bloom := composure.get_visual_bloom() * max_recoil_bloom_deg
+	return (
+		base_spread_deg * _stance_spread_multiplier()
+		+ maxf(current_bloom, composure_bloom)
+	)
+
+
+func _composure_stance() -> OperatorComposure.Stance:
+	match preview_posture:
+		&"PRONE": return OperatorComposure.Stance.PRONE
+		&"CROUCHED": return OperatorComposure.Stance.CROUCHED
+		_: return OperatorComposure.Stance.STANDING
+
+
+func _update_composure_readout() -> void:
+	if composure_readout == null:
+		return
+	composure_readout.text = (
+		"COMPOSURE  %5.1f%%\n"
+		+ "AUTHORITATIVE STRESS  %5.1f%%\n"
+		+ "VISIBLE BLOOM  %5.1f%%\n"
+		+ "PRECISION CORE  %5.1f%%\n"
+		+ "SHOT IMPULSE  %5.1f%%"
+	) % [
+		composure.get_composure() * 100.0,
+		composure.stress * 100.0,
+		composure.get_visual_bloom() * 100.0,
+		composure.get_precision_core_scale() * 100.0,
+		composure.get_shot_bounce() * 100.0,
+	]
 
 func _align_trigger_socket_to_right_hand(update_controls: bool = true) -> void:
 	if not weapon_pivot or not right_grip_marker or not right_hand_dot:
@@ -2597,6 +2676,17 @@ func _fire_shot() -> void:
 	var interval := 60.0 / float(maxi(100, fire_rate_rpm))
 	fire_cooldown = interval
 	burst_shot_count += 1
+	var dispersion_multiplier := composure.get_shot_dispersion_multiplier(
+		burst_shot_count,
+		composure_preview_movement,
+		composure_preview_turning
+	)
+	var stress_multiplier := (
+		composure_opening_stress_multiplier
+		if burst_shot_count <= 2
+		else 1.0
+	)
+	composure.notify_shot(1.0, stress_multiplier)
 
 	if burst_shot_count > 2:
 		current_bloom = minf(
@@ -2632,7 +2722,7 @@ func _fire_shot() -> void:
 		var aim_sample := _muzzle_axis_sample()
 		current_aim_target = aim_sample.position
 		var forward_dir := _barrel_direction_world()
-		var spread_rad := deg_to_rad(_current_total_spread_deg())
+		var spread_rad := deg_to_rad(_current_total_spread_deg()) * dispersion_multiplier
 		var random := RandomNumberGenerator.new()
 		random.seed = burst_shot_count
 		var random_angle := random.randf() * TAU
@@ -2814,10 +2904,23 @@ func _save_weapon_config() -> void:
 			"bloom_recovery_speed": bloom_recovery_speed,
 			"is_silenced": is_silenced
 		},
-		"reticle": _current_reticle_profile()
+		"reticle": _current_reticle_profile(),
+		"composure": _current_composure_profile()
 	}
 
 	var file_path := config_dir + weapon_name.to_lower() + ".json"
+	# Preserve unknown forward-compatible reticle fields while Gunsmith remains
+	# the authoritative editor for the known reticle and composure contracts.
+	if FileAccess.file_exists(file_path):
+		var existing_file := FileAccess.open(file_path, FileAccess.READ)
+		var existing_value: Variant = JSON.parse_string(existing_file.get_as_text()) if existing_file else null
+		if existing_value is Dictionary:
+			var existing := existing_value as Dictionary
+			if existing.get("reticle", {}) is Dictionary:
+				var existing_reticle := existing.get("reticle", {}) as Dictionary
+				for key: Variant in existing_reticle:
+					if not (config_data["reticle"] as Dictionary).has(key):
+						(config_data["reticle"] as Dictionary)[key] = existing_reticle[key]
 	var file := FileAccess.open(file_path, FileAccess.WRITE)
 	if file:
 		file.store_string(JSON.stringify(config_data, "  "))
@@ -3522,8 +3625,11 @@ func _build_studio_ui() -> void:
 	reset_fire_button.pressed.connect(func():
 		current_bloom = 0.0
 		burst_shot_count = 0
+		composure.reset()
 	)
 	fire_vbox.add_child(reset_fire_button)
+
+	_build_composure_tab(tab_container)
 
 	# 8. Save & Export. Keep these controls outside the scrolling settings so
 	# Save and Play are always reachable at every supported window height.
@@ -3550,6 +3656,86 @@ func _build_studio_ui() -> void:
 	hud_status.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	hud_status.tooltip_text = hud_status.text
 	action_footer.add_child(hud_status)
+
+
+func _build_composure_tab(tab_container: TabContainer) -> void:
+	var composure_scroll := ScrollContainer.new()
+	composure_scroll.name = "Composure"
+	composure_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	composure_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	tab_container.add_child(composure_scroll)
+
+	var vbox := VBoxContainer.new()
+	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	composure_scroll.add_child(vbox)
+
+	composure_profile_title = Label.new()
+	composure_profile_title.text = "COMPOSURE — %s" % weapon_name
+	composure_profile_title.add_theme_font_size_override("font_size", 17)
+	composure_profile_title.add_theme_color_override("font_color", Color("77f29a"))
+	vbox.add_child(composure_profile_title)
+
+	var explanation := Label.new()
+	explanation.text = (
+		"Composure is the operator's recoverable firing stability. Authoritative "
+		+ "stress determines dispersion and precision damage; the visual spring "
+		+ "controls reticle breathing without changing server validation."
+	)
+	explanation.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	vbox.add_child(explanation)
+
+	vbox.add_child(HSeparator.new())
+	var simulation_title := Label.new()
+	simulation_title.text = "PREVIEW CONDITIONS"
+	vbox.add_child(simulation_title)
+	_add_slider(vbox, "composure_preview_move", "Movement input", 0.0, 1.0, composure_preview_movement, func(v: float): composure_preview_movement = v)
+	_add_slider(vbox, "composure_preview_turn", "Turning input", 0.0, 1.0, composure_preview_turning, func(v: float): composure_preview_turning = v)
+	var stance_help := Label.new()
+	stance_help.text = "The stance selected in Reticle & Fire also governs composure recovery."
+	stance_help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	vbox.add_child(stance_help)
+
+	vbox.add_child(HSeparator.new())
+	var authority_title := Label.new()
+	authority_title.text = "AUTHORITATIVE GAMEPLAY RESPONSE"
+	authority_title.add_theme_color_override("font_color", Color("ffcf54"))
+	vbox.add_child(authority_title)
+	_add_slider(vbox, "composure_shot_stress", "Stress per shot", 0.0, 0.30, composure.shot_stress, func(v: float): composure.shot_stress = v)
+	_add_slider(vbox, "composure_movement_stress", "Movement stress ceiling", 0.0, 1.0, composure.movement_stress, func(v: float): composure.movement_stress = v)
+	_add_slider(vbox, "composure_turning_stress", "Turning stress ceiling", 0.0, 1.0, composure.turning_stress, func(v: float): composure.turning_stress = v)
+	_add_slider(vbox, "composure_attack", "Stress acquisition rate", 0.5, 10.0, composure.stress_attack_speed, func(v: float): composure.stress_attack_speed = v)
+	_add_slider(vbox, "composure_recovery", "Recovery rate", 0.20, 4.0, composure.recovery_speed, func(v: float): composure.recovery_speed = v)
+	_add_slider(vbox, "composure_core", "Minimum precision core", 0.30, 1.0, composure.minimum_core_scale, func(v: float): composure.minimum_core_scale = v)
+	_add_slider(vbox, "composure_opening", "Opening-pair stress scale", 0.0, 1.0, composure_opening_stress_multiplier, func(v: float): composure_opening_stress_multiplier = v)
+	_add_slider(vbox, "composure_moving_first", "Moving first-shot dispersion", 0.0, 1.0, composure.moving_first_shot_multiplier, func(v: float): composure.moving_first_shot_multiplier = v)
+	_add_slider(vbox, "composure_second", "Second-shot dispersion", 0.0, 1.0, composure.second_shot_multiplier, func(v: float): composure.second_shot_multiplier = v)
+	_add_slider(vbox, "composure_graze", "Graze damage scale", 0.0, 1.0, composure_graze_damage_scale, func(v: float): composure_graze_damage_scale = v)
+
+	vbox.add_child(HSeparator.new())
+	var presentation_title := Label.new()
+	presentation_title.text = "PRESENTATION RESPONSE"
+	presentation_title.add_theme_color_override("font_color", Color("55e7ff"))
+	vbox.add_child(presentation_title)
+	_add_slider(vbox, "composure_spring", "Reticle spring", 10.0, 150.0, composure.visual_spring, func(v: float): composure.visual_spring = v)
+	_add_slider(vbox, "composure_damping", "Reticle damping", 2.0, 30.0, composure.visual_damping, func(v: float): composure.visual_damping = v)
+	_add_slider(vbox, "composure_bounce_time", "Shot impulse duration", 0.03, 0.20, composure.shot_bounce_duration, func(v: float): composure.shot_bounce_duration = v; _apply_reticle_preview_profile())
+	_add_slider(vbox, "composure_bounce_strength", "Shot impulse strength", 0.0, 2.0, composure.shot_bounce_strength, func(v: float): composure.shot_bounce_strength = v)
+
+	vbox.add_child(HSeparator.new())
+	composure_readout = Label.new()
+	composure_readout.add_theme_font_size_override("font_size", 12)
+	composure_readout.add_theme_color_override("font_color", Color("a9f4c0"))
+	vbox.add_child(composure_readout)
+
+	var reset_button := Button.new()
+	reset_button.text = "Reset Current Composure"
+	reset_button.pressed.connect(func():
+		composure.reset()
+		current_bloom = 0.0
+		burst_shot_count = 0
+	)
+	vbox.add_child(reset_button)
+	_update_composure_readout()
 
 func _add_slider(parent: Control, key: String, label_text: String, min_val: float, max_val: float, initial_val: float, callback: Callable) -> void:
 	var row := HBoxContainer.new()
@@ -3594,7 +3780,15 @@ func _current_reticle_profile() -> Dictionary:
 		"shot_kick_px": reticle_shot_kick_px,
 		"shot_kick_return": reticle_shot_kick_return,
 		"maximum_shot_kick_px": reticle_maximum_shot_kick_px,
+		"shot_bounce_duration": composure.shot_bounce_duration,
 	}
+
+
+func _current_composure_profile() -> Dictionary:
+	var profile := composure.export_profile()
+	profile["opening_stress_multiplier"] = composure_opening_stress_multiplier
+	profile["graze_damage_scale"] = composure_graze_damage_scale
+	return profile
 
 
 func _apply_reticle_preview_profile() -> void:

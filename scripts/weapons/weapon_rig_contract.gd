@@ -116,7 +116,43 @@ static func normalize_config(raw: Dictionary, config_path: String = "") -> Dicti
 	reticle["shot_kick_px"] = float(reticle.get("shot_kick_px", 6.0))
 	reticle["shot_kick_return"] = float(reticle.get("shot_kick_return", 18.0))
 	reticle["maximum_shot_kick_px"] = float(reticle.get("maximum_shot_kick_px", 18.0))
+	reticle["shot_bounce_duration"] = float(reticle.get("shot_bounce_duration", 0.070))
 	config["reticle"] = reticle
+
+	var composure: Dictionary = (
+		(config.get("composure", {}) as Dictionary).duplicate(true)
+		if config.get("composure", {}) is Dictionary
+		else {}
+	)
+	composure["shot_stress"] = float(composure.get("shot_stress", 0.085))
+	composure["movement_stress"] = float(composure.get("movement_stress", 0.58))
+	composure["turning_stress"] = float(composure.get("turning_stress", 0.34))
+	composure["stress_attack_speed"] = float(composure.get("stress_attack_speed", 4.8))
+	composure["recovery_speed"] = float(composure.get("recovery_speed", 1.45))
+	composure["minimum_core_scale"] = float(composure.get("minimum_core_scale", 0.70))
+	composure["visual_spring"] = float(composure.get("visual_spring", 72.0))
+	composure["visual_damping"] = float(composure.get("visual_damping", 13.5))
+	composure["bounce_duration"] = float(composure.get("bounce_duration", 0.070))
+	composure["bounce_strength"] = float(composure.get("bounce_strength", 1.0))
+	composure["settled_first_shot_threshold"] = float(
+		composure.get("settled_first_shot_threshold", 0.035)
+	)
+	composure["settled_motion_threshold"] = float(
+		composure.get("settled_motion_threshold", 0.08)
+	)
+	composure["moving_first_shot_multiplier"] = float(
+		composure.get("moving_first_shot_multiplier", 0.42)
+	)
+	composure["second_shot_multiplier"] = float(
+		composure.get("second_shot_multiplier", 0.18)
+	)
+	composure["opening_stress_multiplier"] = float(
+		composure.get("opening_stress_multiplier", 0.28)
+	)
+	composure["graze_damage_scale"] = float(
+		composure.get("graze_damage_scale", 0.38)
+	)
+	config["composure"] = composure
 	return config
 
 
