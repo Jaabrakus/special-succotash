@@ -22,6 +22,7 @@ const CLIP_EDITOR_SCRIPT := preload("res://scripts/labs/animation_clip_editor.gd
 const RANGE_SELECTOR_SCRIPT := preload("res://scripts/labs/animation_range_selector.gd")
 const SEQUENCE_TIMELINE_SCRIPT := preload("res://scripts/labs/animation_sequence_timeline.gd")
 const LAYER_COMPOSER_SCRIPT := preload("res://scripts/labs/animation_layer_composer.gd")
+const POSE_EDITOR_SCRIPT := preload("res://scripts/labs/animation_pose_editor.gd")
 const EDITOR_UI_SCALE := 0.84
 const ROOT_SANITIZER := preload("res://scripts/player/operator_animation_root_sanitizer.gd")
 const EDITOR_FPS := 30.0
@@ -174,6 +175,18 @@ var layer_recipe: Dictionary = {
     "head": "",
 }
 var layer_composer = LAYER_COMPOSER_SCRIPT.new()
+var pose_editor = POSE_EDITOR_SCRIPT.new()
+var selected_pose_bone: String = ""
+var pose_slider_controls: Dictionary = {}
+var pose_slider_syncing: bool = false
+var pose_selected_bone_label: Label
+var pose_keyframe_label: Label
+var pose_name_input: LineEdit
+var pose_smooth_interpolation: bool = true
+var pose_interpolation_button: Button
+var pose_contact_summary_label: Label
+var pose_contacts: Dictionary = {}
+var pose_contact_wall_visual: MeshInstance3D
 
 # Gameplay Slot Mappings. Values are FBX resource paths shared with the runtime
 # animation driver, so a workbench assignment is immediately authoritative.
@@ -361,6 +374,8 @@ func _show_editor_page(page_name: String) -> void:
     for key in editor_mode_buttons.keys():
         var button: Button = editor_mode_buttons[key]
         button.button_pressed = String(key) == page_name
+    if pose_contact_wall_visual:
+        pose_contact_wall_visual.visible = page_name == "Pose"
     if timeline_slider:
         timeline_slider.visible = page_name != "Build"
     if range_selector:
@@ -376,6 +391,8 @@ func _show_editor_page(page_name: String) -> void:
         if weapon_node:
             weapon_node.visible = current_weapon != WeaponType.NONE
         _play_selected()
+    if page_name == "Pose":
+        _prepare_pose_mode()
 
 func _apply_editor_workspace_layout() -> void:
     if frame_editor_dock == null or clip_library_panel == null or runtime_map_panel == null:
@@ -800,7 +817,7 @@ func _build_segmented_meshes(src_mesh: ArrayMesh, skel: Skeleton3D, bone_map: Di
     return result
 
 func _process(delta: float) -> void:
-    if not dragging and not panning and active_dragged_bone == "":
+    if active_editor_page != "Pose" and not dragging and not panning and active_dragged_bone == "":
         orbit_yaw += delta * 0.04
     _update_camera()
     _update_ui_state()
@@ -911,7 +928,7 @@ func _update_skeleton_chain_visual() -> void:
                 color = Color(0.22, 0.25, 0.3, 0.32)
             else:
                 color = color.lightened(0.18)
-        if skeleton.get_bone_name(bone_index) == active_dragged_bone:
+        if skeleton.get_bone_name(bone_index) in [active_dragged_bone, selected_pose_bone]:
             color = Color.WHITE
         skeleton_chain_mesh.surface_set_color(color)
         skeleton_chain_mesh.surface_add_vertex(skeleton_chain_instance.to_local(parent_global.origin))
@@ -1046,7 +1063,7 @@ func _update_ui_state() -> void:
     
     if not timeline_slider.has_focus():
         timeline_slider.max_value = length
-        timeline_slider.value = displayed_source_pos
+        timeline_slider.set_value_no_signal(displayed_source_pos)
     
     var current_frame := clampi(roundi(displayed_source_pos * EDITOR_FPS), 0, maxi(1, roundi(length * EDITOR_FPS)))
     var total_frames := maxi(1, roundi(length * EDITOR_FPS))
@@ -1152,6 +1169,7 @@ func _unhandled_input(event: InputEvent) -> void:
                 if clicked_bone != "":
                     _pause_for_pose_edit()
                     active_dragged_bone = clicked_bone
+                    _select_pose_bone(clicked_bone)
                     drag_start_mouse = event.position
                     _capture_bone_edit_base(clicked_bone)
                 else:
@@ -1159,6 +1177,7 @@ func _unhandled_input(event: InputEvent) -> void:
             else:
                 dragging = false
                 active_dragged_bone = ""
+                _sync_pose_sliders_from_selection()
 
         elif event.button_index == MOUSE_BUTTON_RIGHT:
             panning = event.pressed
@@ -1240,6 +1259,268 @@ func _clear_bone_rot_offsets() -> void:
     bone_rot_offsets.clear()
     bone_pos_offsets.clear()
     bone_edit_base_poses.clear()
+    _sync_pose_sliders_from_selection()
+
+func _prepare_pose_mode() -> void:
+    if animation_player == null or skeleton == null:
+        return
+    build_waiting_for_clip = false
+    if animation_player.current_animation.is_empty() and not filtered_entries.is_empty():
+        _play_selected()
+    _pause_for_pose_edit()
+    if weapon_node:
+        weapon_node.visible = current_weapon != WeaponType.NONE
+    if selected_pose_bone.is_empty() and not bubble_nodes.is_empty():
+        var first_landmark := String(bubble_nodes.keys()[0])
+        selected_pose_bone = String((bubble_nodes[first_landmark] as Dictionary).get("bone_name", ""))
+    if not selected_pose_bone.is_empty():
+        _capture_bone_edit_base(selected_pose_bone)
+    _sync_pose_sliders_from_selection()
+    _refresh_pose_keyframe_label()
+
+func _select_pose_bone(bone_name: String) -> void:
+    if bone_name.is_empty():
+        return
+    selected_pose_bone = bone_name
+    _capture_bone_edit_base(bone_name)
+    _sync_pose_sliders_from_selection()
+    _update_skeleton_chain_visual()
+
+func _sync_pose_sliders_from_selection() -> void:
+    if pose_selected_bone_label:
+        pose_selected_bone_label.text = (
+            "SELECTED JOINT: %s" % selected_pose_bone.replace("mixamorig_", "").replace("mixamorig:", "")
+            if not selected_pose_bone.is_empty()
+            else "SELECTED JOINT: click a cyan skeleton node"
+        )
+    if pose_slider_controls.is_empty():
+        return
+    pose_slider_syncing = true
+    var position: Vector3 = bone_pos_offsets.get(selected_pose_bone, Vector3.ZERO)
+    var rotation: Vector3 = bone_rot_offsets.get(selected_pose_bone, Vector3.ZERO)
+    var values := {
+        "move_x": position.x,
+        "move_y": position.y,
+        "move_z": position.z,
+        "rot_x": rotation.x,
+        "rot_y": rotation.y,
+        "rot_z": rotation.z,
+    }
+    for key in values.keys():
+        if pose_slider_controls.has(key):
+            var slider: HSlider = pose_slider_controls[key]["slider"]
+            var value_label: Label = pose_slider_controls[key]["label"]
+            slider.value = float(values[key])
+            value_label.text = _pose_slider_value_text(String(key), float(values[key]))
+    pose_slider_syncing = false
+
+func _pose_slider_value_text(key: String, value: float) -> String:
+    return "%.1f°" % value if key.begins_with("rot_") else "%.1f cm" % (value * 100.0)
+
+func _set_pose_slider_value(key: String, value: float) -> void:
+    if pose_slider_syncing or selected_pose_bone.is_empty():
+        return
+    _pause_for_pose_edit()
+    _capture_bone_edit_base(selected_pose_bone)
+    if key.begins_with("move_"):
+        var position: Vector3 = bone_pos_offsets.get(selected_pose_bone, Vector3.ZERO)
+        match key:
+            "move_x": position.x = value
+            "move_y": position.y = value
+            "move_z": position.z = value
+        bone_pos_offsets[selected_pose_bone] = position
+    else:
+        var rotation: Vector3 = bone_rot_offsets.get(selected_pose_bone, Vector3.ZERO)
+        match key:
+            "rot_x": rotation.x = value
+            "rot_y": rotation.y = value
+            "rot_z": rotation.z = value
+        bone_rot_offsets[selected_pose_bone] = rotation
+    if pose_slider_controls.has(key):
+        var value_label: Label = pose_slider_controls[key]["label"]
+        value_label.text = _pose_slider_value_text(key, value)
+    _apply_bone_rot_overrides()
+    if skeleton:
+        skeleton.force_update_all_bone_transforms()
+
+func _current_pose_frame() -> int:
+    if animation_player == null or animation_player.current_animation.is_empty():
+        return 0
+    return maxi(0, roundi(animation_player.current_animation_position * EDITOR_FPS))
+
+func _capture_pose_keyframe() -> void:
+    if skeleton == null:
+        return
+    _pause_for_pose_edit()
+    _apply_bone_rot_overrides()
+    skeleton.force_update_all_bone_transforms()
+    var frame := _current_pose_frame()
+    pose_editor.capture_pose(skeleton, frame, pose_contacts)
+    _refresh_pose_keyframe_label()
+    status_label.text = "Captured the complete edited skeleton at frame %d. The source animation is unchanged." % frame
+
+func _duplicate_latest_pose() -> void:
+    if skeleton == null:
+        return
+    if pose_editor.keyframes.is_empty():
+        _capture_pose_keyframe()
+        return
+    var source_index: int = pose_editor.keyframes.size() - 1
+    var target_frame := int(pose_editor.keyframes[source_index].get("frame", 0)) + 1
+    var selected_animation := _selected_animation()
+    if animation_player and selected_animation:
+        animation_player.seek(minf(float(target_frame) / EDITOR_FPS, selected_animation.length), true)
+    bone_rot_offsets.clear()
+    bone_pos_offsets.clear()
+    bone_edit_base_poses.clear()
+    pose_editor.apply_keyframe(skeleton, source_index)
+    pose_editor.capture_pose(skeleton, target_frame, pose_contacts)
+    _capture_all_edit_bases_after_seek()
+    _sync_pose_sliders_from_selection()
+    _refresh_pose_keyframe_label()
+    status_label.text = "Duplicated the previous pose to frame %d. Adjust a joint, then capture again." % target_frame
+
+func _copy_latest_pose() -> void:
+    if pose_editor.copy_latest_pose():
+        status_label.text = "Copied the latest complete body pose."
+    else:
+        status_label.text = "Capture a pose before copying it."
+
+func _paste_pose_to_current_frame() -> void:
+    if skeleton == null or not pose_editor.paste_pose(skeleton):
+        status_label.text = "Copy a captured pose before pasting it."
+        return
+    bone_rot_offsets.clear()
+    bone_pos_offsets.clear()
+    bone_edit_base_poses.clear()
+    _capture_all_edit_bases_after_seek()
+    _sync_pose_sliders_from_selection()
+    status_label.text = "Pasted the copied pose. Press Capture Pose to keep it at this frame."
+
+func _pose_skeleton_path() -> NodePath:
+    if animation_player == null or skeleton == null:
+        return NodePath("")
+    var animation_root := animation_player.get_node_or_null(animation_player.root_node)
+    if animation_root == null:
+        return NodePath("")
+    return animation_root.get_path_to(skeleton)
+
+func _build_pose_animation() -> Animation:
+    return pose_editor.build_animation(_pose_skeleton_path(), EDITOR_FPS, pose_smooth_interpolation)
+
+func _preview_pose_strip() -> void:
+    var animation := _build_pose_animation()
+    if animation == null or animation_player == null:
+        status_label.text = "Capture at least one pose before previewing."
+        return
+    var preview_key := StringName("pose_strip_preview")
+    if dynamic_anim_lib.has_animation(preview_key):
+        dynamic_anim_lib.remove_animation(preview_key)
+    dynamic_anim_lib.add_animation(preview_key, animation)
+    bone_rot_offsets.clear()
+    bone_pos_offsets.clear()
+    bone_edit_base_poses.clear()
+    skeleton.reset_bone_poses()
+    animation_player.play(StringName("dyn/" + String(preview_key)))
+    animation_player.speed_scale = playback_speed
+    is_playing = true
+    status_label.text = "Playing %d captured key poses with %s interpolation." % [
+        pose_editor.keyframes.size(),
+        "smooth" if pose_smooth_interpolation else "held stop-motion",
+    ]
+
+func _save_pose_strip() -> void:
+    var animation := _build_pose_animation()
+    if animation == null:
+        status_label.text = "Capture at least one pose before saving."
+        return
+    var requested_name := pose_name_input.text.strip_edges() if pose_name_input else ""
+    if requested_name.is_empty():
+        requested_name = "stop_motion_pose"
+    if authored_name_input:
+        authored_name_input.text = requested_name
+    var baked_pose: Array[Dictionary] = [{
+        "animation": animation,
+        "start": 0.0,
+        "end": animation.length,
+        "display": requested_name,
+        "path": "",
+    }]
+    _save_authored_segments(baked_pose, requested_name.to_snake_case(), false)
+
+func _clear_pose_strip() -> void:
+    pose_editor.clear()
+    pose_contacts.clear()
+    _refresh_pose_keyframe_label()
+    status_label.text = "Cleared captured key poses. Imported source animations were not changed."
+
+func _toggle_pose_interpolation() -> void:
+    pose_smooth_interpolation = not pose_smooth_interpolation
+    if pose_interpolation_button:
+        pose_interpolation_button.text = "Between Poses: %s" % (
+            "SMOOTH" if pose_smooth_interpolation else "HOLD"
+        )
+
+func _refresh_pose_keyframe_label() -> void:
+    if pose_keyframe_label:
+        pose_keyframe_label.text = pose_editor.summary()
+    if pose_contact_summary_label:
+        pose_contact_summary_label.text = "CONTACTS: %s" % (
+            "none" if pose_contacts.is_empty() else ", ".join(pose_contacts.keys())
+        )
+
+func _snap_selected_bone_to_collision(contact_type: String) -> void:
+    if skeleton == null or selected_pose_bone.is_empty():
+        status_label.text = "Select a skeleton joint before snapping it to a surface."
+        return
+    var bone_index := skeleton.find_bone(selected_pose_bone)
+    if bone_index < 0:
+        return
+    _pause_for_pose_edit()
+    _apply_bone_rot_overrides()
+    skeleton.force_update_all_bone_transforms()
+    var bone_skeleton_position := skeleton.get_bone_global_pose(bone_index).origin
+    var bone_world_position := skeleton.global_transform * bone_skeleton_position
+    var directions: Array[Vector3] = [Vector3.DOWN]
+    if contact_type == "wall":
+        directions = [Vector3.LEFT, Vector3.RIGHT, Vector3.FORWARD, Vector3.BACK]
+    var closest_hit: Dictionary = {}
+    var closest_distance := INF
+    var world := get_world_3d()
+    if world == null:
+        return
+    for direction in directions:
+        var query := PhysicsRayQueryParameters3D.create(
+            bone_world_position - direction * 0.05,
+            bone_world_position + direction * 1.5
+        )
+        var hit := world.direct_space_state.intersect_ray(query)
+        if not hit.is_empty():
+            var distance := bone_world_position.distance_to(hit.get("position", bone_world_position))
+            if distance < closest_distance:
+                closest_distance = distance
+                closest_hit = hit
+    if closest_hit.is_empty():
+        status_label.text = "No %s collision is close enough to this joint." % contact_type
+        return
+    var target_world: Vector3 = closest_hit.get("position", bone_world_position)
+    var target_skeleton := skeleton.global_transform.affine_inverse() * target_world
+    var skeleton_delta := target_skeleton - bone_skeleton_position
+    var parent_index := skeleton.get_bone_parent(bone_index)
+    var local_delta := skeleton_delta
+    if parent_index >= 0:
+        local_delta = skeleton.get_bone_global_pose(parent_index).basis.inverse() * skeleton_delta
+    var current_offset: Vector3 = bone_pos_offsets.get(selected_pose_bone, Vector3.ZERO)
+    bone_pos_offsets[selected_pose_bone] = current_offset + local_delta
+    pose_contacts[contact_type] = {
+        "bone": selected_pose_bone,
+        "position": target_world,
+        "normal": closest_hit.get("normal", Vector3.UP),
+    }
+    _apply_bone_rot_overrides()
+    _sync_pose_sliders_from_selection()
+    _refresh_pose_keyframe_label()
+    status_label.text = "Snapped %s to the nearest %s collision. Capture Pose to store the contact." % [selected_pose_bone, contact_type]
 
 func _select_relative(amount: int) -> void:
     if filtered_entries.is_empty():
@@ -1279,6 +1560,13 @@ func _play_selected() -> void:
         if range_selector and anim:
             range_selector.set_clip_length(anim.length, true)
         _refresh_frame_editor_labels()
+        if active_editor_page == "Pose":
+            animation_player.seek(0.0, true)
+            _pause_for_pose_edit()
+            bone_rot_offsets.clear()
+            bone_pos_offsets.clear()
+            bone_edit_base_poses.clear()
+            _sync_pose_sliders_from_selection()
 
 func _load_authored_animation(entry: Dictionary) -> void:
     var anim_key: StringName = StringName(entry.get("key", ""))
@@ -2548,6 +2836,40 @@ func _build_stage() -> void:
     floor_mesh.material_override = floor_mat
     add_child(floor_mesh)
 
+    # Pose contacts use the same physics query path as gameplay IK. The mesh
+    # remains visual-only; this thin collider makes floor snapping measurable.
+    var floor_body := StaticBody3D.new()
+    floor_body.name = "PoseContactFloor"
+    var floor_shape_node := CollisionShape3D.new()
+    var floor_shape := BoxShape3D.new()
+    floor_shape.size = Vector3(24.0, 0.1, 24.0)
+    floor_shape_node.shape = floor_shape
+    floor_shape_node.position.y = -0.05
+    floor_body.add_child(floor_shape_node)
+    add_child(floor_body)
+
+    var wall_body := StaticBody3D.new()
+    wall_body.name = "PoseContactWall"
+    wall_body.position = Vector3(1.35, 1.25, 0.0)
+    var wall_shape_node := CollisionShape3D.new()
+    var wall_shape := BoxShape3D.new()
+    wall_shape.size = Vector3(0.1, 2.5, 3.0)
+    wall_shape_node.shape = wall_shape
+    wall_body.add_child(wall_shape_node)
+    add_child(wall_body)
+    pose_contact_wall_visual = MeshInstance3D.new()
+    pose_contact_wall_visual.name = "PoseContactWallGuide"
+    var wall_mesh := BoxMesh.new()
+    wall_mesh.size = wall_shape.size
+    pose_contact_wall_visual.mesh = wall_mesh
+    var wall_material := StandardMaterial3D.new()
+    wall_material.albedo_color = Color(0.15, 0.75, 0.9, 0.16)
+    wall_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+    wall_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+    pose_contact_wall_visual.material_override = wall_material
+    pose_contact_wall_visual.visible = false
+    wall_body.add_child(pose_contact_wall_visual)
+
     var key_light := DirectionalLight3D.new()
     key_light.rotation_degrees = Vector3(-45.0, -35.0, 0.0)
     key_light.light_energy = 1.8
@@ -2703,9 +3025,9 @@ func _build_ui() -> void:
     slot_vbox.add_child(mode_help)
 
     var mode_grid := GridContainer.new()
-    mode_grid.columns = 3
+    mode_grid.columns = 4
     slot_vbox.add_child(mode_grid)
-    for mode_name in ["Preview", "Build", "Routes"]:
+    for mode_name in ["Preview", "Pose", "Build", "Routes"]:
         var mode_button := Button.new()
         mode_button.name = "%sModeButton" % mode_name
         mode_button.text = mode_name
@@ -2716,11 +3038,13 @@ func _build_ui() -> void:
         editor_mode_buttons[mode_name] = mode_button
 
     var preview_page := VBoxContainer.new()
+    var pose_page := VBoxContainer.new()
     var trim_page := VBoxContainer.new()
     var layers_page := VBoxContainer.new()
     var routes_page := VBoxContainer.new()
     editor_pages = {
         "Preview": preview_page,
+        "Pose": pose_page,
         "Build": trim_page,
         "Routes": routes_page,
     }
@@ -2740,6 +3064,97 @@ func _build_ui() -> void:
     preview_help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
     preview_help.add_theme_color_override("font_color", Color(0.72, 0.93, 1.0))
     preview_page.add_child(preview_help)
+
+    var pose_title := Label.new()
+    pose_title.text = "POSE AN IMPORTED FRAME"
+    pose_title.add_theme_font_size_override("font_size", 17)
+    pose_title.add_theme_color_override("font_color", Color(0.35, 1.0, 0.62))
+    pose_page.add_child(pose_title)
+    var pose_help := Label.new()
+    pose_help.text = "Pause on any frame, click a cyan skeleton joint, then use these bounded sliders. Capture poses like stop-motion keyframes."
+    pose_help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+    pose_help.add_theme_color_override("font_color", Color(0.72, 0.93, 1.0))
+    pose_page.add_child(pose_help)
+
+    pose_selected_bone_label = Label.new()
+    pose_selected_bone_label.text = "SELECTED JOINT: click a cyan skeleton node"
+    pose_selected_bone_label.add_theme_color_override("font_color", Color.WHITE)
+    pose_page.add_child(pose_selected_bone_label)
+
+    var move_title := Label.new()
+    move_title.text = "MOVE JOINT"
+    move_title.add_theme_color_override("font_color", Color(0.3, 0.9, 1.0))
+    pose_page.add_child(move_title)
+    _add_pose_slider(pose_page, "Left / Right", "move_x", -0.25, 0.25, 0.005)
+    _add_pose_slider(pose_page, "Up / Down", "move_y", -0.25, 0.25, 0.005)
+    _add_pose_slider(pose_page, "Forward / Back", "move_z", -0.25, 0.25, 0.005)
+
+    var rotate_title := Label.new()
+    rotate_title.text = "ROTATE JOINT"
+    rotate_title.add_theme_color_override("font_color", Color(1.0, 0.78, 0.3))
+    pose_page.add_child(rotate_title)
+    _add_pose_slider(pose_page, "Bend", "rot_x", -90.0, 90.0, 1.0)
+    _add_pose_slider(pose_page, "Turn", "rot_y", -120.0, 120.0, 1.0)
+    _add_pose_slider(pose_page, "Twist", "rot_z", -90.0, 90.0, 1.0)
+
+    var contact_row := HBoxContainer.new()
+    pose_page.add_child(contact_row)
+    var floor_contact_button := Button.new()
+    floor_contact_button.text = "Snap Joint to Floor"
+    floor_contact_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    floor_contact_button.pressed.connect(_snap_selected_bone_to_collision.bind("floor"))
+    contact_row.add_child(floor_contact_button)
+    var wall_contact_button := Button.new()
+    wall_contact_button.text = "Snap Joint to Wall"
+    wall_contact_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    wall_contact_button.pressed.connect(_snap_selected_bone_to_collision.bind("wall"))
+    contact_row.add_child(wall_contact_button)
+    pose_contact_summary_label = Label.new()
+    pose_contact_summary_label.text = "CONTACTS: none"
+    pose_contact_summary_label.add_theme_font_size_override("font_size", 11)
+    pose_page.add_child(pose_contact_summary_label)
+
+    pose_keyframe_label = Label.new()
+    pose_keyframe_label.text = "KEY POSES: none yet"
+    pose_keyframe_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+    pose_keyframe_label.add_theme_color_override("font_color", Color(0.9, 0.75, 1.0))
+    pose_page.add_child(pose_keyframe_label)
+    var pose_capture_row := GridContainer.new()
+    pose_capture_row.columns = 2
+    pose_page.add_child(pose_capture_row)
+    var capture_pose_button := _touch_button("Capture Pose at This Frame")
+    capture_pose_button.pressed.connect(_capture_pose_keyframe)
+    pose_capture_row.add_child(capture_pose_button)
+    var duplicate_pose_button := _touch_button("Duplicate to Next Frame")
+    duplicate_pose_button.pressed.connect(_duplicate_latest_pose)
+    pose_capture_row.add_child(duplicate_pose_button)
+    var copy_pose_button := _touch_button("Copy Latest Pose")
+    copy_pose_button.pressed.connect(_copy_latest_pose)
+    pose_capture_row.add_child(copy_pose_button)
+    var paste_pose_button := _touch_button("Paste at Current Frame")
+    paste_pose_button.pressed.connect(_paste_pose_to_current_frame)
+    pose_capture_row.add_child(paste_pose_button)
+
+    pose_interpolation_button = _touch_button("Between Poses: SMOOTH")
+    pose_interpolation_button.pressed.connect(_toggle_pose_interpolation)
+    pose_page.add_child(pose_interpolation_button)
+    var pose_preview_button := _touch_button("▶ Play Captured Poses")
+    pose_preview_button.add_theme_color_override("font_color", Color(0.35, 1.0, 0.55))
+    pose_preview_button.pressed.connect(_preview_pose_strip)
+    pose_page.add_child(pose_preview_button)
+    pose_name_input = LineEdit.new()
+    pose_name_input.placeholder_text = "Name the new stop-motion animation"
+    pose_name_input.custom_minimum_size.y = 42.0
+    pose_page.add_child(pose_name_input)
+    var pose_save_row := HBoxContainer.new()
+    pose_page.add_child(pose_save_row)
+    var save_pose_button := _touch_button("Save as New Animation")
+    save_pose_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    save_pose_button.pressed.connect(_save_pose_strip)
+    pose_save_row.add_child(save_pose_button)
+    var clear_pose_button := _touch_button("Clear Key Poses")
+    clear_pose_button.pressed.connect(_clear_pose_strip)
+    pose_save_row.add_child(clear_pose_button)
 
     # Touch-first, weapon-neutral body composer. The five targets form a
     # simple T-pose diagram and accept clips directly from the left library.
@@ -3392,6 +3807,30 @@ func _add_slider_control(parent: Control, label_text: String, min_val: float, ma
     slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     slider.value_changed.connect(callback)
     hbox.add_child(slider)
+
+func _add_pose_slider(parent: Control, label_text: String, key: String, min_val: float, max_val: float, step_val: float) -> void:
+    var row := HBoxContainer.new()
+    parent.add_child(row)
+    var label := Label.new()
+    label.text = label_text
+    label.custom_minimum_size.x = 108.0
+    label.add_theme_font_size_override("font_size", 11)
+    row.add_child(label)
+    var slider := HSlider.new()
+    slider.min_value = min_val
+    slider.max_value = max_val
+    slider.step = step_val
+    slider.value = 0.0
+    slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    row.add_child(slider)
+    var value_label := Label.new()
+    value_label.text = _pose_slider_value_text(key, 0.0)
+    value_label.custom_minimum_size.x = 64.0
+    value_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+    value_label.add_theme_font_size_override("font_size", 11)
+    row.add_child(value_label)
+    pose_slider_controls[key] = {"slider": slider, "label": value_label}
+    slider.value_changed.connect(func(value: float): _set_pose_slider_value(key, value))
 
 func _add_gun_slider(parent: Control, label_text: String, key: String, min_val: float, max_val: float, default_val: float, step_val: float, callback: Callable) -> void:
     var hbox := HBoxContainer.new()
