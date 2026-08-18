@@ -1,0 +1,100 @@
+{
+  "format_version": 1,
+  "character": "operator",
+  "runtime_asset": "rigged_3d_glb",
+  "sheet_usage": "animation_reference_only",
+  "skeleton_fps": 30,
+  "states": [
+    "STANDING",
+    "CROUCHED",
+    "PRONE",
+    "AIRBORNE",
+    "DIVE",
+    "ROLL",
+    "TRAVERSAL",
+    "INCAPACITATED"
+  ],
+  "clips": {
+    "locomotion": [
+      "rifle_idle",
+      "walk_forward",
+      "walk_backward",
+      "strafe_left",
+      "strafe_right",
+      "jog_forward",
+      "jog_backward",
+      "stealth_walk_forward",
+      "turn_left",
+      "turn_right"
+    ],
+    "crouch": [
+      "stand_to_crouch",
+      "crouch_idle",
+      "crouch_walk_forward",
+      "crouch_walk_backward",
+      "crouch_strafe_left",
+      "crouch_strafe_right",
+      "crouch_to_stand"
+    ],
+    "prone": [
+      "stand_to_prone",
+      "crouch_to_prone",
+      "prone_idle",
+      "prone_crawl_forward",
+      "prone_crawl_backward",
+      "prone_turn_left",
+      "prone_turn_right",
+      "prone_aim",
+      "prone_fire",
+      "prone_reload",
+      "prone_to_crouch"
+    ],
+    "combat": [
+      "aim_enter",
+      "aim_idle",
+      "aim_exit",
+      "fire_recoil",
+      "reload_tactical",
+      "reload_empty",
+      "weapon_tuck_enter",
+      "weapon_tuck_idle",
+      "weapon_tuck_exit",
+      "grenade_throw",
+      "weapon_swap"
+    ],
+    "mobility": [
+      "jump_takeoff",
+      "jump_airborne",
+      "jump_land",
+      "dive_forward_to_prone",
+      "roll_left",
+      "roll_right",
+      "roll_recover_crouched"
+    ],
+    "traversal": [
+      "mantle_low",
+      "ladder_enter",
+      "ladder_climb",
+      "ladder_exit",
+      "door_open_cautious",
+      "pickup_ground",
+      "objective_interact"
+    ],
+    "reactions": [
+      "hit_front",
+      "hit_back",
+      "hit_left",
+      "hit_right",
+      "heavy_stagger",
+      "death_forward",
+      "death_backward"
+    ],
+    "squad": [
+      "signal_halt",
+      "signal_move",
+      "signal_rally",
+      "signal_quiet",
+      "revive_teammate"
+    ]
+  }
+}
