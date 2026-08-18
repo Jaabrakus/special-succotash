@@ -68,6 +68,9 @@ var movement_direction := Vector2.ZERO
 var movement_speed_normalized: float = 0.0
 var movement_speed_mps: float = 0.0
 var movement_gait: StringName = &"WALK"
+var movement_intent_direction := Vector2.ZERO
+var movement_intent_strength: float = 0.0
+var movement_response_mode: StringName = &"IDLE"
 var posture: StringName = &"STANDING"
 var movement_state: StringName = &"LOCOMOTION"
 var aim_yaw_rad: float = 0.0
@@ -192,7 +195,12 @@ func _cancel_cosmetic_transition_for_gameplay() -> void:
 		&"turn_90_left", &"turn_90_right",
 	]
 	var prone_transition := requested_action in [&"prone_stop_forward", &"prone_stop_backward"]
+	var stop_cancelled_by_intent := (
+		_last_transition_reason == &"stop" and movement_intent_strength >= 0.10
+	)
 	if (
+		stop_cancelled_by_intent
+		or
 		(posture == &"PRONE" and not prone_transition)
 		or (posture == &"CROUCHED" and standing_only_transition)
 		or movement_state in [&"DIVING", &"ROLLING", &"AIRBORNE", &"LANDING"]
@@ -209,7 +217,10 @@ func _consider_cosmetic_transition() -> void:
 		posture,
 		aim_yaw_rad,
 		available_clips,
-		animation_profile.transitions
+		animation_profile.transitions,
+		movement_intent_direction,
+		movement_intent_strength,
+		movement_response_mode
 	)
 	var prone_stop_allowed: bool = posture == &"PRONE" and StringName(request["reason"]) == &"stop"
 	var allowed: bool = (
@@ -485,7 +496,10 @@ func set_visual_inputs(
 	vertical_velocity: float = 0.0,
 	gait_name: StringName = &"WALK",
 	actual_speed_mps: float = -1.0,
-	world_aim_target: Vector3 = Vector3.ZERO
+	world_aim_target: Vector3 = Vector3.ZERO,
+	desired_direction: Vector2 = Vector2.ZERO,
+	desired_strength: float = -1.0,
+	response_mode: StringName = &"IDLE"
 ) -> void:
 	_explicit_visual_inputs = true
 	movement_direction = direction
@@ -501,6 +515,13 @@ func set_visual_inputs(
 	movement_state = state_name
 	vertical_speed = vertical_velocity
 	visual_aim_target = world_aim_target
+	movement_intent_direction = desired_direction
+	movement_intent_strength = clampf(
+		desired_strength if desired_strength >= 0.0 else desired_direction.length(),
+		0.0,
+		1.0
+	)
+	movement_response_mode = response_mode
 
 
 func get_animation_debug_state() -> Dictionary:

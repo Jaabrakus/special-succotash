@@ -71,6 +71,12 @@ extends Resource
 @export_range(0.0, 1.2, 0.001) var downward_aim_pelvis_y: float = 1.08
 @export var downward_max_framing_height_correction: float = 1.50
 @export var aim_distance: float = 250.0
+@export_group("Ballistic Convergence")
+## The reticle may acquire a nearby wall, but the rifle is not forced to bend
+## sharply upward from the shoulder into that near point. The ballistic target
+## remains on the view ray and is pushed far enough away to keep parallax sane.
+@export var minimum_ballistic_convergence_distance: float = 18.0
+@export_range(1.0, 15.0, 0.25) var maximum_convergence_angle_deg: float = 7.0
 
 @export_group("Screen-space Framing")
 @export_range(0.0, 1.0, 0.001) var desired_head_x: float = 0.50

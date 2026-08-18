@@ -100,6 +100,41 @@ func _check_pose(label: String, driver: Node, rig: Node) -> void:
 		visual_target.distance_to(shared_target) <= 0.01,
 		"%s animation consumes the camera's shared target" % label
 	)
+	var target_node := rig.get("target") as Node
+	var mannequin: Node = target_node.get_node_or_null("Mannequin") if target_node != null else null
+	if mannequin != null and mannequin.muzzle_marker != null:
+		var muzzle: Vector3 = mannequin.muzzle_marker.global_position
+		var ballistic_direction := (shared_target - muzzle).normalized()
+		var viewport_size: Vector2 = rig.get_viewport().get_visible_rect().size
+		var reticle: Vector2 = rig.get("reticle_screen_normalized")
+		var reticle_pixels := Vector2(
+			reticle.x * viewport_size.x,
+			reticle.y * viewport_size.y
+		)
+		var view_direction: Vector3 = rig.get("camera").project_ray_normal(
+			reticle_pixels
+		).normalized()
+		var convergence_angle := rad_to_deg(
+			view_direction.angle_to(ballistic_direction)
+		)
+		var maximum_angle: float = float(
+			rig.get("profile").maximum_convergence_angle_deg
+		)
+		_expect(
+			convergence_angle <= maximum_angle + 0.15,
+			"%s close geometry cannot pull the rifle more than %.1f degrees off view" % [
+				label, maximum_angle
+			]
+		)
+	var projected_target: Vector2 = rig.get("camera").unproject_position(shared_target)
+	var expected_pixels := Vector2(
+		float(rig.get("reticle_screen_normalized").x) * rig.get_viewport().get_visible_rect().size.x,
+		float(rig.get("reticle_screen_normalized").y) * rig.get_viewport().get_visible_rect().size.y
+	)
+	_expect(
+		projected_target.distance_to(expected_pixels) <= 2.0,
+		"%s stabilized ballistic target remains on the centered reticle ray" % label
+	)
 
 
 func _tap(action: StringName) -> void:

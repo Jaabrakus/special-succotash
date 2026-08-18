@@ -204,6 +204,7 @@ static func build(rig) -> Dictionary:
         "aim_hit": rig.aim_hit,
         "aim_collider": rig.aim_collider_name,
         "aim_point": rig.weapon_aim_point,
+        "view_aim_point": rig.view_aim_point,
         "camera_intent_point": rig.aim_point,
         "shot_point": rig.shot_point,
         "shot_blocked": rig.shot_blocked,

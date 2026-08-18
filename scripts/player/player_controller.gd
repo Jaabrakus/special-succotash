@@ -2,6 +2,7 @@ class_name SocomTestPlayer
 extends CharacterBody3D
 
 const OperatorOrientationController := preload("res://scripts/player/operator_orientation_controller.gd")
+const MovementCommand := preload("res://scripts/network/socom_movement_command.gd")
 
 @export var move_speed: float = 6.5
 @export var acceleration: float = 18.0
@@ -49,6 +50,9 @@ var orientation := OperatorOrientationController.new()
 var desired_movement_direction := Vector3.ZERO
 var movement_input_strength: float = 0.0
 var horizontal_response_mode: StringName = &"IDLE"
+var movement_command_queue: Array = []
+var last_movement_command
+var local_input_enabled: bool = true
 
 # Context-Sensitive Multi-Function Input
 var stance_hold_timer: float = 0.0
@@ -61,8 +65,11 @@ func _physics_process(delta: float) -> void:
     if replay_override_active:
         velocity = Vector3.ZERO
         return
-    var input := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
-    var automated_world_direction := Vector3.ZERO
+    var command = _consume_movement_command()
+    last_movement_command = command.duplicate_command()
+    var input: Vector2 = command.move_axis
+    var automated_world_direction: Vector3 = command.world_move_override
+    var authoritative_aim_yaw: float = command.aim_yaw
     if OS.get_cmdline_user_args().has("--movement-test"):
         input = Vector2(1.0, 0.0)
     elif OS.get_cmdline_user_args().has("--wall-entry-test"):
@@ -90,17 +97,11 @@ func _physics_process(delta: float) -> void:
             automated_world_direction = Vector3.BACK
     elif OS.get_cmdline_user_args().has("--automated-test"):
         input = Vector2.ZERO
-    var camera := get_viewport().get_camera_3d()
-
-    var forward := Vector3.FORWARD
-    var right := Vector3.RIGHT
-    if camera:
-        forward = -camera.global_basis.z
-        forward.y = 0.0
-        forward = forward.normalized()
-        right = camera.global_basis.x
-        right.y = 0.0
-        right = right.normalized()
+    # Travel follows raw aim authority, never the rendered camera transform.
+    # A wall post-solve can move the lens without bending WASD travel.
+    var aim_basis := Basis(Vector3.UP, authoritative_aim_yaw)
+    var forward: Vector3 = aim_basis * Vector3.FORWARD
+    var right: Vector3 = aim_basis * Vector3.RIGHT
 
     var desired_dir := (right * input.x + forward * -input.y)
     if automated_world_direction != Vector3.ZERO:
@@ -117,28 +118,23 @@ func _physics_process(delta: float) -> void:
         or OS.get_cmdline_user_args().has("--wall-follow-test")
         or OS.get_cmdline_user_args().has("--camera-stress-test")
     )
-    var jump_held := Input.is_action_pressed("jump")
-    var jump_started := (
-        jump_requested
-        or
-        Input.is_action_just_pressed("jump")
-        or (jump_held and not jump_was_held)
-    )
+    var jump_started: bool = jump_requested or command.jump_pressed
     jump_requested = false
-    jump_was_held = jump_held
     var launched_jump_this_frame := false
     if actions_enabled:
-        _handle_posture_input(delta)
+        _handle_posture_command(command, delta)
         launched_jump_this_frame = _try_begin_mobility_action(
             desired_dir,
             input,
-            jump_started
+            jump_started,
+            command
         )
 
     if motion_state == MotionState.DIVING or motion_state == MotionState.ROLLING:
         _advance_committed_action(delta)
-        _update_orientation(action_direction, delta)
+        _update_orientation(action_direction, authoritative_aim_yaw, delta)
         move_and_slide()
+        _finish_committed_action_on_collision()
         was_on_floor = is_on_floor()
         return
 
@@ -168,17 +164,17 @@ func _physics_process(delta: float) -> void:
     else:
         velocity.y = -0.5
 
-    _update_orientation(desired_dir, delta)
+    _update_orientation(desired_dir, authoritative_aim_yaw, delta)
 
     move_and_slide()
     _update_air_and_landing_state(delta)
     was_on_floor = is_on_floor()
 
-func _update_orientation(desired_dir: Vector3, delta: float) -> void:
-    var rig := get_tree().get_first_node_in_group("socom_camera_rig")
-    var authoritative_aim_yaw := global_rotation.y
-    if rig != null:
-        authoritative_aim_yaw = float(rig.get("aim_yaw"))
+func _update_orientation(
+    desired_dir: Vector3,
+    authoritative_aim_yaw: float,
+    delta: float
+) -> void:
     orientation.update(
         self,
         desired_dir,
@@ -204,6 +200,43 @@ func request_jump() -> void:
     # Public one-shot command used by replay/network input snapshots and tests.
     # Local keyboard/controller input still enters through the same latch above.
     jump_requested = true
+
+func queue_movement_command(command) -> void:
+    # Network/replay code may enqueue immutable per-tick commands. The queue is
+    # deliberately independent from camera nodes and local device state.
+    if command != null:
+        movement_command_queue.push_back(command.duplicate_command())
+
+func set_local_input_enabled(enabled: bool) -> void:
+    local_input_enabled = enabled
+
+func get_last_movement_command():
+    return last_movement_command.duplicate_command() if last_movement_command != null else null
+
+func _consume_movement_command():
+    if not movement_command_queue.is_empty():
+        return movement_command_queue.pop_front()
+    return _capture_local_movement_command()
+
+func _capture_local_movement_command():
+    var command = MovementCommand.new()
+    command.simulation_tick = Engine.get_physics_frames()
+    command.aim_yaw = global_rotation.y
+    var rig := get_tree().get_first_node_in_group("socom_camera_rig")
+    if rig != null:
+        command.aim_yaw = float(rig.get("aim_yaw"))
+    if not local_input_enabled:
+        return command
+    command.move_axis = Input.get_vector(
+        "move_left", "move_right", "move_forward", "move_back"
+    )
+    command.jump_pressed = Input.is_action_just_pressed("jump")
+    command.dive_pressed = Input.is_action_just_pressed("dive")
+    command.roll_pressed = Input.is_action_just_pressed("roll")
+    command.prone_pressed = Input.is_action_just_pressed("prone")
+    command.crouch_held = Input.is_action_pressed("crouch")
+    command.crouch_released = Input.is_action_just_released("crouch")
+    return command
 
 func _movement_speed() -> float:
     if posture == MotionState.PRONE:
@@ -238,44 +271,41 @@ func get_movement_gait_name() -> StringName:
         else &"WALK"
     )
 
-func _handle_posture_input(delta: float) -> void:
+func _handle_posture_command(command, delta: float) -> void:
     if motion_state == MotionState.DIVING or motion_state == MotionState.ROLLING:
         return
 
     # Direct Prone shortcut (Z)
-    if Input.is_action_just_pressed("prone"):
-        posture = MotionState.CROUCHED if posture == MotionState.PRONE else MotionState.PRONE
-        motion_state = posture
-        _apply_posture_collider()
+    if command.prone_pressed:
+        _try_set_posture(
+            MotionState.CROUCHED if posture == MotionState.PRONE else MotionState.PRONE
+        )
         return
 
     # Multi-function Stance Button (C / Crouch): Tap = Crouch/Stand, Hold = Drop to Prone
-    if Input.is_action_pressed("crouch"):
+    if command.crouch_held:
         stance_hold_timer += delta
         if stance_hold_timer >= stance_hold_threshold and not stance_held_triggered:
             stance_held_triggered = true
-            posture = MotionState.PRONE
-            motion_state = MotionState.PRONE
-            _apply_posture_collider()
+            _try_set_posture(MotionState.PRONE)
 
-    if Input.is_action_just_released("crouch"):
+    if command.crouch_released:
         if not stance_held_triggered:
             # Quick Tap action
+            var target_posture := MotionState.CROUCHED
             if posture == MotionState.PRONE:
-                posture = MotionState.CROUCHED
+                target_posture = MotionState.CROUCHED
             elif posture == MotionState.CROUCHED:
-                posture = MotionState.STANDING
-            else:
-                posture = MotionState.CROUCHED
-            motion_state = posture
-            _apply_posture_collider()
+                target_posture = MotionState.STANDING
+            _try_set_posture(target_posture)
         stance_hold_timer = 0.0
         stance_held_triggered = false
 
 func _try_begin_mobility_action(
     desired_dir: Vector3,
     input: Vector2,
-    jump_started: bool
+    jump_started: bool,
+    command
 ) -> bool:
     if not is_on_floor() or motion_state == MotionState.DIVING or motion_state == MotionState.ROLLING:
         return false
@@ -283,14 +313,14 @@ func _try_begin_mobility_action(
     # Jump owns one action only. Travel input must never reinterpret Space as a
     # dive; that would make the same network command produce two outcomes.
     if jump_started and posture != MotionState.PRONE:
-        posture = MotionState.STANDING
-        _apply_posture_collider()
+        if not _try_set_posture(MotionState.STANDING):
+            return false
         velocity.y = jump_velocity
         motion_state = MotionState.AIRBORNE
         return true
 
     # Z is the independent dive-to-prone action.
-    if Input.is_action_just_pressed("dive") and posture != MotionState.PRONE:
+    if command.dive_pressed and posture != MotionState.PRONE:
         action_direction = _safe_action_direction(desired_dir)
         action_elapsed = 0.0
         action_duration = dive_duration
@@ -301,7 +331,7 @@ func _try_begin_mobility_action(
         return false
 
     # Roll shortcut (E / Alt)
-    if Input.is_action_just_pressed("roll") and posture != MotionState.PRONE:
+    if command.roll_pressed and posture != MotionState.PRONE:
         roll_side = -1.0 if input.x < -0.1 else 1.0
         if absf(input.x) > 0.1:
             action_direction = global_basis.x * signf(input.x)
@@ -342,6 +372,24 @@ func _advance_committed_action(delta: float) -> void:
         motion_state = posture
         _apply_posture_collider()
 
+func _finish_committed_action_on_collision() -> void:
+    if get_slide_collision_count() <= 0:
+        return
+    for collision_index in range(get_slide_collision_count()):
+        var collision := get_slide_collision(collision_index)
+        if absf(collision.get_normal().y) < 0.55:
+            action_elapsed = action_duration
+            posture = (
+                MotionState.PRONE
+                if motion_state == MotionState.DIVING
+                else MotionState.CROUCHED
+            )
+            motion_state = posture
+            velocity.x = 0.0
+            velocity.z = 0.0
+            _apply_posture_collider()
+            return
+
 func _update_air_and_landing_state(delta: float) -> void:
     if not is_on_floor():
         motion_state = MotionState.AIRBORNE
@@ -369,6 +417,64 @@ func _apply_posture_collider() -> void:
         target_height = 0.82
     capsule.height = target_height
     collider.position.y = target_height * 0.5
+
+func _try_set_posture(target_posture: int) -> bool:
+    if target_posture == posture:
+        return true
+    if _posture_height(target_posture) > _posture_height(posture):
+        if not _has_posture_clearance(target_posture):
+            return false
+    posture = target_posture
+    motion_state = posture
+    _apply_posture_collider()
+    return true
+
+func _posture_height(target_posture: int) -> float:
+    if target_posture == MotionState.PRONE:
+        return 0.82
+    if target_posture == MotionState.CROUCHED:
+        return 1.25
+    return 1.85
+
+func _has_posture_clearance(target_posture: int) -> bool:
+    var collider := get_node_or_null("CollisionShape3D") as CollisionShape3D
+    if collider == null or not (collider.shape is CapsuleShape3D):
+        return true
+    var current_capsule := collider.shape as CapsuleShape3D
+    var current_height: float = _posture_height(posture)
+    var target_height: float = _posture_height(target_posture)
+    var space := get_world_3d().direct_space_state
+    var ray_offsets: Array[Vector3] = [
+        Vector3.ZERO,
+        Vector3.RIGHT * current_capsule.radius * 0.65,
+        Vector3.LEFT * current_capsule.radius * 0.65,
+        Vector3.FORWARD * current_capsule.radius * 0.65,
+        Vector3.BACK * current_capsule.radius * 0.65,
+    ]
+    for offset in ray_offsets:
+        var ray := PhysicsRayQueryParameters3D.create(
+            global_position + offset + Vector3.UP * (current_height + 0.01),
+            global_position + offset + Vector3.UP * (target_height + 0.03),
+            collision_mask,
+            [get_rid()]
+        )
+        ray.collide_with_areas = false
+        var clearance_hit := space.intersect_ray(ray)
+        if not clearance_hit.is_empty():
+            return false
+    var probe := CapsuleShape3D.new()
+    probe.radius = current_capsule.radius
+    probe.height = target_height
+    var query := PhysicsShapeQueryParameters3D.new()
+    query.shape = probe
+    query.transform = Transform3D(
+        global_basis,
+        global_position + Vector3.UP * (probe.height * 0.5 + 0.015)
+    )
+    query.collision_mask = collision_mask
+    query.collide_with_areas = false
+    query.exclude = [get_rid()]
+    return space.intersect_shape(query, 1).is_empty()
 
 func get_action_phase() -> float:
     if action_duration <= 0.0:

@@ -163,7 +163,6 @@ func get_debug_state() -> Dictionary:
 		"shared_phase": shared_phase,
 		"smoothed_direction": smoothed_direction,
 		"prone_travel_blend": prone_travel_blend,
-		"normalized_time_sync": true,
 	}
 
 

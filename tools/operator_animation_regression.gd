@@ -347,7 +347,12 @@ func _check_modern_blend_graph(driver) -> void:
         _advance(driver)
     var fast: Dictionary = driver.get_animation_debug_state()
     _expect(bool(fast.get("modern_enabled", false)), "modern locomotion route is active")
-    _expect(bool(fast.get("normalized_time_sync", false)), "directional cycles share normalized phase")
+    var phase_before: float = float(slow.get("shared_phase", -1.0))
+    var phase_after: float = float(fast.get("shared_phase", -1.0))
+    _expect(
+        phase_before >= 0.0 and phase_after >= 0.0 and not is_equal_approx(phase_before, phase_after),
+        "locomotion exposes a live advancing cycle phase for measured contact tests"
+    )
     _expect(float(slow.get("full_gait_weight", 1.0)) < 0.05, "partial input stays on the deliberate gait")
     _expect(float(fast.get("full_gait_weight", 0.0)) > 0.95, "full input reaches the tactical gait")
     _expect(

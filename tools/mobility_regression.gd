@@ -34,12 +34,18 @@ func _run() -> void:
 
     await _tap(&"crouch")
     _expect(_state(player) == &"CROUCHED", "crouch enters the crouched state")
-    _expect(_capsule_height(player) < 1.30, "crouch shortens the collision capsule")
+    _expect(
+        _capsule_height(player) > 0.0 and _capsule_height(player) < 1.30,
+        "crouch shortens the named collision capsule"
+    )
     await _capture_pose("crouched")
 
     await _tap(&"prone")
     _expect(_state(player) == &"PRONE", "prone enters the prone state")
-    _expect(_capsule_height(player) < 0.90, "prone shortens the collision capsule")
+    _expect(
+        _capsule_height(player) > 0.0 and _capsule_height(player) < 0.90,
+        "prone shortens the named collision capsule"
+    )
     await _capture_pose("prone")
 
     await _tap(&"prone")

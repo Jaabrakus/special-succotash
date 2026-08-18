@@ -28,6 +28,7 @@ func _run() -> void:
 		return
 	driver.animation_profile.transitions["enabled"] = false
 	await _measure_foot_slip(player, driver)
+	await _measure_contact_phase_continuity(player, driver)
 	await _measure_direction_pop(player, driver)
 	_measure_torso_error(driver)
 	await _measure_body_stack_stability(driver)
@@ -58,8 +59,63 @@ func _measure_foot_slip(player: CharacterBody3D, driver) -> void:
 	if not slips.is_empty():
 		p95_cm = slips[int(floor((slips.size() - 1) * 0.95))] * 100.0
 	print("LOCOMOTION_METRIC foot_slip_mean_cm_per_frame=%.3f p95=%.3f samples=%d" % [mean_cm, p95_cm, slips.size()])
-	_expect(mean_cm <= 5.0, "mean planted-foot slip stays inside the baseline budget")
-	_expect(p95_cm <= 6.0, "p95 planted-foot slip stays inside the baseline budget")
+	_expect(mean_cm <= 4.6, "mean planted-foot slip stays inside the tightened budget")
+	_expect(p95_cm <= 5.6, "p95 planted-foot slip stays inside the tightened budget")
+
+
+func _measure_contact_phase_continuity(player: CharacterBody3D, driver) -> void:
+	var left: int = driver.skeleton.find_bone("mixamorig_LeftFoot")
+	var right: int = driver.skeleton.find_bone("mixamorig_RightFoot")
+	Input.action_press(&"move_forward", 1.0)
+	for _frame in range(36):
+		await physics_frame
+	var minimum_left_y := INF
+	var minimum_right_y := INF
+	for _frame in range(75):
+		await physics_frame
+		minimum_left_y = minf(minimum_left_y, _bone_world_position(driver, left).y)
+		minimum_right_y = minf(minimum_right_y, _bone_world_position(driver, right).y)
+	var planted_left := true
+	for _frame in range(120):
+		await physics_frame
+		var left_position := _bone_world_position(driver, left)
+		var right_position := _bone_world_position(driver, right)
+		if left_position.y <= minimum_left_y + 0.012:
+			planted_left = true
+			break
+		if right_position.y <= minimum_right_y + 0.012:
+			planted_left = false
+			break
+	var before_phase: float = driver.locomotion_graph.shared_phase
+	var left_before := _bone_world_position(driver, left)
+	var right_before := _bone_world_position(driver, right)
+	var planted_before := left_before if planted_left else right_before
+	Input.action_release(&"move_forward")
+	Input.action_press(&"move_right", 1.0)
+	await physics_frame
+	var after_phase: float = driver.locomotion_graph.shared_phase
+	var planted_after := _bone_world_position(driver, left if planted_left else right)
+	Input.action_release(&"move_right")
+	var phase_step := fposmod(after_phase - before_phase, 1.0)
+	var contact_step_cm := Vector2(
+		planted_after.x - planted_before.x,
+		planted_after.z - planted_before.z
+	).length() * 100.0
+	print(
+		"LOCOMOTION_METRIC direction_change_phase_step=%.4f planted_contact_step_cm=%.3f" % [
+			phase_step, contact_step_cm
+		]
+	)
+	_expect(
+		phase_step > 0.001 and phase_step < 0.08,
+		"direction change advances the locomotion playhead instead of resetting it"
+	)
+	_expect(
+		contact_step_cm <= 6.0,
+		"direction change preserves the measured planted-foot contact"
+	)
+	player.velocity = Vector3.ZERO
+	await physics_frame
 
 
 func _measure_direction_pop(player: CharacterBody3D, driver) -> void:
@@ -89,8 +145,8 @@ func _measure_direction_pop(player: CharacterBody3D, driver) -> void:
 	var p95 := pops[int(floor((pops.size() - 1) * 0.95))] if not pops.is_empty() else 0.0
 	var maximum := pops[-1] if not pops.is_empty() else 0.0
 	print("LOCOMOTION_METRIC direction_pop_deg_per_frame_p95=%.3f max=%.3f" % [p95, maximum])
-	_expect(p95 <= 14.0, "direction blend p95 pose delta stays below 14 degrees per frame")
-	_expect(maximum <= 30.0, "direction blend has no one-frame pose snap")
+	_expect(p95 <= 12.0, "direction blend p95 pose delta stays below 12 degrees per frame")
+	_expect(maximum <= 25.0, "direction blend has no one-frame pose snap")
 	player.velocity = Vector3.ZERO
 
 

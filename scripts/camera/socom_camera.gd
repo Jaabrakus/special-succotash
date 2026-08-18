@@ -81,6 +81,7 @@ var downward_aim_amount: float = 0.0
 var downward_crane_amount: float = 0.0
 var downward_ledge_raise: float = 0.0
 var aim_point := Vector3.ZERO
+var view_aim_point := Vector3.ZERO
 var weapon_aim_point := Vector3.ZERO
 var aim_hit := false
 var aim_collider_name := "OPEN"

@@ -430,6 +430,7 @@ func _build_player() -> void:
     add_child(player)
 
     var collider := CollisionShape3D.new()
+    collider.name = "CollisionShape3D"
     var capsule := CapsuleShape3D.new()
     capsule.radius = 0.38
     capsule.height = 1.85

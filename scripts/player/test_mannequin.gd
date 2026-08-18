@@ -416,6 +416,17 @@ func _sync_production_animation(player: CharacterBody3D) -> void:
         if player.has_method("get_movement_gait_name")
         else &"WALK"
     )
+    var desired_world := Vector3.ZERO
+    if player.has_method("get_desired_movement_direction"):
+        desired_world = player.call("get_desired_movement_direction")
+    var local_desired := player.global_basis.inverse() * desired_world
+    var desired_visual := Vector2(local_desired.x, -local_desired.z)
+    var desired_strength: float = clampf(desired_world.length(), 0.0, 1.0)
+    if desired_visual.length_squared() > 0.001:
+        desired_visual = desired_visual.normalized() * desired_strength
+    var response_mode := &"IDLE"
+    if player.has_method("get_horizontal_response_mode"):
+        response_mode = StringName(player.call("get_horizontal_response_mode"))
     production_animation.set_visual_inputs(
         visual_direction,
         posture_name,
@@ -429,7 +440,10 @@ func _sync_production_animation(player: CharacterBody3D) -> void:
         player.velocity.y,
         gait_name,
         actual_horizontal_speed,
-        Vector3(rig.get("weapon_aim_point"))
+        Vector3(rig.get("weapon_aim_point")),
+        desired_visual,
+        desired_strength,
+        response_mode
     )
 
 func _find_clear_weapon_offset(player: CharacterBody3D, target_point: Vector3) -> Vector3:

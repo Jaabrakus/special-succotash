@@ -20,7 +20,7 @@ signal shot_fired(origin: Vector3, end_point: Vector3, hit_target: bool)
 # Bloom & Dispersion Parameters (Degrees)
 @export var base_spread_deg: float = 0.45
 @export var moving_spread_deg: float = 1.6
-@export var sprint_spread_deg: float = 3.2
+@export var full_gait_spread_deg: float = 3.2
 @export var airborne_spread_deg: float = 4.8
 @export var max_recoil_bloom_deg: float = 3.8
 @export var bloom_per_shot_deg: float = 0.42
@@ -61,7 +61,7 @@ func calculate_current_spread(
     if is_airborne:
         motion_spread = airborne_spread_deg
     elif movement_speed_norm > 0.8:
-        motion_spread = sprint_spread_deg
+        motion_spread = full_gait_spread_deg
     elif movement_speed_norm > 0.1:
         motion_spread = moving_spread_deg
 
@@ -70,7 +70,7 @@ func calculate_current_spread(
     return total_current_spread_deg
 
 func get_normalized_spread() -> float:
-    return clampf(total_current_spread_deg / (max_recoil_bloom_deg + sprint_spread_deg), 0.0, 1.0)
+    return clampf(total_current_spread_deg / (max_recoil_bloom_deg + full_gait_spread_deg), 0.0, 1.0)
 
 func try_fire(
     muzzle_pos: Vector3,

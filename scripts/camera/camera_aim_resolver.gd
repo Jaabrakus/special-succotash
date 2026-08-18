@@ -53,7 +53,7 @@ func update_weapon_aim_point() -> void:
     )
     var origin: Vector3 = lens_origin + direction * acquisition_depth
     var destination: Vector3 = lens_origin + direction * rig.profile.aim_distance
-    rig.weapon_aim_point = destination
+    rig.view_aim_point = destination
     var query := PhysicsRayQueryParameters3D.create(origin, destination)
     query.collide_with_areas = false
     if rig.target is CollisionObject3D:
@@ -63,8 +63,37 @@ func update_weapon_aim_point() -> void:
     rig.aim_hit = not result.is_empty()
     rig.aim_collider_name = "OPEN"
     if rig.aim_hit:
-        rig.weapon_aim_point = result["position"]
+        rig.view_aim_point = result["position"]
         rig.aim_collider_name = _collider_name(result.get("collider"))
+
+    # Keep the ballistic/pose target on the exact reticle ray, but do not force
+    # the muzzle to converge on a point inches in front of the lens. This
+    # preserves close-wall obstruction while removing the exaggerated upward
+    # third-person shot angle.
+    var acquired_depth: float = clampf(
+        (rig.view_aim_point - lens_origin).dot(direction),
+        acquisition_depth,
+        rig.profile.aim_distance
+    )
+    var stabilized_depth: float = maxf(
+        acquired_depth,
+        rig.profile.minimum_ballistic_convergence_distance
+    )
+    var mannequin = rig.target.get_node_or_null("Mannequin") if rig.target != null else null
+    if mannequin != null and mannequin.muzzle_marker != null:
+        var muzzle: Vector3 = mannequin.muzzle_marker.global_position
+        var muzzle_depth: float = (muzzle - lens_origin).dot(direction)
+        var view_axis_point: Vector3 = lens_origin + direction * muzzle_depth
+        var lateral_parallax: float = muzzle.distance_to(view_axis_point)
+        var max_angle: float = deg_to_rad(
+            maxf(rig.profile.maximum_convergence_angle_deg, 0.25)
+        )
+        stabilized_depth = maxf(
+            stabilized_depth,
+            muzzle_depth + lateral_parallax / maxf(tan(max_angle), 0.001)
+        )
+    stabilized_depth = minf(stabilized_depth, rig.profile.aim_distance)
+    rig.weapon_aim_point = lens_origin + direction * stabilized_depth
 
 func update_shot_validation() -> void:
     rig.shot_point = rig.weapon_aim_point
