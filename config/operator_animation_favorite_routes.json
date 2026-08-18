@@ -1,0 +1,439 @@
+{
+  "version": 1,
+  "source": "res://config/highlighted_animation_candidates.json",
+  "purpose": "Reviewed placement for every user-highlighted clip. Active entries are runtime-wired; alternates and pistol-family entries stay isolated so they cannot destabilize rifle locomotion.",
+  "assignments": [
+    {
+      "key": "crouch_stop_walking",
+      "display": "Crouch Stop Walking",
+      "path": "res://assets/animations/mixamo/Crouch Stop Walking.fbx",
+      "role": "active_transition",
+      "route": "crouch_stop",
+      "notes": "Crouched movement exit and reversal"
+    },
+    {
+      "key": "death_from_right",
+      "display": "Death From Right",
+      "path": "res://assets/animations/mixamo/Pro Rifle Pack/death from right.fbx",
+      "role": "active_action",
+      "route": "death_right",
+      "notes": "Directional death reaction; gameplay damage hook pending"
+    },
+    {
+      "key": "running_dive_roll",
+      "display": "Running Dive Roll",
+      "path": "res://assets/animations/mixamo/Running Dive Roll.fbx",
+      "role": "active_mobility",
+      "route": "dive_roll",
+      "notes": "Run-to-prone mobility action"
+    },
+    {
+      "key": "run_to_rolling",
+      "display": "Run To Rolling",
+      "path": "res://assets/animations/mixamo/Run To Rolling.fbx",
+      "role": "active_mobility",
+      "route": "roll",
+      "notes": "Standing lateral roll action"
+    },
+    {
+      "key": "shooter_rifle_aiming_idle",
+      "display": "[Shooter] Rifle Aiming Idle",
+      "path": "res://assets/animations/mixamo/Shooter Pack/rifle aiming idle.fbx",
+      "role": "active_posture",
+      "route": "aim_idle",
+      "notes": "Ready upper-body posture"
+    },
+    {
+      "key": "shooter_start_walking_backwards",
+      "display": "[Shooter] Start Walking Backwards",
+      "path": "res://assets/animations/mixamo/Shooter Pack/start walking backwards.fbx",
+      "role": "active_transition",
+      "route": "start_backward",
+      "notes": "Idle-to-backpedal entrance"
+    },
+    {
+      "key": "shooter_walking_backwards",
+      "display": "[Shooter] Walking Backwards",
+      "path": "res://assets/animations/mixamo/Shooter Pack/walking backwards.fbx",
+      "role": "alternate",
+      "route": "walk_backward_alt",
+      "notes": "Keep as alternate; the coherent 8-way rifle cycle remains active"
+    },
+    {
+      "key": "shooter_firing_rifle",
+      "display": "[Shooter] Firing Rifle",
+      "path": "res://assets/animations/mixamo/Shooter Pack/firing rifle.fbx",
+      "role": "active_action",
+      "route": "combat_fire",
+      "notes": "Standing rifle fire source; runtime fire remains layered over locomotion"
+    },
+    {
+      "key": "shooter_jump_forward",
+      "display": "[Shooter] Jump Forward",
+      "path": "res://assets/animations/mixamo/Shooter Pack/jump forward.fbx",
+      "role": "active_action",
+      "route": "jump_forward_action",
+      "notes": "Forward jump action candidate driven by CharacterBody"
+    },
+    {
+      "key": "shooter_rifle_run",
+      "display": "[Shooter] Rifle Run",
+      "path": "res://assets/animations/mixamo/Shooter Pack/rifle run.fbx",
+      "role": "alternate",
+      "route": "run_forward_alt",
+      "notes": "Reserve until a matching directional family is selected"
+    },
+    {
+      "key": "prone_reloading",
+      "display": "Prone Reloading",
+      "path": "res://assets/animations/mixamo/Prone Reloading.fbx",
+      "role": "active_action",
+      "route": "prone_reload",
+      "notes": "Prone-specific reload"
+    },
+    {
+      "key": "crouch_rapid_fire",
+      "display": "Crouch Rapid Fire",
+      "path": "res://assets/animations/mixamo/Crouch Rapid Fire.fbx",
+      "role": "active_action",
+      "route": "crouch_fire",
+      "notes": "Crouched fire variant"
+    },
+    {
+      "key": "climbing",
+      "display": "Climbing",
+      "path": "res://assets/animations/mixamo/Climbing.fbx",
+      "role": "active_action",
+      "route": "climb",
+      "notes": "Climb loop; traversal gameplay hook pending"
+    },
+    {
+      "key": "idle",
+      "display": "Idle",
+      "path": "res://assets/animations/mixamo/Pro Rifle Pack/idle.fbx",
+      "role": "alternate",
+      "route": "idle_rifle_alt",
+      "notes": "Reserve; current ready/idle pair is calibrated as one posture set"
+    },
+    {
+      "key": "run_forward",
+      "display": "Run Forward",
+      "path": "res://assets/animations/mixamo/Pro Rifle Pack/run forward.fbx",
+      "role": "alternate",
+      "route": "run_forward_alt",
+      "notes": "Reserve; mixing one Pro Rifle clip into the 8-way set would break phase consistency"
+    },
+    {
+      "key": "rifle_kneel_to_prone",
+      "display": "Rifle Kneel To Prone",
+      "path": "res://assets/animations/mixamo/Rifle Kneel To Prone.fbx",
+      "role": "active_transition",
+      "route": "crouch_to_prone",
+      "notes": "Crouched-to-prone posture transition"
+    },
+    {
+      "key": "toss_grenade",
+      "display": "Toss Grenade",
+      "path": "res://assets/animations/mixamo/toss grenade.fbx",
+      "role": "active_action",
+      "route": "grenade_toss",
+      "notes": "Quick grenade semantic action"
+    },
+    {
+      "key": "rifle_crouch_idle_to_walk",
+      "display": "Rifle Crouch Idle To Walk",
+      "path": "res://assets/animations/mixamo/Rifle Crouch Idle To Walk.fbx",
+      "role": "active_transition",
+      "route": "crouch_start",
+      "notes": "Crouched movement entrance"
+    },
+    {
+      "key": "shoot_rifle",
+      "display": "Shoot Rifle",
+      "path": "res://assets/animations/mixamo/Shoot Rifle.fbx",
+      "role": "alternate",
+      "route": "combat_fire_alt",
+      "notes": "Reserve firing take for later weapon tuning"
+    },
+    {
+      "key": "reloading",
+      "display": "Reloading",
+      "path": "res://assets/animations/mixamo/Reloading.fbx",
+      "role": "active_action",
+      "route": "reload",
+      "notes": "Standing and crouched reload"
+    },
+    {
+      "key": "pistol_run",
+      "display": "Pistol Run",
+      "path": "res://assets/animations/mixamo/Pistol Run.fbx",
+      "role": "weapon_family",
+      "route": "pistol_run",
+      "notes": "Pistol animation family; never blended into rifle locomotion"
+    },
+    {
+      "key": "jump_away",
+      "display": "Jump Away",
+      "path": "res://assets/animations/mixamo/Jump Away.fbx",
+      "role": "active_action",
+      "route": "jump_backward_action",
+      "notes": "Backward evasive jump candidate"
+    },
+    {
+      "key": "throw_grenade",
+      "display": "Throw Grenade",
+      "path": "res://assets/animations/mixamo/Throw Grenade.fbx",
+      "role": "active_action",
+      "route": "grenade_throw",
+      "notes": "Full grenade throw semantic action"
+    },
+    {
+      "key": "rifle_sprint_forward_right",
+      "display": "[Rifle] Sprint Forward Right",
+      "path": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/sprint forward right.fbx",
+      "role": "alternate",
+      "route": "tactical_run_forward_right_alt",
+      "notes": "Candidate tactical-run take; no sprint gameplay state will be added"
+    },
+    {
+      "key": "rifle_sprint_forward",
+      "display": "[Rifle] Sprint Forward",
+      "path": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/sprint forward.fbx",
+      "role": "alternate",
+      "route": "tactical_run_forward_alt",
+      "notes": "Candidate tactical-run take; no sprint gameplay state will be added"
+    },
+    {
+      "key": "run_to_stop",
+      "display": "Run To Stop",
+      "path": "res://assets/animations/mixamo/Run To Stop.fbx",
+      "role": "active_transition",
+      "route": "run_to_stop",
+      "notes": "Shared high-speed stop and reversal plant"
+    },
+    {
+      "key": "prone_forward_stop",
+      "display": "Prone Forward Stop",
+      "path": "res://assets/animations/mixamo/Prone Forward Stop.fbx",
+      "role": "active_transition",
+      "route": "prone_stop_forward",
+      "notes": "Forward prone locomotion exit"
+    },
+    {
+      "key": "rifle_crouch_walk_to_kneel_2",
+      "display": "Rifle Crouch Walk To Kneel 2",
+      "path": "res://assets/animations/mixamo/Rifle Crouch Walk To Kneel-2.fbx",
+      "role": "alternate",
+      "route": "crouch_stop_alt",
+      "notes": "Reserve crouch settling take"
+    },
+    {
+      "key": "crouch_to_standing_with_rifle",
+      "display": "Crouch To Standing With Rifle",
+      "path": "res://assets/animations/mixamo/Crouch To Standing With Rifle.fbx",
+      "role": "active_transition",
+      "route": "crouch_to_stand",
+      "notes": "Crouched-to-standing posture transition"
+    },
+    {
+      "key": "pistol_jump",
+      "display": "Pistol Jump",
+      "path": "res://assets/animations/mixamo/Pistol Jump.fbx",
+      "role": "weapon_family",
+      "route": "pistol_jump",
+      "notes": "Pistol animation family"
+    },
+    {
+      "key": "pistol_pistol_walk_arc",
+      "display": "[Pistol] Pistol Walk Arc",
+      "path": "res://assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol walk arc.fbx",
+      "role": "weapon_family",
+      "route": "pistol_walk_arc",
+      "notes": "Pistol directional family"
+    },
+    {
+      "key": "pistol_pistol_walk_backward_arc_2",
+      "display": "[Pistol] Pistol Walk Backward Arc (2)",
+      "path": "res://assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol walk backward arc (2).fbx",
+      "role": "weapon_family",
+      "route": "pistol_walk_backward_arc_right",
+      "notes": "Pistol directional family"
+    },
+    {
+      "key": "pistol_pistol_walk_arc_2",
+      "display": "[Pistol] Pistol Walk Arc (2)",
+      "path": "res://assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol walk arc (2).fbx",
+      "role": "weapon_family",
+      "route": "pistol_walk_arc_right",
+      "notes": "Pistol directional family"
+    },
+    {
+      "key": "pistol_pistol_walk",
+      "display": "[Pistol] Pistol Walk",
+      "path": "res://assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol walk.fbx",
+      "role": "weapon_family",
+      "route": "pistol_walk",
+      "notes": "Pistol directional family"
+    },
+    {
+      "key": "pistol_pistol_run_backward_arc_2",
+      "display": "[Pistol] Pistol Run Backward Arc (2)",
+      "path": "res://assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol run backward arc (2).fbx",
+      "role": "weapon_family",
+      "route": "pistol_run_backward_arc_right",
+      "notes": "Pistol directional family"
+    },
+    {
+      "key": "pistol_pistol_stand_to_kneel",
+      "display": "[Pistol] Pistol Stand To Kneel",
+      "path": "res://assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol stand to kneel.fbx",
+      "role": "weapon_family",
+      "route": "pistol_stand_to_crouch",
+      "notes": "Pistol posture transition"
+    },
+    {
+      "key": "pistol_pistol_strafe_2",
+      "display": "[Pistol] Pistol Strafe (2)",
+      "path": "res://assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol strafe (2).fbx",
+      "role": "weapon_family",
+      "route": "pistol_strafe_right",
+      "notes": "Pistol directional family"
+    },
+    {
+      "key": "pistol_pistol_strafe",
+      "display": "[Pistol] Pistol Strafe",
+      "path": "res://assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol strafe.fbx",
+      "role": "weapon_family",
+      "route": "pistol_strafe_left",
+      "notes": "Pistol directional family"
+    },
+    {
+      "key": "pistol_pistol_walk_backward",
+      "display": "[Pistol] Pistol Walk Backward",
+      "path": "res://assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol walk backward.fbx",
+      "role": "weapon_family",
+      "route": "pistol_walk_backward",
+      "notes": "Pistol directional family"
+    },
+    {
+      "key": "pistol_pistol_run_backward_arc",
+      "display": "[Pistol] Pistol Run Backward Arc",
+      "path": "res://assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol run backward arc.fbx",
+      "role": "weapon_family",
+      "route": "pistol_run_backward_arc_left",
+      "notes": "Pistol directional family"
+    },
+    {
+      "key": "pistol_pistol_run",
+      "display": "[Pistol] Pistol Run",
+      "path": "res://assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol run.fbx",
+      "role": "weapon_family",
+      "route": "pistol_run",
+      "notes": "Pistol directional family"
+    },
+    {
+      "key": "pistol_pistol_kneeling_idle",
+      "display": "[Pistol] Pistol Kneeling Idle",
+      "path": "res://assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol kneeling idle.fbx",
+      "role": "weapon_family",
+      "route": "pistol_idle_crouch",
+      "notes": "Pistol posture family"
+    },
+    {
+      "key": "pistol_pistol_jump_2",
+      "display": "[Pistol] Pistol Jump (2)",
+      "path": "res://assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol jump (2).fbx",
+      "role": "weapon_family",
+      "route": "pistol_jump_alt",
+      "notes": "Pistol animation family"
+    },
+    {
+      "key": "pistol_pistol_run_arc",
+      "display": "[Pistol] Pistol Run Arc",
+      "path": "res://assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol run arc.fbx",
+      "role": "weapon_family",
+      "route": "pistol_run_arc_left",
+      "notes": "Pistol directional family"
+    },
+    {
+      "key": "pistol_pistol_jump",
+      "display": "[Pistol] Pistol Jump",
+      "path": "res://assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol jump.fbx",
+      "role": "weapon_family",
+      "route": "pistol_jump",
+      "notes": "Pistol animation family"
+    },
+    {
+      "key": "pistol_pistol_run_backward",
+      "display": "[Pistol] Pistol Run Backward",
+      "path": "res://assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol run backward.fbx",
+      "role": "weapon_family",
+      "route": "pistol_run_backward",
+      "notes": "Pistol directional family"
+    },
+    {
+      "key": "pistol_pistol_run_arc_2",
+      "display": "[Pistol] Pistol Run Arc (2)",
+      "path": "res://assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol run arc (2).fbx",
+      "role": "weapon_family",
+      "route": "pistol_run_arc_right",
+      "notes": "Pistol directional family"
+    },
+    {
+      "key": "pistol_pistol_walk_backward_arc",
+      "display": "[Pistol] Pistol Walk Backward Arc",
+      "path": "res://assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol walk backward arc.fbx",
+      "role": "weapon_family",
+      "route": "pistol_walk_backward_arc_left",
+      "notes": "Pistol directional family"
+    },
+    {
+      "key": "pistol_pistol_idle",
+      "display": "[Pistol] Pistol Idle",
+      "path": "res://assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol idle.fbx",
+      "role": "weapon_family",
+      "route": "pistol_idle",
+      "notes": "Pistol posture family"
+    },
+    {
+      "key": "pistol_pistol_kneel_to_stand",
+      "display": "[Pistol] Pistol Kneel To Stand",
+      "path": "res://assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol kneel to stand.fbx",
+      "role": "weapon_family",
+      "route": "pistol_crouch_to_stand",
+      "notes": "Pistol posture transition"
+    },
+    {
+      "key": "prone_backwards_stop",
+      "display": "Prone Backwards Stop",
+      "path": "res://assets/animations/mixamo/Prone Backwards Stop.fbx",
+      "role": "active_transition",
+      "route": "prone_stop_backward",
+      "notes": "Backward prone locomotion exit"
+    },
+    {
+      "key": "dive_roll",
+      "display": "Dive Roll",
+      "path": "res://assets/animations/mixamo/Dive Roll.fbx",
+      "role": "alternate",
+      "route": "dive_roll_alt",
+      "notes": "Reserve stationary/shorter dive take"
+    },
+    {
+      "key": "jumping",
+      "display": "Jumping",
+      "path": "res://assets/animations/mixamo/Jumping.fbx",
+      "role": "alternate",
+      "route": "jump_action_alt",
+      "notes": "Reserve generic jump take"
+    },
+    {
+      "key": "reload",
+      "display": "Reload",
+      "path": "res://assets/animations/mixamo/Reload.fbx",
+      "role": "alternate",
+      "route": "reload_alt",
+      "notes": "Reserve alternate reload take"
+    }
+  ]
+}

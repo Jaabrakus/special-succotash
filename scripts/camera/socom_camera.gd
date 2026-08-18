@@ -358,6 +358,9 @@ func _preferred_position() -> Vector3:
 func _low_stance_amount() -> float:
     return preferred_shot_solver.low_stance_amount()
 
+func _prone_stance_amount() -> float:
+    return preferred_shot_solver.prone_stance_amount()
+
 func _update_environment_state(delta: float) -> void:
     preferred_shot_solver.update_environment_state(delta)
 

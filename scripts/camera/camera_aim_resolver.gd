@@ -11,10 +11,15 @@ func configure(camera_rig) -> void:
 func update_aim_point() -> void:
     # Raw yaw/pitch owns this camera-independent intent point. A nearby camera
     # collision must never feed back into view orientation.
+    var aim_height: float = lerpf(
+        rig.profile.look_height,
+        rig.profile.prone_aim_origin_height,
+        rig._prone_stance_amount()
+    )
     var origin: Vector3 = (
         rig.target.global_position
         + rig.movement_lead
-        + Vector3.UP * rig.profile.look_height
+        + Vector3.UP * aim_height
     )
     rig.aim_point = origin + rig._forward_direction() * rig.profile.aim_distance
 
@@ -28,10 +33,15 @@ func update_weapon_aim_point() -> void:
     )
     var lens_origin: Vector3 = rig.camera.project_ray_origin(cursor_pixels)
     var direction: Vector3 = rig.camera.project_ray_normal(cursor_pixels).normalized()
+    var aim_height: float = lerpf(
+        rig.profile.look_height,
+        rig.profile.prone_aim_origin_height,
+        rig._prone_stance_amount()
+    )
     var player_aim_origin: Vector3 = (
         rig.target.global_position
         + rig.movement_lead
-        + Vector3.UP * rig.profile.look_height
+        + Vector3.UP * aim_height
     )
     var player_depth: float = maxf(
         (player_aim_origin - lens_origin).dot(direction),

@@ -5,8 +5,8 @@ extends Resource
 @export var distance: float = 2.20
 @export var height: float = 2.05
 @export var shoulder_offset: float = 0.0
-@export var vertical_fov: float = 74.0
-@export var close_level_fov: float = 80.0
+@export var vertical_fov: float = 68.0
+@export var close_level_fov: float = 74.0
 @export_range(0.0, 1.0, 0.01) var close_fov_start_compression: float = 0.48
 @export_range(0.0, 1.0, 0.01) var close_fov_full_compression: float = 0.78
 @export var close_fov_response: float = 12.0
@@ -165,6 +165,10 @@ extends Resource
 @export var max_low_stance_camera_drop: float = 1.45
 @export_range(0.0, 1.0, 0.01) var low_stance_pelvis_weight_scale: float = 0.08
 @export_range(0.0, 1.0, 0.01) var low_stance_feet_weight_scale: float = 0.0
+@export var prone_camera_head_height_start: float = 1.10
+@export var prone_camera_head_height_full: float = 0.62
+@export var prone_preferred_camera_drop: float = 0.90
+@export var prone_aim_origin_height: float = 0.62
 
 @export_group("Movement Follow")
 @export var movement_lead_time: float = 0.0

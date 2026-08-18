@@ -1,0 +1,29 @@
+{
+  "stance_button": {
+    "key": "crouch",
+    "tap_action": "TOGGLE_CROUCH",
+    "hold_threshold_seconds": 0.22,
+    "hold_action": "GO_PRONE"
+  },
+  "jump_button": {
+    "key": "jump",
+    "action": "JUMP"
+  },
+  "dive_prone_button": {
+    "key": "dive",
+    "action": "DIVE_ROLL_PRONE"
+  },
+  "mobility": {
+    "dive_forward_speed": 8.2,
+    "dive_vertical_pop": 2.4,
+    "dive_duration": 0.78,
+    "roll_speed": 6.8,
+    "roll_duration": 0.62,
+    "jump_velocity": 5.8
+  },
+  "speeds": {
+    "move": 5.7,
+    "crouch": 2.8,
+    "prone": 1.4
+  }
+}

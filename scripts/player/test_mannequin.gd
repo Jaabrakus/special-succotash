@@ -1,6 +1,8 @@
 class_name SocomTestMannequin
 extends Node3D
 
+const OperatorAnimationDriver := preload("res://scripts/player/operator_animation_driver.gd")
+
 # SOCOM-141 procedural character rig.
 # Purpose: camera + body/aim calibration, not final art.
 #
@@ -45,9 +47,12 @@ var right_grip_target: Marker3D
 var attachment_sockets: Dictionary = {}
 var proxy_visuals: Array[GeometryInstance3D] = []
 var proxy_visuals_visible: bool = true
+var production_animation: SocomOperatorAnimationDriver
 
 var gait_time: float = 0.0
 var gait_strength: float = 0.0
+var crouch_amount: float = 0.0
+var prone_amount: float = 0.0
 var torso_yaw: float = 0.0
 var torso_pitch: float = 0.0
 var head_yaw: float = 0.0
@@ -73,8 +78,42 @@ var weapon_rest_position := Vector3(0.12, -0.02, -0.23)
 @export var weapon_obstruction_enter_response: float = 18.0
 @export var weapon_obstruction_exit_response: float = 8.0
 
+@export_group("Camera marker follow")
+@export_range(0.0, 1.0, 0.01) var camera_head_follow_weight: float = 0.45
+@export_range(0.0, 1.0, 0.01) var camera_torso_follow_weight: float = 0.35
+@export_range(0.0, 1.0, 0.01) var camera_pelvis_follow_weight: float = 0.20
+@export_range(1.0, 30.0, 0.5) var camera_marker_follow_response: float = 12.0
+@export_range(0.0, 0.30, 0.01) var camera_marker_max_horizontal_offset: float = 0.14
+@export_range(0.0, 0.20, 0.01) var camera_marker_max_vertical_offset: float = 0.10
+
 func _ready() -> void:
     _build_rig()
+    if skeleton_root:
+        skeleton_root.visible = false
+    production_animation = OperatorAnimationDriver.new()
+    production_animation.name = "ProductionAnimation"
+    add_child(production_animation)
+    set_proxy_visuals_visible(false)
+
+func play_operator_action(clip_name: StringName, blend_seconds: float = 0.12) -> bool:
+    return (
+        production_animation != null
+        and production_animation.play_action(clip_name, blend_seconds)
+	)
+
+func play_operator_semantic_action(action_name: StringName, blend_seconds: float = 0.12) -> bool:
+    return (
+        production_animation != null
+        and production_animation.play_semantic_action(action_name, blend_seconds)
+    )
+
+func notify_operator_fired() -> bool:
+    return production_animation != null and production_animation.notify_fired()
+
+func get_operator_animation_clips() -> Array[StringName]:
+    if production_animation == null:
+        return []
+    return production_animation.get_clip_names()
 
 func _process(delta: float) -> void:
     var player := get_parent() as CharacterBody3D
@@ -82,9 +121,33 @@ func _process(delta: float) -> void:
         return
 
     _animate_locomotion(player, delta)
-    _animate_upper_body(player, delta)
+    _sync_production_animation(player)
+    var motion_state: StringName = (
+        StringName(player.call("get_motion_state_name"))
+        if player.has_method("get_motion_state_name")
+        else &"STANDING"
+    )
+    if motion_state != &"DIVING" and motion_state != &"ROLLING":
+        _animate_upper_body(player, delta)
 
 func _animate_locomotion(player: CharacterBody3D, delta: float) -> void:
+    var motion_state: StringName = (
+        StringName(player.call("get_motion_state_name"))
+        if player.has_method("get_motion_state_name")
+        else &"STANDING"
+    )
+    var posture: StringName = (
+        StringName(player.call("get_posture_name"))
+        if player.has_method("get_posture_name")
+        else &"STANDING"
+    )
+    var target_crouch := 1.0 if posture == &"CROUCHED" else 0.0
+    var target_prone := 1.0 if posture == &"PRONE" else 0.0
+    if motion_state == &"DIVING":
+        target_prone = 1.0
+    crouch_amount = lerpf(crouch_amount, target_crouch, 1.0 - exp(-14.0 * delta))
+    prone_amount = lerpf(prone_amount, target_prone, 1.0 - exp(-12.0 * delta))
+
     var horizontal_speed: float = Vector2(player.velocity.x, player.velocity.z).length()
     var moving: bool = horizontal_speed > 0.15
     var target_strength: float = clampf(horizontal_speed / 6.5, 0.0, 1.0) if moving else 0.0
@@ -97,14 +160,152 @@ func _animate_locomotion(player: CharacterBody3D, delta: float) -> void:
     var knee_bend_left: float = maxf(0.0, -sin(gait_time)) * deg_to_rad(28.0) * gait_strength
     var knee_bend_right: float = maxf(0.0, sin(gait_time)) * deg_to_rad(28.0) * gait_strength
 
-    left_hip.rotation.x = leg_swing
-    right_hip.rotation.x = -leg_swing
-    left_knee.rotation.x = knee_bend_left
-    right_knee.rotation.x = knee_bend_right
+    left_hip.rotation.x = leg_swing - deg_to_rad(48.0) * crouch_amount
+    right_hip.rotation.x = -leg_swing - deg_to_rad(48.0) * crouch_amount
+    left_knee.rotation.x = knee_bend_left + deg_to_rad(82.0) * crouch_amount
+    right_knee.rotation.x = knee_bend_right + deg_to_rad(82.0) * crouch_amount
 
     # Small vertical body travel gives the camera real silhouette motion to solve.
-    pelvis_bone.position.y = 0.93 + abs(sin(gait_time * 2.0)) * 0.025 * gait_strength
+    pelvis_bone.position.y = (
+        0.93
+        - 0.11 * crouch_amount
+        + abs(sin(gait_time * 2.0)) * 0.025 * gait_strength
+    )
     spine_bone.rotation.z = sin(gait_time) * deg_to_rad(1.4) * gait_strength
+
+    skeleton_root.position = Vector3(0.0, -0.25 * crouch_amount, 0.0)
+    skeleton_root.rotation = Vector3(-deg_to_rad(82.0) * prone_amount, 0.0, 0.0)
+    if prone_amount > 0.001:
+        skeleton_root.position = skeleton_root.position.lerp(
+            Vector3(0.0, 0.34, 0.18),
+            prone_amount
+        )
+        left_hip.rotation.x = lerpf(left_hip.rotation.x, deg_to_rad(8.0), prone_amount)
+        right_hip.rotation.x = lerpf(right_hip.rotation.x, deg_to_rad(-8.0), prone_amount)
+        left_knee.rotation.x = lerpf(left_knee.rotation.x, deg_to_rad(12.0), prone_amount)
+        right_knee.rotation.x = lerpf(right_knee.rotation.x, deg_to_rad(16.0), prone_amount)
+
+    var action_phase: float = (
+        float(player.call("get_action_phase"))
+        if player.has_method("get_action_phase")
+        else 0.0
+    )
+    if motion_state == &"DIVING":
+        var dive_tilt := smoothstep(0.0, 0.62, action_phase)
+        skeleton_root.rotation.x = -deg_to_rad(82.0) * dive_tilt
+        skeleton_root.position.y = lerpf(0.0, 0.34, dive_tilt)
+        skeleton_root.position.z = lerpf(0.0, 0.18, dive_tilt)
+        left_hip.rotation.x = deg_to_rad(10.0)
+        right_hip.rotation.x = -deg_to_rad(8.0)
+        left_knee.rotation.x = deg_to_rad(15.0)
+        right_knee.rotation.x = deg_to_rad(18.0)
+    elif motion_state == &"ROLLING":
+        var roll_side_value: Variant = player.get("roll_side")
+        var side: float = float(roll_side_value) if roll_side_value != null else 1.0
+        skeleton_root.rotation.x = deg_to_rad(-10.0)
+        skeleton_root.rotation.z = TAU * action_phase * side
+        skeleton_root.position.y = 0.26 + sin(action_phase * PI) * 0.16
+        left_hip.rotation.x = deg_to_rad(-38.0)
+        right_hip.rotation.x = deg_to_rad(-38.0)
+        left_knee.rotation.x = deg_to_rad(92.0)
+        right_knee.rotation.x = deg_to_rad(92.0)
+    elif motion_state == &"LANDING":
+        var landing_compression := sin(action_phase * PI)
+        skeleton_root.position.y -= 0.18 * landing_compression
+        left_hip.rotation.x -= deg_to_rad(24.0) * landing_compression
+        right_hip.rotation.x -= deg_to_rad(24.0) * landing_compression
+        left_knee.rotation.x += deg_to_rad(46.0) * landing_compression
+        right_knee.rotation.x += deg_to_rad(46.0) * landing_compression
+    elif motion_state == &"AIRBORNE":
+        var air_tuck := clampf(1.0 - absf(player.velocity.y) / 6.2, 0.22, 1.0)
+        skeleton_root.position.y += 0.08 * air_tuck
+        left_hip.rotation.x -= deg_to_rad(20.0) * air_tuck
+        right_hip.rotation.x -= deg_to_rad(20.0) * air_tuck
+        left_knee.rotation.x += deg_to_rad(54.0) * air_tuck
+        right_knee.rotation.x += deg_to_rad(54.0) * air_tuck
+
+    _update_camera_markers(motion_state, action_phase, delta)
+
+func _update_camera_markers(
+    motion_state: StringName,
+    action_phase: float,
+    delta: float
+) -> void:
+    if head_marker == null or torso_marker == null or pelvis_marker == null:
+        return
+    var standing_head := Vector3(0.0, 2.15, 0.0)
+    var standing_torso := Vector3(0.0, 1.52, 0.0)
+    var standing_pelvis := Vector3(0.0, 0.93, 0.0)
+    var crouched_head := Vector3(0.0, 1.58, 0.0)
+    var crouched_torso := Vector3(0.0, 1.12, 0.0)
+    var crouched_pelvis := Vector3(0.0, 0.66, 0.0)
+    var prone_head := Vector3(0.0, 0.52, -0.18)
+    var prone_torso := Vector3(0.0, 0.42, 0.02)
+    var prone_pelvis := Vector3(0.0, 0.36, 0.28)
+
+    var stable_head := standing_head.lerp(crouched_head, crouch_amount)
+    var stable_torso := standing_torso.lerp(crouched_torso, crouch_amount)
+    var stable_pelvis := standing_pelvis.lerp(crouched_pelvis, crouch_amount)
+    stable_head = stable_head.lerp(prone_head, prone_amount)
+    stable_torso = stable_torso.lerp(prone_torso, prone_amount)
+    stable_pelvis = stable_pelvis.lerp(prone_pelvis, prone_amount)
+
+    if motion_state == &"DIVING":
+        var dive_blend := smoothstep(0.0, 0.70, action_phase)
+        stable_head = standing_head.lerp(prone_head, dive_blend)
+        stable_torso = standing_torso.lerp(prone_torso, dive_blend)
+        stable_pelvis = standing_pelvis.lerp(prone_pelvis, dive_blend)
+    elif motion_state == &"ROLLING":
+        var roll_compression := sin(action_phase * PI)
+        stable_head = crouched_head.lerp(Vector3(0.0, 0.88, 0.0), roll_compression)
+        stable_torso = crouched_torso.lerp(Vector3(0.0, 0.66, 0.0), roll_compression)
+        stable_pelvis = crouched_pelvis.lerp(Vector3(0.0, 0.50, 0.0), roll_compression)
+
+    # The stable stance anchors remain authoritative. Add only the animated
+    # skeleton's displacement from its rest pose so the camera follows the
+    # operator the player can actually see without inheriting clip root motion.
+    var head_target := stable_head + _camera_bone_pose_delta(&"mixamorig_Head") * camera_head_follow_weight
+    var torso_target := stable_torso + _camera_bone_pose_delta(&"mixamorig_Spine2") * camera_torso_follow_weight
+    var pelvis_target := stable_pelvis + _camera_bone_pose_delta(&"mixamorig_Hips") * camera_pelvis_follow_weight
+    var follow_alpha := 1.0 - exp(-camera_marker_follow_response * delta)
+    head_marker.position = head_marker.position.lerp(head_target, follow_alpha)
+    torso_marker.position = torso_marker.position.lerp(torso_target, follow_alpha)
+    pelvis_marker.position = pelvis_marker.position.lerp(pelvis_target, follow_alpha)
+
+func _camera_bone_pose_delta(bone_name: StringName) -> Vector3:
+    if production_animation == null or production_animation.skeleton == null:
+        return Vector3.ZERO
+    var production_skeleton := production_animation.skeleton
+    var bone_index := production_skeleton.find_bone(bone_name)
+    if bone_index < 0:
+        return Vector3.ZERO
+
+    var posed_world := (
+        production_skeleton.global_transform
+        * production_skeleton.get_bone_global_pose(bone_index).origin
+    )
+    var rest_world := (
+        production_skeleton.global_transform
+        * production_skeleton.get_bone_global_rest(bone_index).origin
+    )
+    var local_delta := global_basis.inverse() * (posed_world - rest_world)
+    return Vector3(
+        clampf(
+            local_delta.x,
+            -camera_marker_max_horizontal_offset,
+            camera_marker_max_horizontal_offset
+        ),
+        clampf(
+            local_delta.y,
+            -camera_marker_max_vertical_offset,
+            camera_marker_max_vertical_offset
+        ),
+        clampf(
+            local_delta.z,
+            -camera_marker_max_horizontal_offset,
+            camera_marker_max_horizontal_offset
+        )
+    )
 
 func _animate_upper_body(player: CharacterBody3D, delta: float) -> void:
     var rig = get_tree().get_first_node_in_group("socom_camera_rig")
@@ -114,12 +315,18 @@ func _animate_upper_body(player: CharacterBody3D, delta: float) -> void:
     # Difference between where the lower body currently faces and where the camera
     # is aiming. This is the torso twist, clamped so the body never becomes rubber.
     var player_yaw: float = player.global_rotation.y
-    var relative_yaw: float = wrapf(rig.yaw - player_yaw, -PI, PI)
+    var aim_yaw: float = float(rig.get("aim_yaw"))
+    var aim_pitch: float = float(rig.get("aim_pitch"))
+    var relative_yaw: float = (
+        float(player.call("get_aim_relative_yaw"))
+        if player.has_method("get_aim_relative_yaw")
+        else wrapf(aim_yaw - player_yaw, -PI, PI)
+    )
     var yaw_limit: float = deg_to_rad(torso_yaw_limit_deg)
     var target_torso_yaw: float = clampf(relative_yaw, -yaw_limit, yaw_limit)
 
     var target_torso_pitch: float = clampf(
-        rig.pitch,
+        aim_pitch,
         deg_to_rad(-torso_pitch_down_deg),
         deg_to_rad(torso_pitch_up_deg)
     )
@@ -175,6 +382,55 @@ func _animate_upper_body(player: CharacterBody3D, delta: float) -> void:
     head_bone.rotation.y = head_yaw
     head_bone.rotation.x = torso_pitch * 0.25
     _solve_weapon_hands()
+
+func _sync_production_animation(player: CharacterBody3D) -> void:
+    if production_animation == null:
+        return
+    var rig := get_tree().get_first_node_in_group("socom_camera_rig")
+    if rig == null:
+        return
+    var relative_yaw: float = (
+        float(player.call("get_aim_relative_yaw"))
+        if player.has_method("get_aim_relative_yaw")
+        else wrapf(float(rig.get("aim_yaw")) - player.global_rotation.y, -PI, PI)
+    )
+    var local_velocity := player.global_basis.inverse() * player.velocity
+    var visual_direction := Vector2(local_velocity.x, -local_velocity.z)
+    var actual_horizontal_speed := visual_direction.length()
+    var movement_top_speed := maxf(float(player.get("move_speed")), 0.001)
+    var normalized_speed := clampf(visual_direction.length() / movement_top_speed, 0.0, 1.0)
+    if visual_direction.length_squared() > 0.001:
+        visual_direction = visual_direction.normalized() * normalized_speed
+    var posture_name: StringName = (
+        StringName(player.call("get_posture_name"))
+        if player.has_method("get_posture_name")
+        else &"STANDING"
+    )
+    var state_name: StringName = (
+        StringName(player.call("get_motion_state_name"))
+        if player.has_method("get_motion_state_name")
+        else &"STANDING"
+    )
+    var gait_name: StringName = (
+        StringName(player.call("get_movement_gait_name"))
+        if player.has_method("get_movement_gait_name")
+        else &"WALK"
+    )
+    production_animation.set_visual_inputs(
+        visual_direction,
+        posture_name,
+        relative_yaw,
+        float(rig.get("aim_pitch")),
+        1.0,
+        false,
+        weapon_obstruction_amount,
+        normalized_speed,
+        state_name,
+        player.velocity.y,
+        gait_name,
+        actual_horizontal_speed,
+        Vector3(rig.get("weapon_aim_point"))
+    )
 
 func _find_clear_weapon_offset(player: CharacterBody3D, target_point: Vector3) -> Vector3:
     var saved_position: Vector3 = weapon_bone.position
@@ -460,18 +716,18 @@ func _align_limb_mesh(mesh: MeshInstance3D, start: Vector3, end: Vector3, base_h
 func _build_markers() -> void:
     head_marker = Marker3D.new()
     head_marker.name = "HeadMarker"
-    head_marker.position = Vector3(0, 0.14, 0)
-    head_bone.add_child(head_marker)
+    head_marker.position = Vector3(0.0, 2.15, 0.0)
+    add_child(head_marker)
 
     torso_marker = Marker3D.new()
     torso_marker.name = "TorsoMarker"
-    torso_marker.position = Vector3(0, 0.0, 0)
-    chest_bone.add_child(torso_marker)
+    torso_marker.position = Vector3(0.0, 1.52, 0.0)
+    add_child(torso_marker)
 
     pelvis_marker = Marker3D.new()
     pelvis_marker.name = "PelvisMarker"
-    pelvis_marker.position = Vector3.ZERO
-    pelvis_bone.add_child(pelvis_marker)
+    pelvis_marker.position = Vector3(0.0, 0.93, 0.0)
+    add_child(pelvis_marker)
 
     # A stable ground-level framing reference. It intentionally does not follow
     # either animated boot, which keeps gait from making the camera bob.

@@ -16,6 +16,8 @@ mkdir -p "$report_dir"
   --automated-test --interior-turn-test --wall-audit-report --camera-report --clean-hud >/dev/null
 "$godot_bin" --headless --log-file "$report_dir/roof.log" --path "$project_dir" --quit-after 180 -- \
   --automated-test --roof-test --downward-aim-test --camera-report --clean-hud >/dev/null
+"$godot_bin" --headless --log-file "$report_dir/prone.log" --path "$project_dir" --quit-after 150 -- \
+  --automated-test --prone-camera-test --camera-report --clean-hud >/dev/null
 "$godot_bin" --headless --log-file "$report_dir/audit-recorder.log" --path "$project_dir" --quit-after 150 -- \
   --automated-test --movement-test --audit-record-test --clean-hud >/dev/null
 "$godot_bin" --headless --log-file "$report_dir/multiplayer-contract.log" --path "$project_dir" --quit-after 90 -- \
@@ -24,7 +26,7 @@ mkdir -p "$report_dir"
   --automated-test --wall-follow-test --multiplayer-contract-test --clean-hud >/dev/null
 
 for report in "$report_dir"/*.log; do
-  if rg -q 'SCRIPT ERROR|Parse Error' "$report"; then
+  if grep -q -E 'SCRIPT ERROR|Parse Error' "$report"; then
     print -u2 "FAIL: script error in $report"
     exit 1
   fi
@@ -91,7 +93,7 @@ check_camera_motion "$report_dir/wall-turn.log" "wall sweep" 0.25
 check_camera_motion "$report_dir/wall-follow.log" "player leaves wall" 0.25
 check_camera_motion "$report_dir/interior.log" "tight interior" 0.25
 
-if rg -P -q '"virtual_wall_occluder":"(?!CLEAR)' "$report_dir/wall-entry.log"; then
+if perl -ne 'exit 0 if /"virtual_wall_occluder":"(?!CLEAR)/; END { exit 1 }' "$report_dir/wall-entry.log"; then
   print -u2 "FAIL: camera recovery concealed solid wall geometry"
   exit 1
 fi
@@ -108,36 +110,42 @@ for intent_report in \
   "$report_dir/wall-turn.log" \
   "$report_dir/wall-follow.log" \
   "$report_dir/interior.log"; do
-  if rg -P -q '"reticle_dynamic_amount":(?!0\.0)|"reticle_x":(?!0\.5)|"reticle_y":(?!0\.5)' "$intent_report"; then
+  if perl -ne 'exit 0 if /"reticle_dynamic_amount":(?!0\.0)|"reticle_x":(?!0\.5)|"reticle_y":(?!0\.5)/; END { exit 1 }' "$intent_report"; then
     print -u2 "FAIL: collision or environment state moved the authoritative reticle"
     exit 1
   fi
 done
 print "aim ownership: reticle remained exactly centered through every wall state"
 
-if ! rg -q 'CAMERA_REPORT .*"pitch_deg":-2.0.*"reticle_x":0.5.*"reticle_y":0.5.*"view_pitch_deg":-2.0' "$report_dir/interior.log"; then
+if ! grep -E -q 'CAMERA_REPORT .*"pitch_deg":-2.0.*"reticle_x":0.5.*"reticle_y":0.5.*"view_pitch_deg":-2.0' "$report_dir/interior.log"; then
   print -u2 "FAIL: interior state redirected raw pitch or moved the reticle"
   exit 1
 fi
 print "interior aim: raw pitch preserved without environment bias"
 
-if ! rg -q 'CAMERA_REPORT .*"pitch_deg":-45.0.*"reticle_x":0.5.*"reticle_y":0.5.*"view_pitch_deg":-45.0' "$report_dir/roof.log"; then
+if ! grep -E -q 'CAMERA_REPORT .*"pitch_deg":-45.0.*"reticle_x":0.5.*"reticle_y":0.5.*"view_pitch_deg":-45.0' "$report_dir/roof.log"; then
   print -u2 "FAIL: rooftop downward aim lost raw pitch or centered reticle"
   exit 1
 fi
 print "rooftop downward aim: raw -45° pitch and centered reticle"
 
-if ! rg -q 'AUDIT_RECORD_TEST Saved [1-9][0-9]* frames' "$report_dir/audit-recorder.log"; then
+if ! grep -E -q 'CAMERA_REPORT .*"aim_screen_x":0.5.*"aim_screen_y":0.5.*"head_y":0\.[5-8].*"height_above_player":1\.[0-5].*"reticle_x":0.5.*"reticle_y":0.5' "$report_dir/prone.log"; then
+  print -u2 "FAIL: prone camera did not lower its orbit while preserving centered aim"
+  exit 1
+fi
+print "prone camera: lowered stance orbit retained the operator and centered aim"
+
+if ! grep -E -q 'AUDIT_RECORD_TEST Saved [1-9][0-9]* frames' "$report_dir/audit-recorder.log"; then
   print -u2 "FAIL: camera audit recorder did not save frame telemetry"
   exit 1
 fi
 print "camera audit recorder: CSV telemetry saved"
 
-if ! rg -q 'MULTIPLAYER_CONTRACT accepted=true camera_state_leak=false replay=STALE_SEQUENCE spoof=DIRECTION_ANGLE_MISMATCH future=FUTURE_TICK' "$report_dir/multiplayer-contract.log"; then
+if ! grep -E -q 'MULTIPLAYER_CONTRACT accepted=true camera_state_leak=false replay=STALE_SEQUENCE spoof=DIRECTION_ANGLE_MISMATCH future=FUTURE_TICK' "$report_dir/multiplayer-contract.log"; then
   print -u2 "FAIL: multiplayer aim contract accepted invalid input, rejected valid input, or leaked camera state"
   exit 1
 fi
-if ! rg -q 'MULTIPLAYER_CONTRACT accepted=true camera_state_leak=false replay=STALE_SEQUENCE spoof=DIRECTION_ANGLE_MISMATCH future=FUTURE_TICK' "$report_dir/multiplayer-wall-contract.log"; then
+if ! grep -E -q 'MULTIPLAYER_CONTRACT accepted=true camera_state_leak=false replay=STALE_SEQUENCE spoof=DIRECTION_ANGLE_MISMATCH future=FUTURE_TICK' "$report_dir/multiplayer-wall-contract.log"; then
   print -u2 "FAIL: close-wall camera changed authoritative multiplayer aim validation"
   exit 1
 fi

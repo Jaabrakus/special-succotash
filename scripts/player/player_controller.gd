@@ -1,14 +1,61 @@
 class_name SocomTestPlayer
 extends CharacterBody3D
 
-@export var walk_speed: float = 4.0
-@export var run_speed: float = 6.5
+const OperatorOrientationController := preload("res://scripts/player/operator_orientation_controller.gd")
+
+@export var move_speed: float = 6.5
 @export var acceleration: float = 18.0
+@export var braking_acceleration: float = 26.0
+@export var reversal_acceleration: float = 22.0
 @export var turn_response: float = 12.0
 @export var gravity: float = 22.0
 
+@export_group("Locomotion orientation")
+@export_range(1.0, 30.0, 0.5) var idle_turn_response: float = 9.0
+@export_range(20.0, 85.0, 1.0) var torso_turn_in_place_limit_deg: float = 42.0
+@export_range(0.45, 0.90, 0.01) var torso_catchup_release_ratio: float = 0.72
+@export_range(0.25, 0.95, 0.01) var full_gait_input_threshold: float = 0.72
+
+@export_group("Tactical mobility")
+@export var crouch_speed: float = 2.6
+@export var prone_speed: float = 1.25
+@export var jump_velocity: float = 6.2
+@export var dive_speed: float = 7.6
+@export var dive_duration: float = 0.72
+@export var roll_speed: float = 6.8
+@export var roll_duration: float = 0.62
+@export var landing_recovery: float = 0.18
+
+enum MotionState {
+    STANDING,
+    CROUCHED,
+    PRONE,
+    AIRBORNE,
+    LANDING,
+    DIVING,
+    ROLLING,
+}
+
 var movement_yaw: float = 0.0
 var replay_override_active: bool = false
+var posture: int = MotionState.STANDING
+var motion_state: int = MotionState.STANDING
+var action_elapsed: float = 0.0
+var action_duration: float = 0.0
+var action_direction: Vector3 = Vector3.FORWARD
+var roll_side: float = 1.0
+var was_on_floor: bool = true
+var orientation := OperatorOrientationController.new()
+var desired_movement_direction := Vector3.ZERO
+var movement_input_strength: float = 0.0
+var horizontal_response_mode: StringName = &"IDLE"
+
+# Context-Sensitive Multi-Function Input
+var stance_hold_timer: float = 0.0
+var stance_held_triggered: bool = false
+var stance_hold_threshold: float = 0.20
+var jump_was_held: bool = false
+var jump_requested: bool = false
 
 func _physics_process(delta: float) -> void:
     if replay_override_active:
@@ -30,6 +77,17 @@ func _physics_process(delta: float) -> void:
         var follow_frame := Engine.get_physics_frames()
         if follow_frame < 600:
             automated_world_direction = Vector3.RIGHT
+    elif OS.get_cmdline_user_args().has("--camera-stress-test"):
+        input = Vector2.ZERO
+        var stress_phase: int = Engine.get_physics_frames() % 600
+        if stress_phase < 150:
+            automated_world_direction = Vector3.LEFT
+        elif stress_phase < 300:
+            automated_world_direction = Vector3.FORWARD
+        elif stress_phase < 450:
+            automated_world_direction = Vector3.RIGHT
+        else:
+            automated_world_direction = Vector3.BACK
     elif OS.get_cmdline_user_args().has("--automated-test"):
         input = Vector2.ZERO
     var camera := get_viewport().get_camera_3d()
@@ -49,19 +107,294 @@ func _physics_process(delta: float) -> void:
         desired_dir = automated_world_direction
     if desired_dir.length_squared() > 1.0:
         desired_dir = desired_dir.normalized()
+    desired_movement_direction = desired_dir
+    movement_input_strength = clampf(desired_dir.length(), 0.0, 1.0)
 
-    var speed := run_speed if Input.is_action_pressed("run") else walk_speed
+    var actions_enabled := not (
+        OS.get_cmdline_user_args().has("--automated-test")
+        or OS.get_cmdline_user_args().has("--movement-test")
+        or OS.get_cmdline_user_args().has("--wall-entry-test")
+        or OS.get_cmdline_user_args().has("--wall-follow-test")
+        or OS.get_cmdline_user_args().has("--camera-stress-test")
+    )
+    var jump_held := Input.is_action_pressed("jump")
+    var jump_started := (
+        jump_requested
+        or
+        Input.is_action_just_pressed("jump")
+        or (jump_held and not jump_was_held)
+    )
+    jump_requested = false
+    jump_was_held = jump_held
+    var launched_jump_this_frame := false
+    if actions_enabled:
+        _handle_posture_input(delta)
+        launched_jump_this_frame = _try_begin_mobility_action(
+            desired_dir,
+            input,
+            jump_started
+        )
+
+    if motion_state == MotionState.DIVING or motion_state == MotionState.ROLLING:
+        _advance_committed_action(delta)
+        _update_orientation(action_direction, delta)
+        move_and_slide()
+        was_on_floor = is_on_floor()
+        return
+
+    var speed := _movement_speed()
     var desired_velocity := desired_dir * speed
-    velocity.x = move_toward(velocity.x, desired_velocity.x, acceleration * delta)
-    velocity.z = move_toward(velocity.z, desired_velocity.z, acceleration * delta)
+    # Accelerate as one horizontal vector. Advancing X and Z separately makes
+    # diagonal response up to sqrt(2) times stronger than cardinal response.
+    var horizontal_velocity := Vector2(velocity.x, velocity.z)
+    var horizontal_target := Vector2(desired_velocity.x, desired_velocity.z)
+    var response_acceleration := _horizontal_response_acceleration(
+        horizontal_velocity,
+        horizontal_target
+    )
+    horizontal_velocity = horizontal_velocity.move_toward(
+        horizontal_target,
+        response_acceleration * delta
+    )
+    velocity.x = horizontal_velocity.x
+    velocity.z = horizontal_velocity.y
 
-    if not is_on_floor():
+    if launched_jump_this_frame:
+        # Preserve the impulse assigned above. is_on_floor() remains true until
+        # move_and_slide(), so the normal grounded branch must not erase it.
+        pass
+    elif not is_on_floor():
         velocity.y -= gravity * delta
     else:
         velocity.y = -0.5
 
-    if desired_dir.length_squared() > 0.001:
-        movement_yaw = atan2(-desired_dir.x, -desired_dir.z)
-        rotation.y = lerp_angle(rotation.y, movement_yaw, 1.0 - exp(-turn_response * delta))
+    _update_orientation(desired_dir, delta)
 
     move_and_slide()
+    _update_air_and_landing_state(delta)
+    was_on_floor = is_on_floor()
+
+func _update_orientation(desired_dir: Vector3, delta: float) -> void:
+    var rig := get_tree().get_first_node_in_group("socom_camera_rig")
+    var authoritative_aim_yaw := global_rotation.y
+    if rig != null:
+        authoritative_aim_yaw = float(rig.get("aim_yaw"))
+    orientation.update(
+        self,
+        desired_dir,
+        authoritative_aim_yaw,
+        delta,
+        turn_response,
+        idle_turn_response,
+        deg_to_rad(torso_turn_in_place_limit_deg),
+        torso_catchup_release_ratio
+    )
+    movement_yaw = rotation.y
+
+func get_aim_relative_yaw() -> float:
+    return orientation.aim_relative_yaw
+
+func get_desired_movement_direction() -> Vector3:
+    return desired_movement_direction
+
+func is_turning_in_place() -> bool:
+    return orientation.is_turning_in_place
+
+func request_jump() -> void:
+    # Public one-shot command used by replay/network input snapshots and tests.
+    # Local keyboard/controller input still enters through the same latch above.
+    jump_requested = true
+
+func _movement_speed() -> float:
+    if posture == MotionState.PRONE:
+        return prone_speed
+    if posture == MotionState.CROUCHED:
+        return crouch_speed
+    return move_speed
+
+func _horizontal_response_acceleration(current: Vector2, target: Vector2) -> float:
+    if target.length_squared() < 0.0001:
+        horizontal_response_mode = &"BRAKING" if current.length_squared() > 0.0001 else &"IDLE"
+        return braking_acceleration
+    if current.length_squared() > 0.0001:
+        var alignment := current.normalized().dot(target.normalized())
+        if alignment < -0.20:
+            horizontal_response_mode = &"REVERSING"
+            return reversal_acceleration
+    horizontal_response_mode = &"ACCELERATING"
+    return acceleration
+
+func get_horizontal_response_mode() -> StringName:
+    return horizontal_response_mode
+
+func get_movement_gait_name() -> StringName:
+    # SOCOM has no sprint command. The locomotion gait follows analog stick
+    # magnitude: a partial stick walks and a full stick uses the quick tactical
+    # gait. Keyboard WASD naturally reports full magnitude.
+    return (
+        &"FULL"
+        if posture == MotionState.STANDING
+        and movement_input_strength >= full_gait_input_threshold
+        else &"WALK"
+    )
+
+func _handle_posture_input(delta: float) -> void:
+    if motion_state == MotionState.DIVING or motion_state == MotionState.ROLLING:
+        return
+
+    # Direct Prone shortcut (Z)
+    if Input.is_action_just_pressed("prone"):
+        posture = MotionState.CROUCHED if posture == MotionState.PRONE else MotionState.PRONE
+        motion_state = posture
+        _apply_posture_collider()
+        return
+
+    # Multi-function Stance Button (C / Crouch): Tap = Crouch/Stand, Hold = Drop to Prone
+    if Input.is_action_pressed("crouch"):
+        stance_hold_timer += delta
+        if stance_hold_timer >= stance_hold_threshold and not stance_held_triggered:
+            stance_held_triggered = true
+            posture = MotionState.PRONE
+            motion_state = MotionState.PRONE
+            _apply_posture_collider()
+
+    if Input.is_action_just_released("crouch"):
+        if not stance_held_triggered:
+            # Quick Tap action
+            if posture == MotionState.PRONE:
+                posture = MotionState.CROUCHED
+            elif posture == MotionState.CROUCHED:
+                posture = MotionState.STANDING
+            else:
+                posture = MotionState.CROUCHED
+            motion_state = posture
+            _apply_posture_collider()
+        stance_hold_timer = 0.0
+        stance_held_triggered = false
+
+func _try_begin_mobility_action(
+    desired_dir: Vector3,
+    input: Vector2,
+    jump_started: bool
+) -> bool:
+    if not is_on_floor() or motion_state == MotionState.DIVING or motion_state == MotionState.ROLLING:
+        return false
+
+    # Jump owns one action only. Travel input must never reinterpret Space as a
+    # dive; that would make the same network command produce two outcomes.
+    if jump_started and posture != MotionState.PRONE:
+        posture = MotionState.STANDING
+        _apply_posture_collider()
+        velocity.y = jump_velocity
+        motion_state = MotionState.AIRBORNE
+        return true
+
+    # Z is the independent dive-to-prone action.
+    if Input.is_action_just_pressed("dive") and posture != MotionState.PRONE:
+        action_direction = _safe_action_direction(desired_dir)
+        action_elapsed = 0.0
+        action_duration = dive_duration
+        motion_state = MotionState.DIVING
+        posture = MotionState.STANDING
+        _apply_posture_collider()
+        velocity.y = 2.4
+        return false
+
+    # Roll shortcut (E / Alt)
+    if Input.is_action_just_pressed("roll") and posture != MotionState.PRONE:
+        roll_side = -1.0 if input.x < -0.1 else 1.0
+        if absf(input.x) > 0.1:
+            action_direction = global_basis.x * signf(input.x)
+        else:
+            action_direction = _safe_action_direction(desired_dir)
+        action_direction.y = 0.0
+        action_direction = action_direction.normalized()
+        action_elapsed = 0.0
+        action_duration = roll_duration
+        motion_state = MotionState.ROLLING
+        posture = MotionState.CROUCHED
+        _apply_posture_collider()
+    return false
+
+func _safe_action_direction(desired_dir: Vector3) -> Vector3:
+    var result := desired_dir
+    if result.length_squared() < 0.01:
+        result = -global_basis.z
+    result.y = 0.0
+    return result.normalized()
+
+func _advance_committed_action(delta: float) -> void:
+    action_elapsed = minf(action_elapsed + delta, action_duration)
+    var phase := get_action_phase()
+    var base_speed := dive_speed if motion_state == MotionState.DIVING else roll_speed
+    var speed_scale := lerpf(1.0, 0.32, phase)
+    velocity.x = action_direction.x * base_speed * speed_scale
+    velocity.z = action_direction.z * base_speed * speed_scale
+    if not is_on_floor():
+        velocity.y -= gravity * delta
+    else:
+        velocity.y = -0.5
+    if action_elapsed >= action_duration:
+        if motion_state == MotionState.DIVING:
+            posture = MotionState.PRONE
+        else:
+            posture = MotionState.CROUCHED
+        motion_state = posture
+        _apply_posture_collider()
+
+func _update_air_and_landing_state(delta: float) -> void:
+    if not is_on_floor():
+        motion_state = MotionState.AIRBORNE
+        return
+    if not was_on_floor and motion_state == MotionState.AIRBORNE:
+        motion_state = MotionState.LANDING
+        action_elapsed = 0.0
+        action_duration = landing_recovery
+    elif motion_state == MotionState.LANDING:
+        action_elapsed += delta
+        if action_elapsed >= action_duration:
+            motion_state = posture
+    elif motion_state != MotionState.DIVING and motion_state != MotionState.ROLLING:
+        motion_state = posture
+
+func _apply_posture_collider() -> void:
+    var collider := get_node_or_null("CollisionShape3D") as CollisionShape3D
+    if collider == null or not (collider.shape is CapsuleShape3D):
+        return
+    var capsule := collider.shape as CapsuleShape3D
+    var target_height := 1.85
+    if posture == MotionState.CROUCHED:
+        target_height = 1.25
+    elif posture == MotionState.PRONE:
+        target_height = 0.82
+    capsule.height = target_height
+    collider.position.y = target_height * 0.5
+
+func get_action_phase() -> float:
+    if action_duration <= 0.0:
+        return 0.0
+    return clampf(action_elapsed / action_duration, 0.0, 1.0)
+
+func get_motion_state_name() -> StringName:
+    match motion_state:
+        MotionState.CROUCHED:
+            return &"CROUCHED"
+        MotionState.PRONE:
+            return &"PRONE"
+        MotionState.AIRBORNE:
+            return &"AIRBORNE"
+        MotionState.LANDING:
+            return &"LANDING"
+        MotionState.DIVING:
+            return &"DIVING"
+        MotionState.ROLLING:
+            return &"ROLLING"
+        _:
+            return &"STANDING"
+
+func get_posture_name() -> StringName:
+    if posture == MotionState.PRONE:
+        return &"PRONE"
+    if posture == MotionState.CROUCHED:
+        return &"CROUCHED"
+    return &"STANDING"

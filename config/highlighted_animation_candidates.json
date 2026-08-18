@@ -1,0 +1,384 @@
+{
+  "purpose": "User-selected animation candidates for Codex review and route assembly.",
+  "selected_clips": [
+    {
+      "display": "Crouch Stop Walking",
+      "key": "crouch_stop_walking",
+      "path": "res://assets/animations/mixamo/Crouch Stop Walking.fbx",
+      "suggested_slot": "crouch_stop",
+      "type": "FBX"
+    },
+    {
+      "display": "Death From Right",
+      "key": "death_from_right",
+      "path": "res://assets/animations/mixamo/Pro Rifle Pack/death from right.fbx",
+      "suggested_slot": "",
+      "type": "FBX"
+    },
+    {
+      "display": "Running Dive Roll",
+      "key": "running_dive_roll",
+      "path": "res://assets/animations/mixamo/Running Dive Roll.fbx",
+      "suggested_slot": "dive_roll",
+      "type": "FBX"
+    },
+    {
+      "display": "Run To Rolling",
+      "key": "run_to_rolling",
+      "path": "res://assets/animations/mixamo/Run To Rolling.fbx",
+      "suggested_slot": "roll",
+      "type": "FBX"
+    },
+    {
+      "display": "[Shooter] Rifle Aiming Idle",
+      "key": "shooter_rifle_aiming_idle",
+      "path": "res://assets/animations/mixamo/Shooter Pack/rifle aiming idle.fbx",
+      "suggested_slot": "aim_idle",
+      "type": "FBX"
+    },
+    {
+      "display": "[Shooter] Start Walking Backwards",
+      "key": "shooter_start_walking_backwards",
+      "path": "res://assets/animations/mixamo/Shooter Pack/start walking backwards.fbx",
+      "suggested_slot": "start_backward",
+      "type": "FBX"
+    },
+    {
+      "display": "[Shooter] Walking Backwards",
+      "key": "shooter_walking_backwards",
+      "path": "res://assets/animations/mixamo/Shooter Pack/walking backwards.fbx",
+      "suggested_slot": "",
+      "type": "FBX"
+    },
+    {
+      "display": "[Shooter] Firing Rifle",
+      "key": "shooter_firing_rifle",
+      "path": "res://assets/animations/mixamo/Shooter Pack/firing rifle.fbx",
+      "suggested_slot": "combat_fire",
+      "type": "FBX"
+    },
+    {
+      "display": "[Shooter] Jump Forward",
+      "key": "shooter_jump_forward",
+      "path": "res://assets/animations/mixamo/Shooter Pack/jump forward.fbx",
+      "suggested_slot": "",
+      "type": "FBX"
+    },
+    {
+      "display": "[Shooter] Rifle Run",
+      "key": "shooter_rifle_run",
+      "path": "res://assets/animations/mixamo/Shooter Pack/rifle run.fbx",
+      "suggested_slot": "",
+      "type": "FBX"
+    },
+    {
+      "display": "Prone Reloading",
+      "key": "prone_reloading",
+      "path": "res://assets/animations/mixamo/Prone Reloading.fbx",
+      "suggested_slot": "prone_reload",
+      "type": "FBX"
+    },
+    {
+      "display": "Crouch Rapid Fire",
+      "key": "crouch_rapid_fire",
+      "path": "res://assets/animations/mixamo/Crouch Rapid Fire.fbx",
+      "suggested_slot": "",
+      "type": "FBX"
+    },
+    {
+      "display": "Climbing",
+      "key": "climbing",
+      "path": "res://assets/animations/mixamo/Climbing.fbx",
+      "suggested_slot": "",
+      "type": "FBX"
+    },
+    {
+      "display": "Idle",
+      "key": "idle",
+      "path": "res://assets/animations/mixamo/Pro Rifle Pack/idle.fbx",
+      "suggested_slot": "idle_rifle",
+      "type": "FBX"
+    },
+    {
+      "display": "Run Forward",
+      "key": "run_forward",
+      "path": "res://assets/animations/mixamo/Pro Rifle Pack/run forward.fbx",
+      "suggested_slot": "run_forward",
+      "type": "FBX"
+    },
+    {
+      "display": "Rifle Kneel To Prone",
+      "key": "rifle_kneel_to_prone",
+      "path": "res://assets/animations/mixamo/Rifle Kneel To Prone.fbx",
+      "suggested_slot": "",
+      "type": "FBX"
+    },
+    {
+      "display": "Toss Grenade",
+      "key": "toss_grenade",
+      "path": "res://assets/animations/mixamo/toss grenade.fbx",
+      "suggested_slot": "",
+      "type": "FBX"
+    },
+    {
+      "display": "Rifle Crouch Idle To Walk",
+      "key": "rifle_crouch_idle_to_walk",
+      "path": "res://assets/animations/mixamo/Rifle Crouch Idle To Walk.fbx",
+      "suggested_slot": "crouch_start",
+      "type": "FBX"
+    },
+    {
+      "display": "Shoot Rifle",
+      "key": "shoot_rifle",
+      "path": "res://assets/animations/mixamo/Shoot Rifle.fbx",
+      "suggested_slot": "",
+      "type": "FBX"
+    },
+    {
+      "display": "Reloading",
+      "key": "reloading",
+      "path": "res://assets/animations/mixamo/Reloading.fbx",
+      "suggested_slot": "reload",
+      "type": "FBX"
+    },
+    {
+      "display": "Pistol Run",
+      "key": "pistol_run",
+      "path": "res://assets/animations/mixamo/Pistol Run.fbx",
+      "suggested_slot": "",
+      "type": "FBX"
+    },
+    {
+      "display": "Jump Away",
+      "key": "jump_away",
+      "path": "res://assets/animations/mixamo/Jump Away.fbx",
+      "suggested_slot": "",
+      "type": "FBX"
+    },
+    {
+      "display": "Throw Grenade",
+      "key": "throw_grenade",
+      "path": "res://assets/animations/mixamo/Throw Grenade.fbx",
+      "suggested_slot": "",
+      "type": "FBX"
+    },
+    {
+      "display": "[Rifle] Sprint Forward Right",
+      "key": "rifle_sprint_forward_right",
+      "path": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/sprint forward right.fbx",
+      "suggested_slot": "",
+      "type": "FBX"
+    },
+    {
+      "display": "[Rifle] Sprint Forward",
+      "key": "rifle_sprint_forward",
+      "path": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/sprint forward.fbx",
+      "suggested_slot": "",
+      "type": "FBX"
+    },
+    {
+      "display": "Run To Stop",
+      "key": "run_to_stop",
+      "path": "res://assets/animations/mixamo/Run To Stop.fbx",
+      "suggested_slot": "run_to_stop",
+      "type": "FBX"
+    },
+    {
+      "display": "Prone Forward Stop",
+      "key": "prone_forward_stop",
+      "path": "res://assets/animations/mixamo/Prone Forward Stop.fbx",
+      "suggested_slot": "prone_forward",
+      "type": "FBX"
+    },
+    {
+      "display": "Rifle Crouch Walk To Kneel 2",
+      "key": "rifle_crouch_walk_to_kneel_2",
+      "path": "res://assets/animations/mixamo/Rifle Crouch Walk To Kneel-2.fbx",
+      "suggested_slot": "",
+      "type": "FBX"
+    },
+    {
+      "display": "Crouch To Standing With Rifle",
+      "key": "crouch_to_standing_with_rifle",
+      "path": "res://assets/animations/mixamo/Crouch To Standing With Rifle.fbx",
+      "suggested_slot": "",
+      "type": "FBX"
+    },
+    {
+      "display": "Pistol Jump",
+      "key": "pistol_jump",
+      "path": "res://assets/animations/mixamo/Pistol Jump.fbx",
+      "suggested_slot": "",
+      "type": "FBX"
+    },
+    {
+      "display": "[Pistol] Pistol Walk Arc",
+      "key": "pistol_pistol_walk_arc",
+      "path": "res://assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol walk arc.fbx",
+      "suggested_slot": "",
+      "type": "FBX"
+    },
+    {
+      "display": "[Pistol] Pistol Walk Backward Arc (2)",
+      "key": "pistol_pistol_walk_backward_arc_2",
+      "path": "res://assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol walk backward arc (2).fbx",
+      "suggested_slot": "",
+      "type": "FBX"
+    },
+    {
+      "display": "[Pistol] Pistol Walk Arc (2)",
+      "key": "pistol_pistol_walk_arc_2",
+      "path": "res://assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol walk arc (2).fbx",
+      "suggested_slot": "",
+      "type": "FBX"
+    },
+    {
+      "display": "[Pistol] Pistol Walk",
+      "key": "pistol_pistol_walk",
+      "path": "res://assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol walk.fbx",
+      "suggested_slot": "",
+      "type": "FBX"
+    },
+    {
+      "display": "[Pistol] Pistol Run Backward Arc (2)",
+      "key": "pistol_pistol_run_backward_arc_2",
+      "path": "res://assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol run backward arc (2).fbx",
+      "suggested_slot": "run_backward",
+      "type": "FBX"
+    },
+    {
+      "display": "[Pistol] Pistol Stand To Kneel",
+      "key": "pistol_pistol_stand_to_kneel",
+      "path": "res://assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol stand to kneel.fbx",
+      "suggested_slot": "",
+      "type": "FBX"
+    },
+    {
+      "display": "[Pistol] Pistol Strafe (2)",
+      "key": "pistol_pistol_strafe_2",
+      "path": "res://assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol strafe (2).fbx",
+      "suggested_slot": "",
+      "type": "FBX"
+    },
+    {
+      "display": "[Pistol] Pistol Strafe",
+      "key": "pistol_pistol_strafe",
+      "path": "res://assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol strafe.fbx",
+      "suggested_slot": "",
+      "type": "FBX"
+    },
+    {
+      "display": "[Pistol] Pistol Walk Backward",
+      "key": "pistol_pistol_walk_backward",
+      "path": "res://assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol walk backward.fbx",
+      "suggested_slot": "",
+      "type": "FBX"
+    },
+    {
+      "display": "[Pistol] Pistol Run Backward Arc",
+      "key": "pistol_pistol_run_backward_arc",
+      "path": "res://assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol run backward arc.fbx",
+      "suggested_slot": "run_backward",
+      "type": "FBX"
+    },
+    {
+      "display": "[Pistol] Pistol Run",
+      "key": "pistol_pistol_run",
+      "path": "res://assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol run.fbx",
+      "suggested_slot": "",
+      "type": "FBX"
+    },
+    {
+      "display": "[Pistol] Pistol Kneeling Idle",
+      "key": "pistol_pistol_kneeling_idle",
+      "path": "res://assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol kneeling idle.fbx",
+      "suggested_slot": "idle_rifle",
+      "type": "FBX"
+    },
+    {
+      "display": "[Pistol] Pistol Jump (2)",
+      "key": "pistol_pistol_jump_2",
+      "path": "res://assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol jump (2).fbx",
+      "suggested_slot": "",
+      "type": "FBX"
+    },
+    {
+      "display": "[Pistol] Pistol Run Arc",
+      "key": "pistol_pistol_run_arc",
+      "path": "res://assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol run arc.fbx",
+      "suggested_slot": "",
+      "type": "FBX"
+    },
+    {
+      "display": "[Pistol] Pistol Jump",
+      "key": "pistol_pistol_jump",
+      "path": "res://assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol jump.fbx",
+      "suggested_slot": "",
+      "type": "FBX"
+    },
+    {
+      "display": "[Pistol] Pistol Run Backward",
+      "key": "pistol_pistol_run_backward",
+      "path": "res://assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol run backward.fbx",
+      "suggested_slot": "run_backward",
+      "type": "FBX"
+    },
+    {
+      "display": "[Pistol] Pistol Run Arc (2)",
+      "key": "pistol_pistol_run_arc_2",
+      "path": "res://assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol run arc (2).fbx",
+      "suggested_slot": "",
+      "type": "FBX"
+    },
+    {
+      "display": "[Pistol] Pistol Walk Backward Arc",
+      "key": "pistol_pistol_walk_backward_arc",
+      "path": "res://assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol walk backward arc.fbx",
+      "suggested_slot": "",
+      "type": "FBX"
+    },
+    {
+      "display": "[Pistol] Pistol Idle",
+      "key": "pistol_pistol_idle",
+      "path": "res://assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol idle.fbx",
+      "suggested_slot": "idle_rifle",
+      "type": "FBX"
+    },
+    {
+      "display": "[Pistol] Pistol Kneel To Stand",
+      "key": "pistol_pistol_kneel_to_stand",
+      "path": "res://assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol kneel to stand.fbx",
+      "suggested_slot": "",
+      "type": "FBX"
+    },
+    {
+      "display": "Prone Backwards Stop",
+      "key": "prone_backwards_stop",
+      "path": "res://assets/animations/mixamo/Prone Backwards Stop.fbx",
+      "suggested_slot": "prone_backward",
+      "type": "FBX"
+    },
+    {
+      "display": "Dive Roll",
+      "key": "dive_roll",
+      "path": "res://assets/animations/mixamo/Dive Roll.fbx",
+      "suggested_slot": "dive_roll",
+      "type": "FBX"
+    },
+    {
+      "display": "Jumping",
+      "key": "jumping",
+      "path": "res://assets/animations/mixamo/Jumping.fbx",
+      "suggested_slot": "",
+      "type": "FBX"
+    },
+    {
+      "display": "Reload",
+      "key": "reload",
+      "path": "res://assets/animations/mixamo/Reload.fbx",
+      "suggested_slot": "reload",
+      "type": "FBX"
+    }
+  ],
+  "version": 1
+}
