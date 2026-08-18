@@ -27,6 +27,7 @@ const TRANSFORM_GIZMO_SCRIPT := preload("res://scripts/labs/transform_gizmo_3d.g
 const WEAPON_RIG_PREVIEW := preload("res://scripts/labs/weapon_rig_preview_loader.gd")
 const WORKSHOP_REPOSITORY_SCRIPT := preload("res://scripts/labs/animation_workshop_repository.gd")
 const RETARGET_SERVICE_SCRIPT := preload("res://scripts/labs/animation_retarget_service.gd")
+const SEQUENCE_SERVICE_SCRIPT := preload("res://scripts/labs/animation_sequence_service.gd")
 const EDITOR_UI_SCALE := 0.84
 const ROOT_SANITIZER := preload("res://scripts/player/operator_animation_root_sanitizer.gd")
 const EDITOR_FPS := 30.0
@@ -79,6 +80,7 @@ var assembly_card_panels: Dictionary = {}
 var clip_editor = CLIP_EDITOR_SCRIPT.new()
 var workshop_repository = WORKSHOP_REPOSITORY_SCRIPT.new()
 var retarget_service = RETARGET_SERVICE_SCRIPT.new()
+var sequence_service = SEQUENCE_SERVICE_SCRIPT.new()
 var weapon_socket_visible: bool = true
 var weapon_node: Node3D
 var socket_attachment: BoneAttachment3D
@@ -1952,18 +1954,12 @@ func _insert_current_clip_as_transition(before_selected: bool) -> void:
     if transition.is_empty():
         status_label.text = "Choose and trim the transition animation on the source timeline first."
         return
-    var target_index := selected_sequence_segment_index
-    var target_layer := str(assembly_segments[target_index].get("layer", "full_body"))
-    transition["layer"] = target_layer
-    if before_selected:
-        transition["transition_frames"] = 6 if _lane_has_segment_before(target_index, target_layer) else 0
-        assembly_segments.insert(target_index, transition)
-        assembly_segments[target_index + 1]["transition_frames"] = 6
-        selected_sequence_segment_index = target_index
-    else:
-        transition["transition_frames"] = 6
-        assembly_segments.insert(target_index + 1, transition)
-        selected_sequence_segment_index = target_index + 1
+    selected_sequence_segment_index = sequence_service.insert_transition(
+        assembly_segments,
+        selected_sequence_segment_index,
+        transition,
+        before_selected
+    )
     _refresh_assembly_cards()
     _refresh_frame_editor_labels()
     status_label.text = "Attached %s %s the selected cut with a 6-frame crossfade." % [
@@ -1972,10 +1968,7 @@ func _insert_current_clip_as_transition(before_selected: bool) -> void:
     ]
 
 func _lane_has_segment_before(index: int, layer: String) -> bool:
-    for candidate in range(index):
-        if str(assembly_segments[candidate].get("layer", "full_body")) == layer:
-            return true
-    return false
+    return sequence_service.lane_has_segment_before(assembly_segments, index, layer)
 
 func _cycle_selected_sequence_blend() -> void:
     if selected_sequence_segment_index < 0 or selected_sequence_segment_index >= assembly_segments.size():
@@ -1985,30 +1978,7 @@ func _cycle_selected_sequence_blend() -> void:
     status_label.text = "Selected connector now blends for %d frames." % int(assembly_segments[selected_sequence_segment_index].get("transition_frames", 0))
 
 func _build_assembly_animation(segments: Array[Dictionary]) -> Animation:
-    var region_segments: Dictionary = {}
-    for region in ["full_body", "lower_body", "torso", "left_arm", "right_arm", "head"]:
-        region_segments[region] = []
-    for segment in segments:
-        var region := str(segment.get("layer", "full_body"))
-        if not region_segments.has(region):
-            region = "full_body"
-        (region_segments[region] as Array).append(segment)
-    var region_sources: Dictionary = {}
-    for region in region_segments.keys():
-        var lane: Array = region_segments[region]
-        if lane.is_empty():
-            continue
-        var typed_lane: Array[Dictionary] = []
-        for lane_segment in lane:
-            typed_lane.append(lane_segment)
-        var lane_animation: Animation = clip_editor.combine(typed_lane, EDITOR_FPS)
-        if lane_animation != null and lane_animation.get_track_count() > 0:
-            region_sources[region] = lane_animation
-    if region_sources.is_empty():
-        return null
-    if region_sources.size() == 1 and region_sources.has("full_body"):
-        return region_sources["full_body"] as Animation
-    return layer_composer.compose(region_sources, EDITOR_FPS)
+    return sequence_service.build_animation(segments, clip_editor, layer_composer, EDITOR_FPS)
 
 func _snapped_current_time() -> float:
     if animation_player == null:
@@ -2021,17 +1991,7 @@ func _selected_animation() -> Animation:
     return _get_current_animation(filtered_entries[clip_index])
 
 func _toggle_sequence_region(region: String) -> void:
-    if region == "full_body":
-        selected_sequence_regions.clear()
-        selected_sequence_regions["full_body"] = true
-    else:
-        selected_sequence_regions.erase("full_body")
-        if selected_sequence_regions.has(region):
-            selected_sequence_regions.erase(region)
-        else:
-            selected_sequence_regions[region] = true
-        if selected_sequence_regions.is_empty():
-            selected_sequence_regions["full_body"] = true
+    sequence_service.toggle_region(selected_sequence_regions, region)
     _refresh_sequence_region_buttons()
 
 func _refresh_sequence_region_buttons() -> void:
@@ -2048,13 +2008,7 @@ func _refresh_sequence_region_buttons() -> void:
         sequence_region_summary_label.text = "CARRYING: %s" % names.replace("full_body", "full body").replace("lower_body", "legs").replace("_", " ").to_upper()
 
 func _selected_sequence_region_keys() -> Array[String]:
-    var selected: Array[String] = []
-    for region in ["full_body", "lower_body", "torso", "left_arm", "right_arm", "head"]:
-        if selected_sequence_regions.has(region):
-            selected.append(region)
-    if selected.is_empty():
-        selected.append("full_body")
-    return selected
+    return sequence_service.selected_region_keys(selected_sequence_regions)
 
 func _add_current_trim_segment() -> void:
     var segment := _current_trim_segment()
@@ -2094,10 +2048,7 @@ func _current_trim_segment() -> Dictionary:
     }
 
 func _lane_has_segments(layer: String) -> bool:
-    for segment in assembly_segments:
-        if str(segment.get("layer", "full_body")) == layer:
-            return true
-    return false
+    return sequence_service.lane_has_segments(assembly_segments, layer)
 
 func _on_clip_dropped_to_assembly(entry: Dictionary) -> void:
     _append_entry_full_range(entry)
@@ -2196,30 +2147,13 @@ func _move_assembly_segment(index: int, direction: int) -> void:
     _refresh_assembly_cards()
 
 func _move_assembly_segment_in_lane(index: int, direction: int) -> void:
-    if index < 0 or index >= assembly_segments.size():
-        return
-    var layer := str(assembly_segments[index].get("layer", "full_body"))
-    var lane_indices: Array[int] = []
-    for candidate in range(assembly_segments.size()):
-        if str(assembly_segments[candidate].get("layer", "full_body")) == layer:
-            lane_indices.append(candidate)
-    var lane_position := lane_indices.find(index)
-    var target_position := lane_position + direction
-    if lane_position < 0 or target_position < 0 or target_position >= lane_indices.size():
-        return
-    var target_index := lane_indices[target_position]
-    var segment := assembly_segments[index]
-    assembly_segments[index] = assembly_segments[target_index]
-    assembly_segments[target_index] = segment
-    _refresh_assembly_cards()
+    if sequence_service.move_segment_in_lane(assembly_segments, index, direction):
+        _refresh_assembly_cards()
 
 func _cycle_segment_blend(index: int) -> void:
-    if index < 0 or index >= assembly_segments.size():
-        return
-    var current := int(assembly_segments[index].get("transition_frames", 0))
-    assembly_segments[index]["transition_frames"] = 3 if current == 0 else (6 if current == 3 else 0)
-    _refresh_assembly_cards()
-    _refresh_frame_editor_labels()
+    if sequence_service.cycle_segment_blend(assembly_segments, index) >= 0:
+        _refresh_assembly_cards()
+        _refresh_frame_editor_labels()
 
 func _refresh_assembly_cards() -> void:
     if assembly_cards_vbox == null:

@@ -74,6 +74,7 @@
       "res://tools/integration_manifest_regression.gd",
       "res://tools/studio_navigation_regression.gd",
       "res://tools/animation_workshop_repository_regression.gd",
+      "res://tools/animation_sequence_service_regression.gd",
       "res://tools/animation_pose_editor_regression.gd",
       "res://tools/validate_operator_configs.gd",
       "res://tools/operator_animation_regression.gd",

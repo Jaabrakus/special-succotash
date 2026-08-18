@@ -7,6 +7,7 @@ The Studio scene keeps its existing public behavior while the former monolithic 
 - `operator_animation_lab.gd`: scene orchestration, preview lifecycle, and signal wiring.
 - `animation_workshop_repository.gd`: catalog discovery, filtering, route suggestions, and JSON persistence.
 - `animation_retarget_service.gd`: authored-clip loading and 65-bone FBX retargeting for the preview skeleton.
+- `animation_sequence_service.gd`: body-lane selection, clip ordering, connector blends, and sequence assembly.
 - `animation_clip_editor.gd`: non-destructive trim and sequential clip baking.
 - `animation_sequence_timeline.gd`: output timeline interaction and selection.
 - `animation_layer_composer.gd`: body-region track composition.
