@@ -11,6 +11,8 @@ const PHASE_MODULES := [
     "res://scripts/labs/animation_studio/animation_studio_pose_authoring.gd",
     "res://scripts/labs/animation_studio/animation_studio_sequence.gd",
     "res://scripts/labs/animation_studio/animation_studio_weapon.gd",
+    "res://scripts/labs/animation_studio/animation_studio_view_workspace.gd",
+    "res://scripts/labs/animation_studio/animation_studio_view_timeline.gd",
     "res://scripts/labs/animation_studio/animation_studio_view.gd",
     "res://scripts/labs/animation_studio/animation_studio_view_controls.gd",
     "res://scripts/labs/animation_studio/animation_studio_routes.gd",

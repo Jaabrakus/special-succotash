@@ -30,6 +30,8 @@ LAYER_ORDER = [
     MODULE_DIR / "animation_studio_sequence.gd",
     MODULE_DIR / "animation_studio_weapon.gd",
     MODULE_DIR / "animation_studio_stage.gd",
+    MODULE_DIR / "animation_studio_view_workspace.gd",
+    MODULE_DIR / "animation_studio_view_timeline.gd",
     MODULE_DIR / "animation_studio_view.gd",
     MODULE_DIR / "animation_studio_view_controls.gd",
     MODULE_DIR / "animation_studio_routes.gd",

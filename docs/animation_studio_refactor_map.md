@@ -23,7 +23,9 @@ but an earlier phase must not depend on a later UI or feature layer.
 5. **Equipment**
    - `animation_studio_weapon.gd`: Gunsmith profile loading and weapon attachment preview.
 6. **Interface**
-   - `animation_studio_view.gd`: primary Studio control construction.
+   - `animation_studio_view.gd`: coordinates the Studio interface builders.
+   - `animation_studio_view_workspace.gd`: header, clip library, pose, routes, and Gunsmith workspace.
+   - `animation_studio_view_timeline.gd`: trim, layered sequence, and persistent playback controls.
    - `animation_studio_view_controls.gd`: reusable slider and weapon controls.
    - `animation_studio_routes.gd`: clip browser, search, favorites, suggestions, and state routes.
 
