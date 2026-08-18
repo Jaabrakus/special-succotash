@@ -5,23 +5,34 @@ const MannequinScript := preload("res://scripts/player/test_mannequin.gd")
 const CameraRigScript := preload("res://scripts/camera/socom_camera.gd")
 const CameraVisualizerScript := preload("res://scripts/camera/camera_visualizer.gd")
 const CameraAuditRecorderScript := preload("res://scripts/camera/camera_audit_recorder.gd")
+const BodyStackOverlayScript := preload("res://scripts/ui/operator_body_stack_overlay.gd")
 const ShotAuthorityScript := preload("res://scripts/network/socom_shot_authority.gd")
+const WeaponControllerScript := preload("res://scripts/weapons/socom_weapon_controller.gd")
+const DynamicReticleScript := preload("res://scripts/ui/socom_dynamic_reticle.gd")
+const TracerSystemScript := preload("res://scripts/weapons/lab_leak_tracer_system.gd")
+const TargetDummyScript := preload("res://scripts/combat/lab_leak_target_dummy.gd")
+const AudioEngineScript := preload("res://scripts/audio/lab_leak_audio_engine.gd")
 const RETICLE_BOX_SIZE := Vector2(32.0, 32.0)
+const OPERATOR_TUNING_PATH := "res://config/operator_movement_tuning.json"
 
 var player
 var camera_rig
 var debug_label: Label
 var crosshair: Label
+var dynamic_reticle: SocomDynamicReticle
 var calibration_overlay: Control
 var calibration_texture: TextureRect
 var calibration_status: Label
 var calibration_opacity: float = 0.35
 var calibration_visible: bool = false
 var debug_hud_visible: bool = true
+var body_stack_visible: bool = true
+var body_stack_overlay: Control
 var roof_test_active: bool = false
 var indoor_test_active: bool = false
 var wall_test_active: bool = false
 var camera_visualizer: Node3D
+var weapon_controller
 var audit_recorder: Node
 var spectator_panel: Control
 var spectator_camera: Camera3D
@@ -31,6 +42,13 @@ var workbench_visible: bool = false
 var camera_visualizer_visible: bool = true
 var workbench_sliders: Dictionary = {}
 var workbench_defaults: Dictionary = {}
+var anim_studio_panel: PanelContainer
+var anim_studio_visible: bool = true
+var anim_studio_state_label: Label
+var anim_tuning_sliders: Dictionary = {}
+var operator_tuning: Dictionary = {}
+var target_dummies: Array[Node] = []
+var target_range_active: bool = true
 
 const REFERENCE_FRAME_PATH := "res://reference/reference_frame.png"
 const ENVIRONMENT_SHADER := """
@@ -48,9 +66,28 @@ void fragment() {
 func _ready() -> void:
     calibration_visible = OS.get_cmdline_user_args().has("--show-calibration")
     debug_hud_visible = not OS.get_cmdline_user_args().has("--clean-hud")
+    _load_operator_tuning()
+    anim_studio_visible = (
+        bool(operator_tuning.get("studio_open_on_start", false))
+        and debug_hud_visible
+        and not OS.get_cmdline_user_args().has("--automated-test")
+    )
     _ensure_input_map()
     _build_environment()
+    TracerSystemScript.initialize(self)
+    TracerSystemScript.set_trajectory_debug_enabled(
+        OS.get_cmdline_user_args().has("--trajectory-debug")
+    )
+    AudioEngineScript.initialize(self)
     _build_player()
+    _apply_operator_tuning()
+    if (
+        OS.get_cmdline_user_args().has("--prone-camera-test")
+        or OS.get_cmdline_user_args().has("--prone-forward-test")
+    ):
+        player.posture = 2
+        player.motion_state = 2
+        player.call("_apply_posture_collider")
     roof_test_active = OS.get_cmdline_user_args().has("--roof-test")
     indoor_test_active = (
         OS.get_cmdline_user_args().has("--indoor-test")
@@ -72,8 +109,11 @@ func _ready() -> void:
     elif OS.get_cmdline_user_args().has("--movement-test"):
         player.global_position = Vector3(-3.0, 0.05, -10.0)
     _build_camera()
+    _build_weapon_controller()
     _build_camera_tools()
     _build_ui()
+    if anim_studio_visible:
+        call_deferred("_set_animation_studio_input_mode", true)
     if (
         OS.get_cmdline_user_args().has("--capture-workbench")
         or OS.get_cmdline_user_args().has("--capture-wall-surface")
@@ -88,12 +128,21 @@ func _ensure_input_map() -> void:
     _add_key_action("move_back", KEY_S)
     _add_key_action("move_left", KEY_A)
     _add_key_action("move_right", KEY_D)
-    _add_key_action("run", KEY_SHIFT)
+    # SOCOM locomotion is analog, with no separate sprint command. Remove any
+    # legacy action that may survive an editor hot reload.
+    if InputMap.has_action("run"):
+        InputMap.erase_action("run")
     _add_key_action("jump", KEY_SPACE)
     _add_key_action("crouch", KEY_X)
-    _add_key_action("prone", KEY_Q)
+    # Retain semantic actions for replay/network/tests without letting their old
+    # Q/E bindings conflict with the hold-to-peek controls.
+    _ensure_action("prone")
+    _ensure_action("roll")
+    _remove_key_binding("prone", KEY_Q)
+    _remove_key_binding("roll", KEY_E)
+    _add_key_action("peek_left", KEY_Q)
     _add_key_action("dive", KEY_Z)
-    _add_key_action("roll", KEY_E)
+    _add_key_action("peek_right", KEY_E)
     _add_key_action("reset_camera", KEY_R)
     _add_key_action("toggle_calibration", KEY_C)
     _add_key_action("calibration_opacity_down", KEY_BRACKETLEFT)
@@ -104,8 +153,38 @@ func _ensure_input_map() -> void:
     _add_key_action("toggle_debug_hud", KEY_H)
     _add_key_action("toggle_camera_workbench", KEY_P)
     _add_key_action("toggle_camera_visualizer", KEY_V)
+    _add_key_action("toggle_body_stack", KEY_K)
     _add_key_action("toggle_camera_recording", KEY_F9)
     _add_key_action("replay_camera_recording", KEY_F10)
+    _add_key_action("toggle_anim_studio", KEY_F5)
+    _add_key_action("toggle_target_range", KEY_F4)
+    _add_key_action("toggle_trajectory_debug", KEY_F6)
+    _add_key_action("crouch", KEY_C)
+    _add_mouse_action("fire", MOUSE_BUTTON_LEFT)
+
+func _ensure_action(action: StringName) -> void:
+    if not InputMap.has_action(action):
+        InputMap.add_action(action, 0.25)
+
+func _remove_key_binding(action: StringName, keycode: Key) -> void:
+    if not InputMap.has_action(action):
+        return
+    for existing_event in InputMap.action_get_events(action):
+        if existing_event is InputEventKey and existing_event.physical_keycode == keycode:
+            InputMap.action_erase_event(action, existing_event)
+
+func _add_mouse_action(action: StringName, button_index: MouseButton) -> void:
+    if not InputMap.has_action(action):
+        InputMap.add_action(action, 0.10)
+    for existing_event in InputMap.action_get_events(action):
+        if (
+            existing_event is InputEventMouseButton
+            and existing_event.button_index == button_index
+        ):
+            return
+    var event := InputEventMouseButton.new()
+    event.button_index = button_index
+    InputMap.action_add_event(action, event)
 
 func _add_key_action(action: StringName, keycode: Key) -> void:
     if not InputMap.has_action(action):
@@ -123,6 +202,16 @@ func _add_key_action(action: StringName, keycode: Key) -> void:
 func _process(_delta: float) -> void:
     _update_camera_tool_input()
     _update_spectator_camera()
+    if Input.is_action_just_pressed("toggle_anim_studio"):
+        _set_animation_studio_visible(not anim_studio_visible)
+    if Input.is_action_just_pressed("toggle_target_range"):
+        _set_target_range_active(not target_range_active)
+    if Input.is_action_just_pressed("toggle_trajectory_debug"):
+        TracerSystemScript.set_trajectory_debug_enabled(
+            not TracerSystemScript.is_trajectory_debug_enabled()
+        )
+    if anim_studio_visible:
+        _update_animation_studio_state()
     if Input.is_action_just_pressed("toggle_debug_hud"):
         debug_hud_visible = not debug_hud_visible
         if debug_label:
@@ -139,6 +228,12 @@ func _process(_delta: float) -> void:
             camera_visualizer.visible_in_workbench = (
                 debug_hud_visible and camera_visualizer_visible
             )
+        if body_stack_overlay:
+            body_stack_overlay.visible = debug_hud_visible and body_stack_visible
+    if Input.is_action_just_pressed("toggle_body_stack") and debug_hud_visible:
+        body_stack_visible = not body_stack_visible
+        if body_stack_overlay:
+            body_stack_overlay.visible = body_stack_visible
     _update_calibration_input()
     if Input.is_action_just_pressed("toggle_roof_test"):
         roof_test_active = not roof_test_active
@@ -223,7 +318,7 @@ func _process(_delta: float) -> void:
     ):
         var intent: Dictionary = camera_rig.build_local_aim_intent()
         var mannequin = player.get_node("Mannequin")
-        var muzzle: Vector3 = mannequin.muzzle_marker.global_position
+        var muzzle: Vector3 = mannequin.get_active_muzzle_position()
         var exclude: Array[RID] = [player.get_rid()]
         var trace: Dictionary = ShotAuthorityScript.validate_and_trace(
             get_world_3d(),
@@ -291,9 +386,9 @@ func _process(_delta: float) -> void:
         print("CAMERA_REPORT ", JSON.stringify(d))
     debug_label.text = (
         "SOCOM-141 CAMERA LAB\n"
-        + "WASD move | Shift run | Space jump | X crouch | Z dive-prone | Q prone | E roll\n"
-        + "Mouse orbit | R reset | H clean HUD | V camera view | P tune | F9 record | F10 replay\n"
-        + "v2.4 close camera + shared crosshair target\n\n"
+        + "WASD move | Space jump | X/C tap crouch, hold prone | Z dive-prone | Q/E peek | F4 targets\n"
+        + "Mouse orbit | R reset | H clean HUD | K body stack | V camera view | P tune | F9 record | F10 replay\n"
+        + "v2.7 MERGED SOCOM RETICLE + HUMANOID HURTBOX RANGE\n\n"
         + "Vertical FOV     %5.1f°\n" % d.fov
         + "Rear boom       %5.2f m behind player\n" % d.rear_boom_distance
         + "Camera range    %5.2f m diagonal to player\n" % d.distance
@@ -385,6 +480,30 @@ func _build_environment() -> void:
         marker.position = Vector3(i * 1.5, 0.08, -10.0)
         add_child(marker)
 
+func _spawn_target_range() -> void:
+    if not target_dummies.is_empty():
+        return
+    _spawn_target_dummy(Vector3(0.0, 0.0, -8.0), 180.0)
+    _spawn_target_dummy(Vector3(4.0, 0.0, -11.0), -90.0)
+    _spawn_target_dummy(Vector3(-4.0, 0.0, -13.0), 0.0)
+
+func _spawn_target_dummy(target_position: Vector3, target_yaw_degrees: float) -> void:
+    var dummy = TargetDummyScript.new()
+    dummy.position = target_position
+    dummy.rotation_degrees.y = target_yaw_degrees
+    add_child(dummy)
+    target_dummies.append(dummy)
+
+func _set_target_range_active(enabled: bool) -> void:
+    target_range_active = enabled
+    if enabled:
+        _spawn_target_range()
+        return
+    for dummy in target_dummies:
+        if is_instance_valid(dummy):
+            dummy.queue_free()
+    target_dummies.clear()
+
 func _build_player() -> void:
     player = PlayerScript.new()
     player.name = "Player"
@@ -392,6 +511,7 @@ func _build_player() -> void:
     add_child(player)
 
     var collider := CollisionShape3D.new()
+    collider.name = "CollisionShape3D"
     var capsule := CapsuleShape3D.new()
     capsule.radius = 0.38
     capsule.height = 1.85
@@ -402,6 +522,8 @@ func _build_player() -> void:
     var mannequin = MannequinScript.new()
     mannequin.name = "Mannequin"
     player.add_child(mannequin)
+    if target_range_active:
+        _spawn_target_range()
 
 func _set_roof_test_position(enabled: bool) -> void:
     player.velocity = Vector3.ZERO
@@ -474,6 +596,43 @@ func _build_camera() -> void:
         camera_rig.yaw = player.global_rotation.y
 
 
+func _build_weapon_controller() -> void:
+    weapon_controller = WeaponControllerScript.new()
+    weapon_controller.name = "WeaponController"
+    add_child(weapon_controller)
+    weapon_controller.configure(player, camera_rig)
+    weapon_controller.authoritative_shot.connect(_on_authoritative_shot)
+
+func _on_authoritative_shot(result: Dictionary) -> void:
+    var origin := Vector3(result.get("origin", Vector3.ZERO))
+    var hit_position := Vector3(result.get("hit_pos", origin))
+    var hit_normal := Vector3(result.get("normal", Vector3.UP))
+    TracerSystemScript.spawn_muzzle_flash(get_tree(), origin)
+    TracerSystemScript.spawn_tracer(get_tree(), origin, hit_position)
+    TracerSystemScript.spawn_impact_effect(get_tree(), hit_position, hit_normal)
+    if dynamic_reticle:
+        dynamic_reticle.notify_shot(
+            int(result.get("continuous_count", 1)),
+            1.0 + float(result.get("spread_deg", 0.0)) * 0.12
+        )
+    if TracerSystemScript.is_trajectory_debug_enabled():
+        TracerSystemScript.spawn_trajectory_reference(
+            get_tree(), camera_rig.global_position, camera_rig.weapon_aim_point,
+            Color(0.15, 0.95, 1.0)
+        )
+        TracerSystemScript.spawn_trajectory_reference(
+            get_tree(), origin, camera_rig.weapon_aim_point, Color.WHITE
+        )
+    AudioEngineScript.play_gunshot(get_tree())
+    var damage_result: Variant = result.get("damage_result", {})
+    if damage_result is Dictionary and bool((damage_result as Dictionary).get("accepted", false)):
+        if dynamic_reticle:
+            dynamic_reticle.notify_hit()
+        AudioEngineScript.play_hit_confirm(
+            get_tree(), bool((damage_result as Dictionary).get("headshot", false))
+        )
+
+
 func _build_camera_tools() -> void:
     camera_visualizer = CameraVisualizerScript.new()
     camera_visualizer.name = "CameraBoomVisualizer"
@@ -502,6 +661,17 @@ func _build_ui() -> void:
     debug_label.add_theme_font_size_override("font_size", 16)
     layer.add_child(debug_label)
 
+    body_stack_overlay = BodyStackOverlayScript.new()
+    body_stack_overlay.name = "OperatorBodyStackOverlay"
+    var debug_mannequin = player.get_node_or_null("Mannequin")
+    body_stack_overlay.configure(
+        debug_mannequin.production_animation if debug_mannequin else null,
+        camera_rig.camera,
+        player
+    )
+    body_stack_overlay.visible = debug_hud_visible and body_stack_visible
+    layer.add_child(body_stack_overlay)
+
     crosshair = Label.new()
     crosshair.text = "+"
     crosshair.add_theme_font_size_override("font_size", 24)
@@ -509,14 +679,22 @@ func _build_ui() -> void:
     crosshair.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
     crosshair.size = RETICLE_BOX_SIZE
     crosshair.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    crosshair.visible = false
     layer.add_child(crosshair)
     crosshair.position = (
         get_viewport().get_visible_rect().size * 0.5
         - crosshair.size * 0.5
     )
 
+    dynamic_reticle = DynamicReticleScript.new()
+    dynamic_reticle.name = "SocomDynamicReticle"
+    if weapon_controller != null:
+        dynamic_reticle.apply_profile(weapon_controller.reticle_profile)
+    layer.add_child(dynamic_reticle)
+
     _build_calibration_overlay(layer)
     _build_camera_workbench(layer)
+    _build_animation_studio(layer)
 
 
 func _build_camera_workbench(layer: CanvasLayer) -> void:
@@ -555,7 +733,7 @@ func _build_camera_workbench(layer: CanvasLayer) -> void:
     spectator_viewport.add_child(spectator_camera)
 
     var legend := Label.new()
-    legend.text = "DIM = backward booms  •  BRIGHT RAYS = shared crosshair target (7 m scale)"
+    legend.text = "DIM = backward booms  •  CYAN = view  •  WHITE/RED = actual barrel ray (7 m scale)"
     legend.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
     legend.add_theme_font_size_override("font_size", 11)
     spectator_stack.add_child(legend)
@@ -722,7 +900,7 @@ func _save_workbench_preset() -> void:
         workbench_status.text = "Preset saved: %s" % ProjectSettings.globalize_path(path)
 
 func _update_crosshair(data: Dictionary) -> void:
-    if crosshair == null:
+    if crosshair == null or dynamic_reticle == null:
         return
     var viewport_size := get_viewport().get_visible_rect().size
     crosshair.size = RETICLE_BOX_SIZE
@@ -734,6 +912,32 @@ func _update_crosshair(data: Dictionary) -> void:
         Color(1.0, 0.42, 0.30)
         if bool(data.shot_blocked)
         else Color.WHITE
+    )
+    var screen_position := crosshair.position + crosshair.size * 0.5
+    var target_locked := false
+    if camera_rig != null and camera_rig.camera != null:
+        var origin: Vector3 = camera_rig.camera.project_ray_origin(screen_position)
+        var direction: Vector3 = camera_rig.camera.project_ray_normal(screen_position)
+        var query := PhysicsRayQueryParameters3D.create(origin, origin + direction * 150.0)
+        query.exclude = [player.get_rid()]
+        query.collision_mask = 1 | (1 << 2)
+        query.collide_with_areas = true
+        var hit := get_world_3d().direct_space_state.intersect_ray(query)
+        target_locked = (
+            not hit.is_empty()
+            and hit.collider != null
+            and hit.collider.has_method("take_bullet_damage")
+        )
+    var spread_normalized := 0.0
+    if weapon_controller != null and weapon_controller.ballistics != null:
+        spread_normalized = clampf(
+            float(weapon_controller.ballistics.total_current_spread_deg)
+            / maxf(float(weapon_controller.ballistics.max_recoil_bloom_deg), 0.001),
+            0.0,
+            1.0
+        )
+    dynamic_reticle.update_reticle_state(
+        spread_normalized, target_locked, screen_position
     )
 
 func _build_calibration_overlay(layer: CanvasLayer) -> void:
@@ -846,3 +1050,433 @@ func _add_box(box_name: String, size: Vector3, position: Vector3, color: Color) 
     mesh_node.material_override = material
     mesh_node.mesh = box_mesh
     body.add_child(mesh_node)
+
+func _build_animation_studio(layer: CanvasLayer) -> void:
+    anim_studio_panel = PanelContainer.new()
+    anim_studio_panel.name = "AnimationStudioPanel"
+    anim_studio_panel.position = Vector2(18, 88)
+    anim_studio_panel.size = Vector2(430, 610)
+    anim_studio_panel.visible = anim_studio_visible
+    layer.add_child(anim_studio_panel)
+
+    var vbox := VBoxContainer.new()
+    anim_studio_panel.add_child(vbox)
+
+    var title := Label.new()
+    title.text = "[ TACTICAL ANIMATION STUDIO (F5) ]"
+    title.add_theme_font_size_override("font_size", 14)
+    title.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2))
+    vbox.add_child(title)
+
+    anim_studio_state_label = Label.new()
+    anim_studio_state_label.text = "Move with WASD to inspect the live animation tree."
+    anim_studio_state_label.add_theme_font_size_override("font_size", 12)
+    anim_studio_state_label.add_theme_color_override("font_color", Color(0.35, 0.95, 1.0))
+    vbox.add_child(anim_studio_state_label)
+
+    var reload_button := Button.new()
+    reload_button.text = "Reload movement tuning JSON"
+    reload_button.pressed.connect(_reload_operator_tuning)
+    vbox.add_child(reload_button)
+
+    _add_animation_tuning_slider(
+        vbox, "State Blend", 0.02, 0.40,
+        _tuning_value("animation", "state_blend_seconds", 0.12), 0.01,
+        "animation.state_blend_seconds",
+        func(value: float):
+            var d := _get_animation_driver()
+            if d: d.transition_blend_seconds = value
+            _set_operator_tuning("animation", "state_blend_seconds", value)
+    )
+    _add_animation_tuning_slider(
+        vbox, "Torso → Legs", 20.0, 70.0,
+        _tuning_value("movement", "torso_to_legs_degrees", 42.0), 1.0,
+        "movement.torso_to_legs_degrees",
+        func(value: float):
+            if player: player.torso_turn_in_place_limit_deg = value
+            _set_operator_tuning("movement", "torso_to_legs_degrees", value)
+    )
+    _add_animation_tuning_slider(
+        vbox, "Move Speed", 2.0, 10.0,
+        _tuning_value("movement", "move_speed", 6.5), 0.1,
+        "movement.move_speed",
+        func(value: float):
+            if player: player.move_speed = value
+            _set_operator_tuning("movement", "move_speed", value)
+    )
+    _add_animation_tuning_slider(
+        vbox, "Strafe Speed", 1.0, 10.0,
+        _tuning_value("movement", "strafe_speed", 5.6), 0.1,
+        "movement.strafe_speed",
+        func(value: float):
+            if player: player.strafe_speed = value
+            _set_operator_tuning("movement", "strafe_speed", value)
+    )
+    _add_animation_tuning_slider(
+        vbox, "Full Gait Stick", 0.25, 0.95,
+        _tuning_value("movement", "full_gait_input_threshold", 0.72), 0.01,
+        "movement.full_gait_input_threshold",
+        func(value: float):
+            if player: player.full_gait_input_threshold = value
+            _set_operator_tuning("movement", "full_gait_input_threshold", value)
+    )
+    _add_animation_tuning_slider(
+        vbox, "Acceleration", 4.0, 40.0,
+        _tuning_value("movement", "acceleration", 18.0), 0.5,
+        "movement.acceleration",
+        func(value: float):
+            if player: player.acceleration = value
+            _set_operator_tuning("movement", "acceleration", value)
+    )
+    _add_animation_tuning_slider(
+        vbox, "Braking", 4.0, 50.0,
+        _tuning_value("movement", "braking_acceleration", 26.0), 0.5,
+        "movement.braking_acceleration",
+        func(value: float):
+            if player: player.braking_acceleration = value
+            _set_operator_tuning("movement", "braking_acceleration", value)
+    )
+    _add_animation_tuning_slider(
+        vbox, "Reversal", 4.0, 50.0,
+        _tuning_value("movement", "reversal_acceleration", 22.0), 0.5,
+        "movement.reversal_acceleration",
+        func(value: float):
+            if player: player.reversal_acceleration = value
+            _set_operator_tuning("movement", "reversal_acceleration", value)
+    )
+
+    # Scale Slider
+    var scale_hbox := HBoxContainer.new()
+    vbox.add_child(scale_hbox)
+    var scale_lbl := Label.new()
+    scale_lbl.text = "Trooper Scale: "
+    scale_lbl.add_theme_font_size_override("font_size", 11)
+    scale_hbox.add_child(scale_lbl)
+    var scale_val := Label.new()
+    scale_val.text = "%.1fx" % _tuning_value(
+        "animation", "operator_scale", 62.0
+    )
+    scale_val.add_theme_font_size_override("font_size", 11)
+    scale_val.add_theme_color_override("font_color", Color(0.2, 1.0, 0.6))
+    var scale_slider := HSlider.new()
+    scale_slider.min_value = 40.0
+    scale_slider.max_value = 85.0
+    scale_slider.value = _tuning_value("animation", "operator_scale", 62.0)
+    scale_slider.step = 1.0
+    scale_slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    scale_slider.value_changed.connect(func(v):
+        scale_val.text = "%.1fx" % v
+        var d := _get_animation_driver()
+        if d: d.set_trooper_scale(v)
+        _set_operator_tuning("animation", "operator_scale", v)
+    )
+    scale_hbox.add_child(scale_slider)
+    scale_hbox.add_child(scale_val)
+    anim_tuning_sliders["animation.operator_scale"] = scale_slider
+
+    # Dive Roll Duration Trim Slider
+    var dive_hbox := HBoxContainer.new()
+    vbox.add_child(dive_hbox)
+    var dive_lbl := Label.new()
+    dive_lbl.text = "Dive Trim: "
+    dive_lbl.add_theme_font_size_override("font_size", 11)
+    dive_hbox.add_child(dive_lbl)
+    var dive_val := Label.new()
+    dive_val.text = "%.2fs" % _tuning_value(
+        "animation", "dive_trim_seconds", 0.78
+    )
+    dive_val.add_theme_font_size_override("font_size", 11)
+    dive_val.add_theme_color_override("font_color", Color(0.2, 1.0, 0.6))
+    var dive_slider := HSlider.new()
+    dive_slider.min_value = 0.40
+    dive_slider.max_value = 1.60
+    dive_slider.value = _tuning_value("animation", "dive_trim_seconds", 0.78)
+    dive_slider.step = 0.02
+    dive_slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    dive_slider.value_changed.connect(func(v):
+        dive_val.text = "%.2fs" % v
+        var d := _get_animation_driver()
+        if d: d.dive_roll_trim_duration = v
+        _set_operator_tuning("animation", "dive_trim_seconds", v)
+    )
+    dive_hbox.add_child(dive_slider)
+    dive_hbox.add_child(dive_val)
+    anim_tuning_sliders["animation.dive_trim_seconds"] = dive_slider
+
+    # Quick Action Buttons
+    var action_title := Label.new()
+    action_title.text = "Live Action Triggers:"
+    action_title.add_theme_font_size_override("font_size", 12)
+    vbox.add_child(action_title)
+
+    var grid := GridContainer.new()
+    grid.columns = 2
+    vbox.add_child(grid)
+
+    var actions: Dictionary = {
+        "Dive Roll ➔ Prone": &"dive_roll",
+        "Tactical Roll": &"roll",
+        "Jump Up": &"jump_up",
+        "Jump Down": &"jump_down",
+        "Prone Fire": &"prone_fire",
+        "Prone Reload": &"prone_reload",
+        "Prone Stop Forward": &"prone_stop_forward",
+        "Prone Stop Back": &"prone_stop_backward",
+        "Rifle Fire": &"combat_fire",
+        "Crouch Fire": &"crouch_fire",
+        "Rifle Reload": &"reload",
+        "Quick Grenade Toss": &"grenade_toss",
+        "Full Grenade Throw": &"grenade_throw",
+        "Climb Loop": &"climb",
+        "Kneel To Prone": &"crouch_to_prone",
+        "Crouch To Stand": &"crouch_to_stand",
+        "Jump Forward Take": &"jump_forward_action",
+        "Jump Away Take": &"jump_backward_action",
+        "Death From Right": &"death_right",
+    }
+
+    for label_text in actions.keys():
+        var btn := Button.new()
+        btn.text = label_text
+        btn.add_theme_font_size_override("font_size", 11)
+        var clip_id: StringName = actions[label_text]
+        btn.pressed.connect(func():
+            var d := _get_animation_driver()
+            if d: d.play_action(clip_id, 0.08)
+        )
+        grid.add_child(btn)
+
+    var legend := Label.new()
+    legend.text = (
+        "\nControls: WASD/left stick movement strength controls shuffle-to-tactical-run | Space jump\n"
+        + "X/C crouch (hold prone) | Z dive-prone | Q/E peek | Left Click fire | F4 targets | F5 studio\n"
+        + "Clip map: config/operator_animation_map.json (restart after map edits)"
+    )
+    legend.add_theme_font_size_override("font_size", 10)
+    legend.add_theme_color_override("font_color", Color(0.7, 0.75, 0.8))
+    vbox.add_child(legend)
+
+func _add_animation_tuning_slider(
+    parent: VBoxContainer,
+    label_text: String,
+    minimum: float,
+    maximum: float,
+    initial: float,
+    step: float,
+    setting_id: String,
+    changed: Callable
+) -> void:
+    var row := HBoxContainer.new()
+    parent.add_child(row)
+    var label := Label.new()
+    label.text = label_text + ":"
+    label.custom_minimum_size.x = 92.0
+    label.add_theme_font_size_override("font_size", 11)
+    row.add_child(label)
+    var slider := HSlider.new()
+    slider.min_value = minimum
+    slider.max_value = maximum
+    slider.value = initial
+    slider.step = step
+    slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    row.add_child(slider)
+    var value_label := Label.new()
+    value_label.text = "%.2f" % initial
+    value_label.custom_minimum_size.x = 48.0
+    value_label.add_theme_font_size_override("font_size", 11)
+    row.add_child(value_label)
+    anim_tuning_sliders[setting_id] = slider
+    slider.value_changed.connect(func(value: float):
+        value_label.text = "%.2f" % value
+        changed.call(value)
+    )
+
+func _set_animation_studio_visible(enabled: bool) -> void:
+    anim_studio_visible = enabled
+    if anim_studio_panel:
+        anim_studio_panel.visible = enabled
+    _set_animation_studio_input_mode(enabled)
+
+func _set_animation_studio_input_mode(enabled: bool) -> void:
+    if camera_rig == null:
+        return
+    if enabled:
+        Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+        camera_rig.orbit_input_enabled = false
+    elif not workbench_visible:
+        Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+        if audit_recorder == null or not audit_recorder.replaying:
+            camera_rig.orbit_input_enabled = true
+
+func _default_operator_tuning() -> Dictionary:
+    return {
+        "version": 1,
+        "studio_open_on_start": false,
+        "movement": {
+            "move_speed": 6.5,
+            "strafe_speed": 5.6,
+            "full_gait_input_threshold": 0.72,
+            "crouch_speed": 2.6,
+            "prone_speed": 1.25,
+            "acceleration": 18.0,
+            "braking_acceleration": 26.0,
+            "reversal_acceleration": 22.0,
+            "torso_to_legs_degrees": 42.0,
+        },
+        "animation": {
+            "state_blend_seconds": 0.12,
+            "dive_trim_seconds": 0.78,
+            "roll_trim_seconds": 0.62,
+            "operator_scale": 62.0,
+        },
+        "adaptive_intent": {
+            "enabled": false,
+            "decision_rate_hz": 2.0,
+            "maximum_intent_age_seconds": 0.75,
+        },
+    }
+
+func _load_operator_tuning() -> void:
+    operator_tuning = _default_operator_tuning()
+    if not FileAccess.file_exists(OPERATOR_TUNING_PATH):
+        return
+    var file := FileAccess.open(OPERATOR_TUNING_PATH, FileAccess.READ)
+    var parsed: Variant = JSON.parse_string(file.get_as_text()) if file else null
+    if not (parsed is Dictionary):
+        push_warning("Operator tuning JSON is invalid; using safe defaults")
+        return
+    for section_name in (parsed as Dictionary).keys():
+        var incoming: Variant = (parsed as Dictionary)[section_name]
+        if section_name == "movement" and incoming is Dictionary:
+            var migrated_movement := (incoming as Dictionary).duplicate(true)
+            if not migrated_movement.has("move_speed"):
+                migrated_movement["move_speed"] = float(
+                    migrated_movement.get("run_speed", migrated_movement.get("walk_speed", 6.5))
+                )
+            migrated_movement.erase("walk_speed")
+            migrated_movement.erase("run_speed")
+            incoming = migrated_movement
+        if incoming is Dictionary and operator_tuning.get(section_name) is Dictionary:
+            var merged: Dictionary = (operator_tuning[section_name] as Dictionary).duplicate(true)
+            merged.merge(incoming as Dictionary, true)
+            operator_tuning[section_name] = merged
+        else:
+            operator_tuning[section_name] = incoming
+
+func _apply_operator_tuning() -> void:
+    if player != null:
+        player.move_speed = _tuning_value("movement", "move_speed", 6.5)
+        player.strafe_speed = _tuning_value("movement", "strafe_speed", 5.6)
+        player.full_gait_input_threshold = _tuning_value(
+            "movement", "full_gait_input_threshold", 0.72
+        )
+        player.crouch_speed = _tuning_value("movement", "crouch_speed", 2.6)
+        player.prone_speed = _tuning_value("movement", "prone_speed", 1.25)
+        player.acceleration = _tuning_value("movement", "acceleration", 18.0)
+        player.braking_acceleration = _tuning_value(
+            "movement", "braking_acceleration", 26.0
+        )
+        player.reversal_acceleration = _tuning_value(
+            "movement", "reversal_acceleration", 22.0
+        )
+        player.torso_turn_in_place_limit_deg = _tuning_value(
+            "movement", "torso_to_legs_degrees", 42.0
+        )
+    var driver := _get_animation_driver()
+    if driver != null:
+        driver.transition_blend_seconds = _tuning_value(
+            "animation", "state_blend_seconds", 0.12
+        )
+        driver.dive_roll_trim_duration = _tuning_value(
+            "animation", "dive_trim_seconds", 0.78
+        )
+        driver.roll_trim_duration = _tuning_value(
+            "animation", "roll_trim_seconds", 0.62
+        )
+        driver.set_trooper_scale(_tuning_value("animation", "operator_scale", 62.0))
+
+func _tuning_value(section_name: String, key: String, fallback: float) -> float:
+    var section: Variant = operator_tuning.get(section_name, {})
+    if not (section is Dictionary):
+        return fallback
+    return float((section as Dictionary).get(key, fallback))
+
+func _set_operator_tuning(section_name: String, key: String, value: float) -> void:
+    var current_section: Variant = operator_tuning.get(section_name, {})
+    var section: Dictionary = (
+        (current_section as Dictionary).duplicate(true)
+        if current_section is Dictionary
+        else {}
+    )
+    section[key] = value
+    operator_tuning[section_name] = section
+    _save_operator_tuning()
+
+func _save_operator_tuning() -> void:
+    var file := FileAccess.open(OPERATOR_TUNING_PATH, FileAccess.WRITE)
+    if file != null:
+        file.store_string(JSON.stringify(operator_tuning, "  "))
+
+func _reload_operator_tuning() -> void:
+    _load_operator_tuning()
+    _apply_operator_tuning()
+    for setting_id in anim_tuning_sliders.keys():
+        var parts := str(setting_id).split(".", false, 1)
+        if parts.size() != 2:
+            continue
+        var slider := anim_tuning_sliders[setting_id] as HSlider
+        slider.value = _tuning_value(parts[0], parts[1], slider.value)
+
+func _update_animation_studio_state() -> void:
+    if anim_studio_state_label == null or player == null:
+        return
+    var driver := _get_animation_driver()
+    if driver == null:
+        anim_studio_state_label.text = "Animation driver is not available."
+        return
+    var snapshot := driver.get_animation_debug_state()
+    var resource_path := str(snapshot.get("resource_path", ""))
+    var source_label := (
+        "unmapped"
+        if resource_path.is_empty()
+        else resource_path.get_file()
+    )
+    var local_velocity: Vector3 = player.global_basis.inverse() * player.velocity
+    var adaptive: Variant = operator_tuning.get("adaptive_intent", {})
+    var adaptive_enabled: bool = (
+        bool((adaptive as Dictionary).get("enabled", false))
+        if adaptive is Dictionary
+        else false
+    )
+    var adaptive_rate: float = (
+        float((adaptive as Dictionary).get("decision_rate_hz", 2.0))
+        if adaptive is Dictionary
+        else 2.0
+    )
+    anim_studio_state_label.text = (
+        "STATE  %s  (from %s)\n"
+        + "  ↓\n"
+        + "CLIP   %s  (from %s)\n"
+        + "  ↓\n"
+        + "FBX    %s  • take %s\n"
+        + "MOVE   X %+.2f  FWD %+.2f  VERT %+.2f\n"
+        + "ADAPTIVE INTENT  %s @ %.1f Hz  (never bone authority)"
+    ) % [
+        snapshot.get("gameplay_state", &""),
+        snapshot.get("previous_gameplay_state", &""),
+        snapshot.get("logical_clip", &""),
+        snapshot.get("previous_clip", &""),
+        source_label,
+        snapshot.get("source_take", &""),
+        local_velocity.x,
+        -local_velocity.z,
+        player.velocity.y,
+        "ON" if adaptive_enabled else "OFF",
+        adaptive_rate,
+    ]
+
+func _get_animation_driver() -> SocomOperatorAnimationDriver:
+    if player == null: return null
+    var mannequin = player.get_node_or_null("Mannequin")
+    if mannequin == null: return null
+    return mannequin.get_node_or_null("ProductionAnimation") as SocomOperatorAnimationDriver

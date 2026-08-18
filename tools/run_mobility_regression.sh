@@ -12,12 +12,12 @@ mkdir -p "$report_dir"
   --path "$project_dir" \
   --script res://tools/mobility_regression.gd
 
-if rg -q 'SCRIPT ERROR|Parse Error|MOBILITY_CHECK FAIL|MOBILITY_REGRESSION FAIL' "$report_dir/mobility.log"; then
+if grep -E -q 'SCRIPT ERROR|Parse Error|MOBILITY_CHECK FAIL|MOBILITY_REGRESSION FAIL' "$report_dir/mobility.log"; then
   print -u2 "FAIL: mobility regression reported an error"
   exit 1
 fi
 
-if ! rg -q 'MOBILITY_REGRESSION PASS' "$report_dir/mobility.log"; then
+if ! grep -E -q 'MOBILITY_REGRESSION PASS' "$report_dir/mobility.log"; then
   print -u2 "FAIL: mobility regression did not complete"
   exit 1
 fi

@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "weapon_family": "CUSTOM_BODY",
+  "layers": {
+    "lower_body": "",
+    "torso": "",
+    "left_arm": "",
+    "right_arm": "",
+    "head": ""
+  },
+  "note": "Bone-masked animation sources. Gameplay aim remains authoritative over the final head and weapon pose."
+}

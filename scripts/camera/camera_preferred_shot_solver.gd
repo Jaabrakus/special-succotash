@@ -7,6 +7,10 @@ func configure(camera_rig) -> void:
     rig = camera_rig
 
 func preferred_position() -> Vector3:
+    var prone_amount := prone_stance_amount()
+    var peek_amount: float = 0.0
+    if rig.target != null and rig.target.has_method("get_peek_amount"):
+        peek_amount = clampf(float(rig.target.call("get_peek_amount")), -1.0, 1.0)
     var anchor: Vector3 = (
         rig.target.global_position
         + rig.movement_lead
@@ -51,6 +55,7 @@ func preferred_position() -> Vector3:
         + back * shot_distance
         + Vector3.UP * (
             shot_height
+            - prone_amount * rig.profile.prone_preferred_camera_drop
             + rig.downward_crane_amount * rig.profile.max_downward_camera_raise
             + rig.downward_ledge_raise
         )
@@ -60,6 +65,7 @@ func preferred_position() -> Vector3:
         + side * (
             shot_shoulder
             + rig.downward_crane_amount * rig.profile.max_downward_camera_side
+            + peek_amount * rig.profile.peek_camera_lateral_offset
         )
     )
 
@@ -78,6 +84,28 @@ func low_stance_amount() -> float:
         (rig.profile.low_stance_head_height_start - head_height) / stance_range,
         0.0,
         1.0
+    )
+
+func prone_stance_amount() -> float:
+    if rig.target == null or rig.head_marker == null:
+        return 0.0
+    var head_height: float = (
+        rig.head_marker.global_position.y - rig.target.global_position.y
+    )
+    var stance_range: float = maxf(
+        rig.profile.prone_camera_head_height_start
+            - rig.profile.prone_camera_head_height_full,
+        0.001
+    )
+    return smoothstep(
+        0.0,
+        1.0,
+        clampf(
+            (rig.profile.prone_camera_head_height_start - head_height)
+                / stance_range,
+            0.0,
+            1.0
+        )
     )
 
 func update_environment_state(delta: float) -> void:

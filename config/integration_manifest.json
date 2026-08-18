@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "project_id": "socom-141",
+  "authoritative_branch": "movement-animation-integration",
+  "runtime_entry_scene": "res://main.tscn",
+  "labs": [
+    {
+      "id": "camera_gameplay",
+      "label": "Camera + Playable Range",
+      "scene": "res://main.tscn",
+      "controller": "res://scripts/main.gd",
+      "shared_contracts": [
+        "res://scripts/camera/socom_camera.gd",
+        "res://scripts/camera/camera_aim_resolver.gd",
+        "res://scripts/player/test_mannequin.gd",
+        "res://scripts/player/operator_animation_driver.gd",
+        "res://scripts/weapons/socom_weapon_controller.gd",
+        "res://scripts/network/socom_shot_authority.gd"
+      ]
+    },
+    {
+      "id": "animation",
+      "label": "Operator Animation Studio",
+      "scene": "res://animation_library_lab.tscn",
+      "controller": "res://scripts/labs/operator_animation_lab.gd",
+      "shared_contracts": [
+        "res://scripts/player/operator_animation_profile.gd",
+        "res://scripts/player/operator_asset_runtime.gd",
+        "res://scripts/player/operator_locomotion_blend_tree.gd",
+        "res://scripts/player/operator_posture_layer.gd",
+        "res://scripts/player/operator_ik_contract.gd"
+      ]
+    },
+    {
+      "id": "weapon",
+      "label": "Weapon + Hand Gunsmith",
+      "scene": "res://gun_calibration_lab.tscn",
+      "controller": "res://scripts/labs/gun_calibration_lab.gd",
+      "shared_contracts": [
+        "res://scripts/player/operator_animation_profile.gd",
+        "res://scripts/weapons/weapon_animation_profile.gd",
+        "res://scripts/player/weapon_ownership_contract.gd"
+      ]
+    }
+  ],
+  "authority_contracts": [
+    {
+      "name": "movement",
+      "owner": "res://scripts/player/player_controller.gd",
+      "rule": "CharacterBody3D owns position, velocity, stance, and collision."
+    },
+    {
+      "name": "aim",
+      "owner": "res://scripts/camera/camera_aim_resolver.gd",
+      "rule": "Mouse or right-stick intent owns yaw, pitch, and the shared reticle target."
+    },
+    {
+      "name": "weapon",
+      "owner": "res://scripts/weapons/socom_weapon_controller.gd",
+      "rule": "The authoritative muzzle validates shots toward the shared target."
+    },
+    {
+      "name": "animation",
+      "owner": "res://scripts/player/operator_animation_driver.gd",
+      "rule": "Animation and IK consume gameplay state and never move the authoritative body."
+    }
+  ],
+  "gates": {
+    "quick": [
+      "res://tools/integration_manifest_regression.gd",
+      "res://tools/studio_navigation_regression.gd",
+      "res://tools/validate_operator_configs.gd",
+      "res://tools/operator_animation_regression.gd",
+      "res://tools/operator_weapon_pose_regression.gd",
+      "res://tools/mobility_regression.gd",
+      "res://tools/gun_lab_animation_catalog_regression.gd",
+      "res://tools/prone_grounding_regression.gd"
+    ],
+    "full": [
+      "res://tools/operator_locomotion_quality_regression.gd",
+      "res://tools/operator_pose_tool_regression.gd",
+      "res://tools/input_device_ownership_regression.gd",
+      "res://tools/reticle_render_integration.gd",
+      "res://tools/weapon_fire_regression.gd",
+      "res://tools/run_camera_regression.sh"
+    ]
+  }
+}

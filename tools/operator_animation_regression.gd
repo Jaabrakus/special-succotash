@@ -1,52 +1,242 @@
 extends SceneTree
 
 const DRIVER_SCRIPT := preload("res://scripts/player/operator_animation_driver.gd")
+const TRANSITION_SCRIPT := preload("res://scripts/player/operator_transition_state_machine.gd")
+const HIGHLIGHTED_CLIPS_PATH := "res://config/highlighted_animation_candidates.json"
+const FAVORITE_ROUTES_PATH := "res://config/operator_animation_favorite_routes.json"
 
-const MIXAMO_HUMANOID_BONES: Array[StringName] = [
-    &"mixamorig:Hips",
-    &"mixamorig:Spine", &"mixamorig:Spine1", &"mixamorig:Spine2",
-    &"mixamorig:Neck", &"mixamorig:Head", &"mixamorig:HeadTop_End",
-    &"mixamorig:RightShoulder", &"mixamorig:RightArm", &"mixamorig:RightForeArm", &"mixamorig:RightHand",
-    &"mixamorig:RightHandThumb1", &"mixamorig:RightHandThumb2", &"mixamorig:RightHandThumb3", &"mixamorig:RightHandThumb4",
-    &"mixamorig:RightHandIndex1", &"mixamorig:RightHandIndex2", &"mixamorig:RightHandIndex3", &"mixamorig:RightHandIndex4",
-    &"mixamorig:RightHandMiddle1", &"mixamorig:RightHandMiddle2", &"mixamorig:RightHandMiddle3", &"mixamorig:RightHandMiddle4",
-    &"mixamorig:RightHandRing1", &"mixamorig:RightHandRing2", &"mixamorig:RightHandRing3", &"mixamorig:RightHandRing4",
-    &"mixamorig:RightHandPinky1", &"mixamorig:RightHandPinky2", &"mixamorig:RightHandPinky3", &"mixamorig:RightHandPinky4",
-    &"mixamorig:LeftShoulder", &"mixamorig:LeftArm", &"mixamorig:LeftForeArm", &"mixamorig:LeftHand",
-    &"mixamorig:LeftHandThumb1", &"mixamorig:LeftHandThumb2", &"mixamorig:LeftHandThumb3", &"mixamorig:LeftHandThumb4",
-    &"mixamorig:LeftHandIndex1", &"mixamorig:LeftHandIndex2", &"mixamorig:LeftHandIndex3", &"mixamorig:LeftHandIndex4",
-    &"mixamorig:LeftHandMiddle1", &"mixamorig:LeftHandMiddle2", &"mixamorig:LeftHandMiddle3", &"mixamorig:LeftHandMiddle4",
-    &"mixamorig:LeftHandRing1", &"mixamorig:LeftHandRing2", &"mixamorig:LeftHandRing3", &"mixamorig:LeftHandRing4",
-    &"mixamorig:LeftHandPinky1", &"mixamorig:LeftHandPinky2", &"mixamorig:LeftHandPinky3", &"mixamorig:LeftHandPinky4",
-    &"mixamorig:RightUpLeg", &"mixamorig:RightLeg", &"mixamorig:RightFoot", &"mixamorig:RightToeBase", &"mixamorig:RightToe_End",
-    &"mixamorig:LeftUpLeg", &"mixamorig:LeftLeg", &"mixamorig:LeftFoot", &"mixamorig:LeftToeBase", &"mixamorig:LeftToe_End",
+const REQUIRED_CLIPS: Array[StringName] = [
+    &"idle_rifle", &"aim_idle",
+    &"run_forward", &"run_forward_left", &"run_left", &"run_back_left",
+    &"run_backward", &"run_back_right", &"run_right", &"run_forward_right",
+    &"walk_forward", &"walk_forward_left", &"walk_left", &"walk_back_left",
+    &"walk_backward", &"walk_back_right", &"walk_right", &"walk_forward_right",
+    &"idle_crouch", &"crouch_forward", &"crouch_backward",
+    &"idle_prone", &"prone_forward", &"prone_backward",
+    &"dive_roll", &"roll", &"jump_up", &"jump_loop", &"jump_down",
+    &"combat_fire", &"crouch_fire", &"reload",
+    &"death_right", &"climb", &"crouch_to_prone", &"crouch_to_stand",
+    &"grenade_toss", &"grenade_throw",
+    &"jump_forward_action", &"jump_backward_action",
+    &"prone_stop_forward", &"prone_stop_backward",
 ]
 
 var failures: Array[String] = []
 
 func _initialize() -> void:
-    call_deferred("_run")
+    _run.call_deferred()
 
 func _run() -> void:
     var driver = DRIVER_SCRIPT.new()
     root.add_child(driver)
     await process_frame
+    await process_frame
 
     _expect(driver.animation_tree != null and driver.animation_tree.active, "AnimationTree is active")
-    _expect(driver.get_clip_names().size() == 145, "all 122 authored and 23 curated clips are available")
-    _expect(bool(driver.get_visual_debug_data().get("visual_only", false)), "driver declares visual-only authority")
-    _expect(driver.skin_skeleton != null, "visible Mixamo skin skeleton exists")
-    _expect(
-        driver.skin_skeleton != null and driver.skin_skeleton.get_bone_count() == 65,
-        "visible Mixamo skin retains its native 65-bone skeleton"
-    )
-    _check_skeleton(driver)
-    _check_required_clips(driver)
+    _expect(driver.skeleton != null, "runtime trooper skeleton exists")
+    if driver.skeleton != null:
+        _expect(driver.skeleton.get_bone_count() >= 65, "runtime rig retains the 65-bone humanoid contract")
+        _expect(driver.skeleton.find_bone("mixamorig_Hips") >= 0, "runtime rig exposes hips")
+        _expect(driver.skeleton.find_bone("mixamorig_Head") >= 0, "runtime rig exposes head")
 
-    driver.set_visual_inputs(Vector2.ZERO, &"STANDING", 0.0, 0.0, 0.0, false, 0.0)
-    _advance(driver)
-    _expect(driver.current_clip == &"mx_low_ready_idle", "standing curated low-ready idle")
+    for clip_name in REQUIRED_CLIPS:
+        _expect(driver.has_clip(clip_name), "mapped clip exists: %s" % clip_name)
 
+    _check_favorite_route_manifest(driver)
+    _check_semantic_action_routes(driver)
+
+    _check_symmetric_left_locomotion(driver)
+    _check_forward_diagonal_lateral_aliases(driver)
+
+    # Preserve the old selector checks as a fallback contract. Modern
+    # transitions have their own deterministic tests below.
+    driver.animation_profile.transitions["enabled"] = false
+    _check_eight_way_mapping(driver)
+    _check_analog_gait_separation(driver)
+    _check_motion_hysteresis(driver)
+    _check_direction_hysteresis(driver)
+    _check_layered_recoil(driver)
+    _check_mobility_states(driver)
+    _check_modern_blend_graph(driver)
+    _check_instant_lateral_selection(driver)
+    _check_prone_locomotion_continuity(driver)
+    _check_transition_state_machine(driver)
+    _check_crouch_cancels_standing_turn(driver)
+    _check_posture_and_ik_contract(driver)
+
+    driver.queue_free()
+    _finish()
+
+func _check_symmetric_left_locomotion(driver) -> void:
+    var expected_pairs := {
+        &"walk_forward_left": &"walk_forward_right",
+        &"walk_left": &"walk_right",
+        &"walk_back_left": &"walk_back_right",
+        &"run_forward_left": &"run_forward_right",
+        &"run_back_left": &"run_back_right",
+        &"crouch_forward_left": &"crouch_forward_right",
+        &"crouch_back_left": &"crouch_back_right",
+    }
+    for target in expected_pairs:
+        var source: StringName = expected_pairs[target]
+        _expect(
+            driver.animation_profile.mirror_source(target) == source,
+            "%s is configured as the mirror of %s" % [target, source]
+        )
+        _expect(
+            driver.asset_runtime.get_source_animation_name(target) == StringName("mirrored:%s" % source),
+            "%s uses the generated symmetric animation" % target
+        )
+        var library: AnimationLibrary = driver.animation_player.get_animation_library("")
+        var left_animation: Animation = library.get_animation(target)
+        var right_animation: Animation = library.get_animation(source)
+        _expect(
+            _is_exact_sagittal_mirror(left_animation, right_animation),
+            "%s is a track-level sagittal mirror of %s" % [target, source]
+        )
+
+func _check_forward_diagonal_lateral_aliases(driver) -> void:
+    var expected_aliases := {
+        &"run_left": &"run_forward_left",
+        &"run_right": &"run_forward_right",
+        &"crouch_left": &"crouch_forward_left",
+        &"crouch_right": &"crouch_forward_right",
+    }
+    var library: AnimationLibrary = driver.animation_player.get_animation_library("")
+    for lateral_clip: StringName in expected_aliases:
+        var diagonal_clip: StringName = expected_aliases[lateral_clip]
+        _expect(
+            driver.animation_profile.alias_source(lateral_clip) == diagonal_clip,
+            "%s is configured from %s" % [lateral_clip, diagonal_clip]
+        )
+        _expect(
+            driver.asset_runtime.get_source_animation_name(lateral_clip)
+            == StringName("alias:%s" % diagonal_clip),
+            "%s reports the forward-diagonal source take" % lateral_clip
+        )
+        _expect(
+            _animations_match_with_hip_yaw_offset(
+                library.get_animation(lateral_clip),
+                library.get_animation(diagonal_clip),
+                driver.animation_profile.pose_yaw_offset_degrees(lateral_clip)
+            ),
+            "%s preserves %s with only its configured hip yaw" % [lateral_clip, diagonal_clip]
+        )
+
+func _animations_match_with_hip_yaw_offset(
+    target_animation: Animation,
+    source_animation: Animation,
+    yaw_degrees: float
+) -> bool:
+    if target_animation == null or source_animation == null:
+        return false
+    if not is_equal_approx(target_animation.length, source_animation.length):
+        return false
+    if target_animation.get_track_count() != source_animation.get_track_count():
+        return false
+    var yaw_offset := Quaternion(Vector3.UP, deg_to_rad(yaw_degrees))
+    for track in range(source_animation.get_track_count()):
+        if target_animation.track_get_type(track) != source_animation.track_get_type(track):
+            return false
+        if target_animation.track_get_path(track) != source_animation.track_get_path(track):
+            return false
+        if target_animation.track_get_key_count(track) != source_animation.track_get_key_count(track):
+            return false
+        var is_hip_rotation := (
+            source_animation.track_get_type(track) == Animation.TYPE_ROTATION_3D
+            and str(source_animation.track_get_path(track)).ends_with(":mixamorig_Hips")
+        )
+        for key in range(source_animation.track_get_key_count(track)):
+            if not is_equal_approx(
+                target_animation.track_get_key_time(track, key),
+                source_animation.track_get_key_time(track, key)
+            ):
+                return false
+            var source_value: Variant = source_animation.track_get_key_value(track, key)
+            var expected_value: Variant = source_value
+            if is_hip_rotation:
+                expected_value = (yaw_offset * (source_value as Quaternion)).normalized()
+            if not _animation_values_match(
+                target_animation.track_get_key_value(track, key),
+                expected_value
+            ):
+                return false
+    return true
+
+func _animations_match_exactly(first_animation: Animation, second_animation: Animation) -> bool:
+    if first_animation == null or second_animation == null:
+        return false
+    if not is_equal_approx(first_animation.length, second_animation.length):
+        return false
+    if first_animation.get_track_count() != second_animation.get_track_count():
+        return false
+    for track in range(second_animation.get_track_count()):
+        if first_animation.track_get_type(track) != second_animation.track_get_type(track):
+            return false
+        if first_animation.track_get_path(track) != second_animation.track_get_path(track):
+            return false
+        if first_animation.track_get_key_count(track) != second_animation.track_get_key_count(track):
+            return false
+        for key in range(second_animation.track_get_key_count(track)):
+            if not is_equal_approx(
+                first_animation.track_get_key_time(track, key),
+                second_animation.track_get_key_time(track, key)
+            ):
+                return false
+            if not _animation_values_match(
+                first_animation.track_get_key_value(track, key),
+                second_animation.track_get_key_value(track, key)
+            ):
+                return false
+    return true
+
+func _animation_values_match(left_value: Variant, right_value: Variant) -> bool:
+    if typeof(left_value) != typeof(right_value):
+        return false
+    if left_value is Vector3:
+        return (left_value as Vector3).is_equal_approx(right_value as Vector3)
+    if left_value is Quaternion:
+        return absf((left_value as Quaternion).normalized().dot((right_value as Quaternion).normalized())) >= 0.9999
+    if left_value is float:
+        return is_equal_approx(left_value, right_value)
+    return left_value == right_value
+
+func _is_exact_sagittal_mirror(left_animation: Animation, right_animation: Animation) -> bool:
+    if left_animation == null or right_animation == null:
+        return false
+    if not is_equal_approx(left_animation.length, right_animation.length):
+        return false
+    if left_animation.get_track_count() != right_animation.get_track_count():
+        return false
+    var reflection := Basis.from_scale(Vector3(-1.0, 1.0, 1.0))
+    for right_track in range(right_animation.get_track_count()):
+        var track_type := right_animation.track_get_type(right_track)
+        var mirrored_path := NodePath(_swap_left_right(str(right_animation.track_get_path(right_track))))
+        var left_track := left_animation.find_track(mirrored_path, track_type)
+        if left_track < 0:
+            return false
+        if left_animation.track_get_key_count(left_track) != right_animation.track_get_key_count(right_track):
+            return false
+        for key in range(right_animation.track_get_key_count(right_track)):
+            if track_type == Animation.TYPE_POSITION_3D:
+                var right_position: Vector3 = right_animation.track_get_key_value(right_track, key)
+                var expected_position := Vector3(-right_position.x, right_position.y, right_position.z)
+                var left_position: Vector3 = left_animation.track_get_key_value(left_track, key)
+                if not left_position.is_equal_approx(expected_position):
+                    return false
+            elif track_type == Animation.TYPE_ROTATION_3D:
+                var right_rotation: Quaternion = right_animation.track_get_key_value(right_track, key)
+                var expected_basis := reflection * Basis(right_rotation) * reflection
+                var expected_rotation := expected_basis.get_rotation_quaternion().normalized()
+                var left_rotation: Quaternion = left_animation.track_get_key_value(left_track, key)
+                if absf(left_rotation.normalized().dot(expected_rotation)) < 0.9999:
+                    return false
+    return true
+
+func _swap_left_right(path: String) -> String:
+    return path.replace("Left", "__MIRROR_SIDE__").replace("Right", "Left").replace("__MIRROR_SIDE__", "Right")
+
+func _check_eight_way_mapping(driver) -> void:
     var directions := {
         "forward": Vector2(0.0, 1.0),
         "forward_right": Vector2(1.0, 1.0).normalized(),
@@ -58,123 +248,438 @@ func _run() -> void:
         "forward_left": Vector2(-1.0, 1.0).normalized(),
     }
     for suffix in directions:
-        var direction: Vector2 = directions[suffix]
-        driver.set_visual_inputs(direction, &"STANDING", 0.0, 0.0, 0.0, false, 0.0, 0.45)
+        _set_motion(driver, Vector2.ZERO, 0.0)
         _advance(driver)
-        _expect(driver.current_clip == StringName("mx_low_ready_walk_%s" % suffix), "curated low-ready walk %s" % suffix)
-        driver.set_visual_inputs(direction, &"STANDING", 0.0, 0.0, 0.0, false, 0.0, 0.90)
+        _set_motion(driver, directions[suffix], 0.8)
         _advance(driver)
-        _expect(driver.current_clip == StringName("mx_low_ready_run_%s" % suffix), "curated low-ready run %s" % suffix)
-        driver.set_visual_inputs(direction, &"CROUCHED", 0.0, 0.0, 0.0, false, 0.0, 0.55)
+        _expect(
+            driver.current_clip == StringName("run_%s" % suffix),
+            "8-way movement selects %s" % suffix
+        )
+
+func _check_motion_hysteresis(driver) -> void:
+    _set_motion(driver, Vector2.ZERO, 0.0)
+    _advance(driver)
+    _expect(driver.current_clip == &"aim_idle", "standing still selects ready idle")
+
+    _set_motion(driver, Vector2(0.0, 1.0), 0.11)
+    _advance(driver)
+    _expect(driver.current_clip == &"run_forward", "movement starts after the enter threshold")
+
+    _set_motion(driver, Vector2(0.0, 1.0), 0.07)
+    _advance(driver)
+    _expect(driver.current_clip == &"run_forward", "small speed noise does not drop the gait")
+
+    _set_motion(driver, Vector2(0.0, 1.0), 0.04)
+    _advance(driver)
+    _expect(driver.current_clip == &"aim_idle", "movement stops after the lower exit threshold")
+
+func _check_analog_gait_separation(driver) -> void:
+    _set_motion(driver, Vector2.ZERO, 0.0)
+    _advance(driver)
+    _set_motion(driver, Vector2(1.0, 0.0), 0.8, &"STANDING", 0.0, &"WALK")
+    _advance(driver)
+    _expect(driver.current_clip == &"walk_right", "normal movement uses the rifle-walk matrix")
+
+    _set_motion(driver, Vector2(1.0, 0.0), 0.8, &"STANDING", 0.0, &"FULL")
+    _advance(driver)
+    _expect(driver.current_clip == &"run_right", "full-stick movement uses the quick tactical matrix")
+    var snapshot: Dictionary = driver.get_animation_debug_state()
+    _expect(snapshot.get("movement_gait") == &"FULL", "animation debug exposes full-stick gait")
+
+func _check_direction_hysteresis(driver) -> void:
+    _set_motion(driver, Vector2.ZERO, 0.0)
+    _advance(driver)
+
+    _set_motion(driver, _direction_at_degrees(20.0), 0.8)
+    _advance(driver)
+    _expect(driver.current_clip == &"run_forward", "20-degree movement remains forward")
+
+    _set_motion(driver, _direction_at_degrees(24.0), 0.8)
+    _advance(driver)
+    _expect(driver.current_clip == &"run_forward", "boundary noise does not chatter into forward-right")
+
+    _set_motion(driver, _direction_at_degrees(31.0), 0.8)
+    _advance(driver)
+    _expect(driver.current_clip == &"run_forward_right", "clear direction intent changes to forward-right")
+
+    _set_motion(driver, _direction_at_degrees(20.0), 0.8)
+    _advance(driver)
+    _expect(driver.current_clip == &"run_forward_right", "reverse boundary noise keeps forward-right stable")
+
+    _set_motion(driver, _direction_at_degrees(10.0), 0.8)
+    _advance(driver)
+    _expect(driver.current_clip == &"run_forward", "clear reverse intent returns to forward")
+
+func _check_layered_recoil(driver) -> void:
+    _set_motion(driver, Vector2(0.0, 1.0), 0.8)
+    _advance(driver)
+    var gait_before_fire: StringName = driver.current_clip
+    _expect(driver.notify_fired(), "fire recoil request is accepted")
+    _advance(driver)
+    var snapshot: Dictionary = driver.get_animation_debug_state()
+    _expect(driver.current_clip == gait_before_fire, "firing never restarts or replaces the leg loop")
+    _expect(driver.requested_action == &"", "fire recoil does not claim full-body action authority")
+    _expect(bool(snapshot.get("upper_body_recoil_layer", false)), "fire recoil is an upper-body layer")
+    _expect(float(snapshot.get("recoil_weight", 0.0)) > 0.0, "fire recoil produces a live additive impulse")
+
+func _check_mobility_states(driver) -> void:
+    _set_motion(driver, Vector2(0.0, 1.0), 0.8, &"DIVING")
+    _advance(driver)
+    _expect(driver.current_clip == &"dive_roll", "dive state selects the dive motion")
+    _set_motion(driver, Vector2(1.0, 0.0), 0.8, &"ROLLING")
+    _advance(driver)
+    _expect(driver.current_clip == &"roll", "roll state selects the roll motion")
+    _set_motion(driver, Vector2.ZERO, 0.0, &"AIRBORNE", 2.0)
+    _advance(driver)
+    _expect(driver.current_clip == &"jump_up", "positive airborne velocity selects jump-up")
+    _set_motion(driver, Vector2.ZERO, 0.0, &"AIRBORNE", -2.0)
+    _advance(driver)
+    _expect(driver.current_clip == &"jump_down", "negative airborne velocity selects jump-down")
+
+func _check_modern_blend_graph(driver) -> void:
+    _set_motion(driver, Vector2(0.0, 1.0), 0.25, &"STANDING", 0.0, &"WALK", 1.45)
+    for _frame in range(30):
         _advance(driver)
-        _expect(driver.current_clip == StringName("low_ready_crouch_%s" % suffix), "low-ready crouch %s" % suffix)
-
-    for suffix in ["forward", "backward", "left", "right"]:
-        var direction: Vector2 = directions[suffix]
-        driver.set_visual_inputs(direction, &"PRONE", 0.0, 0.0, 0.0, false, 0.0, 0.45)
+    var slow: Dictionary = driver.get_animation_debug_state()
+    _set_motion(driver, Vector2(0.0, 1.0), 0.95, &"STANDING", 0.0, &"FULL", 5.45)
+    for _frame in range(30):
         _advance(driver)
-        _expect(driver.current_clip == StringName("low_ready_prone_%s" % suffix), "low-ready prone %s" % suffix)
+    var fast: Dictionary = driver.get_animation_debug_state()
+    _expect(bool(fast.get("modern_enabled", false)), "modern locomotion route is active")
+    var phase_before: float = float(slow.get("shared_phase", -1.0))
+    var phase_after: float = float(fast.get("shared_phase", -1.0))
+    _expect(
+        phase_before >= 0.0 and phase_after >= 0.0 and not is_equal_approx(phase_before, phase_after),
+        "locomotion exposes a live advancing cycle phase for measured contact tests"
+    )
+    _expect(float(slow.get("full_gait_weight", 1.0)) < 0.05, "partial input stays on the deliberate gait")
+    _expect(float(fast.get("full_gait_weight", 0.0)) > 0.95, "full input reaches the tactical gait")
+    _expect(
+        float(fast.get("playback_rate", 0.0)) >= 0.72
+        and float(fast.get("playback_rate", 2.0)) <= 1.32,
+        "stride correction stays inside the calibrated playback range"
+    )
+    var blend_root := driver.animation_tree.tree_root as AnimationNodeBlendTree
+    var upper_body_blend := blend_root.get_node(&"standing_upper_body") as AnimationNodeBlend2
+    _expect(
+        upper_body_blend != null and upper_body_blend.filter_enabled,
+        "standing locomotion has an active upper-body replacement mask"
+    )
+    if upper_body_blend != null:
+        for bone_name in [
+            "mixamorig_Spine", "mixamorig_Spine2", "mixamorig_Head",
+            "mixamorig_LeftArm", "mixamorig_RightArm",
+            "mixamorig_LeftHand", "mixamorig_RightHand",
+        ]:
+            _expect(
+                upper_body_blend.is_path_filtered(NodePath(".:%s" % bone_name)),
+                "rifle posture owns upper-body track %s" % bone_name
+            )
+        _expect(
+            not upper_body_blend.is_path_filtered(NodePath(".:mixamorig_Hips"))
+            and not upper_body_blend.is_path_filtered(NodePath(".:mixamorig_LeftLeg"))
+            and not upper_body_blend.is_path_filtered(NodePath(".:mixamorig_RightLeg")),
+            "directional locomotion retains hips and leg ownership"
+        )
+    for transition_clip in [
+        &"start_forward", &"start_backward",
+        &"stop_forward", &"stop_backward", &"run_to_stop",
+        &"turn_90_left", &"turn_90_right",
+    ]:
+        var layer_name := StringName("modern_state_%s_upper_body" % transition_clip)
+        var transition_layer := blend_root.get_node(layer_name) as AnimationNodeBlend2
+        _expect(
+            transition_layer != null and transition_layer.filter_enabled,
+            "%s keeps the upper/lower body split during its transition" % transition_clip
+        )
+        if transition_layer != null:
+            _expect(
+                transition_layer.is_path_filtered(NodePath(".:mixamorig_Spine"))
+                and transition_layer.is_path_filtered(NodePath(".:mixamorig_Head"))
+                and not transition_layer.is_path_filtered(NodePath(".:mixamorig_Hips")),
+                "%s gives legs transition authority while the torso stays reticle-ready" % transition_clip
+            )
 
-    driver.set_visual_inputs(Vector2.ZERO, &"STANDING", 0.4, -0.2, 1.0, false, 0.0)
+func _check_instant_lateral_selection(driver) -> void:
+    _set_motion(driver, Vector2.UP, 0.8, &"STANDING", 0.0, &"FULL", 4.5)
     _advance(driver)
-    _expect(driver.current_clip == &"low_ready_raise", "ready-weight crossing plays raise")
-    _advance(driver, 10.0)
-    _expect(driver.current_clip == &"mx_combat_ready_idle", "raised weapon settles at curated combat-ready idle")
-
-    driver.set_visual_inputs(Vector2.ZERO, &"STANDING", 0.4, -0.2, 1.0, true, 0.0)
+    _set_motion(driver, Vector2.RIGHT, 0.8, &"STANDING", 0.0, &"FULL", 4.5)
     _advance(driver)
-    _expect(driver.current_clip == &"combat_ready_fire", "firing edge plays standing recoil")
-    driver.set_visual_inputs(Vector2.ZERO, &"STANDING", 0.4, -0.2, 1.0, false, 0.0)
-    _advance(driver, 10.0)
-    _expect(driver.current_clip == &"mx_combat_ready_idle", "recoil returns to curated combat-ready idle")
+    var right_snapshot: Dictionary = driver.get_animation_debug_state()
+    var right_direction: Vector2 = right_snapshot.get("smoothed_direction", Vector2.ZERO)
+    _expect(
+        right_direction.x > 0.99 and absf(right_direction.y) < 0.01,
+        "D selects the right lateral locomotion state on its first frame"
+    )
+    _set_motion(driver, Vector2.LEFT, 0.8, &"STANDING", 0.0, &"FULL", 4.5)
+    _advance(driver)
+    var left_snapshot: Dictionary = driver.get_animation_debug_state()
+    var left_direction: Vector2 = left_snapshot.get("smoothed_direction", Vector2.ZERO)
+    _expect(
+        left_direction.x < -0.99 and absf(left_direction.y) < 0.01,
+        "A selects the left lateral locomotion state on its first frame"
+    )
+    _set_crouch_motion(driver, Vector2.LEFT)
+    _advance(driver)
+    _expect(driver.current_clip == &"crouch_left", "crouched A selects the left animation point")
+    _expect(
+        driver.asset_runtime.get_source_animation_name(driver.current_clip)
+        == &"alias:crouch_forward_left",
+        "crouched A renders the forward-left crouch take"
+    )
+    _set_crouch_motion(driver, Vector2.RIGHT)
+    _advance(driver)
+    _expect(driver.current_clip == &"crouch_right", "crouched D selects the right animation point")
+    _expect(
+        driver.asset_runtime.get_source_animation_name(driver.current_clip)
+        == &"alias:crouch_forward_right",
+        "crouched D renders the forward-right crouch take"
+    )
 
-    for posture_name in [&"STANDING", &"CROUCHED", &"PRONE"]:
-        driver.set_visual_inputs(Vector2.ZERO, posture_name, 0.0, 0.0, 1.0, false, 0.85)
+func _set_crouch_motion(driver, direction: Vector2) -> void:
+    driver.set_visual_inputs(
+        direction,
+        &"CROUCHED",
+        0.0,
+        0.0,
+        1.0,
+        false,
+        0.0,
+        1.0,
+        &"CROUCHED",
+        0.0,
+        &"WALK",
+        2.6
+    )
+
+func _check_prone_locomotion_continuity(driver) -> void:
+    var blend_root := driver.animation_tree.tree_root as AnimationNodeBlendTree
+    var prone_space := blend_root.get_node(&"prone_space") as AnimationNodeBlendSpace1D
+    _expect(
+        prone_space != null and prone_space.sync,
+        "prone locomotion owns one synchronized forward/backward cycle rail"
+    )
+    _set_prone_motion(driver, Vector2(0.0, 1.0))
+    for _frame in range(12):
         _advance(driver)
-        var expected: StringName = {
-            &"STANDING": &"compressed_ready_idle",
-            &"CROUCHED": &"compressed_ready_crouch",
-            &"PRONE": &"compressed_ready_prone",
-        }[posture_name]
-        _expect(driver.current_clip == expected, "obstruction selects %s compressed-ready" % posture_name)
+    _expect(driver.current_clip == &"prone_forward", "forward prone selects the crawl cycle")
+    _expect(driver.locomotion_graph.current_state == &"prone", "moving prone uses the continuous prone state")
+    _set_prone_motion(driver, Vector2.LEFT)
+    for _frame in range(4):
+        _advance(driver)
+    _expect(driver.current_clip == &"prone_forward", "left prone steering keeps the forward crawl playhead")
+    _expect(driver.locomotion_graph.current_state == &"prone", "left prone steering never enters a turn clip state")
+    _set_prone_motion(driver, Vector2.RIGHT)
+    for _frame in range(4):
+        _advance(driver)
+    _expect(driver.current_clip == &"prone_forward", "right prone steering keeps the forward crawl playhead")
+    _expect(driver.locomotion_graph.current_state == &"prone", "right prone steering never enters a turn clip state")
+    _set_prone_motion(driver, Vector2(0.0, -1.0))
+    for _frame in range(16):
+        _advance(driver)
+    _expect(driver.current_clip == &"prone_backward", "backward prone retains its authored reverse crawl")
+    _expect(driver.locomotion_graph.current_state == &"prone", "forward/backward prone blend without replacing the state")
 
-    driver.set_visual_inputs(Vector2.ZERO, &"STANDING", 0.0, 0.0, 0.0, false, 0.0)
+func _set_prone_motion(driver, direction: Vector2) -> void:
+    driver.set_visual_inputs(
+        direction,
+        &"PRONE",
+        0.0,
+        0.0,
+        1.0,
+        false,
+        0.0,
+        1.0,
+        &"PRONE",
+        0.0,
+        &"WALK",
+        1.25
+    )
+
+func _check_transition_state_machine(driver) -> void:
+    var machine = TRANSITION_SCRIPT.new()
+    var settings: Dictionary = driver.animation_profile.transitions.duplicate(true)
+    settings["enabled"] = true
+    var available: Dictionary = driver.available_clips
+    var idle: Dictionary = machine.evaluate(Vector2.ZERO, 0.0, &"STANDING", 0.0, available, settings)
+    var start: Dictionary = machine.evaluate(Vector2.UP, 0.8, &"STANDING", 0.0, available, settings)
+    var reverse: Dictionary = machine.evaluate(Vector2.DOWN, 0.8, &"STANDING", 0.0, available, settings)
+    var stop: Dictionary = machine.evaluate(Vector2.ZERO, 0.0, &"STANDING", 0.0, available, settings)
+    machine.reset()
+    var planted: Dictionary = machine.evaluate(
+        Vector2.ZERO,
+        0.0,
+        &"STANDING",
+        deg_to_rad(48.0),
+        available,
+        settings
+    )
+    var crouched_planted: Dictionary = machine.evaluate(
+        Vector2.ZERO,
+        0.0,
+        &"CROUCHED",
+        deg_to_rad(48.0),
+        available,
+        settings
+    )
+    machine.reset()
+    machine.evaluate(Vector2.ZERO, 0.0, &"CROUCHED", 0.0, available, settings)
+    machine.evaluate(Vector2.UP, 0.8, &"CROUCHED", 0.0, available, settings)
+    var crouched_reverse: Dictionary = machine.evaluate(
+        Vector2.DOWN, 0.8, &"CROUCHED", 0.0, available, settings
+    )
+    machine.reset()
+    machine.evaluate(Vector2.ZERO, 0.0, &"PRONE", 0.0, available, settings)
+    machine.evaluate(Vector2(0.0, 1.0), 0.8, &"PRONE", 0.0, available, settings)
+    var prone_forward_stop: Dictionary = machine.evaluate(
+        Vector2.ZERO, 0.0, &"PRONE", 0.0, available, settings
+    )
+    machine.reset()
+    machine.evaluate(Vector2.ZERO, 0.0, &"PRONE", 0.0, available, settings)
+    machine.evaluate(Vector2(0.0, -1.0), 0.8, &"PRONE", 0.0, available, settings)
+    var prone_backward_stop: Dictionary = machine.evaluate(
+        Vector2.ZERO, 0.0, &"PRONE", 0.0, available, settings
+    )
+    _expect(idle["clip"] == &"", "idle does not invent a transition")
+    _expect(start["reason"] == &"start", "movement onset requests a start transition")
+    _expect(reverse["reason"] == &"reversal", "opposed input requests a planted reversal")
+    _expect(stop["reason"] == &"stop", "movement release requests a settle transition")
+    _expect(planted["reason"] == &"planted_turn", "large idle aim error requests a planted turn")
+    _expect(
+        crouched_planted["clip"] == &"",
+        "crouched aim turning never selects a standing planted-turn animation"
+    )
+    _expect(
+        crouched_reverse["clip"] == &"crouch_stop",
+        "crouched reversal stays on a crouched transition"
+    )
+    _expect(
+        prone_forward_stop["clip"] == &"prone_stop_forward",
+        "forward prone movement settles through the selected forward stop (got %s/%s)" % [
+            prone_forward_stop["clip"], prone_forward_stop["reason"]
+        ]
+    )
+    _expect(
+        prone_backward_stop["clip"] == &"prone_stop_backward",
+        "backward prone movement settles through the selected backward stop (got %s/%s)" % [
+            prone_backward_stop["clip"], prone_backward_stop["reason"]
+        ]
+    )
+
+func _check_favorite_route_manifest(driver) -> void:
+    var highlighted := _read_json_dictionary(HIGHLIGHTED_CLIPS_PATH)
+    var manifest := _read_json_dictionary(FAVORITE_ROUTES_PATH)
+    var selected: Array = highlighted.get("selected_clips", [])
+    var assignments: Array = manifest.get("assignments", [])
+    var selected_keys: Dictionary = {}
+    var assigned_keys: Dictionary = {}
+    for raw_entry in selected:
+        if raw_entry is Dictionary:
+            selected_keys[str((raw_entry as Dictionary).get("key", ""))] = true
+    for raw_entry in assignments:
+        if not (raw_entry is Dictionary):
+            continue
+        var entry := raw_entry as Dictionary
+        var key := str(entry.get("key", ""))
+        assigned_keys[key] = true
+        var role := str(entry.get("role", ""))
+        var route := StringName(entry.get("route", ""))
+        if role.begins_with("active_"):
+            _expect(driver.has_clip(route), "active favorite is runtime-wired: %s -> %s" % [key, route])
+    _expect(selected_keys.size() == 54, "all 54 highlighted clips remain preserved")
+    _expect(assigned_keys.size() == selected_keys.size(), "every highlighted clip has one reviewed placement")
+    for key in selected_keys:
+        _expect(assigned_keys.has(key), "highlighted clip has a reviewed route: %s" % key)
+
+func _check_semantic_action_routes(driver) -> void:
+    var profile = driver.animation_profile
+    _expect(profile.warnings.is_empty(), "animation route configuration has no validation warnings")
+    _expect(profile.resolve_semantic_action(&"fire", &"STANDING") == &"combat_fire", "standing fire resolves to the rifle fire take")
+    _expect(profile.resolve_semantic_action(&"fire", &"CROUCHED") == &"crouch_fire", "crouched fire resolves to the selected crouch take")
+    _expect(profile.resolve_semantic_action(&"fire", &"PRONE") == &"prone_fire", "prone fire stays posture-specific")
+    _expect(profile.resolve_semantic_action(&"reload", &"PRONE") == &"prone_reload", "prone reload resolves to the selected prone take")
+    _expect(profile.resolve_semantic_action(&"reload", &"CROUCHED") == &"reload", "standing and crouched reload can share one compatible take")
+    _expect(profile.resolve_semantic_action(&"grenade_quick", &"STANDING") == &"grenade_toss", "quick grenade resolves to the toss take")
+    _expect(profile.resolve_semantic_action(&"grenade_full", &"STANDING") == &"grenade_throw", "full grenade resolves to the throw take")
+    _expect(profile.connected_route(&"standing_backward") == [
+        &"idle_rifle", &"start_backward", &"walk_backward", &"run_backward",
+        &"run_to_stop", &"stop_backward", &"idle_rifle",
+    ], "backward locomotion exposes one connected entrance/loop/exit route")
+    _expect(profile.connected_route(&"prone_forward") == [
+        &"idle_prone", &"prone_forward", &"prone_stop_forward", &"idle_prone",
+    ], "prone locomotion exposes a connected stop route without resetting lateral steering")
+
+func _read_json_dictionary(path: String) -> Dictionary:
+    var file := FileAccess.open(path, FileAccess.READ)
+    var parsed: Variant = JSON.parse_string(file.get_as_text()) if file else null
+    return parsed as Dictionary if parsed is Dictionary else {}
+
+func _check_crouch_cancels_standing_turn(driver) -> void:
+    driver.animation_profile.transitions["enabled"] = true
+    driver.transition_state_machine.reset()
+    driver.set_visual_inputs(
+        Vector2.ZERO, &"STANDING", deg_to_rad(48.0), 0.0,
+        1.0, false, 0.0, 0.0, &"STANDING", 0.0, &"WALK", 0.0
+    )
     _advance(driver)
-    _expect(driver.current_clip == &"combat_ready_lower", "ready-weight crossing plays lower")
-    _advance(driver, 10.0)
-    _expect(driver.current_clip == &"mx_low_ready_idle", "lower settles at curated low ready")
-
-    _check_recovery(driver, &"jump", 1.0, &"low_ready_recover_jump")
-    _check_recovery(driver, &"dive", 1.0, &"low_ready_recover_dive")
-    _check_recovery(driver, &"roll", -1.0, &"low_ready_recover_roll_left")
-    _check_recovery(driver, &"roll", 1.0, &"low_ready_recover_roll_right")
-
-    _expect(driver.play_action(&"rifle_reload"), "legacy reload remains requestable")
+    _expect(
+        driver.requested_action in [&"turn_90_left", &"turn_90_right"],
+        "standing aim turn can begin its planted-turn transition"
+    )
+    driver.set_visual_inputs(
+        Vector2.ZERO, &"CROUCHED", deg_to_rad(48.0), 0.0,
+        1.0, false, 0.0, 0.0, &"STANDING", 0.0, &"WALK", 0.0
+    )
     _advance(driver)
-    _expect(driver.current_clip == &"rifle_reload", "requested reload reaches AnimationTree")
-    _expect(driver.play_action(&"gesture_go"), "legacy squad gesture remains requestable")
+    _expect(
+        driver.requested_action == &"",
+        "entering crouch immediately cancels an in-progress standing turn"
+    )
+    driver.animation_profile.transitions["enabled"] = false
+    driver.transition_state_machine.reset()
+
+func _check_posture_and_ik_contract(driver) -> void:
+    _set_motion(driver, Vector2.ZERO, 0.0, &"STANDING", 0.0, &"WALK", 0.0, deg_to_rad(30.0))
     _advance(driver)
-    _expect(driver.current_clip == &"gesture_go", "requested gesture reaches AnimationTree")
-    _expect(driver.play_action(&"mx_rifle_reload"), "curated Mixamo reload is requestable")
-    _advance(driver)
-    _expect(driver.current_clip == &"mx_rifle_reload", "curated reload reaches AnimationTree")
-    _expect(driver.play_action(&"mx_running_dive_roll"), "curated Mixamo dive roll is requestable")
-    _advance(driver)
-    _expect(driver.current_clip == &"mx_running_dive_roll", "curated dive roll reaches AnimationTree")
+    var snapshot: Dictionary = driver.get_animation_debug_state()
+    var bones: Dictionary = snapshot.get("chain_bones", {})
+    var ik: Dictionary = snapshot.get("ik", {})
+    _expect(bones.size() >= 5, "aim is distributed over the upper-body bone chain")
+    _expect(bool(ik.get("support_hand_chain_ready", false)), "support-hand IK chain is available")
+    _expect(bool(ik.get("left_foot_chain_ready", false)), "left-foot IK chain is available")
+    _expect(bool(ik.get("right_foot_chain_ready", false)), "right-foot IK chain is available")
 
-    driver.queue_free()
-    _finish()
+func _set_motion(
+    driver,
+    direction: Vector2,
+    speed: float,
+    state: StringName = &"STANDING",
+    vertical_speed: float = 0.0,
+    gait: StringName = &"FULL",
+    actual_speed_mps: float = -1.0,
+    aim_yaw: float = 0.0
+) -> void:
+    driver.set_visual_inputs(
+        direction,
+        &"STANDING",
+        aim_yaw,
+        0.0,
+        1.0,
+        false,
+        0.0,
+        speed,
+        state,
+        vertical_speed,
+        gait,
+        actual_speed_mps
+    )
 
-func _check_required_clips(driver) -> void:
-    var required: Array[StringName] = [
-        &"low_ready_idle", &"low_ready_crouch_idle", &"low_ready_prone_idle",
-        &"low_ready_raise", &"combat_ready_idle", &"combat_ready_crouch_idle",
-        &"combat_ready_prone_idle", &"combat_ready_fire", &"combat_ready_crouch_fire",
-        &"combat_ready_prone_fire", &"combat_ready_lower", &"compressed_ready_idle",
-        &"compressed_ready_crouch", &"compressed_ready_prone", &"low_ready_recover_jump",
-        &"low_ready_recover_dive", &"low_ready_recover_roll_left", &"low_ready_recover_roll_right",
-    ]
-    for prefix in ["low_ready_walk", "low_ready_run", "low_ready_crouch"]:
-        for suffix in ["forward", "forward_right", "right", "back_right", "backward", "back_left", "left", "forward_left"]:
-            required.append(StringName("%s_%s" % [prefix, suffix]))
-    for suffix in ["forward", "backward", "left", "right"]:
-        required.append(StringName("low_ready_prone_%s" % suffix))
-    for clip_name in required:
-        _expect(driver.has_clip(clip_name), "clip exists: %s" % clip_name)
-    var curated: Array[StringName] = [
-        &"mx_low_ready_idle", &"mx_combat_ready_idle", &"mx_rifle_reload",
-        &"mx_running_dive_roll", &"mx_kneel_to_prone", &"mx_prone_forward",
-        &"mx_prone_backward",
-    ]
-    for prefix in ["mx_low_ready_walk", "mx_low_ready_run"]:
-        for suffix in ["forward", "forward_right", "right", "back_right", "backward", "back_left", "left", "forward_left"]:
-            curated.append(StringName("%s_%s" % [prefix, suffix]))
-    for clip_name in curated:
-        _expect(driver.has_clip(clip_name), "curated clip exists: %s" % clip_name)
+func _direction_at_degrees(degrees: float) -> Vector2:
+    var radians := deg_to_rad(degrees)
+    return Vector2(sin(radians), cos(radians))
 
-func _check_skeleton(driver) -> void:
-    _expect(driver.skeleton != null, "runtime skeleton exists")
-    if driver.skeleton == null:
-        return
-    _expect(MIXAMO_HUMANOID_BONES.size() == 65, "expected humanoid contract contains 65 bones")
-    var found := 0
-    for bone_name in MIXAMO_HUMANOID_BONES:
-        var runtime_name := StringName(String(bone_name).replace(":", "_"))
-        if driver.skeleton.find_bone(runtime_name) >= 0:
-            found += 1
-        else:
-            _expect(false, "skeleton bone exists: %s" % bone_name)
-    _expect(found == 65, "runtime skeleton exposes all 65 humanoid bones")
-    _expect(driver.skeleton.find_bone(&"root") >= 0, "runtime skeleton retains gameplay root control")
-    _expect(driver.skeleton.find_bone(&"weapon") >= 0, "runtime skeleton retains weapon control")
-
-func _check_recovery(driver, kind: StringName, side: float, expected: StringName) -> void:
-    driver.request_recovery(kind, side)
-    _advance(driver)
-    _expect(driver.current_clip == expected, "%s recovery selects %s" % [kind, expected])
-    _advance(driver, 10.0)
-
-func _advance(driver, delta: float = 0.016) -> void:
+func _advance(driver, delta: float = 1.0 / 60.0) -> void:
     driver._process(delta)
 
 func _expect(condition: bool, label: String) -> void:

@@ -16,6 +16,8 @@ func _run() -> void:
     root.add_child(scene)
     await _step_physics(30)
 
+    _expect(not InputMap.has_action("run"), "no sprint input action is registered")
+
     var player := scene.get_node_or_null("Player") as CharacterBody3D
     _expect(player != null, "player exists")
     if player == null:
@@ -25,24 +27,39 @@ func _run() -> void:
     _expect(player.is_on_floor(), "player settles on the floor")
     _expect(_state(player) == &"STANDING", "initial state is standing")
 
+    await _test_analog_gait_selection(player)
+    await _test_direction_independent_acceleration(player)
+    await _test_braking_and_reversal_response(player)
     await _test_aim_relative_strafing(scene, player)
+    await _test_full_body_peek(player)
 
     await _tap(&"crouch")
     _expect(_state(player) == &"CROUCHED", "crouch enters the crouched state")
-    _expect(_capsule_height(player) < 1.30, "crouch shortens the collision capsule")
+    _expect(
+        _capsule_height(player) > 0.0 and _capsule_height(player) < 1.30,
+        "crouch shortens the named collision capsule"
+    )
     await _capture_pose("crouched")
 
     await _tap(&"prone")
     _expect(_state(player) == &"PRONE", "prone enters the prone state")
-    _expect(_capsule_height(player) < 0.90, "prone shortens the collision capsule")
+    _expect(
+        _capsule_height(player) > 0.0 and _capsule_height(player) < 0.90,
+        "prone shortens the named collision capsule"
+    )
     await _capture_pose("prone")
 
     await _tap(&"prone")
     await _tap(&"crouch")
     _expect(_state(player) == &"STANDING", "stance controls return to standing")
 
+    await _test_stance_clearance(scene, player)
+
     await _test_jump(player)
     await _test_dive(player)
+    await _test_prone_backward_animation(player)
+    await _return_to_standing(player)
+    await _test_stance_hold_dive(player)
     await _return_to_standing(player)
     await _test_roll(player, &"move_right", 1.0, "right")
     await _tap(&"crouch")
@@ -50,26 +67,138 @@ func _run() -> void:
 
     _finish()
 
+func _test_stance_clearance(scene: Node, player: CharacterBody3D) -> void:
+    await _tap(&"crouch")
+    _expect(_state(player) == &"CROUCHED", "clearance test begins crouched")
+    var ceiling := StaticBody3D.new()
+    ceiling.name = "RegressionLowCeiling"
+    var ceiling_shape := CollisionShape3D.new()
+    var box := BoxShape3D.new()
+    box.size = Vector3(1.4, 0.20, 1.4)
+    ceiling_shape.shape = box
+    ceiling.add_child(ceiling_shape)
+    scene.add_child(ceiling)
+    ceiling.global_position = player.global_position + Vector3.UP * 1.48
+    await _step_physics(2)
+    var blocked_stand: bool = bool(player.call("_try_set_posture", 0))
+    _expect(not blocked_stand, "low ceiling rejects the standing stance")
+    _expect(_state(player) == &"CROUCHED", "failed clearance keeps the crouched collider")
+    ceiling.queue_free()
+    await _step_physics(2)
+    var clear_stand: bool = bool(player.call("_try_set_posture", 0))
+    _expect(clear_stand, "standing succeeds after overhead clearance returns")
+    _expect(_state(player) == &"STANDING", "clearance recovery restores standing")
+
+func _test_analog_gait_selection(player: CharacterBody3D) -> void:
+    Input.action_press(&"move_right", 0.4)
+    await physics_frame
+    _expect(
+        StringName(player.call("get_movement_gait_name")) == &"WALK",
+        "partial stick selects walking without a mode button"
+    )
+    Input.action_release(&"move_right")
+    await _step_physics(2)
+
+    Input.action_press(&"move_right", 1.0)
+    await physics_frame
+    _expect(
+        StringName(player.call("get_movement_gait_name")) == &"FULL",
+        "full stick or WASD selects the quick tactical gait"
+    )
+    Input.action_release(&"move_right")
+    player.velocity = Vector3.ZERO
+    await _step_physics(2)
+
+func _test_direction_independent_acceleration(player: CharacterBody3D) -> void:
+    player.velocity = Vector3.ZERO
+    Input.action_press(&"move_right")
+    await physics_frame
+    Input.action_release(&"move_right")
+    var cardinal_speed := Vector2(player.velocity.x, player.velocity.z).length()
+
+    player.velocity = Vector3.ZERO
+    Input.action_press(&"move_forward")
+    Input.action_press(&"move_right")
+    await physics_frame
+    Input.action_release(&"move_forward")
+    Input.action_release(&"move_right")
+    var diagonal_speed := Vector2(player.velocity.x, player.velocity.z).length()
+
+    _expect(cardinal_speed > 0.05, "cardinal movement produces immediate response")
+    _expect(
+        absf(diagonal_speed - cardinal_speed) < 0.025,
+        "diagonal and cardinal acceleration have the same magnitude"
+    )
+    player.velocity = Vector3.ZERO
+    await _step_physics(2)
+
+func _test_braking_and_reversal_response(player: CharacterBody3D) -> void:
+    var top_speed := float(player.get("move_speed"))
+    player.velocity = Vector3.RIGHT * top_speed
+    var stop_start := player.global_position
+    var stop_frames := 0
+    while Vector2(player.velocity.x, player.velocity.z).length() > 0.10 and stop_frames < 60:
+        await physics_frame
+        stop_frames += 1
+    var stop_distance := player.global_position.distance_to(stop_start)
+    _expect(stop_distance <= 1.10, "braking distance stays within the tactical stop budget")
+    _expect(stop_frames <= 24, "braking settles within 24 physics frames")
+
+    var camera := player.get_viewport().get_camera_3d()
+    var camera_right := Vector3.RIGHT
+    if camera != null:
+        camera_right = camera.global_basis.x
+        camera_right.y = 0.0
+        camera_right = camera_right.normalized()
+    player.velocity = camera_right * top_speed
+    Input.action_press(&"move_left")
+    var reversal_frames := 0
+    while player.velocity.dot(camera_right) >= -0.10 and reversal_frames < 60:
+        await physics_frame
+        reversal_frames += 1
+    Input.action_release(&"move_left")
+    _expect(reversal_frames >= 4, "reversal includes a visible planted response")
+    _expect(reversal_frames <= 28, "reversal completes within the control-response budget")
+    _expect(
+        StringName(player.call("get_horizontal_response_mode")) in [&"REVERSING", &"ACCELERATING"],
+        "movement controller exposes reversal response state"
+    )
+    player.velocity = Vector3.ZERO
+    await _step_physics(2)
+
 func _test_aim_relative_strafing(scene: Node, player: CharacterBody3D) -> void:
     var camera_rig := scene.get_node_or_null("IndependentCameraRig")
     _expect(camera_rig != null, "camera rig exists for movement orientation tests")
     if camera_rig == null:
         return
+    var animation_driver := player.get_node_or_null("Mannequin/ProductionAnimation")
+    _expect(animation_driver != null, "operator animation driver exists")
+    var target_spine_yaw_sample := INF
 
     var initial_yaw := player.global_rotation.y
     var initial_pitch := float(camera_rig.get("aim_pitch"))
     camera_rig.call("set_aim_angles", initial_yaw, initial_pitch, true)
     await _step_physics(4)
+    if animation_driver != null:
+        var target_skeleton: Skeleton3D = animation_driver.get("skeleton")
+        if target_skeleton != null:
+            target_spine_yaw_sample = _rest_relative_global_yaw(target_skeleton, "mixamorig_Spine")
     var fixed_aim_yaw := float(camera_rig.get("aim_yaw"))
-    var animation_driver := player.get_node_or_null("Mannequin/ProductionAnimation")
-    _expect(animation_driver != null, "operator animation driver exists")
     var camera_right: Vector3 = camera_rig.global_basis.x
     camera_right.y = 0.0
     camera_right = camera_right.normalized()
 
     var right_start := player.global_position
+    var right_peak_hip_roll := 0.0
     Input.action_press(&"move_right")
-    await _step_physics(24)
+    for _frame in range(24):
+        await _step_physics(1)
+        if animation_driver != null:
+            var frame_pose: Dictionary = animation_driver.call("get_animation_debug_state")
+            right_peak_hip_roll = maxf(
+                right_peak_hip_roll,
+                absf(float(frame_pose.get("default_hip_roll_output_deg", 0.0)))
+            )
     Input.action_release(&"move_right")
     var right_travel := player.global_position - right_start
     _expect(right_travel.dot(camera_right) > 0.45, "D translates right instead of orbiting the aim point")
@@ -84,24 +213,91 @@ func _test_aim_relative_strafing(scene: Node, player: CharacterBody3D) -> void:
     var desired_right: Vector3 = player.call("get_desired_movement_direction")
     _expect(desired_right.dot(camera_right) > 0.90, "D exposes rightward animation intent")
     if animation_driver != null:
-        var right_visual: Dictionary = animation_driver.call("get_visual_debug_data")
+        var right_visual: Vector2 = animation_driver.get("movement_direction")
         _expect(
-            Vector2(right_visual.movement_direction).x > 0.45,
+            right_visual.x > 0.45,
             "D selects the right strafe side of the animation matrix"
         )
+        print("MOBILITY_METRIC right_peak_hip_roll_deg=%.3f" % right_peak_hip_roll)
+        _expect(
+            right_peak_hip_roll >= 0.65,
+            "D builds deliberate hip lean during the early strafe response"
+        )
+        var right_skeleton: Skeleton3D = animation_driver.get("skeleton")
+        if right_skeleton != null:
+            var right_hips_yaw := _rest_relative_global_yaw(right_skeleton, "mixamorig_Hips")
+            var right_spine_yaw := _rest_relative_global_yaw(right_skeleton, "mixamorig_Spine")
+            var right_leg_torso_separation := absf(wrapf(right_hips_yaw - right_spine_yaw, -PI, PI))
+            print("MOBILITY_METRIC forward_right_leg_torso_separation_deg=%.3f" % rad_to_deg(right_leg_torso_separation))
+            _expect(
+                right_leg_torso_separation > deg_to_rad(8.0),
+                "D keeps forward-right leg work separated from the reticle-facing torso"
+            )
+            _expect(
+                is_finite(target_spine_yaw_sample)
+                and absf(wrapf(right_spine_yaw - target_spine_yaw_sample, -PI, PI)) < deg_to_rad(6.0),
+                "D keeps the torso on the centered reticle target"
+            )
 
     await _step_physics(12)
     var left_start := player.global_position
+    var left_peak_hip_roll := 0.0
     Input.action_press(&"move_left")
-    await _step_physics(24)
+    for _frame in range(24):
+        await _step_physics(1)
+        if animation_driver != null:
+            var frame_pose: Dictionary = animation_driver.call("get_animation_debug_state")
+            left_peak_hip_roll = maxf(
+                left_peak_hip_roll,
+                absf(float(frame_pose.get("default_hip_roll_output_deg", 0.0)))
+            )
     Input.action_release(&"move_left")
     var left_travel := player.global_position - left_start
     _expect(left_travel.dot(-camera_right) > 0.45, "A translates left instead of orbiting the aim point")
     if animation_driver != null:
-        var left_visual: Dictionary = animation_driver.call("get_visual_debug_data")
+        var left_visual: Vector2 = animation_driver.get("movement_direction")
         _expect(
-            Vector2(left_visual.movement_direction).x < -0.45,
+            left_visual.x < -0.45,
             "A selects the left strafe side of the animation matrix"
+        )
+        print("MOBILITY_METRIC left_peak_hip_roll_deg=%.3f" % left_peak_hip_roll)
+        _expect(
+            left_peak_hip_roll >= 0.65,
+            "A builds deliberate hip lean during the early strafe response"
+        )
+        var left_skeleton: Skeleton3D = animation_driver.get("skeleton")
+        if left_skeleton != null:
+            var left_hips_yaw := _rest_relative_global_yaw(left_skeleton, "mixamorig_Hips")
+            var left_spine_yaw := _rest_relative_global_yaw(left_skeleton, "mixamorig_Spine")
+            _expect(
+                is_finite(target_spine_yaw_sample)
+                and absf(wrapf(left_spine_yaw - target_spine_yaw_sample, -PI, PI)) < deg_to_rad(6.0),
+                "A keeps the torso on the centered reticle target"
+            )
+
+    await _step_physics(12)
+    player.velocity = Vector3.ZERO
+    var camera_forward: Vector3 = -camera_rig.global_basis.z
+    camera_forward.y = 0.0
+    camera_forward = camera_forward.normalized()
+    var backward_start := player.global_position
+    Input.action_press(&"move_back")
+    await _step_physics(24)
+    Input.action_release(&"move_back")
+    var backward_travel := player.global_position - backward_start
+    _expect(
+        backward_travel.dot(-camera_forward) > 0.45,
+        "S translates backward relative to aim instead of turning around"
+    )
+    _expect(
+        absf(wrapf(float(camera_rig.get("aim_yaw")) - fixed_aim_yaw, -PI, PI)) < 0.001,
+        "backpedaling preserves mouse/right-stick aim authority"
+    )
+    if animation_driver != null:
+        var backward_visual: Vector2 = animation_driver.get("movement_direction")
+        _expect(
+            backward_visual.y < -0.45,
+            "S selects the backward leg animation without reversing the torso"
         )
 
     var turn_target := wrapf(player.global_rotation.y + deg_to_rad(100.0), -PI, PI)
@@ -115,6 +311,20 @@ func _test_aim_relative_strafing(scene: Node, player: CharacterBody3D) -> void:
         remaining_twist <= deg_to_rad(float(player.get("torso_turn_in_place_limit_deg")) + 3.0),
         "turn-in-place returns torso aim to its anatomical range"
     )
+    var release_limit := (
+        float(player.get("torso_turn_in_place_limit_deg"))
+        * float(player.get("torso_catchup_release_ratio"))
+    )
+    _expect(
+        remaining_twist <= deg_to_rad(release_limit + 2.0),
+        "hip catch-up finishes inside a stable release band"
+    )
+    var orientation_controller: Variant = player.get("orientation")
+    _expect(
+        orientation_controller != null
+        and not bool(orientation_controller.get("catchup_active")),
+        "hip catch-up exits cleanly instead of chattering on its limit"
+    )
     _expect(
         absf(wrapf(float(camera_rig.get("aim_yaw")) - turn_target, -PI, PI)) < 0.001,
         "lower-body catch-up preserves authoritative aim"
@@ -122,16 +332,74 @@ func _test_aim_relative_strafing(scene: Node, player: CharacterBody3D) -> void:
     camera_rig.call("set_aim_angles", player.global_rotation.y, initial_pitch, true)
     await _step_physics(8)
 
+func _rest_relative_global_yaw(skeleton: Skeleton3D, bone_name: String) -> float:
+    var bone_index := skeleton.find_bone(bone_name)
+    if bone_index < 0:
+        return 0.0
+    var posed := skeleton.get_bone_global_pose(bone_index).basis.orthonormalized()
+    var rested := skeleton.get_bone_global_rest(bone_index).basis.orthonormalized()
+    return (posed * rested.inverse()).get_euler().y
+
+func _test_full_body_peek(player: CharacterBody3D) -> void:
+    var driver := player.get_node_or_null("Mannequin/ProductionAnimation")
+    _expect(driver != null, "operator animation driver exists for full-body peek")
+    if driver == null:
+        return
+    var skeleton: Skeleton3D = driver.get("skeleton")
+    _expect(skeleton != null, "full-body peek has a live skeleton")
+    if skeleton == null:
+        return
+    var neutral_offset := _head_lateral_offset(player, skeleton)
+
+    Input.action_press(&"peek_left")
+    await _step_physics(10)
+    _expect(float(player.call("get_peek_amount")) < -0.95, "Q reaches the planted left-peek pose")
+    var left_offset := _head_lateral_offset(player, skeleton)
+    print("MOBILITY_METRIC peek_head_x neutral=%.4f left=%.4f" % [neutral_offset, left_offset])
+    var left_debug: Dictionary = driver.call("get_animation_debug_state")
+    _expect(left_offset < neutral_offset - 0.001, "left peek exposes the head on the requested side")
+    _expect(float(left_debug.get("peek_roll_deg", 0.0)) >= 14.0, "left peek uses the full pelvis-to-head curve")
+    await _capture_pose("peek_left")
+    Input.action_release(&"peek_left")
+    await _step_physics(8)
+
+    Input.action_press(&"peek_right")
+    await _step_physics(10)
+    _expect(float(player.call("get_peek_amount")) > 0.95, "E reaches the planted right-peek pose")
+    var right_offset := _head_lateral_offset(player, skeleton)
+    print("MOBILITY_METRIC peek_head_x neutral=%.4f right=%.4f" % [neutral_offset, right_offset])
+    _expect(right_offset > neutral_offset + 0.001, "right peek exposes the head on the requested side")
+    await _capture_pose("peek_right")
+    Input.action_release(&"peek_right")
+    await _step_physics(8)
+    _expect(absf(float(player.call("get_peek_amount"))) < 0.01, "peek releases smoothly back to neutral")
+
+func _head_lateral_offset(player: CharacterBody3D, skeleton: Skeleton3D) -> float:
+    var hips_index := skeleton.find_bone("mixamorig_Hips")
+    var head_index := skeleton.find_bone("mixamorig_Head")
+    if hips_index < 0 or head_index < 0:
+        return 0.0
+    skeleton.force_update_all_bone_transforms()
+    var head_world := skeleton.global_transform * skeleton.get_bone_global_pose(head_index).origin
+    var hips_world := skeleton.global_transform * skeleton.get_bone_global_pose(hips_index).origin
+    return (head_world - hips_world).dot(player.global_basis.x.normalized())
+
 func _test_jump(player: CharacterBody3D) -> void:
+    await _step_physics(6)
     var start_y := player.global_position.y
+    var driver := player.get_node_or_null("Mannequin/ProductionAnimation")
     Input.action_press(&"move_forward")
     await _step_physics(2)
-    Input.action_press(&"jump")
+    player.call("request_jump")
     await _step_physics(2)
-    Input.action_release(&"jump")
     Input.action_release(&"move_forward")
     _expect(_state(player) == &"AIRBORNE", "moving Space remains a jump, never a dive-prone")
     _expect(player.velocity.y > 0.0, "jump applies upward velocity")
+    if driver != null:
+        _expect(
+            StringName(driver.get("current_clip")) == &"jump_up",
+            "jump ascent selects the mapped rifle jump-up clip"
+        )
     await _step_physics(8)
     await _capture_pose("jump_airborne")
 
@@ -167,6 +435,87 @@ func _test_dive(player: CharacterBody3D) -> void:
     _expect(_state(player) == &"PRONE", "dive finishes prone")
     _expect(player.global_position.distance_to(start) > 1.0, "dive produces forward displacement")
     _expect(_capsule_height(player) < 0.90, "dive finishes with the prone collider")
+
+func _test_stance_hold_dive(player: CharacterBody3D) -> void:
+    _expect(_state(player) == &"STANDING", "hold-C dive begins standing")
+    # Earlier movement tests intentionally cross most of the lab. Reset this
+    # action test to a clear runway so a cover collision cannot turn the hold
+    # into a stationary prone transition before the dive threshold is reached.
+    player.global_position = Vector3(0.0, 0.05, 6.0)
+    player.velocity = Vector3.ZERO
+    await _step_physics(6)
+    Input.action_press(&"move_forward")
+    await _step_physics(30)
+    _expect(
+        Vector2(player.velocity.x, player.velocity.z).length()
+        >= float(player.get("dive_minimum_run_speed")),
+        "forward travel reaches the hold-C dive threshold"
+    )
+    var start := player.global_position
+    Input.action_press(&"crouch")
+    var saw_dive := false
+    for _frame in range(30):
+        await physics_frame
+        if _state(player) == &"DIVING":
+            saw_dive = true
+            break
+    Input.action_release(&"crouch")
+    await _step_physics(2)
+    _expect(saw_dive, "holding C while running enters the committed dive state")
+    _expect(
+        not bool(player.get("stance_held_triggered")),
+        "releasing C during the dive clears the stance-hold latch"
+    )
+
+    for _frame in range(90):
+        await physics_frame
+        if _state(player) == &"PRONE":
+            break
+    _expect(_state(player) == &"PRONE", "hold-C dive finishes prone")
+    _expect(
+        player.global_position.distance_to(start) > 1.0,
+        "hold-C dive preserves committed forward displacement"
+    )
+
+    # Keep W held after landing so the authored crawl and the procedural prone
+    # straightener are measured together, exactly as the player experiences it.
+    await _step_physics(20)
+    var driver := player.get_node_or_null("Mannequin/ProductionAnimation")
+    _expect(driver != null, "forward-prone stack has an animation driver")
+    if driver != null:
+        var debug: Dictionary = driver.call("get_animation_debug_state")
+        var residual := absf(float(debug.get("prone_axis_residual_error_deg", 999.0)))
+        print("MOBILITY_METRIC prone_forward_axis_error_deg=%.3f" % residual)
+        print("MOBILITY_METRIC prone_forward_logical_clip=%s" % String(driver.get("current_clip")))
+        _expect(
+            StringName(driver.get("current_clip")) == &"prone_forward",
+            "W while prone selects the forward crawl"
+        )
+        _expect(
+            residual <= 3.0,
+            "W-prone pelvis, spine, and head remain stacked on the travel axis"
+        )
+    Input.action_release(&"move_forward")
+    await _step_physics(4)
+
+func _test_prone_backward_animation(player: CharacterBody3D) -> void:
+    var driver := player.get_node_or_null("Mannequin/ProductionAnimation")
+    _expect(driver != null, "backward-prone animation driver exists")
+    if driver == null:
+        return
+    Input.action_press(&"move_back")
+    await _step_physics(16)
+    _expect(
+        StringName(driver.get("current_clip")) == &"prone_backward",
+        "backward prone selects the downloaded backward crawl"
+    )
+    _expect(
+        StringName(driver.call("get_source_animation_name", &"prone_backward")) == &"mixamo_com",
+        "backward prone selects the animated Mixamo take instead of the T-pose take"
+    )
+    await _capture_pose("prone_backward")
+    Input.action_release(&"move_back")
+    await _step_physics(4)
 
 func _test_roll(
     player: CharacterBody3D,
@@ -209,7 +558,9 @@ func _tap(action: StringName) -> void:
     Input.action_press(action)
     await physics_frame
     Input.action_release(action)
-    await physics_frame
+    # Stance taps resize the capsule. Give the floor contact and state machine a
+    # few physics frames to settle before asserting the resulting posture.
+    await _step_physics(5)
 
 func _step_physics(frame_count: int) -> void:
     for _frame in range(frame_count):
@@ -229,9 +580,11 @@ func _capture_pose(label: String) -> void:
     if capture_dir.is_empty():
         return
     DirAccess.make_dir_recursive_absolute(capture_dir)
-    await process_frame
+    # Let the imported skeletal AnimationTree finish its short tactical blend.
+    for _frame in range(8):
+        await process_frame
     var image := root.get_viewport().get_texture().get_image()
-    if image.is_empty():
+    if image == null or image.is_empty():
         push_warning("MOBILITY_CAPTURE skipped %s because the viewport image was empty" % label)
         return
     var path := capture_dir.path_join("%s.png" % label)
@@ -249,7 +602,7 @@ func _expect(condition: bool, label: String) -> void:
         push_error("MOBILITY_CHECK FAIL %s" % label)
 
 func _finish() -> void:
-    for action in [&"jump", &"crouch", &"prone", &"dive", &"roll", &"move_forward", &"move_back", &"move_left", &"move_right"]:
+    for action in [&"jump", &"crouch", &"prone", &"dive", &"roll", &"peek_left", &"peek_right", &"move_forward", &"move_back", &"move_left", &"move_right"]:
         Input.action_release(action)
     if failures.is_empty():
         print("MOBILITY_REGRESSION PASS")

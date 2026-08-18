@@ -1,0 +1,3571 @@
+class_name GunCalibrationLab
+extends Node3D
+
+## SOCOM-141 AAA Tactical Gunsmith & Biomechanical Arm Engine
+## Full Anatomical Human Arm Biomechanics (Anatomical Hinge Elbow, Shoulder Ball-Socket, Palm Alignment)
+## Left hand automatically finds and biomechanically grips Socket_LeftHand on any firearm.
+
+const PS1_GAS_MASK_RIGGED_SCENE := preload("res://assets/characters/ps1_gas_mask_soldier/trooper_rigged.fbx")
+const PS1_GAS_MASK_TEX := preload("res://assets/characters/ps1_gas_mask_soldier/trooper.png")
+const OperatorAnimationProfile := preload("res://scripts/player/operator_animation_profile.gd")
+const WeaponAnimationProfile := preload("res://scripts/weapons/weapon_animation_profile.gd")
+const WeaponOwnershipContract := preload("res://scripts/player/weapon_ownership_contract.gd")
+const OperatorPostureLayer := preload("res://scripts/player/operator_posture_layer.gd")
+const DynamicReticleScript := preload("res://scripts/ui/socom_dynamic_reticle.gd")
+const WEAPON_BASE_PATH := "res://assets/weapons/modular_pack/"
+const HAND_GIZMO_ARROW_LENGTH := 0.21
+const HAND_GIZMO_RING_RADIUS := 0.18
+const WEAPON_GIZMO_ARROW_LENGTH := 0.17
+const WEAPON_GIZMO_RING_RADIUS := 0.135
+const GIZMO_CENTER_RADIUS := 0.045
+const GIZMO_PICK_DISTANCE_PX := 34.0
+
+# Camera Rig
+var cam_pivot: Node3D
+var cam: Camera3D
+var cam_target := Vector3(0.08, 1.24, 0.05)
+var cam_distance: float = 0.95
+var cam_pitch: float = -8.0
+var cam_yaw: float = 55.0
+var is_orbiting: bool = false
+var is_panning: bool = false
+var last_mouse_pos := Vector2.ZERO
+
+# Trooper & Skeleton
+var trooper_scale: float = 62.0
+var trooper_node: Node3D
+var skeleton: Skeleton3D
+var animation_player: AnimationPlayer
+var runtime_posture_layer: SocomOperatorPostureLayer
+var preview_posture: StringName = &"STANDING"
+var stance_buttons: Dictionary = {}
+
+# Bone Indices
+var left_arm_idx: int = -1
+var left_forearm_idx: int = -1
+var left_hand_idx: int = -1
+var right_arm_idx: int = -1
+var right_forearm_idx: int = -1
+var right_hand_idx: int = -1
+var right_hand_ik: SkeletonIK3D
+
+# Biomechanical Engine Parameters
+var upper_arm_len: float = 0.315
+var forearm_len: float = 0.312
+var max_reach: float = 0.620
+var left_palm_anchor_local := Vector3.ZERO
+var right_palm_anchor_local := Vector3.ZERO
+var support_hand_attached: bool = true
+
+# Tactical Grip Style Presets
+enum GripStyle { CLASSIC_CRADLE, C_CLAMP_TACTICAL, MAGWELL_GRIP, VERTICAL_FOREGRIP, ANGLED_AFG }
+var current_grip_style: GripStyle = GripStyle.CLASSIC_CRADLE
+
+# Palm & Finger Posing (Underneath cradle vs C-Clamp vs Fist wrap)
+var palm_roll: float = 0.0      # Underneath barrel vs Side vs Top C-clamp
+var palm_pitch: float = 0.0     # Forward / backward hand tilt
+var palm_yaw: float = 0.0       # Barrel alignment
+var finger_curl: float = 0.65   # Grip wrap tightness around barrel
+var thumb_wrap: float = 0.50    # Thumb wrap over rail
+
+# Bone Attachments for Visual Gizmos
+var ba_right_hand: BoneAttachment3D
+var right_hand_dot: MeshInstance3D
+var weapon_root: Node3D
+var weapon_pivot: Node3D
+var weapon_mount_local := Transform3D.IDENTITY
+var weapon_master_pose_initialized: bool = false
+var current_weapon_mesh: Node3D
+var current_silencer_mesh: Node3D
+var current_scope_mesh: Node3D
+
+# Unscaled World 3D Transform Gizmo for Hand
+var hand_gizmo_world: Node3D
+var hand_gizmo_center: MeshInstance3D
+var gizmo_arrow_x: Node3D
+var gizmo_arrow_y: Node3D
+var gizmo_arrow_z: Node3D
+var gizmo_ring_roll: MeshInstance3D
+var gizmo_ring_pitch: MeshInstance3D
+var gizmo_ring_yaw: MeshInstance3D
+
+# Unscaled World 3D Transform Gizmo for Weapon Mount
+var weapon_gizmo_world: Node3D
+var weapon_gizmo_center: MeshInstance3D
+var weapon_gizmo_arrow_x: Node3D
+var weapon_gizmo_arrow_y: Node3D
+var weapon_gizmo_arrow_z: Node3D
+var weapon_gizmo_ring_roll: MeshInstance3D
+var weapon_gizmo_ring_pitch: MeshInstance3D
+var weapon_gizmo_ring_yaw: MeshInstance3D
+
+# Weapon Sockets
+var left_grip_marker: MeshInstance3D
+var right_grip_marker: MeshInstance3D
+var muzzle_marker: MeshInstance3D
+var ejection_marker: MeshInstance3D
+var optic_marker: MeshInstance3D
+
+# Transform Calibration
+var grip_offset_pos := Vector3.ZERO
+var grip_offset_rot := Vector3.ZERO
+var user_scale_multiplier: float = 1.0
+var auto_normalized_scale: float = 1.0
+var auto_grip_center_offset := Vector3.ZERO
+
+# Socket Local Coordinates on Weapon Mesh
+var left_grip_local_pos := Vector3(0.20, -0.03, 0.0)
+var right_grip_local_pos := Vector3.ZERO
+var muzzle_local_pos := Vector3(0.70, 0.02, 0.0)
+var ejection_local_pos := Vector3(0.05, 0.03, 0.06)
+var optic_local_pos := Vector3(0.05, 0.08, 0.0)
+var right_grip_profile_loaded := false
+var right_grip_needs_initialization := false
+
+# Interactive 3D Dragging
+var interactive_dots: Array[Dictionary] = []
+var hovered_dot_id: String = ""
+var dragged_dot_id: String = ""
+var drag_plane := Plane()
+var drag_initial_world := Vector3.ZERO
+var drag_offset_vector := Vector3.ZERO
+var active_gizmo_id := "hand"
+
+# Ballistics & Firing
+var weapon_name: String = "AssaultRifle_1"
+var selected_category: String = "Assault Rifles"
+var fire_rate_rpm: int = 650
+var damage_per_shot: int = 34
+var is_silenced: bool = false
+var base_spread_deg: float = 0.4
+var bloom_per_shot_deg: float = 1.2
+var bloom_recovery_speed: float = 14.0
+var max_recoil_bloom_deg: float = 2.4
+var reticle_base_gap_px: float = 10.0
+var reticle_max_gap_px: float = 46.0
+var reticle_response_speed: float = 24.0
+var reticle_shot_kick_px: float = 6.0
+var reticle_shot_kick_return: float = 18.0
+var reticle_maximum_shot_kick_px: float = 18.0
+var current_bloom: float = 0.0
+var fire_cooldown: float = 0.0
+var burst_shot_count: int = 0
+var fire_input_held: bool = false
+var current_aim_target := Vector3.ZERO
+var is_reloading: bool = false
+var weapon_owner_state: StringName = WeaponOwnershipContract.OWNER_WEAPON_MASTER
+var support_hand_policy: StringName = WeaponOwnershipContract.SUPPORT_IK_TO_WEAPON
+var action_weapon_follow_active: bool = false
+var action_weapon_hand_offset := Transform3D.IDENTITY
+var action_return_transform := Transform3D.IDENTITY
+var action_recovery_start := Transform3D.IDENTITY
+var action_recovery_duration: float = 0.14
+var action_recovery_elapsed: float = action_recovery_duration
+
+# Weapon Skins
+var camo_skins: Array[String] = [
+	"Factory Classic (Wood & Steel)",
+	"SOCOM Desert Tan (Crossroads)",
+	"SOCOM Woodland OD (Frostfire)",
+	"Midnight Spec-Ops (All Black)",
+	"Arctic Whiteout (Winter Camo)",
+	"Titanium & Carbon (Silver Steel)"
+]
+var selected_camo_idx: int = 0
+
+# Target Range & Visuals
+var target_board: Node3D
+var bullet_tracers: Node3D
+
+var weapon_categories: Dictionary = {
+	"Assault Rifles": ["AssaultRifle_1", "AssaultRifle_2", "AssaultRifle_3", "AssaultRifle_4", "AssaultRifle_5", "AssaultRifle2_1", "AssaultRifle2_2", "AssaultRifle2_3", "AssaultRifle2_4"],
+	"Classic SOCOM": ["ak-47"],
+	"Bullpups": ["Bullpup_1", "Bullpup_2", "Bullpup_3"],
+	"SMGs": ["SubmachineGun_1", "SubmachineGun_2", "SubmachineGun_3", "SubmachineGun_4", "SubmachineGun_5"],
+	"Sniper Rifles": ["SniperRifle_1", "SniperRifle_2", "SniperRifle_3", "SniperRifle_4", "SniperRifle_5", "SniperRifle_6"],
+	"Shotguns": ["Shotgun_1", "Shotgun_2", "Shotgun_3", "Shotgun_4", "Shotgun_SawedOff", "Shotgun_ShortStock"],
+	"Pistols": ["Pistol_1", "Pistol_2", "Pistol_3", "Pistol_4", "Pistol_5", "Pistol_6"],
+	"Revolvers": ["Revolver_1", "Revolver_2", "Revolver_3", "Revolver_4", "Revolver_5"]
+}
+
+var silencer_options: Array[String] = ["None", "Silencer_1", "Silencer_2", "Silencer_3", "Silencer_long", "Silencer_Short"]
+var scope_options: Array[String] = ["None", "Scope_1", "Scope_2", "Scope_3"]
+
+var selected_weapon_file: String = "AssaultRifle_1"
+var selected_silencer: String = "None"
+var selected_scope: String = "None"
+var animation_catalog
+var all_animation_entries: Array[Dictionary] = []
+var all_animation_paths: Dictionary = {}
+var handling_profile: Dictionary = {}
+var handling_family_select: OptionButton
+var animation_mapping_status: Label
+var support_hand_toggle: CheckButton
+var animation_slot_labels: Dictionary = {}
+var animation_slot_selectors: Dictionary = {}
+var animation_preview_token: int = 0
+var all_animation_select: OptionButton
+var selected_animation_key: StringName = &""
+var animation_hand_maps: Dictionary = {}
+var animation_quality_status: Label
+var animation_quality_results: RichTextLabel
+var animation_quality_audit_running: bool = false
+var animation_quality_sample_elapsed: float = 0.0
+var last_animation_quality_audit: Dictionary = {}
+var last_animation_autofix_previous_slots: Dictionary = {}
+var animation_autofix_running: bool = false
+var animation_autofix_undo_button: Button
+
+# UI Sliders Map
+var sliders_map: Dictionary = {}
+var overlay: Control
+var hud_status: Label
+var fire_profile_title: Label
+var reticle_canvas: Control
+var dynamic_reticle: SocomDynamicReticle
+var fire_debug_mesh := ImmediateMesh.new()
+var fire_debug_instance: MeshInstance3D
+var fire_debug_material: StandardMaterial3D
+var show_barrel_axis: bool = false
+var show_camera_aim: bool = false
+var show_last_shot: bool = false
+var last_shot_origin := Vector3.ZERO
+var last_shot_end := Vector3.ZERO
+var rotation_panel: PanelContainer
+var rotation_title_label: Label
+var rotation_orbit_control: Control
+var rotation_value_labels: Dictionary = {}
+var rotation_pad_drag_axis := ""
+var rotation_pad_hover_axis := ""
+var reticle_bloom_radius: float = 12.0
+
+func _ready() -> void:
+	animation_catalog = OperatorAnimationProfile.new()
+	animation_catalog.load_project_map()
+	_scan_all_animation_assets()
+	handling_profile = WeaponAnimationProfile.build_default(
+		WeaponAnimationProfile.infer_family(weapon_name, selected_category),
+		animation_catalog.clip_paths
+	)
+	_setup_studio_environment()
+	_setup_trooper_and_rig()
+	_setup_target_range()
+	_load_weapon(selected_weapon_file)
+	_build_studio_ui()
+
+func _input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed:
+		var ek := event as InputEventKey
+		if ek.keycode == KEY_S and (ek.ctrl_pressed or ek.meta_pressed):
+			_save_weapon_config()
+			get_viewport().set_input_as_handled()
+			return
+		elif ek.keycode == KEY_R and not (ek.ctrl_pressed or ek.meta_pressed):
+			_trigger_reload_animation()
+			get_viewport().set_input_as_handled()
+			return
+		elif ek.keycode == KEY_1:
+			_set_preview_posture(&"STANDING")
+			get_viewport().set_input_as_handled()
+			return
+		elif ek.keycode == KEY_2:
+			_set_preview_posture(&"CROUCHED")
+			get_viewport().set_input_as_handled()
+			return
+		elif ek.keycode == KEY_3:
+			_set_preview_posture(&"PRONE")
+			get_viewport().set_input_as_handled()
+			return
+
+	if event is InputEventMouseButton:
+		var mb := event as InputEventMouseButton
+		var target_dot := dragged_dot_id if dragged_dot_id != "" else hovered_dot_id
+
+		if mb.button_index == MOUSE_BUTTON_WHEEL_UP:
+			if target_dot == "left_ik":
+				left_grip_local_pos.x = clampf(left_grip_local_pos.x + 0.015, -0.40, 1.20)
+				_sync_markers()
+				_update_slider_value("ik_x", left_grip_local_pos.x)
+				get_viewport().set_input_as_handled()
+				return
+			elif target_dot == "right_grip":
+				grip_offset_rot.y = wrapf(grip_offset_rot.y + 3.0, -180.0, 180.0)
+				_sync_weapon_transform()
+				_update_slider_value("rot_yaw", grip_offset_rot.y)
+				get_viewport().set_input_as_handled()
+				return
+			else:
+				cam_distance = clampf(cam_distance - 0.08, 0.20, 3.5)
+				_update_camera()
+		elif mb.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+			if target_dot == "left_ik":
+				left_grip_local_pos.x = clampf(left_grip_local_pos.x - 0.015, -0.40, 1.20)
+				_sync_markers()
+				_update_slider_value("ik_x", left_grip_local_pos.x)
+				get_viewport().set_input_as_handled()
+				return
+			elif target_dot == "right_grip":
+				grip_offset_rot.y = wrapf(grip_offset_rot.y - 3.0, -180.0, 180.0)
+				_sync_weapon_transform()
+				_update_slider_value("rot_yaw", grip_offset_rot.y)
+				get_viewport().set_input_as_handled()
+				return
+			else:
+				cam_distance = clampf(cam_distance + 0.08, 0.20, 3.5)
+				_update_camera()
+		elif mb.button_index == MOUSE_BUTTON_RIGHT:
+			is_orbiting = mb.pressed
+			last_mouse_pos = mb.position
+		elif mb.button_index == MOUSE_BUTTON_MIDDLE:
+			is_panning = mb.pressed
+			last_mouse_pos = mb.position
+		elif mb.button_index == MOUSE_BUTTON_LEFT:
+			if mb.pressed:
+				var hit_dot := _find_dot_under_mouse(mb.position)
+				if hit_dot != "":
+					if hit_dot == "left_ik":
+						_set_active_gizmo("hand")
+					elif hit_dot == "right_grip" or hit_dot == "weapon_mount":
+						_set_active_gizmo("weapon")
+					dragged_dot_id = hit_dot
+					var dot_mesh := _get_dot_mesh_by_id(hit_dot)
+					if dot_mesh:
+						drag_initial_world = dot_mesh.global_position
+						var cam_norm := -cam.global_transform.basis.z.normalized()
+						drag_plane = Plane(cam_norm, cam_norm.dot(drag_initial_world))
+						var ray_orig := cam.project_ray_origin(mb.position)
+						var ray_dir := cam.project_ray_normal(mb.position)
+						var hit_pos = drag_plane.intersects_ray(ray_orig, ray_dir)
+						if hit_pos != null:
+							drag_offset_vector = drag_initial_world - hit_pos
+						else:
+							drag_offset_vector = Vector3.ZERO
+						if hud_status:
+							hud_status.text = "🎯 Positioning %s (Left arm biomechanically auto-grips!)" % hit_dot
+			else:
+				if dragged_dot_id != "":
+					if hud_status:
+						hud_status.text = "✅ %s locked!" % dragged_dot_id
+					dragged_dot_id = ""
+	elif event is InputEventMouseMotion:
+		var mm := event as InputEventMouseMotion
+		if is_orbiting:
+			cam_yaw -= mm.relative.x * 0.4
+			cam_pitch = clampf(cam_pitch - mm.relative.y * 0.4, -85.0, 85.0)
+			_update_camera()
+		elif is_panning:
+			var right := cam.global_transform.basis.x
+			var up := cam.global_transform.basis.y
+			cam_target -= (right * mm.relative.x - up * mm.relative.y) * 0.002
+			_update_camera()
+		elif dragged_dot_id != "":
+			if dragged_dot_id == "left_ik_ring_roll":
+				palm_roll = wrapf(palm_roll + mm.relative.x * 0.85, -180.0, 180.0)
+				_update_slider_value("p_roll", palm_roll)
+				if hud_status: hud_status.text = "🟡 Spinning Palm Roll: %.1f° (Underneath / C-Clamp)" % palm_roll
+			elif dragged_dot_id == "left_ik_ring_pitch":
+				palm_pitch = clampf(palm_pitch - mm.relative.y * 0.65, -90.0, 90.0)
+				_update_slider_value("p_pitch", palm_pitch)
+				if hud_status: hud_status.text = "🟣 Tilting Wrist Pitch: %.1f°" % palm_pitch
+			elif dragged_dot_id == "left_ik_ring_yaw":
+				palm_yaw = clampf(palm_yaw + mm.relative.x * 0.75, -90.0, 90.0)
+				_update_slider_value("p_yaw", palm_yaw)
+				if hud_status: hud_status.text = "🔷 Turning Palm Yaw: %.1f°" % palm_yaw
+			elif dragged_dot_id == "left_ik_arrow_x":
+				left_grip_local_pos.x = clampf(left_grip_local_pos.x + mm.relative.x * 0.003, -0.40, 1.20)
+				_sync_markers()
+				_update_slider_value("ik_x", left_grip_local_pos.x)
+				if hud_status: hud_status.text = "🔴 Sliding Foregrip along Barrel (X): %.3f" % left_grip_local_pos.x
+			elif dragged_dot_id == "left_ik_arrow_y":
+				left_grip_local_pos.y = clampf(left_grip_local_pos.y - mm.relative.y * 0.003, -0.20, 0.20)
+				_sync_markers()
+				_update_slider_value("ik_y", left_grip_local_pos.y)
+				if hud_status: hud_status.text = "🟢 Adjusting Hand Height (Y): %.3f" % left_grip_local_pos.y
+			elif dragged_dot_id == "left_ik_arrow_z":
+				left_grip_local_pos.z = clampf(left_grip_local_pos.z + mm.relative.x * 0.003, -0.20, 0.20)
+				_sync_markers()
+				_update_slider_value("ik_z", left_grip_local_pos.z)
+				if hud_status: hud_status.text = "🔵 Adjusting Hand Side (Z): %.3f" % left_grip_local_pos.z
+			elif dragged_dot_id == "weapon_ring_pitch":
+				grip_offset_rot.x = wrapf(grip_offset_rot.x - mm.relative.y * 0.65, -180.0, 180.0)
+				_sync_weapon_transform()
+				_update_slider_value("rot_pitch", grip_offset_rot.x)
+				if hud_status: hud_status.text = "🟣 Weapon Pitch: %.1f°" % grip_offset_rot.x
+			elif dragged_dot_id == "weapon_ring_yaw":
+				grip_offset_rot.y = wrapf(grip_offset_rot.y + mm.relative.x * 0.75, -180.0, 180.0)
+				_sync_weapon_transform()
+				_update_slider_value("rot_yaw", grip_offset_rot.y)
+				if hud_status: hud_status.text = "🔷 Weapon Yaw: %.1f°" % grip_offset_rot.y
+			elif dragged_dot_id == "weapon_ring_roll":
+				grip_offset_rot.z = wrapf(grip_offset_rot.z + mm.relative.x * 0.85, -180.0, 180.0)
+				_sync_weapon_transform()
+				_update_slider_value("rot_roll", grip_offset_rot.z)
+				if hud_status: hud_status.text = "🟡 Weapon Roll: %.1f°" % grip_offset_rot.z
+			elif dragged_dot_id == "weapon_arrow_x":
+				grip_offset_pos.x = clampf(grip_offset_pos.x + mm.relative.x * 0.0025, -0.25, 0.25)
+				_sync_weapon_translation()
+				_update_slider_value("grip_x", grip_offset_pos.x)
+			elif dragged_dot_id == "weapon_arrow_y":
+				grip_offset_pos.y = clampf(grip_offset_pos.y - mm.relative.y * 0.0025, -0.25, 0.25)
+				_sync_weapon_translation()
+				_update_slider_value("grip_y", grip_offset_pos.y)
+			elif dragged_dot_id == "weapon_arrow_z":
+				grip_offset_pos.z = clampf(grip_offset_pos.z + mm.relative.x * 0.0025, -0.25, 0.25)
+				_sync_weapon_translation()
+				_update_slider_value("grip_z", grip_offset_pos.z)
+			else:
+				var ray_orig := cam.project_ray_origin(mm.position)
+				var ray_dir := cam.project_ray_normal(mm.position)
+				var hit_pos = drag_plane.intersects_ray(ray_orig, ray_dir)
+				if hit_pos != null:
+					var new_world_pos: Vector3 = hit_pos + drag_offset_vector
+					_apply_dot_world_drag(dragged_dot_id, new_world_pos)
+		else:
+			var hovered := _find_dot_under_mouse(mm.position)
+			if hovered != hovered_dot_id:
+				hovered_dot_id = hovered
+				_highlight_dot(hovered_dot_id)
+
+func _process(delta: float) -> void:
+	if fire_cooldown > 0.0:
+		fire_cooldown = maxf(0.0, fire_cooldown - delta)
+
+	fire_input_held = (
+		Input.is_key_pressed(KEY_SPACE)
+		or (Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) and dragged_dot_id == "")
+	) and not is_orbiting and not is_panning and not is_reloading
+	_update_bloom_recovery(delta, fire_input_held)
+
+	if fire_input_held:
+		if fire_cooldown <= 0.0:
+			_fire_shot()
+
+	if animation_player:
+		animation_player.advance(delta)
+	if not weapon_master_pose_initialized:
+		_initialize_weapon_master_pose()
+	_update_action_weapon_ownership(delta)
+	_apply_runtime_posture_preview()
+
+	_solve_trigger_hand_engine()
+	_solve_biomechanical_arm_engine()
+	_apply_hand_and_finger_posing()
+	if skeleton:
+		skeleton.force_update_all_bone_transforms()
+	_update_animation_quality_readout(delta)
+
+	if hand_gizmo_world and left_grip_marker and is_instance_valid(left_grip_marker):
+		hand_gizmo_world.global_position = left_grip_marker.global_position
+		if current_weapon_mesh:
+			hand_gizmo_world.global_basis = current_weapon_mesh.global_basis.orthonormalized()
+
+	if weapon_gizmo_world and weapon_pivot and is_instance_valid(weapon_pivot):
+		weapon_gizmo_world.global_position = weapon_pivot.global_position
+		if weapon_root:
+			weapon_gizmo_world.global_basis = weapon_root.global_basis.orthonormalized()
+
+	if dynamic_reticle and cam:
+		var aim_sample := _camera_aim_sample()
+		current_aim_target = aim_sample.position
+		var total_spread := _current_total_spread_deg()
+		dynamic_reticle.update_reticle_state(
+			clampf(total_spread / maxf(max_recoil_bloom_deg, 0.001), 0.0, 1.0),
+			bool(aim_sample.target_locked),
+			_reticle_screen_position()
+		)
+	_update_fire_debug_lines()
+	if reticle_canvas:
+		reticle_canvas.queue_redraw()
+
+
+func _update_bloom_recovery(delta: float, trigger_held: bool) -> void:
+	if trigger_held:
+		return
+	if current_bloom > 0.0:
+		current_bloom = maxf(0.0, current_bloom - bloom_recovery_speed * delta)
+	if fire_cooldown <= 0.0:
+		burst_shot_count = 0
+
+var left_hand_ik: SkeletonIK3D
+
+func _solve_trigger_hand_engine() -> void:
+	if not skeleton or not right_hand_ik or not right_grip_marker or not is_instance_valid(right_grip_marker):
+		return
+	if not weapon_master_pose_initialized:
+		return
+	# Reload animation temporarily owns the firing hand and carries the weapon.
+	# Solving the hand back to the ready-position gun here would freeze both.
+	if weapon_owner_state == WeaponOwnershipContract.OWNER_ANIMATED_RIGHT_HAND:
+		if right_hand_ik.is_running():
+			right_hand_ik.stop()
+		return
+	# Weapon-driven contract: the orange trigger socket is authoritative and
+	# the arm reaches it. Preserve the animation's natural wrist orientation;
+	# copying the rifle's raw basis into the wrist caused the hand to corkscrew.
+	var hand_pose := skeleton.get_bone_global_pose(right_hand_idx)
+	var desired_basis := (skeleton.global_transform.basis * hand_pose.basis).orthonormalized()
+	var skeleton_scale := skeleton.global_transform.basis.get_scale()
+	var scaled_palm_anchor := Vector3(
+		right_palm_anchor_local.x * skeleton_scale.x,
+		right_palm_anchor_local.y * skeleton_scale.y,
+		right_palm_anchor_local.z * skeleton_scale.z
+	)
+	var wrist_position := right_grip_marker.global_position - desired_basis * scaled_palm_anchor
+	right_hand_ik.target = Transform3D(desired_basis, wrist_position)
+	# Lock to the animation-sampled basis, not the rifle basis. This retains the
+	# authored wrist pose while keeping the palm contact point exact.
+	right_hand_ik.override_tip_basis = true
+	# Build the elbow bend plane from the sampled shoulder and current grip.
+	# SkeletonIK3D expects this point in skeleton space, not a world direction.
+	right_hand_ik.magnet = _right_elbow_magnet_for(wrist_position)
+	# AnimationPlayer is advanced manually in this lab. Solve immediately after
+	# that animation sample so the next frame cannot overwrite the IK result.
+	right_hand_ik.stop()
+	right_hand_ik.start(true)
+	skeleton.force_update_all_bone_transforms()
+
+func _right_hand_world_transform() -> Transform3D:
+	if not skeleton or right_hand_idx < 0:
+		return Transform3D.IDENTITY
+	return skeleton.global_transform * skeleton.get_bone_global_pose(right_hand_idx)
+
+func _begin_action_weapon_follow() -> void:
+	if not weapon_root or not skeleton or right_hand_idx < 0:
+		return
+	var hand_world := _right_hand_world_transform()
+	action_return_transform = weapon_root.global_transform
+	action_weapon_hand_offset = hand_world.affine_inverse() * weapon_root.global_transform
+	action_weapon_follow_active = true
+	action_recovery_elapsed = action_recovery_duration
+	if right_hand_ik and right_hand_ik.is_running():
+		right_hand_ik.stop()
+
+func _finish_action_weapon_follow() -> void:
+	if not action_weapon_follow_active:
+		return
+	action_weapon_follow_active = false
+	action_recovery_start = weapon_root.global_transform if weapon_root else Transform3D.IDENTITY
+	action_recovery_elapsed = 0.0
+
+func _update_action_weapon_ownership(delta: float) -> void:
+	if not weapon_root:
+		return
+	if action_weapon_follow_active:
+		# A full-body authored action drives the right hand; this invariant offset
+		# makes the rifle travel with that hand. The support-hand policy separately
+		# decides whether the left arm stays animated or is deliberately free.
+		weapon_root.global_transform = _right_hand_world_transform() * action_weapon_hand_offset
+		return
+	if action_recovery_elapsed < action_recovery_duration:
+		action_recovery_elapsed = minf(action_recovery_elapsed + delta, action_recovery_duration)
+		var amount := action_recovery_elapsed / maxf(action_recovery_duration, 0.001)
+		amount = amount * amount * (3.0 - 2.0 * amount)
+		weapon_root.global_transform = action_recovery_start.interpolate_with(action_return_transform, amount)
+
+func _right_elbow_magnet_for(wrist_world: Vector3) -> Vector3:
+	if not skeleton or right_arm_idx < 0:
+		return Vector3.ZERO
+	var shoulder_world := (skeleton.global_transform * skeleton.get_bone_global_pose(right_arm_idx)).origin
+	var midpoint := (shoulder_world + wrist_world) * 0.5
+	var body_right := skeleton.global_transform.basis.x.normalized()
+	var body_up := skeleton.global_transform.basis.y.normalized()
+	var body_forward := skeleton.global_transform.basis.z.normalized()
+	# Mixamo's right arm is on negative local X. A modest down/forward component
+	# produces the compact, ready-to-fire triangle without crossing the chest.
+	var desired_world := midpoint - body_right * 0.28 - body_up * 0.08 + body_forward * 0.10
+	return skeleton.global_transform.affine_inverse() * desired_world
+
+func _solve_biomechanical_arm_engine() -> void:
+	if not skeleton or not left_grip_marker or not is_instance_valid(left_grip_marker): return
+	if not left_hand_ik: return
+	if not weapon_master_pose_initialized: return
+	if support_hand_policy != WeaponOwnershipContract.SUPPORT_IK_TO_WEAPON or not support_hand_attached:
+		if left_hand_ik.is_running():
+			left_hand_ik.stop()
+		return
+
+	# Pin the visible center of the palm to the grip socket. The IK tip is the
+	# wrist bone, so rotating that bone without this offset makes the hand orbit
+	# away from the gun even though the mathematical wrist target is correct.
+	var palm_rot := Basis.from_euler(Vector3(deg_to_rad(palm_pitch), deg_to_rad(palm_yaw), deg_to_rad(palm_roll)))
+	var desired_global_basis := (left_grip_marker.global_transform.basis.orthonormalized() * palm_rot).orthonormalized()
+	var skeleton_scale := skeleton.global_transform.basis.get_scale()
+	var scaled_palm_anchor := Vector3(
+		left_palm_anchor_local.x * skeleton_scale.x,
+		left_palm_anchor_local.y * skeleton_scale.y,
+		left_palm_anchor_local.z * skeleton_scale.z
+	)
+	var wrist_global_position := left_grip_marker.global_position - desired_global_basis * scaled_palm_anchor
+
+	# SkeletonIK3D.target is a world transform. The solver performs its own
+	# conversion into skeleton space; pre-converting here displaced the wrist.
+	left_hand_ik.target = Transform3D(desired_global_basis, wrist_global_position)
+	left_hand_ik.override_tip_basis = true
+
+	# Maintain an anatomical support-arm triangle from the sampled shoulder to
+	# the live foregrip. Grip styles only adjust the size/height of that triangle.
+	left_hand_ik.magnet = _left_elbow_magnet_for(wrist_global_position)
+
+	# Solve against the same animation sample immediately. Leaving this solver
+	# running asynchronously let the next clip frame overwrite the palm first,
+	# which caused visible grip lag and ignored the intended elbow plane.
+	left_hand_ik.stop()
+	left_hand_ik.start(true)
+	skeleton.force_update_all_bone_transforms()
+
+func _left_elbow_magnet_for(wrist_world: Vector3) -> Vector3:
+	if not skeleton or left_arm_idx < 0:
+		return Vector3.ZERO
+	var shoulder_world := (skeleton.global_transform * skeleton.get_bone_global_pose(left_arm_idx)).origin
+	var midpoint := (shoulder_world + wrist_world) * 0.5
+	var body_right := skeleton.global_transform.basis.x.normalized()
+	var body_up := skeleton.global_transform.basis.y.normalized()
+	var body_forward := skeleton.global_transform.basis.z.normalized()
+	var outward := 0.38
+	var downward := 0.08
+	var forward := 0.10
+	match current_grip_style:
+		GripStyle.CLASSIC_CRADLE:
+			outward = 0.38; downward = 0.10; forward = 0.08
+		GripStyle.C_CLAMP_TACTICAL:
+			outward = 0.46; downward = 0.03; forward = 0.14
+		GripStyle.MAGWELL_GRIP:
+			outward = 0.30; downward = 0.12; forward = 0.06
+		GripStyle.VERTICAL_FOREGRIP:
+			outward = 0.34; downward = 0.11; forward = 0.08
+		GripStyle.ANGLED_AFG:
+			outward = 0.40; downward = 0.08; forward = 0.12
+	var desired_world := midpoint + body_right * outward - body_up * downward + body_forward * forward
+	return skeleton.global_transform.affine_inverse() * desired_world
+
+func _apply_hand_and_finger_posing() -> void:
+	if not skeleton or support_hand_policy != WeaponOwnershipContract.SUPPORT_IK_TO_WEAPON or not support_hand_attached: return
+
+	# Wrist orientation is owned exclusively by the IK target basis. Applying the
+	# same palm rotation here again makes the hand twist twice and break its grip.
+	# Fingers remain a visual layer below the IK-controlled wrist.
+	var idx1 := skeleton.find_bone("mixamorig_LeftHandIndex1")
+	var idx2 := skeleton.find_bone("mixamorig_LeftHandIndex2")
+	var idx3 := skeleton.find_bone("mixamorig_LeftHandIndex3")
+	var curl_rad := deg_to_rad(finger_curl * 80.0)
+
+	if idx1 >= 0: skeleton.set_bone_pose_rotation(idx1, Quaternion(Vector3.RIGHT, curl_rad * 0.45))
+	if idx2 >= 0: skeleton.set_bone_pose_rotation(idx2, Quaternion(Vector3.RIGHT, curl_rad * 0.35))
+	if idx3 >= 0: skeleton.set_bone_pose_rotation(idx3, Quaternion(Vector3.RIGHT, curl_rad * 0.20))
+
+	# Thumb Wrap
+	var th1 := skeleton.find_bone("mixamorig_LeftHandThumb1")
+	var th2 := skeleton.find_bone("mixamorig_LeftHandThumb2")
+	var th3 := skeleton.find_bone("mixamorig_LeftHandThumb3")
+	var thumb_rad := deg_to_rad(thumb_wrap * 65.0)
+
+	if th1 >= 0: skeleton.set_bone_pose_rotation(th1, Quaternion(Vector3.FORWARD, thumb_rad * 0.5) * Quaternion(Vector3.UP, thumb_rad * 0.3))
+	if th2 >= 0: skeleton.set_bone_pose_rotation(th2, Quaternion(Vector3.FORWARD, thumb_rad * 0.5))
+
+func _trigger_reload_animation() -> void:
+	_preview_animation_slot("reload_standing")
+
+func _set_support_hand_attached(attached: bool, announce: bool = true) -> void:
+	support_hand_attached = attached
+	if left_hand_ik:
+		if attached and support_hand_policy == WeaponOwnershipContract.SUPPORT_IK_TO_WEAPON:
+			if not left_hand_ik.is_running():
+				left_hand_ik.start()
+		elif left_hand_ik.is_running():
+			left_hand_ik.stop()
+	if support_hand_toggle and support_hand_toggle.button_pressed != attached:
+		support_hand_toggle.set_pressed_no_signal(attached)
+	if announce and hud_status:
+		hud_status.text = "🤲 Support hand attached to foregrip" if attached else "✋ Support hand released; firing hand keeps the weapon anchored"
+
+
+func _build_handling_animation_ui(parent: VBoxContainer) -> void:
+	parent.add_child(HSeparator.new())
+	var title := Label.new()
+	title.text = "3. Handling & Animations"
+	title.add_theme_color_override("font_color", Color(0.75, 0.55, 1.0))
+	parent.add_child(title)
+
+	var family_row := HBoxContainer.new()
+	parent.add_child(family_row)
+	var family_label := Label.new()
+	family_label.text = "Handling:"
+	family_label.custom_minimum_size.x = 90
+	family_row.add_child(family_label)
+	handling_family_select = OptionButton.new()
+	for family_name in WeaponAnimationProfile.FAMILIES:
+		handling_family_select.add_item(family_name.replace("_", " ").capitalize())
+		handling_family_select.set_item_metadata(handling_family_select.item_count - 1, family_name)
+	handling_family_select.item_selected.connect(_on_handling_family_selected)
+	family_row.add_child(handling_family_select)
+
+	var auto_button := Button.new()
+	auto_button.text = "⚡ Auto-Build Animation Set"
+	auto_button.tooltip_text = "Choose the safest imported clips for this weapon family."
+	auto_button.pressed.connect(_auto_build_animation_set)
+	parent.add_child(auto_button)
+
+	var clip_names: Array = animation_catalog.clip_paths.keys() if animation_catalog else []
+	clip_names.sort_custom(func(a, b): return String(a).naturalnocasecmp_to(String(b)) < 0)
+	for slot_name in WeaponAnimationProfile.SLOT_ORDER:
+		var row := HBoxContainer.new()
+		parent.add_child(row)
+		var slot_label := Label.new()
+		slot_label.text = String(WeaponAnimationProfile.SLOT_LABELS.get(slot_name, slot_name))
+		slot_label.custom_minimum_size.x = 112
+		slot_label.tooltip_text = slot_name
+		row.add_child(slot_label)
+		animation_slot_labels[slot_name] = slot_label
+
+		var selector := OptionButton.new()
+		selector.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		selector.add_item("— missing —")
+		selector.set_item_metadata(0, "")
+		for raw_clip_name in clip_names:
+			var clip_name := String(raw_clip_name)
+			selector.add_item(clip_name)
+			selector.set_item_metadata(selector.item_count - 1, clip_name)
+		selector.item_selected.connect(_on_animation_slot_selected.bind(slot_name, selector))
+		row.add_child(selector)
+		animation_slot_selectors[slot_name] = selector
+
+		var preview_button := Button.new()
+		preview_button.text = "▶"
+		preview_button.tooltip_text = "Preview this clip on the operator"
+		preview_button.pressed.connect(_preview_animation_slot.bind(slot_name))
+		row.add_child(preview_button)
+
+	animation_mapping_status = Label.new()
+	animation_mapping_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	animation_mapping_status.add_theme_font_size_override("font_size", 10)
+	parent.add_child(animation_mapping_status)
+
+	var audit_title := Label.new()
+	audit_title.text = "Animation Compatibility Audit"
+	audit_title.tooltip_text = "Preview any imported clip and measure how much the weapon/hand rig loses quality."
+	audit_title.add_theme_color_override("font_color", Color(0.35, 0.9, 1.0))
+	parent.add_child(audit_title)
+	var all_clips_row := HBoxContainer.new()
+	parent.add_child(all_clips_row)
+	all_animation_select = OptionButton.new()
+	all_animation_select.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	for entry in all_animation_entries:
+		all_animation_select.add_item(String(entry.get("display", entry.get("key", "animation"))))
+		all_animation_select.set_item_metadata(
+			all_animation_select.item_count - 1,
+			String(entry.get("key", ""))
+		)
+	all_clips_row.add_child(all_animation_select)
+	var preview_any_button := Button.new()
+	preview_any_button.text = "▶ Inspect"
+	preview_any_button.tooltip_text = "Play this raw animation with the gun carried by the animated right hand."
+	preview_any_button.pressed.connect(_preview_selected_catalog_animation)
+	all_clips_row.add_child(preview_any_button)
+	var save_clip_hands_button := Button.new()
+	save_clip_hands_button.text = "💾 Map Both Hands to This Clip"
+	save_clip_hands_button.tooltip_text = "Store the trigger-hand grip, support-hand grip, weapon mount, wrist pose, and finger pose for this exact imported animation. Ctrl/Cmd+S writes every map into the weapon profile."
+	save_clip_hands_button.pressed.connect(_save_selected_animation_hand_map)
+	parent.add_child(save_clip_hands_button)
+
+	var audit_button := Button.new()
+	audit_button.text = "🔎 Audit All Equipped States"
+	audit_button.tooltip_text = "Automatically play every mapped weapon state and grade hand drift and gun travel."
+	audit_button.pressed.connect(_audit_all_equipped_animation_states)
+	var repair_row := HBoxContainer.new()
+	parent.add_child(repair_row)
+	repair_row.add_child(audit_button)
+	var autofix_button := Button.new()
+	autofix_button.text = "✨ Auto-Fix Failed States"
+	autofix_button.tooltip_text = "Test compatible runtime clips and replace a failing slot only when the measured score clearly improves."
+	autofix_button.pressed.connect(_auto_fix_failed_animation_states)
+	repair_row.add_child(autofix_button)
+	animation_autofix_undo_button = Button.new()
+	animation_autofix_undo_button.text = "↶ Undo Fix"
+	animation_autofix_undo_button.disabled = true
+	animation_autofix_undo_button.pressed.connect(_undo_animation_autofix)
+	repair_row.add_child(animation_autofix_undo_button)
+	animation_quality_status = Label.new()
+	animation_quality_status.text = "Quality: waiting for an animation sample"
+	animation_quality_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	animation_quality_status.add_theme_font_size_override("font_size", 10)
+	parent.add_child(animation_quality_status)
+	animation_quality_results = RichTextLabel.new()
+	animation_quality_results.custom_minimum_size.y = 132
+	animation_quality_results.fit_content = false
+	animation_quality_results.scroll_active = true
+	animation_quality_results.text = "Run the equipped-state audit to compare every firing, reload, and stance clip."
+	parent.add_child(animation_quality_results)
+	_refresh_handling_ui()
+
+
+func _on_handling_family_selected(index: int) -> void:
+	if handling_family_select == null:
+		return
+	var family := String(handling_family_select.get_item_metadata(index))
+	handling_profile = WeaponAnimationProfile.build_default(
+		family,
+		animation_catalog.clip_paths if animation_catalog else {}
+	)
+	_refresh_handling_ui()
+
+
+func _auto_build_animation_set() -> void:
+	var family := String(handling_profile.get(
+		"family",
+		WeaponAnimationProfile.infer_family(weapon_name, selected_category)
+	))
+	handling_profile = WeaponAnimationProfile.build_default(
+		family,
+		animation_catalog.clip_paths if animation_catalog else {}
+	)
+	_refresh_handling_ui()
+	if hud_status:
+		hud_status.text = "⚡ Animation set built for %s. Preview it, then save the weapon profile." % family.replace("_", " ")
+
+
+func _on_animation_slot_selected(index: int, slot_name: String, selector: OptionButton) -> void:
+	var slots: Dictionary = handling_profile.get("animation_slots", {}).duplicate(true)
+	slots[slot_name] = String(selector.get_item_metadata(index))
+	handling_profile["animation_slots"] = slots
+	_refresh_handling_ui(false)
+
+
+func _refresh_handling_ui(sync_selectors: bool = true) -> void:
+	if handling_family_select == null:
+		return
+	var family := String(handling_profile.get(
+		"family",
+		WeaponAnimationProfile.infer_family(weapon_name, selected_category)
+	))
+	for index in handling_family_select.item_count:
+		if String(handling_family_select.get_item_metadata(index)) == family:
+			handling_family_select.select(index)
+			break
+	var slots: Dictionary = handling_profile.get("animation_slots", {})
+	if sync_selectors:
+		for slot_name in animation_slot_selectors:
+			var selector: OptionButton = animation_slot_selectors[slot_name]
+			var wanted := String(slots.get(slot_name, ""))
+			selector.select(0)
+			for item_index in selector.item_count:
+				if String(selector.get_item_metadata(item_index)) == wanted:
+					selector.select(item_index)
+					break
+	var audit := WeaponAnimationProfile.validate(
+		handling_profile,
+		animation_catalog.clip_paths if animation_catalog else {}
+	)
+	if animation_mapping_status:
+		var missing: Array = audit.get("missing", [])
+		animation_mapping_status.text = "%d/%d combat slots mapped%s\nMovement pack: %d/%d directional and posture clips ready" % [
+			int(audit.get("mapped", 0)),
+			int(audit.get("total", 0)),
+			"" if missing.is_empty() else " • Missing: " + ", ".join(missing),
+			int(audit.get("locomotion_mapped", 0)),
+			int(audit.get("locomotion_total", 0)),
+		]
+		animation_mapping_status.add_theme_color_override(
+			"font_color",
+			Color(0.45, 1.0, 0.55) if bool(audit.get("complete", false)) else Color(1.0, 0.72, 0.25)
+		)
+
+
+func _preview_animation_slot(slot_name: String) -> void:
+	if animation_player == null or animation_catalog == null:
+		return
+	var slots: Dictionary = handling_profile.get("animation_slots", {})
+	var clip_name := StringName(slots.get(slot_name, ""))
+	if clip_name == &"":
+		if hud_status:
+			hud_status.text = "⚠ No clip mapped to %s yet." % String(WeaponAnimationProfile.SLOT_LABELS.get(slot_name, slot_name))
+		return
+	if not _ensure_preview_clip(clip_name):
+		if hud_status:
+			hud_status.text = "⚠ Could not load animation clip: %s" % clip_name
+		return
+	animation_preview_token += 1
+	var token := animation_preview_token
+	var is_idle := slot_name.begins_with("idle_")
+	_apply_weapon_ownership_policy(
+		WeaponOwnershipContract.preview_policy(slot_name, clip_name),
+		slot_name.begins_with("reload_")
+	)
+	animation_player.play(clip_name, 0.10)
+	if hud_status:
+		hud_status.text = "▶ Previewing %s → %s" % [String(WeaponAnimationProfile.SLOT_LABELS.get(slot_name, slot_name)), clip_name]
+	if is_idle:
+		return
+	var animation := animation_player.get_animation(clip_name)
+	var duration := maxf(animation.length if animation else 1.0, 0.10)
+	get_tree().create_timer(duration).timeout.connect(func():
+		if token != animation_preview_token:
+			return
+		var idle_slot := _posture_idle_slot()
+		_apply_weapon_ownership_policy(WeaponOwnershipContract.preview_policy(idle_slot), false)
+		var idle_clip := _posture_idle_clip()
+		if idle_clip != &"" and _ensure_preview_clip(idle_clip):
+			animation_player.play(idle_clip, 0.10)
+		if hud_status:
+			hud_status.text = "✅ Preview complete. Choose another slot or save this weapon profile."
+	)
+
+
+func _preview_selected_catalog_animation() -> void:
+	if all_animation_select == null or all_animation_select.item_count == 0:
+		return
+	var clip_name := StringName(all_animation_select.get_item_metadata(all_animation_select.selected))
+	if clip_name == &"" or not _ensure_preview_clip(clip_name):
+		if hud_status:
+			hud_status.text = "⚠ Could not load animation clip: %s" % clip_name
+		return
+	selected_animation_key = clip_name
+	_apply_animation_hand_map(clip_name)
+	animation_preview_token += 1
+	var token := animation_preview_token
+	_apply_weapon_ownership_policy(
+		WeaponOwnershipContract.preview_policy("", clip_name),
+		"reload" in String(clip_name).to_lower()
+	)
+	animation_player.play(clip_name, 0.08)
+	if hud_status:
+		hud_status.text = "▶ Inspecting raw clip %s. Watch the quality meter for hand drift." % clip_name
+	var animation := animation_player.get_animation(clip_name)
+	var duration := minf(maxf(animation.length if animation else 1.0, 0.20), 2.5)
+	get_tree().create_timer(duration).timeout.connect(func():
+		if token != animation_preview_token:
+			return
+		_finish_preview_to_idle()
+	)
+
+
+func _finish_preview_to_idle() -> void:
+	var idle_slot := _posture_idle_slot()
+	_apply_weapon_ownership_policy(WeaponOwnershipContract.preview_policy(idle_slot), false)
+	var idle_clip := _posture_idle_clip()
+	if idle_clip != &"" and _ensure_preview_clip(idle_clip):
+		animation_player.play(idle_clip, 0.10)
+
+
+func _posture_idle_slot() -> String:
+	match preview_posture:
+		&"CROUCHED": return "idle_crouched"
+		&"PRONE": return "idle_prone"
+		_: return "idle_standing"
+
+
+func _posture_idle_clip() -> StringName:
+	var defaults := {
+		"idle_standing": &"aim_idle",
+		"idle_crouched": &"idle_crouch",
+		"idle_prone": &"idle_prone",
+	}
+	var slot := _posture_idle_slot()
+	return StringName(
+		(handling_profile.get("animation_slots", {}) as Dictionary).get(
+			slot,
+			defaults[slot]
+		)
+	)
+
+
+func _set_preview_posture(posture_name: StringName) -> void:
+	if posture_name not in [&"STANDING", &"CROUCHED", &"PRONE"]:
+		return
+	preview_posture = posture_name
+	for key: StringName in stance_buttons:
+		var button := stance_buttons[key] as Button
+		if button:
+			button.set_pressed_no_signal(key == preview_posture)
+	animation_preview_token += 1
+	_finish_preview_to_idle()
+	if hud_status:
+		hud_status.text = "%s weapon-ready stance — aim remains on the fixed center dot." % String(preview_posture).capitalize()
+
+
+func _save_selected_animation_hand_map() -> void:
+	if all_animation_select == null or all_animation_select.item_count == 0:
+		return
+	var clip_key := selected_animation_key
+	if clip_key == &"":
+		clip_key = StringName(
+			all_animation_select.get_item_metadata(all_animation_select.selected)
+		)
+	var resource_path := String(all_animation_paths.get(clip_key, ""))
+	if resource_path.is_empty():
+		return
+	animation_hand_maps[resource_path] = {
+		"left_grip": _vector_to_data(left_grip_local_pos),
+		"right_grip": _vector_to_data(right_grip_local_pos),
+		"weapon_mount_position": _vector_to_data(grip_offset_pos),
+		"weapon_mount_rotation_deg": _vector_to_data(grip_offset_rot),
+		"palm_pitch_deg": palm_pitch,
+		"palm_yaw_deg": palm_yaw,
+		"palm_roll_deg": palm_roll,
+		"finger_curl": finger_curl,
+		"thumb_wrap": thumb_wrap,
+	}
+	if hud_status:
+		hud_status.text = "💾 Both-hand map staged for this clip. Ctrl/Cmd+S saves it with the weapon."
+
+
+func _apply_animation_hand_map(clip_key: StringName) -> void:
+	var resource_path := String(all_animation_paths.get(clip_key, ""))
+	var raw_map: Variant = animation_hand_maps.get(resource_path, {})
+	if not (raw_map is Dictionary) or (raw_map as Dictionary).is_empty():
+		return
+	var hand_map := raw_map as Dictionary
+	left_grip_local_pos = _vector_from_data(hand_map.get("left_grip", {}), left_grip_local_pos)
+	right_grip_local_pos = _vector_from_data(hand_map.get("right_grip", {}), right_grip_local_pos)
+	grip_offset_pos = _vector_from_data(
+		hand_map.get("weapon_mount_position", {}), grip_offset_pos
+	)
+	grip_offset_rot = _vector_from_data(
+		hand_map.get("weapon_mount_rotation_deg", {}), grip_offset_rot
+	)
+	palm_pitch = float(hand_map.get("palm_pitch_deg", palm_pitch))
+	palm_yaw = float(hand_map.get("palm_yaw_deg", palm_yaw))
+	palm_roll = float(hand_map.get("palm_roll_deg", palm_roll))
+	finger_curl = float(hand_map.get("finger_curl", finger_curl))
+	thumb_wrap = float(hand_map.get("thumb_wrap", thumb_wrap))
+	_sync_weapon_transform()
+	_sync_markers()
+	for value_pair in [
+		["ik_x", left_grip_local_pos.x], ["ik_y", left_grip_local_pos.y],
+		["ik_z", left_grip_local_pos.z], ["rh_x", right_grip_local_pos.x],
+		["rh_y", right_grip_local_pos.y], ["rh_z", right_grip_local_pos.z],
+		["grip_x", grip_offset_pos.x], ["grip_y", grip_offset_pos.y],
+		["grip_z", grip_offset_pos.z], ["rot_pitch", grip_offset_rot.x],
+		["rot_yaw", grip_offset_rot.y], ["rot_roll", grip_offset_rot.z],
+		["p_pitch", palm_pitch], ["p_yaw", palm_yaw], ["p_roll", palm_roll],
+		["f_curl", finger_curl], ["t_wrap", thumb_wrap],
+	]:
+		_update_slider_value(String(value_pair[0]), float(value_pair[1]))
+
+
+func _vector_to_data(value: Vector3) -> Dictionary:
+	return {"x": value.x, "y": value.y, "z": value.z}
+
+
+func _vector_from_data(raw_value: Variant, fallback: Vector3) -> Vector3:
+	if not (raw_value is Dictionary):
+		return fallback
+	var data := raw_value as Dictionary
+	return Vector3(
+		float(data.get("x", fallback.x)),
+		float(data.get("y", fallback.y)),
+		float(data.get("z", fallback.z))
+	)
+
+
+func _apply_weapon_ownership_policy(policy: Dictionary, reload_action: bool) -> void:
+	weapon_owner_state = StringName(
+		policy.get("weapon_owner", WeaponOwnershipContract.OWNER_WEAPON_MASTER)
+	)
+	support_hand_policy = StringName(
+		policy.get("support_hand", WeaponOwnershipContract.SUPPORT_IK_TO_WEAPON)
+	)
+	is_reloading = reload_action
+	if weapon_owner_state == WeaponOwnershipContract.OWNER_ANIMATED_RIGHT_HAND:
+		if not action_weapon_follow_active:
+			_begin_action_weapon_follow()
+	elif action_weapon_follow_active:
+		_finish_action_weapon_follow()
+	_set_support_hand_attached(support_hand_attached, false)
+
+
+func _update_animation_quality_readout(delta: float) -> void:
+	if animation_quality_status == null or skeleton == null or weapon_root == null:
+		return
+	animation_quality_sample_elapsed += delta
+	if animation_quality_sample_elapsed < 0.08:
+		return
+	animation_quality_sample_elapsed = 0.0
+	var trigger_error_cm := (
+		right_grip_marker.global_position.distance_to(_right_palm_contact_world()) * 100.0
+		if right_grip_marker and is_instance_valid(right_grip_marker)
+		else INF
+	)
+	var support_error_cm := (
+		left_grip_marker.global_position.distance_to(_left_palm_contact_world()) * 100.0
+		if left_grip_marker and is_instance_valid(left_grip_marker)
+		else INF
+	)
+	var support_is_free := support_hand_policy != WeaponOwnershipContract.SUPPORT_IK_TO_WEAPON
+	var score := _animation_quality_score(trigger_error_cm, support_error_cm, support_is_free)
+	var grade := _animation_quality_grade(score)
+	animation_quality_status.text = (
+		"Quality %s  %.0f/100  • trigger %.2f cm  • support %s  • owner %s"
+		% [
+			grade,
+			score,
+			trigger_error_cm,
+			String(support_hand_policy) if support_is_free else "%.2f cm" % support_error_cm,
+			String(weapon_owner_state),
+		]
+	)
+	animation_quality_status.add_theme_color_override(
+		"font_color",
+		Color(0.35, 1.0, 0.5) if score >= 85.0 else (Color(1.0, 0.8, 0.25) if score >= 65.0 else Color(1.0, 0.35, 0.3))
+	)
+
+
+func _animation_quality_score(trigger_error_cm: float, support_error_cm: float, support_free: bool) -> float:
+	var penalty := minf(trigger_error_cm, 20.0) * 10.0
+	if not support_free:
+		penalty += minf(support_error_cm, 20.0) * 6.0
+	return clampf(100.0 - penalty, 0.0, 100.0)
+
+
+func _animation_quality_grade(score: float) -> String:
+	if score >= 92.0:
+		return "A"
+	if score >= 82.0:
+		return "B"
+	if score >= 68.0:
+		return "C"
+	if score >= 50.0:
+		return "D"
+	return "F"
+
+
+func _audit_all_equipped_animation_states() -> void:
+	if animation_quality_audit_running or animation_player == null:
+		return
+	animation_quality_audit_running = true
+	animation_preview_token += 1
+	var audit_token := animation_preview_token
+	var lines: Array[String] = []
+	last_animation_quality_audit.clear()
+	if animation_quality_results:
+		animation_quality_results.text = "Auditing equipped animation states…"
+	var slots: Dictionary = handling_profile.get("animation_slots", {})
+	for slot_name in WeaponAnimationProfile.SLOT_ORDER:
+		if audit_token != animation_preview_token:
+			break
+		var clip_name := StringName(slots.get(slot_name, ""))
+		if clip_name == &"":
+			lines.append("— %s: missing" % String(WeaponAnimationProfile.SLOT_LABELS.get(slot_name, slot_name)))
+			continue
+		var result: Dictionary = await _measure_animation_quality(String(slot_name), clip_name)
+		last_animation_quality_audit[String(slot_name)] = result.duplicate(true)
+		lines.append(
+			"%s %s — %s  trigger %.2f cm  support %s  travel %.1f cm"
+			% [
+				String(result.get("grade", "?")),
+				String(WeaponAnimationProfile.SLOT_LABELS.get(slot_name, slot_name)),
+				clip_name,
+				float(result.get("trigger_error_cm", INF)),
+				"FREE" if bool(result.get("support_free", false)) else "%.2f cm" % float(result.get("support_error_cm", INF)),
+				float(result.get("weapon_travel_cm", 0.0)),
+			]
+		)
+		if animation_quality_results:
+			animation_quality_results.text = "\n".join(lines)
+	_finish_preview_to_idle()
+	animation_quality_audit_running = false
+	if hud_status:
+		hud_status.text = "✅ Animation compatibility audit complete. D/F rows need a different clip or grip tune."
+
+
+func _auto_fix_failed_animation_states() -> void:
+	if animation_autofix_running or animation_quality_audit_running:
+		return
+	animation_autofix_running = true
+	if last_animation_quality_audit.is_empty():
+		await _audit_all_equipped_animation_states()
+	var slots: Dictionary = handling_profile.get("animation_slots", {}).duplicate(true)
+	last_animation_autofix_previous_slots = slots.duplicate(true)
+	var changes: Array[String] = []
+	var unresolved: Array[String] = []
+	for raw_slot_name in WeaponAnimationProfile.SLOT_ORDER:
+		var slot_name := String(raw_slot_name)
+		var baseline: Dictionary = last_animation_quality_audit.get(slot_name, {})
+		var baseline_score := float(baseline.get("score", 0.0))
+		if baseline_score >= 82.0:
+			continue
+		var current_clip := StringName(slots.get(slot_name, ""))
+		var best_clip := current_clip
+		var best_score := baseline_score
+		for candidate in _compatible_runtime_candidates(slot_name):
+			if StringName(candidate) == current_clip:
+				continue
+			var candidate_result: Dictionary = await _measure_animation_quality(slot_name, StringName(candidate))
+			var candidate_score := float(candidate_result.get("score", 0.0))
+			if candidate_score > best_score:
+				best_score = candidate_score
+				best_clip = StringName(candidate)
+		# Do not churn mappings for noise. A replacement must improve the
+		# measured compatibility score by at least eight points.
+		if best_clip != current_clip and best_score >= baseline_score + 8.0:
+			slots[slot_name] = String(best_clip)
+			changes.append("%s: %s → %s (%.0f → %.0f)" % [
+				String(WeaponAnimationProfile.SLOT_LABELS.get(slot_name, slot_name)),
+				current_clip,
+				best_clip,
+				baseline_score,
+				best_score,
+			])
+		else:
+			unresolved.append(String(WeaponAnimationProfile.SLOT_LABELS.get(slot_name, slot_name)))
+	handling_profile["animation_slots"] = slots
+	_refresh_handling_ui()
+	if animation_autofix_undo_button:
+		animation_autofix_undo_button.disabled = changes.is_empty()
+	# If nothing changed, keep the already valid baseline audit visible. Starting
+	# a second asynchronous audit after UI refresh could be cancelled by a
+	# selector signal and leave an empty report even though no mapping changed.
+	if changes.is_empty():
+		_finish_preview_to_idle()
+	else:
+		await _audit_all_equipped_animation_states()
+	var summary := (
+		"AUTO-FIX\n%s"
+		% ("No safe clip replacements found." if changes.is_empty() else "\n".join(changes))
+	)
+	if not unresolved.is_empty():
+		summary += "\nNeeds human rig/socket review: %s" % ", ".join(unresolved)
+	if animation_quality_results:
+		animation_quality_results.text = "%s\n\n%s" % [summary, animation_quality_results.text]
+	if hud_status:
+		hud_status.text = (
+			"✨ Auto-fix completed with %d safe replacement(s). Save only after reviewing; Undo Fix is available."
+			% changes.size()
+		)
+	animation_autofix_running = false
+
+
+func _undo_animation_autofix() -> void:
+	if last_animation_autofix_previous_slots.is_empty():
+		return
+	handling_profile["animation_slots"] = last_animation_autofix_previous_slots.duplicate(true)
+	last_animation_autofix_previous_slots.clear()
+	last_animation_quality_audit.clear()
+	_refresh_handling_ui()
+	if animation_autofix_undo_button:
+		animation_autofix_undo_button.disabled = true
+	if animation_quality_results:
+		animation_quality_results.text = "Auto-fix reverted. Run Audit All Equipped States to measure the restored mapping."
+	if hud_status:
+		hud_status.text = "↶ Auto-fix reverted; animation mappings are restored."
+
+
+func _compatible_runtime_candidates(slot_name: String) -> Array[StringName]:
+	var result: Array[StringName] = []
+	var intent := "idle" if slot_name.begins_with("idle_") else ("reload" if slot_name.begins_with("reload_") else "fire")
+	var posture := "prone" if slot_name.ends_with("prone") else ("crouch" if slot_name.ends_with("crouched") else "standing")
+	for raw_clip_name in animation_catalog.clip_paths.keys():
+		var clip_name := String(raw_clip_name).to_lower()
+		var intent_match := (
+			("idle" in clip_name or "aim" in clip_name) if intent == "idle"
+			else (("reload" in clip_name) if intent == "reload" else ("fire" in clip_name or "shoot" in clip_name))
+		)
+		if not intent_match:
+			continue
+		var has_prone := "prone" in clip_name
+		var has_crouch := "crouch" in clip_name or "kneel" in clip_name
+		var posture_match := (
+			has_prone if posture == "prone"
+			else (has_crouch and not has_prone if posture == "crouch" else not has_prone and not has_crouch)
+		)
+		if posture_match:
+			result.append(StringName(raw_clip_name))
+	result.sort_custom(func(a: StringName, b: StringName): return String(a).naturalnocasecmp_to(String(b)) < 0)
+	# Keep the automatic pass quick and reviewable even if the catalog grows.
+	if result.size() > 8:
+		result.resize(8)
+	return result
+
+
+func _measure_animation_quality(slot_name: String, clip_name: StringName) -> Dictionary:
+	if not _ensure_preview_clip(clip_name):
+		return {"grade": "F", "trigger_error_cm": INF, "support_error_cm": INF, "weapon_travel_cm": 0.0}
+	var policy := WeaponOwnershipContract.preview_policy(slot_name, clip_name)
+	var support_free := (
+		StringName(policy.get("support_hand", WeaponOwnershipContract.SUPPORT_IK_TO_WEAPON))
+		!= WeaponOwnershipContract.SUPPORT_IK_TO_WEAPON
+	)
+	_apply_weapon_ownership_policy(policy, slot_name.begins_with("reload_"))
+	animation_player.play(clip_name, 0.04)
+	await get_tree().process_frame
+	var start_weapon := weapon_root.global_position
+	var max_trigger_error_cm := 0.0
+	var max_support_error_cm := 0.0
+	var max_weapon_travel_cm := 0.0
+	var animation := animation_player.get_animation(clip_name)
+	var sample_seconds := clampf(animation.length if animation else 0.5, 0.25, 0.75)
+	var sample_frames := maxi(12, int(ceil(sample_seconds * 60.0)))
+	for _frame in range(sample_frames):
+		await get_tree().process_frame
+		max_trigger_error_cm = maxf(
+			max_trigger_error_cm,
+			right_grip_marker.global_position.distance_to(_right_palm_contact_world()) * 100.0
+		)
+		max_support_error_cm = maxf(
+			max_support_error_cm,
+			left_grip_marker.global_position.distance_to(_left_palm_contact_world()) * 100.0
+		)
+		max_weapon_travel_cm = maxf(
+			max_weapon_travel_cm,
+			weapon_root.global_position.distance_to(start_weapon) * 100.0
+		)
+	var score := _animation_quality_score(max_trigger_error_cm, max_support_error_cm, support_free)
+	_apply_weapon_ownership_policy(WeaponOwnershipContract.preview_policy("idle_standing"), false)
+	return {
+		"grade": _animation_quality_grade(score),
+		"score": score,
+		"trigger_error_cm": max_trigger_error_cm,
+		"support_error_cm": max_support_error_cm,
+		"support_free": support_free,
+		"weapon_travel_cm": max_weapon_travel_cm,
+	}
+
+
+func _ensure_preview_clip(clip_name: StringName) -> bool:
+	if animation_player.has_animation(clip_name):
+		return true
+	var clip_path := String(animation_catalog.clip_paths.get(
+		clip_name,
+		all_animation_paths.get(clip_name, "")
+	))
+	if clip_path == "" or not FileAccess.file_exists(clip_path):
+		return false
+	var packed_scene := load(clip_path) as PackedScene
+	if packed_scene == null:
+		return false
+	var source_root := packed_scene.instantiate()
+	var source_player := _find_animation_player(source_root)
+	if source_player == null:
+		source_root.queue_free()
+		return false
+	var source_name: StringName = &""
+	for candidate in source_player.get_animation_list():
+		if candidate != &"RESET":
+			source_name = candidate
+			break
+	if source_name == &"":
+		source_root.queue_free()
+		return false
+	var retargeted := _retarget_aim_anim(source_player.get_animation(source_name))
+	if slot_name_is_looping(clip_name):
+		retargeted.loop_mode = Animation.LOOP_LINEAR
+	var library := animation_player.get_animation_library(&"")
+	if library == null:
+		library = AnimationLibrary.new()
+		animation_player.add_animation_library(&"", library)
+	library.add_animation(clip_name, retargeted)
+	source_root.queue_free()
+	return true
+
+
+func slot_name_is_looping(clip_name: StringName) -> bool:
+	return animation_catalog.LOOPING_CLIPS.has(clip_name) or String(clip_name).begins_with("pistol_idle")
+
+
+func _scan_all_animation_assets() -> void:
+	all_animation_entries.clear()
+	all_animation_paths.clear()
+	_scan_animation_directory("res://assets/animations/mixamo")
+	all_animation_entries.sort_custom(func(a: Dictionary, b: Dictionary):
+		return String(a.get("display", "")).naturalnocasecmp_to(String(b.get("display", ""))) < 0
+	)
+
+
+func _scan_animation_directory(directory_path: String) -> void:
+	var directory := DirAccess.open(directory_path)
+	if directory == null:
+		return
+	directory.list_dir_begin()
+	var file_name := directory.get_next()
+	while file_name != "":
+		if directory.current_is_dir() and not file_name.begins_with("."):
+			_scan_animation_directory("%s/%s" % [directory_path, file_name])
+		elif file_name.ends_with(".fbx") and not file_name.begins_with("."):
+			var full_path := "%s/%s" % [directory_path, file_name]
+			var folder := directory_path.get_file()
+			var tag := ""
+			if "Pistol" in folder:
+				tag = "[Pistol] "
+			elif "Locomotion" in folder or "Lite" in folder:
+				tag = "[Rifle] "
+			elif "Shooter" in folder:
+				tag = "[Shooter] "
+			var display_name := tag + file_name.get_basename().capitalize()
+			var key := StringName("gunsmith_catalog_%s" % abs(full_path.hash()))
+			all_animation_paths[key] = full_path
+			all_animation_entries.append({
+				"key": key,
+				"display": display_name,
+				"path": full_path,
+			})
+		file_name = directory.get_next()
+	directory.list_dir_end()
+
+func _setup_unscaled_hand_gizmo() -> void:
+	if hand_gizmo_world and is_instance_valid(hand_gizmo_world):
+		hand_gizmo_world.queue_free()
+		hand_gizmo_world = null
+
+	hand_gizmo_world = Node3D.new()
+	hand_gizmo_world.name = "HandGizmoWorld"
+	add_child(hand_gizmo_world)
+
+	# Large, unscaled controls stay readable even when the imported weapon is tiny.
+	hand_gizmo_center = _create_marker(Color(0.0, 0.95, 1.0), "left_ik", GIZMO_CENTER_RADIUS)
+	gizmo_arrow_x = _create_axis_arrow(Color(1.0, 0.25, 0.25), Vector3.RIGHT, "left_ik_arrow_x", HAND_GIZMO_ARROW_LENGTH)
+	gizmo_arrow_y = _create_axis_arrow(Color(0.25, 1.0, 0.25), Vector3.UP, "left_ik_arrow_y", HAND_GIZMO_ARROW_LENGTH)
+	gizmo_arrow_z = _create_axis_arrow(Color(0.35, 0.65, 1.0), Vector3.BACK, "left_ik_arrow_z", HAND_GIZMO_ARROW_LENGTH)
+	gizmo_ring_roll = _create_rotation_ring(Color(1.0, 0.9, 0.2), Vector3.RIGHT, HAND_GIZMO_RING_RADIUS, "left_ik_ring_roll")
+	gizmo_ring_pitch = _create_rotation_ring(Color(1.0, 0.3, 0.9), Vector3.BACK, HAND_GIZMO_RING_RADIUS, "left_ik_ring_pitch")
+	gizmo_ring_yaw = _create_rotation_ring(Color(0.2, 0.85, 1.0), Vector3.UP, HAND_GIZMO_RING_RADIUS, "left_ik_ring_yaw")
+
+	hand_gizmo_world.add_child(hand_gizmo_center)
+	hand_gizmo_world.add_child(gizmo_arrow_x)
+	hand_gizmo_world.add_child(gizmo_arrow_y)
+	hand_gizmo_world.add_child(gizmo_arrow_z)
+	hand_gizmo_world.add_child(gizmo_ring_roll)
+	hand_gizmo_world.add_child(gizmo_ring_pitch)
+	hand_gizmo_world.add_child(gizmo_ring_yaw)
+
+func _setup_unscaled_weapon_gizmo() -> void:
+	if weapon_gizmo_world and is_instance_valid(weapon_gizmo_world):
+		weapon_gizmo_world.queue_free()
+		weapon_gizmo_world = null
+
+	weapon_gizmo_world = Node3D.new()
+	weapon_gizmo_world.name = "WeaponMountGizmoWorld"
+	add_child(weapon_gizmo_world)
+
+	weapon_gizmo_center = _create_selection_box(Color(1.0, 0.55, 0.08), "weapon_mount", GIZMO_CENTER_RADIUS * 1.15)
+	weapon_gizmo_arrow_x = _create_axis_arrow(Color(1.0, 0.25, 0.25), Vector3.RIGHT, "weapon_arrow_x", WEAPON_GIZMO_ARROW_LENGTH)
+	weapon_gizmo_arrow_y = _create_axis_arrow(Color(0.25, 1.0, 0.25), Vector3.UP, "weapon_arrow_y", WEAPON_GIZMO_ARROW_LENGTH)
+	weapon_gizmo_arrow_z = _create_axis_arrow(Color(0.35, 0.65, 1.0), Vector3.BACK, "weapon_arrow_z", WEAPON_GIZMO_ARROW_LENGTH)
+	weapon_gizmo_ring_roll = _create_rotation_ring(Color(1.0, 0.9, 0.2), Vector3.RIGHT, WEAPON_GIZMO_RING_RADIUS, "weapon_ring_roll")
+	weapon_gizmo_ring_pitch = _create_rotation_ring(Color(1.0, 0.3, 0.9), Vector3.BACK, WEAPON_GIZMO_RING_RADIUS, "weapon_ring_pitch")
+	weapon_gizmo_ring_yaw = _create_rotation_ring(Color(0.2, 0.85, 1.0), Vector3.UP, WEAPON_GIZMO_RING_RADIUS, "weapon_ring_yaw")
+
+	weapon_gizmo_world.add_child(weapon_gizmo_center)
+	weapon_gizmo_world.add_child(weapon_gizmo_arrow_x)
+	weapon_gizmo_world.add_child(weapon_gizmo_arrow_y)
+	weapon_gizmo_world.add_child(weapon_gizmo_arrow_z)
+	weapon_gizmo_world.add_child(weapon_gizmo_ring_roll)
+	weapon_gizmo_world.add_child(weapon_gizmo_ring_pitch)
+	weapon_gizmo_world.add_child(weapon_gizmo_ring_yaw)
+
+func _set_active_gizmo(gizmo_id: String) -> void:
+	active_gizmo_id = gizmo_id
+	var show_hand := active_gizmo_id == "hand"
+	var hand_arrows: Array[Node3D] = [gizmo_arrow_x, gizmo_arrow_y, gizmo_arrow_z]
+	var weapon_arrows: Array[Node3D] = [weapon_gizmo_arrow_x, weapon_gizmo_arrow_y, weapon_gizmo_arrow_z]
+	var world_rings: Array[Node3D] = [gizmo_ring_roll, gizmo_ring_pitch, gizmo_ring_yaw, weapon_gizmo_ring_roll, weapon_gizmo_ring_pitch, weapon_gizmo_ring_yaw]
+	for control in hand_arrows:
+		if control and is_instance_valid(control): control.visible = false
+	for control in weapon_arrows:
+		if control and is_instance_valid(control): control.visible = false
+	for ring in world_rings:
+		if ring and is_instance_valid(ring): ring.visible = false
+	# The support-hand point stays uncluttered. Keep one compact orange box on the
+	# rifle so the weapon itself can always be selected and freely repositioned.
+	if hand_gizmo_center: hand_gizmo_center.visible = false
+	if weapon_gizmo_center: weapon_gizmo_center.visible = true
+	_refresh_rotation_dials()
+	if hud_status:
+		hud_status.text = "🔵 Support-hand controls active" if show_hand else "🟠 Weapon-mount controls active"
+
+func _register_interactive_dots() -> void:
+	interactive_dots.clear()
+	if hand_gizmo_center:
+		interactive_dots.append({"id": "left_ik", "mesh": hand_gizmo_center, "label": "🔵 Hand Rig (Free 3D Translate)", "color": Color(0.0, 0.95, 1.0)})
+	if gizmo_arrow_x and gizmo_arrow_x.get_child_count() > 1:
+		interactive_dots.append({"id": "left_ik_arrow_x", "mesh": gizmo_arrow_x.get_child(1), "label": "🔴 Drag Along Barrel (X)", "color": Color(1.0, 0.25, 0.25)})
+	if gizmo_arrow_y and gizmo_arrow_y.get_child_count() > 1:
+		interactive_dots.append({"id": "left_ik_arrow_y", "mesh": gizmo_arrow_y.get_child(1), "label": "🟢 Drag Height (Y)", "color": Color(0.25, 1.0, 0.25)})
+	if gizmo_arrow_z and gizmo_arrow_z.get_child_count() > 1:
+		interactive_dots.append({"id": "left_ik_arrow_z", "mesh": gizmo_arrow_z.get_child(1), "label": "🔵 Drag Side (Z)", "color": Color(0.35, 0.65, 1.0)})
+	if gizmo_ring_roll:
+		interactive_dots.append({"id": "left_ik_ring_roll", "mesh": gizmo_ring_roll, "label": "🟡 Spin Palm Around Gun (Roll)", "color": Color(1.0, 0.9, 0.2)})
+	if gizmo_ring_pitch:
+		interactive_dots.append({"id": "left_ik_ring_pitch", "mesh": gizmo_ring_pitch, "label": "🟣 Tilt Wrist Pitch", "color": Color(1.0, 0.3, 0.9)})
+	if gizmo_ring_yaw:
+		interactive_dots.append({"id": "left_ik_ring_yaw", "mesh": gizmo_ring_yaw, "label": "🔷 Turn Wrist Yaw", "color": Color(0.2, 0.85, 1.0)})
+
+	if weapon_gizmo_center:
+		interactive_dots.append({"id": "weapon_mount", "mesh": weapon_gizmo_center, "label": "🟠 Grab and Move Weapon", "color": Color(1.0, 0.55, 0.08)})
+	if weapon_gizmo_arrow_x and weapon_gizmo_arrow_x.get_child_count() > 1:
+		interactive_dots.append({"id": "weapon_arrow_x", "mesh": weapon_gizmo_arrow_x.get_child(1), "label": "🔴 Move Weapon X", "color": Color(1.0, 0.25, 0.25)})
+	if weapon_gizmo_arrow_y and weapon_gizmo_arrow_y.get_child_count() > 1:
+		interactive_dots.append({"id": "weapon_arrow_y", "mesh": weapon_gizmo_arrow_y.get_child(1), "label": "🟢 Move Weapon Y", "color": Color(0.25, 1.0, 0.25)})
+	if weapon_gizmo_arrow_z and weapon_gizmo_arrow_z.get_child_count() > 1:
+		interactive_dots.append({"id": "weapon_arrow_z", "mesh": weapon_gizmo_arrow_z.get_child(1), "label": "🔵 Move Weapon Z", "color": Color(0.35, 0.65, 1.0)})
+	if weapon_gizmo_ring_roll:
+		interactive_dots.append({"id": "weapon_ring_roll", "mesh": weapon_gizmo_ring_roll, "label": "🟡 Rotate Weapon Roll", "color": Color(1.0, 0.9, 0.2)})
+	if weapon_gizmo_ring_pitch:
+		interactive_dots.append({"id": "weapon_ring_pitch", "mesh": weapon_gizmo_ring_pitch, "label": "🟣 Rotate Weapon Pitch", "color": Color(1.0, 0.3, 0.9)})
+	if weapon_gizmo_ring_yaw:
+		interactive_dots.append({"id": "weapon_ring_yaw", "mesh": weapon_gizmo_ring_yaw, "label": "🔷 Rotate Weapon Yaw", "color": Color(0.2, 0.85, 1.0)})
+
+	if muzzle_marker: interactive_dots.append({"id": "muzzle", "mesh": muzzle_marker, "label": "🔴 Muzzle Tip Socket", "color": Color(1.0, 0.2, 0.2)})
+	if ejection_marker: interactive_dots.append({"id": "ejection", "mesh": ejection_marker, "label": "🟡 Shell Ejection Port", "color": Color(1.0, 0.85, 0.1)})
+	if optic_marker: interactive_dots.append({"id": "optic", "mesh": optic_marker, "label": "🟢 Optic Scope Rail", "color": Color(0.2, 1.0, 0.4)})
+	if right_grip_marker: interactive_dots.append({"id": "right_grip", "mesh": right_grip_marker, "label": "🟠 Trigger-Hand Grip (moves gun in right hand)", "color": Color(1.0, 0.55, 0.08)})
+
+func _find_dot_under_mouse(screen_pos: Vector2) -> String:
+	if not cam: return ""
+	var closest_id := ""
+	var closest_dist := GIZMO_PICK_DISTANCE_PX
+
+	# Select the real support-hand area instead of requiring a visible sphere.
+	if left_grip_marker and not cam.is_position_behind(left_grip_marker.global_position):
+		var hand_screen := cam.unproject_position(left_grip_marker.global_position)
+		var hand_dist := screen_pos.distance_to(hand_screen)
+		if hand_dist < closest_dist:
+			closest_dist = hand_dist
+			closest_id = "left_ik"
+
+	for item in interactive_dots:
+		var id: String = item["id"]
+		var mi: MeshInstance3D = item["mesh"]
+		if not mi or not is_instance_valid(mi) or not mi.is_visible_in_tree(): continue
+
+		var pick_dist := INF
+		var is_hand_control := id.begins_with("left_ik_")
+		var is_weapon_control := id.begins_with("weapon_")
+		var control_root: Node3D = hand_gizmo_world if is_hand_control else weapon_gizmo_world
+		var ring_radius := HAND_GIZMO_RING_RADIUS if is_hand_control else WEAPON_GIZMO_RING_RADIUS
+		var arrow_length := HAND_GIZMO_ARROW_LENGTH if is_hand_control else WEAPON_GIZMO_ARROW_LENGTH
+
+		if (is_hand_control or is_weapon_control) and id.contains("ring_") and control_root:
+			var ring_axis := id.get_slice("ring_", 1)
+			pick_dist = _ring_pick_distance(screen_pos, control_root.global_position, control_root.global_basis, ring_axis, ring_radius)
+		elif (is_hand_control or is_weapon_control) and id.contains("arrow_") and control_root:
+			var arrow_axis := id.get_slice("arrow_", 1)
+			var direction := control_root.global_basis.x
+			if arrow_axis == "y": direction = control_root.global_basis.y
+			elif arrow_axis == "z": direction = -control_root.global_basis.z
+			var tip := control_root.global_position + direction.normalized() * (arrow_length + 0.025)
+			if not cam.is_position_behind(tip):
+				pick_dist = screen_pos.distance_to(cam.unproject_position(tip))
+		elif not cam.is_position_behind(mi.global_position):
+			pick_dist = screen_pos.distance_to(cam.unproject_position(mi.global_position))
+
+		if pick_dist < closest_dist:
+			closest_dist = pick_dist
+			closest_id = id
+	return closest_id
+
+func _screen_point_segment_distance(point: Vector2, segment_start: Vector2, segment_end: Vector2) -> float:
+	var segment := segment_end - segment_start
+	var length_squared := segment.length_squared()
+	if length_squared <= 0.001:
+		return point.distance_to(segment_start)
+	var amount := clampf((point - segment_start).dot(segment) / length_squared, 0.0, 1.0)
+	return point.distance_to(segment_start + segment * amount)
+
+func _ring_pick_distance(screen_pos: Vector2, center: Vector3, basis: Basis, axis_name: String, radius: float) -> float:
+	var axis_a := basis.y
+	var axis_b := basis.z
+	if axis_name == "pitch":
+		axis_a = basis.x
+		axis_b = basis.y
+	elif axis_name == "yaw":
+		axis_a = basis.x
+		axis_b = basis.z
+
+	var best := INF
+	for i in range(48):
+		var angle := (TAU / 48.0) * float(i)
+		var ring_pt := center + (axis_a * cos(angle) + axis_b * sin(angle)) * radius
+		if not cam.is_position_behind(ring_pt):
+			best = minf(best, screen_pos.distance_to(cam.unproject_position(ring_pt)))
+	return best
+
+func _get_dot_mesh_by_id(dot_id: String) -> MeshInstance3D:
+	for item in interactive_dots:
+		if item["id"] == dot_id: return item["mesh"]
+	return null
+
+func _highlight_dot(dot_id: String) -> void:
+	for item in interactive_dots:
+		var mi: MeshInstance3D = item["mesh"]
+		if mi and is_instance_valid(mi):
+			var is_target: bool = (item["id"] == dot_id)
+			var hover_scale := 1.55 if String(item["id"]).contains("ring_") else 1.70
+			mi.scale = Vector3.ONE * (hover_scale if is_target else 1.0)
+			var mat = mi.material_override as StandardMaterial3D
+			if mat:
+				mat.albedo_color = Color.WHITE if is_target else (item["color"] as Color)
+
+func _apply_dot_world_drag(dot_id: String, world_pos: Vector3) -> void:
+	match dot_id:
+		"weapon_mount":
+			if weapon_pivot:
+				weapon_pivot.global_position = world_pos
+				grip_offset_pos = weapon_pivot.position - auto_grip_center_offset
+				_sync_weapon_transform(false)
+				_update_slider_value("grip_x", grip_offset_pos.x)
+				_update_slider_value("grip_y", grip_offset_pos.y)
+				_update_slider_value("grip_z", grip_offset_pos.z)
+		"left_ik":
+			if current_weapon_mesh:
+				left_grip_local_pos = current_weapon_mesh.global_transform.affine_inverse() * world_pos
+				_sync_markers()
+				_update_slider_value("ik_x", left_grip_local_pos.x)
+				_update_slider_value("ik_y", left_grip_local_pos.y)
+				_update_slider_value("ik_z", left_grip_local_pos.z)
+		"muzzle":
+			if current_weapon_mesh:
+				muzzle_local_pos = current_weapon_mesh.global_transform.affine_inverse() * world_pos
+				_sync_markers()
+				_update_slider_value("mz_x", muzzle_local_pos.x)
+				_update_slider_value("mz_y", muzzle_local_pos.y)
+				_update_slider_value("mz_z", muzzle_local_pos.z)
+		"ejection":
+			if current_weapon_mesh:
+				ejection_local_pos = current_weapon_mesh.global_transform.affine_inverse() * world_pos
+				_sync_markers()
+				_update_slider_value("ej_x", ejection_local_pos.x)
+				_update_slider_value("ej_y", ejection_local_pos.y)
+				_update_slider_value("ej_z", ejection_local_pos.z)
+		"optic":
+			if current_weapon_mesh:
+				optic_local_pos = current_weapon_mesh.global_transform.affine_inverse() * world_pos
+				_sync_markers()
+				_update_slider_value("op_x", optic_local_pos.x)
+				_update_slider_value("op_y", optic_local_pos.y)
+				_update_slider_value("op_z", optic_local_pos.z)
+		"right_grip":
+			if current_weapon_mesh:
+				right_grip_local_pos = current_weapon_mesh.global_transform.affine_inverse() * world_pos
+				_sync_markers()
+				_update_slider_value("rh_x", right_grip_local_pos.x)
+				_update_slider_value("rh_y", right_grip_local_pos.y)
+				_update_slider_value("rh_z", right_grip_local_pos.z)
+
+func _update_slider_value(slider_key: String, val: float) -> void:
+	if sliders_map.has(slider_key):
+		var s: HSlider = sliders_map[slider_key]["slider"]
+		var lbl: Label = sliders_map[slider_key]["label"]
+		if s:
+			s.set_value_no_signal(val)
+			if lbl: lbl.text = "%.2f" % val if absf(val) >= 5.0 else ("%.3f" % val)
+
+func _setup_studio_environment() -> void:
+	var env := Environment.new()
+	env.background_mode = Environment.BG_COLOR
+	env.background_color = Color(0.12, 0.14, 0.17)
+	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+	env.ambient_light_color = Color(0.85, 0.88, 0.95)
+
+	var world_env := WorldEnvironment.new()
+	world_env.environment = env
+	add_child(world_env)
+
+	var key := DirectionalLight3D.new()
+	key.rotation_degrees = Vector3(-35, 75, 0)
+	key.light_color = Color(1.0, 0.98, 0.92)
+	key.light_energy = 1.6
+	key.shadow_enabled = true
+	add_child(key)
+
+	var fill := DirectionalLight3D.new()
+	fill.rotation_degrees = Vector3(-15, 0, 0)
+	fill.light_color = Color(0.6, 0.7, 0.85)
+	fill.light_energy = 0.9
+	add_child(fill)
+
+	var rim := DirectionalLight3D.new()
+	rim.rotation_degrees = Vector3(20, -160, 0)
+	rim.light_color = Color(0.3, 0.9, 1.0)
+	rim.light_energy = 1.0
+	add_child(rim)
+
+	var floor_mesh := MeshInstance3D.new()
+	var plane := PlaneMesh.new()
+	plane.size = Vector2(30.0, 30.0)
+	floor_mesh.mesh = plane
+	var floor_mat := StandardMaterial3D.new()
+	floor_mat.albedo_color = Color(0.16, 0.17, 0.20)
+	floor_mat.roughness = 0.9
+	floor_mesh.material_override = floor_mat
+	add_child(floor_mesh)
+
+	cam_pivot = Node3D.new()
+	add_child(cam_pivot)
+	cam = Camera3D.new()
+	cam_pivot.add_child(cam)
+	cam.current = true
+	_update_camera()
+
+	bullet_tracers = Node3D.new()
+	add_child(bullet_tracers)
+
+	fire_debug_material = StandardMaterial3D.new()
+	fire_debug_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	fire_debug_material.vertex_color_use_as_albedo = true
+	fire_debug_material.no_depth_test = true
+	fire_debug_instance = MeshInstance3D.new()
+	fire_debug_instance.name = "WeaponFireDebugLayers"
+	fire_debug_instance.mesh = fire_debug_mesh
+	fire_debug_instance.material_override = fire_debug_material
+	fire_debug_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(fire_debug_instance)
+
+func _update_camera() -> void:
+	if not cam_pivot or not cam: return
+	cam_pivot.position = cam_target
+	cam_pivot.rotation_degrees = Vector3(cam_pitch, cam_yaw, 0)
+	cam.position = Vector3(0, 0, cam_distance)
+
+func _set_camera_preset(preset_name: String) -> void:
+	match preset_name:
+		"hands":
+			cam_target = Vector3(0.08, 1.22, 0.05)
+			cam_distance = 0.80
+			cam_yaw = 60.0
+			cam_pitch = -8.0
+		"ots":
+			cam_target = Vector3(0.12, 1.28, 0.0)
+			cam_distance = 1.2
+			cam_yaw = 15.0
+			cam_pitch = -6.0
+		"side":
+			cam_target = Vector3(0.0, 1.22, 0.0)
+			cam_distance = 1.1
+			cam_yaw = 90.0
+			cam_pitch = 0.0
+		"full":
+			cam_target = Vector3(0.0, 0.95, 0.0)
+			cam_distance = 2.2
+			cam_yaw = 35.0
+			cam_pitch = -12.0
+	_update_camera()
+
+func _setup_trooper_and_rig() -> void:
+	trooper_node = PS1_GAS_MASK_RIGGED_SCENE.instantiate() as Node3D
+	trooper_node.scale = Vector3.ONE * trooper_scale
+	add_child(trooper_node)
+
+	skeleton = _find_skeleton(trooper_node)
+	_ensure_65_bone_contract()
+	_apply_pixel_texture(trooper_node)
+
+	left_arm_idx = skeleton.find_bone("mixamorig_LeftArm")
+	left_forearm_idx = skeleton.find_bone("mixamorig_LeftForeArm")
+	left_hand_idx = skeleton.find_bone("mixamorig_LeftHand")
+	right_arm_idx = skeleton.find_bone("mixamorig_RightArm")
+	right_forearm_idx = skeleton.find_bone("mixamorig_RightForeArm")
+	right_hand_idx = skeleton.find_bone("mixamorig_RightHand")
+	left_palm_anchor_local = _calculate_palm_anchor("Left", left_hand_idx)
+	right_palm_anchor_local = _calculate_palm_anchor("Right", right_hand_idx)
+
+	animation_player = AnimationPlayer.new()
+	animation_player.name = "AnimationPlayer"
+	animation_player.callback_mode_process = AnimationMixer.ANIMATION_CALLBACK_MODE_PROCESS_MANUAL
+	skeleton.add_child(animation_player)
+	animation_player.root_node = animation_player.get_path_to(skeleton)
+
+	var aim_fbx_path := "res://assets/animations/mixamo/Shooter Pack/rifle aiming idle.fbx"
+	var packed_anim := load(aim_fbx_path) as PackedScene
+	if packed_anim:
+		var temp := packed_anim.instantiate()
+		var temp_ap := _find_animation_player(temp)
+		if temp_ap and not temp_ap.get_animation_list().is_empty():
+			var anim_name: StringName = temp_ap.get_animation_list()[0]
+			for a in temp_ap.get_animation_list():
+				if a != &"RESET": anim_name = a; break
+			var src_anim := temp_ap.get_animation(anim_name)
+			var lib := AnimationLibrary.new()
+			var retargeted := _retarget_aim_anim(src_anim)
+			retargeted.loop_mode = Animation.LOOP_LINEAR
+			lib.add_animation("aim_idle", retargeted)
+
+			var reload_path := "res://assets/animations/mixamo/Shooter Pack/reloading.fbx"
+			if FileAccess.file_exists(reload_path):
+				var r_scene := load(reload_path) as PackedScene
+				if r_scene:
+					var r_temp := r_scene.instantiate()
+					var r_ap := _find_animation_player(r_temp)
+					if r_ap and not r_ap.get_animation_list().is_empty():
+						var r_src := r_ap.get_animation(r_ap.get_animation_list()[0])
+						var r_ret := _retarget_aim_anim(r_src)
+						lib.add_animation("reload", r_ret)
+					r_temp.queue_free()
+
+			animation_player.add_animation_library("", lib)
+			animation_player.play("aim_idle")
+		temp.queue_free()
+
+	runtime_posture_layer = OperatorPostureLayer.new()
+	runtime_posture_layer.bind(skeleton, _neutral_preview_hip_rotation())
+
+	if left_arm_idx >= 0 and left_hand_idx >= 0:
+		left_hand_ik = SkeletonIK3D.new()
+		left_hand_ik.name = "LeftHandIK"
+		left_hand_ik.root_bone = "mixamorig_LeftArm"
+		left_hand_ik.tip_bone = "mixamorig_LeftHand"
+		left_hand_ik.use_magnet = true
+		left_hand_ik.interpolation = 1.0
+		left_hand_ik.override_tip_basis = true
+		left_hand_ik.max_iterations = 40
+		left_hand_ik.min_distance = 0.00002
+		left_hand_ik.magnet = Vector3(-0.35, -0.75, 0.15)
+		skeleton.add_child(left_hand_ik)
+		left_hand_ik.start()
+
+	var inv_scale := 1.0 / trooper_scale
+
+	if right_hand_idx >= 0:
+		ba_right_hand = BoneAttachment3D.new()
+		ba_right_hand.name = "BA_RightHand"
+		ba_right_hand.bone_name = "mixamorig_RightHand"
+		skeleton.add_child(ba_right_hand)
+		right_hand_dot = _create_marker(Color(1.0, 0.6, 0.1), "RightHand_Bone_Dot", 0.028 * inv_scale)
+		ba_right_hand.add_child(right_hand_dot)
+
+		# Capture the old hand-mounted starting pose, then reparent the weapon as
+		# an operator-space master rig. From this point both hands follow sockets.
+		var mount_basis := Basis.from_euler(Vector3(deg_to_rad(-90.0), deg_to_rad(180.0), 0.0)).scaled(Vector3.ONE * inv_scale)
+		weapon_mount_local = Transform3D(mount_basis, Vector3(-0.02, 0.08, 0.05) * inv_scale)
+		var starting_global := ba_right_hand.global_transform * weapon_mount_local
+		weapon_root = Node3D.new()
+		weapon_root.name = "WeaponRoot"
+		skeleton.add_child(weapon_root)
+		weapon_root.global_transform = starting_global
+
+		weapon_pivot = Node3D.new()
+		weapon_pivot.name = "WeaponPivot"
+		weapon_root.add_child(weapon_pivot)
+
+		right_hand_ik = SkeletonIK3D.new()
+		right_hand_ik.name = "RightHandIK"
+		right_hand_ik.root_bone = "mixamorig_RightArm"
+		right_hand_ik.tip_bone = "mixamorig_RightHand"
+		right_hand_ik.use_magnet = true
+		right_hand_ik.interpolation = 1.0
+		right_hand_ik.override_tip_basis = true
+		right_hand_ik.max_iterations = 40
+		right_hand_ik.min_distance = 0.00002
+		skeleton.add_child(right_hand_ik)
+
+
+func _neutral_preview_hip_rotation() -> Quaternion:
+	if animation_player == null or not animation_player.has_animation(&"aim_idle"):
+		return Quaternion.IDENTITY
+	var animation := animation_player.get_animation(&"aim_idle")
+	if animation == null:
+		return Quaternion.IDENTITY
+	for track in range(animation.get_track_count()):
+		if animation.track_get_type(track) != Animation.TYPE_ROTATION_3D:
+			continue
+		if not str(animation.track_get_path(track)).ends_with(":mixamorig_Hips"):
+			continue
+		if animation.track_get_key_count(track) > 0:
+			return (animation.track_get_key_value(track, 0) as Quaternion).normalized()
+	return Quaternion.IDENTITY
+
+
+func _apply_runtime_posture_preview() -> void:
+	if runtime_posture_layer == null or skeleton == null:
+		return
+	var aim_target := current_aim_target
+	if aim_target == Vector3.ZERO and cam:
+		aim_target = _camera_aim_sample().position
+	runtime_posture_layer.apply(
+		0.0,
+		0.0,
+		1.0,
+		0.0,
+		0.0,
+		deg_to_rad(78.0),
+		deg_to_rad(48.0),
+		deg_to_rad(42.0),
+		deg_to_rad(32.0),
+		0.0,
+		0.18,
+		1.0 if preview_posture == &"PRONE" else 0.0,
+		deg_to_rad(90.0),
+		0.0,
+		preview_posture,
+		0.0,
+		aim_target,
+		1.20
+	)
+
+
+func _initialize_weapon_master_pose() -> void:
+	if weapon_master_pose_initialized or not ba_right_hand or not weapon_root:
+		return
+	# BoneAttachment is stale during construction. Rebase once after the first
+	# sampled animation frame so legacy hand-space profiles retain their exact
+	# horizontal authored pose when opened by the weapon-driven lab.
+	if skeleton:
+		skeleton.force_update_all_bone_transforms()
+	# Read the evaluated hand bone directly. BoneAttachment3D updates later in
+	# the frame and was leaving the weapon near the operator root/feet.
+	var hand_global := (
+		skeleton.global_transform * skeleton.get_bone_global_pose(right_hand_idx)
+		if skeleton and right_hand_idx >= 0
+		else ba_right_hand.global_transform
+	)
+	weapon_root.global_transform = hand_global * weapon_mount_local
+	weapon_master_pose_initialized = true
+	if right_grip_needs_initialization and current_weapon_mesh:
+		right_grip_local_pos = (
+			current_weapon_mesh.global_transform.affine_inverse()
+			* _right_palm_contact_world()
+		)
+		right_grip_needs_initialization = false
+		_sync_markers()
+		_register_interactive_dots()
+
+func _calculate_palm_anchor(side: String, hand_index: int) -> Vector3:
+	if not skeleton or hand_index < 0:
+		return Vector3.ZERO
+	var hand_rest := _get_bone_global_rest(hand_index)
+	var palm_points: Array[Vector3] = []
+	for finger_name in ["Thumb", "Index", "Middle", "Ring", "Pinky"]:
+		var bone_name := "mixamorig_%sHand%s1" % [side, finger_name]
+		var bone_idx := skeleton.find_bone(bone_name)
+		if bone_idx >= 0:
+			palm_points.append(hand_rest.affine_inverse() * _get_bone_global_rest(bone_idx).origin)
+	if palm_points.is_empty():
+		return Vector3.ZERO
+	var anchor := Vector3.ZERO
+	for point in palm_points:
+		anchor += point
+	return anchor / float(palm_points.size())
+
+
+func _right_palm_contact_world() -> Vector3:
+	if not skeleton or right_hand_idx < 0:
+		return Vector3.ZERO
+	var hand_pose := skeleton.get_bone_global_pose(right_hand_idx)
+	return skeleton.global_transform * (hand_pose * right_palm_anchor_local)
+
+func _left_palm_contact_world() -> Vector3:
+	if not skeleton or left_hand_idx < 0:
+		return Vector3.ZERO
+	var hand_pose := skeleton.get_bone_global_pose(left_hand_idx)
+	return skeleton.global_transform * (hand_pose * left_palm_anchor_local)
+
+func _get_bone_global_rest(bone_idx: int) -> Transform3D:
+	var chain: Array[Transform3D] = []
+	var current_idx := bone_idx
+	while current_idx >= 0:
+		chain.push_front(skeleton.get_bone_rest(current_idx))
+		current_idx = skeleton.get_bone_parent(current_idx)
+	var result := Transform3D.IDENTITY
+	for local_rest in chain:
+		result = result * local_rest
+	return result
+
+func _setup_target_range() -> void:
+	target_board = Node3D.new()
+	target_board.position = Vector3(0.0, 1.25, 6.0)
+	add_child(target_board)
+
+	var board_mesh := MeshInstance3D.new()
+	var box := BoxMesh.new()
+	box.size = Vector3(1.2, 1.6, 0.08)
+	board_mesh.mesh = box
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = Color(0.25, 0.22, 0.18)
+	board_mesh.material_override = mat
+	target_board.add_child(board_mesh)
+
+	var board_body := StaticBody3D.new()
+	board_body.name = "ReticleTargetBody"
+	board_body.set_meta("gun_lab_target", true)
+	var board_shape := CollisionShape3D.new()
+	var board_box := BoxShape3D.new()
+	board_box.size = Vector3(1.2, 1.6, 0.08)
+	board_shape.shape = board_box
+	board_body.add_child(board_shape)
+	target_board.add_child(board_body)
+
+	var bullseye := MeshInstance3D.new()
+	var cyl := CylinderMesh.new()
+	cyl.top_radius = 0.3
+	cyl.bottom_radius = 0.3
+	cyl.height = 0.1
+	bullseye.mesh = cyl
+	bullseye.rotation_degrees = Vector3(90, 0, 0)
+	bullseye.position = Vector3(0, 0.15, 0.01)
+	var bull_mat := StandardMaterial3D.new()
+	bull_mat.albedo_color = Color(0.85, 0.15, 0.15)
+	bullseye.material_override = bull_mat
+	target_board.add_child(bullseye)
+
+func _create_axis_arrow(color: Color, axis_dir: Vector3, arrow_name: String, length: float = 0.26) -> Node3D:
+	var root := Node3D.new()
+	root.name = arrow_name
+
+	var shaft := MeshInstance3D.new()
+	var cyl := CylinderMesh.new()
+	cyl.top_radius = 0.008
+	cyl.bottom_radius = 0.008
+	cyl.height = length
+	shaft.mesh = cyl
+
+	var head := MeshInstance3D.new()
+	var cone := CylinderMesh.new()
+	cone.top_radius = 0.0
+	cone.bottom_radius = 0.020
+	cone.height = 0.050
+	head.mesh = cone
+
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = color
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.render_priority = 110
+	mat.no_depth_test = true
+	shaft.material_override = mat
+	head.material_override = mat
+
+	shaft.position = Vector3(0, length * 0.5, 0)
+	head.position = Vector3(0, length + 0.025, 0)
+	root.add_child(shaft)
+	root.add_child(head)
+
+	if axis_dir.is_equal_approx(Vector3.RIGHT):
+		root.rotation_degrees = Vector3(0, 0, -90)
+	elif axis_dir.is_equal_approx(Vector3.BACK):
+		root.rotation_degrees = Vector3(90, 0, 0)
+	elif axis_dir.is_equal_approx(Vector3.FORWARD):
+		root.rotation_degrees = Vector3(-90, 0, 0)
+
+	return root
+
+func _create_rotation_ring(color: Color, normal_axis: Vector3, radius: float, ring_name: String) -> MeshInstance3D:
+	var mi := MeshInstance3D.new()
+	mi.name = ring_name
+	var torus := TorusMesh.new()
+	torus.inner_radius = radius - 0.012
+	torus.outer_radius = radius + 0.012
+	torus.rings = 48
+	torus.ring_segments = 16
+	mi.mesh = torus
+
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = color
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.render_priority = 110
+	mat.no_depth_test = true
+	mi.material_override = mat
+
+	if normal_axis.is_equal_approx(Vector3.RIGHT):
+		mi.rotation_degrees = Vector3(0, 0, 90)
+	elif normal_axis.is_equal_approx(Vector3.FORWARD) or normal_axis.is_equal_approx(Vector3.BACK):
+		mi.rotation_degrees = Vector3(90, 0, 0)
+
+	return mi
+
+func _create_marker(color: Color, marker_name: String, radius: float = 0.055) -> MeshInstance3D:
+	var mi := MeshInstance3D.new()
+	mi.name = marker_name
+	var sphere := SphereMesh.new()
+	sphere.radius = radius
+	sphere.height = radius * 2.0
+	mi.mesh = sphere
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = color
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.render_priority = 100
+	mat.no_depth_test = true
+	mi.material_override = mat
+	return mi
+
+func _create_selection_box(color: Color, marker_name: String, size: float = 0.065) -> MeshInstance3D:
+	var mi := MeshInstance3D.new()
+	mi.name = marker_name
+	var box := BoxMesh.new()
+	box.size = Vector3.ONE * size
+	mi.mesh = box
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = color
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.render_priority = 100
+	mat.no_depth_test = true
+	mi.material_override = mat
+	return mi
+
+func _load_weapon(file_name: String) -> void:
+	selected_weapon_file = file_name
+	weapon_name = file_name
+	_reset_fire_profile_defaults()
+	handling_profile = WeaponAnimationProfile.build_default(
+		WeaponAnimationProfile.infer_family(weapon_name, selected_category),
+		animation_catalog.clip_paths if animation_catalog else {}
+	)
+
+	if current_weapon_mesh:
+		current_weapon_mesh.queue_free()
+		current_weapon_mesh = null
+	if current_silencer_mesh:
+		current_silencer_mesh.queue_free()
+		current_silencer_mesh = null
+	if current_scope_mesh:
+		current_scope_mesh.queue_free()
+		current_scope_mesh = null
+
+	var is_ak := (file_name == "ak-47")
+	var is_9mm := (file_name == "9mm_pistol")
+	var path := ""
+	if is_ak:
+		path = "res://assets/weapons/ps1_ak47/source/ak-47.fbx"
+	elif is_9mm:
+		path = "res://assets/weapons/9mm_pistol/source/model/model.dae"
+	else:
+		path = WEAPON_BASE_PATH + file_name + ".fbx"
+
+	var scene := load(path) as PackedScene
+	if not scene:
+		push_error("Could not load weapon scene: %s" % path)
+		return
+
+	current_weapon_mesh = scene.instantiate() as Node3D
+	weapon_pivot.add_child(current_weapon_mesh)
+
+	var effective_size := Vector3.ZERO
+	for c in current_weapon_mesh.get_children():
+		if c is MeshInstance3D and (c as MeshInstance3D).mesh:
+			var mi: MeshInstance3D = c
+			var raw_aabb = mi.mesh.get_aabb()
+			effective_size = raw_aabb.size * mi.scale
+
+	var true_raw_length := maxf(effective_size.x, maxf(effective_size.y, effective_size.z))
+	var target_len := 0.68
+	if "Pistol" in file_name or "Revolver" in file_name or is_9mm:
+		target_len = 0.22
+	elif "Submachine" in file_name or "Bullpup" in file_name:
+		target_len = 0.50
+	elif "Sniper" in file_name:
+		target_len = 0.95
+	elif "Shotgun" in file_name:
+		target_len = 0.72
+
+	if true_raw_length > 0.01:
+		auto_normalized_scale = (target_len / true_raw_length)
+	else:
+		auto_normalized_scale = 0.13
+
+	if is_ak:
+		auto_normalized_scale = 0.028
+		current_weapon_mesh.rotation_degrees = Vector3(0, 180, 0)
+		auto_grip_center_offset = Vector3(0.0, 0.01, -0.07)
+		var ak_mat := StandardMaterial3D.new()
+		ak_mat.albedo_texture = preload("res://assets/weapons/ps1_ak47/textures/AK-47TextureMap.png")
+		ak_mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+		for c in current_weapon_mesh.get_children():
+			if c is MeshInstance3D: (c as MeshInstance3D).material_override = ak_mat
+	elif is_9mm:
+		auto_normalized_scale = 0.025
+		current_weapon_mesh.rotation_degrees = Vector3(0, -90, 0)
+		auto_grip_center_offset = Vector3(0.0, -0.01, -0.04)
+		_apply_9mm_textures(current_weapon_mesh)
+	else:
+		current_weapon_mesh.rotation_degrees = Vector3(0, -90, 0)
+		auto_grip_center_offset = Vector3(0.0, -0.015, -target_len * 0.26)
+		_apply_camo_skin_to_weapon(current_weapon_mesh, selected_camo_idx)
+
+	# Sockets directly attached to Weapon Mesh!
+	left_grip_marker = _create_marker(Color(0.0, 0.95, 1.0), "Socket_LeftHand", 0.055)
+	right_grip_marker = _create_marker(Color(1.0, 0.55, 0.08), "Socket_RightHand", 0.032)
+	muzzle_marker = _create_marker(Color(1.0, 0.2, 0.2), "Socket_Muzzle", 0.055)
+	ejection_marker = _create_marker(Color(1.0, 0.85, 0.1), "Socket_Ejection", 0.050)
+	optic_marker = _create_marker(Color(0.2, 1.0, 0.4), "Socket_Optic", 0.048)
+
+	current_weapon_mesh.add_child(left_grip_marker)
+	current_weapon_mesh.add_child(right_grip_marker)
+	current_weapon_mesh.add_child(muzzle_marker)
+	current_weapon_mesh.add_child(ejection_marker)
+	current_weapon_mesh.add_child(optic_marker)
+
+	_setup_unscaled_hand_gizmo()
+	_setup_unscaled_weapon_gizmo()
+	_set_active_gizmo(active_gizmo_id)
+
+	left_grip_local_pos = Vector3(target_len * 0.20, -0.03, 0.0)
+	right_grip_local_pos = Vector3.ZERO
+	right_grip_profile_loaded = false
+	right_grip_needs_initialization = false
+	muzzle_local_pos = Vector3(target_len * 0.70, 0.02, 0.0)
+	ejection_local_pos = Vector3(target_len * 0.05, 0.03, 0.06)
+	optic_local_pos = Vector3(target_len * 0.05, 0.08, 0.0)
+
+	_try_load_saved_profile(weapon_name)
+
+	# The weapon is the master rig. Restore its authored transform and sockets;
+	# both hands solve toward those sockets after the load completes.
+	_sync_weapon_transform(false)
+	_sync_markers()
+	if not right_grip_profile_loaded and right_hand_dot:
+		# Defer this until the first evaluated animation frame, when the direct
+		# right-hand bone transform is valid in world space.
+		right_grip_needs_initialization = true
+	_register_interactive_dots()
+
+	if left_hand_ik and left_grip_marker:
+		# Manual target ownership preserves the calibrated wrist basis. Assigning a
+		# target_node here would overwrite palm pitch/yaw/roll with the marker basis.
+		left_hand_ik.target_node = NodePath()
+		# Do not solve yet: weapon_root is rebased from the first valid animation
+		# sample in _initialize_weapon_master_pose(). Solving toward its construction
+		# pose here drags the entire arm rig toward the world origin on fresh loads.
+		left_hand_ik.stop()
+
+	if selected_silencer != "None": _load_silencer(selected_silencer)
+	if selected_scope != "None": _load_scope(selected_scope)
+	_refresh_handling_ui()
+
+func _try_load_saved_profile(w_id: String) -> void:
+	var cfg_path := "res://config/weapons/" + w_id.to_lower() + ".json"
+	if FileAccess.file_exists(cfg_path):
+		var file := FileAccess.open(cfg_path, FileAccess.READ)
+		if file:
+			var json := JSON.new()
+			if json.parse(file.get_as_text()) == OK and json.data is Dictionary:
+				var d: Dictionary = json.data
+				if d.get("animation_hand_maps", {}) is Dictionary:
+					animation_hand_maps = (d.get("animation_hand_maps", {}) as Dictionary).duplicate(true)
+				if d.get("handling_profile", {}) is Dictionary and not (d.get("handling_profile", {}) as Dictionary).is_empty():
+					handling_profile = (d.get("handling_profile", {}) as Dictionary).duplicate(true)
+				var sock: Dictionary = d.get("weapon_sockets", {})
+				if sock.has("left_hand_ik_target"):
+					var ik = sock["left_hand_ik_target"]
+					left_grip_local_pos = Vector3(ik.get("x", left_grip_local_pos.x), ik.get("y", left_grip_local_pos.y), ik.get("z", left_grip_local_pos.z))
+				elif d.has("left_hand_ik_target"):
+					var ik = d["left_hand_ik_target"]
+					left_grip_local_pos = Vector3(ik.get("x", left_grip_local_pos.x), ik.get("y", left_grip_local_pos.y), ik.get("z", left_grip_local_pos.z))
+				if sock.has("right_hand_grip_target"):
+					var right_grip: Dictionary = sock["right_hand_grip_target"]
+					right_grip_local_pos = Vector3(
+						float(right_grip.get("x", right_grip_local_pos.x)),
+						float(right_grip.get("y", right_grip_local_pos.y)),
+						float(right_grip.get("z", right_grip_local_pos.z))
+					)
+					right_grip_profile_loaded = true
+
+				if sock.has("muzzle_socket"):
+					var mz = sock["muzzle_socket"]
+					muzzle_local_pos = Vector3(mz.get("x", muzzle_local_pos.x), mz.get("y", muzzle_local_pos.y), mz.get("z", muzzle_local_pos.z))
+				if sock.has("ejection_port"):
+					var ej = sock["ejection_port"]
+					ejection_local_pos = Vector3(ej.get("x", ejection_local_pos.x), ej.get("y", ejection_local_pos.y), ej.get("z", ejection_local_pos.z))
+				if sock.has("optic_rail"):
+					var op = sock["optic_rail"]
+					optic_local_pos = Vector3(op.get("x", optic_local_pos.x), op.get("y", optic_local_pos.y), op.get("z", optic_local_pos.z))
+				if d.has("grip_offset"):
+					var gp = d["grip_offset"]
+					grip_offset_pos = Vector3(gp.get("pos_x", 0.0), gp.get("pos_y", 0.0), gp.get("pos_z", 0.0)) - auto_grip_center_offset
+					grip_offset_rot = Vector3(gp.get("rot_x", 0.0), gp.get("rot_y", 0.0), gp.get("rot_z", 0.0))
+				if d.has("support_hand_pose"):
+					var hand_pose: Dictionary = d["support_hand_pose"]
+					palm_pitch = float(hand_pose.get("palm_pitch_deg", palm_pitch))
+					palm_yaw = float(hand_pose.get("palm_yaw_deg", palm_yaw))
+					palm_roll = float(hand_pose.get("palm_roll_deg", palm_roll))
+					finger_curl = float(hand_pose.get("finger_curl", finger_curl))
+					thumb_wrap = float(hand_pose.get("thumb_wrap", thumb_wrap))
+				var ballistics: Variant = d.get("ballistics", {})
+				if ballistics is Dictionary:
+					var fire_values := ballistics as Dictionary
+					fire_rate_rpm = int(fire_values.get("fire_rate_rpm", fire_rate_rpm))
+					damage_per_shot = int(fire_values.get("damage", damage_per_shot))
+					base_spread_deg = float(fire_values.get("base_spread_deg", base_spread_deg))
+					bloom_per_shot_deg = float(fire_values.get("bloom_per_shot_deg", bloom_per_shot_deg))
+					max_recoil_bloom_deg = float(fire_values.get("max_recoil_bloom_deg", max_recoil_bloom_deg))
+					bloom_recovery_speed = float(fire_values.get("bloom_recovery_speed", bloom_recovery_speed))
+					is_silenced = bool(fire_values.get("is_silenced", is_silenced))
+				var reticle: Variant = d.get("reticle", {})
+				if reticle is Dictionary:
+					var reticle_values := reticle as Dictionary
+					reticle_base_gap_px = float(reticle_values.get("base_gap_px", reticle_base_gap_px))
+					reticle_max_gap_px = float(reticle_values.get("max_gap_px", reticle_max_gap_px))
+					reticle_response_speed = float(reticle_values.get("response_speed", reticle_response_speed))
+					reticle_shot_kick_px = float(reticle_values.get("shot_kick_px", reticle_shot_kick_px))
+					reticle_shot_kick_return = float(reticle_values.get("shot_kick_return", reticle_shot_kick_return))
+					reticle_maximum_shot_kick_px = float(reticle_values.get("maximum_shot_kick_px", reticle_maximum_shot_kick_px))
+				user_scale_multiplier = float(d.get("user_scale_multiplier", user_scale_multiplier))
+			file.close()
+	_refresh_fire_controls()
+
+
+func _reset_fire_profile_defaults() -> void:
+	fire_rate_rpm = 650
+	damage_per_shot = 34
+	is_silenced = false
+	base_spread_deg = 0.4
+	bloom_per_shot_deg = 1.2
+	bloom_recovery_speed = 14.0
+	max_recoil_bloom_deg = 2.4
+	reticle_base_gap_px = 10.0
+	reticle_max_gap_px = 46.0
+	reticle_response_speed = 24.0
+	reticle_shot_kick_px = 6.0
+	reticle_shot_kick_return = 18.0
+	reticle_maximum_shot_kick_px = 18.0
+	current_bloom = 0.0
+	burst_shot_count = 0
+
+
+func _refresh_fire_controls() -> void:
+	if fire_profile_title:
+		fire_profile_title.text = "RETICLE & FIRE — %s" % weapon_name
+	_update_slider_value("rpm", float(fire_rate_rpm))
+	_update_slider_value("dmg", float(damage_per_shot))
+	_update_slider_value("base_spread", base_spread_deg)
+	_update_slider_value("bloom", bloom_per_shot_deg)
+	_update_slider_value("max_bloom", max_recoil_bloom_deg)
+	_update_slider_value("rec", bloom_recovery_speed)
+	_update_slider_value("reticle_base", reticle_base_gap_px)
+	_update_slider_value("reticle_max", reticle_max_gap_px)
+	_update_slider_value("reticle_response", reticle_response_speed)
+	_update_slider_value("reticle_kick", reticle_shot_kick_px)
+	_update_slider_value("reticle_return", reticle_shot_kick_return)
+	_update_slider_value("reticle_kick_limit", reticle_maximum_shot_kick_px)
+	_apply_reticle_preview_profile()
+
+func _apply_9mm_textures(node: Node) -> void:
+	var body_tex = load("res://assets/weapons/9mm_pistol/textures/Body_albedo.jpeg") as Texture2D
+	var slide_tex = load("res://assets/weapons/9mm_pistol/textures/Slide_albedo.jpeg") as Texture2D
+	var mag_tex = load("res://assets/weapons/9mm_pistol/textures/Magazine_albedo.jpeg") as Texture2D
+
+	for c in node.get_children():
+		if c is MeshInstance3D:
+			var mi: MeshInstance3D = c
+			var mat := StandardMaterial3D.new()
+			mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+			if "Body" in mi.name: mat.albedo_texture = body_tex
+			elif "Slide" in mi.name: mat.albedo_texture = slide_tex
+			elif "Mag" in mi.name: mat.albedo_texture = mag_tex
+			else: mat.albedo_color = Color(0.2, 0.2, 0.2)
+			mi.material_override = mat
+
+func _apply_camo_skin_to_weapon(node: Node, camo_idx: int) -> void:
+	var wood_color := Color(0.38, 0.24, 0.14)
+	var steel_color := Color(0.22, 0.24, 0.26)
+	var poly_color := Color(0.12, 0.12, 0.13)
+	var bolt_color := Color(0.45, 0.48, 0.52)
+
+	match camo_idx:
+		1: # SOCOM Desert Tan
+			wood_color = Color(0.72, 0.60, 0.44)
+			steel_color = Color(0.55, 0.48, 0.36)
+			poly_color = Color(0.20, 0.18, 0.15)
+			bolt_color = Color(0.35, 0.35, 0.35)
+		2: # SOCOM Woodland OD
+			wood_color = Color(0.28, 0.35, 0.22)
+			steel_color = Color(0.22, 0.25, 0.20)
+			poly_color = Color(0.14, 0.16, 0.12)
+			bolt_color = Color(0.40, 0.42, 0.40)
+		3: # Midnight Spec-Ops
+			wood_color = Color(0.08, 0.08, 0.09)
+			steel_color = Color(0.12, 0.13, 0.14)
+			poly_color = Color(0.06, 0.06, 0.07)
+			bolt_color = Color(0.25, 0.25, 0.27)
+		4: # Arctic Whiteout
+			wood_color = Color(0.85, 0.88, 0.90)
+			steel_color = Color(0.70, 0.75, 0.80)
+			poly_color = Color(0.30, 0.35, 0.40)
+			bolt_color = Color(0.60, 0.65, 0.70)
+		5: # Titanium & Carbon
+			wood_color = Color(0.15, 0.15, 0.16)
+			steel_color = Color(0.65, 0.68, 0.72)
+			poly_color = Color(0.10, 0.10, 0.11)
+			bolt_color = Color(0.80, 0.82, 0.85)
+
+	for c in node.get_children():
+		if c is MeshInstance3D:
+			var mi: MeshInstance3D = c
+			mi.material_override = null
+			if mi.mesh:
+				for s in range(mi.mesh.get_surface_count()):
+					var surf_mat := mi.mesh.surface_get_material(s)
+					var mat_name := surf_mat.resource_name.to_lower() if surf_mat else ""
+					var sm := StandardMaterial3D.new()
+					sm.roughness = 0.45
+					sm.metallic = 0.75
+
+					if "wood" in mat_name:
+						sm.albedo_color = wood_color
+						sm.roughness = 0.6
+						sm.metallic = 0.1
+					elif "darkmetal" in mat_name or "receiver" in mat_name:
+						sm.albedo_color = steel_color
+					elif "black" in mat_name or "grip" in mat_name or "stock" in mat_name:
+						sm.albedo_color = poly_color
+						sm.metallic = 0.2
+					elif "metal" in mat_name or "bolt" in mat_name:
+						sm.albedo_color = bolt_color
+						sm.metallic = 0.9
+						sm.roughness = 0.25
+					else:
+						sm.albedo_color = steel_color
+
+					mi.set_surface_override_material(s, sm)
+
+func _load_silencer(s_name: String) -> void:
+	selected_silencer = s_name
+	if current_silencer_mesh:
+		current_silencer_mesh.queue_free()
+		current_silencer_mesh = null
+
+	if s_name == "None" or s_name == "":
+		is_silenced = false
+		return
+
+	is_silenced = true
+	var path := WEAPON_BASE_PATH + "Accessories/" + s_name + ".fbx"
+	var scene := load(path) as PackedScene
+	if scene:
+		current_silencer_mesh = scene.instantiate() as Node3D
+		current_silencer_mesh.scale = Vector3.ONE * (auto_normalized_scale * user_scale_multiplier)
+		current_silencer_mesh.rotation_degrees = Vector3(0, -90, 0)
+		current_silencer_mesh.position = muzzle_marker.position if muzzle_marker else muzzle_local_pos
+		weapon_pivot.add_child(current_silencer_mesh)
+		_apply_camo_skin_to_weapon(current_silencer_mesh, selected_camo_idx)
+
+func _load_scope(sc_name: String) -> void:
+	selected_scope = sc_name
+	if current_scope_mesh:
+		current_scope_mesh.queue_free()
+		current_scope_mesh = null
+
+	if sc_name == "None" or sc_name == "":
+		return
+
+	var path := WEAPON_BASE_PATH + "Accessories/" + sc_name + ".fbx"
+	var scene := load(path) as PackedScene
+	if scene:
+		current_scope_mesh = scene.instantiate() as Node3D
+		current_scope_mesh.scale = Vector3.ONE * (auto_normalized_scale * user_scale_multiplier)
+		current_scope_mesh.rotation_degrees = Vector3(0, -90, 0)
+		current_scope_mesh.position = optic_marker.position if optic_marker else optic_local_pos
+		weapon_pivot.add_child(current_scope_mesh)
+		_apply_camo_skin_to_weapon(current_scope_mesh, selected_camo_idx)
+
+func _sync_weapon_transform(keep_trigger_attached: bool = true) -> void:
+	if not weapon_pivot: return
+	weapon_pivot.position = auto_grip_center_offset + grip_offset_pos
+	weapon_pivot.rotation_degrees = grip_offset_rot
+	if current_weapon_mesh:
+		current_weapon_mesh.scale = Vector3.ONE * (auto_normalized_scale * user_scale_multiplier)
+	# Do not move the weapon to satisfy a hand constraint. The weapon is the
+	# master object; right- and left-hand IK consume its saved sockets.
+
+
+func _sync_weapon_translation() -> void:
+	_sync_weapon_transform(false)
+
+func _sync_markers() -> void:
+	if left_grip_marker: left_grip_marker.position = left_grip_local_pos
+	if right_grip_marker: right_grip_marker.position = right_grip_local_pos
+	if muzzle_marker: muzzle_marker.position = muzzle_local_pos
+	if ejection_marker: ejection_marker.position = ejection_local_pos
+	if optic_marker: optic_marker.position = optic_local_pos
+	if current_silencer_mesh and muzzle_marker: current_silencer_mesh.position = muzzle_marker.position
+	if current_scope_mesh and optic_marker: current_scope_mesh.position = optic_marker.position
+
+
+func _reticle_screen_position() -> Vector2:
+	return get_viewport().get_visible_rect().size * 0.5
+
+
+func _camera_aim_sample() -> Dictionary:
+	if cam == null:
+		return {"position": Vector3.ZERO, "target_locked": false}
+	var screen_center := _reticle_screen_position()
+	var ray_origin := cam.project_ray_origin(screen_center)
+	var ray_direction := cam.project_ray_normal(screen_center).normalized()
+	var ray_end := ray_origin + ray_direction * 120.0
+	var query := PhysicsRayQueryParameters3D.create(ray_origin, ray_end)
+	query.collision_mask = 1
+	query.collide_with_areas = true
+	var hit := get_world_3d().direct_space_state.intersect_ray(query)
+	if hit.is_empty():
+		return {"position": ray_end, "target_locked": false}
+	var collider: Object = hit.get("collider")
+	return {
+		"position": hit.position,
+		"target_locked": collider != null and collider.has_meta("gun_lab_target"),
+	}
+
+
+func _stance_spread_multiplier() -> float:
+	match preview_posture:
+		&"PRONE": return 0.22
+		&"CROUCHED": return 0.60
+		_: return 1.0
+
+
+func _current_total_spread_deg() -> float:
+	return base_spread_deg * _stance_spread_multiplier() + current_bloom
+
+func _align_trigger_socket_to_right_hand(update_controls: bool = true) -> void:
+	if not weapon_pivot or not right_grip_marker or not right_hand_dot:
+		return
+	var correction := right_hand_dot.global_position - right_grip_marker.global_position
+	weapon_pivot.global_position += correction
+	grip_offset_pos = weapon_pivot.position - auto_grip_center_offset
+	_sync_weapon_transform(false)
+	_sync_markers()
+	if update_controls:
+		_update_slider_value("grip_x", grip_offset_pos.x)
+		_update_slider_value("grip_y", grip_offset_pos.y)
+		_update_slider_value("grip_z", grip_offset_pos.z)
+
+func _fire_shot() -> void:
+	var interval := 60.0 / float(maxi(100, fire_rate_rpm))
+	fire_cooldown = interval
+	burst_shot_count += 1
+
+	if burst_shot_count > 2:
+		current_bloom = minf(
+			max_recoil_bloom_deg,
+			current_bloom + bloom_per_shot_deg
+		)
+	if dynamic_reticle:
+		dynamic_reticle.notify_shot(
+			burst_shot_count,
+			1.0 + current_bloom / maxf(max_recoil_bloom_deg, 0.001)
+		)
+
+	if muzzle_marker:
+		var flash := OmniLight3D.new()
+		flash.light_color = Color(1.0, 0.85, 0.3) if not is_silenced else Color(0.3, 0.6, 1.0)
+		flash.omni_range = 3.5
+		flash.light_energy = 3.0
+		muzzle_marker.add_child(flash)
+		get_tree().create_timer(0.04).timeout.connect(flash.queue_free)
+
+		var tracer := MeshInstance3D.new()
+		var cyl := CylinderMesh.new()
+		cyl.top_radius = 0.008
+		cyl.bottom_radius = 0.008
+		cyl.height = 1.2
+		tracer.mesh = cyl
+		var t_mat := StandardMaterial3D.new()
+		t_mat.albedo_color = Color(1.0, 0.9, 0.4) if not is_silenced else Color(0.4, 0.8, 1.0)
+		t_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		tracer.material_override = t_mat
+
+		last_shot_origin = muzzle_marker.global_position
+		var aim_sample := _camera_aim_sample()
+		current_aim_target = aim_sample.position
+		var forward_dir := (current_aim_target - last_shot_origin).normalized()
+		var spread_rad := deg_to_rad(_current_total_spread_deg())
+		var random := RandomNumberGenerator.new()
+		random.seed = burst_shot_count
+		var random_angle := random.randf() * TAU
+		var random_radius := sqrt(random.randf()) * spread_rad
+		var spread_offset := Vector3(
+			cos(random_angle) * random_radius,
+			sin(random_angle) * random_radius,
+			0.0
+		)
+		var shot_basis := Basis.looking_at(forward_dir, Vector3.UP)
+		var shot_direction := (shot_basis * (Vector3.FORWARD + spread_offset)).normalized()
+		var shot_target := last_shot_origin + shot_direction * 120.0
+		var shot_query := PhysicsRayQueryParameters3D.create(last_shot_origin, shot_target)
+		shot_query.collision_mask = 1
+		shot_query.collide_with_areas = true
+		var shot_hit := get_world_3d().direct_space_state.intersect_ray(shot_query)
+		if not shot_hit.is_empty():
+			shot_target = shot_hit.position
+		last_shot_end = shot_target
+		bullet_tracers.add_child(tracer)
+		tracer.global_position = last_shot_origin
+		tracer.look_at(shot_target)
+		tracer.rotation_degrees.x += 90.0
+
+		var tween := create_tween()
+		tween.tween_property(tracer, "global_position", shot_target, 0.07)
+		tween.tween_callback(tracer.queue_free)
+
+	if hud_status:
+		hud_status.text = "💥 BANG! RPM: %d | Burst: #%d | Bloom: %.2f° | Silenced: %s" % [
+			fire_rate_rpm, burst_shot_count, current_bloom, "YES" if is_silenced else "NO"
+		]
+
+func _apply_pixel_texture(node: Node) -> void:
+	if node is MeshInstance3D:
+		var mat := StandardMaterial3D.new()
+		mat.albedo_texture = PS1_GAS_MASK_TEX
+		mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+		node.material_override = mat
+	for child in node.get_children():
+		_apply_pixel_texture(child)
+
+func _ensure_65_bone_contract() -> void:
+	for side in ["Left", "Right"]:
+		var hand_index := skeleton.find_bone("mixamorig_%sHand" % side)
+		if hand_index < 0: continue
+		for finger in ["Middle", "Ring", "Pinky"]:
+			var parent_index := hand_index
+			for segment in range(1, 5):
+				var bone_name := "mixamorig_%sHand%s%d" % [side, finger, segment]
+				var bone_index := skeleton.find_bone(bone_name)
+				if bone_index < 0:
+					bone_index = skeleton.add_bone(bone_name)
+					var index_reference := skeleton.find_bone("mixamorig_%sHandIndex%d" % [side, segment])
+					if index_reference >= 0:
+						skeleton.set_bone_rest(bone_index, skeleton.get_bone_rest(index_reference))
+				skeleton.set_bone_parent(bone_index, parent_index)
+				parent_index = bone_index
+
+func _retarget_aim_anim(src_anim: Animation) -> Animation:
+	var retargeted := src_anim.duplicate()
+	var root_n := animation_player.get_node(animation_player.root_node)
+	var skel_path := root_n.get_path_to(skeleton)
+	for i in range(retargeted.get_track_count() - 1, -1, -1):
+		var old_path := str(retargeted.track_get_path(i))
+		var raw_bone := old_path.split(":")[-1]
+		var norm := raw_bone.replace("mixamorig:", "mixamorig_")
+		if not norm.begins_with("mixamorig_"): norm = "mixamorig_" + norm
+		var target_bone := ""
+		if skeleton.find_bone(raw_bone) != -1: target_bone = raw_bone
+		elif skeleton.find_bone(norm) != -1: target_bone = norm
+		if target_bone != "":
+			retargeted.track_set_path(i, NodePath(str(skel_path) + ":" + target_bone))
+			if ("Hips" in raw_bone or "root" in raw_bone.to_lower()) and retargeted.track_get_type(i) == Animation.TYPE_POSITION_3D:
+				for k in range(retargeted.track_get_key_count(i)):
+					var pos: Vector3 = retargeted.track_get_key_value(i, k)
+					pos.x = 0.0; pos.z = 0.0
+					pos.y = pos.y * 0.0191988
+					retargeted.track_set_key_value(i, k, pos)
+		else:
+			retargeted.remove_track(i)
+	return retargeted
+
+func _find_skeleton(node: Node) -> Skeleton3D:
+	if node is Skeleton3D: return node as Skeleton3D
+	for child in node.get_children():
+		var f := _find_skeleton(child)
+		if f: return f
+	return null
+
+func _find_animation_player(node: Node) -> AnimationPlayer:
+	if node is AnimationPlayer: return node as AnimationPlayer
+	for child in node.get_children():
+		var f := _find_animation_player(child)
+		if f: return f
+	return null
+
+func _save_weapon_config() -> void:
+	var config_dir := "res://config/weapons/"
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(config_dir))
+
+	var config_data: Dictionary = {
+		"schema_version": 3,
+		"weapon_id": weapon_name.to_lower(),
+		"display_name": weapon_name,
+		"category": selected_category,
+		"camo_skin": camo_skins[selected_camo_idx],
+		"model_fbx": WEAPON_BASE_PATH + weapon_name + ".fbx" if (weapon_name != "ak-47" and weapon_name != "9mm_pistol") else ("res://assets/weapons/ps1_ak47/source/ak-47.fbx" if weapon_name == "ak-47" else "res://assets/weapons/9mm_pistol/source/model/model.dae"),
+		"silencer_attachment": selected_silencer,
+		"scope_attachment": selected_scope,
+		"normalized_scale": auto_normalized_scale * user_scale_multiplier,
+		"user_scale_multiplier": user_scale_multiplier,
+		"model_rotation_degrees": {
+			"x": current_weapon_mesh.rotation_degrees.x if current_weapon_mesh else 0.0,
+			"y": current_weapon_mesh.rotation_degrees.y if current_weapon_mesh else 0.0,
+			"z": current_weapon_mesh.rotation_degrees.z if current_weapon_mesh else 0.0
+		},
+		"operator_mount": {
+			"position": {"x": -0.02, "y": 0.08, "z": 0.05},
+			"rotation_degrees": {"x": -90.0, "y": 180.0, "z": 0.0}
+		},
+		"grip_offset": {
+			"pos_x": (auto_grip_center_offset + grip_offset_pos).x,
+			"pos_y": (auto_grip_center_offset + grip_offset_pos).y,
+			"pos_z": (auto_grip_center_offset + grip_offset_pos).z,
+			"rot_x": grip_offset_rot.x,
+			"rot_y": grip_offset_rot.y,
+			"rot_z": grip_offset_rot.z
+		},
+		"support_hand_pose": {
+			"palm_pitch_deg": palm_pitch,
+			"palm_yaw_deg": palm_yaw,
+			"palm_roll_deg": palm_roll,
+			"finger_curl": finger_curl,
+			"thumb_wrap": thumb_wrap
+		},
+		"animation_hand_maps": animation_hand_maps.duplicate(true),
+		"handling_profile": handling_profile.duplicate(true),
+		"weapon_sockets": {
+			"right_hand_grip_target": {
+				"x": right_grip_local_pos.x,
+				"y": right_grip_local_pos.y,
+				"z": right_grip_local_pos.z
+			},
+			"left_hand_ik_target": {
+				"x": left_grip_local_pos.x,
+				"y": left_grip_local_pos.y,
+				"z": left_grip_local_pos.z
+			},
+			"muzzle_socket": {
+				"x": muzzle_local_pos.x,
+				"y": muzzle_local_pos.y,
+				"z": muzzle_local_pos.z
+			},
+			"barrel_base_socket": {
+				"x": _calibrated_barrel_base().x,
+				"y": _calibrated_barrel_base().y,
+				"z": _calibrated_barrel_base().z
+			},
+			"ejection_port": {
+				"x": ejection_local_pos.x,
+				"y": ejection_local_pos.y,
+				"z": ejection_local_pos.z
+			},
+			"optic_rail": {
+				"x": optic_local_pos.x,
+				"y": optic_local_pos.y,
+				"z": optic_local_pos.z
+			}
+		},
+		"ballistics": {
+			"fire_rate_rpm": fire_rate_rpm,
+			"damage": damage_per_shot,
+			"base_spread_deg": base_spread_deg,
+			"bloom_per_shot_deg": bloom_per_shot_deg,
+			"max_recoil_bloom_deg": max_recoil_bloom_deg,
+			"bloom_recovery_speed": bloom_recovery_speed,
+			"is_silenced": is_silenced
+		},
+		"reticle": _current_reticle_profile()
+	}
+
+	var file_path := config_dir + weapon_name.to_lower() + ".json"
+	var file := FileAccess.open(file_path, FileAccess.WRITE)
+	if file:
+		file.store_string(JSON.stringify(config_data, "  "))
+		file.close()
+		_save_operator_loadout(weapon_name.to_lower())
+
+	_export_weapon_packed_scene(config_data)
+
+func _calibrated_barrel_base() -> Vector3:
+	var barrel_axis := (muzzle_local_pos - right_grip_local_pos).normalized()
+	if barrel_axis.length_squared() < 0.99:
+		barrel_axis = Vector3.RIGHT
+	return muzzle_local_pos - barrel_axis * minf(
+		0.18,
+		maxf(muzzle_local_pos.distance_to(right_grip_local_pos) * 0.35, 0.08)
+	)
+
+func _save_and_play_latest_playground() -> void:
+	# One canonical handoff: the live build never guesses which lab or scene is
+	# newest. Save the selected weapon contract, then enter main.tscn.
+	_save_weapon_config()
+	if hud_status:
+		hud_status.text = "✅ Rig saved. Opening the latest gameplay playground…"
+	call_deferred("_open_latest_playground")
+
+func _open_latest_playground() -> void:
+	var change_error := get_tree().change_scene_to_file("res://main.tscn")
+	if change_error != OK and hud_status:
+		hud_status.text = "Could not open the latest playground (%s)." % error_string(change_error)
+
+func _save_operator_loadout(weapon_id: String) -> void:
+	var path := "res://config/weapons/operator_loadout.json"
+	var loadout := {
+		"schema_version": 1,
+		"primary_weapon_id": weapon_id,
+		"rig_config": "res://config/weapons/%s.json" % weapon_id,
+	}
+	var file := FileAccess.open(path, FileAccess.WRITE)
+	if file:
+		file.store_string(JSON.stringify(loadout, "  "))
+		file.close()
+
+func _export_weapon_packed_scene(config_data: Dictionary) -> void:
+	var scenes_dir := "res://scenes/weapons/"
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(scenes_dir))
+
+	var w_id: String = weapon_name.to_lower()
+	var root := Node3D.new()
+	root.name = weapon_name
+
+	if current_weapon_mesh:
+		var model_copy := current_weapon_mesh.duplicate() as Node3D
+		model_copy.name = "WeaponMesh"
+		root.add_child(model_copy)
+		model_copy.owner = root
+
+		var sock_lh := Marker3D.new()
+		sock_lh.name = "Socket_LeftHand"
+		sock_lh.position = left_grip_local_pos
+		root.add_child(sock_lh)
+		sock_lh.owner = root
+
+		var sock_rh := Marker3D.new()
+		sock_rh.name = "Socket_RightHand"
+		sock_rh.position = right_grip_local_pos
+		root.add_child(sock_rh)
+		sock_rh.owner = root
+
+		var sock_mz := Marker3D.new()
+		sock_mz.name = "Socket_Muzzle"
+		sock_mz.position = muzzle_local_pos
+		root.add_child(sock_mz)
+		sock_mz.owner = root
+
+		var sock_barrel := Marker3D.new()
+		sock_barrel.name = "Socket_BarrelBase"
+		sock_barrel.position = _calibrated_barrel_base()
+		root.add_child(sock_barrel)
+		sock_barrel.owner = root
+
+		var sock_ej := Marker3D.new()
+		sock_ej.name = "Socket_Ejection"
+		sock_ej.position = ejection_local_pos
+		root.add_child(sock_ej)
+		sock_ej.owner = root
+
+		var sock_op := Marker3D.new()
+		sock_op.name = "Socket_Optic"
+		sock_op.position = optic_local_pos
+		root.add_child(sock_op)
+		sock_op.owner = root
+
+		if current_silencer_mesh:
+			var sil_copy := current_silencer_mesh.duplicate() as Node3D
+			sil_copy.name = "Attachment_Silencer"
+			root.add_child(sil_copy)
+			sil_copy.owner = root
+
+		if current_scope_mesh:
+			var sc_copy := current_scope_mesh.duplicate() as Node3D
+			sc_copy.name = "Attachment_Scope"
+			root.add_child(sc_copy)
+			sc_copy.owner = root
+
+	var packed := PackedScene.new()
+	var pack_result := packed.pack(root)
+	if pack_result == OK:
+		var tscn_path := scenes_dir + w_id + ".tscn"
+		var save_err := ResourceSaver.save(packed, tscn_path)
+		if save_err == OK:
+			if hud_status:
+				hud_status.text = "✅ SAVED + EQUIPPED: %s | Character will load this exact rig" % w_id
+			print("Successfully exported ready-to-use game asset to: ", tscn_path)
+	root.queue_free()
+
+# ─── UI ───────────────────────────────────────────────────────────────────────
+
+func _setup_rotation_corner_controls() -> void:
+	rotation_panel = PanelContainer.new()
+	rotation_panel.name = "RotationCornerPanel"
+	rotation_panel.anchor_left = 1.0
+	rotation_panel.anchor_right = 1.0
+	rotation_panel.offset_left = -254.0
+	rotation_panel.offset_right = -16.0
+	rotation_panel.offset_top = 16.0
+	rotation_panel.offset_bottom = 198.0
+	rotation_panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	var panel_style := StyleBoxFlat.new()
+	panel_style.bg_color = Color(0.035, 0.045, 0.06, 0.90)
+	panel_style.border_color = Color(0.25, 0.85, 1.0, 0.70)
+	panel_style.set_border_width_all(1)
+	panel_style.set_corner_radius_all(8)
+	panel_style.content_margin_left = 10.0
+	panel_style.content_margin_right = 10.0
+	panel_style.content_margin_top = 7.0
+	panel_style.content_margin_bottom = 7.0
+	rotation_panel.add_theme_stylebox_override("panel", panel_style)
+	overlay.add_child(rotation_panel)
+
+	var content := VBoxContainer.new()
+	rotation_panel.add_child(content)
+	rotation_title_label = Label.new()
+	rotation_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	rotation_title_label.add_theme_font_size_override("font_size", 12)
+	rotation_title_label.add_theme_color_override("font_color", Color(0.75, 0.95, 1.0))
+	content.add_child(rotation_title_label)
+
+	rotation_orbit_control = Control.new()
+	rotation_orbit_control.custom_minimum_size = Vector2(218.0, 112.0)
+	rotation_orbit_control.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	rotation_orbit_control.mouse_filter = Control.MOUSE_FILTER_STOP
+	rotation_orbit_control.draw.connect(_draw_rotation_orbit)
+	rotation_orbit_control.gui_input.connect(_on_rotation_orbit_input)
+	rotation_orbit_control.mouse_exited.connect(func():
+		if rotation_pad_drag_axis == "":
+			rotation_pad_hover_axis = ""
+			rotation_orbit_control.queue_redraw()
+	)
+	content.add_child(rotation_orbit_control)
+
+	var values_row := HBoxContainer.new()
+	values_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	content.add_child(values_row)
+	for axis_name in ["pitch", "yaw", "roll"]:
+		var value_label := Label.new()
+		value_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		value_label.add_theme_font_size_override("font_size", 10)
+		value_label.custom_minimum_size.x = 70.0
+		var axis_color := _rotation_axis_color(axis_name)
+		value_label.add_theme_color_override("font_color", axis_color)
+		values_row.add_child(value_label)
+		rotation_value_labels[axis_name] = value_label
+	_refresh_rotation_dials()
+
+func _draw_rotation_orbit() -> void:
+	if not rotation_orbit_control: return
+	if active_gizmo_id == "hand":
+		_draw_human_hand_controls()
+		return
+	var center := Vector2(rotation_orbit_control.size.x * 0.5, 56.0)
+	rotation_orbit_control.draw_circle(center, 7.0, Color(0.0, 0.95, 1.0) if active_gizmo_id == "hand" else Color(1.0, 0.55, 0.08))
+	for axis_name in ["yaw", "pitch", "roll"]:
+		var highlighted: bool = rotation_pad_hover_axis == axis_name or rotation_pad_drag_axis == axis_name
+		var points := _rotation_orbit_points(center, axis_name, 1.08 if highlighted else 1.0)
+		var color := Color.WHITE if rotation_pad_drag_axis == axis_name else _rotation_axis_color(axis_name)
+		rotation_orbit_control.draw_polyline(points, color, 6.0 if highlighted else 3.5, true)
+		var knob_angle := deg_to_rad(_rotation_axis_value(axis_name))
+		var knob := _rotation_orbit_point(center, axis_name, knob_angle, 1.08 if highlighted else 1.0)
+		rotation_orbit_control.draw_circle(knob, 5.0 if highlighted else 3.5, color)
+
+func _draw_human_hand_controls() -> void:
+	var roll_center := Vector2(58.0, 56.0)
+	var direction_center := Vector2(160.0, 56.0)
+	var roll_highlighted := rotation_pad_hover_axis == "roll" or rotation_pad_drag_axis == "roll"
+	var direction_highlighted := rotation_pad_hover_axis == "direction" or rotation_pad_drag_axis == "direction"
+	var roll_color := Color.WHITE if rotation_pad_drag_axis == "roll" else _rotation_axis_color("roll")
+	var direction_color := Color.WHITE if rotation_pad_drag_axis == "direction" else Color(0.20, 0.85, 1.0)
+
+	# Roll moves the palm continuously under, beside, and over the rifle.
+	var roll_radius := 38.0 if roll_highlighted else 34.0
+	rotation_orbit_control.draw_circle(roll_center, roll_radius, Color(1.0, 0.9, 0.2, 0.10))
+	rotation_orbit_control.draw_arc(roll_center, roll_radius, 0.0, TAU, 48, roll_color, 6.0 if roll_highlighted else 3.5, true)
+	var roll_angle := deg_to_rad(palm_roll - 90.0)
+	var roll_marker := roll_center + Vector2(cos(roll_angle), sin(roll_angle)) * roll_radius
+	_draw_open_hand_marker(roll_marker, roll_color, 0.72 if roll_highlighted else 0.62)
+
+	# Open-hand pad: horizontal turns the fingers, vertical bends the wrist.
+	var pad_radius := 39.0 if direction_highlighted else 35.0
+	rotation_orbit_control.draw_circle(direction_center, pad_radius, Color(0.2, 0.85, 1.0, 0.09))
+	rotation_orbit_control.draw_arc(direction_center, pad_radius, 0.0, TAU, 48, direction_color, 5.0 if direction_highlighted else 2.5, true)
+	rotation_orbit_control.draw_line(direction_center + Vector2(-27, 0), direction_center + Vector2(27, 0), Color(direction_color.r, direction_color.g, direction_color.b, 0.45), 1.5, true)
+	rotation_orbit_control.draw_line(direction_center + Vector2(0, -27), direction_center + Vector2(0, 27), Color(direction_color.r, direction_color.g, direction_color.b, 0.45), 1.5, true)
+	var hand_point := direction_center + Vector2(clampf(palm_yaw / 90.0, -1.0, 1.0) * 25.0, -clampf(palm_pitch / 90.0, -1.0, 1.0) * 25.0)
+	_draw_open_hand_marker(hand_point, direction_color, 0.88 if direction_highlighted else 0.76)
+
+func _draw_open_hand_marker(center: Vector2, color: Color, scale_factor: float) -> void:
+	var palm_size := Vector2(12.0, 14.0) * scale_factor
+	rotation_orbit_control.draw_rect(Rect2(center - palm_size * 0.5, palm_size), color, true)
+	for finger in range(5):
+		var finger_x := (float(finger) - 2.0) * 2.7 * scale_factor
+		var finger_length := (10.0 + (2.0 - absf(float(finger) - 2.0)) * 1.5) * scale_factor
+		var start := center + Vector2(finger_x, -palm_size.y * 0.45)
+		rotation_orbit_control.draw_line(start, start + Vector2(0, -finger_length), color, 2.0 * scale_factor, true)
+	rotation_orbit_control.draw_line(
+		center + Vector2(-palm_size.x * 0.45, 1.0),
+		center + Vector2(-10.0, -5.0) * scale_factor,
+		color,
+		2.5 * scale_factor,
+		true
+	)
+
+func _on_rotation_orbit_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		if event.pressed:
+			rotation_pad_drag_axis = _pick_rotation_orbit_axis(event.position)
+			rotation_pad_hover_axis = rotation_pad_drag_axis
+		else:
+			rotation_pad_drag_axis = ""
+		rotation_orbit_control.queue_redraw()
+		rotation_orbit_control.accept_event()
+	elif event is InputEventMouseMotion:
+		var motion := event as InputEventMouseMotion
+		if rotation_pad_drag_axis != "":
+			if active_gizmo_id == "hand" and rotation_pad_drag_axis == "direction":
+				palm_yaw = clampf(palm_yaw + motion.relative.x * 0.75, -90.0, 90.0)
+				palm_pitch = clampf(palm_pitch - motion.relative.y * 0.65, -90.0, 90.0)
+				_update_slider_value("p_yaw", palm_yaw)
+				_update_slider_value("p_pitch", palm_pitch)
+				_refresh_rotation_dials()
+			else:
+				var delta_degrees := -motion.relative.y * 0.65 if rotation_pad_drag_axis == "pitch" else motion.relative.x * (0.85 if rotation_pad_drag_axis == "roll" else 0.75)
+				_apply_rotation_dial_delta(rotation_pad_drag_axis, delta_degrees)
+		else:
+			rotation_pad_hover_axis = _pick_rotation_orbit_axis(motion.position)
+			rotation_orbit_control.queue_redraw()
+		rotation_orbit_control.accept_event()
+
+func _pick_rotation_orbit_axis(mouse_position: Vector2) -> String:
+	if active_gizmo_id == "hand":
+		var roll_center := Vector2(58.0, 56.0)
+		var direction_center := Vector2(160.0, 56.0)
+		if absf(mouse_position.distance_to(roll_center) - 34.0) <= 17.0:
+			return "roll"
+		if mouse_position.distance_to(direction_center) <= 42.0:
+			return "direction"
+		return ""
+	var center := Vector2(rotation_orbit_control.size.x * 0.5, 56.0)
+	var closest_axis := ""
+	var closest_distance := 16.0
+	for axis_name in ["yaw", "pitch", "roll"]:
+		var points := _rotation_orbit_points(center, axis_name)
+		for point in points:
+			var distance := mouse_position.distance_to(point)
+			if distance < closest_distance:
+				closest_distance = distance
+				closest_axis = axis_name
+	return closest_axis
+
+func _rotation_orbit_points(center: Vector2, axis_name: String, scale_factor: float = 1.0) -> PackedVector2Array:
+	var points := PackedVector2Array()
+	for i in range(65):
+		points.append(_rotation_orbit_point(center, axis_name, TAU * float(i) / 64.0, scale_factor))
+	return points
+
+func _rotation_orbit_point(center: Vector2, axis_name: String, angle: float, scale_factor: float = 1.0) -> Vector2:
+	var radii := Vector2(48.0, 23.0)
+	var tilt := deg_to_rad(5.0)
+	if axis_name == "pitch":
+		radii = Vector2(28.0, 49.0)
+		tilt = deg_to_rad(-18.0)
+	elif axis_name == "roll":
+		radii = Vector2(25.0, 50.0)
+		tilt = deg_to_rad(34.0)
+	var local_point := Vector2(cos(angle) * radii.x, sin(angle) * radii.y) * scale_factor
+	return center + local_point.rotated(tilt)
+
+func _rotation_axis_color(axis_name: String) -> Color:
+	if axis_name == "pitch": return Color(1.0, 0.32, 0.90)
+	if axis_name == "yaw": return Color(0.20, 0.85, 1.0)
+	return Color(1.0, 0.90, 0.20)
+
+func _apply_rotation_dial_delta(axis_name: String, delta_degrees: float) -> void:
+	if active_gizmo_id == "hand":
+		if axis_name == "pitch": palm_pitch = clampf(palm_pitch + delta_degrees, -90.0, 90.0)
+		elif axis_name == "yaw": palm_yaw = clampf(palm_yaw + delta_degrees, -90.0, 90.0)
+		else: palm_roll = wrapf(palm_roll + delta_degrees, -180.0, 180.0)
+		_update_slider_value("p_" + axis_name, _rotation_axis_value(axis_name))
+	else:
+		if axis_name == "pitch": grip_offset_rot.x = wrapf(grip_offset_rot.x + delta_degrees, -180.0, 180.0)
+		elif axis_name == "yaw": grip_offset_rot.y = wrapf(grip_offset_rot.y + delta_degrees, -180.0, 180.0)
+		else: grip_offset_rot.z = wrapf(grip_offset_rot.z + delta_degrees, -180.0, 180.0)
+		_sync_weapon_transform()
+		_update_slider_value("rot_" + axis_name, _rotation_axis_value(axis_name))
+	_refresh_rotation_dials()
+
+func _rotation_axis_value(axis_name: String) -> float:
+	if active_gizmo_id == "hand":
+		if axis_name == "pitch": return palm_pitch
+		if axis_name == "yaw": return palm_yaw
+		return palm_roll
+	if axis_name == "pitch": return grip_offset_rot.x
+	if axis_name == "yaw": return grip_offset_rot.y
+	return grip_offset_rot.z
+
+func _refresh_rotation_dials() -> void:
+	if rotation_title_label:
+		rotation_title_label.text = "🔵 HUMAN HAND GRIP" if active_gizmo_id == "hand" else "🟠 WEAPON-MOUNT ROTATION"
+	if rotation_orbit_control:
+		rotation_orbit_control.queue_redraw()
+	for axis_name in ["pitch", "yaw", "roll"]:
+		if rotation_value_labels.has(axis_name):
+			var value_label: Label = rotation_value_labels[axis_name]
+			var display_name := String(axis_name).to_upper()
+			if active_gizmo_id == "hand":
+				if axis_name == "pitch": display_name = "BEND"
+				elif axis_name == "yaw": display_name = "TURN"
+				else: display_name = "AROUND"
+			value_label.text = "%s  %.1f°" % [display_name, _rotation_axis_value(axis_name)]
+
+func _build_studio_ui() -> void:
+	overlay = Control.new()
+	overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	add_child(overlay)
+
+	dynamic_reticle = DynamicReticleScript.new()
+	dynamic_reticle.name = "SharedWeaponReticlePreview"
+	dynamic_reticle.apply_profile(_current_reticle_profile())
+	overlay.add_child(dynamic_reticle)
+
+	reticle_canvas = Control.new()
+	reticle_canvas.set_anchors_preset(Control.PRESET_FULL_RECT)
+	reticle_canvas.draw.connect(_draw_socom_reticle)
+	overlay.add_child(reticle_canvas)
+	_setup_rotation_corner_controls()
+
+	# Left Sidebar
+	var panel := PanelContainer.new()
+	# Fill the available window height. The previous fixed 750 px height pushed the
+	# save/play actions below short windows (and behind the macOS window edge).
+	panel.anchor_left = 0.0
+	panel.anchor_top = 0.0
+	panel.anchor_right = 0.0
+	panel.anchor_bottom = 1.0
+	panel.offset_left = 16.0
+	panel.offset_top = 16.0
+	panel.offset_right = 476.0
+	panel.offset_bottom = -16.0
+	overlay.add_child(panel)
+
+	var sidebar := VBoxContainer.new()
+	sidebar.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	panel.add_child(sidebar)
+
+	var tab_container := TabContainer.new()
+	tab_container.name = "GunLabTabs"
+	tab_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	sidebar.add_child(tab_container)
+
+	var scroll := ScrollContainer.new()
+	scroll.name = "Rig & Hands"
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	tab_container.add_child(scroll)
+
+	var vbox := VBoxContainer.new()
+	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(vbox)
+
+	var title := Label.new()
+	title.text = "🔫 SOCOM GUNSMITH & BIOMECHANICAL RIG"
+	title.add_theme_font_size_override("font_size", 14)
+	title.add_theme_color_override("font_color", Color(0.2, 1.0, 0.6))
+	vbox.add_child(title)
+
+	var hint := Label.new()
+	hint.text = "💡 Left arm automatically solves human biomechanics to grip the gun!"
+	hint.add_theme_font_size_override("font_size", 10)
+	hint.add_theme_color_override("font_color", Color(1.0, 0.9, 0.3))
+	vbox.add_child(hint)
+
+	# Camera Presets Row
+	var cam_row := HBoxContainer.new()
+	vbox.add_child(cam_row)
+	var btn_hands := Button.new(); btn_hands.text = "🎥 Hands"; btn_hands.pressed.connect(func(): _set_camera_preset("hands")); cam_row.add_child(btn_hands)
+	var btn_ots := Button.new(); btn_ots.text = "🎥 OTS"; btn_ots.pressed.connect(func(): _set_camera_preset("ots")); cam_row.add_child(btn_ots)
+	var btn_side := Button.new(); btn_side.text = "🎥 Side"; btn_side.pressed.connect(func(): _set_camera_preset("side")); cam_row.add_child(btn_side)
+	var btn_full := Button.new(); btn_full.text = "🎥 Full"; btn_full.pressed.connect(func(): _set_camera_preset("full")); cam_row.add_child(btn_full)
+
+	vbox.add_child(HSeparator.new())
+
+	# 1. Weapon Selector
+	var cat_label := Label.new(); cat_label.text = "1. Weapon Category:"; vbox.add_child(cat_label)
+	var cat_opt := OptionButton.new()
+	for cat in weapon_categories.keys(): cat_opt.add_item(cat)
+	vbox.add_child(cat_opt)
+
+	var gun_label := Label.new(); gun_label.text = "Select Firearm:"; vbox.add_child(gun_label)
+	var gun_opt := OptionButton.new()
+	var populate_guns := func(cat_name: String):
+		gun_opt.clear()
+		for g in weapon_categories[cat_name]: gun_opt.add_item(g)
+	populate_guns.call(selected_category)
+	vbox.add_child(gun_opt)
+
+	cat_opt.item_selected.connect(func(idx: int):
+		selected_category = weapon_categories.keys()[idx]
+		populate_guns.call(selected_category)
+		selected_weapon_file = weapon_categories[selected_category][0]
+		_load_weapon(selected_weapon_file)
+	)
+
+	gun_opt.item_selected.connect(func(idx: int):
+		selected_weapon_file = weapon_categories[selected_category][idx]
+		_load_weapon(selected_weapon_file)
+	)
+
+	# 2. Tactical Camo
+	vbox.add_child(HSeparator.new())
+	var camo_title := Label.new(); camo_title.text = "2. Tactical Camo / Skin:"; vbox.add_child(camo_title)
+	var camo_opt := OptionButton.new()
+	for s in camo_skins: camo_opt.add_item(s)
+	camo_opt.item_selected.connect(func(idx: int):
+		selected_camo_idx = idx
+		if current_weapon_mesh and selected_weapon_file != "ak-47" and selected_weapon_file != "9mm_pistol":
+			_apply_camo_skin_to_weapon(current_weapon_mesh, selected_camo_idx)
+	)
+	vbox.add_child(camo_opt)
+	_build_handling_animation_ui(vbox)
+
+	# Reload & Attachments
+	vbox.add_child(HSeparator.new())
+	var reload_btn := Button.new()
+	reload_btn.text = "🔄 Test Reload Animation (R)"
+	reload_btn.add_theme_color_override("font_color", Color(0.4, 0.9, 1.0))
+	reload_btn.pressed.connect(_trigger_reload_animation)
+	vbox.add_child(reload_btn)
+
+	support_hand_toggle = CheckButton.new()
+	support_hand_toggle.text = "Support hand attached to foregrip"
+	support_hand_toggle.tooltip_text = "Turn off to release the left hand for reloads or one-handed actions. The right hand remains the weapon anchor."
+	support_hand_toggle.button_pressed = support_hand_attached
+	support_hand_toggle.toggled.connect(func(enabled: bool): _set_support_hand_attached(enabled))
+	vbox.add_child(support_hand_toggle)
+
+	var sil_row := HBoxContainer.new(); vbox.add_child(sil_row)
+	var sil_lbl := Label.new(); sil_lbl.text = "Suppressor:"; sil_lbl.custom_minimum_size.x = 90; sil_row.add_child(sil_lbl)
+	var sil_opt := OptionButton.new()
+	for s in silencer_options: sil_opt.add_item(s)
+	sil_opt.item_selected.connect(func(idx: int): _load_silencer(silencer_options[idx]))
+	sil_row.add_child(sil_opt)
+
+	var scope_row := HBoxContainer.new(); vbox.add_child(scope_row)
+	var sc_lbl := Label.new(); sc_lbl.text = "Optic Scope:"; sc_lbl.custom_minimum_size.x = 90; scope_row.add_child(sc_lbl)
+	var sc_opt := OptionButton.new()
+	for sc in scope_options: sc_opt.add_item(sc)
+	sc_opt.item_selected.connect(func(idx: int): _load_scope(scope_options[idx]))
+	scope_row.add_child(sc_opt)
+
+	# 4. WEAPON MOUNT (Move weapon with XYZ + Rotations)
+	vbox.add_child(HSeparator.new())
+	var grip_title := Label.new()
+	grip_title.text = "4. 🟠 Weapon Mount (Right Hand Pos XYZ & Rotations):"
+	grip_title.add_theme_color_override("font_color", Color(1.0, 0.7, 0.2))
+	vbox.add_child(grip_title)
+
+	_add_slider(vbox, "grip_x", "  Pos X", -0.25, 0.25, grip_offset_pos.x, func(v: float): grip_offset_pos.x = v; _sync_weapon_translation())
+	_add_slider(vbox, "grip_y", "  Pos Y", -0.25, 0.25, grip_offset_pos.y, func(v: float): grip_offset_pos.y = v; _sync_weapon_translation())
+	_add_slider(vbox, "grip_z", "  Pos Z", -0.25, 0.25, grip_offset_pos.z, func(v: float): grip_offset_pos.z = v; _sync_weapon_translation())
+	_add_slider(vbox, "rot_pitch", "  Pitch", -180.0, 180.0, grip_offset_rot.x, func(v: float): grip_offset_rot.x = v; _sync_weapon_transform(); _refresh_rotation_dials())
+	_add_slider(vbox, "rot_yaw", "  Yaw", -180.0, 180.0, grip_offset_rot.y, func(v: float): grip_offset_rot.y = v; _sync_weapon_transform(); _refresh_rotation_dials())
+	_add_slider(vbox, "rot_roll", "  Roll", -180.0, 180.0, grip_offset_rot.z, func(v: float): grip_offset_rot.z = v; _sync_weapon_transform(); _refresh_rotation_dials())
+	_add_slider(vbox, "scale_mult", "  Scale Multiplier", 0.5, 2.0, user_scale_multiplier, func(v: float): user_scale_multiplier = v; _sync_weapon_transform())
+
+	# 5. BIOMECHANICAL FOREGRIP & HAND GRIP POSING
+	vbox.add_child(HSeparator.new())
+	var arm_title := Label.new()
+	arm_title.text = "5. 🤲 Hand Placement & Tactical Grip Styles:"
+	arm_title.add_theme_color_override("font_color", Color(0.0, 0.95, 1.0))
+	vbox.add_child(arm_title)
+
+	# Quick 1-Click Hand Alignment Presets
+	var preset_row1 := HBoxContainer.new()
+	vbox.add_child(preset_row1)
+	var btn_cradle := Button.new(); btn_cradle.text = "🤲 Underneath Cradle"; preset_row1.add_child(btn_cradle)
+	var btn_cclamp := Button.new(); btn_cclamp.text = "🤏 Tactical C-Clamp"; preset_row1.add_child(btn_cclamp)
+
+	var preset_row2 := HBoxContainer.new()
+	vbox.add_child(preset_row2)
+	var btn_magwell := Button.new(); btn_magwell.text = "📐 Magwell Grip"; preset_row2.add_child(btn_magwell)
+	var btn_vert := Button.new(); btn_vert.text = "✊ Vertical Grip"; preset_row2.add_child(btn_vert)
+
+	btn_cradle.pressed.connect(func():
+		current_grip_style = GripStyle.CLASSIC_CRADLE
+		palm_roll = 180.0; palm_pitch = 10.0; palm_yaw = 0.0; finger_curl = 0.65; thumb_wrap = 0.40
+		left_grip_local_pos.y = -0.045
+		_sync_markers()
+		_update_slider_value("ik_y", left_grip_local_pos.y)
+		_update_slider_value("p_roll", palm_roll)
+		_update_slider_value("p_pitch", palm_pitch)
+		_update_slider_value("p_yaw", palm_yaw)
+		_update_slider_value("f_curl", finger_curl)
+		_update_slider_value("t_wrap", thumb_wrap)
+		if hud_status: hud_status.text = "🤲 Set Underneath Handguard Cradle!"
+	)
+
+	btn_cclamp.pressed.connect(func():
+		current_grip_style = GripStyle.C_CLAMP_TACTICAL
+		palm_roll = 90.0; palm_pitch = 15.0; palm_yaw = -15.0; finger_curl = 0.80; thumb_wrap = 0.90
+		left_grip_local_pos.y = 0.01
+		_sync_markers()
+		_update_slider_value("ik_y", left_grip_local_pos.y)
+		_update_slider_value("p_roll", palm_roll)
+		_update_slider_value("p_pitch", palm_pitch)
+		_update_slider_value("p_yaw", palm_yaw)
+		_update_slider_value("f_curl", finger_curl)
+		_update_slider_value("t_wrap", thumb_wrap)
+		if hud_status: hud_status.text = "🤏 Set Tactical C-Clamp (Thumb-Over-Bore)!"
+	)
+
+	btn_magwell.pressed.connect(func():
+		current_grip_style = GripStyle.MAGWELL_GRIP
+		palm_roll = 160.0; palm_pitch = -10.0; palm_yaw = 10.0; finger_curl = 0.85; thumb_wrap = 0.70
+		left_grip_local_pos = Vector3(0.06, -0.04, 0.0)
+		_sync_markers()
+		_update_slider_value("ik_x", left_grip_local_pos.x)
+		_update_slider_value("ik_y", left_grip_local_pos.y)
+		_update_slider_value("p_roll", palm_roll)
+		_update_slider_value("p_pitch", palm_pitch)
+		_update_slider_value("p_yaw", palm_yaw)
+		_update_slider_value("f_curl", finger_curl)
+		_update_slider_value("t_wrap", thumb_wrap)
+		if hud_status: hud_status.text = "📐 Set Magwell CQB Grip!"
+	)
+
+	btn_vert.pressed.connect(func():
+		current_grip_style = GripStyle.VERTICAL_FOREGRIP
+		palm_roll = -90.0; palm_pitch = 0.0; palm_yaw = 0.0; finger_curl = 0.90; thumb_wrap = 0.80
+		left_grip_local_pos.y = -0.08
+		_sync_markers()
+		_update_slider_value("ik_y", left_grip_local_pos.y)
+		_update_slider_value("p_roll", palm_roll)
+		_update_slider_value("p_pitch", palm_pitch)
+		_update_slider_value("p_yaw", palm_yaw)
+		_update_slider_value("f_curl", finger_curl)
+		_update_slider_value("t_wrap", thumb_wrap)
+		if hud_status: hud_status.text = "✊ Set Vertical Foregrip Hold!"
+	)
+
+	_add_slider(vbox, "ik_x", "  Foregrip X (Along barrel)", -0.40, 1.20, left_grip_local_pos.x, func(v: float): left_grip_local_pos.x = v; _sync_markers())
+	_add_slider(vbox, "ik_y", "  Foregrip Y (Height)", -0.20, 0.20, left_grip_local_pos.y, func(v: float): left_grip_local_pos.y = v; _sync_markers())
+	_add_slider(vbox, "ik_z", "  Foregrip Z (Side)", -0.20, 0.20, left_grip_local_pos.z, func(v: float): left_grip_local_pos.z = v; _sync_markers())
+	var trigger_title := Label.new(); trigger_title.text = "🟠 Trigger-Hand Socket (moves gun to the hand):"; vbox.add_child(trigger_title)
+	_add_slider(vbox, "rh_x", "  Trigger Grip X", -1.50, 1.50, right_grip_local_pos.x, func(v: float): right_grip_local_pos.x = v; _sync_markers())
+	_add_slider(vbox, "rh_y", "  Trigger Grip Y", -1.50, 1.50, right_grip_local_pos.y, func(v: float): right_grip_local_pos.y = v; _sync_markers())
+	_add_slider(vbox, "rh_z", "  Trigger Grip Z", -1.50, 1.50, right_grip_local_pos.z, func(v: float): right_grip_local_pos.z = v; _sync_markers())
+	_add_slider(vbox, "p_roll", "  Palm Roll (Underneath/Side)", -180.0, 180.0, palm_roll, func(v: float): palm_roll = v; _refresh_rotation_dials())
+	_add_slider(vbox, "p_pitch", "  Palm Pitch (Wrist Tilt)", -90.0, 90.0, palm_pitch, func(v: float): palm_pitch = v; _refresh_rotation_dials())
+	_add_slider(vbox, "p_yaw", "  Palm Yaw (Barrel Angle)", -90.0, 90.0, palm_yaw, func(v: float): palm_yaw = v; _refresh_rotation_dials())
+	_add_slider(vbox, "f_curl", "  Fingers Wrap Tightness", 0.0, 1.0, finger_curl, func(v: float): finger_curl = v)
+	_add_slider(vbox, "t_wrap", "  Thumb Over-Bore Wrap", 0.0, 1.0, thumb_wrap, func(v: float): thumb_wrap = v)
+
+	# 6. WEAPON SOCKETS (Muzzle, Ejection, Optic)
+	vbox.add_child(HSeparator.new())
+	var sock_title := Label.new()
+	sock_title.text = "6. Weapon Sockets (Muzzle, Ejection, Optic):"
+	sock_title.add_theme_color_override("font_color", Color(0.2, 1.0, 0.8))
+	vbox.add_child(sock_title)
+
+	var mz_lbl := Label.new(); mz_lbl.text = "🔴 Muzzle Tip Socket (Pos XYZ on gun):"; vbox.add_child(mz_lbl)
+	_add_slider(vbox, "mz_x", "  Muzzle X", -0.20, 1.60, muzzle_local_pos.x, func(v: float): muzzle_local_pos.x = v; _sync_markers())
+	_add_slider(vbox, "mz_y", "  Muzzle Y", -0.20, 0.20, muzzle_local_pos.y, func(v: float): muzzle_local_pos.y = v; _sync_markers())
+	_add_slider(vbox, "mz_z", "  Muzzle Z", -0.20, 0.20, muzzle_local_pos.z, func(v: float): muzzle_local_pos.z = v; _sync_markers())
+
+	var ej_lbl := Label.new(); ej_lbl.text = "🟡 Shell Ejection Port (Pos XYZ on gun):"; vbox.add_child(ej_lbl)
+	_add_slider(vbox, "ej_x", "  Ejection X", -0.20, 0.80, ejection_local_pos.x, func(v: float): ejection_local_pos.x = v; _sync_markers())
+	_add_slider(vbox, "ej_y", "  Ejection Y", -0.20, 0.20, ejection_local_pos.y, func(v: float): ejection_local_pos.y = v; _sync_markers())
+	_add_slider(vbox, "ej_z", "  Ejection Z", -0.20, 0.20, ejection_local_pos.z, func(v: float): ejection_local_pos.z = v; _sync_markers())
+
+	var op_lbl := Label.new(); op_lbl.text = "🟢 Optic Scope Rail (Pos XYZ on gun):"; vbox.add_child(op_lbl)
+	_add_slider(vbox, "op_x", "  Optic X", -0.20, 0.80, optic_local_pos.x, func(v: float): optic_local_pos.x = v; _sync_markers())
+	_add_slider(vbox, "op_y", "  Optic Y", -0.20, 0.20, optic_local_pos.y, func(v: float): optic_local_pos.y = v; _sync_markers())
+	_add_slider(vbox, "op_z", "  Optic Z", -0.20, 0.20, optic_local_pos.z, func(v: float): optic_local_pos.z = v; _sync_markers())
+
+	# Reticle and firing are a second view of this exact weapon profile—not a
+	# disconnected lab. Saving below equips the same values in gameplay.
+	var fire_scroll := ScrollContainer.new()
+	fire_scroll.name = "Reticle & Fire"
+	fire_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	fire_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	tab_container.add_child(fire_scroll)
+	var fire_vbox := VBoxContainer.new()
+	fire_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	fire_scroll.add_child(fire_vbox)
+
+	fire_profile_title = Label.new()
+	fire_profile_title.text = "RETICLE & FIRE — %s" % weapon_name
+	fire_profile_title.add_theme_font_size_override("font_size", 17)
+	fire_profile_title.add_theme_color_override("font_color", Color(0.3, 0.95, 1.0))
+	fire_vbox.add_child(fire_profile_title)
+	var fire_help := Label.new()
+	fire_help.text = "Space or left-click fires. The center dot is fixed aim authority; the four outer ticks expand and recover using this gun's saved profile."
+	fire_help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	fire_vbox.add_child(fire_help)
+
+	fire_vbox.add_child(HSeparator.new())
+	var stance_title := Label.new()
+	stance_title.text = "SOCOM STANCE PREVIEW"
+	fire_vbox.add_child(stance_title)
+	var stance_help := Label.new()
+	stance_help.text = "1 Stand  •  2 Crouch  •  3 Prone. Stance changes body height and accuracy; it never moves the center aim point."
+	stance_help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	fire_vbox.add_child(stance_help)
+	var stance_row := HBoxContainer.new()
+	fire_vbox.add_child(stance_row)
+	var stance_group := ButtonGroup.new()
+	for posture_name: StringName in [&"STANDING", &"CROUCHED", &"PRONE"]:
+		var stance_button := Button.new()
+		stance_button.name = "Stance%s" % String(posture_name).capitalize()
+		stance_button.text = String(posture_name).capitalize()
+		stance_button.toggle_mode = true
+		stance_button.button_group = stance_group
+		stance_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		stance_button.pressed.connect(_set_preview_posture.bind(posture_name))
+		stance_row.add_child(stance_button)
+		stance_buttons[posture_name] = stance_button
+	(stance_buttons[preview_posture] as Button).set_pressed_no_signal(true)
+
+	fire_vbox.add_child(HSeparator.new())
+	var bal_title := Label.new(); bal_title.text = "FIRE & DISPERSION"; fire_vbox.add_child(bal_title)
+	_add_slider(fire_vbox, "rpm", "Fire Rate (RPM)", 200.0, 1200.0, float(fire_rate_rpm), func(v: float): fire_rate_rpm = int(v))
+	_add_slider(fire_vbox, "dmg", "Damage", 10.0, 100.0, float(damage_per_shot), func(v: float): damage_per_shot = int(v))
+	_add_slider(fire_vbox, "base_spread", "Base Spread (deg)", 0.0, 3.0, base_spread_deg, func(v: float): base_spread_deg = v)
+	_add_slider(fire_vbox, "bloom", "Bloom Per Shot", 0.0, 5.0, bloom_per_shot_deg, func(v: float): bloom_per_shot_deg = v)
+	_add_slider(fire_vbox, "max_bloom", "Maximum Bloom", 0.25, 8.0, max_recoil_bloom_deg, func(v: float): max_recoil_bloom_deg = v)
+	_add_slider(fire_vbox, "rec", "Bloom Recovery", 2.0, 30.0, bloom_recovery_speed, func(v: float): bloom_recovery_speed = v)
+
+	fire_vbox.add_child(HSeparator.new())
+	var reticle_title := Label.new(); reticle_title.text = "RETICLE RESPONSE"; fire_vbox.add_child(reticle_title)
+	_add_slider(fire_vbox, "reticle_base", "Resting Gap (px)", 4.0, 28.0, reticle_base_gap_px, func(v: float): reticle_base_gap_px = v; _apply_reticle_preview_profile())
+	_add_slider(fire_vbox, "reticle_max", "Maximum Gap (px)", 18.0, 90.0, reticle_max_gap_px, func(v: float): reticle_max_gap_px = v; _apply_reticle_preview_profile())
+	_add_slider(fire_vbox, "reticle_response", "Bloom Response", 4.0, 40.0, reticle_response_speed, func(v: float): reticle_response_speed = v; _apply_reticle_preview_profile())
+	_add_slider(fire_vbox, "reticle_kick", "Shot Kick (px)", 0.0, 20.0, reticle_shot_kick_px, func(v: float): reticle_shot_kick_px = v; _apply_reticle_preview_profile())
+	_add_slider(fire_vbox, "reticle_return", "Kick Recovery", 3.0, 40.0, reticle_shot_kick_return, func(v: float): reticle_shot_kick_return = v; _apply_reticle_preview_profile())
+	_add_slider(fire_vbox, "reticle_kick_limit", "Kick Limit (px)", 0.0, 36.0, reticle_maximum_shot_kick_px, func(v: float): reticle_maximum_shot_kick_px = v; _apply_reticle_preview_profile())
+
+	fire_vbox.add_child(HSeparator.new())
+	var layers_title := Label.new(); layers_title.text = "TRAJECTORY STUDY LAYERS"; fire_vbox.add_child(layers_title)
+	var barrel_toggle := CheckButton.new()
+	barrel_toggle.text = "Red — physical barrel axis"
+	barrel_toggle.toggled.connect(func(enabled: bool): show_barrel_axis = enabled)
+	fire_vbox.add_child(barrel_toggle)
+	var aim_toggle := CheckButton.new()
+	aim_toggle.text = "Cyan — camera/reticle intent"
+	aim_toggle.toggled.connect(func(enabled: bool): show_camera_aim = enabled)
+	fire_vbox.add_child(aim_toggle)
+	var shot_toggle := CheckButton.new()
+	shot_toggle.text = "Yellow — last actual shot"
+	shot_toggle.toggled.connect(func(enabled: bool): show_last_shot = enabled)
+	fire_vbox.add_child(shot_toggle)
+
+	var reset_fire_button := Button.new()
+	reset_fire_button.text = "Reset Bloom / Burst"
+	reset_fire_button.pressed.connect(func():
+		current_bloom = 0.0
+		burst_shot_count = 0
+	)
+	fire_vbox.add_child(reset_fire_button)
+
+	# 8. Save & Export. Keep these controls outside the scrolling settings so
+	# Save and Play are always reachable at every supported window height.
+	var action_footer := VBoxContainer.new()
+	action_footer.add_child(HSeparator.new())
+	sidebar.add_child(action_footer)
+	var save_btn := Button.new()
+	save_btn.text = "✅ Save Rig + Equip on Character (Cmd/Ctrl+S)"
+	save_btn.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2))
+	save_btn.pressed.connect(_save_weapon_config)
+	action_footer.add_child(save_btn)
+
+	var play_latest_btn := Button.new()
+	play_latest_btn.text = "▶ Save + Play Latest Playground"
+	play_latest_btn.tooltip_text = "Save this exact gun rig and launch the canonical current gameplay scene."
+	play_latest_btn.add_theme_color_override("font_color", Color(0.35, 1.0, 0.55))
+	play_latest_btn.pressed.connect(_save_and_play_latest_playground)
+	action_footer.add_child(play_latest_btn)
+
+	hud_status = Label.new()
+	hud_status.text = "Ready! (Biomechanical Engine Active | Drag Blue Dot to place hand | Space to Fire)"
+	hud_status.add_theme_font_size_override("font_size", 11)
+	hud_status.add_theme_color_override("font_color", Color(0.4, 1.0, 0.4))
+	hud_status.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	hud_status.tooltip_text = hud_status.text
+	action_footer.add_child(hud_status)
+
+func _add_slider(parent: Control, key: String, label_text: String, min_val: float, max_val: float, initial_val: float, callback: Callable) -> void:
+	var row := HBoxContainer.new()
+	row.custom_minimum_size.y = 26
+	parent.add_child(row)
+
+	var lbl := Label.new()
+	lbl.text = label_text + ":"
+	lbl.custom_minimum_size.x = 160
+	lbl.add_theme_font_size_override("font_size", 11)
+	row.add_child(lbl)
+
+	var slider := HSlider.new()
+	slider.min_value = min_val
+	slider.max_value = max_val
+	slider.step = 0.005 if max_val <= 2.0 else (0.01 if max_val <= 10.0 else 0.5)
+	slider.value = initial_val
+	slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	slider.custom_minimum_size.x = 170
+
+	var val_lbl := Label.new()
+	val_lbl.text = "%.2f" % initial_val if absf(max_val) >= 5.0 else ("%.3f" % initial_val)
+	val_lbl.custom_minimum_size.x = 60
+	val_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	val_lbl.add_theme_font_size_override("font_size", 11)
+	val_lbl.add_theme_color_override("font_color", Color(1.0, 0.9, 0.4))
+
+	slider.value_changed.connect(func(v: float):
+		val_lbl.text = "%.2f" % v if absf(max_val) >= 5.0 else ("%.3f" % v)
+		callback.call(v)
+	)
+	row.add_child(slider)
+	row.add_child(val_lbl)
+
+	sliders_map[key] = {"slider": slider, "label": val_lbl}
+
+func _current_reticle_profile() -> Dictionary:
+	return {
+		"base_gap_px": reticle_base_gap_px,
+		"max_gap_px": reticle_max_gap_px,
+		"response_speed": reticle_response_speed,
+		"shot_kick_px": reticle_shot_kick_px,
+		"shot_kick_return": reticle_shot_kick_return,
+		"maximum_shot_kick_px": reticle_maximum_shot_kick_px,
+	}
+
+
+func _apply_reticle_preview_profile() -> void:
+	if dynamic_reticle:
+		dynamic_reticle.apply_profile(_current_reticle_profile())
+
+
+func _update_fire_debug_lines() -> void:
+	if fire_debug_instance == null:
+		return
+	fire_debug_mesh.clear_surfaces()
+	if not show_barrel_axis and not show_camera_aim and not show_last_shot:
+		fire_debug_instance.visible = false
+		return
+	fire_debug_instance.visible = true
+	fire_debug_mesh.surface_begin(Mesh.PRIMITIVE_LINES, fire_debug_material)
+	var target: Vector3 = (
+		current_aim_target
+		if current_aim_target != Vector3.ZERO
+		else _camera_aim_sample().position
+	)
+	if show_barrel_axis and current_weapon_mesh and muzzle_marker:
+		var barrel_base := current_weapon_mesh.to_global(_calibrated_barrel_base())
+		var barrel_direction := (muzzle_marker.global_position - barrel_base).normalized()
+		_add_fire_debug_segment(
+			barrel_base,
+			muzzle_marker.global_position + barrel_direction * 5.0,
+			Color(1.0, 0.12, 0.08)
+		)
+	if show_camera_aim and cam:
+		_add_fire_debug_segment(cam.global_position, target, Color(0.1, 0.9, 1.0))
+	if show_last_shot and last_shot_origin != last_shot_end:
+		_add_fire_debug_segment(last_shot_origin, last_shot_end, Color(1.0, 0.88, 0.15))
+	fire_debug_mesh.surface_end()
+
+
+func _add_fire_debug_segment(start: Vector3, finish: Vector3, color: Color) -> void:
+	fire_debug_mesh.surface_set_color(color)
+	fire_debug_mesh.surface_add_vertex(start)
+	fire_debug_mesh.surface_set_color(color)
+	fire_debug_mesh.surface_add_vertex(finish)
+
+
+func _draw_socom_reticle() -> void:
+	# The shared SocomDynamicReticle owns the actual reticle. This transparent
+	# overlay only draws calibration selection brackets above it.
+	_draw_active_selection_brackets()
+
+func _draw_active_selection_brackets() -> void:
+	if not cam or not reticle_canvas: return
+	var target_world := Vector3.ZERO
+	if active_gizmo_id == "hand":
+		if not left_grip_marker or not is_instance_valid(left_grip_marker): return
+		target_world = left_grip_marker.global_position
+	else:
+		if not weapon_gizmo_world or not is_instance_valid(weapon_gizmo_world): return
+		target_world = weapon_gizmo_world.global_position
+	if cam.is_position_behind(target_world): return
+
+	var center := cam.unproject_position(target_world)
+	var selected_id := "left_ik" if active_gizmo_id == "hand" else "weapon_mount"
+	var is_hovered := hovered_dot_id == selected_id or dragged_dot_id == selected_id
+	var radius := 17.0 if is_hovered else 14.0
+	var arm := 7.0
+	var color := Color.WHITE if is_hovered else (Color(0.0, 0.95, 1.0) if active_gizmo_id == "hand" else Color(1.0, 0.55, 0.08))
+	var width := 3.0 if is_hovered else 2.0
+	# Four unobtrusive L-shaped brackets highlight the selected real object.
+	reticle_canvas.draw_line(center + Vector2(-radius, -radius), center + Vector2(-radius + arm, -radius), color, width, true)
+	reticle_canvas.draw_line(center + Vector2(-radius, -radius), center + Vector2(-radius, -radius + arm), color, width, true)
+	reticle_canvas.draw_line(center + Vector2(radius, -radius), center + Vector2(radius - arm, -radius), color, width, true)
+	reticle_canvas.draw_line(center + Vector2(radius, -radius), center + Vector2(radius, -radius + arm), color, width, true)
+	reticle_canvas.draw_line(center + Vector2(-radius, radius), center + Vector2(-radius + arm, radius), color, width, true)
+	reticle_canvas.draw_line(center + Vector2(-radius, radius), center + Vector2(-radius, radius - arm), color, width, true)
+	reticle_canvas.draw_line(center + Vector2(radius, radius), center + Vector2(radius - arm, radius), color, width, true)
+	reticle_canvas.draw_line(center + Vector2(radius, radius), center + Vector2(radius, radius - arm), color, width, true)

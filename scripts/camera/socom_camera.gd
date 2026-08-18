@@ -81,12 +81,17 @@ var downward_aim_amount: float = 0.0
 var downward_crane_amount: float = 0.0
 var downward_ledge_raise: float = 0.0
 var aim_point := Vector3.ZERO
+var view_aim_point := Vector3.ZERO
 var weapon_aim_point := Vector3.ZERO
 var aim_hit := false
 var aim_collider_name := "OPEN"
 var shot_point := Vector3.ZERO
 var shot_blocked: bool = false
 var shot_collider_name := "OPEN"
+var last_fired_direction := Vector3.ZERO
+var last_fired_point := Vector3.ZERO
+var last_fired_tick: int = -1
+var last_fired_spread_deg: float = 0.0
 var measured_head_y: float = -1.0
 var measured_head_x: float = -1.0
 var measured_torso_y: float = -1.0
@@ -357,6 +362,9 @@ func _preferred_position() -> Vector3:
 
 func _low_stance_amount() -> float:
     return preferred_shot_solver.low_stance_amount()
+
+func _prone_stance_amount() -> float:
+    return preferred_shot_solver.prone_stance_amount()
 
 func _update_environment_state(delta: float) -> void:
     preferred_shot_solver.update_environment_state(delta)

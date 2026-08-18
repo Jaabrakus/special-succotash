@@ -2,7 +2,6 @@ class_name SocomTestMannequin
 extends Node3D
 
 const OperatorAnimationDriver := preload("res://scripts/player/operator_animation_driver.gd")
-const DEFAULT_ANIMATION_PROFILE := preload("res://assets/characters/operator3d/default_animation_profile.tres")
 
 # SOCOM-141 procedural character rig.
 # Purpose: camera + body/aim calibration, not final art.
@@ -81,11 +80,20 @@ var weapon_rest_position := Vector3(0.12, -0.02, -0.23)
 @export_group("Animation mapping")
 @export var animation_profile: SocomOperatorAnimationProfile = DEFAULT_ANIMATION_PROFILE
 
+@export_group("Camera marker follow")
+@export_range(0.0, 1.0, 0.01) var camera_head_follow_weight: float = 0.45
+@export_range(0.0, 1.0, 0.01) var camera_torso_follow_weight: float = 0.35
+@export_range(0.0, 1.0, 0.01) var camera_pelvis_follow_weight: float = 0.20
+@export_range(1.0, 30.0, 0.5) var camera_marker_follow_response: float = 12.0
+@export_range(0.0, 0.30, 0.01) var camera_marker_max_horizontal_offset: float = 0.14
+@export_range(0.0, 0.20, 0.01) var camera_marker_max_vertical_offset: float = 0.10
+
 func _ready() -> void:
     _build_rig()
+    if skeleton_root:
+        skeleton_root.visible = false
     production_animation = OperatorAnimationDriver.new()
     production_animation.name = "ProductionAnimation"
-    production_animation.animation_profile = animation_profile
     add_child(production_animation)
     set_proxy_visuals_visible(false)
 
@@ -93,6 +101,60 @@ func play_operator_action(clip_name: StringName, blend_seconds: float = 0.12) ->
     return (
         production_animation != null
         and production_animation.play_action(clip_name, blend_seconds)
+	)
+
+func play_operator_semantic_action(action_name: StringName, blend_seconds: float = 0.12) -> bool:
+    return (
+        production_animation != null
+        and production_animation.play_semantic_action(action_name, blend_seconds)
+    )
+
+func notify_operator_fired() -> bool:
+    return production_animation != null and production_animation.notify_fired()
+
+func get_active_weapon_socket(socket_name: StringName) -> Marker3D:
+    # The rendered production weapon owns gameplay weapon-space. The old
+    # procedural mannequin remains a safe fallback while an asset is loading.
+    if (
+        production_animation != null
+        and production_animation.weapon_node != null
+        and is_instance_valid(production_animation.weapon_node)
+    ):
+        var production_socket := production_animation.weapon_node.find_child(
+            String(socket_name),
+            true,
+            false
+        ) as Marker3D
+        if production_socket != null and is_instance_valid(production_socket):
+            return production_socket
+    return null
+
+func get_active_muzzle_marker() -> Marker3D:
+    var production_muzzle := get_active_weapon_socket(&"Socket_Muzzle")
+    if production_muzzle != null:
+        return production_muzzle
+    return muzzle_marker
+
+func get_active_barrel_base_marker() -> Marker3D:
+    return get_active_weapon_socket(&"Socket_BarrelBase")
+
+func get_active_muzzle_position() -> Vector3:
+    var active_muzzle := get_active_muzzle_marker()
+    return active_muzzle.global_position if active_muzzle != null else global_position
+
+func get_active_barrel_direction() -> Vector3:
+    var active_muzzle := get_active_muzzle_marker()
+    var barrel_base := get_active_barrel_base_marker()
+    if active_muzzle != null and barrel_base != null:
+        var socket_direction := (
+            active_muzzle.global_position - barrel_base.global_position
+        ).normalized()
+        if socket_direction.length_squared() > 0.99:
+            return socket_direction
+    return (
+        -active_muzzle.global_basis.z.normalized()
+        if active_muzzle != null
+        else -global_basis.z.normalized()
     )
 
 func get_operator_animation_clips() -> Array[StringName]:
@@ -209,9 +271,13 @@ func _animate_locomotion(player: CharacterBody3D, delta: float) -> void:
         left_knee.rotation.x += deg_to_rad(54.0) * air_tuck
         right_knee.rotation.x += deg_to_rad(54.0) * air_tuck
 
-    _update_camera_markers(motion_state, action_phase)
+    _update_camera_markers(motion_state, action_phase, delta)
 
-func _update_camera_markers(motion_state: StringName, action_phase: float) -> void:
+func _update_camera_markers(
+    motion_state: StringName,
+    action_phase: float,
+    delta: float
+) -> void:
     if head_marker == null or torso_marker == null or pelvis_marker == null:
         return
     var standing_head := Vector3(0.0, 2.15, 0.0)
@@ -242,9 +308,51 @@ func _update_camera_markers(motion_state: StringName, action_phase: float) -> vo
         stable_torso = crouched_torso.lerp(Vector3(0.0, 0.66, 0.0), roll_compression)
         stable_pelvis = crouched_pelvis.lerp(Vector3(0.0, 0.50, 0.0), roll_compression)
 
-    head_marker.position = stable_head
-    torso_marker.position = stable_torso
-    pelvis_marker.position = stable_pelvis
+    # The stable stance anchors remain authoritative. Add only the animated
+    # skeleton's displacement from its rest pose so the camera follows the
+    # operator the player can actually see without inheriting clip root motion.
+    var head_target := stable_head + _camera_bone_pose_delta(&"mixamorig_Head") * camera_head_follow_weight
+    var torso_target := stable_torso + _camera_bone_pose_delta(&"mixamorig_Spine2") * camera_torso_follow_weight
+    var pelvis_target := stable_pelvis + _camera_bone_pose_delta(&"mixamorig_Hips") * camera_pelvis_follow_weight
+    var follow_alpha := 1.0 - exp(-camera_marker_follow_response * delta)
+    head_marker.position = head_marker.position.lerp(head_target, follow_alpha)
+    torso_marker.position = torso_marker.position.lerp(torso_target, follow_alpha)
+    pelvis_marker.position = pelvis_marker.position.lerp(pelvis_target, follow_alpha)
+
+func _camera_bone_pose_delta(bone_name: StringName) -> Vector3:
+    if production_animation == null or production_animation.skeleton == null:
+        return Vector3.ZERO
+    var production_skeleton := production_animation.skeleton
+    var bone_index := production_skeleton.find_bone(bone_name)
+    if bone_index < 0:
+        return Vector3.ZERO
+
+    var posed_world := (
+        production_skeleton.global_transform
+        * production_skeleton.get_bone_global_pose(bone_index).origin
+    )
+    var rest_world := (
+        production_skeleton.global_transform
+        * production_skeleton.get_bone_global_rest(bone_index).origin
+    )
+    var local_delta := global_basis.inverse() * (posed_world - rest_world)
+    return Vector3(
+        clampf(
+            local_delta.x,
+            -camera_marker_max_horizontal_offset,
+            camera_marker_max_horizontal_offset
+        ),
+        clampf(
+            local_delta.y,
+            -camera_marker_max_vertical_offset,
+            camera_marker_max_vertical_offset
+        ),
+        clampf(
+            local_delta.z,
+            -camera_marker_max_horizontal_offset,
+            camera_marker_max_horizontal_offset
+        )
+    )
 
 func _animate_upper_body(player: CharacterBody3D, delta: float) -> void:
     var rig = get_tree().get_first_node_in_group("socom_camera_rig")
@@ -335,7 +443,9 @@ func _sync_production_animation(player: CharacterBody3D) -> void:
     )
     var local_velocity := player.global_basis.inverse() * player.velocity
     var visual_direction := Vector2(local_velocity.x, -local_velocity.z)
-    var normalized_speed := clampf(visual_direction.length() / 6.5, 0.0, 1.0)
+    var actual_horizontal_speed := visual_direction.length()
+    var movement_top_speed := maxf(float(player.get("move_speed")), 0.001)
+    var normalized_speed := clampf(visual_direction.length() / movement_top_speed, 0.0, 1.0)
     if visual_direction.length_squared() > 0.001:
         visual_direction = visual_direction.normalized() * normalized_speed
     var posture_name: StringName = (
@@ -348,6 +458,27 @@ func _sync_production_animation(player: CharacterBody3D) -> void:
         if player.has_method("get_motion_state_name")
         else &"STANDING"
     )
+    var gait_name: StringName = (
+        StringName(player.call("get_movement_gait_name"))
+        if player.has_method("get_movement_gait_name")
+        else &"WALK"
+    )
+    var desired_world := Vector3.ZERO
+    if player.has_method("get_desired_movement_direction"):
+        desired_world = player.call("get_desired_movement_direction")
+    var local_desired := player.global_basis.inverse() * desired_world
+    var desired_visual := Vector2(local_desired.x, -local_desired.z)
+    var desired_strength: float = clampf(desired_world.length(), 0.0, 1.0)
+    if desired_visual.length_squared() > 0.001:
+        desired_visual = desired_visual.normalized() * desired_strength
+    var response_mode := &"IDLE"
+    if player.has_method("get_horizontal_response_mode"):
+        response_mode = StringName(player.call("get_horizontal_response_mode"))
+    var peek_amount: float = (
+        float(player.call("get_peek_amount"))
+        if player.has_method("get_peek_amount")
+        else 0.0
+    )
     production_animation.set_visual_inputs(
         visual_direction,
         posture_name,
@@ -357,7 +488,15 @@ func _sync_production_animation(player: CharacterBody3D) -> void:
         false,
         weapon_obstruction_amount,
         normalized_speed,
-        state_name
+        state_name,
+        player.velocity.y,
+        gait_name,
+        actual_horizontal_speed,
+        Vector3(rig.get("weapon_aim_point")),
+        desired_visual,
+        desired_strength,
+        response_mode,
+        peek_amount
     )
 
 func _find_clear_weapon_offset(player: CharacterBody3D, target_point: Vector3) -> Vector3:
@@ -394,17 +533,11 @@ func _weapon_pose_blocked(player: CharacterBody3D, target_point: Vector3) -> boo
         or _pose_segment_blocked(player, right_shoulder.global_position, right_grip_target.global_position)
     ):
         return true
-    var query := PhysicsRayQueryParameters3D.create(
-        muzzle_marker.global_position,
-        target_point
-    )
-    query.collide_with_areas = false
-    query.exclude = [player.get_rid()]
-    var result: Dictionary = get_world_3d().direct_space_state.intersect_ray(query)
-    return (
-        not result.is_empty()
-        and Vector3(result["position"]).distance_to(target_point) > 0.08
-    )
+    # The shared aim target is normally on a wall, floor, or actor. Hitting that
+    # selected surface is not a weapon obstruction. Cover posing is driven only
+    # by geometry inside the operator-to-muzzle and shoulder-to-grip envelope;
+    # ballistics separately owns the muzzle-to-target line of fire.
+    return false
 
 func _pose_segment_blocked(
     player: CharacterBody3D,
@@ -704,6 +837,10 @@ func _socket_on(parent: Node3D, socket_name: String, position: Vector3) -> Marke
     return socket
 
 func get_attachment_socket(socket_name: StringName) -> Node3D:
+    if socket_name == &"muzzle":
+        var active_muzzle := get_active_muzzle_marker()
+        if active_muzzle != null:
+            return active_muzzle
     return attachment_sockets.get(socket_name) as Node3D
 
 func get_attachment_socket_names() -> Array[StringName]:
@@ -808,7 +945,8 @@ func get_aim_debug_data() -> Dictionary:
         "torso_yaw_deg": rad_to_deg(torso_yaw),
         "torso_pitch_deg": rad_to_deg(torso_pitch),
         "head_yaw_deg": rad_to_deg(head_yaw),
-        "muzzle": muzzle_marker.global_position if muzzle_marker else Vector3.ZERO,
+        "muzzle": get_active_muzzle_position(),
+        "barrel_direction": get_active_barrel_direction(),
         "weapon_aim_error_deg": weapon_aim_error_deg,
         "weapon_obstruction_amount": weapon_obstruction_amount,
         "left_hand_error": left_hand_mesh.global_position.distance_to(left_grip_target.global_position) if left_hand_mesh and left_grip_target else -1.0,

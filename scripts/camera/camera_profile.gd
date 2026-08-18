@@ -5,13 +5,14 @@ extends Resource
 @export var distance: float = 2.20
 @export var height: float = 2.05
 @export var shoulder_offset: float = 0.0
-@export var vertical_fov: float = 74.0
-@export var close_level_fov: float = 80.0
+@export var vertical_fov: float = 68.0
+@export var close_level_fov: float = 74.0
 @export_range(0.0, 1.0, 0.01) var close_fov_start_compression: float = 0.48
 @export_range(0.0, 1.0, 0.01) var close_fov_full_compression: float = 0.78
 @export var close_fov_response: float = 12.0
 @export var look_ahead_distance: float = 14.0
 @export var look_height: float = 1.45
+@export_range(0.0, 0.75, 0.01) var peek_camera_lateral_offset: float = 0.38
 
 @export_group("Orbit")
 @export var mouse_sensitivity: float = 0.0024
@@ -71,6 +72,13 @@ extends Resource
 @export_range(0.0, 1.2, 0.001) var downward_aim_pelvis_y: float = 1.08
 @export var downward_max_framing_height_correction: float = 1.50
 @export var aim_distance: float = 250.0
+@export_group("Ballistic Convergence")
+## The reticle may acquire a nearby wall, but the rifle uses a long combat zero
+## instead of bending sharply upward into a point beside the camera. The arms
+## still follow the solved barrel direction, while close shots retain honest
+## third-person parallax below/aside the reticle.
+@export var minimum_ballistic_convergence_distance: float = 45.0
+@export_range(0.5, 15.0, 0.25) var maximum_convergence_angle_deg: float = 2.0
 
 @export_group("Screen-space Framing")
 @export_range(0.0, 1.0, 0.001) var desired_head_x: float = 0.50
@@ -165,6 +173,10 @@ extends Resource
 @export var max_low_stance_camera_drop: float = 1.45
 @export_range(0.0, 1.0, 0.01) var low_stance_pelvis_weight_scale: float = 0.08
 @export_range(0.0, 1.0, 0.01) var low_stance_feet_weight_scale: float = 0.0
+@export var prone_camera_head_height_start: float = 1.10
+@export var prone_camera_head_height_full: float = 0.62
+@export var prone_preferred_camera_drop: float = 0.90
+@export var prone_aim_origin_height: float = 0.62
 
 @export_group("Movement Follow")
 @export var movement_lead_time: float = 0.0
