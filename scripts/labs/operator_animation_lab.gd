@@ -23,6 +23,8 @@ const RANGE_SELECTOR_SCRIPT := preload("res://scripts/labs/animation_range_selec
 const SEQUENCE_TIMELINE_SCRIPT := preload("res://scripts/labs/animation_sequence_timeline.gd")
 const LAYER_COMPOSER_SCRIPT := preload("res://scripts/labs/animation_layer_composer.gd")
 const POSE_EDITOR_SCRIPT := preload("res://scripts/labs/animation_pose_editor.gd")
+const TRANSFORM_GIZMO_SCRIPT := preload("res://scripts/labs/transform_gizmo_3d.gd")
+const WEAPON_RIG_PREVIEW := preload("res://scripts/labs/weapon_rig_preview_loader.gd")
 const EDITOR_UI_SCALE := 0.84
 const ROOT_SANITIZER := preload("res://scripts/player/operator_animation_root_sanitizer.gd")
 const EDITOR_FPS := 30.0
@@ -77,6 +79,11 @@ var weapon_socket_visible: bool = true
 var weapon_node: Node3D
 var socket_attachment: BoneAttachment3D
 var left_hand_marker: Marker3D
+var right_hand_marker: Marker3D
+var weapon_muzzle_marker: Marker3D
+var weapon_calibrated_pivot: Node3D
+var gunsmith_weapon_config: Dictionary = {}
+var loaded_gunsmith_config_path: String = ""
 
 # Two-Hand Gun Engine Offsets
 var right_grip_pos := Vector3(-0.02, 0.08, 0.05)
@@ -94,6 +101,8 @@ var skeleton_chain_mesh := ImmediateMesh.new()
 var skeleton_chain_instance: MeshInstance3D
 var skeleton_chain_material: StandardMaterial3D
 var active_dragged_bone: String = ""
+var pose_transform_gizmo: SocomTransformGizmo3D
+var active_pose_gizmo_handle: StringName = &""
 var drag_start_mouse: Vector2 = Vector2.ZERO
 var drag_origin_mouse: Vector2 = Vector2.ZERO
 var drag_start_rotations: Dictionary = {}
@@ -231,6 +240,8 @@ func _ready() -> void:
     _build_stage()
     _build_ui()
     _load_skin(current_skin)
+    if OS.get_cmdline_user_args().has("--pose-editor"):
+        call_deferred("_show_editor_page", "Pose")
 
 func _prepare_workshop_window() -> void:
     if DisplayServer.get_name() == "headless":
@@ -837,6 +848,7 @@ func _process(delta: float) -> void:
         _apply_bone_rot_overrides()
     _update_skeleton_chain_visual()
     _update_bubble_positions()
+    _update_pose_transform_gizmo()
 
 func _rebuild_limb_bubbles() -> void:
     for b in bubble_nodes.values():
@@ -848,6 +860,7 @@ func _rebuild_limb_bubbles() -> void:
         return
 
     _ensure_skeleton_chain_visual()
+    _ensure_pose_transform_gizmo()
 
     # Direct-manipulation landmarks. The small rendered node is separate from
     # its generous screen-space picking radius, so joints remain easy to grab
@@ -921,6 +934,39 @@ func _ensure_skeleton_chain_visual() -> void:
     skeleton_chain_instance.mesh = skeleton_chain_mesh
     skeleton_chain_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
     add_child(skeleton_chain_instance)
+
+func _ensure_pose_transform_gizmo() -> void:
+    if pose_transform_gizmo != null:
+        return
+    pose_transform_gizmo = TRANSFORM_GIZMO_SCRIPT.new()
+    pose_transform_gizmo.name = "PoseTransformGizmo"
+    pose_transform_gizmo.visible = false
+    add_child(pose_transform_gizmo)
+
+func _update_pose_transform_gizmo() -> void:
+    if pose_transform_gizmo == null:
+        return
+    var should_show := (
+        active_editor_page == "Pose"
+        and bubbles_enabled
+        and skeleton != null
+        and not selected_pose_bone.is_empty()
+    )
+    pose_transform_gizmo.visible = should_show
+    if not should_show:
+        return
+    var bone_index := skeleton.find_bone(selected_pose_bone)
+    if bone_index < 0:
+        pose_transform_gizmo.visible = false
+        return
+    var bone_global := skeleton.global_transform * skeleton.get_bone_global_pose(bone_index)
+    pose_transform_gizmo.global_position = bone_global.origin
+    # Keep axes aligned to the operator rig rather than inheriting a wrist or
+    # ankle's animated twist. This matches the predictable Gunsmith controls.
+    pose_transform_gizmo.global_basis = skeleton.global_basis.orthonormalized()
+    if camera:
+        var distance_scale := clampf(camera.global_position.distance_to(bone_global.origin) / 3.4, 0.72, 1.45)
+        pose_transform_gizmo.scale = Vector3.ONE * distance_scale
 
 func _update_skeleton_chain_visual() -> void:
     if skeleton_chain_instance == null:
@@ -1123,6 +1169,8 @@ func _begin_anatomical_drag(bone_name: String) -> void:
     drag_rotation_chain = _anatomical_drag_chain(bone_name)
     drag_start_rotations.clear()
     drag_start_local_offset = bone_pos_offsets.get(bone_name, Vector3.ZERO)
+    _capture_bone_edit_base(bone_name)
+    drag_start_rotations[bone_name] = bone_rot_offsets.get(bone_name, Vector3.ZERO)
     for driver_bone in drag_rotation_chain:
         _capture_bone_edit_base(driver_bone)
         drag_start_rotations[driver_bone] = bone_rot_offsets.get(driver_bone, Vector3.ZERO)
@@ -1137,6 +1185,57 @@ func _drag_anatomical_chain(mouse_delta_from_start: Vector2) -> void:
             mouse_delta_from_start.x * 0.30 * influence,
             mouse_delta_from_start.x * 0.10 * influence
         )
+        bone_rot_offsets[driver_bone] = _clamp_human_rotation(driver_bone, requested)
+
+func _gizmo_drag_scalar(axis: StringName, mouse_delta_from_start: Vector2) -> float:
+    if axis == &"y":
+        return -mouse_delta_from_start.y
+    return mouse_delta_from_start.x
+
+func _drag_selected_rotation_axis(axis: StringName, mouse_delta_from_start: Vector2) -> void:
+    if active_dragged_bone.is_empty():
+        return
+    var requested: Vector3 = drag_start_rotations.get(active_dragged_bone, Vector3.ZERO)
+    var amount := _gizmo_drag_scalar(axis, mouse_delta_from_start) * 0.35
+    if axis == &"x":
+        requested.x += amount
+    elif axis == &"y":
+        requested.y += amount
+    else:
+        requested.z += amount
+    bone_rot_offsets[active_dragged_bone] = _clamp_human_rotation(active_dragged_bone, requested)
+
+func _drag_selected_translation_axis(axis: StringName, mouse_delta_from_start: Vector2) -> void:
+    if active_dragged_bone.is_empty():
+        return
+    var lower_name := active_dragged_bone.to_lower()
+    if "hips" in lower_name or "root" in lower_name:
+        var requested := drag_start_local_offset
+        var amount := _gizmo_drag_scalar(axis, mouse_delta_from_start) * translation_meters_per_pixel
+        if axis == &"x":
+            requested.x = clampf(drag_start_local_offset.x + amount, -0.35, 0.35)
+        elif axis == &"y":
+            requested.y = clampf(drag_start_local_offset.y + amount, -0.35, 0.35)
+        else:
+            requested.z = clampf(drag_start_local_offset.z + amount, -0.35, 0.35)
+        bone_pos_offsets[active_dragged_bone] = requested
+        return
+
+    # Limbs never translate away from their parent. An arrow drives the
+    # upstream anatomical chain, preserving every authored bone length.
+    var amount := _gizmo_drag_scalar(axis, mouse_delta_from_start)
+    for chain_index in range(drag_rotation_chain.size()):
+        var driver_bone := drag_rotation_chain[chain_index]
+        var requested: Vector3 = drag_start_rotations.get(driver_bone, Vector3.ZERO)
+        var influence := 1.0 if chain_index == 0 else 0.55
+        if axis == &"x":
+            requested.y += amount * 0.30 * influence
+            requested.z += amount * 0.10 * influence
+        elif axis == &"y":
+            requested.x += amount * 0.32 * influence
+        else:
+            requested.x += amount * 0.22 * influence
+            requested.z -= amount * 0.22 * influence
         bone_rot_offsets[driver_bone] = _clamp_human_rotation(driver_bone, requested)
 
 func _apply_two_hand_ik() -> void:
@@ -1276,21 +1375,35 @@ func _unhandled_input(event: InputEvent) -> void:
     elif event is InputEventMouseButton:
         if event.button_index == MOUSE_BUTTON_LEFT:
             if event.pressed:
-                # Raycast to find clicked limb bubble
+                var gizmo_handle: StringName = &""
+                if pose_transform_gizmo and active_editor_page == "Pose":
+                    gizmo_handle = pose_transform_gizmo.pick(camera, event.position)
+                if gizmo_handle != &"" and not selected_pose_bone.is_empty():
+                    _pause_for_pose_edit()
+                    active_pose_gizmo_handle = gizmo_handle
+                    active_dragged_bone = selected_pose_bone
+                    drag_start_mouse = event.position
+                    drag_origin_mouse = event.position
+                    _begin_anatomical_drag(active_dragged_bone)
+                    pose_transform_gizmo.set_hovered(gizmo_handle)
+                    get_viewport().set_input_as_handled()
+                    return
+                # A body node only selects the joint. Editing begins from an
+                # explicit XYZ arrow or rotation ring, never from free drag.
                 var clicked_bone := _find_bubble_at_mouse(event.position)
                 if clicked_bone != "":
                     _pause_for_pose_edit()
-                    active_dragged_bone = clicked_bone
                     _select_pose_bone(clicked_bone)
-                    drag_start_mouse = event.position
-                    drag_origin_mouse = event.position
-                    _capture_bone_edit_base(clicked_bone)
-                    _begin_anatomical_drag(clicked_bone)
+                    active_dragged_bone = ""
+                    active_pose_gizmo_handle = &""
+                    get_viewport().set_input_as_handled()
+                    return
                 else:
                     dragging = true
             else:
                 dragging = false
                 active_dragged_bone = ""
+                active_pose_gizmo_handle = &""
                 _sync_pose_sliders_from_selection()
 
         elif event.button_index == MOUSE_BUTTON_RIGHT:
@@ -1301,50 +1414,23 @@ func _unhandled_input(event: InputEvent) -> void:
             orbit_distance = minf(7.5, orbit_distance + 0.25)
 
     elif event is InputEventMouseMotion:
-        if active_dragged_bone != "":
-            var delta_drag: Vector2 = event.position - drag_start_mouse
+        if active_dragged_bone != "" and active_pose_gizmo_handle != &"":
             var total_drag: Vector2 = event.position - drag_origin_mouse
             drag_start_mouse = event.position
-            if pose_edit_mode == &"ROTATE":
-                var current_rot: Vector3 = bone_rot_offsets.get(active_dragged_bone, Vector3.ZERO)
-                current_rot = _clamp_human_rotation(
-                    active_dragged_bone,
-                    current_rot + Vector3(
-                        -delta_drag.y * rotation_degrees_per_pixel,
-                        delta_drag.x * rotation_degrees_per_pixel,
-                        0.0
-                    )
-                )
-                bone_rot_offsets[active_dragged_bone] = current_rot
+            var axis := pose_transform_gizmo.axis_name(active_pose_gizmo_handle)
+            if pose_transform_gizmo.is_rotation(active_pose_gizmo_handle):
+                _drag_selected_rotation_axis(axis, total_drag)
             else:
-                var lower_name := active_dragged_bone.to_lower()
-                if "hips" in lower_name or "root" in lower_name:
-                    var current_pos: Vector3 = bone_pos_offsets.get(active_dragged_bone, Vector3.ZERO)
-                    if event.shift_pressed:
-                        current_pos.z = clampf(
-                            current_pos.z - delta_drag.y * translation_meters_per_pixel,
-                            -0.35,
-                            0.35
-                        )
-                    else:
-                        current_pos.x = clampf(
-                            current_pos.x + delta_drag.x * translation_meters_per_pixel,
-                            -0.35,
-                            0.35
-                        )
-                        current_pos.y = clampf(
-                            current_pos.y - delta_drag.y * translation_meters_per_pixel,
-                            -0.35,
-                            0.35
-                        )
-                    bone_pos_offsets[active_dragged_bone] = current_pos
-                else:
-                    _drag_anatomical_chain(total_drag)
+                _drag_selected_translation_axis(axis, total_drag)
+            _apply_bone_rot_overrides()
+            _sync_pose_sliders_from_selection()
         elif dragging:
             orbit_yaw -= event.relative.x * 0.007
             orbit_pitch = clampf(orbit_pitch - event.relative.y * 0.005, -0.65, 0.45)
         elif panning:
             target_height = clampf(target_height + event.relative.y * 0.004, 0.2, 1.8)
+        elif pose_transform_gizmo and active_editor_page == "Pose":
+            pose_transform_gizmo.set_hovered(pose_transform_gizmo.pick(camera, event.position))
 
 func _find_bubble_at_mouse(m_pos: Vector2) -> String:
     if not bubbles_enabled or camera == null:
@@ -1671,6 +1757,7 @@ func _play_selected() -> void:
         weapon_node.visible = current_weapon != WeaponType.NONE
     var entry: Dictionary = filtered_entries[clip_index]
     var clip_name: StringName = entry["name"]
+    _apply_gunsmith_hand_map_for_entry(entry)
     
     if entry["type"] == "FBX":
         _load_and_retarget_fbx(entry)
@@ -1697,6 +1784,17 @@ func _play_selected() -> void:
             bone_pos_offsets.clear()
             bone_edit_base_poses.clear()
             _sync_pose_sliders_from_selection()
+
+func _apply_gunsmith_hand_map_for_entry(entry: Dictionary) -> void:
+    if gunsmith_weapon_config.is_empty() or weapon_calibrated_pivot == null:
+        return
+    WEAPON_RIG_PREVIEW.apply_animation_hand_map(
+        gunsmith_weapon_config,
+        String(entry.get("path", "")),
+        weapon_calibrated_pivot,
+        left_hand_marker,
+        right_hand_marker
+    )
 
 func _load_authored_animation(entry: Dictionary) -> void:
     var anim_key: StringName = StringName(entry.get("key", ""))
@@ -2789,12 +2887,52 @@ func _weapon_name(wep: WeaponType) -> String:
         WeaponType.NONE: return "Holstered (None)"
     return "Unknown"
 
+func _gunsmith_fallback_weapon_id() -> String:
+    match current_weapon:
+        WeaponType.M4A1_SOPMOD: return "assaultrifle_1"
+        WeaponType.MP5_SD: return "submachinegun_1"
+        WeaponType.COMBAT_PISTOL: return "9mm_pistol"
+        WeaponType.AK_47: return "ak-47"
+    return ""
+
+func _attach_saved_gunsmith_weapon() -> bool:
+    var config_path: String = WEAPON_RIG_PREVIEW.resolve_config_path(_gunsmith_fallback_weapon_id())
+    gunsmith_weapon_config = WEAPON_RIG_PREVIEW.load_config(config_path)
+    if gunsmith_weapon_config.is_empty():
+        return false
+    var mount: Dictionary = gunsmith_weapon_config.get("operator_mount", {})
+    right_grip_pos = WEAPON_RIG_PREVIEW.vector3_from_map(mount.get("position", {}), right_grip_pos)
+    right_grip_rot = WEAPON_RIG_PREVIEW.vector3_from_map(mount.get("rotation_degrees", {}), right_grip_rot)
+    var factor := (1.0 / model_root.scale.x) if (model_root and model_root.scale.x > 1.5) else 1.0
+    var attached: Dictionary = WEAPON_RIG_PREVIEW.attach_to_hand(
+        gunsmith_weapon_config,
+        socket_attachment,
+        right_grip_pos,
+        right_grip_rot,
+        factor
+    )
+    if attached.is_empty():
+        gunsmith_weapon_config.clear()
+        return false
+    weapon_node = attached.get("weapon_root") as Node3D
+    weapon_calibrated_pivot = attached.get("calibrated_pivot") as Node3D
+    left_hand_marker = attached.get("left_hand") as Marker3D
+    right_hand_marker = attached.get("right_hand") as Marker3D
+    weapon_muzzle_marker = attached.get("muzzle") as Marker3D
+    loaded_gunsmith_config_path = config_path
+    return true
+
 func _rebuild_weapon_socket() -> void:
     if socket_attachment:
         socket_attachment.queue_free()
         socket_attachment = null
         weapon_node = null
         left_hand_marker = null
+        right_hand_marker = null
+        weapon_muzzle_marker = null
+        weapon_calibrated_pivot = null
+        gunsmith_weapon_config.clear()
+        loaded_gunsmith_config_path = ""
 
     if current_weapon == WeaponType.NONE:
         return
@@ -2825,6 +2963,11 @@ func _rebuild_weapon_socket() -> void:
     socket_attachment.name = "WeaponSocketAttachment"
     socket_attachment.bone_name = target_bone
     skeleton.add_child(socket_attachment)
+
+    # Imported model, both hand targets, muzzle/ejection/optic sockets and
+    # animation hand maps all come from the profile saved by the Gunsmith.
+    if _attach_saved_gunsmith_weapon():
+        return
 
     weapon_node = Node3D.new()
     weapon_node.name = "AttachedWeapon"
@@ -3201,7 +3344,7 @@ func _build_ui() -> void:
     pose_title.add_theme_color_override("font_color", Color(0.35, 1.0, 0.62))
     pose_page.add_child(pose_title)
     var pose_help := Label.new()
-    pose_help.text = "Click and drag a colored body node like the Gunsmith control point. Limbs move through their shoulder/elbow or hip/knee chain, so bones cannot stretch. Use Rotate Joint for local bend/turn; sliders are only fine tuning."
+    pose_help.text = "Click a skeleton joint, then drag its red/green/blue XYZ arrows or colored rotation rings. Limb arrows solve through the shoulder/elbow or hip/knee chain, so bones never stretch. Sliders below are optional fine tuning."
     pose_help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
     pose_help.add_theme_color_override("font_color", Color(0.72, 0.93, 1.0))
     pose_page.add_child(pose_help)
@@ -3211,21 +3354,8 @@ func _build_ui() -> void:
     pose_selected_bone_label.add_theme_color_override("font_color", Color.WHITE)
     pose_page.add_child(pose_selected_bone_label)
 
-    var direct_tool_row := HBoxContainer.new()
-    pose_page.add_child(direct_tool_row)
-    var move_joint_button := _touch_button("MOVE NODE")
-    move_joint_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-    move_joint_button.tooltip_text = "Drag a node. Limbs solve through upstream joints; only the hips translate."
-    move_joint_button.pressed.connect(_set_pose_edit_mode.bind(&"MOVE"))
-    direct_tool_row.add_child(move_joint_button)
-    var rotate_joint_button := _touch_button("ROTATE JOINT")
-    rotate_joint_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-    rotate_joint_button.tooltip_text = "Drag left/right to turn and up/down to bend within human joint limits."
-    rotate_joint_button.pressed.connect(_set_pose_edit_mode.bind(&"ROTATE"))
-    direct_tool_row.add_child(rotate_joint_button)
-
     var move_title := Label.new()
-    move_title.text = "ROOT POSITION (hips only)"
+    move_title.text = "FINE POSITION (hips/root only)"
     move_title.add_theme_color_override("font_color", Color(0.3, 0.9, 1.0))
     pose_page.add_child(move_title)
     _add_pose_slider(pose_page, "Left / Right", "move_x", -0.25, 0.25, 0.005)
