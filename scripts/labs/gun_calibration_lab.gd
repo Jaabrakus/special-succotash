@@ -219,6 +219,7 @@ var animation_autofix_undo_button: Button
 # UI Sliders Map
 var sliders_map: Dictionary = {}
 var overlay: Control
+var sidebar_panel: PanelContainer
 var hud_status: Label
 var fire_profile_title: Label
 var reticle_canvas: Control
@@ -2466,8 +2467,25 @@ func _sync_markers() -> void:
 	if current_scope_mesh and optic_marker: current_scope_mesh.position = optic_marker.position
 
 
+func _preview_screen_rect() -> Rect2:
+	var viewport_rect := get_viewport().get_visible_rect()
+	var preview_left := viewport_rect.position.x
+	if sidebar_panel and is_instance_valid(sidebar_panel):
+		preview_left = clampf(
+			sidebar_panel.get_global_rect().end.x + 8.0,
+			viewport_rect.position.x,
+			viewport_rect.end.x - 1.0
+		)
+	return Rect2(
+		Vector2(preview_left, viewport_rect.position.y),
+		Vector2(viewport_rect.end.x - preview_left, viewport_rect.size.y)
+	)
+
+
 func _reticle_screen_position() -> Vector2:
-	return get_viewport().get_visible_rect().size * 0.5
+	# Center aim inside the actual 3D preview, not the complete application
+	# window. The left Gunsmith controls are UI and must never bias aim.
+	return _preview_screen_rect().get_center()
 
 
 func _camera_aim_sample() -> Dictionary:
@@ -3093,6 +3111,8 @@ func _build_studio_ui() -> void:
 
 	# Left Sidebar
 	var panel := PanelContainer.new()
+	panel.name = "GunsmithSidebarPanel"
+	sidebar_panel = panel
 	# Fill the available window height. The previous fixed 750 px height pushed the
 	# save/play actions below short windows (and behind the macOS window edge).
 	panel.anchor_left = 0.0

@@ -40,9 +40,11 @@ func _run() -> void:
 		"stand crouch and prone controls are available in the firing tab"
 	)
 	var viewport_center: Vector2 = lab.get_viewport().get_visible_rect().size * 0.5
+	var preview_center: Vector2 = (lab.call("_preview_screen_rect") as Rect2).get_center()
 	_expect(
-		(lab.call("_reticle_screen_position") as Vector2).distance_to(viewport_center) < 0.01,
-		"gun lab reticle authority remains fixed at viewport center"
+		(lab.call("_reticle_screen_position") as Vector2).distance_to(preview_center) < 0.01
+		and preview_center.x > viewport_center.x,
+		"gun lab reticle authority remains fixed at the 3D preview center"
 	)
 	var aim_sample: Dictionary = lab.call("_camera_aim_sample")
 	_expect(
@@ -55,7 +57,7 @@ func _run() -> void:
 		reticle_preview.call("notify_shot", 3, 1.0)
 		_expect(
 			float(reticle_preview.get("shot_gap_impulse")) > 0.0
-			and (reticle_preview.get("screen_center_override") as Vector2).distance_to(viewport_center) < 0.01,
+			and (reticle_preview.get("screen_center_override") as Vector2).distance_to(preview_center) < 0.01,
 			"shot feedback expands symmetrically without moving aim authority"
 		)
 	lab.call("_set_preview_posture", &"CROUCHED")
