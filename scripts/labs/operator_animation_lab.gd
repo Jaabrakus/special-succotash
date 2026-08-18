@@ -95,10 +95,14 @@ var skeleton_chain_instance: MeshInstance3D
 var skeleton_chain_material: StandardMaterial3D
 var active_dragged_bone: String = ""
 var drag_start_mouse: Vector2 = Vector2.ZERO
+var drag_origin_mouse: Vector2 = Vector2.ZERO
+var drag_start_rotations: Dictionary = {}
+var drag_rotation_chain: Array[String] = []
+var drag_start_local_offset: Vector3 = Vector3.ZERO
 var bone_rot_offsets: Dictionary = {} # BoneName -> Vector3 (euler angles in degrees)
 var bone_pos_offsets: Dictionary = {} # BoneName -> local translation in meters
 var bone_edit_base_poses: Dictionary = {} # Stable paused-frame pose; prevents cumulative edits
-var pose_edit_mode: StringName = &"ROTATE"
+var pose_edit_mode: StringName = &"MOVE"
 var rotation_degrees_per_pixel: float = 0.18
 var translation_meters_per_pixel: float = 0.0015
 
@@ -845,17 +849,25 @@ func _rebuild_limb_bubbles() -> void:
 
     _ensure_skeleton_chain_visual()
 
-    # Core draggable landmarks
+    # Direct-manipulation landmarks. The small rendered node is separate from
+    # its generous screen-space picking radius, so joints remain easy to grab
+    # without covering the operator.
     var landmarks := {
-        "HEAD": {"names": ["mixamorig_Head", "mixamorig:Head", "head"], "color": Color(1.0, 0.85, 0.2, 0.85), "radius": 0.07},
-        "RIGHT_HAND": {"names": ["mixamorig_RightHand", "mixamorig:RightHand", "Hand.R.001"], "color": Color(0.1, 0.95, 0.85, 0.9), "radius": 0.065},
-        "LEFT_HAND": {"names": ["mixamorig_LeftHand", "mixamorig:LeftHand", "Hand.L.001"], "color": Color(0.2, 1.0, 0.35, 0.9), "radius": 0.065},
-        "RIGHT_ELBOW": {"names": ["mixamorig_RightForeArm", "mixamorig:RightForeArm", "ArmLower.R"], "color": Color(0.2, 0.65, 1.0, 0.8), "radius": 0.055},
-        "LEFT_ELBOW": {"names": ["mixamorig_LeftForeArm", "mixamorig:LeftForeArm", "ArmLower.L"], "color": Color(0.2, 0.65, 1.0, 0.8), "radius": 0.055},
-        "SPINE": {"names": ["mixamorig_Spine1", "mixamorig:Spine1", "Spineupper"], "color": Color(0.85, 0.5, 1.0, 0.8), "radius": 0.075},
-        "HIPS": {"names": ["mixamorig_Hips", "mixamorig:Hips", "Spinelower"], "color": Color(1.0, 1.0, 1.0, 0.85), "radius": 0.08},
-        "RIGHT_FOOT": {"names": ["mixamorig_RightFoot", "mixamorig:RightFoot", "Foot.R"], "color": Color(1.0, 0.5, 0.1, 0.85), "radius": 0.065},
-        "LEFT_FOOT": {"names": ["mixamorig_LeftFoot", "mixamorig:LeftFoot", "Foot.L"], "color": Color(1.0, 0.2, 0.6, 0.85), "radius": 0.065},
+        "HEAD": {"names": ["mixamorig_Head", "mixamorig:Head", "head"], "color": Color(1.0, 0.85, 0.2, 0.95), "radius": 0.040},
+        "NECK": {"names": ["mixamorig_Neck", "mixamorig:Neck", "neck"], "color": Color(0.45, 1.0, 0.55, 0.95), "radius": 0.032},
+        "CHEST": {"names": ["mixamorig_Spine2", "mixamorig:Spine2", "Spineupper"], "color": Color(0.45, 1.0, 0.55, 0.95), "radius": 0.040},
+        "SPINE": {"names": ["mixamorig_Spine1", "mixamorig:Spine1", "Spine"], "color": Color(0.45, 1.0, 0.55, 0.95), "radius": 0.037},
+        "HIPS": {"names": ["mixamorig_Hips", "mixamorig:Hips", "Spinelower"], "color": Color(1.0, 1.0, 1.0, 0.95), "radius": 0.043},
+        "RIGHT_SHOULDER": {"names": ["mixamorig_RightShoulder", "mixamorig:RightShoulder", "Shoulder.R"], "color": Color(0.12, 0.9, 1.0, 0.95), "radius": 0.034},
+        "LEFT_SHOULDER": {"names": ["mixamorig_LeftShoulder", "mixamorig:LeftShoulder", "Shoulder.L"], "color": Color(0.12, 0.9, 1.0, 0.95), "radius": 0.034},
+        "RIGHT_ELBOW": {"names": ["mixamorig_RightForeArm", "mixamorig:RightForeArm", "ArmLower.R"], "color": Color(0.12, 0.9, 1.0, 0.95), "radius": 0.034},
+        "LEFT_ELBOW": {"names": ["mixamorig_LeftForeArm", "mixamorig:LeftForeArm", "ArmLower.L"], "color": Color(0.12, 0.9, 1.0, 0.95), "radius": 0.034},
+        "RIGHT_HAND": {"names": ["mixamorig_RightHand", "mixamorig:RightHand", "Hand.R.001"], "color": Color(0.1, 0.95, 0.85, 0.98), "radius": 0.037},
+        "LEFT_HAND": {"names": ["mixamorig_LeftHand", "mixamorig:LeftHand", "Hand.L.001"], "color": Color(0.2, 1.0, 0.35, 0.98), "radius": 0.037},
+        "RIGHT_KNEE": {"names": ["mixamorig_RightLeg", "mixamorig:RightLeg", "LegLower.R"], "color": Color(0.2, 0.58, 1.0, 0.95), "radius": 0.035},
+        "LEFT_KNEE": {"names": ["mixamorig_LeftLeg", "mixamorig:LeftLeg", "LegLower.L"], "color": Color(0.2, 0.58, 1.0, 0.95), "radius": 0.035},
+        "RIGHT_FOOT": {"names": ["mixamorig_RightFoot", "mixamorig:RightFoot", "Foot.R"], "color": Color(1.0, 0.5, 0.1, 0.98), "radius": 0.037},
+        "LEFT_FOOT": {"names": ["mixamorig_LeftFoot", "mixamorig:LeftFoot", "Foot.L"], "color": Color(1.0, 0.2, 0.6, 0.98), "radius": 0.037},
     }
 
     for landmark_id in landmarks.keys():
@@ -871,12 +883,25 @@ func _rebuild_limb_bubbles() -> void:
         if bone_idx != -1:
             var bubble_root := Node3D.new()
             bubble_root.name = "Bubble_" + landmark_id
-            # Landmark nodes remain as invisible, generous picking targets for
-            # pose editing. The visual language is now the connected skeleton
-            # hierarchy instead of disconnected floating spheres.
+            var bubble_mesh := MeshInstance3D.new()
+            var sphere := SphereMesh.new()
+            sphere.radius = float(cfg["radius"])
+            sphere.height = float(cfg["radius"]) * 2.0
+            sphere.radial_segments = 12
+            sphere.rings = 6
+            bubble_mesh.mesh = sphere
+            var material := StandardMaterial3D.new()
+            material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+            material.albedo_color = cfg["color"]
+            material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+            material.no_depth_test = true
+            bubble_mesh.material_override = material
+            bubble_mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+            bubble_root.add_child(bubble_mesh)
             add_child(bubble_root)
             bubble_nodes[landmark_id] = {
                 "node": bubble_root,
+                "material": material,
                 "bone_name": target_bone,
                 "bone_idx": bone_idx,
                 "color": cfg["color"],
@@ -963,6 +988,11 @@ func _update_bubble_positions() -> void:
             node.visible = bubbles_enabled
             var bone_global_trans := skeleton.global_transform * skeleton.get_bone_global_pose(b["bone_idx"])
             node.global_position = bone_global_trans.origin
+            var is_selected: bool = b["bone_name"] in [selected_pose_bone, active_dragged_bone]
+            node.scale = Vector3.ONE * (1.55 if is_selected else 1.0)
+            var material: StandardMaterial3D = b.get("material")
+            if material:
+                material.albedo_color = Color.WHITE if is_selected else b["color"]
 
 func _apply_bone_rot_overrides() -> void:
     if skeleton == null:
@@ -1023,9 +1053,91 @@ func _pause_for_pose_edit() -> void:
     _capture_all_edit_bases_after_seek()
 
 func _toggle_pose_edit_mode() -> void:
-    pose_edit_mode = &"MOVE" if pose_edit_mode == &"ROTATE" else &"ROTATE"
+    _set_pose_edit_mode(&"MOVE" if pose_edit_mode == &"ROTATE" else &"ROTATE")
+
+func _set_pose_edit_mode(next_mode: StringName) -> void:
+    pose_edit_mode = next_mode
     if pose_tool_button != null:
         pose_tool_button.text = "Bone Tool (M): %s" % pose_edit_mode
+
+func _human_rotation_limits(bone_name: String) -> Vector3:
+    var lower := bone_name.to_lower()
+    if "forearm" in lower or "armlower" in lower:
+        return Vector3(145.0, 32.0, 40.0)
+    if "arm" in lower or "shoulder" in lower:
+        return Vector3(105.0, 100.0, 95.0)
+    if "leglower" in lower or lower.ends_with("rightleg") or lower.ends_with("leftleg"):
+        return Vector3(145.0, 24.0, 28.0)
+    if "upleg" in lower or "upperleg" in lower:
+        return Vector3(115.0, 55.0, 55.0)
+    if "foot" in lower or "toe" in lower:
+        return Vector3(55.0, 30.0, 25.0)
+    if "head" in lower or "neck" in lower:
+        return Vector3(55.0, 75.0, 45.0)
+    if "spine" in lower or "chest" in lower:
+        return Vector3(45.0, 60.0, 40.0)
+    if "hand" in lower:
+        return Vector3(70.0, 45.0, 80.0)
+    if "hips" in lower:
+        return Vector3(35.0, 55.0, 35.0)
+    return Vector3(75.0, 75.0, 75.0)
+
+func _clamp_human_rotation(bone_name: String, rotation_degrees: Vector3) -> Vector3:
+    var limits := _human_rotation_limits(bone_name)
+    return Vector3(
+        clampf(rotation_degrees.x, -limits.x, limits.x),
+        clampf(rotation_degrees.y, -limits.y, limits.y),
+        clampf(rotation_degrees.z, -limits.z, limits.z)
+    )
+
+func _anatomical_drag_chain(bone_name: String) -> Array[String]:
+    var result: Array[String] = []
+    if skeleton == null:
+        return result
+    var selected_index := skeleton.find_bone(bone_name)
+    if selected_index < 0:
+        return result
+    var lower := bone_name.to_lower()
+    var driver_index := selected_index
+    # End effectors move through their upstream joints. This preserves the
+    # authored bone lengths instead of stretching a hand or foot away from its
+    # arm/leg.
+    if "hand" in lower or "foot" in lower or "head" in lower or "neck" in lower:
+        driver_index = skeleton.get_bone_parent(selected_index)
+    elif (
+        "forearm" in lower
+        or "armlower" in lower
+        or "leglower" in lower
+        or lower.ends_with("rightleg")
+        or lower.ends_with("leftleg")
+    ):
+        driver_index = skeleton.get_bone_parent(selected_index)
+    if driver_index >= 0:
+        result.append(skeleton.get_bone_name(driver_index))
+        var parent_index := skeleton.get_bone_parent(driver_index)
+        if parent_index >= 0 and ("hand" in lower or "foot" in lower):
+            result.append(skeleton.get_bone_name(parent_index))
+    return result
+
+func _begin_anatomical_drag(bone_name: String) -> void:
+    drag_rotation_chain = _anatomical_drag_chain(bone_name)
+    drag_start_rotations.clear()
+    drag_start_local_offset = bone_pos_offsets.get(bone_name, Vector3.ZERO)
+    for driver_bone in drag_rotation_chain:
+        _capture_bone_edit_base(driver_bone)
+        drag_start_rotations[driver_bone] = bone_rot_offsets.get(driver_bone, Vector3.ZERO)
+
+func _drag_anatomical_chain(mouse_delta_from_start: Vector2) -> void:
+    for chain_index in range(drag_rotation_chain.size()):
+        var driver_bone := drag_rotation_chain[chain_index]
+        var start_rotation: Vector3 = drag_start_rotations.get(driver_bone, Vector3.ZERO)
+        var influence := 1.0 if chain_index == 0 else 0.55
+        var requested := start_rotation + Vector3(
+            -mouse_delta_from_start.y * 0.32 * influence,
+            mouse_delta_from_start.x * 0.30 * influence,
+            mouse_delta_from_start.x * 0.10 * influence
+        )
+        bone_rot_offsets[driver_bone] = _clamp_human_rotation(driver_bone, requested)
 
 func _apply_two_hand_ik() -> void:
     if not two_hand_ik_enabled or skeleton == null or left_hand_marker == null or current_weapon == WeaponType.NONE:
@@ -1171,7 +1283,9 @@ func _unhandled_input(event: InputEvent) -> void:
                     active_dragged_bone = clicked_bone
                     _select_pose_bone(clicked_bone)
                     drag_start_mouse = event.position
+                    drag_origin_mouse = event.position
                     _capture_bone_edit_base(clicked_bone)
+                    _begin_anatomical_drag(clicked_bone)
                 else:
                     dragging = true
             else:
@@ -1189,40 +1303,43 @@ func _unhandled_input(event: InputEvent) -> void:
     elif event is InputEventMouseMotion:
         if active_dragged_bone != "":
             var delta_drag: Vector2 = event.position - drag_start_mouse
+            var total_drag: Vector2 = event.position - drag_origin_mouse
             drag_start_mouse = event.position
             if pose_edit_mode == &"ROTATE":
                 var current_rot: Vector3 = bone_rot_offsets.get(active_dragged_bone, Vector3.ZERO)
-                current_rot.x = clampf(
-                    current_rot.x - delta_drag.y * rotation_degrees_per_pixel,
-                    -90.0,
-                    90.0
-                )
-                current_rot.y = clampf(
-                    current_rot.y + delta_drag.x * rotation_degrees_per_pixel,
-                    -120.0,
-                    120.0
+                current_rot = _clamp_human_rotation(
+                    active_dragged_bone,
+                    current_rot + Vector3(
+                        -delta_drag.y * rotation_degrees_per_pixel,
+                        delta_drag.x * rotation_degrees_per_pixel,
+                        0.0
+                    )
                 )
                 bone_rot_offsets[active_dragged_bone] = current_rot
             else:
-                var current_pos: Vector3 = bone_pos_offsets.get(active_dragged_bone, Vector3.ZERO)
-                if event.shift_pressed:
-                    current_pos.z = clampf(
-                        current_pos.z - delta_drag.y * translation_meters_per_pixel,
-                        -0.35,
-                        0.35
-                    )
+                var lower_name := active_dragged_bone.to_lower()
+                if "hips" in lower_name or "root" in lower_name:
+                    var current_pos: Vector3 = bone_pos_offsets.get(active_dragged_bone, Vector3.ZERO)
+                    if event.shift_pressed:
+                        current_pos.z = clampf(
+                            current_pos.z - delta_drag.y * translation_meters_per_pixel,
+                            -0.35,
+                            0.35
+                        )
+                    else:
+                        current_pos.x = clampf(
+                            current_pos.x + delta_drag.x * translation_meters_per_pixel,
+                            -0.35,
+                            0.35
+                        )
+                        current_pos.y = clampf(
+                            current_pos.y - delta_drag.y * translation_meters_per_pixel,
+                            -0.35,
+                            0.35
+                        )
+                    bone_pos_offsets[active_dragged_bone] = current_pos
                 else:
-                    current_pos.x = clampf(
-                        current_pos.x + delta_drag.x * translation_meters_per_pixel,
-                        -0.35,
-                        0.35
-                    )
-                    current_pos.y = clampf(
-                        current_pos.y - delta_drag.y * translation_meters_per_pixel,
-                        -0.35,
-                        0.35
-                    )
-                bone_pos_offsets[active_dragged_bone] = current_pos
+                    _drag_anatomical_chain(total_drag)
         elif dragging:
             orbit_yaw -= event.relative.x * 0.007
             orbit_pitch = clampf(orbit_pitch - event.relative.y * 0.005, -0.65, 0.45)
@@ -1265,6 +1382,7 @@ func _prepare_pose_mode() -> void:
     if animation_player == null or skeleton == null:
         return
     build_waiting_for_clip = false
+    _set_pose_edit_mode(&"MOVE")
     if animation_player.current_animation.is_empty() and not filtered_entries.is_empty():
         _play_selected()
     _pause_for_pose_edit()
@@ -1298,6 +1416,8 @@ func _sync_pose_sliders_from_selection() -> void:
     pose_slider_syncing = true
     var position: Vector3 = bone_pos_offsets.get(selected_pose_bone, Vector3.ZERO)
     var rotation: Vector3 = bone_rot_offsets.get(selected_pose_bone, Vector3.ZERO)
+    var selected_lower := selected_pose_bone.to_lower()
+    var root_can_translate := "hips" in selected_lower or "root" in selected_lower
     var values := {
         "move_x": position.x,
         "move_y": position.y,
@@ -1310,8 +1430,13 @@ func _sync_pose_sliders_from_selection() -> void:
         if pose_slider_controls.has(key):
             var slider: HSlider = pose_slider_controls[key]["slider"]
             var value_label: Label = pose_slider_controls[key]["label"]
+            slider.editable = root_can_translate if String(key).begins_with("move_") else true
             slider.value = float(values[key])
-            value_label.text = _pose_slider_value_text(String(key), float(values[key]))
+            value_label.text = (
+                _pose_slider_value_text(String(key), float(values[key]))
+                if slider.editable
+                else "chain locked"
+            )
     pose_slider_syncing = false
 
 func _pose_slider_value_text(key: String, value: float) -> String:
@@ -1323,6 +1448,11 @@ func _set_pose_slider_value(key: String, value: float) -> void:
     _pause_for_pose_edit()
     _capture_bone_edit_base(selected_pose_bone)
     if key.begins_with("move_"):
+        var selected_lower := selected_pose_bone.to_lower()
+        if not ("hips" in selected_lower or "root" in selected_lower):
+            status_label.text = "Limb length protected: drag this node to rotate its anatomical chain instead of stretching the bone."
+            _sync_pose_sliders_from_selection()
+            return
         var position: Vector3 = bone_pos_offsets.get(selected_pose_bone, Vector3.ZERO)
         match key:
             "move_x": position.x = value
@@ -1335,7 +1465,7 @@ func _set_pose_slider_value(key: String, value: float) -> void:
             "rot_x": rotation.x = value
             "rot_y": rotation.y = value
             "rot_z": rotation.z = value
-        bone_rot_offsets[selected_pose_bone] = rotation
+        bone_rot_offsets[selected_pose_bone] = _clamp_human_rotation(selected_pose_bone, rotation)
     if pose_slider_controls.has(key):
         var value_label: Label = pose_slider_controls[key]["label"]
         value_label.text = _pose_slider_value_text(key, value)
@@ -3071,7 +3201,7 @@ func _build_ui() -> void:
     pose_title.add_theme_color_override("font_color", Color(0.35, 1.0, 0.62))
     pose_page.add_child(pose_title)
     var pose_help := Label.new()
-    pose_help.text = "Pause on any frame, click a cyan skeleton joint, then use these bounded sliders. Capture poses like stop-motion keyframes."
+    pose_help.text = "Click and drag a colored body node like the Gunsmith control point. Limbs move through their shoulder/elbow or hip/knee chain, so bones cannot stretch. Use Rotate Joint for local bend/turn; sliders are only fine tuning."
     pose_help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
     pose_help.add_theme_color_override("font_color", Color(0.72, 0.93, 1.0))
     pose_page.add_child(pose_help)
@@ -3081,8 +3211,21 @@ func _build_ui() -> void:
     pose_selected_bone_label.add_theme_color_override("font_color", Color.WHITE)
     pose_page.add_child(pose_selected_bone_label)
 
+    var direct_tool_row := HBoxContainer.new()
+    pose_page.add_child(direct_tool_row)
+    var move_joint_button := _touch_button("MOVE NODE")
+    move_joint_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    move_joint_button.tooltip_text = "Drag a node. Limbs solve through upstream joints; only the hips translate."
+    move_joint_button.pressed.connect(_set_pose_edit_mode.bind(&"MOVE"))
+    direct_tool_row.add_child(move_joint_button)
+    var rotate_joint_button := _touch_button("ROTATE JOINT")
+    rotate_joint_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    rotate_joint_button.tooltip_text = "Drag left/right to turn and up/down to bend within human joint limits."
+    rotate_joint_button.pressed.connect(_set_pose_edit_mode.bind(&"ROTATE"))
+    direct_tool_row.add_child(rotate_joint_button)
+
     var move_title := Label.new()
-    move_title.text = "MOVE JOINT"
+    move_title.text = "ROOT POSITION (hips only)"
     move_title.add_theme_color_override("font_color", Color(0.3, 0.9, 1.0))
     pose_page.add_child(move_title)
     _add_pose_slider(pose_page, "Left / Right", "move_x", -0.25, 0.25, 0.005)
@@ -3090,7 +3233,7 @@ func _build_ui() -> void:
     _add_pose_slider(pose_page, "Forward / Back", "move_z", -0.25, 0.25, 0.005)
 
     var rotate_title := Label.new()
-    rotate_title.text = "ROTATE JOINT"
+    rotate_title.text = "FINE ROTATION"
     rotate_title.add_theme_color_override("font_color", Color(1.0, 0.78, 0.3))
     pose_page.add_child(rotate_title)
     _add_pose_slider(pose_page, "Bend", "rot_x", -90.0, 90.0, 1.0)
