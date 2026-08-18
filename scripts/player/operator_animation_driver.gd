@@ -172,7 +172,8 @@ func _process(delta: float) -> void:
 		deg_to_rad(prone_axis_max_correction_deg),
 		deg_to_rad(prone_axis_target_pitch_deg),
 		posture,
-		peek_amount
+		peek_amount,
+		visual_aim_target
 	)
 	weapon_pose_solver.apply(
 		aim_yaw_rad,

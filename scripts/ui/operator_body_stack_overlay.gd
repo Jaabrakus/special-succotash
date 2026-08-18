@@ -127,6 +127,10 @@ func _draw() -> void:
 	var head_back_cm := head_offset.dot(backward) * 100.0
 	var head_side_cm := head_offset.dot(right) * 100.0
 	var chest_back_cm := chest_offset.dot(backward) * 100.0
+	var posture_state: Dictionary = {}
+	var posture_layer = driver.get("posture_layer")
+	if posture_layer != null:
+		posture_state = posture_layer.get_debug_state()
 
 	var legend_position := stack_screen[-1] + Vector2(18.0, -12.0)
 	draw_string(
@@ -161,8 +165,11 @@ func _draw() -> void:
 		draw_string(
 			ThemeDB.fallback_font,
 			legend_position + Vector2(0.0, 51.0),
-			"SHOULDER MAP  chest -> clavicles -> upper arms -> hands  square error %.1f deg"
-			% shoulder_square_error_deg,
+			"SHOULDER MAP  chest -> clavicles -> upper arms -> hands  square %.1f deg  level %.1f cm"
+			% [
+				shoulder_square_error_deg,
+				float(posture_state.get("shoulder_level_error_cm", 0.0)),
+			],
 			HORIZONTAL_ALIGNMENT_LEFT,
 			-1.0,
 			13,

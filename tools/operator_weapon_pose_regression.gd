@@ -147,6 +147,14 @@ func _check_pose(label: String, driver: Node, rig: Node) -> void:
 		float(pose.get("weapon_aim_error_deg", 180.0)) <= 0.10,
 		"%s rendered rifle follows the shared reticle ray" % label
 	)
+	_expect(
+		float(snapshot.get("shoulder_square_error_deg", 180.0)) <= 10.0,
+		"%s shoulder bar remains square to authoritative aim" % label
+	)
+	_expect(
+		float(snapshot.get("shoulder_level_error_cm", 100.0)) <= 4.0,
+		"%s shoulder bar remains level within 4 cm" % label
+	)
 	for key in [&"right_elbow_angle_deg", &"left_elbow_angle_deg"]:
 		var angle := float(pose.get(key, 0.0))
 		_expect(

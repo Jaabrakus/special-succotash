@@ -13,6 +13,8 @@ const BONE_CANDIDATES: Dictionary = {
 	&"head": [&"mixamorig_Head"],
 	&"left_shoulder": [&"mixamorig_LeftShoulder"],
 	&"right_shoulder": [&"mixamorig_RightShoulder"],
+	&"left_upper_arm": [&"mixamorig_LeftArm"],
+	&"right_upper_arm": [&"mixamorig_RightArm"],
 	&"left_upper_leg": [&"mixamorig_LeftUpLeg"],
 	&"right_upper_leg": [&"mixamorig_RightUpLeg"],
 	&"left_lower_leg": [&"mixamorig_LeftLeg"],
@@ -50,6 +52,9 @@ var last_prone_axis_residual_error_deg: float = 0.0
 var last_prone_axis_correction_deg: float = 0.0
 var last_peek_amount: float = 0.0
 var last_peek_roll_deg: float = 0.0
+var last_chest_square_correction_deg: float = 0.0
+var last_shoulder_square_error_deg: float = 0.0
+var last_shoulder_level_error_cm: float = 0.0
 
 
 func bind(target_skeleton: Skeleton3D, neutral_pose_hip_rotation := Quaternion.IDENTITY) -> void:
@@ -78,7 +83,8 @@ func apply(
 	prone_axis_max_correction: float = deg_to_rad(35.0),
 	prone_axis_target_pitch: float = deg_to_rad(6.0),
 	posture_name: StringName = &"STANDING",
-	peek_amount: float = 0.0
+	peek_amount: float = 0.0,
+	world_aim_target: Vector3 = Vector3.ZERO
 ) -> void:
 	if skeleton == null:
 		return
@@ -128,6 +134,11 @@ func apply(
 	_apply_bone_additive(&"left_shoulder", 0.0, shoulder_pitch)
 	_apply_bone_additive(&"right_shoulder", 0.0, shoulder_pitch)
 	_apply_full_body_peek(posture_name, peek_amount)
+	# Keep the combat silhouette broad and level. The spine supplies the large
+	# aim turn, these clavicles square the upper-arm roots, and hand IK performs
+	# only the final weapon reach. This layer is visual and never rotates hips or
+	# changes the authoritative aim direction.
+	_apply_square_shoulders(world_aim_target)
 	last_angular_error_deg = rad_to_deg(absf(aim_yaw - last_applied_yaw))
 
 
@@ -145,7 +156,136 @@ func get_debug_state() -> Dictionary:
 		"prone_axis_residual_error_deg": last_prone_axis_residual_error_deg,
 		"peek_amount": last_peek_amount,
 		"peek_roll_deg": last_peek_roll_deg,
+		"chest_square_correction_deg": last_chest_square_correction_deg,
+		"shoulder_square_error_deg": last_shoulder_square_error_deg,
+		"shoulder_level_error_cm": last_shoulder_level_error_cm,
 	}
+
+
+func _apply_square_shoulders(world_aim_target: Vector3) -> void:
+	var left_shoulder := int(bone_indices.get(&"left_shoulder", -1))
+	var right_shoulder := int(bone_indices.get(&"right_shoulder", -1))
+	var left_arm := int(bone_indices.get(&"left_upper_arm", -1))
+	var right_arm := int(bone_indices.get(&"right_upper_arm", -1))
+	if min(left_shoulder, right_shoulder, left_arm, right_arm) < 0:
+		last_shoulder_square_error_deg = 0.0
+		last_shoulder_level_error_cm = 0.0
+		return
+
+	skeleton.force_update_all_bone_transforms()
+	var left_arm_pose := skeleton.get_bone_global_pose(left_arm)
+	var right_arm_pose := skeleton.get_bone_global_pose(right_arm)
+	var shoulder_center_local := (left_arm_pose.origin + right_arm_pose.origin) * 0.5
+	var shoulder_center_world := skeleton.global_transform * shoulder_center_local
+	var aim_forward_world := world_aim_target - shoulder_center_world
+	if aim_forward_world.length_squared() <= 0.01:
+		aim_forward_world = -skeleton.global_basis.z
+	aim_forward_world.y = 0.0
+	if aim_forward_world.length_squared() <= 0.0001:
+		return
+	aim_forward_world = aim_forward_world.normalized()
+	var desired_right_world := aim_forward_world.cross(Vector3.UP).normalized()
+	var desired_right_local := (
+		skeleton.global_basis.inverse() * desired_right_world
+	).normalized()
+	_apply_square_chest(left_shoulder, right_shoulder, desired_right_local)
+	skeleton.force_update_all_bone_transforms()
+	left_arm_pose = skeleton.get_bone_global_pose(left_arm)
+	right_arm_pose = skeleton.get_bone_global_pose(right_arm)
+	shoulder_center_local = (left_arm_pose.origin + right_arm_pose.origin) * 0.5
+	var current_right_local := (right_arm_pose.origin - left_arm_pose.origin).normalized()
+	if desired_right_local.dot(current_right_local) < 0.0:
+		desired_right_local = -desired_right_local
+
+	var half_width := left_arm_pose.origin.distance_to(right_arm_pose.origin) * 0.5
+	var target_left := shoulder_center_local - desired_right_local * half_width
+	var target_right := shoulder_center_local + desired_right_local * half_width
+	_square_one_shoulder(left_shoulder, left_arm, target_left)
+	_square_one_shoulder(right_shoulder, right_arm, target_right)
+	skeleton.force_update_all_bone_transforms()
+	left_arm_pose = skeleton.get_bone_global_pose(left_arm)
+	right_arm_pose = skeleton.get_bone_global_pose(right_arm)
+	var left_world := skeleton.global_transform * left_arm_pose.origin
+	var right_world := skeleton.global_transform * right_arm_pose.origin
+	var actual_right_world := right_world - left_world
+	last_shoulder_level_error_cm = absf(actual_right_world.y) * 100.0
+	actual_right_world.y = 0.0
+	if actual_right_world.length_squared() <= 0.0001:
+		last_shoulder_square_error_deg = 0.0
+		return
+	actual_right_world = actual_right_world.normalized()
+	if actual_right_world.dot(desired_right_world) < 0.0:
+		actual_right_world = -actual_right_world
+	last_shoulder_square_error_deg = rad_to_deg(
+		acos(clampf(actual_right_world.dot(desired_right_world), -1.0, 1.0))
+	)
+
+
+func _apply_square_chest(
+	left_shoulder_index: int,
+	right_shoulder_index: int,
+	desired_right: Vector3
+) -> void:
+	var chest_index := int(bone_indices.get(&"spine2", -1))
+	if chest_index < 0:
+		last_chest_square_correction_deg = 0.0
+		return
+	var left_root := skeleton.get_bone_global_pose(left_shoulder_index).origin
+	var right_root := skeleton.get_bone_global_pose(right_shoulder_index).origin
+	var current_right := right_root - left_root
+	if current_right.length_squared() <= 0.000001 or desired_right.length_squared() <= 0.000001:
+		last_chest_square_correction_deg = 0.0
+		return
+	current_right = current_right.normalized()
+	desired_right = desired_right.normalized()
+	if current_right.dot(desired_right) < 0.0:
+		desired_right = -desired_right
+	var chest_correction := Quaternion(current_right, desired_right).normalized()
+	var correction_angle := minf(chest_correction.get_angle(), deg_to_rad(55.0))
+	if correction_angle <= 0.00001:
+		last_chest_square_correction_deg = 0.0
+		return
+	var correction_axis := chest_correction.get_axis().normalized()
+	chest_correction = Quaternion(correction_axis, correction_angle).normalized()
+	last_chest_square_correction_deg = rad_to_deg(correction_angle)
+	_apply_skeleton_space_rotation(chest_index, chest_correction)
+
+
+func _apply_skeleton_space_rotation(bone_index: int, correction: Quaternion) -> void:
+	var bone_global_rotation := (
+		skeleton.get_bone_global_pose(bone_index).basis.get_rotation_quaternion().normalized()
+	)
+	var local_correction := (
+		bone_global_rotation.inverse() * correction * bone_global_rotation
+	).normalized()
+	var base_rotation := skeleton.get_bone_pose_rotation(bone_index)
+	skeleton.set_bone_pose_rotation(
+		bone_index,
+		(base_rotation * local_correction).normalized()
+	)
+
+
+func _square_one_shoulder(shoulder_index: int, arm_index: int, target_arm: Vector3) -> void:
+	var shoulder_pose := skeleton.get_bone_global_pose(shoulder_index)
+	var arm_pose := skeleton.get_bone_global_pose(arm_index)
+	var current_direction := arm_pose.origin - shoulder_pose.origin
+	var desired_direction := target_arm - shoulder_pose.origin
+	if current_direction.length_squared() <= 0.000001 or desired_direction.length_squared() <= 0.000001:
+		return
+	current_direction = current_direction.normalized()
+	desired_direction = desired_direction.normalized()
+	var skeleton_space_correction := Quaternion(current_direction, desired_direction).normalized()
+	var shoulder_global_rotation := shoulder_pose.basis.get_rotation_quaternion().normalized()
+	var local_correction := (
+		shoulder_global_rotation.inverse()
+		* skeleton_space_correction
+		* shoulder_global_rotation
+	).normalized()
+	var base_rotation := skeleton.get_bone_pose_rotation(shoulder_index)
+	skeleton.set_bone_pose_rotation(
+		shoulder_index,
+		(base_rotation * local_correction).normalized()
+	)
 
 
 func _apply_full_body_peek(posture_name: StringName, amount: float) -> void:
