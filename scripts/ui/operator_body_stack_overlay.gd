@@ -18,6 +18,14 @@ const ARM_CHAINS: Array[Array] = [
 	[&"mixamorig_RightShoulder", &"mixamorig_RightArm", &"mixamorig_RightForeArm", &"mixamorig_RightHand"],
 ]
 
+const SHOULDER_MAP_BONES: Array[StringName] = [
+	&"mixamorig_Spine2",
+	&"mixamorig_LeftShoulder",
+	&"mixamorig_LeftArm",
+	&"mixamorig_RightShoulder",
+	&"mixamorig_RightArm",
+]
+
 const LEG_CHAINS: Array[Array] = [
 	[&"mixamorig_Hips", &"mixamorig_LeftUpLeg", &"mixamorig_LeftLeg", &"mixamorig_LeftFoot"],
 	[&"mixamorig_Hips", &"mixamorig_RightUpLeg", &"mixamorig_RightLeg", &"mixamorig_RightFoot"],
@@ -104,6 +112,7 @@ func _draw() -> void:
 
 	_draw_joint_chains(skeleton, ARM_CHAINS, arm_color)
 	_draw_joint_chains(skeleton, LEG_CHAINS, leg_color)
+	var shoulder_square_error_deg := _draw_shoulder_map(skeleton)
 	_draw_weapon_pose(skeleton)
 	_draw_joint_trails()
 
@@ -148,6 +157,16 @@ func _draw() -> void:
 			-1.0,
 			13,
 			Color(1.0, 0.82, 0.25, 1.0)
+		)
+		draw_string(
+			ThemeDB.fallback_font,
+			legend_position + Vector2(0.0, 51.0),
+			"SHOULDER MAP  chest -> clavicles -> upper arms -> hands  square error %.1f deg"
+			% shoulder_square_error_deg,
+			HORIZONTAL_ALIGNMENT_LEFT,
+			-1.0,
+			13,
+			Color(0.35, 0.96, 1.0, 1.0)
 		)
 	draw_string(
 		ThemeDB.fallback_font,
@@ -208,6 +227,78 @@ func _draw_joint_chains(
 		draw_polyline(screen_points, color, 3.0, true)
 		for screen_point in screen_points:
 			draw_circle(screen_point, 5.0, color)
+
+
+func _draw_shoulder_map(skeleton: Skeleton3D) -> float:
+	var points: Dictionary = {}
+	for bone_name in SHOULDER_MAP_BONES:
+		var bone_index := skeleton.find_bone(bone_name)
+		if bone_index < 0:
+			return 0.0
+		var point: Vector3 = (
+			skeleton.global_transform * skeleton.get_bone_global_pose(bone_index).origin
+		)
+		if camera.is_position_behind(point):
+			return 0.0
+		points[bone_name] = point
+
+	var chest: Vector3 = points[&"mixamorig_Spine2"]
+	var left_clavicle: Vector3 = points[&"mixamorig_LeftShoulder"]
+	var right_clavicle: Vector3 = points[&"mixamorig_RightShoulder"]
+	var left_arm: Vector3 = points[&"mixamorig_LeftArm"]
+	var right_arm: Vector3 = points[&"mixamorig_RightArm"]
+	var cyan := Color(0.20, 0.96, 1.0, 1.0)
+	var shoulder_blue := Color(0.18, 0.62, 1.0, 1.0)
+	var square_reference := Color(0.95, 1.0, 1.0, 0.88)
+
+	# The V from chest to both clavicles shows the new pose-authority layer.
+	for clavicle in [left_clavicle, right_clavicle]:
+		draw_line(
+			camera.unproject_position(chest),
+			camera.unproject_position(clavicle),
+			cyan,
+			5.0,
+			true
+		)
+	# The bar between upper-arm roots is the silhouette players read as
+	# "squared shoulders". It remains separate from elbow/hand IK.
+	draw_line(
+		camera.unproject_position(left_arm),
+		camera.unproject_position(right_arm),
+		shoulder_blue,
+		4.0,
+		true
+	)
+	for pivot in [left_clavicle, right_clavicle, left_arm, right_arm]:
+		draw_circle(camera.unproject_position(pivot), 7.0, cyan, false, 2.5, true)
+
+	var actual_right := (right_arm - left_arm).normalized()
+	var aim_forward := -subject.global_basis.z.normalized() if subject != null else Vector3.FORWARD
+	var weapon_solver = driver.get("weapon_pose_solver")
+	if weapon_solver != null:
+		var solver_direction: Vector3 = weapon_solver.get("last_aim_direction")
+		if solver_direction.length_squared() > 0.50:
+			aim_forward = solver_direction.normalized()
+	var desired_right := aim_forward.cross(Vector3.UP).normalized()
+	if desired_right.length_squared() < 0.50:
+		desired_right = actual_right
+	if desired_right.dot(actual_right) < 0.0:
+		desired_right = -desired_right
+	var half_width := left_arm.distance_to(right_arm) * 0.5
+	var reference_left := chest - desired_right * half_width
+	var reference_right := chest + desired_right * half_width
+	if not camera.is_position_behind(reference_left) and not camera.is_position_behind(reference_right):
+		draw_dashed_line(
+			camera.unproject_position(reference_left),
+			camera.unproject_position(reference_right),
+			square_reference,
+			2.0,
+			7.0,
+			true
+		)
+		draw_circle(camera.unproject_position(reference_left), 5.0, square_reference, false, 2.0, true)
+		draw_circle(camera.unproject_position(reference_right), 5.0, square_reference, false, 2.0, true)
+	return rad_to_deg(acos(clampf(actual_right.dot(desired_right), -1.0, 1.0)))
 
 
 func _draw_joint_trails() -> void:
