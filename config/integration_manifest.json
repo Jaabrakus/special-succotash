@@ -1,7 +1,9 @@
 {
   "schema_version": 1,
   "project_id": "socom-141",
-  "authoritative_branch": "movement-animation-integration",
+  "authoritative_branch": "main",
+  "canonical_path_alias": "/Users/kiwimango/Documents/SOCOM-141",
+  "studio_entry_scene": "res://studio_hub.tscn",
   "runtime_entry_scene": "res://main.tscn",
   "labs": [
     {

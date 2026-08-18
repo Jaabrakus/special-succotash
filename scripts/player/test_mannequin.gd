@@ -77,9 +77,6 @@ var weapon_rest_position := Vector3(0.12, -0.02, -0.23)
 @export var weapon_cover_raise: float = 0.20
 @export var weapon_obstruction_enter_response: float = 18.0
 @export var weapon_obstruction_exit_response: float = 8.0
-@export_group("Animation mapping")
-@export var animation_profile: SocomOperatorAnimationProfile = DEFAULT_ANIMATION_PROFILE
-
 @export_group("Camera marker follow")
 @export_range(0.0, 1.0, 0.01) var camera_head_follow_weight: float = 0.45
 @export_range(0.0, 1.0, 0.01) var camera_torso_follow_weight: float = 0.35

@@ -5,7 +5,7 @@ project_dir="${0:A:h:h}"
 godot_bin="${GODOT_BIN:-/Users/kiwimango/Downloads/Godot.app/Contents/MacOS/Godot}"
 mode="${1:-quick}"
 report_dir="${TMPDIR:-/private/tmp}/socom-integration-gate"
-canonical_branch="movement-animation-integration"
+canonical_branch="main"
 
 if [[ "$mode" != "quick" && "$mode" != "full" ]]; then
   print -u2 "Usage: $0 [quick|full]"

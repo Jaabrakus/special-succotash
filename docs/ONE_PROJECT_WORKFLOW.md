@@ -8,13 +8,17 @@ implementation of gameplay behavior.
 ## Canonical project
 
 - Project ID: `socom-141`
-- Authoritative branch: `movement-animation-integration`
+- Authoritative branch: `main`
+- Stable local path: `/Users/kiwimango/Documents/SOCOM-141`
 - Runtime entry: `main.tscn`
 - Machine-readable registry: `config/integration_manifest.json`
 - Human launcher: `tools/run_studio.sh`
 
-Copies elsewhere are references or staging areas. A feature does not exist in
-the game until it is deliberately integrated here and passes the gate.
+Copies and worktrees elsewhere are references or staging areas. A feature does
+not exist in the canonical game until it is merged to `main` here and passes
+the gate. Assistants must launch through the stable local path or resolve the
+project root from the launcher script; they must never search for a similarly
+named SOCOM folder and guess.
 
 ## System boundary
 
@@ -30,7 +34,7 @@ The labs may never become alternative owners of these values.
 
 ## Daily workflow
 
-1. Start from the canonical integration branch and record its commit.
+1. Start from canonical `main` and record its commit.
 2. Give each parallel task its own branch or Git worktree.
 3. Keep asset work isolated from runtime code whenever possible.
 4. Merge the smallest coherent change into the integration branch.

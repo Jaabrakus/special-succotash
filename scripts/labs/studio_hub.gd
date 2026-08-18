@@ -111,9 +111,10 @@ func _load_manifest() -> void:
 		if raw_lab is Dictionary:
 			var lab := raw_lab as Dictionary
 			lab_scenes[StringName(lab.get("id", ""))] = String(lab.get("scene", ""))
-	status_label.text = "Canonical project: %s\nAuthoritative branch: %s\nRegistered labs: %d" % [
+	status_label.text = "Canonical project: %s\nAuthoritative branch: %s\nStable path: %s\nRegistered labs: %d" % [
 		String(manifest.get("project_id", "unknown")),
 		String(manifest.get("authoritative_branch", "unknown")),
+		String(manifest.get("canonical_path_alias", "unknown")),
 		lab_scenes.size(),
 	]
 

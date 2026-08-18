@@ -17,6 +17,9 @@ func _run() -> void:
 
 	_expect(int(manifest.get("schema_version", 0)) == 1, "manifest schema is supported")
 	_expect(String(manifest.get("project_id", "")) == "socom-141", "project identity is canonical")
+	_expect(String(manifest.get("authoritative_branch", "")) == "main", "main is the authoritative branch")
+	_expect(String(manifest.get("canonical_path_alias", "")) == "/Users/kiwimango/Documents/SOCOM-141", "canonical path alias is stable and outside dated worktrees")
+	_expect(_path_exists(String(manifest.get("studio_entry_scene", ""))), "Studio entry scene exists")
 	var runtime_entry := String(manifest.get("runtime_entry_scene", ""))
 	_expect(runtime_entry == String(ProjectSettings.get_setting("application/run/main_scene", "")), "manifest and project share one runtime entry")
 
