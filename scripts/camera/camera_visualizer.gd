@@ -42,7 +42,9 @@ func _process(_delta: float) -> void:
         + Vector3.UP * float(camera_rig.profile.collision_anchor_height)
     )
     var muzzle: Vector3 = player.global_position + Vector3.UP * 1.35
-    if mannequin and mannequin.muzzle_marker:
+    if mannequin and mannequin.has_method("get_active_muzzle_position"):
+        muzzle = mannequin.get_active_muzzle_position()
+    elif mannequin and mannequin.muzzle_marker:
         muzzle = mannequin.muzzle_marker.global_position
 
     _lines.clear_surfaces()

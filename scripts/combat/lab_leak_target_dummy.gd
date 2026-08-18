@@ -20,6 +20,11 @@ var flinch_rotation := Vector3.ZERO
 var model_root: Node3D
 var health_label: Label3D
 var hurtbox_rig: Node3D
+var soldier_meshes: Array[MeshInstance3D] = []
+var normal_material: StandardMaterial3D
+var hit_flash_material: StandardMaterial3D
+var critical_flash_material: StandardMaterial3D
+var hit_flash_remaining: float = 0.0
 
 func _ready() -> void:
 	# The CharacterBody is only a stable gameplay owner. Damage queries hit the
@@ -36,10 +41,13 @@ func _build_soldier() -> void:
 	model_root.rotation.y = PI
 	add_child(model_root)
 
-	var mat := StandardMaterial3D.new()
-	mat.albedo_texture = TROOPER_TEXTURE
-	mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
-	_apply_material_recursive(model_root, mat)
+	normal_material = StandardMaterial3D.new()
+	normal_material.albedo_texture = TROOPER_TEXTURE
+	normal_material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	hit_flash_material = _build_flash_material(Color(1.0, 1.0, 0.4))
+	critical_flash_material = _build_flash_material(Color(1.0, 0.2, 0.2))
+	_collect_soldier_meshes(model_root)
+	_set_soldier_material(normal_material)
 
 	# 3D Floating Health Label
 	health_label = Label3D.new()
@@ -50,11 +58,25 @@ func _build_soldier() -> void:
 	health_label.modulate = Color(0.3, 1.0, 0.4)
 	add_child(health_label)
 
-func _apply_material_recursive(node: Node, material: Material) -> void:
+func _collect_soldier_meshes(node: Node) -> void:
 	if node is MeshInstance3D:
-		node.material_override = material
+		soldier_meshes.append(node as MeshInstance3D)
 	for child in node.get_children():
-		_apply_material_recursive(child, material)
+		_collect_soldier_meshes(child)
+
+
+func _set_soldier_material(material: Material) -> void:
+	for mesh in soldier_meshes:
+		if is_instance_valid(mesh):
+			mesh.material_override = material
+
+
+func _build_flash_material(emission_color: Color) -> StandardMaterial3D:
+	var material := StandardMaterial3D.new()
+	material.albedo_color = Color.WHITE
+	material.emission_enabled = true
+	material.emission = emission_color
+	return material
 
 func _build_hitboxes() -> void:
 	var skeleton := _find_skeleton(model_root)
@@ -90,7 +112,20 @@ func apply_hurtbox_tuning(settings: Dictionary) -> void:
 func get_hurtbox_rig() -> Node3D:
 	return hurtbox_rig
 
+
+func get_cached_hit_feedback_ids() -> Dictionary:
+	return {
+		"normal": normal_material.get_instance_id() if normal_material else 0,
+		"hit": hit_flash_material.get_instance_id() if hit_flash_material else 0,
+		"critical": critical_flash_material.get_instance_id() if critical_flash_material else 0,
+		"meshes": soldier_meshes.size(),
+	}
+
 func _process(delta: float) -> void:
+	if hit_flash_remaining > 0.0:
+		hit_flash_remaining = maxf(0.0, hit_flash_remaining - delta)
+		if hit_flash_remaining <= 0.0:
+			_set_soldier_material(normal_material)
 	if flinch_rotation.length_squared() > 0.0001:
 		flinch_rotation = flinch_rotation.lerp(Vector3.ZERO, delta * 14.0)
 		if model_root:
@@ -220,19 +255,13 @@ func take_bullet_damage_region(
 	}
 
 func _flash_soldier(is_critical: bool) -> void:
-	var flash_mat := StandardMaterial3D.new()
-	flash_mat.albedo_color = Color.WHITE
-	flash_mat.emission_enabled = true
-	flash_mat.emission = Color(1.0, 0.2, 0.2) if is_critical else Color(1.0, 1.0, 0.4)
-	_apply_material_recursive(model_root, flash_mat)
-
-	get_tree().create_timer(0.08).timeout.connect(func():
-		if model_root and is_instance_valid(model_root):
-			var reset_mat := StandardMaterial3D.new()
-			reset_mat.albedo_texture = TROOPER_TEXTURE
-			reset_mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
-			_apply_material_recursive(model_root, reset_mat)
+	# Materials are compiled and cached when the dummy is built. A hit only
+	# swaps an existing resource reference and resets a numeric timer, avoiding
+	# per-impact shaders, timers, closures, and garbage collection.
+	_set_soldier_material(
+		critical_flash_material if is_critical else hit_flash_material
 	)
+	hit_flash_remaining = 0.08
 
 func _die(hit_type: String) -> void:
 	is_alive = false

@@ -38,6 +38,7 @@ var modern_transition: AnimationNodeTransition
 var modern_state_indices: Dictionary = {}
 var legacy_clip_indices: Dictionary = {}
 var profile
+var weapon_handling_profile: Dictionary = {}
 var modern_enabled: bool = true
 var full_gait_weight: float = 0.0
 var playback_rate: float = 1.0
@@ -54,9 +55,11 @@ func build(
 	animation_player: AnimationPlayer,
 	available_clips: Dictionary,
 	animation_profile,
-	use_modern: bool
+	use_modern: bool,
+	equipped_weapon_profile: Dictionary = {}
 ) -> AnimationTree:
 	profile = animation_profile
+	weapon_handling_profile = equipped_weapon_profile.duplicate(true)
 	modern_enabled = use_modern
 	var root := AnimationNodeBlendTree.new()
 	_build_legacy_route(root, available_clips)
@@ -211,16 +214,19 @@ func _build_modern_route(root: AnimationNodeBlendTree, available_clips: Dictiona
 	var idle_blend := AnimationNodeBlend2.new()
 	idle_blend.sync = true
 	root.add_node(&"idle_ready_blend", idle_blend, Vector2(-40.0, -180.0))
-	root.add_node(&"modern_idle_rifle", _animation_node(_fallback_clip(&"idle_rifle", available_clips)), Vector2(-640.0, -250.0))
-	root.add_node(&"modern_aim_idle", _animation_node(_fallback_clip(&"aim_idle", available_clips)), Vector2(-640.0, -160.0))
+	var equipped_idle := _weapon_action_clip("idle_standing", &"idle_rifle", available_clips)
+	var equipped_ready := _weapon_action_clip("idle_standing", &"aim_idle", available_clips)
+	var equipped_crouch_idle := _weapon_action_clip("idle_crouched", &"idle_crouch", available_clips)
+	root.add_node(&"modern_idle_rifle", _animation_node(equipped_idle), Vector2(-640.0, -250.0))
+	root.add_node(&"modern_aim_idle", _animation_node(equipped_ready), Vector2(-640.0, -160.0))
 	root.connect_node(&"idle_ready_blend", 0, &"modern_idle_rifle")
 	root.connect_node(&"idle_ready_blend", 1, &"modern_aim_idle")
-	root.add_node(&"modern_idle_crouch", _animation_node(_fallback_clip(&"idle_crouch", available_clips)), Vector2(-640.0, 360.0))
+	root.add_node(&"modern_idle_crouch", _animation_node(equipped_crouch_idle), Vector2(-640.0, 360.0))
 	var standing_upper_ready_blend := AnimationNodeBlend2.new()
 	standing_upper_ready_blend.sync = true
 	root.add_node(&"standing_upper_ready_blend", standing_upper_ready_blend, Vector2(-40.0, 230.0))
-	root.add_node(&"standing_upper_idle_rifle", _animation_node(_fallback_clip(&"idle_rifle", available_clips)), Vector2(-640.0, 220.0))
-	root.add_node(&"standing_upper_aim_idle", _animation_node(_fallback_clip(&"aim_idle", available_clips)), Vector2(-640.0, 300.0))
+	root.add_node(&"standing_upper_idle_rifle", _animation_node(equipped_idle), Vector2(-640.0, 220.0))
+	root.add_node(&"standing_upper_aim_idle", _animation_node(equipped_ready), Vector2(-640.0, 300.0))
 	root.connect_node(&"standing_upper_ready_blend", 0, &"standing_upper_idle_rifle")
 	root.connect_node(&"standing_upper_ready_blend", 1, &"standing_upper_aim_idle")
 
@@ -293,7 +299,8 @@ func _direction_space(prefix: StringName, available_clips: Dictionary) -> Animat
 	space.x_label = "Strafe"
 	space.y_label = "Forward"
 	for suffix: StringName in DIRECTION_POINTS:
-		var clip_name := StringName("%s_%s" % [prefix, suffix])
+		var logical_name := StringName("%s_%s" % [prefix, suffix])
+		var clip_name := _weapon_locomotion_clip(String(logical_name), logical_name, available_clips)
 		if available_clips.has(clip_name):
 			space.add_blend_point(
 				_animation_node(clip_name),
@@ -302,6 +309,30 @@ func _direction_space(prefix: StringName, available_clips: Dictionary) -> Animat
 				suffix
 			)
 	return space
+
+
+func _weapon_locomotion_clip(
+	slot_name: String,
+	fallback: StringName,
+	available_clips: Dictionary
+) -> StringName:
+	var routes: Dictionary = weapon_handling_profile.get("locomotion_slots", {})
+	var candidate := StringName(routes.get(slot_name, ""))
+	if candidate != &"" and available_clips.has(candidate):
+		return candidate
+	return _fallback_clip(fallback, available_clips)
+
+
+func _weapon_action_clip(
+	slot_name: String,
+	fallback: StringName,
+	available_clips: Dictionary
+) -> StringName:
+	var routes: Dictionary = weapon_handling_profile.get("animation_slots", {})
+	var candidate := StringName(routes.get(slot_name, ""))
+	if candidate != &"" and available_clips.has(candidate):
+		return candidate
+	return _fallback_clip(fallback, available_clips)
 
 
 func _prone_direction_space(available_clips: Dictionary) -> AnimationNodeBlendSpace1D:

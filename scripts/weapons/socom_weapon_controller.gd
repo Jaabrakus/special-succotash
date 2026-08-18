@@ -18,6 +18,14 @@ var ballistics
 var input_enabled: bool = true
 var last_accepted_sequence: int = -1
 var last_result: Dictionary = {}
+var reticle_profile: Dictionary = {
+	"base_gap_px": 10.0,
+	"max_gap_px": 46.0,
+	"response_speed": 24.0,
+	"shot_kick_px": 6.0,
+	"shot_kick_return": 18.0,
+	"maximum_shot_kick_px": 18.0,
+}
 
 
 func configure(target_player: CharacterBody3D, target_camera) -> void:
@@ -27,6 +35,51 @@ func configure(target_player: CharacterBody3D, target_camera) -> void:
 	ballistics = Ballistics.new()
 	ballistics.name = "WeaponBallistics"
 	add_child(ballistics)
+	_apply_equipped_ballistics()
+
+
+func _apply_equipped_ballistics() -> void:
+	var loadout_path := "res://config/weapons/operator_loadout.json"
+	if ballistics == null:
+		return
+	var config_path := ""
+	for argument in OS.get_cmdline_user_args():
+		if argument.begins_with("--weapon-rig-config="):
+			config_path = argument.trim_prefix("--weapon-rig-config=")
+			break
+	if config_path == "":
+		if not FileAccess.file_exists(loadout_path):
+			return
+		var loadout_file := FileAccess.open(loadout_path, FileAccess.READ)
+		var loadout_value: Variant = (
+			JSON.parse_string(loadout_file.get_as_text())
+			if loadout_file != null
+			else null
+		)
+		if not loadout_value is Dictionary:
+			return
+		config_path = String((loadout_value as Dictionary).get("rig_config", ""))
+	if config_path == "" or not FileAccess.file_exists(config_path):
+		return
+	var config_file := FileAccess.open(config_path, FileAccess.READ)
+	var config_value: Variant = (
+		JSON.parse_string(config_file.get_as_text())
+		if config_file != null
+		else null
+	)
+	if not config_value is Dictionary:
+		return
+	var values: Dictionary = (config_value as Dictionary).get("ballistics", {})
+	var saved_reticle: Variant = (config_value as Dictionary).get("reticle", {})
+	if saved_reticle is Dictionary:
+		reticle_profile.merge((saved_reticle as Dictionary), true)
+	ballistics.fire_rate_rpm = float(values.get("fire_rate_rpm", ballistics.fire_rate_rpm))
+	ballistics.damage_per_shot = float(values.get("damage", ballistics.damage_per_shot))
+	ballistics.base_spread_deg = float(values.get("base_spread_deg", ballistics.base_spread_deg))
+	ballistics.bloom_per_shot_deg = float(values.get("bloom_per_shot_deg", ballistics.bloom_per_shot_deg))
+	ballistics.max_recoil_bloom_deg = float(values.get("max_recoil_bloom_deg", ballistics.max_recoil_bloom_deg))
+	ballistics.bloom_recovery_speed = float(values.get("bloom_recovery_speed", ballistics.bloom_recovery_speed))
+	ballistics.fire_interval = 60.0 / maxf(60.0, ballistics.fire_rate_rpm)
 
 
 func _process(_delta: float) -> void:
@@ -49,11 +102,17 @@ func request_fire() -> Dictionary:
 		or player == null
 		or camera_rig == null
 		or mannequin == null
-		or mannequin.muzzle_marker == null
 	):
 		return {"fired": false, "reason": "WEAPON_NOT_READY"}
 
-	var muzzle: Vector3 = mannequin.muzzle_marker.global_position
+	var active_muzzle: Node3D = (
+		mannequin.get_active_muzzle_marker()
+		if mannequin.has_method("get_active_muzzle_marker")
+		else mannequin.muzzle_marker
+	)
+	if active_muzzle == null:
+		return {"fired": false, "reason": "WEAPON_NOT_READY"}
+	var muzzle: Vector3 = active_muzzle.global_position
 	var payload: Dictionary = camera_rig.build_local_aim_intent()
 	var validation: Dictionary = ShotAuthority.validate_intent(
 		payload,

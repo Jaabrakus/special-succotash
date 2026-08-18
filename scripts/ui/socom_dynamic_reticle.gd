@@ -26,6 +26,10 @@ enum ReticleMode {
 @export var tick_thickness: float = 2.4
 @export var base_gap: float = 10.0
 @export var max_bloom_gap: float = 46.0
+@export var response_speed: float = 24.0
+@export var shot_kick_pixels: float = 6.0
+@export var shot_kick_return: float = 18.0
+@export var maximum_shot_kick_pixels: float = 18.0
 
 var current_gap: float = 8.0
 var target_gap: float = 8.0
@@ -34,6 +38,7 @@ var is_interact_target: bool = false
 var current_mode: ReticleMode = ReticleMode.COMBAT
 var hit_marker_timer: float = 0.0
 var screen_center_override: Vector2 = Vector2.ZERO
+var shot_gap_impulse: float = 0.0
 
 func _ready() -> void:
     mouse_filter = MOUSE_FILTER_IGNORE
@@ -41,7 +46,12 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
     # Smooth bloom interpolation
-    current_gap = lerpf(current_gap, target_gap, 1.0 - exp(-24.0 * delta))
+    current_gap = lerpf(current_gap, target_gap, 1.0 - exp(-response_speed * delta))
+    shot_gap_impulse = lerpf(
+        shot_gap_impulse,
+        0.0,
+        1.0 - exp(-shot_kick_return * delta)
+    )
     if hit_marker_timer > 0.0:
         hit_marker_timer = maxf(0.0, hit_marker_timer - delta)
     queue_redraw()
@@ -61,6 +71,26 @@ func update_reticle_state(
 func notify_hit() -> void:
     hit_marker_timer = 0.15
 
+func notify_shot(shot_index: int = 1, intensity: float = 1.0) -> void:
+    # Reference footage keeps the precision dot fixed and expands all four
+    # marks evenly. An off-center tick group reads as a second aim point and
+    # makes mouse fire feel like the sight is chasing recoil.
+    shot_gap_impulse = minf(
+        maximum_shot_kick_pixels,
+        shot_gap_impulse + shot_kick_pixels * clampf(intensity, 0.25, 2.0)
+    )
+
+func apply_profile(profile: Dictionary) -> void:
+    base_gap = float(profile.get("base_gap_px", base_gap))
+    max_bloom_gap = float(profile.get("max_gap_px", max_bloom_gap))
+    response_speed = float(profile.get("response_speed", response_speed))
+    shot_kick_pixels = float(profile.get("shot_kick_px", shot_kick_pixels))
+    shot_kick_return = float(profile.get("shot_kick_return", shot_kick_return))
+    maximum_shot_kick_pixels = float(
+        profile.get("maximum_shot_kick_px", maximum_shot_kick_pixels)
+    )
+    target_gap = clampf(target_gap, base_gap, max_bloom_gap)
+
 func _draw() -> void:
     var center: Vector2 = screen_center_override if screen_center_override != Vector2.ZERO else size * 0.5
     var color := target_color if is_target_acquired else (interact_color if is_interact_target else default_color)
@@ -79,22 +109,23 @@ func _draw() -> void:
         draw_arc(center, current_gap + tick_length * 0.5, 0, TAU, 32, bloom_ring_color, 1.2, true)
 
     # 3. Four Dynamic Ticks (Top, Bottom, Left, Right with Drop-Shadow Outline)
-    var g := current_gap
+    var tick_center := center
+    var g := current_gap + shot_gap_impulse
     var l := tick_length
     var t := tick_thickness
 
     # Shadow/Border Pass
     var st := t + 2.0
-    draw_line(center + Vector2(0, -g + 1.0), center + Vector2(0, -g - l - 1.0), shadow_color, st)
-    draw_line(center + Vector2(0, g - 1.0), center + Vector2(0, g + l + 1.0), shadow_color, st)
-    draw_line(center + Vector2(-g + 1.0, 0), center + Vector2(-g - l - 1.0, 0), shadow_color, st)
-    draw_line(center + Vector2(g - 1.0, 0), center + Vector2(g + l + 1.0, 0), shadow_color, st)
+    draw_line(tick_center + Vector2(0, -g + 1.0), tick_center + Vector2(0, -g - l - 1.0), shadow_color, st)
+    draw_line(tick_center + Vector2(0, g - 1.0), tick_center + Vector2(0, g + l + 1.0), shadow_color, st)
+    draw_line(tick_center + Vector2(-g + 1.0, 0), tick_center + Vector2(-g - l - 1.0, 0), shadow_color, st)
+    draw_line(tick_center + Vector2(g - 1.0, 0), tick_center + Vector2(g + l + 1.0, 0), shadow_color, st)
 
     # Foreground Color Pass
-    draw_line(center + Vector2(0, -g), center + Vector2(0, -g - l), color, t)
-    draw_line(center + Vector2(0, g), center + Vector2(0, g + l), color, t)
-    draw_line(center + Vector2(-g, 0), center + Vector2(-g - l, 0), color, t)
-    draw_line(center + Vector2(g, 0), center + Vector2(g + l, 0), color, t)
+    draw_line(tick_center + Vector2(0, -g), tick_center + Vector2(0, -g - l), color, t)
+    draw_line(tick_center + Vector2(0, g), tick_center + Vector2(0, g + l), color, t)
+    draw_line(tick_center + Vector2(-g, 0), tick_center + Vector2(-g - l, 0), color, t)
+    draw_line(tick_center + Vector2(g, 0), tick_center + Vector2(g + l, 0), color, t)
 
     # 4. Hit Marker Flash (SOCOM Red X on hit)
     if hit_marker_timer > 0.0:

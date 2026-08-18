@@ -139,9 +139,13 @@ func _check_pose(label: String, driver: Node, rig: Node) -> void:
 		float(pose.get("trigger_hand_error_m", 1.0)) <= 0.005,
 		"%s trigger hand reaches within 0.5 cm" % label
 	)
+	var support_error := float(pose.get("support_hand_error_m", 1.0))
 	_expect(
-		float(pose.get("support_hand_error_m", 1.0)) <= 0.005,
-		"%s support hand reaches within 0.5 cm" % label
+		support_error <= 0.005,
+		"%s support hand reaches within 0.5 cm (%.2f cm)" % [
+			label,
+			support_error * 100.0,
+		]
 	)
 	_expect(
 		float(pose.get("weapon_aim_error_deg", 180.0)) <= 0.10,
@@ -178,8 +182,16 @@ func _check_pose(label: String, driver: Node, rig: Node) -> void:
 	)
 	var target_node := rig.get("target") as Node
 	var mannequin: Node = target_node.get_node_or_null("Mannequin") if target_node != null else null
-	if mannequin != null and mannequin.muzzle_marker != null:
-		var muzzle: Vector3 = mannequin.muzzle_marker.global_position
+	if mannequin != null and mannequin.has_method("get_active_muzzle_marker"):
+		var active_muzzle: Node3D = mannequin.get_active_muzzle_marker()
+		_expect(active_muzzle != null, "%s active weapon exposes a muzzle socket" % label)
+		if active_muzzle == null:
+			return
+		_expect(
+			active_muzzle != mannequin.muzzle_marker,
+			"%s production muzzle replaces the hidden proxy muzzle" % label
+		)
+		var muzzle: Vector3 = active_muzzle.global_position
 		var ballistic_direction := (shared_target - muzzle).normalized()
 		var viewport_size: Vector2 = rig.get_viewport().get_visible_rect().size
 		var reticle: Vector2 = rig.get("reticle_screen_normalized")

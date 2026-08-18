@@ -318,7 +318,7 @@ func _process(_delta: float) -> void:
     ):
         var intent: Dictionary = camera_rig.build_local_aim_intent()
         var mannequin = player.get_node("Mannequin")
-        var muzzle: Vector3 = mannequin.muzzle_marker.global_position
+        var muzzle: Vector3 = mannequin.get_active_muzzle_position()
         var exclude: Array[RID] = [player.get_rid()]
         var trace: Dictionary = ShotAuthorityScript.validate_and_trace(
             get_world_3d(),
@@ -610,6 +610,11 @@ func _on_authoritative_shot(result: Dictionary) -> void:
     TracerSystemScript.spawn_muzzle_flash(get_tree(), origin)
     TracerSystemScript.spawn_tracer(get_tree(), origin, hit_position)
     TracerSystemScript.spawn_impact_effect(get_tree(), hit_position, hit_normal)
+    if dynamic_reticle:
+        dynamic_reticle.notify_shot(
+            int(result.get("continuous_count", 1)),
+            1.0 + float(result.get("spread_deg", 0.0)) * 0.12
+        )
     if TracerSystemScript.is_trajectory_debug_enabled():
         TracerSystemScript.spawn_trajectory_reference(
             get_tree(), camera_rig.global_position, camera_rig.weapon_aim_point,
@@ -683,6 +688,8 @@ func _build_ui() -> void:
 
     dynamic_reticle = DynamicReticleScript.new()
     dynamic_reticle.name = "SocomDynamicReticle"
+    if weapon_controller != null:
+        dynamic_reticle.apply_profile(weapon_controller.reticle_profile)
     layer.add_child(dynamic_reticle)
 
     _build_calibration_overlay(layer)

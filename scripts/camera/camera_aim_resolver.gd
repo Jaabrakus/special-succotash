@@ -80,8 +80,8 @@ func update_weapon_aim_point() -> void:
         rig.profile.minimum_ballistic_convergence_distance
     )
     var mannequin = rig.target.get_node_or_null("Mannequin") if rig.target != null else null
-    if mannequin != null and mannequin.muzzle_marker != null:
-        var muzzle: Vector3 = mannequin.muzzle_marker.global_position
+    if mannequin != null and mannequin.has_method("get_active_muzzle_position"):
+        var muzzle: Vector3 = mannequin.get_active_muzzle_position()
         var muzzle_depth: float = (muzzle - lens_origin).dot(direction)
         var view_axis_point: Vector3 = lens_origin + direction * muzzle_depth
         var lateral_parallax: float = muzzle.distance_to(view_axis_point)
@@ -103,10 +103,10 @@ func update_shot_validation() -> void:
         return
 
     var mannequin = rig.target.get_node_or_null("Mannequin")
-    if mannequin == null or mannequin.muzzle_marker == null:
+    if mannequin == null or not mannequin.has_method("get_active_muzzle_position"):
         return
 
-    var muzzle_position: Vector3 = mannequin.muzzle_marker.global_position
+    var muzzle_position: Vector3 = mannequin.get_active_muzzle_position()
     var query := PhysicsRayQueryParameters3D.create(
         muzzle_position,
         rig.weapon_aim_point
@@ -129,9 +129,9 @@ func build_local_aim_intent() -> Dictionary:
     if rig.target == null:
         return {}
     var mannequin = rig.target.get_node_or_null("Mannequin")
-    if mannequin == null or mannequin.muzzle_marker == null:
+    if mannequin == null or not mannequin.has_method("get_active_muzzle_position"):
         return {}
-    var muzzle: Vector3 = mannequin.muzzle_marker.global_position
+    var muzzle: Vector3 = mannequin.get_active_muzzle_position()
     var direction: Vector3 = (rig.weapon_aim_point - muzzle).normalized()
     if direction.length_squared() < 0.99:
         direction = rig._forward_direction()

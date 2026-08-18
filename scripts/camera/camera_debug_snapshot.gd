@@ -63,9 +63,10 @@ static func build(rig) -> Dictionary:
             if rig.target
             else null
         )
-        if mannequin and mannequin.muzzle_marker:
+        if mannequin and mannequin.has_method("get_active_muzzle_position"):
+            var active_muzzle: Vector3 = mannequin.get_active_muzzle_position()
             var weapon_to_aim: Vector3 = (
-                rig.weapon_aim_point - mannequin.muzzle_marker.global_position
+                rig.weapon_aim_point - active_muzzle
             ).normalized()
             camera_weapon_angle_deg = rad_to_deg(
                 camera_forward.angle_to(weapon_to_aim)

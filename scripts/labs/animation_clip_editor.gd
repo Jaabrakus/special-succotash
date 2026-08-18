@@ -34,7 +34,9 @@ func combine(segments: Array, fps: float = 30.0) -> Animation:
 		var duration := end_time - start_time
 		if duration <= 0.0001:
 			continue
-		_append_sampled_segment(result, output_tracks, source, start_time, duration, output_offset, safe_fps)
+		var transition_frames := maxi(0, int(segment.get("transition_frames", 0)))
+		var transition_duration := minf(float(transition_frames) / safe_fps, duration)
+		_append_sampled_segment(result, output_tracks, source, start_time, duration, output_offset, safe_fps, transition_duration)
 		output_offset += duration
 	result.length = maxf(output_offset, result.step)
 	return result
@@ -47,7 +49,8 @@ func _append_sampled_segment(
 	start_time: float,
 	duration: float,
 	output_offset: float,
-	fps: float
+	fps: float,
+	transition_duration: float
 ) -> void:
 	var frame_count := maxi(1, ceili(duration * fps))
 	for source_track in range(source.get_track_count()):
@@ -66,6 +69,9 @@ func _append_sampled_segment(
 			result.track_set_interpolation_loop_wrap(output_track, false)
 			result.track_set_enabled(output_track, source.track_is_enabled(source_track))
 			output_tracks[track_key] = output_track
+		var blend_from: Variant = null
+		if transition_duration > 0.0 and output_offset > 0.0 and result.track_get_key_count(output_track) > 0:
+			blend_from = result.track_get_key_value(output_track, result.track_get_key_count(output_track) - 1)
 
 		for frame in range(frame_count + 1):
 			var local_time := minf(float(frame) / fps, duration)
@@ -73,7 +79,24 @@ func _append_sampled_segment(
 			var value: Variant = _sample_track(source, source_track, source_time, track_type)
 			if value == null:
 				continue
+			if blend_from != null and local_time < transition_duration:
+				var alpha := smoothstep(0.0, transition_duration, local_time)
+				value = _blend_value(blend_from, value, alpha, track_type)
 			result.track_insert_key(output_track, output_offset + local_time, value)
+
+
+func _blend_value(from_value: Variant, to_value: Variant, alpha: float, track_type: Animation.TrackType) -> Variant:
+	match track_type:
+		Animation.TYPE_POSITION_3D, Animation.TYPE_SCALE_3D:
+			return (from_value as Vector3).lerp(to_value as Vector3, alpha)
+		Animation.TYPE_ROTATION_3D:
+			return (from_value as Quaternion).slerp(to_value as Quaternion, alpha)
+		Animation.TYPE_BLEND_SHAPE, Animation.TYPE_BEZIER:
+			return lerpf(float(from_value), float(to_value), alpha)
+		Animation.TYPE_VALUE:
+			if (from_value is float or from_value is int) and (to_value is float or to_value is int):
+				return lerpf(float(from_value), float(to_value), alpha)
+	return to_value if alpha >= 0.5 else from_value
 
 
 func _is_supported_track_type(track_type: Animation.TrackType) -> bool:

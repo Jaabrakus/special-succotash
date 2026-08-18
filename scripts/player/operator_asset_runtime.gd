@@ -9,6 +9,7 @@ const TROOPER_TEXTURE := preload("res://assets/characters/ps1_gas_mask_soldier/t
 const AK47_SCENE := preload("res://assets/weapons/ps1_ak47/source/ak-47.fbx")
 const AK47_TEXTURE := preload("res://assets/weapons/ps1_ak47/textures/AK-47TextureMap.png")
 const ROOT_SANITIZER := preload("res://scripts/player/operator_animation_root_sanitizer.gd")
+const WEAPON_LOADOUT_PATH := "res://config/weapons/operator_loadout.json"
 
 var model_root: Node3D
 var animation_player: AnimationPlayer
@@ -120,6 +121,9 @@ func _attach_weapon() -> void:
 	weapon_attachment.name = "AK47_Attachment"
 	weapon_attachment.bone_name = "mixamorig_RightHand"
 	skeleton.add_child(weapon_attachment)
+	var equipped_config := _load_equipped_weapon_config()
+	if not equipped_config.is_empty() and _attach_calibrated_weapon(equipped_config):
+		return
 	weapon_node = Node3D.new()
 	weapon_node.name = "AttachedAK47"
 	var inverse_scale := 1.0 / operator_scale
@@ -174,6 +178,173 @@ func _attach_weapon() -> void:
 
 	weapon_node.add_child(pivot)
 	weapon_attachment.add_child(weapon_node)
+
+
+func _load_equipped_weapon_config() -> Dictionary:
+	var config_path := ""
+	for argument in OS.get_cmdline_user_args():
+		if argument.begins_with("--weapon-rig-config="):
+			config_path = argument.trim_prefix("--weapon-rig-config=")
+			break
+	if config_path == "":
+		if not FileAccess.file_exists(WEAPON_LOADOUT_PATH):
+			return {}
+		var loadout_file := FileAccess.open(WEAPON_LOADOUT_PATH, FileAccess.READ)
+		var loadout_value: Variant = (
+			JSON.parse_string(loadout_file.get_as_text())
+			if loadout_file != null
+			else null
+		)
+		if not loadout_value is Dictionary:
+			return {}
+		config_path = String((loadout_value as Dictionary).get("rig_config", ""))
+	if config_path == "" or not FileAccess.file_exists(config_path):
+		return {}
+	var config_file := FileAccess.open(config_path, FileAccess.READ)
+	var config_value: Variant = (
+		JSON.parse_string(config_file.get_as_text())
+		if config_file != null
+		else null
+	)
+	if not config_value is Dictionary:
+		return {}
+	var config := (config_value as Dictionary).duplicate(true)
+	config["_rig_config_path"] = config_path
+	return config
+
+
+func _attach_calibrated_weapon(config: Dictionary) -> bool:
+	var model_path := String(config.get("model_fbx", ""))
+	var model_scene := load(model_path) as PackedScene
+	if model_scene == null:
+		push_warning("Saved weapon model could not be loaded: %s" % model_path)
+		return false
+
+	weapon_node = Node3D.new()
+	weapon_node.name = "Attached_%s" % String(config.get("weapon_id", "Weapon"))
+	weapon_node.set_meta("weapon_id", StringName(config.get("weapon_id", "")))
+	weapon_node.set_meta("rig_config", String(config.get("_rig_config_path", "")))
+	var inverse_scale := 1.0 / operator_scale
+	var mount: Dictionary = config.get("operator_mount", {})
+	weapon_node.position = _vector3_from_map(
+		mount.get("position", {}),
+		grip_position
+	) * inverse_scale
+	weapon_node.rotation_degrees = _vector3_from_map(
+		mount.get("rotation_degrees", {}),
+		grip_rotation
+	)
+	weapon_node.scale = Vector3.ONE * inverse_scale
+
+	var calibrated_pivot := Node3D.new()
+	calibrated_pivot.name = "CalibratedWeaponPivot"
+	var grip: Dictionary = config.get("grip_offset", {})
+	calibrated_pivot.position = Vector3(
+		float(grip.get("pos_x", 0.0)),
+		float(grip.get("pos_y", 0.0)),
+		float(grip.get("pos_z", 0.0))
+	)
+	calibrated_pivot.rotation_degrees = Vector3(
+		float(grip.get("rot_x", 0.0)),
+		float(grip.get("rot_y", 0.0)),
+		float(grip.get("rot_z", 0.0))
+	)
+
+	var weapon_model := model_scene.instantiate() as Node3D
+	weapon_model.name = "WeaponMesh"
+	weapon_model.scale = Vector3.ONE * float(config.get("normalized_scale", 1.0))
+	weapon_model.rotation_degrees = _vector3_from_map(
+		config.get("model_rotation_degrees", {}),
+		_default_model_rotation(model_path)
+	)
+	if "ps1_ak47" in model_path:
+		var ak_material := StandardMaterial3D.new()
+		ak_material.albedo_texture = AK47_TEXTURE
+		ak_material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+		_apply_material_recursive(weapon_model, ak_material)
+
+	var sockets: Dictionary = config.get("weapon_sockets", {})
+	var current_socket_contract := (
+		int(config.get("schema_version", 0)) >= 3
+		and sockets.has("right_hand_grip_target")
+		and sockets.has("barrel_base_socket")
+	)
+	var right_position := _vector3_from_map(
+		sockets.get("right_hand_grip_target", {}),
+		Vector3.ZERO
+	)
+	var left_position := _vector3_from_map(
+		sockets.get("left_hand_ik_target", {}),
+		Vector3(-0.22, -0.01, -0.08)
+	)
+	var muzzle_position := _vector3_from_map(
+		sockets.get("muzzle_socket", {}),
+		Vector3(0.70, 0.02, 0.0)
+	)
+	var barrel_base_position := _vector3_from_map(
+		sockets.get("barrel_base_socket", {}),
+		_derived_barrel_base(right_position, muzzle_position)
+	)
+	# Socket coordinates are calibrated in normalized weapon metres, not in the
+	# imported mesh's arbitrary FBX scale. Keep them beside the scaled model.
+	_add_weapon_socket(calibrated_pivot, "Socket_RightHand", right_position, true)
+	_add_weapon_socket(
+		calibrated_pivot,
+		"Socket_LeftHand",
+		left_position,
+		current_socket_contract
+	)
+	_add_weapon_socket(calibrated_pivot, "Socket_BarrelBase", barrel_base_position, true)
+	_add_weapon_socket(calibrated_pivot, "Socket_Muzzle", muzzle_position, true)
+	_add_weapon_socket(
+		calibrated_pivot,
+		"Socket_Ejection",
+		_vector3_from_map(sockets.get("ejection_port", {}), Vector3.ZERO),
+		true
+	)
+
+	calibrated_pivot.add_child(weapon_model)
+	weapon_node.add_child(calibrated_pivot)
+	weapon_attachment.add_child(weapon_node)
+	return true
+
+
+func _default_model_rotation(model_path: String) -> Vector3:
+	if "ps1_ak47" in model_path:
+		return Vector3(0.0, 180.0, 0.0)
+	return Vector3(0.0, -90.0, 0.0)
+
+
+func _add_weapon_socket(
+	parent: Node3D,
+	socket_name: String,
+	local_position: Vector3,
+	authored: bool
+) -> Marker3D:
+	var socket := Marker3D.new()
+	socket.name = socket_name
+	socket.position = local_position
+	socket.set_meta("authored_weapon_socket", authored)
+	parent.add_child(socket)
+	return socket
+
+
+func _derived_barrel_base(right_grip: Vector3, muzzle: Vector3) -> Vector3:
+	var barrel_axis := (muzzle - right_grip).normalized()
+	if barrel_axis.length_squared() < 0.99:
+		barrel_axis = Vector3.RIGHT
+	return muzzle - barrel_axis * minf(0.18, maxf(muzzle.distance_to(right_grip) * 0.35, 0.08))
+
+
+func _vector3_from_map(value: Variant, fallback: Vector3) -> Vector3:
+	if not value is Dictionary:
+		return fallback
+	var map := value as Dictionary
+	return Vector3(
+		float(map.get("x", fallback.x)),
+		float(map.get("y", fallback.y)),
+		float(map.get("z", fallback.z))
+	)
 
 
 func _apply_material_recursive(node: Node, material: Material) -> void:

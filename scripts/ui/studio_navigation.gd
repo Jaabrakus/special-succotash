@@ -86,6 +86,10 @@ func _on_scene_changed() -> void:
 	var scene := get_tree().current_scene
 	if not active or scene == null:
 		return
+	# Labs need their full editing surface. History remains one click/F2 away,
+	# while the Home screen keeps it open as the persistent activity rail.
+	if history_panel != null:
+		history_panel.visible = scene.scene_file_path == HOME_SCENE
 	if suppress_next_scene_record:
 		suppress_next_scene_record = false
 	else:
@@ -199,6 +203,8 @@ func _build_overlay() -> void:
 	history_panel.offset_right = -10.0
 	history_panel.offset_top = 60.0
 	history_panel.offset_bottom = -10.0
+	var current_scene := get_tree().current_scene
+	history_panel.visible = current_scene != null and current_scene.scene_file_path == HOME_SCENE
 	overlay.add_child(history_panel)
 
 	var margin := MarginContainer.new()

@@ -53,6 +53,7 @@ var weapon_node: Node3D
 var trigger_socket: Marker3D
 var support_socket: Marker3D
 var muzzle_socket: Marker3D
+var barrel_base_socket: Marker3D
 var trigger_hand_target: Marker3D
 var support_hand_target: Marker3D
 var right_elbow_pole: Marker3D
@@ -88,6 +89,7 @@ func bind(target_skeleton: Skeleton3D, attached_weapon: Node3D) -> void:
 	trigger_socket = _find_weapon_socket("Socket_RightHand")
 	support_socket = _find_weapon_socket("Socket_LeftHand")
 	muzzle_socket = _find_weapon_socket("Socket_Muzzle")
+	barrel_base_socket = _find_weapon_socket("Socket_BarrelBase")
 	socket_contract_active = (
 		use_weapon_socket_contract
 		and trigger_socket != null
@@ -321,22 +323,41 @@ func _place_socketed_weapon(
 	if low_ready_direction.length_squared() < 0.50:
 		low_ready_direction = aim_direction
 	var render_direction := aim_direction.slerp(low_ready_direction, cover_pose_amount)
-	var stable_up := Vector3.UP
-	if absf(render_direction.dot(stable_up)) > 0.96:
-		stable_up = Vector3.FORWARD
 	var world_scale := weapon_node.global_basis.get_scale()
-	weapon_node.global_basis = Basis.looking_at(
-		render_direction.normalized(),
-		stable_up,
-		false
-	).scaled(world_scale)
+	var barrel_origin: Vector3 = (
+		barrel_base_socket.global_position
+		if barrel_base_socket != null
+		else trigger_socket.global_position
+	)
+	var current_barrel := (muzzle_socket.global_position - barrel_origin).normalized()
+	if current_barrel.length_squared() > 0.99:
+		# Calibrated assets may use +X, -Z, or another import axis. Rotate the
+		# authored barrel socket line itself instead of assuming a mesh axis.
+		var aim_delta := Quaternion(current_barrel, render_direction.normalized())
+		weapon_node.global_basis = (
+			Basis(aim_delta) * weapon_node.global_basis.orthonormalized()
+		).orthonormalized().scaled(world_scale)
+	else:
+		var stable_up := Vector3.UP
+		if absf(render_direction.dot(stable_up)) > 0.96:
+			stable_up = Vector3.FORWARD
+		weapon_node.global_basis = Basis.looking_at(
+			render_direction.normalized(),
+			stable_up,
+			false
+		).scaled(world_scale)
 	weapon_node.global_position += trigger_goal - trigger_socket.global_position
 
 
 func _update_socket_weapon_error() -> void:
-	if muzzle_socket == null or trigger_socket == null:
+	if muzzle_socket == null or (barrel_base_socket == null and trigger_socket == null):
 		return
-	var barrel_direction := (muzzle_socket.global_position - trigger_socket.global_position).normalized()
+	var barrel_origin: Vector3 = (
+		barrel_base_socket.global_position
+		if barrel_base_socket != null
+		else trigger_socket.global_position
+	)
+	var barrel_direction := (muzzle_socket.global_position - barrel_origin).normalized()
 	if barrel_direction.length_squared() < 0.50:
 		return
 	weapon_aim_error_deg = rad_to_deg(barrel_direction.angle_to(last_aim_direction))

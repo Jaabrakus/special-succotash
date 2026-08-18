@@ -75,8 +75,22 @@ func _run() -> void:
 	)
 
 	var mannequin := player.get_node_or_null("Mannequin")
-	if mannequin != null and mannequin.muzzle_marker != null:
-		var muzzle: Vector3 = mannequin.muzzle_marker.global_position
+	if mannequin != null and mannequin.has_method("get_active_muzzle_marker"):
+		var active_muzzle: Node3D = mannequin.get_active_muzzle_marker()
+		_expect(active_muzzle != null, "production weapon exposes an active muzzle socket")
+		if active_muzzle == null:
+			scene.queue_free()
+			_finish()
+			return
+		_expect(
+			active_muzzle != mannequin.muzzle_marker,
+			"live shot origin does not use the hidden proxy muzzle"
+		)
+		var muzzle: Vector3 = active_muzzle.global_position
+		_expect(
+			Vector3(first.get("origin", Vector3.INF)).distance_to(muzzle) <= 0.002,
+			"authoritative shot begins at the visible rifle muzzle"
+		)
 		var prospective: Vector3 = (
 			Vector3(rig.get("weapon_aim_point")) - muzzle
 		).normalized()

@@ -10,6 +10,8 @@ const PS1_GAS_MASK_TEX := preload("res://assets/characters/ps1_gas_mask_soldier/
 const OperatorAnimationProfile := preload("res://scripts/player/operator_animation_profile.gd")
 const WeaponAnimationProfile := preload("res://scripts/weapons/weapon_animation_profile.gd")
 const WeaponOwnershipContract := preload("res://scripts/player/weapon_ownership_contract.gd")
+const OperatorPostureLayer := preload("res://scripts/player/operator_posture_layer.gd")
+const DynamicReticleScript := preload("res://scripts/ui/socom_dynamic_reticle.gd")
 const WEAPON_BASE_PATH := "res://assets/weapons/modular_pack/"
 const HAND_GIZMO_ARROW_LENGTH := 0.21
 const HAND_GIZMO_RING_RADIUS := 0.18
@@ -34,6 +36,9 @@ var trooper_scale: float = 62.0
 var trooper_node: Node3D
 var skeleton: Skeleton3D
 var animation_player: AnimationPlayer
+var runtime_posture_layer: SocomOperatorPostureLayer
+var preview_posture: StringName = &"STANDING"
+var stance_buttons: Dictionary = {}
 
 # Bone Indices
 var left_arm_idx: int = -1
@@ -135,9 +140,18 @@ var is_silenced: bool = false
 var base_spread_deg: float = 0.4
 var bloom_per_shot_deg: float = 1.2
 var bloom_recovery_speed: float = 14.0
+var max_recoil_bloom_deg: float = 2.4
+var reticle_base_gap_px: float = 10.0
+var reticle_max_gap_px: float = 46.0
+var reticle_response_speed: float = 24.0
+var reticle_shot_kick_px: float = 6.0
+var reticle_shot_kick_return: float = 18.0
+var reticle_maximum_shot_kick_px: float = 18.0
 var current_bloom: float = 0.0
 var fire_cooldown: float = 0.0
 var burst_shot_count: int = 0
+var fire_input_held: bool = false
+var current_aim_target := Vector3.ZERO
 var is_reloading: bool = false
 var weapon_owner_state: StringName = WeaponOwnershipContract.OWNER_WEAPON_MASTER
 var support_hand_policy: StringName = WeaponOwnershipContract.SUPPORT_IK_TO_WEAPON
@@ -206,7 +220,17 @@ var animation_autofix_undo_button: Button
 var sliders_map: Dictionary = {}
 var overlay: Control
 var hud_status: Label
+var fire_profile_title: Label
 var reticle_canvas: Control
+var dynamic_reticle: SocomDynamicReticle
+var fire_debug_mesh := ImmediateMesh.new()
+var fire_debug_instance: MeshInstance3D
+var fire_debug_material: StandardMaterial3D
+var show_barrel_axis: bool = false
+var show_camera_aim: bool = false
+var show_last_shot: bool = false
+var last_shot_origin := Vector3.ZERO
+var last_shot_end := Vector3.ZERO
 var rotation_panel: PanelContainer
 var rotation_title_label: Label
 var rotation_orbit_control: Control
@@ -238,6 +262,18 @@ func _input(event: InputEvent) -> void:
 			return
 		elif ek.keycode == KEY_R and not (ek.ctrl_pressed or ek.meta_pressed):
 			_trigger_reload_animation()
+			get_viewport().set_input_as_handled()
+			return
+		elif ek.keycode == KEY_1:
+			_set_preview_posture(&"STANDING")
+			get_viewport().set_input_as_handled()
+			return
+		elif ek.keycode == KEY_2:
+			_set_preview_posture(&"CROUCHED")
+			get_viewport().set_input_as_handled()
+			return
+		elif ek.keycode == KEY_3:
+			_set_preview_posture(&"PRONE")
 			get_viewport().set_input_as_handled()
 			return
 
@@ -392,14 +428,15 @@ func _input(event: InputEvent) -> void:
 
 func _process(delta: float) -> void:
 	if fire_cooldown > 0.0:
-		fire_cooldown -= delta
+		fire_cooldown = maxf(0.0, fire_cooldown - delta)
 
-	if current_bloom > 0.0:
-		current_bloom = maxf(0.0, current_bloom - bloom_recovery_speed * delta)
-		if current_bloom <= 0.01:
-			burst_shot_count = 0
+	fire_input_held = (
+		Input.is_key_pressed(KEY_SPACE)
+		or (Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) and dragged_dot_id == "")
+	) and not is_orbiting and not is_panning and not is_reloading
+	_update_bloom_recovery(delta, fire_input_held)
 
-	if (Input.is_key_pressed(KEY_SPACE) or (Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) and dragged_dot_id == "")) and not is_orbiting and not is_panning and not is_reloading:
+	if fire_input_held:
 		if fire_cooldown <= 0.0:
 			_fire_shot()
 
@@ -408,6 +445,7 @@ func _process(delta: float) -> void:
 	if not weapon_master_pose_initialized:
 		_initialize_weapon_master_pose()
 	_update_action_weapon_ownership(delta)
+	_apply_runtime_posture_preview()
 
 	_solve_trigger_hand_engine()
 	_solve_biomechanical_arm_engine()
@@ -426,9 +464,27 @@ func _process(delta: float) -> void:
 		if weapon_root:
 			weapon_gizmo_world.global_basis = weapon_root.global_basis.orthonormalized()
 
-	reticle_bloom_radius = lerpf(reticle_bloom_radius, 12.0 + current_bloom * 16.0, delta * 20.0)
+	if dynamic_reticle and cam:
+		var aim_sample := _camera_aim_sample()
+		current_aim_target = aim_sample.position
+		var total_spread := _current_total_spread_deg()
+		dynamic_reticle.update_reticle_state(
+			clampf(total_spread / maxf(max_recoil_bloom_deg, 0.001), 0.0, 1.0),
+			bool(aim_sample.target_locked),
+			_reticle_screen_position()
+		)
+	_update_fire_debug_lines()
 	if reticle_canvas:
 		reticle_canvas.queue_redraw()
+
+
+func _update_bloom_recovery(delta: float, trigger_held: bool) -> void:
+	if trigger_held:
+		return
+	if current_bloom > 0.0:
+		current_bloom = maxf(0.0, current_bloom - bloom_recovery_speed * delta)
+	if fire_cooldown <= 0.0:
+		burst_shot_count = 0
 
 var left_hand_ik: SkeletonIK3D
 
@@ -844,8 +900,9 @@ func _preview_animation_slot(slot_name: String) -> void:
 	get_tree().create_timer(duration).timeout.connect(func():
 		if token != animation_preview_token:
 			return
-		_apply_weapon_ownership_policy(WeaponOwnershipContract.preview_policy("idle_standing"), false)
-		var idle_clip := StringName((handling_profile.get("animation_slots", {}) as Dictionary).get("idle_standing", "aim_idle"))
+		var idle_slot := _posture_idle_slot()
+		_apply_weapon_ownership_policy(WeaponOwnershipContract.preview_policy(idle_slot), false)
+		var idle_clip := _posture_idle_clip()
 		if idle_clip != &"" and _ensure_preview_clip(idle_clip):
 			animation_player.play(idle_clip, 0.10)
 		if hud_status:
@@ -882,10 +939,47 @@ func _preview_selected_catalog_animation() -> void:
 
 
 func _finish_preview_to_idle() -> void:
-	_apply_weapon_ownership_policy(WeaponOwnershipContract.preview_policy("idle_standing"), false)
-	var idle_clip := StringName((handling_profile.get("animation_slots", {}) as Dictionary).get("idle_standing", "aim_idle"))
+	var idle_slot := _posture_idle_slot()
+	_apply_weapon_ownership_policy(WeaponOwnershipContract.preview_policy(idle_slot), false)
+	var idle_clip := _posture_idle_clip()
 	if idle_clip != &"" and _ensure_preview_clip(idle_clip):
 		animation_player.play(idle_clip, 0.10)
+
+
+func _posture_idle_slot() -> String:
+	match preview_posture:
+		&"CROUCHED": return "idle_crouched"
+		&"PRONE": return "idle_prone"
+		_: return "idle_standing"
+
+
+func _posture_idle_clip() -> StringName:
+	var defaults := {
+		"idle_standing": &"aim_idle",
+		"idle_crouched": &"idle_crouch",
+		"idle_prone": &"idle_prone",
+	}
+	var slot := _posture_idle_slot()
+	return StringName(
+		(handling_profile.get("animation_slots", {}) as Dictionary).get(
+			slot,
+			defaults[slot]
+		)
+	)
+
+
+func _set_preview_posture(posture_name: StringName) -> void:
+	if posture_name not in [&"STANDING", &"CROUCHED", &"PRONE"]:
+		return
+	preview_posture = posture_name
+	for key: StringName in stance_buttons:
+		var button := stance_buttons[key] as Button
+		if button:
+			button.set_pressed_no_signal(key == preview_posture)
+	animation_preview_token += 1
+	_finish_preview_to_idle()
+	if hud_status:
+		hud_status.text = "%s weapon-ready stance — aim remains on the fixed center dot." % String(preview_posture).capitalize()
 
 
 func _save_selected_animation_hand_map() -> void:
@@ -1604,6 +1698,17 @@ func _setup_studio_environment() -> void:
 	bullet_tracers = Node3D.new()
 	add_child(bullet_tracers)
 
+	fire_debug_material = StandardMaterial3D.new()
+	fire_debug_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	fire_debug_material.vertex_color_use_as_albedo = true
+	fire_debug_material.no_depth_test = true
+	fire_debug_instance = MeshInstance3D.new()
+	fire_debug_instance.name = "WeaponFireDebugLayers"
+	fire_debug_instance.mesh = fire_debug_mesh
+	fire_debug_instance.material_override = fire_debug_material
+	fire_debug_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(fire_debug_instance)
+
 func _update_camera() -> void:
 	if not cam_pivot or not cam: return
 	cam_pivot.position = cam_target
@@ -1689,6 +1794,9 @@ func _setup_trooper_and_rig() -> void:
 			animation_player.play("aim_idle")
 		temp.queue_free()
 
+	runtime_posture_layer = OperatorPostureLayer.new()
+	runtime_posture_layer.bind(skeleton, _neutral_preview_hip_rotation())
+
 	if left_arm_idx >= 0 and left_hand_idx >= 0:
 		left_hand_ik = SkeletonIK3D.new()
 		left_hand_ik.name = "LeftHandIK"
@@ -1737,6 +1845,50 @@ func _setup_trooper_and_rig() -> void:
 		right_hand_ik.max_iterations = 40
 		right_hand_ik.min_distance = 0.00002
 		skeleton.add_child(right_hand_ik)
+
+
+func _neutral_preview_hip_rotation() -> Quaternion:
+	if animation_player == null or not animation_player.has_animation(&"aim_idle"):
+		return Quaternion.IDENTITY
+	var animation := animation_player.get_animation(&"aim_idle")
+	if animation == null:
+		return Quaternion.IDENTITY
+	for track in range(animation.get_track_count()):
+		if animation.track_get_type(track) != Animation.TYPE_ROTATION_3D:
+			continue
+		if not str(animation.track_get_path(track)).ends_with(":mixamorig_Hips"):
+			continue
+		if animation.track_get_key_count(track) > 0:
+			return (animation.track_get_key_value(track, 0) as Quaternion).normalized()
+	return Quaternion.IDENTITY
+
+
+func _apply_runtime_posture_preview() -> void:
+	if runtime_posture_layer == null or skeleton == null:
+		return
+	var aim_target := current_aim_target
+	if aim_target == Vector3.ZERO and cam:
+		aim_target = _camera_aim_sample().position
+	runtime_posture_layer.apply(
+		0.0,
+		0.0,
+		1.0,
+		0.0,
+		0.0,
+		deg_to_rad(78.0),
+		deg_to_rad(48.0),
+		deg_to_rad(42.0),
+		deg_to_rad(32.0),
+		0.0,
+		0.18,
+		1.0 if preview_posture == &"PRONE" else 0.0,
+		deg_to_rad(90.0),
+		0.0,
+		preview_posture,
+		0.0,
+		aim_target,
+		1.20
+	)
 
 
 func _initialize_weapon_master_pose() -> void:
@@ -1819,6 +1971,16 @@ func _setup_target_range() -> void:
 	mat.albedo_color = Color(0.25, 0.22, 0.18)
 	board_mesh.material_override = mat
 	target_board.add_child(board_mesh)
+
+	var board_body := StaticBody3D.new()
+	board_body.name = "ReticleTargetBody"
+	board_body.set_meta("gun_lab_target", true)
+	var board_shape := CollisionShape3D.new()
+	var board_box := BoxShape3D.new()
+	board_box.size = Vector3(1.2, 1.6, 0.08)
+	board_shape.shape = board_box
+	board_body.add_child(board_shape)
+	target_board.add_child(board_body)
 
 	var bullseye := MeshInstance3D.new()
 	var cyl := CylinderMesh.new()
@@ -1929,6 +2091,7 @@ func _create_selection_box(color: Color, marker_name: String, size: float = 0.06
 func _load_weapon(file_name: String) -> void:
 	selected_weapon_file = file_name
 	weapon_name = file_name
+	_reset_fire_profile_defaults()
 	handling_profile = WeaponAnimationProfile.build_default(
 		WeaponAnimationProfile.infer_family(weapon_name, selected_category),
 		animation_catalog.clip_paths if animation_catalog else {}
@@ -2102,8 +2265,64 @@ func _try_load_saved_profile(w_id: String) -> void:
 					palm_roll = float(hand_pose.get("palm_roll_deg", palm_roll))
 					finger_curl = float(hand_pose.get("finger_curl", finger_curl))
 					thumb_wrap = float(hand_pose.get("thumb_wrap", thumb_wrap))
+				var ballistics: Variant = d.get("ballistics", {})
+				if ballistics is Dictionary:
+					var fire_values := ballistics as Dictionary
+					fire_rate_rpm = int(fire_values.get("fire_rate_rpm", fire_rate_rpm))
+					damage_per_shot = int(fire_values.get("damage", damage_per_shot))
+					base_spread_deg = float(fire_values.get("base_spread_deg", base_spread_deg))
+					bloom_per_shot_deg = float(fire_values.get("bloom_per_shot_deg", bloom_per_shot_deg))
+					max_recoil_bloom_deg = float(fire_values.get("max_recoil_bloom_deg", max_recoil_bloom_deg))
+					bloom_recovery_speed = float(fire_values.get("bloom_recovery_speed", bloom_recovery_speed))
+					is_silenced = bool(fire_values.get("is_silenced", is_silenced))
+				var reticle: Variant = d.get("reticle", {})
+				if reticle is Dictionary:
+					var reticle_values := reticle as Dictionary
+					reticle_base_gap_px = float(reticle_values.get("base_gap_px", reticle_base_gap_px))
+					reticle_max_gap_px = float(reticle_values.get("max_gap_px", reticle_max_gap_px))
+					reticle_response_speed = float(reticle_values.get("response_speed", reticle_response_speed))
+					reticle_shot_kick_px = float(reticle_values.get("shot_kick_px", reticle_shot_kick_px))
+					reticle_shot_kick_return = float(reticle_values.get("shot_kick_return", reticle_shot_kick_return))
+					reticle_maximum_shot_kick_px = float(reticle_values.get("maximum_shot_kick_px", reticle_maximum_shot_kick_px))
 				user_scale_multiplier = float(d.get("user_scale_multiplier", user_scale_multiplier))
 			file.close()
+	_refresh_fire_controls()
+
+
+func _reset_fire_profile_defaults() -> void:
+	fire_rate_rpm = 650
+	damage_per_shot = 34
+	is_silenced = false
+	base_spread_deg = 0.4
+	bloom_per_shot_deg = 1.2
+	bloom_recovery_speed = 14.0
+	max_recoil_bloom_deg = 2.4
+	reticle_base_gap_px = 10.0
+	reticle_max_gap_px = 46.0
+	reticle_response_speed = 24.0
+	reticle_shot_kick_px = 6.0
+	reticle_shot_kick_return = 18.0
+	reticle_maximum_shot_kick_px = 18.0
+	current_bloom = 0.0
+	burst_shot_count = 0
+
+
+func _refresh_fire_controls() -> void:
+	if fire_profile_title:
+		fire_profile_title.text = "RETICLE & FIRE — %s" % weapon_name
+	_update_slider_value("rpm", float(fire_rate_rpm))
+	_update_slider_value("dmg", float(damage_per_shot))
+	_update_slider_value("base_spread", base_spread_deg)
+	_update_slider_value("bloom", bloom_per_shot_deg)
+	_update_slider_value("max_bloom", max_recoil_bloom_deg)
+	_update_slider_value("rec", bloom_recovery_speed)
+	_update_slider_value("reticle_base", reticle_base_gap_px)
+	_update_slider_value("reticle_max", reticle_max_gap_px)
+	_update_slider_value("reticle_response", reticle_response_speed)
+	_update_slider_value("reticle_kick", reticle_shot_kick_px)
+	_update_slider_value("reticle_return", reticle_shot_kick_return)
+	_update_slider_value("reticle_kick_limit", reticle_maximum_shot_kick_px)
+	_apply_reticle_preview_profile()
 
 func _apply_9mm_textures(node: Node) -> void:
 	var body_tex = load("res://assets/weapons/9mm_pistol/textures/Body_albedo.jpeg") as Texture2D
@@ -2246,6 +2465,41 @@ func _sync_markers() -> void:
 	if current_silencer_mesh and muzzle_marker: current_silencer_mesh.position = muzzle_marker.position
 	if current_scope_mesh and optic_marker: current_scope_mesh.position = optic_marker.position
 
+
+func _reticle_screen_position() -> Vector2:
+	return get_viewport().get_visible_rect().size * 0.5
+
+
+func _camera_aim_sample() -> Dictionary:
+	if cam == null:
+		return {"position": Vector3.ZERO, "target_locked": false}
+	var screen_center := _reticle_screen_position()
+	var ray_origin := cam.project_ray_origin(screen_center)
+	var ray_direction := cam.project_ray_normal(screen_center).normalized()
+	var ray_end := ray_origin + ray_direction * 120.0
+	var query := PhysicsRayQueryParameters3D.create(ray_origin, ray_end)
+	query.collision_mask = 1
+	query.collide_with_areas = true
+	var hit := get_world_3d().direct_space_state.intersect_ray(query)
+	if hit.is_empty():
+		return {"position": ray_end, "target_locked": false}
+	var collider: Object = hit.get("collider")
+	return {
+		"position": hit.position,
+		"target_locked": collider != null and collider.has_meta("gun_lab_target"),
+	}
+
+
+func _stance_spread_multiplier() -> float:
+	match preview_posture:
+		&"PRONE": return 0.22
+		&"CROUCHED": return 0.60
+		_: return 1.0
+
+
+func _current_total_spread_deg() -> float:
+	return base_spread_deg * _stance_spread_multiplier() + current_bloom
+
 func _align_trigger_socket_to_right_hand(update_controls: bool = true) -> void:
 	if not weapon_pivot or not right_grip_marker or not right_hand_dot:
 		return
@@ -2265,7 +2519,15 @@ func _fire_shot() -> void:
 	burst_shot_count += 1
 
 	if burst_shot_count > 2:
-		current_bloom += bloom_per_shot_deg
+		current_bloom = minf(
+			max_recoil_bloom_deg,
+			current_bloom + bloom_per_shot_deg
+		)
+	if dynamic_reticle:
+		dynamic_reticle.notify_shot(
+			burst_shot_count,
+			1.0 + current_bloom / maxf(max_recoil_bloom_deg, 0.001)
+		)
 
 	if muzzle_marker:
 		var flash := OmniLight3D.new()
@@ -2286,13 +2548,37 @@ func _fire_shot() -> void:
 		t_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 		tracer.material_override = t_mat
 
+		last_shot_origin = muzzle_marker.global_position
+		var aim_sample := _camera_aim_sample()
+		current_aim_target = aim_sample.position
+		var forward_dir := (current_aim_target - last_shot_origin).normalized()
+		var spread_rad := deg_to_rad(_current_total_spread_deg())
+		var random := RandomNumberGenerator.new()
+		random.seed = burst_shot_count
+		var random_angle := random.randf() * TAU
+		var random_radius := sqrt(random.randf()) * spread_rad
+		var spread_offset := Vector3(
+			cos(random_angle) * random_radius,
+			sin(random_angle) * random_radius,
+			0.0
+		)
+		var shot_basis := Basis.looking_at(forward_dir, Vector3.UP)
+		var shot_direction := (shot_basis * (Vector3.FORWARD + spread_offset)).normalized()
+		var shot_target := last_shot_origin + shot_direction * 120.0
+		var shot_query := PhysicsRayQueryParameters3D.create(last_shot_origin, shot_target)
+		shot_query.collision_mask = 1
+		shot_query.collide_with_areas = true
+		var shot_hit := get_world_3d().direct_space_state.intersect_ray(shot_query)
+		if not shot_hit.is_empty():
+			shot_target = shot_hit.position
+		last_shot_end = shot_target
 		bullet_tracers.add_child(tracer)
-		tracer.global_position = muzzle_marker.global_position
-		tracer.look_at(target_board.global_position + Vector3(randf_range(-current_bloom*0.04, current_bloom*0.04), randf_range(-current_bloom*0.04, current_bloom*0.04), 0))
+		tracer.global_position = last_shot_origin
+		tracer.look_at(shot_target)
 		tracer.rotation_degrees.x += 90.0
 
 		var tween := create_tween()
-		tween.tween_property(tracer, "global_position", target_board.global_position, 0.07)
+		tween.tween_property(tracer, "global_position", shot_target, 0.07)
 		tween.tween_callback(tracer.queue_free)
 
 	if hud_status:
@@ -2421,6 +2707,11 @@ func _save_weapon_config() -> void:
 				"y": muzzle_local_pos.y,
 				"z": muzzle_local_pos.z
 			},
+			"barrel_base_socket": {
+				"x": _calibrated_barrel_base().x,
+				"y": _calibrated_barrel_base().y,
+				"z": _calibrated_barrel_base().z
+			},
 			"ejection_port": {
 				"x": ejection_local_pos.x,
 				"y": ejection_local_pos.y,
@@ -2437,9 +2728,11 @@ func _save_weapon_config() -> void:
 			"damage": damage_per_shot,
 			"base_spread_deg": base_spread_deg,
 			"bloom_per_shot_deg": bloom_per_shot_deg,
+			"max_recoil_bloom_deg": max_recoil_bloom_deg,
 			"bloom_recovery_speed": bloom_recovery_speed,
 			"is_silenced": is_silenced
-		}
+		},
+		"reticle": _current_reticle_profile()
 	}
 
 	var file_path := config_dir + weapon_name.to_lower() + ".json"
@@ -2450,6 +2743,28 @@ func _save_weapon_config() -> void:
 		_save_operator_loadout(weapon_name.to_lower())
 
 	_export_weapon_packed_scene(config_data)
+
+func _calibrated_barrel_base() -> Vector3:
+	var barrel_axis := (muzzle_local_pos - right_grip_local_pos).normalized()
+	if barrel_axis.length_squared() < 0.99:
+		barrel_axis = Vector3.RIGHT
+	return muzzle_local_pos - barrel_axis * minf(
+		0.18,
+		maxf(muzzle_local_pos.distance_to(right_grip_local_pos) * 0.35, 0.08)
+	)
+
+func _save_and_play_latest_playground() -> void:
+	# One canonical handoff: the live build never guesses which lab or scene is
+	# newest. Save the selected weapon contract, then enter main.tscn.
+	_save_weapon_config()
+	if hud_status:
+		hud_status.text = "✅ Rig saved. Opening the latest gameplay playground…"
+	call_deferred("_open_latest_playground")
+
+func _open_latest_playground() -> void:
+	var change_error := get_tree().change_scene_to_file("res://main.tscn")
+	if change_error != OK and hud_status:
+		hud_status.text = "Could not open the latest playground (%s)." % error_string(change_error)
 
 func _save_operator_loadout(weapon_id: String) -> void:
 	var path := "res://config/weapons/operator_loadout.json"
@@ -2494,6 +2809,12 @@ func _export_weapon_packed_scene(config_data: Dictionary) -> void:
 		sock_mz.position = muzzle_local_pos
 		root.add_child(sock_mz)
 		sock_mz.owner = root
+
+		var sock_barrel := Marker3D.new()
+		sock_barrel.name = "Socket_BarrelBase"
+		sock_barrel.position = _calibrated_barrel_base()
+		root.add_child(sock_barrel)
+		sock_barrel.owner = root
 
 		var sock_ej := Marker3D.new()
 		sock_ej.name = "Socket_Ejection"
@@ -2759,6 +3080,11 @@ func _build_studio_ui() -> void:
 	overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(overlay)
 
+	dynamic_reticle = DynamicReticleScript.new()
+	dynamic_reticle.name = "SharedWeaponReticlePreview"
+	dynamic_reticle.apply_profile(_current_reticle_profile())
+	overlay.add_child(dynamic_reticle)
+
 	reticle_canvas = Control.new()
 	reticle_canvas.set_anchors_preset(Control.PRESET_FULL_RECT)
 	reticle_canvas.draw.connect(_draw_socom_reticle)
@@ -2767,13 +3093,32 @@ func _build_studio_ui() -> void:
 
 	# Left Sidebar
 	var panel := PanelContainer.new()
-	panel.position = Vector2(16, 16)
-	panel.size = Vector2(460, 750)
+	# Fill the available window height. The previous fixed 750 px height pushed the
+	# save/play actions below short windows (and behind the macOS window edge).
+	panel.anchor_left = 0.0
+	panel.anchor_top = 0.0
+	panel.anchor_right = 0.0
+	panel.anchor_bottom = 1.0
+	panel.offset_left = 16.0
+	panel.offset_top = 16.0
+	panel.offset_right = 476.0
+	panel.offset_bottom = -16.0
 	overlay.add_child(panel)
 
+	var sidebar := VBoxContainer.new()
+	sidebar.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	panel.add_child(sidebar)
+
+	var tab_container := TabContainer.new()
+	tab_container.name = "GunLabTabs"
+	tab_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	sidebar.add_child(tab_container)
+
 	var scroll := ScrollContainer.new()
+	scroll.name = "Rig & Hands"
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	panel.add_child(scroll)
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	tab_container.add_child(scroll)
 
 	var vbox := VBoxContainer.new()
 	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -2994,27 +3339,116 @@ func _build_studio_ui() -> void:
 	_add_slider(vbox, "op_y", "  Optic Y", -0.20, 0.20, optic_local_pos.y, func(v: float): optic_local_pos.y = v; _sync_markers())
 	_add_slider(vbox, "op_z", "  Optic Z", -0.20, 0.20, optic_local_pos.z, func(v: float): optic_local_pos.z = v; _sync_markers())
 
-	# 7. Ballistics
-	vbox.add_child(HSeparator.new())
-	var bal_title := Label.new(); bal_title.text = "7. Ballistics Physics:"; vbox.add_child(bal_title)
-	_add_slider(vbox, "rpm", "Fire Rate (RPM)", 200.0, 1200.0, float(fire_rate_rpm), func(v: float): fire_rate_rpm = int(v))
-	_add_slider(vbox, "dmg", "Damage", 10.0, 100.0, float(damage_per_shot), func(v: float): damage_per_shot = int(v))
-	_add_slider(vbox, "bloom", "Bloom Per Shot", 0.1, 5.0, bloom_per_shot_deg, func(v: float): bloom_per_shot_deg = v)
-	_add_slider(vbox, "rec", "Bloom Recovery", 2.0, 30.0, bloom_recovery_speed, func(v: float): bloom_recovery_speed = v)
+	# Reticle and firing are a second view of this exact weapon profile—not a
+	# disconnected lab. Saving below equips the same values in gameplay.
+	var fire_scroll := ScrollContainer.new()
+	fire_scroll.name = "Reticle & Fire"
+	fire_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	fire_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	tab_container.add_child(fire_scroll)
+	var fire_vbox := VBoxContainer.new()
+	fire_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	fire_scroll.add_child(fire_vbox)
 
-	# 8. Save & Export
-	vbox.add_child(HSeparator.new())
+	fire_profile_title = Label.new()
+	fire_profile_title.text = "RETICLE & FIRE — %s" % weapon_name
+	fire_profile_title.add_theme_font_size_override("font_size", 17)
+	fire_profile_title.add_theme_color_override("font_color", Color(0.3, 0.95, 1.0))
+	fire_vbox.add_child(fire_profile_title)
+	var fire_help := Label.new()
+	fire_help.text = "Space or left-click fires. The center dot is fixed aim authority; the four outer ticks expand and recover using this gun's saved profile."
+	fire_help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	fire_vbox.add_child(fire_help)
+
+	fire_vbox.add_child(HSeparator.new())
+	var stance_title := Label.new()
+	stance_title.text = "SOCOM STANCE PREVIEW"
+	fire_vbox.add_child(stance_title)
+	var stance_help := Label.new()
+	stance_help.text = "1 Stand  •  2 Crouch  •  3 Prone. Stance changes body height and accuracy; it never moves the center aim point."
+	stance_help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	fire_vbox.add_child(stance_help)
+	var stance_row := HBoxContainer.new()
+	fire_vbox.add_child(stance_row)
+	var stance_group := ButtonGroup.new()
+	for posture_name: StringName in [&"STANDING", &"CROUCHED", &"PRONE"]:
+		var stance_button := Button.new()
+		stance_button.name = "Stance%s" % String(posture_name).capitalize()
+		stance_button.text = String(posture_name).capitalize()
+		stance_button.toggle_mode = true
+		stance_button.button_group = stance_group
+		stance_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		stance_button.pressed.connect(_set_preview_posture.bind(posture_name))
+		stance_row.add_child(stance_button)
+		stance_buttons[posture_name] = stance_button
+	(stance_buttons[preview_posture] as Button).set_pressed_no_signal(true)
+
+	fire_vbox.add_child(HSeparator.new())
+	var bal_title := Label.new(); bal_title.text = "FIRE & DISPERSION"; fire_vbox.add_child(bal_title)
+	_add_slider(fire_vbox, "rpm", "Fire Rate (RPM)", 200.0, 1200.0, float(fire_rate_rpm), func(v: float): fire_rate_rpm = int(v))
+	_add_slider(fire_vbox, "dmg", "Damage", 10.0, 100.0, float(damage_per_shot), func(v: float): damage_per_shot = int(v))
+	_add_slider(fire_vbox, "base_spread", "Base Spread (deg)", 0.0, 3.0, base_spread_deg, func(v: float): base_spread_deg = v)
+	_add_slider(fire_vbox, "bloom", "Bloom Per Shot", 0.0, 5.0, bloom_per_shot_deg, func(v: float): bloom_per_shot_deg = v)
+	_add_slider(fire_vbox, "max_bloom", "Maximum Bloom", 0.25, 8.0, max_recoil_bloom_deg, func(v: float): max_recoil_bloom_deg = v)
+	_add_slider(fire_vbox, "rec", "Bloom Recovery", 2.0, 30.0, bloom_recovery_speed, func(v: float): bloom_recovery_speed = v)
+
+	fire_vbox.add_child(HSeparator.new())
+	var reticle_title := Label.new(); reticle_title.text = "RETICLE RESPONSE"; fire_vbox.add_child(reticle_title)
+	_add_slider(fire_vbox, "reticle_base", "Resting Gap (px)", 4.0, 28.0, reticle_base_gap_px, func(v: float): reticle_base_gap_px = v; _apply_reticle_preview_profile())
+	_add_slider(fire_vbox, "reticle_max", "Maximum Gap (px)", 18.0, 90.0, reticle_max_gap_px, func(v: float): reticle_max_gap_px = v; _apply_reticle_preview_profile())
+	_add_slider(fire_vbox, "reticle_response", "Bloom Response", 4.0, 40.0, reticle_response_speed, func(v: float): reticle_response_speed = v; _apply_reticle_preview_profile())
+	_add_slider(fire_vbox, "reticle_kick", "Shot Kick (px)", 0.0, 20.0, reticle_shot_kick_px, func(v: float): reticle_shot_kick_px = v; _apply_reticle_preview_profile())
+	_add_slider(fire_vbox, "reticle_return", "Kick Recovery", 3.0, 40.0, reticle_shot_kick_return, func(v: float): reticle_shot_kick_return = v; _apply_reticle_preview_profile())
+	_add_slider(fire_vbox, "reticle_kick_limit", "Kick Limit (px)", 0.0, 36.0, reticle_maximum_shot_kick_px, func(v: float): reticle_maximum_shot_kick_px = v; _apply_reticle_preview_profile())
+
+	fire_vbox.add_child(HSeparator.new())
+	var layers_title := Label.new(); layers_title.text = "TRAJECTORY STUDY LAYERS"; fire_vbox.add_child(layers_title)
+	var barrel_toggle := CheckButton.new()
+	barrel_toggle.text = "Red — physical barrel axis"
+	barrel_toggle.toggled.connect(func(enabled: bool): show_barrel_axis = enabled)
+	fire_vbox.add_child(barrel_toggle)
+	var aim_toggle := CheckButton.new()
+	aim_toggle.text = "Cyan — camera/reticle intent"
+	aim_toggle.toggled.connect(func(enabled: bool): show_camera_aim = enabled)
+	fire_vbox.add_child(aim_toggle)
+	var shot_toggle := CheckButton.new()
+	shot_toggle.text = "Yellow — last actual shot"
+	shot_toggle.toggled.connect(func(enabled: bool): show_last_shot = enabled)
+	fire_vbox.add_child(shot_toggle)
+
+	var reset_fire_button := Button.new()
+	reset_fire_button.text = "Reset Bloom / Burst"
+	reset_fire_button.pressed.connect(func():
+		current_bloom = 0.0
+		burst_shot_count = 0
+	)
+	fire_vbox.add_child(reset_fire_button)
+
+	# 8. Save & Export. Keep these controls outside the scrolling settings so
+	# Save and Play are always reachable at every supported window height.
+	var action_footer := VBoxContainer.new()
+	action_footer.add_child(HSeparator.new())
+	sidebar.add_child(action_footer)
 	var save_btn := Button.new()
 	save_btn.text = "✅ Save Rig + Equip on Character (Cmd/Ctrl+S)"
 	save_btn.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2))
 	save_btn.pressed.connect(_save_weapon_config)
-	vbox.add_child(save_btn)
+	action_footer.add_child(save_btn)
+
+	var play_latest_btn := Button.new()
+	play_latest_btn.text = "▶ Save + Play Latest Playground"
+	play_latest_btn.tooltip_text = "Save this exact gun rig and launch the canonical current gameplay scene."
+	play_latest_btn.add_theme_color_override("font_color", Color(0.35, 1.0, 0.55))
+	play_latest_btn.pressed.connect(_save_and_play_latest_playground)
+	action_footer.add_child(play_latest_btn)
 
 	hud_status = Label.new()
 	hud_status.text = "Ready! (Biomechanical Engine Active | Drag Blue Dot to place hand | Space to Fire)"
 	hud_status.add_theme_font_size_override("font_size", 11)
 	hud_status.add_theme_color_override("font_color", Color(0.4, 1.0, 0.4))
-	vbox.add_child(hud_status)
+	hud_status.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	hud_status.tooltip_text = hud_status.text
+	action_footer.add_child(hud_status)
 
 func _add_slider(parent: Control, key: String, label_text: String, min_val: float, max_val: float, initial_val: float, callback: Callable) -> void:
 	var row := HBoxContainer.new()
@@ -3051,23 +3485,61 @@ func _add_slider(parent: Control, key: String, label_text: String, min_val: floa
 
 	sliders_map[key] = {"slider": slider, "label": val_lbl}
 
+func _current_reticle_profile() -> Dictionary:
+	return {
+		"base_gap_px": reticle_base_gap_px,
+		"max_gap_px": reticle_max_gap_px,
+		"response_speed": reticle_response_speed,
+		"shot_kick_px": reticle_shot_kick_px,
+		"shot_kick_return": reticle_shot_kick_return,
+		"maximum_shot_kick_px": reticle_maximum_shot_kick_px,
+	}
+
+
+func _apply_reticle_preview_profile() -> void:
+	if dynamic_reticle:
+		dynamic_reticle.apply_profile(_current_reticle_profile())
+
+
+func _update_fire_debug_lines() -> void:
+	if fire_debug_instance == null:
+		return
+	fire_debug_mesh.clear_surfaces()
+	if not show_barrel_axis and not show_camera_aim and not show_last_shot:
+		fire_debug_instance.visible = false
+		return
+	fire_debug_instance.visible = true
+	fire_debug_mesh.surface_begin(Mesh.PRIMITIVE_LINES, fire_debug_material)
+	var target: Vector3 = (
+		current_aim_target
+		if current_aim_target != Vector3.ZERO
+		else _camera_aim_sample().position
+	)
+	if show_barrel_axis and current_weapon_mesh and muzzle_marker:
+		var barrel_base := current_weapon_mesh.to_global(_calibrated_barrel_base())
+		var barrel_direction := (muzzle_marker.global_position - barrel_base).normalized()
+		_add_fire_debug_segment(
+			barrel_base,
+			muzzle_marker.global_position + barrel_direction * 5.0,
+			Color(1.0, 0.12, 0.08)
+		)
+	if show_camera_aim and cam:
+		_add_fire_debug_segment(cam.global_position, target, Color(0.1, 0.9, 1.0))
+	if show_last_shot and last_shot_origin != last_shot_end:
+		_add_fire_debug_segment(last_shot_origin, last_shot_end, Color(1.0, 0.88, 0.15))
+	fire_debug_mesh.surface_end()
+
+
+func _add_fire_debug_segment(start: Vector3, finish: Vector3, color: Color) -> void:
+	fire_debug_mesh.surface_set_color(color)
+	fire_debug_mesh.surface_add_vertex(start)
+	fire_debug_mesh.surface_set_color(color)
+	fire_debug_mesh.surface_add_vertex(finish)
+
+
 func _draw_socom_reticle() -> void:
-	if not is_instance_valid(target_board): return
-	var center := get_viewport().get_visible_rect().size * 0.5
-	if cam:
-		center = cam.unproject_position(target_board.global_position + Vector3(0, 0.15, 0))
-
-	var color := Color(0.85, 0.95, 0.15, 0.9)
-	var ring_col := Color(0.85, 0.95, 0.15, 0.25)
-	var r := reticle_bloom_radius
-
-	reticle_canvas.draw_circle(center, 2.0, color)
-	var tick_len := 8.0
-	reticle_canvas.draw_line(center + Vector2(0, -r), center + Vector2(0, -r - tick_len), color, 1.5)
-	reticle_canvas.draw_line(center + Vector2(0, r), center + Vector2(0, r + tick_len), color, 1.5)
-	reticle_canvas.draw_line(center + Vector2(-r, 0), center + Vector2(-r - tick_len, 0), color, 1.5)
-	reticle_canvas.draw_line(center + Vector2(r, 0), center + Vector2(r + tick_len, 0), color, 1.5)
-	reticle_canvas.draw_arc(center, r, 0, TAU, 32, ring_col, 1.0)
+	# The shared SocomDynamicReticle owns the actual reticle. This transparent
+	# overlay only draws calibration selection brackets above it.
 	_draw_active_selection_brackets()
 
 func _draw_active_selection_brackets() -> void:

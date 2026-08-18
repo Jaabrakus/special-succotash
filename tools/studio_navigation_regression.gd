@@ -32,7 +32,11 @@ func _run() -> void:
 	var recorded: Dictionary = navigation.call("get_debug_state")
 	_expect(int(recorded.get("history_size", 0)) == 2, "Visited Studio pages are retained in order")
 	_expect(int(recorded.get("history_cursor", -1)) == 1, "History points at the current page")
-	_expect(bool(recorded.get("history_visible", false)), "History is visible as a side panel")
+	_expect(not bool(recorded.get("history_visible", true)), "History drawer does not cover lab controls")
+	navigation.call("_toggle_history_access")
+	var opened: Dictionary = navigation.call("get_debug_state")
+	_expect(bool(opened.get("history_visible", false)), "History drawer remains available inside labs")
+	navigation.call("_toggle_history_access")
 	navigation.call("go_back")
 	await scene_changed
 	_expect(
@@ -41,6 +45,7 @@ func _run() -> void:
 	)
 	var backed: Dictionary = navigation.call("get_debug_state")
 	_expect(int(backed.get("history_cursor", -1)) == 0, "Back moves the history cursor without deleting forward history")
+	_expect(bool(backed.get("history_visible", false)), "History rail is visible on Studio Home")
 
 	_finish()
 

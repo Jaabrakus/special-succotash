@@ -57,6 +57,7 @@ var weapon_node: Node3D
 var available_clips: Dictionary = {}
 var source_animation_names: Dictionary = {}
 var clip_paths: Dictionary = {}
+var equipped_weapon_handling_profile: Dictionary = {}
 
 var current_clip: StringName = &""
 var previous_clip: StringName = &""
@@ -100,6 +101,7 @@ func _ready() -> void:
 	process_priority = 100
 	animation_profile = AnimationProfile.new()
 	animation_profile.load_project_map()
+	equipped_weapon_handling_profile = _load_equipped_weapon_handling_profile()
 	clip_paths = animation_profile.clip_paths
 	transition_state_machine = TransitionStateMachine.new()
 	posture_layer = PostureLayer.new()
@@ -261,7 +263,8 @@ func _build_animation_tree() -> void:
 		animation_player,
 		available_clips,
 		animation_profile,
-		use_modern_locomotion
+		use_modern_locomotion,
+		equipped_weapon_handling_profile
 	)
 	transition_node = locomotion_graph.legacy_transition
 
@@ -300,6 +303,11 @@ func _select_visual_clip() -> StringName:
 	if movement_state == &"ROLLING":
 		return &"roll"
 	if movement_state == &"AIRBORNE":
+		var equipped_jump := StringName(
+			(equipped_weapon_handling_profile.get("locomotion_slots", {}) as Dictionary).get("jump", "")
+		)
+		if equipped_jump != &"" and available_clips.has(equipped_jump):
+			return equipped_jump
 		if vertical_speed > 1.0:
 			return &"jump_up"
 		if vertical_speed < -1.0:
@@ -317,15 +325,35 @@ func _select_visual_clip() -> StringName:
 		)
 	if posture == &"CROUCHED":
 		if not _locomotion_active:
-			return &"idle_crouch"
+			return _equipped_action_clip("idle_crouched", &"idle_crouch")
 		var crouch_clip := StringName("crouch_%s" % _direction_suffix(movement_direction))
 		return crouch_clip if available_clips.has(crouch_clip) else &"crouch_forward"
 	if not _locomotion_active:
-		return &"aim_idle" if weapon_ready_weight >= 0.5 else &"idle_rifle"
+		return _equipped_action_clip(
+			"idle_standing",
+			&"aim_idle" if weapon_ready_weight >= 0.5 else &"idle_rifle"
+		)
 	var prefix := "run" if movement_gait == &"FULL" else "walk"
-	var locomotion_clip := StringName("%s_%s" % [prefix, _direction_suffix(movement_direction)])
-	var fallback := &"run_forward" if movement_gait == &"FULL" else &"walk_forward"
-	return locomotion_clip if available_clips.has(locomotion_clip) else fallback
+	var slot_name := "%s_%s" % [prefix, _direction_suffix(movement_direction)]
+	var directional_fallback := StringName(slot_name)
+	var fallback := (
+		directional_fallback
+		if available_clips.has(directional_fallback)
+		else (&"run_forward" if movement_gait == &"FULL" else &"walk_forward")
+	)
+	return _equipped_locomotion_clip(slot_name, fallback)
+
+
+func _equipped_locomotion_clip(slot_name: String, fallback: StringName) -> StringName:
+	var slots: Dictionary = equipped_weapon_handling_profile.get("locomotion_slots", {})
+	var candidate := StringName(slots.get(slot_name, ""))
+	return candidate if candidate != &"" and available_clips.has(candidate) else fallback
+
+
+func _equipped_action_clip(slot_name: String, fallback: StringName) -> StringName:
+	var slots: Dictionary = equipped_weapon_handling_profile.get("animation_slots", {})
+	var candidate := StringName(slots.get(slot_name, ""))
+	return candidate if candidate != &"" and available_clips.has(candidate) else fallback
 
 
 func play_action(clip_name: StringName, blend_seconds: float = 0.12) -> bool:
@@ -345,12 +373,62 @@ func play_action(clip_name: StringName, blend_seconds: float = 0.12) -> bool:
 
 
 func play_semantic_action(action_name: StringName, blend_seconds: float = 0.12) -> bool:
-	var clip_name: StringName = animation_profile.resolve_semantic_action(action_name, posture)
+	var clip_name: StringName = _resolve_equipped_weapon_action(action_name)
 	return clip_name != &"" and play_action(clip_name, blend_seconds)
 
 
 func resolve_semantic_action(action_name: StringName) -> StringName:
+	return _resolve_equipped_weapon_action(action_name)
+
+
+func _resolve_equipped_weapon_action(action_name: StringName) -> StringName:
+	var slots: Dictionary = equipped_weapon_handling_profile.get("animation_slots", {})
+	if not slots.is_empty() and action_name in [&"fire", &"reload"]:
+		var posture_suffix := String(posture).to_lower()
+		if posture_suffix == "standing":
+			posture_suffix = "standing"
+		elif posture_suffix == "crouched":
+			posture_suffix = "crouched"
+		elif posture_suffix == "prone":
+			posture_suffix = "prone"
+		var slot_name := "%s_%s" % [String(action_name), posture_suffix]
+		var candidate := StringName(slots.get(slot_name, ""))
+		if candidate != &"" and available_clips.has(candidate):
+			return candidate
 	return animation_profile.resolve_semantic_action(action_name, posture)
+
+
+func _load_equipped_weapon_handling_profile() -> Dictionary:
+	var config_path := ""
+	for argument in OS.get_cmdline_user_args():
+		if argument.begins_with("--weapon-rig-config="):
+			config_path = argument.trim_prefix("--weapon-rig-config=")
+			break
+	if config_path == "":
+		var loadout_path := "res://config/weapons/operator_loadout.json"
+		if not FileAccess.file_exists(loadout_path):
+			return {}
+		var loadout_file := FileAccess.open(loadout_path, FileAccess.READ)
+		var loadout_value: Variant = (
+			JSON.parse_string(loadout_file.get_as_text())
+			if loadout_file != null
+			else null
+		)
+		if not loadout_value is Dictionary:
+			return {}
+		config_path = String((loadout_value as Dictionary).get("rig_config", ""))
+	if config_path == "" or not FileAccess.file_exists(config_path):
+		return {}
+	var config_file := FileAccess.open(config_path, FileAccess.READ)
+	var config_value: Variant = (
+		JSON.parse_string(config_file.get_as_text())
+		if config_file != null
+		else null
+	)
+	if not config_value is Dictionary:
+		return {}
+	var handling: Variant = (config_value as Dictionary).get("handling_profile", {})
+	return (handling as Dictionary).duplicate(true) if handling is Dictionary else {}
 
 
 func get_connected_route(route_name: StringName) -> Array[StringName]:

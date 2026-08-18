@@ -110,6 +110,51 @@ func play_operator_semantic_action(action_name: StringName, blend_seconds: float
 func notify_operator_fired() -> bool:
     return production_animation != null and production_animation.notify_fired()
 
+func get_active_weapon_socket(socket_name: StringName) -> Marker3D:
+    # The rendered production weapon owns gameplay weapon-space. The old
+    # procedural mannequin remains a safe fallback while an asset is loading.
+    if (
+        production_animation != null
+        and production_animation.weapon_node != null
+        and is_instance_valid(production_animation.weapon_node)
+    ):
+        var production_socket := production_animation.weapon_node.find_child(
+            String(socket_name),
+            true,
+            false
+        ) as Marker3D
+        if production_socket != null and is_instance_valid(production_socket):
+            return production_socket
+    return null
+
+func get_active_muzzle_marker() -> Marker3D:
+    var production_muzzle := get_active_weapon_socket(&"Socket_Muzzle")
+    if production_muzzle != null:
+        return production_muzzle
+    return muzzle_marker
+
+func get_active_barrel_base_marker() -> Marker3D:
+    return get_active_weapon_socket(&"Socket_BarrelBase")
+
+func get_active_muzzle_position() -> Vector3:
+    var active_muzzle := get_active_muzzle_marker()
+    return active_muzzle.global_position if active_muzzle != null else global_position
+
+func get_active_barrel_direction() -> Vector3:
+    var active_muzzle := get_active_muzzle_marker()
+    var barrel_base := get_active_barrel_base_marker()
+    if active_muzzle != null and barrel_base != null:
+        var socket_direction := (
+            active_muzzle.global_position - barrel_base.global_position
+        ).normalized()
+        if socket_direction.length_squared() > 0.99:
+            return socket_direction
+    return (
+        -active_muzzle.global_basis.z.normalized()
+        if active_muzzle != null
+        else -global_basis.z.normalized()
+    )
+
 func get_operator_animation_clips() -> Array[StringName]:
     if production_animation == null:
         return []
@@ -790,6 +835,10 @@ func _socket_on(parent: Node3D, socket_name: String, position: Vector3) -> Marke
     return socket
 
 func get_attachment_socket(socket_name: StringName) -> Node3D:
+    if socket_name == &"muzzle":
+        var active_muzzle := get_active_muzzle_marker()
+        if active_muzzle != null:
+            return active_muzzle
     return attachment_sockets.get(socket_name) as Node3D
 
 func get_attachment_socket_names() -> Array[StringName]:
@@ -894,7 +943,8 @@ func get_aim_debug_data() -> Dictionary:
         "torso_yaw_deg": rad_to_deg(torso_yaw),
         "torso_pitch_deg": rad_to_deg(torso_pitch),
         "head_yaw_deg": rad_to_deg(head_yaw),
-        "muzzle": muzzle_marker.global_position if muzzle_marker else Vector3.ZERO,
+        "muzzle": get_active_muzzle_position(),
+        "barrel_direction": get_active_barrel_direction(),
         "weapon_aim_error_deg": weapon_aim_error_deg,
         "weapon_obstruction_amount": weapon_obstruction_amount,
         "left_hand_error": left_hand_mesh.global_position.distance_to(left_grip_target.global_position) if left_hand_mesh and left_grip_target else -1.0,

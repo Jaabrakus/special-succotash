@@ -21,6 +21,88 @@ func _run() -> void:
 
 	var entries: Array = lab.get("all_animation_entries")
 	var picker := lab.get("all_animation_select") as OptionButton
+	var gun_tabs := lab.find_child("GunLabTabs", true, false) as TabContainer
+	var reticle_preview := lab.find_child("SharedWeaponReticlePreview", true, false)
+	_expect(gun_tabs != null and gun_tabs.get_tab_count() == 2, "gun lab exposes connected rig and firing tabs")
+	_expect(
+		gun_tabs != null and gun_tabs.get_tab_title(1) == "Reticle & Fire",
+		"the second gun tab edits reticle and fire behavior"
+	)
+	_expect(reticle_preview != null, "gun lab previews the shared gameplay reticle")
+	_expect(
+		lab.get("runtime_posture_layer") != null,
+		"gun lab uses the gameplay squared-shoulder posture layer"
+	)
+	_expect(
+		lab.find_child("StanceStanding", true, false) != null
+		and lab.find_child("StanceCrouched", true, false) != null
+		and lab.find_child("StanceProne", true, false) != null,
+		"stand crouch and prone controls are available in the firing tab"
+	)
+	var viewport_center: Vector2 = lab.get_viewport().get_visible_rect().size * 0.5
+	_expect(
+		(lab.call("_reticle_screen_position") as Vector2).distance_to(viewport_center) < 0.01,
+		"gun lab reticle authority remains fixed at viewport center"
+	)
+	var aim_sample: Dictionary = lab.call("_camera_aim_sample")
+	_expect(
+		Vector3(aim_sample.get("position", Vector3.ZERO)).distance_to(
+			(lab.get("cam") as Camera3D).global_position
+		) > 1.0,
+		"center camera ray provides the firing-range aim authority"
+	)
+	if reticle_preview != null:
+		reticle_preview.call("notify_shot", 3, 1.0)
+		_expect(
+			float(reticle_preview.get("shot_gap_impulse")) > 0.0
+			and (reticle_preview.get("screen_center_override") as Vector2).distance_to(viewport_center) < 0.01,
+			"shot feedback expands symmetrically without moving aim authority"
+		)
+	lab.call("_set_preview_posture", &"CROUCHED")
+	_expect(
+		lab.get("preview_posture") == &"CROUCHED"
+		and absf(float(lab.call("_stance_spread_multiplier")) - 0.60) < 0.001,
+		"crouch preview applies the gameplay accuracy stance"
+	)
+	lab.call("_set_preview_posture", &"PRONE")
+	_expect(
+		lab.get("preview_posture") == &"PRONE"
+		and absf(float(lab.call("_stance_spread_multiplier")) - 0.22) < 0.001,
+		"prone preview applies the gameplay accuracy stance"
+	)
+	lab.call("_set_preview_posture", &"STANDING")
+	lab.set("current_bloom", 1.0)
+	lab.set("fire_cooldown", 0.2)
+	lab.call("_update_bloom_recovery", 0.05, true)
+	_expect(
+		absf(float(lab.get("current_bloom")) - 1.0) < 0.001,
+		"bloom does not sawtooth inward while the trigger is held"
+	)
+	lab.call("_update_bloom_recovery", 0.05, false)
+	_expect(
+		float(lab.get("current_bloom")) < 1.0,
+		"bloom recovers toward center after trigger release"
+	)
+	lab.set("current_bloom", 0.0)
+	lab.set("burst_shot_count", 0)
+	lab.set("fire_cooldown", 0.0)
+	lab.call("_fire_shot")
+	var shot_origin: Vector3 = lab.get("last_shot_origin")
+	var shot_end: Vector3 = lab.get("last_shot_end")
+	var intended_direction := (Vector3(aim_sample.position) - shot_origin).normalized()
+	var fired_direction := (shot_end - shot_origin).normalized()
+	_expect(
+		rad_to_deg(intended_direction.angle_to(fired_direction))
+		<= float(lab.call("_current_total_spread_deg")) + 0.05,
+		"physical muzzle shot converges on the centered camera intent"
+	)
+	var reticle_profile: Dictionary = lab.call("_current_reticle_profile")
+	_expect(
+		reticle_profile.has("base_gap_px")
+		and reticle_profile.has("shot_kick_px")
+		and reticle_profile.has("maximum_shot_kick_px"),
+		"reticle response is represented by a saveable per-gun profile"
+	)
 	_expect(lab.get("hand_gizmo_world") != null, "the evolved support-hand gizmo is live")
 	_expect(lab.get("weapon_gizmo_world") != null, "the evolved weapon-mount gizmo is live")
 	_expect(

@@ -53,6 +53,18 @@ func _run() -> void:
 		combined.position_track_interpolate(0, 0.5).is_equal_approx(Vector3(15.0, 1.0, 0.0)),
 		"combined clip switches to the second segment at the seam"
 	)
+	var blended: Animation = editor.combine([
+		{"animation": source, "start": 0.0, "end": 0.5},
+		{"animation": source, "start": 1.5, "end": 2.0, "transition_frames": 6},
+	], 30.0)
+	_expect(
+		blended.position_track_interpolate(0, 0.5).is_equal_approx(Vector3(5.0, 1.0, 0.0)),
+		"blend handle preserves the outgoing pose at the seam"
+	)
+	_expect(
+		blended.position_track_interpolate(0, 0.6).x > 5.0 and blended.position_track_interpolate(0, 0.6).x < 16.0,
+		"blend handle interpolates toward the incoming clip over its selected frames"
+	)
 	var saved_path := OS.get_temp_dir().path_join("socom-authored-animation-regression.tres")
 	var save_error := ResourceSaver.save(combined, saved_path)
 	var reloaded := load(saved_path) as Animation
