@@ -25,13 +25,22 @@ func _run() -> void:
 	_expect(registered.has("res://animation_library_lab.tscn"), "Animation Studio is registered")
 	_expect(registered.has("res://gun_calibration_lab.tscn"), "Weapon Gunsmith is registered")
 
-	navigation.call("_record_scene_path", "res://studio_hub.tscn")
-	navigation.call("_record_scene_path", "res://animation_library_lab.tscn")
-	navigation.call("_record_scene_path", "res://gun_calibration_lab.tscn")
+	navigation.call("open_scene", "res://studio_hub.tscn")
+	await scene_changed
+	navigation.call("open_scene", "res://animation_library_lab.tscn")
+	await scene_changed
 	var recorded: Dictionary = navigation.call("get_debug_state")
-	_expect(int(recorded.get("history_size", 0)) == 3, "Visited Studio pages are retained in order")
-	_expect(int(recorded.get("history_cursor", -1)) == 2, "History points at the current page")
+	_expect(int(recorded.get("history_size", 0)) == 2, "Visited Studio pages are retained in order")
+	_expect(int(recorded.get("history_cursor", -1)) == 1, "History points at the current page")
 	_expect(bool(recorded.get("history_visible", false)), "History is visible as a side panel")
+	navigation.call("go_back")
+	await scene_changed
+	_expect(
+		current_scene != null and current_scene.scene_file_path == "res://studio_hub.tscn",
+		"Back returns to the previous Studio page"
+	)
+	var backed: Dictionary = navigation.call("get_debug_state")
+	_expect(int(backed.get("history_cursor", -1)) == 0, "Back moves the history cursor without deleting forward history")
 
 	_finish()
 

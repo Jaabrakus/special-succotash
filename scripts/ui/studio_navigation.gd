@@ -82,7 +82,8 @@ func get_debug_state() -> Dictionary:
 	}
 
 
-func _on_scene_changed(scene: Node) -> void:
+func _on_scene_changed() -> void:
+	var scene := get_tree().current_scene
 	if not active or scene == null:
 		return
 	if suppress_next_scene_record:
