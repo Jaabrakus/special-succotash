@@ -9,6 +9,9 @@ var status_label: Label
 func _ready() -> void:
 	_build_interface()
 	_load_manifest()
+	var navigation := get_node_or_null("/root/StudioNavigation")
+	if navigation != null:
+		navigation.call("activate")
 
 
 func _unhandled_key_input(event: InputEvent) -> void:
@@ -120,4 +123,8 @@ func _open_lab(lab_id: StringName) -> void:
 	if scene_path.is_empty() or not ResourceLoader.exists(scene_path):
 		status_label.text = "ERROR: registered lab is unavailable: %s" % lab_id
 		return
-	get_tree().change_scene_to_file(scene_path)
+	var navigation := get_node_or_null("/root/StudioNavigation")
+	if navigation != null and bool(navigation.get("active")):
+		navigation.call("open_scene", scene_path)
+	else:
+		get_tree().change_scene_to_file(scene_path)

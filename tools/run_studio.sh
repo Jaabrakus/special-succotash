@@ -12,4 +12,4 @@ if [[ "$current_branch" != "$canonical_branch" ]]; then
   exit 1
 fi
 
-exec "$godot_bin" --path "$project_dir" res://studio_hub.tscn
+exec "$godot_bin" --path "$project_dir" res://studio_hub.tscn -- --studio
