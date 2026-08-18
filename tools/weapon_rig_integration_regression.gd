@@ -81,6 +81,13 @@ func _run() -> void:
 			and active_ejection != null and active_optic != null,
 		"rendered operator receives grip, barrel, muzzle, ejection, and optic sockets"
 	)
+	var weapon_mesh := mannequin.find_child("WeaponMesh", true, false) as Node3D
+	var rendered_weapon_span := _rendered_mesh_span(weapon_mesh)
+	print("WEAPON_RIG_INTEGRATION_METRIC rendered_weapon_span_m=%.4f" % rendered_weapon_span)
+	_expect(
+		rendered_weapon_span >= 0.45 and rendered_weapon_span <= 1.0,
+		"equipped rifle is human-scale instead of using raw FBX dimensions"
+	)
 	_expect(
 		is_equal_approx(float(controller.ballistics.muzzle_velocity_mps), configured_velocity),
 		"live ballistics imports Gunsmith muzzle velocity"
@@ -164,6 +171,34 @@ func _test_animation_hand_map_contract() -> void:
 func _steps(count: int) -> void:
 	for _index in range(count):
 		await physics_frame
+
+
+func _rendered_mesh_span(node: Node3D) -> float:
+	if node == null:
+		return 0.0
+	var points: Array[Vector3] = []
+	_collect_mesh_points(node, points)
+	if points.is_empty():
+		return 0.0
+	var bounds := AABB(points[0], Vector3.ZERO)
+	for point in points:
+		bounds = bounds.expand(point)
+	return maxf(bounds.size.x, maxf(bounds.size.y, bounds.size.z))
+
+
+func _collect_mesh_points(node: Node, points: Array[Vector3]) -> void:
+	if node is MeshInstance3D:
+		var mesh_node := node as MeshInstance3D
+		var bounds := mesh_node.get_aabb()
+		for x in [0.0, 1.0]:
+			for y in [0.0, 1.0]:
+				for z in [0.0, 1.0]:
+					points.append(
+						mesh_node.global_transform
+						* (bounds.position + bounds.size * Vector3(x, y, z))
+					)
+	for child in node.get_children():
+		_collect_mesh_points(child, points)
 
 
 func _expect(condition: bool, label: String) -> void:

@@ -39,7 +39,7 @@
     "rot_z": 0.0
   },
   "model_fbx": "res://assets/weapons/modular_pack/AssaultRifle_1.fbx",
-  "normalized_scale": 1.0,
+  "normalized_scale": 0.219016,
   "operator_mount": {
     "position": {
       "x": -0.02,
