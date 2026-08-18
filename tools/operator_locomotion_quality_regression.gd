@@ -129,8 +129,10 @@ func _measure_direction_pop(player: CharacterBody3D, driver) -> void:
 	]:
 		bones.append(driver.skeleton.find_bone(bone_name))
 	var previous: Array[Quaternion] = []
+	var pops_by_bone: Array[Array] = []
 	for bone in bones:
 		previous.append(driver.skeleton.get_bone_global_pose(bone).basis.get_rotation_quaternion())
+		pops_by_bone.append([])
 	Input.action_release(&"move_forward")
 	Input.action_press(&"move_right", 1.0)
 	var pops: Array[float] = []
@@ -138,13 +140,23 @@ func _measure_direction_pop(player: CharacterBody3D, driver) -> void:
 		await physics_frame
 		for index in range(bones.size()):
 			var current: Quaternion = driver.skeleton.get_bone_global_pose(bones[index]).basis.get_rotation_quaternion()
-			pops.append(rad_to_deg(previous[index].angle_to(current)))
+			var delta_deg := rad_to_deg(previous[index].angle_to(current))
+			pops.append(delta_deg)
+			pops_by_bone[index].append(delta_deg)
 			previous[index] = current
 	Input.action_release(&"move_right")
 	pops.sort()
 	var p95 := pops[int(floor((pops.size() - 1) * 0.95))] if not pops.is_empty() else 0.0
 	var maximum := pops[-1] if not pops.is_empty() else 0.0
 	print("LOCOMOTION_METRIC direction_pop_deg_per_frame_p95=%.3f max=%.3f" % [p95, maximum])
+	for index in range(pops_by_bone.size()):
+		pops_by_bone[index].sort()
+		var bone_p95: float = pops_by_bone[index][int(floor((pops_by_bone[index].size() - 1) * 0.95))]
+		print(
+			"LOCOMOTION_METRIC direction_pop_%s_p95=%.3f" % [
+				driver.skeleton.get_bone_name(bones[index]), bone_p95,
+			]
+		)
 	_expect(p95 <= 12.0, "direction blend p95 pose delta stays below 12 degrees per frame")
 	_expect(maximum <= 25.0, "direction blend has no one-frame pose snap")
 	player.velocity = Vector3.ZERO

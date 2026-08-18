@@ -45,6 +45,7 @@ var playback_rate: float = 1.0
 var current_state: StringName = &"idle"
 var shared_phase: float = 0.0
 var smoothed_direction := Vector2.UP
+var rendered_direction := Vector2.UP
 var prone_travel_blend: float = 1.0
 var standing_transition_layer_nodes: Array[StringName] = []
 var standing_transition_ready_nodes: Array[StringName] = []
@@ -106,22 +107,45 @@ func update_locomotion(
 		and absf(target_direction.y) <= 1.0 - lateral_threshold
 	)
 	var direction_alpha := 1.0 - exp(-float(profile.locomotion["direction_response"]) * delta)
+	var rendered_direction_alpha := 1.0 - exp(
+		-float(profile.locomotion.get("rendered_direction_response", 8.0)) * delta
+	)
+	# Logical A/D selection is immediate for input readability and animation
+	# routing. The separate rendered coordinate eases through the synchronized
+	# BlendSpace so that instant authority does not create a one-frame leg pop.
 	if pure_lateral:
-		# A/D owns immediate travel direction while the prone playhead remains
-		# on its existing synchronized forward crawl.
 		smoothed_direction = Vector2(signf(target_direction.x), 0.0)
 	else:
 		smoothed_direction = smoothed_direction.lerp(target_direction, direction_alpha)
 	if smoothed_direction.length_squared() > 0.001:
 		smoothed_direction = smoothed_direction.normalized()
+	rendered_direction = rendered_direction.lerp(target_direction, rendered_direction_alpha)
+	if rendered_direction.length_squared() > 0.001:
+		rendered_direction = rendered_direction.normalized()
+	# Prone already has authored ground-contact timing and a dedicated forward /
+	# backward blend. Keep its original direction response so a standing strafe
+	# presentation fix cannot shift the crawl phase or lift knees off the floor.
+	if posture == &"PRONE":
+		rendered_direction = smoothed_direction
 	var target_full_weight: float = profile.full_gait_weight(speed_normalized)
 	var speed_alpha := 1.0 - exp(-float(profile.locomotion["speed_blend_response"]) * delta)
 	full_gait_weight = lerpf(full_gait_weight, target_full_weight, speed_alpha)
 	playback_rate = profile.playback_rate(actual_speed_mps, posture, full_gait_weight)
+	# During a sharp direction change, briefly slow the visual foot cycle while
+	# the authoritative CharacterBody remains fully responsive. This is the
+	# planted weight transfer that prevents the run clip's own fastest hip frame
+	# from stacking on top of the directional blend.
+	if posture != &"PRONE":
+		var direction_alignment := clampf(rendered_direction.dot(target_direction), 0.0, 1.0)
+		playback_rate *= lerpf(
+			float(profile.locomotion.get("direction_turn_playback_floor", 0.72)),
+			1.0,
+			direction_alignment
+		)
 	shared_phase = fmod(shared_phase + delta * playback_rate, 1.0)
-	animation_tree.set("parameters/walk_space/blend_position", smoothed_direction)
-	animation_tree.set("parameters/full_space/blend_position", smoothed_direction)
-	animation_tree.set("parameters/crouch_space/blend_position", smoothed_direction)
+	animation_tree.set("parameters/walk_space/blend_position", rendered_direction)
+	animation_tree.set("parameters/full_space/blend_position", rendered_direction)
+	animation_tree.set("parameters/crouch_space/blend_position", rendered_direction)
 	var prone_target := -1.0 if smoothed_direction.y < -0.05 and absf(smoothed_direction.y) >= absf(smoothed_direction.x) * 0.72 else 1.0
 	prone_travel_blend = lerpf(prone_travel_blend, prone_target, direction_alpha)
 	animation_tree.set("parameters/prone_space/blend_position", prone_travel_blend)
@@ -165,6 +189,7 @@ func get_debug_state() -> Dictionary:
 		"playback_rate": playback_rate,
 		"shared_phase": shared_phase,
 		"smoothed_direction": smoothed_direction,
+		"rendered_direction": rendered_direction,
 		"prone_travel_blend": prone_travel_blend,
 	}
 

@@ -1,0 +1,5 @@
+{
+  "schema_version": 1,
+  "primary_weapon_id": "assaultrifle_1",
+  "rig_config": "res://config/weapons/assaultrifle_1.json"
+}

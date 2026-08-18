@@ -183,22 +183,24 @@ func _run() -> void:
     var editor_dock := lab.find_child("FrameEditorDock", true, false) as Control
     _expect(
         clip_panel != null and editor_dock != null
-        and clip_panel.position.y + clip_panel.size.y <= editor_dock.position.y,
+        and clip_panel.anchor_bottom == editor_dock.anchor_top
+        and clip_panel.offset_bottom <= editor_dock.offset_top,
         "frame editor is docked below the clip library instead of covering it"
     )
     _expect(
         runtime_panel != null and editor_dock != null
-        and runtime_panel.position.y + runtime_panel.size.y <= editor_dock.position.y,
+        and runtime_panel.anchor_bottom == editor_dock.anchor_top
+        and runtime_panel.offset_bottom <= editor_dock.offset_top,
         "frame editor is docked below the route graph instead of covering it"
     )
     _expect(
         lab.find_child("AssemblyClipDropTarget", true, false) != null
-        and _find_button_with_text(lab, "Save Trim") != null
-        and _find_button_with_text(lab, "+ Add Range") != null,
+        and _find_button_with_text(lab, "Save Cut Alone") != null
+        and _find_button_with_text(lab, "Add Highlighted Cut →") != null,
         "frame editor exposes direct drag, trim-save, and range-assembly controls"
     )
     _expect(
-        _find_button_with_text(lab, "+ Add Full Clip") != null,
+        _find_button_with_text(lab, "+ Add Whole Clip") != null,
         "assembly dock provides a no-drag fallback for the selected clip"
     )
 

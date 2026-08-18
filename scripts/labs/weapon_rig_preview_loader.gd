@@ -7,39 +7,15 @@ extends RefCounted
 
 const WEAPON_LOADOUT_PATH := "res://config/weapons/operator_loadout.json"
 const AK47_TEXTURE := preload("res://assets/weapons/ps1_ak47/textures/AK-47TextureMap.png")
+const WEAPON_CONTRACT := preload("res://scripts/weapons/weapon_rig_contract.gd")
 
 
 static func resolve_config_path(fallback_weapon_id: String) -> String:
-	for argument in OS.get_cmdline_user_args():
-		if argument.begins_with("--weapon-rig-config="):
-			var argument_path := argument.trim_prefix("--weapon-rig-config=")
-			if FileAccess.file_exists(argument_path):
-				return argument_path
-	if FileAccess.file_exists(WEAPON_LOADOUT_PATH):
-		var loadout_file := FileAccess.open(WEAPON_LOADOUT_PATH, FileAccess.READ)
-		var loadout_value: Variant = (
-			JSON.parse_string(loadout_file.get_as_text())
-			if loadout_file != null
-			else null
-		)
-		if loadout_value is Dictionary:
-			var saved_path := String((loadout_value as Dictionary).get("rig_config", ""))
-			if FileAccess.file_exists(saved_path):
-				return saved_path
-	var fallback_path := "res://config/weapons/%s.json" % fallback_weapon_id
-	return fallback_path if FileAccess.file_exists(fallback_path) else ""
+	return WEAPON_CONTRACT.resolve_config_path(fallback_weapon_id)
 
 
 static func load_config(config_path: String) -> Dictionary:
-	if config_path.is_empty() or not FileAccess.file_exists(config_path):
-		return {}
-	var config_file := FileAccess.open(config_path, FileAccess.READ)
-	var value: Variant = JSON.parse_string(config_file.get_as_text()) if config_file else null
-	if not value is Dictionary:
-		return {}
-	var config := (value as Dictionary).duplicate(true)
-	config["_rig_config_path"] = config_path
-	return config
+	return WEAPON_CONTRACT.load_config(config_path)
 
 
 static func attach_to_hand(
@@ -166,11 +142,13 @@ static func apply_animation_hand_map(
 		)
 	if left_hand:
 		left_hand.position = vector3_from_map(
-			hand_map.get("left_hand_target", {}), left_hand.position
+			hand_map.get("left_grip", hand_map.get("left_hand_target", {})),
+			left_hand.position
 		)
 	if right_hand:
 		right_hand.position = vector3_from_map(
-			hand_map.get("right_hand_target", {}), right_hand.position
+			hand_map.get("right_grip", hand_map.get("right_hand_target", {})),
+			right_hand.position
 		)
 	return true
 

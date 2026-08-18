@@ -206,6 +206,8 @@ var locomotion: Dictionary = {
 	"minimum_playback_rate": 0.72,
 	"maximum_playback_rate": 1.32,
 	"direction_response": 16.0,
+	"rendered_direction_response": 8.0,
+	"direction_turn_playback_floor": 0.72,
 	"lateral_snap_threshold": 0.92,
 	"speed_blend_response": 12.0,
 	"phase_offsets": {},

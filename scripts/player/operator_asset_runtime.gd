@@ -9,6 +9,7 @@ const TROOPER_TEXTURE := preload("res://assets/characters/ps1_gas_mask_soldier/t
 const AK47_SCENE := preload("res://assets/weapons/ps1_ak47/source/ak-47.fbx")
 const AK47_TEXTURE := preload("res://assets/weapons/ps1_ak47/textures/AK-47TextureMap.png")
 const ROOT_SANITIZER := preload("res://scripts/player/operator_animation_root_sanitizer.gd")
+const WEAPON_CONTRACT := preload("res://scripts/weapons/weapon_rig_contract.gd")
 const WEAPON_LOADOUT_PATH := "res://config/weapons/operator_loadout.json"
 
 var model_root: Node3D
@@ -16,6 +17,12 @@ var animation_player: AnimationPlayer
 var skeleton: Skeleton3D
 var weapon_attachment: BoneAttachment3D
 var weapon_node: Node3D
+var equipped_weapon_config: Dictionary = {}
+var calibrated_weapon_pivot: Node3D
+var weapon_sockets: Dictionary = {}
+var _base_weapon_pivot_position := Vector3.ZERO
+var _base_weapon_pivot_rotation := Vector3.ZERO
+var _base_socket_positions: Dictionary = {}
 var animation_library: AnimationLibrary
 var available_clips: Dictionary = {}
 var source_animation_names: Dictionary = {}
@@ -176,41 +183,17 @@ func _attach_weapon() -> void:
 	ejection.position = Vector3(0.05, 0.03, -0.10)
 	weapon_node.add_child(ejection)
 
+	var optic := Marker3D.new()
+	optic.name = "Socket_Optic"
+	optic.position = Vector3(0.0, 0.08, -0.18)
+	weapon_node.add_child(optic)
+
 	weapon_node.add_child(pivot)
 	weapon_attachment.add_child(weapon_node)
 
 
 func _load_equipped_weapon_config() -> Dictionary:
-	var config_path := ""
-	for argument in OS.get_cmdline_user_args():
-		if argument.begins_with("--weapon-rig-config="):
-			config_path = argument.trim_prefix("--weapon-rig-config=")
-			break
-	if config_path == "":
-		if not FileAccess.file_exists(WEAPON_LOADOUT_PATH):
-			return {}
-		var loadout_file := FileAccess.open(WEAPON_LOADOUT_PATH, FileAccess.READ)
-		var loadout_value: Variant = (
-			JSON.parse_string(loadout_file.get_as_text())
-			if loadout_file != null
-			else null
-		)
-		if not loadout_value is Dictionary:
-			return {}
-		config_path = String((loadout_value as Dictionary).get("rig_config", ""))
-	if config_path == "" or not FileAccess.file_exists(config_path):
-		return {}
-	var config_file := FileAccess.open(config_path, FileAccess.READ)
-	var config_value: Variant = (
-		JSON.parse_string(config_file.get_as_text())
-		if config_file != null
-		else null
-	)
-	if not config_value is Dictionary:
-		return {}
-	var config := (config_value as Dictionary).duplicate(true)
-	config["_rig_config_path"] = config_path
-	return config
+	return WEAPON_CONTRACT.load_equipped_config()
 
 
 func _attach_calibrated_weapon(config: Dictionary) -> bool:
@@ -220,6 +203,7 @@ func _attach_calibrated_weapon(config: Dictionary) -> bool:
 		push_warning("Saved weapon model could not be loaded: %s" % model_path)
 		return false
 
+	equipped_weapon_config = config.duplicate(true)
 	weapon_node = Node3D.new()
 	weapon_node.name = "Attached_%s" % String(config.get("weapon_id", "Weapon"))
 	weapon_node.set_meta("weapon_id", StringName(config.get("weapon_id", "")))
@@ -236,7 +220,8 @@ func _attach_calibrated_weapon(config: Dictionary) -> bool:
 	)
 	weapon_node.scale = Vector3.ONE * inverse_scale
 
-	var calibrated_pivot := Node3D.new()
+	calibrated_weapon_pivot = Node3D.new()
+	var calibrated_pivot := calibrated_weapon_pivot
 	calibrated_pivot.name = "CalibratedWeaponPivot"
 	var grip: Dictionary = config.get("grip_offset", {})
 	calibrated_pivot.position = Vector3(
@@ -265,7 +250,7 @@ func _attach_calibrated_weapon(config: Dictionary) -> bool:
 
 	var sockets: Dictionary = config.get("weapon_sockets", {})
 	var current_socket_contract := (
-		int(config.get("schema_version", 0)) >= 3
+		bool(config.get("socket_contract_authored", false))
 		and sockets.has("right_hand_grip_target")
 		and sockets.has("barrel_base_socket")
 	)
@@ -302,11 +287,103 @@ func _attach_calibrated_weapon(config: Dictionary) -> bool:
 		_vector3_from_map(sockets.get("ejection_port", {}), Vector3.ZERO),
 		true
 	)
+	_add_weapon_socket(
+		calibrated_pivot,
+		"Socket_Optic",
+		_vector3_from_map(sockets.get("optic_rail", {}), Vector3.ZERO),
+		true
+	)
 
 	calibrated_pivot.add_child(weapon_model)
 	weapon_node.add_child(calibrated_pivot)
 	weapon_attachment.add_child(weapon_node)
+	_cache_weapon_map_baseline()
 	return true
+
+
+func apply_animation_hand_map(resource_path: String) -> bool:
+	_restore_weapon_map_baseline()
+	if resource_path.is_empty() or equipped_weapon_config.is_empty():
+		return false
+	var raw_maps: Variant = equipped_weapon_config.get("animation_hand_maps", {})
+	if not raw_maps is Dictionary:
+		return false
+	var maps := raw_maps as Dictionary
+	var raw_map: Variant = maps.get(resource_path, {})
+	if not raw_map is Dictionary or (raw_map as Dictionary).is_empty():
+		for candidate_path in maps.keys():
+			if String(candidate_path).get_file() == resource_path.get_file():
+				raw_map = maps[candidate_path]
+				break
+	if not raw_map is Dictionary or (raw_map as Dictionary).is_empty():
+		return false
+	var hand_map := raw_map as Dictionary
+	if calibrated_weapon_pivot != null:
+		calibrated_weapon_pivot.position = _vector3_from_map(
+			hand_map.get("weapon_mount_position", {}),
+			calibrated_weapon_pivot.position
+		)
+		calibrated_weapon_pivot.rotation_degrees = _vector3_from_map(
+			hand_map.get("weapon_mount_rotation_deg", {}),
+			calibrated_weapon_pivot.rotation_degrees
+		)
+	_apply_mapped_socket(
+		"Socket_LeftHand",
+		hand_map.get("left_grip", hand_map.get("left_hand_target", {}))
+	)
+	_apply_mapped_socket(
+		"Socket_RightHand",
+		hand_map.get("right_grip", hand_map.get("right_hand_target", {}))
+	)
+	if weapon_node != null:
+		weapon_node.set_meta("active_animation_hand_map", resource_path)
+		weapon_node.set_meta("support_hand_pose", {
+			"palm_pitch_deg": float(hand_map.get("palm_pitch_deg", 0.0)),
+			"palm_yaw_deg": float(hand_map.get("palm_yaw_deg", 0.0)),
+			"palm_roll_deg": float(hand_map.get("palm_roll_deg", 0.0)),
+			"finger_curl": float(hand_map.get("finger_curl", 0.0)),
+			"thumb_wrap": float(hand_map.get("thumb_wrap", 0.0)),
+		})
+	return true
+
+
+func _cache_weapon_map_baseline() -> void:
+	weapon_sockets.clear()
+	_base_socket_positions.clear()
+	if calibrated_weapon_pivot == null:
+		return
+	_base_weapon_pivot_position = calibrated_weapon_pivot.position
+	_base_weapon_pivot_rotation = calibrated_weapon_pivot.rotation_degrees
+	for socket_name in [
+		"Socket_RightHand", "Socket_LeftHand", "Socket_BarrelBase",
+		"Socket_Muzzle", "Socket_Ejection", "Socket_Optic",
+	]:
+		var socket := calibrated_weapon_pivot.find_child(socket_name, true, false) as Marker3D
+		if socket != null:
+			weapon_sockets[socket_name] = socket
+			_base_socket_positions[socket_name] = socket.position
+
+
+func _restore_weapon_map_baseline() -> void:
+	if calibrated_weapon_pivot != null:
+		calibrated_weapon_pivot.position = _base_weapon_pivot_position
+		calibrated_weapon_pivot.rotation_degrees = _base_weapon_pivot_rotation
+	for socket_name in weapon_sockets.keys():
+		var socket := weapon_sockets[socket_name] as Marker3D
+		if socket != null and _base_socket_positions.has(socket_name):
+			socket.position = _base_socket_positions[socket_name]
+	if weapon_node != null:
+		weapon_node.remove_meta("active_animation_hand_map")
+		weapon_node.set_meta(
+			"support_hand_pose",
+			equipped_weapon_config.get("support_hand_pose", {})
+		)
+
+
+func _apply_mapped_socket(socket_name: String, value: Variant) -> void:
+	var socket := weapon_sockets.get(socket_name) as Marker3D
+	if socket != null:
+		socket.position = _vector3_from_map(value, socket.position)
 
 
 func _default_model_rotation(model_path: String) -> Vector3:

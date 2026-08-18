@@ -135,6 +135,12 @@ func get_active_muzzle_marker() -> Marker3D:
 func get_active_barrel_base_marker() -> Marker3D:
     return get_active_weapon_socket(&"Socket_BarrelBase")
 
+func get_active_ejection_marker() -> Marker3D:
+    return get_active_weapon_socket(&"Socket_Ejection")
+
+func get_active_optic_marker() -> Marker3D:
+    return get_active_weapon_socket(&"Socket_Optic")
+
 func get_active_muzzle_position() -> Vector3:
     var active_muzzle := get_active_muzzle_marker()
     return active_muzzle.global_position if active_muzzle != null else global_position

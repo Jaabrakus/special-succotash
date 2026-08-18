@@ -16,6 +16,7 @@
         "res://scripts/camera/camera_aim_resolver.gd",
         "res://scripts/player/test_mannequin.gd",
         "res://scripts/player/operator_animation_driver.gd",
+        "res://scripts/weapons/weapon_rig_contract.gd",
         "res://scripts/weapons/socom_weapon_controller.gd",
         "res://scripts/network/socom_shot_authority.gd"
       ]
@@ -41,6 +42,7 @@
       "shared_contracts": [
         "res://scripts/player/operator_animation_profile.gd",
         "res://scripts/weapons/weapon_animation_profile.gd",
+        "res://scripts/weapons/weapon_rig_contract.gd",
         "res://scripts/player/weapon_ownership_contract.gd"
       ]
     }
@@ -77,6 +79,7 @@
       "res://tools/operator_weapon_pose_regression.gd",
       "res://tools/mobility_regression.gd",
       "res://tools/gun_lab_animation_catalog_regression.gd",
+      "res://tools/weapon_rig_integration_regression.gd",
       "res://tools/prone_grounding_regression.gd"
     ],
     "full": [

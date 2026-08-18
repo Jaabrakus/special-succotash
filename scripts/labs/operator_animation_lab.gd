@@ -447,7 +447,13 @@ func _refresh_sequence_drawer_visibility() -> void:
 func _fit_editor_ui_to_window() -> void:
     if editor_ui_root == null:
         return
-    var viewport_size := get_viewport().get_visible_rect().size
+    var viewport := get_viewport()
+    var viewport_size := Vector2(
+        float(ProjectSettings.get_setting("display/window/size/viewport_width", 1600)),
+        float(ProjectSettings.get_setting("display/window/size/viewport_height", 900))
+    )
+    if viewport != null:
+        viewport_size = viewport.get_visible_rect().size
     editor_ui_root.position = Vector2.ZERO
     editor_ui_root.scale = Vector2.ONE * EDITOR_UI_SCALE
     editor_ui_root.size = viewport_size / EDITOR_UI_SCALE
@@ -3185,7 +3191,9 @@ func _build_ui() -> void:
     editor_ui_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
     overlay.add_child(editor_ui_root)
     _fit_editor_ui_to_window()
-    get_viewport().size_changed.connect(_fit_editor_ui_to_window)
+    var editor_viewport := get_viewport()
+    if editor_viewport != null and not editor_viewport.size_changed.is_connected(_fit_editor_ui_to_window):
+        editor_viewport.size_changed.connect(_fit_editor_ui_to_window)
     var ui_root := editor_ui_root
 
     # Keep the studio in three non-overlapping bands: header, workspace, and

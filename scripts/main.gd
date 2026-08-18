@@ -608,8 +608,21 @@ func _on_authoritative_shot(result: Dictionary) -> void:
     var hit_position := Vector3(result.get("hit_pos", origin))
     var hit_normal := Vector3(result.get("normal", Vector3.UP))
     TracerSystemScript.spawn_muzzle_flash(get_tree(), origin)
-    TracerSystemScript.spawn_tracer(get_tree(), origin, hit_position)
+    TracerSystemScript.spawn_tracer(
+        get_tree(), origin, hit_position, Color(1.0, 0.88, 0.35),
+        float(result.get("muzzle_velocity_mps", 715.0))
+    )
     TracerSystemScript.spawn_impact_effect(get_tree(), hit_position, hit_normal)
+    var mannequin = player.get_node_or_null("Mannequin") if player != null else null
+    if mannequin != null and mannequin.has_method("get_active_ejection_marker"):
+        var ejection := mannequin.get_active_ejection_marker() as Marker3D
+        if ejection != null:
+            var eject_direction := (
+                ejection.global_basis.y + ejection.global_basis.z * 0.45
+            ).normalized()
+            TracerSystemScript.spawn_shell_casing(
+                get_tree(), ejection.global_position, eject_direction
+            )
     if dynamic_reticle:
         dynamic_reticle.notify_shot(
             int(result.get("continuous_count", 1)),

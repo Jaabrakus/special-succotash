@@ -16,6 +16,7 @@ signal shot_fired(origin: Vector3, end_point: Vector3, hit_target: bool)
 @export var damage_per_shot: float = 34.0
 @export var headshot_multiplier: float = 3.5
 @export var max_range: float = 120.0
+@export var muzzle_velocity_mps: float = 715.0
 
 # Bloom & Dispersion Parameters (Degrees)
 @export var base_spread_deg: float = 0.28
@@ -157,7 +158,11 @@ func try_fire_direction(
         "direction": final_dir,
         "spread_deg": total_current_spread_deg,
         "normal": result.get("normal", Vector3.UP),
-        "continuous_count": continuous_shot_count
+        "continuous_count": continuous_shot_count,
+        "muzzle_velocity_mps": muzzle_velocity_mps,
+        "tracer_travel_seconds": (
+            hit_pos.distance_to(muzzle_pos) / maxf(muzzle_velocity_mps, 1.0)
+        ),
     }
 
 func release_trigger() -> void:

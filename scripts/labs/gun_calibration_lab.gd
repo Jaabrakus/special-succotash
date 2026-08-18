@@ -141,9 +141,9 @@ var fire_rate_rpm: int = 650
 var damage_per_shot: int = 34
 var muzzle_velocity_mps: float = 715.0
 var is_silenced: bool = false
-var base_spread_deg: float = 0.4
-var bloom_per_shot_deg: float = 1.2
-var bloom_recovery_speed: float = 14.0
+var base_spread_deg: float = 0.28
+var bloom_per_shot_deg: float = 0.32
+var bloom_recovery_speed: float = 10.0
 var max_recoil_bloom_deg: float = 2.4
 var reticle_base_gap_px: float = 10.0
 var reticle_max_gap_px: float = 46.0
@@ -2316,9 +2316,9 @@ func _reset_fire_profile_defaults() -> void:
 	damage_per_shot = 34
 	muzzle_velocity_mps = _default_muzzle_velocity_mps()
 	is_silenced = false
-	base_spread_deg = 0.4
-	bloom_per_shot_deg = 1.2
-	bloom_recovery_speed = 14.0
+	base_spread_deg = 0.28
+	bloom_per_shot_deg = 0.32
+	bloom_recovery_speed = 10.0
 	max_recoil_bloom_deg = 2.4
 	reticle_base_gap_px = 10.0
 	reticle_max_gap_px = 46.0
@@ -2736,6 +2736,7 @@ func _save_weapon_config() -> void:
 
 	var config_data: Dictionary = {
 		"schema_version": 3,
+		"socket_contract_authored": true,
 		"weapon_id": weapon_name.to_lower(),
 		"display_name": weapon_name,
 		"category": selected_category,

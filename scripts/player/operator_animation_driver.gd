@@ -6,6 +6,7 @@ extends Node3D
 
 const AnimationProfile := preload("res://scripts/player/operator_animation_profile.gd")
 const AssetRuntime := preload("res://scripts/player/operator_asset_runtime.gd")
+const WeaponContract := preload("res://scripts/weapons/weapon_rig_contract.gd")
 const LocomotionBlendTree := preload("res://scripts/player/operator_locomotion_blend_tree.gd")
 const TransitionStateMachine := preload("res://scripts/player/operator_transition_state_machine.gd")
 const PostureLayer := preload("res://scripts/player/operator_posture_layer.gd")
@@ -36,6 +37,7 @@ const WeaponPoseSolver := preload("res://scripts/player/operator_weapon_pose_sol
 @export_range(0.0, 18.0, 0.5) var prone_axis_target_pitch_deg: float = 0.0
 @export_range(0.0, 120.0, 0.5) var prone_axis_max_correction_deg: float = 90.0
 @export_range(1.0, 30.0, 0.5) var prone_straighten_response: float = 14.0
+@export_range(6.0, 18.0, 0.1) var maximum_leg_rotation_deg_per_60hz: float = 10.8
 
 var animation_profile
 var asset_runtime
@@ -95,6 +97,7 @@ var _recoil_remaining: float = 0.0
 var _last_transition_reason: StringName = &"none"
 var _requested_action_is_transition: bool = false
 var _prone_straighten_weight: float = 0.0
+var _stabilized_leg_rotations: Dictionary = {}
 
 
 func _ready() -> void:
@@ -191,9 +194,49 @@ func _process(delta: float) -> void:
 		_get_player(),
 		delta
 	)
+	_stabilize_locomotion_legs(delta)
 	_recoil_remaining = maxf(0.0, _recoil_remaining - delta)
 	_previous_firing = firing
 	_previous_movement_state = movement_state
+
+
+func _stabilize_locomotion_legs(delta: float) -> void:
+	if skeleton == null:
+		return
+	var ordinary_locomotion := (
+		requested_action == &""
+		and posture != &"PRONE"
+		and movement_state in [&"STANDING", &"CROUCHED", &"LOCOMOTION"]
+	)
+	if not ordinary_locomotion:
+		_stabilized_leg_rotations.clear()
+		return
+	var maximum_step := deg_to_rad(maximum_leg_rotation_deg_per_60hz) * clampf(
+		delta * 60.0,
+		0.25,
+		2.0
+	)
+	for bone_name in [&"mixamorig_LeftUpLeg", &"mixamorig_RightUpLeg"]:
+		var bone_index := skeleton.find_bone(bone_name)
+		if bone_index < 0:
+			continue
+		var pose := skeleton.get_bone_global_pose(bone_index)
+		var current_rotation := pose.basis.get_rotation_quaternion().normalized()
+		var previous_rotation: Quaternion = _stabilized_leg_rotations.get(
+			bone_name,
+			current_rotation
+		)
+		var angle := previous_rotation.angle_to(current_rotation)
+		var stable_rotation := current_rotation
+		if angle > maximum_step and angle > 0.00001:
+			stable_rotation = previous_rotation.slerp(
+				current_rotation,
+				maximum_step / angle
+			).normalized()
+			pose.basis = Basis(stable_rotation).scaled(pose.basis.get_scale())
+			skeleton.set_bone_global_pose_override(bone_index, pose, 1.0, true)
+		_stabilized_leg_rotations[bone_name] = stable_rotation
+	skeleton.force_update_all_bone_transforms()
 
 
 func _cancel_cosmetic_transition_for_gameplay() -> void:
@@ -399,35 +442,8 @@ func _resolve_equipped_weapon_action(action_name: StringName) -> StringName:
 
 
 func _load_equipped_weapon_handling_profile() -> Dictionary:
-	var config_path := ""
-	for argument in OS.get_cmdline_user_args():
-		if argument.begins_with("--weapon-rig-config="):
-			config_path = argument.trim_prefix("--weapon-rig-config=")
-			break
-	if config_path == "":
-		var loadout_path := "res://config/weapons/operator_loadout.json"
-		if not FileAccess.file_exists(loadout_path):
-			return {}
-		var loadout_file := FileAccess.open(loadout_path, FileAccess.READ)
-		var loadout_value: Variant = (
-			JSON.parse_string(loadout_file.get_as_text())
-			if loadout_file != null
-			else null
-		)
-		if not loadout_value is Dictionary:
-			return {}
-		config_path = String((loadout_value as Dictionary).get("rig_config", ""))
-	if config_path == "" or not FileAccess.file_exists(config_path):
-		return {}
-	var config_file := FileAccess.open(config_path, FileAccess.READ)
-	var config_value: Variant = (
-		JSON.parse_string(config_file.get_as_text())
-		if config_file != null
-		else null
-	)
-	if not config_value is Dictionary:
-		return {}
-	var handling: Variant = (config_value as Dictionary).get("handling_profile", {})
+	var config := WeaponContract.load_equipped_config()
+	var handling: Variant = config.get("handling_profile", {})
 	return (handling as Dictionary).duplicate(true) if handling is Dictionary else {}
 
 
@@ -458,6 +474,8 @@ func _request_clip(clip_name: StringName, blend_seconds: float = -1.0) -> void:
 	if clip_name != current_clip:
 		previous_clip = current_clip
 		current_clip = clip_name
+		if asset_runtime != null:
+			asset_runtime.apply_animation_hand_map(String(clip_paths.get(clip_name, "")))
 	var blend := blend_seconds
 	if blend < 0.0:
 		blend = locomotion_blend_seconds if _is_locomotion_clip(previous_clip) and _is_locomotion_clip(clip_name) else transition_blend_seconds

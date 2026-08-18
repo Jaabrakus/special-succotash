@@ -8,6 +8,7 @@ extends Node
 
 const Ballistics := preload("res://scripts/weapons/weapon_ballistics.gd")
 const ShotAuthority := preload("res://scripts/network/socom_shot_authority.gd")
+const WeaponContract := preload("res://scripts/weapons/weapon_rig_contract.gd")
 
 signal authoritative_shot(result: Dictionary)
 
@@ -39,42 +40,18 @@ func configure(target_player: CharacterBody3D, target_camera) -> void:
 
 
 func _apply_equipped_ballistics() -> void:
-	var loadout_path := "res://config/weapons/operator_loadout.json"
 	if ballistics == null:
 		return
-	var config_path := ""
-	for argument in OS.get_cmdline_user_args():
-		if argument.begins_with("--weapon-rig-config="):
-			config_path = argument.trim_prefix("--weapon-rig-config=")
-			break
-	if config_path == "":
-		if not FileAccess.file_exists(loadout_path):
-			return
-		var loadout_file := FileAccess.open(loadout_path, FileAccess.READ)
-		var loadout_value: Variant = (
-			JSON.parse_string(loadout_file.get_as_text())
-			if loadout_file != null
-			else null
-		)
-		if not loadout_value is Dictionary:
-			return
-		config_path = String((loadout_value as Dictionary).get("rig_config", ""))
-	if config_path == "" or not FileAccess.file_exists(config_path):
+	var config := WeaponContract.load_equipped_config()
+	if config.is_empty():
 		return
-	var config_file := FileAccess.open(config_path, FileAccess.READ)
-	var config_value: Variant = (
-		JSON.parse_string(config_file.get_as_text())
-		if config_file != null
-		else null
-	)
-	if not config_value is Dictionary:
-		return
-	var values: Dictionary = (config_value as Dictionary).get("ballistics", {})
-	var saved_reticle: Variant = (config_value as Dictionary).get("reticle", {})
+	var values: Dictionary = config.get("ballistics", {})
+	var saved_reticle: Variant = config.get("reticle", {})
 	if saved_reticle is Dictionary:
 		reticle_profile.merge((saved_reticle as Dictionary), true)
 	ballistics.fire_rate_rpm = float(values.get("fire_rate_rpm", ballistics.fire_rate_rpm))
 	ballistics.damage_per_shot = float(values.get("damage", ballistics.damage_per_shot))
+	ballistics.muzzle_velocity_mps = float(values.get("muzzle_velocity_mps", ballistics.muzzle_velocity_mps))
 	ballistics.base_spread_deg = float(values.get("base_spread_deg", ballistics.base_spread_deg))
 	ballistics.bloom_per_shot_deg = float(values.get("bloom_per_shot_deg", ballistics.bloom_per_shot_deg))
 	ballistics.max_recoil_bloom_deg = float(values.get("max_recoil_bloom_deg", ballistics.max_recoil_bloom_deg))
@@ -145,6 +122,15 @@ func request_fire() -> Dictionary:
 	)
 	if not bool(result.get("fired", false)):
 		return result
+	var rendered_barrel_direction := (
+		Vector3(mannequin.get_active_barrel_direction())
+		if mannequin.has_method("get_active_barrel_direction")
+		else Vector3(validation.direction)
+	)
+	result["rendered_barrel_direction"] = rendered_barrel_direction
+	result["barrel_alignment_error_deg"] = rad_to_deg(
+		rendered_barrel_direction.angle_to(Vector3(validation.direction))
+	)
 
 	last_accepted_sequence = int(payload.sequence)
 	result["origin"] = muzzle
