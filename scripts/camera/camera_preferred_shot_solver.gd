@@ -8,6 +8,9 @@ func configure(camera_rig) -> void:
 
 func preferred_position() -> Vector3:
     var prone_amount := prone_stance_amount()
+    var peek_amount: float = 0.0
+    if rig.target != null and rig.target.has_method("get_peek_amount"):
+        peek_amount = clampf(float(rig.target.call("get_peek_amount")), -1.0, 1.0)
     var anchor: Vector3 = (
         rig.target.global_position
         + rig.movement_lead
@@ -62,6 +65,7 @@ func preferred_position() -> Vector3:
         + side * (
             shot_shoulder
             + rig.downward_crane_amount * rig.profile.max_downward_camera_side
+            + peek_amount * rig.profile.peek_camera_lateral_offset
         )
     )
 

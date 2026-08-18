@@ -80,6 +80,7 @@ var firing: bool = false
 var obstruction_amount: float = 0.0
 var vertical_speed: float = 0.0
 var visual_aim_target := Vector3.ZERO
+var peek_amount: float = 0.0
 
 var _explicit_visual_inputs: bool = false
 var _previous_firing: bool = false
@@ -167,7 +168,9 @@ func _process(delta: float) -> void:
 		upper_body_gait_roll_retention,
 		_prone_straighten_weight,
 		deg_to_rad(prone_axis_max_correction_deg),
-		deg_to_rad(prone_axis_target_pitch_deg)
+		deg_to_rad(prone_axis_target_pitch_deg),
+		posture,
+		peek_amount
 	)
 	weapon_pose_solver.apply(
 		aim_yaw_rad,
@@ -479,6 +482,7 @@ func _pull_player_inputs() -> void:
 	if movement_direction.length_squared() > 0.001:
 		movement_direction = movement_direction.normalized() * movement_speed_normalized
 	posture = player.get_posture_name() if player.has_method("get_posture_name") else &"STANDING"
+	peek_amount = float(player.call("get_peek_amount")) if player.has_method("get_peek_amount") else 0.0
 	movement_state = player.get_motion_state_name() if player.has_method("get_motion_state_name") else &"LOCOMOTION"
 	vertical_speed = player.velocity.y
 
@@ -499,7 +503,8 @@ func set_visual_inputs(
 	world_aim_target: Vector3 = Vector3.ZERO,
 	desired_direction: Vector2 = Vector2.ZERO,
 	desired_strength: float = -1.0,
-	response_mode: StringName = &"IDLE"
+	response_mode: StringName = &"IDLE",
+	peek: float = 0.0
 ) -> void:
 	_explicit_visual_inputs = true
 	movement_direction = direction
@@ -522,6 +527,7 @@ func set_visual_inputs(
 		1.0
 	)
 	movement_response_mode = response_mode
+	peek_amount = clampf(peek, -1.0, 1.0)
 
 
 func get_animation_debug_state() -> Dictionary:
@@ -544,6 +550,7 @@ func get_animation_debug_state() -> Dictionary:
 		"prone_axis_weight": _prone_straighten_weight,
 		"prone_axis_target_pitch_deg": prone_axis_target_pitch_deg,
 		"prone_axis_max_correction_deg": prone_axis_max_correction_deg,
+		"peek_amount": peek_amount,
 	}
 	if locomotion_graph != null:
 		snapshot.merge(locomotion_graph.get_debug_state(), true)

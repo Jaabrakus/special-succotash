@@ -427,6 +427,11 @@ func _sync_production_animation(player: CharacterBody3D) -> void:
     var response_mode := &"IDLE"
     if player.has_method("get_horizontal_response_mode"):
         response_mode = StringName(player.call("get_horizontal_response_mode"))
+    var peek_amount: float = (
+        float(player.call("get_peek_amount"))
+        if player.has_method("get_peek_amount")
+        else 0.0
+    )
     production_animation.set_visual_inputs(
         visual_direction,
         posture_name,
@@ -443,7 +448,8 @@ func _sync_production_animation(player: CharacterBody3D) -> void:
         Vector3(rig.get("weapon_aim_point")),
         desired_visual,
         desired_strength,
-        response_mode
+        response_mode,
+        peek_amount
     )
 
 func _find_clear_weapon_offset(player: CharacterBody3D, target_point: Vector3) -> Vector3:

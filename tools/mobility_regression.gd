@@ -31,6 +31,7 @@ func _run() -> void:
     await _test_direction_independent_acceleration(player)
     await _test_braking_and_reversal_response(player)
     await _test_aim_relative_strafing(scene, player)
+    await _test_full_body_peek(player)
 
     await _tap(&"crouch")
     _expect(_state(player) == &"CROUCHED", "crouch enters the crouched state")
@@ -287,6 +288,51 @@ func _rest_relative_global_yaw(skeleton: Skeleton3D, bone_name: String) -> float
     var rested := skeleton.get_bone_global_rest(bone_index).basis.orthonormalized()
     return (posed * rested.inverse()).get_euler().y
 
+func _test_full_body_peek(player: CharacterBody3D) -> void:
+    var driver := player.get_node_or_null("Mannequin/ProductionAnimation")
+    _expect(driver != null, "operator animation driver exists for full-body peek")
+    if driver == null:
+        return
+    var skeleton: Skeleton3D = driver.get("skeleton")
+    _expect(skeleton != null, "full-body peek has a live skeleton")
+    if skeleton == null:
+        return
+    var neutral_offset := _head_lateral_offset(skeleton)
+
+    Input.action_press(&"peek_left")
+    await _step_physics(10)
+    _expect(float(player.call("get_peek_amount")) < -0.95, "Q reaches the planted left-peek pose")
+    var left_offset := _head_lateral_offset(skeleton)
+    print("MOBILITY_METRIC peek_head_x neutral=%.4f left=%.4f" % [neutral_offset, left_offset])
+    var left_debug: Dictionary = driver.call("get_animation_debug_state")
+    _expect(left_offset < neutral_offset - 0.001, "left peek exposes the head on the requested side")
+    _expect(float(left_debug.get("peek_roll_deg", 0.0)) >= 14.0, "left peek uses the full pelvis-to-head curve")
+    await _capture_pose("peek_left")
+    Input.action_release(&"peek_left")
+    await _step_physics(8)
+
+    Input.action_press(&"peek_right")
+    await _step_physics(10)
+    _expect(float(player.call("get_peek_amount")) > 0.95, "E reaches the planted right-peek pose")
+    var right_offset := _head_lateral_offset(skeleton)
+    print("MOBILITY_METRIC peek_head_x neutral=%.4f right=%.4f" % [neutral_offset, right_offset])
+    _expect(right_offset > neutral_offset + 0.001, "right peek exposes the head on the requested side")
+    await _capture_pose("peek_right")
+    Input.action_release(&"peek_right")
+    await _step_physics(8)
+    _expect(absf(float(player.call("get_peek_amount"))) < 0.01, "peek releases smoothly back to neutral")
+
+func _head_lateral_offset(skeleton: Skeleton3D) -> float:
+    var hips_index := skeleton.find_bone("mixamorig_Hips")
+    var head_index := skeleton.find_bone("mixamorig_Head")
+    if hips_index < 0 or head_index < 0:
+        return 0.0
+    skeleton.force_update_all_bone_transforms()
+    return (
+        skeleton.get_bone_global_pose(head_index).origin.x
+        - skeleton.get_bone_global_pose(hips_index).origin.x
+    )
+
 func _test_jump(player: CharacterBody3D) -> void:
     await _step_physics(6)
     var start_y := player.global_position.y
@@ -443,7 +489,7 @@ func _expect(condition: bool, label: String) -> void:
         push_error("MOBILITY_CHECK FAIL %s" % label)
 
 func _finish() -> void:
-    for action in [&"jump", &"crouch", &"prone", &"dive", &"roll", &"move_forward", &"move_back", &"move_left", &"move_right"]:
+    for action in [&"jump", &"crouch", &"prone", &"dive", &"roll", &"peek_left", &"peek_right", &"move_forward", &"move_back", &"move_left", &"move_right"]:
         Input.action_release(action)
     if failures.is_empty():
         print("MOBILITY_REGRESSION PASS")

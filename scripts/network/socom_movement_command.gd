@@ -15,6 +15,7 @@ var roll_pressed: bool = false
 var prone_pressed: bool = false
 var crouch_held: bool = false
 var crouch_released: bool = false
+var peek_axis: float = 0.0
 
 
 func duplicate_command():
@@ -29,4 +30,5 @@ func duplicate_command():
 	copy.prone_pressed = prone_pressed
 	copy.crouch_held = crouch_held
 	copy.crouch_released = crouch_released
+	copy.peek_axis = peek_axis
 	return copy

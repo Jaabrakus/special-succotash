@@ -119,9 +119,15 @@ func _ensure_input_map() -> void:
         InputMap.erase_action("run")
     _add_key_action("jump", KEY_SPACE)
     _add_key_action("crouch", KEY_X)
-    _add_key_action("prone", KEY_Q)
+    # Retain semantic actions for replay/network/tests without letting their old
+    # Q/E bindings conflict with the hold-to-peek controls.
+    _ensure_action("prone")
+    _ensure_action("roll")
+    _remove_key_binding("prone", KEY_Q)
+    _remove_key_binding("roll", KEY_E)
+    _add_key_action("peek_left", KEY_Q)
     _add_key_action("dive", KEY_Z)
-    _add_key_action("roll", KEY_E)
+    _add_key_action("peek_right", KEY_E)
     _add_key_action("reset_camera", KEY_R)
     _add_key_action("toggle_calibration", KEY_C)
     _add_key_action("calibration_opacity_down", KEY_BRACKETLEFT)
@@ -138,6 +144,17 @@ func _ensure_input_map() -> void:
     _add_key_action("toggle_anim_studio", KEY_F5)
     _add_key_action("crouch", KEY_C)
     _add_mouse_action("fire", MOUSE_BUTTON_LEFT)
+
+func _ensure_action(action: StringName) -> void:
+    if not InputMap.has_action(action):
+        InputMap.add_action(action, 0.25)
+
+func _remove_key_binding(action: StringName, keycode: Key) -> void:
+    if not InputMap.has_action(action):
+        return
+    for existing_event in InputMap.action_get_events(action):
+        if existing_event is InputEventKey and existing_event.physical_keycode == keycode:
+            InputMap.action_erase_event(action, existing_event)
 
 func _add_mouse_action(action: StringName, button_index: MouseButton) -> void:
     if not InputMap.has_action(action):
@@ -346,7 +363,7 @@ func _process(_delta: float) -> void:
         print("CAMERA_REPORT ", JSON.stringify(d))
     debug_label.text = (
         "SOCOM-141 CAMERA LAB\n"
-        + "WASD move | Space jump | X crouch/hold prone | Z dive-prone | Q prone | E roll\n"
+        + "WASD move | Space jump | X/C tap crouch, hold prone | Z dive-prone | Q/E peek\n"
         + "Mouse orbit | R reset | H clean HUD | K body stack | V camera view | P tune | F9 record | F10 replay\n"
         + "v2.5 SOCOM burst fire + long-zero barrel aim\n\n"
         + "Vertical FOV     %5.1f°\n" % d.fov
@@ -1112,7 +1129,7 @@ func _build_animation_studio(layer: CanvasLayer) -> void:
     var legend := Label.new()
     legend.text = (
         "\nControls: WASD/left stick movement strength controls shuffle-to-tactical-run | Space jump\n"
-        + "X/C crouch (hold prone) | Z dive-prone | Q prone | Left Click fire | F5 studio\n"
+        + "X/C crouch (hold prone) | Z dive-prone | Q/E peek | Left Click fire | F5 studio\n"
         + "Clip map: config/operator_animation_map.json (restart after map edits)"
     )
     legend.add_theme_font_size_override("font_size", 10)

@@ -26,6 +26,8 @@ const MovementCommand := preload("res://scripts/network/socom_movement_command.g
 @export var roll_speed: float = 6.8
 @export var roll_duration: float = 0.62
 @export var landing_recovery: float = 0.18
+@export_range(1.0, 30.0, 0.5) var peek_enter_response: float = 13.0
+@export_range(1.0, 30.0, 0.5) var peek_exit_response: float = 16.0
 
 enum MotionState {
     STANDING,
@@ -60,6 +62,7 @@ var stance_held_triggered: bool = false
 var stance_hold_threshold: float = 0.20
 var jump_was_held: bool = false
 var jump_requested: bool = false
+var peek_amount: float = 0.0
 
 func _physics_process(delta: float) -> void:
     if replay_override_active:
@@ -70,6 +73,15 @@ func _physics_process(delta: float) -> void:
     var input: Vector2 = command.move_axis
     var automated_world_direction: Vector3 = command.world_move_override
     var authoritative_aim_yaw: float = command.aim_yaw
+    var peek_target: float = clampf(command.peek_axis, -1.0, 1.0)
+    if OS.get_cmdline_user_args().has("--peek-left-test"):
+        peek_target = -1.0
+    elif OS.get_cmdline_user_args().has("--peek-right-test"):
+        peek_target = 1.0
+    if motion_state in [MotionState.DIVING, MotionState.ROLLING, MotionState.AIRBORNE]:
+        peek_target = 0.0
+    var peek_response := peek_enter_response if absf(peek_target) > absf(peek_amount) else peek_exit_response
+    peek_amount = move_toward(peek_amount, peek_target, peek_response * delta)
     if OS.get_cmdline_user_args().has("--movement-test"):
         input = Vector2(1.0, 0.0)
     elif OS.get_cmdline_user_args().has("--wall-entry-test"):
@@ -193,6 +205,9 @@ func get_aim_relative_yaw() -> float:
 func get_desired_movement_direction() -> Vector3:
     return desired_movement_direction
 
+func get_peek_amount() -> float:
+    return peek_amount
+
 func is_turning_in_place() -> bool:
     return orientation.is_turning_in_place
 
@@ -236,6 +251,7 @@ func _capture_local_movement_command():
     command.prone_pressed = Input.is_action_just_pressed("prone")
     command.crouch_held = Input.is_action_pressed("crouch")
     command.crouch_released = Input.is_action_just_released("crouch")
+    command.peek_axis = Input.get_axis("peek_left", "peek_right")
     return command
 
 func _movement_speed() -> float:

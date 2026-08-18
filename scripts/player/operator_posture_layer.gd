@@ -13,6 +13,10 @@ const BONE_CANDIDATES: Dictionary = {
 	&"head": [&"mixamorig_Head"],
 	&"left_shoulder": [&"mixamorig_LeftShoulder"],
 	&"right_shoulder": [&"mixamorig_RightShoulder"],
+	&"left_upper_leg": [&"mixamorig_LeftUpLeg"],
+	&"right_upper_leg": [&"mixamorig_RightUpLeg"],
+	&"left_lower_leg": [&"mixamorig_LeftLeg"],
+	&"right_lower_leg": [&"mixamorig_RightLeg"],
 }
 
 const TORSO_YAW_WEIGHTS: Dictionary = {
@@ -44,6 +48,8 @@ var last_lower_body_roll_deg: float = 0.0
 var last_prone_axis_input_error_deg: float = 0.0
 var last_prone_axis_residual_error_deg: float = 0.0
 var last_prone_axis_correction_deg: float = 0.0
+var last_peek_amount: float = 0.0
+var last_peek_roll_deg: float = 0.0
 
 
 func bind(target_skeleton: Skeleton3D, neutral_pose_hip_rotation := Quaternion.IDENTITY) -> void:
@@ -70,7 +76,9 @@ func apply(
 	gait_roll_retention: float = 0.18,
 	prone_axis_weight: float = 0.0,
 	prone_axis_max_correction: float = deg_to_rad(35.0),
-	prone_axis_target_pitch: float = deg_to_rad(6.0)
+	prone_axis_target_pitch: float = deg_to_rad(6.0),
+	posture_name: StringName = &"STANDING",
+	peek_amount: float = 0.0
 ) -> void:
 	if skeleton == null:
 		return
@@ -119,6 +127,7 @@ func apply(
 	var shoulder_pitch := recoil_pitch * 0.22
 	_apply_bone_additive(&"left_shoulder", 0.0, shoulder_pitch)
 	_apply_bone_additive(&"right_shoulder", 0.0, shoulder_pitch)
+	_apply_full_body_peek(posture_name, peek_amount)
 	last_angular_error_deg = rad_to_deg(absf(aim_yaw - last_applied_yaw))
 
 
@@ -134,7 +143,64 @@ func get_debug_state() -> Dictionary:
 		"prone_axis_input_error_deg": last_prone_axis_input_error_deg,
 		"prone_axis_correction_deg": last_prone_axis_correction_deg,
 		"prone_axis_residual_error_deg": last_prone_axis_residual_error_deg,
+		"peek_amount": last_peek_amount,
+		"peek_roll_deg": last_peek_roll_deg,
 	}
+
+
+func _apply_full_body_peek(posture_name: StringName, amount: float) -> void:
+	# SOCOM's peek is a planted reach, not a camera roll or one-joint waist bend.
+	# The signed gameplay side maps directly to this rig's local Z roll.
+	var signed_amount := clampf(amount, -1.0, 1.0)
+	last_peek_amount = signed_amount
+	if absf(signed_amount) <= 0.0001:
+		last_peek_roll_deg = 0.0
+		return
+	var pose_amount := signed_amount
+	var hip_roll_deg := 5.0
+	var spine_roll_deg := 13.0
+	var head_counter_deg := 2.0
+	var thigh_open_deg := 7.0
+	var shin_counter_deg := 5.0
+	if posture_name == &"CROUCHED":
+		hip_roll_deg = 6.0
+		spine_roll_deg = 11.0
+		head_counter_deg = 2.5
+		thigh_open_deg = 8.0
+		shin_counter_deg = 7.0
+	elif posture_name == &"PRONE":
+		hip_roll_deg = 1.5
+		spine_roll_deg = 9.0
+		head_counter_deg = 3.0
+		thigh_open_deg = 0.0
+		shin_counter_deg = 0.0
+
+	_apply_bone_roll(&"hips", deg_to_rad(hip_roll_deg) * pose_amount)
+	_apply_bone_roll(&"spine", deg_to_rad(spine_roll_deg * 0.28) * pose_amount)
+	_apply_bone_roll(&"spine1", deg_to_rad(spine_roll_deg * 0.34) * pose_amount)
+	_apply_bone_roll(&"spine2", deg_to_rad(spine_roll_deg * 0.38) * pose_amount)
+	_apply_bone_roll(&"neck", deg_to_rad(-head_counter_deg * 0.45) * pose_amount)
+	_apply_bone_roll(&"head", deg_to_rad(-head_counter_deg * 0.55) * pose_amount)
+
+	if thigh_open_deg > 0.0:
+		var exposed_thigh := &"right_upper_leg" if signed_amount > 0.0 else &"left_upper_leg"
+		var exposed_shin := &"right_lower_leg" if signed_amount > 0.0 else &"left_lower_leg"
+		var support_thigh := &"left_upper_leg" if signed_amount > 0.0 else &"right_upper_leg"
+		_apply_bone_roll(exposed_thigh, deg_to_rad(thigh_open_deg) * pose_amount)
+		_apply_bone_roll(exposed_shin, deg_to_rad(-shin_counter_deg) * pose_amount)
+		_apply_bone_roll(support_thigh, deg_to_rad(-2.0) * pose_amount)
+	last_peek_roll_deg = (hip_roll_deg + spine_roll_deg - head_counter_deg) * absf(signed_amount)
+
+
+func _apply_bone_roll(bone_name: StringName, roll: float) -> void:
+	var index := int(bone_indices.get(bone_name, -1))
+	if index < 0:
+		return
+	var base_rotation := skeleton.get_bone_pose_rotation(index)
+	skeleton.set_bone_pose_rotation(
+		index,
+		base_rotation * Quaternion(Vector3.FORWARD, roll)
+	)
 
 
 func _apply_prone_axis_alignment(

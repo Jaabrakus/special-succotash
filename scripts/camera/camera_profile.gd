@@ -12,6 +12,7 @@ extends Resource
 @export var close_fov_response: float = 12.0
 @export var look_ahead_distance: float = 14.0
 @export var look_height: float = 1.45
+@export_range(0.0, 0.75, 0.01) var peek_camera_lateral_offset: float = 0.38
 
 @export_group("Orbit")
 @export var mouse_sensitivity: float = 0.0024
