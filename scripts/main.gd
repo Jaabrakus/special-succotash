@@ -8,7 +8,10 @@ const CameraAuditRecorderScript := preload("res://scripts/camera/camera_audit_re
 const BodyStackOverlayScript := preload("res://scripts/ui/operator_body_stack_overlay.gd")
 const ShotAuthorityScript := preload("res://scripts/network/socom_shot_authority.gd")
 const WeaponControllerScript := preload("res://scripts/weapons/socom_weapon_controller.gd")
-const ShootingDummyScript := preload("res://scripts/labs/shooting_dummy.gd")
+const DynamicReticleScript := preload("res://scripts/ui/socom_dynamic_reticle.gd")
+const TracerSystemScript := preload("res://scripts/weapons/lab_leak_tracer_system.gd")
+const TargetDummyScript := preload("res://scripts/combat/lab_leak_target_dummy.gd")
+const AudioEngineScript := preload("res://scripts/audio/lab_leak_audio_engine.gd")
 const RETICLE_BOX_SIZE := Vector2(32.0, 32.0)
 const OPERATOR_TUNING_PATH := "res://config/operator_movement_tuning.json"
 
@@ -16,6 +19,7 @@ var player
 var camera_rig
 var debug_label: Label
 var crosshair: Label
+var dynamic_reticle: SocomDynamicReticle
 var calibration_overlay: Control
 var calibration_texture: TextureRect
 var calibration_status: Label
@@ -43,8 +47,8 @@ var anim_studio_visible: bool = true
 var anim_studio_state_label: Label
 var anim_tuning_sliders: Dictionary = {}
 var operator_tuning: Dictionary = {}
-var shooting_range_root: Node3D
-var shooting_range_active: bool = false
+var target_dummies: Array[Node] = []
+var target_range_active: bool = true
 
 const REFERENCE_FRAME_PATH := "res://reference/reference_frame.png"
 const ENVIRONMENT_SHADER := """
@@ -64,18 +68,23 @@ func _ready() -> void:
     debug_hud_visible = not OS.get_cmdline_user_args().has("--clean-hud")
     _load_operator_tuning()
     anim_studio_visible = (
-        bool(operator_tuning.get("studio_open_on_start", true))
+        bool(operator_tuning.get("studio_open_on_start", false))
         and debug_hud_visible
         and not OS.get_cmdline_user_args().has("--automated-test")
     )
     _ensure_input_map()
     _build_environment()
-    shooting_range_active = OS.get_cmdline_user_args().has("--shooting-range")
-    if shooting_range_active:
-        _build_shooting_range()
+    TracerSystemScript.initialize(self)
+    TracerSystemScript.set_trajectory_debug_enabled(
+        OS.get_cmdline_user_args().has("--trajectory-debug")
+    )
+    AudioEngineScript.initialize(self)
     _build_player()
     _apply_operator_tuning()
-    if OS.get_cmdline_user_args().has("--prone-camera-test"):
+    if (
+        OS.get_cmdline_user_args().has("--prone-camera-test")
+        or OS.get_cmdline_user_args().has("--prone-forward-test")
+    ):
         player.posture = 2
         player.motion_state = 2
         player.call("_apply_posture_collider")
@@ -148,7 +157,8 @@ func _ensure_input_map() -> void:
     _add_key_action("toggle_camera_recording", KEY_F9)
     _add_key_action("replay_camera_recording", KEY_F10)
     _add_key_action("toggle_anim_studio", KEY_F5)
-    _add_key_action("toggle_shooting_range", KEY_F4)
+    _add_key_action("toggle_target_range", KEY_F4)
+    _add_key_action("toggle_trajectory_debug", KEY_F6)
     _add_key_action("crouch", KEY_C)
     _add_mouse_action("fire", MOUSE_BUTTON_LEFT)
 
@@ -194,8 +204,12 @@ func _process(_delta: float) -> void:
     _update_spectator_camera()
     if Input.is_action_just_pressed("toggle_anim_studio"):
         _set_animation_studio_visible(not anim_studio_visible)
-    if Input.is_action_just_pressed("toggle_shooting_range"):
-        _set_shooting_range_active(not shooting_range_active)
+    if Input.is_action_just_pressed("toggle_target_range"):
+        _set_target_range_active(not target_range_active)
+    if Input.is_action_just_pressed("toggle_trajectory_debug"):
+        TracerSystemScript.set_trajectory_debug_enabled(
+            not TracerSystemScript.is_trajectory_debug_enabled()
+        )
     if anim_studio_visible:
         _update_animation_studio_state()
     if Input.is_action_just_pressed("toggle_debug_hud"):
@@ -374,7 +388,7 @@ func _process(_delta: float) -> void:
         "SOCOM-141 CAMERA LAB\n"
         + "WASD move | Space jump | X/C tap crouch, hold prone | Z dive-prone | Q/E peek | F4 targets\n"
         + "Mouse orbit | R reset | H clean HUD | K body stack | V camera view | P tune | F9 record | F10 replay\n"
-        + "v2.6 SQUARE SHOULDERS + AUTHORITATIVE TARGET RANGE\n\n"
+        + "v2.7 MERGED SOCOM RETICLE + HUMANOID HURTBOX RANGE\n\n"
         + "Vertical FOV     %5.1f°\n" % d.fov
         + "Rear boom       %5.2f m behind player\n" % d.rear_boom_distance
         + "Camera range    %5.2f m diagonal to player\n" % d.distance
@@ -466,31 +480,29 @@ func _build_environment() -> void:
         marker.position = Vector3(i * 1.5, 0.08, -10.0)
         add_child(marker)
 
-func _build_shooting_range() -> void:
-    if shooting_range_root != null:
+func _spawn_target_range() -> void:
+    if not target_dummies.is_empty():
         return
-    shooting_range_root = Node3D.new()
-    shooting_range_root.name = "AuthoritativeShootingRange"
-    add_child(shooting_range_root)
-    var target_specs := [
-        ["CENTER", Vector3(0.0, 0.0, -10.0), 0.0],
-        ["FLANK", Vector3(-3.0, 0.0, -8.0), -12.0],
-        ["BRACED", Vector3(4.2, 0.0, -10.5), 15.0],
-    ]
-    for spec in target_specs:
-        var target := ShootingDummyScript.new()
-        target.name = spec[0]
-        target.position = spec[1]
-        target.rotation_degrees.y = spec[2]
-        shooting_range_root.add_child(target)
+    _spawn_target_dummy(Vector3(0.0, 0.0, -8.0), 180.0)
+    _spawn_target_dummy(Vector3(4.0, 0.0, -11.0), -90.0)
+    _spawn_target_dummy(Vector3(-4.0, 0.0, -13.0), 0.0)
 
-func _set_shooting_range_active(enabled: bool) -> void:
-    shooting_range_active = enabled
+func _spawn_target_dummy(target_position: Vector3, target_yaw_degrees: float) -> void:
+    var dummy = TargetDummyScript.new()
+    dummy.position = target_position
+    dummy.rotation_degrees.y = target_yaw_degrees
+    add_child(dummy)
+    target_dummies.append(dummy)
+
+func _set_target_range_active(enabled: bool) -> void:
+    target_range_active = enabled
     if enabled:
-        _build_shooting_range()
-    elif shooting_range_root != null:
-        shooting_range_root.queue_free()
-        shooting_range_root = null
+        _spawn_target_range()
+        return
+    for dummy in target_dummies:
+        if is_instance_valid(dummy):
+            dummy.queue_free()
+    target_dummies.clear()
 
 func _build_player() -> void:
     player = PlayerScript.new()
@@ -510,6 +522,8 @@ func _build_player() -> void:
     var mannequin = MannequinScript.new()
     mannequin.name = "Mannequin"
     player.add_child(mannequin)
+    if target_range_active:
+        _spawn_target_range()
 
 func _set_roof_test_position(enabled: bool) -> void:
     player.velocity = Vector3.ZERO
@@ -587,6 +601,31 @@ func _build_weapon_controller() -> void:
     weapon_controller.name = "WeaponController"
     add_child(weapon_controller)
     weapon_controller.configure(player, camera_rig)
+    weapon_controller.authoritative_shot.connect(_on_authoritative_shot)
+
+func _on_authoritative_shot(result: Dictionary) -> void:
+    var origin := Vector3(result.get("origin", Vector3.ZERO))
+    var hit_position := Vector3(result.get("hit_pos", origin))
+    var hit_normal := Vector3(result.get("normal", Vector3.UP))
+    TracerSystemScript.spawn_muzzle_flash(get_tree(), origin)
+    TracerSystemScript.spawn_tracer(get_tree(), origin, hit_position)
+    TracerSystemScript.spawn_impact_effect(get_tree(), hit_position, hit_normal)
+    if TracerSystemScript.is_trajectory_debug_enabled():
+        TracerSystemScript.spawn_trajectory_reference(
+            get_tree(), camera_rig.global_position, camera_rig.weapon_aim_point,
+            Color(0.15, 0.95, 1.0)
+        )
+        TracerSystemScript.spawn_trajectory_reference(
+            get_tree(), origin, camera_rig.weapon_aim_point, Color.WHITE
+        )
+    AudioEngineScript.play_gunshot(get_tree())
+    var damage_result: Variant = result.get("damage_result", {})
+    if damage_result is Dictionary and bool((damage_result as Dictionary).get("accepted", false)):
+        if dynamic_reticle:
+            dynamic_reticle.notify_hit()
+        AudioEngineScript.play_hit_confirm(
+            get_tree(), bool((damage_result as Dictionary).get("headshot", false))
+        )
 
 
 func _build_camera_tools() -> void:
@@ -635,11 +674,16 @@ func _build_ui() -> void:
     crosshair.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
     crosshair.size = RETICLE_BOX_SIZE
     crosshair.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    crosshair.visible = false
     layer.add_child(crosshair)
     crosshair.position = (
         get_viewport().get_visible_rect().size * 0.5
         - crosshair.size * 0.5
     )
+
+    dynamic_reticle = DynamicReticleScript.new()
+    dynamic_reticle.name = "SocomDynamicReticle"
+    layer.add_child(dynamic_reticle)
 
     _build_calibration_overlay(layer)
     _build_camera_workbench(layer)
@@ -849,7 +893,7 @@ func _save_workbench_preset() -> void:
         workbench_status.text = "Preset saved: %s" % ProjectSettings.globalize_path(path)
 
 func _update_crosshair(data: Dictionary) -> void:
-    if crosshair == null:
+    if crosshair == null or dynamic_reticle == null:
         return
     var viewport_size := get_viewport().get_visible_rect().size
     crosshair.size = RETICLE_BOX_SIZE
@@ -861,6 +905,32 @@ func _update_crosshair(data: Dictionary) -> void:
         Color(1.0, 0.42, 0.30)
         if bool(data.shot_blocked)
         else Color.WHITE
+    )
+    var screen_position := crosshair.position + crosshair.size * 0.5
+    var target_locked := false
+    if camera_rig != null and camera_rig.camera != null:
+        var origin: Vector3 = camera_rig.camera.project_ray_origin(screen_position)
+        var direction: Vector3 = camera_rig.camera.project_ray_normal(screen_position)
+        var query := PhysicsRayQueryParameters3D.create(origin, origin + direction * 150.0)
+        query.exclude = [player.get_rid()]
+        query.collision_mask = 1 | (1 << 2)
+        query.collide_with_areas = true
+        var hit := get_world_3d().direct_space_state.intersect_ray(query)
+        target_locked = (
+            not hit.is_empty()
+            and hit.collider != null
+            and hit.collider.has_method("take_bullet_damage")
+        )
+    var spread_normalized := 0.0
+    if weapon_controller != null and weapon_controller.ballistics != null:
+        spread_normalized = clampf(
+            float(weapon_controller.ballistics.total_current_spread_deg)
+            / maxf(float(weapon_controller.ballistics.max_recoil_bloom_deg), 0.001),
+            0.0,
+            1.0
+        )
+    dynamic_reticle.update_reticle_state(
+        spread_normalized, target_locked, screen_position
     )
 
 func _build_calibration_overlay(layer: CanvasLayer) -> void:
@@ -1234,7 +1304,7 @@ func _set_animation_studio_input_mode(enabled: bool) -> void:
 func _default_operator_tuning() -> Dictionary:
     return {
         "version": 1,
-        "studio_open_on_start": true,
+        "studio_open_on_start": false,
         "movement": {
             "move_speed": 6.5,
             "strafe_speed": 5.6,

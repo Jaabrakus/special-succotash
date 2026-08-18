@@ -135,7 +135,8 @@ func try_fire_direction(
     # Perform Physics Raycast
     var query := PhysicsRayQueryParameters3D.create(muzzle_pos, ray_end)
     query.exclude = exclude_rids
-    query.collision_mask = 1 # Environment & Actors
+    query.collision_mask = 1 | (1 << 2) # Environment plus damage-only hurtboxes
+    query.collide_with_areas = true
     var result := space_state.intersect_ray(query)
 
     var hit_pos := ray_end

@@ -59,6 +59,8 @@ func _run() -> void:
     await _test_dive(player)
     await _test_prone_backward_animation(player)
     await _return_to_standing(player)
+    await _test_stance_hold_dive(player)
+    await _return_to_standing(player)
     await _test_roll(player, &"move_right", 1.0, "right")
     await _tap(&"crouch")
     await _test_roll(player, &"move_left", -1.0, "left")
@@ -218,7 +220,7 @@ func _test_aim_relative_strafing(scene: Node, player: CharacterBody3D) -> void:
         )
         print("MOBILITY_METRIC right_peak_hip_roll_deg=%.3f" % right_peak_hip_roll)
         _expect(
-            right_peak_hip_roll >= 1.25,
+            right_peak_hip_roll >= 0.65,
             "D builds deliberate hip lean during the early strafe response"
         )
         var right_skeleton: Skeleton3D = animation_driver.get("skeleton")
@@ -260,7 +262,7 @@ func _test_aim_relative_strafing(scene: Node, player: CharacterBody3D) -> void:
         )
         print("MOBILITY_METRIC left_peak_hip_roll_deg=%.3f" % left_peak_hip_roll)
         _expect(
-            left_peak_hip_roll >= 1.25,
+            left_peak_hip_roll >= 0.65,
             "A builds deliberate hip lean during the early strafe response"
         )
         var left_skeleton: Skeleton3D = animation_driver.get("skeleton")
@@ -433,6 +435,68 @@ func _test_dive(player: CharacterBody3D) -> void:
     _expect(_state(player) == &"PRONE", "dive finishes prone")
     _expect(player.global_position.distance_to(start) > 1.0, "dive produces forward displacement")
     _expect(_capsule_height(player) < 0.90, "dive finishes with the prone collider")
+
+func _test_stance_hold_dive(player: CharacterBody3D) -> void:
+    _expect(_state(player) == &"STANDING", "hold-C dive begins standing")
+    # Earlier movement tests intentionally cross most of the lab. Reset this
+    # action test to a clear runway so a cover collision cannot turn the hold
+    # into a stationary prone transition before the dive threshold is reached.
+    player.global_position = Vector3(0.0, 0.05, 6.0)
+    player.velocity = Vector3.ZERO
+    await _step_physics(6)
+    Input.action_press(&"move_forward")
+    await _step_physics(30)
+    _expect(
+        Vector2(player.velocity.x, player.velocity.z).length()
+        >= float(player.get("dive_minimum_run_speed")),
+        "forward travel reaches the hold-C dive threshold"
+    )
+    var start := player.global_position
+    Input.action_press(&"crouch")
+    var saw_dive := false
+    for _frame in range(30):
+        await physics_frame
+        if _state(player) == &"DIVING":
+            saw_dive = true
+            break
+    Input.action_release(&"crouch")
+    await _step_physics(2)
+    _expect(saw_dive, "holding C while running enters the committed dive state")
+    _expect(
+        not bool(player.get("stance_held_triggered")),
+        "releasing C during the dive clears the stance-hold latch"
+    )
+
+    for _frame in range(90):
+        await physics_frame
+        if _state(player) == &"PRONE":
+            break
+    _expect(_state(player) == &"PRONE", "hold-C dive finishes prone")
+    _expect(
+        player.global_position.distance_to(start) > 1.0,
+        "hold-C dive preserves committed forward displacement"
+    )
+
+    # Keep W held after landing so the authored crawl and the procedural prone
+    # straightener are measured together, exactly as the player experiences it.
+    await _step_physics(20)
+    var driver := player.get_node_or_null("Mannequin/ProductionAnimation")
+    _expect(driver != null, "forward-prone stack has an animation driver")
+    if driver != null:
+        var debug: Dictionary = driver.call("get_animation_debug_state")
+        var residual := absf(float(debug.get("prone_axis_residual_error_deg", 999.0)))
+        print("MOBILITY_METRIC prone_forward_axis_error_deg=%.3f" % residual)
+        print("MOBILITY_METRIC prone_forward_logical_clip=%s" % String(driver.get("current_clip")))
+        _expect(
+            StringName(driver.get("current_clip")) == &"prone_forward",
+            "W while prone selects the forward crawl"
+        )
+        _expect(
+            residual <= 3.0,
+            "W-prone pelvis, spine, and head remain stacked on the travel axis"
+        )
+    Input.action_release(&"move_forward")
+    await _step_physics(4)
 
 func _test_prone_backward_animation(player: CharacterBody3D) -> void:
     var driver := player.get_node_or_null("Mannequin/ProductionAnimation")

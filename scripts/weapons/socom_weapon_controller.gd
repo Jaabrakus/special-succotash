@@ -88,15 +88,18 @@ func request_fire() -> Dictionary:
 		return result
 
 	last_accepted_sequence = int(payload.sequence)
+	result["origin"] = muzzle
 	result["sequence"] = last_accepted_sequence
 	result["simulation_tick"] = int(payload.simulation_tick)
 	last_result = result
 	var hit_collider: Object = result.get("hit_collider")
-	if hit_collider != null and hit_collider.has_method("apply_bullet_hit"):
-		hit_collider.call(
-			"apply_bullet_hit",
+	if hit_collider != null and hit_collider.has_method("take_bullet_damage"):
+		result["damage_result"] = hit_collider.call(
+			"take_bullet_damage",
 			float(ballistics.damage_per_shot),
-			Vector3(result.hit_pos)
+			Vector3(result.hit_pos),
+			Vector3(result.get("normal", Vector3.UP)),
+			player.global_position
 		)
 	camera_rig.last_fired_direction = Vector3(result.direction)
 	camera_rig.last_fired_point = Vector3(result.hit_pos)

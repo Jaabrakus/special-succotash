@@ -21,6 +21,6 @@
     "strafe_speed": 6.2,
     "torso_to_legs_degrees": 48.0
   },
-  "studio_open_on_start": true,
+  "studio_open_on_start": false,
   "version": 1.0
 }

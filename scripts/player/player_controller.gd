@@ -24,6 +24,7 @@ const MovementCommand := preload("res://scripts/network/socom_movement_command.g
 @export var jump_velocity: float = 6.2
 @export var dive_speed: float = 7.6
 @export var dive_duration: float = 0.72
+@export var dive_minimum_run_speed: float = 2.8
 @export var roll_speed: float = 6.8
 @export var roll_duration: float = 0.62
 @export var landing_recovery: float = 0.18
@@ -85,6 +86,8 @@ func _physics_process(delta: float) -> void:
     peek_amount = move_toward(peek_amount, peek_target, peek_response * delta)
     if OS.get_cmdline_user_args().has("--movement-test"):
         input = Vector2(1.0, 0.0)
+    elif OS.get_cmdline_user_args().has("--prone-forward-test"):
+        input = Vector2(0.0, -1.0)
     elif OS.get_cmdline_user_args().has("--wall-entry-test"):
         input = Vector2.ZERO
         var test_frame := Engine.get_physics_frames()
@@ -135,7 +138,7 @@ func _physics_process(delta: float) -> void:
     jump_requested = false
     var launched_jump_this_frame := false
     if actions_enabled:
-        _handle_posture_command(command, delta)
+        _handle_posture_command(command, delta, desired_dir)
         launched_jump_this_frame = _try_begin_mobility_action(
             desired_dir,
             input,
@@ -295,8 +298,14 @@ func get_movement_gait_name() -> StringName:
         else &"WALK"
     )
 
-func _handle_posture_command(command, delta: float) -> void:
+func _handle_posture_command(command, delta: float, desired_dir: Vector3) -> void:
     if motion_state == MotionState.DIVING or motion_state == MotionState.ROLLING:
+        # A stance-hold dive can finish after C has already been released. Consume
+        # that release while the committed action owns movement so the hold latch
+        # cannot remain stuck and poison the next stance command.
+        if command.crouch_released:
+            stance_hold_timer = 0.0
+            stance_held_triggered = false
         return
 
     # Direct Prone shortcut (Z)
@@ -311,7 +320,10 @@ func _handle_posture_command(command, delta: float) -> void:
         stance_hold_timer += delta
         if stance_hold_timer >= stance_hold_threshold and not stance_held_triggered:
             stance_held_triggered = true
-            _try_set_posture(MotionState.PRONE)
+            if _can_stance_hold_dive(desired_dir):
+                _begin_dive(desired_dir)
+            else:
+                _try_set_posture(MotionState.PRONE)
 
     if command.crouch_released:
         if not stance_held_triggered:
@@ -324,6 +336,23 @@ func _handle_posture_command(command, delta: float) -> void:
             _try_set_posture(target_posture)
         stance_hold_timer = 0.0
         stance_held_triggered = false
+
+func _can_stance_hold_dive(desired_dir: Vector3) -> bool:
+    if posture == MotionState.PRONE or not is_on_floor():
+        return false
+    return (
+        desired_dir.length() >= full_gait_input_threshold
+        and Vector2(velocity.x, velocity.z).length() >= dive_minimum_run_speed
+    )
+
+func _begin_dive(desired_dir: Vector3) -> void:
+    action_direction = _safe_action_direction(desired_dir)
+    action_elapsed = 0.0
+    action_duration = dive_duration
+    motion_state = MotionState.DIVING
+    posture = MotionState.STANDING
+    _apply_posture_collider()
+    velocity.y = 2.4
 
 func _try_begin_mobility_action(
     desired_dir: Vector3,
@@ -345,13 +374,7 @@ func _try_begin_mobility_action(
 
     # Z is the independent dive-to-prone action.
     if command.dive_pressed and posture != MotionState.PRONE:
-        action_direction = _safe_action_direction(desired_dir)
-        action_elapsed = 0.0
-        action_duration = dive_duration
-        motion_state = MotionState.DIVING
-        posture = MotionState.STANDING
-        _apply_posture_collider()
-        velocity.y = 2.4
+        _begin_dive(desired_dir)
         return false
 
     # Roll shortcut (E / Alt)

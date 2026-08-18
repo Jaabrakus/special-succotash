@@ -29,8 +29,16 @@ static func validate_and_trace(
         authoritative_muzzle_origin + direction * maximum_distance
     )
     query.exclude = exclude
-    query.collide_with_areas = false
+    query.collision_mask = 1 | (1 << 2)
+    query.collide_with_areas = true
     var hit := world.direct_space_state.intersect_ray(query)
+    var collider: Object = hit.get("collider")
+    var hit_region: StringName = &""
+    var damage_receiver: Node = null
+    if collider != null and collider.has_method("get_hit_region"):
+        hit_region = StringName(collider.call("get_hit_region"))
+    if collider != null and collider.has_method("get_damage_receiver"):
+        damage_receiver = collider.call("get_damage_receiver") as Node
     return {
         "accepted": true,
         "accepted_sequence": int(payload.sequence),
@@ -40,7 +48,9 @@ static func validate_and_trace(
             "position",
             authoritative_muzzle_origin + direction * maximum_distance
         ),
-        "collider": hit.get("collider")
+        "collider": collider,
+        "damage_receiver": damage_receiver,
+        "hit_region": hit_region
     }
 
 
