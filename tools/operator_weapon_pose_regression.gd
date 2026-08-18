@@ -155,6 +155,11 @@ func _check_pose(label: String, driver: Node, rig: Node) -> void:
 		float(snapshot.get("shoulder_level_error_cm", 100.0)) <= 4.0,
 		"%s shoulder bar remains level within 4 cm" % label
 	)
+	if label.begins_with("standing"):
+		_expect(
+			absf(float(snapshot.get("default_hip_roll_output_deg", 180.0))) <= 0.75,
+			"%s neutral hip slant remains below 0.75 degrees" % label
+		)
 	for key in [&"right_elbow_angle_deg", &"left_elbow_angle_deg"]:
 		var angle := float(pose.get(key, 0.0))
 		_expect(

@@ -187,8 +187,16 @@ func _test_aim_relative_strafing(scene: Node, player: CharacterBody3D) -> void:
     camera_right = camera_right.normalized()
 
     var right_start := player.global_position
+    var right_peak_hip_roll := 0.0
     Input.action_press(&"move_right")
-    await _step_physics(24)
+    for _frame in range(24):
+        await _step_physics(1)
+        if animation_driver != null:
+            var frame_pose: Dictionary = animation_driver.call("get_animation_debug_state")
+            right_peak_hip_roll = maxf(
+                right_peak_hip_roll,
+                absf(float(frame_pose.get("default_hip_roll_output_deg", 0.0)))
+            )
     Input.action_release(&"move_right")
     var right_travel := player.global_position - right_start
     _expect(right_travel.dot(camera_right) > 0.45, "D translates right instead of orbiting the aim point")
@@ -208,6 +216,11 @@ func _test_aim_relative_strafing(scene: Node, player: CharacterBody3D) -> void:
             right_visual.x > 0.45,
             "D selects the right strafe side of the animation matrix"
         )
+        print("MOBILITY_METRIC right_peak_hip_roll_deg=%.3f" % right_peak_hip_roll)
+        _expect(
+            right_peak_hip_roll >= 1.25,
+            "D builds deliberate hip lean during the early strafe response"
+        )
         var right_skeleton: Skeleton3D = animation_driver.get("skeleton")
         if right_skeleton != null:
             var right_hips_yaw := _rest_relative_global_yaw(right_skeleton, "mixamorig_Hips")
@@ -226,8 +239,16 @@ func _test_aim_relative_strafing(scene: Node, player: CharacterBody3D) -> void:
 
     await _step_physics(12)
     var left_start := player.global_position
+    var left_peak_hip_roll := 0.0
     Input.action_press(&"move_left")
-    await _step_physics(24)
+    for _frame in range(24):
+        await _step_physics(1)
+        if animation_driver != null:
+            var frame_pose: Dictionary = animation_driver.call("get_animation_debug_state")
+            left_peak_hip_roll = maxf(
+                left_peak_hip_roll,
+                absf(float(frame_pose.get("default_hip_roll_output_deg", 0.0)))
+            )
     Input.action_release(&"move_left")
     var left_travel := player.global_position - left_start
     _expect(left_travel.dot(-camera_right) > 0.45, "A translates left instead of orbiting the aim point")
@@ -236,6 +257,11 @@ func _test_aim_relative_strafing(scene: Node, player: CharacterBody3D) -> void:
         _expect(
             left_visual.x < -0.45,
             "A selects the left strafe side of the animation matrix"
+        )
+        print("MOBILITY_METRIC left_peak_hip_roll_deg=%.3f" % left_peak_hip_roll)
+        _expect(
+            left_peak_hip_roll >= 1.25,
+            "A builds deliberate hip lean during the early strafe response"
         )
         var left_skeleton: Skeleton3D = animation_driver.get("skeleton")
         if left_skeleton != null:

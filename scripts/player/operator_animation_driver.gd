@@ -32,6 +32,7 @@ const WeaponPoseSolver := preload("res://scripts/player/operator_weapon_pose_sol
 @export_range(0.0, 90.0, 0.5) var head_yaw_limit_deg: float = 56.0
 @export_range(0.0, 60.0, 0.5) var head_pitch_limit_deg: float = 34.0
 @export_range(0.0, 0.5, 0.01) var upper_body_gait_roll_retention: float = 0.18
+@export_range(0.0, 3.0, 0.05) var neutral_hip_roll_trim_deg: float = 1.20
 @export_range(0.0, 18.0, 0.5) var prone_axis_target_pitch_deg: float = 6.0
 @export_range(0.0, 45.0, 0.5) var prone_axis_max_correction_deg: float = 35.0
 @export_range(1.0, 30.0, 0.5) var prone_straighten_response: float = 14.0
@@ -173,7 +174,8 @@ func _process(delta: float) -> void:
 		deg_to_rad(prone_axis_target_pitch_deg),
 		posture,
 		peek_amount,
-		visual_aim_target
+		visual_aim_target,
+		neutral_hip_roll_trim_deg
 	)
 	weapon_pose_solver.apply(
 		aim_yaw_rad,

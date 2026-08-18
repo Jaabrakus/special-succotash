@@ -55,6 +55,9 @@ var last_peek_roll_deg: float = 0.0
 var last_chest_square_correction_deg: float = 0.0
 var last_shoulder_square_error_deg: float = 0.0
 var last_shoulder_level_error_cm: float = 0.0
+var last_default_hip_roll_input_deg: float = 0.0
+var last_default_hip_roll_trim_deg: float = 0.0
+var last_default_hip_roll_output_deg: float = 0.0
 
 
 func bind(target_skeleton: Skeleton3D, neutral_pose_hip_rotation := Quaternion.IDENTITY) -> void:
@@ -84,10 +87,12 @@ func apply(
 	prone_axis_target_pitch: float = deg_to_rad(6.0),
 	posture_name: StringName = &"STANDING",
 	peek_amount: float = 0.0,
-	world_aim_target: Vector3 = Vector3.ZERO
+	world_aim_target: Vector3 = Vector3.ZERO,
+	neutral_hip_roll_trim_deg: float = 1.20
 ) -> void:
 	if skeleton == null:
 		return
+	_apply_default_hip_leveling(posture_name, neutral_hip_roll_trim_deg)
 	_apply_prone_axis_alignment(
 		prone_axis_weight,
 		prone_axis_max_correction,
@@ -159,7 +164,38 @@ func get_debug_state() -> Dictionary:
 		"chest_square_correction_deg": last_chest_square_correction_deg,
 		"shoulder_square_error_deg": last_shoulder_square_error_deg,
 		"shoulder_level_error_cm": last_shoulder_level_error_cm,
+		"default_hip_roll_input_deg": last_default_hip_roll_input_deg,
+		"default_hip_roll_trim_deg": last_default_hip_roll_trim_deg,
+		"default_hip_roll_output_deg": last_default_hip_roll_output_deg,
 	}
+
+
+func _apply_default_hip_leveling(posture_name: StringName, maximum_trim_deg: float) -> void:
+	last_default_hip_roll_input_deg = 0.0
+	last_default_hip_roll_trim_deg = 0.0
+	last_default_hip_roll_output_deg = 0.0
+	if posture_name != &"STANDING" or maximum_trim_deg <= 0.0:
+		return
+	var hips_index := int(bone_indices.get(&"hips", -1))
+	if hips_index < 0:
+		return
+	var current_rotation := skeleton.get_bone_pose_rotation(hips_index).normalized()
+	var current_roll := current_rotation.get_euler().z
+	last_default_hip_roll_input_deg = rad_to_deg(current_roll)
+	if absf(current_roll) <= 0.0001:
+		return
+	# Remove most of a small baked idle slant, but cap the trim so authored
+	# locomotion still keeps its deliberate tactical hip action.
+	var trim := minf(absf(current_roll) * 0.70, deg_to_rad(maximum_trim_deg))
+	trim *= -signf(current_roll)
+	skeleton.set_bone_pose_rotation(
+		hips_index,
+		(current_rotation * Quaternion(Vector3.BACK, trim)).normalized()
+	)
+	last_default_hip_roll_trim_deg = rad_to_deg(trim)
+	last_default_hip_roll_output_deg = rad_to_deg(
+		skeleton.get_bone_pose_rotation(hips_index).get_euler().z
+	)
 
 
 func _apply_square_shoulders(world_aim_target: Vector3) -> void:
