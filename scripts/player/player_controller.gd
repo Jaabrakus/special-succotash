@@ -5,6 +5,7 @@ const OperatorOrientationController := preload("res://scripts/player/operator_or
 const MovementCommand := preload("res://scripts/network/socom_movement_command.gd")
 
 @export var move_speed: float = 6.5
+@export var strafe_speed: float = 5.6
 @export var acceleration: float = 18.0
 @export var braking_acceleration: float = 26.0
 @export var reversal_acceleration: float = 22.0
@@ -150,7 +151,7 @@ func _physics_process(delta: float) -> void:
         was_on_floor = is_on_floor()
         return
 
-    var speed := _movement_speed()
+    var speed := _directional_movement_speed(input, _movement_speed())
     var desired_velocity := desired_dir * speed
     # Accelerate as one horizontal vector. Advancing X and Z separately makes
     # diagonal response up to sqrt(2) times stronger than cardinal response.
@@ -201,6 +202,13 @@ func _update_orientation(
 
 func get_aim_relative_yaw() -> float:
     return orientation.aim_relative_yaw
+
+func _directional_movement_speed(move_axis: Vector2, forward_speed: float) -> float:
+    if move_axis.length_squared() < 0.000001:
+        return forward_speed
+    var standing_ratio := clampf(strafe_speed / maxf(move_speed, 0.001), 0.10, 2.0)
+    var lateral_weight := absf(move_axis.x) / maxf(move_axis.length(), 0.001)
+    return lerpf(forward_speed, forward_speed * standing_ratio, lateral_weight)
 
 func get_desired_movement_direction() -> Vector3:
     return desired_movement_direction

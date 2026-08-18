@@ -23,6 +23,16 @@ func _run() -> void:
 	if player == null:
 		_finish()
 		return
+	player.set("move_speed", 6.0)
+	player.set("strafe_speed", 4.5)
+	_expect(
+		is_equal_approx(float(player.call("_directional_movement_speed", Vector2.UP, 6.0)), 6.0),
+		"forward velocity keeps the authoritative move speed"
+	)
+	_expect(
+		is_equal_approx(float(player.call("_directional_movement_speed", Vector2.RIGHT, 6.0)), 4.5),
+		"pure strafe velocity uses the independently tunable speed"
+	)
 
 	player.call("set_local_input_enabled", false)
 	Input.action_press(&"move_right")

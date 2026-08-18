@@ -8,6 +8,7 @@ const CameraAuditRecorderScript := preload("res://scripts/camera/camera_audit_re
 const BodyStackOverlayScript := preload("res://scripts/ui/operator_body_stack_overlay.gd")
 const ShotAuthorityScript := preload("res://scripts/network/socom_shot_authority.gd")
 const WeaponControllerScript := preload("res://scripts/weapons/socom_weapon_controller.gd")
+const ShootingDummyScript := preload("res://scripts/labs/shooting_dummy.gd")
 const RETICLE_BOX_SIZE := Vector2(32.0, 32.0)
 const OPERATOR_TUNING_PATH := "res://config/operator_movement_tuning.json"
 
@@ -42,6 +43,8 @@ var anim_studio_visible: bool = true
 var anim_studio_state_label: Label
 var anim_tuning_sliders: Dictionary = {}
 var operator_tuning: Dictionary = {}
+var shooting_range_root: Node3D
+var shooting_range_active: bool = false
 
 const REFERENCE_FRAME_PATH := "res://reference/reference_frame.png"
 const ENVIRONMENT_SHADER := """
@@ -67,6 +70,9 @@ func _ready() -> void:
     )
     _ensure_input_map()
     _build_environment()
+    shooting_range_active = OS.get_cmdline_user_args().has("--shooting-range")
+    if shooting_range_active:
+        _build_shooting_range()
     _build_player()
     _apply_operator_tuning()
     if OS.get_cmdline_user_args().has("--prone-camera-test"):
@@ -142,6 +148,7 @@ func _ensure_input_map() -> void:
     _add_key_action("toggle_camera_recording", KEY_F9)
     _add_key_action("replay_camera_recording", KEY_F10)
     _add_key_action("toggle_anim_studio", KEY_F5)
+    _add_key_action("toggle_shooting_range", KEY_F4)
     _add_key_action("crouch", KEY_C)
     _add_mouse_action("fire", MOUSE_BUTTON_LEFT)
 
@@ -187,6 +194,8 @@ func _process(_delta: float) -> void:
     _update_spectator_camera()
     if Input.is_action_just_pressed("toggle_anim_studio"):
         _set_animation_studio_visible(not anim_studio_visible)
+    if Input.is_action_just_pressed("toggle_shooting_range"):
+        _set_shooting_range_active(not shooting_range_active)
     if anim_studio_visible:
         _update_animation_studio_state()
     if Input.is_action_just_pressed("toggle_debug_hud"):
@@ -363,9 +372,9 @@ func _process(_delta: float) -> void:
         print("CAMERA_REPORT ", JSON.stringify(d))
     debug_label.text = (
         "SOCOM-141 CAMERA LAB\n"
-        + "WASD move | Space jump | X/C tap crouch, hold prone | Z dive-prone | Q/E peek\n"
+        + "WASD move | Space jump | X/C tap crouch, hold prone | Z dive-prone | Q/E peek | F4 targets\n"
         + "Mouse orbit | R reset | H clean HUD | K body stack | V camera view | P tune | F9 record | F10 replay\n"
-        + "v2.5 SOCOM burst fire + long-zero barrel aim\n\n"
+        + "v2.6 SQUARE SHOULDERS + AUTHORITATIVE TARGET RANGE\n\n"
         + "Vertical FOV     %5.1f°\n" % d.fov
         + "Rear boom       %5.2f m behind player\n" % d.rear_boom_distance
         + "Camera range    %5.2f m diagonal to player\n" % d.distance
@@ -456,6 +465,32 @@ func _build_environment() -> void:
         marker.mesh.size = Vector3(0.08, 0.08, 0.08)
         marker.position = Vector3(i * 1.5, 0.08, -10.0)
         add_child(marker)
+
+func _build_shooting_range() -> void:
+    if shooting_range_root != null:
+        return
+    shooting_range_root = Node3D.new()
+    shooting_range_root.name = "AuthoritativeShootingRange"
+    add_child(shooting_range_root)
+    var target_specs := [
+        ["CENTER", Vector3(0.0, 0.0, -10.0), 0.0],
+        ["FLANK", Vector3(-3.0, 0.0, -8.0), -12.0],
+        ["BRACED", Vector3(4.2, 0.0, -10.5), 15.0],
+    ]
+    for spec in target_specs:
+        var target := ShootingDummyScript.new()
+        target.name = spec[0]
+        target.position = spec[1]
+        target.rotation_degrees.y = spec[2]
+        shooting_range_root.add_child(target)
+
+func _set_shooting_range_active(enabled: bool) -> void:
+    shooting_range_active = enabled
+    if enabled:
+        _build_shooting_range()
+    elif shooting_range_root != null:
+        shooting_range_root.queue_free()
+        shooting_range_root = null
 
 func _build_player() -> void:
     player = PlayerScript.new()
@@ -993,6 +1028,14 @@ func _build_animation_studio(layer: CanvasLayer) -> void:
             _set_operator_tuning("movement", "move_speed", value)
     )
     _add_animation_tuning_slider(
+        vbox, "Strafe Speed", 1.0, 10.0,
+        _tuning_value("movement", "strafe_speed", 5.6), 0.1,
+        "movement.strafe_speed",
+        func(value: float):
+            if player: player.strafe_speed = value
+            _set_operator_tuning("movement", "strafe_speed", value)
+    )
+    _add_animation_tuning_slider(
         vbox, "Full Gait Stick", 0.25, 0.95,
         _tuning_value("movement", "full_gait_input_threshold", 0.72), 0.01,
         "movement.full_gait_input_threshold",
@@ -1129,7 +1172,7 @@ func _build_animation_studio(layer: CanvasLayer) -> void:
     var legend := Label.new()
     legend.text = (
         "\nControls: WASD/left stick movement strength controls shuffle-to-tactical-run | Space jump\n"
-        + "X/C crouch (hold prone) | Z dive-prone | Q/E peek | Left Click fire | F5 studio\n"
+        + "X/C crouch (hold prone) | Z dive-prone | Q/E peek | Left Click fire | F4 targets | F5 studio\n"
         + "Clip map: config/operator_animation_map.json (restart after map edits)"
     )
     legend.add_theme_font_size_override("font_size", 10)
@@ -1194,6 +1237,7 @@ func _default_operator_tuning() -> Dictionary:
         "studio_open_on_start": true,
         "movement": {
             "move_speed": 6.5,
+            "strafe_speed": 5.6,
             "full_gait_input_threshold": 0.72,
             "crouch_speed": 2.6,
             "prone_speed": 1.25,
@@ -1245,6 +1289,7 @@ func _load_operator_tuning() -> void:
 func _apply_operator_tuning() -> void:
     if player != null:
         player.move_speed = _tuning_value("movement", "move_speed", 6.5)
+        player.strafe_speed = _tuning_value("movement", "strafe_speed", 5.6)
         player.full_gait_input_threshold = _tuning_value(
             "movement", "full_gait_input_threshold", 0.72
         )
