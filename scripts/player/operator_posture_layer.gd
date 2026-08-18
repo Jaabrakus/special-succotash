@@ -150,13 +150,15 @@ func get_debug_state() -> Dictionary:
 
 func _apply_full_body_peek(posture_name: StringName, amount: float) -> void:
 	# SOCOM's peek is a planted reach, not a camera roll or one-joint waist bend.
-	# The signed gameplay side maps directly to this rig's local Z roll.
+	# The imported trooper faces 180 degrees opposite the authoritative player,
+	# so its local roll sign must be inverted: Q remains gameplay-left and E
+	# remains gameplay-right in world space.
 	var signed_amount := clampf(amount, -1.0, 1.0)
 	last_peek_amount = signed_amount
 	if absf(signed_amount) <= 0.0001:
 		last_peek_roll_deg = 0.0
 		return
-	var pose_amount := signed_amount
+	var pose_amount := -signed_amount
 	var hip_roll_deg := 5.0
 	var spine_roll_deg := 13.0
 	var head_counter_deg := 2.0

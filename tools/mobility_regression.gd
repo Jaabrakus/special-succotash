@@ -321,12 +321,12 @@ func _test_full_body_peek(player: CharacterBody3D) -> void:
     _expect(skeleton != null, "full-body peek has a live skeleton")
     if skeleton == null:
         return
-    var neutral_offset := _head_lateral_offset(skeleton)
+    var neutral_offset := _head_lateral_offset(player, skeleton)
 
     Input.action_press(&"peek_left")
     await _step_physics(10)
     _expect(float(player.call("get_peek_amount")) < -0.95, "Q reaches the planted left-peek pose")
-    var left_offset := _head_lateral_offset(skeleton)
+    var left_offset := _head_lateral_offset(player, skeleton)
     print("MOBILITY_METRIC peek_head_x neutral=%.4f left=%.4f" % [neutral_offset, left_offset])
     var left_debug: Dictionary = driver.call("get_animation_debug_state")
     _expect(left_offset < neutral_offset - 0.001, "left peek exposes the head on the requested side")
@@ -338,7 +338,7 @@ func _test_full_body_peek(player: CharacterBody3D) -> void:
     Input.action_press(&"peek_right")
     await _step_physics(10)
     _expect(float(player.call("get_peek_amount")) > 0.95, "E reaches the planted right-peek pose")
-    var right_offset := _head_lateral_offset(skeleton)
+    var right_offset := _head_lateral_offset(player, skeleton)
     print("MOBILITY_METRIC peek_head_x neutral=%.4f right=%.4f" % [neutral_offset, right_offset])
     _expect(right_offset > neutral_offset + 0.001, "right peek exposes the head on the requested side")
     await _capture_pose("peek_right")
@@ -346,16 +346,15 @@ func _test_full_body_peek(player: CharacterBody3D) -> void:
     await _step_physics(8)
     _expect(absf(float(player.call("get_peek_amount"))) < 0.01, "peek releases smoothly back to neutral")
 
-func _head_lateral_offset(skeleton: Skeleton3D) -> float:
+func _head_lateral_offset(player: CharacterBody3D, skeleton: Skeleton3D) -> float:
     var hips_index := skeleton.find_bone("mixamorig_Hips")
     var head_index := skeleton.find_bone("mixamorig_Head")
     if hips_index < 0 or head_index < 0:
         return 0.0
     skeleton.force_update_all_bone_transforms()
-    return (
-        skeleton.get_bone_global_pose(head_index).origin.x
-        - skeleton.get_bone_global_pose(hips_index).origin.x
-    )
+    var head_world := skeleton.global_transform * skeleton.get_bone_global_pose(head_index).origin
+    var hips_world := skeleton.global_transform * skeleton.get_bone_global_pose(hips_index).origin
+    return (head_world - hips_world).dot(player.global_basis.x.normalized())
 
 func _test_jump(player: CharacterBody3D) -> void:
     await _step_physics(6)
