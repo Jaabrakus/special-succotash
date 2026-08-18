@@ -19,6 +19,7 @@ const WEAPON_GIZMO_ARROW_LENGTH := 0.17
 const WEAPON_GIZMO_RING_RADIUS := 0.135
 const GIZMO_CENTER_RADIUS := 0.045
 const GIZMO_PICK_DISTANCE_PX := 34.0
+const MUZZLE_RETICLE_LEAD_PX := 84.0
 
 # Camera Rig
 var cam_pivot: Node3D
@@ -468,7 +469,7 @@ func _process(delta: float) -> void:
 			weapon_gizmo_world.global_basis = weapon_root.global_basis.orthonormalized()
 
 	if dynamic_reticle and cam:
-		var aim_sample := _camera_aim_sample()
+		var aim_sample := _muzzle_axis_sample()
 		current_aim_target = aim_sample.position
 		var total_spread := _current_total_spread_deg()
 		dynamic_reticle.update_reticle_state(
@@ -997,7 +998,7 @@ func _set_preview_posture(posture_name: StringName) -> void:
 	animation_preview_token += 1
 	_finish_preview_to_idle()
 	if hud_status:
-		hud_status.text = "%s weapon-ready stance — aim remains on the fixed center dot." % String(preview_posture).capitalize()
+		hud_status.text = "%s weapon-ready stance — the bore reticle remains tied to the red muzzle socket." % String(preview_posture).capitalize()
 
 
 func _save_selected_animation_hand_map() -> void:
@@ -2500,17 +2501,51 @@ func _preview_screen_rect() -> Rect2:
 
 
 func _reticle_screen_position() -> Vector2:
-	# Center aim inside the actual 3D preview, not the complete application
-	# window. The left Gunsmith controls are UI and must never bias aim.
+	# The Gunsmith is an inspection tool, so its reticle is a bore-sight: it is
+	# placed directly ahead of the red muzzle socket along the barrel's projected
+	# screen line. A fixed short lead keeps it readable even while the far end of
+	# the physical ray is behind the orbiting inspection camera.
+	if cam and muzzle_marker and current_weapon_mesh:
+		var barrel_base := current_weapon_mesh.to_global(_calibrated_barrel_base())
+		var base_screen := cam.unproject_position(barrel_base)
+		var muzzle_screen := cam.unproject_position(muzzle_marker.global_position)
+		var screen_axis := muzzle_screen - base_screen
+		if screen_axis.length_squared() > 0.01:
+			return muzzle_screen + screen_axis.normalized() * MUZZLE_RETICLE_LEAD_PX
 	return _preview_screen_rect().get_center()
 
 
 func _camera_aim_sample() -> Dictionary:
 	if cam == null:
 		return {"position": Vector3.ZERO, "target_locked": false}
-	var screen_center := _reticle_screen_position()
+	# Kept as a separate reference layer so the calibration view can compare the
+	# gameplay camera center with the physical weapon bore without coupling them.
+	var screen_center := _preview_screen_rect().get_center()
 	var ray_origin := cam.project_ray_origin(screen_center)
 	var ray_direction := cam.project_ray_normal(screen_center).normalized()
+	var ray_end := ray_origin + ray_direction * 120.0
+	var query := PhysicsRayQueryParameters3D.create(ray_origin, ray_end)
+	query.collision_mask = 1
+	query.collide_with_areas = true
+	var hit := get_world_3d().direct_space_state.intersect_ray(query)
+	if hit.is_empty():
+		return {"position": ray_end, "target_locked": false}
+	var collider: Object = hit.get("collider")
+	return {
+		"position": hit.position,
+		"target_locked": collider != null and collider.has_meta("gun_lab_target"),
+	}
+
+
+func _muzzle_axis_sample() -> Dictionary:
+	if muzzle_marker == null or current_weapon_mesh == null:
+		return _camera_aim_sample()
+	var barrel_base := current_weapon_mesh.to_global(_calibrated_barrel_base())
+	var ray_origin := muzzle_marker.global_position
+	var ray_direction := ray_origin - barrel_base
+	if ray_direction.length_squared() <= 0.000001:
+		ray_direction = current_weapon_mesh.global_basis.x
+	ray_direction = ray_direction.normalized()
 	var ray_end := ray_origin + ray_direction * 120.0
 	var query := PhysicsRayQueryParameters3D.create(ray_origin, ray_end)
 	query.collision_mask = 1
@@ -2584,7 +2619,7 @@ func _fire_shot() -> void:
 		tracer.material_override = t_mat
 
 		last_shot_origin = muzzle_marker.global_position
-		var aim_sample := _camera_aim_sample()
+		var aim_sample := _muzzle_axis_sample()
 		current_aim_target = aim_sample.position
 		var forward_dir := (current_aim_target - last_shot_origin).normalized()
 		var spread_rad := deg_to_rad(_current_total_spread_deg())
@@ -3402,7 +3437,7 @@ func _build_studio_ui() -> void:
 	stance_title.text = "SOCOM STANCE PREVIEW"
 	fire_vbox.add_child(stance_title)
 	var stance_help := Label.new()
-	stance_help.text = "1 Stand  •  2 Crouch  •  3 Prone. Stance changes body height and accuracy; it never moves the center aim point."
+	stance_help.text = "1 Stand  •  2 Crouch  •  3 Prone. Stance changes body height and accuracy; it never changes the calibrated barrel direction."
 	stance_help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	fire_vbox.add_child(stance_help)
 	var stance_row := HBoxContainer.new()
@@ -3443,7 +3478,7 @@ func _build_studio_ui() -> void:
 	var convergence_toggle := CheckButton.new()
 	convergence_toggle.name = "MuzzleConvergenceToggle"
 	convergence_toggle.text = "Lime — muzzle → reticle convergence"
-	convergence_toggle.tooltip_text = "Shows the physical muzzle socket converging on the fixed reticle's world target."
+	convergence_toggle.tooltip_text = "Shows the red muzzle socket and bore reticle sharing one physical barrel axis."
 	convergence_toggle.button_pressed = show_muzzle_convergence
 	convergence_toggle.toggled.connect(func(enabled: bool): show_muzzle_convergence = enabled)
 	fire_vbox.add_child(convergence_toggle)
@@ -3559,10 +3594,9 @@ func _update_fire_debug_lines() -> void:
 		if current_aim_target != Vector3.ZERO
 		else _camera_aim_sample().position
 	)
-	# This is the authoritative third-person relationship: the screen reticle
-	# remains camera-centered while the physical muzzle converges on the same
-	# world point. Moving the reticle onto the nearby muzzle marker would add
-	# incorrect parallax and make the point of impact depend on camera distance.
+	# In the Gunsmith the weapon bore is authoritative. The short on-screen
+	# reticle and this world-space guide both derive from the same red muzzle
+	# socket; orbiting the inspection camera cannot steer either physical ray.
 	if show_muzzle_convergence and muzzle_marker:
 		_add_fire_debug_segment(
 			muzzle_marker.global_position,

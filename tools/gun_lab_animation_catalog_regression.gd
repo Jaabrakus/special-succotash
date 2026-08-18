@@ -50,11 +50,33 @@ func _run() -> void:
 	)
 	var viewport_center: Vector2 = lab.get_viewport().get_visible_rect().size * 0.5
 	var preview_center: Vector2 = (lab.call("_preview_screen_rect") as Rect2).get_center()
+	var muzzle_sample: Dictionary = lab.call("_muzzle_axis_sample")
+	var camera := lab.get("cam") as Camera3D
+	var weapon := lab.get("current_weapon_mesh") as Node3D
+	var muzzle_marker := lab.get("muzzle_marker") as MeshInstance3D
+	var barrel_base := weapon.to_global(lab.call("_calibrated_barrel_base") as Vector3)
+	var base_screen := camera.unproject_position(barrel_base)
+	var muzzle_screen := camera.unproject_position(muzzle_marker.global_position)
+	var reticle_screen := lab.call("_reticle_screen_position") as Vector2
+	var screen_barrel_direction := (muzzle_screen - base_screen).normalized()
+	var screen_reticle_direction := (reticle_screen - muzzle_screen).normalized()
 	_expect(
-		(lab.call("_reticle_screen_position") as Vector2).distance_to(preview_center) < 0.01
+		screen_barrel_direction.dot(screen_reticle_direction) > 0.999
+		and absf(reticle_screen.distance_to(muzzle_screen) - 84.0) < 0.1
 		and preview_center.x > viewport_center.x,
-		"gun lab reticle authority remains fixed at the 3D preview center"
+		"gun lab reticle sits directly ahead of the physical red muzzle socket"
 	)
+	var muzzle_target_before_orbit := Vector3(muzzle_sample.get("position", Vector3.ZERO))
+	lab.set("cam_yaw", float(lab.get("cam_yaw")) + 24.0)
+	lab.call("_update_camera")
+	var muzzle_target_after_orbit := Vector3(
+		(lab.call("_muzzle_axis_sample") as Dictionary).get("position", Vector3.ZERO)
+	)
+	_expect(
+		muzzle_target_before_orbit.distance_to(muzzle_target_after_orbit) < 0.001,
+		"orbiting the Gunsmith camera cannot steer the muzzle reticle in world space"
+	)
+	await process_frame
 	var aim_sample: Dictionary = lab.call("_camera_aim_sample")
 	_expect(
 		Vector3(aim_sample.get("position", Vector3.ZERO)).distance_to(
@@ -66,14 +88,16 @@ func _run() -> void:
 	var fire_debug := lab.get("fire_debug_instance") as MeshInstance3D
 	_expect(
 		fire_debug != null and fire_debug.visible,
-		"the physical muzzle visibly converges on the centered reticle target"
+		"the physical muzzle visibly shares an axis with the bore reticle target"
 	)
 	if reticle_preview != null:
 		reticle_preview.call("notify_shot", 3, 1.0)
 		_expect(
 			float(reticle_preview.get("shot_gap_impulse")) > 0.0
-			and (reticle_preview.get("screen_center_override") as Vector2).distance_to(preview_center) < 0.01,
-			"shot feedback expands symmetrically without moving aim authority"
+			and (reticle_preview.get("screen_center_override") as Vector2).distance_to(
+				lab.call("_reticle_screen_position") as Vector2
+			) < 0.01,
+			"shot feedback expands symmetrically around the physical muzzle reticle"
 		)
 	lab.call("_set_preview_posture", &"CROUCHED")
 	_expect(
@@ -106,12 +130,14 @@ func _run() -> void:
 	lab.call("_fire_shot")
 	var shot_origin: Vector3 = lab.get("last_shot_origin")
 	var shot_end: Vector3 = lab.get("last_shot_end")
-	var intended_direction := (Vector3(aim_sample.position) - shot_origin).normalized()
+	var intended_direction := (
+		Vector3((lab.call("_muzzle_axis_sample") as Dictionary).position) - shot_origin
+	).normalized()
 	var fired_direction := (shot_end - shot_origin).normalized()
 	_expect(
 		rad_to_deg(intended_direction.angle_to(fired_direction))
 		<= float(lab.call("_current_total_spread_deg")) + 0.05,
-		"physical muzzle shot converges on the centered camera intent"
+		"Gunsmith shots follow the physical muzzle reticle instead of the orbit camera"
 	)
 	var reticle_profile: Dictionary = lab.call("_current_reticle_profile")
 	_expect(
