@@ -38,9 +38,9 @@ func _run() -> void:
 		"gun lab levels the presentation hips without rewriting source clips"
 	)
 	_expect(
-		bool(lab.get("show_muzzle_convergence"))
-		and lab.find_child("MuzzleConvergenceToggle", true, false) != null,
-		"muzzle-to-reticle convergence is visible and user-toggleable"
+		bool(lab.get("show_bullet_velocity"))
+		and lab.find_child("BulletVelocityToggle", true, false) != null,
+		"physical bullet velocity is visible and user-toggleable"
 	)
 	_expect(
 		lab.find_child("StanceStanding", true, false) != null
@@ -65,6 +65,22 @@ func _run() -> void:
 		and absf(reticle_screen.distance_to(muzzle_screen) - 84.0) < 0.1
 		and preview_center.x > viewport_center.x,
 		"gun lab reticle sits directly ahead of the physical red muzzle socket"
+	)
+	var barrel_direction_before_grip_move := lab.call("_barrel_direction_world") as Vector3
+	var original_right_grip := lab.get("right_grip_local_pos") as Vector3
+	lab.set("right_grip_local_pos", original_right_grip + Vector3(0.0, 0.45, 0.30))
+	var barrel_direction_after_grip_move := lab.call("_barrel_direction_world") as Vector3
+	lab.set("right_grip_local_pos", original_right_grip)
+	_expect(
+		barrel_direction_before_grip_move.angle_to(barrel_direction_after_grip_move) < 0.00001,
+		"hand-grip placement cannot bend the barrel or bullet velocity"
+	)
+	_expect(
+		absf(
+			(lab.call("_bullet_velocity_vector") as Vector3).length()
+			- float(lab.get("muzzle_velocity_mps"))
+		) < 0.01,
+		"green vector magnitude represents the saved muzzle velocity"
 	)
 	var muzzle_target_before_orbit := Vector3(muzzle_sample.get("position", Vector3.ZERO))
 	lab.set("cam_yaw", float(lab.get("cam_yaw")) + 24.0)

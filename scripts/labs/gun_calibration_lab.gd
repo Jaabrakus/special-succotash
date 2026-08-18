@@ -20,6 +20,7 @@ const WEAPON_GIZMO_RING_RADIUS := 0.135
 const GIZMO_CENTER_RADIUS := 0.045
 const GIZMO_PICK_DISTANCE_PX := 34.0
 const MUZZLE_RETICLE_LEAD_PX := 84.0
+const BULLET_VELOCITY_PREVIEW_SECONDS := 0.004
 
 # Camera Rig
 var cam_pivot: Node3D
@@ -138,6 +139,7 @@ var weapon_name: String = "AssaultRifle_1"
 var selected_category: String = "Assault Rifles"
 var fire_rate_rpm: int = 650
 var damage_per_shot: int = 34
+var muzzle_velocity_mps: float = 715.0
 var is_silenced: bool = false
 var base_spread_deg: float = 0.4
 var bloom_per_shot_deg: float = 1.2
@@ -229,7 +231,7 @@ var dynamic_reticle: SocomDynamicReticle
 var fire_debug_mesh := ImmediateMesh.new()
 var fire_debug_instance: MeshInstance3D
 var fire_debug_material: StandardMaterial3D
-var show_muzzle_convergence: bool = true
+var show_bullet_velocity: bool = true
 var show_barrel_axis: bool = false
 var show_camera_aim: bool = false
 var show_last_shot: bool = false
@@ -2289,6 +2291,7 @@ func _try_load_saved_profile(w_id: String) -> void:
 					var fire_values := ballistics as Dictionary
 					fire_rate_rpm = int(fire_values.get("fire_rate_rpm", fire_rate_rpm))
 					damage_per_shot = int(fire_values.get("damage", damage_per_shot))
+					muzzle_velocity_mps = float(fire_values.get("muzzle_velocity_mps", muzzle_velocity_mps))
 					base_spread_deg = float(fire_values.get("base_spread_deg", base_spread_deg))
 					bloom_per_shot_deg = float(fire_values.get("bloom_per_shot_deg", bloom_per_shot_deg))
 					max_recoil_bloom_deg = float(fire_values.get("max_recoil_bloom_deg", max_recoil_bloom_deg))
@@ -2311,6 +2314,7 @@ func _try_load_saved_profile(w_id: String) -> void:
 func _reset_fire_profile_defaults() -> void:
 	fire_rate_rpm = 650
 	damage_per_shot = 34
+	muzzle_velocity_mps = _default_muzzle_velocity_mps()
 	is_silenced = false
 	base_spread_deg = 0.4
 	bloom_per_shot_deg = 1.2
@@ -2331,6 +2335,7 @@ func _refresh_fire_controls() -> void:
 		fire_profile_title.text = "RETICLE & FIRE — %s" % weapon_name
 	_update_slider_value("rpm", float(fire_rate_rpm))
 	_update_slider_value("dmg", float(damage_per_shot))
+	_update_slider_value("muzzle_velocity", muzzle_velocity_mps)
 	_update_slider_value("base_spread", base_spread_deg)
 	_update_slider_value("bloom", bloom_per_shot_deg)
 	_update_slider_value("max_bloom", max_recoil_bloom_deg)
@@ -2342,6 +2347,15 @@ func _refresh_fire_controls() -> void:
 	_update_slider_value("reticle_return", reticle_shot_kick_return)
 	_update_slider_value("reticle_kick_limit", reticle_maximum_shot_kick_px)
 	_apply_reticle_preview_profile()
+
+
+func _default_muzzle_velocity_mps() -> float:
+	match selected_category:
+		"Pistols", "Revolvers": return 350.0
+		"SMGs": return 400.0
+		"Shotguns": return 420.0
+		"Sniper Rifles": return 850.0
+		_: return 715.0
 
 func _apply_9mm_textures(node: Node) -> void:
 	var body_tex = load("res://assets/weapons/9mm_pistol/textures/Body_albedo.jpeg") as Texture2D
@@ -2540,12 +2554,8 @@ func _camera_aim_sample() -> Dictionary:
 func _muzzle_axis_sample() -> Dictionary:
 	if muzzle_marker == null or current_weapon_mesh == null:
 		return _camera_aim_sample()
-	var barrel_base := current_weapon_mesh.to_global(_calibrated_barrel_base())
 	var ray_origin := muzzle_marker.global_position
-	var ray_direction := ray_origin - barrel_base
-	if ray_direction.length_squared() <= 0.000001:
-		ray_direction = current_weapon_mesh.global_basis.x
-	ray_direction = ray_direction.normalized()
+	var ray_direction := _barrel_direction_world()
 	var ray_end := ray_origin + ray_direction * 120.0
 	var query := PhysicsRayQueryParameters3D.create(ray_origin, ray_end)
 	query.collision_mask = 1
@@ -2621,7 +2631,7 @@ func _fire_shot() -> void:
 		last_shot_origin = muzzle_marker.global_position
 		var aim_sample := _muzzle_axis_sample()
 		current_aim_target = aim_sample.position
-		var forward_dir := (current_aim_target - last_shot_origin).normalized()
+		var forward_dir := _barrel_direction_world()
 		var spread_rad := deg_to_rad(_current_total_spread_deg())
 		var random := RandomNumberGenerator.new()
 		random.seed = burst_shot_count
@@ -2796,6 +2806,7 @@ func _save_weapon_config() -> void:
 		"ballistics": {
 			"fire_rate_rpm": fire_rate_rpm,
 			"damage": damage_per_shot,
+			"muzzle_velocity_mps": muzzle_velocity_mps,
 			"base_spread_deg": base_spread_deg,
 			"bloom_per_shot_deg": bloom_per_shot_deg,
 			"max_recoil_bloom_deg": max_recoil_bloom_deg,
@@ -2815,13 +2826,22 @@ func _save_weapon_config() -> void:
 	_export_weapon_packed_scene(config_data)
 
 func _calibrated_barrel_base() -> Vector3:
-	var barrel_axis := (muzzle_local_pos - right_grip_local_pos).normalized()
-	if barrel_axis.length_squared() < 0.99:
-		barrel_axis = Vector3.RIGHT
-	return muzzle_local_pos - barrel_axis * minf(
+	# Imported weapon assets are normalized so local +X is the bore. The hand
+	# grip is deliberately lower than the barrel and must never define aim.
+	return muzzle_local_pos - Vector3.RIGHT * minf(
 		0.18,
-		maxf(muzzle_local_pos.distance_to(right_grip_local_pos) * 0.35, 0.08)
+		maxf(absf(muzzle_local_pos.x - right_grip_local_pos.x) * 0.35, 0.08)
 	)
+
+
+func _barrel_direction_world() -> Vector3:
+	if current_weapon_mesh == null:
+		return Vector3.RIGHT
+	return (current_weapon_mesh.global_basis * Vector3.RIGHT).normalized()
+
+
+func _bullet_velocity_vector() -> Vector3:
+	return _barrel_direction_world() * muzzle_velocity_mps
 
 func _save_and_play_latest_playground() -> void:
 	# One canonical handoff: the live build never guesses which lab or scene is
@@ -3459,6 +3479,7 @@ func _build_studio_ui() -> void:
 	var bal_title := Label.new(); bal_title.text = "FIRE & DISPERSION"; fire_vbox.add_child(bal_title)
 	_add_slider(fire_vbox, "rpm", "Fire Rate (RPM)", 200.0, 1200.0, float(fire_rate_rpm), func(v: float): fire_rate_rpm = int(v))
 	_add_slider(fire_vbox, "dmg", "Damage", 10.0, 100.0, float(damage_per_shot), func(v: float): damage_per_shot = int(v))
+	_add_slider(fire_vbox, "muzzle_velocity", "Bullet Velocity (m/s)", 150.0, 1200.0, muzzle_velocity_mps, func(v: float): muzzle_velocity_mps = v)
 	_add_slider(fire_vbox, "base_spread", "Base Spread (deg)", 0.0, 3.0, base_spread_deg, func(v: float): base_spread_deg = v)
 	_add_slider(fire_vbox, "bloom", "Bloom Per Shot", 0.0, 5.0, bloom_per_shot_deg, func(v: float): bloom_per_shot_deg = v)
 	_add_slider(fire_vbox, "max_bloom", "Maximum Bloom", 0.25, 8.0, max_recoil_bloom_deg, func(v: float): max_recoil_bloom_deg = v)
@@ -3476,11 +3497,11 @@ func _build_studio_ui() -> void:
 	fire_vbox.add_child(HSeparator.new())
 	var layers_title := Label.new(); layers_title.text = "TRAJECTORY STUDY LAYERS"; fire_vbox.add_child(layers_title)
 	var convergence_toggle := CheckButton.new()
-	convergence_toggle.name = "MuzzleConvergenceToggle"
-	convergence_toggle.text = "Lime — muzzle → reticle convergence"
-	convergence_toggle.tooltip_text = "Shows the red muzzle socket and bore reticle sharing one physical barrel axis."
-	convergence_toggle.button_pressed = show_muzzle_convergence
-	convergence_toggle.toggled.connect(func(enabled: bool): show_muzzle_convergence = enabled)
+	convergence_toggle.name = "BulletVelocityToggle"
+	convergence_toggle.text = "Green — bullet velocity vector"
+	convergence_toggle.tooltip_text = "Starts at the red muzzle socket. Direction is the bore; length shows 4 ms of travel at the saved muzzle velocity."
+	convergence_toggle.button_pressed = show_bullet_velocity
+	convergence_toggle.toggled.connect(func(enabled: bool): show_bullet_velocity = enabled)
 	fire_vbox.add_child(convergence_toggle)
 	var barrel_toggle := CheckButton.new()
 	barrel_toggle.text = "Red — physical barrel axis"
@@ -3584,7 +3605,7 @@ func _update_fire_debug_lines() -> void:
 	if fire_debug_instance == null:
 		return
 	fire_debug_mesh.clear_surfaces()
-	if not show_muzzle_convergence and not show_barrel_axis and not show_camera_aim and not show_last_shot:
+	if not show_bullet_velocity and not show_barrel_axis and not show_camera_aim and not show_last_shot:
 		fire_debug_instance.visible = false
 		return
 	fire_debug_instance.visible = true
@@ -3594,18 +3615,19 @@ func _update_fire_debug_lines() -> void:
 		if current_aim_target != Vector3.ZERO
 		else _camera_aim_sample().position
 	)
-	# In the Gunsmith the weapon bore is authoritative. The short on-screen
-	# reticle and this world-space guide both derive from the same red muzzle
-	# socket; orbiting the inspection camera cannot steer either physical ray.
-	if show_muzzle_convergence and muzzle_marker:
+	# Green is velocity, not a camera-to-target connector. It starts at the red
+	# muzzle socket and points down local +X, completely independent of either
+	# hand socket. Its display length is distance travelled in the first 4 ms.
+	if show_bullet_velocity and muzzle_marker:
 		_add_fire_debug_segment(
 			muzzle_marker.global_position,
-			target,
-			Color(0.55, 1.0, 0.18)
+			muzzle_marker.global_position
+				+ _bullet_velocity_vector() * BULLET_VELOCITY_PREVIEW_SECONDS,
+			Color(0.15, 1.0, 0.18)
 		)
 	if show_barrel_axis and current_weapon_mesh and muzzle_marker:
 		var barrel_base := current_weapon_mesh.to_global(_calibrated_barrel_base())
-		var barrel_direction := (muzzle_marker.global_position - barrel_base).normalized()
+		var barrel_direction := _barrel_direction_world()
 		_add_fire_debug_segment(
 			barrel_base,
 			muzzle_marker.global_position + barrel_direction * 5.0,
