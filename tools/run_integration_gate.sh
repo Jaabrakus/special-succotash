@@ -69,6 +69,7 @@ run_godot_check() {
 
 run_godot_check "manifest" "res://tools/integration_manifest_regression.gd" "INTEGRATION_MANIFEST_REGRESSION PASS"
 run_godot_check "studio-navigation" "res://tools/studio_navigation_regression.gd" "STUDIO_NAVIGATION_REGRESSION PASS"
+run_godot_check "animation-workshop-repository" "res://tools/animation_workshop_repository_regression.gd" "ANIMATION_WORKSHOP_REPOSITORY_REGRESSION PASS"
 "$project_dir/tools/run_operator_config_validation.sh"
 "$project_dir/tools/run_operator_animation_regression.sh"
 "$project_dir/tools/run_operator_weapon_pose_regression.sh"

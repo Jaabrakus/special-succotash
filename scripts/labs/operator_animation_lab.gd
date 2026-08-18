@@ -25,6 +25,8 @@ const LAYER_COMPOSER_SCRIPT := preload("res://scripts/labs/animation_layer_compo
 const POSE_EDITOR_SCRIPT := preload("res://scripts/labs/animation_pose_editor.gd")
 const TRANSFORM_GIZMO_SCRIPT := preload("res://scripts/labs/transform_gizmo_3d.gd")
 const WEAPON_RIG_PREVIEW := preload("res://scripts/labs/weapon_rig_preview_loader.gd")
+const WORKSHOP_REPOSITORY_SCRIPT := preload("res://scripts/labs/animation_workshop_repository.gd")
+const RETARGET_SERVICE_SCRIPT := preload("res://scripts/labs/animation_retarget_service.gd")
 const EDITOR_UI_SCALE := 0.84
 const ROOT_SANITIZER := preload("res://scripts/player/operator_animation_root_sanitizer.gd")
 const EDITOR_FPS := 30.0
@@ -75,6 +77,8 @@ var selected_sequence_regions: Dictionary = {"full_body": true}
 var assembly_preview_active: bool = false
 var assembly_card_panels: Dictionary = {}
 var clip_editor = CLIP_EDITOR_SCRIPT.new()
+var workshop_repository = WORKSHOP_REPOSITORY_SCRIPT.new()
+var retarget_service = RETARGET_SERVICE_SCRIPT.new()
 var weapon_socket_visible: bool = true
 var weapon_node: Node3D
 var socket_attachment: BoneAttachment3D
@@ -261,34 +265,23 @@ func _prepare_workshop_window() -> void:
     DisplayServer.window_set_position(usable_rect.position + (usable_rect.size - target_size) / 2)
 
 func _load_layer_recipe() -> void:
-    if not FileAccess.file_exists(LAYER_RECIPE_PATH):
-        return
-    var file := FileAccess.open(LAYER_RECIPE_PATH, FileAccess.READ)
-    var parsed: Variant = JSON.parse_string(file.get_as_text()) if file else null
-    if not parsed is Dictionary:
-        return
-    var saved := parsed as Dictionary
     # Older recipes were incorrectly presented as pistol families. Keep their
     # useful body-part assignments, but migrate the editor to a neutral body
     # composition recipe.
     layer_recipe_family = "CUSTOM_BODY"
-    var saved_layers: Variant = saved.get("layers", {})
-    if saved_layers is Dictionary:
-        for layer_key in layer_recipe.keys():
-            layer_recipe[layer_key] = String((saved_layers as Dictionary).get(layer_key, ""))
+    layer_recipe = workshop_repository.load_layer_recipe(
+        LAYER_RECIPE_PATH,
+        layer_recipe
+    )
 
 func _save_layer_recipe() -> void:
-    var file := FileAccess.open(LAYER_RECIPE_PATH, FileAccess.WRITE)
-    if file == null:
+    if not workshop_repository.save_layer_recipe(
+        LAYER_RECIPE_PATH,
+        layer_recipe_family,
+        layer_recipe
+    ):
         if status_label:
             status_label.text = "Could not save the body-layer recipe."
-        return
-    file.store_string(JSON.stringify({
-        "version": 1,
-        "weapon_family": layer_recipe_family,
-        "layers": layer_recipe,
-        "note": "Bone-masked animation sources. Gameplay aim remains authoritative over the final head and weapon pose.",
-    }, "  "))
 
 func _assign_selected_clip_to_layer() -> void:
     if filtered_entries.is_empty():
@@ -356,10 +349,7 @@ func _build_layer_composite() -> void:
     _save_authored_segments(composite_segment, requested_name.to_snake_case(), false)
 
 func _entry_for_resource_path(resource_path: String) -> Dictionary:
-    for entry in all_clip_entries:
-        if String(entry.get("path", "")) == resource_path:
-            return entry
-    return {}
+    return workshop_repository.entry_for_path(all_clip_entries, resource_path)
 
 func _refresh_layer_recipe_summary() -> void:
     if layer_recipe_summary == null:
@@ -547,41 +537,15 @@ func _create_body_layer_target(layer_key: String, title: String, minimum_size: V
     return target
 
 func _scan_all_mixamo_fbx() -> void:
-    fbx_files.clear()
-    _scan_dir_recursive("res://assets/animations/mixamo")
-    _scan_authored_animations()
+    fbx_files = workshop_repository.scan_mixamo("res://assets/animations/mixamo")
+    authored_animation_files = workshop_repository.scan_authored(AUTHORED_ANIMATION_DIR)
 
 func _scan_authored_animations() -> void:
-    authored_animation_files.clear()
-    var directory := DirAccess.open(AUTHORED_ANIMATION_DIR)
-    if directory == null:
-        return
-    directory.list_dir_begin()
-    var file_name := directory.get_next()
-    while not file_name.is_empty():
-        if not directory.current_is_dir() and file_name.ends_with(".tres"):
-            authored_animation_files[file_name.get_basename().capitalize()] = "%s/%s" % [AUTHORED_ANIMATION_DIR, file_name]
-        file_name = directory.get_next()
+    authored_animation_files = workshop_repository.scan_authored(AUTHORED_ANIMATION_DIR)
 
 func _scan_dir_recursive(dir_path: String) -> void:
-    var dir := DirAccess.open(dir_path)
-    if dir:
-        dir.list_dir_begin()
-        var file_name := dir.get_next()
-        while file_name != "":
-            if dir.current_is_dir() and not file_name.begins_with("."):
-                _scan_dir_recursive(dir_path + "/" + file_name)
-            elif file_name.ends_with(".fbx") and not file_name.begins_with("."):
-                var full_path := dir_path + "/" + file_name
-                var clean_name := file_name.get_basename().capitalize()
-                var folder := dir_path.get_file()
-                var tag := ""
-                if "Pistol" in folder: tag = "[Pistol] "
-                elif "Locomotion" in folder or "Lite" in folder: tag = "[Rifle] "
-                elif "Shooter" in folder: tag = "[Shooter] "
-                clean_name = tag + clean_name
-                fbx_files[clean_name] = full_path
-            file_name = dir.get_next()
+    # Compatibility wrapper for older tests/tools that invoke the scene method.
+    fbx_files.merge(workshop_repository.scan_mixamo(dir_path), true)
 
 func _load_skin(skin: SkinType) -> void:
     if model_root:
@@ -643,21 +607,11 @@ func _load_skin(skin: SkinType) -> void:
                 baked_clips.append(StringName(anim_name))
         baked_clips.sort()
 
-    all_clip_entries.clear()
-    for baked in baked_clips:
-        all_clip_entries.append({"name": baked, "key": str(baked), "display": str(baked), "type": "BAKED", "path": ""})
-    for fbx_name in fbx_files.keys():
-        var clean_key: String = str(fbx_name).replace("[", "").replace("]", "").replace(" ", "_").replace("-", "_").replace("(", "").replace(")", "").replace(".", "_").to_lower()
-        all_clip_entries.append({"name": StringName("dyn/" + clean_key), "key": clean_key, "display": fbx_name, "type": "FBX", "path": fbx_files[fbx_name]})
-    for authored_name in authored_animation_files.keys():
-        var authored_key := "authored_" + str(authored_name).to_snake_case()
-        all_clip_entries.append({
-            "name": StringName("dyn/" + authored_key),
-            "key": authored_key,
-            "display": "[Authored] " + str(authored_name),
-            "type": "AUTHORED",
-            "path": authored_animation_files[authored_name],
-        })
+    all_clip_entries = workshop_repository.build_entries(
+        baked_clips,
+        fbx_files,
+        authored_animation_files
+    )
 
     if not highlight_shortlist_loaded:
         _load_highlighted_shortlist()
@@ -1803,110 +1757,24 @@ func _apply_gunsmith_hand_map_for_entry(entry: Dictionary) -> void:
     )
 
 func _load_authored_animation(entry: Dictionary) -> void:
-    var anim_key: StringName = StringName(entry.get("key", ""))
-    if anim_key == &"" or dynamic_anim_lib.has_animation(anim_key):
-        return
-    var source_authored := load(str(entry.get("path", ""))) as Animation
-    if source_authored != null:
-        var authored := source_authored.duplicate(true) as Animation
-        ROOT_SANITIZER.sanitize(authored, _should_loop(str(entry.get("display", ""))))
-        dynamic_anim_lib.add_animation(anim_key, authored)
+    retarget_service.load_authored(
+        entry,
+        dynamic_anim_lib,
+        _should_loop(str(entry.get("display", ""))),
+        ROOT_SANITIZER
+    )
 
 func _load_and_retarget_fbx(entry: Dictionary) -> void:
-    var anim_key: StringName = StringName(entry["key"])
-    if dynamic_anim_lib.has_animation(anim_key):
-        return
-    
-    var fbx_path: String = entry["path"]
-    var packed: PackedScene = load(fbx_path) as PackedScene
-    if not packed:
-        return
-    
-    var temp_instance := packed.instantiate()
-    var temp_player := _find_animation_player(temp_instance)
-    if not temp_player or temp_player.get_animation_list().is_empty():
-        temp_instance.queue_free()
-        return
-    
-    var src_anim_name := _select_source_animation_name(temp_player)
-    if src_anim_name == &"":
-        temp_instance.queue_free()
-        return
-    var src_anim: Animation = temp_player.get_animation(src_anim_name)
-    if not src_anim:
-        temp_instance.queue_free()
-        return
-
-    # Universal 65-Bone Retargeter with Full Finger & Spine Tracks
-    var retargeted: Animation = src_anim.duplicate()
-    var skel_path: NodePath = NodePath("GeneralSkeleton")
-    if skeleton:
-        skel_path = animation_player.get_node(animation_player.root_node).get_path_to(skeleton)
-
-    var track_idx := retargeted.get_track_count() - 1
-    while track_idx >= 0:
-        var old_path_str := str(retargeted.track_get_path(track_idx))
-        var raw_bone := old_path_str.split(":")[-1]
-        var normalized_mixamo := raw_bone.replace("mixamorig:", "mixamorig_")
-        if not normalized_mixamo.begins_with("mixamorig_"):
-            normalized_mixamo = "mixamorig_" + normalized_mixamo
-
-        var target_bone := ""
-        if skeleton:
-            if current_skin == SkinType.PS1_NIGHT_VISION_SEAL and MIXAMO_TO_PS1_MAP.has(normalized_mixamo):
-                target_bone = MIXAMO_TO_PS1_MAP[normalized_mixamo]
-            elif skeleton.find_bone(raw_bone) != -1:
-                target_bone = raw_bone
-            elif skeleton.find_bone(normalized_mixamo) != -1:
-                target_bone = normalized_mixamo
-            elif skeleton.find_bone(normalized_mixamo.replace("mixamorig_", "mixamorig:")) != -1:
-                target_bone = normalized_mixamo.replace("mixamorig_", "mixamorig:")
-            else:
-                var lower_raw := raw_bone.to_lower().replace("mixamorig_", "").replace("mixamorig:", "")
-                for b_i in range(skeleton.get_bone_count()):
-                    var b_name := skeleton.get_bone_name(b_i)
-                    if b_name.to_lower() == lower_raw or b_name.to_lower().begins_with(lower_raw):
-                        target_bone = b_name
-                        break
-
-        if target_bone != "":
-            var new_path := NodePath(str(skel_path) + ":" + target_bone)
-            retargeted.track_set_path(track_idx, new_path)
-
-            if ("Hips" in raw_bone or "Spinelower" in target_bone or "root" in raw_bone.to_lower()) and retargeted.track_get_type(track_idx) == Animation.TYPE_POSITION_3D:
-                var bone_idx := skeleton.find_bone(target_bone) if skeleton else -1
-                var rest_y := skeleton.get_bone_rest(bone_idx).origin.y if bone_idx != -1 else 0.92
-                var base_y := 0.0
-                if retargeted.track_get_key_count(track_idx) > 0:
-                    base_y = retargeted.track_get_key_value(track_idx, 0).y
-                    
-                # Scale factor: ratio of target skeleton hips to source animation hips
-                # This keeps the bobbing proportional instead of adding raw meter offsets
-                var scale_factor := (rest_y / base_y) if base_y != 0.0 else 1.0
-                    
-                for key_idx in range(retargeted.track_get_key_count(track_idx)):
-                    var pos: Vector3 = retargeted.track_get_key_value(track_idx, key_idx)
-                    pos.x = 0.0
-                    pos.z = 0.0
-                    pos.y = pos.y * scale_factor
-                    retargeted.track_set_key_value(track_idx, key_idx, pos)
-        else:
-            retargeted.remove_track(track_idx)
-            
-        track_idx -= 1
-
-    ROOT_SANITIZER.sanitize(retargeted, _should_loop(str(entry.get("display", ""))))
-    dynamic_anim_lib.add_animation(anim_key, retargeted)
-    temp_instance.queue_free()
-
-func _select_source_animation_name(player: AnimationPlayer) -> StringName:
-    var names := player.get_animation_list()
-    if names.has(&"mixamo_com"):
-        return &"mixamo_com"
-    for animation_name in names:
-        if animation_name != &"RESET":
-            return animation_name
-    return &""
+    retarget_service.load_fbx(
+        entry,
+        dynamic_anim_lib,
+        animation_player,
+        skeleton,
+        current_skin == SkinType.PS1_NIGHT_VISION_SEAL,
+        MIXAMO_TO_PS1_MAP,
+        _should_loop(str(entry.get("display", ""))),
+        ROOT_SANITIZER
+    )
 
 func _toggle_play_pause() -> void:
     if animation_player == null:
@@ -2714,36 +2582,7 @@ func _should_loop(clip_name: String) -> bool:
 
 func _filter_category(cat: String) -> void:
     current_category = cat
-    filtered_entries.clear()
-    for entry in all_clip_entries:
-        var name_str: String = str(entry["display"]).to_lower()
-        match cat:
-            "ALL":
-                filtered_entries.append(entry)
-            "RIFLE LOCO":
-                if ("walk" in name_str or "run" in name_str or "sprint" in name_str or "strafe" in name_str) and not "crouch" in name_str and not "pistol" in name_str:
-                    filtered_entries.append(entry)
-            "PISTOL":
-                if "pistol" in name_str:
-                    filtered_entries.append(entry)
-            "CROUCH & PRONE":
-                if "crouch" in name_str or "prone" in name_str or "kneel" in name_str or "crawl" in name_str:
-                    filtered_entries.append(entry)
-            "COMBAT & FIRE":
-                if "fire" in name_str or "aim" in name_str or "reload" in name_str or "shoot" in name_str or "throw" in name_str:
-                    filtered_entries.append(entry)
-            "AGILITY & DIVE":
-                if "dive" in name_str or "roll" in name_str or "jump" in name_str or "land" in name_str:
-                    filtered_entries.append(entry)
-            "DEATH & HIT":
-                if "death" in name_str or "hit" in name_str or "die" in name_str:
-                    filtered_entries.append(entry)
-            "AUTHORED":
-                if entry["type"] in ["BAKED", "AUTHORED"]:
-                    filtered_entries.append(entry)
-
-    if filtered_entries.is_empty():
-        filtered_entries = all_clip_entries.duplicate()
+    filtered_entries = workshop_repository.filter_entries(all_clip_entries, cat)
     clip_index = 0
     _play_selected()
     _refresh_clip_list_ui()
@@ -2785,15 +2624,7 @@ func _refresh_slot_ui() -> void:
     _refresh_slot_suggestion()
 
 func _load_state_slots() -> void:
-    state_slots.clear()
-    if FileAccess.file_exists(ANIMATION_MAP_PATH):
-        var file := FileAccess.open(ANIMATION_MAP_PATH, FileAccess.READ)
-        var parsed: Variant = JSON.parse_string(file.get_as_text()) if file else null
-        if parsed is Dictionary:
-            var clips: Variant = (parsed as Dictionary).get("clips", {})
-            if clips is Dictionary:
-                for slot_name in (clips as Dictionary).keys():
-                    state_slots[str(slot_name)] = str((clips as Dictionary)[slot_name])
+    state_slots = workshop_repository.load_state_slots(ANIMATION_MAP_PATH)
     state_slot_keys.clear()
     for slot_name in state_slots.keys():
         state_slot_keys.append(str(slot_name))
@@ -2802,23 +2633,8 @@ func _load_state_slots() -> void:
         selected_state_slot = state_slot_keys[0]
 
 func _save_state_slots() -> void:
-    var config: Dictionary = {}
-    if FileAccess.file_exists(ANIMATION_MAP_PATH):
-        var existing_file := FileAccess.open(ANIMATION_MAP_PATH, FileAccess.READ)
-        var parsed: Variant = JSON.parse_string(existing_file.get_as_text()) if existing_file else null
-        if parsed is Dictionary:
-            config = (parsed as Dictionary).duplicate(true)
-    if config.is_empty():
-        config = {
-            "version": 1,
-            "description": "Gameplay state -> editable Mixamo FBX mapping.",
-        }
-    config = _merge_state_slots_into_config(config)
-    var file := FileAccess.open(ANIMATION_MAP_PATH, FileAccess.WRITE)
-    if file == null:
+    if not workshop_repository.save_state_slots(ANIMATION_MAP_PATH, state_slots):
         status_label.text = "Could not save the runtime animation map."
-        return
-    file.store_string(JSON.stringify(config, "  "))
 
 func _save_animation_work_and_play_latest() -> void:
     # One project-level commit: animation routes, authored body recipe, review
@@ -4208,8 +4024,7 @@ func _refresh_clip_list_ui() -> void:
     _refresh_slot_suggestion()
 
 func _entry_identity(entry: Dictionary) -> String:
-    var path := str(entry.get("path", ""))
-    return path if not path.is_empty() else "%s:%s" % [str(entry.get("type", "")), str(entry.get("key", entry.get("name", "")))]
+    return workshop_repository.entry_identity(entry)
 
 func _highlighted_entry_index(entry: Dictionary) -> int:
     var identity := _entry_identity(entry)
@@ -4262,33 +4077,18 @@ func _highlight_shortlist_payload() -> Dictionary:
     }
 
 func _save_highlighted_shortlist() -> void:
-    var file := FileAccess.open(HIGHLIGHT_SHORTLIST_PATH, FileAccess.WRITE)
-    if file == null:
+    if not workshop_repository.save_highlights(
+        HIGHLIGHT_SHORTLIST_PATH,
+        highlighted_clip_entries
+    ):
         if status_label:
             status_label.text = "Could not save the highlighted animation shortlist."
-        return
-    file.store_string(JSON.stringify(_highlight_shortlist_payload(), "  "))
 
 func _load_highlighted_shortlist() -> void:
-    highlighted_clip_entries.clear()
-    if not FileAccess.file_exists(HIGHLIGHT_SHORTLIST_PATH):
-        return
-    var file := FileAccess.open(HIGHLIGHT_SHORTLIST_PATH, FileAccess.READ)
-    var parsed: Variant = JSON.parse_string(file.get_as_text()) if file else null
-    if not parsed is Dictionary:
-        return
-    var saved_clips: Variant = (parsed as Dictionary).get("selected_clips", [])
-    if not saved_clips is Array:
-        return
-    for raw_saved in saved_clips:
-        if not raw_saved is Dictionary:
-            continue
-        var saved: Dictionary = raw_saved
-        var saved_identity := _entry_identity(saved)
-        for entry in all_clip_entries:
-            if _entry_identity(entry) == saved_identity:
-                highlighted_clip_entries.append(entry.duplicate(true))
-                break
+    highlighted_clip_entries = workshop_repository.load_highlights(
+        HIGHLIGHT_SHORTLIST_PATH,
+        all_clip_entries
+    )
 
 func _select_entry_for_preview(entry: Dictionary) -> void:
     var identity := _entry_identity(entry)
@@ -4379,19 +4179,7 @@ func _refresh_slot_suggestion() -> void:
         slot_suggestion_label.text = "BEST MATCH: %s (review before applying)" % suggestion
 
 func _suggest_slot_for_entry(entry: Dictionary) -> String:
-    if str(entry.get("type", "")) != "FBX":
-        return ""
-    var path := str(entry.get("path", "")).to_lower()
-    var best_slot := ""
-    var best_score := -1
-    var targets := _slot_targets()
-    for slot_key in targets.keys():
-        for candidate in targets[slot_key]:
-            var candidate_text := str(candidate).to_lower()
-            if candidate_text in path and candidate_text.length() > best_score:
-                best_slot = str(slot_key)
-                best_score = candidate_text.length()
-    return best_slot
+    return workshop_repository.suggest_slot(entry)
 
 func _find_animation_player(node: Node) -> AnimationPlayer:
     if node is AnimationPlayer:
@@ -4412,12 +4200,7 @@ func _find_skeleton(node: Node) -> Skeleton3D:
     return null
 
 func _on_search_changed(query: String) -> void:
-    filtered_entries.clear()
-    var q := query.strip_edges().to_lower()
-    for entry in all_clip_entries:
-        var name_str: String = str(entry["display"]).to_lower()
-        if q == "" or q in name_str:
-            filtered_entries.append(entry)
+    filtered_entries = workshop_repository.search_entries(all_clip_entries, query)
     clip_index = 0
     if not filtered_entries.is_empty():
         _play_selected()
@@ -4425,110 +4208,17 @@ func _on_search_changed(query: String) -> void:
 
 func _auto_map_all_slots() -> void:
     # Conservative mapping into known states. It does not invent gameplay logic.
-    var slot_targets: Dictionary = {
-        "idle_rifle": ["Lite Rifle Pack/idle", "Rifle 8-Way Locomotion Pack/idle", "idle"],
-        "aim_idle": ["Shooter Pack/rifle aiming idle", "aiming idle", "idle"],
-        "run_forward": ["Lite Rifle Pack/run forward", "run forward", "walk forward"],
-        "run_backward": ["Lite Rifle Pack/run backward", "run backward", "walk backward"],
-        "run_left": ["Lite Rifle Pack/run left", "run left", "walk left"],
-        "run_right": ["Lite Rifle Pack/run right", "run right", "walk right"],
-        "run_forward_left": ["Lite Rifle Pack/run forward left", "run forward left"],
-        "run_forward_right": ["Lite Rifle Pack/run forward right", "run forward right"],
-        "run_back_left": ["Lite Rifle Pack/run backward left", "run backward left"],
-        "run_back_right": ["Lite Rifle Pack/run backward right", "run backward right"],
-        "idle_crouch": ["Rifle 8-Way Locomotion Pack/idle crouching", "idle crouching", "crouch idle"],
-        "crouch_forward": ["Rifle 8-Way Locomotion Pack/walk crouching forward", "walk crouching forward"],
-        "crouch_backward": ["Rifle 8-Way Locomotion Pack/walk crouching backward", "walk crouching backward"],
-        "crouch_left": ["Rifle 8-Way Locomotion Pack/walk crouching left", "walk crouching left"],
-        "crouch_right": ["Rifle 8-Way Locomotion Pack/walk crouching right", "walk crouching right"],
-        "crouch_forward_left": ["Rifle 8-Way Locomotion Pack/walk crouching forward left"],
-        "crouch_forward_right": ["Rifle 8-Way Locomotion Pack/walk crouching forward right"],
-        "crouch_back_left": ["Rifle 8-Way Locomotion Pack/walk crouching backward left"],
-        "crouch_back_right": ["Rifle 8-Way Locomotion Pack/walk crouching backward right"],
-        "idle_prone": ["Prone Firing Rifle", "Prone Idle", "Prone Forward Stop"],
-        "prone_forward": ["Prone Forward", "Crawl Forward"],
-        "prone_backward": ["Moving Backward In Prone Position", "Prone Backward"],
-        "prone_turn_left": ["Prone Left Turn", "Prone Turn Left"],
-        "prone_turn_right": ["Prone Right Turn", "Prone Turn Right", "Prone Left Turn"],
-        "prone_fire": ["Prone Firing Rifle", "Prone Fire"],
-        "prone_reload": ["Prone Reloading", "Prone Reload"],
-        "dive_roll": ["Running Dive Roll", "Dive Roll"],
-        "roll": ["Run To Rolling", "Roll"],
-        "jump_up": ["Rifle 8-Way Locomotion Pack/jump up", "jump up"],
-        "jump_loop": ["Rifle 8-Way Locomotion Pack/jump loop", "jump loop"],
-        "jump_down": ["Rifle 8-Way Locomotion Pack/jump down", "jump down"],
-        "combat_fire": ["Shooter Pack/firing rifle", "firing rifle"],
-        "reload": ["Reloading", "Reload"]
-    }
-
-    var mapped_count := 0
-    for slot_key in slot_targets.keys():
-        var candidates: Array = slot_targets[slot_key]
-        var found_path := ""
-        for cand in candidates:
-            var cand_str: String = str(cand).to_lower()
-            for entry in all_clip_entries:
-                if entry["type"] != "FBX": continue
-                var full_path: String = entry["path"].to_lower()
-                if cand_str in full_path:
-                    found_path = entry["path"]
-                    break
-            if found_path != "":
-                break
-        
-        if found_path != "":
-            state_slots[slot_key] = found_path
-            mapped_count += 1
+    var result: Dictionary = workshop_repository.auto_map_result(all_clip_entries, state_slots)
+    state_slots = result.get("slots", state_slots)
+    var mapped_count := int(result.get("mapped_count", 0))
+    var target_count := int(result.get("target_count", 0))
 
     _save_state_slots()
     _refresh_slot_ui()
     if limb_hud_label:
         limb_hud_label.visible = true
-        limb_hud_label.text = "⚡ Auto-built %d / %d known runtime states. Review before playtesting." % [mapped_count, slot_targets.size()]
+        limb_hud_label.text = "⚡ Auto-built %d / %d known runtime states. Review before playtesting." % [mapped_count, target_count]
         get_tree().create_timer(4.0).timeout.connect(func(): limb_hud_label.visible = false)
 
 func _slot_targets() -> Dictionary:
-    return {
-        "idle_rifle": ["Lite Rifle Pack/idle", "Rifle 8-Way Locomotion Pack/idle", "idle"],
-        "aim_idle": ["Shooter Pack/rifle aiming idle", "aiming idle"],
-        "run_forward": ["Lite Rifle Pack/run forward", "run forward"],
-        "run_backward": ["Lite Rifle Pack/run backward", "run backward"],
-        "run_left": ["Lite Rifle Pack/run left", "run left"],
-        "run_right": ["Lite Rifle Pack/run right", "run right"],
-        "run_forward_left": ["Lite Rifle Pack/run forward left", "run forward left"],
-        "run_forward_right": ["Lite Rifle Pack/run forward right", "run forward right"],
-        "run_back_left": ["Lite Rifle Pack/run backward left", "run backward left"],
-        "run_back_right": ["Lite Rifle Pack/run backward right", "run backward right"],
-        "idle_crouch": ["idle crouching", "crouch idle"],
-        "crouch_forward": ["walk crouching forward"],
-        "crouch_backward": ["walk crouching backward"],
-        "crouch_left": ["walk crouching left"],
-        "crouch_right": ["walk crouching right"],
-        "crouch_forward_left": ["walk crouching forward left"],
-        "crouch_forward_right": ["walk crouching forward right"],
-        "crouch_back_left": ["walk crouching backward left"],
-        "crouch_back_right": ["walk crouching backward right"],
-        "idle_prone": ["Prone Firing Rifle", "Prone Idle"],
-        "prone_forward": ["Prone Forward", "Crawl Forward"],
-        "prone_backward": ["Moving Backward In Prone Position", "Prone Backward"],
-        "prone_turn_left": ["Prone Left Turn", "Prone Turn Left"],
-        "prone_turn_right": ["Prone Right Turn", "Prone Turn Right"],
-        "prone_fire": ["Prone Firing Rifle", "Prone Fire"],
-        "prone_reload": ["Prone Reloading", "Prone Reload"],
-        "dive_roll": ["Running Dive Roll", "Dive Roll"],
-        "roll": ["Run To Rolling", "Roll"],
-        "jump_up": ["jump up"],
-        "jump_loop": ["jump loop"],
-        "jump_down": ["jump down"],
-        "combat_fire": ["firing rifle"],
-        "reload": ["Reloading", "Reload"],
-        "start_forward": ["Start Walking"],
-        "start_backward": ["start walking backwards"],
-        "stop_forward": ["stop walking"],
-        "stop_backward": ["walk backwards stop"],
-        "run_to_stop": ["Run To Stop"],
-        "crouch_start": ["Rifle Crouch Idle To Walk"],
-        "crouch_stop": ["Crouch Stop Walking"],
-        "turn_90_left": ["turn 90 left"],
-        "turn_90_right": ["turn 90 right"],
-    }
+    return workshop_repository.SLOT_TARGETS.duplicate(true)
