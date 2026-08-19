@@ -12,6 +12,19 @@
   },
   "camo_skin": "Factory Classic (Wood & Steel)",
   "category": "Assault Rifles",
+  "composure": {
+    "graze_damage_scale": 0.38,
+    "minimum_core_scale": 0.65,
+    "movement_stress": 0.62,
+    "moving_first_shot_multiplier": 0.45,
+    "recovery_speed": 2.20,
+    "second_shot_multiplier": 0.18,
+    "settled_first_shot_threshold": 0.04,
+    "settled_motion_threshold": 0.09,
+    "shot_stress": 0.085,
+    "stress_attack_speed": 5.0,
+    "turning_stress": 0.34
+  },
   "display_name": "AssaultRifle_1",
   "grip_offset": {
     "pos_x": 1.65713286399841,
@@ -59,13 +72,55 @@
     "mapping_version": 1,
     "support_hand_required": true
   },
+  "handling_profile": {
+    "animation_slots": {
+      "fire_crouched": "crouch_fire",
+      "fire_prone": "prone_fire",
+      "fire_standing": "combat_fire",
+      "idle_crouched": "idle_crouch",
+      "idle_prone": "idle_prone",
+      "idle_standing": "aim_idle",
+      "reload_crouched": "reload",
+      "reload_prone": "prone_reload",
+      "reload_standing": "reload"
+    },
+    "family": "TWO_HAND_RIFLE",
+    "locomotion_family": "RIFLE",
+    "locomotion_slots": {
+      "crouch_to_stand": "crouch_to_stand",
+      "jump": "jump_loop",
+      "run_back_left": "run_back_left",
+      "run_back_right": "run_back_right",
+      "run_backward": "run_backward",
+      "run_forward": "run_forward",
+      "run_forward_left": "run_forward_left",
+      "run_forward_right": "run_forward_right",
+      "run_left": "run_left",
+      "run_right": "run_right",
+      "stand_to_crouch": "crouch_start",
+      "walk_back_left": "walk_back_left",
+      "walk_back_right": "walk_back_right",
+      "walk_backward": "walk_backward",
+      "walk_forward": "walk_forward",
+      "walk_forward_left": "walk_forward_left",
+      "walk_forward_right": "walk_forward_right",
+      "walk_left": "walk_left",
+      "walk_right": "walk_right"
+    },
+    "mapping_version": 1,
+    "support_hand_required": true
+  },
   "model_fbx": "res://assets/weapons/modular_pack/AssaultRifle_1.fbx",
   "model_rotation_degrees": {
     "x": 0.0,
     "y": -90.0,
     "z": 0.0
   },
+<<<<<<< Updated upstream
   "normalized_scale": 0.219015600866256,
+=======
+  "normalized_scale": 1.0,
+>>>>>>> Stashed changes
   "operator_mount": {
     "position": {
       "x": -0.02,

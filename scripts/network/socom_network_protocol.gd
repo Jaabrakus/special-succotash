@@ -81,3 +81,46 @@ static func _bounded_vector2(value: Variant) -> Vector2:
 	if not axis.is_finite():
 		return Vector2.ZERO
 	return axis.limit_length(1.0)
+
+
+static func sanitize_snapshot(packet: Dictionary) -> Dictionary:
+	var entities: Dictionary = packet.get("entities", packet)
+	var sanitized_entities := {}
+	for raw_id in entities:
+		var raw_data = entities[raw_id]
+		if raw_data is not Dictionary:
+			continue
+		var data := raw_data as Dictionary
+		var pos: Vector3 = data.get("position", Vector3.ZERO)
+		var vel: Vector3 = data.get("velocity", Vector3.ZERO)
+		var yaw := float(data.get("yaw", 0.0))
+		if not pos.is_finite():
+			pos = Vector3.ZERO
+		if not vel.is_finite():
+			vel = Vector3.ZERO
+		if is_nan(yaw) or is_inf(yaw):
+			yaw = 0.0
+		sanitized_entities[raw_id] = {
+			"position": pos,
+			"yaw": wrapf(yaw, -PI, PI),
+			"velocity": vel,
+			"posture": clampi(int(data.get("posture", 0)), 0, 6),
+			"health": clampf(float(data.get("health", 100.0)), 0.0, 100.0),
+			"alive": bool(data.get("alive", true)),
+			"timestamp_ms": float(data.get("timestamp_ms", packet.get("timestamp_ms", 0.0))),
+		}
+	return {
+		"timestamp_ms": float(packet.get("timestamp_ms", Time.get_ticks_msec())),
+		"tick": maxi(0, int(packet.get("tick", 0))),
+		"entities": sanitized_entities,
+	}
+
+
+static func snapshot_packet_is_sane(packet: Dictionary) -> bool:
+	if packet.is_empty():
+		return false
+	var timestamp = packet.get("timestamp_ms")
+	if timestamp != null and typeof(timestamp) not in [TYPE_FLOAT, TYPE_INT]:
+		return false
+	return true
+

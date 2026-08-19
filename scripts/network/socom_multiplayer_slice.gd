@@ -17,11 +17,16 @@ const ComposureScript := preload("res://scripts/weapons/operator_composure.gd")
 const WeaponContract := preload("res://scripts/weapons/weapon_rig_contract.gd")
 const TracerSystemScript := preload("res://scripts/weapons/lab_leak_tracer_system.gd")
 
+const PlayerScript := preload("res://scripts/player/player_controller.gd")
+
 const DEFAULT_PORT := 14141
 const MAX_PLAYERS := 16
 const SNAPSHOT_INTERVAL := 1.0 / 20.0
 const RESPAWN_SECONDS := 3.0
 const SCORE_LIMIT := 5
+
+@export var simulated_network_latency_ms: float = 0.0
+@export var remote_interpolation_delay_seconds: float = 0.130
 
 var operators: Dictionary = {}
 var server_ballistics: Dictionary = {}
@@ -97,24 +102,30 @@ func _physics_process(delta: float) -> void:
 
 
 func _process(_delta: float) -> void:
-	if multiplayer.is_server() or pending_snapshots.is_empty():
+	var current_time_sec := Time.get_ticks_msec() / 1000.0
+	for raw_id in operators:
+		var operator := operators[raw_id] as SocomNetworkOperator
+		if operator != null and operator.is_proxy_replica:
+			operator.update_proxy_interpolation(current_time_sec)
+	
+	if pending_snapshots.is_empty():
 		return
 	var local_id := multiplayer.get_unique_id()
-	for raw_id in pending_snapshots:
-		var peer_id := int(raw_id)
-		var operator := operators.get(peer_id) as SocomNetworkOperator
-		if operator == null:
-			continue
-		var state: Dictionary = pending_snapshots[raw_id]
-		operator.set_authoritative_snapshot(
-			Vector3(state.get("position", operator.global_position)),
-			float(state.get("yaw", operator.rotation.y)),
-			Vector3(state.get("velocity", Vector3.ZERO)),
-			int(state.get("posture", 0)),
-			float(state.get("health", operator.current_health)),
-			bool(state.get("alive", true)),
-			peer_id != local_id
-		)
+	var raw_key = local_id if pending_snapshots.has(local_id) else str(local_id)
+	if pending_snapshots.has(raw_key):
+		var operator := operators.get(local_id) as SocomNetworkOperator
+		if operator != null:
+			var state: Dictionary = pending_snapshots[raw_key]
+			operator.set_authoritative_snapshot(
+				Vector3(state.get("position", operator.global_position)),
+				float(state.get("yaw", operator.rotation.y)),
+				Vector3(state.get("velocity", Vector3.ZERO)),
+				int(state.get("posture", 0)),
+				float(state.get("health", operator.current_health)),
+				bool(state.get("alive", true)),
+				false
+			)
+	pending_snapshots.clear()
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -254,12 +265,34 @@ func submit_shot(packet: Dictionary) -> void:
 
 
 @rpc("authority", "call_remote", "unreliable_ordered")
-func receive_world_state(snapshot: Dictionary, score_snapshot: Dictionary) -> void:
-	pending_snapshots = snapshot
+func receive_world_state(snapshot_packet: Dictionary, score_snapshot: Dictionary) -> void:
 	scores = score_snapshot
+	var entities: Dictionary = snapshot_packet.get("entities", snapshot_packet)
+	var timestamp_seconds := float(snapshot_packet.get("timestamp_ms", Time.get_ticks_msec())) / 1000.0
+	var local_id := multiplayer.get_unique_id()
+	
+	for raw_id in entities:
+		var peer_id := int(raw_id)
+		var operator := operators.get(peer_id) as SocomNetworkOperator
+		if operator == null:
+			continue
+		var state: Dictionary = entities[raw_id]
+		if peer_id == local_id:
+			pending_snapshots[raw_id] = state
+		else:
+			operator.push_network_snapshot(
+				Vector3(state.get("position", operator.global_position)),
+				float(state.get("yaw", operator.rotation.y)),
+				Vector3(state.get("velocity", Vector3.ZERO)),
+				int(state.get("posture", 0)),
+				float(state.get("health", operator.current_health)),
+				bool(state.get("alive", true)),
+				timestamp_seconds
+			)
+	
 	if not logged_first_snapshot:
 		logged_first_snapshot = true
-		print("MP_SLICE SNAPSHOT_RECEIVED operators=%d" % snapshot.size())
+		print("MP_SLICE SNAPSHOT_RECEIVED operators=%d" % entities.size())
 	_refresh_scoreboard()
 
 
@@ -305,6 +338,7 @@ func _spawn_operator_local(peer_id: int, team: int, spawn_position: Vector3) -> 
 	operator.name = "NetworkOperator_%d" % peer_id
 	operator.position = spawn_position
 	operator.rotation.y = PI if team == 0 else 0.0
+	operator.interpolation_delay_seconds = remote_interpolation_delay_seconds
 	add_child(operator)
 	operator.configure_identity(peer_id, team)
 	operators[peer_id] = operator
@@ -482,11 +516,11 @@ func _advance_server_composure(delta: float) -> void:
 			0.0,
 			1.0
 		)
-		var stance := OperatorComposure.Stance.STANDING
-		if operator.posture == SocomTestPlayer.MotionState.CROUCHED:
-			stance = OperatorComposure.Stance.CROUCHED
-		elif operator.posture == SocomTestPlayer.MotionState.PRONE:
-			stance = OperatorComposure.Stance.PRONE
+		var stance := ComposureScript.Stance.STANDING
+		if operator.posture == PlayerScript.MotionState.CROUCHED:
+			stance = ComposureScript.Stance.CROUCHED
+		elif operator.posture == PlayerScript.MotionState.PRONE:
+			stance = ComposureScript.Stance.PRONE
 		server_composure[raw_id].advance(delta, ratio, 0.0, stance)
 
 
@@ -502,7 +536,12 @@ func _broadcast_authoritative_state() -> void:
 			"health": operator.current_health,
 			"alive": operator.alive,
 		}
-	receive_world_state.rpc(snapshot, scores)
+	var packet := {
+		"timestamp_ms": Time.get_ticks_msec(),
+		"tick": Engine.get_physics_frames(),
+		"entities": snapshot,
+	}
+	receive_world_state.rpc(packet, scores)
 
 
 func _on_operator_eliminated(victim_peer_id: int, attacker_peer_id: int) -> void:

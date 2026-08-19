@@ -165,9 +165,9 @@
       "res://tools/weapon_rig_integration_regression.gd",
       "res://tools/operator_composure_regression.gd",
       "res://tools/prone_grounding_regression.gd",
-      "res://tools/multiplayer_slice_regression.gd"
-      ,"res://tools/test_tactical_grenades.gd"
-      ,"res://tools/test_sound_engine_lab.gd"
+      "res://tools/multiplayer_slice_regression.gd",
+      "res://tools/test_tactical_grenades.gd",
+      "res://tools/test_sound_engine_lab.gd"
     ],
     "full": [
       "res://tools/operator_locomotion_quality_regression.gd",

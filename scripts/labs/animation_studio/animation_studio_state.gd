@@ -110,7 +110,7 @@ var skeleton_chain_mesh := ImmediateMesh.new()
 var skeleton_chain_instance: MeshInstance3D
 var skeleton_chain_material: StandardMaterial3D
 var active_dragged_bone: String = ""
-var pose_transform_gizmo: SocomTransformGizmo3D
+var pose_transform_gizmo: Node3D
 var active_pose_gizmo_handle: StringName = &""
 var drag_start_mouse: Vector2 = Vector2.ZERO
 var drag_origin_mouse: Vector2 = Vector2.ZERO

@@ -38,7 +38,7 @@ const AnimationAudioEvents := preload("res://scripts/audio/audio_animation_event
 @export_range(0.0, 18.0, 0.5) var prone_axis_target_pitch_deg: float = 0.0
 @export_range(0.0, 120.0, 0.5) var prone_axis_max_correction_deg: float = 90.0
 @export_range(1.0, 30.0, 0.5) var prone_straighten_response: float = 14.0
-@export_range(6.0, 18.0, 0.1) var maximum_leg_rotation_deg_per_60hz: float = 10.8
+@export_range(6.0, 18.0, 0.1) var maximum_leg_rotation_deg_per_60hz: float = 9.8
 
 var animation_profile
 var asset_runtime
@@ -358,15 +358,15 @@ func _select_visual_clip() -> StringName:
 	if movement_state == &"ROLLING":
 		return &"roll"
 	if movement_state == &"AIRBORNE":
+		if vertical_speed > 1.0:
+			return &"jump_up"
+		if vertical_speed < -1.0:
+			return &"jump_down"
 		var equipped_jump := StringName(
 			(equipped_weapon_handling_profile.get("locomotion_slots", {}) as Dictionary).get("jump", "")
 		)
 		if equipped_jump != &"" and available_clips.has(equipped_jump):
 			return equipped_jump
-		if vertical_speed > 1.0:
-			return &"jump_up"
-		if vertical_speed < -1.0:
-			return &"jump_down"
 		return &"jump_loop"
 	if movement_state == &"LANDING":
 		return &"jump_down"

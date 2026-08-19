@@ -11,7 +11,7 @@ log_path="${TMPDIR:-/private/tmp}/socom-operator-config-validation.log"
   --path "$project_dir" \
   --script res://tools/validate_operator_configs.gd
 
-if ! rg -q 'OPERATOR_CONFIG_VALIDATION PASS' "$log_path"; then
+if ! grep -q 'OPERATOR_CONFIG_VALIDATION PASS' "$log_path"; then
   print -u2 "FAIL: operator configuration validation did not pass"
   exit 1
 fi

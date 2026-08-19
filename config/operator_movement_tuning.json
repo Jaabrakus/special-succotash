@@ -11,16 +11,17 @@
     "state_blend_seconds": 0.17
   },
   "movement": {
-    "acceleration": 18.0,
-    "braking_acceleration": 50.0,
+    "acceleration": 45.0,
+    "braking_acceleration": 60.0,
     "crouch_speed": 2.6,
     "full_gait_input_threshold": 0.72,
     "move_speed": 6.5,
     "prone_speed": 1.25,
-    "reversal_acceleration": 22.0,
-    "strafe_speed": 6.2,
+    "reversal_acceleration": 90.0,
+    "strafe_speed": 6.0,
     "torso_to_legs_degrees": 48.0
   },
   "studio_open_on_start": false,
   "version": 1.0
 }
+

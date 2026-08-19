@@ -52,7 +52,7 @@ var anim_studio_panel: PanelContainer
 var anim_studio_visible: bool = true
 var anim_studio_state_label: Label
 var anim_tuning_sliders: Dictionary = {}
-var pose_tuner_panel: SocomOperatorPoseTuner
+var pose_tuner_panel: Control
 var operator_tuning: Dictionary = {}
 var target_dummies: Array[Node] = []
 var target_range_active: bool = true

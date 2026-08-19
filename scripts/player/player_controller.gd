@@ -5,10 +5,10 @@ const OperatorOrientationController := preload("res://scripts/player/operator_or
 const MovementCommand := preload("res://scripts/network/socom_movement_command.gd")
 
 @export var move_speed: float = 6.5
-@export var strafe_speed: float = 5.6
-@export var acceleration: float = 18.0
-@export var braking_acceleration: float = 26.0
-@export var reversal_acceleration: float = 22.0
+@export var strafe_speed: float = 6.0
+@export var acceleration: float = 45.0
+@export var braking_acceleration: float = 60.0
+@export var reversal_acceleration: float = 90.0
 @export var turn_response: float = 12.0
 @export var gravity: float = 22.0
 
@@ -68,7 +68,6 @@ var peek_amount: float = 0.0
 
 func _physics_process(delta: float) -> void:
     if replay_override_active:
-        velocity = Vector3.ZERO
         return
     var command = _consume_movement_command()
     last_movement_command = command.duplicate_command()

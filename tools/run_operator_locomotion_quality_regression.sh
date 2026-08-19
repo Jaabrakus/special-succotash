@@ -11,7 +11,7 @@ report_path="${TMPDIR:-/private/tmp}/socom-operator-locomotion-quality.log"
   --path "$project_dir" \
   --script res://tools/operator_locomotion_quality_regression.gd
 
-if ! rg -q 'OPERATOR_LOCOMOTION_QUALITY_REGRESSION PASS' "$report_path"; then
+if ! grep -q 'OPERATOR_LOCOMOTION_QUALITY_REGRESSION PASS' "$report_path"; then
   print -u2 "FAIL: operator locomotion quality regression did not pass"
   exit 1
 fi

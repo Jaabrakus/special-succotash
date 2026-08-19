@@ -19,7 +19,8 @@ var peek_axis: float = 0.0
 
 
 func duplicate_command():
-	var copy := SocomMovementCommand.new()
+	var script: GDScript = get_script() as GDScript
+	var copy = script.new()
 	copy.simulation_tick = simulation_tick
 	copy.move_axis = move_axis
 	copy.aim_yaw = aim_yaw

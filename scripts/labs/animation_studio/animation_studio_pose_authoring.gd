@@ -96,7 +96,7 @@ func _unhandled_input(event: InputEvent) -> void:
         if active_dragged_bone != "" and active_pose_gizmo_handle != &"":
             var total_drag: Vector2 = event.position - drag_origin_mouse
             drag_start_mouse = event.position
-            var axis := pose_transform_gizmo.axis_name(active_pose_gizmo_handle)
+            var axis: String = String(pose_transform_gizmo.axis_name(active_pose_gizmo_handle))
             if pose_transform_gizmo.is_rotation(active_pose_gizmo_handle):
                 _drag_selected_rotation_axis(axis, total_drag)
             else:
