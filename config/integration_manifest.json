@@ -61,6 +61,24 @@
         "res://scripts/weapons/socom_weapon_controller.gd",
         "res://scripts/ui/socom_dynamic_reticle.gd"
       ]
+    },
+    {
+      "id": "multiplayer_slice",
+      "label": "Multiplayer Vertical Slice",
+      "scene": "res://multiplayer_slice.tscn",
+      "controller": "res://scripts/network/socom_multiplayer_slice.gd",
+      "shared_contracts": [
+        "res://scripts/network/socom_network_protocol.gd",
+        "res://scripts/network/socom_network_operator.gd",
+        "res://scripts/network/socom_movement_command.gd",
+        "res://scripts/network/socom_aim_intent.gd",
+        "res://scripts/network/socom_shot_authority.gd",
+        "res://scripts/player/player_controller.gd",
+        "res://scripts/camera/socom_camera.gd",
+        "res://scripts/weapons/weapon_ballistics.gd",
+        "res://scripts/weapons/operator_composure.gd",
+        "res://scripts/combat/socom_animated_hurtbox_rig.gd"
+      ]
     }
   ],
   "authority_contracts": [
@@ -83,6 +101,11 @@
       "name": "animation",
       "owner": "res://scripts/player/operator_animation_driver.gd",
       "rule": "Animation and IK consume gameplay state and never move the authoritative body."
+    },
+    {
+      "name": "multiplayer_session",
+      "owner": "res://scripts/network/socom_multiplayer_slice.gd",
+      "rule": "The server owns movement snapshots, ballistics, damage, score, elimination, and respawn."
     }
   ],
   "gates": {
@@ -100,7 +123,8 @@
       "res://tools/gun_lab_animation_catalog_regression.gd",
       "res://tools/weapon_rig_integration_regression.gd",
       "res://tools/operator_composure_regression.gd",
-      "res://tools/prone_grounding_regression.gd"
+      "res://tools/prone_grounding_regression.gd",
+      "res://tools/multiplayer_slice_regression.gd"
     ],
     "full": [
       "res://tools/operator_locomotion_quality_regression.gd",

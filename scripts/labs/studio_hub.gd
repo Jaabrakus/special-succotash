@@ -24,6 +24,8 @@ func _unhandled_key_input(event: InputEvent) -> void:
 			_open_lab(&"animation")
 		KEY_3:
 			_open_lab(&"weapon")
+		KEY_4:
+			_open_lab(&"multiplayer_slice")
 		KEY_ESCAPE:
 			get_tree().quit()
 
@@ -70,6 +72,7 @@ func _build_interface() -> void:
 	_add_lab_button(column, "1  Camera + Playable Range", &"camera_gameplay", Color("86b7e7"))
 	_add_lab_button(column, "2  Operator Animation Studio", &"animation", Color("b9a0e8"))
 	_add_lab_button(column, "3  Weapon + Hand Gunsmith", &"weapon", Color("e1ad63"))
+	_add_lab_button(column, "4  Multiplayer Vertical Slice", &"multiplayer_slice", Color("78d6a6"))
 
 	column.add_child(HSeparator.new())
 	status_label = Label.new()
