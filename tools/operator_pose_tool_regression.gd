@@ -1,5 +1,7 @@
 extends SceneTree
 
+const POSE_PROFILE := preload("res://scripts/player/operator_procedural_pose_profile.gd")
+
 const LAB_SCRIPT := preload("res://scripts/labs/operator_animation_lab.gd")
 const DRAG_BUTTON_SCRIPT := preload("res://scripts/labs/animation_clip_drag_button.gd")
 const DROP_TARGET_SCRIPT := preload("res://scripts/labs/animation_slot_drop_target.gd")
@@ -13,6 +15,11 @@ func _init() -> void:
 
 
 func _run() -> void:
+    _expect(
+        &"left_shoulder" in POSE_PROFILE.SUPPORTED_BONES
+        and &"right_upper_arm" in POSE_PROFILE.SUPPORTED_BONES,
+        "pose tuner exposes shoulder and upper-arm joints without translating bones"
+    )
     var lab = LAB_SCRIPT.new()
     var skeleton := Skeleton3D.new()
     skeleton.add_bone("TestBone")

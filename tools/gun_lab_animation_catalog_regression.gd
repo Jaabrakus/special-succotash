@@ -120,16 +120,33 @@ func _run() -> void:
 			"shot feedback expands symmetrically around the physical muzzle reticle"
 		)
 	lab.call("_set_preview_posture", &"CROUCHED")
+	for _frame in range(16):
+		await process_frame
+	var crouch_grip_error := (lab.get("right_grip_marker") as Node3D).global_position.distance_to(
+		lab.call("_right_palm_contact_world") as Vector3
+	)
 	_expect(
 		lab.get("preview_posture") == &"CROUCHED"
-		and absf(float(lab.call("_stance_spread_multiplier")) - 0.60) < 0.001,
-		"crouch preview applies the gameplay accuracy stance"
+		and absf(float(lab.call("_stance_spread_multiplier")) - 0.60) < 0.001
+		and crouch_grip_error < 0.01,
+		"crouch preview preserves the gameplay stance and trigger-hand attachment"
 	)
 	lab.call("_set_preview_posture", &"PRONE")
+	for _frame in range(16):
+		await process_frame
+	var prone_grip_error := (lab.get("right_grip_marker") as Node3D).global_position.distance_to(
+		lab.call("_right_palm_contact_world") as Vector3
+	)
 	_expect(
 		lab.get("preview_posture") == &"PRONE"
-		and absf(float(lab.call("_stance_spread_multiplier")) - 0.22) < 0.001,
-		"prone preview applies the gameplay accuracy stance"
+		and absf(float(lab.call("_stance_spread_multiplier")) - 0.22) < 0.001
+		and prone_grip_error < 0.01,
+		"prone preview preserves the gameplay stance and trigger-hand attachment"
+	)
+	_expect(
+		(lab.get("sliders_map") as Dictionary).has("right_elbow_x")
+		and (lab.get("sliders_map") as Dictionary).has("left_elbow_z"),
+		"both elbow IK poles expose persistent XYZ tuning controls"
 	)
 	lab.call("_set_preview_posture", &"STANDING")
 	lab.set("current_bloom", 1.0)

@@ -1,7 +1,11 @@
 class_name SocomOperatorPoseTuner
 extends PanelContainer
 
-const BONES := [&"spine", &"spine1", &"spine2", &"neck", &"head"]
+const BONES := [
+	&"spine", &"spine1", &"spine2", &"neck", &"head",
+	&"left_shoulder", &"right_shoulder",
+	&"left_upper_arm", &"right_upper_arm",
+]
 
 var player: CharacterBody3D
 var driver: SocomOperatorAnimationDriver
@@ -136,7 +140,7 @@ func _build_ui() -> void:
 	vbox.add_child(save)
 
 	status_label = Label.new()
-	status_label.text = "Pause, select a spine segment, then tune its local rotation."
+	status_label.text = "Pause, select a highlighted upper-body joint, then tune its local rotation. Elbow XYZ is calibrated per weapon in Gunsmith."
 	status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	status_label.add_theme_font_size_override("font_size", 11)
 	vbox.add_child(status_label)

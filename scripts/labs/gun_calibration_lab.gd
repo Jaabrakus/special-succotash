@@ -63,6 +63,9 @@ var max_reach: float = 0.620
 var left_palm_anchor_local := Vector3.ZERO
 var right_palm_anchor_local := Vector3.ZERO
 var support_hand_attached: bool = true
+var right_elbow_pole_offset := Vector3.ZERO
+var left_elbow_pole_offset := Vector3.ZERO
+var stance_rebase_remaining: float = 0.0
 
 # Tactical Grip Style Presets
 enum GripStyle { CLASSIC_CRADLE, C_CLAMP_TACTICAL, MAGWELL_GRIP, VERTICAL_FOREGRIP, ANGLED_AFG }
@@ -477,6 +480,7 @@ func _process(delta: float) -> void:
 		_initialize_weapon_master_pose()
 	_update_action_weapon_ownership(delta)
 	_apply_runtime_posture_preview()
+	_update_stance_weapon_rebase(delta)
 
 	_solve_trigger_hand_engine()
 	_solve_biomechanical_arm_engine()
@@ -603,7 +607,12 @@ func _right_elbow_magnet_for(wrist_world: Vector3) -> Vector3:
 	var body_forward := skeleton.global_transform.basis.z.normalized()
 	# Mixamo's right arm is on negative local X. A modest down/forward component
 	# produces the compact, ready-to-fire triangle without crossing the chest.
-	var desired_world := midpoint - body_right * 0.28 - body_up * 0.08 + body_forward * 0.10
+	var desired_world := (
+		midpoint
+		- body_right * (0.28 - right_elbow_pole_offset.x)
+		+ body_up * (-0.08 + right_elbow_pole_offset.y)
+		+ body_forward * (0.10 + right_elbow_pole_offset.z)
+	)
 	return skeleton.global_transform.affine_inverse() * desired_world
 
 func _solve_biomechanical_arm_engine() -> void:
@@ -666,8 +675,27 @@ func _left_elbow_magnet_for(wrist_world: Vector3) -> Vector3:
 			outward = 0.34; downward = 0.11; forward = 0.08
 		GripStyle.ANGLED_AFG:
 			outward = 0.40; downward = 0.08; forward = 0.12
-	var desired_world := midpoint + body_right * outward - body_up * downward + body_forward * forward
+	var desired_world := (
+		midpoint
+		+ body_right * (outward + left_elbow_pole_offset.x)
+		+ body_up * (-downward + left_elbow_pole_offset.y)
+		+ body_forward * (forward + left_elbow_pole_offset.z)
+	)
 	return skeleton.global_transform.affine_inverse() * desired_world
+
+
+func _update_stance_weapon_rebase(delta: float) -> void:
+	if stance_rebase_remaining <= 0.0 or action_weapon_follow_active:
+		return
+	stance_rebase_remaining = maxf(0.0, stance_rebase_remaining - delta)
+	if not weapon_root or not right_grip_marker or not skeleton or right_hand_idx < 0:
+		return
+	# A stance animation may move the sampled hand a long distance in one frame.
+	# Preserve the calibrated rifle orientation and sockets, but translate the
+	# authoritative weapon master with the trigger palm throughout that blend.
+	# Both arms then solve to the same weapon instead of chasing its old stance.
+	skeleton.force_update_all_bone_transforms()
+	weapon_root.global_position += _right_palm_contact_world() - right_grip_marker.global_position
 
 func _apply_hand_and_finger_posing() -> void:
 	if not skeleton or support_hand_policy != WeaponOwnershipContract.SUPPORT_IK_TO_WEAPON or not support_hand_attached: return
@@ -1023,6 +1051,7 @@ func _set_preview_posture(posture_name: StringName) -> void:
 		if button:
 			button.set_pressed_no_signal(key == preview_posture)
 	animation_preview_token += 1
+	stance_rebase_remaining = 0.18
 	_finish_preview_to_idle()
 	if hud_status:
 		hud_status.text = "%s weapon-ready stance — the bore reticle remains tied to the red muzzle socket." % String(preview_posture).capitalize()
@@ -2311,6 +2340,20 @@ func _try_load_saved_profile(w_id: String) -> void:
 					palm_roll = float(hand_pose.get("palm_roll_deg", palm_roll))
 					finger_curl = float(hand_pose.get("finger_curl", finger_curl))
 					thumb_wrap = float(hand_pose.get("thumb_wrap", thumb_wrap))
+				var elbow_poles: Variant = d.get("elbow_poles", {})
+				if elbow_poles is Dictionary:
+					var right_pole: Dictionary = (elbow_poles as Dictionary).get("right", {})
+					var left_pole: Dictionary = (elbow_poles as Dictionary).get("left", {})
+					right_elbow_pole_offset = Vector3(
+						float(right_pole.get("x", 0.0)),
+						float(right_pole.get("y", 0.0)),
+						float(right_pole.get("z", 0.0))
+					)
+					left_elbow_pole_offset = Vector3(
+						float(left_pole.get("x", 0.0)),
+						float(left_pole.get("y", 0.0)),
+						float(left_pole.get("z", 0.0))
+					)
 				var ballistics: Variant = d.get("ballistics", {})
 				if ballistics is Dictionary:
 					var fire_values := ballistics as Dictionary
@@ -2869,6 +2912,10 @@ func _save_weapon_config() -> void:
 			"palm_roll_deg": palm_roll,
 			"finger_curl": finger_curl,
 			"thumb_wrap": thumb_wrap
+		},
+		"elbow_poles": {
+			"right": {"x": right_elbow_pole_offset.x, "y": right_elbow_pole_offset.y, "z": right_elbow_pole_offset.z},
+			"left": {"x": left_elbow_pole_offset.x, "y": left_elbow_pole_offset.y, "z": left_elbow_pole_offset.z}
 		},
 		"animation_hand_maps": animation_hand_maps.duplicate(true),
 		"handling_profile": handling_profile.duplicate(true),
@@ -3588,6 +3635,21 @@ func _build_studio_ui() -> void:
 		stance_row.add_child(stance_button)
 		stance_buttons[posture_name] = stance_button
 	(stance_buttons[preview_posture] as Button).set_pressed_no_signal(true)
+
+	var elbow_title := Label.new()
+	elbow_title.text = "JOINT POLES — XYZ ELBOW SHAPE"
+	elbow_title.add_theme_color_override("font_color", Color(0.9, 0.45, 1.0))
+	fire_vbox.add_child(elbow_title)
+	var elbow_help := Label.new()
+	elbow_help.text = "Offsets move the IK bend targets, not the bones. This preserves human arm lengths across every stance."
+	elbow_help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	fire_vbox.add_child(elbow_help)
+	_add_slider(fire_vbox, "right_elbow_x", "Right Elbow X (Out/In)", -0.30, 0.30, right_elbow_pole_offset.x, func(v: float): right_elbow_pole_offset.x = v)
+	_add_slider(fire_vbox, "right_elbow_y", "Right Elbow Y (Up/Down)", -0.30, 0.30, right_elbow_pole_offset.y, func(v: float): right_elbow_pole_offset.y = v)
+	_add_slider(fire_vbox, "right_elbow_z", "Right Elbow Z (Forward/Back)", -0.30, 0.30, right_elbow_pole_offset.z, func(v: float): right_elbow_pole_offset.z = v)
+	_add_slider(fire_vbox, "left_elbow_x", "Left Elbow X (Out/In)", -0.30, 0.30, left_elbow_pole_offset.x, func(v: float): left_elbow_pole_offset.x = v)
+	_add_slider(fire_vbox, "left_elbow_y", "Left Elbow Y (Up/Down)", -0.30, 0.30, left_elbow_pole_offset.y, func(v: float): left_elbow_pole_offset.y = v)
+	_add_slider(fire_vbox, "left_elbow_z", "Left Elbow Z (Forward/Back)", -0.30, 0.30, left_elbow_pole_offset.z, func(v: float): left_elbow_pole_offset.z = v)
 
 	fire_vbox.add_child(HSeparator.new())
 	var bal_title := Label.new(); bal_title.text = "FIRE & DISPERSION"; fire_vbox.add_child(bal_title)

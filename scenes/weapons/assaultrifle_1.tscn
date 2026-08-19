@@ -1,0 +1,26 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://assets/weapons/modular_pack/AssaultRifle_1.fbx" id="1_ee2ne"]
+
+[node name="AssaultRifle_1" type="Node3D" unique_id=1180255204]
+
+[node name="WeaponMesh" type="Node3D" parent="." unique_id=811969060 instance=ExtResource("1_ee2ne")]
+transform = Transform3D(-9.573476e-09, 0, -0.2190156, 0, 0.2190156, 0, 0.2190156, 0, -9.573476e-09, 0, 0, 0)
+
+[node name="Socket_LeftHand" type="Marker3D" parent="." unique_id=572244473]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.0306494, 0.44941378, -0.27934808)
+
+[node name="Socket_RightHand" type="Marker3D" parent="." unique_id=1698062998]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.10702801, -0.08125734, 0.2816301)
+
+[node name="Socket_Muzzle" type="Marker3D" parent="." unique_id=1160130772]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.595, 0.5669615, -0.01)
+
+[node name="Socket_BarrelBase" type="Marker3D" parent="." unique_id=1575145250]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.415, 0.5669615, -0.01)
+
+[node name="Socket_Ejection" type="Marker3D" parent="." unique_id=402059209]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.69705534, 0.621016, 0.085356236)
+
+[node name="Socket_Optic" type="Marker3D" parent="." unique_id=34848826]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.25586963, 0.83540344, 0.03063631)

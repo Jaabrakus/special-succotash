@@ -6,7 +6,11 @@ extends RefCounted
 
 const PROFILE_PATH := "res://config/operator_procedural_pose_profile.json"
 const SUPPORTED_POSTURES := [&"STANDING", &"CROUCHED", &"PRONE"]
-const SUPPORTED_BONES := [&"spine", &"spine1", &"spine2", &"neck", &"head"]
+const SUPPORTED_BONES := [
+	&"spine", &"spine1", &"spine2", &"neck", &"head",
+	&"left_shoulder", &"right_shoulder",
+	&"left_upper_arm", &"right_upper_arm",
+]
 
 var corrections: Dictionary = {}
 
@@ -77,6 +81,10 @@ func set_rotation_degrees(posture: StringName, bone: StringName, value: Vector3)
 	if posture not in SUPPORTED_POSTURES or bone not in SUPPORTED_BONES:
 		return
 	var anatomical_limit := 48.0 if bone in [&"neck", &"head"] else 30.0
+	if bone in [&"left_shoulder", &"right_shoulder"]:
+		anatomical_limit = 22.0
+	elif bone in [&"left_upper_arm", &"right_upper_arm"]:
+		anatomical_limit = 38.0
 	var safe := Vector3(
 		clampf(value.x, -anatomical_limit, anatomical_limit),
 		clampf(value.y, -anatomical_limit, anatomical_limit),

@@ -1,26 +1,9 @@
 {
-  "schema_version": 3,
-  "socket_contract_authored": false,
-  "arm_rig_pose": {
-    "left_elbow": {
-      "bend": 0.0,
-      "twist": 0.0
-    },
-    "left_shoulder": {
-      "pitch": 0.0,
-      "roll": 0.0,
-      "yaw": 0.0
-    },
-    "left_wrist": {
-      "pitch": 0.0,
-      "roll": 0.0,
-      "yaw": 0.0
-    }
-  },
+  "animation_hand_maps": {},
   "ballistics": {
-    "base_spread_deg": 0.28,
-    "bloom_per_shot_deg": 0.32,
-    "bloom_recovery_speed": 10.0,
+    "base_spread_deg": 0.4,
+    "bloom_per_shot_deg": 1.2,
+    "bloom_recovery_speed": 14.0,
     "damage": 34,
     "fire_rate_rpm": 650,
     "is_silenced": false,
@@ -31,15 +14,58 @@
   "category": "Assault Rifles",
   "display_name": "AssaultRifle_1",
   "grip_offset": {
-    "pos_x": 0.0,
-    "pos_y": 0.0,
-    "pos_z": 0.0,
+    "pos_x": 1.65713286399841,
+    "pos_y": -0.303467154502869,
+    "pos_z": 0.355733811855316,
     "rot_x": 0.0,
-    "rot_y": 0.0,
-    "rot_z": 0.0
+    "rot_y": -0.5,
+    "rot_z": 79.8999633789062
+  },
+  "handling_profile": {
+    "animation_slots": {
+      "fire_crouched": "crouch_fire",
+      "fire_prone": "prone_fire",
+      "fire_standing": "combat_fire",
+      "idle_crouched": "idle_crouch",
+      "idle_prone": "idle_prone",
+      "idle_standing": "aim_idle",
+      "reload_crouched": "reload",
+      "reload_prone": "prone_reload",
+      "reload_standing": "reload"
+    },
+    "family": "TWO_HAND_RIFLE",
+    "locomotion_family": "RIFLE",
+    "locomotion_slots": {
+      "crouch_to_stand": "crouch_to_stand",
+      "jump": "jump_loop",
+      "run_back_left": "run_back_left",
+      "run_back_right": "run_back_right",
+      "run_backward": "run_backward",
+      "run_forward": "run_forward",
+      "run_forward_left": "run_forward_left",
+      "run_forward_right": "run_forward_right",
+      "run_left": "run_left",
+      "run_right": "run_right",
+      "stand_to_crouch": "crouch_start",
+      "walk_back_left": "walk_back_left",
+      "walk_back_right": "walk_back_right",
+      "walk_backward": "walk_backward",
+      "walk_forward": "walk_forward",
+      "walk_forward_left": "walk_forward_left",
+      "walk_forward_right": "walk_forward_right",
+      "walk_left": "walk_left",
+      "walk_right": "walk_right"
+    },
+    "mapping_version": 1,
+    "support_hand_required": true
   },
   "model_fbx": "res://assets/weapons/modular_pack/AssaultRifle_1.fbx",
-  "normalized_scale": 0.219016,
+  "model_rotation_degrees": {
+    "x": 0.0,
+    "y": -90.0,
+    "z": 0.0
+  },
+  "normalized_scale": 0.219015600866256,
   "operator_mount": {
     "position": {
       "x": -0.02,
@@ -60,39 +86,48 @@
     "shot_kick_px": 6.0,
     "shot_kick_return": 18.0
   },
+  "schema_version": 3,
   "scope_attachment": "None",
   "silencer_attachment": "None",
+  "support_hand_pose": {
+    "finger_curl": 1.0,
+    "palm_pitch_deg": -9.0,
+    "palm_roll_deg": 160.0,
+    "palm_yaw_deg": 10.0,
+    "thumb_wrap": 0.7
+  },
+  "user_scale_multiplier": 1.0,
   "weapon_id": "assaultrifle_1",
   "weapon_sockets": {
     "barrel_base_socket": {
-      "x": 0.519999988079071,
-      "y": 0.0199999995529652,
-      "z": 0.0
+      "x": 1.41499996185303,
+      "y": 0.566961526870728,
+      "z": -0.00999999977648258
     },
     "ejection_port": {
-      "x": 0.0500000007450581,
-      "y": 0.0299999993294477,
-      "z": 0.0599999986588955
+      "x": 0.697055339813232,
+      "y": 0.621016025543213,
+      "z": 0.0853562355041504
     },
     "left_hand_ik_target": {
-      "x": 0.200000002980232,
-      "y": -0.0299999993294477,
-      "z": 0.0
+      "x": 2.03064942359924,
+      "y": 0.449413776397705,
+      "z": -0.279348075389862
     },
     "muzzle_socket": {
-      "x": 0.699999988079071,
-      "y": 0.0199999995529652,
-      "z": 0.0
+      "x": 1.59500002861023,
+      "y": 0.566961526870728,
+      "z": -0.00999999977648258
     },
     "optic_rail": {
-      "x": 0.0500000007450581,
-      "y": 0.0799999982118607,
-      "z": 0.0
+      "x": 0.255869626998901,
+      "y": 0.835403442382812,
+      "z": 0.0306363105773926
     },
     "right_hand_grip_target": {
-      "x": 0.0,
-      "y": 0.0,
-      "z": 0.0
+      "x": 0.107028007507324,
+      "y": -0.0812573432922363,
+      "z": 0.281630098819733
     }
   }
 }
