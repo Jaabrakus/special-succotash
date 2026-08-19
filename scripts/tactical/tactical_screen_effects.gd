@@ -2,6 +2,7 @@ class_name TacticalScreenEffects
 extends CanvasLayer
 
 const FoleyEngine := preload("res://scripts/audio/tactical_foley_engine.gd")
+const FlashbangScript := preload("res://scripts/tactical/flashbang_grenade.gd")
 
 var camera: Camera3D
 var flash_strength := 0.0
@@ -9,7 +10,7 @@ var smoke_strength := 0.0
 var shake_strength := 0.0
 var _flash_rect: ColorRect
 var _smoke_rect: ColorRect
-var _foley: TacticalFoleyEngine
+var _foley: Node
 var _master_bus_original_db := 0.0
 var _base_h_offset := 0.0
 var _base_v_offset := 0.0
@@ -58,12 +59,12 @@ func apply_flash_from_world(position: Vector3, radius: float) -> void:
 	if camera == null:
 		return
 	var has_los := _has_line_of_sight(camera.global_position, position)
-	var exposure := TacticalFlashbangGrenade.calculate_exposure(
+	var exposure: float = FlashbangScript.calculate_exposure(
 		position, camera.global_position, -camera.global_basis.z, has_los, radius
 	)
 	flash_strength = maxf(flash_strength, exposure)
 	if exposure > 0.08:
-		_foley.play_cue(&"tinnitus", camera.global_position, linear_to_db(exposure), 1.0)
+		_foley.call("play_cue", &"tinnitus", camera.global_position, linear_to_db(exposure), 1.0)
 
 
 func apply_explosion_shake(position: Vector3, radius: float) -> void:

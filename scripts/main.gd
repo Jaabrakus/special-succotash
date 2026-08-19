@@ -25,7 +25,7 @@ var player
 var camera_rig
 var debug_label: Label
 var crosshair: Label
-var dynamic_reticle: SocomDynamicReticle
+var dynamic_reticle: Control
 var calibration_overlay: Control
 var calibration_texture: TextureRect
 var calibration_status: Label
@@ -56,8 +56,8 @@ var pose_tuner_panel: Control
 var operator_tuning: Dictionary = {}
 var target_dummies: Array[Node] = []
 var target_range_active: bool = true
-var tactical_screen_effects: TacticalScreenEffects
-var tactical_grenade_thrower: TacticalGrenadeThrower
+var tactical_screen_effects: CanvasLayer
+var tactical_grenade_thrower: Node
 var selected_grenade_type: int = 0
 
 const REFERENCE_FRAME_PATH := "res://reference/reference_frame.png"
@@ -628,7 +628,7 @@ func _throw_selected_grenade(underhand: bool) -> void:
     # validated grenade-spawn RPC. Offline training owns the simulation here.
     if multiplayer.has_multiplayer_peer() and not multiplayer.is_server():
         return
-    var grenade: TacticalGrenadeBase
+    var grenade: RigidBody3D
     if selected_grenade_type == 1:
         grenade = TacticalFlashbangScript.new()
     elif selected_grenade_type == 2:
@@ -1513,7 +1513,7 @@ func _update_animation_studio_state() -> void:
     if driver == null:
         anim_studio_state_label.text = "Animation driver is not available."
         return
-    var snapshot := driver.get_animation_debug_state()
+    var snapshot: Dictionary = driver.call("get_animation_debug_state") if driver.has_method("get_animation_debug_state") else {}
     var resource_path := str(snapshot.get("resource_path", ""))
     var source_label := (
         "unmapped"
@@ -1554,8 +1554,8 @@ func _update_animation_studio_state() -> void:
         adaptive_rate,
     ]
 
-func _get_animation_driver() -> SocomOperatorAnimationDriver:
+func _get_animation_driver() -> Node:
     if player == null: return null
     var mannequin = player.get_node_or_null("Mannequin")
     if mannequin == null: return null
-    return mannequin.get_node_or_null("ProductionAnimation") as SocomOperatorAnimationDriver
+    return mannequin.get_node_or_null("ProductionAnimation")

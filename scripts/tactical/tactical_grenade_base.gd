@@ -17,7 +17,7 @@ var detonated_once := false
 var fuse_remaining := 0.0
 var authority_peer_id := 1
 var _previous_linear_velocity := Vector3.ZERO
-var foley: TacticalFoleyEngine
+var foley: Node
 var _sparks: GPUParticles3D
 
 

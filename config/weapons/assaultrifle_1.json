@@ -116,11 +116,7 @@
     "y": -90.0,
     "z": 0.0
   },
-<<<<<<< Updated upstream
   "normalized_scale": 0.219015600866256,
-=======
-  "normalized_scale": 1.0,
->>>>>>> Stashed changes
   "operator_mount": {
     "position": {
       "x": -0.02,
