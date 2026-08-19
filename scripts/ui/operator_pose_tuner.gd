@@ -5,6 +5,7 @@ const BONES := [
 	&"spine", &"spine1", &"spine2", &"neck", &"head",
 	&"left_shoulder", &"right_shoulder",
 	&"left_upper_arm", &"right_upper_arm",
+	&"left_forearm", &"right_forearm",
 ]
 
 var player: CharacterBody3D

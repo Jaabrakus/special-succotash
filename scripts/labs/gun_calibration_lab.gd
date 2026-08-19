@@ -11,6 +11,7 @@ const OperatorAnimationProfile := preload("res://scripts/player/operator_animati
 const WeaponAnimationProfile := preload("res://scripts/weapons/weapon_animation_profile.gd")
 const WeaponOwnershipContract := preload("res://scripts/player/weapon_ownership_contract.gd")
 const OperatorPostureLayer := preload("res://scripts/player/operator_posture_layer.gd")
+const ProceduralPoseProfile := preload("res://scripts/player/operator_procedural_pose_profile.gd")
 const OperatorComposureScript := preload("res://scripts/weapons/operator_composure.gd")
 const DynamicReticleScript := preload("res://scripts/ui/socom_dynamic_reticle.gd")
 const TargetDummyScript := preload("res://scripts/combat/lab_leak_target_dummy.gd")
@@ -23,6 +24,12 @@ const GIZMO_CENTER_RADIUS := 0.045
 const GIZMO_PICK_DISTANCE_PX := 34.0
 const MUZZLE_RETICLE_LEAD_PX := 84.0
 const BULLET_VELOCITY_PREVIEW_SECONDS := 0.004
+const TUNABLE_BODY_JOINTS := [
+	&"spine", &"spine1", &"spine2", &"neck", &"head",
+	&"left_shoulder", &"right_shoulder",
+	&"left_upper_arm", &"right_upper_arm",
+	&"left_forearm", &"right_forearm",
+]
 
 # Camera Rig
 var cam_pivot: Node3D
@@ -65,7 +72,18 @@ var right_palm_anchor_local := Vector3.ZERO
 var support_hand_attached: bool = true
 var right_elbow_pole_offset := Vector3.ZERO
 var left_elbow_pole_offset := Vector3.ZERO
+var elbow_poles_by_stance: Dictionary = {
+	&"STANDING": {"right": Vector3.ZERO, "left": Vector3.ZERO},
+	&"CROUCHED": {"right": Vector3.ZERO, "left": Vector3.ZERO},
+	&"PRONE": {"right": Vector3.ZERO, "left": Vector3.ZERO},
+}
 var stance_rebase_remaining: float = 0.0
+var right_elbow_pole_marker: MeshInstance3D
+var left_elbow_pole_marker: MeshInstance3D
+var joint_debug_mesh := ImmediateMesh.new()
+var joint_debug_instance: MeshInstance3D
+var body_joint_markers: Dictionary = {}
+var selected_body_joint: StringName = &"left_upper_arm"
 
 # Tactical Grip Style Presets
 enum GripStyle { CLASSIC_CRADLE, C_CLAMP_TACTICAL, MAGWELL_GRIP, VERTICAL_FOREGRIP, ANGLED_AFG }
@@ -269,6 +287,8 @@ func _ready() -> void:
 	)
 	_setup_studio_environment()
 	_setup_trooper_and_rig()
+	_setup_elbow_pole_visuals()
+	_setup_body_joint_visuals()
 	_setup_target_range()
 	_setup_composure_target_preview()
 	_load_weapon(selected_weapon_file)
@@ -303,7 +323,12 @@ func _input(event: InputEvent) -> void:
 		var target_dot := dragged_dot_id if dragged_dot_id != "" else hovered_dot_id
 
 		if mb.button_index == MOUSE_BUTTON_WHEEL_UP:
-			if target_dot == "left_ik":
+			if target_dot.begins_with("body_joint:"):
+				_select_body_joint(StringName(target_dot.trim_prefix("body_joint:")))
+				_adjust_selected_joint_rotation(Vector3(0.0, 0.0, 2.0))
+				get_viewport().set_input_as_handled()
+				return
+			elif target_dot == "left_ik":
 				left_grip_local_pos.x = clampf(left_grip_local_pos.x + 0.015, -0.40, 1.20)
 				_sync_markers()
 				_update_slider_value("ik_x", left_grip_local_pos.x)
@@ -319,7 +344,12 @@ func _input(event: InputEvent) -> void:
 				cam_distance = clampf(cam_distance - 0.08, 0.20, 3.5)
 				_update_camera()
 		elif mb.button_index == MOUSE_BUTTON_WHEEL_DOWN:
-			if target_dot == "left_ik":
+			if target_dot.begins_with("body_joint:"):
+				_select_body_joint(StringName(target_dot.trim_prefix("body_joint:")))
+				_adjust_selected_joint_rotation(Vector3(0.0, 0.0, -2.0))
+				get_viewport().set_input_as_handled()
+				return
+			elif target_dot == "left_ik":
 				left_grip_local_pos.x = clampf(left_grip_local_pos.x - 0.015, -0.40, 1.20)
 				_sync_markers()
 				_update_slider_value("ik_x", left_grip_local_pos.x)
@@ -344,7 +374,9 @@ func _input(event: InputEvent) -> void:
 			if mb.pressed:
 				var hit_dot := _find_dot_under_mouse(mb.position)
 				if hit_dot != "":
-					if hit_dot == "left_ik":
+					if hit_dot.begins_with("body_joint:"):
+						_select_body_joint(StringName(hit_dot.trim_prefix("body_joint:")))
+					elif hit_dot == "left_ik":
 						_set_active_gizmo("hand")
 					elif hit_dot == "right_grip" or hit_dot == "weapon_mount":
 						_set_active_gizmo("weapon")
@@ -380,7 +412,9 @@ func _input(event: InputEvent) -> void:
 			cam_target -= (right * mm.relative.x - up * mm.relative.y) * 0.002
 			_update_camera()
 		elif dragged_dot_id != "":
-			if dragged_dot_id == "left_ik_ring_roll":
+			if dragged_dot_id.begins_with("body_joint:"):
+				_adjust_selected_joint_rotation(Vector3(-mm.relative.y * 0.25, mm.relative.x * 0.25, 0.0))
+			elif dragged_dot_id == "left_ik_ring_roll":
 				palm_roll = wrapf(palm_roll + mm.relative.x * 0.85, -180.0, 180.0)
 				_update_slider_value("p_roll", palm_roll)
 				if hud_status: hud_status.text = "🟡 Spinning Palm Roll: %.1f° (Underneath / C-Clamp)" % palm_roll
@@ -487,6 +521,8 @@ func _process(delta: float) -> void:
 	_apply_hand_and_finger_posing()
 	if skeleton:
 		skeleton.force_update_all_bone_transforms()
+	_update_elbow_pole_visuals()
+	_update_body_joint_visuals()
 	_update_animation_quality_readout(delta)
 
 	if hand_gizmo_world and left_grip_marker and is_instance_valid(left_grip_marker):
@@ -600,20 +636,22 @@ func _update_action_weapon_ownership(delta: float) -> void:
 func _right_elbow_magnet_for(wrist_world: Vector3) -> Vector3:
 	if not skeleton or right_arm_idx < 0:
 		return Vector3.ZERO
+	var desired_world := _right_elbow_pole_world(wrist_world)
+	return skeleton.global_transform.affine_inverse() * desired_world
+
+
+func _right_elbow_pole_base_world(wrist_world: Vector3) -> Vector3:
 	var shoulder_world := (skeleton.global_transform * skeleton.get_bone_global_pose(right_arm_idx)).origin
 	var midpoint := (shoulder_world + wrist_world) * 0.5
 	var body_right := skeleton.global_transform.basis.x.normalized()
 	var body_up := skeleton.global_transform.basis.y.normalized()
 	var body_forward := skeleton.global_transform.basis.z.normalized()
-	# Mixamo's right arm is on negative local X. A modest down/forward component
-	# produces the compact, ready-to-fire triangle without crossing the chest.
-	var desired_world := (
-		midpoint
-		- body_right * (0.28 - right_elbow_pole_offset.x)
-		+ body_up * (-0.08 + right_elbow_pole_offset.y)
-		+ body_forward * (0.10 + right_elbow_pole_offset.z)
-	)
-	return skeleton.global_transform.affine_inverse() * desired_world
+	return midpoint - body_right * 0.28 - body_up * 0.08 + body_forward * 0.10
+
+
+func _right_elbow_pole_world(wrist_world: Vector3) -> Vector3:
+	var body_basis := skeleton.global_transform.basis.orthonormalized()
+	return _right_elbow_pole_base_world(wrist_world) + body_basis * right_elbow_pole_offset
 
 func _solve_biomechanical_arm_engine() -> void:
 	if not skeleton or not left_grip_marker or not is_instance_valid(left_grip_marker): return
@@ -656,6 +694,11 @@ func _solve_biomechanical_arm_engine() -> void:
 func _left_elbow_magnet_for(wrist_world: Vector3) -> Vector3:
 	if not skeleton or left_arm_idx < 0:
 		return Vector3.ZERO
+	var desired_world := _left_elbow_pole_world(wrist_world)
+	return skeleton.global_transform.affine_inverse() * desired_world
+
+
+func _left_elbow_pole_base_world(wrist_world: Vector3) -> Vector3:
 	var shoulder_world := (skeleton.global_transform * skeleton.get_bone_global_pose(left_arm_idx)).origin
 	var midpoint := (shoulder_world + wrist_world) * 0.5
 	var body_right := skeleton.global_transform.basis.x.normalized()
@@ -675,13 +718,12 @@ func _left_elbow_magnet_for(wrist_world: Vector3) -> Vector3:
 			outward = 0.34; downward = 0.11; forward = 0.08
 		GripStyle.ANGLED_AFG:
 			outward = 0.40; downward = 0.08; forward = 0.12
-	var desired_world := (
-		midpoint
-		+ body_right * (outward + left_elbow_pole_offset.x)
-		+ body_up * (-downward + left_elbow_pole_offset.y)
-		+ body_forward * (forward + left_elbow_pole_offset.z)
-	)
-	return skeleton.global_transform.affine_inverse() * desired_world
+	return midpoint + body_right * outward - body_up * downward + body_forward * forward
+
+
+func _left_elbow_pole_world(wrist_world: Vector3) -> Vector3:
+	var body_basis := skeleton.global_transform.basis.orthonormalized()
+	return _left_elbow_pole_base_world(wrist_world) + body_basis * left_elbow_pole_offset
 
 
 func _update_stance_weapon_rebase(delta: float) -> void:
@@ -1045,7 +1087,10 @@ func _posture_idle_clip() -> StringName:
 func _set_preview_posture(posture_name: StringName) -> void:
 	if posture_name not in [&"STANDING", &"CROUCHED", &"PRONE"]:
 		return
+	_store_current_stance_elbow_poles()
 	preview_posture = posture_name
+	_restore_current_stance_elbow_poles()
+	_sync_body_joint_controls()
 	for key: StringName in stance_buttons:
 		var button := stance_buttons[key] as Button
 		if button:
@@ -1548,6 +1593,17 @@ func _set_active_gizmo(gizmo_id: String) -> void:
 
 func _register_interactive_dots() -> void:
 	interactive_dots.clear()
+	for joint_name: StringName in body_joint_markers:
+		interactive_dots.append({
+			"id": "body_joint:%s" % String(joint_name),
+			"mesh": body_joint_markers[joint_name],
+			"label": "🔷 %s procedural joint" % String(joint_name).replace("_", " ").capitalize(),
+			"color": Color(0.15, 0.85, 1.0),
+		})
+	if right_elbow_pole_marker:
+		interactive_dots.append({"id": "right_elbow_pole", "mesh": right_elbow_pole_marker, "label": "🟣 Right Elbow IK Pole", "color": Color(1.0, 0.25, 0.9)})
+	if left_elbow_pole_marker:
+		interactive_dots.append({"id": "left_elbow_pole", "mesh": left_elbow_pole_marker, "label": "🟣 Left Elbow IK Pole", "color": Color(0.75, 0.35, 1.0)})
 	if hand_gizmo_center:
 		interactive_dots.append({"id": "left_ik", "mesh": hand_gizmo_center, "label": "🔵 Hand Rig (Free 3D Translate)", "color": Color(0.0, 0.95, 1.0)})
 	if gizmo_arrow_x and gizmo_arrow_x.get_child_count() > 1:
@@ -1671,6 +1727,10 @@ func _highlight_dot(dot_id: String) -> void:
 
 func _apply_dot_world_drag(dot_id: String, world_pos: Vector3) -> void:
 	match dot_id:
+		"right_elbow_pole":
+			_set_elbow_pole_from_world(&"right", world_pos)
+		"left_elbow_pole":
+			_set_elbow_pole_from_world(&"left", world_pos)
 		"weapon_mount":
 			if weapon_pivot:
 				weapon_pivot.global_position = world_pos
@@ -1715,6 +1775,80 @@ func _apply_dot_world_drag(dot_id: String, world_pos: Vector3) -> void:
 				_update_slider_value("rh_y", right_grip_local_pos.y)
 				_update_slider_value("rh_z", right_grip_local_pos.z)
 
+
+func _set_elbow_pole_from_world(side: StringName, world_pos: Vector3) -> void:
+	if not skeleton:
+		return
+	var body_basis := skeleton.global_transform.basis.orthonormalized()
+	var wrist_world := _right_palm_contact_world() if side == &"right" else _left_palm_contact_world()
+	var base_world := (
+		_right_elbow_pole_base_world(wrist_world)
+		if side == &"right"
+		else _left_elbow_pole_base_world(wrist_world)
+	)
+	var local_offset := body_basis.inverse() * (world_pos - base_world)
+	local_offset.x = clampf(local_offset.x, -0.30, 0.30)
+	local_offset.y = clampf(local_offset.y, -0.30, 0.30)
+	local_offset.z = clampf(local_offset.z, -0.30, 0.30)
+	if side == &"right":
+		right_elbow_pole_offset = local_offset
+	else:
+		left_elbow_pole_offset = local_offset
+	_store_current_stance_elbow_poles()
+	_update_elbow_slider_controls()
+
+
+func _store_current_stance_elbow_poles() -> void:
+	elbow_poles_by_stance[preview_posture] = {
+		"right": right_elbow_pole_offset,
+		"left": left_elbow_pole_offset,
+	}
+
+
+func _restore_current_stance_elbow_poles() -> void:
+	var stance_value: Variant = elbow_poles_by_stance.get(preview_posture, {})
+	var stance_poles: Dictionary = stance_value if stance_value is Dictionary else {}
+	right_elbow_pole_offset = stance_poles.get("right", Vector3.ZERO)
+	left_elbow_pole_offset = stance_poles.get("left", Vector3.ZERO)
+	_update_elbow_slider_controls()
+
+
+func _update_elbow_slider_controls() -> void:
+	for entry in [
+		["right_elbow_x", right_elbow_pole_offset.x],
+		["right_elbow_y", right_elbow_pole_offset.y],
+		["right_elbow_z", right_elbow_pole_offset.z],
+		["left_elbow_x", left_elbow_pole_offset.x],
+		["left_elbow_y", left_elbow_pole_offset.y],
+		["left_elbow_z", left_elbow_pole_offset.z],
+	]:
+		_update_slider_value(entry[0], entry[1])
+
+
+func _set_elbow_component(value: float, side: StringName, axis: StringName) -> void:
+	var offset := right_elbow_pole_offset if side == &"right" else left_elbow_pole_offset
+	match axis:
+		&"x": offset.x = value
+		&"y": offset.y = value
+		&"z": offset.z = value
+	if side == &"right":
+		right_elbow_pole_offset = offset
+	else:
+		left_elbow_pole_offset = offset
+	_store_current_stance_elbow_poles()
+
+
+func _elbow_poles_save_data() -> Dictionary:
+	_store_current_stance_elbow_poles()
+	var saved: Dictionary = {}
+	for posture: StringName in [&"STANDING", &"CROUCHED", &"PRONE"]:
+		var stance_poles: Dictionary = elbow_poles_by_stance.get(posture, {})
+		saved[String(posture)] = {
+			"right": _vector_to_data(stance_poles.get("right", Vector3.ZERO)),
+			"left": _vector_to_data(stance_poles.get("left", Vector3.ZERO)),
+		}
+	return saved
+
 func _update_slider_value(slider_key: String, val: float) -> void:
 	if sliders_map.has(slider_key):
 		var s: HSlider = sliders_map[slider_key]["slider"]
@@ -1722,6 +1856,113 @@ func _update_slider_value(slider_key: String, val: float) -> void:
 		if s:
 			s.set_value_no_signal(val)
 			if lbl: lbl.text = "%.2f" % val if absf(val) >= 5.0 else ("%.3f" % val)
+
+
+func _setup_elbow_pole_visuals() -> void:
+	right_elbow_pole_marker = _create_marker(Color(1.0, 0.25, 0.9), "RightElbowIKPole", 0.045)
+	left_elbow_pole_marker = _create_marker(Color(0.75, 0.35, 1.0), "LeftElbowIKPole", 0.045)
+	add_child(right_elbow_pole_marker)
+	add_child(left_elbow_pole_marker)
+	joint_debug_instance = MeshInstance3D.new()
+	joint_debug_instance.name = "ElbowSkeletonFrame"
+	joint_debug_instance.mesh = joint_debug_mesh
+	var line_material := StandardMaterial3D.new()
+	line_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	line_material.vertex_color_use_as_albedo = true
+	line_material.no_depth_test = true
+	joint_debug_instance.material_override = line_material
+	add_child(joint_debug_instance)
+	_register_interactive_dots()
+
+
+func _setup_body_joint_visuals() -> void:
+	for joint_name: StringName in TUNABLE_BODY_JOINTS:
+		var marker := _create_marker(Color(0.15, 0.85, 1.0), "BodyJoint_%s" % String(joint_name), 0.025)
+		add_child(marker)
+		body_joint_markers[joint_name] = marker
+	_register_interactive_dots()
+
+
+func _update_body_joint_visuals() -> void:
+	if runtime_posture_layer == null:
+		return
+	for joint_name: StringName in body_joint_markers:
+		var bone_index := int(runtime_posture_layer.bone_indices.get(joint_name, -1))
+		var marker := body_joint_markers[joint_name] as MeshInstance3D
+		marker.visible = bone_index >= 0
+		if bone_index >= 0:
+			marker.global_position = _bone_world_origin(bone_index)
+
+
+func _select_body_joint(joint_name: StringName) -> void:
+	if joint_name not in TUNABLE_BODY_JOINTS:
+		return
+	selected_body_joint = joint_name
+	_sync_body_joint_controls()
+	if hud_status:
+		hud_status.text = "🔷 Editing %s for %s. Drag for pitch/yaw; wheel for roll." % [
+			String(joint_name).replace("_", " "),
+			String(preview_posture).capitalize(),
+		]
+
+
+func _adjust_selected_joint_rotation(delta_degrees: Vector3) -> void:
+	if runtime_posture_layer == null:
+		return
+	var rotation := runtime_posture_layer.get_procedural_rotation_degrees(preview_posture, selected_body_joint)
+	runtime_posture_layer.set_procedural_rotation_degrees(preview_posture, selected_body_joint, rotation + delta_degrees)
+	_sync_body_joint_controls()
+
+
+func _set_body_joint_component(value: float, axis: StringName) -> void:
+	if runtime_posture_layer == null:
+		return
+	var rotation := runtime_posture_layer.get_procedural_rotation_degrees(preview_posture, selected_body_joint)
+	match axis:
+		&"x": rotation.x = value
+		&"y": rotation.y = value
+		&"z": rotation.z = value
+	runtime_posture_layer.set_procedural_rotation_degrees(preview_posture, selected_body_joint, rotation)
+
+
+func _sync_body_joint_controls() -> void:
+	if runtime_posture_layer == null:
+		return
+	var rotation := runtime_posture_layer.get_procedural_rotation_degrees(preview_posture, selected_body_joint)
+	_update_slider_value("body_joint_pitch", rotation.x)
+	_update_slider_value("body_joint_yaw", rotation.y)
+	_update_slider_value("body_joint_roll", rotation.z)
+
+
+func _bone_world_origin(bone_index: int) -> Vector3:
+	if not skeleton or bone_index < 0:
+		return Vector3.ZERO
+	return (skeleton.global_transform * skeleton.get_bone_global_pose(bone_index)).origin
+
+
+func _update_elbow_pole_visuals() -> void:
+	if not skeleton or not right_elbow_pole_marker or not left_elbow_pole_marker:
+		return
+	var right_pole := _right_elbow_pole_world(_right_palm_contact_world())
+	var left_pole := _left_elbow_pole_world(_left_palm_contact_world())
+	right_elbow_pole_marker.global_position = right_pole
+	left_elbow_pole_marker.global_position = left_pole
+	joint_debug_mesh.clear_surfaces()
+	joint_debug_mesh.surface_begin(Mesh.PRIMITIVE_LINES)
+	_add_debug_segment(_bone_world_origin(right_arm_idx), _bone_world_origin(right_forearm_idx), Color(0.1, 0.95, 1.0))
+	_add_debug_segment(_bone_world_origin(right_forearm_idx), _bone_world_origin(right_hand_idx), Color(0.1, 0.95, 1.0))
+	_add_debug_segment(_bone_world_origin(right_arm_idx), right_pole, Color(1.0, 0.25, 0.9))
+	_add_debug_segment(_bone_world_origin(left_arm_idx), _bone_world_origin(left_forearm_idx), Color(0.1, 0.95, 1.0))
+	_add_debug_segment(_bone_world_origin(left_forearm_idx), _bone_world_origin(left_hand_idx), Color(0.1, 0.95, 1.0))
+	_add_debug_segment(_bone_world_origin(left_arm_idx), left_pole, Color(0.75, 0.35, 1.0))
+	joint_debug_mesh.surface_end()
+
+
+func _add_debug_segment(from: Vector3, to: Vector3, color: Color) -> void:
+	joint_debug_mesh.surface_set_color(color)
+	joint_debug_mesh.surface_add_vertex(from)
+	joint_debug_mesh.surface_set_color(color)
+	joint_debug_mesh.surface_add_vertex(to)
 
 func _setup_studio_environment() -> void:
 	var env := Environment.new()
@@ -2342,18 +2583,21 @@ func _try_load_saved_profile(w_id: String) -> void:
 					thumb_wrap = float(hand_pose.get("thumb_wrap", thumb_wrap))
 				var elbow_poles: Variant = d.get("elbow_poles", {})
 				if elbow_poles is Dictionary:
-					var right_pole: Dictionary = (elbow_poles as Dictionary).get("right", {})
-					var left_pole: Dictionary = (elbow_poles as Dictionary).get("left", {})
-					right_elbow_pole_offset = Vector3(
-						float(right_pole.get("x", 0.0)),
-						float(right_pole.get("y", 0.0)),
-						float(right_pole.get("z", 0.0))
-					)
-					left_elbow_pole_offset = Vector3(
-						float(left_pole.get("x", 0.0)),
-						float(left_pole.get("y", 0.0)),
-						float(left_pole.get("z", 0.0))
-					)
+					var pole_data := elbow_poles as Dictionary
+					var by_stance: Variant = pole_data.get("by_stance", {})
+					if by_stance is Dictionary and not (by_stance as Dictionary).is_empty():
+						for posture: StringName in [&"STANDING", &"CROUCHED", &"PRONE"]:
+							var saved_stance: Dictionary = (by_stance as Dictionary).get(String(posture), {})
+							elbow_poles_by_stance[posture] = {
+								"right": _vector_from_data(saved_stance.get("right", {}), Vector3.ZERO),
+								"left": _vector_from_data(saved_stance.get("left", {}), Vector3.ZERO),
+							}
+					else:
+						var legacy_right := _vector_from_data(pole_data.get("right", {}), Vector3.ZERO)
+						var legacy_left := _vector_from_data(pole_data.get("left", {}), Vector3.ZERO)
+						for posture: StringName in [&"STANDING", &"CROUCHED", &"PRONE"]:
+							elbow_poles_by_stance[posture] = {"right": legacy_right, "left": legacy_left}
+					_restore_current_stance_elbow_poles()
 				var ballistics: Variant = d.get("ballistics", {})
 				if ballistics is Dictionary:
 					var fire_values := ballistics as Dictionary
@@ -2874,6 +3118,9 @@ func _find_animation_player(node: Node) -> AnimationPlayer:
 	return null
 
 func _save_weapon_config() -> void:
+	_store_current_stance_elbow_poles()
+	if runtime_posture_layer:
+		runtime_posture_layer.save_procedural_profile()
 	var config_dir := "res://config/weapons/"
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(config_dir))
 
@@ -2915,7 +3162,8 @@ func _save_weapon_config() -> void:
 		},
 		"elbow_poles": {
 			"right": {"x": right_elbow_pole_offset.x, "y": right_elbow_pole_offset.y, "z": right_elbow_pole_offset.z},
-			"left": {"x": left_elbow_pole_offset.x, "y": left_elbow_pole_offset.y, "z": left_elbow_pole_offset.z}
+			"left": {"x": left_elbow_pole_offset.x, "y": left_elbow_pole_offset.y, "z": left_elbow_pole_offset.z},
+			"by_stance": _elbow_poles_save_data()
 		},
 		"animation_hand_maps": animation_hand_maps.duplicate(true),
 		"handling_profile": handling_profile.duplicate(true),
@@ -3644,12 +3892,35 @@ func _build_studio_ui() -> void:
 	elbow_help.text = "Offsets move the IK bend targets, not the bones. This preserves human arm lengths across every stance."
 	elbow_help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	fire_vbox.add_child(elbow_help)
-	_add_slider(fire_vbox, "right_elbow_x", "Right Elbow X (Out/In)", -0.30, 0.30, right_elbow_pole_offset.x, func(v: float): right_elbow_pole_offset.x = v)
-	_add_slider(fire_vbox, "right_elbow_y", "Right Elbow Y (Up/Down)", -0.30, 0.30, right_elbow_pole_offset.y, func(v: float): right_elbow_pole_offset.y = v)
-	_add_slider(fire_vbox, "right_elbow_z", "Right Elbow Z (Forward/Back)", -0.30, 0.30, right_elbow_pole_offset.z, func(v: float): right_elbow_pole_offset.z = v)
-	_add_slider(fire_vbox, "left_elbow_x", "Left Elbow X (Out/In)", -0.30, 0.30, left_elbow_pole_offset.x, func(v: float): left_elbow_pole_offset.x = v)
-	_add_slider(fire_vbox, "left_elbow_y", "Left Elbow Y (Up/Down)", -0.30, 0.30, left_elbow_pole_offset.y, func(v: float): left_elbow_pole_offset.y = v)
-	_add_slider(fire_vbox, "left_elbow_z", "Left Elbow Z (Forward/Back)", -0.30, 0.30, left_elbow_pole_offset.z, func(v: float): left_elbow_pole_offset.z = v)
+	_add_slider(fire_vbox, "right_elbow_x", "Right Elbow X (Out/In)", -0.30, 0.30, right_elbow_pole_offset.x, _set_elbow_component.bind(&"right", &"x"))
+	_add_slider(fire_vbox, "right_elbow_y", "Right Elbow Y (Up/Down)", -0.30, 0.30, right_elbow_pole_offset.y, _set_elbow_component.bind(&"right", &"y"))
+	_add_slider(fire_vbox, "right_elbow_z", "Right Elbow Z (Forward/Back)", -0.30, 0.30, right_elbow_pole_offset.z, _set_elbow_component.bind(&"right", &"z"))
+	_add_slider(fire_vbox, "left_elbow_x", "Left Elbow X (Out/In)", -0.30, 0.30, left_elbow_pole_offset.x, _set_elbow_component.bind(&"left", &"x"))
+	_add_slider(fire_vbox, "left_elbow_y", "Left Elbow Y (Up/Down)", -0.30, 0.30, left_elbow_pole_offset.y, _set_elbow_component.bind(&"left", &"y"))
+	_add_slider(fire_vbox, "left_elbow_z", "Left Elbow Z (Forward/Back)", -0.30, 0.30, left_elbow_pole_offset.z, _set_elbow_component.bind(&"left", &"z"))
+
+	var body_title := Label.new()
+	body_title.text = "BODY JOINT DOTS — SHARED BY ANIMATIONS"
+	body_title.add_theme_color_override("font_color", Color(0.25, 0.9, 1.0))
+	fire_vbox.add_child(body_title)
+	var body_help := Label.new()
+	body_help.text = "Click a cyan joint dot. Drag to change pitch/yaw. Use the mouse wheel for roll. The correction is saved per stance and applies after every compatible animation."
+	body_help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	fire_vbox.add_child(body_help)
+	var joint_picker := OptionButton.new()
+	joint_picker.name = "BodyJointPicker"
+	for joint_name: StringName in TUNABLE_BODY_JOINTS:
+		joint_picker.add_item(String(joint_name).replace("_", " ").capitalize())
+		joint_picker.set_item_metadata(joint_picker.item_count - 1, joint_name)
+	joint_picker.select(TUNABLE_BODY_JOINTS.find(selected_body_joint))
+	joint_picker.item_selected.connect(func(index: int):
+		_select_body_joint(StringName(joint_picker.get_item_metadata(index)))
+	)
+	fire_vbox.add_child(joint_picker)
+	_add_slider(fire_vbox, "body_joint_pitch", "Selected Joint Pitch", -55.0, 55.0, 0.0, _set_body_joint_component.bind(&"x"))
+	_add_slider(fire_vbox, "body_joint_yaw", "Selected Joint Yaw", -55.0, 55.0, 0.0, _set_body_joint_component.bind(&"y"))
+	_add_slider(fire_vbox, "body_joint_roll", "Selected Joint Roll", -55.0, 55.0, 0.0, _set_body_joint_component.bind(&"z"))
+	_sync_body_joint_controls()
 
 	fire_vbox.add_child(HSeparator.new())
 	var bal_title := Label.new(); bal_title.text = "FIRE & DISPERSION"; fire_vbox.add_child(bal_title)

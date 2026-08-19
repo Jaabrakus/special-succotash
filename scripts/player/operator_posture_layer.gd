@@ -19,6 +19,8 @@ const BONE_CANDIDATES: Dictionary = {
 	&"right_shoulder": [&"mixamorig_RightShoulder"],
 	&"left_upper_arm": [&"mixamorig_LeftArm"],
 	&"right_upper_arm": [&"mixamorig_RightArm"],
+	&"left_forearm": [&"mixamorig_LeftForeArm"],
+	&"right_forearm": [&"mixamorig_RightForeArm"],
 	&"left_upper_leg": [&"mixamorig_LeftUpLeg"],
 	&"right_upper_leg": [&"mixamorig_RightUpLeg"],
 	&"left_lower_leg": [&"mixamorig_LeftLeg"],

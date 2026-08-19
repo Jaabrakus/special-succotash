@@ -148,6 +148,43 @@ func _run() -> void:
 		and (lab.get("sliders_map") as Dictionary).has("left_elbow_z"),
 		"both elbow IK poles expose persistent XYZ tuning controls"
 	)
+	_expect(
+		lab.find_child("RightElbowIKPole", true, false) != null
+		and lab.find_child("LeftElbowIKPole", true, false) != null
+		and lab.find_child("ElbowSkeletonFrame", true, false) != null
+		and lab.find_child("BodyJoint_head", true, false) != null
+		and lab.find_child("BodyJoint_left_upper_arm", true, false) != null,
+		"the Gunsmith exposes selectable elbow poles and upper-body joint markers"
+	)
+	lab.call("_set_preview_posture", &"STANDING")
+	lab.call("_set_elbow_component", 0.12, &"left", &"x")
+	lab.call("_set_preview_posture", &"CROUCHED")
+	lab.call("_set_elbow_component", -0.08, &"left", &"x")
+	lab.call("_set_preview_posture", &"STANDING")
+	_expect(
+		absf((lab.get("left_elbow_pole_offset") as Vector3).x - 0.12) < 0.001,
+		"elbow-pole tuning restores independently for each stance"
+	)
+	var posture_layer = lab.get("runtime_posture_layer")
+	posture_layer.call(
+		"set_procedural_rotation_degrees",
+		&"STANDING",
+		&"head",
+		Vector3(7.0, -4.0, 2.0)
+	)
+	lab.call("_set_preview_posture", &"CROUCHED")
+	var crouched_head_rotation: Vector3 = posture_layer.call(
+		"get_procedural_rotation_degrees", &"CROUCHED", &"head"
+	)
+	lab.call("_set_preview_posture", &"STANDING")
+	var standing_head_rotation: Vector3 = posture_layer.call(
+		"get_procedural_rotation_degrees", &"STANDING", &"head"
+	)
+	_expect(
+		standing_head_rotation.is_equal_approx(Vector3(7.0, -4.0, 2.0))
+		and not crouched_head_rotation.is_equal_approx(standing_head_rotation),
+		"head and limb corrections carry across animations but remain stance-specific"
+	)
 	lab.call("_set_preview_posture", &"STANDING")
 	lab.set("current_bloom", 1.0)
 	lab.set("fire_cooldown", 0.2)

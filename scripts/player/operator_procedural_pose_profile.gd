@@ -10,6 +10,7 @@ const SUPPORTED_BONES := [
 	&"spine", &"spine1", &"spine2", &"neck", &"head",
 	&"left_shoulder", &"right_shoulder",
 	&"left_upper_arm", &"right_upper_arm",
+	&"left_forearm", &"right_forearm",
 ]
 
 var corrections: Dictionary = {}
@@ -85,6 +86,8 @@ func set_rotation_degrees(posture: StringName, bone: StringName, value: Vector3)
 		anatomical_limit = 22.0
 	elif bone in [&"left_upper_arm", &"right_upper_arm"]:
 		anatomical_limit = 38.0
+	elif bone in [&"left_forearm", &"right_forearm"]:
+		anatomical_limit = 55.0
 	var safe := Vector3(
 		clampf(value.x, -anatomical_limit, anatomical_limit),
 		clampf(value.y, -anatomical_limit, anatomical_limit),

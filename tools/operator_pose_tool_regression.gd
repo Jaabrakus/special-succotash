@@ -17,8 +17,10 @@ func _init() -> void:
 func _run() -> void:
     _expect(
         &"left_shoulder" in POSE_PROFILE.SUPPORTED_BONES
-        and &"right_upper_arm" in POSE_PROFILE.SUPPORTED_BONES,
-        "pose tuner exposes shoulder and upper-arm joints without translating bones"
+        and &"right_upper_arm" in POSE_PROFILE.SUPPORTED_BONES
+        and &"left_forearm" in POSE_PROFILE.SUPPORTED_BONES
+        and &"right_forearm" in POSE_PROFILE.SUPPORTED_BONES,
+        "pose tuner exposes the complete upper-body correction chain without translating bones"
     )
     var lab = LAB_SCRIPT.new()
     var skeleton := Skeleton3D.new()
