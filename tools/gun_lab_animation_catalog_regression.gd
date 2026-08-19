@@ -188,14 +188,21 @@ func _run() -> void:
 	var neck_before: Vector3 = posture_layer.call(
 		"get_procedural_rotation_degrees", &"STANDING", &"neck"
 	)
+	var upper_spine_before: Vector3 = posture_layer.call(
+		"get_procedural_rotation_degrees", &"STANDING", &"spine2"
+	)
 	lab.call("_select_body_joint", &"head")
 	lab.call("_adjust_selected_joint_rotation", Vector3(4.0, 0.0, 0.0))
 	var neck_after: Vector3 = posture_layer.call(
 		"get_procedural_rotation_degrees", &"STANDING", &"neck"
 	)
+	var upper_spine_after: Vector3 = posture_layer.call(
+		"get_procedural_rotation_degrees", &"STANDING", &"spine2"
+	)
 	_expect(
-		absf((neck_after - neck_before).x - 1.4) < 0.01,
-		"head editing distributes a bounded continuation into the neck"
+		absf((neck_after - neck_before).x - 2.2) < 0.01
+		and absf((upper_spine_after - upper_spine_before).x - 1.0) < 0.01,
+		"head editing forms a bounded continuation arc through neck and upper spine"
 	)
 	lab.call("_set_preview_posture", &"STANDING")
 	lab.set("current_bloom", 1.0)

@@ -27,6 +27,8 @@ static func display_name(joint_name: StringName) -> String:
 
 
 static func axis_labels(joint_name: StringName) -> PackedStringArray:
+	if joint_name == &"head":
+		return PackedStringArray(["Nod Up / Down", "Look Left / Right", "Lean Curve Left / Right"])
 	match control_mode(joint_name):
 		&"elbow_pole":
 			return PackedStringArray(["Out / In", "Up / Down", "Forward / Back"])
@@ -37,6 +39,8 @@ static func axis_labels(joint_name: StringName) -> PackedStringArray:
 
 
 static func help_text(joint_name: StringName) -> String:
+	if joint_name == &"head":
+		return "Curves the head through the neck and upper spine. This is the base for future lean mechanics."
 	match control_mode(joint_name):
 		&"elbow_pole":
 			return "Moves the elbow IK pole. Arm length stays locked."
@@ -44,4 +48,3 @@ static func help_text(joint_name: StringName) -> String:
 			return "Moves the saved weapon grip target. The arm solves to it in every animation."
 		_:
 			return "Adds a bounded local rotation after each compatible animation. Bone length stays locked."
-

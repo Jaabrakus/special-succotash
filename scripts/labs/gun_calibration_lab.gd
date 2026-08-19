@@ -30,7 +30,9 @@ const TUNABLE_BODY_JOINTS := JointControlSchema.SELECTABLE_JOINTS
 # A selected joint keeps full control. Small linked rotations continue through
 # its anatomical parent so a correction does not form a hard hinge.
 const JOINT_CHAIN_LINKS: Dictionary = {
-	&"head": {&"neck": 0.35},
+	# Head lean forms a continuous arc. The head remains the primary control;
+	# smaller corrections travel through the neck and upper spine.
+	&"head": {&"neck": 0.55, &"spine2": 0.25, &"spine1": 0.10},
 	&"neck": {&"spine2": 0.18},
 	&"spine2": {&"spine1": 0.35, &"spine": 0.15},
 	&"spine1": {&"spine": 0.25},

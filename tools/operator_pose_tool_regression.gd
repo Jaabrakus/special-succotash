@@ -30,6 +30,11 @@ func _run() -> void:
         and JOINT_SCHEMA.axis_labels(&"left_hand")[0] == "Along Weapon",
         "Gunsmith and Animation Studio can expose named hand targets without stretching bones"
     )
+    _expect(
+        JOINT_SCHEMA.axis_labels(&"head")[2] == "Lean Curve Left / Right"
+        and "upper spine" in JOINT_SCHEMA.help_text(&"head"),
+        "head control identifies the bounded neck-to-spine lean arc"
+    )
     var pole_solver = WEAPON_POSE_SOLVER.new()
     pole_solver.configure_joint_poles({
         "by_stance": {
