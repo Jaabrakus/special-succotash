@@ -60,6 +60,7 @@ var available_clips: Dictionary = {}
 var source_animation_names: Dictionary = {}
 var clip_paths: Dictionary = {}
 var equipped_weapon_handling_profile: Dictionary = {}
+var equipped_weapon_config: Dictionary = {}
 
 var current_clip: StringName = &""
 var previous_clip: StringName = &""
@@ -104,7 +105,11 @@ func _ready() -> void:
 	process_priority = 100
 	animation_profile = AnimationProfile.new()
 	animation_profile.load_project_map()
-	equipped_weapon_handling_profile = _load_equipped_weapon_handling_profile()
+	equipped_weapon_config = WeaponContract.load_equipped_config()
+	var handling: Variant = equipped_weapon_config.get("handling_profile", {})
+	equipped_weapon_handling_profile = (
+		(handling as Dictionary).duplicate(true) if handling is Dictionary else {}
+	)
 	clip_paths = animation_profile.clip_paths
 	transition_state_machine = TransitionStateMachine.new()
 	posture_layer = PostureLayer.new()
@@ -137,6 +142,7 @@ func _ready() -> void:
 	weapon_pose_solver.use_weapon_socket_contract = use_weapon_socket_contract
 	add_child(weapon_pose_solver)
 	weapon_pose_solver.bind(skeleton, weapon_node)
+	weapon_pose_solver.configure_joint_poles(equipped_weapon_config.get("elbow_poles", {}))
 	_request_clip(&"idle_rifle")
 
 

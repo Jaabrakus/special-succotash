@@ -1,6 +1,8 @@
 extends SceneTree
 
 const POSE_PROFILE := preload("res://scripts/player/operator_procedural_pose_profile.gd")
+const JOINT_SCHEMA := preload("res://scripts/player/operator_joint_control_schema.gd")
+const WEAPON_POSE_SOLVER := preload("res://scripts/player/operator_weapon_pose_solver.gd")
 
 const LAB_SCRIPT := preload("res://scripts/labs/operator_animation_lab.gd")
 const DRAG_BUTTON_SCRIPT := preload("res://scripts/labs/animation_clip_drag_button.gd")
@@ -15,6 +17,34 @@ func _init() -> void:
 
 
 func _run() -> void:
+    _expect(
+        JOINT_SCHEMA.control_mode(&"left_forearm") == &"elbow_pole"
+        and JOINT_SCHEMA.control_mode(&"right_forearm") == &"elbow_pole"
+        and JOINT_SCHEMA.control_mode(&"left_hand") == &"hand_target"
+        and JOINT_SCHEMA.control_mode(&"head") == &"rotation",
+        "shared joint schema routes forearms through elbow poles and hands through grip targets"
+    )
+    _expect(
+        &"left_hand" in JOINT_SCHEMA.SELECTABLE_JOINTS
+        and &"right_hand" in JOINT_SCHEMA.SELECTABLE_JOINTS
+        and JOINT_SCHEMA.axis_labels(&"left_hand")[0] == "Along Weapon",
+        "Gunsmith and Animation Studio can expose named hand targets without stretching bones"
+    )
+    var pole_solver = WEAPON_POSE_SOLVER.new()
+    pole_solver.configure_joint_poles({
+        "by_stance": {
+            "STANDING": {
+                "right": {"x": 0.12, "y": -0.04, "z": 0.03},
+                "left": {"x": -0.08, "y": 0.02, "z": 0.05},
+            }
+        }
+    })
+    var standing_poles: Dictionary = pole_solver.elbow_pole_offsets_by_posture.get(&"STANDING", {})
+    _expect(
+        (standing_poles.get("right", Vector3.ZERO) as Vector3).is_equal_approx(Vector3(0.12, -0.04, 0.03))
+        and (standing_poles.get("left", Vector3.ZERO) as Vector3).is_equal_approx(Vector3(-0.08, 0.02, 0.05)),
+        "saved Gunsmith elbow poles load into the live stance-aware weapon solver"
+    )
     _expect(
         &"left_shoulder" in POSE_PROFILE.SUPPORTED_BONES
         and &"right_upper_arm" in POSE_PROFILE.SUPPORTED_BONES

@@ -12,6 +12,7 @@ const WeaponAnimationProfile := preload("res://scripts/weapons/weapon_animation_
 const WeaponOwnershipContract := preload("res://scripts/player/weapon_ownership_contract.gd")
 const OperatorPostureLayer := preload("res://scripts/player/operator_posture_layer.gd")
 const ProceduralPoseProfile := preload("res://scripts/player/operator_procedural_pose_profile.gd")
+const JointControlSchema := preload("res://scripts/player/operator_joint_control_schema.gd")
 const OperatorComposureScript := preload("res://scripts/weapons/operator_composure.gd")
 const DynamicReticleScript := preload("res://scripts/ui/socom_dynamic_reticle.gd")
 const TargetDummyScript := preload("res://scripts/combat/lab_leak_target_dummy.gd")
@@ -24,12 +25,7 @@ const GIZMO_CENTER_RADIUS := 0.045
 const GIZMO_PICK_DISTANCE_PX := 34.0
 const MUZZLE_RETICLE_LEAD_PX := 84.0
 const BULLET_VELOCITY_PREVIEW_SECONDS := 0.004
-const TUNABLE_BODY_JOINTS := [
-	&"spine", &"spine1", &"spine2", &"neck", &"head",
-	&"left_shoulder", &"right_shoulder",
-	&"left_upper_arm", &"right_upper_arm",
-	&"left_forearm", &"right_forearm",
-]
+const TUNABLE_BODY_JOINTS := JointControlSchema.SELECTABLE_JOINTS
 
 # A selected joint keeps full control. Small linked rotations continue through
 # its anatomical parent so a correction does not form a hard hinge.
@@ -95,6 +91,8 @@ var joint_debug_mesh := ImmediateMesh.new()
 var joint_debug_instance: MeshInstance3D
 var body_joint_markers: Dictionary = {}
 var selected_body_joint: StringName = &"left_upper_arm"
+var selected_joint_title: Label
+var selected_joint_help: Label
 
 # Tactical Grip Style Presets
 enum GripStyle { CLASSIC_CRADLE, C_CLAMP_TACTICAL, MAGWELL_GRIP, VERTICAL_FOREGRIP, ANGLED_AFG }
@@ -1920,12 +1918,51 @@ func _select_body_joint(joint_name: StringName) -> void:
 func _adjust_selected_joint_rotation(delta_degrees: Vector3) -> void:
 	if runtime_posture_layer == null:
 		return
-	_apply_joint_chain_delta(selected_body_joint, delta_degrees)
+	match JointControlSchema.control_mode(selected_body_joint):
+		&"elbow_pole":
+			var side: StringName = &"right" if selected_body_joint == &"right_forearm" else &"left"
+			var offset := right_elbow_pole_offset if side == &"right" else left_elbow_pole_offset
+			offset += delta_degrees * 0.0025
+			if side == &"right":
+				right_elbow_pole_offset = offset
+			else:
+				left_elbow_pole_offset = offset
+			_store_current_stance_elbow_poles()
+		&"hand_target":
+			var delta := delta_degrees * 0.0015
+			if selected_body_joint == &"left_hand":
+				left_grip_local_pos += delta
+				left_grip_local_pos = left_grip_local_pos.clamp(Vector3(-0.40, -0.20, -0.20), Vector3(1.20, 0.20, 0.20))
+			else:
+				right_grip_local_pos += delta
+				right_grip_local_pos = right_grip_local_pos.clamp(Vector3(-1.50, -1.50, -1.50), Vector3(1.50, 1.50, 1.50))
+			_sync_markers()
+		_:
+			_apply_joint_chain_delta(selected_body_joint, delta_degrees)
 	_sync_body_joint_controls()
 
 
 func _set_body_joint_component(value: float, axis: StringName) -> void:
 	if runtime_posture_layer == null:
+		return
+	var mode: StringName = JointControlSchema.control_mode(selected_body_joint)
+	if mode == &"elbow_pole":
+		var side: StringName = &"right" if selected_body_joint == &"right_forearm" else &"left"
+		_set_elbow_component(value, side, axis)
+		_sync_body_joint_controls()
+		return
+	if mode == &"hand_target":
+		var target := left_grip_local_pos if selected_body_joint == &"left_hand" else right_grip_local_pos
+		match axis:
+			&"x": target.x = value
+			&"y": target.y = value
+			&"z": target.z = value
+		if selected_body_joint == &"left_hand":
+			left_grip_local_pos = target
+		else:
+			right_grip_local_pos = target
+		_sync_markers()
+		_sync_body_joint_controls()
 		return
 	var rotation := runtime_posture_layer.get_procedural_rotation_degrees(preview_posture, selected_body_joint)
 	match axis:
@@ -1961,18 +1998,38 @@ func _apply_joint_chain_delta(joint_name: StringName, delta_degrees: Vector3) ->
 func _sync_body_joint_controls() -> void:
 	if runtime_posture_layer == null:
 		return
-	var rotation := runtime_posture_layer.get_procedural_rotation_degrees(preview_posture, selected_body_joint)
-	_update_slider_value("body_joint_pitch", rotation.x)
-	_update_slider_value("body_joint_yaw", rotation.y)
-	_update_slider_value("body_joint_roll", rotation.z)
+	var mode: StringName = JointControlSchema.control_mode(selected_body_joint)
+	var values := Vector3.ZERO
+	var maximums := Vector3(55.0, 55.0, 55.0)
+	if mode == &"elbow_pole":
+		values = right_elbow_pole_offset if selected_body_joint == &"right_forearm" else left_elbow_pole_offset
+		maximums = Vector3(0.30, 0.30, 0.30)
+	elif mode == &"hand_target":
+		values = left_grip_local_pos if selected_body_joint == &"left_hand" else right_grip_local_pos
+		maximums = Vector3(1.20, 0.20, 0.20) if selected_body_joint == &"left_hand" else Vector3(1.50, 1.50, 1.50)
+	else:
+		values = runtime_posture_layer.get_procedural_rotation_degrees(preview_posture, selected_body_joint)
+		maximums = runtime_posture_layer.get_procedural_axis_limits_degrees(selected_body_joint)
+	var keys := ["body_joint_pitch", "body_joint_yaw", "body_joint_roll"]
+	var labels: PackedStringArray = JointControlSchema.axis_labels(selected_body_joint)
+	for index in range(3):
+		var entry: Dictionary = sliders_map.get(keys[index], {})
+		var slider := entry.get("slider") as HSlider
+		var name_label := entry.get("name_label") as Label
+		if slider:
+			slider.min_value = -maximums[index]
+			slider.max_value = maximums[index]
+			slider.step = 0.005 if maximums[index] <= 2.0 else 0.5
+			slider.set_value_no_signal(values[index])
+		if name_label:
+			name_label.text = labels[index] + ":"
+		_update_slider_value(keys[index], values[index])
+	if selected_joint_title:
+		selected_joint_title.text = "SELECTED JOINT — %s" % JointControlSchema.display_name(selected_body_joint).to_upper()
+	if selected_joint_help:
+		selected_joint_help.text = JointControlSchema.help_text(selected_body_joint)
 	if hud_status:
-		var limits: Vector3 = runtime_posture_layer.get_procedural_axis_limits_degrees(selected_body_joint)
-		hud_status.text = "%s limits: pitch ±%.0f°, yaw ±%.0f°, roll ±%.0f°. Rotation only; bone length is locked." % [
-			String(selected_body_joint).replace("_", " ").capitalize(),
-			limits.x,
-			limits.y,
-			limits.z,
-		]
+		hud_status.text = "%s — %s" % [JointControlSchema.display_name(selected_body_joint), JointControlSchema.help_text(selected_body_joint)]
 
 
 func _bone_world_origin(bone_index: int) -> Vector3:
@@ -3940,14 +3997,13 @@ func _build_studio_ui() -> void:
 	_add_slider(fire_vbox, "left_elbow_y", "Left Elbow Y (Up/Down)", -0.30, 0.30, left_elbow_pole_offset.y, _set_elbow_component.bind(&"left", &"y"))
 	_add_slider(fire_vbox, "left_elbow_z", "Left Elbow Z (Forward/Back)", -0.30, 0.30, left_elbow_pole_offset.z, _set_elbow_component.bind(&"left", &"z"))
 
-	var body_title := Label.new()
-	body_title.text = "BODY JOINT DOTS — SHARED BY ANIMATIONS"
-	body_title.add_theme_color_override("font_color", Color(0.25, 0.9, 1.0))
-	fire_vbox.add_child(body_title)
-	var body_help := Label.new()
-	body_help.text = "Click a cyan joint dot. Drag to change pitch/yaw. Use the mouse wheel for roll. The correction is saved per stance and applies after every compatible animation."
-	body_help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	fire_vbox.add_child(body_help)
+	selected_joint_title = Label.new()
+	selected_joint_title.text = "SELECTED JOINT"
+	selected_joint_title.add_theme_color_override("font_color", Color(0.25, 0.9, 1.0))
+	fire_vbox.add_child(selected_joint_title)
+	selected_joint_help = Label.new()
+	selected_joint_help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	fire_vbox.add_child(selected_joint_help)
 	var joint_picker := OptionButton.new()
 	joint_picker.name = "BodyJointPicker"
 	for joint_name: StringName in TUNABLE_BODY_JOINTS:
@@ -3958,9 +4014,9 @@ func _build_studio_ui() -> void:
 		_select_body_joint(StringName(joint_picker.get_item_metadata(index)))
 	)
 	fire_vbox.add_child(joint_picker)
-	_add_slider(fire_vbox, "body_joint_pitch", "Selected Joint Pitch", -55.0, 55.0, 0.0, _set_body_joint_component.bind(&"x"))
-	_add_slider(fire_vbox, "body_joint_yaw", "Selected Joint Yaw", -55.0, 55.0, 0.0, _set_body_joint_component.bind(&"y"))
-	_add_slider(fire_vbox, "body_joint_roll", "Selected Joint Roll", -55.0, 55.0, 0.0, _set_body_joint_component.bind(&"z"))
+	_add_slider(fire_vbox, "body_joint_pitch", "Bend", -55.0, 55.0, 0.0, _set_body_joint_component.bind(&"x"))
+	_add_slider(fire_vbox, "body_joint_yaw", "Turn", -55.0, 55.0, 0.0, _set_body_joint_component.bind(&"y"))
+	_add_slider(fire_vbox, "body_joint_roll", "Twist", -55.0, 55.0, 0.0, _set_body_joint_component.bind(&"z"))
 	_sync_body_joint_controls()
 
 	fire_vbox.add_child(HSeparator.new())
@@ -4199,7 +4255,7 @@ func _add_slider(parent: Control, key: String, label_text: String, min_val: floa
 	row.add_child(slider)
 	row.add_child(val_lbl)
 
-	sliders_map[key] = {"slider": slider, "label": val_lbl}
+	sliders_map[key] = {"slider": slider, "label": val_lbl, "name_label": lbl, "row": row}
 
 func _current_reticle_profile() -> Dictionary:
 	return {

@@ -81,6 +81,7 @@ var cover_pose_name: StringName = &"CLEAR"
 var shot_blocked: bool = false
 var socket_contract_active: bool = false
 var adaptive_support_socket: bool = false
+var elbow_pole_offsets_by_posture: Dictionary = {}
 
 
 func bind(target_skeleton: Skeleton3D, attached_weapon: Node3D) -> void:
@@ -108,6 +109,29 @@ func bind(target_skeleton: Skeleton3D, attached_weapon: Node3D) -> void:
 		for bone_name in names:
 			bone_indices[StringName(bone_name)] = skeleton.find_bone(StringName(bone_name))
 	_build_targets()
+
+
+func configure_joint_poles(raw_poles: Variant) -> void:
+	elbow_pole_offsets_by_posture.clear()
+	if not raw_poles is Dictionary:
+		return
+	var pole_document := raw_poles as Dictionary
+	var by_stance: Variant = pole_document.get("by_stance", {})
+	if by_stance is Dictionary:
+		for posture_name in (by_stance as Dictionary).keys():
+			var stance_value: Variant = (by_stance as Dictionary)[posture_name]
+			if stance_value is Dictionary:
+				elbow_pole_offsets_by_posture[StringName(posture_name)] = {
+					"right": _vector_from_data((stance_value as Dictionary).get("right", {})),
+					"left": _vector_from_data((stance_value as Dictionary).get("left", {})),
+				}
+	if elbow_pole_offsets_by_posture.is_empty():
+		var fallback := {
+			"right": _vector_from_data(pole_document.get("right", {})),
+			"left": _vector_from_data(pole_document.get("left", {})),
+		}
+		for posture_name: StringName in [&"STANDING", &"CROUCHED", &"PRONE"]:
+			elbow_pole_offsets_by_posture[posture_name] = fallback.duplicate(true)
 
 
 func apply(
@@ -238,17 +262,20 @@ func apply(
 	support_hand_target.global_position = support_position
 	aim_target_marker.global_position = last_target_point
 	var prone_pole_raise := 0.12 if posture == &"PRONE" else 0.0
+	var saved_poles: Dictionary = elbow_pole_offsets_by_posture.get(posture, {})
+	var right_saved: Vector3 = saved_poles.get("right", Vector3.ZERO)
+	var left_saved: Vector3 = saved_poles.get("left", Vector3.ZERO)
 	right_elbow_pole.global_position = (
 		right_shoulder
-		+ aim_right * elbow_flare
-		+ aim_direction * 0.16
-		+ world_up * (elbow_height + prone_pole_raise)
+		+ aim_right * (elbow_flare + right_saved.x)
+		+ aim_direction * (0.16 + right_saved.z)
+		+ world_up * (elbow_height + prone_pole_raise + right_saved.y)
 	)
 	left_elbow_pole.global_position = (
 		left_shoulder
-		- aim_right * elbow_flare
-		+ aim_direction * 0.16
-		+ world_up * (elbow_height + prone_pole_raise)
+		- aim_right * (elbow_flare + left_saved.x)
+		+ aim_direction * (0.16 + left_saved.z)
+		+ world_up * (elbow_height + prone_pole_raise + left_saved.y)
 	)
 	for _iteration in range(solve_iterations):
 		_solve_arm(&"right", trigger_hand_target, right_elbow_pole)
@@ -377,6 +404,19 @@ func _marker(node_name: String) -> Marker3D:
 	marker.name = node_name
 	add_child(marker)
 	return marker
+
+
+func _vector_from_data(raw: Variant) -> Vector3:
+	if raw is Vector3:
+		return raw
+	if not raw is Dictionary:
+		return Vector3.ZERO
+	var data := raw as Dictionary
+	return Vector3(
+		float(data.get("x", 0.0)),
+		float(data.get("y", 0.0)),
+		float(data.get("z", 0.0))
+	)
 
 
 func _resolve_aim_direction(
