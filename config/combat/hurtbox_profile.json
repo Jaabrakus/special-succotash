@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "purpose": "Authored by the Composure Lab and loaded by all anatomical damage rigs; not camera or movement collision",
+  "radius_scales": {
+    "global": 0.88,
+    "head": 1.0,
+    "torso": 1.0,
+    "arms": 1.0,
+    "legs": 1.0
+  }
+}

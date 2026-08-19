@@ -148,6 +148,10 @@ func request_fire() -> Dictionary:
 		_movement_ratio,
 		_turning_ratio
 	)
+	# Snapshot the current composure before recoil stress is added. The shot that
+	# was just triggered must use the stability the operator had at trigger time;
+	# the new stress affects the following shot.
+	var shot_precision_core_scale := composure.get_precision_core_scale()
 	var result: Dictionary = ballistics.try_fire_direction(
 		muzzle,
 		Vector3(validation.direction),
@@ -168,7 +172,7 @@ func request_fire() -> Dictionary:
 	)
 	composure.notify_shot(1.0, opening_stress_multiplier)
 	result["composure"] = composure.get_composure()
-	result["precision_core_scale"] = composure.get_precision_core_scale()
+	result["precision_core_scale"] = shot_precision_core_scale
 	result["reticle_bounce"] = composure.get_shot_bounce()
 	var rendered_barrel_direction := (
 		Vector3(mannequin.get_active_barrel_direction())
@@ -187,9 +191,32 @@ func request_fire() -> Dictionary:
 	last_result = result
 	var hit_collider: Object = result.get("hit_collider")
 	if hit_collider != null and hit_collider.has_method("take_bullet_damage"):
+		var damage_classification := {
+			"precision": true,
+			"graze": false,
+			"normalized_radius": 0.0,
+			"precision_core_scale": shot_precision_core_scale,
+		}
+		if hit_collider.has_method("classify_shot_path"):
+			damage_classification = hit_collider.call(
+				"classify_shot_path",
+				muzzle,
+				Vector3(result.direction),
+				shot_precision_core_scale
+			)
+		var damage_scale := 1.0
+		if not bool(damage_classification.get("precision", true)):
+			damage_classification["graze"] = true
+			damage_scale = clampf(
+				float(composure_profile.get("graze_damage_scale", 0.38)),
+				0.0,
+				1.0
+			)
+		result["damage_classification"] = damage_classification
+		result["damage_scale"] = damage_scale
 		result["damage_result"] = hit_collider.call(
 			"take_bullet_damage",
-			float(ballistics.damage_per_shot),
+			float(ballistics.damage_per_shot) * damage_scale,
 			Vector3(result.hit_pos),
 			Vector3(result.get("normal", Vector3.UP)),
 			player.global_position

@@ -13,6 +13,7 @@ const WeaponOwnershipContract := preload("res://scripts/player/weapon_ownership_
 const OperatorPostureLayer := preload("res://scripts/player/operator_posture_layer.gd")
 const OperatorComposureScript := preload("res://scripts/weapons/operator_composure.gd")
 const DynamicReticleScript := preload("res://scripts/ui/socom_dynamic_reticle.gd")
+const TargetDummyScript := preload("res://scripts/combat/lab_leak_target_dummy.gd")
 const WEAPON_BASE_PATH := "res://assets/weapons/modular_pack/"
 const HAND_GIZMO_ARROW_LENGTH := 0.21
 const HAND_GIZMO_RING_RADIUS := 0.18
@@ -37,6 +38,8 @@ var last_mouse_pos := Vector2.ZERO
 # Trooper & Skeleton
 var trooper_scale: float = 62.0
 var trooper_node: Node3D
+var composure_preview_dummy: Node3D
+var composure_preview_active: bool = false
 var skeleton: Skeleton3D
 var animation_player: AnimationPlayer
 var runtime_posture_layer: SocomOperatorPostureLayer
@@ -264,6 +267,7 @@ func _ready() -> void:
 	_setup_studio_environment()
 	_setup_trooper_and_rig()
 	_setup_target_range()
+	_setup_composure_target_preview()
 	_load_weapon(selected_weapon_file)
 	_build_studio_ui()
 
@@ -455,6 +459,12 @@ func _process(delta: float) -> void:
 		composure_preview_turning,
 		_composure_stance()
 	)
+	if composure_preview_dummy != null and composure_preview_dummy.has_method("set_precision_core_debug"):
+		composure_preview_dummy.call(
+			"set_precision_core_debug",
+			composure_preview_active,
+			composure.get_precision_core_scale()
+		)
 	_update_composure_readout()
 
 	if fire_input_held:
@@ -3630,6 +3640,7 @@ func _build_studio_ui() -> void:
 	fire_vbox.add_child(reset_fire_button)
 
 	_build_composure_tab(tab_container)
+	tab_container.tab_changed.connect(_on_gun_lab_tab_changed.bind(tab_container))
 
 	# 8. Save & Export. Keep these controls outside the scrolling settings so
 	# Save and Play are always reachable at every supported window height.
@@ -3736,6 +3747,50 @@ func _build_composure_tab(tab_container: TabContainer) -> void:
 	)
 	vbox.add_child(reset_button)
 	_update_composure_readout()
+
+
+func _setup_composure_target_preview() -> void:
+	composure_preview_dummy = TargetDummyScript.new() as Node3D
+	composure_preview_dummy.name = "ComposureTposeTarget"
+	composure_preview_dummy.visible = false
+	add_child(composure_preview_dummy)
+	call_deferred("_finish_composure_target_preview")
+
+
+func _finish_composure_target_preview() -> void:
+	if composure_preview_dummy == null:
+		return
+	if composure_preview_dummy.has_method("set_hurtbox_debug_visible"):
+		composure_preview_dummy.call("set_hurtbox_debug_visible", true)
+	if composure_preview_dummy.has_method("set_precision_core_debug"):
+		composure_preview_dummy.call(
+			"set_precision_core_debug",
+			composure_preview_active,
+			composure.get_precision_core_scale()
+		)
+	var preview_health := composure_preview_dummy.get_node_or_null("HealthLabel") as Label3D
+	if preview_health:
+		preview_health.visible = false
+
+
+func _on_gun_lab_tab_changed(tab_index: int, tab_container: TabContainer) -> void:
+	var selected := tab_container.get_tab_control(tab_index)
+	var show_composure := selected != null and selected.name == "Composure"
+	composure_preview_active = show_composure
+	if trooper_node:
+		trooper_node.visible = not show_composure
+	if composure_preview_dummy:
+		composure_preview_dummy.visible = show_composure
+	if hand_gizmo_world:
+		hand_gizmo_world.visible = not show_composure
+	if weapon_gizmo_world:
+		weapon_gizmo_world.visible = not show_composure
+	if show_composure:
+		cam_target = Vector3(0.0, 1.02, 0.0)
+		cam_distance = 3.15
+		cam_pitch = -2.0
+		cam_yaw = 180.0
+		_update_camera()
 
 func _add_slider(parent: Control, key: String, label_text: String, min_val: float, max_val: float, initial_val: float, callback: Callable) -> void:
 	var row := HBoxContainer.new()

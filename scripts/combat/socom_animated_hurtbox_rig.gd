@@ -6,6 +6,7 @@ extends Node3D
 ## through single-frame seams between animated limbs.
 
 const HurtboxAreaScript := preload("res://scripts/combat/socom_hurtbox_area.gd")
+const HurtboxProfile := preload("res://scripts/combat/socom_hurtbox_profile.gd")
 
 const HEAD_RADIUS := 0.19
 const TORSO_RADIUS := 0.245
@@ -19,14 +20,10 @@ const FOOT_RADIUS := 0.13
 var skeleton: Skeleton3D
 var damage_receiver: Node
 var debug_visible: bool = false
+var precision_core_debug_visible: bool = false
+var precision_core_scale: float = 1.0
 var enabled: bool = true
-var radius_scales := {
-	&"global": 0.88,
-	&"head": 1.0,
-	&"torso": 1.0,
-	&"arms": 1.0,
-	&"legs": 1.0
-}
+var radius_scales: Dictionary = HurtboxProfile.load_scales()
 
 var _records: Array[Dictionary] = []
 var _bone_indices: Dictionary = {}
@@ -36,6 +33,7 @@ var _debug_materials: Dictionary = {}
 func bind(target_skeleton: Skeleton3D, receiver: Node) -> bool:
 	skeleton = target_skeleton
 	damage_receiver = receiver
+	radius_scales = HurtboxProfile.load_scales()
 	_clear_hurtboxes()
 	if skeleton == null:
 		push_warning("Animated hurtbox rig could not bind: Skeleton3D missing")
@@ -98,6 +96,15 @@ func set_debug_visible(value: bool) -> void:
 		mesh.visible = debug_visible
 
 
+func set_precision_core_debug(value: bool, core_scale: float = 1.0) -> void:
+	precision_core_debug_visible = value
+	precision_core_scale = clampf(core_scale, 0.05, 1.0)
+	for record in _records:
+		var mesh: MeshInstance3D = record.precision_mesh
+		mesh.visible = precision_core_debug_visible
+	force_pose_update()
+
+
 func apply_radius_scales(settings: Dictionary) -> void:
 	for key in radius_scales:
 		if settings.has(key) or settings.has(String(key)):
@@ -108,6 +115,10 @@ func apply_radius_scales(settings: Dictionary) -> void:
 
 func get_radius_scales() -> Dictionary:
 	return radius_scales.duplicate()
+
+
+func save_radius_scales() -> bool:
+	return HurtboxProfile.save_scales(radius_scales)
 
 
 func get_hurtbox_areas() -> Array[Area3D]:
@@ -191,7 +202,8 @@ func _add_capsule(
 		"base_radius": radius,
 		"area": pair.area,
 		"shape": pair.shape,
-		"debug_mesh": pair.debug_mesh
+		"debug_mesh": pair.debug_mesh,
+		"precision_mesh": pair.precision_mesh
 	})
 
 
@@ -214,7 +226,8 @@ func _add_midpoint_capsule(
 		"target_fraction": target_fraction,
 		"area": pair.area,
 		"shape": pair.shape,
-		"debug_mesh": pair.debug_mesh
+		"debug_mesh": pair.debug_mesh,
+		"precision_mesh": pair.precision_mesh
 	})
 
 
@@ -239,6 +252,8 @@ func _add_sphere(
 	debug_mesh.mesh = sphere_mesh
 	_configure_debug_mesh(debug_mesh, region)
 	area.add_child(debug_mesh)
+	var precision_mesh := _create_precision_sphere(radius)
+	area.add_child(precision_mesh)
 	_records.append({
 		"kind": &"sphere",
 		"region": region,
@@ -248,7 +263,8 @@ func _add_sphere(
 		"directional_offset": directional_offset,
 		"area": area,
 		"shape": sphere,
-		"debug_mesh": debug_mesh
+		"debug_mesh": debug_mesh,
+		"precision_mesh": precision_mesh
 	})
 
 
@@ -268,7 +284,14 @@ func _create_capsule_nodes(region: StringName, radius: float) -> Dictionary:
 	debug_mesh.mesh = capsule_mesh
 	_configure_debug_mesh(debug_mesh, region)
 	area.add_child(debug_mesh)
-	return {"area": area, "shape": capsule, "debug_mesh": debug_mesh}
+	var precision_mesh := _create_precision_capsule(radius)
+	area.add_child(precision_mesh)
+	return {
+		"area": area,
+		"shape": capsule,
+		"debug_mesh": debug_mesh,
+		"precision_mesh": precision_mesh,
+	}
 
 
 func _create_area(region: StringName) -> Area3D:
@@ -283,6 +306,37 @@ func _configure_debug_mesh(mesh: MeshInstance3D, region: StringName) -> void:
 	mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	mesh.material_override = _debug_material(region)
 	mesh.visible = debug_visible
+
+
+func _create_precision_sphere(radius: float) -> MeshInstance3D:
+	var mesh := MeshInstance3D.new()
+	var sphere := SphereMesh.new()
+	sphere.radius = radius
+	sphere.height = radius * 2.0
+	mesh.mesh = sphere
+	_configure_precision_mesh(mesh)
+	return mesh
+
+
+func _create_precision_capsule(radius: float) -> MeshInstance3D:
+	var mesh := MeshInstance3D.new()
+	var capsule := CapsuleMesh.new()
+	capsule.radius = radius
+	capsule.height = radius * 2.0
+	mesh.mesh = capsule
+	_configure_precision_mesh(mesh)
+	return mesh
+
+
+func _configure_precision_mesh(mesh: MeshInstance3D) -> void:
+	var material := StandardMaterial3D.new()
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.no_depth_test = true
+	material.albedo_color = Color(0.05, 0.95, 1.0, 0.24)
+	mesh.material_override = material
+	mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	mesh.visible = precision_core_debug_visible
 
 
 func _debug_material(region: StringName) -> StandardMaterial3D:
@@ -344,6 +398,11 @@ func _update_capsule_between(record: Dictionary, start: Vector3, finish: Vector3
 	var capsule_mesh := debug_mesh.mesh as CapsuleMesh
 	capsule_mesh.radius = radius
 	capsule_mesh.height = total_height
+	var precision_mesh: MeshInstance3D = record.precision_mesh
+	var precision_capsule := precision_mesh.mesh as CapsuleMesh
+	var core_radius := radius * precision_core_scale
+	precision_capsule.radius = core_radius
+	precision_capsule.height = maxf(core_radius * 2.0, length + core_radius * 2.0)
 
 	var y_axis := delta / length
 	var x_axis := y_axis.cross(Vector3.FORWARD)
@@ -366,6 +425,11 @@ func _update_sphere(record: Dictionary) -> void:
 	var sphere_mesh := debug_mesh.mesh as SphereMesh
 	sphere_mesh.radius = radius
 	sphere_mesh.height = radius * 2.0
+	var precision_mesh: MeshInstance3D = record.precision_mesh
+	var precision_sphere := precision_mesh.mesh as SphereMesh
+	var core_radius := radius * precision_core_scale
+	precision_sphere.radius = core_radius
+	precision_sphere.height = core_radius * 2.0
 	var offset := direction * radius * float(record.directional_offset)
 	var area: Area3D = record.area
 	area.global_transform = Transform3D(Basis.IDENTITY, bone_position + offset)
@@ -382,8 +446,8 @@ func _scaled_radius(record: Dictionary) -> float:
 		group = &"arms"
 	return (
 		float(record.base_radius)
-		* float(radius_scales[&"global"])
-		* float(radius_scales[group])
+		* float(radius_scales.get("global", 0.88))
+		* float(radius_scales.get(String(group), 1.0))
 	)
 
 

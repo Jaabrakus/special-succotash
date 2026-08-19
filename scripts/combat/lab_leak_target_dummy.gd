@@ -51,6 +51,7 @@ func _build_soldier() -> void:
 
 	# 3D Floating Health Label
 	health_label = Label3D.new()
+	health_label.name = "HealthLabel"
 	health_label.text = "HOSTILE  100 HP"
 	health_label.position.y = 2.10
 	health_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
@@ -104,9 +105,22 @@ func set_hurtbox_debug_visible(visible: bool) -> void:
 		hurtbox_rig.set_debug_visible(visible)
 
 
+func set_precision_core_debug(visible: bool, core_scale: float = 1.0) -> void:
+	if hurtbox_rig:
+		hurtbox_rig.set_precision_core_debug(visible, core_scale)
+
+
 func apply_hurtbox_tuning(settings: Dictionary) -> void:
 	if hurtbox_rig:
 		hurtbox_rig.apply_radius_scales(settings)
+
+
+func save_hurtbox_tuning() -> bool:
+	return bool(hurtbox_rig.save_radius_scales()) if hurtbox_rig else false
+
+
+func get_hurtbox_tuning() -> Dictionary:
+	return hurtbox_rig.get_radius_scales() if hurtbox_rig else {}
 
 
 func get_hurtbox_rig() -> Node3D:

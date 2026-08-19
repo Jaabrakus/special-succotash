@@ -140,6 +140,39 @@ func _run() -> void:
 	# Moving the rendered skeleton root must move every damage shape with it.
 	var torso: Area3D = rig.get_region_area(&"TORSO")
 	if torso:
+		# Composure classification is shooter-relative metadata over a stable
+		# physical capsule. A central ray is full damage; the same capsule's edge
+		# is a graze when the shooter's precision core has contracted.
+		var torso_shape_node := torso.get_child(0) as CollisionShape3D
+		var torso_capsule := torso_shape_node.shape as CapsuleShape3D
+		var physical_radius_before := torso_capsule.radius
+		var local_forward := torso.global_transform.basis.z.normalized()
+		var local_right := torso.global_transform.basis.x.normalized()
+		var center_origin := torso.global_position + local_forward * 4.0
+		var center_classification: Dictionary = torso.classify_shot_path(
+			center_origin,
+			-local_forward,
+			0.60
+		)
+		_assert(
+			bool(center_classification.get("precision", false)),
+			"central torso ray was not classified as precision"
+		)
+		var edge_origin := center_origin + local_right * torso_capsule.radius * 0.86
+		var edge_classification: Dictionary = torso.classify_shot_path(
+			edge_origin,
+			-local_forward,
+			0.60
+		)
+		_assert(
+			bool(edge_classification.get("graze", false)),
+			"edge torso ray was not classified as a composure graze: %s" % edge_classification
+		)
+		_assert(
+			is_equal_approx(torso_capsule.radius, physical_radius_before),
+			"precision classification mutated the physical hurtbox"
+		)
+
 		var before := torso.global_position
 		dummy.model_root.position += Vector3(0.31, 0.17, -0.23)
 		rig.force_pose_update()

@@ -2,6 +2,8 @@ extends Control
 
 const ComposureScript := preload("res://scripts/weapons/operator_composure.gd")
 const WeaponContract := preload("res://scripts/weapons/weapon_rig_contract.gd")
+const TargetDummyScript := preload("res://scripts/combat/lab_leak_target_dummy.gd")
+const HurtboxProfile := preload("res://scripts/combat/socom_hurtbox_profile.gd")
 
 const WEAPONS := {
 	"Assault Rifle": {
@@ -65,11 +67,15 @@ var total_damage: float = 0.0
 var state_label: Label
 var instruction_label: Label
 var save_notice: Label
+var hurtbox_preview_dummy: Node3D
+var hurtbox_preview_camera: Camera3D
+var shared_hurtbox_scales: Dictionary = HurtboxProfile.load_scales()
 
 
 func _ready() -> void:
 	set_process(true)
 	_build_controls()
+	_build_hurtbox_preview()
 	_select_weapon(0)
 	queue_redraw()
 
@@ -92,6 +98,12 @@ func _process(delta: float) -> void:
 		fire_clock = 0.0
 
 	composure.advance(delta, movement_amount, turning_amount, stance)
+	if hurtbox_preview_dummy != null and hurtbox_preview_dummy.has_method("set_precision_core_debug"):
+		hurtbox_preview_dummy.call(
+			"set_precision_core_debug",
+			true,
+			composure.get_precision_core_scale()
+		)
 	_update_readout()
 	queue_redraw()
 
@@ -99,8 +111,8 @@ func _process(delta: float) -> void:
 func _draw() -> void:
 	draw_rect(Rect2(Vector2.ZERO, size), Color("10151d"))
 	draw_rect(Rect2(330.0, 72.0, size.x - 360.0, size.y - 104.0), Color("171e28"), true)
-	_draw_reticle(Vector2(size.x * 0.49, size.y * 0.43))
-	_draw_target(Vector2(size.x * 0.78, size.y * 0.42))
+	_draw_reticle(Vector2(size.x * 0.47, size.y * 0.43))
+	_draw_target_legend(Vector2(size.x * 0.78, size.y * 0.42))
 	_draw_timing_strip()
 
 
@@ -133,53 +145,80 @@ func _draw_reticle(aim_center: Vector2) -> void:
 	draw_string(ThemeDB.fallback_font, aim_center + Vector2(-118, 162), "yellow = fast shot pop + slow bloom", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color(0.65, 0.75, 0.86))
 
 
-func _draw_target(center: Vector2) -> void:
-	var core_scale := composure.get_precision_core_scale()
-	var outer := Color(0.95, 0.62, 0.18, 0.28)
-	var core := Color(0.15, 0.90, 0.92, 0.70)
-	var outline := Color(0.95, 0.72, 0.34, 0.88)
-	var core_outline := Color(0.25, 1.0, 1.0, 0.95)
+func _draw_target_legend(center: Vector2) -> void:
+	draw_string(ThemeDB.fallback_font, center + Vector2(-132, -176), "LIVE T-POSE HURTBOX RIG", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color("77f29a"))
+	draw_string(ThemeDB.fallback_font, center + Vector2(-132, 190), "colored shell = fixed anatomical hurtbox", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color(0.65, 0.75, 0.86))
+	draw_string(ThemeDB.fallback_font, center + Vector2(-132, 210), "cyan = shooter-specific precision core", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color(0.65, 0.75, 0.86))
+	draw_string(ThemeDB.fallback_font, center + Vector2(-132, 230), "edge contact = graze • center crossing = full", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color(0.65, 0.75, 0.86))
 
-	draw_string(ThemeDB.fallback_font, center + Vector2(-110, -160), "TARGET DAMAGE VOLUMES", HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color("77f29a"))
-	# Head
-	draw_circle(center + Vector2(0, -91), 31.0, outer)
-	draw_arc(center + Vector2(0, -91), 31.0, 0, TAU, 36, outline, 2.0)
-	draw_circle(center + Vector2(0, -91), 31.0 * core_scale, core)
-	draw_arc(center + Vector2(0, -91), 31.0 * core_scale, 0, TAU, 36, core_outline, 2.0)
-	# Torso
-	var torso := Rect2(center + Vector2(-52, -55), Vector2(104, 132))
-	draw_rect(torso, outer, true)
-	draw_rect(torso, outline, false, 2.0)
-	var core_size := torso.size * core_scale
-	var torso_core := Rect2(torso.get_center() - core_size * 0.5, core_size)
-	draw_rect(torso_core, core, true)
-	draw_rect(torso_core, core_outline, false, 2.0)
-	# Arms and legs: outer anatomical shell, then shooter-relative inner core.
-	for segment in [
-		[center + Vector2(-45, -38), center + Vector2(-92, 35)],
-		[center + Vector2(45, -38), center + Vector2(92, 35)],
-		[center + Vector2(-25, 70), center + Vector2(-38, 152)],
-		[center + Vector2(25, 70), center + Vector2(38, 152)],
-	]:
-		draw_line(segment[0], segment[1], outer, 25.0, true)
-		draw_line(segment[0], segment[1], outline, 2.0, true)
-		draw_line(segment[0], segment[1], core, 25.0 * core_scale, true)
-		draw_line(segment[0], segment[1], core_outline, 2.0, true)
 
-	for sample in shot_samples:
-		var impact_position: Vector2 = sample.get("position", center)
-		var result := String(sample.get("result", "MISS"))
-		var impact_color := Color("ff4b4b")
-		if result == "PRECISION":
-			impact_color = Color("ffffff")
-		elif result == "GRAZE":
-			impact_color = Color("ffbf38")
-		draw_circle(impact_position, 4.5, Color(0, 0, 0, 0.80))
-		draw_circle(impact_position, 2.8, impact_color)
+func _build_hurtbox_preview() -> void:
+	var container := SubViewportContainer.new()
+	container.name = "LiveHurtboxPreview"
+	container.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	container.anchor_left = 0.60
+	container.anchor_top = 0.16
+	container.anchor_right = 0.97
+	container.anchor_bottom = 0.77
+	container.offset_left = 0.0
+	container.offset_top = 0.0
+	container.offset_right = 0.0
+	container.offset_bottom = 0.0
+	container.stretch = true
+	container.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(container)
 
-	draw_string(ThemeDB.fallback_font, center + Vector2(-116, 183), "orange = graze shell (always anatomical)", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color(0.65, 0.75, 0.86))
-	draw_string(ThemeDB.fallback_font, center + Vector2(-116, 203), "cyan = precision core for this shooter", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color(0.65, 0.75, 0.86))
-	draw_string(ThemeDB.fallback_font, center + Vector2(-116, 225), "white full • amber graze • red miss", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color(0.65, 0.75, 0.86))
+	var viewport := SubViewport.new()
+	viewport.name = "HurtboxViewport"
+	viewport.transparent_bg = false
+	viewport.own_world_3d = true
+	viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	container.add_child(viewport)
+
+	var environment := WorldEnvironment.new()
+	var environment_resource := Environment.new()
+	environment_resource.background_mode = Environment.BG_COLOR
+	environment_resource.background_color = Color("171e28")
+	environment_resource.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+	environment_resource.ambient_light_color = Color(0.72, 0.78, 0.88)
+	environment_resource.ambient_light_energy = 1.25
+	environment.environment = environment_resource
+	viewport.add_child(environment)
+
+	var light := DirectionalLight3D.new()
+	light.rotation_degrees = Vector3(-38.0, -28.0, 0.0)
+	light.light_energy = 1.4
+	viewport.add_child(light)
+
+	hurtbox_preview_camera = Camera3D.new()
+	hurtbox_preview_camera.position = Vector3(0.0, 1.05, 3.6)
+	hurtbox_preview_camera.fov = 42.0
+	hurtbox_preview_camera.current = true
+	viewport.add_child(hurtbox_preview_camera)
+	hurtbox_preview_camera.look_at(Vector3(0.0, 1.02, 0.0), Vector3.UP)
+
+	hurtbox_preview_dummy = TargetDummyScript.new() as Node3D
+	hurtbox_preview_dummy.name = "ComposureTposeTarget"
+	viewport.add_child(hurtbox_preview_dummy)
+	call_deferred("_finish_hurtbox_preview")
+
+
+func _finish_hurtbox_preview() -> void:
+	if hurtbox_preview_dummy == null:
+		return
+	if hurtbox_preview_dummy.has_method("set_hurtbox_debug_visible"):
+		hurtbox_preview_dummy.call("set_hurtbox_debug_visible", true)
+	if hurtbox_preview_dummy.has_method("apply_hurtbox_tuning"):
+		hurtbox_preview_dummy.call("apply_hurtbox_tuning", shared_hurtbox_scales)
+	if hurtbox_preview_dummy.has_method("set_precision_core_debug"):
+		hurtbox_preview_dummy.call(
+			"set_precision_core_debug",
+			true,
+			composure.get_precision_core_scale()
+		)
+	var health_label := hurtbox_preview_dummy.get_node_or_null("HealthLabel")
+	if health_label is Label3D:
+		(health_label as Label3D).visible = false
 
 
 func _draw_timing_strip() -> void:
@@ -196,16 +235,23 @@ func _draw_timing_strip() -> void:
 func _build_controls() -> void:
 	var title := Label.new()
 	title.position = Vector2(24, 18)
-	title.text = "SOCOM-141 COMPOSURE & RETICLE PROTOTYPE"
+	title.text = "SOCOM-141 AUTHORITATIVE COMPOSURE & HURTBOX LAB"
 	title.add_theme_font_size_override("font_size", 24)
 	title.add_theme_color_override("font_color", Color("77f29a"))
 	add_child(title)
 
+	var scroll := ScrollContainer.new()
+	scroll.position = Vector2(24, 82)
+	scroll.anchor_bottom = 1.0
+	scroll.offset_right = 306.0
+	scroll.offset_bottom = -34.0
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	add_child(scroll)
 	var panel := VBoxContainer.new()
-	panel.position = Vector2(24, 82)
-	panel.size = Vector2(282, 600)
+	panel.custom_minimum_size.x = 270.0
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	panel.add_theme_constant_override("separation", 10)
-	add_child(panel)
+	scroll.add_child(panel)
 
 	var weapon_label := Label.new()
 	weapon_label.text = "WEAPON PROFILE"
@@ -218,6 +264,15 @@ func _build_controls() -> void:
 
 	_add_slider(panel, "MOVEMENT", 0.0, 1.0, 0.0, func(value: float): movement_amount = value)
 	_add_slider(panel, "TURNING", 0.0, 1.0, 0.0, func(value: float): turning_amount = value)
+	_add_slider(panel, "STRESS PER SHOT", 0.0, 0.30, composure.shot_stress, func(value: float): composure.shot_stress = value)
+	_add_slider(panel, "RECOVERY RATE", 0.20, 4.0, composure.recovery_speed, func(value: float): composure.recovery_speed = value)
+	_add_slider(panel, "MINIMUM PRECISION CORE", 0.30, 1.0, composure.minimum_core_scale, func(value: float): composure.minimum_core_scale = value)
+	_add_slider(panel, "GRAZE DAMAGE", 0.0, 1.0, 0.38, func(value: float): active_weapon["graze_scale"] = value)
+	_add_slider(panel, "OUTER HITBOX SCALE", 0.45, 1.25, float(shared_hurtbox_scales["global"]), func(value: float): _set_shared_hurtbox_scale("global", value))
+	_add_slider(panel, "HEAD HITBOX", 0.45, 1.25, float(shared_hurtbox_scales["head"]), func(value: float): _set_shared_hurtbox_scale("head", value))
+	_add_slider(panel, "TORSO HITBOX", 0.45, 1.25, float(shared_hurtbox_scales["torso"]), func(value: float): _set_shared_hurtbox_scale("torso", value))
+	_add_slider(panel, "ARM HITBOXES", 0.45, 1.25, float(shared_hurtbox_scales["arms"]), func(value: float): _set_shared_hurtbox_scale("arms", value))
+	_add_slider(panel, "LEG HITBOXES", 0.45, 1.25, float(shared_hurtbox_scales["legs"]), func(value: float): _set_shared_hurtbox_scale("legs", value))
 
 	var stance_label := Label.new()
 	stance_label.text = "STANCE"
@@ -246,9 +301,17 @@ func _build_controls() -> void:
 	panel.add_child(reset_button)
 
 	var save_button := Button.new()
-	save_button.text = "SAVE COMPOSURE TO EQUIPPED RIG"
+	save_button.text = "SAVE COMPOSURE TO EQUIPPED WEAPON"
 	save_button.pressed.connect(_save_to_equipped_rig)
 	panel.add_child(save_button)
+
+	var save_hurtboxes_button := Button.new()
+	save_hurtboxes_button.text = "SAVE SHARED HURTBOXES"
+	save_hurtboxes_button.tooltip_text = (
+		"Writes the one anatomical profile loaded by the playground and future network operators."
+	)
+	save_hurtboxes_button.pressed.connect(_save_shared_hurtboxes)
+	panel.add_child(save_hurtboxes_button)
 
 	var play_button := Button.new()
 	play_button.text = "SAVE + PLAY CANONICAL PLAYGROUND"
@@ -304,10 +367,17 @@ func _select_weapon(index: int) -> void:
 	fire_interval = 60.0 / float(profile.get("rpm", 650.0))
 
 
+func _set_shared_hurtbox_scale(key: String, value: float) -> void:
+	shared_hurtbox_scales[key] = value
+	if hurtbox_preview_dummy != null and hurtbox_preview_dummy.has_method("apply_hurtbox_tuning"):
+		hurtbox_preview_dummy.call("apply_hurtbox_tuning", shared_hurtbox_scales)
+
+
 func _fire_once() -> void:
 	shots_fired += 1
 	burst_shot_count += 1
 	time_since_shot = 0.0
+	var shot_core_scale := composure.get_precision_core_scale()
 	var dispersion_multiplier := composure.get_shot_dispersion_multiplier(
 		burst_shot_count,
 		movement_amount,
@@ -318,7 +388,7 @@ func _fire_once() -> void:
 	# Reticle pop remains immediate on every shot. Only the slow accuracy stress
 	# receives the opening-pair benefit.
 	composure.notify_shot(1.0, stress_multiplier)
-	_record_authoritative_shot(dispersion_multiplier)
+	_record_authoritative_shot(dispersion_multiplier, shot_core_scale)
 
 
 func _reset_lab() -> void:
@@ -367,7 +437,20 @@ func _save_to_equipped_rig() -> bool:
 	return true
 
 
+func _save_shared_hurtboxes() -> bool:
+	if not HurtboxProfile.save_scales(shared_hurtbox_scales):
+		save_notice.text = "Could not save the canonical anatomical hurtbox profile."
+		return false
+	save_notice.text = (
+		"Shared hurtboxes saved. New playground targets and network operators "
+		+ "will load these exact outer dimensions."
+	)
+	return true
+
+
 func _save_and_play() -> void:
+	if not _save_shared_hurtboxes():
+		return
 	if not _save_to_equipped_rig():
 		return
 	call_deferred("_open_canonical_playground")
@@ -379,7 +462,10 @@ func _open_canonical_playground() -> void:
 		save_notice.text = "Could not open main.tscn (%s)." % error_string(error)
 
 
-func _record_authoritative_shot(dispersion_multiplier: float) -> void:
+func _record_authoritative_shot(
+	dispersion_multiplier: float,
+	shot_core_scale: float
+) -> void:
 	# The lab uses the authoritative stress, never the breathing/display spring,
 	# for deterministic dispersion and damage classification.
 	var random := RandomNumberGenerator.new()
@@ -396,7 +482,7 @@ func _record_authoritative_shot(dispersion_multiplier: float) -> void:
 		* dispersion_multiplier
 	)
 	var anatomical_score := _body_distance_score(position, target_center)
-	var core_scale := composure.get_precision_core_scale()
+	var core_scale := shot_core_scale
 	var result := "MISS"
 	var damage := 0.0
 	if anatomical_score <= core_scale:
