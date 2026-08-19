@@ -17,6 +17,8 @@ func _init() -> void:
 	if core_floor < 0.699 or core_floor > 0.701:
 		failures.append("full-stress precision core escaped its 70%% floor")
 	model.notify_shot()
+	if absf(model.get_shot_bounce_impulse() - model.shot_bounce_strength) >= 0.001:
+		failures.append("accepted shot did not expose its configured reticle-kick impulse")
 	for frame in 12:
 		model.advance(1.0 / 60.0, 0.0, 0.0)
 	if model.get_shot_bounce() > 0.001:

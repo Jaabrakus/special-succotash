@@ -626,9 +626,10 @@ func _on_authoritative_shot(result: Dictionary) -> void:
                 get_tree(), ejection.global_position, eject_direction
             )
     if dynamic_reticle:
+        var composure_kick := float(result.get("reticle_bounce", 1.0))
         dynamic_reticle.notify_shot(
             int(result.get("continuous_count", 1)),
-            1.0 + float(result.get("spread_deg", 0.0)) * 0.12
+            composure_kick * (1.0 + float(result.get("spread_deg", 0.0)) * 0.12)
         )
     if TracerSystemScript.is_trajectory_debug_enabled():
         TracerSystemScript.spawn_trajectory_reference(

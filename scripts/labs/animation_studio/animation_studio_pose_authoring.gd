@@ -168,6 +168,8 @@ func _select_pose_bone(bone_name: String) -> void:
     _capture_bone_edit_base(bone_name)
     _sync_pose_sliders_from_selection()
     _update_skeleton_chain_visual()
+    if status_label:
+        status_label.text = "Selected %s. XYZ arrows move its fixed-length chain: X out/in, Y up/down, Z forward/back. Rings rotate within human limits." % bone_name.replace("mixamorig_", "")
 
 func _sync_pose_sliders_from_selection() -> void:
     if pose_selected_bone_label:
@@ -226,11 +228,17 @@ func _set_pose_slider_value(key: String, value: float) -> void:
         bone_pos_offsets[selected_pose_bone] = position
     else:
         var rotation: Vector3 = bone_rot_offsets.get(selected_pose_bone, Vector3.ZERO)
+        var previous_rotation := rotation
         match key:
             "rot_x": rotation.x = value
             "rot_y": rotation.y = value
             "rot_z": rotation.z = value
-        bone_rot_offsets[selected_pose_bone] = _clamp_human_rotation(selected_pose_bone, rotation)
+        var safe_rotation := _clamp_human_rotation(selected_pose_bone, rotation)
+        bone_rot_offsets[selected_pose_bone] = safe_rotation
+        _apply_rotation_continuation(
+            selected_pose_bone,
+            safe_rotation - previous_rotation
+        )
     if pose_slider_controls.has(key):
         var value_label: Label = pose_slider_controls[key]["label"]
         value_label.text = _pose_slider_value_text(key, value)

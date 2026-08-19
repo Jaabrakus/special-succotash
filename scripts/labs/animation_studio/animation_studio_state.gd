@@ -30,6 +30,9 @@ const RETARGET_SERVICE_SCRIPT := preload("res://scripts/labs/animation_retarget_
 const SEQUENCE_SERVICE_SCRIPT := preload("res://scripts/labs/animation_sequence_service.gd")
 const EDITOR_UI_SCALE := 0.84
 const ROOT_SANITIZER := preload("res://scripts/player/operator_animation_root_sanitizer.gd")
+const PROCEDURAL_POSE_PROFILE := preload(
+    "res://scripts/player/operator_procedural_pose_profile.gd"
+)
 const EDITOR_FPS := 30.0
 
 enum SkinType {

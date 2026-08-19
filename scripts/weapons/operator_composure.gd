@@ -176,3 +176,7 @@ func get_shot_bounce() -> float:
 	else:
 		pulse = 0.88 * (1.0 - smoothstep(0.38, 1.0, phase))
 	return pulse * shot_bounce_strength
+
+
+func get_shot_bounce_impulse() -> float:
+	return shot_bounce_strength

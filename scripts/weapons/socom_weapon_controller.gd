@@ -173,7 +173,7 @@ func request_fire() -> Dictionary:
 	composure.notify_shot(1.0, opening_stress_multiplier)
 	result["composure"] = composure.get_composure()
 	result["precision_core_scale"] = shot_precision_core_scale
-	result["reticle_bounce"] = composure.get_shot_bounce()
+	result["reticle_bounce"] = composure.get_shot_bounce_impulse()
 	var rendered_barrel_direction := (
 		Vector3(mannequin.get_active_barrel_direction())
 		if mannequin.has_method("get_active_barrel_direction")

@@ -277,6 +277,12 @@ func _set_pose_edit_mode(next_mode: StringName) -> void:
 
 func _human_rotation_limits(bone_name: String) -> Vector3:
     var lower := bone_name.to_lower()
+    var shared_joint := _shared_upper_body_joint_name(lower)
+    if shared_joint != &"":
+        return PROCEDURAL_POSE_PROFILE.JOINT_AXIS_LIMITS.get(
+            shared_joint,
+            Vector3(20.0, 20.0, 20.0)
+        )
     if "forearm" in lower or "armlower" in lower:
         return Vector3(145.0, 32.0, 40.0)
     if "arm" in lower or "shoulder" in lower:
@@ -296,6 +302,25 @@ func _human_rotation_limits(bone_name: String) -> Vector3:
     if "hips" in lower:
         return Vector3(35.0, 55.0, 35.0)
     return Vector3(75.0, 75.0, 75.0)
+
+func _shared_upper_body_joint_name(lower_bone_name: String) -> StringName:
+    if "forearm" in lower_bone_name or "armlower" in lower_bone_name:
+        return &"left_forearm" if "left" in lower_bone_name or ".l" in lower_bone_name else &"right_forearm"
+    if "shoulder" in lower_bone_name:
+        return &"left_shoulder" if "left" in lower_bone_name or ".l" in lower_bone_name else &"right_shoulder"
+    if "arm" in lower_bone_name and not "hand" in lower_bone_name:
+        return &"left_upper_arm" if "left" in lower_bone_name or ".l" in lower_bone_name else &"right_upper_arm"
+    if "head" in lower_bone_name:
+        return &"head"
+    if "neck" in lower_bone_name:
+        return &"neck"
+    if "spine2" in lower_bone_name or "spineupper" in lower_bone_name:
+        return &"spine2"
+    if "spine1" in lower_bone_name:
+        return &"spine1"
+    if "spine" in lower_bone_name and not "spinelower" in lower_bone_name:
+        return &"spine"
+    return &""
 
 func _clamp_human_rotation(bone_name: String, rotation_degrees: Vector3) -> Vector3:
     var limits := _human_rotation_limits(bone_name)
@@ -332,6 +357,8 @@ func _anatomical_drag_chain(bone_name: String) -> Array[String]:
         var parent_index := skeleton.get_bone_parent(driver_index)
         if parent_index >= 0 and ("hand" in lower or "foot" in lower):
             result.append(skeleton.get_bone_name(parent_index))
+    if result.is_empty() and not ("hips" in lower or "root" in lower):
+        result.append(bone_name)
     return result
 
 func _begin_anatomical_drag(bone_name: String) -> void:
@@ -372,7 +399,44 @@ func _drag_selected_rotation_axis(axis: StringName, mouse_delta_from_start: Vect
         requested.y += amount
     else:
         requested.z += amount
-    bone_rot_offsets[active_dragged_bone] = _clamp_human_rotation(active_dragged_bone, requested)
+    var previous: Vector3 = drag_start_rotations.get(active_dragged_bone, Vector3.ZERO)
+    var safe := _clamp_human_rotation(active_dragged_bone, requested)
+    bone_rot_offsets[active_dragged_bone] = safe
+    _apply_rotation_continuation(active_dragged_bone, safe - previous, true)
+
+func _apply_rotation_continuation(
+    bone_name: String,
+    delta_degrees: Vector3,
+    from_drag_start: bool = false
+) -> void:
+    if skeleton == null:
+        return
+    var lower := bone_name.to_lower()
+    var parent_index := skeleton.get_bone_parent(skeleton.find_bone(bone_name))
+    if parent_index < 0:
+        return
+    var parent_name := String(skeleton.get_bone_name(parent_index))
+    var influence := 0.0
+    if "head" in lower:
+        influence = 0.35
+    elif "neck" in lower:
+        influence = 0.18
+    elif ("arm" in lower and not "forearm" in lower and not "armlower" in lower):
+        influence = 0.20
+    elif "spine2" in lower or "spineupper" in lower:
+        influence = 0.35
+    if influence <= 0.0:
+        return
+    _capture_bone_edit_base(parent_name)
+    var parent_rotation: Vector3 = (
+        drag_start_rotations.get(parent_name, bone_rot_offsets.get(parent_name, Vector3.ZERO))
+        if from_drag_start
+        else bone_rot_offsets.get(parent_name, Vector3.ZERO)
+    )
+    bone_rot_offsets[parent_name] = _clamp_human_rotation(
+        parent_name,
+        parent_rotation + delta_degrees * influence
+    )
 
 func _drag_selected_translation_axis(axis: StringName, mouse_delta_from_start: Vector2) -> void:
     if active_dragged_bone.is_empty():

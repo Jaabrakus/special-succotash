@@ -20,11 +20,16 @@ func _run() -> void:
 
 	var lab = LAB_SCRIPT.new()
 	var skeleton := Skeleton3D.new()
-	for bone_name in ["mixamorig_Hips", "mixamorig_RightArm", "mixamorig_RightForeArm", "mixamorig_RightHand"]:
+	for bone_name in [
+		"mixamorig_Hips", "mixamorig_RightArm", "mixamorig_RightForeArm", "mixamorig_RightHand",
+		"mixamorig_Neck", "mixamorig_Head",
+	]:
 		skeleton.add_bone(bone_name)
 	skeleton.set_bone_parent(1, 0)
 	skeleton.set_bone_parent(2, 1)
 	skeleton.set_bone_parent(3, 2)
+	skeleton.set_bone_parent(4, 0)
+	skeleton.set_bone_parent(5, 4)
 	lab.skeleton = skeleton
 	lab.active_dragged_bone = "mixamorig_RightHand"
 	lab.call("_begin_anatomical_drag", lab.active_dragged_bone)
@@ -41,6 +46,17 @@ func _run() -> void:
 		and absf(driven_rotation.y) <= limits.y
 		and absf(driven_rotation.z) <= limits.z,
 		"anatomical arrow motion remains inside human joint limits"
+	)
+	_expect(
+		limits.is_equal_approx(Vector3(48.0, 14.0, 24.0)),
+		"Animation Studio uses the shared Gunsmith forearm limits"
+	)
+	lab.active_dragged_bone = "mixamorig_Head"
+	lab.call("_begin_anatomical_drag", lab.active_dragged_bone)
+	lab.call("_drag_selected_rotation_axis", &"y", Vector2(0.0, -20.0))
+	_expect(
+		not (lab.bone_rot_offsets.get("mixamorig_Neck", Vector3.ZERO) as Vector3).is_zero_approx(),
+		"head ring motion continues into the neck without stretching it"
 	)
 
 	var config_path: String = WEAPON_PREVIEW.resolve_config_path("ak-47")
