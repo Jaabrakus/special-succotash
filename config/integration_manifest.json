@@ -89,6 +89,28 @@
         "res://scripts/weapons/operator_composure.gd",
         "res://scripts/combat/socom_animated_hurtbox_rig.gd"
       ]
+    },
+    {
+      "id": "sound_engine",
+      "label": "3D Sound + Foley Lab",
+      "scene": "res://sound_engine_lab.tscn",
+      "controller": "res://scripts/labs/sound_engine_lab.gd",
+      "shared_contracts": [
+        "res://scripts/audio/tactical_foley_engine.gd",
+        "res://scripts/audio/audio_animation_event_manager.gd",
+        "res://config/audio_animation_events.json"
+      ]
+    },
+    {
+      "id": "tactical_grenades",
+      "label": "Tactical Grenade Lab",
+      "scene": "res://tactical_grenade_lab.tscn",
+      "controller": "res://scripts/labs/tactical_grenade_lab.gd",
+      "shared_contracts": [
+        "res://scripts/tactical/tactical_occlusion_manager.gd",
+        "res://scripts/tactical/tactical_grenade_base.gd",
+        "res://scripts/tactical/tactical_screen_effects.gd"
+      ]
     }
   ],
   "authority_contracts": [
@@ -135,6 +157,8 @@
       "res://tools/operator_composure_regression.gd",
       "res://tools/prone_grounding_regression.gd",
       "res://tools/multiplayer_slice_regression.gd"
+      ,"res://tools/test_tactical_grenades.gd"
+      ,"res://tools/test_sound_engine_lab.gd"
     ],
     "full": [
       "res://tools/operator_locomotion_quality_regression.gd",

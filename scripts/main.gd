@@ -13,6 +13,11 @@ const DynamicReticleScript := preload("res://scripts/ui/socom_dynamic_reticle.gd
 const TracerSystemScript := preload("res://scripts/weapons/lab_leak_tracer_system.gd")
 const TargetDummyScript := preload("res://scripts/combat/lab_leak_target_dummy.gd")
 const AudioEngineScript := preload("res://scripts/audio/lab_leak_audio_engine.gd")
+const TacticalScreenEffectsScript := preload("res://scripts/tactical/tactical_screen_effects.gd")
+const TacticalGrenadeThrowerScript := preload("res://scripts/tactical/tactical_grenade_thrower.gd")
+const TacticalSmokeGrenadeScript := preload("res://scripts/tactical/smoke_grenade.gd")
+const TacticalFlashbangScript := preload("res://scripts/tactical/flashbang_grenade.gd")
+const TacticalFragGrenadeScript := preload("res://scripts/tactical/frag_grenade.gd")
 const RETICLE_BOX_SIZE := Vector2(32.0, 32.0)
 const OPERATOR_TUNING_PATH := "res://config/operator_movement_tuning.json"
 
@@ -51,6 +56,9 @@ var pose_tuner_panel: SocomOperatorPoseTuner
 var operator_tuning: Dictionary = {}
 var target_dummies: Array[Node] = []
 var target_range_active: bool = true
+var tactical_screen_effects: TacticalScreenEffects
+var tactical_grenade_thrower: TacticalGrenadeThrower
+var selected_grenade_type: int = 0
 
 const REFERENCE_FRAME_PATH := "res://reference/reference_frame.png"
 const ENVIRONMENT_SHADER := """
@@ -111,6 +119,7 @@ func _ready() -> void:
     elif OS.get_cmdline_user_args().has("--movement-test"):
         player.global_position = Vector3(-3.0, 0.05, -10.0)
     _build_camera()
+    _build_tactical_runtime()
     _build_weapon_controller()
     _build_camera_tools()
     _build_ui()
@@ -163,6 +172,8 @@ func _ensure_input_map() -> void:
     _add_key_action("toggle_trajectory_debug", KEY_F6)
     _add_key_action("crouch", KEY_C)
     _add_mouse_action("fire", MOUSE_BUTTON_LEFT)
+    _add_key_action("throw_grenade", KEY_G)
+    _add_key_action("cycle_grenade", KEY_5)
 
 func _ensure_action(action: StringName) -> void:
     if not InputMap.has_action(action):
@@ -202,6 +213,10 @@ func _add_key_action(action: StringName, keycode: Key) -> void:
     InputMap.action_add_event(action, event)
 
 func _process(_delta: float) -> void:
+    if Input.is_action_just_pressed("cycle_grenade"):
+        selected_grenade_type = (selected_grenade_type + 1) % 3
+    if Input.is_action_just_pressed("throw_grenade"):
+        _throw_selected_grenade(Input.is_key_pressed(KEY_SHIFT))
     _update_camera_tool_input()
     _update_spectator_camera()
     if Input.is_action_just_pressed("toggle_anim_studio"):
@@ -596,6 +611,40 @@ func _build_camera() -> void:
         camera_rig.pitch = deg_to_rad(9.0)
     else:
         camera_rig.yaw = player.global_rotation.y
+
+func _build_tactical_runtime() -> void:
+    tactical_screen_effects = TacticalScreenEffectsScript.new()
+    tactical_screen_effects.name = "TacticalScreenEffects"
+    add_child(tactical_screen_effects)
+    tactical_screen_effects.bind_camera(camera_rig.camera)
+    tactical_grenade_thrower = TacticalGrenadeThrowerScript.new()
+    tactical_grenade_thrower.name = "TacticalGrenadeThrower"
+    add_child(tactical_grenade_thrower)
+
+func _throw_selected_grenade(underhand: bool) -> void:
+    if tactical_grenade_thrower == null or camera_rig == null:
+        return
+    # In network sessions the server must replace this local spawn with its
+    # validated grenade-spawn RPC. Offline training owns the simulation here.
+    if multiplayer.has_multiplayer_peer() and not multiplayer.is_server():
+        return
+    var grenade: TacticalGrenadeBase
+    if selected_grenade_type == 1:
+        grenade = TacticalFlashbangScript.new()
+    elif selected_grenade_type == 2:
+        grenade = TacticalFragGrenadeScript.new()
+    else:
+        grenade = TacticalSmokeGrenadeScript.new()
+    add_child(grenade)
+    var origin: Vector3 = player.global_position + Vector3.UP * 1.35
+    var forward: Vector3 = -camera_rig.camera.global_basis.z
+    grenade.global_position = origin + forward * 0.45
+    var mode := (
+        TacticalGrenadeThrowerScript.ThrowMode.UNDERHAND
+        if underhand
+        else TacticalGrenadeThrowerScript.ThrowMode.OVERHAND
+    )
+    grenade.launch(tactical_grenade_thrower.calculate_launch_velocity(forward, Vector3.UP, mode))
 
 
 func _build_weapon_controller() -> void:

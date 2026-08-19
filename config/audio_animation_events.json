@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "animations": {
+    "run_forward": [
+      {"time": 0.08, "cue": "foot_concrete", "bone": "mixamorig_LeftFoot", "volume_db": -2.0, "pitch_min": 0.96, "pitch_max": 1.04},
+      {"time": 0.42, "cue": "foot_concrete", "bone": "mixamorig_RightFoot", "volume_db": -2.0, "pitch_min": 0.96, "pitch_max": 1.04},
+      {"time": 0.20, "cue": "gear_rustle", "bone": "mixamorig_Spine", "volume_db": -8.0, "pitch_min": 0.94, "pitch_max": 1.06}
+    ],
+    "reload": [
+      {"time": 0.34, "cue": "mag_eject", "bone": "mixamorig_RightHand", "volume_db": -1.0, "pitch_min": 0.98, "pitch_max": 1.02},
+      {"time": 1.08, "cue": "mag_insert", "bone": "mixamorig_LeftHand", "volume_db": 0.0, "pitch_min": 0.98, "pitch_max": 1.02},
+      {"time": 1.42, "cue": "bolt_rack", "bone": "mixamorig_RightHand", "volume_db": -1.0, "pitch_min": 0.98, "pitch_max": 1.02}
+    ],
+    "toss_grenade": [
+      {"time": 0.20, "cue": "pin_pull", "bone": "mixamorig_LeftHand", "volume_db": 0.0, "pitch_min": 0.98, "pitch_max": 1.02},
+      {"time": 0.48, "cue": "spoon_snap", "bone": "mixamorig_RightHand", "volume_db": 0.0, "pitch_min": 0.98, "pitch_max": 1.02}
+    ]
+  }
+}

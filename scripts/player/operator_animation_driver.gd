@@ -12,6 +12,7 @@ const TransitionStateMachine := preload("res://scripts/player/operator_transitio
 const PostureLayer := preload("res://scripts/player/operator_posture_layer.gd")
 const IKContract := preload("res://scripts/player/operator_ik_contract.gd")
 const WeaponPoseSolver := preload("res://scripts/player/operator_weapon_pose_solver.gd")
+const AnimationAudioEvents := preload("res://scripts/audio/audio_animation_event_manager.gd")
 
 @export_group("Runtime route")
 @export var use_modern_locomotion: bool = true
@@ -46,6 +47,7 @@ var transition_state_machine
 var posture_layer
 var ik_contract
 var weapon_pose_solver
+var audio_event_manager: AudioAnimationEventManager
 
 # Public runtime references retained for labs, debug views and regressions.
 var model_root: Node3D
@@ -143,6 +145,10 @@ func _ready() -> void:
 	add_child(weapon_pose_solver)
 	weapon_pose_solver.bind(skeleton, weapon_node)
 	weapon_pose_solver.configure_joint_poles(equipped_weapon_config.get("elbow_poles", {}))
+	audio_event_manager = AnimationAudioEvents.new()
+	audio_event_manager.name = "AudioAnimationEvents"
+	add_child(audio_event_manager)
+	audio_event_manager.bind(animation_player, skeleton)
 	_request_clip(&"idle_rifle")
 
 

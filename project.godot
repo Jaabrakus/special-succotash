@@ -17,6 +17,7 @@ config/features=PackedStringArray("4.7")
 [autoload]
 
 StudioNavigation="*res://scripts/ui/studio_navigation.gd"
+TacticalOcclusionManager="*res://scripts/tactical/tactical_occlusion_manager.gd"
 
 [display]
 
