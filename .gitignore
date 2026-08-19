@@ -1,2 +1,4 @@
 .godot/
 .DS_Store
+tmp/
+tools/apple_mocap/apple_mocap_extract

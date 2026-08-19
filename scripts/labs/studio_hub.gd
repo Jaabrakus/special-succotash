@@ -30,6 +30,8 @@ func _unhandled_key_input(event: InputEvent) -> void:
 			_open_lab(&"sound_engine")
 		KEY_6:
 			_open_lab(&"tactical_grenades")
+		KEY_7:
+			_open_lab(&"apple_mocap")
 		KEY_ESCAPE:
 			get_tree().quit()
 
@@ -80,6 +82,7 @@ func _build_interface() -> void:
 	_add_lab_button(column, "4  Multiplayer Vertical Slice", &"multiplayer_slice", Color("78d6a6"))
 	_add_lab_button(column, "5  3D Sound + Foley Lab", &"sound_engine", Color("72d9ef"))
 	_add_lab_button(column, "6  Tactical Grenade Lab", &"tactical_grenades", Color("d7e879"))
+	_add_lab_button(column, "7  Apple Video Mocap Intake", &"apple_mocap", Color("86e4b4"))
 
 	column.add_child(HSeparator.new())
 	status_label = Label.new()

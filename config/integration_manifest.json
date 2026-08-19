@@ -111,6 +111,15 @@
         "res://scripts/tactical/tactical_grenade_base.gd",
         "res://scripts/tactical/tactical_screen_effects.gd"
       ]
+    },
+    {
+      "id": "apple_mocap",
+      "label": "Apple Video Mocap Intake",
+      "scene": "res://apple_mocap_intake_lab.tscn",
+      "controller": "res://scripts/labs/apple_mocap_intake_lab.gd",
+      "shared_contracts": [
+        "res://tools/apple_mocap/AppleMocapExtractor.swift"
+      ]
     }
   ],
   "authority_contracts": [
