@@ -169,7 +169,18 @@ func _select_pose_bone(bone_name: String) -> void:
     _sync_pose_sliders_from_selection()
     _update_skeleton_chain_visual()
     if status_label:
-        status_label.text = "Selected %s. XYZ arrows move its fixed-length chain: X out/in, Y up/down, Z forward/back. Rings rotate within human limits." % bone_name.replace("mixamorig_", "")
+        status_label.text = "Selected %s. XYZ edits this joint only. Turn Follow Chain on when nearby joints must help." % bone_name.replace("mixamorig_", "")
+
+func _toggle_pose_follow_chain() -> void:
+    pose_follow_chain = not pose_follow_chain
+    if pose_follow_chain_button:
+        pose_follow_chain_button.text = "Follow Chain: %s" % ("ON" if pose_follow_chain else "OFF")
+    if status_label:
+        status_label.text = (
+            "Follow Chain is ON. Parent joints can share the adjustment."
+            if pose_follow_chain
+            else "Follow Chain is OFF. Only the selected joint changes."
+        )
 
 func _sync_pose_sliders_from_selection() -> void:
     if pose_selected_bone_label:

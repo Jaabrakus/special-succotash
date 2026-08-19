@@ -38,8 +38,18 @@ func _run() -> void:
 		(lab.bone_pos_offsets.get("mixamorig_RightHand", Vector3.ZERO) as Vector3).is_zero_approx(),
 		"limb translation arrows preserve hand-to-arm bone length"
 	)
+	var selected_rotation: Vector3 = lab.bone_rot_offsets.get("mixamorig_RightHand", Vector3.ZERO)
+	_expect(not selected_rotation.is_zero_approx(), "default limb arrow edits only the selected joint")
+	_expect(
+		(lab.bone_rot_offsets.get("mixamorig_RightForeArm", Vector3.ZERO) as Vector3).is_zero_approx(),
+		"default limb edit does not disturb its parent"
+	)
+	lab.bone_rot_offsets.clear()
+	lab.pose_follow_chain = true
+	lab.call("_begin_anatomical_drag", lab.active_dragged_bone)
+	lab.call("_drag_selected_translation_axis", &"x", Vector2(90.0, 0.0))
 	var driven_rotation: Vector3 = lab.bone_rot_offsets.get("mixamorig_RightForeArm", Vector3.ZERO)
-	_expect(not driven_rotation.is_zero_approx(), "limb arrow drives its anatomical parent chain")
+	_expect(not driven_rotation.is_zero_approx(), "Follow Chain drives the anatomical parent")
 	var limits: Vector3 = lab.call("_human_rotation_limits", "mixamorig_RightForeArm")
 	_expect(
 		absf(driven_rotation.x) <= limits.x
@@ -51,12 +61,22 @@ func _run() -> void:
 		limits.is_equal_approx(Vector3(48.0, 14.0, 24.0)),
 		"Animation Studio uses the shared Gunsmith forearm limits"
 	)
+	lab.bone_rot_offsets.clear()
+	lab.pose_follow_chain = false
 	lab.active_dragged_bone = "mixamorig_Head"
 	lab.call("_begin_anatomical_drag", lab.active_dragged_bone)
 	lab.call("_drag_selected_rotation_axis", &"y", Vector2(0.0, -20.0))
 	_expect(
+		(lab.bone_rot_offsets.get("mixamorig_Neck", Vector3.ZERO) as Vector3).is_zero_approx(),
+		"default head rotation leaves the neck unchanged"
+	)
+	lab.bone_rot_offsets.clear()
+	lab.pose_follow_chain = true
+	lab.call("_begin_anatomical_drag", lab.active_dragged_bone)
+	lab.call("_drag_selected_rotation_axis", &"y", Vector2(0.0, -20.0))
+	_expect(
 		not (lab.bone_rot_offsets.get("mixamorig_Neck", Vector3.ZERO) as Vector3).is_zero_approx(),
-		"head ring motion continues into the neck without stretching it"
+		"Follow Chain continues head motion into the neck"
 	)
 
 	var config_path: String = WEAPON_PREVIEW.resolve_config_path("ak-47")

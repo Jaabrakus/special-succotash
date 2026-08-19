@@ -338,6 +338,9 @@ func _anatomical_drag_chain(bone_name: String) -> Array[String]:
     if selected_index < 0:
         return result
     var lower := bone_name.to_lower()
+    if not pose_follow_chain and not ("hips" in lower or "root" in lower):
+        result.append(bone_name)
+        return result
     var driver_index := selected_index
     # End effectors move through their upstream joints. This preserves the
     # authored bone lengths instead of stretching a hand or foot away from its
@@ -409,7 +412,7 @@ func _apply_rotation_continuation(
     delta_degrees: Vector3,
     from_drag_start: bool = false
 ) -> void:
-    if skeleton == null:
+    if skeleton == null or not pose_follow_chain:
         return
     var lower := bone_name.to_lower()
     var parent_index := skeleton.get_bone_parent(skeleton.find_bone(bone_name))

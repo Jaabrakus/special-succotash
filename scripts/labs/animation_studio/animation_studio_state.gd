@@ -206,6 +206,8 @@ var pose_keyframe_label: Label
 var pose_name_input: LineEdit
 var pose_smooth_interpolation: bool = true
 var pose_interpolation_button: Button
+var pose_follow_chain: bool = false
+var pose_follow_chain_button: Button
 var pose_contact_summary_label: Label
 var pose_contacts: Dictionary = {}
 var pose_contact_wall_visual: MeshInstance3D

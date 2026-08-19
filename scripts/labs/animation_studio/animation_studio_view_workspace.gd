@@ -154,10 +154,15 @@ func _build_ui_workspace(
     pose_title.add_theme_color_override("font_color", Color(0.35, 1.0, 0.62))
     pose_page.add_child(pose_title)
     var pose_help := Label.new()
-    pose_help.text = "Click a skeleton joint, then drag its red/green/blue XYZ arrows or colored rotation rings. Limb arrows solve through the shoulder/elbow or hip/knee chain, so bones never stretch. Sliders below are optional fine tuning."
+    pose_help.text = "Click one skeleton joint, then use its XYZ arrows or rotation rings. Only that joint changes by default. Turn Follow Chain on when nearby joints must help. Human limits prevent stretching."
     pose_help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
     pose_help.add_theme_color_override("font_color", Color(0.72, 0.93, 1.0))
     pose_page.add_child(pose_help)
+
+    pose_follow_chain_button = _touch_button("Follow Chain: OFF")
+    pose_follow_chain_button.tooltip_text = "OFF edits one joint. ON shares part of the change with its anatomical parent."
+    pose_follow_chain_button.pressed.connect(_toggle_pose_follow_chain)
+    pose_page.add_child(pose_follow_chain_button)
 
     pose_selected_bone_label = Label.new()
     pose_selected_bone_label.text = "SELECTED JOINT: click a cyan skeleton node"
