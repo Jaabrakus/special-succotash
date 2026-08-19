@@ -13,6 +13,22 @@ const SUPPORTED_BONES := [
 	&"left_forearm", &"right_forearm",
 ]
 
+# Local additive limits in degrees: pitch, yaw, roll. These controls rotate
+# joints only. They never translate a bone or change its length.
+const JOINT_AXIS_LIMITS: Dictionary = {
+	&"spine": Vector3(10.0, 12.0, 8.0),
+	&"spine1": Vector3(14.0, 16.0, 10.0),
+	&"spine2": Vector3(18.0, 20.0, 12.0),
+	&"neck": Vector3(18.0, 28.0, 14.0),
+	&"head": Vector3(24.0, 38.0, 18.0),
+	&"left_shoulder": Vector3(12.0, 14.0, 10.0),
+	&"right_shoulder": Vector3(12.0, 14.0, 10.0),
+	&"left_upper_arm": Vector3(34.0, 38.0, 32.0),
+	&"right_upper_arm": Vector3(34.0, 38.0, 32.0),
+	&"left_forearm": Vector3(48.0, 14.0, 24.0),
+	&"right_forearm": Vector3(48.0, 14.0, 24.0),
+}
+
 var corrections: Dictionary = {}
 
 
@@ -81,19 +97,17 @@ func get_rotation_degrees(posture: StringName, bone: StringName) -> Vector3:
 func set_rotation_degrees(posture: StringName, bone: StringName, value: Vector3) -> void:
 	if posture not in SUPPORTED_POSTURES or bone not in SUPPORTED_BONES:
 		return
-	var anatomical_limit := 48.0 if bone in [&"neck", &"head"] else 30.0
-	if bone in [&"left_shoulder", &"right_shoulder"]:
-		anatomical_limit = 22.0
-	elif bone in [&"left_upper_arm", &"right_upper_arm"]:
-		anatomical_limit = 38.0
-	elif bone in [&"left_forearm", &"right_forearm"]:
-		anatomical_limit = 55.0
+	var anatomical_limit: Vector3 = get_axis_limits_degrees(bone)
 	var safe := Vector3(
-		clampf(value.x, -anatomical_limit, anatomical_limit),
-		clampf(value.y, -anatomical_limit, anatomical_limit),
-		clampf(value.z, -anatomical_limit, anatomical_limit)
+		clampf(value.x, -anatomical_limit.x, anatomical_limit.x),
+		clampf(value.y, -anatomical_limit.y, anatomical_limit.y),
+		clampf(value.z, -anatomical_limit.z, anatomical_limit.z)
 	)
 	(corrections[posture] as Dictionary)[bone] = safe
+
+
+func get_axis_limits_degrees(bone: StringName) -> Vector3:
+	return JOINT_AXIS_LIMITS.get(bone, Vector3(20.0, 20.0, 20.0))
 
 
 func _reset_structure() -> void:

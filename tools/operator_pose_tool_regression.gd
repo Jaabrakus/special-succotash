@@ -22,6 +22,16 @@ func _run() -> void:
         and &"right_forearm" in POSE_PROFILE.SUPPORTED_BONES,
         "pose tuner exposes the complete upper-body correction chain without translating bones"
     )
+    var constrained_profile = POSE_PROFILE.new()
+    constrained_profile.set_rotation_degrees(
+        &"STANDING", &"head", Vector3(90.0, 90.0, 90.0)
+    )
+    _expect(
+        constrained_profile.get_rotation_degrees(&"STANDING", &"head").is_equal_approx(
+            Vector3(24.0, 38.0, 18.0)
+        ),
+        "head correction uses human axis limits and cannot stretch or over-rotate"
+    )
     var lab = LAB_SCRIPT.new()
     var skeleton := Skeleton3D.new()
     skeleton.add_bone("TestBone")

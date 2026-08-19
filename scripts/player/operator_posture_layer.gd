@@ -97,6 +97,10 @@ func get_procedural_rotation_degrees(
 	return procedural_profile.get_rotation_degrees(posture_name, bone_name)
 
 
+func get_procedural_axis_limits_degrees(bone_name: StringName) -> Vector3:
+	return procedural_profile.get_axis_limits_degrees(bone_name)
+
+
 func save_procedural_profile() -> bool:
 	return procedural_profile.save_project_profile()
 

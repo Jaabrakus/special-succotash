@@ -185,6 +185,18 @@ func _run() -> void:
 		and not crouched_head_rotation.is_equal_approx(standing_head_rotation),
 		"head and limb corrections carry across animations but remain stance-specific"
 	)
+	var neck_before: Vector3 = posture_layer.call(
+		"get_procedural_rotation_degrees", &"STANDING", &"neck"
+	)
+	lab.call("_select_body_joint", &"head")
+	lab.call("_adjust_selected_joint_rotation", Vector3(4.0, 0.0, 0.0))
+	var neck_after: Vector3 = posture_layer.call(
+		"get_procedural_rotation_degrees", &"STANDING", &"neck"
+	)
+	_expect(
+		absf((neck_after - neck_before).x - 1.4) < 0.01,
+		"head editing distributes a bounded continuation into the neck"
+	)
 	lab.call("_set_preview_posture", &"STANDING")
 	lab.set("current_bloom", 1.0)
 	lab.set("fire_cooldown", 0.2)

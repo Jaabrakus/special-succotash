@@ -31,6 +31,17 @@ const TUNABLE_BODY_JOINTS := [
 	&"left_forearm", &"right_forearm",
 ]
 
+# A selected joint keeps full control. Small linked rotations continue through
+# its anatomical parent so a correction does not form a hard hinge.
+const JOINT_CHAIN_LINKS: Dictionary = {
+	&"head": {&"neck": 0.35},
+	&"neck": {&"spine2": 0.18},
+	&"spine2": {&"spine1": 0.35, &"spine": 0.15},
+	&"spine1": {&"spine": 0.25},
+	&"left_upper_arm": {&"left_shoulder": 0.20},
+	&"right_upper_arm": {&"right_shoulder": 0.20},
+}
+
 # Camera Rig
 var cam_pivot: Node3D
 var cam: Camera3D
@@ -1909,8 +1920,7 @@ func _select_body_joint(joint_name: StringName) -> void:
 func _adjust_selected_joint_rotation(delta_degrees: Vector3) -> void:
 	if runtime_posture_layer == null:
 		return
-	var rotation := runtime_posture_layer.get_procedural_rotation_degrees(preview_posture, selected_body_joint)
-	runtime_posture_layer.set_procedural_rotation_degrees(preview_posture, selected_body_joint, rotation + delta_degrees)
+	_apply_joint_chain_delta(selected_body_joint, delta_degrees)
 	_sync_body_joint_controls()
 
 
@@ -1919,10 +1929,33 @@ func _set_body_joint_component(value: float, axis: StringName) -> void:
 		return
 	var rotation := runtime_posture_layer.get_procedural_rotation_degrees(preview_posture, selected_body_joint)
 	match axis:
-		&"x": rotation.x = value
-		&"y": rotation.y = value
-		&"z": rotation.z = value
-	runtime_posture_layer.set_procedural_rotation_degrees(preview_posture, selected_body_joint, rotation)
+		&"x":
+			_apply_joint_chain_delta(selected_body_joint, Vector3(value - rotation.x, 0.0, 0.0))
+		&"y":
+			_apply_joint_chain_delta(selected_body_joint, Vector3(0.0, value - rotation.y, 0.0))
+		&"z":
+			_apply_joint_chain_delta(selected_body_joint, Vector3(0.0, 0.0, value - rotation.z))
+	_sync_body_joint_controls()
+
+
+func _apply_joint_chain_delta(joint_name: StringName, delta_degrees: Vector3) -> void:
+	var rotation := runtime_posture_layer.get_procedural_rotation_degrees(preview_posture, joint_name)
+	runtime_posture_layer.set_procedural_rotation_degrees(
+		preview_posture,
+		joint_name,
+		rotation + delta_degrees
+	)
+	var links: Dictionary = JOINT_CHAIN_LINKS.get(joint_name, {})
+	for linked_joint: StringName in links:
+		var linked_rotation := runtime_posture_layer.get_procedural_rotation_degrees(
+			preview_posture,
+			linked_joint
+		)
+		runtime_posture_layer.set_procedural_rotation_degrees(
+			preview_posture,
+			linked_joint,
+			linked_rotation + delta_degrees * float(links[linked_joint])
+		)
 
 
 func _sync_body_joint_controls() -> void:
@@ -1932,6 +1965,14 @@ func _sync_body_joint_controls() -> void:
 	_update_slider_value("body_joint_pitch", rotation.x)
 	_update_slider_value("body_joint_yaw", rotation.y)
 	_update_slider_value("body_joint_roll", rotation.z)
+	if hud_status:
+		var limits: Vector3 = runtime_posture_layer.get_procedural_axis_limits_degrees(selected_body_joint)
+		hud_status.text = "%s limits: pitch ±%.0f°, yaw ±%.0f°, roll ±%.0f°. Rotation only; bone length is locked." % [
+			String(selected_body_joint).replace("_", " ").capitalize(),
+			limits.x,
+			limits.y,
+			limits.z,
+		]
 
 
 func _bone_world_origin(bone_index: int) -> Vector3:
