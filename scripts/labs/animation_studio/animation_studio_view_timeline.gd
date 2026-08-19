@@ -354,6 +354,21 @@ func _build_ui_timeline(
     persistent_action_controls = HBoxContainer.new()
     bot_vbox.add_child(persistent_action_controls)
 
+    var studio_home_btn := Button.new()
+    studio_home_btn.text = "⌂ Studio Home"
+    studio_home_btn.custom_minimum_size = Vector2(150.0, 42.0)
+    studio_home_btn.tooltip_text = "Return to the Studio home screen and open another lab."
+    studio_home_btn.pressed.connect(func():
+        var navigation := get_node_or_null("/root/StudioNavigation")
+        if navigation != null:
+            if not bool(navigation.get("active")):
+                navigation.call("activate", false)
+            navigation.call("open_home")
+        else:
+            get_tree().change_scene_to_file("res://studio_hub.tscn")
+    )
+    persistent_action_controls.add_child(studio_home_btn)
+
     var play_latest_btn := Button.new()
     play_latest_btn.text = "▶ Save + Play Latest"
     play_latest_btn.custom_minimum_size = Vector2(250.0, 42.0)

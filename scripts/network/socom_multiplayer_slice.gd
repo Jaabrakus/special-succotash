@@ -35,10 +35,14 @@ var pending_snapshots: Dictionary = {}
 var logged_command_peers: Dictionary = {}
 var logged_first_snapshot: bool = false
 var spawn_points: Array[Vector3] = [
-	Vector3(-3.0, 0.05, 5.0),
-	Vector3(3.0, 0.05, -9.0),
-	Vector3(3.0, 0.05, 5.0),
-	Vector3(-3.0, 0.05, -9.0),
+	Vector3(-8.0, 0.05, 9.0), Vector3(-5.5, 0.05, 9.0),
+	Vector3(-3.0, 0.05, 9.0), Vector3(-0.5, 0.05, 9.0),
+	Vector3(2.0, 0.05, 9.0), Vector3(4.5, 0.05, 9.0),
+	Vector3(7.0, 0.05, 9.0), Vector3(9.0, 0.05, 7.0),
+	Vector3(-8.0, 0.05, -13.0), Vector3(-5.5, 0.05, -13.0),
+	Vector3(-3.0, 0.05, -13.0), Vector3(-0.5, 0.05, -13.0),
+	Vector3(2.0, 0.05, -13.0), Vector3(4.5, 0.05, -13.0),
+	Vector3(7.0, 0.05, -13.0), Vector3(9.0, 0.05, -11.0),
 ]
 
 var network_peer: ENetMultiplayerPeer
@@ -174,7 +178,7 @@ func _on_peer_connected(peer_id: int) -> void:
 			existing.global_position
 		)
 	var assigned_team := operators.size() % 2
-	var assigned_spawn := spawn_points[operators.size() % spawn_points.size()]
+	var assigned_spawn := _spawn_for_team(assigned_team, _team_member_count(assigned_team))
 	_server_spawn_operator(peer_id, assigned_team, assigned_spawn)
 	spawn_operator.rpc(peer_id, assigned_team, assigned_spawn)
 	_set_status("PLAYER %d JOINED  •  %d connected" % [peer_id, operators.size()])
@@ -585,6 +589,20 @@ func _spawn_for_peer(peer_id: int) -> Vector3:
 	return spawn_points[(peer_id - 1) % spawn_points.size()]
 
 
+func _spawn_for_team(team: int, member_index: int) -> Vector3:
+	var team_offset := 0 if team == 0 else 8
+	return spawn_points[team_offset + (member_index % 8)]
+
+
+func _team_member_count(team: int) -> int:
+	var count := 0
+	for raw_id in operators:
+		var operator := operators[raw_id] as SocomNetworkOperator
+		if operator != null and operator.team_id == team:
+			count += 1
+	return count
+
+
 func _disconnect_existing_peer() -> void:
 	if multiplayer.multiplayer_peer != null:
 		multiplayer.multiplayer_peer.close()
@@ -659,7 +677,7 @@ func _build_ui() -> void:
 	var column := VBoxContainer.new()
 	menu_panel.add_child(column)
 	var title := Label.new()
-	title.text = "MULTIPLAYER VERTICAL SLICE"
+	title.text = "8v8 DIRECT-IP MATCH"
 	title.add_theme_font_size_override("font_size", 20)
 	column.add_child(title)
 	var explanation := Label.new()
@@ -679,6 +697,13 @@ func _build_ui() -> void:
 	join_button.text = "JOIN MATCH"
 	join_button.pressed.connect(func(): join_match(address_edit.text, DEFAULT_PORT))
 	row.add_child(join_button)
+	var leave_button := Button.new()
+	leave_button.text = "MAIN MENU"
+	leave_button.pressed.connect(func():
+		_disconnect_existing_peer()
+		get_tree().change_scene_to_file("res://game_launcher.tscn")
+	)
+	column.add_child(leave_button)
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	_refresh_scoreboard()
 
@@ -752,3 +777,12 @@ func _apply_command_line_mode() -> void:
 		host_match(port)
 	elif not join_address.is_empty():
 		join_match(join_address, port)
+	else:
+		var launch_mode := String(ProjectSettings.get_setting("socom/session/launch_mode", ""))
+		var launcher_address := String(ProjectSettings.get_setting("socom/session/join_address", ""))
+		ProjectSettings.set_setting("socom/session/launch_mode", "")
+		ProjectSettings.set_setting("socom/session/join_address", "")
+		if launch_mode == "host":
+			host_match(port)
+		elif launch_mode == "join":
+			join_match(launcher_address, port)

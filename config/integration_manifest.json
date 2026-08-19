@@ -4,8 +4,18 @@
   "authoritative_branch": "main",
   "canonical_path_alias": "/Users/kiwimango/Documents/SOCOM-141",
   "studio_entry_scene": "res://studio_hub.tscn",
-  "runtime_entry_scene": "res://main.tscn",
+  "runtime_entry_scene": "res://game_launcher.tscn",
   "labs": [
+    {
+      "id": "game_launcher",
+      "label": "Play Current Game Build",
+      "scene": "res://game_launcher.tscn",
+      "controller": "res://scripts/ui/game_launcher.gd",
+      "shared_contracts": [
+        "res://main.tscn",
+        "res://multiplayer_slice.tscn"
+      ]
+    },
     {
       "id": "camera_gameplay",
       "label": "Camera + Playable Range",

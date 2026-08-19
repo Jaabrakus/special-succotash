@@ -48,8 +48,11 @@ func _run() -> void:
 	_assert(slice != null, "multiplayer scene did not instantiate")
 	_assert(slice.has_method("host_match"), "host entry point missing")
 	_assert(slice.has_method("join_match"), "join entry point missing")
-	_assert(slice.spawn_points.size() >= 2, "two-player spawn contract missing")
+	_assert(slice.spawn_points.size() == 16, "8v8 spawn contract missing")
+	_assert(slice.call("_spawn_for_team", 0, 0).z > 0.0, "team 0 spawn side is invalid")
+	_assert(slice.call("_spawn_for_team", 1, 0).z < 0.0, "team 1 spawn side is invalid")
 	_assert(slice.menu_panel != null, "host/join test UI missing")
+	_assert(not slice.equipped_config.is_empty(), "multiplayer did not load the equipped Gunsmith profile")
 
 	var operator = NetworkOperator.new()
 	operator.name = "RegressionNetworkOperator"

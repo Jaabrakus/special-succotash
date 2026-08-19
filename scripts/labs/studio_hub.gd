@@ -69,6 +69,7 @@ func _build_interface() -> void:
 	column.add_child(subtitle)
 
 	column.add_child(HSeparator.new())
+	_add_lab_button(column, "▶  Play Current Game Build", &"game_launcher", Color("f0d675"))
 	_add_lab_button(column, "1  Camera + Playable Range", &"camera_gameplay", Color("86b7e7"))
 	_add_lab_button(column, "2  Operator Animation Studio", &"animation", Color("b9a0e8"))
 	_add_lab_button(column, "3  Weapon + Hand Gunsmith", &"weapon", Color("e1ad63"))
