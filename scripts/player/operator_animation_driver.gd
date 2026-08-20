@@ -7,6 +7,7 @@ extends Node3D
 const AnimationProfile := preload("res://scripts/player/operator_animation_profile.gd")
 const AssetRuntime := preload("res://scripts/player/operator_asset_runtime.gd")
 const WeaponContract := preload("res://scripts/weapons/weapon_rig_contract.gd")
+const WeaponReloadVisualTimeline := preload("res://scripts/weapons/weapon_reload_visual_timeline.gd")
 const LocomotionBlendTree := preload("res://scripts/player/operator_locomotion_blend_tree.gd")
 const TransitionStateMachine := preload("res://scripts/player/operator_transition_state_machine.gd")
 const PostureLayer := preload("res://scripts/player/operator_posture_layer.gd")
@@ -111,6 +112,10 @@ var _active_frame_pose: Dictionary = {}
 var _fire_pose_clip: StringName = &""
 var _fire_pose_time: float = 0.0
 var _fire_pose_duration: float = 0.0
+var _active_reload_visual_slot: String = ""
+var _active_reload_visual_clip: StringName = &""
+var _reload_visual_time: float = 0.0
+var _reload_support_regrip: bool = false
 
 
 func _ready() -> void:
@@ -185,6 +190,7 @@ func _process(delta: float) -> void:
 	)
 	_consider_cosmetic_transition()
 	_update_requested_action(delta)
+	_update_reload_visuals(delta)
 	if posture != _previous_posture:
 		_previous_posture = posture
 		if asset_runtime != null:
@@ -221,6 +227,7 @@ func _process(delta: float) -> void:
 		weapon_ready_weight,
 		obstruction_amount,
 		requested_action,
+		_reload_support_regrip,
 		visual_aim_target,
 		_get_player(),
 		delta
@@ -328,6 +335,57 @@ func _update_requested_action(delta: float) -> void:
 		return
 	requested_action = &""
 	_requested_action_is_transition = false
+	_clear_reload_visuals()
+
+
+func _update_reload_visuals(delta: float) -> void:
+	if _active_reload_visual_slot.is_empty() or _active_reload_visual_clip == &"":
+		return
+	if requested_action == &"":
+		_clear_reload_visuals()
+		return
+	var animation := (
+		animation_player.get_animation(_active_reload_visual_clip)
+		if animation_player != null
+		else null
+	)
+	var frame_count := maxi(
+		1,
+		int(round(
+			(animation.length if animation else 1.0)
+			* 30.0
+		))
+	)
+	_reload_visual_time = minf(
+		_reload_visual_time + delta,
+		animation.length if animation else 1.0
+	)
+	var timeline := WeaponReloadVisualTimeline.ensure_profile_timeline(
+		equipped_weapon_handling_profile,
+		_active_reload_visual_slot,
+		frame_count
+	)
+	var events: Dictionary = timeline.get("events", {})
+	var frame_index := clampi(int(round(_reload_visual_time * 30.0)), 0, frame_count)
+	var state := WeaponReloadVisualTimeline.state_at_frame(events, frame_index)
+	_reload_support_regrip = WeaponReloadVisualTimeline.support_hand_should_regrip(
+		events,
+		frame_index
+	)
+	if asset_runtime != null:
+		asset_runtime.update_reload_magazine_visual(
+			timeline,
+			WeaponReloadVisualTimeline.magazine_is_in_left_hand(state)
+		)
+
+
+func _clear_reload_visuals() -> void:
+	_active_reload_visual_slot = ""
+	_active_reload_visual_clip = &""
+	_reload_visual_time = 0.0
+	_reload_support_regrip = false
+	if asset_runtime != null:
+		asset_runtime.update_reload_magazine_visual({}, false)
 
 
 func _build_animation_tree() -> void:
@@ -442,6 +500,13 @@ func play_action(clip_name: StringName, blend_seconds: float = 0.12) -> bool:
 		requested_action_remaining = roll_trim_duration
 	else:
 		requested_action_remaining = animation.length if animation else 1.0
+	if "reload" in String(clip_name).to_lower():
+		_active_reload_visual_slot = "reload_%s" % String(posture).to_lower()
+		_active_reload_visual_clip = clip_name
+		_reload_visual_time = 0.0
+		_reload_support_regrip = false
+	else:
+		_clear_reload_visuals()
 	_request_clip(clip_name, blend_seconds)
 	return true
 

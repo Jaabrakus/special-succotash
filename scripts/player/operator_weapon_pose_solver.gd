@@ -195,6 +195,7 @@ func apply(
 	ready_weight: float,
 	obstruction_amount: float,
 	requested_action: StringName,
+	reload_support_regrip: bool,
 	world_aim_target: Vector3,
 	body: Node3D,
 	delta: float
@@ -212,7 +213,23 @@ func apply(
 		or requested_action in [&"reload", &"prone_reload"]
 	)
 	if action_owns_arms:
-		_stop_socket_ik()
+		if (
+			reload_support_regrip
+			and requested_action in [&"reload", &"prone_reload"]
+			and support_socket != null
+		):
+			if right_hand_ik and right_hand_ik.is_running():
+				right_hand_ik.stop()
+			support_hand_target.global_transform = support_socket.global_transform
+			_solve_socket_arm(
+				left_hand_ik,
+				support_hand_target,
+				left_elbow_pole,
+				&"mixamorig_LeftHand"
+			)
+			skeleton.force_update_all_bone_transforms()
+		else:
+			_stop_socket_ik()
 		_set_weapon_solver_owned(false)
 		current_weight = 0.0
 		desired_weight = 0.0

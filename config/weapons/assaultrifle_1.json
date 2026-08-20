@@ -265,6 +265,29 @@
       "walk_right": "walk_right"
     },
     "mapping_version": 1.0,
+    "reload_visuals": {
+      "reload_standing": {
+        "events": {
+          "magazine_out": 20,
+          "old_magazine_away": 40,
+          "new_magazine_ready": 51,
+          "magazine_in": 75,
+          "support_regrip": 91
+        },
+        "magazine_hand_offset": {
+          "position": {
+            "x": 0.0,
+            "y": -0.075,
+            "z": 0.018
+          },
+          "rotation_degrees": {
+            "x": 8.0,
+            "y": 0.0,
+            "z": 90.0
+          }
+        }
+      }
+    },
     "support_hand_required": true
   },
   "model_fbx": "res://assets/weapons/modular_pack/AssaultRifle_1.fbx",

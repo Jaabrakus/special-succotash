@@ -20,6 +20,8 @@ var weapon_node: Node3D
 var equipped_weapon_config: Dictionary = {}
 var calibrated_weapon_pivot: Node3D
 var weapon_sockets: Dictionary = {}
+var reload_magazine_attachment: BoneAttachment3D
+var reload_magazine_visual: MeshInstance3D
 var _base_weapon_pivot_position := Vector3.ZERO
 var _base_weapon_pivot_rotation := Vector3.ZERO
 var _base_socket_positions: Dictionary = {}
@@ -60,6 +62,7 @@ func build(
 	animation_player.owner = model_root
 	animation_player.root_node = animation_player.get_path_to(skeleton)
 	_attach_weapon()
+	_attach_reload_magazine_visual()
 	_build_animation_library()
 	return get_runtime()
 
@@ -71,6 +74,7 @@ func get_runtime() -> Dictionary:
 		"skeleton": skeleton,
 		"weapon_attachment": weapon_attachment,
 		"weapon_node": weapon_node,
+		"reload_magazine_visual": reload_magazine_visual,
 		"animation_library": animation_library,
 		"available_clips": available_clips,
 		"source_animation_names": source_animation_names,
@@ -190,6 +194,50 @@ func _attach_weapon() -> void:
 
 	weapon_node.add_child(pivot)
 	weapon_attachment.add_child(weapon_node)
+
+
+func _attach_reload_magazine_visual() -> void:
+	if skeleton == null or skeleton.find_bone("mixamorig_LeftHand") < 0:
+		return
+	var handling: Variant = equipped_weapon_config.get("handling_profile", {})
+	if not handling is Dictionary or (handling as Dictionary).get("reload_visuals", {}).is_empty():
+		return
+	reload_magazine_attachment = BoneAttachment3D.new()
+	reload_magazine_attachment.name = "ReloadMagazineAttachment"
+	reload_magazine_attachment.bone_name = "mixamorig_LeftHand"
+	skeleton.add_child(reload_magazine_attachment)
+	reload_magazine_visual = MeshInstance3D.new()
+	reload_magazine_visual.name = "ReloadMagazineVisual"
+	var magazine_mesh := BoxMesh.new()
+	magazine_mesh.size = Vector3(0.034, 0.145, 0.055)
+	reload_magazine_visual.mesh = magazine_mesh
+	var magazine_material := StandardMaterial3D.new()
+	magazine_material.albedo_color = Color(0.075, 0.085, 0.09)
+	magazine_material.metallic = 0.72
+	magazine_material.roughness = 0.34
+	reload_magazine_visual.material_override = magazine_material
+	reload_magazine_visual.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+	reload_magazine_visual.visible = false
+	reload_magazine_attachment.add_child(reload_magazine_visual)
+
+
+func update_reload_magazine_visual(timeline: Dictionary, visible: bool) -> void:
+	if reload_magazine_visual == null or reload_magazine_attachment == null:
+		return
+	reload_magazine_visual.visible = visible
+	if not visible:
+		return
+	var offset: Dictionary = timeline.get("magazine_hand_offset", {})
+	var inverse_scale := 1.0 / maxf(operator_scale, 0.001)
+	reload_magazine_visual.position = _vector3_from_map(
+		offset.get("position", {}),
+		Vector3(0.0, -0.075, 0.018)
+	) * inverse_scale
+	reload_magazine_visual.rotation_degrees = _vector3_from_map(
+		offset.get("rotation_degrees", {}),
+		Vector3(8.0, 0.0, 90.0)
+	)
+	reload_magazine_visual.scale = Vector3.ONE * inverse_scale
 
 
 func _load_equipped_weapon_config() -> Dictionary:

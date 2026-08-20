@@ -6,6 +6,7 @@ signal frame_scrubbed(frame_index: int)
 var total_frames := 1
 var current_frame := 0
 var saved_frames: Array[int] = []
+var lifecycle_frames: Dictionary = {}
 var dragging := false
 
 
@@ -15,10 +16,16 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
 
 
-func configure(frame_count: int, frame_index: int, pose_frames: Array[int]) -> void:
+func configure(
+	frame_count: int,
+	frame_index: int,
+	pose_frames: Array[int],
+	event_frames: Dictionary = {}
+) -> void:
 	total_frames = maxi(1, frame_count)
 	current_frame = clampi(frame_index, 0, total_frames)
 	saved_frames = pose_frames.duplicate()
+	lifecycle_frames = event_frames.duplicate()
 	queue_redraw()
 
 
@@ -61,6 +68,25 @@ func _draw() -> void:
 		var saved_ratio := float(clampi(saved_frame, 0, total_frames)) / float(total_frames)
 		var saved_x := bounds.position.x + saved_ratio * bounds.size.x
 		draw_circle(Vector2(saved_x, bounds.position.y + 10.0), 5.0, Color(1.0, 0.75, 0.15))
+	var event_colors: Array[Color] = [
+		Color(1.0, 0.35, 0.25),
+		Color(1.0, 0.65, 0.18),
+		Color(0.75, 0.45, 1.0),
+		Color(0.25, 0.9, 0.55),
+		Color(0.2, 0.8, 1.0),
+	]
+	var event_index := 0
+	for event_name in lifecycle_frames:
+		var event_frame := clampi(int(lifecycle_frames[event_name]), 0, total_frames)
+		var event_ratio := float(event_frame) / float(total_frames)
+		var event_x := bounds.position.x + event_ratio * bounds.size.x
+		var marker_y := bounds.position.y + 22.0 + float(event_index % 2) * 8.0
+		draw_circle(
+			Vector2(event_x, marker_y),
+			4.5,
+			event_colors[event_index % event_colors.size()]
+		)
+		event_index += 1
 	var playhead_ratio := float(current_frame) / float(total_frames)
 	var playhead_x := bounds.position.x + playhead_ratio * bounds.size.x
 	draw_line(

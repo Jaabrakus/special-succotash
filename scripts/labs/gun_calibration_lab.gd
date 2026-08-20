@@ -9,6 +9,7 @@ const PS1_GAS_MASK_RIGGED_SCENE := preload("res://assets/characters/ps1_gas_mask
 const PS1_GAS_MASK_TEX := preload("res://assets/characters/ps1_gas_mask_soldier/trooper.png")
 const OperatorAnimationProfile := preload("res://scripts/player/operator_animation_profile.gd")
 const WeaponAnimationProfile := preload("res://scripts/weapons/weapon_animation_profile.gd")
+const WeaponReloadVisualTimeline := preload("res://scripts/weapons/weapon_reload_visual_timeline.gd")
 const WeaponOwnershipContract := preload("res://scripts/player/weapon_ownership_contract.gd")
 const OperatorPostureLayer := preload("res://scripts/player/operator_posture_layer.gd")
 const ProceduralPoseProfile := preload("res://scripts/player/operator_procedural_pose_profile.gd")
@@ -243,6 +244,9 @@ var action_return_transform := Transform3D.IDENTITY
 var action_recovery_start := Transform3D.IDENTITY
 var action_recovery_duration: float = 0.14
 var action_recovery_elapsed: float = action_recovery_duration
+var active_reload_visual_slot: String = ""
+var reload_magazine_proxy: MeshInstance3D
+var reload_visual_state: String = WeaponReloadVisualTimeline.STATE_IN_WEAPON
 
 # Weapon Skins
 var camo_skins: Array[String] = [
@@ -295,6 +299,9 @@ var animation_frame_play_button: Button
 var animation_frame_edit_button: Button
 var animation_frame_edit_controls: Array[BaseButton] = []
 var animation_frame_editor_title: Label
+var reload_event_controls_row: HBoxContainer
+var reload_event_status: Label
+var reload_event_buttons: Dictionary = {}
 var animation_frame_base_pose: Dictionary = {}
 var animation_frame_last_applied: int = -1
 var animation_edit_candidate_slot: String = ""
@@ -614,6 +621,7 @@ func _process(delta: float) -> void:
 	if not weapon_master_pose_initialized:
 		_initialize_weapon_master_pose()
 	_update_action_weapon_ownership(delta)
+	_update_reload_support_handoff()
 	_apply_runtime_posture_preview()
 	_update_weapon_master_anchor()
 	_update_visual_weapon_recoil(delta)
@@ -623,6 +631,7 @@ func _process(delta: float) -> void:
 	_apply_hand_and_finger_posing()
 	if skeleton:
 		skeleton.force_update_all_bone_transforms()
+	_update_reload_magazine_visual()
 	_update_elbow_pole_visuals()
 	_update_body_joint_visuals()
 	_update_animation_quality_readout(delta)
@@ -712,6 +721,12 @@ func _right_hand_world_transform() -> Transform3D:
 		return Transform3D.IDENTITY
 	return skeleton.global_transform * skeleton.get_bone_global_pose(right_hand_idx)
 
+
+func _left_hand_world_transform() -> Transform3D:
+	if not skeleton or left_hand_idx < 0:
+		return Transform3D.IDENTITY
+	return skeleton.global_transform * skeleton.get_bone_global_pose(left_hand_idx)
+
 func _begin_action_weapon_follow() -> void:
 	if not weapon_root or not skeleton or right_hand_idx < 0:
 		return
@@ -747,6 +762,90 @@ func _update_action_weapon_ownership(delta: float) -> void:
 			_weapon_anchor_target_transform(),
 			amount
 		)
+
+
+func _active_reload_timeline() -> Dictionary:
+	if active_reload_visual_slot.is_empty():
+		return {}
+	return WeaponReloadVisualTimeline.ensure_profile_timeline(
+		handling_profile,
+		active_reload_visual_slot,
+		_active_reload_frame_count()
+	)
+
+
+func _active_reload_frame_count() -> int:
+	if animation_frame_editor.active:
+		return animation_frame_editor.frame_count()
+	if animation_player and animation_player.current_animation != &"":
+		var animation := animation_player.get_animation(animation_player.current_animation)
+		if animation:
+			return maxi(1, int(round(animation.length * GunsmithAnimationFrameEditorScript.DEFAULT_FPS)))
+	return 1
+
+
+func _active_reload_frame_index() -> int:
+	if animation_frame_editor.active:
+		return animation_frame_editor.frame_index()
+	if animation_player:
+		return maxi(0, int(round(
+			animation_player.current_animation_position
+			* GunsmithAnimationFrameEditorScript.DEFAULT_FPS
+		)))
+	return 0
+
+
+func _update_reload_support_handoff() -> void:
+	if not is_reloading or active_reload_visual_slot.is_empty():
+		return
+	var timeline := _active_reload_timeline()
+	var events: Dictionary = timeline.get("events", {})
+	support_hand_policy = (
+		WeaponOwnershipContract.SUPPORT_IK_TO_WEAPON
+		if WeaponReloadVisualTimeline.support_hand_should_regrip(
+			events,
+			_active_reload_frame_index()
+		)
+		else WeaponOwnershipContract.SUPPORT_FREE
+	)
+
+
+func _update_reload_magazine_visual() -> void:
+	if reload_magazine_proxy == null:
+		return
+	if not is_reloading or active_reload_visual_slot.is_empty() or skeleton == null:
+		reload_magazine_proxy.visible = false
+		return
+	var timeline := _active_reload_timeline()
+	var events: Dictionary = timeline.get("events", {})
+	reload_visual_state = WeaponReloadVisualTimeline.state_at_frame(
+		events,
+		_active_reload_frame_index()
+	)
+	reload_magazine_proxy.visible = WeaponReloadVisualTimeline.magazine_is_in_left_hand(
+		reload_visual_state
+	)
+	if not reload_magazine_proxy.visible:
+		return
+	var offset: Dictionary = timeline.get("magazine_hand_offset", {})
+	var position := _vector_from_data(
+		offset.get("position", {}),
+		Vector3(0.0, -0.075, 0.018)
+	)
+	var rotation_degrees := _vector_from_data(
+		offset.get("rotation_degrees", {}),
+		Vector3(8.0, 0.0, 90.0)
+	)
+	var hand_world := _left_hand_world_transform()
+	var hand_clean := Transform3D(hand_world.basis.orthonormalized(), hand_world.origin)
+	reload_magazine_proxy.global_transform = hand_clean * Transform3D(
+		Basis.from_euler(Vector3(
+			deg_to_rad(rotation_degrees.x),
+			deg_to_rad(rotation_degrees.y),
+			deg_to_rad(rotation_degrees.z)
+		)),
+		position
+	)
 
 func _right_elbow_magnet_for(wrist_world: Vector3) -> Vector3:
 	if not skeleton or right_arm_idx < 0:
@@ -1096,7 +1195,7 @@ func _build_animation_frame_timeline_overlay() -> void:
 	animation_frame_panel.anchor_right = 1.0
 	animation_frame_panel.anchor_bottom = 1.0
 	animation_frame_panel.offset_left = 0.0
-	animation_frame_panel.offset_top = -132.0
+	animation_frame_panel.offset_top = -184.0
 	animation_frame_panel.offset_right = -16.0
 	animation_frame_panel.offset_bottom = -16.0
 	# Keep the frame ruler visible. Editing must be discoverable without finding
@@ -1152,6 +1251,26 @@ func _build_animation_frame_timeline_overlay() -> void:
 	save_apply_button.pressed.connect(_save_weapon_config)
 	controls.add_child(save_apply_button)
 	animation_frame_edit_controls.append(save_apply_button)
+
+	reload_event_controls_row = HBoxContainer.new()
+	reload_event_controls_row.name = "ReloadLifecycleControls"
+	container.add_child(reload_event_controls_row)
+	reload_event_status = Label.new()
+	reload_event_status.text = "RELOAD VISUALS"
+	reload_event_status.custom_minimum_size.x = 178.0
+	reload_event_status.add_theme_font_size_override("font_size", 10)
+	reload_event_controls_row.add_child(reload_event_status)
+	for event_name in WeaponReloadVisualTimeline.EVENT_ORDER:
+		var event_button := Button.new()
+		event_button.name = "SetReloadEvent_" + event_name
+		event_button.text = "Set " + String(
+			WeaponReloadVisualTimeline.EVENT_LABELS.get(event_name, event_name)
+		)
+		event_button.tooltip_text = "Set this reload handoff at the current frame. This changes visuals only."
+		event_button.pressed.connect(_set_reload_event_at_current_frame.bind(event_name))
+		reload_event_controls_row.add_child(event_button)
+		reload_event_buttons[event_name] = event_button
+		animation_frame_edit_controls.append(event_button)
 	_refresh_animation_frame_editor_ui()
 
 
@@ -1247,6 +1366,7 @@ func _preview_animation_slot(slot_name: String) -> void:
 	animation_preview_token += 1
 	var token := animation_preview_token
 	var is_idle := slot_name.begins_with("idle_")
+	active_reload_visual_slot = slot_name if slot_name.begins_with("reload_") else ""
 	_apply_weapon_ownership_policy(
 		WeaponOwnershipContract.preview_policy(slot_name, clip_name),
 		slot_name.begins_with("reload_")
@@ -1262,6 +1382,7 @@ func _preview_animation_slot(slot_name: String) -> void:
 		if token != animation_preview_token:
 			return
 		var idle_slot := _posture_idle_slot()
+		active_reload_visual_slot = ""
 		_apply_weapon_ownership_policy(WeaponOwnershipContract.preview_policy(idle_slot), false)
 		var idle_clip := _posture_idle_clip()
 		if idle_clip != &"" and _ensure_preview_clip(idle_clip):
@@ -1288,6 +1409,9 @@ func _preview_selected_catalog_animation() -> void:
 	_apply_weapon_ownership_policy(
 		WeaponOwnershipContract.preview_policy("", clip_name),
 		"reload" in String(clip_name).to_lower()
+	)
+	active_reload_visual_slot = (
+		"reload_standing" if "reload" in String(clip_name).to_lower() else ""
 	)
 	animation_player.play(clip_name, 0.08)
 	if hud_status:
@@ -1379,6 +1503,17 @@ func _enter_animation_frame_editor(slot_name: String, clip_name: StringName) -> 
 	)
 	var animation := animation_player.get_animation(clip_name)
 	animation_frame_editor.begin(slot_name, clip_name, animation.length if animation else 0.0)
+	active_reload_visual_slot = (
+		slot_name
+		if slot_name.begins_with("reload_")
+		else ("reload_standing" if "reload" in String(clip_name).to_lower() else "")
+	)
+	if not active_reload_visual_slot.is_empty():
+		WeaponReloadVisualTimeline.ensure_profile_timeline(
+			handling_profile,
+			active_reload_visual_slot,
+			animation_frame_editor.frame_count()
+		)
 	animation_frame_base_pose = _snapshot_animation_frame_pose()
 	animation_frame_last_applied = -1
 	animation_player.play(clip_name, 0.0)
@@ -1395,6 +1530,9 @@ func _leave_animation_frame_editor() -> void:
 		return
 	_restore_animation_frame_pose(animation_frame_base_pose)
 	animation_frame_editor.stop()
+	active_reload_visual_slot = ""
+	if reload_magazine_proxy:
+		reload_magazine_proxy.visible = false
 	animation_frame_base_pose.clear()
 	animation_frame_last_applied = -1
 	_refresh_animation_frame_editor_ui()
@@ -1499,6 +1637,13 @@ func _refresh_animation_frame_editor_ui() -> void:
 	for control in animation_frame_edit_controls:
 		if control:
 			control.disabled = not animation_frame_editor.active
+	var editing_reload := _is_reload_frame_editor()
+	if reload_event_controls_row:
+		reload_event_controls_row.visible = editing_reload
+	for event_name in reload_event_buttons:
+		var reload_button := reload_event_buttons[event_name] as Button
+		if reload_button:
+			reload_button.disabled = not editing_reload
 	if animation_frame_scrubber:
 		var normalized := 0.0
 		if animation_frame_editor.duration_seconds > 0.0:
@@ -1515,11 +1660,58 @@ func _refresh_animation_frame_editor_ui() -> void:
 		else:
 			animation_frame_readout.text = "FRAME EDITOR READY • Click Edit Current Animation"
 	if animation_frame_timeline:
+		var reload_events := _current_reload_events() if editing_reload else {}
 		animation_frame_timeline.configure(
 			animation_frame_editor.frame_count(),
 			animation_frame_editor.frame_index(),
-			animation_frame_editor.saved_frame_indices()
+			animation_frame_editor.saved_frame_indices(),
+			reload_events
 		)
+	if reload_event_status and editing_reload:
+		var lifecycle_state := WeaponReloadVisualTimeline.state_at_frame(
+			_current_reload_events(),
+			animation_frame_editor.frame_index()
+		)
+		reload_event_status.text = "RELOAD • " + lifecycle_state
+
+
+func _is_reload_frame_editor() -> bool:
+	return (
+		animation_frame_editor.active
+		and (
+			animation_frame_editor.slot_name.begins_with("reload_")
+			or "reload" in String(animation_frame_editor.clip_name).to_lower()
+		)
+	)
+
+
+func _current_reload_events() -> Dictionary:
+	if active_reload_visual_slot.is_empty():
+		return {}
+	var timeline := WeaponReloadVisualTimeline.ensure_profile_timeline(
+		handling_profile,
+		active_reload_visual_slot,
+		animation_frame_editor.frame_count()
+	)
+	return (timeline.get("events", {}) as Dictionary).duplicate(true)
+
+
+func _set_reload_event_at_current_frame(event_name: String) -> void:
+	if not _is_reload_frame_editor() or active_reload_visual_slot.is_empty():
+		return
+	WeaponReloadVisualTimeline.set_event_frame(
+		handling_profile,
+		active_reload_visual_slot,
+		event_name,
+		animation_frame_editor.frame_index(),
+		animation_frame_editor.frame_count()
+	)
+	_refresh_animation_frame_editor_ui()
+	if hud_status:
+		hud_status.text = "◆ %s set at frame %d. Save + Apply Rig to keep it." % [
+			WeaponReloadVisualTimeline.EVENT_LABELS.get(event_name, event_name),
+			animation_frame_editor.frame_index(),
+		]
 
 
 func _capture_animation_frame_pose_key() -> void:
@@ -1588,6 +1780,9 @@ func _restore_animation_frame_pose(pose_data: Dictionary) -> void:
 
 func _finish_preview_to_idle() -> void:
 	var idle_slot := _posture_idle_slot()
+	active_reload_visual_slot = ""
+	if reload_magazine_proxy:
+		reload_magazine_proxy.visible = false
 	_apply_weapon_ownership_policy(WeaponOwnershipContract.preview_policy(idle_slot), false)
 	var idle_clip := _posture_idle_clip()
 	if idle_clip != &"" and _ensure_preview_clip(idle_clip):
@@ -1768,6 +1963,11 @@ func _vector_from_data(raw_value: Variant, fallback: Vector3) -> Vector3:
 
 
 func _apply_weapon_ownership_policy(policy: Dictionary, reload_action: bool) -> void:
+	if not reload_action:
+		active_reload_visual_slot = ""
+		reload_visual_state = WeaponReloadVisualTimeline.STATE_IN_WEAPON
+		if reload_magazine_proxy:
+			reload_magazine_proxy.visible = false
 	weapon_owner_state = StringName(
 		policy.get("weapon_owner", WeaponOwnershipContract.OWNER_WEAPON_MASTER)
 	)
@@ -3398,6 +3598,9 @@ func _load_weapon(file_name: String) -> void:
 	if current_scope_mesh:
 		current_scope_mesh.queue_free()
 		current_scope_mesh = null
+	if reload_magazine_proxy:
+		reload_magazine_proxy.queue_free()
+		reload_magazine_proxy = null
 
 	var is_ak := (file_name == "ak-47")
 	var is_9mm := (file_name == "9mm_pistol")
@@ -3504,12 +3707,32 @@ func _load_weapon(file_name: String) -> void:
 	optic_local_pos = Vector3(0.0, 0.08, -0.18)
 
 	_try_load_saved_profile(weapon_name)
+	_setup_reload_magazine_proxy()
 
 	if selected_silencer != "None": _load_silencer(selected_silencer)
 	if selected_scope != "None": _load_scope(selected_scope)
 	_refresh_handling_ui()
 
 	call_deferred("_finish_weapon_bootstrap")
+
+
+func _setup_reload_magazine_proxy() -> void:
+	# The modular rifle FBX is one baked mesh, so it has no detachable magazine
+	# node. This separate presentation prop makes handoff timing editable without
+	# destructively rewriting the imported source asset.
+	reload_magazine_proxy = MeshInstance3D.new()
+	reload_magazine_proxy.name = "ReloadMagazineVisual"
+	var magazine_mesh := BoxMesh.new()
+	magazine_mesh.size = Vector3(0.034, 0.145, 0.055)
+	reload_magazine_proxy.mesh = magazine_mesh
+	var magazine_material := StandardMaterial3D.new()
+	magazine_material.albedo_color = Color(0.075, 0.085, 0.09)
+	magazine_material.metallic = 0.72
+	magazine_material.roughness = 0.34
+	reload_magazine_proxy.material_override = magazine_material
+	reload_magazine_proxy.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+	reload_magazine_proxy.visible = false
+	add_child(reload_magazine_proxy)
 
 func _try_load_saved_profile(w_id: String) -> void:
 	var cfg_path := "res://config/weapons/" + w_id.to_lower() + ".json"
