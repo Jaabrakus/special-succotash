@@ -20,7 +20,11 @@ func _run() -> void:
 	var mapping_buttons := lab.get("binding_buttons") as Dictionary
 	_expect(
 		mapping_buttons.size() == KeyboardProfile.ACTION_ORDER.size(),
-		"every shared gameplay action has a visible mapping row"
+		"every shared gameplay action has a visible playtest keycap"
+	)
+	_expect(
+		lab.find_child("PlaytestKeyboardDeck", true, false) is VBoxContainer,
+		"left side uses the playtest-style keyboard control deck"
 	)
 	_expect(
 		KeyboardProfile.binding_text(&"move_forward") == "W",

@@ -146,15 +146,20 @@ func _build_interface() -> void:
 	left_column.add_child(help)
 	left_column.add_child(HSeparator.new())
 
-	var scroll := ScrollContainer.new()
-	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	left_column.add_child(scroll)
-	var action_column := VBoxContainer.new()
-	action_column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	action_column.add_theme_constant_override("separation", 5)
-	scroll.add_child(action_column)
-	for action: StringName in KeyboardProfile.ACTION_ORDER:
-		_add_action_row(action_column, action)
+	var keyboard_title := Label.new()
+	keyboard_title.text = "PLAYTEST CONTROL DECK — CLICK ANY KEYCAP TO REMAP"
+	keyboard_title.add_theme_font_size_override("font_size", 13)
+	keyboard_title.add_theme_color_override("font_color", Color("e4c777"))
+	left_column.add_child(keyboard_title)
+	var keyboard_scroll := ScrollContainer.new()
+	keyboard_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	left_column.add_child(keyboard_scroll)
+	var keyboard_deck := VBoxContainer.new()
+	keyboard_deck.name = "PlaytestKeyboardDeck"
+	keyboard_deck.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	keyboard_deck.add_theme_constant_override("separation", 8)
+	keyboard_scroll.add_child(keyboard_deck)
+	_build_playtest_keyboard(keyboard_deck)
 
 	var command_row := HBoxContainer.new()
 	left_column.add_child(command_row)
@@ -215,21 +220,57 @@ func _build_interface() -> void:
 	right_column.add_child(history_label)
 
 
-func _add_action_row(parent: VBoxContainer, action: StringName) -> void:
+func _build_playtest_keyboard(parent: VBoxContainer) -> void:
+	_add_keycap_row(parent, [
+		&"toggle_target_range", &"toggle_trajectory_debug", &"reset_camera",
+	], Color("426a80"))
+	_add_keycap_row(parent, [
+		&"peek_left", &"move_forward", &"peek_right", &"reload_weapon",
+	], Color("35596d"))
+	_add_keycap_row(parent, [
+		&"move_left", &"move_back", &"move_right", &"throw_grenade",
+	], Color("35596d"))
+	_add_keycap_row(parent, [
+		&"dive", &"crouch", &"jump", &"fire",
+	], Color("53633e"))
+	_add_keycap_row(parent, [
+		&"cycle_grenade", &"toggle_debug_hud", &"toggle_body_stack",
+		&"toggle_camera_workbench", &"toggle_camera_visualizer",
+	], Color("4f4568"))
+	var unbound_title := Label.new()
+	unbound_title.text = "UNBOUND PLAYTEST ACTIONS"
+	unbound_title.add_theme_font_size_override("font_size", 11)
+	unbound_title.add_theme_color_override("font_color", Color("8492a6"))
+	parent.add_child(unbound_title)
+	_add_keycap_row(parent, [&"prone", &"roll"], Color("55434b"))
+
+
+func _add_keycap_row(
+	parent: VBoxContainer,
+	actions: Array[StringName],
+	key_color: Color
+) -> void:
 	var row := HBoxContainer.new()
-	row.custom_minimum_size.y = 34
+	row.add_theme_constant_override("separation", 7)
 	parent.add_child(row)
-	var label := Label.new()
-	label.text = String(KeyboardProfile.ACTION_LABELS.get(action, String(action).capitalize()))
-	label.custom_minimum_size.x = 205
-	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_child(label)
-	var button := Button.new()
-	button.name = "Bind_%s" % String(action)
-	button.custom_minimum_size.x = 175
-	button.pressed.connect(_begin_rebind.bind(action))
-	row.add_child(button)
-	binding_buttons[action] = button
+	for action: StringName in actions:
+		var button := Button.new()
+		button.name = "Bind_%s" % String(action)
+		button.custom_minimum_size = Vector2(84, 64)
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		button.add_theme_font_size_override("font_size", 12)
+		var normal := StyleBoxFlat.new()
+		normal.bg_color = key_color
+		normal.border_color = key_color.lightened(0.28)
+		normal.set_border_width_all(1)
+		normal.set_corner_radius_all(5)
+		button.add_theme_stylebox_override("normal", normal)
+		var hover := normal.duplicate() as StyleBoxFlat
+		hover.bg_color = key_color.lightened(0.16)
+		button.add_theme_stylebox_override("hover", hover)
+		button.pressed.connect(_begin_rebind.bind(action))
+		row.add_child(button)
+		binding_buttons[action] = button
 
 
 func _build_operator_preview() -> void:
@@ -310,7 +351,10 @@ func _refresh_binding_buttons() -> void:
 	for action: StringName in KeyboardProfile.ACTION_ORDER:
 		var button := binding_buttons.get(action) as Button
 		if button:
-			button.text = KeyboardProfile.binding_text(action)
+			button.text = "%s\n%s" % [
+				KeyboardProfile.binding_text(action),
+				String(KeyboardProfile.ACTION_LABELS.get(action, action)),
+			]
 
 
 func _save_mapping() -> void:
