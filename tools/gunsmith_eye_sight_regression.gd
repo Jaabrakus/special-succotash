@@ -23,10 +23,12 @@ func _run() -> void:
 		await process_frame
 
 	var eye_marker := lab.get("eye_sight_marker") as Marker3D
+	var direction_marker := lab.get("eye_sight_direction_marker") as Marker3D
 	var eye_toggle := lab.find_child("EyeSightToggle", true, false) as CheckButton
 	var sliders := lab.get("sliders_map") as Dictionary
 	_expect(int(lab.get("head_idx")) >= 0, "operator head supplies the neutral line start")
 	_expect(eye_marker != null, "Gunsmith creates a free gun-placement line")
+	_expect(direction_marker != null, "Gunsmith creates a separate pitch/yaw handle")
 	_expect(
 		eye_toggle != null and eye_toggle.button_pressed,
 		"gun-placement line is visible and user-toggleable"
@@ -232,6 +234,42 @@ func _run() -> void:
 	eye_release.position = depth_drag.position
 	lab.call("_input", eye_release)
 	_expect(String(lab.get("dragged_dot_id")).is_empty(), "releasing locks the line position")
+	lab.call("_update_eye_sight_marker")
+	var direction_screen := camera.unproject_position(direction_marker.global_position)
+	_expect(
+		String(lab.call("_find_dot_under_mouse", direction_screen)) == "eye_sight_direction",
+		"the second blue dot selects direction authoring instead of position"
+	)
+	var direction_press := InputEventMouseButton.new()
+	direction_press.button_index = MOUSE_BUTTON_LEFT
+	direction_press.pressed = true
+	direction_press.position = direction_screen
+	lab.call("_input", direction_press)
+	var fixed_position_for_direction := eye_marker.global_position
+	var direction_start_correction: Vector3 = lab.call("_eye_sight_correction")
+	var direction_drag := InputEventMouseMotion.new()
+	direction_drag.position = direction_screen + Vector2(20.0, -12.0)
+	direction_drag.relative = Vector2(20.0, -12.0)
+	lab.call("_input", direction_drag)
+	var direction_end_correction: Vector3 = lab.call("_eye_sight_correction")
+	_expect(
+		direction_end_correction.y >= direction_start_correction.y + 4.9
+		and direction_end_correction.x >= direction_start_correction.x + 2.9,
+		"dragging the second dot changes yaw and pitch"
+	)
+	_expect(
+		eye_marker.global_position.distance_to(fixed_position_for_direction) <= 0.0001,
+		"direction-handle drag cannot move the X/Y/Z origin"
+	)
+	var direction_release := InputEventMouseButton.new()
+	direction_release.button_index = MOUSE_BUTTON_LEFT
+	direction_release.pressed = false
+	direction_release.position = direction_drag.position
+	lab.call("_input", direction_release)
+	_expect(
+		String(lab.get("dragged_dot_id")).is_empty(),
+		"releasing locks the line direction"
+	)
 	var head_rotation_after_drag: Vector3 = posture_layer.call(
 		"get_procedural_rotation_degrees",
 		lab.get("preview_posture"),

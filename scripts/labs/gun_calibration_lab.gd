@@ -34,6 +34,7 @@ const MIN_BARREL_AXIS_LENGTH_METERS := 0.02
 const EYE_ORIGIN_FORWARD_METERS := 0.13
 const EYE_ORIGIN_HEIGHT_METERS := 0.09
 const EYE_SIGHT_PICK_LENGTH_METERS := 0.5
+const GUN_PLACEMENT_DIRECTION_HANDLE_METERS := 0.35
 const TUNABLE_BODY_JOINTS := JointControlSchema.SELECTABLE_JOINTS
 
 # A selected joint keeps full control. Small linked rotations continue through
@@ -174,6 +175,8 @@ var ejection_marker: MeshInstance3D
 var optic_marker: MeshInstance3D
 var eye_sight_marker: Marker3D
 var eye_sight_dot: MeshInstance3D
+var eye_sight_direction_marker: Marker3D
+var eye_sight_direction_dot: MeshInstance3D
 var gun_placement_anchor_local_by_posture: Dictionary = {}
 
 # Transform Calibration
@@ -537,11 +540,12 @@ func _input(event: InputEvent) -> void:
 						else:
 							drag_offset_vector = Vector3.ZERO
 						if hud_status:
-							hud_status.text = (
-								"🔵 Move line X/Y • Shift-drag or wheel = Z • pitch/yaw use sliders"
-								if hit_dot == "eye_sight"
-								else "🎯 Positioning %s (Left arm biomechanically auto-grips!)" % hit_dot
-							)
+							if hit_dot == "eye_sight":
+								hud_status.text = "🔵 Move origin X/Y • Shift-drag or wheel = Z"
+							elif hit_dot == "eye_sight_direction":
+								hud_status.text = "🔹 Aim direction • horizontal = yaw • vertical = pitch"
+							else:
+								hud_status.text = "🎯 Positioning %s (Left arm biomechanically auto-grips!)" % hit_dot
 					get_viewport().set_input_as_handled()
 					return
 				mouse_fire_armed = (
@@ -575,6 +579,25 @@ func _input(event: InputEvent) -> void:
 		elif dragged_dot_id != "":
 			if dragged_dot_id.begins_with("body_joint:"):
 				_adjust_selected_joint_rotation(Vector3(-mm.relative.y * 0.25, mm.relative.x * 0.25, 0.0))
+			elif dragged_dot_id == "eye_sight_direction":
+				var line_correction := _eye_sight_correction()
+				_set_eye_sight_component(
+					line_correction.y + mm.relative.x * 0.25,
+					&"yaw"
+				)
+				line_correction = _eye_sight_correction()
+				_set_eye_sight_component(
+					line_correction.x - mm.relative.y * 0.25,
+					&"pitch"
+				)
+				_sync_eye_sight_controls()
+				_update_eye_sight_marker()
+				if hud_status:
+					line_correction = _eye_sight_correction()
+					hud_status.text = "🔹 Line Pitch %.1f° • Yaw %.1f°" % [
+						line_correction.x,
+						line_correction.y,
+					]
 			elif dragged_dot_id == "eye_sight":
 				var line_offset := _eye_sight_origin_offset()
 				if mm.shift_pressed:
@@ -2697,7 +2720,8 @@ func _register_interactive_dots() -> void:
 	if ejection_marker: interactive_dots.append({"id": "ejection", "mesh": ejection_marker, "label": "🟡 Shell Ejection Port", "color": Color(1.0, 0.85, 0.1)})
 	if optic_marker: interactive_dots.append({"id": "optic", "mesh": optic_marker, "label": "🟢 Optic Scope Rail", "color": Color(0.2, 1.0, 0.4)})
 	if right_grip_marker: interactive_dots.append({"id": "right_grip", "mesh": right_grip_marker, "label": "🟠 Trigger-Hand Grip (moves gun in right hand)", "color": Color(1.0, 0.55, 0.08)})
-	if eye_sight_dot: interactive_dots.append({"id": "eye_sight", "mesh": eye_sight_dot, "label": "🔵 Gun Placement Line — drag X/Y, Shift or wheel Z", "color": Color(0.25, 0.55, 1.0)})
+	if eye_sight_dot: interactive_dots.append({"id": "eye_sight", "mesh": eye_sight_dot, "label": "🔵 Gun Placement Origin — drag X/Y, Shift or wheel Z", "color": Color(0.25, 0.55, 1.0)})
+	if eye_sight_direction_dot: interactive_dots.append({"id": "eye_sight_direction", "mesh": eye_sight_direction_dot, "label": "🔹 Gun Placement Direction — drag pitch/yaw", "color": Color(0.55, 0.78, 1.0)})
 
 func _find_dot_under_mouse(screen_pos: Vector2) -> String:
 	if not cam: return ""
@@ -2715,9 +2739,20 @@ func _find_dot_under_mouse(screen_pos: Vector2) -> String:
 		if socket_mesh != null and socket_mesh.is_visible_in_tree() and not cam.is_position_behind(socket_mesh.global_position):
 			if screen_pos.distance_to(cam.unproject_position(socket_mesh.global_position)) <= 18.0:
 				return String(socket_pick[0])
+	# The second blue dot owns direction authoring. Check it before the line
+	# segment so it cannot be mistaken for the X/Y/Z origin handle.
+	if (
+		eye_sight_direction_dot != null
+		and eye_sight_direction_dot.is_visible_in_tree()
+		and not cam.is_position_behind(eye_sight_direction_dot.global_position)
+		and screen_pos.distance_to(
+			cam.unproject_position(eye_sight_direction_dot.global_position)
+		) <= 18.0
+	):
+		return "eye_sight_direction"
 
-	# The head origin is a small dot, so make the visible blue sight segment a
-	# direct authoring handle too. Keep this after weapon sockets so an eye line
+	# The origin is a small dot, so make the visible blue segment a direct X/Y/Z
+	# authoring handle too. Keep this after weapon sockets so a placement line
 	# crossing the rifle can never steal a muzzle or optic selection.
 	if eye_sight_marker != null and eye_sight_marker.is_visible_in_tree():
 		var eye_origin := eye_sight_marker.global_position
@@ -3414,6 +3449,15 @@ func _setup_trooper_and_rig() -> void:
 	add_child(eye_sight_marker)
 	eye_sight_dot = _create_marker(Color(0.25, 0.55, 1.0), "GunPlacementLineDot", 0.014)
 	eye_sight_marker.add_child(eye_sight_dot)
+	eye_sight_direction_marker = Marker3D.new()
+	eye_sight_direction_marker.name = "GunPlacementDirectionHandle"
+	add_child(eye_sight_direction_marker)
+	eye_sight_direction_dot = _create_marker(
+		Color(0.55, 0.78, 1.0),
+		"GunPlacementDirectionDot",
+		0.012
+	)
+	eye_sight_direction_marker.add_child(eye_sight_direction_dot)
 	_update_eye_sight_marker()
 
 
@@ -5731,7 +5775,7 @@ func _build_studio_ui() -> void:
 	var eye_toggle := CheckButton.new()
 	eye_toggle.name = "EyeSightToggle"
 	eye_toggle.text = "Blue — free gun placement line"
-	eye_toggle.tooltip_text = "This is an operator-local weapon placement reference. Move it with X/Y/Z and turn it with pitch/yaw. It does not move the head, body, camera, or shot direction."
+	eye_toggle.tooltip_text = "The dark-blue origin dot moves X/Y/Z. The pale-blue direction dot changes pitch/yaw. This weapon placement reference does not move the head, body, camera, or shot direction."
 	eye_toggle.button_pressed = show_eye_sight
 	eye_toggle.toggled.connect(func(enabled: bool):
 		show_eye_sight = enabled
@@ -6481,6 +6525,7 @@ func _on_gun_lab_tab_changed(tab_index: int, tab_container: TabContainer) -> voi
 		ejection_marker,
 		optic_marker,
 		eye_sight_marker,
+		eye_sight_direction_marker,
 	]:
 		if editor_marker != null:
 			(editor_marker as Node3D).visible = not show_composure
@@ -6607,6 +6652,8 @@ func _update_eye_sight_marker() -> void:
 	if eye_sight_marker == null:
 		return
 	eye_sight_marker.visible = show_eye_sight and active_lab_tab_name != "Composure"
+	if eye_sight_direction_marker != null:
+		eye_sight_direction_marker.visible = eye_sight_marker.visible
 	if not eye_sight_marker.visible or skeleton == null or head_idx < 0:
 		return
 	var head_origin := _bone_world_origin(head_idx)
@@ -6639,6 +6686,12 @@ func _update_eye_sight_marker() -> void:
 		+ operator_up * origin_offset.y
 		+ operator_forward * origin_offset.z
 	)
+	if eye_sight_direction_marker != null:
+		eye_sight_direction_marker.global_position = (
+			eye_sight_marker.global_position
+			+ _eye_sight_direction_world()
+			* GUN_PLACEMENT_DIRECTION_HANDLE_METERS
+		)
 
 
 func _eye_sight_correction() -> Vector3:
