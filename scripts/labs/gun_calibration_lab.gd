@@ -174,6 +174,7 @@ var ejection_marker: MeshInstance3D
 var optic_marker: MeshInstance3D
 var eye_sight_marker: Marker3D
 var eye_sight_dot: MeshInstance3D
+var gun_placement_anchor_local_by_posture: Dictionary = {}
 
 # Transform Calibration
 var grip_offset_pos := Vector3.ZERO
@@ -208,6 +209,7 @@ var live_weapon_yaw_deg: float = 0.0
 var live_weapon_pitch_deg: float = 0.0
 var live_aim_preview_toggle: CheckButton
 var gunsmith_live_aim_rotation := Quaternion.IDENTITY
+var match_weapon_rail_to_blue_line: bool = true
 var show_joint_bubbles: bool = true
 var isolate_selected_node: bool = false
 
@@ -524,7 +526,7 @@ func _input(event: InputEvent) -> void:
 							drag_offset_vector = Vector3.ZERO
 						if hud_status:
 							hud_status.text = (
-								"👁 Drag eye sight: horizontal = yaw, vertical = pitch"
+								"🔵 Drag gun placement line: horizontal = yaw, vertical = pitch"
 								if hit_dot == "eye_sight"
 								else "🎯 Positioning %s (Left arm biomechanically auto-grips!)" % hit_dot
 							)
@@ -575,7 +577,7 @@ func _input(event: InputEvent) -> void:
 				_sync_eye_sight_controls()
 				if hud_status:
 					eye_correction = _eye_sight_correction()
-					hud_status.text = "👁 Eye Pitch %.1f° • Yaw %.1f°" % [
+					hud_status.text = "🔵 Line Pitch %.1f° • Yaw %.1f°" % [
 						eye_correction.x,
 						eye_correction.y,
 					]
@@ -2681,7 +2683,7 @@ func _register_interactive_dots() -> void:
 	if ejection_marker: interactive_dots.append({"id": "ejection", "mesh": ejection_marker, "label": "🟡 Shell Ejection Port", "color": Color(1.0, 0.85, 0.1)})
 	if optic_marker: interactive_dots.append({"id": "optic", "mesh": optic_marker, "label": "🟢 Optic Scope Rail", "color": Color(0.2, 1.0, 0.4)})
 	if right_grip_marker: interactive_dots.append({"id": "right_grip", "mesh": right_grip_marker, "label": "🟠 Trigger-Hand Grip (moves gun in right hand)", "color": Color(1.0, 0.55, 0.08)})
-	if eye_sight_dot: interactive_dots.append({"id": "eye_sight", "mesh": eye_sight_dot, "label": "🔵 Eye Sight — drag yaw/pitch", "color": Color(0.25, 0.55, 1.0)})
+	if eye_sight_dot: interactive_dots.append({"id": "eye_sight", "mesh": eye_sight_dot, "label": "🔵 Gun Placement Line — drag yaw/pitch", "color": Color(0.25, 0.55, 1.0)})
 
 func _find_dot_under_mouse(screen_pos: Vector2) -> String:
 	if not cam: return ""
@@ -3394,9 +3396,9 @@ func _setup_trooper_and_rig() -> void:
 		right_hand_ik.stop()
 
 	eye_sight_marker = Marker3D.new()
-	eye_sight_marker.name = "EyeSightOrigin"
+	eye_sight_marker.name = "GunPlacementLineOrigin"
 	add_child(eye_sight_marker)
-	eye_sight_dot = _create_marker(Color(0.25, 0.55, 1.0), "EyeSightDot", 0.014)
+	eye_sight_dot = _create_marker(Color(0.25, 0.55, 1.0), "GunPlacementLineDot", 0.014)
 	eye_sight_marker.add_child(eye_sight_dot)
 	_update_eye_sight_marker()
 
@@ -3579,6 +3581,9 @@ func _gunsmith_live_aim_active() -> bool:
 
 func _update_live_aim_weapon_pose() -> void:
 	gunsmith_live_aim_rotation = Quaternion.IDENTITY
+	if _gun_placement_line_match_active():
+		_match_weapon_rail_to_blue_line()
+		return
 	if (
 		not _gunsmith_live_aim_active()
 		or weapon_root == null
@@ -3608,6 +3613,48 @@ func _update_live_aim_weapon_pose() -> void:
 		Basis(aim_delta) * weapon_root.global_basis.orthonormalized()
 	).orthonormalized().scaled(world_scale)
 	weapon_root.global_position += trigger_world - right_grip_marker.global_position
+
+
+func _gun_placement_line_match_active() -> bool:
+	return (
+		match_weapon_rail_to_blue_line
+		and show_eye_sight
+		and active_lab_tab_name == "Reticle & Fire"
+		and weapon_master_pose_initialized
+		and weapon_owner_state == WeaponOwnershipContract.OWNER_WEAPON_MASTER
+		and not action_weapon_follow_active
+		and not is_reloading
+		and not authoring_pointer_down
+		and dragged_dot_id == ""
+		and (animation_frame_editor == null or not animation_frame_editor.active)
+	)
+
+
+func _match_weapon_rail_to_blue_line() -> bool:
+	if (
+		weapon_root == null
+		or optic_marker == null
+		or barrel_base_marker == null
+		or muzzle_marker == null
+		or eye_sight_marker == null
+	):
+		return false
+	var current_direction := _barrel_direction_world()
+	var target_direction := _eye_sight_direction_world()
+	if current_direction.length_squared() < 0.50 or target_direction.length_squared() < 0.50:
+		return false
+	var aim_delta := Quaternion(current_direction, target_direction).normalized()
+	gunsmith_live_aim_rotation = aim_delta
+	var world_scale := weapon_root.global_basis.get_scale()
+	weapon_root.global_basis = (
+		Basis(aim_delta) * weapon_root.global_basis.orthonormalized()
+	).orthonormalized().scaled(world_scale)
+	# The optic is attached to the gun. Translate the whole weapon after the
+	# rotation so the saved rail point lands exactly on the blue line origin.
+	weapon_root.global_position += (
+		eye_sight_marker.global_position - optic_marker.global_position
+	)
+	return true
 
 
 func _update_visual_weapon_recoil(delta: float) -> void:
@@ -4084,6 +4131,7 @@ func _load_weapon(file_name: String) -> void:
 	ejection_local_pos = Vector3(0.05, 0.03, -0.10)
 	optic_local_pos = Vector3(0.0, 0.08, -0.18)
 
+	_reset_gun_placement_line_profile()
 	_try_load_saved_profile(weapon_name)
 	_setup_reload_magazine_proxy()
 
@@ -4122,6 +4170,7 @@ func _try_load_saved_profile(w_id: String) -> void:
 				var d: Dictionary = json.data
 				_loaded_weapon_profile = d.duplicate(true)
 				_load_operator_mount(_loaded_weapon_profile)
+				_load_gun_placement_line_profile(d.get("gun_placement_line", {}))
 				if d.get("animation_hand_maps", {}) is Dictionary:
 					animation_hand_maps = (d.get("animation_hand_maps", {}) as Dictionary).duplicate(true)
 				animation_frame_editor.load_data(d.get("animation_frame_pose_keys", {}))
@@ -4238,6 +4287,7 @@ func _try_load_saved_profile(w_id: String) -> void:
 				user_scale_multiplier = float(d.get("user_scale_multiplier", user_scale_multiplier))
 			file.close()
 	_refresh_fire_controls()
+	_sync_eye_sight_controls()
 
 
 func _reset_fire_profile_defaults() -> void:
@@ -4595,6 +4645,9 @@ func _fire_shot() -> void:
 	var interval := 60.0 / float(maxi(100, fire_rate_rpm))
 	fire_cooldown = interval
 	burst_shot_count += 1
+	# Start every fire clip from the authored weapon-placement line. Animation
+	# can add recoil afterward, but the initial rail-to-line relationship is exact.
+	_match_weapon_rail_to_blue_line()
 	_preview_fire_animation()
 	visual_recoil_pitch_deg = minf(
 		VISUAL_RECOIL_MAX_PITCH_DEG,
@@ -4829,6 +4882,7 @@ func _save_weapon_config() -> bool:
 		"animation_hand_maps": saved_animation_hands,
 		"animation_frame_pose_keys": animation_frame_editor.save_data(),
 		"handling_profile": handling_profile.duplicate(true),
+		"gun_placement_line": _gun_placement_line_save_data(),
 		"weapon_sockets": _weapon_sockets_save_data(),
 		"ballistics": {
 			"fire_rate_rpm": fire_rate_rpm,
@@ -5662,19 +5716,28 @@ func _build_studio_ui() -> void:
 	fire_vbox.add_child(aim_toggle)
 	var eye_toggle := CheckButton.new()
 	eye_toggle.name = "EyeSightToggle"
-	eye_toggle.text = "Blue — operator eye sight"
-	eye_toggle.tooltip_text = "Move the head-relative origin with X/Y/Z. Turn the independent sight direction with pitch/yaw. Use this reference to constrain the weapon rail and arm pose toward the shared reticle aim."
+	eye_toggle.text = "Blue — free gun placement line"
+	eye_toggle.tooltip_text = "This is an operator-local weapon placement reference. Move it with X/Y/Z and turn it with pitch/yaw. It does not move the head, body, camera, or shot direction."
 	eye_toggle.button_pressed = show_eye_sight
 	eye_toggle.toggled.connect(func(enabled: bool):
 		show_eye_sight = enabled
 		_update_eye_sight_marker()
 	)
 	fire_vbox.add_child(eye_toggle)
+	var rail_match_toggle := CheckButton.new()
+	rail_match_toggle.name = "GunPlacementRailMatchToggle"
+	rail_match_toggle.text = "Match weapon rail to blue line"
+	rail_match_toggle.tooltip_text = "In Reticle & Fire, place and rotate the whole weapon so its saved optic rail lands on the blue line. Hands follow the weapon sockets."
+	rail_match_toggle.button_pressed = match_weapon_rail_to_blue_line
+	rail_match_toggle.toggled.connect(func(enabled: bool):
+		match_weapon_rail_to_blue_line = enabled
+	)
+	fire_vbox.add_child(rail_match_toggle)
 	var eye_correction := _eye_sight_correction()
 	_add_slider(
 		fire_vbox,
 		"eye_sight_pitch",
-		"Eye Pitch (Up/Down)",
+		"Line Pitch (Up/Down)",
 		-24.0,
 		24.0,
 		eye_correction.x,
@@ -5683,7 +5746,7 @@ func _build_studio_ui() -> void:
 	_add_slider(
 		fire_vbox,
 		"eye_sight_yaw",
-		"Eye Yaw (Left/Right)",
+		"Line Yaw (Left/Right)",
 		-38.0,
 		38.0,
 		eye_correction.y,
@@ -5693,27 +5756,27 @@ func _build_studio_ui() -> void:
 	_add_slider(
 		fire_vbox,
 		"eye_origin_x",
-		"Eye X (Left/Right)",
-		-0.06,
-		0.06,
+		"Line X (Left/Right)",
+		-0.55,
+		0.55,
 		eye_origin_offset.x,
 		_set_eye_sight_origin_component.bind(&"x")
 	)
 	_add_slider(
 		fire_vbox,
 		"eye_origin_y",
-		"Eye Y (Up/Down)",
-		-0.06,
-		0.06,
+		"Line Y (Up/Down)",
+		-0.75,
+		0.25,
 		eye_origin_offset.y,
 		_set_eye_sight_origin_component.bind(&"y")
 	)
 	_add_slider(
 		fire_vbox,
 		"eye_origin_z",
-		"Eye Z (Front/Back)",
-		-0.06,
-		0.06,
+		"Line Z (Front/Back)",
+		-0.60,
+		0.60,
 		eye_origin_offset.z,
 		_set_eye_sight_origin_component.bind(&"z")
 	)
@@ -5723,8 +5786,8 @@ func _build_studio_ui() -> void:
 		)
 		eye_origin_slider.step = 0.001
 	var reset_eye_origin_button := Button.new()
-	reset_eye_origin_button.text = "Center Eye Origin"
-	reset_eye_origin_button.tooltip_text = "Return the eye point to the safe default on the front of the face."
+	reset_eye_origin_button.text = "Reset Gun Placement Line"
+	reset_eye_origin_button.tooltip_text = "Return the line to its neutral operator-local placement."
 	reset_eye_origin_button.pressed.connect(func():
 		if runtime_posture_layer != null:
 			runtime_posture_layer.set_eye_sight_origin_offset_meters(
@@ -6538,15 +6601,28 @@ func _update_eye_sight_marker() -> void:
 	# This imported operator faces local +Z. Using Godot's conventional -Z put
 	# the authored eye point on the back of the skull.
 	var operator_forward := skeleton.global_basis.z.normalized()
+	if not gun_placement_anchor_local_by_posture.has(preview_posture):
+		# Initialize near the face so the line is immediately useful, then keep
+		# it in operator-local space. Head animation must not drag this placement
+		# reference after it is created.
+		var initial_origin := (
+			head_origin
+			+ operator_up * EYE_ORIGIN_HEIGHT_METERS
+			+ operator_forward * EYE_ORIGIN_FORWARD_METERS
+		)
+		gun_placement_anchor_local_by_posture[preview_posture] = (
+			skeleton.to_local(initial_origin)
+		)
+	var neutral_origin := skeleton.to_global(
+		gun_placement_anchor_local_by_posture[preview_posture]
+	)
 	var origin_offset := _eye_sight_origin_offset()
-	# Keep the origin fixed between the eyes. Yaw and pitch rotate only the sight
-	# direction; they must never orbit the origin around or behind the skull.
+	# X/Y/Z place the line for the weapon. Yaw and pitch rotate only its
+	# direction. Neither operation changes the operator's animated head pose.
 	eye_sight_marker.global_position = (
-		head_origin
+		neutral_origin
 		+ operator_right * origin_offset.x
-		+ operator_up * EYE_ORIGIN_HEIGHT_METERS
 		+ operator_up * origin_offset.y
-		+ operator_forward * EYE_ORIGIN_FORWARD_METERS
 		+ operator_forward * origin_offset.z
 	)
 
@@ -6566,6 +6642,70 @@ func _eye_sight_origin_offset() -> Vector3:
 	return runtime_posture_layer.get_eye_sight_origin_offset_meters(
 		preview_posture
 	)
+
+
+func _reset_gun_placement_line_profile() -> void:
+	gun_placement_anchor_local_by_posture.clear()
+	if runtime_posture_layer == null:
+		return
+	for posture: StringName in [&"STANDING", &"CROUCHED", &"PRONE"]:
+		runtime_posture_layer.set_eye_sight_reference_degrees(posture, Vector2.ZERO)
+		runtime_posture_layer.set_eye_sight_origin_offset_meters(
+			posture,
+			Vector3.ZERO
+		)
+
+
+func _load_gun_placement_line_profile(raw_profile: Variant) -> void:
+	if runtime_posture_layer == null or not raw_profile is Dictionary:
+		return
+	var profile := raw_profile as Dictionary
+	var by_stance: Variant = profile.get("by_stance", {})
+	if not by_stance is Dictionary:
+		return
+	for posture: StringName in [&"STANDING", &"CROUCHED", &"PRONE"]:
+		var raw_stance: Variant = (by_stance as Dictionary).get(String(posture), {})
+		if not raw_stance is Dictionary:
+			continue
+		var stance := raw_stance as Dictionary
+		runtime_posture_layer.set_eye_sight_reference_degrees(
+			posture,
+			Vector2(
+				float(stance.get("pitch_degrees", 0.0)),
+				float(stance.get("yaw_degrees", 0.0))
+			)
+		)
+		runtime_posture_layer.set_eye_sight_origin_offset_meters(
+			posture,
+			_vector_from_data(
+				stance.get("position_offset_meters", {}),
+				Vector3.ZERO
+			)
+		)
+
+
+func _gun_placement_line_save_data() -> Dictionary:
+	var by_stance: Dictionary = {}
+	for posture: StringName in [&"STANDING", &"CROUCHED", &"PRONE"]:
+		var direction := (
+			runtime_posture_layer.get_eye_sight_reference_degrees(posture)
+			if runtime_posture_layer != null
+			else Vector2.ZERO
+		)
+		var position := (
+			runtime_posture_layer.get_eye_sight_origin_offset_meters(posture)
+			if runtime_posture_layer != null
+			else Vector3.ZERO
+		)
+		by_stance[String(posture)] = {
+			"position_offset_meters": _vector3_to_dictionary(position),
+			"pitch_degrees": direction.x,
+			"yaw_degrees": direction.y,
+		}
+	return {
+		"space": "operator_local_weapon_placement",
+		"by_stance": by_stance,
+	}
 
 
 func _eye_sight_direction_world() -> Vector3:

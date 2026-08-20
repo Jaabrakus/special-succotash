@@ -25,11 +25,11 @@ func _run() -> void:
 	var eye_marker := lab.get("eye_sight_marker") as Marker3D
 	var eye_toggle := lab.find_child("EyeSightToggle", true, false) as CheckButton
 	var sliders := lab.get("sliders_map") as Dictionary
-	_expect(int(lab.get("head_idx")) >= 0, "operator head bone supplies the eye reference")
-	_expect(eye_marker != null, "Gunsmith creates a derived eye-sight marker")
+	_expect(int(lab.get("head_idx")) >= 0, "operator head supplies the neutral line start")
+	_expect(eye_marker != null, "Gunsmith creates a free gun-placement line")
 	_expect(
 		eye_toggle != null and eye_toggle.button_pressed,
-		"eye-sight reference is visible and user-toggleable"
+		"gun-placement line is visible and user-toggleable"
 	)
 	_expect(
 		sliders.has("eye_sight_pitch")
@@ -37,7 +37,7 @@ func _run() -> void:
 		and sliders.has("eye_origin_x")
 		and sliders.has("eye_origin_y")
 		and sliders.has("eye_origin_z"),
-		"Gunsmith exposes direction and X/Y/Z eye-origin controls"
+		"Gunsmith exposes direction and X/Y/Z gun-placement controls"
 	)
 	var profile := ProceduralPoseProfile.new()
 	profile.set_eye_sight_origin_offset_meters(
@@ -60,9 +60,9 @@ func _run() -> void:
 	)
 	_expect(
 		profile.get_eye_sight_origin_offset_meters(&"CROUCHED").is_equal_approx(
-			Vector3(0.06, -0.06, 0.06)
+			Vector3(0.55, -0.75, 0.60)
 		),
-		"eye-origin authoring stays inside the head-sized safety box"
+		"gun-placement authoring stays inside the upper-body safety volume"
 	)
 	if eye_marker != null:
 		var skeleton := lab.get("skeleton") as Skeleton3D
@@ -75,7 +75,7 @@ func _run() -> void:
 		_expect(
 			eye_marker.global_position.is_finite()
 			and eye_marker.global_position.distance_to(head_origin) <= 0.20,
-			"eye-sight origin stays attached to the animated head"
+			"the free line initializes at a useful face-adjacent position"
 		)
 		var operator_forward := skeleton.global_basis.z.normalized()
 		var operator_up := skeleton.global_basis.y.normalized()
@@ -83,8 +83,23 @@ func _run() -> void:
 		_expect(
 			face_offset.dot(operator_forward) >= 0.125
 			and face_offset.dot(operator_up) >= 0.085,
-			"eye-sight origin sits on the front of the face instead of behind the head"
+			"the neutral gun-placement line starts in front of the face"
 		)
+		var fixed_line_origin := eye_marker.global_position
+		var head_pose_position := skeleton.get_bone_pose_position(head_index)
+		skeleton.set_bone_pose_position(
+			head_index,
+			head_pose_position + Vector3(0.0, 0.04, 0.0)
+		)
+		skeleton.force_update_all_bone_transforms()
+		lab.call("_update_eye_sight_marker")
+		_expect(
+			eye_marker.global_position.distance_to(fixed_line_origin) <= 0.0001,
+			"head animation cannot drag the free gun-placement line"
+		)
+		skeleton.set_bone_pose_position(head_index, head_pose_position)
+		skeleton.force_update_all_bone_transforms()
+		lab.call("_update_eye_sight_marker")
 
 	var posture_layer = lab.get("runtime_posture_layer")
 	var original_head_rotation: Vector3 = posture_layer.call(
@@ -111,7 +126,16 @@ func _run() -> void:
 		eye_marker.global_position.is_equal_approx(
 			original_eye_origin + expected_origin_delta
 		),
-		"X/Y/Z values move the eye origin in head-relative axes"
+		"X/Y/Z values move the line in operator-relative axes"
+	)
+	var saved_line_profile: Dictionary = lab.call("_gun_placement_line_save_data")
+	var saved_standing_line: Dictionary = saved_line_profile["by_stance"]["STANDING"]
+	var saved_standing_position: Dictionary = saved_standing_line["position_offset_meters"]
+	_expect(
+		is_equal_approx(float(saved_standing_position["x"]), 0.03)
+		and is_equal_approx(float(saved_standing_position["y"]), 0.02)
+		and is_equal_approx(float(saved_standing_position["z"]), -0.015),
+		"weapon profile save data retains the stance-specific line placement"
 	)
 	posture_layer.call(
 		"set_eye_sight_origin_offset_meters",
@@ -197,7 +221,7 @@ func _run() -> void:
 	)
 	_expect(
 		head_rotation_after_drag.is_equal_approx(original_head_rotation),
-		"dragging the eye reference never rotates the head bone"
+		"dragging the gun-placement line never rotates the head bone"
 	)
 	posture_layer.call(
 		"set_eye_sight_reference_degrees",
@@ -208,6 +232,26 @@ func _run() -> void:
 		"set_eye_sight_origin_offset_meters",
 		lab.get("preview_posture"),
 		original_eye_origin_offset
+	)
+	lab.call("_update_eye_sight_marker")
+	var rail_match_toggle := lab.find_child(
+		"GunPlacementRailMatchToggle",
+		true,
+		false
+	) as CheckButton
+	_expect(
+		rail_match_toggle != null and rail_match_toggle.button_pressed,
+		"Reticle & Fire enables rail-to-blue-line matching"
+	)
+	var matched := bool(lab.call("_match_weapon_rail_to_blue_line"))
+	var optic_marker := lab.get("optic_marker") as MeshInstance3D
+	var barrel_direction: Vector3 = lab.call("_barrel_direction_world")
+	var placement_direction: Vector3 = lab.call("_eye_sight_direction_world")
+	_expect(
+		matched
+		and optic_marker.global_position.distance_to(eye_marker.global_position) <= 0.001
+		and rad_to_deg(barrel_direction.angle_to(placement_direction)) <= 0.10,
+		"rail matching places the attached optic on the blue line and aligns the gun"
 	)
 
 	lab.set("show_bullet_velocity", false)

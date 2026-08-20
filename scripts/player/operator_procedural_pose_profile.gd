@@ -171,12 +171,12 @@ func get_eye_sight_origin_offset_meters(posture: StringName) -> Vector3:
 func set_eye_sight_origin_offset_meters(posture: StringName, value: Vector3) -> void:
 	if posture not in SUPPORTED_POSTURES:
 		return
-	# Keep the reference inside a compact head-sized volume. Z is an additive
-	# forward/back offset from the default point on the front of the face.
+	# The free gun-placement line can move through the operator's upper-body
+	# composition volume, but it cannot escape into unrelated world space.
 	eye_sight_origin_offsets[posture] = Vector3(
-		clampf(value.x, -0.06, 0.06),
-		clampf(value.y, -0.06, 0.06),
-		clampf(value.z, -0.06, 0.06)
+		clampf(value.x, -0.55, 0.55),
+		clampf(value.y, -0.75, 0.25),
+		clampf(value.z, -0.60, 0.60)
 	)
 
 

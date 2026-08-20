@@ -68,7 +68,7 @@ static func normalize_config(raw: Dictionary, config_path: String = "") -> Dicti
 		config["model_rotation_degrees"] = {}
 	for dictionary_field in [
 		"support_hand_pose", "stances", "animation_hand_maps",
-		"animation_frame_pose_keys", "handling_profile",
+		"animation_frame_pose_keys", "handling_profile", "gun_placement_line",
 	]:
 		if not config.get(dictionary_field, {}) is Dictionary:
 			config[dictionary_field] = {}
@@ -94,6 +94,28 @@ static func normalize_config(raw: Dictionary, config_path: String = "") -> Dicti
 	if not sockets.has("optic_rail"):
 		sockets["optic_rail"] = vector3_to_map(Vector3.ZERO)
 	config["weapon_sockets"] = sockets
+
+	var placement_line := (config.get("gun_placement_line", {}) as Dictionary).duplicate(true)
+	placement_line["space"] = "operator_local_weapon_placement"
+	var placement_by_stance: Dictionary = (
+		(placement_line.get("by_stance", {}) as Dictionary).duplicate(true)
+		if placement_line.get("by_stance", {}) is Dictionary
+		else {}
+	)
+	for posture in ["STANDING", "CROUCHED", "PRONE"]:
+		var stance: Dictionary = (
+			(placement_by_stance.get(posture, {}) as Dictionary).duplicate(true)
+			if placement_by_stance.get(posture, {}) is Dictionary
+			else {}
+		)
+		stance["position_offset_meters"] = vector3_to_map(
+			vector3_from_map(stance.get("position_offset_meters", {}), Vector3.ZERO)
+		)
+		stance["pitch_degrees"] = float(stance.get("pitch_degrees", 0.0))
+		stance["yaw_degrees"] = float(stance.get("yaw_degrees", 0.0))
+		placement_by_stance[posture] = stance
+	placement_line["by_stance"] = placement_by_stance
+	config["gun_placement_line"] = placement_line
 
 	var ballistics: Dictionary = (
 		(config.get("ballistics", {}) as Dictionary).duplicate(true)
