@@ -73,12 +73,12 @@ extends Resource
 @export var downward_max_framing_height_correction: float = 1.50
 @export var aim_distance: float = 250.0
 @export_group("Ballistic Convergence")
-## The reticle may acquire a nearby wall, but the rifle uses a long combat zero
-## instead of bending sharply upward into a point beside the camera. The arms
-## still follow the solved barrel direction, while close shots retain honest
-## third-person parallax below/aside the reticle.
-@export var minimum_ballistic_convergence_distance: float = 45.0
-@export_range(0.5, 15.0, 0.25) var maximum_convergence_angle_deg: float = 2.0
+## Preserve honest muzzle parallax at contact distance, then let the projectile
+## meet a target acquired by the reticle at normal playable-range distances.
+## The former 45 m / 2 degree zero visibly crossed after the range targets and
+## made correctly aimed shots land low.
+@export var minimum_ballistic_convergence_distance: float = 12.0
+@export_range(0.5, 15.0, 0.25) var maximum_convergence_angle_deg: float = 6.0
 
 @export_group("Screen-space Framing")
 @export_range(0.0, 1.0, 0.001) var desired_head_x: float = 0.50

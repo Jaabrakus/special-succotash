@@ -865,6 +865,8 @@ func _build_camera_workbench(layer: CanvasLayer) -> void:
     _add_workbench_slider(tuning_stack, "Open height", &"height", 0.8, 3.5, 0.05)
     _add_workbench_slider(tuning_stack, "Vertical FOV", &"vertical_fov", 45.0, 80.0, 0.5)
     _add_workbench_slider(tuning_stack, "Head screen Y", &"desired_head_y", 0.55, 0.90, 0.005)
+    _add_workbench_slider(tuning_stack, "Bullet zero distance", &"minimum_ballistic_convergence_distance", 6.0, 60.0, 0.5)
+    _add_workbench_slider(tuning_stack, "Max zero angle", &"maximum_convergence_angle_deg", 1.0, 12.0, 0.25)
     _add_workbench_slider(tuning_stack, "Wall lens radius", &"camera_collision_radius", 0.09, 0.24, 0.005)
     _add_workbench_slider(tuning_stack, "Wall linear speed", &"wall_branch_max_linear_speed", 2.0, 15.0, 0.25)
     _add_workbench_slider(tuning_stack, "Wall angular speed", &"wall_branch_max_angular_speed_deg", 35.0, 240.0, 5.0)
