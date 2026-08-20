@@ -15,6 +15,9 @@ const SAVED_STATE_PATHS := {
 	"animation_audio": "res://config/audio_animation_events.json",
 	"surface_audio": "res://config/surface_audio_profiles.json",
 }
+const OPTIONAL_STATE_PATHS := {
+	"map": "res://config/maps/current_map.json",
+}
 
 var active_bundle: Dictionary = {}
 var last_errors: Array[String] = []
@@ -31,6 +34,10 @@ func collect_saved_state() -> Dictionary:
 			states,
 			sources
 		)
+	for state_id: String in OPTIONAL_STATE_PATHS:
+		var optional_path := String(OPTIONAL_STATE_PATHS[state_id])
+		if FileAccess.file_exists(optional_path):
+			_collect_dictionary(state_id, optional_path, states, sources)
 
 	var loadout: Dictionary = states.get("operator_loadout", {})
 	var weapon_path := String(loadout.get("rig_config", ""))

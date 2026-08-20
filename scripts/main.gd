@@ -20,6 +20,10 @@ const TacticalFlashbangScript := preload("res://scripts/tactical/flashbang_grena
 const TacticalFragGrenadeScript := preload("res://scripts/tactical/frag_grenade.gd")
 const PlaytestStateCollectorScript := preload("res://scripts/runtime/playtest_state_collector.gd")
 const KeyboardMappingProfile := preload("res://scripts/input/socom_keyboard_mapping_profile.gd")
+const MapDocument := preload("res://scripts/maps/socom_map_document.gd")
+const MapRuntime := preload("res://scripts/maps/socom_map_runtime.gd")
+const MapAmbience := preload("res://scripts/maps/socom_map_ambience_engine.gd")
+const MapAudioAmbience := preload("res://scripts/maps/socom_map_audio_ambience.gd")
 const RETICLE_BOX_SIZE := Vector2(32.0, 32.0)
 const OPERATOR_TUNING_PATH := "res://config/operator_movement_tuning.json"
 
@@ -61,6 +65,8 @@ var target_range_active: bool = true
 var tactical_screen_effects: CanvasLayer
 var tactical_grenade_thrower: Node
 var selected_grenade_type: int = 0
+var active_map_document: Dictionary = {}
+var map_audio_ambience: Node
 
 const REFERENCE_FRAME_PATH := "res://reference/reference_frame.png"
 const ENVIRONMENT_SHADER := """
@@ -469,6 +475,11 @@ func _request_weapon_reload() -> bool:
 
 
 func _build_environment() -> void:
+    active_map_document = MapDocument.load_active()
+    if not active_map_document.is_empty() and bool(active_map_document.get("enabled", true)):
+        MapAmbience.build_into(self, active_map_document)
+        MapRuntime.build_into(self, active_map_document)
+        return
     var world_env := WorldEnvironment.new()
     var env := Environment.new()
     env.background_mode = Environment.BG_COLOR
@@ -533,9 +544,11 @@ func _set_target_range_active(enabled: bool) -> void:
     target_dummies.clear()
 
 func _build_player() -> void:
+    if not active_map_document.is_empty():
+        target_range_active = false
     player = PlayerScript.new()
     player.name = "Player"
-    player.position = Vector3(0, 0.05, 0.5)
+    player.position = MapDocument.player_spawn(active_map_document, Vector3(0, 0.05, 0.5))
     add_child(player)
 
     var collider := CollisionShape3D.new()
@@ -552,6 +565,11 @@ func _build_player() -> void:
     player.add_child(mannequin)
     if target_range_active:
         _spawn_target_range()
+    if not active_map_document.is_empty():
+        map_audio_ambience = MapAudioAmbience.new()
+        map_audio_ambience.name = "MapAudioAmbience"
+        add_child(map_audio_ambience)
+        map_audio_ambience.call("configure", active_map_document, player)
 
 func _set_roof_test_position(enabled: bool) -> void:
     player.velocity = Vector3.ZERO

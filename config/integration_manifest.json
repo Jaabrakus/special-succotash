@@ -140,6 +140,22 @@
         "res://scripts/network/socom_multiplayer_slice.gd",
         "res://scripts/player/player_controller.gd"
       ]
+    },
+    {
+      "id": "map_creation",
+      "label": "Map Creation + Atmosphere Lab",
+      "scene": "res://map_creation_lab.tscn",
+      "controller": "res://scripts/labs/map_creation_lab.gd",
+      "shared_contracts": [
+        "res://scripts/maps/socom_map_document.gd",
+        "res://scripts/maps/socom_map_command_service.gd",
+        "res://scripts/maps/socom_map_runtime.gd",
+        "res://scripts/maps/socom_map_ambience_engine.gd",
+        "res://scripts/maps/socom_map_audio_ambience.gd",
+        "res://scripts/maps/socom_map_gameplay_contract.gd",
+        "res://scripts/runtime/playtest_state_collector.gd",
+        "res://scripts/main.gd"
+      ]
     }
   ],
   "authority_contracts": [
@@ -184,6 +200,7 @@
       "res://tools/mobility_regression.gd",
       "res://tools/gun_lab_animation_catalog_regression.gd",
       "res://tools/keyboard_mapping_lab_regression.gd",
+      "res://tools/map_creation_lab_regression.gd",
       "res://tools/weapon_rig_integration_regression.gd",
       "res://tools/operator_composure_regression.gd",
       "res://tools/prone_grounding_regression.gd",

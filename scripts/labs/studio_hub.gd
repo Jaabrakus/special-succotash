@@ -37,6 +37,8 @@ func _unhandled_key_input(event: InputEvent) -> void:
 			_open_lab(&"apple_mocap")
 		KEY_8:
 			_open_lab(&"keyboard_mapping")
+		KEY_9:
+			_open_lab(&"map_creation")
 		KEY_ESCAPE:
 			get_tree().quit()
 
@@ -52,18 +54,18 @@ func _build_interface() -> void:
 	add_child(center)
 
 	var panel := PanelContainer.new()
-	panel.custom_minimum_size = Vector2(680, 640)
+	panel.custom_minimum_size = Vector2(680, 690)
 	center.add_child(panel)
 
 	var margin := MarginContainer.new()
 	margin.add_theme_constant_override("margin_left", 42)
 	margin.add_theme_constant_override("margin_right", 42)
-	margin.add_theme_constant_override("margin_top", 34)
-	margin.add_theme_constant_override("margin_bottom", 34)
+	margin.add_theme_constant_override("margin_top", 22)
+	margin.add_theme_constant_override("margin_bottom", 22)
 	panel.add_child(margin)
 
 	var column := VBoxContainer.new()
-	column.add_theme_constant_override("separation", 10)
+	column.add_theme_constant_override("separation", 7)
 	margin.add_child(column)
 
 	var title := Label.new()
@@ -89,6 +91,7 @@ func _build_interface() -> void:
 	_add_lab_button(column, "6  Tactical Grenade Lab", &"tactical_grenades", Color("d7e879"))
 	_add_lab_button(column, "7  Apple Video Mocap Intake", &"apple_mocap", Color("86e4b4"))
 	_add_lab_button(column, "8  Keyboard Mapping Lab", &"keyboard_mapping", Color("79d8f2"))
+	_add_lab_button(column, "9  Map Creation + Atmosphere Lab", &"map_creation", Color("8fe6b0"))
 
 	column.add_child(HSeparator.new())
 	status_label = Label.new()
@@ -109,7 +112,7 @@ func _build_interface() -> void:
 func _add_lab_button(parent: VBoxContainer, text: String, lab_id: StringName, color: Color) -> void:
 	var button := Button.new()
 	button.text = text
-	button.custom_minimum_size.y = 50
+	button.custom_minimum_size.y = 44
 	button.add_theme_font_size_override("font_size", 19)
 	button.add_theme_color_override("font_color", color)
 	button.pressed.connect(_open_lab.bind(lab_id))
