@@ -101,6 +101,7 @@ func _run() -> void:
 	_expect(
 		bool(lab.get("authoring_pointer_down"))
 		and not bool(lab.get("mouse_fire_armed"))
+		and not bool(lab.get("fire_input_held"))
 		and String(lab.get("dragged_dot_id")) == "muzzle",
 		"the red muzzle marker owns the press and never arms mouse fire"
 	)
@@ -343,6 +344,59 @@ func _run() -> void:
 		(lab.get("grip_offset_pos") as Vector3).is_equal_approx(fixed_weapon_mount),
 		"animation hand maps preserve the one weapon-level mount"
 	)
+
+	var standing_reload_frames := lab.find_child(
+		"AnimationFrames_reload_standing",
+		true,
+		false
+	) as Button
+	_expect(
+		standing_reload_frames != null,
+		"each mapped action exposes one direct Frames button"
+	)
+	if standing_reload_frames != null:
+		standing_reload_frames.pressed.emit()
+		await process_frame
+	var standing_reload_clip := StringName(
+		(lab.get("handling_profile") as Dictionary).get("animation_slots", {}).get(
+			"reload_standing",
+			""
+		)
+	)
+	_expect(
+		attached_frame_editor != null
+		and bool(attached_frame_editor.get("active"))
+		and not bool(attached_frame_editor.get("playing"))
+		and String(attached_frame_editor.get("slot_name")) == "reload_standing"
+		and StringName(attached_frame_editor.get("clip_name")) == standing_reload_clip
+		and int(attached_frame_editor.call("frame_index")) == 0,
+		"the action button opens its exact lifecycle paused at frame zero"
+	)
+	_expect(
+		lab.find_child("AnimationFrameLifecycle", true, false) != null
+		and lab.find_child("SetAnimationCorrectionKey", true, false) != null
+		and lab.find_child("SaveApplyAnimationRig", true, false) != null,
+		"the selected action exposes its frame ruler, correction key, and save/apply control"
+	)
+	lab.call("_toggle_animation_frame_editor_playback")
+	await process_frame
+	var editing_muzzle_screen := camera.unproject_position(muzzle_marker.global_position)
+	var editing_muzzle_press := InputEventMouseButton.new()
+	editing_muzzle_press.button_index = MOUSE_BUTTON_LEFT
+	editing_muzzle_press.pressed = true
+	editing_muzzle_press.position = editing_muzzle_screen
+	lab.call("_input", editing_muzzle_press)
+	_expect(
+		not bool(attached_frame_editor.get("playing"))
+		and not bool(lab.get("fire_input_held"))
+		and String(lab.get("dragged_dot_id")) == "muzzle",
+		"grabbing a rig control pauses the lifecycle on the visible frame without firing"
+	)
+	var editing_muzzle_release := InputEventMouseButton.new()
+	editing_muzzle_release.button_index = MOUSE_BUTTON_LEFT
+	editing_muzzle_release.pressed = false
+	editing_muzzle_release.position = editing_muzzle_screen
+	lab.call("_input", editing_muzzle_release)
 
 	lab.queue_free()
 	await process_frame

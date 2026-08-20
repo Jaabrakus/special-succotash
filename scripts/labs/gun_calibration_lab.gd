@@ -453,6 +453,8 @@ func _input(event: InputEvent) -> void:
 				var hit_dot := _find_dot_under_mouse(mb.position)
 				if hit_dot != "":
 					authoring_pointer_down = true
+					fire_input_held = false
+					_pause_animation_frame_editor_for_authoring()
 					if hit_dot.begins_with("body_joint:"):
 						_select_body_joint(StringName(hit_dot.trim_prefix("body_joint:")))
 					elif hit_dot == "left_ik":
@@ -580,7 +582,13 @@ func _process(delta: float) -> void:
 			mouse_fire_armed
 			and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
 		)
-	) and not is_orbiting and not is_panning and not is_reloading
+	) and (
+		not is_orbiting
+		and not is_panning
+		and not is_reloading
+		and not authoring_pointer_down
+		and dragged_dot_id == ""
+	)
 	_update_bloom_recovery(delta, fire_input_held)
 	composure.advance(
 		delta,
@@ -990,16 +998,12 @@ func _build_handling_animation_ui(parent: VBoxContainer) -> void:
 		row.add_child(selector)
 		animation_slot_selectors[slot_name] = selector
 
-		var preview_button := Button.new()
-		preview_button.text = "▶"
-		preview_button.tooltip_text = "Preview this clip on the operator"
-		preview_button.pressed.connect(_preview_animation_slot.bind(slot_name))
-		row.add_child(preview_button)
-		var edit_button := Button.new()
-		edit_button.text = "✎"
-		edit_button.tooltip_text = "Pause this state and edit additive pose keys frame by frame"
-		edit_button.pressed.connect(_edit_animation_slot.bind(slot_name))
-		row.add_child(edit_button)
+		var frames_button := Button.new()
+		frames_button.name = "AnimationFrames_%s" % slot_name
+		frames_button.text = "✎ Frames"
+		frames_button.tooltip_text = "Open this exact action at frame 0, then step, play, and save additive rig corrections"
+		frames_button.pressed.connect(_edit_animation_slot.bind(slot_name))
+		row.add_child(frames_button)
 
 	animation_mapping_status = Label.new()
 	animation_mapping_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -1022,16 +1026,12 @@ func _build_handling_animation_ui(parent: VBoxContainer) -> void:
 			String(entry.get("key", ""))
 		)
 	all_clips_row.add_child(all_animation_select)
-	var preview_any_button := Button.new()
-	preview_any_button.text = "▶ Inspect"
-	preview_any_button.tooltip_text = "Play this raw animation with the gun carried by the animated right hand."
-	preview_any_button.pressed.connect(_preview_selected_catalog_animation)
-	all_clips_row.add_child(preview_any_button)
-	var edit_any_button := Button.new()
-	edit_any_button.text = "✎ Edit"
-	edit_any_button.tooltip_text = "Open this raw clip in the frame pose editor"
-	edit_any_button.pressed.connect(_edit_selected_catalog_animation)
-	all_clips_row.add_child(edit_any_button)
+	var open_frames_button := Button.new()
+	open_frames_button.name = "OpenCatalogAnimationFrames"
+	open_frames_button.text = "✎ Open Frames"
+	open_frames_button.tooltip_text = "Open this raw clip at frame 0 in the frame pose editor"
+	open_frames_button.pressed.connect(_edit_selected_catalog_animation)
+	all_clips_row.add_child(open_frames_button)
 	var save_clip_hands_button := Button.new()
 	save_clip_hands_button.text = "💾 Map Both Hands to This Clip"
 	save_clip_hands_button.tooltip_text = "Store the trigger-hand grip, support-hand grip, weapon mount, wrist pose, and finger pose for this exact imported animation. Ctrl/Cmd+S writes every map into the weapon profile."
@@ -1076,12 +1076,12 @@ func _build_animation_frame_editor_ui(parent: VBoxContainer) -> void:
 	title.add_theme_color_override("font_color", Color(0.35, 0.9, 1.0))
 	parent.add_child(title)
 	animation_frame_editor_title = Label.new()
-	animation_frame_editor_title.text = "Select ✎ beside an animation state."
+	animation_frame_editor_title.text = "Select Frames beside an animation state."
 	animation_frame_editor_title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	animation_frame_editor_title.add_theme_font_size_override("font_size", 10)
 	parent.add_child(animation_frame_editor_title)
 	var help := Label.new()
-	help.text = "Fire or click ✎ to attach a clip to the frame ruler. A correction key holds until another key blends it toward a new pose. The source FBX is unchanged."
+	help.text = "Click Frames for an action to open its complete lifecycle at frame 0. Step or play, adjust the rig, set correction keys, then save the weapon profile. The source FBX is unchanged."
 	help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	help.add_theme_font_size_override("font_size", 10)
 	parent.add_child(help)
@@ -1113,6 +1113,7 @@ func _build_animation_frame_timeline_overlay() -> void:
 	animation_frame_readout.add_theme_font_size_override("font_size", 11)
 	container.add_child(animation_frame_readout)
 	animation_frame_timeline = GunsmithFrameTimelineScript.new()
+	animation_frame_timeline.name = "AnimationFrameLifecycle"
 	animation_frame_timeline.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	animation_frame_timeline.frame_scrubbed.connect(_seek_animation_frame_index)
 	container.add_child(animation_frame_timeline)
@@ -1140,11 +1141,19 @@ func _build_animation_frame_timeline_overlay() -> void:
 	controls.add_child(next_button)
 	animation_frame_edit_controls.append(next_button)
 	var capture_button := Button.new()
+	capture_button.name = "SetAnimationCorrectionKey"
 	capture_button.text = "◆ Set Correction Key"
 	capture_button.tooltip_text = "Save the current correction here. It holds forward and blends toward the next key."
 	capture_button.pressed.connect(_capture_animation_frame_pose_key)
 	controls.add_child(capture_button)
 	animation_frame_edit_controls.append(capture_button)
+	var save_apply_button := Button.new()
+	save_apply_button.name = "SaveApplyAnimationRig"
+	save_apply_button.text = "💾 Save + Apply Rig"
+	save_apply_button.tooltip_text = "Capture this frame key, save the weapon profile, and equip the corrections on the gameplay rig"
+	save_apply_button.pressed.connect(_save_weapon_config)
+	controls.add_child(save_apply_button)
+	animation_frame_edit_controls.append(save_apply_button)
 	_refresh_animation_frame_editor_ui()
 
 
@@ -1312,13 +1321,7 @@ func _toggle_current_animation_frame_editor() -> void:
 		# This button is an edit command, not a close command. A shot can attach
 		# its fire reaction while it plays. Pressing Edit must pause that exact
 		# reaction at the visible frame and keep its context intact.
-		animation_frame_editor.playing = false
-		if animation_player:
-			animation_player.pause()
-			animation_frame_editor.set_time(animation_player.current_animation_position)
-		animation_frame_last_applied = -1
-		_apply_animation_frame_pose_for_current_time()
-		_refresh_animation_frame_editor_ui()
+		_pause_animation_frame_editor_for_authoring()
 		if hud_status:
 			hud_status.text = "✎ Editing %s at frame %d." % [
 				animation_frame_editor.clip_name,
@@ -1340,6 +1343,18 @@ func _toggle_current_animation_frame_editor() -> void:
 	_enter_animation_frame_editor(slot_name, clip_name)
 
 
+func _pause_animation_frame_editor_for_authoring() -> void:
+	if not animation_frame_editor.active or not animation_frame_editor.playing:
+		return
+	animation_frame_editor.playing = false
+	if animation_player:
+		animation_player.pause()
+		animation_frame_editor.set_time(animation_player.current_animation_position)
+	animation_frame_last_applied = -1
+	_apply_animation_frame_pose_for_current_time()
+	_refresh_animation_frame_editor_ui()
+
+
 func _set_animation_edit_candidate(slot_name: String, clip_name: StringName) -> void:
 	if clip_name == &"" or clip_name == &"RESET":
 		return
@@ -1354,6 +1369,9 @@ func _enter_animation_frame_editor(slot_name: String, clip_name: StringName) -> 
 			hud_status.text = "⚠ Map an animation before opening its frame editor."
 		return
 	animation_preview_token += 1
+	mouse_fire_armed = false
+	fire_input_held = false
+	authoring_pointer_down = false
 	_set_animation_edit_candidate(slot_name, clip_name)
 	selected_animation_key = clip_name
 	_apply_animation_hand_map(clip_name)
@@ -1389,6 +1407,12 @@ func _toggle_animation_frame_editor_playback() -> void:
 		return
 	animation_frame_editor.playing = not animation_frame_editor.playing
 	if animation_frame_editor.playing:
+		if (
+			animation_frame_editor.duration_seconds > 0.0
+			and animation_frame_editor.time_seconds
+			>= animation_frame_editor.duration_seconds - (0.5 / animation_frame_editor.fps)
+		):
+			animation_frame_editor.set_time(0.0)
 		animation_player.play(animation_frame_editor.clip_name, 0.0)
 		animation_player.seek(animation_frame_editor.time_seconds, true)
 	else:
@@ -1439,7 +1463,11 @@ func _update_animation_frame_editor() -> void:
 	if not animation_frame_editor.active or animation_player == null:
 		return
 	if animation_frame_editor.playing:
-		animation_frame_editor.set_time(animation_player.current_animation_position)
+		if animation_player.is_playing():
+			animation_frame_editor.set_time(animation_player.current_animation_position)
+		else:
+			animation_frame_editor.playing = false
+			animation_frame_editor.set_time(animation_frame_editor.duration_seconds)
 	_apply_animation_frame_pose_for_current_time()
 	_refresh_animation_frame_editor_ui()
 
@@ -1451,7 +1479,7 @@ func _refresh_animation_frame_editor_ui() -> void:
 		animation_frame_editor_title.text = (
 			"Editing %s → %s" % [animation_frame_editor.slot_name, animation_frame_editor.clip_name]
 			if animation_frame_editor.active
-			else "Select ✎ beside an animation state."
+			else "Select Frames beside an animation state."
 		)
 	if animation_frame_play_button:
 		animation_frame_play_button.text = "⏸ Pause" if animation_frame_editor.playing else "▶ Play"

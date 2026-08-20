@@ -43,11 +43,14 @@ func _draw() -> void:
 	var bounds := Rect2(6.0, 8.0, maxf(size.x - 12.0, 1.0), maxf(size.y - 16.0, 1.0))
 	draw_rect(bounds, Color(0.025, 0.045, 0.060, 0.96), true)
 	draw_rect(bounds, Color(0.15, 0.75, 0.92, 0.75), false, 2.0)
-	var tick_count := mini(total_frames, 60)
+	# Short and medium clips expose one ruler tick per authored frame. Very long
+	# clips cap the visual density while scrubbing still addresses every frame.
+	var tick_count := mini(total_frames, 120)
 	for tick in range(tick_count + 1):
 		var ratio := float(tick) / float(maxi(tick_count, 1))
+		var represented_frame := int(round(ratio * float(total_frames)))
 		var x_position := bounds.position.x + ratio * bounds.size.x
-		var major := tick % 5 == 0
+		var major := represented_frame % 5 == 0
 		draw_line(
 			Vector2(x_position, bounds.end.y - (18.0 if major else 10.0)),
 			Vector2(x_position, bounds.end.y),
