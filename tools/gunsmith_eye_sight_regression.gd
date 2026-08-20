@@ -44,7 +44,7 @@ func _run() -> void:
 			and eye_marker.global_position.distance_to(head_origin) <= 0.20,
 			"eye-sight origin stays attached to the animated head"
 		)
-		var operator_forward := -skeleton.global_basis.z.normalized()
+		var operator_forward := skeleton.global_basis.z.normalized()
 		var operator_up := skeleton.global_basis.y.normalized()
 		var face_offset := eye_marker.global_position - head_origin
 		_expect(
@@ -67,7 +67,7 @@ func _run() -> void:
 	)
 	var straight_direction: Vector3 = lab.call("_eye_sight_direction_world")
 	var skeleton := lab.get("skeleton") as Skeleton3D
-	var operator_forward := -skeleton.global_basis.z.normalized()
+	var operator_forward := skeleton.global_basis.z.normalized()
 	_expect(
 		rad_to_deg(straight_direction.angle_to(operator_forward)) <= 0.05,
 		"zero eye correction points straight and parallel to operator forward"
@@ -93,7 +93,7 @@ func _run() -> void:
 	var camera := lab.get("cam") as Camera3D
 	var eye_origin_screen := camera.unproject_position(eye_marker.global_position)
 	var eye_end_screen := camera.unproject_position(
-		eye_marker.global_position + lab.call("_eye_sight_direction_world") * 5.0
+		eye_marker.global_position + lab.call("_eye_sight_direction_world") * 0.5
 	)
 	var eye_line_pick := eye_origin_screen.lerp(eye_end_screen, 0.35)
 	_expect(

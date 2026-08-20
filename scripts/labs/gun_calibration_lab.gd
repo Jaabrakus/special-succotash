@@ -33,6 +33,7 @@ const BULLET_VELOCITY_PREVIEW_SECONDS := 0.004
 const MIN_BARREL_AXIS_LENGTH_METERS := 0.02
 const EYE_ORIGIN_FORWARD_METERS := 0.13
 const EYE_ORIGIN_HEIGHT_METERS := 0.09
+const EYE_SIGHT_PICK_LENGTH_METERS := 0.5
 const TUNABLE_BODY_JOINTS := JointControlSchema.SELECTABLE_JOINTS
 
 # A selected joint keeps full control. Small linked rotations continue through
@@ -2704,7 +2705,13 @@ func _find_dot_under_mouse(screen_pos: Vector2) -> String:
 	# crossing the rifle can never steal a muzzle or optic selection.
 	if eye_sight_marker != null and eye_sight_marker.is_visible_in_tree():
 		var eye_origin := eye_sight_marker.global_position
-		var eye_pick_end := eye_origin + _eye_sight_direction_world() * 5.0
+		# Keep the pick segment close to the face. The sight direction can point
+		# toward the editor camera, so a long endpoint can cross behind the camera
+		# and make the otherwise-visible blue handle impossible to select.
+		var eye_pick_end := (
+			eye_origin
+			+ _eye_sight_direction_world() * EYE_SIGHT_PICK_LENGTH_METERS
+		)
 		if not cam.is_position_behind(eye_origin) and not cam.is_position_behind(eye_pick_end):
 			var eye_line_distance := _screen_point_segment_distance(
 				screen_pos,
@@ -6481,7 +6488,9 @@ func _update_eye_sight_marker() -> void:
 		return
 	var head_origin := _bone_world_origin(head_idx)
 	var operator_up := skeleton.global_basis.y.normalized()
-	var operator_forward := -skeleton.global_basis.z.normalized()
+	# This imported operator faces local +Z. Using Godot's conventional -Z put
+	# the authored eye point on the back of the skull.
+	var operator_forward := skeleton.global_basis.z.normalized()
 	# Keep the origin fixed between the eyes. Yaw and pitch rotate only the sight
 	# direction; they must never orbit the origin around or behind the skull.
 	eye_sight_marker.global_position = (
@@ -6504,7 +6513,7 @@ func _eye_sight_direction_world() -> Vector3:
 	if skeleton == null:
 		return Vector3.FORWARD
 	var operator_up := skeleton.global_basis.y.normalized()
-	var operator_forward := -skeleton.global_basis.z.normalized()
+	var operator_forward := skeleton.global_basis.z.normalized()
 	var correction := _eye_sight_correction()
 	var yaw_rotation := Quaternion(operator_up, deg_to_rad(correction.y))
 	var yawed_forward := (yaw_rotation * operator_forward).normalized()
