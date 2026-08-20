@@ -58,12 +58,23 @@ func _run() -> void:
 		lab.find_child("KeyboardInputHistory", true, false) is RichTextLabel,
 		"right side contains button-to-action history"
 	)
+	_expect(
+		lab.find_child("ResetKeyboardOperatorPreview", true, false) is Button,
+		"preview provides a one-click standing reset"
+	)
 
 	lab.call("_start_stance_press", "X")
 	lab.call("_finish_stance_press", "X")
 	_expect(
 		StringName(lab.get("preview_posture")) == &"CROUCHED",
 		"tapping stance previews crouch"
+	)
+	lab.call("_reset_operator_preview")
+	_expect(
+		StringName(lab.get("preview_posture")) == &"STANDING"
+		and StringName(lab.get("preview_motion_state")) == &"STANDING"
+		and (lab.get("preview_model") as Node3D).position.is_zero_approx(),
+		"reset restores a centered standing preview"
 	)
 	lab.set("preview_posture", &"STANDING")
 	lab.set("preview_motion_state", &"STANDING")

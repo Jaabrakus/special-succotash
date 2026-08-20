@@ -12,6 +12,7 @@ var awaiting_action: StringName = &""
 var binding_buttons: Dictionary = {}
 var status_label: Label
 var preview_status: Label
+var preview_state_label: Label
 var history_label: RichTextLabel
 var history_entries: Array[String] = []
 var preview_model: Node3D
@@ -27,6 +28,7 @@ var preview_vertical_speed := 0.0
 var stance_press_active := false
 var stance_hold_timer := 0.0
 var stance_held_triggered := false
+var jump_tween: Tween
 var last_locomotion_animation: StringName = &""
 
 
@@ -78,11 +80,6 @@ func _process(delta: float) -> void:
 	)
 	_update_stance_hold(input_vector, delta)
 	_update_preview_motion_state(delta)
-	if input_vector.length() > 0.05:
-		var direction := Vector3(input_vector.x, 0.0, input_vector.y).normalized()
-		preview_model.position += direction * delta * 1.15
-		preview_model.position.x = clampf(preview_model.position.x, -1.25, 1.25)
-		preview_model.position.z = clampf(preview_model.position.z, -1.10, 1.10)
 	preview_peek = move_toward(preview_peek, 0.0, delta * 3.5)
 	preview_fire_time = maxf(0.0, preview_fire_time - delta)
 	if animation_driver != null and animation_driver.has_method("set_visual_inputs"):
@@ -108,6 +105,10 @@ func _process(delta: float) -> void:
 		)
 	impulse_pitch = lerpf(impulse_pitch, 0.0, 1.0 - exp(-15.0 * delta))
 	preview_model.rotation.x = deg_to_rad(impulse_pitch)
+	preview_state_label.text = "CURRENT GAMEPLAY STATE  •  %s%s" % [
+		preview_motion_state,
+		"  •  HOLDING STANCE %.2fs" % stance_hold_timer if stance_press_active else "",
+	]
 
 
 func _build_interface() -> void:
@@ -190,21 +191,35 @@ func _build_interface() -> void:
 	var right_column := VBoxContainer.new()
 	right_column.add_theme_constant_override("separation", 8)
 	split.add_child(right_column)
+	var preview_header := HBoxContainer.new()
+	right_column.add_child(preview_header)
 	var preview_title := Label.new()
 	preview_title.text = "LIVE OPERATOR INPUT PREVIEW"
 	preview_title.add_theme_font_size_override("font_size", 20)
 	preview_title.add_theme_color_override("font_color", Color("e4c777"))
-	right_column.add_child(preview_title)
+	preview_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	preview_header.add_child(preview_title)
+	var reset_preview_button := Button.new()
+	reset_preview_button.name = "ResetKeyboardOperatorPreview"
+	reset_preview_button.text = "Reset Operator"
+	reset_preview_button.pressed.connect(_reset_operator_preview)
+	preview_header.add_child(reset_preview_button)
 	preview_status = Label.new()
 	preview_status.name = "KeyboardPreviewStatus"
 	preview_status.text = "Press a mapped control. The model and history use the real action name."
 	preview_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	right_column.add_child(preview_status)
+	preview_state_label = Label.new()
+	preview_state_label.name = "KeyboardPreviewGameplayState"
+	preview_state_label.text = "CURRENT GAMEPLAY STATE  •  STANDING"
+	preview_state_label.add_theme_font_size_override("font_size", 12)
+	preview_state_label.add_theme_color_override("font_color", Color("8fe6b0"))
+	right_column.add_child(preview_state_label)
 	var viewport_container := SubViewportContainer.new()
 	viewport_container.name = "KeyboardOperatorViewport"
 	viewport_container.stretch = true
 	viewport_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	viewport_container.custom_minimum_size = Vector2(620, 410)
+	viewport_container.custom_minimum_size = Vector2(620, 390)
 	right_column.add_child(viewport_container)
 	var viewport := SubViewport.new()
 	viewport.name = "OperatorPreviewViewport"
@@ -289,7 +304,7 @@ func _build_operator_preview() -> void:
 	viewport.add_child(environment_node)
 	var floor := MeshInstance3D.new()
 	var floor_mesh := BoxMesh.new()
-	floor_mesh.size = Vector3(4.2, 0.08, 3.4)
+	floor_mesh.size = Vector3(3.4, 0.08, 2.6)
 	floor.mesh = floor_mesh
 	floor.position.y = -0.04
 	var floor_material := StandardMaterial3D.new()
@@ -308,8 +323,9 @@ func _build_operator_preview() -> void:
 	viewport.add_child(fill)
 	var camera := Camera3D.new()
 	viewport.add_child(camera)
-	camera.position = Vector3(0.0, 1.35, 4.1)
-	camera.look_at(Vector3(0.0, 0.95, 0.0), Vector3.UP)
+	camera.fov = 45.0
+	camera.position = Vector3(0.0, 1.18, 3.0)
+	camera.look_at(Vector3(0.0, 0.82, 0.0), Vector3.UP)
 	animation_driver = OperatorAnimationDriver.new()
 	preview_model = animation_driver
 	preview_model.name = "KeyboardPreviewOperator"
@@ -413,8 +429,10 @@ func _preview_action(action: StringName) -> void:
 			preview_action_time = 0.0
 			preview_vertical_speed = 4.8
 			preview_model.position.y = 0.20
-			var tween := create_tween()
-			tween.tween_property(preview_model, "position:y", 0.0, 0.55).set_trans(Tween.TRANS_QUAD)
+			if jump_tween != null and jump_tween.is_valid():
+				jump_tween.kill()
+			jump_tween = create_tween()
+			jump_tween.tween_property(preview_model, "position:y", 0.0, 0.55).set_trans(Tween.TRANS_QUAD)
 		&"peek_left":
 			preview_peek = -1.0
 		&"peek_right":
@@ -434,7 +452,7 @@ func _preview_action(action: StringName) -> void:
 			preview_posture = &"CROUCHED" if preview_posture == &"PRONE" else &"PRONE"
 			preview_motion_state = preview_posture
 		&"reset_camera":
-			preview_model.position = Vector3.ZERO
+			_reset_operator_preview()
 		_:
 			_play_animation_for_action(action)
 
@@ -489,6 +507,28 @@ func _start_committed_action(state: StringName) -> void:
 	preview_motion_state = state
 	preview_posture = &"STANDING" if state == &"DIVING" else &"CROUCHED"
 	preview_action_time = 0.0
+
+
+func _reset_operator_preview() -> void:
+	if jump_tween != null and jump_tween.is_valid():
+		jump_tween.kill()
+	preview_posture = &"STANDING"
+	preview_motion_state = &"STANDING"
+	preview_action_time = 0.0
+	preview_vertical_speed = 0.0
+	stance_press_active = false
+	stance_hold_timer = 0.0
+	stance_held_triggered = false
+	preview_peek = 0.0
+	preview_fire_time = 0.0
+	impulse_pitch = 0.0
+	if preview_model != null:
+		preview_model.position = Vector3.ZERO
+		preview_model.rotation = Vector3.ZERO
+	if animation_driver != null:
+		animation_driver.set("requested_action", &"")
+		animation_driver.set("requested_action_remaining", 0.0)
+	preview_status.text = "Operator reset to standing. Movement animations preview in place."
 
 
 func _update_preview_motion_state(delta: float) -> void:
