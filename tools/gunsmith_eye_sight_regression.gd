@@ -41,8 +41,16 @@ func _run() -> void:
 		)
 		_expect(
 			eye_marker.global_position.is_finite()
-			and eye_marker.global_position.distance_to(head_origin) <= 0.15,
+			and eye_marker.global_position.distance_to(head_origin) <= 0.20,
 			"eye-sight origin stays attached to the animated head"
+		)
+		var operator_forward := -skeleton.global_basis.z.normalized()
+		var operator_up := skeleton.global_basis.y.normalized()
+		var face_offset := eye_marker.global_position - head_origin
+		_expect(
+			face_offset.dot(operator_forward) >= 0.125
+			and face_offset.dot(operator_up) >= 0.085,
+			"eye-sight origin sits on the front of the face instead of behind the head"
 		)
 
 	var posture_layer = lab.get("runtime_posture_layer")
@@ -97,6 +105,7 @@ func _run() -> void:
 	eye_press.pressed = true
 	eye_press.position = eye_line_pick
 	lab.call("_input", eye_press)
+	var fixed_eye_origin := eye_marker.global_position
 	_expect(
 		String(lab.get("dragged_dot_id")) == "eye_sight"
 		and bool(lab.get("authoring_pointer_down")),
@@ -106,10 +115,15 @@ func _run() -> void:
 	eye_drag.position = eye_line_pick + Vector2(20.0, -12.0)
 	eye_drag.relative = Vector2(20.0, -12.0)
 	lab.call("_input", eye_drag)
+	lab.call("_update_eye_sight_marker")
 	var dragged_correction: Vector3 = lab.call("_eye_sight_correction")
 	_expect(
 		dragged_correction.y > 4.9 and dragged_correction.x > 2.9,
 		"dragging the eye line changes yaw left/right and pitch up/down"
+	)
+	_expect(
+		eye_marker.global_position.distance_to(fixed_eye_origin) <= 0.0001,
+		"eye yaw and pitch rotate the line without orbiting its origin around the head"
 	)
 	var eye_release := InputEventMouseButton.new()
 	eye_release.button_index = MOUSE_BUTTON_LEFT

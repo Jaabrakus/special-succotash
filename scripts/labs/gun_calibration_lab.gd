@@ -31,6 +31,8 @@ const GIZMO_PICK_DISTANCE_PX := 28.0
 const MUZZLE_RETICLE_LEAD_PX := 64.0
 const BULLET_VELOCITY_PREVIEW_SECONDS := 0.004
 const MIN_BARREL_AXIS_LENGTH_METERS := 0.02
+const EYE_ORIGIN_FORWARD_METERS := 0.13
+const EYE_ORIGIN_HEIGHT_METERS := 0.09
 const TUNABLE_BODY_JOINTS := JointControlSchema.SELECTABLE_JOINTS
 
 # A selected joint keeps full control. Small linked rotations continue through
@@ -6478,13 +6480,14 @@ func _update_eye_sight_marker() -> void:
 	if not eye_sight_marker.visible or skeleton == null or head_idx < 0:
 		return
 	var head_origin := _bone_world_origin(head_idx)
-	var sight_direction := _eye_sight_direction_world()
 	var operator_up := skeleton.global_basis.y.normalized()
-	# Only the origin follows the animated head. Direction comes from the
-	# stance-specific head yaw/pitch correction, so zero is a straight operator-
-	# forward reference instead of a line that slopes toward the orbit camera.
+	var operator_forward := -skeleton.global_basis.z.normalized()
+	# Keep the origin fixed between the eyes. Yaw and pitch rotate only the sight
+	# direction; they must never orbit the origin around or behind the skull.
 	eye_sight_marker.global_position = (
-		head_origin + operator_up * 0.035 + sight_direction * 0.075
+		head_origin
+		+ operator_up * EYE_ORIGIN_HEIGHT_METERS
+		+ operator_forward * EYE_ORIGIN_FORWARD_METERS
 	)
 
 
