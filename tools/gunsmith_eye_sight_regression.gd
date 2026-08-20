@@ -181,7 +181,7 @@ func _run() -> void:
 	var eye_line_pick := eye_origin_screen.lerp(eye_end_screen, 0.35)
 	_expect(
 		String(lab.call("_find_dot_under_mouse", eye_line_pick)) == "eye_sight",
-		"clicking the visible blue segment selects eye authoring"
+		"clicking the visible blue segment selects gun-placement authoring"
 	)
 	var eye_press := InputEventMouseButton.new()
 	eye_press.button_index = MOUSE_BUTTON_LEFT
@@ -189,31 +189,49 @@ func _run() -> void:
 	eye_press.position = eye_line_pick
 	lab.call("_input", eye_press)
 	var fixed_eye_origin := eye_marker.global_position
+	var drag_start_offset: Vector3 = lab.call("_eye_sight_origin_offset")
+	var drag_start_correction: Vector3 = lab.call("_eye_sight_correction")
 	_expect(
 		String(lab.get("dragged_dot_id")) == "eye_sight"
 		and bool(lab.get("authoring_pointer_down")),
-		"the selected eye line starts a head-only drag"
+		"the selected blue line starts a position drag"
 	)
 	var eye_drag := InputEventMouseMotion.new()
 	eye_drag.position = eye_line_pick + Vector2(20.0, -12.0)
 	eye_drag.relative = Vector2(20.0, -12.0)
 	lab.call("_input", eye_drag)
 	lab.call("_update_eye_sight_marker")
+	var dragged_offset: Vector3 = lab.call("_eye_sight_origin_offset")
 	var dragged_correction: Vector3 = lab.call("_eye_sight_correction")
 	_expect(
-		dragged_correction.y > 4.9 and dragged_correction.x > 2.9,
-		"dragging the eye line changes yaw left/right and pitch up/down"
+		dragged_offset.x >= drag_start_offset.x + 0.049
+		and dragged_offset.y >= drag_start_offset.y + 0.029
+		and is_equal_approx(dragged_offset.z, drag_start_offset.z),
+		"normal blue-line drag changes X/Y and preserves Z"
 	)
 	_expect(
-		eye_marker.global_position.distance_to(fixed_eye_origin) <= 0.0001,
-		"eye yaw and pitch rotate the line without orbiting its origin around the head"
+		dragged_correction.is_equal_approx(drag_start_correction)
+		and eye_marker.global_position.distance_to(fixed_eye_origin) >= 0.01,
+		"position drag moves the line without changing pitch/yaw"
+	)
+	var depth_drag := InputEventMouseMotion.new()
+	depth_drag.position = eye_drag.position + Vector2(0.0, -10.0)
+	depth_drag.relative = Vector2(0.0, -10.0)
+	depth_drag.shift_pressed = true
+	lab.call("_input", depth_drag)
+	var depth_offset: Vector3 = lab.call("_eye_sight_origin_offset")
+	_expect(
+		depth_offset.z >= drag_start_offset.z + 0.029
+		and is_equal_approx(depth_offset.x, dragged_offset.x)
+		and is_equal_approx(depth_offset.y, dragged_offset.y),
+		"Shift-drag changes only line Z depth"
 	)
 	var eye_release := InputEventMouseButton.new()
 	eye_release.button_index = MOUSE_BUTTON_LEFT
 	eye_release.pressed = false
-	eye_release.position = eye_drag.position
+	eye_release.position = depth_drag.position
 	lab.call("_input", eye_release)
-	_expect(String(lab.get("dragged_dot_id")).is_empty(), "releasing locks the eye direction")
+	_expect(String(lab.get("dragged_dot_id")).is_empty(), "releasing locks the line position")
 	var head_rotation_after_drag: Vector3 = posture_layer.call(
 		"get_procedural_rotation_degrees",
 		lab.get("preview_posture"),

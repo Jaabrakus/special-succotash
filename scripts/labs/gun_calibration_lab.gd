@@ -461,6 +461,12 @@ func _input(event: InputEvent) -> void:
 				_adjust_weapon_rotation("yaw", 3.0)
 				get_viewport().set_input_as_handled()
 				return
+			elif target_dot == "eye_sight":
+				var line_offset := _eye_sight_origin_offset()
+				_set_eye_sight_origin_component(line_offset.z + 0.015, &"z")
+				_sync_eye_sight_controls()
+				get_viewport().set_input_as_handled()
+				return
 			else:
 				cam_distance = clampf(cam_distance - 0.08, 0.20, 3.5)
 				_update_camera()
@@ -478,6 +484,12 @@ func _input(event: InputEvent) -> void:
 				return
 			elif target_dot == "right_grip":
 				_adjust_weapon_rotation("yaw", -3.0)
+				get_viewport().set_input_as_handled()
+				return
+			elif target_dot == "eye_sight":
+				var line_offset := _eye_sight_origin_offset()
+				_set_eye_sight_origin_component(line_offset.z - 0.015, &"z")
+				_sync_eye_sight_controls()
 				get_viewport().set_input_as_handled()
 				return
 			else:
@@ -526,7 +538,7 @@ func _input(event: InputEvent) -> void:
 							drag_offset_vector = Vector3.ZERO
 						if hud_status:
 							hud_status.text = (
-								"🔵 Drag gun placement line: horizontal = yaw, vertical = pitch"
+								"🔵 Move line X/Y • Shift-drag or wheel = Z • pitch/yaw use sliders"
 								if hit_dot == "eye_sight"
 								else "🎯 Positioning %s (Left arm biomechanically auto-grips!)" % hit_dot
 							)
@@ -564,22 +576,24 @@ func _input(event: InputEvent) -> void:
 			if dragged_dot_id.begins_with("body_joint:"):
 				_adjust_selected_joint_rotation(Vector3(-mm.relative.y * 0.25, mm.relative.x * 0.25, 0.0))
 			elif dragged_dot_id == "eye_sight":
-				var eye_correction := _eye_sight_correction()
-				_set_eye_sight_component(
-					clampf(eye_correction.y + mm.relative.x * 0.25, -38.0, 38.0),
-					&"yaw"
-				)
-				eye_correction = _eye_sight_correction()
-				_set_eye_sight_component(
-					clampf(eye_correction.x - mm.relative.y * 0.25, -24.0, 24.0),
-					&"pitch"
+				var line_offset := _eye_sight_origin_offset()
+				if mm.shift_pressed:
+					line_offset.z -= mm.relative.y * 0.003
+				else:
+					line_offset.x += mm.relative.x * 0.0025
+					line_offset.y -= mm.relative.y * 0.0025
+				runtime_posture_layer.set_eye_sight_origin_offset_meters(
+					preview_posture,
+					line_offset
 				)
 				_sync_eye_sight_controls()
+				_update_eye_sight_marker()
 				if hud_status:
-					eye_correction = _eye_sight_correction()
-					hud_status.text = "🔵 Line Pitch %.1f° • Yaw %.1f°" % [
-						eye_correction.x,
-						eye_correction.y,
+					line_offset = _eye_sight_origin_offset()
+					hud_status.text = "🔵 Line X %.3f • Y %.3f • Z %.3f" % [
+						line_offset.x,
+						line_offset.y,
+						line_offset.z,
 					]
 			elif dragged_dot_id == "left_ik_ring_roll":
 				palm_roll = wrapf(palm_roll + mm.relative.x * 0.85, -180.0, 180.0)
@@ -2683,7 +2697,7 @@ func _register_interactive_dots() -> void:
 	if ejection_marker: interactive_dots.append({"id": "ejection", "mesh": ejection_marker, "label": "🟡 Shell Ejection Port", "color": Color(1.0, 0.85, 0.1)})
 	if optic_marker: interactive_dots.append({"id": "optic", "mesh": optic_marker, "label": "🟢 Optic Scope Rail", "color": Color(0.2, 1.0, 0.4)})
 	if right_grip_marker: interactive_dots.append({"id": "right_grip", "mesh": right_grip_marker, "label": "🟠 Trigger-Hand Grip (moves gun in right hand)", "color": Color(1.0, 0.55, 0.08)})
-	if eye_sight_dot: interactive_dots.append({"id": "eye_sight", "mesh": eye_sight_dot, "label": "🔵 Gun Placement Line — drag yaw/pitch", "color": Color(0.25, 0.55, 1.0)})
+	if eye_sight_dot: interactive_dots.append({"id": "eye_sight", "mesh": eye_sight_dot, "label": "🔵 Gun Placement Line — drag X/Y, Shift or wheel Z", "color": Color(0.25, 0.55, 1.0)})
 
 func _find_dot_under_mouse(screen_pos: Vector2) -> String:
 	if not cam: return ""
