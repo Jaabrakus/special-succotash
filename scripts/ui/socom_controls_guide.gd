@@ -99,6 +99,7 @@ func _refresh_text() -> void:
 		var action_text := String(KeyboardProfile.ACTION_LABELS.get(action, String(action).capitalize()))
 		gameplay_lines.append("[color=#79d8f2]%-12s[/color]  %s" % [key_text, action_text])
 	gameplay_lines.append("[color=#79d8f2]Hold C / X[/color]  Continue stance input into prone")
+	gameplay_lines.append("[color=#79d8f2]Hold G[/color]  Aim/cook and build throw arc; release to throw")
 	gameplay_lines.append("[color=#79d8f2]Shift + Throw[/color]  Underhand grenade throw")
 	gameplay_lines.append("[color=#79d8f2]Mouse Move[/color]  Aim and orbit camera")
 	gameplay_lines.append("[color=#79d8f2]Escape[/color]  Release mouse; click viewport to recapture")

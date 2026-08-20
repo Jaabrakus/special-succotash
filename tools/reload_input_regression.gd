@@ -32,6 +32,31 @@ func _run() -> void:
 		"reload does not move camera yaw"
 	)
 
+	main.call("_begin_grenade_aim")
+	_expect(bool(main.get("grenade_aim_active")), "grenade input enters hold-to-aim instead of throwing immediately")
+	main.call("_update_grenade_aim", 0.50)
+	var arc_preview := main.get("grenade_arc_preview") as MeshInstance3D
+	var charge_panel := main.get("grenade_charge_panel") as PanelContainer
+	var charge_bar := main.get("grenade_charge_bar") as ProgressBar
+	_expect(
+		arc_preview != null
+		and arc_preview.visible
+		and arc_preview.mesh != null
+		and arc_preview.mesh.get_surface_count() > 0,
+		"holding grenade input draws the live world-space throw arc"
+	)
+	_expect(
+		charge_panel != null and charge_panel.visible and charge_bar != null and charge_bar.value > 0.0,
+		"holding grenade input displays human-limited throw strength"
+	)
+	main.call("_release_grenade_aim")
+	_expect(
+		not bool(main.get("grenade_aim_active"))
+		and not arc_preview.visible
+		and not charge_panel.visible,
+		"releasing grenade input throws and clears the aiming preview"
+	)
+
 	main.queue_free()
 	await process_frame
 	if failures.is_empty():

@@ -54,6 +54,9 @@ var fire_clips_by_posture: Dictionary = {}
 var fire_layer_available: bool = false
 var fire_trigger_count: int = 0
 var active_fire_clip: StringName = &""
+var crouched_reload_clip: StringName = &""
+var crouched_reload_layer_available: bool = false
+var crouched_reload_trigger_count: int = 0
 
 
 func build(
@@ -76,11 +79,17 @@ func build(
 	root.add_node(&"route_blend", route_blend, Vector2(980.0, 100.0))
 	root.connect_node(&"route_blend", 0, &"legacy_transition")
 	root.connect_node(&"route_blend", 1, &"modern_transition")
-	_build_fire_layer(root, available_clips)
+	_build_crouched_reload_layer(root, available_clips)
+	var action_source := (
+		&"crouched_reload_layer"
+		if crouched_reload_layer_available
+		else &"route_blend"
+	)
+	_build_fire_layer(root, available_clips, action_source)
 	root.connect_node(
 		&"output",
 		0,
-		&"fire_layer" if fire_layer_available else &"route_blend"
+		&"fire_layer" if fire_layer_available else action_source
 	)
 
 	animation_tree = AnimationTree.new()
@@ -212,6 +221,21 @@ func trigger_fire(posture: StringName) -> StringName:
 	return active_fire_clip
 
 
+func trigger_crouched_reload(clip_name: StringName) -> bool:
+	if (
+		animation_tree == null
+		or not crouched_reload_layer_available
+		or clip_name != crouched_reload_clip
+	):
+		return false
+	animation_tree.set(
+		"parameters/crouched_reload_layer/request",
+		AnimationNodeOneShot.ONE_SHOT_REQUEST_FIRE
+	)
+	crouched_reload_trigger_count += 1
+	return true
+
+
 func get_debug_state() -> Dictionary:
 	return {
 		"modern_enabled": modern_enabled,
@@ -225,10 +249,46 @@ func get_debug_state() -> Dictionary:
 		"fire_layer_available": fire_layer_available,
 		"fire_trigger_count": fire_trigger_count,
 		"active_fire_clip": active_fire_clip,
+		"crouched_reload_layer_available": crouched_reload_layer_available,
+		"crouched_reload_clip": crouched_reload_clip,
+		"crouched_reload_trigger_count": crouched_reload_trigger_count,
 	}
 
 
-func _build_fire_layer(root: AnimationNodeBlendTree, available_clips: Dictionary) -> void:
+func _build_crouched_reload_layer(
+	root: AnimationNodeBlendTree,
+	available_clips: Dictionary
+) -> void:
+	crouched_reload_clip = _weapon_action_clip(
+		"reload_crouched",
+		&"reload",
+		available_clips
+	)
+	if crouched_reload_clip == &"" or not available_clips.has(crouched_reload_clip):
+		return
+	root.add_node(
+		&"crouched_reload_animation",
+		_animation_node(crouched_reload_clip),
+		Vector2(980.0, 470.0)
+	)
+	var reload_layer := AnimationNodeOneShot.new()
+	reload_layer.fadein_time = 0.08
+	reload_layer.fadeout_time = 0.12
+	reload_layer.sync = true
+	reload_layer.filter_enabled = true
+	for bone_name: StringName in UPPER_BODY_BONES:
+		reload_layer.set_filter_path(NodePath(".:%s" % bone_name), true)
+	root.add_node(&"crouched_reload_layer", reload_layer, Vector2(1230.0, 330.0))
+	root.connect_node(&"crouched_reload_layer", 0, &"route_blend")
+	root.connect_node(&"crouched_reload_layer", 1, &"crouched_reload_animation")
+	crouched_reload_layer_available = true
+
+
+func _build_fire_layer(
+	root: AnimationNodeBlendTree,
+	available_clips: Dictionary,
+	base_source: StringName
+) -> void:
 	fire_clips_by_posture = {
 		&"STANDING": _weapon_action_clip("fire_standing", &"combat_fire", available_clips),
 		&"CROUCHED": _weapon_action_clip("fire_crouched", &"crouch_fire", available_clips),
@@ -262,7 +322,7 @@ func _build_fire_layer(root: AnimationNodeBlendTree, available_clips: Dictionary
 	for bone_name: StringName in UPPER_BODY_BONES:
 		fire_layer.set_filter_path(NodePath(".:%s" % bone_name), true)
 	root.add_node(&"fire_layer", fire_layer, Vector2(1230.0, 110.0))
-	root.connect_node(&"fire_layer", 0, &"route_blend")
+	root.connect_node(&"fire_layer", 0, base_source)
 	root.connect_node(&"fire_layer", 1, &"fire_transition")
 	fire_layer_available = true
 

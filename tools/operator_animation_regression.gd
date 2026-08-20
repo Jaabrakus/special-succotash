@@ -56,6 +56,7 @@ func _run() -> void:
     _check_motion_hysteresis(driver)
     _check_direction_hysteresis(driver)
     _check_layered_recoil(driver)
+    _check_crouched_reload_layer(driver)
     _check_mobility_states(driver)
     _check_modern_blend_graph(driver)
     _check_instant_lateral_selection(driver)
@@ -334,6 +335,45 @@ func _check_layered_recoil(driver) -> void:
         int(repeated_snapshot.get("fire_trigger_count", 0)) == 2,
         "every accepted bullet produces one mapped animation reaction"
     )
+
+func _check_crouched_reload_layer(driver) -> void:
+    driver.set_visual_inputs(
+        Vector2.ZERO,
+        &"CROUCHED",
+        0.0,
+        0.0,
+        1.0,
+        false,
+        0.0,
+        0.0,
+        &"CROUCHED",
+        0.0,
+        &"WALK",
+        0.0
+    )
+    _advance(driver)
+    var crouch_clip: StringName = driver.current_clip
+    _expect(crouch_clip == &"idle_crouch", "crouched reload test begins on crouched legs")
+    _expect(driver.play_semantic_action(&"reload", 0.12), "crouched reload action is accepted")
+    _advance(driver)
+    var snapshot: Dictionary = driver.get_animation_debug_state()
+    _expect(driver.current_clip == crouch_clip, "crouched reload never replaces the lower-body crouch clip")
+    _expect(bool(snapshot.get("upper_body_reload_layer", false)), "crouched reload owns only the upper-body animation layer")
+    _expect(bool(snapshot.get("crouched_reload_layer_available", false)), "crouched reload layer is present in the animation graph")
+    _expect(int(snapshot.get("crouched_reload_trigger_count", 0)) > 0, "crouched reload triggers the masked reload take")
+    var blend_root := driver.animation_tree.tree_root as AnimationNodeBlendTree
+    var reload_layer := blend_root.get_node(&"crouched_reload_layer") as AnimationNodeOneShot
+    _expect(
+        reload_layer != null
+        and reload_layer.is_path_filtered(NodePath(".:mixamorig_Spine"))
+        and reload_layer.is_path_filtered(NodePath(".:mixamorig_LeftHand"))
+        and not reload_layer.is_path_filtered(NodePath(".:mixamorig_Hips")),
+        "reload mask includes torso and hands but excludes hips and legs"
+    )
+    driver.requested_action = &""
+    driver.requested_action_remaining = 0.0
+    driver._requested_action_upper_body_layered = false
+    driver._clear_reload_visuals()
 
 func _check_mobility_states(driver) -> void:
     _set_motion(driver, Vector2(0.0, 1.0), 0.8, &"DIVING")

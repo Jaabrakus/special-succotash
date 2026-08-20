@@ -23,7 +23,7 @@ const ACTION_LABELS := {
 	&"peek_right": "Peek Right",
 	&"fire": "Fire",
 	&"reload_weapon": "Reload",
-	&"throw_grenade": "Throw Grenade",
+	&"throw_grenade": "Aim / Throw Grenade",
 	&"cycle_grenade": "Cycle Grenade",
 	&"reset_camera": "Reset Camera",
 }

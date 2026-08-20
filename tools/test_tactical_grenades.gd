@@ -18,8 +18,29 @@ func _init() -> void:
 	var underhand := thrower.calculate_launch_velocity(Vector3.FORWARD, Vector3.UP, TacticalGrenadeThrower.ThrowMode.UNDERHAND)
 	if overhand.length() <= underhand.length() or overhand.y <= underhand.y:
 		failures.append("throw modes do not produce distinct arcs")
+	var quick_charge := thrower.charge_for_hold(0.12)
+	var full_charge := thrower.charge_for_hold(thrower.full_throw_charge_seconds)
+	var quick_throw := thrower.calculate_launch_velocity(
+		Vector3.FORWARD,
+		Vector3.UP,
+		TacticalGrenadeThrower.ThrowMode.OVERHAND,
+		quick_charge
+	)
+	var full_throw := thrower.calculate_launch_velocity(
+		Vector3.FORWARD,
+		Vector3.UP,
+		TacticalGrenadeThrower.ThrowMode.OVERHAND,
+		full_charge
+	)
+	if full_charge < 0.999 or full_throw.length() <= quick_throw.length() or full_throw.y <= quick_throw.y:
+		failures.append("hold duration does not build a stronger, higher throw arc")
+	if thrower.charge_for_hold(10.0) > 1.0:
+		failures.append("throw charge exceeds the human power cap")
+	var safe_fuse := thrower.remaining_fuse(3.0, 10.0)
+	if safe_fuse < thrower.minimum_remaining_fuse_seconds or safe_fuse >= 3.0:
+		failures.append("grenade cook is not capped to a safe human window")
 	if failures.is_empty():
-		print("TACTICAL_GRENADE_REGRESSION_PASS direct=%.3f turned=%.3f" % [direct, turned])
+		print("TACTICAL_GRENADE_REGRESSION_PASS direct=%.3f turned=%.3f charge=%.2f fuse=%.2f" % [direct, turned, full_charge, safe_fuse])
 		thrower.free()
 		quit(0)
 	else:

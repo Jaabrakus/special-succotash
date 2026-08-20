@@ -67,6 +67,13 @@ var target_range_active: bool = true
 var tactical_screen_effects: CanvasLayer
 var tactical_grenade_thrower: Node
 var selected_grenade_type: int = 0
+var grenade_aim_active: bool = false
+var grenade_hold_seconds: float = 0.0
+var grenade_underhand: bool = false
+var grenade_arc_preview: MeshInstance3D
+var grenade_charge_panel: PanelContainer
+var grenade_charge_label: Label
+var grenade_charge_bar: ProgressBar
 var active_map_document: Dictionary = {}
 var map_audio_ambience: Node
 var controls_guide: CanvasLayer
@@ -216,7 +223,7 @@ func _add_key_action(action: StringName, keycode: Key) -> void:
     event.physical_keycode = keycode
     InputMap.action_add_event(action, event)
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
     if Input.is_action_just_pressed("toggle_controls_guide") and controls_guide != null:
         controls_guide.call("toggle")
     if (
@@ -227,8 +234,17 @@ func _process(_delta: float) -> void:
         _request_weapon_reload()
     if Input.is_action_just_pressed("cycle_grenade"):
         selected_grenade_type = (selected_grenade_type + 1) % 3
-    if Input.is_action_just_pressed("throw_grenade"):
-        _throw_selected_grenade(Input.is_key_pressed(KEY_SHIFT))
+    if (
+        Input.is_action_just_pressed("throw_grenade")
+        and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
+        and not OS.get_cmdline_user_args().has("--automated-test")
+    ):
+        _begin_grenade_aim()
+    if grenade_aim_active:
+        if Input.is_action_just_released("throw_grenade"):
+            _release_grenade_aim()
+        else:
+            _update_grenade_aim(delta)
     _update_camera_tool_input()
     _update_spectator_camera()
     if Input.is_action_just_pressed("toggle_anim_studio"):
@@ -416,7 +432,8 @@ func _process(_delta: float) -> void:
     debug_label.text = (
         "SOCOM-141 CAMERA LAB\n"
         + "WASD move | Space jump | X/C tap crouch, hold prone | Z dive-prone | Q/E peek | F3 all controls\n"
-        + "Mouse aim | R reload | Home reset | F4 targets | F5 studio | F6 trajectory | F8 tune\n"
+        + "Mouse aim | R reload | Hold G aim/cook, release throw | F3 all controls\n"
+        + "Home reset | F4 targets | F5 studio | F6 trajectory | F8 tune\n"
         + "v2.7 MERGED SOCOM RETICLE + HUMANOID HURTBOX RANGE\n\n"
         + "Vertical FOV     %5.1f°\n" % d.fov
         + "Rear boom       %5.2f m behind player\n" % d.rear_boom_distance
@@ -689,8 +706,132 @@ func _build_tactical_runtime() -> void:
     tactical_grenade_thrower = TacticalGrenadeThrowerScript.new()
     tactical_grenade_thrower.name = "TacticalGrenadeThrower"
     add_child(tactical_grenade_thrower)
+    grenade_arc_preview = MeshInstance3D.new()
+    grenade_arc_preview.name = "GrenadeArcPreview"
+    grenade_arc_preview.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+    grenade_arc_preview.visible = false
+    add_child(grenade_arc_preview)
 
-func _throw_selected_grenade(underhand: bool) -> void:
+func _begin_grenade_aim() -> void:
+    if tactical_grenade_thrower == null or camera_rig == null:
+        return
+    grenade_aim_active = true
+    grenade_hold_seconds = 0.0
+    grenade_underhand = Input.is_key_pressed(KEY_SHIFT)
+    if weapon_controller != null and weapon_controller.has_method("set_input_enabled"):
+        weapon_controller.call("set_input_enabled", false)
+    if grenade_arc_preview != null:
+        grenade_arc_preview.visible = true
+    if grenade_charge_panel != null:
+        grenade_charge_panel.visible = true
+    _refresh_grenade_aim_preview()
+
+
+func _update_grenade_aim(delta: float) -> void:
+    if not grenade_aim_active:
+        return
+    grenade_hold_seconds = minf(
+        grenade_hold_seconds + maxf(delta, 0.0),
+        float(tactical_grenade_thrower.get("maximum_hold_seconds"))
+    )
+    grenade_underhand = Input.is_key_pressed(KEY_SHIFT)
+    _refresh_grenade_aim_preview()
+    if grenade_hold_seconds >= float(tactical_grenade_thrower.get("maximum_hold_seconds")):
+        _release_grenade_aim()
+
+
+func _release_grenade_aim() -> void:
+    if not grenade_aim_active:
+        return
+    var charge := float(tactical_grenade_thrower.call("charge_for_hold", grenade_hold_seconds))
+    _throw_selected_grenade(grenade_underhand, charge, grenade_hold_seconds)
+    grenade_aim_active = false
+    if weapon_controller != null and weapon_controller.has_method("set_input_enabled"):
+        weapon_controller.call("set_input_enabled", true)
+    if grenade_arc_preview != null:
+        grenade_arc_preview.visible = false
+    if grenade_charge_panel != null:
+        grenade_charge_panel.visible = false
+
+
+func _refresh_grenade_aim_preview() -> void:
+    if (
+        grenade_arc_preview == null
+        or tactical_grenade_thrower == null
+        or camera_rig == null
+        or player == null
+    ):
+        return
+    var charge := float(tactical_grenade_thrower.call("charge_for_hold", grenade_hold_seconds))
+    var mode := (
+        TacticalGrenadeThrowerScript.ThrowMode.UNDERHAND
+        if grenade_underhand
+        else TacticalGrenadeThrowerScript.ThrowMode.OVERHAND
+    )
+    var forward: Vector3 = -camera_rig.camera.global_basis.z
+    var velocity: Vector3 = tactical_grenade_thrower.call(
+        "calculate_launch_velocity",
+        forward,
+        Vector3.UP,
+        mode,
+        charge
+    )
+    var origin: Vector3 = player.global_position + Vector3.UP * 1.35 + forward * 0.45
+    _draw_grenade_arc(origin, velocity, charge)
+    if grenade_charge_bar != null:
+        grenade_charge_bar.value = charge * 100.0
+    if grenade_charge_label != null:
+        var cooked_fuse := float(tactical_grenade_thrower.call(
+            "remaining_fuse",
+            3.0,
+            grenade_hold_seconds
+        ))
+        grenade_charge_label.text = "%s  %s  •  POWER %d%%  •  SAFE FUSE %.1fs  •  RELEASE TO THROW" % [
+            _grenade_type_name(),
+            "UNDERHAND" if grenade_underhand else "OVERHAND",
+            int(round(charge * 100.0)),
+            cooked_fuse,
+        ]
+
+
+func _draw_grenade_arc(origin: Vector3, velocity: Vector3, charge: float) -> void:
+    var mesh := ImmediateMesh.new()
+    var material := StandardMaterial3D.new()
+    material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+    material.vertex_color_use_as_albedo = true
+    material.emission_enabled = true
+    material.emission = Color(0.25, 0.95, 0.72).lerp(Color(1.0, 0.78, 0.22), charge)
+    mesh.surface_begin(Mesh.PRIMITIVE_LINE_STRIP, material)
+    var gravity := float(ProjectSettings.get_setting("physics/3d/default_gravity", 9.8))
+    var previous := origin
+    mesh.surface_set_color(Color(0.25, 0.95, 0.72).lerp(Color(1.0, 0.78, 0.22), charge))
+    mesh.surface_add_vertex(origin)
+    for index in range(1, 29):
+        var time := float(index) * 0.075
+        var point := origin + velocity * time + Vector3.DOWN * 0.5 * gravity * time * time
+        var query := PhysicsRayQueryParameters3D.create(previous, point)
+        query.exclude = [player.get_rid()]
+        query.collide_with_areas = false
+        var hit := get_world_3d().direct_space_state.intersect_ray(query)
+        if not hit.is_empty():
+            point = Vector3(hit.get("position", point))
+            mesh.surface_add_vertex(point)
+            break
+        mesh.surface_add_vertex(point)
+        previous = point
+    mesh.surface_end()
+    grenade_arc_preview.mesh = mesh
+
+
+func _grenade_type_name() -> String:
+    return ["SMOKE", "FLASH", "FRAG"][clampi(selected_grenade_type, 0, 2)]
+
+
+func _throw_selected_grenade(
+    underhand: bool,
+    charge: float = 1.0,
+    hold_seconds: float = 0.0
+) -> void:
     if tactical_grenade_thrower == null or camera_rig == null:
         return
     # In network sessions the server must replace this local spawn with its
@@ -713,7 +854,13 @@ func _throw_selected_grenade(underhand: bool) -> void:
         if underhand
         else TacticalGrenadeThrowerScript.ThrowMode.OVERHAND
     )
-    grenade.launch(tactical_grenade_thrower.calculate_launch_velocity(forward, Vector3.UP, mode))
+    grenade.arm(tactical_grenade_thrower.remaining_fuse(grenade.fuse_seconds, hold_seconds))
+    grenade.launch(tactical_grenade_thrower.calculate_launch_velocity(
+        forward,
+        Vector3.UP,
+        mode,
+        charge
+    ))
 
 
 func _build_weapon_controller() -> void:
@@ -826,6 +973,8 @@ func _build_ui() -> void:
         dynamic_reticle.apply_profile(weapon_controller.reticle_profile)
     layer.add_child(dynamic_reticle)
 
+    _build_grenade_charge_ui(layer)
+
     _build_calibration_overlay(layer)
     _build_camera_workbench(layer)
     _build_animation_studio(layer)
@@ -836,6 +985,42 @@ func _build_ui() -> void:
     controls_guide = ControlsGuideScript.new()
     controls_guide.name = "SocomControlsGuide"
     add_child(controls_guide)
+
+
+func _build_grenade_charge_ui(layer: CanvasLayer) -> void:
+    grenade_charge_panel = PanelContainer.new()
+    grenade_charge_panel.name = "GrenadeChargePanel"
+    grenade_charge_panel.anchor_left = 0.5
+    grenade_charge_panel.anchor_right = 0.5
+    grenade_charge_panel.anchor_top = 1.0
+    grenade_charge_panel.anchor_bottom = 1.0
+    grenade_charge_panel.offset_left = -285.0
+    grenade_charge_panel.offset_right = 285.0
+    grenade_charge_panel.offset_top = -92.0
+    grenade_charge_panel.offset_bottom = -22.0
+    grenade_charge_panel.visible = false
+    grenade_charge_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    layer.add_child(grenade_charge_panel)
+    var margin := MarginContainer.new()
+    margin.add_theme_constant_override("margin_left", 12)
+    margin.add_theme_constant_override("margin_right", 12)
+    margin.add_theme_constant_override("margin_top", 8)
+    margin.add_theme_constant_override("margin_bottom", 8)
+    grenade_charge_panel.add_child(margin)
+    var column := VBoxContainer.new()
+    column.add_theme_constant_override("separation", 5)
+    margin.add_child(column)
+    grenade_charge_label = Label.new()
+    grenade_charge_label.name = "GrenadeChargeLabel"
+    grenade_charge_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    grenade_charge_label.add_theme_color_override("font_color", Color("9df2cd"))
+    column.add_child(grenade_charge_label)
+    grenade_charge_bar = ProgressBar.new()
+    grenade_charge_bar.name = "GrenadeChargeBar"
+    grenade_charge_bar.min_value = 0.0
+    grenade_charge_bar.max_value = 100.0
+    grenade_charge_bar.show_percentage = false
+    column.add_child(grenade_charge_bar)
 
 
 func _build_camera_workbench(layer: CanvasLayer) -> void:

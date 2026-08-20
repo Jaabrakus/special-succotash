@@ -116,6 +116,7 @@ var _active_reload_visual_slot: String = ""
 var _active_reload_visual_clip: StringName = &""
 var _reload_visual_time: float = 0.0
 var _reload_support_regrip: bool = false
+var _requested_action_upper_body_layered: bool = false
 
 
 func _ready() -> void:
@@ -334,10 +335,12 @@ func _update_requested_action(delta: float) -> void:
 		return
 	requested_action_remaining = maxf(0.0, requested_action_remaining - delta)
 	if requested_action_remaining > 0.0:
-		_request_clip(requested_action)
+		if not _requested_action_upper_body_layered:
+			_request_clip(requested_action)
 		return
 	requested_action = &""
 	_requested_action_is_transition = false
+	_requested_action_upper_body_layered = false
 	_clear_reload_visuals()
 
 
@@ -497,6 +500,7 @@ func play_action(clip_name: StringName, blend_seconds: float = 0.12) -> bool:
 	var animation := animation_player.get_animation(clip_name)
 	requested_action = clip_name
 	_requested_action_is_transition = false
+	_requested_action_upper_body_layered = false
 	if clip_name == &"dive_roll":
 		requested_action_remaining = dive_roll_trim_duration
 	elif clip_name == &"roll":
@@ -510,7 +514,19 @@ func play_action(clip_name: StringName, blend_seconds: float = 0.12) -> bool:
 		_reload_support_regrip = false
 	else:
 		_clear_reload_visuals()
-	_request_clip(clip_name, blend_seconds)
+	if posture == &"CROUCHED" and "reload" in String(clip_name).to_lower():
+		_requested_action_upper_body_layered = bool(
+			locomotion_graph != null
+			and locomotion_graph.trigger_crouched_reload(clip_name)
+		)
+	if _requested_action_upper_body_layered:
+		if asset_runtime != null:
+			asset_runtime.apply_animation_hand_map(
+				String(clip_paths.get(clip_name, "")),
+				posture
+			)
+	else:
+		_request_clip(clip_name, blend_seconds)
 	return true
 
 
@@ -608,6 +624,9 @@ func _apply_saved_animation_frame_pose(delta: float) -> void:
 		return
 	var pose_clip := current_clip
 	var pose_time := _frame_pose_clip_time
+	if _requested_action_upper_body_layered and _active_reload_visual_clip != &"":
+		pose_clip = _active_reload_visual_clip
+		pose_time = _reload_visual_time
 	if _fire_pose_clip != &"" and _fire_pose_time < _fire_pose_duration:
 		pose_clip = _fire_pose_clip
 		_fire_pose_time = minf(_fire_pose_time + maxf(delta, 0.0), _fire_pose_duration)
@@ -838,6 +857,7 @@ func get_animation_debug_state() -> Dictionary:
 		"direction_octant": _stable_direction_octant,
 		"recoil_weight": _recoil_weight(),
 		"upper_body_recoil_layer": true,
+		"upper_body_reload_layer": _requested_action_upper_body_layered,
 		"transition_reason": _last_transition_reason,
 		"movement_speed_mps": movement_speed_mps,
 		"prone_straighten_weight": _prone_straighten_weight,
