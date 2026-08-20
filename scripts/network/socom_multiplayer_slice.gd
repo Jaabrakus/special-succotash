@@ -16,6 +16,7 @@ const BallisticsScript := preload("res://scripts/weapons/weapon_ballistics.gd")
 const ComposureScript := preload("res://scripts/weapons/operator_composure.gd")
 const WeaponContract := preload("res://scripts/weapons/weapon_rig_contract.gd")
 const TracerSystemScript := preload("res://scripts/weapons/lab_leak_tracer_system.gd")
+const KeyboardMappingProfile := preload("res://scripts/input/socom_keyboard_mapping_profile.gd")
 
 const PlayerScript := preload("res://scripts/player/player_controller.gd")
 
@@ -772,30 +773,7 @@ func _refresh_scoreboard() -> void:
 
 
 func _ensure_input_map() -> void:
-	_add_key_action("move_forward", KEY_W)
-	_add_key_action("move_back", KEY_S)
-	_add_key_action("move_left", KEY_A)
-	_add_key_action("move_right", KEY_D)
-	_add_key_action("jump", KEY_SPACE)
-	_add_key_action("crouch", KEY_C)
-	_add_key_action("dive", KEY_Z)
-	_add_key_action("peek_left", KEY_Q)
-	_add_key_action("peek_right", KEY_E)
-	_remove_key_binding("reset_camera", KEY_R)
-	_add_key_action("reset_camera", KEY_HOME)
-	_add_key_action("reload_weapon", KEY_R)
-	_ensure_action("prone")
-	_ensure_action("roll")
-	if not InputMap.has_action("fire"):
-		InputMap.add_action("fire", 0.1)
-	var has_fire := false
-	for event in InputMap.action_get_events("fire"):
-		if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
-			has_fire = true
-	if not has_fire:
-		var mouse := InputEventMouseButton.new()
-		mouse.button_index = MOUSE_BUTTON_LEFT
-		InputMap.action_add_event("fire", mouse)
+	KeyboardMappingProfile.apply_project_mapping()
 
 
 func _ensure_action(action: StringName) -> void:

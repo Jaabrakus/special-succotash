@@ -19,6 +19,7 @@ const TacticalSmokeGrenadeScript := preload("res://scripts/tactical/smoke_grenad
 const TacticalFlashbangScript := preload("res://scripts/tactical/flashbang_grenade.gd")
 const TacticalFragGrenadeScript := preload("res://scripts/tactical/frag_grenade.gd")
 const PlaytestStateCollectorScript := preload("res://scripts/runtime/playtest_state_collector.gd")
+const KeyboardMappingProfile := preload("res://scripts/input/socom_keyboard_mapping_profile.gd")
 const RETICLE_BOX_SIZE := Vector2(32.0, 32.0)
 const OPERATOR_TUNING_PATH := "res://config/operator_movement_tuning.json"
 
@@ -149,49 +150,17 @@ func _attach_saved_playtest_bundle() -> void:
 
 
 func _ensure_input_map() -> void:
-    _add_key_action("move_forward", KEY_W)
-    _add_key_action("move_back", KEY_S)
-    _add_key_action("move_left", KEY_A)
-    _add_key_action("move_right", KEY_D)
-    # SOCOM locomotion is analog, with no separate sprint command. Remove any
-    # legacy action that may survive an editor hot reload.
-    if InputMap.has_action("run"):
-        InputMap.erase_action("run")
-    _add_key_action("jump", KEY_SPACE)
-    _add_key_action("crouch", KEY_X)
-    # Retain semantic actions for replay/network/tests without letting their old
-    # Q/E bindings conflict with the hold-to-peek controls.
-    _ensure_action("prone")
-    _ensure_action("roll")
-    _remove_key_binding("prone", KEY_Q)
-    _remove_key_binding("roll", KEY_E)
-    _add_key_action("peek_left", KEY_Q)
-    _add_key_action("dive", KEY_Z)
-    _add_key_action("peek_right", KEY_E)
-    # R belongs to the weapon. Keep camera recovery on Home so a reload can
-    # never snap the player's view back to its startup orbit.
-    _remove_key_binding("reset_camera", KEY_R)
-    _add_key_action("reset_camera", KEY_HOME)
-    _add_key_action("reload_weapon", KEY_R)
+    KeyboardMappingProfile.apply_project_mapping()
+    # Keep developer-only controls outside the player-facing mapping profile.
     _add_key_action("toggle_calibration", KEY_C)
     _add_key_action("calibration_opacity_down", KEY_BRACKETLEFT)
     _add_key_action("calibration_opacity_up", KEY_BRACKETRIGHT)
     _add_key_action("toggle_roof_test", KEY_T)
     _add_key_action("toggle_indoor_test", KEY_I)
     _add_key_action("toggle_wall_test", KEY_B)
-    _add_key_action("toggle_debug_hud", KEY_H)
-    _add_key_action("toggle_camera_workbench", KEY_P)
-    _add_key_action("toggle_camera_visualizer", KEY_V)
-    _add_key_action("toggle_body_stack", KEY_K)
     _add_key_action("toggle_camera_recording", KEY_F9)
     _add_key_action("replay_camera_recording", KEY_F10)
     _add_key_action("toggle_anim_studio", KEY_F5)
-    _add_key_action("toggle_target_range", KEY_F4)
-    _add_key_action("toggle_trajectory_debug", KEY_F6)
-    _add_key_action("crouch", KEY_C)
-    _add_mouse_action("fire", MOUSE_BUTTON_LEFT)
-    _add_key_action("throw_grenade", KEY_G)
-    _add_key_action("cycle_grenade", KEY_5)
 
 func _ensure_action(action: StringName) -> void:
     if not InputMap.has_action(action):

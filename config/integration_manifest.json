@@ -128,6 +128,18 @@
       "shared_contracts": [
         "res://tools/apple_mocap/AppleMocapExtractor.swift"
       ]
+    },
+    {
+      "id": "keyboard_mapping",
+      "label": "Keyboard Mapping Lab",
+      "scene": "res://keyboard_mapping_lab.tscn",
+      "controller": "res://scripts/labs/keyboard_mapping_lab.gd",
+      "shared_contracts": [
+        "res://scripts/input/socom_keyboard_mapping_profile.gd",
+        "res://scripts/main.gd",
+        "res://scripts/network/socom_multiplayer_slice.gd",
+        "res://scripts/player/player_controller.gd"
+      ]
     }
   ],
   "authority_contracts": [
@@ -171,6 +183,7 @@
       "res://tools/operator_weapon_pose_regression.gd",
       "res://tools/mobility_regression.gd",
       "res://tools/gun_lab_animation_catalog_regression.gd",
+      "res://tools/keyboard_mapping_lab_regression.gd",
       "res://tools/weapon_rig_integration_regression.gd",
       "res://tools/operator_composure_regression.gd",
       "res://tools/prone_grounding_regression.gd",

@@ -35,6 +35,8 @@ func _unhandled_key_input(event: InputEvent) -> void:
 			_open_lab(&"tactical_grenades")
 		KEY_7:
 			_open_lab(&"apple_mocap")
+		KEY_8:
+			_open_lab(&"keyboard_mapping")
 		KEY_ESCAPE:
 			get_tree().quit()
 
@@ -50,7 +52,7 @@ func _build_interface() -> void:
 	add_child(center)
 
 	var panel := PanelContainer.new()
-	panel.custom_minimum_size = Vector2(680, 520)
+	panel.custom_minimum_size = Vector2(680, 640)
 	center.add_child(panel)
 
 	var margin := MarginContainer.new()
@@ -61,7 +63,7 @@ func _build_interface() -> void:
 	panel.add_child(margin)
 
 	var column := VBoxContainer.new()
-	column.add_theme_constant_override("separation", 16)
+	column.add_theme_constant_override("separation", 10)
 	margin.add_child(column)
 
 	var title := Label.new()
@@ -86,6 +88,7 @@ func _build_interface() -> void:
 	_add_lab_button(column, "5  3D Sound + Foley Lab", &"sound_engine", Color("72d9ef"))
 	_add_lab_button(column, "6  Tactical Grenade Lab", &"tactical_grenades", Color("d7e879"))
 	_add_lab_button(column, "7  Apple Video Mocap Intake", &"apple_mocap", Color("86e4b4"))
+	_add_lab_button(column, "8  Keyboard Mapping Lab", &"keyboard_mapping", Color("79d8f2"))
 
 	column.add_child(HSeparator.new())
 	status_label = Label.new()
@@ -106,7 +109,7 @@ func _build_interface() -> void:
 func _add_lab_button(parent: VBoxContainer, text: String, lab_id: StringName, color: Color) -> void:
 	var button := Button.new()
 	button.text = text
-	button.custom_minimum_size.y = 62
+	button.custom_minimum_size.y = 50
 	button.add_theme_font_size_override("font_size", 19)
 	button.add_theme_color_override("font_color", color)
 	button.pressed.connect(_open_lab.bind(lab_id))

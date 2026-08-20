@@ -24,6 +24,7 @@ func _run() -> void:
 	_expect(registered.has("res://main.tscn"), "Camera and playable range is registered")
 	_expect(registered.has("res://animation_library_lab.tscn"), "Animation Studio is registered")
 	_expect(registered.has("res://gun_calibration_lab.tscn"), "Weapon Gunsmith is registered")
+	_expect(registered.has("res://keyboard_mapping_lab.tscn"), "Keyboard Mapping Lab is registered")
 
 	navigation.call("open_scene", "res://studio_hub.tscn")
 	await scene_changed
