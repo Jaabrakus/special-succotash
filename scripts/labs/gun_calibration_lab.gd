@@ -2051,6 +2051,7 @@ func _set_preview_posture(posture_name: StringName) -> void:
 	_restore_current_stance_elbow_poles()
 	_restore_current_stance_hands()
 	_sync_body_joint_controls()
+	_sync_eye_sight_controls()
 	for key: StringName in stance_buttons:
 		var button := stance_buttons[key] as Button
 		if button:
@@ -5622,6 +5623,25 @@ func _build_studio_ui() -> void:
 		_update_eye_sight_marker()
 	)
 	fire_vbox.add_child(eye_toggle)
+	var head_correction := _eye_sight_head_correction()
+	_add_slider(
+		fire_vbox,
+		"eye_sight_pitch",
+		"Eye Pitch (Up/Down)",
+		-24.0,
+		24.0,
+		head_correction.x,
+		_set_eye_sight_head_component.bind(&"pitch")
+	)
+	_add_slider(
+		fire_vbox,
+		"eye_sight_yaw",
+		"Eye Yaw (Left/Right)",
+		-38.0,
+		38.0,
+		head_correction.y,
+		_set_eye_sight_head_component.bind(&"yaw")
+	)
 	var shot_toggle := CheckButton.new()
 	shot_toggle.text = "Yellow — last actual shot"
 	shot_toggle.toggled.connect(func(enabled: bool): show_last_shot = enabled)
@@ -6402,9 +6422,10 @@ func _update_fire_debug_lines() -> void:
 	if show_camera_aim and cam:
 		_add_fire_debug_segment(cam.global_position, target, Color(0.1, 0.9, 1.0))
 	if show_eye_sight and eye_sight_marker:
+		var eye_direction := _eye_sight_direction_world()
 		_add_fire_debug_segment(
 			eye_sight_marker.global_position,
-			target,
+			eye_sight_marker.global_position + eye_direction * 50.0,
 			Color(0.25, 0.55, 1.0)
 		)
 	if show_last_shot and last_shot_origin != last_shot_end:
@@ -6419,20 +6440,62 @@ func _update_eye_sight_marker() -> void:
 	if not eye_sight_marker.visible or skeleton == null or head_idx < 0:
 		return
 	var head_origin := _bone_world_origin(head_idx)
-	var target: Vector3 = (
-		current_aim_target
-		if current_aim_target != Vector3.ZERO
-		else _get_gunsmith_fixed_aim_target()
-	)
-	var sight_direction := (target - head_origin).normalized()
-	if sight_direction.length_squared() < 0.99:
-		sight_direction = -skeleton.global_basis.z.normalized()
+	var sight_direction := _eye_sight_direction_world()
 	var operator_up := skeleton.global_basis.y.normalized()
-	# Place the derived reference between and just ahead of the eyes. The head
-	# remains authored animation; this marker never creates or edits a bone.
+	# Only the origin follows the animated head. Direction comes from the
+	# stance-specific head yaw/pitch correction, so zero is a straight operator-
+	# forward reference instead of a line that slopes toward the orbit camera.
 	eye_sight_marker.global_position = (
 		head_origin + operator_up * 0.035 + sight_direction * 0.075
 	)
+
+
+func _eye_sight_head_correction() -> Vector3:
+	if runtime_posture_layer == null:
+		return Vector3.ZERO
+	return runtime_posture_layer.get_procedural_rotation_degrees(
+		preview_posture,
+		&"head"
+	)
+
+
+func _eye_sight_direction_world() -> Vector3:
+	if skeleton == null:
+		return Vector3.FORWARD
+	var operator_up := skeleton.global_basis.y.normalized()
+	var operator_forward := -skeleton.global_basis.z.normalized()
+	var correction := _eye_sight_head_correction()
+	var yaw_rotation := Quaternion(operator_up, deg_to_rad(correction.y))
+	var yawed_forward := (yaw_rotation * operator_forward).normalized()
+	var right_axis := yawed_forward.cross(operator_up).normalized()
+	if right_axis.length_squared() < 0.99:
+		right_axis = skeleton.global_basis.x.normalized()
+	return (
+		Quaternion(right_axis, deg_to_rad(correction.x)) * yawed_forward
+	).normalized()
+
+
+func _set_eye_sight_head_component(value: float, component: StringName) -> void:
+	if runtime_posture_layer == null:
+		return
+	var correction := _eye_sight_head_correction()
+	if component == &"pitch":
+		correction.x = value
+	elif component == &"yaw":
+		correction.y = value
+	runtime_posture_layer.set_procedural_rotation_degrees(
+		preview_posture,
+		&"head",
+		correction
+	)
+	if selected_body_joint == &"head":
+		_sync_body_joint_controls()
+
+
+func _sync_eye_sight_controls() -> void:
+	var correction := _eye_sight_head_correction()
+	_update_slider_value("eye_sight_pitch", correction.x)
+	_update_slider_value("eye_sight_yaw", correction.y)
 
 
 func _add_fire_debug_segment(start: Vector3, finish: Vector3, color: Color) -> void:
