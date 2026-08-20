@@ -43,6 +43,55 @@ func _run() -> void:
 		and (lab.get("sliders_map") as Dictionary).has("live_weapon_pitch"),
 		"Gunsmith exposes dedicated weapon yaw and pitch controls"
 	)
+	var muzzle_z_slider := (
+		((lab.get("sliders_map") as Dictionary).get("mz_z", {}) as Dictionary).get("slider")
+		as HSlider
+	)
+	_expect(
+		muzzle_z_slider != null
+		and muzzle_z_slider.min_value <= -1.60
+		and muzzle_z_slider.max_value >= 1.60,
+		"the muzzle controls include the complete saved weapon-local range"
+	)
+	var loaded_muzzle_position := lab.get("muzzle_local_pos") as Vector3
+	var loaded_profile_file := FileAccess.open(
+		"res://config/weapons/%s.json" % String(lab.get("weapon_name")).to_lower(),
+		FileAccess.READ
+	)
+	var loaded_profile_value: Variant = (
+		JSON.parse_string(loaded_profile_file.get_as_text())
+		if loaded_profile_file != null
+		else null
+	)
+	var loaded_profile_muzzle: Dictionary = (
+		((loaded_profile_value as Dictionary).get("weapon_sockets", {}) as Dictionary).get(
+			"muzzle_socket", {}
+		) as Dictionary
+		if loaded_profile_value is Dictionary
+		else {}
+	)
+	_expect(
+		loaded_muzzle_position.is_equal_approx(Vector3(
+			float(loaded_profile_muzzle.get("x", INF)),
+			float(loaded_profile_muzzle.get("y", INF)),
+			float(loaded_profile_muzzle.get("z", INF))
+		)),
+		"reopening Gunsmith restores the muzzle XYZ from the saved weapon profile"
+	)
+	var positive_z_muzzle_probe := Vector3(0.111, 0.123, 0.424)
+	lab.set("muzzle_local_pos", positive_z_muzzle_probe)
+	var serialized_socket_probe := lab.call("_weapon_sockets_save_data") as Dictionary
+	var serialized_muzzle_probe: Dictionary = serialized_socket_probe.get("muzzle_socket", {})
+	_expect(
+		Vector3(
+			float(serialized_muzzle_probe.get("x", 0.0)),
+			float(serialized_muzzle_probe.get("y", 0.0)),
+			float(serialized_muzzle_probe.get("z", 0.0))
+		).is_equal_approx(positive_z_muzzle_probe),
+		"saving preserves the exact visible muzzle XYZ without replacing its Z value"
+	)
+	lab.set("muzzle_local_pos", loaded_muzzle_position)
+	lab.call("_sync_ballistic_markers")
 	_expect(
 		lab.get("runtime_posture_layer") != null,
 		"gun lab uses the gameplay squared-shoulder posture layer"

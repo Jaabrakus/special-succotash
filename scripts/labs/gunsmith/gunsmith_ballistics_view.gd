@@ -32,7 +32,11 @@ static func calculate_reticle_screen_position(
 	var muzzle_world: Vector3 = socket_root.to_global(muzzle_local)
 	var dir := calculate_barrel_direction_world(socket_root, muzzle_local, barrel_base_local)
 	var trajectory_world := muzzle_world + dir * 100.0
-	if cam.is_position_behind(trajectory_world):
+	# The inspection camera can orbit to either side of the gun. A far trajectory
+	# point can pass behind that camera even while both authored sockets remain
+	# visible. The on-screen reticle follows the visible base-to-muzzle segment;
+	# only reject it when the actual socket segment is behind the camera.
+	if cam.is_position_behind(barrel_base_world) or cam.is_position_behind(muzzle_world):
 		return fallback_center
 	var barrel_base_screen := cam.unproject_position(barrel_base_world)
 	var muzzle_screen := cam.unproject_position(muzzle_world)

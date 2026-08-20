@@ -29,6 +29,7 @@ const GIZMO_CENTER_RADIUS := 0.018
 const GIZMO_PICK_DISTANCE_PX := 28.0
 const MUZZLE_RETICLE_LEAD_PX := 64.0
 const BULLET_VELOCITY_PREVIEW_SECONDS := 0.004
+const MIN_BARREL_AXIS_LENGTH_METERS := 0.02
 const TUNABLE_BODY_JOINTS := JointControlSchema.SELECTABLE_JOINTS
 
 # A selected joint keeps full control. Small linked rotations continue through
@@ -791,6 +792,10 @@ func _update_action_weapon_ownership(delta: float) -> void:
 			* _animation_frame_weapon_correction_transform()
 			* action_weapon_hand_offset
 		)
+		if right_grip_marker != null:
+			weapon_root.global_position += (
+				_right_palm_contact_world() - right_grip_marker.global_position
+			)
 		return
 	if action_recovery_elapsed < action_recovery_duration:
 		action_recovery_elapsed = minf(action_recovery_elapsed + delta, action_recovery_duration)
@@ -3605,6 +3610,16 @@ func _validate_weapon_rig_before_save() -> bool:
 	if hand_to_grip_error > MAX_HAND_TO_GRIP_ERROR_METERS:
 		_show_rig_error("Right-hand grip target is detached by %.3fm (max %.2fm). Save blocked." % [hand_to_grip_error, MAX_HAND_TO_GRIP_ERROR_METERS])
 		return false
+	if not muzzle_local_pos.is_finite() or not barrel_base_local_pos.is_finite():
+		_show_rig_error("Muzzle or barrel-base socket contains a non-finite value. Save blocked.")
+		return false
+	var barrel_axis_length := muzzle_local_pos.distance_to(barrel_base_local_pos)
+	if barrel_axis_length < MIN_BARREL_AXIS_LENGTH_METERS:
+		_show_rig_error(
+			"Muzzle must stay at least %.2fm from the barrel-base socket. Save blocked."
+			% MIN_BARREL_AXIS_LENGTH_METERS
+		)
+		return false
 	return true
 
 
@@ -4666,38 +4681,7 @@ func _save_weapon_config() -> bool:
 		"animation_hand_maps": saved_animation_hands,
 		"animation_frame_pose_keys": animation_frame_editor.save_data(),
 		"handling_profile": handling_profile.duplicate(true),
-		"weapon_sockets": {
-			"right_hand_grip_target": {
-				"x": right_grip_local_pos.x,
-				"y": right_grip_local_pos.y,
-				"z": right_grip_local_pos.z
-			},
-			"left_hand_ik_target": {
-				"x": left_grip_local_pos.x,
-				"y": left_grip_local_pos.y,
-				"z": left_grip_local_pos.z
-			},
-			"muzzle_socket": {
-				"x": muzzle_local_pos.x,
-				"y": muzzle_local_pos.y,
-				"z": muzzle_local_pos.z if muzzle_local_pos.z <= -0.1 else -0.68
-			},
-			"barrel_base_socket": {
-				"x": _calibrated_barrel_base().x,
-				"y": _calibrated_barrel_base().y,
-				"z": _calibrated_barrel_base().z if _calibrated_barrel_base().z <= -0.05 else -0.12
-			},
-			"ejection_port": {
-				"x": ejection_local_pos.x,
-				"y": ejection_local_pos.y,
-				"z": ejection_local_pos.z
-			},
-			"optic_rail": {
-				"x": optic_local_pos.x,
-				"y": optic_local_pos.y,
-				"z": optic_local_pos.z
-			}
-		},
+		"weapon_sockets": _weapon_sockets_save_data(),
 		"ballistics": {
 			"fire_rate_rpm": fire_rate_rpm,
 			"damage": damage_per_shot,
@@ -4737,9 +4721,25 @@ func _save_weapon_config() -> bool:
 
 	_export_weapon_packed_scene(config_data)
 	if hud_status:
-		hud_status.text = "💾 SAVED & EQUIPPED! %s weapon profile & stance maps saved to disk." % weapon_name
+		hud_status.text = "💾 SAVED & EQUIPPED! %s • muzzle (%.3f, %.3f, %.3f) saved exactly." % [
+			weapon_name,
+			muzzle_local_pos.x,
+			muzzle_local_pos.y,
+			muzzle_local_pos.z,
+		]
 		hud_status.add_theme_color_override("font_color", Color(0.2, 1.0, 0.4))
 	return true
+
+
+func _weapon_sockets_save_data() -> Dictionary:
+	return {
+		"right_hand_grip_target": _vector3_to_dictionary(right_grip_local_pos),
+		"left_hand_ik_target": _vector3_to_dictionary(left_grip_local_pos),
+		"muzzle_socket": _vector3_to_dictionary(muzzle_local_pos),
+		"barrel_base_socket": _vector3_to_dictionary(_calibrated_barrel_base()),
+		"ejection_port": _vector3_to_dictionary(ejection_local_pos),
+		"optic_rail": _vector3_to_dictionary(optic_local_pos),
+	}
 
 func _barrel_axis_local() -> Vector3:
 	var axis := muzzle_local_pos - barrel_base_local_pos
@@ -5381,9 +5381,9 @@ func _build_studio_ui() -> void:
 	vbox.add_child(sock_title)
 
 	var mz_lbl := Label.new(); mz_lbl.text = "🔴 Muzzle Tip Socket (Pos XYZ on gun):"; vbox.add_child(mz_lbl)
-	_add_slider(vbox, "mz_x", "  Muzzle X", -0.20, 1.60, muzzle_local_pos.x, func(v: float): muzzle_local_pos.x = v; _sync_markers())
-	_add_slider(vbox, "mz_y", "  Muzzle Y", -0.20, 0.20, muzzle_local_pos.y, func(v: float): muzzle_local_pos.y = v; _sync_markers())
-	_add_slider(vbox, "mz_z", "  Muzzle Z", -0.20, 0.20, muzzle_local_pos.z, func(v: float): muzzle_local_pos.z = v; _sync_markers())
+	_add_slider(vbox, "mz_x", "  Muzzle X", -1.60, 1.60, muzzle_local_pos.x, func(v: float): muzzle_local_pos.x = v; _sync_markers())
+	_add_slider(vbox, "mz_y", "  Muzzle Y", -0.80, 0.80, muzzle_local_pos.y, func(v: float): muzzle_local_pos.y = v; _sync_markers())
+	_add_slider(vbox, "mz_z", "  Muzzle Z", -1.60, 1.60, muzzle_local_pos.z, func(v: float): muzzle_local_pos.z = v; _sync_markers())
 
 	var ej_lbl := Label.new(); ej_lbl.text = "🟡 Shell Ejection Port (Pos XYZ on gun):"; vbox.add_child(ej_lbl)
 	_add_slider(vbox, "ej_x", "  Ejection X", -0.20, 0.80, ejection_local_pos.x, func(v: float): ejection_local_pos.x = v; _sync_markers())
