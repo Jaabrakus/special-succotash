@@ -410,6 +410,44 @@ func _run() -> void:
 		not bool(lab.call("_gunsmith_live_aim_active")),
 		"Frames mode freezes live aim so the selected lifecycle pose remains editable"
 	)
+	var shared_mount_rotation_before_frame_edit := lab.get("grip_offset_rot") as Vector3
+	var frame_barrel_before := lab.call("_barrel_direction_world") as Vector3
+	var frame_trigger_error_before := (lab.get("right_grip_marker") as Node3D).global_position.distance_to(
+		lab.call("_right_palm_contact_world") as Vector3
+	)
+	lab.call("_adjust_weapon_rotation", "pitch", 12.0)
+	await process_frame
+	var frame_barrel_after := lab.call("_barrel_direction_world") as Vector3
+	var frame_trigger_error := (lab.get("right_grip_marker") as Node3D).global_position.distance_to(
+		lab.call("_right_palm_contact_world") as Vector3
+	)
+	print("GUN_LAB_FRAME_WEAPON_METRIC correction_pitch=%.2f barrel_rotation_deg=%.2f trigger_before_m=%.5f trigger_after_m=%.5f shared_mount_delta_deg=%.3f" % [
+		(lab.get("animation_frame_weapon_rotation_correction_deg") as Vector3).x,
+		rad_to_deg(frame_barrel_before.angle_to(frame_barrel_after)),
+		frame_trigger_error_before,
+		frame_trigger_error,
+		shared_mount_rotation_before_frame_edit.distance_to(
+			lab.get("grip_offset_rot") as Vector3
+		),
+	])
+	_expect(
+		absf((lab.get("animation_frame_weapon_rotation_correction_deg") as Vector3).x - 12.0) < 0.001
+		and (lab.get("grip_offset_rot") as Vector3).is_equal_approx(
+			shared_mount_rotation_before_frame_edit
+		)
+		and rad_to_deg(frame_barrel_before.angle_to(frame_barrel_after)) > 5.0
+		and frame_trigger_error < 0.01,
+		"reload-frame weapon rotation follows the muzzle axis around the attached hand without changing the shared mount"
+	)
+	lab.call("_capture_animation_frame_pose_key")
+	var reload_frame_pose := attached_frame_editor.call("current_pose") as Dictionary
+	_expect(
+		reload_frame_pose.has("weapon_hand_rotation_correction_deg")
+		and absf(float(
+			(reload_frame_pose.get("weapon_hand_rotation_correction_deg", {}) as Dictionary).get("x", 0.0)
+		) - 12.0) < 0.001,
+		"the weapon correction is stored only in the selected reload clip and frame"
+	)
 	var frame_editor_skeleton := lab.get("skeleton") as Skeleton3D
 	var paused_frame_pose := _snapshot_skeleton_pose(frame_editor_skeleton)
 	for _paused_update in range(12):

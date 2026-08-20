@@ -2,6 +2,7 @@ extends SceneTree
 
 const FrameEditor := preload("res://scripts/labs/gunsmith/gunsmith_animation_frame_editor.gd")
 const FrameRuntime := preload("res://scripts/player/operator_animation_frame_pose_runtime.gd")
+const WeaponPoseSolver := preload("res://scripts/player/operator_weapon_pose_solver.gd")
 
 
 func _init() -> void:
@@ -37,15 +38,23 @@ func _init() -> void:
 	blend_editor.store_current_pose({
 		"joint_rotations": {"spine2": {"x": 0.0, "y": 0.0, "z": 0.0}},
 		"right_elbow_pole": {"x": 0.0, "y": 0.0, "z": 0.0},
+		"weapon_hand_position_correction": {"x": 0.0, "y": 0.0, "z": 0.0},
+		"weapon_hand_rotation_correction_deg": {"x": 0.0, "y": 0.0, "z": 0.0},
 	})
 	blend_editor.set_time(1.0)
 	blend_editor.store_current_pose({
 		"joint_rotations": {"spine2": {"x": 10.0, "y": 0.0, "z": 0.0}},
 		"right_elbow_pole": {"x": 0.2, "y": 0.0, "z": 0.0},
+		"weapon_hand_position_correction": {"x": 0.04, "y": 0.0, "z": 0.0},
+		"weapon_hand_rotation_correction_deg": {"x": 20.0, "y": -10.0, "z": 0.0},
 	})
 	blend_editor.set_time(0.5)
 	var blended := blend_editor.sampled_pose()
-	if absf(float(blended["joint_rotations"]["spine2"]["x"]) - 5.0) > 0.001:
+	if (
+		absf(float(blended["joint_rotations"]["spine2"]["x"]) - 5.0) > 0.001
+		or absf(float(blended["weapon_hand_position_correction"]["x"]) - 0.02) > 0.001
+		or absf(float(blended["weapon_hand_rotation_correction_deg"]["x"]) - 10.0) > 0.001
+	):
 		push_error("[GUNSMITH FRAME EDITOR] Pose keys did not interpolate between frames.")
 		quit(1)
 		return
@@ -62,5 +71,22 @@ func _init() -> void:
 		push_error("[GUNSMITH FRAME EDITOR] Runtime did not preserve the editor's endpoint curve.")
 		quit(1)
 		return
+	var weapon_solver := WeaponPoseSolver.new()
+	weapon_solver.set_animation_frame_pose({
+		"weapon_hand_position_correction": {"x": 0.03, "y": -0.01, "z": 0.02},
+		"weapon_hand_rotation_correction_deg": {"x": 12.0, "y": -8.0, "z": 3.0},
+	})
+	var weapon_correction := weapon_solver.call(
+		"_animation_frame_weapon_correction_transform"
+	) as Transform3D
+	if (
+		not weapon_correction.origin.is_equal_approx(Vector3(0.03, -0.01, 0.02))
+		or rad_to_deg(weapon_correction.basis.get_rotation_quaternion().get_angle()) < 10.0
+	):
+		push_error("[GUNSMITH FRAME EDITOR] Gameplay did not consume the frame-local weapon correction.")
+		weapon_solver.free()
+		quit(1)
+		return
+	weapon_solver.free()
 	print("[GUNSMITH FRAME EDITOR] PASS: correction keys persist, hold, and interpolate.")
 	quit(0)

@@ -219,6 +219,28 @@ func clear_animation_frame_pose() -> void:
 	set_animation_frame_pose({})
 
 
+func _animation_frame_weapon_correction_transform() -> Transform3D:
+	if animation_frame_pose.is_empty():
+		return Transform3D.IDENTITY
+	var position := _vector_from_data(
+		animation_frame_pose.get("weapon_hand_position_correction", {})
+	)
+	var rotation_degrees := _vector_from_data(
+		animation_frame_pose.get("weapon_hand_rotation_correction_deg", {})
+	)
+	return Transform3D(
+		Basis.from_euler(
+			Vector3(
+				deg_to_rad(rotation_degrees.x),
+				deg_to_rad(rotation_degrees.y),
+				deg_to_rad(rotation_degrees.z)
+			),
+			EULER_ORDER_YXZ
+		),
+		position
+	)
+
+
 func _clear_frame_socket_override() -> void:
 	if not frame_socket_override_active:
 		return
@@ -525,11 +547,18 @@ func _update_action_weapon_follow(delta: float) -> void:
 		if weapon_solver_anchor != null and weapon_node.get_parent() != weapon_solver_anchor:
 			weapon_node.reparent(weapon_solver_anchor, true)
 		action_weapon_follow_start = weapon_node.global_transform
-		action_weapon_hand_offset = hand_world.affine_inverse() * weapon_node.global_transform
+		var attached_start := weapon_node.global_transform
+		if trigger_socket != null:
+			attached_start.origin += hand_world.origin - trigger_socket.global_position
+		action_weapon_hand_offset = hand_world.affine_inverse() * attached_start
 		action_weapon_follow_elapsed = 0.0
 		action_weapon_follow_active = true
 		weapon_solver_owned = false
-	var desired_transform := hand_world * action_weapon_hand_offset
+	var desired_transform := (
+		hand_world
+		* _animation_frame_weapon_correction_transform()
+		* action_weapon_hand_offset
+	)
 	var amount := clampf(
 		action_weapon_follow_elapsed / maxf(action_weapon_follow_blend_seconds, 0.001),
 		0.0,

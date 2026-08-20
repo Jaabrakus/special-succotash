@@ -120,7 +120,14 @@ func sampled_pose() -> Dictionary:
 
 func _blend_pose(first: Dictionary, second: Dictionary, weight: float) -> Dictionary:
 	var result := first.duplicate(true)
-	for field in ["right_elbow_pole", "left_elbow_pole", "right_hand_target", "left_hand_target"]:
+	for field in [
+		"right_elbow_pole",
+		"left_elbow_pole",
+		"right_hand_target",
+		"left_hand_target",
+		"weapon_hand_position_correction",
+		"weapon_hand_rotation_correction_deg",
+	]:
 		result[field] = _blend_vector_map(first.get(field, {}), second.get(field, {}), weight)
 	var first_rotations: Dictionary = first.get("joint_rotations", {})
 	var second_rotations: Dictionary = second.get("joint_rotations", {})

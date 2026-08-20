@@ -111,6 +111,8 @@ func _blend_pose(first: Dictionary, second: Dictionary, weight: float) -> Dictio
 	for field in [
 		"right_elbow_pole", "left_elbow_pole",
 		"right_hand_target", "left_hand_target",
+		"weapon_hand_position_correction",
+		"weapon_hand_rotation_correction_deg",
 	]:
 		if first.has(field) and second.has(field):
 			result[field] = _blend_vector_map(first[field], second[field], weight)

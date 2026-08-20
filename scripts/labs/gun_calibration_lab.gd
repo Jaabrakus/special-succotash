@@ -245,6 +245,9 @@ var weapon_owner_state: StringName = WeaponOwnershipContract.OWNER_WEAPON_MASTER
 var support_hand_policy: StringName = WeaponOwnershipContract.SUPPORT_IK_TO_WEAPON
 var action_weapon_follow_active: bool = false
 var action_weapon_hand_offset := Transform3D.IDENTITY
+var animation_frame_weapon_position_correction := Vector3.ZERO
+var animation_frame_weapon_rotation_correction_deg := Vector3.ZERO
+var frame_weapon_drag_position_start := Vector3.ZERO
 var action_return_transform := Transform3D.IDENTITY
 var action_recovery_start := Transform3D.IDENTITY
 var action_recovery_duration: float = 0.14
@@ -420,9 +423,7 @@ func _input(event: InputEvent) -> void:
 				get_viewport().set_input_as_handled()
 				return
 			elif target_dot == "right_grip":
-				grip_offset_rot.y = wrapf(grip_offset_rot.y + 3.0, -180.0, 180.0)
-				_sync_weapon_transform()
-				_update_slider_value("rot_yaw", grip_offset_rot.y)
+				_adjust_weapon_rotation("yaw", 3.0)
 				get_viewport().set_input_as_handled()
 				return
 			else:
@@ -441,9 +442,7 @@ func _input(event: InputEvent) -> void:
 				get_viewport().set_input_as_handled()
 				return
 			elif target_dot == "right_grip":
-				grip_offset_rot.y = wrapf(grip_offset_rot.y - 3.0, -180.0, 180.0)
-				_sync_weapon_transform()
-				_update_slider_value("rot_yaw", grip_offset_rot.y)
+				_adjust_weapon_rotation("yaw", -3.0)
 				get_viewport().set_input_as_handled()
 				return
 			else:
@@ -472,6 +471,8 @@ func _input(event: InputEvent) -> void:
 						_set_active_gizmo("hand")
 					elif hit_dot == "right_grip" or hit_dot == "weapon_mount":
 						_set_active_gizmo("weapon")
+						if hit_dot == "weapon_mount" and _editing_action_weapon_frame():
+							frame_weapon_drag_position_start = animation_frame_weapon_position_correction
 					dragged_dot_id = hit_dot
 					var dot_mesh := _get_dot_mesh_by_id(hit_dot)
 					if dot_mesh:
@@ -543,32 +544,20 @@ func _input(event: InputEvent) -> void:
 				_update_slider_value("ik_z", left_grip_local_pos.z)
 				if hud_status: hud_status.text = "🔵 Adjusting Hand Side (Z): %.3f" % left_grip_local_pos.z
 			elif dragged_dot_id == "weapon_ring_pitch":
-				grip_offset_rot.x = wrapf(grip_offset_rot.x - mm.relative.y * 0.65, -180.0, 180.0)
-				_sync_weapon_transform()
-				_update_slider_value("rot_pitch", grip_offset_rot.x)
-				if hud_status: hud_status.text = "🟣 Weapon Pitch: %.1f°" % grip_offset_rot.x
+				var pitch_value := _adjust_weapon_rotation("pitch", -mm.relative.y * 0.65)
+				if hud_status: hud_status.text = "🟣 %s Pitch: %.1f°" % ["Frame Weapon" if _editing_action_weapon_frame() else "Weapon", pitch_value]
 			elif dragged_dot_id == "weapon_ring_yaw":
-				grip_offset_rot.y = wrapf(grip_offset_rot.y + mm.relative.x * 0.75, -180.0, 180.0)
-				_sync_weapon_transform()
-				_update_slider_value("rot_yaw", grip_offset_rot.y)
-				if hud_status: hud_status.text = "🔷 Weapon Yaw: %.1f°" % grip_offset_rot.y
+				var yaw_value := _adjust_weapon_rotation("yaw", mm.relative.x * 0.75)
+				if hud_status: hud_status.text = "🔷 %s Yaw: %.1f°" % ["Frame Weapon" if _editing_action_weapon_frame() else "Weapon", yaw_value]
 			elif dragged_dot_id == "weapon_ring_roll":
-				grip_offset_rot.z = wrapf(grip_offset_rot.z + mm.relative.x * 0.85, -180.0, 180.0)
-				_sync_weapon_transform()
-				_update_slider_value("rot_roll", grip_offset_rot.z)
-				if hud_status: hud_status.text = "🟡 Weapon Roll: %.1f°" % grip_offset_rot.z
+				var roll_value := _adjust_weapon_rotation("roll", mm.relative.x * 0.85)
+				if hud_status: hud_status.text = "🟡 %s Roll: %.1f°" % ["Frame Weapon" if _editing_action_weapon_frame() else "Weapon", roll_value]
 			elif dragged_dot_id == "weapon_arrow_x":
-				grip_offset_pos.x = clampf(grip_offset_pos.x + mm.relative.x * 0.0025, -0.25, 0.25)
-				_sync_weapon_translation()
-				_update_slider_value("grip_x", grip_offset_pos.x)
+				_adjust_weapon_translation("x", mm.relative.x * 0.0025)
 			elif dragged_dot_id == "weapon_arrow_y":
-				grip_offset_pos.y = clampf(grip_offset_pos.y - mm.relative.y * 0.0025, -0.25, 0.25)
-				_sync_weapon_translation()
-				_update_slider_value("grip_y", grip_offset_pos.y)
+				_adjust_weapon_translation("y", -mm.relative.y * 0.0025)
 			elif dragged_dot_id == "weapon_arrow_z":
-				grip_offset_pos.z = clampf(grip_offset_pos.z + mm.relative.x * 0.0025, -0.25, 0.25)
-				_sync_weapon_translation()
-				_update_slider_value("grip_z", grip_offset_pos.z)
+				_adjust_weapon_translation("z", mm.relative.x * 0.0025)
 			else:
 				var ray_orig := cam.project_ray_origin(mm.position)
 				var ray_dir := cam.project_ray_normal(mm.position)
@@ -625,9 +614,12 @@ func _process(delta: float) -> void:
 			_update_animation_frame_editor()
 	if not weapon_master_pose_initialized:
 		_initialize_weapon_master_pose()
+	# Build the final authored + procedural hand pose before either weapon owner
+	# consumes it. Reload/action follow must never trail the visible hand by one
+	# update, and the ready anchor must use the same final posture sample.
+	_apply_runtime_posture_preview()
 	_update_action_weapon_ownership(delta)
 	_update_reload_support_handoff()
-	_apply_runtime_posture_preview()
 	_update_weapon_master_anchor()
 	_update_live_aim_weapon_pose()
 	_update_visual_weapon_recoil(delta)
@@ -751,6 +743,14 @@ func _right_hand_world_transform() -> Transform3D:
 	return skeleton.global_transform * skeleton.get_bone_global_pose(right_hand_idx)
 
 
+func _right_hand_grip_world_transform() -> Transform3D:
+	var hand_world := _right_hand_world_transform()
+	if skeleton == null:
+		return hand_world
+	var hand_basis := hand_world.basis.orthonormalized()
+	return Transform3D(hand_basis, _right_palm_contact_world())
+
+
 func _left_hand_world_transform() -> Transform3D:
 	if not skeleton or left_hand_idx < 0:
 		return Transform3D.IDENTITY
@@ -759,7 +759,12 @@ func _left_hand_world_transform() -> Transform3D:
 func _begin_action_weapon_follow() -> void:
 	if not weapon_root or not skeleton or right_hand_idx < 0:
 		return
-	var hand_world := _right_hand_world_transform()
+	var hand_world := _right_hand_grip_world_transform()
+	if right_grip_marker != null:
+		# Start every authored action from exact trigger contact. Socket edits and a
+		# newly selected clip can otherwise leave a stale ready-hand solve in the
+		# frame where ownership changes.
+		weapon_root.global_position += hand_world.origin - right_grip_marker.global_position
 	action_return_transform = weapon_root.global_transform
 	action_weapon_hand_offset = hand_world.affine_inverse() * weapon_root.global_transform
 	action_weapon_follow_active = true
@@ -781,7 +786,11 @@ func _update_action_weapon_ownership(delta: float) -> void:
 		# A full-body authored action drives the right hand; this invariant offset
 		# makes the rifle travel with that hand. The support-hand policy separately
 		# decides whether the left arm stays animated or is deliberately free.
-		weapon_root.global_transform = _right_hand_world_transform() * action_weapon_hand_offset
+		weapon_root.global_transform = (
+			_right_hand_grip_world_transform()
+			* _animation_frame_weapon_correction_transform()
+			* action_weapon_hand_offset
+		)
 		return
 	if action_recovery_elapsed < action_recovery_duration:
 		action_recovery_elapsed = minf(action_recovery_elapsed + delta, action_recovery_duration)
@@ -791,6 +800,99 @@ func _update_action_weapon_ownership(delta: float) -> void:
 			_weapon_anchor_target_transform(),
 			amount
 		)
+
+
+func _editing_action_weapon_frame() -> bool:
+	return (
+		animation_frame_editor != null
+		and animation_frame_editor.active
+		and weapon_owner_state == WeaponOwnershipContract.OWNER_ANIMATED_RIGHT_HAND
+	)
+
+
+func _animation_frame_weapon_correction_transform() -> Transform3D:
+	if not _editing_action_weapon_frame():
+		return Transform3D.IDENTITY
+	return Transform3D(
+		Basis.from_euler(
+			_degrees_to_radians_vector(animation_frame_weapon_rotation_correction_deg),
+			EULER_ORDER_YXZ
+		),
+		animation_frame_weapon_position_correction
+	)
+
+
+func _adjust_weapon_rotation(axis_name: String, delta_degrees: float) -> float:
+	var value := 0.0
+	if _editing_action_weapon_frame():
+		if axis_name == "pitch":
+			animation_frame_weapon_rotation_correction_deg.x = wrapf(
+				animation_frame_weapon_rotation_correction_deg.x + delta_degrees,
+				-180.0,
+				180.0
+			)
+			value = animation_frame_weapon_rotation_correction_deg.x
+		elif axis_name == "yaw":
+			animation_frame_weapon_rotation_correction_deg.y = wrapf(
+				animation_frame_weapon_rotation_correction_deg.y + delta_degrees,
+				-180.0,
+				180.0
+			)
+			value = animation_frame_weapon_rotation_correction_deg.y
+		else:
+			animation_frame_weapon_rotation_correction_deg.z = wrapf(
+				animation_frame_weapon_rotation_correction_deg.z + delta_degrees,
+				-180.0,
+				180.0
+			)
+			value = animation_frame_weapon_rotation_correction_deg.z
+	else:
+		if axis_name == "pitch":
+			grip_offset_rot.x = wrapf(grip_offset_rot.x + delta_degrees, -180.0, 180.0)
+			value = grip_offset_rot.x
+		elif axis_name == "yaw":
+			grip_offset_rot.y = wrapf(grip_offset_rot.y + delta_degrees, -180.0, 180.0)
+			value = grip_offset_rot.y
+		else:
+			grip_offset_rot.z = wrapf(grip_offset_rot.z + delta_degrees, -180.0, 180.0)
+			value = grip_offset_rot.z
+		_sync_weapon_transform()
+		_update_slider_value("rot_" + axis_name, value)
+	_refresh_rotation_dials()
+	return value
+
+
+func _adjust_weapon_translation(axis_name: String, delta_meters: float) -> float:
+	var value := 0.0
+	if _editing_action_weapon_frame():
+		if axis_name == "x":
+			animation_frame_weapon_position_correction.x = clampf(
+				animation_frame_weapon_position_correction.x + delta_meters, -0.25, 0.25
+			)
+			value = animation_frame_weapon_position_correction.x
+		elif axis_name == "y":
+			animation_frame_weapon_position_correction.y = clampf(
+				animation_frame_weapon_position_correction.y + delta_meters, -0.25, 0.25
+			)
+			value = animation_frame_weapon_position_correction.y
+		else:
+			animation_frame_weapon_position_correction.z = clampf(
+				animation_frame_weapon_position_correction.z + delta_meters, -0.25, 0.25
+			)
+			value = animation_frame_weapon_position_correction.z
+	else:
+		if axis_name == "x":
+			grip_offset_pos.x = clampf(grip_offset_pos.x + delta_meters, -0.25, 0.25)
+			value = grip_offset_pos.x
+		elif axis_name == "y":
+			grip_offset_pos.y = clampf(grip_offset_pos.y + delta_meters, -0.25, 0.25)
+			value = grip_offset_pos.y
+		else:
+			grip_offset_pos.z = clampf(grip_offset_pos.z + delta_meters, -0.25, 0.25)
+			value = grip_offset_pos.z
+		_sync_weapon_translation()
+		_update_slider_value("grip_" + axis_name, value)
+	return value
 
 
 func _active_reload_timeline() -> Dictionary:
@@ -1207,7 +1309,7 @@ func _build_animation_frame_editor_ui(parent: VBoxContainer) -> void:
 	animation_frame_editor_title.add_theme_font_size_override("font_size", 10)
 	parent.add_child(animation_frame_editor_title)
 	var help := Label.new()
-	help.text = "Click Frames for an action to open its complete lifecycle at frame 0. Step or play, adjust the rig, set correction keys, then save the weapon profile. The source FBX is unchanged."
+	help.text = "Click Frames for an action to open its lifecycle at frame 0. The green barrel-base → muzzle line is the weapon axis. Orange weapon edits become clip-local frame keys; they do not change the shared gun mount."
 	help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	help.add_theme_font_size_override("font_size", 10)
 	parent.add_child(help)
@@ -1391,6 +1493,8 @@ func _preview_animation_slot(slot_name: String) -> void:
 		return
 	_set_animation_edit_candidate(slot_name, clip_name)
 	selected_animation_key = clip_name
+	animation_frame_weapon_position_correction = Vector3.ZERO
+	animation_frame_weapon_rotation_correction_deg = Vector3.ZERO
 	_apply_animation_hand_map(clip_name)
 	animation_preview_token += 1
 	var token := animation_preview_token
@@ -1646,10 +1750,27 @@ func _refresh_animation_frame_editor_ui() -> void:
 		animation_frame_panel.visible = true
 	if animation_frame_editor_title:
 		animation_frame_editor_title.text = (
-			"Editing %s → %s" % [animation_frame_editor.slot_name, animation_frame_editor.clip_name]
+			(
+				"Editing %s → %s • orange weapon edits are frame-local"
+				% [animation_frame_editor.slot_name, animation_frame_editor.clip_name]
+			)
 			if animation_frame_editor.active
 			else "Select Frames beside an animation state."
 		)
+	var frame_weapon_editing := _editing_action_weapon_frame()
+	for slider_key in ["grip_x", "grip_y", "grip_z", "rot_pitch", "rot_yaw", "rot_roll"]:
+		var slider_data: Variant = sliders_map.get(slider_key, {})
+		if slider_data is Dictionary:
+			var mount_slider := (slider_data as Dictionary).get("slider") as HSlider
+			var mount_row := (slider_data as Dictionary).get("row") as Control
+			if mount_slider:
+				mount_slider.editable = not frame_weapon_editing
+			if mount_row:
+				mount_row.tooltip_text = (
+					"Shared mount is locked in Frames. Use the orange 3D weapon control for this frame only."
+					if frame_weapon_editing
+					else "Calibrates the shared weapon mount for every animation."
+				)
 	if animation_frame_play_button:
 		animation_frame_play_button.text = "⏸ Pause" if animation_frame_editor.playing else "▶ Play"
 	if animation_frame_edit_button:
@@ -1783,6 +1904,12 @@ func _snapshot_animation_frame_pose() -> Dictionary:
 		"left_elbow_pole": _vector3_to_dictionary(left_elbow_pole_offset),
 		"right_hand_target": _vector3_to_dictionary(right_grip_local_pos),
 		"left_hand_target": _vector3_to_dictionary(left_grip_local_pos),
+		"weapon_hand_position_correction": _vector3_to_dictionary(
+			animation_frame_weapon_position_correction
+		),
+		"weapon_hand_rotation_correction_deg": _vector3_to_dictionary(
+			animation_frame_weapon_rotation_correction_deg
+		),
 	}
 
 
@@ -1803,8 +1930,17 @@ func _restore_animation_frame_pose(pose_data: Dictionary) -> void:
 	left_elbow_pole_offset = _dictionary_to_vector3(pose_data.get("left_elbow_pole", {}), left_elbow_pole_offset)
 	right_grip_local_pos = _dictionary_to_vector3(pose_data.get("right_hand_target", {}), right_grip_local_pos)
 	left_grip_local_pos = _dictionary_to_vector3(pose_data.get("left_hand_target", {}), left_grip_local_pos)
+	animation_frame_weapon_position_correction = _dictionary_to_vector3(
+		pose_data.get("weapon_hand_position_correction", {}),
+		Vector3.ZERO
+	)
+	animation_frame_weapon_rotation_correction_deg = _dictionary_to_vector3(
+		pose_data.get("weapon_hand_rotation_correction_deg", {}),
+		Vector3.ZERO
+	)
 	_sync_markers()
 	_sync_body_joint_controls()
+	_refresh_rotation_dials()
 
 
 func _finish_preview_to_idle() -> void:
@@ -2564,7 +2700,17 @@ func _apply_dot_world_drag(dot_id: String, world_pos: Vector3) -> void:
 		"left_elbow_pole":
 			_set_elbow_pole_from_world(&"left", world_pos)
 		"weapon_mount":
-			if weapon_pivot:
+			if _editing_action_weapon_frame():
+				var grip_world := _right_hand_grip_world_transform()
+				var world_delta := world_pos - drag_initial_world
+				animation_frame_weapon_position_correction = (
+					frame_weapon_drag_position_start
+					+ grip_world.basis.inverse() * world_delta
+				)
+				animation_frame_weapon_position_correction.x = clampf(animation_frame_weapon_position_correction.x, -0.25, 0.25)
+				animation_frame_weapon_position_correction.y = clampf(animation_frame_weapon_position_correction.y, -0.25, 0.25)
+				animation_frame_weapon_position_correction.z = clampf(animation_frame_weapon_position_correction.z, -0.25, 0.25)
+			elif weapon_pivot:
 				var parent_node := weapon_pivot.get_parent_node_3d()
 				var local_pos := parent_node.global_transform.affine_inverse() * world_pos if parent_node else world_pos
 				grip_offset_pos = local_pos - auto_grip_center_offset
@@ -4908,11 +5054,7 @@ func _apply_rotation_dial_delta(axis_name: String, delta_degrees: float) -> void
 		else: palm_roll = wrapf(palm_roll + delta_degrees, -180.0, 180.0)
 		_update_slider_value("p_" + axis_name, _rotation_axis_value(axis_name))
 	else:
-		if axis_name == "pitch": grip_offset_rot.x = wrapf(grip_offset_rot.x + delta_degrees, -180.0, 180.0)
-		elif axis_name == "yaw": grip_offset_rot.y = wrapf(grip_offset_rot.y + delta_degrees, -180.0, 180.0)
-		else: grip_offset_rot.z = wrapf(grip_offset_rot.z + delta_degrees, -180.0, 180.0)
-		_sync_weapon_transform()
-		_update_slider_value("rot_" + axis_name, _rotation_axis_value(axis_name))
+		_adjust_weapon_rotation(axis_name, delta_degrees)
 	_refresh_rotation_dials()
 
 func _rotation_axis_value(axis_name: String) -> float:
@@ -4920,13 +5062,25 @@ func _rotation_axis_value(axis_name: String) -> float:
 		if axis_name == "pitch": return palm_pitch
 		if axis_name == "yaw": return palm_yaw
 		return palm_roll
+	if _editing_action_weapon_frame():
+		if axis_name == "pitch": return animation_frame_weapon_rotation_correction_deg.x
+		if axis_name == "yaw": return animation_frame_weapon_rotation_correction_deg.y
+		return animation_frame_weapon_rotation_correction_deg.z
 	if axis_name == "pitch": return grip_offset_rot.x
 	if axis_name == "yaw": return grip_offset_rot.y
 	return grip_offset_rot.z
 
 func _refresh_rotation_dials() -> void:
 	if rotation_title_label:
-		rotation_title_label.text = "🔵 HUMAN HAND GRIP" if active_gizmo_id == "hand" else "🟠 WEAPON-MOUNT ROTATION"
+		rotation_title_label.text = (
+			"🔵 HUMAN HAND GRIP"
+			if active_gizmo_id == "hand"
+			else (
+				"🟠 FRAME WEAPON CORRECTION — MUZZLE AXIS"
+				if _editing_action_weapon_frame()
+				else "🟠 WEAPON-MOUNT ROTATION"
+			)
+		)
 	if rotation_orbit_control:
 		rotation_orbit_control.queue_redraw()
 	for axis_name in ["pitch", "yaw", "roll"]:
