@@ -29,6 +29,14 @@ const ARM_BONES := {
 @export_range(0.10, 0.70, 0.01) var tucked_reach_ratio: float = 0.48
 @export_range(1, 4, 1) var solve_iterations: int = 3
 
+@export_category("Prone Ground Clearance")
+@export_range(0.04, 0.20, 0.005) var prone_hand_floor_clearance_m: float = 0.10
+@export_range(0.03, 0.16, 0.005) var prone_elbow_floor_clearance_m: float = 0.065
+@export_range(0.04, 0.20, 0.005) var prone_muzzle_floor_clearance_m: float = 0.085
+@export_range(1.0, 30.0, 0.5) var prone_floor_response: float = 18.0
+@export_range(0.20, 1.20, 0.05) var prone_floor_probe_up_m: float = 0.60
+@export_range(0.20, 1.50, 0.05) var prone_floor_probe_down_m: float = 0.90
+
 @export_category("Anatomical Guardrails")
 ## These limits form a compact human-motion model. They prevent the solver
 ## from satisfying the reticle by folding an elbow through the ribcage or by
@@ -103,6 +111,9 @@ var animation_frame_pose: Dictionary = {}
 var frame_socket_override_active := false
 var frame_trigger_socket_base := Vector3.ZERO
 var frame_support_socket_base := Vector3.ZERO
+var prone_floor_lift_m: float = 0.0
+var muzzle_floor_clearance_m: float = INF
+var prone_floor_contact_detected: bool = false
 
 
 func bind(target_skeleton: Skeleton3D, attached_weapon: Node3D) -> void:
@@ -321,11 +332,19 @@ func apply(
 	var right_shoulder := _bone_world_position(&"mixamorig_RightArm")
 	var left_shoulder := _bone_world_position(&"mixamorig_LeftArm")
 	var shoulder_center := (right_shoulder + left_shoulder) * 0.5
+	# The reticle target is a world point. The barrel must point from the muzzle
+	# to that point, not from the shoulder center. Using the shoulder introduced
+	# visible parallax in prone even though both rays looked almost parallel.
+	var visual_aim_origin := (
+		muzzle_socket.global_position
+		if muzzle_socket != null
+		else shoulder_center
+	)
 	var aim_direction := _resolve_aim_direction(
 		aim_yaw,
 		aim_pitch,
 		world_aim_target,
-		shoulder_center,
+		visual_aim_origin,
 		body
 	)
 	last_aim_direction = aim_direction
@@ -383,6 +402,20 @@ func apply(
 	# The support hand advances along the foregrip only while both arms can
 	# reach it. This keeps the pose useful with different weapon proportions.
 	raw_support_position += aim_direction * support_forward_offset * (1.0 - tuck)
+	var desired_floor_lift := 0.0
+	if posture == &"PRONE":
+		desired_floor_lift = maxf(
+			_required_floor_lift(body, raw_trigger_position, prone_hand_floor_clearance_m),
+			_required_floor_lift(body, raw_support_position, prone_hand_floor_clearance_m)
+		)
+	prone_floor_lift_m = lerpf(
+		prone_floor_lift_m,
+		desired_floor_lift,
+		1.0 - exp(-prone_floor_response * clampf(delta, 0.0, 0.05))
+	)
+	if posture == &"PRONE" and prone_floor_lift_m > 0.0001:
+		raw_trigger_position += world_up * prone_floor_lift_m
+		raw_support_position += world_up * prone_floor_lift_m
 	var trigger_position := _fit_human_reach(
 		right_shoulder,
 		raw_trigger_position,
@@ -400,6 +433,15 @@ func apply(
 		if carry_delta.length() > animation_carry_limit_m:
 			carry_delta = carry_delta.normalized() * animation_carry_limit_m
 		trigger_position += carry_delta * animation_carry_weight
+	if posture == &"PRONE":
+		var settled_floor_lift := maxf(
+			_required_floor_lift(body, trigger_position, prone_hand_floor_clearance_m),
+			_required_floor_lift(body, support_position, prone_hand_floor_clearance_m)
+		)
+		if settled_floor_lift > 0.0001:
+			trigger_position += world_up * settled_floor_lift
+			support_position += world_up * settled_floor_lift
+			prone_floor_lift_m += settled_floor_lift
 	anatomical_adjustment_m = maxf(
 		raw_trigger_position.distance_to(trigger_position),
 		raw_support_position.distance_to(support_position)
@@ -438,6 +480,55 @@ func apply(
 		+ aim_direction * (0.16 + left_saved.z)
 		+ world_up * (elbow_height + prone_pole_raise + left_saved.y)
 	)
+	if posture == &"PRONE":
+		right_elbow_pole.global_position += world_up * _required_floor_lift(
+			body,
+			right_elbow_pole.global_position,
+			prone_elbow_floor_clearance_m
+		)
+		left_elbow_pole.global_position += world_up * _required_floor_lift(
+			body,
+			left_elbow_pole.global_position,
+			prone_elbow_floor_clearance_m
+		)
+	_solve_ready_weapon_pose(
+		trigger_position,
+		support_position,
+		aim_direction,
+		body_forward,
+		delta
+	)
+	if posture == &"PRONE" and muzzle_socket != null:
+		var muzzle_lift := _required_floor_lift(
+			body,
+			muzzle_socket.global_position,
+			prone_muzzle_floor_clearance_m
+		)
+		if muzzle_lift > 0.0001:
+			trigger_position += world_up * muzzle_lift
+			support_position += world_up * muzzle_lift
+			right_elbow_pole.global_position += world_up * muzzle_lift
+			left_elbow_pole.global_position += world_up * muzzle_lift
+			prone_floor_lift_m += muzzle_lift
+			_solve_ready_weapon_pose(
+				trigger_position,
+				support_position,
+				aim_direction,
+				body_forward,
+				delta
+			)
+	muzzle_floor_clearance_m = _floor_clearance(body, muzzle_socket.global_position) if muzzle_socket != null else INF
+	prone_floor_contact_detected = posture == &"PRONE" and muzzle_floor_clearance_m < INF
+	_update_errors()
+
+
+func _solve_ready_weapon_pose(
+	trigger_position: Vector3,
+	support_position: Vector3,
+	aim_direction: Vector3,
+	body_forward: Vector3,
+	delta: float
+) -> void:
 	if socket_contract_active:
 		if right_hand_owns_ready_weapon:
 			trigger_hand_target.global_position = trigger_position
@@ -469,7 +560,32 @@ func apply(
 		_update_socket_weapon_error()
 	else:
 		_align_weapon_to_aim(aim_direction)
-	_update_errors()
+
+
+func _required_floor_lift(body: Node3D, point: Vector3, clearance: float) -> float:
+	var measured := _floor_clearance(body, point)
+	if measured == INF:
+		return 0.0
+	return maxf(clearance - measured, 0.0)
+
+
+func _floor_clearance(body: Node3D, point: Vector3) -> float:
+	if body == null or body.get_world_3d() == null:
+		return INF
+	var query := PhysicsRayQueryParameters3D.create(
+		point + Vector3.UP * prone_floor_probe_up_m,
+		point - Vector3.UP * prone_floor_probe_down_m
+	)
+	query.collide_with_areas = false
+	if body is CollisionObject3D:
+		query.exclude = [(body as CollisionObject3D).get_rid()]
+	var hit := body.get_world_3d().direct_space_state.intersect_ray(query)
+	if hit.is_empty():
+		return INF
+	var normal := Vector3(hit.get("normal", Vector3.UP)).normalized()
+	if normal.dot(Vector3.UP) < 0.45:
+		return INF
+	return (point - Vector3(hit.get("position", point))).dot(normal)
 
 
 func get_debug_state() -> Dictionary:
@@ -505,6 +621,9 @@ func get_debug_state() -> Dictionary:
 		"cover_pose_amount": cover_pose_amount,
 		"cover_pose_name": cover_pose_name,
 		"shot_blocked": shot_blocked,
+		"prone_floor_lift_m": prone_floor_lift_m,
+		"muzzle_floor_clearance_m": muzzle_floor_clearance_m,
+		"prone_floor_contact_detected": prone_floor_contact_detected,
 		"animation_frame_pose_active": not animation_frame_pose.is_empty(),
 	}
 

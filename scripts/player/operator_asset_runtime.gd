@@ -496,6 +496,7 @@ func _build_animation_library() -> void:
 		var resource := load(clip_path)
 		if resource is Animation:
 			var authored := (resource as Animation).duplicate() as Animation
+			authored = _settle_idle_pose(clip_name, authored)
 			ROOT_SANITIZER.sanitize(authored, profile.is_looping(clip_name))
 			authored.loop_mode = Animation.LOOP_LINEAR if profile.is_looping(clip_name) else Animation.LOOP_NONE
 			animation_library.add_animation(clip_name, authored)
@@ -511,6 +512,7 @@ func _build_animation_library() -> void:
 			var source_name := _select_source_animation_name(source_player)
 			if source_name != &"":
 				var retargeted := _retarget_animation(source_player.get_animation(source_name))
+				retargeted = _settle_idle_pose(clip_name, retargeted)
 				ROOT_SANITIZER.sanitize(retargeted, profile.is_looping(clip_name))
 				retargeted.loop_mode = Animation.LOOP_LINEAR if profile.is_looping(clip_name) else Animation.LOOP_NONE
 				animation_library.add_animation(clip_name, retargeted)
@@ -522,6 +524,42 @@ func _build_animation_library() -> void:
 	_apply_clip_aliases()
 	_apply_clip_pose_yaw_offsets()
 	animation_player.add_animation_library("", animation_library)
+
+
+func _settle_idle_pose(clip_name: StringName, animation: Animation) -> Animation:
+	if clip_name != &"idle_prone" or animation == null:
+		return animation
+	# There is no dedicated non-firing prone idle asset yet. The terminal frame
+	# of the authored prone-stop take is a stable, supported rifle pose. Freeze
+	# that frame so idle never loops the old firing recoil while prone_fire keeps
+	# its full authored motion.
+	var sample_time := maxf(animation.length - (1.0 / 30.0), 0.0)
+	var settled := animation.duplicate() as Animation
+	for track in range(settled.get_track_count()):
+		var value: Variant
+		var supported := true
+		match settled.track_get_type(track):
+			Animation.TYPE_POSITION_3D:
+				value = animation.position_track_interpolate(track, sample_time)
+			Animation.TYPE_ROTATION_3D:
+				value = animation.rotation_track_interpolate(track, sample_time)
+			Animation.TYPE_SCALE_3D:
+				value = animation.scale_track_interpolate(track, sample_time)
+			Animation.TYPE_BLEND_SHAPE:
+				value = animation.blend_shape_track_interpolate(track, sample_time)
+			Animation.TYPE_VALUE:
+				value = animation.value_track_interpolate(track, sample_time)
+			_:
+				supported = false
+		if not supported:
+			continue
+		for key_index in range(settled.track_get_key_count(track) - 1, -1, -1):
+			settled.track_remove_key(track, key_index)
+		if value != null:
+			settled.track_insert_key(track, 0.0, value)
+	settled.length = 1.0
+	settled.loop_mode = Animation.LOOP_LINEAR
+	return settled
 
 
 func _apply_mirrored_clips() -> void:

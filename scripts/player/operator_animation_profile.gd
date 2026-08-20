@@ -40,7 +40,7 @@ const DEFAULT_CLIPS: Dictionary = {
 	&"crouch_forward_right": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/walk crouching forward right.fbx",
 	&"crouch_back_left": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/walk crouching backward left.fbx",
 	&"crouch_back_right": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/walk crouching backward right.fbx",
-	&"idle_prone": "res://assets/animations/mixamo/Prone Firing Rifle.fbx",
+	&"idle_prone": "res://assets/animations/mixamo/Prone Forward Stop.fbx",
 	&"prone_forward": "res://assets/animations/mixamo/Prone Forward.fbx",
 	&"prone_backward": "res://assets/animations/mixamo/Moving Backward In Prone Position.fbx",
 	&"prone_turn_left": "res://assets/animations/mixamo/Prone Left Turn.fbx",
