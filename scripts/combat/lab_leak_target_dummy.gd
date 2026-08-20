@@ -115,12 +115,21 @@ func apply_hurtbox_tuning(settings: Dictionary) -> void:
 		hurtbox_rig.apply_radius_scales(settings)
 
 
+func apply_hurtbox_geometry(settings: Dictionary) -> void:
+	if hurtbox_rig:
+		hurtbox_rig.apply_geometry_tuning(settings)
+
+
 func save_hurtbox_tuning() -> bool:
 	return bool(hurtbox_rig.save_radius_scales()) if hurtbox_rig else false
 
 
 func get_hurtbox_tuning() -> Dictionary:
 	return hurtbox_rig.get_radius_scales() if hurtbox_rig else {}
+
+
+func get_hurtbox_geometry() -> Dictionary:
+	return hurtbox_rig.get_geometry_tuning() if hurtbox_rig else {}
 
 
 func get_hurtbox_rig() -> Node3D:

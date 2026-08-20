@@ -24,6 +24,7 @@ var precision_core_debug_visible: bool = false
 var precision_core_scale: float = 1.0
 var enabled: bool = true
 var radius_scales: Dictionary = HurtboxProfile.load_scales()
+var geometry_tuning: Dictionary = HurtboxProfile.load_geometry()
 
 var _records: Array[Dictionary] = []
 var _bone_indices: Dictionary = {}
@@ -34,6 +35,7 @@ func bind(target_skeleton: Skeleton3D, receiver: Node) -> bool:
 	skeleton = target_skeleton
 	damage_receiver = receiver
 	radius_scales = HurtboxProfile.load_scales()
+	geometry_tuning = HurtboxProfile.load_geometry()
 	_clear_hurtboxes()
 	if skeleton == null:
 		push_warning("Animated hurtbox rig could not bind: Skeleton3D missing")
@@ -145,8 +147,17 @@ func get_radius_scales() -> Dictionary:
 	return radius_scales.duplicate()
 
 
+func apply_geometry_tuning(settings: Dictionary) -> void:
+	geometry_tuning = HurtboxProfile.normalize_geometry(settings)
+	force_pose_update()
+
+
+func get_geometry_tuning() -> Dictionary:
+	return geometry_tuning.duplicate(true)
+
+
 func save_radius_scales() -> bool:
-	return HurtboxProfile.save_scales(radius_scales)
+	return HurtboxProfile.save_profile(radius_scales, geometry_tuning)
 
 
 func get_hurtbox_areas() -> Array[Area3D]:
@@ -414,11 +425,22 @@ func _update_midpoint_capsule(record: Dictionary) -> void:
 
 func _update_capsule_between(record: Dictionary, start: Vector3, finish: Vector3) -> void:
 	var delta := finish - start
-	var length := delta.length()
-	if length < 0.001:
+	var bone_length := delta.length()
+	if bone_length < 0.001:
 		return
 	var radius := _scaled_radius(record)
-	var total_height := maxf(radius * 2.0, length + radius * 2.0)
+	var region_key := HurtboxProfile.region_scale_key(StringName(record.region))
+	var length_scale := HurtboxProfile.geometry_length_scale(
+		geometry_tuning,
+		region_key
+	)
+	# Capsule height includes both rounded caps. Keeping total height on the
+	# authored bone span prevents the torso cap from covering the head while the
+	# neighboring shapes still meet at their shared joint.
+	var total_height := maxf(
+		radius * 2.0 + 0.001,
+		maxf(radius * 2.0 + 0.001, bone_length) * length_scale
+	)
 	var capsule: CapsuleShape3D = record.shape
 	capsule.radius = radius
 	capsule.height = total_height
@@ -430,16 +452,16 @@ func _update_capsule_between(record: Dictionary, start: Vector3, finish: Vector3
 	var precision_capsule := precision_mesh.mesh as CapsuleMesh
 	var core_radius := radius * precision_core_scale
 	precision_capsule.radius = core_radius
-	precision_capsule.height = maxf(core_radius * 2.0, length + core_radius * 2.0)
+	var center_segment_length := maxf(0.001, total_height - radius * 2.0)
+	precision_capsule.height = center_segment_length + core_radius * 2.0
 
-	var y_axis := delta / length
-	var x_axis := y_axis.cross(Vector3.FORWARD)
-	if x_axis.length_squared() < 0.0001:
-		x_axis = y_axis.cross(Vector3.RIGHT)
-	x_axis = x_axis.normalized()
-	var z_axis := x_axis.cross(y_axis).normalized()
+	var area_basis := _basis_for_axis(delta / bone_length)
+	var offset := HurtboxProfile.geometry_offset(geometry_tuning, region_key)
 	var area: Area3D = record.area
-	area.global_transform = Transform3D(Basis(x_axis, y_axis, z_axis), start.lerp(finish, 0.5))
+	area.global_transform = Transform3D(
+		area_basis,
+		start.lerp(finish, 0.5) + area_basis * offset
+	)
 
 
 func _update_sphere(record: Dictionary) -> void:
@@ -447,6 +469,7 @@ func _update_sphere(record: Dictionary) -> void:
 	var reference_position := _bone_world_position(StringName(record.reference_bone))
 	var direction := (bone_position - reference_position).normalized()
 	var radius := _scaled_radius(record)
+	var region_key := HurtboxProfile.region_scale_key(StringName(record.region))
 	var sphere: SphereShape3D = record.shape
 	sphere.radius = radius
 	var debug_mesh: MeshInstance3D = record.debug_mesh
@@ -459,8 +482,25 @@ func _update_sphere(record: Dictionary) -> void:
 	precision_sphere.radius = core_radius
 	precision_sphere.height = core_radius * 2.0
 	var offset := direction * radius * float(record.directional_offset)
+	var area_basis := _basis_for_axis(direction)
+	offset += area_basis * HurtboxProfile.geometry_offset(geometry_tuning, region_key)
 	var area: Area3D = record.area
-	area.global_transform = Transform3D(Basis.IDENTITY, bone_position + offset)
+	area.global_transform = Transform3D(area_basis, bone_position + offset)
+
+
+func _basis_for_axis(y_axis: Vector3) -> Basis:
+	var normalized_y := y_axis.normalized()
+	var reference_forward := (
+		skeleton.global_basis.z.normalized()
+		if skeleton != null
+		else Vector3.FORWARD
+	)
+	var x_axis := normalized_y.cross(reference_forward)
+	if x_axis.length_squared() < 0.0001:
+		x_axis = normalized_y.cross(Vector3.RIGHT)
+	x_axis = x_axis.normalized()
+	var z_axis := x_axis.cross(normalized_y).normalized()
+	return Basis(x_axis, normalized_y, z_axis)
 
 
 func _scaled_radius(record: Dictionary) -> float:

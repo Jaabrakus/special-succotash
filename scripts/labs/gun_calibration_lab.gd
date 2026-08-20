@@ -240,6 +240,11 @@ var composure_graze_damage_scale: float = 0.38
 var composure_readout: Label
 var composure_profile_title: Label
 var shared_hurtbox_scales: Dictionary = HurtboxProfile.load_scales()
+var shared_hurtbox_geometry: Dictionary = HurtboxProfile.load_geometry()
+var selected_hurtbox_region: StringName = &"torso"
+var hurtbox_region_picker: OptionButton
+var hurtbox_edit_markers: Dictionary = {}
+var hitbox_drag_offset_start := Vector3.ZERO
 var fire_input_held: bool = false
 var active_lab_tab_name := "Rig & Hands"
 var current_aim_target := Vector3.ZERO
@@ -470,6 +475,12 @@ func _input(event: InputEvent) -> void:
 					_pause_animation_frame_editor_for_authoring()
 					if hit_dot.begins_with("body_joint:"):
 						_select_body_joint(StringName(hit_dot.trim_prefix("body_joint:")))
+					elif hit_dot.begins_with("hurtbox:"):
+						_select_hurtbox_region(StringName(hit_dot.trim_prefix("hurtbox:")))
+						hitbox_drag_offset_start = HurtboxProfile.geometry_offset(
+							shared_hurtbox_geometry,
+							selected_hurtbox_region
+						)
 					elif hit_dot == "left_ik":
 						_set_active_gizmo("hand")
 					elif hit_dot == "right_grip" or hit_dot == "weapon_mount":
@@ -635,6 +646,7 @@ func _process(delta: float) -> void:
 	_update_reload_magazine_visual()
 	_update_elbow_pole_visuals()
 	_update_body_joint_visuals()
+	_update_hurtbox_edit_markers()
 	_update_animation_quality_readout(delta)
 
 	if hand_gizmo_world and left_grip_marker and is_instance_valid(left_grip_marker):
@@ -2572,6 +2584,13 @@ func _register_interactive_dots() -> void:
 			"label": "🔷 %s procedural joint" % String(joint_name).replace("_", " ").capitalize(),
 			"color": Color(0.15, 0.85, 1.0),
 		})
+	for region_key: StringName in hurtbox_edit_markers:
+		interactive_dots.append({
+			"id": "hurtbox:%s" % String(region_key),
+			"mesh": hurtbox_edit_markers[region_key],
+			"label": "🟠 %s hitbox" % HurtboxProfile.region_label(region_key),
+			"color": Color(1.0, 0.52, 0.12),
+		})
 	if right_elbow_pole_marker:
 		interactive_dots.append({"id": "right_elbow_pole", "mesh": right_elbow_pole_marker, "label": "🟣 Right Elbow IK Pole", "color": Color(1.0, 0.25, 0.9)})
 	if left_elbow_pole_marker:
@@ -2711,6 +2730,20 @@ func _highlight_dot(dot_id: String) -> void:
 				mat.albedo_color = Color.WHITE if is_target else (item["color"] as Color)
 
 func _apply_dot_world_drag(dot_id: String, world_pos: Vector3) -> void:
+	if dot_id.begins_with("hurtbox:"):
+		var region_key := StringName(dot_id.trim_prefix("hurtbox:"))
+		var area := _hurtbox_region_area(region_key)
+		if area != null:
+			var world_delta := world_pos - drag_initial_world
+			var local_delta := area.global_basis.orthonormalized().inverse() * world_delta
+			HurtboxProfile.set_geometry_offset(
+				shared_hurtbox_geometry,
+				region_key,
+				hitbox_drag_offset_start + local_delta
+			)
+			_apply_shared_hurtbox_preview()
+			_sync_selected_hurtbox_controls()
+		return
 	match dot_id:
 		"right_elbow_pole":
 			_set_elbow_pole_from_world(&"right", world_pos)
@@ -2892,7 +2925,7 @@ func _update_body_joint_visuals() -> void:
 	for joint_name: StringName in body_joint_markers:
 		var bone_index := int(runtime_posture_layer.bone_indices.get(joint_name, -1))
 		var marker := body_joint_markers[joint_name] as MeshInstance3D
-		if not show_joint_bubbles:
+		if active_lab_tab_name == "Composure" or not show_joint_bubbles:
 			marker.visible = false
 		elif isolate_selected_node:
 			marker.visible = (joint_name == selected_body_joint) and (bone_index >= 0)
@@ -4622,7 +4655,7 @@ func _find_animation_player(node: Node) -> AnimationPlayer:
 func _save_weapon_config() -> bool:
 	if not _validate_weapon_rig_before_save():
 		return false
-	if not HurtboxProfile.save_scales(shared_hurtbox_scales):
+	if not HurtboxProfile.save_profile(shared_hurtbox_scales, shared_hurtbox_geometry):
 		_show_rig_error(
 			"Shared hitbox profile could not be saved. Weapon save blocked so main cannot drift from this preview."
 		)
@@ -5542,7 +5575,8 @@ func _build_studio_ui() -> void:
 	action_footer.add_child(HSeparator.new())
 	sidebar.add_child(action_footer)
 	var save_btn := Button.new()
-	save_btn.text = "✅ Save Rig + Equip on Character (Cmd/Ctrl+S)"
+	save_btn.text = "✅ Save Everything + Equip (Cmd/Ctrl+S)"
+	save_btn.tooltip_text = "Save weapon, sockets, animation corrections, composure, posture, and the complete shared hitbox layout."
 	save_btn.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2))
 	save_btn.pressed.connect(_save_weapon_config)
 	save_btn.disabled = not weapon_master_pose_initialized
@@ -5632,7 +5666,7 @@ func _build_composure_tab(tab_container: TabContainer) -> void:
 
 	vbox.add_child(HSeparator.new())
 	var hurtbox_title := Label.new()
-	hurtbox_title.text = "SHARED ANATOMICAL HITBOX SIZES"
+	hurtbox_title.text = "SHARED ANATOMICAL HITBOX EDITOR"
 	hurtbox_title.add_theme_color_override("font_color", Color("ff9f54"))
 	vbox.add_child(hurtbox_title)
 	var hurtbox_help := Label.new()
@@ -5652,16 +5686,55 @@ func _build_composure_tab(tab_container: TabContainer) -> void:
 		float(shared_hurtbox_scales.get(&"global", 0.88)),
 		func(v: float): _set_shared_hurtbox_scale(v, &"global")
 	)
+	hurtbox_region_picker = OptionButton.new()
+	hurtbox_region_picker.name = "HurtboxRegionPicker"
 	for region_key: StringName in HurtboxProfile.REGION_KEYS:
-		_add_slider(
-			vbox,
-			"hurtbox_%s" % String(region_key),
-			HurtboxProfile.region_label(region_key),
-			HurtboxProfile.MIN_SCALE,
-			HurtboxProfile.MAX_SCALE,
-			float(shared_hurtbox_scales.get(region_key, 1.0)),
-			_set_shared_hurtbox_scale.bind(region_key)
+		hurtbox_region_picker.add_item(HurtboxProfile.region_label(region_key))
+		hurtbox_region_picker.set_item_metadata(
+			hurtbox_region_picker.item_count - 1,
+			region_key
 		)
+	hurtbox_region_picker.select(HurtboxProfile.REGION_KEYS.find(selected_hurtbox_region))
+	hurtbox_region_picker.item_selected.connect(func(index: int):
+		_select_hurtbox_region(StringName(hurtbox_region_picker.get_item_metadata(index)))
+	)
+	vbox.add_child(hurtbox_region_picker)
+	_add_slider(
+		vbox, "hurtbox_selected_size", "Selected width",
+		HurtboxProfile.MIN_SCALE, HurtboxProfile.MAX_SCALE,
+		float(shared_hurtbox_scales.get(selected_hurtbox_region, 1.0)),
+		_set_selected_hurtbox_size
+	)
+	_add_slider(
+		vbox, "hurtbox_selected_length", "Selected length",
+		HurtboxProfile.MIN_LENGTH_SCALE, HurtboxProfile.MAX_LENGTH_SCALE,
+		HurtboxProfile.geometry_length_scale(shared_hurtbox_geometry, selected_hurtbox_region),
+		_set_selected_hurtbox_length
+	)
+	var offset := HurtboxProfile.geometry_offset(
+		shared_hurtbox_geometry,
+		selected_hurtbox_region
+	)
+	_add_slider(
+		vbox, "hurtbox_offset_x", "Move sideways",
+		-HurtboxProfile.MAX_OFFSET_METERS, HurtboxProfile.MAX_OFFSET_METERS,
+		offset.x, _set_selected_hurtbox_offset_component.bind(&"x")
+	)
+	_add_slider(
+		vbox, "hurtbox_offset_y", "Move along body part",
+		-HurtboxProfile.MAX_OFFSET_METERS, HurtboxProfile.MAX_OFFSET_METERS,
+		offset.y, _set_selected_hurtbox_offset_component.bind(&"y")
+	)
+	_add_slider(
+		vbox, "hurtbox_offset_z", "Move forward / back",
+		-HurtboxProfile.MAX_OFFSET_METERS, HurtboxProfile.MAX_OFFSET_METERS,
+		offset.z, _set_selected_hurtbox_offset_component.bind(&"z")
+	)
+	var drag_help := Label.new()
+	drag_help.text = "Orange points are hitbox centers. Click one to select it, then drag it directly in the preview."
+	drag_help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	drag_help.add_theme_color_override("font_color", Color("ffb36b"))
+	vbox.add_child(drag_help)
 	var save_hurtboxes_button := Button.new()
 	save_hurtboxes_button.name = "SaveSharedHitboxesButton"
 	save_hurtboxes_button.text = "Save Shared Hitboxes to Main Game"
@@ -5703,6 +5776,8 @@ func _finish_composure_target_preview() -> void:
 		composure_preview_dummy.call("set_hurtbox_debug_visible", true)
 	if composure_preview_dummy.has_method("apply_hurtbox_tuning"):
 		composure_preview_dummy.call("apply_hurtbox_tuning", shared_hurtbox_scales)
+	if composure_preview_dummy.has_method("apply_hurtbox_geometry"):
+		composure_preview_dummy.call("apply_hurtbox_geometry", shared_hurtbox_geometry)
 	if composure_preview_dummy.has_method("set_precision_core_debug"):
 		composure_preview_dummy.call(
 			"set_precision_core_debug",
@@ -5712,6 +5787,8 @@ func _finish_composure_target_preview() -> void:
 	var preview_health := composure_preview_dummy.get_node_or_null("HealthLabel") as Label3D
 	if preview_health:
 		preview_health.visible = false
+	_create_hurtbox_edit_markers()
+	_sync_selected_hurtbox_controls()
 
 
 func _set_shared_hurtbox_scale(value: float, region_key: StringName) -> void:
@@ -5720,12 +5797,131 @@ func _set_shared_hurtbox_scale(value: float, region_key: StringName) -> void:
 		HurtboxProfile.MIN_SCALE,
 		HurtboxProfile.MAX_SCALE
 	)
-	if composure_preview_dummy != null and composure_preview_dummy.has_method("apply_hurtbox_tuning"):
+	_apply_shared_hurtbox_preview()
+
+
+func _select_hurtbox_region(region_key: StringName) -> void:
+	if region_key not in HurtboxProfile.REGION_KEYS:
+		return
+	selected_hurtbox_region = region_key
+	if hurtbox_region_picker:
+		var picker_index := HurtboxProfile.REGION_KEYS.find(region_key)
+		if picker_index >= 0:
+			hurtbox_region_picker.select(picker_index)
+	_sync_selected_hurtbox_controls()
+	_update_hurtbox_edit_markers()
+	if hud_status:
+		hud_status.text = "🟠 Editing %s hitbox. Drag the orange center or use the size and position controls." % HurtboxProfile.region_label(region_key)
+
+
+func _set_selected_hurtbox_size(value: float) -> void:
+	shared_hurtbox_scales[selected_hurtbox_region] = clampf(
+		value,
+		HurtboxProfile.MIN_SCALE,
+		HurtboxProfile.MAX_SCALE
+	)
+	_apply_shared_hurtbox_preview()
+
+
+func _set_selected_hurtbox_length(value: float) -> void:
+	HurtboxProfile.set_geometry_length_scale(
+		shared_hurtbox_geometry,
+		selected_hurtbox_region,
+		value
+	)
+	_apply_shared_hurtbox_preview()
+
+
+func _set_selected_hurtbox_offset_component(value: float, axis: StringName) -> void:
+	var selected_offset := HurtboxProfile.geometry_offset(
+		shared_hurtbox_geometry,
+		selected_hurtbox_region
+	)
+	match axis:
+		&"x": selected_offset.x = value
+		&"y": selected_offset.y = value
+		&"z": selected_offset.z = value
+	HurtboxProfile.set_geometry_offset(
+		shared_hurtbox_geometry,
+		selected_hurtbox_region,
+		selected_offset
+	)
+	_apply_shared_hurtbox_preview()
+
+
+func _sync_selected_hurtbox_controls() -> void:
+	_update_slider_value(
+		"hurtbox_selected_size",
+		float(shared_hurtbox_scales.get(selected_hurtbox_region, 1.0))
+	)
+	_update_slider_value(
+		"hurtbox_selected_length",
+		HurtboxProfile.geometry_length_scale(
+			shared_hurtbox_geometry,
+			selected_hurtbox_region
+		)
+	)
+	var selected_offset := HurtboxProfile.geometry_offset(
+		shared_hurtbox_geometry,
+		selected_hurtbox_region
+	)
+	_update_slider_value("hurtbox_offset_x", selected_offset.x)
+	_update_slider_value("hurtbox_offset_y", selected_offset.y)
+	_update_slider_value("hurtbox_offset_z", selected_offset.z)
+	var length_entry: Dictionary = sliders_map.get("hurtbox_selected_length", {})
+	var length_slider := length_entry.get("slider") as HSlider
+	if length_slider:
+		length_slider.editable = selected_hurtbox_region not in [
+			&"head", &"left_foot", &"right_foot"
+		]
+
+
+func _apply_shared_hurtbox_preview() -> void:
+	if composure_preview_dummy == null:
+		return
+	if composure_preview_dummy.has_method("apply_hurtbox_tuning"):
 		composure_preview_dummy.call("apply_hurtbox_tuning", shared_hurtbox_scales)
+	if composure_preview_dummy.has_method("apply_hurtbox_geometry"):
+		composure_preview_dummy.call("apply_hurtbox_geometry", shared_hurtbox_geometry)
+	_update_hurtbox_edit_markers()
+
+
+func _create_hurtbox_edit_markers() -> void:
+	if not hurtbox_edit_markers.is_empty():
+		return
+	for region_key: StringName in HurtboxProfile.REGION_KEYS:
+		var marker := _create_marker(
+			Color(1.0, 0.52, 0.12),
+			"HitboxCenter_%s" % String(region_key),
+			0.014
+		)
+		marker.visible = false
+		add_child(marker)
+		hurtbox_edit_markers[region_key] = marker
+	_register_interactive_dots()
+
+
+func _hurtbox_region_area(region_key: StringName) -> Area3D:
+	if composure_preview_dummy == null or not composure_preview_dummy.has_method("get_hurtbox_rig"):
+		return null
+	var rig := composure_preview_dummy.call("get_hurtbox_rig") as Node3D
+	if rig == null:
+		return null
+	return rig.call("get_region_area", StringName(String(region_key).to_upper())) as Area3D
+
+
+func _update_hurtbox_edit_markers() -> void:
+	for region_key: StringName in hurtbox_edit_markers:
+		var marker := hurtbox_edit_markers[region_key] as MeshInstance3D
+		var area := _hurtbox_region_area(region_key)
+		marker.visible = composure_preview_active and area != null
+		if area != null:
+			marker.global_position = area.global_position
+			marker.scale = Vector3.ONE * (1.45 if region_key == selected_hurtbox_region else 1.0)
 
 
 func _save_shared_hurtboxes() -> bool:
-	if not HurtboxProfile.save_scales(shared_hurtbox_scales):
+	if not HurtboxProfile.save_profile(shared_hurtbox_scales, shared_hurtbox_geometry):
 		_show_rig_error("Could not save the shared gameplay hitbox profile.")
 		return false
 	if hud_status:
@@ -5748,6 +5944,22 @@ func _on_gun_lab_tab_changed(tab_index: int, tab_container: TabContainer) -> voi
 		hand_gizmo_world.visible = not show_composure
 	if weapon_gizmo_world:
 		weapon_gizmo_world.visible = not show_composure
+	for editor_marker in [
+		right_elbow_pole_marker,
+		left_elbow_pole_marker,
+		left_grip_marker,
+		right_grip_marker,
+		muzzle_marker,
+		barrel_base_marker,
+		ejection_marker,
+		optic_marker,
+	]:
+		if editor_marker != null:
+			(editor_marker as Node3D).visible = not show_composure
+	if joint_debug_instance:
+		joint_debug_instance.visible = not show_composure
+	_update_body_joint_visuals()
+	_update_hurtbox_edit_markers()
 	if show_composure:
 		cam_target = Vector3(0.0, 1.02, 0.0)
 		cam_distance = 3.15
@@ -5817,6 +6029,9 @@ func _apply_reticle_preview_profile() -> void:
 func _update_fire_debug_lines() -> void:
 	if fire_debug_instance == null:
 		return
+	if active_lab_tab_name == "Composure":
+		fire_debug_instance.visible = false
+		return
 	fire_debug_mesh.clear_surfaces()
 	if not show_bullet_velocity and not show_barrel_axis and not show_camera_aim and not show_last_shot:
 		fire_debug_instance.visible = false
@@ -5868,20 +6083,31 @@ func _draw_socom_reticle() -> void:
 func _draw_active_selection_brackets() -> void:
 	if not cam or not reticle_canvas: return
 	var target_world := Vector3.ZERO
-	if active_gizmo_id == "hand":
+	var selected_id := ""
+	var color := Color(1.0, 0.55, 0.08)
+	if active_lab_tab_name == "Composure":
+		var hitbox_marker := hurtbox_edit_markers.get(selected_hurtbox_region) as MeshInstance3D
+		if hitbox_marker == null or not hitbox_marker.visible:
+			return
+		target_world = hitbox_marker.global_position
+		selected_id = "hurtbox:%s" % String(selected_hurtbox_region)
+		color = Color(1.0, 0.52, 0.12)
+	elif active_gizmo_id == "hand":
 		if not left_grip_marker or not is_instance_valid(left_grip_marker): return
 		target_world = left_grip_marker.global_position
+		selected_id = "left_ik"
+		color = Color(0.0, 0.95, 1.0)
 	else:
 		if not weapon_gizmo_world or not is_instance_valid(weapon_gizmo_world): return
 		target_world = weapon_gizmo_world.global_position
+		selected_id = "weapon_mount"
 	if cam.is_position_behind(target_world): return
 
 	var center := cam.unproject_position(target_world)
-	var selected_id := "left_ik" if active_gizmo_id == "hand" else "weapon_mount"
 	var is_hovered := hovered_dot_id == selected_id or dragged_dot_id == selected_id
 	var radius := 17.0 if is_hovered else 14.0
 	var arm := 7.0
-	var color := Color.WHITE if is_hovered else (Color(0.0, 0.95, 1.0) if active_gizmo_id == "hand" else Color(1.0, 0.55, 0.08))
+	color = Color.WHITE if is_hovered else color
 	var width := 3.0 if is_hovered else 2.0
 	# Four unobtrusive L-shaped brackets highlight the selected real object.
 	reticle_canvas.draw_line(center + Vector2(-radius, -radius), center + Vector2(-radius + arm, -radius), color, width, true)

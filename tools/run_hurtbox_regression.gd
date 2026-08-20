@@ -138,6 +138,48 @@ func _run() -> void:
 		"legacy leg scale did not migrate to exact foot regions"
 	)
 
+	# Center and length authoring must change the same live physics objects and
+	# remain independent per region.
+	var torso_for_layout: Area3D = rig.get_region_area(&"TORSO")
+	var pelvis_for_layout: Area3D = rig.get_region_area(&"PELVIS")
+	if torso_for_layout and pelvis_for_layout:
+		var initial_geometry: Dictionary = rig.get_geometry_tuning()
+		var layout_edit := initial_geometry.duplicate(true)
+		var initial_torso_offset := HurtboxProfile.geometry_offset(
+			layout_edit,
+			&"torso"
+		)
+		var torso_position_before := torso_for_layout.global_position
+		var pelvis_position_before := pelvis_for_layout.global_position
+		var torso_shape := (torso_for_layout.get_child(0) as CollisionShape3D).shape as CapsuleShape3D
+		var torso_height_before := torso_shape.height
+		HurtboxProfile.set_geometry_offset(
+			layout_edit,
+			&"torso",
+			initial_torso_offset + Vector3(0.05, -0.04, 0.02)
+		)
+		HurtboxProfile.set_geometry_length_scale(layout_edit, &"torso", 1.40)
+		rig.apply_geometry_tuning(layout_edit)
+		_assert(
+			torso_for_layout.global_position.distance_to(torso_position_before) > 0.05,
+			"torso center edit did not move its physics area"
+		)
+		_assert(
+			torso_shape.height > torso_height_before + 0.05,
+			"torso length edit did not stretch its physics capsule"
+		)
+		_assert(
+			pelvis_for_layout.global_position.distance_to(pelvis_position_before) < 0.001,
+			"torso layout edit moved the pelvis hitbox"
+		)
+		rig.apply_geometry_tuning(initial_geometry)
+
+	var default_geometry := HurtboxProfile.default_geometry()
+	_assert(
+		HurtboxProfile.geometry_offset(default_geometry, &"torso").y < -0.05,
+		"default torso center was not lowered away from the head"
+	)
+
 	# There must be no invisible center capsule. A shot through visible air
 	# between independently animated legs is a legitimate miss.
 	_assert(
