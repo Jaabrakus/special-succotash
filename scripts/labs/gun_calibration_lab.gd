@@ -76,6 +76,7 @@ var left_hand_idx: int = -1
 var right_arm_idx: int = -1
 var right_forearm_idx: int = -1
 var right_hand_idx: int = -1
+var head_idx: int = -1
 var weapon_anchor_bone_idx: int = -1
 var right_hand_ik: SkeletonIK3D
 
@@ -168,6 +169,8 @@ var muzzle_marker: MeshInstance3D
 var barrel_base_marker: MeshInstance3D
 var ejection_marker: MeshInstance3D
 var optic_marker: MeshInstance3D
+var eye_sight_marker: Marker3D
+var eye_sight_dot: MeshInstance3D
 
 # Transform Calibration
 var grip_offset_pos := Vector3.ZERO
@@ -351,6 +354,7 @@ var fire_debug_material: StandardMaterial3D
 var show_bullet_velocity: bool = true
 var show_barrel_axis: bool = false
 var show_camera_aim: bool = false
+var show_eye_sight: bool = true
 var show_last_shot: bool = false
 var last_shot_origin := Vector3.ZERO
 var last_shot_end := Vector3.ZERO
@@ -667,6 +671,7 @@ func _process(delta: float) -> void:
 	_update_elbow_pole_visuals()
 	_update_body_joint_visuals()
 	_update_hurtbox_edit_markers()
+	_update_eye_sight_marker()
 	_update_animation_quality_readout(delta)
 
 	if hand_gizmo_world and left_grip_marker and is_instance_valid(left_grip_marker):
@@ -3235,6 +3240,7 @@ func _setup_trooper_and_rig() -> void:
 	right_arm_idx = skeleton.find_bone("mixamorig_RightArm")
 	right_forearm_idx = skeleton.find_bone("mixamorig_RightForeArm")
 	right_hand_idx = skeleton.find_bone("mixamorig_RightHand")
+	head_idx = skeleton.find_bone("mixamorig_Head")
 	for anchor_name in ["mixamorig_Spine2", "mixamorig_Spine1", "mixamorig_Spine"]:
 		weapon_anchor_bone_idx = skeleton.find_bone(anchor_name)
 		if weapon_anchor_bone_idx >= 0:
@@ -3338,6 +3344,13 @@ func _setup_trooper_and_rig() -> void:
 		skeleton.add_child(right_hand_ik)
 		# Keep IK stopped until two-stage bootstrap completes.
 		right_hand_ik.stop()
+
+	eye_sight_marker = Marker3D.new()
+	eye_sight_marker.name = "EyeSightOrigin"
+	add_child(eye_sight_marker)
+	eye_sight_dot = _create_marker(Color(0.25, 0.55, 1.0), "EyeSightDot", 0.014)
+	eye_sight_marker.add_child(eye_sight_dot)
+	_update_eye_sight_marker()
 
 
 func _neutral_preview_hip_rotation() -> Quaternion:
@@ -5599,6 +5612,16 @@ func _build_studio_ui() -> void:
 	aim_toggle.text = "Cyan — camera/reticle intent"
 	aim_toggle.toggled.connect(func(enabled: bool): show_camera_aim = enabled)
 	fire_vbox.add_child(aim_toggle)
+	var eye_toggle := CheckButton.new()
+	eye_toggle.name = "EyeSightToggle"
+	eye_toggle.text = "Blue — operator eye sight"
+	eye_toggle.tooltip_text = "Starts between the operator's eyes and ends at the shared reticle target. Use it to align the connected weapon rail and arm pose."
+	eye_toggle.button_pressed = show_eye_sight
+	eye_toggle.toggled.connect(func(enabled: bool):
+		show_eye_sight = enabled
+		_update_eye_sight_marker()
+	)
+	fire_vbox.add_child(eye_toggle)
 	var shot_toggle := CheckButton.new()
 	shot_toggle.text = "Yellow — last actual shot"
 	shot_toggle.toggled.connect(func(enabled: bool): show_last_shot = enabled)
@@ -6267,6 +6290,7 @@ func _on_gun_lab_tab_changed(tab_index: int, tab_container: TabContainer) -> voi
 		barrel_base_marker,
 		ejection_marker,
 		optic_marker,
+		eye_sight_marker,
 	]:
 		if editor_marker != null:
 			(editor_marker as Node3D).visible = not show_composure
@@ -6347,7 +6371,7 @@ func _update_fire_debug_lines() -> void:
 		fire_debug_instance.visible = false
 		return
 	fire_debug_mesh.clear_surfaces()
-	if not show_bullet_velocity and not show_barrel_axis and not show_camera_aim and not show_last_shot:
+	if not show_bullet_velocity and not show_barrel_axis and not show_camera_aim and not show_eye_sight and not show_last_shot:
 		fire_debug_instance.visible = false
 		return
 	fire_debug_instance.visible = true
@@ -6377,9 +6401,38 @@ func _update_fire_debug_lines() -> void:
 		)
 	if show_camera_aim and cam:
 		_add_fire_debug_segment(cam.global_position, target, Color(0.1, 0.9, 1.0))
+	if show_eye_sight and eye_sight_marker:
+		_add_fire_debug_segment(
+			eye_sight_marker.global_position,
+			target,
+			Color(0.25, 0.55, 1.0)
+		)
 	if show_last_shot and last_shot_origin != last_shot_end:
 		_add_fire_debug_segment(last_shot_origin, last_shot_end, Color(1.0, 0.88, 0.15))
 	fire_debug_mesh.surface_end()
+
+
+func _update_eye_sight_marker() -> void:
+	if eye_sight_marker == null:
+		return
+	eye_sight_marker.visible = show_eye_sight and active_lab_tab_name != "Composure"
+	if not eye_sight_marker.visible or skeleton == null or head_idx < 0:
+		return
+	var head_origin := _bone_world_origin(head_idx)
+	var target: Vector3 = (
+		current_aim_target
+		if current_aim_target != Vector3.ZERO
+		else _get_gunsmith_fixed_aim_target()
+	)
+	var sight_direction := (target - head_origin).normalized()
+	if sight_direction.length_squared() < 0.99:
+		sight_direction = -skeleton.global_basis.z.normalized()
+	var operator_up := skeleton.global_basis.y.normalized()
+	# Place the derived reference between and just ahead of the eyes. The head
+	# remains authored animation; this marker never creates or edits a bone.
+	eye_sight_marker.global_position = (
+		head_origin + operator_up * 0.035 + sight_direction * 0.075
+	)
 
 
 func _add_fire_debug_segment(start: Vector3, finish: Vector3, color: Color) -> void:
