@@ -64,9 +64,14 @@ func _process(_delta: float) -> void:
     ).normalized()
     if view_direction.length_squared() < 0.99:
         view_direction = -camera_rig.camera.global_basis.z.normalized()
-    var ballistic_direction: Vector3 = (
-        camera_rig.weapon_aim_point - muzzle
-    ).normalized()
+    # The white/red guide must reveal where the rendered bore physically points.
+    # The shared target direction is used by ballistics, but drawing it here used
+    # to conceal a bad weapon/arm pose by making the guide look corrected already.
+    var ballistic_direction: Vector3 = Vector3.ZERO
+    if mannequin and mannequin.has_method("get_active_barrel_direction"):
+        ballistic_direction = mannequin.get_active_barrel_direction()
+    if ballistic_direction.length_squared() < 0.99:
+        ballistic_direction = (camera_rig.weapon_aim_point - muzzle).normalized()
     if ballistic_direction.length_squared() < 0.99:
         ballistic_direction = view_direction
     var view_display_target: Vector3 = (

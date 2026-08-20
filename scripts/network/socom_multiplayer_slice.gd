@@ -102,6 +102,14 @@ func _physics_process(delta: float) -> void:
 
 
 func _process(_delta: float) -> void:
+	if (
+		session_active
+		and local_operator != null
+		and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
+		and Input.is_action_just_pressed("reload_weapon")
+		and local_operator.mannequin != null
+	):
+		local_operator.mannequin.play_operator_semantic_action(&"reload", 0.12)
 	var current_time_sec := Time.get_ticks_msec() / 1000.0
 	for raw_id in operators:
 		var operator := operators[raw_id] as SocomNetworkOperator
@@ -773,7 +781,9 @@ func _ensure_input_map() -> void:
 	_add_key_action("dive", KEY_Z)
 	_add_key_action("peek_left", KEY_Q)
 	_add_key_action("peek_right", KEY_E)
-	_add_key_action("reset_camera", KEY_R)
+	_remove_key_binding("reset_camera", KEY_R)
+	_add_key_action("reset_camera", KEY_HOME)
+	_add_key_action("reload_weapon", KEY_R)
 	_ensure_action("prone")
 	_ensure_action("roll")
 	if not InputMap.has_action("fire"):
@@ -791,6 +801,14 @@ func _ensure_input_map() -> void:
 func _ensure_action(action: StringName) -> void:
 	if not InputMap.has_action(action):
 		InputMap.add_action(action, 0.25)
+
+
+func _remove_key_binding(action: StringName, keycode: Key) -> void:
+	if not InputMap.has_action(action):
+		return
+	for existing_event in InputMap.action_get_events(action):
+		if existing_event is InputEventKey and existing_event.physical_keycode == keycode:
+			InputMap.action_erase_event(action, existing_event)
 
 
 func _add_key_action(action: StringName, keycode: Key) -> void:

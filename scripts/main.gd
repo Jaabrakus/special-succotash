@@ -168,7 +168,11 @@ func _ensure_input_map() -> void:
     _add_key_action("peek_left", KEY_Q)
     _add_key_action("dive", KEY_Z)
     _add_key_action("peek_right", KEY_E)
-    _add_key_action("reset_camera", KEY_R)
+    # R belongs to the weapon. Keep camera recovery on Home so a reload can
+    # never snap the player's view back to its startup orbit.
+    _remove_key_binding("reset_camera", KEY_R)
+    _add_key_action("reset_camera", KEY_HOME)
+    _add_key_action("reload_weapon", KEY_R)
     _add_key_action("toggle_calibration", KEY_C)
     _add_key_action("calibration_opacity_down", KEY_BRACKETLEFT)
     _add_key_action("calibration_opacity_up", KEY_BRACKETRIGHT)
@@ -227,6 +231,12 @@ func _add_key_action(action: StringName, keycode: Key) -> void:
     InputMap.action_add_event(action, event)
 
 func _process(_delta: float) -> void:
+    if (
+        Input.is_action_just_pressed("reload_weapon")
+        and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
+        and not OS.get_cmdline_user_args().has("--automated-test")
+    ):
+        _request_weapon_reload()
     if Input.is_action_just_pressed("cycle_grenade"):
         selected_grenade_type = (selected_grenade_type + 1) % 3
     if Input.is_action_just_pressed("throw_grenade"):
@@ -418,7 +428,7 @@ func _process(_delta: float) -> void:
     debug_label.text = (
         "SOCOM-141 CAMERA LAB\n"
         + "WASD move | Space jump | X/C tap crouch, hold prone | Z dive-prone | Q/E peek | F4 targets\n"
-        + "Mouse orbit | R reset | H clean HUD | K body stack | V camera view | P tune | F9 record | F10 replay\n"
+        + "Mouse orbit | R reload | Home reset camera | H clean HUD | K body stack | V camera view | P tune\n"
         + "v2.7 MERGED SOCOM RETICLE + HUMANOID HURTBOX RANGE\n\n"
         + "Vertical FOV     %5.1f°\n" % d.fov
         + "Rear boom       %5.2f m behind player\n" % d.rear_boom_distance
@@ -457,7 +467,7 @@ func _process(_delta: float) -> void:
         + "Camera state    %s\n" % ("ELEVATED / COMPRESSED" if d.collision_active else "PREFERRED SHOT")
     )
 
-    var mannequin = player.get_node("Mannequin")
+    var mannequin: Node = player.get_node("Mannequin") as Node
     if mannequin:
         var a: Dictionary = mannequin.get_aim_debug_data()
         debug_label.text += (
@@ -470,6 +480,18 @@ func _process(_delta: float) -> void:
             + "Shot path       %s  impact %s\n" % [("BLOCKED" if d.shot_blocked else "CLEAR"), d.shot_collider]
             + "Hand grip error L %.3f  R %.3f" % [a.left_hand_error, a.right_hand_error]
         )
+
+
+func _request_weapon_reload() -> bool:
+    if player == null:
+        return false
+    var mannequin: Node = player.get_node_or_null("Mannequin") as Node
+    return (
+        mannequin != null
+        and mannequin.has_method("play_operator_semantic_action")
+        and bool(mannequin.call("play_operator_semantic_action", &"reload", 0.12))
+    )
+
 
 func _build_environment() -> void:
     var world_env := WorldEnvironment.new()
