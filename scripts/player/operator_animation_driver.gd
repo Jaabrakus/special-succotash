@@ -164,6 +164,9 @@ func _ready() -> void:
 	add_child(weapon_pose_solver)
 	weapon_pose_solver.bind(skeleton, weapon_node)
 	weapon_pose_solver.configure_joint_poles(equipped_weapon_config.get("elbow_poles", {}))
+	weapon_pose_solver.configure_dynamic_hold(
+		equipped_weapon_handling_profile.get("dynamic_hold", {})
+	)
 	audio_event_manager = AnimationAudioEvents.new()
 	audio_event_manager.name = "AudioAnimationEvents"
 	add_child(audio_event_manager)

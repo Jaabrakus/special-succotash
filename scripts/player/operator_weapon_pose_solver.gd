@@ -14,6 +14,9 @@ const ARM_BONES := {
 @export_range(1.0, 30.0, 0.5) var enter_response: float = 18.0
 @export_range(1.0, 30.0, 0.5) var exit_response: float = 12.0
 @export_range(1.0, 30.0, 0.5) var cover_response: float = 16.0
+@export_range(0.0, 1.0, 0.05) var animation_carry_weight: float = 0.65
+@export_range(0.0, 0.08, 0.005) var animation_carry_limit_m: float = 0.035
+@export_range(0.05, 0.35, 0.01) var ownership_return_seconds: float = 0.18
 
 @export_category("Rifle Pose")
 @export_range(0.45, 0.90, 0.01) var trigger_reach_ratio: float = 0.72
@@ -85,6 +88,13 @@ var elbow_pole_offsets_by_posture: Dictionary = {}
 var weapon_animation_parent: Node
 var weapon_solver_anchor: Node3D
 var weapon_solver_owned: bool = false
+var ownership_return_start := Transform3D.IDENTITY
+var ownership_return_elapsed: float = 0.18
+var action_weapon_follow_active: bool = false
+var action_weapon_follow_start := Transform3D.IDENTITY
+var action_weapon_hand_offset := Transform3D.IDENTITY
+var action_weapon_follow_elapsed: float = 0.0
+var action_weapon_follow_blend_seconds: float = 0.12
 var right_hand_ik: SkeletonIK3D
 var left_hand_ik: SkeletonIK3D
 var animation_frame_pose: Dictionary = {}
@@ -148,6 +158,27 @@ func configure_joint_poles(raw_poles: Variant) -> void:
 			elbow_pole_offsets_by_posture[posture_name] = fallback.duplicate(true)
 
 
+func configure_dynamic_hold(raw_profile: Variant) -> void:
+	if not raw_profile is Dictionary:
+		return
+	var profile := raw_profile as Dictionary
+	animation_carry_weight = clampf(
+		float(profile.get("animation_carry_weight", animation_carry_weight)),
+		0.0,
+		1.0
+	)
+	animation_carry_limit_m = clampf(
+		float(profile.get("animation_carry_limit_m", animation_carry_limit_m)),
+		0.0,
+		0.08
+	)
+	ownership_return_seconds = clampf(
+		float(profile.get("reload_return_blend_seconds", ownership_return_seconds)),
+		0.05,
+		0.35
+	)
+
+
 func set_animation_frame_pose(raw_pose: Variant) -> void:
 	var next_pose := raw_pose as Dictionary if raw_pose is Dictionary else {}
 	if next_pose.is_empty():
@@ -207,12 +238,14 @@ func apply(
 	# own measurements and lets animation remain the source pose.
 	skeleton.clear_bones_global_pose_override()
 	skeleton.force_update_all_bone_transforms()
+	var sampled_trigger_hand_position := _bone_world_position(&"mixamorig_RightHand")
 	last_posture = posture
 	var action_owns_arms := (
 		movement_state in [&"DIVING", &"ROLLING", &"AIRBORNE", &"LANDING"]
 		or requested_action in [&"reload", &"prone_reload"]
 	)
 	if action_owns_arms:
+		_update_action_weapon_follow(delta)
 		if (
 			reload_support_regrip
 			and requested_action in [&"reload", &"prone_reload"]
@@ -221,16 +254,18 @@ func apply(
 			if right_hand_ik and right_hand_ik.is_running():
 				right_hand_ik.stop()
 			support_hand_target.global_transform = support_socket.global_transform
+			var previous_weight := current_weight
+			current_weight = 1.0
 			_solve_socket_arm(
 				left_hand_ik,
 				support_hand_target,
 				left_elbow_pole,
 				&"mixamorig_LeftHand"
 			)
+			current_weight = previous_weight
 			skeleton.force_update_all_bone_transforms()
 		else:
 			_stop_socket_ik()
-		_set_weapon_solver_owned(false)
 		current_weight = 0.0
 		desired_weight = 0.0
 		return
@@ -327,6 +362,11 @@ func apply(
 		aim_direction,
 		left_reach
 	)
+	if requested_action == &"" and animation_carry_weight > 0.0:
+		var carry_delta := sampled_trigger_hand_position - trigger_position
+		if carry_delta.length() > animation_carry_limit_m:
+			carry_delta = carry_delta.normalized() * animation_carry_limit_m
+		trigger_position += carry_delta * animation_carry_weight
 	anatomical_adjustment_m = maxf(
 		raw_trigger_position.distance_to(trigger_position),
 		raw_support_position.distance_to(support_position)
@@ -366,7 +406,7 @@ func apply(
 		+ world_up * (elbow_height + prone_pole_raise + left_saved.y)
 	)
 	if socket_contract_active:
-		_place_socketed_weapon(trigger_position, aim_direction, body_forward)
+		_place_socketed_weapon(trigger_position, aim_direction, body_forward, delta)
 		if adaptive_support_socket:
 			support_socket.global_position = support_position
 		trigger_hand_target.global_position = trigger_socket.global_position
@@ -406,6 +446,9 @@ func get_debug_state() -> Dictionary:
 		"socket_contract_active": socket_contract_active,
 		"adaptive_support_socket": adaptive_support_socket,
 		"weapon_solver_owned": weapon_solver_owned,
+		"animation_carry_weight": animation_carry_weight,
+		"animation_carry_limit_m": animation_carry_limit_m,
+		"ownership_return_active": ownership_return_elapsed < ownership_return_seconds,
 		"cover_pose_amount": cover_pose_amount,
 		"cover_pose_name": cover_pose_name,
 		"shot_blocked": shot_blocked,
@@ -422,12 +465,62 @@ func _find_weapon_socket(socket_name: String) -> Marker3D:
 func _set_weapon_solver_owned(enabled: bool) -> void:
 	if weapon_node == null or weapon_solver_owned == enabled:
 		return
+	var was_solver_owned := weapon_solver_owned
 	var next_parent: Node = weapon_solver_anchor if enabled else weapon_animation_parent
 	if next_parent == null or weapon_node.get_parent() == next_parent:
 		weapon_solver_owned = enabled
+		if enabled and not was_solver_owned:
+			_finish_action_weapon_follow()
 		return
 	weapon_node.reparent(next_parent, true)
 	weapon_solver_owned = enabled
+	if enabled:
+		_finish_action_weapon_follow()
+	else:
+		ownership_return_elapsed = ownership_return_seconds
+
+
+func _update_action_weapon_follow(delta: float) -> void:
+	if weapon_node == null or skeleton == null:
+		return
+	var hand_index := int(bone_indices.get(&"mixamorig_RightHand", -1))
+	if hand_index < 0:
+		return
+	var hand_world := skeleton.global_transform * skeleton.get_bone_global_pose(hand_index)
+	if not action_weapon_follow_active:
+		# Keep the weapon in the solver's world-space parent and drive the action
+		# explicitly. Reparenting directly under BoneAttachment3D produced a one-frame
+		# attachment update jump when the reload crossfade began.
+		if weapon_solver_anchor != null and weapon_node.get_parent() != weapon_solver_anchor:
+			weapon_node.reparent(weapon_solver_anchor, true)
+		action_weapon_follow_start = weapon_node.global_transform
+		action_weapon_hand_offset = hand_world.affine_inverse() * weapon_node.global_transform
+		action_weapon_follow_elapsed = 0.0
+		action_weapon_follow_active = true
+		weapon_solver_owned = false
+	var desired_transform := hand_world * action_weapon_hand_offset
+	var amount := clampf(
+		action_weapon_follow_elapsed / maxf(action_weapon_follow_blend_seconds, 0.001),
+		0.0,
+		1.0
+	)
+	amount = amount * amount * (3.0 - 2.0 * amount)
+	weapon_node.global_transform = action_weapon_follow_start.interpolate_with(
+		desired_transform,
+		amount
+	)
+	action_weapon_follow_elapsed = minf(
+		action_weapon_follow_elapsed + maxf(delta, 0.0),
+		action_weapon_follow_blend_seconds
+	)
+
+
+func _finish_action_weapon_follow() -> void:
+	if not action_weapon_follow_active:
+		return
+	action_weapon_follow_active = false
+	ownership_return_start = weapon_node.global_transform
+	ownership_return_elapsed = 0.0
 
 
 func _build_socket_ik() -> void:
@@ -493,7 +586,8 @@ func _stop_socket_ik() -> void:
 func _place_socketed_weapon(
 	trigger_goal: Vector3,
 	aim_direction: Vector3,
-	body_forward: Vector3
+	body_forward: Vector3,
+	delta: float
 ) -> void:
 	if weapon_node == null or trigger_socket == null:
 		return
@@ -535,6 +629,22 @@ func _place_socketed_weapon(
 			false
 		).scaled(world_scale)
 	weapon_node.global_position += trigger_goal - trigger_socket.global_position
+	if ownership_return_elapsed < ownership_return_seconds:
+		var target_transform := weapon_node.global_transform
+		var amount := clampf(
+			ownership_return_elapsed / maxf(ownership_return_seconds, 0.001),
+			0.0,
+			1.0
+		)
+		amount = amount * amount * (3.0 - 2.0 * amount)
+		weapon_node.global_transform = ownership_return_start.interpolate_with(
+			target_transform,
+			amount
+		)
+		ownership_return_elapsed = minf(
+			ownership_return_elapsed + maxf(delta, 0.0),
+			ownership_return_seconds
+		)
 
 
 func _update_socket_weapon_error() -> void:

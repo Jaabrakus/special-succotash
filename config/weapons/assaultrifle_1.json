@@ -242,6 +242,11 @@
       "reload_standing": "reload"
     },
     "family": "TWO_HAND_RIFLE",
+    "dynamic_hold": {
+      "animation_carry_weight": 0.65,
+      "animation_carry_limit_m": 0.035,
+      "reload_return_blend_seconds": 0.18
+    },
     "locomotion_family": "RIFLE",
     "locomotion_slots": {
       "crouch_to_stand": "crouch_to_stand",
