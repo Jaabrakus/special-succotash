@@ -83,6 +83,7 @@ func _run() -> void:
 				1.0,
 				1.0,
 				&"",
+				false,
 				before_target,
 				player,
 				1.0 / 60.0
@@ -115,6 +116,7 @@ func _run() -> void:
 				1.0,
 				0.0,
 				&"",
+				false,
 				before_target,
 				player,
 				1.0 / 60.0

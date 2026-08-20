@@ -78,6 +78,8 @@ run_godot_check "animation-sequence-service" "res://tools/animation_sequence_ser
 "$project_dir/tools/run_mobility_regression.sh"
 run_godot_check "gun-lab" "res://tools/gun_lab_animation_catalog_regression.gd" "GUN_LAB_ANIMATION_CATALOG_REGRESSION PASS"
 run_godot_check "weapon-rig-integration" "res://tools/weapon_rig_integration_regression.gd" "WEAPON_RIG_INTEGRATION_REGRESSION PASS"
+run_godot_check "dynamic-hand-ownership" "res://tools/test_dynamic_hand_owned_weapon.gd" "DYNAMIC_HAND_OWNERSHIP_REGRESSION PASS"
+run_godot_check "dynamic-reload-handoff" "res://tools/test_dynamic_reload_handoff.gd" "DYNAMIC_RELOAD_HANDOFF_REGRESSION PASS"
 run_godot_check "prone-grounding" "res://tools/prone_grounding_regression.gd" "PRONE_GROUNDING_REGRESSION PASS"
 
 if [[ "$mode" == "full" ]]; then

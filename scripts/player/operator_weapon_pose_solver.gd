@@ -86,8 +86,10 @@ var socket_contract_active: bool = false
 var adaptive_support_socket: bool = false
 var elbow_pole_offsets_by_posture: Dictionary = {}
 var weapon_animation_parent: Node
+var weapon_hand_mount_transform := Transform3D.IDENTITY
 var weapon_solver_anchor: Node3D
 var weapon_solver_owned: bool = false
+var right_hand_owns_ready_weapon: bool = false
 var ownership_return_start := Transform3D.IDENTITY
 var ownership_return_elapsed: float = 0.18
 var action_weapon_follow_active: bool = false
@@ -107,6 +109,7 @@ func bind(target_skeleton: Skeleton3D, attached_weapon: Node3D) -> void:
 	skeleton = target_skeleton
 	weapon_node = attached_weapon
 	weapon_animation_parent = weapon_node.get_parent() if weapon_node != null else null
+	weapon_hand_mount_transform = weapon_node.transform if weapon_node != null else Transform3D.IDENTITY
 	weapon_solver_anchor = Node3D.new()
 	weapon_solver_anchor.name = "WeaponSolverAnchor"
 	add_child(weapon_solver_anchor)
@@ -176,6 +179,14 @@ func configure_dynamic_hold(raw_profile: Variant) -> void:
 		float(profile.get("reload_return_blend_seconds", ownership_return_seconds)),
 		0.05,
 		0.35
+	)
+	maximum_wrist_correction_deg = clampf(
+		float(profile.get("hand_owned_aim_correction_limit_deg", maximum_wrist_correction_deg)),
+		25.0,
+		180.0
+	)
+	right_hand_owns_ready_weapon = bool(
+		profile.get("right_hand_owns_weapon", right_hand_owns_ready_weapon)
 	)
 
 
@@ -406,13 +417,32 @@ func apply(
 		+ world_up * (elbow_height + prone_pole_raise + left_saved.y)
 	)
 	if socket_contract_active:
-		_place_socketed_weapon(trigger_position, aim_direction, body_forward, delta)
-		if adaptive_support_socket:
-			support_socket.global_position = support_position
-		trigger_hand_target.global_position = trigger_socket.global_position
-		support_hand_target.global_position = support_socket.global_position
-		_solve_socket_arm(right_hand_ik, trigger_hand_target, right_elbow_pole, &"mixamorig_RightHand")
-		_solve_socket_arm(left_hand_ik, support_hand_target, left_elbow_pole, &"mixamorig_LeftHand")
+		if right_hand_owns_ready_weapon:
+			trigger_hand_target.global_position = trigger_position
+			_solve_socket_arm(
+				right_hand_ik,
+				trigger_hand_target,
+				right_elbow_pole,
+				&"mixamorig_RightHand"
+			)
+			_place_hand_owned_weapon(aim_direction, body_forward, delta)
+			if adaptive_support_socket:
+				support_socket.global_position = support_position
+			support_hand_target.global_position = support_socket.global_position
+			_solve_socket_arm(
+				left_hand_ik,
+				support_hand_target,
+				left_elbow_pole,
+				&"mixamorig_LeftHand"
+			)
+		else:
+			_place_socketed_weapon(trigger_position, aim_direction, body_forward, delta)
+			if adaptive_support_socket:
+				support_socket.global_position = support_position
+			trigger_hand_target.global_position = trigger_socket.global_position
+			support_hand_target.global_position = support_socket.global_position
+			_solve_socket_arm(right_hand_ik, trigger_hand_target, right_elbow_pole, &"mixamorig_RightHand")
+			_solve_socket_arm(left_hand_ik, support_hand_target, left_elbow_pole, &"mixamorig_LeftHand")
 		skeleton.force_update_all_bone_transforms()
 		_update_socket_weapon_error()
 	else:
@@ -446,6 +476,7 @@ func get_debug_state() -> Dictionary:
 		"socket_contract_active": socket_contract_active,
 		"adaptive_support_socket": adaptive_support_socket,
 		"weapon_solver_owned": weapon_solver_owned,
+		"right_hand_owns_ready_weapon": right_hand_owns_ready_weapon,
 		"animation_carry_weight": animation_carry_weight,
 		"animation_carry_limit_m": animation_carry_limit_m,
 		"ownership_return_active": ownership_return_elapsed < ownership_return_seconds,
@@ -591,20 +622,7 @@ func _place_socketed_weapon(
 ) -> void:
 	if weapon_node == null or trigger_socket == null:
 		return
-	var blocked_pitch_deg := blocked_low_ready_pitch_deg
-	if last_posture == &"CROUCHED":
-		blocked_pitch_deg = blocked_crouch_pitch_deg
-	elif last_posture == &"PRONE":
-		blocked_pitch_deg = blocked_prone_pitch_deg
-	var low_ready_direction := (
-		body_forward.rotated(
-			body_forward.cross(Vector3.UP).normalized(),
-			-deg_to_rad(blocked_pitch_deg)
-		)
-	).normalized()
-	if low_ready_direction.length_squared() < 0.50:
-		low_ready_direction = aim_direction
-	var render_direction := aim_direction.slerp(low_ready_direction, cover_pose_amount)
+	var render_direction := _render_weapon_direction(aim_direction, body_forward)
 	var world_scale := weapon_node.global_basis.get_scale()
 	var barrel_origin: Vector3 = (
 		barrel_base_socket.global_position
@@ -629,8 +647,93 @@ func _place_socketed_weapon(
 			false
 		).scaled(world_scale)
 	weapon_node.global_position += trigger_goal - trigger_socket.global_position
+	_apply_ownership_return(weapon_node.global_transform, delta)
+
+
+func _place_hand_owned_weapon(
+	aim_direction: Vector3,
+	body_forward: Vector3,
+	delta: float
+) -> void:
+	if weapon_node == null or skeleton == null:
+		return
+	var hand_index := int(bone_indices.get(&"mixamorig_RightHand", -1))
+	if hand_index < 0:
+		return
+	# First place the rifle from its saved local hand mount. The right hand is the
+	# visual owner; aim correction rotates that hand-and-rifle unit together.
+	var hand_world := skeleton.global_transform * skeleton.get_bone_global_pose(hand_index)
+	weapon_node.global_transform = hand_world * weapon_hand_mount_transform
+	var barrel_origin := (
+		barrel_base_socket.global_position
+		if barrel_base_socket != null
+		else (trigger_socket.global_position if trigger_socket != null else weapon_node.global_position)
+	)
+	var current_barrel := (
+		(muzzle_socket.global_position - barrel_origin).normalized()
+		if muzzle_socket != null
+		else Vector3.ZERO
+	)
+	var render_direction := _render_weapon_direction(aim_direction, body_forward)
+	if current_barrel.length_squared() > 0.50 and render_direction.length_squared() > 0.50:
+		var required_angle := current_barrel.angle_to(render_direction)
+		wrist_correction_deg = rad_to_deg(required_angle)
+		var applied_angle := minf(required_angle, deg_to_rad(maximum_wrist_correction_deg))
+		var correction_ratio := 0.0 if required_angle <= 0.00001 else applied_angle / required_angle
+		var world_delta := Quaternion.IDENTITY.slerp(
+			Quaternion(current_barrel, render_direction),
+			correction_ratio * clampf(current_weight, 0.0, 1.0)
+		)
+		var hand_pose := skeleton.get_bone_global_pose(hand_index)
+		var skeleton_world_basis := skeleton.global_basis.orthonormalized()
+		var hand_world_basis := (skeleton_world_basis * hand_pose.basis.orthonormalized()).orthonormalized()
+		var target_world_basis := (Basis(world_delta) * hand_world_basis).orthonormalized()
+		var target_local_basis := (
+			skeleton_world_basis.inverse() * target_world_basis
+		).orthonormalized()
+		hand_pose.basis = target_local_basis.scaled(hand_pose.basis.get_scale())
+		skeleton.set_bone_global_pose_override(hand_index, hand_pose, 1.0, true)
+		skeleton.force_update_all_bone_transforms()
+		hand_world = skeleton.global_transform * skeleton.get_bone_global_pose(hand_index)
+	var target_transform := hand_world * weapon_hand_mount_transform
+	_apply_ownership_return(target_transform, delta)
+	var solved_barrel_origin := (
+		barrel_base_socket.global_position
+		if barrel_base_socket != null
+		else (trigger_socket.global_position if trigger_socket != null else weapon_node.global_position)
+	)
+	var solved_barrel := (
+		(muzzle_socket.global_position - solved_barrel_origin).normalized()
+		if muzzle_socket != null
+		else Vector3.ZERO
+	)
+	weapon_aim_error_deg = (
+		rad_to_deg(solved_barrel.angle_to(render_direction))
+		if solved_barrel.length_squared() > 0.50
+		else 0.0
+	)
+
+
+func _render_weapon_direction(aim_direction: Vector3, body_forward: Vector3) -> Vector3:
+	var blocked_pitch_deg := blocked_low_ready_pitch_deg
+	if last_posture == &"CROUCHED":
+		blocked_pitch_deg = blocked_crouch_pitch_deg
+	elif last_posture == &"PRONE":
+		blocked_pitch_deg = blocked_prone_pitch_deg
+	var pitch_axis := body_forward.cross(Vector3.UP).normalized()
+	var low_ready_direction := (
+		body_forward.rotated(pitch_axis, -deg_to_rad(blocked_pitch_deg)).normalized()
+		if pitch_axis.length_squared() > 0.50
+		else aim_direction
+	)
+	if low_ready_direction.length_squared() < 0.50:
+		low_ready_direction = aim_direction
+	return aim_direction.slerp(low_ready_direction, cover_pose_amount).normalized()
+
+
+func _apply_ownership_return(target_transform: Transform3D, delta: float) -> void:
+	weapon_node.global_transform = target_transform
 	if ownership_return_elapsed < ownership_return_seconds:
-		var target_transform := weapon_node.global_transform
 		var amount := clampf(
 			ownership_return_elapsed / maxf(ownership_return_seconds, 0.001),
 			0.0,
