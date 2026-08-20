@@ -174,6 +174,9 @@ var ejection_marker: MeshInstance3D
 var optic_marker: MeshInstance3D
 var eye_sight_marker: Marker3D
 var eye_sight_dot: MeshInstance3D
+var measured_eye_marker: Marker3D
+var measured_eye_dot: MeshInstance3D
+var eye_composition_anchor_local_by_posture: Dictionary = {}
 
 # Transform Calibration
 var grip_offset_pos := Vector3.ZERO
@@ -524,7 +527,7 @@ func _input(event: InputEvent) -> void:
 							drag_offset_vector = Vector3.ZERO
 						if hud_status:
 							hud_status.text = (
-								"👁 Drag eye sight: horizontal = yaw, vertical = pitch"
+								"👁 Drag composition line: horizontal = yaw, vertical = pitch"
 								if hit_dot == "eye_sight"
 								else "🎯 Positioning %s (Left arm biomechanically auto-grips!)" % hit_dot
 							)
@@ -575,7 +578,7 @@ func _input(event: InputEvent) -> void:
 				_sync_eye_sight_controls()
 				if hud_status:
 					eye_correction = _eye_sight_correction()
-					hud_status.text = "👁 Eye Pitch %.1f° • Yaw %.1f°" % [
+					hud_status.text = "👁 Target Pitch %.1f° • Yaw %.1f°" % [
 						eye_correction.x,
 						eye_correction.y,
 					]
@@ -2681,7 +2684,7 @@ func _register_interactive_dots() -> void:
 	if ejection_marker: interactive_dots.append({"id": "ejection", "mesh": ejection_marker, "label": "🟡 Shell Ejection Port", "color": Color(1.0, 0.85, 0.1)})
 	if optic_marker: interactive_dots.append({"id": "optic", "mesh": optic_marker, "label": "🟢 Optic Scope Rail", "color": Color(0.2, 1.0, 0.4)})
 	if right_grip_marker: interactive_dots.append({"id": "right_grip", "mesh": right_grip_marker, "label": "🟠 Trigger-Hand Grip (moves gun in right hand)", "color": Color(1.0, 0.55, 0.08)})
-	if eye_sight_dot: interactive_dots.append({"id": "eye_sight", "mesh": eye_sight_dot, "label": "🔵 Eye Sight — drag yaw/pitch", "color": Color(0.25, 0.55, 1.0)})
+	if eye_sight_dot: interactive_dots.append({"id": "eye_sight", "mesh": eye_sight_dot, "label": "🔵 Aim Composition Target — drag yaw/pitch", "color": Color(0.25, 0.55, 1.0)})
 
 func _find_dot_under_mouse(screen_pos: Vector2) -> String:
 	if not cam: return ""
@@ -3394,10 +3397,19 @@ func _setup_trooper_and_rig() -> void:
 		right_hand_ik.stop()
 
 	eye_sight_marker = Marker3D.new()
-	eye_sight_marker.name = "EyeSightOrigin"
+	eye_sight_marker.name = "AimCompositionTarget"
 	add_child(eye_sight_marker)
-	eye_sight_dot = _create_marker(Color(0.25, 0.55, 1.0), "EyeSightDot", 0.014)
+	eye_sight_dot = _create_marker(Color(0.25, 0.55, 1.0), "AimCompositionDot", 0.014)
 	eye_sight_marker.add_child(eye_sight_dot)
+	measured_eye_marker = Marker3D.new()
+	measured_eye_marker.name = "MeasuredEyeOrigin"
+	add_child(measured_eye_marker)
+	measured_eye_dot = _create_marker(
+		Color(0.70, 0.90, 1.0),
+		"MeasuredEyeDot",
+		0.009
+	)
+	measured_eye_marker.add_child(measured_eye_dot)
 	_update_eye_sight_marker()
 
 
@@ -5662,8 +5674,8 @@ func _build_studio_ui() -> void:
 	fire_vbox.add_child(aim_toggle)
 	var eye_toggle := CheckButton.new()
 	eye_toggle.name = "EyeSightToggle"
-	eye_toggle.text = "Blue — operator eye sight"
-	eye_toggle.tooltip_text = "Move the head-relative origin with X/Y/Z. Turn the independent sight direction with pitch/yaw. Use this reference to constrain the weapon rail and arm pose toward the shared reticle aim."
+	eye_toggle.text = "Blue — free aim composition target"
+	eye_toggle.tooltip_text = "The small pale dot measures the real animated eye. Move the blue target freely with X/Y/Z and turn its line with pitch/yaw. Their difference can drive a constrained lean and cheek-weld solve."
 	eye_toggle.button_pressed = show_eye_sight
 	eye_toggle.toggled.connect(func(enabled: bool):
 		show_eye_sight = enabled
@@ -5674,7 +5686,7 @@ func _build_studio_ui() -> void:
 	_add_slider(
 		fire_vbox,
 		"eye_sight_pitch",
-		"Eye Pitch (Up/Down)",
+		"Target Pitch (Up/Down)",
 		-24.0,
 		24.0,
 		eye_correction.x,
@@ -5683,7 +5695,7 @@ func _build_studio_ui() -> void:
 	_add_slider(
 		fire_vbox,
 		"eye_sight_yaw",
-		"Eye Yaw (Left/Right)",
+		"Target Yaw (Left/Right)",
 		-38.0,
 		38.0,
 		eye_correction.y,
@@ -5693,27 +5705,27 @@ func _build_studio_ui() -> void:
 	_add_slider(
 		fire_vbox,
 		"eye_origin_x",
-		"Eye X (Left/Right)",
-		-0.06,
-		0.06,
+		"Target X (Left/Right)",
+		-0.55,
+		0.55,
 		eye_origin_offset.x,
 		_set_eye_sight_origin_component.bind(&"x")
 	)
 	_add_slider(
 		fire_vbox,
 		"eye_origin_y",
-		"Eye Y (Up/Down)",
-		-0.06,
-		0.06,
+		"Target Y (Up/Down)",
+		-0.90,
+		0.25,
 		eye_origin_offset.y,
 		_set_eye_sight_origin_component.bind(&"y")
 	)
 	_add_slider(
 		fire_vbox,
 		"eye_origin_z",
-		"Eye Z (Front/Back)",
-		-0.06,
-		0.06,
+		"Target Z (Front/Back)",
+		-0.45,
+		0.45,
 		eye_origin_offset.z,
 		_set_eye_sight_origin_component.bind(&"z")
 	)
@@ -5723,8 +5735,8 @@ func _build_studio_ui() -> void:
 		)
 		eye_origin_slider.step = 0.001
 	var reset_eye_origin_button := Button.new()
-	reset_eye_origin_button.text = "Center Eye Origin"
-	reset_eye_origin_button.tooltip_text = "Return the eye point to the safe default on the front of the face."
+	reset_eye_origin_button.text = "Reset Composition Target"
+	reset_eye_origin_button.tooltip_text = "Return the free target to the measured neutral eye position."
 	reset_eye_origin_button.pressed.connect(func():
 		if runtime_posture_layer != null:
 			runtime_posture_layer.set_eye_sight_origin_offset_meters(
@@ -6404,6 +6416,7 @@ func _on_gun_lab_tab_changed(tab_index: int, tab_container: TabContainer) -> voi
 		ejection_marker,
 		optic_marker,
 		eye_sight_marker,
+		measured_eye_marker,
 	]:
 		if editor_marker != null:
 			(editor_marker as Node3D).visible = not show_composure
@@ -6516,6 +6529,12 @@ func _update_fire_debug_lines() -> void:
 		_add_fire_debug_segment(cam.global_position, target, Color(0.1, 0.9, 1.0))
 	if show_eye_sight and eye_sight_marker:
 		var eye_direction := _eye_sight_direction_world()
+		if measured_eye_marker != null:
+			_add_fire_debug_segment(
+				measured_eye_marker.global_position,
+				eye_sight_marker.global_position,
+				Color(0.70, 0.90, 1.0)
+			)
 		_add_fire_debug_segment(
 			eye_sight_marker.global_position,
 			eye_sight_marker.global_position + eye_direction * 50.0,
@@ -6530,6 +6549,8 @@ func _update_eye_sight_marker() -> void:
 	if eye_sight_marker == null:
 		return
 	eye_sight_marker.visible = show_eye_sight and active_lab_tab_name != "Composure"
+	if measured_eye_marker != null:
+		measured_eye_marker.visible = eye_sight_marker.visible
 	if not eye_sight_marker.visible or skeleton == null or head_idx < 0:
 		return
 	var head_origin := _bone_world_origin(head_idx)
@@ -6538,15 +6559,29 @@ func _update_eye_sight_marker() -> void:
 	# This imported operator faces local +Z. Using Godot's conventional -Z put
 	# the authored eye point on the back of the skull.
 	var operator_forward := skeleton.global_basis.z.normalized()
-	var origin_offset := _eye_sight_origin_offset()
-	# Keep the origin fixed between the eyes. Yaw and pitch rotate only the sight
-	# direction; they must never orbit the origin around or behind the skull.
-	eye_sight_marker.global_position = (
+	var measured_eye_origin := (
 		head_origin
-		+ operator_right * origin_offset.x
 		+ operator_up * EYE_ORIGIN_HEIGHT_METERS
-		+ operator_up * origin_offset.y
 		+ operator_forward * EYE_ORIGIN_FORWARD_METERS
+	)
+	if measured_eye_marker != null:
+		measured_eye_marker.global_position = measured_eye_origin
+	if not eye_composition_anchor_local_by_posture.has(preview_posture):
+		# Capture one neutral operator-local anchor for each stance. After this,
+		# animation and head motion move only the pale measured-eye dot.
+		eye_composition_anchor_local_by_posture[preview_posture] = (
+			skeleton.to_local(measured_eye_origin)
+		)
+	var neutral_target := skeleton.to_global(
+		eye_composition_anchor_local_by_posture[preview_posture]
+	)
+	var origin_offset := _eye_sight_origin_offset()
+	# The blue target is operator-local and independent of the animated head.
+	# Yaw and pitch rotate only its direction; they never orbit its origin.
+	eye_sight_marker.global_position = (
+		neutral_target
+		+ operator_right * origin_offset.x
+		+ operator_up * origin_offset.y
 		+ operator_forward * origin_offset.z
 	)
 

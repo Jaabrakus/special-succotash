@@ -75,8 +75,8 @@ func load_project_profile() -> bool:
 					float((reference as Dictionary).get("yaw", 0.0))
 				))
 				var origin: Variant = (reference as Dictionary).get(
-					"origin_offset_meters",
-					{}
+					"composition_target_offset_meters",
+					(reference as Dictionary).get("origin_offset_meters", {})
 				)
 				if origin is Dictionary:
 					set_eye_sight_origin_offset_meters(posture, Vector3(
@@ -114,14 +114,14 @@ func to_document() -> Dictionary:
 		eye_sight_data[String(posture)] = {
 			"pitch": eye_reference.x,
 			"yaw": eye_reference.y,
-			"origin_offset_meters": {
+			"composition_target_offset_meters": {
 				"x": eye_origin.x,
 				"y": eye_origin.y,
 				"z": eye_origin.z,
 			},
 		}
 	return {
-		"schema_version": 3,
+		"schema_version": 4,
 		"space": "local_additive_degrees",
 		"application_order": "after_animation_before_aim_and_weapon_ik",
 		"postures": postures,
@@ -171,12 +171,12 @@ func get_eye_sight_origin_offset_meters(posture: StringName) -> Vector3:
 func set_eye_sight_origin_offset_meters(posture: StringName, value: Vector3) -> void:
 	if posture not in SUPPORTED_POSTURES:
 		return
-	# Keep the reference inside a compact head-sized volume. Z is an additive
-	# forward/back offset from the default point on the front of the face.
+	# This is a free composition target, not the measured eye position. Keep it
+	# inside a body-sized operator-local volume so authored solves stay human.
 	eye_sight_origin_offsets[posture] = Vector3(
-		clampf(value.x, -0.06, 0.06),
-		clampf(value.y, -0.06, 0.06),
-		clampf(value.z, -0.06, 0.06)
+		clampf(value.x, -0.55, 0.55),
+		clampf(value.y, -0.90, 0.25),
+		clampf(value.z, -0.45, 0.45)
 	)
 
 
