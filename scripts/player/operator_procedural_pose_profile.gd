@@ -32,6 +32,7 @@ const JOINT_AXIS_LIMITS: Dictionary = {
 
 var corrections: Dictionary = {}
 var eye_sight_references: Dictionary = {}
+var eye_sight_origin_offsets: Dictionary = {}
 
 
 func _init() -> void:
@@ -73,10 +74,29 @@ func load_project_profile() -> bool:
 					float((reference as Dictionary).get("pitch", 0.0)),
 					float((reference as Dictionary).get("yaw", 0.0))
 				))
+				var origin: Variant = (reference as Dictionary).get(
+					"origin_offset_meters",
+					{}
+				)
+				if origin is Dictionary:
+					set_eye_sight_origin_offset_meters(posture, Vector3(
+						float((origin as Dictionary).get("x", 0.0)),
+						float((origin as Dictionary).get("y", 0.0)),
+						float((origin as Dictionary).get("z", 0.0))
+					))
 	return true
 
 
 func save_project_profile() -> bool:
+	var file := FileAccess.open(PROFILE_PATH, FileAccess.WRITE)
+	if file == null:
+		return false
+	file.store_string(JSON.stringify(to_document(), "  "))
+	file.close()
+	return true
+
+
+func to_document() -> Dictionary:
 	var postures: Dictionary = {}
 	var eye_sight_data: Dictionary = {}
 	for posture: StringName in SUPPORTED_POSTURES:
@@ -90,22 +110,23 @@ func save_project_profile() -> bool:
 			}
 		postures[String(posture)] = bones
 		var eye_reference := get_eye_sight_reference_degrees(posture)
+		var eye_origin := get_eye_sight_origin_offset_meters(posture)
 		eye_sight_data[String(posture)] = {
 			"pitch": eye_reference.x,
 			"yaw": eye_reference.y,
+			"origin_offset_meters": {
+				"x": eye_origin.x,
+				"y": eye_origin.y,
+				"z": eye_origin.z,
+			},
 		}
-	var file := FileAccess.open(PROFILE_PATH, FileAccess.WRITE)
-	if file == null:
-		return false
-	file.store_string(JSON.stringify({
-		"schema_version": 2,
+	return {
+		"schema_version": 3,
 		"space": "local_additive_degrees",
 		"application_order": "after_animation_before_aim_and_weapon_ik",
 		"postures": postures,
 		"eye_sight_references": eye_sight_data,
-	}, "  "))
-	file.close()
-	return true
+	}
 
 
 func get_rotation_degrees(posture: StringName, bone: StringName) -> Vector3:
@@ -143,12 +164,30 @@ func set_eye_sight_reference_degrees(posture: StringName, value: Vector2) -> voi
 	)
 
 
+func get_eye_sight_origin_offset_meters(posture: StringName) -> Vector3:
+	return eye_sight_origin_offsets.get(posture, Vector3.ZERO)
+
+
+func set_eye_sight_origin_offset_meters(posture: StringName, value: Vector3) -> void:
+	if posture not in SUPPORTED_POSTURES:
+		return
+	# Keep the reference inside a compact head-sized volume. Z is an additive
+	# forward/back offset from the default point on the front of the face.
+	eye_sight_origin_offsets[posture] = Vector3(
+		clampf(value.x, -0.06, 0.06),
+		clampf(value.y, -0.06, 0.06),
+		clampf(value.z, -0.06, 0.06)
+	)
+
+
 func _reset_structure() -> void:
 	corrections.clear()
 	eye_sight_references.clear()
+	eye_sight_origin_offsets.clear()
 	for posture: StringName in SUPPORTED_POSTURES:
 		var bones: Dictionary = {}
 		for bone: StringName in SUPPORTED_BONES:
 			bones[bone] = Vector3.ZERO
 		corrections[posture] = bones
 		eye_sight_references[posture] = Vector2.ZERO
+		eye_sight_origin_offsets[posture] = Vector3.ZERO

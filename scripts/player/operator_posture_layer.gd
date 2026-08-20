@@ -118,6 +118,20 @@ func set_eye_sight_reference_degrees(
 	)
 
 
+func get_eye_sight_origin_offset_meters(posture_name: StringName) -> Vector3:
+	return procedural_profile.get_eye_sight_origin_offset_meters(posture_name)
+
+
+func set_eye_sight_origin_offset_meters(
+	posture_name: StringName,
+	offset_meters: Vector3
+) -> void:
+	procedural_profile.set_eye_sight_origin_offset_meters(
+		posture_name,
+		offset_meters
+	)
+
+
 func save_procedural_profile() -> bool:
 	return procedural_profile.save_project_profile()
 

@@ -1,5 +1,9 @@
 extends SceneTree
 
+const ProceduralPoseProfile := preload(
+	"res://scripts/player/operator_procedural_pose_profile.gd"
+)
+
 var failures: Array[String] = []
 
 
@@ -28,8 +32,37 @@ func _run() -> void:
 		"eye-sight reference is visible and user-toggleable"
 	)
 	_expect(
-		sliders.has("eye_sight_pitch") and sliders.has("eye_sight_yaw"),
-		"Gunsmith exposes pitch up/down and yaw left/right controls"
+		sliders.has("eye_sight_pitch")
+		and sliders.has("eye_sight_yaw")
+		and sliders.has("eye_origin_x")
+		and sliders.has("eye_origin_y")
+		and sliders.has("eye_origin_z"),
+		"Gunsmith exposes direction and X/Y/Z eye-origin controls"
+	)
+	var profile := ProceduralPoseProfile.new()
+	profile.set_eye_sight_origin_offset_meters(
+		&"CROUCHED",
+		Vector3(0.021, -0.013, 0.034)
+	)
+	var profile_document: Dictionary = profile.to_document()
+	var saved_eye_origin: Dictionary = (
+		profile_document["eye_sight_references"]["CROUCHED"]["origin_offset_meters"]
+	)
+	_expect(
+		is_equal_approx(float(saved_eye_origin["x"]), 0.021)
+		and is_equal_approx(float(saved_eye_origin["y"]), -0.013)
+		and is_equal_approx(float(saved_eye_origin["z"]), 0.034),
+		"saved posture data retains all three eye-origin axes"
+	)
+	profile.set_eye_sight_origin_offset_meters(
+		&"CROUCHED",
+		Vector3(1.0, -1.0, 1.0)
+	)
+	_expect(
+		profile.get_eye_sight_origin_offset_meters(&"CROUCHED").is_equal_approx(
+			Vector3(0.06, -0.06, 0.06)
+		),
+		"eye-origin authoring stays inside the head-sized safety box"
 	)
 	if eye_marker != null:
 		var skeleton := lab.get("skeleton") as Skeleton3D
@@ -60,6 +93,32 @@ func _run() -> void:
 		&"head"
 	)
 	var original_eye_correction: Vector3 = lab.call("_eye_sight_correction")
+	var original_eye_origin_offset: Vector3 = lab.call("_eye_sight_origin_offset")
+	var original_eye_origin := eye_marker.global_position
+	posture_layer.call(
+		"set_eye_sight_origin_offset_meters",
+		lab.get("preview_posture"),
+		Vector3(0.03, 0.02, -0.015)
+	)
+	lab.call("_update_eye_sight_marker")
+	var skeleton_for_origin := lab.get("skeleton") as Skeleton3D
+	var expected_origin_delta := (
+		skeleton_for_origin.global_basis.x.normalized() * 0.03
+		+ skeleton_for_origin.global_basis.y.normalized() * 0.02
+		+ skeleton_for_origin.global_basis.z.normalized() * -0.015
+	)
+	_expect(
+		eye_marker.global_position.is_equal_approx(
+			original_eye_origin + expected_origin_delta
+		),
+		"X/Y/Z values move the eye origin in head-relative axes"
+	)
+	posture_layer.call(
+		"set_eye_sight_origin_offset_meters",
+		lab.get("preview_posture"),
+		original_eye_origin_offset
+	)
+	lab.call("_update_eye_sight_marker")
 	posture_layer.call(
 		"set_eye_sight_reference_degrees",
 		lab.get("preview_posture"),
@@ -144,6 +203,11 @@ func _run() -> void:
 		"set_eye_sight_reference_degrees",
 		lab.get("preview_posture"),
 		Vector2(original_eye_correction.x, original_eye_correction.y)
+	)
+	posture_layer.call(
+		"set_eye_sight_origin_offset_meters",
+		lab.get("preview_posture"),
+		original_eye_origin_offset
 	)
 
 	lab.set("show_bullet_velocity", false)

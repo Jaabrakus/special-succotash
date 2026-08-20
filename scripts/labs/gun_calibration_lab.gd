@@ -5663,7 +5663,7 @@ func _build_studio_ui() -> void:
 	var eye_toggle := CheckButton.new()
 	eye_toggle.name = "EyeSightToggle"
 	eye_toggle.text = "Blue — operator eye sight"
-	eye_toggle.tooltip_text = "Starts between the operator's eyes and ends at the shared reticle target. Use it to align the connected weapon rail and arm pose."
+	eye_toggle.tooltip_text = "Move the head-relative origin with X/Y/Z. Turn the independent sight direction with pitch/yaw. Use this reference to constrain the weapon rail and arm pose toward the shared reticle aim."
 	eye_toggle.button_pressed = show_eye_sight
 	eye_toggle.toggled.connect(func(enabled: bool):
 		show_eye_sight = enabled
@@ -5689,6 +5689,52 @@ func _build_studio_ui() -> void:
 		eye_correction.y,
 		_set_eye_sight_component.bind(&"yaw")
 	)
+	var eye_origin_offset := _eye_sight_origin_offset()
+	_add_slider(
+		fire_vbox,
+		"eye_origin_x",
+		"Eye X (Left/Right)",
+		-0.06,
+		0.06,
+		eye_origin_offset.x,
+		_set_eye_sight_origin_component.bind(&"x")
+	)
+	_add_slider(
+		fire_vbox,
+		"eye_origin_y",
+		"Eye Y (Up/Down)",
+		-0.06,
+		0.06,
+		eye_origin_offset.y,
+		_set_eye_sight_origin_component.bind(&"y")
+	)
+	_add_slider(
+		fire_vbox,
+		"eye_origin_z",
+		"Eye Z (Front/Back)",
+		-0.06,
+		0.06,
+		eye_origin_offset.z,
+		_set_eye_sight_origin_component.bind(&"z")
+	)
+	for eye_origin_slider_key in ["eye_origin_x", "eye_origin_y", "eye_origin_z"]:
+		var eye_origin_slider := (
+			sliders_map[eye_origin_slider_key]["slider"] as HSlider
+		)
+		eye_origin_slider.step = 0.001
+	var reset_eye_origin_button := Button.new()
+	reset_eye_origin_button.text = "Center Eye Origin"
+	reset_eye_origin_button.tooltip_text = "Return the eye point to the safe default on the front of the face."
+	reset_eye_origin_button.pressed.connect(func():
+		if runtime_posture_layer != null:
+			runtime_posture_layer.set_eye_sight_origin_offset_meters(
+				preview_posture,
+				Vector3.ZERO
+			)
+			_sync_eye_sight_controls()
+			_update_eye_sight_marker()
+	)
+	fire_vbox.add_child(reset_eye_origin_button)
 	var shot_toggle := CheckButton.new()
 	shot_toggle.text = "Yellow — last actual shot"
 	shot_toggle.toggled.connect(func(enabled: bool): show_last_shot = enabled)
@@ -6487,16 +6533,21 @@ func _update_eye_sight_marker() -> void:
 	if not eye_sight_marker.visible or skeleton == null or head_idx < 0:
 		return
 	var head_origin := _bone_world_origin(head_idx)
+	var operator_right := skeleton.global_basis.x.normalized()
 	var operator_up := skeleton.global_basis.y.normalized()
 	# This imported operator faces local +Z. Using Godot's conventional -Z put
 	# the authored eye point on the back of the skull.
 	var operator_forward := skeleton.global_basis.z.normalized()
+	var origin_offset := _eye_sight_origin_offset()
 	# Keep the origin fixed between the eyes. Yaw and pitch rotate only the sight
 	# direction; they must never orbit the origin around or behind the skull.
 	eye_sight_marker.global_position = (
 		head_origin
+		+ operator_right * origin_offset.x
 		+ operator_up * EYE_ORIGIN_HEIGHT_METERS
+		+ operator_up * origin_offset.y
 		+ operator_forward * EYE_ORIGIN_FORWARD_METERS
+		+ operator_forward * origin_offset.z
 	)
 
 
@@ -6507,6 +6558,14 @@ func _eye_sight_correction() -> Vector3:
 		preview_posture
 	)
 	return Vector3(reference.x, reference.y, 0.0)
+
+
+func _eye_sight_origin_offset() -> Vector3:
+	if runtime_posture_layer == null:
+		return Vector3.ZERO
+	return runtime_posture_layer.get_eye_sight_origin_offset_meters(
+		preview_posture
+	)
 
 
 func _eye_sight_direction_world() -> Vector3:
@@ -6539,10 +6598,31 @@ func _set_eye_sight_component(value: float, component: StringName) -> void:
 	)
 
 
+func _set_eye_sight_origin_component(value: float, component: StringName) -> void:
+	if runtime_posture_layer == null:
+		return
+	var offset := _eye_sight_origin_offset()
+	if component == &"x":
+		offset.x = value
+	elif component == &"y":
+		offset.y = value
+	elif component == &"z":
+		offset.z = value
+	runtime_posture_layer.set_eye_sight_origin_offset_meters(
+		preview_posture,
+		offset
+	)
+	_update_eye_sight_marker()
+
+
 func _sync_eye_sight_controls() -> void:
 	var correction := _eye_sight_correction()
 	_update_slider_value("eye_sight_pitch", correction.x)
 	_update_slider_value("eye_sight_yaw", correction.y)
+	var origin_offset := _eye_sight_origin_offset()
+	_update_slider_value("eye_origin_x", origin_offset.x)
+	_update_slider_value("eye_origin_y", origin_offset.y)
+	_update_slider_value("eye_origin_z", origin_offset.z)
 
 
 func _add_fire_debug_segment(start: Vector3, finish: Vector3, color: Color) -> void:
