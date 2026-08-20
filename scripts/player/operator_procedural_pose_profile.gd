@@ -31,6 +31,7 @@ const JOINT_AXIS_LIMITS: Dictionary = {
 }
 
 var corrections: Dictionary = {}
+var eye_sight_references: Dictionary = {}
 
 
 func _init() -> void:
@@ -63,11 +64,21 @@ func load_project_profile() -> bool:
 					float((rotation as Dictionary).get("yaw", 0.0)),
 					float((rotation as Dictionary).get("roll", 0.0))
 				))
+	var eye_data: Variant = document.get("eye_sight_references", {})
+	if eye_data is Dictionary:
+		for posture: StringName in SUPPORTED_POSTURES:
+			var reference: Variant = (eye_data as Dictionary).get(String(posture), {})
+			if reference is Dictionary:
+				set_eye_sight_reference_degrees(posture, Vector2(
+					float((reference as Dictionary).get("pitch", 0.0)),
+					float((reference as Dictionary).get("yaw", 0.0))
+				))
 	return true
 
 
 func save_project_profile() -> bool:
 	var postures: Dictionary = {}
+	var eye_sight_data: Dictionary = {}
 	for posture: StringName in SUPPORTED_POSTURES:
 		var bones: Dictionary = {}
 		for bone: StringName in SUPPORTED_BONES:
@@ -78,14 +89,20 @@ func save_project_profile() -> bool:
 				"roll": rotation.z,
 			}
 		postures[String(posture)] = bones
+		var eye_reference := get_eye_sight_reference_degrees(posture)
+		eye_sight_data[String(posture)] = {
+			"pitch": eye_reference.x,
+			"yaw": eye_reference.y,
+		}
 	var file := FileAccess.open(PROFILE_PATH, FileAccess.WRITE)
 	if file == null:
 		return false
 	file.store_string(JSON.stringify({
-		"schema_version": 1,
+		"schema_version": 2,
 		"space": "local_additive_degrees",
 		"application_order": "after_animation_before_aim_and_weapon_ik",
 		"postures": postures,
+		"eye_sight_references": eye_sight_data,
 	}, "  "))
 	file.close()
 	return true
@@ -113,10 +130,25 @@ func get_axis_limits_degrees(bone: StringName) -> Vector3:
 	return JOINT_AXIS_LIMITS.get(bone, Vector3(20.0, 20.0, 20.0))
 
 
+func get_eye_sight_reference_degrees(posture: StringName) -> Vector2:
+	return eye_sight_references.get(posture, Vector2.ZERO)
+
+
+func set_eye_sight_reference_degrees(posture: StringName, value: Vector2) -> void:
+	if posture not in SUPPORTED_POSTURES:
+		return
+	eye_sight_references[posture] = Vector2(
+		clampf(value.x, -24.0, 24.0),
+		clampf(value.y, -38.0, 38.0)
+	)
+
+
 func _reset_structure() -> void:
 	corrections.clear()
+	eye_sight_references.clear()
 	for posture: StringName in SUPPORTED_POSTURES:
 		var bones: Dictionary = {}
 		for bone: StringName in SUPPORTED_BONES:
 			bones[bone] = Vector3.ZERO
 		corrections[posture] = bones
+		eye_sight_references[posture] = Vector2.ZERO

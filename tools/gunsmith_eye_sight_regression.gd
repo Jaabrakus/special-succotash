@@ -45,13 +45,17 @@ func _run() -> void:
 			"eye-sight origin stays attached to the animated head"
 		)
 
-	var original_head_correction: Vector3 = lab.call("_eye_sight_head_correction")
 	var posture_layer = lab.get("runtime_posture_layer")
-	posture_layer.call(
-		"set_procedural_rotation_degrees",
+	var original_head_rotation: Vector3 = posture_layer.call(
+		"get_procedural_rotation_degrees",
 		lab.get("preview_posture"),
-		&"head",
-		Vector3.ZERO
+		&"head"
+	)
+	var original_eye_correction: Vector3 = lab.call("_eye_sight_correction")
+	posture_layer.call(
+		"set_eye_sight_reference_degrees",
+		lab.get("preview_posture"),
+		Vector2.ZERO
 	)
 	var straight_direction: Vector3 = lab.call("_eye_sight_direction_world")
 	var skeleton := lab.get("skeleton") as Skeleton3D
@@ -60,23 +64,22 @@ func _run() -> void:
 		rad_to_deg(straight_direction.angle_to(operator_forward)) <= 0.05,
 		"zero eye correction points straight and parallel to operator forward"
 	)
-	lab.call("_set_eye_sight_head_component", 20.0, &"yaw")
+	lab.call("_set_eye_sight_component", 20.0, &"yaw")
 	var yawed_direction: Vector3 = lab.call("_eye_sight_direction_world")
 	_expect(
 		absf(rad_to_deg(straight_direction.angle_to(yawed_direction)) - 20.0) <= 0.25,
 		"eye yaw turns the head sight line left/right"
 	)
-	lab.call("_set_eye_sight_head_component", 10.0, &"pitch")
+	lab.call("_set_eye_sight_component", 10.0, &"pitch")
 	var pitched_direction: Vector3 = lab.call("_eye_sight_direction_world")
 	_expect(
 		pitched_direction.y > yawed_direction.y,
 		"positive eye pitch raises the head sight line"
 	)
 	posture_layer.call(
-		"set_procedural_rotation_degrees",
+		"set_eye_sight_reference_degrees",
 		lab.get("preview_posture"),
-		&"head",
-		Vector3.ZERO
+		Vector2.ZERO
 	)
 	lab.call("_update_eye_sight_marker")
 	var camera := lab.get("cam") as Camera3D
@@ -103,7 +106,7 @@ func _run() -> void:
 	eye_drag.position = eye_line_pick + Vector2(20.0, -12.0)
 	eye_drag.relative = Vector2(20.0, -12.0)
 	lab.call("_input", eye_drag)
-	var dragged_correction: Vector3 = lab.call("_eye_sight_head_correction")
+	var dragged_correction: Vector3 = lab.call("_eye_sight_correction")
 	_expect(
 		dragged_correction.y > 4.9 and dragged_correction.x > 2.9,
 		"dragging the eye line changes yaw left/right and pitch up/down"
@@ -114,11 +117,19 @@ func _run() -> void:
 	eye_release.position = eye_drag.position
 	lab.call("_input", eye_release)
 	_expect(String(lab.get("dragged_dot_id")).is_empty(), "releasing locks the eye direction")
-	posture_layer.call(
-		"set_procedural_rotation_degrees",
+	var head_rotation_after_drag: Vector3 = posture_layer.call(
+		"get_procedural_rotation_degrees",
 		lab.get("preview_posture"),
-		&"head",
-		original_head_correction
+		&"head"
+	)
+	_expect(
+		head_rotation_after_drag.is_equal_approx(original_head_rotation),
+		"dragging the eye reference never rotates the head bone"
+	)
+	posture_layer.call(
+		"set_eye_sight_reference_degrees",
+		lab.get("preview_posture"),
+		Vector2(original_eye_correction.x, original_eye_correction.y)
 	)
 
 	lab.set("show_bullet_velocity", false)

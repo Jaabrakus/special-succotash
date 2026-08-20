@@ -104,6 +104,20 @@ func get_procedural_axis_limits_degrees(bone_name: StringName) -> Vector3:
 	return procedural_profile.get_axis_limits_degrees(bone_name)
 
 
+func get_eye_sight_reference_degrees(posture_name: StringName) -> Vector2:
+	return procedural_profile.get_eye_sight_reference_degrees(posture_name)
+
+
+func set_eye_sight_reference_degrees(
+	posture_name: StringName,
+	reference_degrees: Vector2
+) -> void:
+	procedural_profile.set_eye_sight_reference_degrees(
+		posture_name,
+		reference_degrees
+	)
+
+
 func save_procedural_profile() -> bool:
 	return procedural_profile.save_project_profile()
 

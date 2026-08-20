@@ -502,9 +502,6 @@ func _input(event: InputEvent) -> void:
 						hitbox_drag_offset_start = _hitbox_offset(selected_hurtbox_region)
 					elif hit_dot == "left_ik":
 						_set_active_gizmo("hand")
-					elif hit_dot == "eye_sight":
-						selected_body_joint = &"head"
-						_sync_body_joint_controls()
 					elif hit_dot == "right_grip" or hit_dot == "weapon_mount":
 						_set_active_gizmo("weapon")
 						if hit_dot == "weapon_mount" and _editing_action_weapon_frame():
@@ -562,19 +559,19 @@ func _input(event: InputEvent) -> void:
 			if dragged_dot_id.begins_with("body_joint:"):
 				_adjust_selected_joint_rotation(Vector3(-mm.relative.y * 0.25, mm.relative.x * 0.25, 0.0))
 			elif dragged_dot_id == "eye_sight":
-				var eye_correction := _eye_sight_head_correction()
-				_set_eye_sight_head_component(
+				var eye_correction := _eye_sight_correction()
+				_set_eye_sight_component(
 					clampf(eye_correction.y + mm.relative.x * 0.25, -38.0, 38.0),
 					&"yaw"
 				)
-				eye_correction = _eye_sight_head_correction()
-				_set_eye_sight_head_component(
+				eye_correction = _eye_sight_correction()
+				_set_eye_sight_component(
 					clampf(eye_correction.x - mm.relative.y * 0.25, -24.0, 24.0),
 					&"pitch"
 				)
 				_sync_eye_sight_controls()
 				if hud_status:
-					eye_correction = _eye_sight_head_correction()
+					eye_correction = _eye_sight_correction()
 					hud_status.text = "👁 Eye Pitch %.1f° • Yaw %.1f°" % [
 						eye_correction.x,
 						eye_correction.y,
@@ -5664,15 +5661,15 @@ func _build_studio_ui() -> void:
 		_update_eye_sight_marker()
 	)
 	fire_vbox.add_child(eye_toggle)
-	var head_correction := _eye_sight_head_correction()
+	var eye_correction := _eye_sight_correction()
 	_add_slider(
 		fire_vbox,
 		"eye_sight_pitch",
 		"Eye Pitch (Up/Down)",
 		-24.0,
 		24.0,
-		head_correction.x,
-		_set_eye_sight_head_component.bind(&"pitch")
+		eye_correction.x,
+		_set_eye_sight_component.bind(&"pitch")
 	)
 	_add_slider(
 		fire_vbox,
@@ -5680,8 +5677,8 @@ func _build_studio_ui() -> void:
 		"Eye Yaw (Left/Right)",
 		-38.0,
 		38.0,
-		head_correction.y,
-		_set_eye_sight_head_component.bind(&"yaw")
+		eye_correction.y,
+		_set_eye_sight_component.bind(&"yaw")
 	)
 	var shot_toggle := CheckButton.new()
 	shot_toggle.text = "Yellow — last actual shot"
@@ -6491,13 +6488,13 @@ func _update_eye_sight_marker() -> void:
 	)
 
 
-func _eye_sight_head_correction() -> Vector3:
+func _eye_sight_correction() -> Vector3:
 	if runtime_posture_layer == null:
 		return Vector3.ZERO
-	return runtime_posture_layer.get_procedural_rotation_degrees(
-		preview_posture,
-		&"head"
+	var reference := runtime_posture_layer.get_eye_sight_reference_degrees(
+		preview_posture
 	)
+	return Vector3(reference.x, reference.y, 0.0)
 
 
 func _eye_sight_direction_world() -> Vector3:
@@ -6505,7 +6502,7 @@ func _eye_sight_direction_world() -> Vector3:
 		return Vector3.FORWARD
 	var operator_up := skeleton.global_basis.y.normalized()
 	var operator_forward := -skeleton.global_basis.z.normalized()
-	var correction := _eye_sight_head_correction()
+	var correction := _eye_sight_correction()
 	var yaw_rotation := Quaternion(operator_up, deg_to_rad(correction.y))
 	var yawed_forward := (yaw_rotation * operator_forward).normalized()
 	var right_axis := yawed_forward.cross(operator_up).normalized()
@@ -6516,25 +6513,22 @@ func _eye_sight_direction_world() -> Vector3:
 	).normalized()
 
 
-func _set_eye_sight_head_component(value: float, component: StringName) -> void:
+func _set_eye_sight_component(value: float, component: StringName) -> void:
 	if runtime_posture_layer == null:
 		return
-	var correction := _eye_sight_head_correction()
+	var correction := _eye_sight_correction()
 	if component == &"pitch":
 		correction.x = value
 	elif component == &"yaw":
 		correction.y = value
-	runtime_posture_layer.set_procedural_rotation_degrees(
+	runtime_posture_layer.set_eye_sight_reference_degrees(
 		preview_posture,
-		&"head",
-		correction
+		Vector2(correction.x, correction.y)
 	)
-	if selected_body_joint == &"head":
-		_sync_body_joint_controls()
 
 
 func _sync_eye_sight_controls() -> void:
-	var correction := _eye_sight_head_correction()
+	var correction := _eye_sight_correction()
 	_update_slider_value("eye_sight_pitch", correction.x)
 	_update_slider_value("eye_sight_yaw", correction.y)
 
