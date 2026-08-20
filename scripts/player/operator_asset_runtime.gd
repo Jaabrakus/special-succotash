@@ -301,32 +301,39 @@ func _attach_calibrated_weapon(config: Dictionary) -> bool:
 	return true
 
 
-func apply_animation_hand_map(resource_path: String) -> bool:
+func apply_animation_hand_map(resource_path: String, explicit_stance: StringName = &"") -> bool:
 	_restore_weapon_map_baseline()
 	if resource_path.is_empty() or equipped_weapon_config.is_empty():
 		return false
-	var raw_maps: Variant = equipped_weapon_config.get("animation_hand_maps", {})
-	if not raw_maps is Dictionary:
-		return false
-	var maps := raw_maps as Dictionary
-	var raw_map: Variant = maps.get(resource_path, {})
-	if not raw_map is Dictionary or (raw_map as Dictionary).is_empty():
-		for candidate_path in maps.keys():
-			if String(candidate_path).get_file() == resource_path.get_file():
-				raw_map = maps[candidate_path]
-				break
+	var raw_map: Variant = {}
+	var stances_dict: Variant = equipped_weapon_config.get("stances", {})
+	if stances_dict is Dictionary:
+		var stance_key := String(explicit_stance).to_upper()
+		if stance_key not in ["STANDING", "CROUCHED", "PRONE"] and "prone" in resource_path.to_lower():
+			stance_key = "PRONE"
+		elif stance_key not in ["STANDING", "CROUCHED", "PRONE"] and "crouch" in resource_path.to_lower():
+			stance_key = "CROUCHED"
+		elif stance_key not in ["STANDING", "CROUCHED", "PRONE"] and ("stand" in resource_path.to_lower() or "aim_idle" in resource_path.to_lower() or "idle" in resource_path.to_lower()):
+			stance_key = "STANDING"
+		if not stance_key.is_empty() and (stances_dict as Dictionary).has(stance_key):
+			raw_map = (stances_dict as Dictionary)[stance_key]
+
+	if not (raw_map is Dictionary) or (raw_map as Dictionary).is_empty():
+		var raw_maps: Variant = equipped_weapon_config.get("animation_hand_maps", {})
+		if raw_maps is Dictionary:
+			var maps := raw_maps as Dictionary
+			raw_map = maps.get(resource_path, {})
+			if not raw_map is Dictionary or (raw_map as Dictionary).is_empty():
+				for candidate_path in maps.keys():
+					if String(candidate_path).get_file() == resource_path.get_file() or String(candidate_path) == resource_path:
+						raw_map = maps[candidate_path]
+						break
 	if not raw_map is Dictionary or (raw_map as Dictionary).is_empty():
 		return false
 	var hand_map := raw_map as Dictionary
-	if calibrated_weapon_pivot != null:
-		calibrated_weapon_pivot.position = _vector3_from_map(
-			hand_map.get("weapon_mount_position", {}),
-			calibrated_weapon_pivot.position
-		)
-		calibrated_weapon_pivot.rotation_degrees = _vector3_from_map(
-			hand_map.get("weapon_mount_rotation_deg", {}),
-			calibrated_weapon_pivot.rotation_degrees
-		)
+	# The top-level grip_offset is the single weapon master anchor. Legacy
+	# stance and clip maps may contain mount fields, but runtime must ignore them
+	# so animation changes cannot teleport or rotate the rifle.
 	_apply_mapped_socket(
 		"Socket_LeftHand",
 		hand_map.get("left_grip", hand_map.get("left_hand_target", {}))

@@ -61,6 +61,16 @@ func _play_event(event: Dictionary) -> void:
 		position = skeleton.to_global(skeleton.get_bone_global_pose(bone_index).origin)
 	var minimum := float(event.get("pitch_min", 0.96))
 	var maximum := float(event.get("pitch_max", 1.04))
+	var surface_event := StringName(event.get("event", ""))
+	if not surface_event.is_empty():
+		foley.play_surface_event(
+			surface_event,
+			position,
+			float(event.get("intensity", 0.75)),
+			null,
+			StringName(event.get("surface", ""))
+		)
+		return
 	foley.play_cue(
 		StringName(event.get("cue", "foot_concrete")),
 		position,

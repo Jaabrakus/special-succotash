@@ -2,6 +2,7 @@ extends SceneTree
 
 const TargetDummyScript := preload("res://scripts/combat/lab_leak_target_dummy.gd")
 const ShotAuthorityScript := preload("res://scripts/network/socom_shot_authority.gd")
+const AnatomicalHitResolver := preload("res://scripts/combat/socom_anatomical_hit_resolver.gd")
 const REQUIRED_REGIONS: Array[StringName] = [
 	&"HEAD", &"TORSO", &"PELVIS",
 	&"LEFT_UPPER_ARM", &"RIGHT_UPPER_ARM",
@@ -37,6 +38,28 @@ func _run() -> void:
 	var regions: Array[StringName] = rig.get_region_names()
 	for required in REQUIRED_REGIONS:
 		_assert(regions.has(required), "missing region %s" % required)
+
+	# Core anatomy wins only when a limb is almost coplanar due to overlap.
+	var overlap_choice: Dictionary = AnatomicalHitResolver.choose_hit([
+		{"hit_region": &"RIGHT_FOREARM", "distance": 4.00},
+		{"hit_region": &"TORSO", "distance": 4.08},
+	])
+	_assert(
+		StringName(overlap_choice.get("hit_region", &"")) == &"TORSO",
+		"near-coplanar limb overlap was not resolved to torso"
+	)
+	_assert(
+		bool(overlap_choice.get("anatomical_override", false)),
+		"resolved overlap did not expose diagnostic metadata"
+	)
+	var exposed_limb_choice: Dictionary = AnatomicalHitResolver.choose_hit([
+		{"hit_region": &"RIGHT_FOREARM", "distance": 4.00},
+		{"hit_region": &"TORSO", "distance": 4.30},
+	])
+	_assert(
+		StringName(exposed_limb_choice.get("hit_region", &"")) == &"RIGHT_FOREARM",
+		"genuinely exposed limb was incorrectly converted to torso"
+	)
 
 	# The original defect: shoulder-to-elbow had no reliable collision shape.
 	for upper_arm in [&"LEFT_UPPER_ARM", &"RIGHT_UPPER_ARM"]:

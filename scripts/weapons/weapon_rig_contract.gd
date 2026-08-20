@@ -61,7 +61,8 @@ static func normalize_config(raw: Dictionary, config_path: String = "") -> Dicti
 	if not config.get("model_rotation_degrees", {}) is Dictionary:
 		config["model_rotation_degrees"] = {}
 	for dictionary_field in [
-		"support_hand_pose", "animation_hand_maps", "handling_profile",
+		"support_hand_pose", "stances", "animation_hand_maps",
+		"animation_frame_pose_keys", "handling_profile",
 	]:
 		if not config.get(dictionary_field, {}) is Dictionary:
 			config[dictionary_field] = {}

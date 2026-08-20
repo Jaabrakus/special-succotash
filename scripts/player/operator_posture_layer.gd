@@ -67,6 +67,7 @@ var last_default_hip_roll_input_deg: float = 0.0
 var last_default_hip_roll_trim_deg: float = 0.0
 var last_default_hip_roll_output_deg: float = 0.0
 var procedural_profile := ProceduralPoseProfile.new()
+var animation_frame_rotation_overrides: Dictionary = {}
 
 
 func bind(target_skeleton: Skeleton3D, neutral_pose_hip_rotation := Quaternion.IDENTITY) -> void:
@@ -109,6 +110,14 @@ func save_procedural_profile() -> bool:
 
 func reload_procedural_profile() -> bool:
 	return procedural_profile.load_project_profile()
+
+
+func set_animation_frame_rotation_overrides(raw_rotations: Variant) -> void:
+	animation_frame_rotation_overrides = (
+		(raw_rotations as Dictionary).duplicate(true)
+		if raw_rotations is Dictionary
+		else {}
+	)
 
 
 func apply(
@@ -574,6 +583,13 @@ func _apply_bone_additive(
 func _apply_procedural_profile(posture_name: StringName) -> void:
 	for bone_name: StringName in ProceduralPoseProfile.SUPPORTED_BONES:
 		var degrees := procedural_profile.get_rotation_degrees(posture_name, bone_name)
+		var frame_value: Variant = animation_frame_rotation_overrides.get(String(bone_name), null)
+		if frame_value is Dictionary:
+			degrees = Vector3(
+				float(frame_value.get("x", degrees.x)),
+				float(frame_value.get("y", degrees.y)),
+				float(frame_value.get("z", degrees.z))
+			)
 		if degrees.is_zero_approx():
 			continue
 		var index := int(bone_indices.get(bone_name, -1))

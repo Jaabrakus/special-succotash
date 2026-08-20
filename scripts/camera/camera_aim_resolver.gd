@@ -132,9 +132,7 @@ func build_local_aim_intent() -> Dictionary:
     if mannequin == null or not mannequin.has_method("get_active_muzzle_position"):
         return {}
     var muzzle: Vector3 = mannequin.get_active_muzzle_position()
-    var direction: Vector3 = (rig.weapon_aim_point - muzzle).normalized()
-    if direction.length_squared() < 0.99:
-        direction = rig._forward_direction()
+    var direction := shared_direction_from(muzzle)
     var intent_angles := direction_to_yaw_pitch(direction)
     rig.aim_intent_sequence += 1
     return AimIntentScript.create(
@@ -145,6 +143,33 @@ func build_local_aim_intent() -> Dictionary:
         muzzle,
         direction
     )
+
+func shared_target() -> Vector3:
+    return rig.weapon_aim_point
+
+func shared_direction_from(origin: Vector3) -> Vector3:
+    var direction: Vector3 = (shared_target() - origin).normalized()
+    if direction.length_squared() < 0.99:
+        return rig._forward_direction()
+    return direction
+
+func shared_yaw_pitch_from(origin: Vector3) -> Vector2:
+    return direction_to_yaw_pitch(shared_direction_from(origin))
+
+func shared_body_yaw_pitch() -> Vector2:
+    if rig.target == null:
+        return Vector2(rig.aim_yaw, rig.aim_pitch)
+    var aim_height: float = lerpf(
+        rig.profile.look_height,
+        rig.profile.prone_aim_origin_height,
+        rig._prone_stance_amount()
+    )
+    var origin: Vector3 = (
+        rig.target.global_position
+        + rig.movement_lead
+        + Vector3.UP * aim_height
+    )
+    return shared_yaw_pitch_from(origin)
 
 func direction_to_yaw_pitch(direction: Vector3) -> Vector2:
     var normalized := direction.normalized()

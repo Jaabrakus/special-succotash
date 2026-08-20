@@ -97,8 +97,11 @@
       "controller": "res://scripts/labs/sound_engine_lab.gd",
       "shared_contracts": [
         "res://scripts/audio/tactical_foley_engine.gd",
+        "res://scripts/audio/surface_audio_profile.gd",
+        "res://scripts/audio/surface_audio_resolver.gd",
         "res://scripts/audio/audio_animation_event_manager.gd",
-        "res://config/audio_animation_events.json"
+        "res://config/audio_animation_events.json",
+        "res://config/surface_audio_profiles.json"
       ]
     },
     {
@@ -109,7 +112,9 @@
       "shared_contracts": [
         "res://scripts/tactical/tactical_occlusion_manager.gd",
         "res://scripts/tactical/tactical_grenade_base.gd",
-        "res://scripts/tactical/tactical_screen_effects.gd"
+        "res://scripts/tactical/tactical_screen_effects.gd",
+        "res://scripts/audio/surface_audio_resolver.gd",
+        "res://config/surface_audio_profiles.json"
       ]
     },
     {

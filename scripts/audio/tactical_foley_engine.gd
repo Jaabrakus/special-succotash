@@ -3,13 +3,18 @@ extends Node
 
 const SAMPLE_RATE := 22050
 const POOL_SIZE := 20
+const SurfaceResolver := preload("res://scripts/audio/surface_audio_resolver.gd")
 
 var _players: Array[AudioStreamPlayer3D] = []
 var _streams: Dictionary = {}
 var _cursor := 0
+var surface_resolver: SurfaceAudioResolver
 
 
 func _ready() -> void:
+	surface_resolver = SurfaceResolver.new()
+	surface_resolver.name = "SurfaceAudioResolver"
+	add_child(surface_resolver)
 	for index in POOL_SIZE:
 		var player := AudioStreamPlayer3D.new()
 		player.name = "FoleyVoice%02d" % index
@@ -18,6 +23,22 @@ func _ready() -> void:
 		add_child(player)
 		_players.append(player)
 	_build_streams()
+
+
+func play_surface_event(
+	event_name: StringName,
+	world_position: Vector3,
+	intensity := 1.0,
+	collider: Node = null,
+	explicit_surface: StringName = &""
+) -> StringName:
+	return surface_resolver.play_event(
+		self, event_name, world_position, intensity, collider, explicit_surface
+	)
+
+
+func surface_physics(surface_name: StringName) -> Dictionary:
+	return surface_resolver.physics_for(surface_name)
 
 
 func play_cue(cue: StringName, world_position: Vector3, volume_db := 0.0, pitch := 1.0) -> void:
@@ -42,6 +63,8 @@ func _build_streams() -> void:
 		&"foot_metal": _make_impact(0.22, 245.0, 0.34, 0.15),
 		&"foot_dirt": _make_noise_burst(0.24, 0.30, 0.55),
 		&"foot_wood": _make_impact(0.26, 132.0, 0.40, 0.25),
+		&"foot_sand": _make_noise_burst(0.28, 0.24, 0.70),
+		&"foot_carpet": _make_noise_burst(0.18, 0.12, 0.88),
 		&"gear_rustle": _make_noise_burst(0.16, 0.11, 0.82),
 		&"sling_jingle": _make_impact(0.16, 760.0, 0.15, 0.05),
 		&"plate_clatter": _make_impact(0.18, 118.0, 0.28, 0.12),
@@ -52,6 +75,15 @@ func _build_streams() -> void:
 		&"bolt_rack": _make_noise_burst(0.22, 0.28, 0.72),
 		&"body_landing": _make_impact(0.32, 62.0, 0.72, 0.42),
 		&"body_roll": _make_noise_burst(0.45, 0.34, 0.74),
+		&"grenade_concrete": _make_impact(0.22, 320.0, 0.44, 0.18),
+		&"grenade_metal": _make_impact(0.32, 780.0, 0.36, 0.10),
+		&"grenade_dirt": _make_noise_burst(0.22, 0.22, 0.70),
+		&"grenade_sand": _make_noise_burst(0.25, 0.16, 0.84),
+		&"grenade_wood": _make_impact(0.27, 168.0, 0.38, 0.20),
+		&"impact_hard": _make_impact(0.12, 460.0, 0.34, 0.22),
+		&"impact_metal": _make_impact(0.18, 1240.0, 0.22, 0.08),
+		&"impact_soft": _make_noise_burst(0.16, 0.18, 0.76),
+		&"impact_wood": _make_impact(0.18, 210.0, 0.30, 0.18),
 		&"smoke_hiss": _make_noise_burst(1.2, 0.16, 0.92),
 		&"tinnitus": _make_tone(2.2, 3650.0, 0.12),
 	}

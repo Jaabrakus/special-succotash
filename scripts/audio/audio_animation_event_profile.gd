@@ -55,8 +55,8 @@ func validate() -> PackedStringArray:
 				continue
 			if float(event.get("time", -1.0)) < 0.0:
 				errors.append("%s contains a negative event time" % animation_name)
-			if String(event.get("cue", "")).is_empty():
-				errors.append("%s contains an event without a cue" % animation_name)
+			if String(event.get("cue", "")).is_empty() and String(event.get("event", "")).is_empty():
+				errors.append("%s contains an event without a cue or surface event" % animation_name)
 	return errors
 
 
@@ -64,6 +64,9 @@ func _sanitize_event(event: Dictionary) -> Dictionary:
 	return {
 		"time": maxf(0.0, float(event.get("time", 0.0))),
 		"cue": String(event.get("cue", "foot_concrete")),
+		"event": String(event.get("event", "")),
+		"surface": String(event.get("surface", "")),
+		"intensity": clampf(float(event.get("intensity", 0.75)), 0.05, 1.5),
 		"bone": String(event.get("bone", "mixamorig_Hips")),
 		"volume_db": clampf(float(event.get("volume_db", 0.0)), -36.0, 12.0),
 		"pitch_min": clampf(float(event.get("pitch_min", 0.96)), 0.5, 2.0),

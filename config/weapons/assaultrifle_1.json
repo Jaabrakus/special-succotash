@@ -1,5 +1,141 @@
 {
-  "animation_hand_maps": {},
+  "animation_hand_maps": {
+    "aim_idle": {
+      "finger_curl": 1.0,
+      "left_grip": {
+        "x": -0.042856901884079,
+        "y": 0.12201988697052,
+        "z": 0.353958010673523
+      },
+      "palm_pitch_deg": -24.35,
+      "palm_roll_deg": 104.75,
+      "palm_yaw_deg": 0.75,
+      "right_grip": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "thumb_wrap": 0.7,
+      "weapon_mount_position": {
+        "x": 0.0509209632873535,
+        "y": 0.0837193578481674,
+        "z": 0.188705042004585
+      },
+      "weapon_mount_rotation_deg": {
+        "x": 0.0,
+        "y": 4.5,
+        "z": 79.0499801635742
+      }
+    },
+    "gunsmith_catalog_4031626968": {
+      "finger_curl": 1.0,
+      "left_grip": {
+        "x": -0.042856901884079,
+        "y": 0.12201988697052,
+        "z": 0.353958010673523
+      },
+      "palm_pitch_deg": -24.35,
+      "palm_roll_deg": 104.75,
+      "palm_yaw_deg": 0.75,
+      "right_grip": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "thumb_wrap": 0.7,
+      "weapon_mount_position": {
+        "x": 0.0509209632873535,
+        "y": 0.0837193578481674,
+        "z": 0.188705042004585
+      },
+      "weapon_mount_rotation_deg": {
+        "x": 0.0,
+        "y": 4.5,
+        "z": 79.0499801635742
+      }
+    },
+    "idle_crouch": {
+      "finger_curl": 1.0,
+      "left_grip": {
+        "x": -0.042856901884079,
+        "y": 0.12201988697052,
+        "z": 0.353958010673523
+      },
+      "palm_pitch_deg": -24.35,
+      "palm_roll_deg": 104.75,
+      "palm_yaw_deg": 0.75,
+      "right_grip": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "thumb_wrap": 0.7,
+      "weapon_mount_position": {
+        "x": 0.118871808052063,
+        "y": 0.0254450850188732,
+        "z": 0.156114056706429
+      },
+      "weapon_mount_rotation_deg": {
+        "x": 0.0,
+        "y": 4.5,
+        "z": 79.0499801635742
+      }
+    },
+    "idle_prone": {
+      "finger_curl": 1.0,
+      "left_grip": {
+        "x": -0.042856901884079,
+        "y": 0.12201988697052,
+        "z": 0.353958010673523
+      },
+      "palm_pitch_deg": -24.35,
+      "palm_roll_deg": 104.75,
+      "palm_yaw_deg": 0.75,
+      "right_grip": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "thumb_wrap": 0.7,
+      "weapon_mount_position": {
+        "x": 0.332502216100693,
+        "y": -0.127245411276817,
+        "z": 0.0666032880544662
+      },
+      "weapon_mount_rotation_deg": {
+        "x": 0.0,
+        "y": 4.5,
+        "z": 79.0499801635742
+      }
+    },
+    "res://assets/animations/mixamo/Climbing.fbx": {
+      "finger_curl": 1.0,
+      "left_grip": {
+        "x": -0.042856901884079,
+        "y": 0.12201988697052,
+        "z": 0.353958010673523
+      },
+      "palm_pitch_deg": -24.35,
+      "palm_roll_deg": 104.75,
+      "palm_yaw_deg": 0.75,
+      "right_grip": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "thumb_wrap": 0.7,
+      "weapon_mount_position": {
+        "x": 0.0509209632873535,
+        "y": 0.0837193578481674,
+        "z": 0.188705042004585
+      },
+      "weapon_mount_rotation_deg": {
+        "x": 0.0,
+        "y": 4.5,
+        "z": 79.0499801635742
+      }
+    }
+  },
   "ballistics": {
     "base_spread_deg": 0.4,
     "bloom_per_shot_deg": 1.2,
@@ -7,32 +143,91 @@
     "damage": 34,
     "fire_rate_rpm": 650,
     "is_silenced": false,
-    "max_recoil_bloom_deg": 2.4,
+    "max_recoil_bloom_deg": 2.41,
     "muzzle_velocity_mps": 715.0
   },
   "camo_skin": "Factory Classic (Wood & Steel)",
   "category": "Assault Rifles",
   "composure": {
+    "bounce_duration": 0.07,
+    "bounce_strength": 1.0,
     "graze_damage_scale": 0.38,
     "minimum_core_scale": 0.65,
     "movement_stress": 0.62,
     "moving_first_shot_multiplier": 0.45,
-    "recovery_speed": 2.20,
+    "opening_stress_multiplier": 0.28,
+    "recovery_speed": 2.2,
     "second_shot_multiplier": 0.18,
     "settled_first_shot_threshold": 0.04,
     "settled_motion_threshold": 0.09,
     "shot_stress": 0.085,
     "stress_attack_speed": 5.0,
-    "turning_stress": 0.34
+    "turning_stress": 0.34,
+    "visual_damping": 13.5,
+    "visual_spring": 72.0
+  },
+  "coordinate_space": {
+    "grip_offset": "weapon_root_local_meters",
+    "weapon_sockets": "weapon_pivot_local_meters"
   },
   "display_name": "AssaultRifle_1",
+  "elbow_poles": {
+    "by_stance": {
+      "CROUCHED": {
+        "left": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "right": {
+          "x": 0.0987921953201294,
+          "y": -0.17975127696991,
+          "z": -0.109185189008713
+        }
+      },
+      "PRONE": {
+        "left": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "right": {
+          "x": -0.300000011920929,
+          "y": 0.0515011548995972,
+          "z": 0.0742114782333374
+        }
+      },
+      "STANDING": {
+        "left": {
+          "x": 0.300000011920929,
+          "y": -0.18940544128418,
+          "z": -0.202089607715607
+        },
+        "right": {
+          "x": 0.245000004768372,
+          "y": -0.26656174659729,
+          "z": 0.0799999982118607
+        }
+      }
+    },
+    "left": {
+      "x": 0.300000011920929,
+      "y": -0.18940544128418,
+      "z": -0.202089607715607
+    },
+    "right": {
+      "x": 0.245000004768372,
+      "y": -0.26656174659729,
+      "z": 0.0799999982118607
+    }
+  },
   "grip_offset": {
-    "pos_x": 1.65713286399841,
-    "pos_y": -0.303467154502869,
-    "pos_z": 0.355733811855316,
+    "pos_x": 0.0509209632873535,
+    "pos_y": 0.068719357252121,
+    "pos_z": 0.0119050443172455,
     "rot_x": 0.0,
-    "rot_y": -0.5,
-    "rot_z": 79.8999633789062
+    "rot_y": 4.5,
+    "rot_z": 79.0499801635742
   },
   "handling_profile": {
     "animation_slots": {
@@ -69,45 +264,7 @@
       "walk_left": "walk_left",
       "walk_right": "walk_right"
     },
-    "mapping_version": 1,
-    "support_hand_required": true
-  },
-  "handling_profile": {
-    "animation_slots": {
-      "fire_crouched": "crouch_fire",
-      "fire_prone": "prone_fire",
-      "fire_standing": "combat_fire",
-      "idle_crouched": "idle_crouch",
-      "idle_prone": "idle_prone",
-      "idle_standing": "aim_idle",
-      "reload_crouched": "reload",
-      "reload_prone": "prone_reload",
-      "reload_standing": "reload"
-    },
-    "family": "TWO_HAND_RIFLE",
-    "locomotion_family": "RIFLE",
-    "locomotion_slots": {
-      "crouch_to_stand": "crouch_to_stand",
-      "jump": "jump_loop",
-      "run_back_left": "run_back_left",
-      "run_back_right": "run_back_right",
-      "run_backward": "run_backward",
-      "run_forward": "run_forward",
-      "run_forward_left": "run_forward_left",
-      "run_forward_right": "run_forward_right",
-      "run_left": "run_left",
-      "run_right": "run_right",
-      "stand_to_crouch": "crouch_start",
-      "walk_back_left": "walk_back_left",
-      "walk_back_right": "walk_back_right",
-      "walk_backward": "walk_backward",
-      "walk_forward": "walk_forward",
-      "walk_forward_left": "walk_forward_left",
-      "walk_forward_right": "walk_forward_right",
-      "walk_left": "walk_left",
-      "walk_right": "walk_right"
-    },
-    "mapping_version": 1,
+    "mapping_version": 1.0,
     "support_hand_required": true
   },
   "model_fbx": "res://assets/weapons/modular_pack/AssaultRifle_1.fbx",
@@ -116,69 +273,154 @@
     "y": -90.0,
     "z": 0.0
   },
-  "normalized_scale": 0.219015600866256,
+  "normalized_scale": 0.190543572753643,
   "operator_mount": {
     "position": {
-      "x": -0.02,
-      "y": 0.08,
-      "z": 0.05
+      "x": -0.0199999995529652,
+      "y": 0.0799999982118607,
+      "z": 0.0500000007450581
     },
     "rotation_degrees": {
       "x": -90.0,
-      "y": 180.0,
+      "y": -179.999984741211,
       "z": 0.0
     }
   },
   "reticle": {
-    "base_gap_px": 10.0,
-    "max_gap_px": 46.0,
-    "maximum_shot_kick_px": 18.0,
-    "response_speed": 24.0,
-    "shot_kick_px": 6.0,
-    "shot_kick_return": 18.0
+    "base_gap_px": 5.0,
+    "max_gap_px": 46.5,
+    "maximum_shot_kick_px": 12.5,
+    "response_speed": 18.5,
+    "shot_bounce_duration": 0.07,
+    "shot_kick_px": 8.5,
+    "shot_kick_return": 18.5
   },
   "schema_version": 3,
   "scope_attachment": "None",
   "silencer_attachment": "None",
+  "socket_contract_authored": true,
+  "stances": {
+    "CROUCHED": {
+      "finger_curl": 1.0,
+      "left_grip": {
+        "x": -0.042856901884079,
+        "y": 0.12201988697052,
+        "z": 0.353958010673523
+      },
+      "palm_pitch_deg": -24.35,
+      "palm_roll_deg": 104.75,
+      "palm_yaw_deg": 0.75,
+      "right_grip": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "thumb_wrap": 0.7,
+      "weapon_mount_position": {
+        "x": 0.118871808052063,
+        "y": 0.0254450850188732,
+        "z": 0.156114056706429
+      },
+      "weapon_mount_rotation_deg": {
+        "x": 0.0,
+        "y": 4.5,
+        "z": 79.0499801635742
+      }
+    },
+    "PRONE": {
+      "finger_curl": 1.0,
+      "left_grip": {
+        "x": -0.042856901884079,
+        "y": 0.12201988697052,
+        "z": 0.353958010673523
+      },
+      "palm_pitch_deg": -24.35,
+      "palm_roll_deg": 104.75,
+      "palm_yaw_deg": 0.75,
+      "right_grip": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "thumb_wrap": 0.7,
+      "weapon_mount_position": {
+        "x": 0.332502216100693,
+        "y": -0.127245411276817,
+        "z": 0.0666032880544662
+      },
+      "weapon_mount_rotation_deg": {
+        "x": 0.0,
+        "y": 4.5,
+        "z": 79.0499801635742
+      }
+    },
+    "STANDING": {
+      "finger_curl": 1.0,
+      "left_grip": {
+        "x": -0.042856901884079,
+        "y": 0.12201988697052,
+        "z": 0.353958010673523
+      },
+      "palm_pitch_deg": -24.35,
+      "palm_roll_deg": 104.75,
+      "palm_yaw_deg": 0.75,
+      "right_grip": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "thumb_wrap": 0.7,
+      "weapon_mount_position": {
+        "x": 0.0509209632873535,
+        "y": 0.0837193578481674,
+        "z": 0.188705042004585
+      },
+      "weapon_mount_rotation_deg": {
+        "x": 0.0,
+        "y": 4.5,
+        "z": 79.0499801635742
+      }
+    }
+  },
   "support_hand_pose": {
     "finger_curl": 1.0,
-    "palm_pitch_deg": -9.0,
-    "palm_roll_deg": 160.0,
-    "palm_yaw_deg": 10.0,
+    "palm_pitch_deg": -24.35,
+    "palm_roll_deg": 104.75,
+    "palm_yaw_deg": 0.75,
     "thumb_wrap": 0.7
   },
-  "user_scale_multiplier": 1.0,
+  "user_scale_multiplier": 0.87,
   "weapon_id": "assaultrifle_1",
   "weapon_sockets": {
     "barrel_base_socket": {
-      "x": 1.41499996185303,
-      "y": 0.566961526870728,
-      "z": -0.00999999977648258
+      "x": -0.00937926769256592,
+      "y": 0.108807682991028,
+      "z": -0.119999997317791
     },
     "ejection_port": {
-      "x": 0.697055339813232,
-      "y": 0.621016025543213,
-      "z": 0.0853562355041504
+      "x": 0.0352391004562378,
+      "y": 0.00197041034698486,
+      "z": 0.227410614490509
     },
     "left_hand_ik_target": {
-      "x": 2.03064942359924,
-      "y": 0.449413776397705,
-      "z": -0.279348075389862
+      "x": -0.042856901884079,
+      "y": 0.12201988697052,
+      "z": 0.353958010673523
     },
     "muzzle_socket": {
-      "x": 1.59500002861023,
-      "y": 0.566961526870728,
-      "z": -0.00999999977648258
+      "x": -0.038488894701004,
+      "y": 0.128803253173828,
+      "z": -0.68
     },
     "optic_rail": {
-      "x": 0.255869626998901,
-      "y": 0.835403442382812,
-      "z": 0.0306363105773926
+      "x": -0.0209505409002304,
+      "y": 0.054284930229187,
+      "z": 0.0141827464103699
     },
     "right_hand_grip_target": {
-      "x": 0.107028007507324,
-      "y": -0.0812573432922363,
-      "z": 0.281630098819733
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
     }
   }
 }

@@ -322,6 +322,18 @@ func _check_layered_recoil(driver) -> void:
     _expect(driver.requested_action == &"", "fire recoil does not claim full-body action authority")
     _expect(bool(snapshot.get("upper_body_recoil_layer", false)), "fire recoil is an upper-body layer")
     _expect(float(snapshot.get("recoil_weight", 0.0)) > 0.0, "fire recoil produces a live additive impulse")
+    _expect(bool(snapshot.get("fire_layer_available", false)), "mapped weapon fire layer is available")
+    _expect(int(snapshot.get("fire_trigger_count", 0)) > 0, "firing triggers the mapped animation layer")
+    _expect(
+        StringName(snapshot.get("active_fire_clip", &"")) == &"combat_fire",
+        "standing fire resolves to the weapon profile's editable fire clip"
+    )
+    _expect(driver.notify_fired(), "a later accepted bullet retriggers the fire reaction")
+    var repeated_snapshot: Dictionary = driver.get_animation_debug_state()
+    _expect(
+        int(repeated_snapshot.get("fire_trigger_count", 0)) == 2,
+        "every accepted bullet produces one mapped animation reaction"
+    )
 
 func _check_mobility_states(driver) -> void:
     _set_motion(driver, Vector2(0.0, 1.0), 0.8, &"DIVING")

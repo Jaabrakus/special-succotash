@@ -11,7 +11,9 @@ if [[ "$current_branch" != "main" ]]; then
   exit 1
 fi
 
-print "SOCOM-141 CANONICAL PLAYABLE ARENA"
+print "SOCOM-141 CANONICAL GAME LAUNCHER"
 print "Project: $project_dir"
 print "Build:   main@$(git -C "$project_dir" rev-parse --short HEAD)"
-exec "$godot_bin" --path "$project_dir" res://main.tscn "$@"
+# Use the configured project entry scene. main.tscn is the Camera Lab and must
+# only be opened from its explicit Studio tool route.
+exec "$godot_bin" --path "$project_dir" "$@"

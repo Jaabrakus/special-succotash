@@ -13,17 +13,20 @@ const WeaponOwnershipContract := preload("res://scripts/player/weapon_ownership_
 const OperatorPostureLayer := preload("res://scripts/player/operator_posture_layer.gd")
 const ProceduralPoseProfile := preload("res://scripts/player/operator_procedural_pose_profile.gd")
 const JointControlSchema := preload("res://scripts/player/operator_joint_control_schema.gd")
+const GunsmithAnimationFrameEditorScript := preload("res://scripts/labs/gunsmith/gunsmith_animation_frame_editor.gd")
+const GunsmithFrameTimelineScript := preload("res://scripts/labs/gunsmith/gunsmith_frame_timeline.gd")
+const GunsmithBallisticsView := preload("res://scripts/labs/gunsmith/gunsmith_ballistics_view.gd")
 const OperatorComposureScript := preload("res://scripts/weapons/operator_composure.gd")
 const DynamicReticleScript := preload("res://scripts/ui/socom_dynamic_reticle.gd")
 const TargetDummyScript := preload("res://scripts/combat/lab_leak_target_dummy.gd")
 const WEAPON_BASE_PATH := "res://assets/weapons/modular_pack/"
-const HAND_GIZMO_ARROW_LENGTH := 0.21
-const HAND_GIZMO_RING_RADIUS := 0.18
-const WEAPON_GIZMO_ARROW_LENGTH := 0.17
-const WEAPON_GIZMO_RING_RADIUS := 0.135
-const GIZMO_CENTER_RADIUS := 0.045
-const GIZMO_PICK_DISTANCE_PX := 34.0
-const MUZZLE_RETICLE_LEAD_PX := 84.0
+const HAND_GIZMO_ARROW_LENGTH := 0.12
+const HAND_GIZMO_RING_RADIUS := 0.09
+const WEAPON_GIZMO_ARROW_LENGTH := 0.10
+const WEAPON_GIZMO_RING_RADIUS := 0.075
+const GIZMO_CENTER_RADIUS := 0.018
+const GIZMO_PICK_DISTANCE_PX := 28.0
+const MUZZLE_RETICLE_LEAD_PX := 64.0
 const BULLET_VELOCITY_PREVIEW_SECONDS := 0.004
 const TUNABLE_BODY_JOINTS := JointControlSchema.SELECTABLE_JOINTS
 
@@ -70,6 +73,7 @@ var left_hand_idx: int = -1
 var right_arm_idx: int = -1
 var right_forearm_idx: int = -1
 var right_hand_idx: int = -1
+var weapon_anchor_bone_idx: int = -1
 var right_hand_ik: SkeletonIK3D
 
 # Biomechanical Engine Parameters
@@ -85,6 +89,11 @@ var elbow_poles_by_stance: Dictionary = {
 	&"STANDING": {"right": Vector3.ZERO, "left": Vector3.ZERO},
 	&"CROUCHED": {"right": Vector3.ZERO, "left": Vector3.ZERO},
 	&"PRONE": {"right": Vector3.ZERO, "left": Vector3.ZERO},
+}
+var hand_poses_by_stance: Dictionary = {
+	&"STANDING": {},
+	&"CROUCHED": {},
+	&"PRONE": {},
 }
 var stance_rebase_remaining: float = 0.0
 var right_elbow_pole_marker: MeshInstance3D
@@ -112,11 +121,22 @@ var ba_right_hand: BoneAttachment3D
 var right_hand_dot: MeshInstance3D
 var weapon_root: Node3D
 var weapon_pivot: Node3D
+var geometry_root: Node3D
+var socket_root: Node3D
 var weapon_mount_local := Transform3D.IDENTITY
+var weapon_anchor_local := Transform3D.IDENTITY
+var weapon_anchor_bone_origin := Vector3.ZERO
+var weapon_anchor_ready: bool = false
 var weapon_master_pose_initialized: bool = false
+var _loaded_weapon_profile: Dictionary = {}
 var current_weapon_mesh: Node3D
 var current_silencer_mesh: Node3D
 var current_scope_mesh: Node3D
+var save_rig_button: Button
+var play_latest_button: Button
+
+const MAX_GRIP_OFFSET_RADIUS_METERS: float = 0.75
+const MAX_HAND_TO_GRIP_ERROR_METERS: float = 0.40
 
 # Unscaled World 3D Transform Gizmo for Hand
 var hand_gizmo_world: Node3D
@@ -142,6 +162,7 @@ var weapon_gizmo_ring_yaw: MeshInstance3D
 var left_grip_marker: MeshInstance3D
 var right_grip_marker: MeshInstance3D
 var muzzle_marker: MeshInstance3D
+var barrel_base_marker: MeshInstance3D
 var ejection_marker: MeshInstance3D
 var optic_marker: MeshInstance3D
 
@@ -153,11 +174,12 @@ var auto_normalized_scale: float = 1.0
 var auto_grip_center_offset := Vector3.ZERO
 
 # Socket Local Coordinates on Weapon Mesh
-var left_grip_local_pos := Vector3(0.20, -0.03, 0.0)
+var left_grip_local_pos := Vector3(-0.04, -0.04, -0.30)
 var right_grip_local_pos := Vector3.ZERO
-var muzzle_local_pos := Vector3(0.70, 0.02, 0.0)
-var ejection_local_pos := Vector3(0.05, 0.03, 0.06)
-var optic_local_pos := Vector3(0.05, 0.08, 0.0)
+var muzzle_local_pos := Vector3(0.0, 0.0, -0.68)
+var barrel_base_local_pos := Vector3(0.0, 0.0, -0.12)
+var ejection_local_pos := Vector3(0.05, 0.03, -0.10)
+var optic_local_pos := Vector3(0.0, 0.08, -0.18)
 var right_grip_profile_loaded := false
 var right_grip_needs_initialization := false
 
@@ -165,10 +187,16 @@ var right_grip_needs_initialization := false
 var interactive_dots: Array[Dictionary] = []
 var hovered_dot_id: String = ""
 var dragged_dot_id: String = ""
+var authoring_pointer_down: bool = false
+var mouse_fire_armed: bool = false
 var drag_plane := Plane()
 var drag_initial_world := Vector3.ZERO
 var drag_offset_vector := Vector3.ZERO
 var active_gizmo_id := "hand"
+var ballistic_edit_active: bool = false
+var gunsmith_camera_tracking_enabled: bool = false
+var show_joint_bubbles: bool = true
+var isolate_selected_node: bool = false
 
 # Ballistics & Firing
 var weapon_name: String = "AssaultRifle_1"
@@ -181,6 +209,13 @@ var base_spread_deg: float = 0.28
 var bloom_per_shot_deg: float = 0.32
 var bloom_recovery_speed: float = 10.0
 var max_recoil_bloom_deg: float = 2.4
+var visual_recoil_pitch_deg: float = 0.0
+var visual_recoil_back_m: float = 0.0
+const VISUAL_RECOIL_PITCH_PER_SHOT_DEG := 1.15
+const VISUAL_RECOIL_BACK_PER_SHOT_M := 0.010
+const VISUAL_RECOIL_MAX_PITCH_DEG := 5.0
+const VISUAL_RECOIL_MAX_BACK_M := 0.040
+const VISUAL_RECOIL_RECOVERY := 17.0
 var reticle_base_gap_px: float = 10.0
 var reticle_max_gap_px: float = 46.0
 var reticle_response_speed: float = 24.0
@@ -198,6 +233,7 @@ var composure_graze_damage_scale: float = 0.38
 var composure_readout: Label
 var composure_profile_title: Label
 var fire_input_held: bool = false
+var active_lab_tab_name := "Rig & Hands"
 var current_aim_target := Vector3.ZERO
 var is_reloading: bool = false
 var weapon_owner_state: StringName = WeaponOwnershipContract.OWNER_WEAPON_MASTER
@@ -251,6 +287,19 @@ var support_hand_toggle: CheckButton
 var animation_slot_labels: Dictionary = {}
 var animation_slot_selectors: Dictionary = {}
 var animation_preview_token: int = 0
+var animation_frame_editor := GunsmithAnimationFrameEditorScript.new()
+var animation_frame_scrubber: HSlider
+var animation_frame_panel: PanelContainer
+var animation_frame_timeline: Control
+var animation_frame_readout: Label
+var animation_frame_play_button: Button
+var animation_frame_edit_button: Button
+var animation_frame_edit_controls: Array[BaseButton] = []
+var animation_frame_editor_title: Label
+var animation_frame_base_pose: Dictionary = {}
+var animation_frame_last_applied: int = -1
+var animation_edit_candidate_slot: String = ""
+var animation_edit_candidate_clip: StringName = &""
 var all_animation_select: OptionButton
 var selected_animation_key: StringName = &""
 var animation_hand_maps: Dictionary = {}
@@ -328,6 +377,20 @@ func _input(event: InputEvent) -> void:
 			_set_preview_posture(&"PRONE")
 			get_viewport().set_input_as_handled()
 			return
+		elif ek.keycode == KEY_B:
+			show_joint_bubbles = not show_joint_bubbles
+			_update_body_joint_visuals()
+			if hud_status:
+				hud_status.text = "👁 Joint Bubbles: %s" % ("VISIBLE" if show_joint_bubbles else "HIDDEN")
+			get_viewport().set_input_as_handled()
+			return
+		elif ek.keycode == KEY_I:
+			isolate_selected_node = not isolate_selected_node
+			_update_body_joint_visuals()
+			if hud_status:
+				hud_status.text = "🎯 Isolate Active Node: %s" % ("ON (Showing %s only)" % String(selected_body_joint) if isolate_selected_node else "OFF")
+			get_viewport().set_input_as_handled()
+			return
 
 	if event is InputEventMouseButton:
 		var mb := event as InputEventMouseButton
@@ -383,8 +446,13 @@ func _input(event: InputEvent) -> void:
 			last_mouse_pos = mb.position
 		elif mb.button_index == MOUSE_BUTTON_LEFT:
 			if mb.pressed:
+				# A mouse shot must start on empty range space. Never derive fire from
+				# the global button state because Godot can sample that state before a
+				# socket drag has claimed the press.
+				mouse_fire_armed = false
 				var hit_dot := _find_dot_under_mouse(mb.position)
 				if hit_dot != "":
+					authoring_pointer_down = true
 					if hit_dot.begins_with("body_joint:"):
 						_select_body_joint(StringName(hit_dot.trim_prefix("body_joint:")))
 					elif hit_dot == "left_ik":
@@ -406,11 +474,21 @@ func _input(event: InputEvent) -> void:
 							drag_offset_vector = Vector3.ZERO
 						if hud_status:
 							hud_status.text = "🎯 Positioning %s (Left arm biomechanically auto-grips!)" % hit_dot
+					get_viewport().set_input_as_handled()
+					return
+				mouse_fire_armed = (
+					active_lab_tab_name == "Reticle & Fire"
+					and not animation_frame_editor.active
+					and _preview_screen_rect().has_point(mb.position)
+				)
 			else:
+				mouse_fire_armed = false
+				authoring_pointer_down = false
 				if dragged_dot_id != "":
 					if hud_status:
 						hud_status.text = "✅ %s locked!" % dragged_dot_id
 					dragged_dot_id = ""
+					ballistic_edit_active = false
 	elif event is InputEventMouseMotion:
 		var mm := event as InputEventMouseMotion
 		if is_orbiting:
@@ -498,7 +576,10 @@ func _process(delta: float) -> void:
 
 	fire_input_held = (
 		Input.is_key_pressed(KEY_SPACE)
-		or (Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) and dragged_dot_id == "")
+		or (
+			mouse_fire_armed
+			and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
+		)
 	) and not is_orbiting and not is_panning and not is_reloading
 	_update_bloom_recovery(delta, fire_input_held)
 	composure.advance(
@@ -520,12 +601,16 @@ func _process(delta: float) -> void:
 			_fire_shot()
 
 	if animation_player:
-		animation_player.advance(delta)
+		if not animation_frame_editor.active or animation_frame_editor.playing:
+			animation_player.advance(delta)
+		if animation_frame_editor.active:
+			_update_animation_frame_editor()
 	if not weapon_master_pose_initialized:
 		_initialize_weapon_master_pose()
 	_update_action_weapon_ownership(delta)
 	_apply_runtime_posture_preview()
-	_update_stance_weapon_rebase(delta)
+	_update_weapon_master_anchor()
+	_update_visual_weapon_recoil(delta)
 
 	_solve_trigger_hand_engine()
 	_solve_biomechanical_arm_engine()
@@ -547,8 +632,8 @@ func _process(delta: float) -> void:
 			weapon_gizmo_world.global_basis = weapon_root.global_basis.orthonormalized()
 
 	if dynamic_reticle and cam:
+		current_aim_target = _camera_aim_sample().position
 		var aim_sample := _muzzle_axis_sample()
-		current_aim_target = aim_sample.position
 		var total_spread := _current_total_spread_deg()
 		dynamic_reticle.update_reticle_state(
 			clampf(total_spread / maxf(max_recoil_bloom_deg, 0.001), 0.0, 1.0),
@@ -593,18 +678,28 @@ func _solve_trigger_hand_engine() -> void:
 		right_palm_anchor_local.z * skeleton_scale.z
 	)
 	var wrist_position := right_grip_marker.global_position - desired_basis * scaled_palm_anchor
-	right_hand_ik.target = Transform3D(desired_basis, wrist_position)
 	# Lock to the animation-sampled basis, not the rifle basis. This retains the
 	# authored wrist pose while keeping the palm contact point exact.
 	right_hand_ik.override_tip_basis = true
-	# Build the elbow bend plane from the sampled shoulder and current grip.
-	# SkeletonIK3D expects this point in skeleton space, not a world direction.
-	right_hand_ik.magnet = _right_elbow_magnet_for(wrist_position)
-	# AnimationPlayer is advanced manually in this lab. Solve immediately after
-	# that animation sample so the next frame cannot overwrite the IK result.
-	right_hand_ik.stop()
-	right_hand_ik.start(true)
-	skeleton.force_update_all_bone_transforms()
+	# Imported Mixamo scales leave a small deterministic residual after one IK
+	# pass, especially in prone. Correct the internal wrist target a few times;
+	# the authored weapon socket never moves. This mirrors the gameplay solver
+	# and keeps the editor preview continuous with the live character.
+	var internal_wrist_position := wrist_position
+	for _correction in range(4):
+		right_hand_ik.target = Transform3D(desired_basis, internal_wrist_position)
+		# Build the elbow bend plane from the sampled shoulder and current grip.
+		# SkeletonIK3D expects this point in skeleton space, not a world direction.
+		right_hand_ik.magnet = _right_elbow_magnet_for(internal_wrist_position)
+		# AnimationPlayer is advanced manually in this lab. Solve immediately after
+		# that animation sample so the next frame cannot overwrite the IK result.
+		right_hand_ik.stop()
+		right_hand_ik.start(true)
+		skeleton.force_update_all_bone_transforms()
+		var residual := right_grip_marker.global_position - _right_palm_contact_world()
+		if residual.length() <= 0.001:
+			break
+		internal_wrist_position += residual
 
 func _right_hand_world_transform() -> Transform3D:
 	if not skeleton or right_hand_idx < 0:
@@ -642,7 +737,10 @@ func _update_action_weapon_ownership(delta: float) -> void:
 		action_recovery_elapsed = minf(action_recovery_elapsed + delta, action_recovery_duration)
 		var amount := action_recovery_elapsed / maxf(action_recovery_duration, 0.001)
 		amount = amount * amount * (3.0 - 2.0 * amount)
-		weapon_root.global_transform = action_recovery_start.interpolate_with(action_return_transform, amount)
+		weapon_root.global_transform = action_recovery_start.interpolate_with(
+			_weapon_anchor_target_transform(),
+			amount
+		)
 
 func _right_elbow_magnet_for(wrist_world: Vector3) -> Vector3:
 	if not skeleton or right_arm_idx < 0:
@@ -729,6 +827,13 @@ func _left_elbow_pole_base_world(wrist_world: Vector3) -> Vector3:
 			outward = 0.34; downward = 0.11; forward = 0.08
 		GripStyle.ANGLED_AFG:
 			outward = 0.40; downward = 0.08; forward = 0.12
+
+	# Dynamic anatomical stabilization: when palm is rolled upside-down / cradle, drop elbow downward
+	var roll_rad := deg_to_rad(palm_roll)
+	var palm_upright_factor := (cos(roll_rad) + 1.0) * 0.5
+	outward = lerpf(0.24, outward, palm_upright_factor)
+	downward = lerpf(0.18, downward, palm_upright_factor)
+
 	return midpoint + body_right * outward - body_up * downward + body_forward * forward
 
 
@@ -738,17 +843,9 @@ func _left_elbow_pole_world(wrist_world: Vector3) -> Vector3:
 
 
 func _update_stance_weapon_rebase(delta: float) -> void:
-	if stance_rebase_remaining <= 0.0 or action_weapon_follow_active:
-		return
+	# Compatibility seam for old callers. Never add an unsaved world-space
+	# offset after a stance profile restores the calibrated local transform.
 	stance_rebase_remaining = maxf(0.0, stance_rebase_remaining - delta)
-	if not weapon_root or not right_grip_marker or not skeleton or right_hand_idx < 0:
-		return
-	# A stance animation may move the sampled hand a long distance in one frame.
-	# Preserve the calibrated rifle orientation and sockets, but translate the
-	# authoritative weapon master with the trigger palm throughout that blend.
-	# Both arms then solve to the same weapon instead of chasing its old stance.
-	skeleton.force_update_all_bone_transforms()
-	weapon_root.global_position += _right_palm_contact_world() - right_grip_marker.global_position
 
 func _apply_hand_and_finger_posing() -> void:
 	if not skeleton or support_hand_policy != WeaponOwnershipContract.SUPPORT_IK_TO_WEAPON or not support_hand_attached: return
@@ -776,6 +873,43 @@ func _apply_hand_and_finger_posing() -> void:
 
 func _trigger_reload_animation() -> void:
 	_preview_animation_slot("reload_standing")
+
+
+func _posture_fire_slot() -> String:
+	match preview_posture:
+		&"CROUCHED":
+			return "fire_crouched"
+		&"PRONE":
+			return "fire_prone"
+		_:
+			return "fire_standing"
+
+
+func _preview_fire_animation() -> void:
+	# A Gunsmith shot opens the same posture-specific clip that gameplay uses.
+	# Repeated shots restart that clip while keeping its frame editor attached.
+	var slot_name := _posture_fire_slot()
+	var slots: Dictionary = handling_profile.get("animation_slots", {})
+	var clip_name := StringName(slots.get(slot_name, ""))
+	if clip_name == &"" or not _ensure_preview_clip(clip_name):
+		if hud_status:
+			hud_status.text = "⚠ Map an animation to %s before firing." % slot_name
+		return
+	_set_animation_edit_candidate(slot_name, clip_name)
+	if not animation_frame_editor.active or animation_frame_editor.clip_name != clip_name:
+		_enter_animation_frame_editor(slot_name, clip_name)
+	if not animation_frame_editor.active or animation_player == null:
+		return
+	selected_animation_key = clip_name
+	animation_frame_editor.playing = true
+	animation_frame_editor.set_time(0.0)
+	animation_frame_last_applied = -1
+	animation_player.play(clip_name, 0.0)
+	animation_player.seek(0.0, true)
+	_apply_animation_frame_pose_for_current_time()
+	_refresh_animation_frame_editor_ui()
+	if hud_status:
+		hud_status.text = "💥 %s fired. Its editable reaction clip is open on the frame ruler." % clip_name
 
 func _set_support_hand_attached(attached: bool, announce: bool = true) -> void:
 	support_hand_attached = attached
@@ -861,6 +995,11 @@ func _build_handling_animation_ui(parent: VBoxContainer) -> void:
 		preview_button.tooltip_text = "Preview this clip on the operator"
 		preview_button.pressed.connect(_preview_animation_slot.bind(slot_name))
 		row.add_child(preview_button)
+		var edit_button := Button.new()
+		edit_button.text = "✎"
+		edit_button.tooltip_text = "Pause this state and edit additive pose keys frame by frame"
+		edit_button.pressed.connect(_edit_animation_slot.bind(slot_name))
+		row.add_child(edit_button)
 
 	animation_mapping_status = Label.new()
 	animation_mapping_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -888,11 +1027,17 @@ func _build_handling_animation_ui(parent: VBoxContainer) -> void:
 	preview_any_button.tooltip_text = "Play this raw animation with the gun carried by the animated right hand."
 	preview_any_button.pressed.connect(_preview_selected_catalog_animation)
 	all_clips_row.add_child(preview_any_button)
+	var edit_any_button := Button.new()
+	edit_any_button.text = "✎ Edit"
+	edit_any_button.tooltip_text = "Open this raw clip in the frame pose editor"
+	edit_any_button.pressed.connect(_edit_selected_catalog_animation)
+	all_clips_row.add_child(edit_any_button)
 	var save_clip_hands_button := Button.new()
 	save_clip_hands_button.text = "💾 Map Both Hands to This Clip"
 	save_clip_hands_button.tooltip_text = "Store the trigger-hand grip, support-hand grip, weapon mount, wrist pose, and finger pose for this exact imported animation. Ctrl/Cmd+S writes every map into the weapon profile."
 	save_clip_hands_button.pressed.connect(_save_selected_animation_hand_map)
 	parent.add_child(save_clip_hands_button)
+	_build_animation_frame_editor_ui(parent)
 
 	var audit_button := Button.new()
 	audit_button.text = "🔎 Audit All Equipped States"
@@ -923,6 +1068,84 @@ func _build_handling_animation_ui(parent: VBoxContainer) -> void:
 	animation_quality_results.text = "Run the equipped-state audit to compare every firing, reload, and stance clip."
 	parent.add_child(animation_quality_results)
 	_refresh_handling_ui()
+
+
+func _build_animation_frame_editor_ui(parent: VBoxContainer) -> void:
+	var title := Label.new()
+	title.text = "FRAME POSE EDITOR"
+	title.add_theme_color_override("font_color", Color(0.35, 0.9, 1.0))
+	parent.add_child(title)
+	animation_frame_editor_title = Label.new()
+	animation_frame_editor_title.text = "Select ✎ beside an animation state."
+	animation_frame_editor_title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	animation_frame_editor_title.add_theme_font_size_override("font_size", 10)
+	parent.add_child(animation_frame_editor_title)
+	var help := Label.new()
+	help.text = "Fire or click ✎ to attach a clip to the frame ruler. A correction key holds until another key blends it toward a new pose. The source FBX is unchanged."
+	help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	help.add_theme_font_size_override("font_size", 10)
+	parent.add_child(help)
+	_build_animation_frame_timeline_overlay()
+
+
+func _build_animation_frame_timeline_overlay() -> void:
+	if animation_frame_panel != null or overlay == null:
+		return
+	animation_frame_panel = PanelContainer.new()
+	animation_frame_panel.name = "GunsmithFrameTimelinePanel"
+	animation_frame_panel.anchor_left = 0.37
+	animation_frame_panel.anchor_top = 1.0
+	animation_frame_panel.anchor_right = 1.0
+	animation_frame_panel.anchor_bottom = 1.0
+	animation_frame_panel.offset_left = 0.0
+	animation_frame_panel.offset_top = -132.0
+	animation_frame_panel.offset_right = -16.0
+	animation_frame_panel.offset_bottom = -16.0
+	# Keep the frame ruler visible. Editing must be discoverable without finding
+	# a small per-slot pencil button in the scrolling sidebar.
+	animation_frame_panel.visible = true
+	overlay.add_child(animation_frame_panel)
+
+	var container := VBoxContainer.new()
+	animation_frame_panel.add_child(container)
+	animation_frame_readout = Label.new()
+	animation_frame_readout.text = "Frame —"
+	animation_frame_readout.add_theme_font_size_override("font_size", 11)
+	container.add_child(animation_frame_readout)
+	animation_frame_timeline = GunsmithFrameTimelineScript.new()
+	animation_frame_timeline.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	animation_frame_timeline.frame_scrubbed.connect(_seek_animation_frame_index)
+	container.add_child(animation_frame_timeline)
+
+	var controls := HBoxContainer.new()
+	container.add_child(controls)
+	animation_frame_edit_button = Button.new()
+	animation_frame_edit_button.text = "✎ Edit Current Animation"
+	animation_frame_edit_button.tooltip_text = "Pause and edit the explicitly selected reaction clip. This does not close the frame editor."
+	animation_frame_edit_button.pressed.connect(_toggle_current_animation_frame_editor)
+	controls.add_child(animation_frame_edit_button)
+	var previous_button := Button.new()
+	previous_button.text = "◀ Frame"
+	previous_button.pressed.connect(_step_animation_frame_editor.bind(-1))
+	controls.add_child(previous_button)
+	animation_frame_edit_controls.append(previous_button)
+	animation_frame_play_button = Button.new()
+	animation_frame_play_button.text = "▶ Play"
+	animation_frame_play_button.pressed.connect(_toggle_animation_frame_editor_playback)
+	controls.add_child(animation_frame_play_button)
+	animation_frame_edit_controls.append(animation_frame_play_button)
+	var next_button := Button.new()
+	next_button.text = "Frame ▶"
+	next_button.pressed.connect(_step_animation_frame_editor.bind(1))
+	controls.add_child(next_button)
+	animation_frame_edit_controls.append(next_button)
+	var capture_button := Button.new()
+	capture_button.text = "◆ Set Correction Key"
+	capture_button.tooltip_text = "Save the current correction here. It holds forward and blends toward the next key."
+	capture_button.pressed.connect(_capture_animation_frame_pose_key)
+	controls.add_child(capture_button)
+	animation_frame_edit_controls.append(capture_button)
+	_refresh_animation_frame_editor_ui()
 
 
 func _on_handling_family_selected(index: int) -> void:
@@ -998,6 +1221,7 @@ func _refresh_handling_ui(sync_selectors: bool = true) -> void:
 
 
 func _preview_animation_slot(slot_name: String) -> void:
+	_leave_animation_frame_editor()
 	if animation_player == null or animation_catalog == null:
 		return
 	var slots: Dictionary = handling_profile.get("animation_slots", {})
@@ -1010,6 +1234,9 @@ func _preview_animation_slot(slot_name: String) -> void:
 		if hud_status:
 			hud_status.text = "⚠ Could not load animation clip: %s" % clip_name
 		return
+	_set_animation_edit_candidate(slot_name, clip_name)
+	selected_animation_key = clip_name
+	_apply_animation_hand_map(clip_name)
 	animation_preview_token += 1
 	var token := animation_preview_token
 	var is_idle := slot_name.begins_with("idle_")
@@ -1038,6 +1265,7 @@ func _preview_animation_slot(slot_name: String) -> void:
 
 
 func _preview_selected_catalog_animation() -> void:
+	_leave_animation_frame_editor()
 	if all_animation_select == null or all_animation_select.item_count == 0:
 		return
 	var clip_name := StringName(all_animation_select.get_item_metadata(all_animation_select.selected))
@@ -1045,6 +1273,7 @@ func _preview_selected_catalog_animation() -> void:
 		if hud_status:
 			hud_status.text = "⚠ Could not load animation clip: %s" % clip_name
 		return
+	_set_animation_edit_candidate("raw_clip", clip_name)
 	selected_animation_key = clip_name
 	_apply_animation_hand_map(clip_name)
 	animation_preview_token += 1
@@ -1065,11 +1294,274 @@ func _preview_selected_catalog_animation() -> void:
 	)
 
 
+func _edit_animation_slot(slot_name: String) -> void:
+	var slots: Dictionary = handling_profile.get("animation_slots", {})
+	var clip_name := StringName(slots.get(slot_name, ""))
+	_enter_animation_frame_editor(slot_name, clip_name)
+
+
+func _edit_selected_catalog_animation() -> void:
+	if all_animation_select == null or all_animation_select.item_count == 0:
+		return
+	var clip_name := StringName(all_animation_select.get_item_metadata(all_animation_select.selected))
+	_enter_animation_frame_editor("raw_clip", clip_name)
+
+
+func _toggle_current_animation_frame_editor() -> void:
+	if animation_frame_editor.active:
+		# This button is an edit command, not a close command. A shot can attach
+		# its fire reaction while it plays. Pressing Edit must pause that exact
+		# reaction at the visible frame and keep its context intact.
+		animation_frame_editor.playing = false
+		if animation_player:
+			animation_player.pause()
+			animation_frame_editor.set_time(animation_player.current_animation_position)
+		animation_frame_last_applied = -1
+		_apply_animation_frame_pose_for_current_time()
+		_refresh_animation_frame_editor_ui()
+		if hud_status:
+			hud_status.text = "✎ Editing %s at frame %d." % [
+				animation_frame_editor.clip_name,
+				animation_frame_editor.frame_index(),
+			]
+		return
+	if animation_player == null:
+		return
+	var slot_name := animation_edit_candidate_slot
+	var clip_name := animation_edit_candidate_clip
+	if clip_name == &"":
+		clip_name = selected_animation_key
+	if clip_name == &"" or clip_name == &"RESET":
+		clip_name = animation_player.current_animation
+	if clip_name == &"" or clip_name == &"RESET":
+		clip_name = _posture_idle_clip()
+	if slot_name.is_empty():
+		slot_name = "current_preview"
+	_enter_animation_frame_editor(slot_name, clip_name)
+
+
+func _set_animation_edit_candidate(slot_name: String, clip_name: StringName) -> void:
+	if clip_name == &"" or clip_name == &"RESET":
+		return
+	animation_edit_candidate_slot = slot_name
+	animation_edit_candidate_clip = clip_name
+
+
+func _enter_animation_frame_editor(slot_name: String, clip_name: StringName) -> void:
+	_leave_animation_frame_editor()
+	if clip_name == &"" or not _ensure_preview_clip(clip_name):
+		if hud_status:
+			hud_status.text = "⚠ Map an animation before opening its frame editor."
+		return
+	animation_preview_token += 1
+	_set_animation_edit_candidate(slot_name, clip_name)
+	selected_animation_key = clip_name
+	_apply_animation_hand_map(clip_name)
+	_apply_weapon_ownership_policy(
+		WeaponOwnershipContract.preview_policy(slot_name, clip_name),
+		slot_name.begins_with("reload_") or "reload" in String(clip_name).to_lower()
+	)
+	var animation := animation_player.get_animation(clip_name)
+	animation_frame_editor.begin(slot_name, clip_name, animation.length if animation else 0.0)
+	animation_frame_base_pose = _snapshot_animation_frame_pose()
+	animation_frame_last_applied = -1
+	animation_player.play(clip_name, 0.0)
+	animation_player.pause()
+	animation_player.seek(0.0, true)
+	_apply_animation_frame_pose_for_current_time()
+	_refresh_animation_frame_editor_ui()
+	if hud_status:
+		hud_status.text = "✎ Frame editor: %s. Step, adjust joints, then save a pose key." % clip_name
+
+
+func _leave_animation_frame_editor() -> void:
+	if not animation_frame_editor.active:
+		return
+	_restore_animation_frame_pose(animation_frame_base_pose)
+	animation_frame_editor.stop()
+	animation_frame_base_pose.clear()
+	animation_frame_last_applied = -1
+	_refresh_animation_frame_editor_ui()
+
+
+func _toggle_animation_frame_editor_playback() -> void:
+	if not animation_frame_editor.active or animation_player == null:
+		return
+	animation_frame_editor.playing = not animation_frame_editor.playing
+	if animation_frame_editor.playing:
+		animation_player.play(animation_frame_editor.clip_name, 0.0)
+		animation_player.seek(animation_frame_editor.time_seconds, true)
+	else:
+		animation_player.pause()
+	_refresh_animation_frame_editor_ui()
+
+
+func _step_animation_frame_editor(frame_delta: int) -> void:
+	if not animation_frame_editor.active or animation_player == null:
+		return
+	animation_frame_editor.playing = false
+	animation_player.pause()
+	animation_frame_editor.step_frames(frame_delta)
+	animation_player.seek(animation_frame_editor.time_seconds, true)
+	animation_frame_last_applied = -1
+	_apply_animation_frame_pose_for_current_time()
+	_refresh_animation_frame_editor_ui()
+
+
+func _seek_animation_frame_editor(normalized_time: float) -> void:
+	if not animation_frame_editor.active or animation_player == null:
+		return
+	animation_frame_editor.playing = false
+	animation_player.pause()
+	animation_frame_editor.set_time(normalized_time * animation_frame_editor.duration_seconds)
+	animation_player.seek(animation_frame_editor.time_seconds, true)
+	animation_frame_last_applied = -1
+	_apply_animation_frame_pose_for_current_time()
+	_refresh_animation_frame_editor_ui()
+
+
+func _seek_animation_frame_index(frame_index: int) -> void:
+	if not animation_frame_editor.active or animation_player == null:
+		return
+	animation_frame_editor.playing = false
+	animation_player.pause()
+	animation_frame_editor.set_time(
+		float(clampi(frame_index, 0, animation_frame_editor.frame_count()))
+		/ animation_frame_editor.fps
+	)
+	animation_player.seek(animation_frame_editor.time_seconds, true)
+	animation_frame_last_applied = -1
+	_apply_animation_frame_pose_for_current_time()
+	_refresh_animation_frame_editor_ui()
+
+
+func _update_animation_frame_editor() -> void:
+	if not animation_frame_editor.active or animation_player == null:
+		return
+	if animation_frame_editor.playing:
+		animation_frame_editor.set_time(animation_player.current_animation_position)
+	_apply_animation_frame_pose_for_current_time()
+	_refresh_animation_frame_editor_ui()
+
+
+func _refresh_animation_frame_editor_ui() -> void:
+	if animation_frame_panel:
+		animation_frame_panel.visible = true
+	if animation_frame_editor_title:
+		animation_frame_editor_title.text = (
+			"Editing %s → %s" % [animation_frame_editor.slot_name, animation_frame_editor.clip_name]
+			if animation_frame_editor.active
+			else "Select ✎ beside an animation state."
+		)
+	if animation_frame_play_button:
+		animation_frame_play_button.text = "⏸ Pause" if animation_frame_editor.playing else "▶ Play"
+	if animation_frame_edit_button:
+		if animation_frame_editor.active:
+			animation_frame_edit_button.text = (
+				"✎ Pause & Edit %s" % animation_frame_editor.clip_name
+				if animation_frame_editor.playing
+				else "✎ Editing %s" % animation_frame_editor.clip_name
+			)
+		elif animation_edit_candidate_clip != &"":
+			animation_frame_edit_button.text = "✎ Edit %s" % animation_edit_candidate_clip
+		else:
+			animation_frame_edit_button.text = "✎ Edit Current Animation"
+	for control in animation_frame_edit_controls:
+		if control:
+			control.disabled = not animation_frame_editor.active
+	if animation_frame_scrubber:
+		var normalized := 0.0
+		if animation_frame_editor.duration_seconds > 0.0:
+			normalized = animation_frame_editor.time_seconds / animation_frame_editor.duration_seconds
+		animation_frame_scrubber.set_value_no_signal(normalized)
+	if animation_frame_readout:
+		if animation_frame_editor.active:
+			animation_frame_readout.text = "Frame %d / %d • %.3f s%s" % [
+				animation_frame_editor.frame_index(),
+				animation_frame_editor.frame_count(),
+				animation_frame_editor.time_seconds,
+				" • SAVED POSE KEY" if animation_frame_editor.has_current_pose() else "",
+			]
+		else:
+			animation_frame_readout.text = "FRAME EDITOR READY • Click Edit Current Animation"
+	if animation_frame_timeline:
+		animation_frame_timeline.configure(
+			animation_frame_editor.frame_count(),
+			animation_frame_editor.frame_index(),
+			animation_frame_editor.saved_frame_indices()
+		)
+
+
+func _capture_animation_frame_pose_key() -> void:
+	if not animation_frame_editor.active:
+		if hud_status:
+			hud_status.text = "⚠ Open an animation with ✎ before saving a pose key."
+		return
+	animation_frame_editor.store_current_pose(_snapshot_animation_frame_pose())
+	_refresh_animation_frame_editor_ui()
+	if hud_status:
+		hud_status.text = "◆ Saved correction key for %s at frame %d. It holds until the next key; save the weapon profile to keep it." % [
+			animation_frame_editor.clip_name,
+			animation_frame_editor.frame_index(),
+		]
+
+
+func _apply_animation_frame_pose_for_current_time() -> void:
+	var current_frame := animation_frame_editor.frame_index()
+	if current_frame == animation_frame_last_applied:
+		return
+	_restore_animation_frame_pose(animation_frame_base_pose)
+	var saved_pose := animation_frame_editor.sampled_pose()
+	if not saved_pose.is_empty():
+		_restore_animation_frame_pose(saved_pose)
+	animation_frame_last_applied = current_frame
+
+
+func _snapshot_animation_frame_pose() -> Dictionary:
+	var joint_rotations: Dictionary = {}
+	if runtime_posture_layer:
+		for joint_name: StringName in TUNABLE_BODY_JOINTS:
+			if JointControlSchema.control_mode(joint_name) == &"rotation":
+				joint_rotations[String(joint_name)] = _vector3_to_dictionary(
+					runtime_posture_layer.get_procedural_rotation_degrees(preview_posture, joint_name)
+				)
+	return {
+		"posture": String(preview_posture),
+		"joint_rotations": joint_rotations,
+		"right_elbow_pole": _vector3_to_dictionary(right_elbow_pole_offset),
+		"left_elbow_pole": _vector3_to_dictionary(left_elbow_pole_offset),
+		"right_hand_target": _vector3_to_dictionary(right_grip_local_pos),
+		"left_hand_target": _vector3_to_dictionary(left_grip_local_pos),
+	}
+
+
+func _restore_animation_frame_pose(pose_data: Dictionary) -> void:
+	if pose_data.is_empty():
+		return
+	var rotations: Dictionary = pose_data.get("joint_rotations", {})
+	if runtime_posture_layer:
+		for joint_key in rotations:
+			var joint_name := StringName(joint_key)
+			if joint_name in TUNABLE_BODY_JOINTS:
+				runtime_posture_layer.set_procedural_rotation_degrees(
+					preview_posture,
+					joint_name,
+					_dictionary_to_vector3(rotations[joint_key], Vector3.ZERO)
+				)
+	right_elbow_pole_offset = _dictionary_to_vector3(pose_data.get("right_elbow_pole", {}), right_elbow_pole_offset)
+	left_elbow_pole_offset = _dictionary_to_vector3(pose_data.get("left_elbow_pole", {}), left_elbow_pole_offset)
+	right_grip_local_pos = _dictionary_to_vector3(pose_data.get("right_hand_target", {}), right_grip_local_pos)
+	left_grip_local_pos = _dictionary_to_vector3(pose_data.get("left_hand_target", {}), left_grip_local_pos)
+	_sync_markers()
+	_sync_body_joint_controls()
+
+
 func _finish_preview_to_idle() -> void:
 	var idle_slot := _posture_idle_slot()
 	_apply_weapon_ownership_policy(WeaponOwnershipContract.preview_policy(idle_slot), false)
 	var idle_clip := _posture_idle_clip()
 	if idle_clip != &"" and _ensure_preview_clip(idle_clip):
+		selected_animation_key = idle_clip
 		animation_player.play(idle_clip, 0.10)
 
 
@@ -1098,61 +1590,95 @@ func _posture_idle_clip() -> StringName:
 func _set_preview_posture(posture_name: StringName) -> void:
 	if posture_name not in [&"STANDING", &"CROUCHED", &"PRONE"]:
 		return
+	# A stance owns hand and joint fitting only. The calibrated weapon mount is
+	# one weapon-level anchor and must not jump when the stance changes.
+	var current_snapshot := _current_hand_pose_snapshot()
+	hand_poses_by_stance[preview_posture] = current_snapshot
+	var prev_clip := selected_animation_key
+	if prev_clip == &"":
+		prev_clip = _posture_idle_clip()
+	if prev_clip != &"":
+		var prev_path := String(all_animation_paths.get(prev_clip, prev_clip))
+		animation_hand_maps[prev_path] = current_snapshot
+		animation_hand_maps[String(prev_clip)] = current_snapshot
+
 	_store_current_stance_elbow_poles()
 	preview_posture = posture_name
 	_restore_current_stance_elbow_poles()
+	_restore_current_stance_hands()
 	_sync_body_joint_controls()
 	for key: StringName in stance_buttons:
 		var button := stance_buttons[key] as Button
 		if button:
 			button.set_pressed_no_signal(key == preview_posture)
 	animation_preview_token += 1
-	stance_rebase_remaining = 0.18
+	# The weapon-level mount stays fixed. The new stance re-solves both arms
+	# toward the same physical weapon sockets.
+	stance_rebase_remaining = 0.0
 	_finish_preview_to_idle()
 	if hud_status:
 		hud_status.text = "%s weapon-ready stance — the bore reticle remains tied to the red muzzle socket." % String(preview_posture).capitalize()
 
 
-func _save_selected_animation_hand_map() -> void:
-	if all_animation_select == null or all_animation_select.item_count == 0:
-		return
-	var clip_key := selected_animation_key
-	if clip_key == &"":
-		clip_key = StringName(
-			all_animation_select.get_item_metadata(all_animation_select.selected)
-		)
-	var resource_path := String(all_animation_paths.get(clip_key, ""))
-	if resource_path.is_empty():
-		return
-	animation_hand_maps[resource_path] = {
-		"left_grip": _vector_to_data(left_grip_local_pos),
-		"right_grip": _vector_to_data(right_grip_local_pos),
-		"weapon_mount_position": _vector_to_data(grip_offset_pos),
-		"weapon_mount_rotation_deg": _vector_to_data(grip_offset_rot),
-		"palm_pitch_deg": palm_pitch,
-		"palm_yaw_deg": palm_yaw,
-		"palm_roll_deg": palm_roll,
-		"finger_curl": finger_curl,
-		"thumb_wrap": thumb_wrap,
-	}
-	if hud_status:
-		hud_status.text = "💾 Both-hand map staged for this clip. Ctrl/Cmd+S saves it with the weapon."
-
-
-func _apply_animation_hand_map(clip_key: StringName) -> void:
-	var resource_path := String(all_animation_paths.get(clip_key, ""))
-	var raw_map: Variant = animation_hand_maps.get(resource_path, {})
+func _restore_current_stance_hands() -> void:
+	var raw_map: Variant = hand_poses_by_stance.get(preview_posture, {})
 	if not (raw_map is Dictionary) or (raw_map as Dictionary).is_empty():
 		return
 	var hand_map := raw_map as Dictionary
 	left_grip_local_pos = _vector_from_data(hand_map.get("left_grip", {}), left_grip_local_pos)
 	right_grip_local_pos = _vector_from_data(hand_map.get("right_grip", {}), right_grip_local_pos)
-	grip_offset_pos = _vector_from_data(
-		hand_map.get("weapon_mount_position", {}), grip_offset_pos
-	)
-	grip_offset_rot = _vector_from_data(
-		hand_map.get("weapon_mount_rotation_deg", {}), grip_offset_rot
-	)
+	palm_pitch = float(hand_map.get("palm_pitch_deg", palm_pitch))
+	palm_yaw = float(hand_map.get("palm_yaw_deg", palm_yaw))
+	palm_roll = float(hand_map.get("palm_roll_deg", palm_roll))
+	finger_curl = float(hand_map.get("finger_curl", finger_curl))
+	thumb_wrap = float(hand_map.get("thumb_wrap", thumb_wrap))
+	_sync_weapon_transform()
+	_sync_markers()
+	for value_pair in [
+		["ik_x", left_grip_local_pos.x], ["ik_y", left_grip_local_pos.y],
+		["ik_z", left_grip_local_pos.z], ["rh_x", right_grip_local_pos.x],
+		["rh_y", right_grip_local_pos.y], ["rh_z", right_grip_local_pos.z],
+		["grip_x", grip_offset_pos.x], ["grip_y", grip_offset_pos.y],
+		["grip_z", grip_offset_pos.z], ["rot_pitch", grip_offset_rot.x],
+		["rot_yaw", grip_offset_rot.y], ["rot_roll", grip_offset_rot.z],
+		["p_pitch", palm_pitch], ["p_yaw", palm_yaw], ["p_roll", palm_roll],
+		["f_curl", finger_curl], ["t_wrap", thumb_wrap],
+	]:
+		_update_slider_value(value_pair[0], value_pair[1])
+
+
+func _save_selected_animation_hand_map() -> void:
+	var clip_key := selected_animation_key
+	if clip_key == &"":
+		if all_animation_select != null and all_animation_select.item_count > 0:
+			clip_key = StringName(all_animation_select.get_item_metadata(all_animation_select.selected))
+		if clip_key == &"":
+			clip_key = _posture_idle_clip()
+	var resource_path := String(all_animation_paths.get(clip_key, ""))
+	if resource_path.is_empty():
+		resource_path = String(clip_key)
+	if resource_path.is_empty():
+		return
+	var data := _current_hand_pose_snapshot()
+	hand_poses_by_stance[preview_posture] = data.duplicate(true)
+	animation_hand_maps[resource_path] = data
+	animation_hand_maps[String(clip_key)] = data
+	if hud_status:
+		hud_status.text = "💾 Both-hand map staged for this clip. Ctrl/Cmd+S saves it with the weapon."
+
+
+func _apply_animation_hand_map(clip_key: StringName) -> void:
+	var raw_map: Variant = hand_poses_by_stance.get(preview_posture, {})
+	if not (raw_map is Dictionary) or (raw_map as Dictionary).is_empty():
+		var resource_path := String(all_animation_paths.get(clip_key, ""))
+		raw_map = animation_hand_maps.get(resource_path, {})
+		if not (raw_map is Dictionary) or (raw_map as Dictionary).is_empty():
+			raw_map = animation_hand_maps.get(String(clip_key), {})
+	if not (raw_map is Dictionary) or (raw_map as Dictionary).is_empty():
+		return
+	var hand_map := raw_map as Dictionary
+	left_grip_local_pos = _vector_from_data(hand_map.get("left_grip", {}), left_grip_local_pos)
+	right_grip_local_pos = _vector_from_data(hand_map.get("right_grip", {}), right_grip_local_pos)
 	palm_pitch = float(hand_map.get("palm_pitch_deg", palm_pitch))
 	palm_yaw = float(hand_map.get("palm_yaw_deg", palm_yaw))
 	palm_roll = float(hand_map.get("palm_roll_deg", palm_roll))
@@ -1175,6 +1701,29 @@ func _apply_animation_hand_map(clip_key: StringName) -> void:
 
 func _vector_to_data(value: Vector3) -> Dictionary:
 	return {"x": value.x, "y": value.y, "z": value.z}
+
+
+func _current_hand_pose_snapshot() -> Dictionary:
+	return {
+		"left_grip": _vector_to_data(left_grip_local_pos),
+		"right_grip": _vector_to_data(right_grip_local_pos),
+		"palm_pitch_deg": palm_pitch,
+		"palm_yaw_deg": palm_yaw,
+		"palm_roll_deg": palm_roll,
+		"finger_curl": finger_curl,
+		"thumb_wrap": thumb_wrap,
+	}
+
+
+func _hand_maps_without_legacy_mounts(raw_maps: Dictionary) -> Dictionary:
+	var sanitized := raw_maps.duplicate(true)
+	for map_key in sanitized.keys():
+		var raw_pose: Variant = sanitized[map_key]
+		if raw_pose is Dictionary:
+			var pose := raw_pose as Dictionary
+			pose.erase("weapon_mount_position")
+			pose.erase("weapon_mount_rotation_deg")
+	return sanitized
 
 
 func _vector_from_data(raw_value: Variant, fallback: Vector3) -> Vector3:
@@ -1646,6 +2195,7 @@ func _register_interactive_dots() -> void:
 		interactive_dots.append({"id": "weapon_ring_yaw", "mesh": weapon_gizmo_ring_yaw, "label": "🔷 Rotate Weapon Yaw", "color": Color(0.2, 0.85, 1.0)})
 
 	if muzzle_marker: interactive_dots.append({"id": "muzzle", "mesh": muzzle_marker, "label": "🔴 Muzzle Tip Socket", "color": Color(1.0, 0.2, 0.2)})
+	if barrel_base_marker: interactive_dots.append({"id": "barrel_base", "mesh": barrel_base_marker, "label": "🔴 Barrel Base Socket", "color": Color(1.0, 0.4, 0.4)})
 	if ejection_marker: interactive_dots.append({"id": "ejection", "mesh": ejection_marker, "label": "🟡 Shell Ejection Port", "color": Color(1.0, 0.85, 0.1)})
 	if optic_marker: interactive_dots.append({"id": "optic", "mesh": optic_marker, "label": "🟢 Optic Scope Rail", "color": Color(0.2, 1.0, 0.4)})
 	if right_grip_marker: interactive_dots.append({"id": "right_grip", "mesh": right_grip_marker, "label": "🟠 Trigger-Hand Grip (moves gun in right hand)", "color": Color(1.0, 0.55, 0.08)})
@@ -1654,6 +2204,18 @@ func _find_dot_under_mouse(screen_pos: Vector2) -> String:
 	if not cam: return ""
 	var closest_id := ""
 	var closest_dist := GIZMO_PICK_DISTANCE_PX
+	# Weapon sockets are precise authoring points. Give them priority over the
+	# larger body-joint pick radius so the red muzzle dot can never select a bone.
+	for socket_pick in [
+		["muzzle", muzzle_marker],
+		["barrel_base", barrel_base_marker],
+		["ejection", ejection_marker],
+		["optic", optic_marker],
+	]:
+		var socket_mesh := socket_pick[1] as MeshInstance3D
+		if socket_mesh != null and socket_mesh.is_visible_in_tree() and not cam.is_position_behind(socket_mesh.global_position):
+			if screen_pos.distance_to(cam.unproject_position(socket_mesh.global_position)) <= 18.0:
+				return String(socket_pick[0])
 
 	# Select the real support-hand area instead of requiring a visible sphere.
 	if left_grip_marker and not cam.is_position_behind(left_grip_marker.global_position):
@@ -1744,44 +2306,54 @@ func _apply_dot_world_drag(dot_id: String, world_pos: Vector3) -> void:
 			_set_elbow_pole_from_world(&"left", world_pos)
 		"weapon_mount":
 			if weapon_pivot:
-				weapon_pivot.global_position = world_pos
-				grip_offset_pos = weapon_pivot.position - auto_grip_center_offset
+				var parent_node := weapon_pivot.get_parent_node_3d()
+				var local_pos := parent_node.global_transform.affine_inverse() * world_pos if parent_node else world_pos
+				grip_offset_pos = local_pos - auto_grip_center_offset
 				_sync_weapon_transform(false)
 				_update_slider_value("grip_x", grip_offset_pos.x)
 				_update_slider_value("grip_y", grip_offset_pos.y)
 				_update_slider_value("grip_z", grip_offset_pos.z)
 		"left_ik":
-			if current_weapon_mesh:
-				left_grip_local_pos = current_weapon_mesh.global_transform.affine_inverse() * world_pos
-				_sync_markers()
+			if socket_root:
+				left_grip_local_pos = socket_root.to_local(world_pos)
+				_sync_hand_markers()
 				_update_slider_value("ik_x", left_grip_local_pos.x)
 				_update_slider_value("ik_y", left_grip_local_pos.y)
 				_update_slider_value("ik_z", left_grip_local_pos.z)
 		"muzzle":
-			if current_weapon_mesh:
-				muzzle_local_pos = current_weapon_mesh.global_transform.affine_inverse() * world_pos
-				_sync_markers()
+			if socket_root:
+				ballistic_edit_active = true
+				muzzle_local_pos = socket_root.to_local(world_pos)
+				_sync_ballistic_markers()
 				_update_slider_value("mz_x", muzzle_local_pos.x)
 				_update_slider_value("mz_y", muzzle_local_pos.y)
 				_update_slider_value("mz_z", muzzle_local_pos.z)
+		"barrel_base":
+			if socket_root:
+				ballistic_edit_active = true
+				barrel_base_local_pos = socket_root.to_local(world_pos)
+				_sync_ballistic_markers()
+				_update_slider_value("bb_x", barrel_base_local_pos.x)
+				_update_slider_value("bb_y", barrel_base_local_pos.y)
+				_update_slider_value("bb_z", barrel_base_local_pos.z)
 		"ejection":
-			if current_weapon_mesh:
-				ejection_local_pos = current_weapon_mesh.global_transform.affine_inverse() * world_pos
+			if socket_root:
+				ejection_local_pos = socket_root.to_local(world_pos)
 				_sync_markers()
 				_update_slider_value("ej_x", ejection_local_pos.x)
 				_update_slider_value("ej_y", ejection_local_pos.y)
 				_update_slider_value("ej_z", ejection_local_pos.z)
 		"optic":
-			if current_weapon_mesh:
-				optic_local_pos = current_weapon_mesh.global_transform.affine_inverse() * world_pos
+			if socket_root:
+				optic_local_pos = socket_root.to_local(world_pos)
 				_sync_markers()
 				_update_slider_value("op_x", optic_local_pos.x)
 				_update_slider_value("op_y", optic_local_pos.y)
 				_update_slider_value("op_z", optic_local_pos.z)
 		"right_grip":
-			if current_weapon_mesh:
-				right_grip_local_pos = current_weapon_mesh.global_transform.affine_inverse() * world_pos
-				_sync_markers()
+			if socket_root:
+				right_grip_local_pos = socket_root.to_local(world_pos)
+				_sync_hand_markers()
 				_update_slider_value("rh_x", right_grip_local_pos.x)
 				_update_slider_value("rh_y", right_grip_local_pos.y)
 				_update_slider_value("rh_z", right_grip_local_pos.z)
@@ -1870,8 +2442,8 @@ func _update_slider_value(slider_key: String, val: float) -> void:
 
 
 func _setup_elbow_pole_visuals() -> void:
-	right_elbow_pole_marker = _create_marker(Color(1.0, 0.25, 0.9), "RightElbowIKPole", 0.045)
-	left_elbow_pole_marker = _create_marker(Color(0.75, 0.35, 1.0), "LeftElbowIKPole", 0.045)
+	right_elbow_pole_marker = _create_marker(Color(1.0, 0.25, 0.9), "RightElbowIKPole", 0.016)
+	left_elbow_pole_marker = _create_marker(Color(0.75, 0.35, 1.0), "LeftElbowIKPole", 0.016)
 	add_child(right_elbow_pole_marker)
 	add_child(left_elbow_pole_marker)
 	joint_debug_instance = MeshInstance3D.new()
@@ -1888,7 +2460,7 @@ func _setup_elbow_pole_visuals() -> void:
 
 func _setup_body_joint_visuals() -> void:
 	for joint_name: StringName in TUNABLE_BODY_JOINTS:
-		var marker := _create_marker(Color(0.15, 0.85, 1.0), "BodyJoint_%s" % String(joint_name), 0.025)
+		var marker := _create_marker(Color(0.15, 0.85, 1.0), "BodyJoint_%s" % String(joint_name), 0.012)
 		add_child(marker)
 		body_joint_markers[joint_name] = marker
 	_register_interactive_dots()
@@ -1900,7 +2472,12 @@ func _update_body_joint_visuals() -> void:
 	for joint_name: StringName in body_joint_markers:
 		var bone_index := int(runtime_posture_layer.bone_indices.get(joint_name, -1))
 		var marker := body_joint_markers[joint_name] as MeshInstance3D
-		marker.visible = bone_index >= 0
+		if not show_joint_bubbles:
+			marker.visible = false
+		elif isolate_selected_node:
+			marker.visible = (joint_name == selected_body_joint) and (bone_index >= 0)
+		else:
+			marker.visible = bone_index >= 0
 		if bone_index >= 0:
 			marker.global_position = _bone_world_origin(bone_index)
 
@@ -2170,6 +2747,10 @@ func _setup_trooper_and_rig() -> void:
 	right_arm_idx = skeleton.find_bone("mixamorig_RightArm")
 	right_forearm_idx = skeleton.find_bone("mixamorig_RightForeArm")
 	right_hand_idx = skeleton.find_bone("mixamorig_RightHand")
+	for anchor_name in ["mixamorig_Spine2", "mixamorig_Spine1", "mixamorig_Spine"]:
+		weapon_anchor_bone_idx = skeleton.find_bone(anchor_name)
+		if weapon_anchor_bone_idx >= 0:
+			break
 	left_palm_anchor_local = _calculate_palm_anchor("Left", left_hand_idx)
 	right_palm_anchor_local = _calculate_palm_anchor("Right", right_hand_idx)
 
@@ -2225,7 +2806,8 @@ func _setup_trooper_and_rig() -> void:
 		left_hand_ik.min_distance = 0.00002
 		left_hand_ik.magnet = Vector3(-0.35, -0.75, 0.15)
 		skeleton.add_child(left_hand_ik)
-		left_hand_ik.start()
+		# Keep IK stopped until two-stage bootstrap completes.
+		left_hand_ik.stop()
 
 	var inv_scale := 1.0 / trooper_scale
 
@@ -2237,19 +2819,24 @@ func _setup_trooper_and_rig() -> void:
 		right_hand_dot = _create_marker(Color(1.0, 0.6, 0.1), "RightHand_Bone_Dot", 0.028 * inv_scale)
 		ba_right_hand.add_child(right_hand_dot)
 
-		# Capture the old hand-mounted starting pose, then reparent the weapon as
-		# an operator-space master rig. From this point both hands follow sockets.
 		var mount_basis := Basis.from_euler(Vector3(deg_to_rad(-90.0), deg_to_rad(180.0), 0.0)).scaled(Vector3.ONE * inv_scale)
 		weapon_mount_local = Transform3D(mount_basis, Vector3(-0.02, 0.08, 0.05) * inv_scale)
-		var starting_global := ba_right_hand.global_transform * weapon_mount_local
+
 		weapon_root = Node3D.new()
 		weapon_root.name = "WeaponRoot"
 		skeleton.add_child(weapon_root)
-		weapon_root.global_transform = starting_global
 
 		weapon_pivot = Node3D.new()
 		weapon_pivot.name = "WeaponPivot"
 		weapon_root.add_child(weapon_pivot)
+
+		geometry_root = Node3D.new()
+		geometry_root.name = "GeometryRoot"
+		weapon_pivot.add_child(geometry_root)
+
+		socket_root = Node3D.new()
+		socket_root.name = "SocketRoot"
+		weapon_pivot.add_child(socket_root)
 
 		right_hand_ik = SkeletonIK3D.new()
 		right_hand_ik.name = "RightHandIK"
@@ -2261,6 +2848,8 @@ func _setup_trooper_and_rig() -> void:
 		right_hand_ik.max_iterations = 40
 		right_hand_ik.min_distance = 0.00002
 		skeleton.add_child(right_hand_ik)
+		# Keep IK stopped until two-stage bootstrap completes.
+		right_hand_ik.stop()
 
 
 func _neutral_preview_hip_rotation() -> Quaternion:
@@ -2279,12 +2868,25 @@ func _neutral_preview_hip_rotation() -> Quaternion:
 	return Quaternion.IDENTITY
 
 
+func _get_gunsmith_fixed_aim_target() -> Vector3:
+	if skeleton == null:
+		return Vector3(0.0, 1.25, -50.0)
+	var forward: Vector3 = -skeleton.global_basis.z.normalized()
+	return skeleton.global_position + Vector3.UP * 1.25 + forward * 50.0
+
+
 func _apply_runtime_posture_preview() -> void:
 	if runtime_posture_layer == null or skeleton == null:
 		return
-	var aim_target := current_aim_target
-	if aim_target == Vector3.ZERO and cam:
+	if ballistic_edit_active:
+		return
+
+	var aim_target: Vector3 = _get_gunsmith_fixed_aim_target()
+
+	# Optional debugging mode only
+	if gunsmith_camera_tracking_enabled and cam != null:
 		aim_target = _camera_aim_sample().position
+
 	runtime_posture_layer.apply(
 		0.0,
 		0.0,
@@ -2297,7 +2899,7 @@ func _apply_runtime_posture_preview() -> void:
 		deg_to_rad(32.0),
 		0.0,
 		0.18,
-		1.0 if preview_posture == &"PRONE" else 0.0,
+		0.0,
 		deg_to_rad(90.0),
 		0.0,
 		preview_posture,
@@ -2308,30 +2910,274 @@ func _apply_runtime_posture_preview() -> void:
 
 
 func _initialize_weapon_master_pose() -> void:
-	if weapon_master_pose_initialized or not ba_right_hand or not weapon_root:
+	if weapon_master_pose_initialized or not weapon_root or not _right_hand_pose_is_ready():
 		return
-	# BoneAttachment is stale during construction. Rebase once after the first
-	# sampled animation frame so legacy hand-space profiles retain their exact
-	# horizontal authored pose when opened by the weapon-driven lab.
-	if skeleton:
-		skeleton.force_update_all_bone_transforms()
-	# Read the evaluated hand bone directly. BoneAttachment3D updates later in
-	# the frame and was leaving the weapon near the operator root/feet.
-	var hand_global := (
-		skeleton.global_transform * skeleton.get_bone_global_pose(right_hand_idx)
-		if skeleton and right_hand_idx >= 0
-		else ba_right_hand.global_transform
-	)
-	weapon_root.global_transform = hand_global * weapon_mount_local
+	var hand_world := _get_right_hand_world_transform()
+	weapon_root.global_transform = hand_world * weapon_mount_local
+	_capture_weapon_anchor()
 	weapon_master_pose_initialized = true
-	if right_grip_needs_initialization and current_weapon_mesh:
-		right_grip_local_pos = (
-			current_weapon_mesh.global_transform.affine_inverse()
-			* _right_palm_contact_world()
-		)
-		right_grip_needs_initialization = false
-		_sync_markers()
-		_register_interactive_dots()
+	_sync_weapon_transform(false)
+	_sync_markers()
+	_register_interactive_dots()
+	_set_weapon_ik_enabled(true)
+	_set_save_enabled(true)
+
+
+func _set_weapon_ik_enabled(enabled: bool) -> void:
+	if right_hand_ik:
+		if enabled:
+			if not right_hand_ik.is_running():
+				right_hand_ik.start(true)
+		else:
+			if right_hand_ik.is_running():
+				right_hand_ik.stop()
+	if left_hand_ik:
+		if enabled:
+			if not left_hand_ik.is_running():
+				left_hand_ik.start(true)
+		else:
+			if left_hand_ik.is_running():
+				left_hand_ik.stop()
+
+
+func _set_save_enabled(enabled: bool) -> void:
+	if save_rig_button:
+		save_rig_button.disabled = not enabled
+	if play_latest_button:
+		play_latest_button.disabled = not enabled
+
+
+func _get_right_hand_bone_index() -> int:
+	if right_hand_idx >= 0:
+		return right_hand_idx
+	if ba_right_hand != null and ba_right_hand.bone_idx >= 0:
+		return ba_right_hand.bone_idx
+	if skeleton != null:
+		return skeleton.find_bone("mixamorig_RightHand")
+	return -1
+
+
+func _get_right_hand_world_transform() -> Transform3D:
+	var bone_index: int = _get_right_hand_bone_index()
+	if bone_index < 0 or skeleton == null:
+		return ba_right_hand.global_transform if ba_right_hand else Transform3D.IDENTITY
+	var skeleton_local_pose: Transform3D = skeleton.get_bone_global_pose(bone_index)
+	return skeleton.global_transform * skeleton_local_pose
+
+
+func _weapon_anchor_world_transform() -> Transform3D:
+	if skeleton == null or weapon_anchor_bone_idx < 0:
+		return skeleton.global_transform if skeleton else Transform3D.IDENTITY
+	return (
+		skeleton.global_transform
+		* skeleton.get_bone_global_pose(weapon_anchor_bone_idx)
+	)
+
+
+func _capture_weapon_anchor() -> void:
+	if weapon_root == null or skeleton == null:
+		return
+	# Store rifle orientation in operator space. Store only the chest position
+	# separately. This lets stance carry the rifle without inheriting a bent or
+	# rolling torso bone's rotation.
+	weapon_anchor_local = skeleton.global_transform.affine_inverse() * weapon_root.global_transform
+	weapon_anchor_bone_origin = (
+		skeleton.get_bone_global_pose(weapon_anchor_bone_idx).origin
+		if weapon_anchor_bone_idx >= 0
+		else Vector3.ZERO
+	)
+	weapon_anchor_ready = true
+
+
+func _weapon_anchor_target_transform() -> Transform3D:
+	if not weapon_anchor_ready:
+		return weapon_root.global_transform if weapon_root else Transform3D.IDENTITY
+	var target_local := weapon_anchor_local
+	var current_anchor_origin := (
+		skeleton.get_bone_global_pose(weapon_anchor_bone_idx).origin
+		if weapon_anchor_bone_idx >= 0
+		else Vector3.ZERO
+	)
+	target_local.origin += current_anchor_origin - weapon_anchor_bone_origin
+	return skeleton.global_transform * target_local
+
+
+func _update_weapon_master_anchor() -> void:
+	if (
+		weapon_root == null
+		or not weapon_anchor_ready
+		or weapon_owner_state != WeaponOwnershipContract.OWNER_WEAPON_MASTER
+		or action_weapon_follow_active
+		or action_recovery_elapsed < action_recovery_duration
+	):
+		return
+	# The chest-relative anchor carries the rifle with the operator. The weapon
+	# remains the pose master; both arms solve to its authored grip sockets.
+	weapon_root.global_transform = _weapon_anchor_target_transform()
+
+
+func _update_visual_weapon_recoil(delta: float) -> void:
+	visual_recoil_pitch_deg = lerpf(
+		visual_recoil_pitch_deg,
+		0.0,
+		1.0 - exp(-VISUAL_RECOIL_RECOVERY * delta)
+	)
+	visual_recoil_back_m = lerpf(
+		visual_recoil_back_m,
+		0.0,
+		1.0 - exp(-VISUAL_RECOIL_RECOVERY * delta)
+	)
+	if (
+		weapon_root == null
+		or weapon_owner_state != WeaponOwnershipContract.OWNER_WEAPON_MASTER
+		or visual_recoil_pitch_deg <= 0.001
+	):
+		return
+	var barrel_direction := _barrel_direction_world()
+	var pitch_axis := barrel_direction.cross(Vector3.UP).normalized()
+	if pitch_axis.length_squared() < 0.50:
+		pitch_axis = weapon_root.global_basis.x.normalized()
+	var world_scale := weapon_root.global_basis.get_scale()
+	weapon_root.global_basis = (
+		Basis(Quaternion(pitch_axis, deg_to_rad(visual_recoil_pitch_deg)))
+		* weapon_root.global_basis.orthonormalized()
+	).orthonormalized().scaled(world_scale)
+	weapon_root.global_position -= barrel_direction * visual_recoil_back_m
+
+
+func _right_hand_pose_is_ready() -> bool:
+	var bone_index: int = _get_right_hand_bone_index()
+	if bone_index < 0 or skeleton == null:
+		return false
+	var pose: Transform3D = skeleton.get_bone_global_pose(bone_index)
+	var rest: Transform3D = skeleton.get_bone_global_rest(bone_index)
+	if not pose.origin.is_finite():
+		return false
+	if absf(pose.basis.determinant()) < 0.0001:
+		return false
+	if pose.origin.length() < 0.05 and rest.origin.length() > 0.25:
+		return false
+	return true
+
+
+func _load_operator_mount(profile: Dictionary) -> void:
+	var mount_value: Variant = profile.get("operator_mount", null)
+	var inv_scale: float = 1.0 / trooper_scale
+	if typeof(mount_value) != TYPE_DICTIONARY:
+		var mount_basis := Basis.from_euler(Vector3(deg_to_rad(-90.0), deg_to_rad(180.0), 0.0)).scaled(Vector3.ONE * inv_scale)
+		weapon_mount_local = Transform3D(mount_basis, Vector3(-0.02, 0.08, 0.05) * inv_scale)
+		return
+	var mount: Dictionary = mount_value
+	var fallback_rotation_degrees: Vector3 = _radians_to_degrees_vector(
+		weapon_mount_local.basis.orthonormalized().get_euler(EULER_ORDER_YXZ)
+	)
+	var mount_position: Vector3 = _dictionary_to_vector3(
+		mount.get("position", {}),
+		Vector3(-0.02, 0.08, 0.05)
+	) * inv_scale
+	var mount_rotation_degrees: Vector3 = _dictionary_to_vector3(
+		mount.get("rotation_degrees", {}),
+		fallback_rotation_degrees
+	)
+	var mount_rotation_radians: Vector3 = _degrees_to_radians_vector(mount_rotation_degrees)
+	var mount_basis := Basis.from_euler(mount_rotation_radians, EULER_ORDER_YXZ).scaled(Vector3.ONE * inv_scale)
+	weapon_mount_local = Transform3D(
+		mount_basis,
+		mount_position
+	)
+
+
+func _dictionary_to_vector3(value: Variant, fallback: Vector3) -> Vector3:
+	if typeof(value) != TYPE_DICTIONARY:
+		return fallback
+	var data: Dictionary = value
+	return Vector3(
+		float(data.get("x", fallback.x)),
+		float(data.get("y", fallback.y)),
+		float(data.get("z", fallback.z))
+	)
+
+
+func _vector3_to_dictionary(v: Vector3) -> Dictionary:
+	return {"x": v.x, "y": v.y, "z": v.z}
+
+
+func _degrees_to_radians_vector(value: Vector3) -> Vector3:
+	return Vector3(deg_to_rad(value.x), deg_to_rad(value.y), deg_to_rad(value.z))
+
+
+func _radians_to_degrees_vector(value: Vector3) -> Vector3:
+	return Vector3(rad_to_deg(value.x), rad_to_deg(value.y), rad_to_deg(value.z))
+
+
+func _world_drag_to_parent_local_delta(parent_node: Node3D, world_start: Vector3, world_current: Vector3) -> Vector3:
+	if parent_node == null:
+		return world_current - world_start
+	var parent_inverse: Transform3D = parent_node.global_transform.affine_inverse()
+	var local_start: Vector3 = parent_inverse * world_start
+	var local_current: Vector3 = parent_inverse * world_current
+	return local_current - local_start
+
+
+func _show_rig_error(msg: String) -> void:
+	push_warning(msg)
+	if hud_status:
+		hud_status.text = "⚠️ " + msg
+		hud_status.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3))
+
+
+func _validate_weapon_rig_before_save() -> bool:
+	if not weapon_master_pose_initialized:
+		_show_rig_error("The weapon pose has not finished initializing. Save blocked.")
+		return false
+	var serialized_grip_position: Vector3 = auto_grip_center_offset + grip_offset_pos
+	if not serialized_grip_position.is_finite():
+		_show_rig_error("Grip offset contains a non-finite value. Save blocked.")
+		return false
+	if serialized_grip_position.length() > MAX_GRIP_OFFSET_RADIUS_METERS:
+		_show_rig_error("Grip offset is outside safe local range (%.2fm > %.2fm). Save blocked." % [serialized_grip_position.length(), MAX_GRIP_OFFSET_RADIUS_METERS])
+		return false
+	var hand_world: Transform3D = _get_right_hand_world_transform()
+	var grip_target_world: Vector3 = (
+		right_grip_marker.global_position
+		if right_grip_marker
+		else (weapon_pivot.global_transform * right_grip_local_pos if weapon_pivot else Vector3.ZERO)
+	)
+	var hand_to_grip_error: float = hand_world.origin.distance_to(grip_target_world)
+	if hand_to_grip_error > MAX_HAND_TO_GRIP_ERROR_METERS:
+		_show_rig_error("Right-hand grip target is detached by %.3fm (max %.2fm). Save blocked." % [hand_to_grip_error, MAX_HAND_TO_GRIP_ERROR_METERS])
+		return false
+	return true
+
+
+func _finish_weapon_bootstrap() -> void:
+	if animation_player != null:
+		animation_player.advance(0.0)
+	await get_tree().process_frame
+
+	if not _right_hand_pose_is_ready():
+		push_error("Gunsmith bootstrap aborted: right-hand pose was not valid.")
+		return
+
+	var hand_world: Transform3D = _get_right_hand_world_transform()
+	if weapon_root:
+		weapon_root.global_transform = hand_world * weapon_mount_local
+		_capture_weapon_anchor()
+
+	weapon_master_pose_initialized = true
+
+	_sync_weapon_transform(false)
+	_sync_markers()
+	_register_interactive_dots()
+
+	if left_hand_ik and left_grip_marker:
+		left_hand_ik.target_node = NodePath()
+
+	_set_weapon_ik_enabled(true)
+	_set_save_enabled(true)
+	if hud_status:
+		hud_status.text = "Ready! (Biomechanical Engine Active | Drag Blue Dot to place hand | Space to Fire)"
+		hud_status.add_theme_color_override("font_color", Color(0.4, 1.0, 0.4))
 
 func _calculate_palm_anchor(side: String, hand_index: int) -> Vector3:
 	if not skeleton or hand_index < 0:
@@ -2513,6 +3359,10 @@ func _load_weapon(file_name: String) -> void:
 		animation_catalog.clip_paths if animation_catalog else {}
 	)
 
+	_set_weapon_ik_enabled(false)
+	_set_save_enabled(false)
+	weapon_master_pose_initialized = false
+
 	if current_weapon_mesh:
 		current_weapon_mesh.queue_free()
 		current_weapon_mesh = null
@@ -2539,7 +3389,16 @@ func _load_weapon(file_name: String) -> void:
 		return
 
 	current_weapon_mesh = scene.instantiate() as Node3D
-	weapon_pivot.add_child(current_weapon_mesh)
+	if geometry_root == null and weapon_pivot != null:
+		geometry_root = Node3D.new()
+		geometry_root.name = "GeometryRoot"
+		weapon_pivot.add_child(geometry_root)
+	if socket_root == null and weapon_pivot != null:
+		socket_root = Node3D.new()
+		socket_root.name = "SocketRoot"
+		weapon_pivot.add_child(socket_root)
+
+	geometry_root.add_child(current_weapon_mesh)
 
 	var effective_size := Vector3.ZERO
 	for c in current_weapon_mesh.get_children():
@@ -2583,55 +3442,48 @@ func _load_weapon(file_name: String) -> void:
 		auto_grip_center_offset = Vector3(0.0, -0.015, -target_len * 0.26)
 		_apply_camo_skin_to_weapon(current_weapon_mesh, selected_camo_idx)
 
-	# Sockets directly attached to Weapon Mesh!
-	left_grip_marker = _create_marker(Color(0.0, 0.95, 1.0), "Socket_LeftHand", 0.055)
-	right_grip_marker = _create_marker(Color(1.0, 0.55, 0.08), "Socket_RightHand", 0.032)
-	muzzle_marker = _create_marker(Color(1.0, 0.2, 0.2), "Socket_Muzzle", 0.055)
-	ejection_marker = _create_marker(Color(1.0, 0.85, 0.1), "Socket_Ejection", 0.050)
-	optic_marker = _create_marker(Color(0.2, 1.0, 0.4), "Socket_Optic", 0.048)
+	# Sockets directly attached to SocketRoot (in unscaled WeaponPivot meter-space)
+	if left_grip_marker: left_grip_marker.queue_free()
+	if right_grip_marker: right_grip_marker.queue_free()
+	if muzzle_marker: muzzle_marker.queue_free()
+	if barrel_base_marker: barrel_base_marker.queue_free()
+	if ejection_marker: ejection_marker.queue_free()
+	if optic_marker: optic_marker.queue_free()
 
-	current_weapon_mesh.add_child(left_grip_marker)
-	current_weapon_mesh.add_child(right_grip_marker)
-	current_weapon_mesh.add_child(muzzle_marker)
-	current_weapon_mesh.add_child(ejection_marker)
-	current_weapon_mesh.add_child(optic_marker)
+	left_grip_marker = _create_marker(Color(0.0, 0.95, 1.0), "Socket_LeftHand", 0.016)
+	right_grip_marker = _create_marker(Color(1.0, 0.55, 0.08), "Socket_RightHand", 0.012)
+	muzzle_marker = _create_marker(Color(1.0, 0.2, 0.2), "Socket_Muzzle", 0.016)
+	barrel_base_marker = _create_marker(Color(1.0, 0.4, 0.4), "Socket_BarrelBase", 0.012)
+	ejection_marker = _create_marker(Color(1.0, 0.85, 0.1), "Socket_Ejection", 0.012)
+	optic_marker = _create_marker(Color(0.2, 1.0, 0.4), "Socket_Optic", 0.012)
+
+	socket_root.add_child(left_grip_marker)
+	socket_root.add_child(right_grip_marker)
+	socket_root.add_child(muzzle_marker)
+	socket_root.add_child(barrel_base_marker)
+	socket_root.add_child(ejection_marker)
+	socket_root.add_child(optic_marker)
 
 	_setup_unscaled_hand_gizmo()
 	_setup_unscaled_weapon_gizmo()
 	_set_active_gizmo(active_gizmo_id)
 
-	left_grip_local_pos = Vector3(target_len * 0.20, -0.03, 0.0)
+	left_grip_local_pos = Vector3(-0.04, -0.04, -0.30)
 	right_grip_local_pos = Vector3.ZERO
 	right_grip_profile_loaded = false
 	right_grip_needs_initialization = false
-	muzzle_local_pos = Vector3(target_len * 0.70, 0.02, 0.0)
-	ejection_local_pos = Vector3(target_len * 0.05, 0.03, 0.06)
-	optic_local_pos = Vector3(target_len * 0.05, 0.08, 0.0)
+	muzzle_local_pos = Vector3(0.0, 0.0, -target_len)
+	barrel_base_local_pos = Vector3(0.0, 0.0, -0.12)
+	ejection_local_pos = Vector3(0.05, 0.03, -0.10)
+	optic_local_pos = Vector3(0.0, 0.08, -0.18)
 
 	_try_load_saved_profile(weapon_name)
-
-	# The weapon is the master rig. Restore its authored transform and sockets;
-	# both hands solve toward those sockets after the load completes.
-	_sync_weapon_transform(false)
-	_sync_markers()
-	if not right_grip_profile_loaded and right_hand_dot:
-		# Defer this until the first evaluated animation frame, when the direct
-		# right-hand bone transform is valid in world space.
-		right_grip_needs_initialization = true
-	_register_interactive_dots()
-
-	if left_hand_ik and left_grip_marker:
-		# Manual target ownership preserves the calibrated wrist basis. Assigning a
-		# target_node here would overwrite palm pitch/yaw/roll with the marker basis.
-		left_hand_ik.target_node = NodePath()
-		# Do not solve yet: weapon_root is rebased from the first valid animation
-		# sample in _initialize_weapon_master_pose(). Solving toward its construction
-		# pose here drags the entire arm rig toward the world origin on fresh loads.
-		left_hand_ik.stop()
 
 	if selected_silencer != "None": _load_silencer(selected_silencer)
 	if selected_scope != "None": _load_scope(selected_scope)
 	_refresh_handling_ui()
+
+	call_deferred("_finish_weapon_bootstrap")
 
 func _try_load_saved_profile(w_id: String) -> void:
 	var cfg_path := "res://config/weapons/" + w_id.to_lower() + ".json"
@@ -2641,8 +3493,11 @@ func _try_load_saved_profile(w_id: String) -> void:
 			var json := JSON.new()
 			if json.parse(file.get_as_text()) == OK and json.data is Dictionary:
 				var d: Dictionary = json.data
+				_loaded_weapon_profile = d.duplicate(true)
+				_load_operator_mount(_loaded_weapon_profile)
 				if d.get("animation_hand_maps", {}) is Dictionary:
 					animation_hand_maps = (d.get("animation_hand_maps", {}) as Dictionary).duplicate(true)
+				animation_frame_editor.load_data(d.get("animation_frame_pose_keys", {}))
 				if d.get("handling_profile", {}) is Dictionary and not (d.get("handling_profile", {}) as Dictionary).is_empty():
 					handling_profile = (d.get("handling_profile", {}) as Dictionary).duplicate(true)
 				var sock: Dictionary = d.get("weapon_sockets", {})
@@ -2664,6 +3519,9 @@ func _try_load_saved_profile(w_id: String) -> void:
 				if sock.has("muzzle_socket"):
 					var mz = sock["muzzle_socket"]
 					muzzle_local_pos = Vector3(mz.get("x", muzzle_local_pos.x), mz.get("y", muzzle_local_pos.y), mz.get("z", muzzle_local_pos.z))
+				if sock.has("barrel_base_socket"):
+					var bb = sock["barrel_base_socket"]
+					barrel_base_local_pos = Vector3(bb.get("x", barrel_base_local_pos.x), bb.get("y", barrel_base_local_pos.y), bb.get("z", barrel_base_local_pos.z))
 				if sock.has("ejection_port"):
 					var ej = sock["ejection_port"]
 					ejection_local_pos = Vector3(ej.get("x", ejection_local_pos.x), ej.get("y", ejection_local_pos.y), ej.get("z", ejection_local_pos.z))
@@ -2681,6 +3539,21 @@ func _try_load_saved_profile(w_id: String) -> void:
 					palm_roll = float(hand_pose.get("palm_roll_deg", palm_roll))
 					finger_curl = float(hand_pose.get("finger_curl", finger_curl))
 					thumb_wrap = float(hand_pose.get("thumb_wrap", thumb_wrap))
+				var stances_data: Variant = d.get("stances", {})
+				if stances_data is Dictionary and not (stances_data as Dictionary).is_empty():
+					for posture: StringName in [&"STANDING", &"CROUCHED", &"PRONE"]:
+						var stance_dict: Dictionary = (stances_data as Dictionary).get(String(posture), {})
+						if not stance_dict.is_empty():
+							hand_poses_by_stance[posture] = stance_dict.duplicate(true)
+				else:
+					for posture: StringName in [&"STANDING", &"CROUCHED", &"PRONE"]:
+						var slot: String = "idle_standing" if posture == &"STANDING" else ("idle_crouched" if posture == &"CROUCHED" else "idle_prone")
+						var clip: String = String((handling_profile.get("animation_slots", {}) as Dictionary).get(slot, ""))
+						var map: Dictionary = animation_hand_maps.get(clip, {})
+						if map.is_empty():
+							map = animation_hand_maps.get(String(all_animation_paths.get(clip, "")), {})
+						if not map.is_empty():
+							hand_poses_by_stance[posture] = map.duplicate(true)
 				var elbow_poles: Variant = d.get("elbow_poles", {})
 				if elbow_poles is Dictionary:
 					var pole_data := elbow_poles as Dictionary
@@ -2698,6 +3571,7 @@ func _try_load_saved_profile(w_id: String) -> void:
 						for posture: StringName in [&"STANDING", &"CROUCHED", &"PRONE"]:
 							elbow_poles_by_stance[posture] = {"right": legacy_right, "left": legacy_left}
 					_restore_current_stance_elbow_poles()
+					_restore_current_stance_hands()
 				var ballistics: Variant = d.get("ballistics", {})
 				if ballistics is Dictionary:
 					var fire_values := ballistics as Dictionary
@@ -2927,7 +3801,9 @@ func _sync_weapon_transform(keep_trigger_attached: bool = true) -> void:
 	if not weapon_pivot: return
 	weapon_pivot.position = auto_grip_center_offset + grip_offset_pos
 	weapon_pivot.rotation_degrees = grip_offset_rot
-	if current_weapon_mesh:
+	if geometry_root:
+		geometry_root.scale = Vector3.ONE * (auto_normalized_scale * user_scale_multiplier)
+	elif current_weapon_mesh:
 		current_weapon_mesh.scale = Vector3.ONE * (auto_normalized_scale * user_scale_multiplier)
 	# Do not move the weapon to satisfy a hand constraint. The weapon is the
 	# master object; right- and left-hand IK consume its saved sockets.
@@ -2936,13 +3812,32 @@ func _sync_weapon_transform(keep_trigger_attached: bool = true) -> void:
 func _sync_weapon_translation() -> void:
 	_sync_weapon_transform(false)
 
+func _sync_ballistic_markers() -> void:
+	if socket_root == null:
+		return
+	if muzzle_marker:
+		muzzle_marker.position = muzzle_local_pos
+	if barrel_base_marker:
+		barrel_base_marker.position = barrel_base_local_pos
+	if current_silencer_mesh and muzzle_marker:
+		current_silencer_mesh.position = muzzle_marker.position
+	_update_fire_debug_lines()
+	if reticle_canvas:
+		reticle_canvas.queue_redraw()
+
+
+func _sync_hand_markers() -> void:
+	if right_grip_marker:
+		right_grip_marker.position = right_grip_local_pos
+	if left_grip_marker:
+		left_grip_marker.position = left_grip_local_pos
+
+
 func _sync_markers() -> void:
-	if left_grip_marker: left_grip_marker.position = left_grip_local_pos
-	if right_grip_marker: right_grip_marker.position = right_grip_local_pos
-	if muzzle_marker: muzzle_marker.position = muzzle_local_pos
+	_sync_hand_markers()
+	_sync_ballistic_markers()
 	if ejection_marker: ejection_marker.position = ejection_local_pos
 	if optic_marker: optic_marker.position = optic_local_pos
-	if current_silencer_mesh and muzzle_marker: current_silencer_mesh.position = muzzle_marker.position
 	if current_scope_mesh and optic_marker: current_scope_mesh.position = optic_marker.position
 
 
@@ -2962,18 +3857,14 @@ func _preview_screen_rect() -> Rect2:
 
 
 func _reticle_screen_position() -> Vector2:
-	# The Gunsmith is an inspection tool, so its reticle is a bore-sight: it is
-	# placed directly ahead of the red muzzle socket along the barrel's projected
-	# screen line. A fixed short lead keeps it readable even while the far end of
-	# the physical ray is behind the orbiting inspection camera.
-	if cam and muzzle_marker and current_weapon_mesh:
-		var barrel_base := current_weapon_mesh.to_global(_calibrated_barrel_base())
-		var base_screen := cam.unproject_position(barrel_base)
-		var muzzle_screen := cam.unproject_position(muzzle_marker.global_position)
-		var screen_axis := muzzle_screen - base_screen
-		if screen_axis.length_squared() > 0.01:
-			return muzzle_screen + screen_axis.normalized() * MUZZLE_RETICLE_LEAD_PX
-	return _preview_screen_rect().get_center()
+	return GunsmithBallisticsView.calculate_reticle_screen_position(
+		cam,
+		socket_root,
+		muzzle_local_pos,
+		_calibrated_barrel_base(),
+		_preview_screen_rect().get_center(),
+		MUZZLE_RETICLE_LEAD_PX
+	)
 
 
 func _camera_aim_sample() -> Dictionary:
@@ -3059,9 +3950,13 @@ func _update_composure_readout() -> void:
 func _align_trigger_socket_to_right_hand(update_controls: bool = true) -> void:
 	if not weapon_pivot or not right_grip_marker or not right_hand_dot:
 		return
+	var parent_node := weapon_pivot.get_parent_node_3d()
+	if parent_node == null:
+		return
 	var correction := right_hand_dot.global_position - right_grip_marker.global_position
-	weapon_pivot.global_position += correction
-	grip_offset_pos = weapon_pivot.position - auto_grip_center_offset
+	var new_world := weapon_pivot.global_position + correction
+	var local_pos := parent_node.global_transform.affine_inverse() * new_world
+	grip_offset_pos = local_pos - auto_grip_center_offset
 	_sync_weapon_transform(false)
 	_sync_markers()
 	if update_controls:
@@ -3073,6 +3968,15 @@ func _fire_shot() -> void:
 	var interval := 60.0 / float(maxi(100, fire_rate_rpm))
 	fire_cooldown = interval
 	burst_shot_count += 1
+	_preview_fire_animation()
+	visual_recoil_pitch_deg = minf(
+		VISUAL_RECOIL_MAX_PITCH_DEG,
+		visual_recoil_pitch_deg + VISUAL_RECOIL_PITCH_PER_SHOT_DEG
+	)
+	visual_recoil_back_m = minf(
+		VISUAL_RECOIL_MAX_BACK_M,
+		visual_recoil_back_m + VISUAL_RECOIL_BACK_PER_SHOT_M
+	)
 	var dispersion_multiplier := composure.get_shot_dispersion_multiplier(
 		burst_shot_count,
 		composure_preview_movement,
@@ -3217,16 +4121,28 @@ func _find_animation_player(node: Node) -> AnimationPlayer:
 		if f: return f
 	return null
 
-func _save_weapon_config() -> void:
+func _save_weapon_config() -> bool:
+	if not _validate_weapon_rig_before_save():
+		return false
+	if animation_frame_editor.active:
+		_capture_animation_frame_pose_key()
+	else:
+		_save_selected_animation_hand_map()
 	_store_current_stance_elbow_poles()
-	if runtime_posture_layer:
+	if runtime_posture_layer and not animation_frame_editor.active:
 		runtime_posture_layer.save_procedural_profile()
 	var config_dir := "res://config/weapons/"
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(config_dir))
+	var saved_stance_hands := _hand_maps_without_legacy_mounts(hand_poses_by_stance)
+	var saved_animation_hands := _hand_maps_without_legacy_mounts(animation_hand_maps)
 
 	var config_data: Dictionary = {
 		"schema_version": 3,
 		"socket_contract_authored": true,
+		"coordinate_space": {
+			"grip_offset": "weapon_root_local_meters",
+			"weapon_sockets": "weapon_pivot_local_meters"
+		},
 		"weapon_id": weapon_name.to_lower(),
 		"display_name": weapon_name,
 		"category": selected_category,
@@ -3242,8 +4158,8 @@ func _save_weapon_config() -> void:
 			"z": current_weapon_mesh.rotation_degrees.z if current_weapon_mesh else 0.0
 		},
 		"operator_mount": {
-			"position": {"x": -0.02, "y": 0.08, "z": 0.05},
-			"rotation_degrees": {"x": -90.0, "y": 180.0, "z": 0.0}
+			"position": _vector3_to_dictionary(weapon_mount_local.origin * trooper_scale),
+			"rotation_degrees": _vector3_to_dictionary(_radians_to_degrees_vector(weapon_mount_local.basis.orthonormalized().get_euler(EULER_ORDER_YXZ)))
 		},
 		"grip_offset": {
 			"pos_x": (auto_grip_center_offset + grip_offset_pos).x,
@@ -3265,7 +4181,9 @@ func _save_weapon_config() -> void:
 			"left": {"x": left_elbow_pole_offset.x, "y": left_elbow_pole_offset.y, "z": left_elbow_pole_offset.z},
 			"by_stance": _elbow_poles_save_data()
 		},
-		"animation_hand_maps": animation_hand_maps.duplicate(true),
+		"stances": saved_stance_hands,
+		"animation_hand_maps": saved_animation_hands,
+		"animation_frame_pose_keys": animation_frame_editor.save_data(),
 		"handling_profile": handling_profile.duplicate(true),
 		"weapon_sockets": {
 			"right_hand_grip_target": {
@@ -3281,12 +4199,12 @@ func _save_weapon_config() -> void:
 			"muzzle_socket": {
 				"x": muzzle_local_pos.x,
 				"y": muzzle_local_pos.y,
-				"z": muzzle_local_pos.z
+				"z": muzzle_local_pos.z if muzzle_local_pos.z <= -0.1 else -0.68
 			},
 			"barrel_base_socket": {
 				"x": _calibrated_barrel_base().x,
 				"y": _calibrated_barrel_base().y,
-				"z": _calibrated_barrel_base().z
+				"z": _calibrated_barrel_base().z if _calibrated_barrel_base().z <= -0.05 else -0.12
 			},
 			"ejection_port": {
 				"x": ejection_local_pos.x,
@@ -3327,26 +4245,41 @@ func _save_weapon_config() -> void:
 					if not (config_data["reticle"] as Dictionary).has(key):
 						(config_data["reticle"] as Dictionary)[key] = existing_reticle[key]
 	var file := FileAccess.open(file_path, FileAccess.WRITE)
-	if file:
-		file.store_string(JSON.stringify(config_data, "  "))
-		file.close()
-		_save_operator_loadout(weapon_name.to_lower())
+	if file == null:
+		_show_rig_error("Weapon profile could not be opened for writing. Save blocked.")
+		return false
+	file.store_string(JSON.stringify(config_data, "  "))
+	file.close()
+	if not _save_operator_loadout(weapon_name.to_lower()):
+		_show_rig_error("Operator loadout could not be written. Save blocked.")
+		return false
 
 	_export_weapon_packed_scene(config_data)
+	if hud_status:
+		hud_status.text = "💾 SAVED & EQUIPPED! %s weapon profile & stance maps saved to disk." % weapon_name
+		hud_status.add_theme_color_override("font_color", Color(0.2, 1.0, 0.4))
+	return true
+
+func _barrel_axis_local() -> Vector3:
+	var axis := muzzle_local_pos - barrel_base_local_pos
+	if axis.length_squared() <= 0.000001:
+		return Vector3.FORWARD
+	return axis.normalized()
+
 
 func _calibrated_barrel_base() -> Vector3:
-	# Imported weapon assets are normalized so local +X is the bore. The hand
-	# grip is deliberately lower than the barrel and must never define aim.
-	return muzzle_local_pos - Vector3.RIGHT * minf(
-		0.18,
-		maxf(absf(muzzle_local_pos.x - right_grip_local_pos.x) * 0.35, 0.08)
-	)
+	return barrel_base_local_pos
+
+
+func _gunsmith_bore_direction_world() -> Vector3:
+	if socket_root == null:
+		return Vector3.FORWARD
+	var clean_basis: Basis = socket_root.global_basis.orthonormalized()
+	return (clean_basis * _barrel_axis_local()).normalized()
 
 
 func _barrel_direction_world() -> Vector3:
-	if current_weapon_mesh == null:
-		return Vector3.RIGHT
-	return (current_weapon_mesh.global_basis * Vector3.RIGHT).normalized()
+	return _gunsmith_bore_direction_world()
 
 
 func _bullet_velocity_vector() -> Vector3:
@@ -3355,17 +4288,22 @@ func _bullet_velocity_vector() -> Vector3:
 func _save_and_play_latest_playground() -> void:
 	# One canonical handoff: the live build never guesses which lab or scene is
 	# newest. Save the selected weapon contract, then enter main.tscn.
-	_save_weapon_config()
+	if not _save_weapon_config():
+		return
 	if hud_status:
 		hud_status.text = "✅ Rig saved. Opening the latest gameplay playground…"
 	call_deferred("_open_latest_playground")
 
 func _open_latest_playground() -> void:
-	var change_error := get_tree().change_scene_to_file("res://main.tscn")
-	if change_error != OK and hud_status:
-		hud_status.text = "Could not open the latest playground (%s)." % error_string(change_error)
+	var nav := get_node_or_null("/root/StudioNavigation")
+	if nav != null:
+		nav.call("open_scene", "res://main.tscn")
+	else:
+		var change_error := get_tree().change_scene_to_file("res://main.tscn")
+		if change_error != OK and hud_status:
+			hud_status.text = "Could not open the latest playground (%s)." % error_string(change_error)
 
-func _save_operator_loadout(weapon_id: String) -> void:
+func _save_operator_loadout(weapon_id: String) -> bool:
 	var path := "res://config/weapons/operator_loadout.json"
 	var loadout := {
 		"schema_version": 1,
@@ -3373,9 +4311,11 @@ func _save_operator_loadout(weapon_id: String) -> void:
 		"rig_config": "res://config/weapons/%s.json" % weapon_id,
 	}
 	var file := FileAccess.open(path, FileAccess.WRITE)
-	if file:
-		file.store_string(JSON.stringify(loadout, "  "))
-		file.close()
+	if file == null:
+		return false
+	file.store_string(JSON.stringify(loadout, "  "))
+	file.close()
+	return true
 
 func _export_weapon_packed_scene(config_data: Dictionary) -> void:
 	var scenes_dir := "res://scenes/weapons/"
@@ -4083,6 +5023,8 @@ func _build_studio_ui() -> void:
 	save_btn.text = "✅ Save Rig + Equip on Character (Cmd/Ctrl+S)"
 	save_btn.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2))
 	save_btn.pressed.connect(_save_weapon_config)
+	save_btn.disabled = not weapon_master_pose_initialized
+	save_rig_button = save_btn
 	action_footer.add_child(save_btn)
 
 	var play_latest_btn := Button.new()
@@ -4090,6 +5032,8 @@ func _build_studio_ui() -> void:
 	play_latest_btn.tooltip_text = "Save this exact gun rig and launch the canonical current gameplay scene."
 	play_latest_btn.add_theme_color_override("font_color", Color(0.35, 1.0, 0.55))
 	play_latest_btn.pressed.connect(_save_and_play_latest_playground)
+	play_latest_btn.disabled = not weapon_master_pose_initialized
+	play_latest_button = play_latest_btn
 	action_footer.add_child(play_latest_btn)
 
 	hud_status = Label.new()
@@ -4207,6 +5151,7 @@ func _finish_composure_target_preview() -> void:
 
 func _on_gun_lab_tab_changed(tab_index: int, tab_container: TabContainer) -> void:
 	var selected := tab_container.get_tab_control(tab_index)
+	active_lab_tab_name = selected.name if selected != null else ""
 	var show_composure := selected != null and selected.name == "Composure"
 	composure_preview_active = show_composure
 	if trooper_node:
@@ -4307,8 +5252,8 @@ func _update_fire_debug_lines() -> void:
 				+ _bullet_velocity_vector() * BULLET_VELOCITY_PREVIEW_SECONDS,
 			Color(0.15, 1.0, 0.18)
 		)
-	if show_barrel_axis and current_weapon_mesh and muzzle_marker:
-		var barrel_base := current_weapon_mesh.to_global(_calibrated_barrel_base())
+	if show_barrel_axis and weapon_pivot and muzzle_marker:
+		var barrel_base := weapon_pivot.to_global(_calibrated_barrel_base())
 		var barrel_direction := _barrel_direction_world()
 		_add_fire_debug_segment(
 			barrel_base,

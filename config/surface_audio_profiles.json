@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "surfaces": {
+    "default": {
+      "aliases": [],
+      "physics": {"energy_retention": 0.72, "angular_retention": 0.76},
+      "events": {
+        "footstep": [{"cue": "foot_concrete", "volume_db": -2.0, "pitch_min": 0.95, "pitch_max": 1.05}],
+        "grenade_impact": [{"cue": "grenade_concrete", "volume_db": -1.0, "pitch_min": 0.92, "pitch_max": 1.08}],
+        "body_impact": [{"cue": "body_landing", "volume_db": -2.0, "pitch_min": 0.94, "pitch_max": 1.04}],
+        "bullet_impact": [{"cue": "impact_hard", "volume_db": -3.0, "pitch_min": 0.94, "pitch_max": 1.08}]
+      }
+    },
+    "concrete": {
+      "aliases": ["concrete", "cement", "asphalt", "pavement", "stone", "brick"],
+      "physics": {"energy_retention": 0.84, "angular_retention": 0.90},
+      "events": {
+        "footstep": [{"cue": "foot_concrete", "volume_db": 0.0, "pitch_min": 0.95, "pitch_max": 1.05}],
+        "grenade_impact": [{"cue": "grenade_concrete", "volume_db": 0.0, "pitch_min": 0.92, "pitch_max": 1.08}],
+        "body_impact": [{"cue": "body_landing", "volume_db": 0.0, "pitch_min": 0.94, "pitch_max": 1.03}],
+        "bullet_impact": [{"cue": "impact_hard", "volume_db": 0.0, "pitch_min": 0.95, "pitch_max": 1.06}]
+      }
+    },
+    "metal": {
+      "aliases": ["metal", "steel", "iron", "aluminum", "catwalk", "duct"],
+      "physics": {"energy_retention": 0.90, "angular_retention": 0.94},
+      "events": {
+        "footstep": [{"cue": "foot_metal", "volume_db": -1.0, "pitch_min": 0.94, "pitch_max": 1.07}],
+        "grenade_impact": [{"cue": "grenade_metal", "volume_db": 1.0, "pitch_min": 0.90, "pitch_max": 1.10}],
+        "body_impact": [{"cue": "body_landing", "volume_db": -1.0, "pitch_min": 1.02, "pitch_max": 1.10}, {"cue": "plate_clatter", "volume_db": -8.0, "pitch_min": 0.95, "pitch_max": 1.05}],
+        "bullet_impact": [{"cue": "impact_metal", "volume_db": 0.0, "pitch_min": 0.92, "pitch_max": 1.12}]
+      }
+    },
+    "dirt": {
+      "aliases": ["dirt", "soil", "earth", "mud", "grass", "gravel"],
+      "physics": {"energy_retention": 0.43, "angular_retention": 0.48},
+      "events": {
+        "footstep": [{"cue": "foot_dirt", "volume_db": -1.0, "pitch_min": 0.92, "pitch_max": 1.08}],
+        "grenade_impact": [{"cue": "grenade_dirt", "volume_db": -3.0, "pitch_min": 0.90, "pitch_max": 1.04}],
+        "body_impact": [{"cue": "body_landing", "volume_db": -4.0, "pitch_min": 0.88, "pitch_max": 0.98}],
+        "bullet_impact": [{"cue": "impact_soft", "volume_db": -3.0, "pitch_min": 0.90, "pitch_max": 1.05}]
+      }
+    },
+    "sand": {
+      "aliases": ["sand", "dune", "beach", "desert"],
+      "physics": {"energy_retention": 0.18, "angular_retention": 0.24},
+      "events": {
+        "footstep": [{"cue": "foot_sand", "volume_db": -1.0, "pitch_min": 0.90, "pitch_max": 1.07}, {"cue": "gear_rustle", "volume_db": -14.0, "pitch_min": 0.94, "pitch_max": 1.04, "chance": 0.45}],
+        "grenade_impact": [{"cue": "grenade_sand", "volume_db": -5.0, "pitch_min": 0.88, "pitch_max": 1.02}],
+        "body_impact": [{"cue": "body_landing", "volume_db": -6.0, "pitch_min": 0.86, "pitch_max": 0.96}],
+        "bullet_impact": [{"cue": "impact_soft", "volume_db": -5.0, "pitch_min": 0.88, "pitch_max": 1.02}]
+      }
+    },
+    "wood": {
+      "aliases": ["wood", "timber", "plank", "plywood"],
+      "physics": {"energy_retention": 0.66, "angular_retention": 0.72},
+      "events": {
+        "footstep": [{"cue": "foot_wood", "volume_db": -1.0, "pitch_min": 0.93, "pitch_max": 1.07}],
+        "grenade_impact": [{"cue": "grenade_wood", "volume_db": -2.0, "pitch_min": 0.90, "pitch_max": 1.06}],
+        "body_impact": [{"cue": "body_landing", "volume_db": -3.0, "pitch_min": 0.91, "pitch_max": 1.02}],
+        "bullet_impact": [{"cue": "impact_wood", "volume_db": -2.0, "pitch_min": 0.92, "pitch_max": 1.08}]
+      }
+    },
+    "carpet": {
+      "aliases": ["carpet", "rug", "fabric", "cloth"],
+      "physics": {"energy_retention": 0.12, "angular_retention": 0.18},
+      "events": {
+        "footstep": [{"cue": "foot_carpet", "volume_db": -5.0, "pitch_min": 0.92, "pitch_max": 1.05}],
+        "grenade_impact": [{"cue": "grenade_sand", "volume_db": -9.0, "pitch_min": 0.90, "pitch_max": 1.00}],
+        "body_impact": [{"cue": "body_landing", "volume_db": -9.0, "pitch_min": 0.88, "pitch_max": 0.96}],
+        "bullet_impact": [{"cue": "impact_soft", "volume_db": -8.0, "pitch_min": 0.90, "pitch_max": 1.02}]
+      }
+    }
+  }
+}

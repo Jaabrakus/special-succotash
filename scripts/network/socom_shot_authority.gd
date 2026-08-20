@@ -1,6 +1,8 @@
 class_name SocomShotAuthority
 extends RefCounted
 
+const AnatomicalHitResolver := preload("res://scripts/combat/socom_anatomical_hit_resolver.gd")
+
 
 static func validate_and_trace(
     world: World3D,
@@ -24,19 +26,19 @@ static func validate_and_trace(
         return validation
 
     var direction: Vector3 = validation.direction
-    var query := PhysicsRayQueryParameters3D.create(
+    var hit := AnatomicalHitResolver.trace(
+        world.direct_space_state,
         authoritative_muzzle_origin,
-        authoritative_muzzle_origin + direction * maximum_distance
+        authoritative_muzzle_origin + direction * maximum_distance,
+        exclude
     )
-    query.exclude = exclude
-    query.collision_mask = 1 | (1 << 2)
-    query.collide_with_areas = true
-    var hit := world.direct_space_state.intersect_ray(query)
     var collider: Object = hit.get("collider")
     var hit_region: StringName = &""
     var damage_receiver: Node = null
     if collider != null and collider.has_method("get_hit_region"):
         hit_region = StringName(collider.call("get_hit_region"))
+    elif hit.has("hit_region"):
+        hit_region = StringName(hit.hit_region)
     if collider != null and collider.has_method("get_damage_receiver"):
         damage_receiver = collider.call("get_damage_receiver") as Node
     return {
@@ -50,7 +52,10 @@ static func validate_and_trace(
         ),
         "collider": collider,
         "damage_receiver": damage_receiver,
-        "hit_region": hit_region
+        "hit_region": hit_region,
+        "anatomical_override": bool(hit.get("anatomical_override", false)),
+        "occluding_region": StringName(hit.get("occluding_region", &"")),
+        "overlap_depth_m": float(hit.get("overlap_depth_m", 0.0))
     }
 
 

@@ -120,16 +120,29 @@ static func apply_animation_hand_map(
 	left_hand: Marker3D,
 	right_hand: Marker3D
 ) -> bool:
-	var raw_maps: Variant = config.get("animation_hand_maps", {})
-	if not raw_maps is Dictionary or resource_path.is_empty():
-		return false
-	var maps := raw_maps as Dictionary
-	var raw_map: Variant = maps.get(resource_path, {})
-	if not raw_map is Dictionary:
-		for candidate_path in maps.keys():
-			if String(candidate_path).get_file() == resource_path.get_file():
-				raw_map = maps[candidate_path]
-				break
+	var raw_map: Variant = {}
+	var stances_dict: Variant = config.get("stances", {})
+	if stances_dict is Dictionary:
+		var stance_key := ""
+		if "prone" in resource_path.to_lower():
+			stance_key = "PRONE"
+		elif "crouch" in resource_path.to_lower():
+			stance_key = "CROUCHED"
+		elif "stand" in resource_path.to_lower() or "aim_idle" in resource_path.to_lower() or "idle" in resource_path.to_lower():
+			stance_key = "STANDING"
+		if not stance_key.is_empty() and (stances_dict as Dictionary).has(stance_key):
+			raw_map = (stances_dict as Dictionary)[stance_key]
+
+	if not (raw_map is Dictionary) or (raw_map as Dictionary).is_empty():
+		var raw_maps: Variant = config.get("animation_hand_maps", {})
+		if raw_maps is Dictionary:
+			var maps := raw_maps as Dictionary
+			raw_map = maps.get(resource_path, {})
+			if not raw_map is Dictionary:
+				for candidate_path in maps.keys():
+					if String(candidate_path).get_file() == resource_path.get_file() or String(candidate_path) == resource_path:
+						raw_map = maps[candidate_path]
+						break
 	if not raw_map is Dictionary or (raw_map as Dictionary).is_empty():
 		return false
 	var hand_map := raw_map as Dictionary

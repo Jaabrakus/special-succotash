@@ -439,11 +439,11 @@ func _sync_production_animation(player: CharacterBody3D) -> void:
     var rig := get_tree().get_first_node_in_group("socom_camera_rig")
     if rig == null:
         return
-    var relative_yaw: float = (
-        float(player.call("get_aim_relative_yaw"))
-        if player.has_method("get_aim_relative_yaw")
-        else wrapf(float(rig.get("aim_yaw")) - player.global_rotation.y, -PI, PI)
-    )
+    var shared_target := Vector3(rig.get("weapon_aim_point"))
+    var shared_angles := Vector2(float(rig.get("aim_yaw")), float(rig.get("aim_pitch")))
+    if rig.has_method("get_shared_body_aim_yaw_pitch"):
+        shared_angles = rig.call("get_shared_body_aim_yaw_pitch")
+    var relative_yaw := wrapf(shared_angles.x - player.global_rotation.y, -PI, PI)
     var local_velocity := player.global_basis.inverse() * player.velocity
     var visual_direction := Vector2(local_velocity.x, -local_velocity.z)
     var actual_horizontal_speed := visual_direction.length()
@@ -486,7 +486,7 @@ func _sync_production_animation(player: CharacterBody3D) -> void:
         visual_direction,
         posture_name,
         relative_yaw,
-        float(rig.get("aim_pitch")),
+        shared_angles.y,
         1.0,
         false,
         weapon_obstruction_amount,
@@ -495,7 +495,7 @@ func _sync_production_animation(player: CharacterBody3D) -> void:
         player.velocity.y,
         gait_name,
         actual_horizontal_speed,
-        Vector3(rig.get("weapon_aim_point")),
+        shared_target,
         desired_visual,
         desired_strength,
         response_mode,

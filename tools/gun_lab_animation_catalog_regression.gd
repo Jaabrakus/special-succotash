@@ -52,21 +52,69 @@ func _run() -> void:
 		and lab.find_child("StanceProne", true, false) != null,
 		"stand crouch and prone controls are available in the firing tab"
 	)
+	lab.call("_fire_shot")
+	await process_frame
+	var attached_frame_editor = lab.get("animation_frame_editor")
+	var standing_fire_clip := StringName(
+		(lab.get("handling_profile") as Dictionary).get("animation_slots", {}).get(
+			"fire_standing",
+			""
+		)
+	)
+	_expect(
+		attached_frame_editor != null
+		and bool(attached_frame_editor.get("active"))
+		and bool(attached_frame_editor.get("playing"))
+		and StringName(attached_frame_editor.get("clip_name")) == standing_fire_clip,
+		"a Gunsmith shot attaches its mapped fire clip to the live frame editor"
+	)
+	lab.call("_toggle_current_animation_frame_editor")
+	_expect(
+		bool(attached_frame_editor.get("active"))
+		and not bool(attached_frame_editor.get("playing"))
+		and StringName(attached_frame_editor.get("clip_name")) == standing_fire_clip,
+		"Edit Current pauses the attached fire clip instead of closing or guessing"
+	)
+	lab.call("_leave_animation_frame_editor")
+	lab.call("_finish_preview_to_idle")
+	lab.call("_toggle_current_animation_frame_editor")
+	_expect(
+		bool(attached_frame_editor.get("active"))
+		and StringName(attached_frame_editor.get("clip_name")) == standing_fire_clip,
+		"Edit Current reopens the explicit fire reaction after the preview returns to idle"
+	)
+	lab.call("_leave_animation_frame_editor")
 	var viewport_center: Vector2 = lab.get_viewport().get_visible_rect().size * 0.5
 	var preview_center: Vector2 = (lab.call("_preview_screen_rect") as Rect2).get_center()
 	var muzzle_sample: Dictionary = lab.call("_muzzle_axis_sample")
 	var camera := lab.get("cam") as Camera3D
-	var weapon := lab.get("current_weapon_mesh") as Node3D
 	var muzzle_marker := lab.get("muzzle_marker") as MeshInstance3D
-	var barrel_base := weapon.to_global(lab.call("_calibrated_barrel_base") as Vector3)
+	var barrel_base_marker := lab.get("barrel_base_marker") as MeshInstance3D
+	var barrel_base := barrel_base_marker.global_position
 	var base_screen := camera.unproject_position(barrel_base)
 	var muzzle_screen := camera.unproject_position(muzzle_marker.global_position)
+	var muzzle_press := InputEventMouseButton.new()
+	muzzle_press.button_index = MOUSE_BUTTON_LEFT
+	muzzle_press.pressed = true
+	muzzle_press.position = muzzle_screen
+	lab.call("_input", muzzle_press)
+	_expect(
+		bool(lab.get("authoring_pointer_down"))
+		and not bool(lab.get("mouse_fire_armed"))
+		and String(lab.get("dragged_dot_id")) == "muzzle",
+		"the red muzzle marker owns the press and never arms mouse fire"
+	)
+	var muzzle_release := InputEventMouseButton.new()
+	muzzle_release.button_index = MOUSE_BUTTON_LEFT
+	muzzle_release.pressed = false
+	muzzle_release.position = muzzle_screen
+	lab.call("_input", muzzle_release)
 	var reticle_screen := lab.call("_reticle_screen_position") as Vector2
 	var screen_barrel_direction := (muzzle_screen - base_screen).normalized()
 	var screen_reticle_direction := (reticle_screen - muzzle_screen).normalized()
 	_expect(
 		screen_barrel_direction.dot(screen_reticle_direction) > 0.999
-		and absf(reticle_screen.distance_to(muzzle_screen) - 84.0) < 0.1
+		and absf(reticle_screen.distance_to(muzzle_screen) - 64.0) < 0.1
 		and preview_center.x > viewport_center.x,
 		"gun lab reticle sits directly ahead of the physical red muzzle socket"
 	)
@@ -137,6 +185,7 @@ func _run() -> void:
 	var prone_grip_error := (lab.get("right_grip_marker") as Node3D).global_position.distance_to(
 		lab.call("_right_palm_contact_world") as Vector3
 	)
+	print("GUN_LAB_PRONE_TRIGGER_ERROR_M %.5f" % prone_grip_error)
 	_expect(
 		lab.get("preview_posture") == &"PRONE"
 		and absf(float(lab.call("_stance_spread_multiplier")) - 0.22) < 0.001
@@ -272,17 +321,15 @@ func _run() -> void:
 
 	var expected_grip := Vector3(0.173, -0.041, 0.026)
 	var expected_trigger := Vector3(-0.019, 0.012, 0.031)
-	var expected_mount := Vector3(-0.014, 0.022, 0.009)
+	var fixed_weapon_mount := lab.get("grip_offset_pos") as Vector3
 	lab.set("left_grip_local_pos", expected_grip)
 	lab.set("right_grip_local_pos", expected_trigger)
-	lab.set("grip_offset_pos", expected_mount)
 	lab.call("_save_selected_animation_hand_map")
 	var hand_maps: Dictionary = lab.get("animation_hand_maps")
 	_expect(hand_maps.has(resource_path), "the selected clip receives its own hand map")
 
 	lab.set("left_grip_local_pos", Vector3.ZERO)
 	lab.set("right_grip_local_pos", Vector3.ZERO)
-	lab.set("grip_offset_pos", Vector3.ZERO)
 	lab.call("_apply_animation_hand_map", clip_key)
 	_expect(
 		(lab.get("left_grip_local_pos") as Vector3).is_equal_approx(expected_grip),
@@ -293,8 +340,8 @@ func _run() -> void:
 		"trigger-hand grip restores per animation"
 	)
 	_expect(
-		(lab.get("grip_offset_pos") as Vector3).is_equal_approx(expected_mount),
-		"trigger-hand weapon mount restores per animation"
+		(lab.get("grip_offset_pos") as Vector3).is_equal_approx(fixed_weapon_mount),
+		"animation hand maps preserve the one weapon-level mount"
 	)
 
 	lab.queue_free()

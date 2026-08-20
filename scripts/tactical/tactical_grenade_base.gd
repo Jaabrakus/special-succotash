@@ -19,6 +19,7 @@ var authority_peer_id := 1
 var _previous_linear_velocity := Vector3.ZERO
 var foley: Node
 var _sparks: GPUParticles3D
+var _impact_cooldown := 0.0
 
 
 func _ready() -> void:
@@ -40,6 +41,7 @@ func _ready() -> void:
 
 func _physics_process(delta: float) -> void:
 	_previous_linear_velocity = linear_velocity
+	_impact_cooldown = maxf(0.0, _impact_cooldown - delta)
 	if not armed or detonated_once or not _is_simulation_authority():
 		return
 	fuse_remaining -= delta
@@ -75,11 +77,25 @@ func _is_simulation_authority() -> bool:
 	return not multiplayer.has_multiplayer_peer() or multiplayer.is_server()
 
 
-func _on_body_entered(_body: Node) -> void:
+func _on_body_entered(body: Node) -> void:
 	var speed := _previous_linear_velocity.length()
-	if speed > 1.2:
-		bounced.emit(speed, global_position)
-		foley.play_cue(&"foot_metal", global_position, -8.0, randf_range(0.82, 1.12))
+	if speed <= 1.2 or _impact_cooldown > 0.0:
+		return
+	_impact_cooldown = 0.055
+	bounced.emit(speed, global_position)
+	var surface: StringName = foley.play_surface_event(
+		&"grenade_impact", global_position, clampf(speed / 8.0, 0.15, 1.25), body
+	)
+	if _is_simulation_authority():
+		call_deferred("_apply_surface_response", surface)
+
+
+func _apply_surface_response(surface: StringName) -> void:
+	if foley == null:
+		return
+	var response: Dictionary = foley.surface_physics(surface)
+	linear_velocity *= clampf(float(response.get("energy_retention", 0.72)), 0.05, 1.0)
+	angular_velocity *= clampf(float(response.get("angular_retention", 0.76)), 0.05, 1.0)
 
 
 func _build_default_body() -> void:

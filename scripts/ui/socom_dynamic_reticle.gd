@@ -150,11 +150,8 @@ func _shot_bounce_weight() -> float:
     var phase := shot_bounce_age / maxf(shot_bounce_duration, 0.001)
     if phase >= 1.0:
         return 0.0
-    if phase < 0.16:
-        return smoothstep(0.0, 0.16, phase)
-    if phase < 0.38:
-        return lerpf(1.0, 0.88, (phase - 0.16) / 0.22)
-    return 0.88 * (1.0 - smoothstep(0.38, 1.0, phase))
+    # Smooth sine-eased pulse for silky smooth tactile recoil response
+    return sin(phase * PI) * (1.0 - phase * 0.4)
 
 func _draw_interact_brackets(center: Vector2, color: Color) -> void:
     # Classic ladder / context bracket box

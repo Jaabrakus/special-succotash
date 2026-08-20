@@ -1,0 +1,178 @@
+{
+  "application_order": "after_animation_before_aim_and_weapon_ik",
+  "postures": {
+    "CROUCHED": {
+      "head": {
+        "pitch": 6.5,
+        "roll": -7.0,
+        "yaw": -10.0
+      },
+      "left_forearm": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": 0.0
+      },
+      "left_shoulder": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": 0.0
+      },
+      "left_upper_arm": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": 0.0
+      },
+      "neck": {
+        "pitch": 3.57500028610229,
+        "roll": -3.85000038146973,
+        "yaw": -5.50000047683716
+      },
+      "right_forearm": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": 0.0
+      },
+      "right_shoulder": {
+        "pitch": 0.0,
+        "roll": -10.0,
+        "yaw": 0.0
+      },
+      "right_upper_arm": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": 0.0
+      },
+      "spine": {
+        "pitch": 0.0,
+        "roll": 8.0,
+        "yaw": 0.0
+      },
+      "spine1": {
+        "pitch": 0.649999976158142,
+        "roll": -0.700000047683716,
+        "yaw": -1.00000011920929
+      },
+      "spine2": {
+        "pitch": 1.625,
+        "roll": -1.75,
+        "yaw": -2.5
+      }
+    },
+    "PRONE": {
+      "head": {
+        "pitch": 0.0,
+        "roll": 12.0,
+        "yaw": 0.0
+      },
+      "left_forearm": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": 0.0
+      },
+      "left_shoulder": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": 0.0
+      },
+      "left_upper_arm": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": 0.0
+      },
+      "neck": {
+        "pitch": -18.0,
+        "roll": -3.40000009536743,
+        "yaw": -1.75
+      },
+      "right_forearm": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": 0.0
+      },
+      "right_shoulder": {
+        "pitch": -12.0,
+        "roll": 10.0,
+        "yaw": 5.25
+      },
+      "right_upper_arm": {
+        "pitch": -34.0,
+        "roll": 0.0,
+        "yaw": 0.0
+      },
+      "spine": {
+        "pitch": -1.2299987077713,
+        "roll": 0.0,
+        "yaw": -0.675000071525574
+      },
+      "spine1": {
+        "pitch": -2.86999201774597,
+        "roll": 1.20000004768372,
+        "yaw": -1.57499969005585
+      },
+      "spine2": {
+        "pitch": 3.25,
+        "roll": 0.840000152587891,
+        "yaw": -4.81500005722046
+      }
+    },
+    "STANDING": {
+      "head": {
+        "pitch": 5.5,
+        "roll": 2.5,
+        "yaw": -21.0
+      },
+      "left_forearm": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": 0.0
+      },
+      "left_shoulder": {
+        "pitch": 0.200000002980232,
+        "roll": -0.300001353025436,
+        "yaw": -0.100000001490116
+      },
+      "left_upper_arm": {
+        "pitch": 1.0,
+        "roll": -1.5,
+        "yaw": -0.5
+      },
+      "neck": {
+        "pitch": 3.02499938011169,
+        "roll": 1.37500035762787,
+        "yaw": -11.5500001907349
+      },
+      "right_forearm": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": 0.0
+      },
+      "right_shoulder": {
+        "pitch": 7.96500015258789,
+        "roll": 0.200000002980232,
+        "yaw": -5.16499996185303
+      },
+      "right_upper_arm": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": 0.0
+      },
+      "spine": {
+        "pitch": 0.0,
+        "roll": 3.19999980926514,
+        "yaw": 0.0
+      },
+      "spine1": {
+        "pitch": 0.550000131130219,
+        "roll": 6.0,
+        "yaw": -2.10000014305115
+      },
+      "spine2": {
+        "pitch": 1.375,
+        "roll": 8.0,
+        "yaw": -5.25
+      }
+    }
+  },
+  "schema_version": 1,
+  "space": "local_additive_degrees"
+}

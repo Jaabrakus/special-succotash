@@ -49,6 +49,11 @@ var rendered_direction := Vector2.UP
 var prone_travel_blend: float = 1.0
 var standing_transition_layer_nodes: Array[StringName] = []
 var standing_transition_ready_nodes: Array[StringName] = []
+var fire_transition: AnimationNodeTransition
+var fire_clips_by_posture: Dictionary = {}
+var fire_layer_available: bool = false
+var fire_trigger_count: int = 0
+var active_fire_clip: StringName = &""
 
 
 func build(
@@ -71,7 +76,12 @@ func build(
 	root.add_node(&"route_blend", route_blend, Vector2(980.0, 100.0))
 	root.connect_node(&"route_blend", 0, &"legacy_transition")
 	root.connect_node(&"route_blend", 1, &"modern_transition")
-	root.connect_node(&"output", 0, &"route_blend")
+	_build_fire_layer(root, available_clips)
+	root.connect_node(
+		&"output",
+		0,
+		&"fire_layer" if fire_layer_available else &"route_blend"
+	)
 
 	animation_tree = AnimationTree.new()
 	animation_tree.name = "OperatorAnimationTree"
@@ -181,6 +191,27 @@ func request_legacy_clip(clip_name: StringName, blend_seconds: float) -> bool:
 	return true
 
 
+func trigger_fire(posture: StringName) -> StringName:
+	if animation_tree == null or not fire_layer_available:
+		return &""
+	var normalized_posture := posture
+	if normalized_posture not in [&"STANDING", &"CROUCHED", &"PRONE"]:
+		normalized_posture = &"STANDING"
+	active_fire_clip = StringName(fire_clips_by_posture.get(normalized_posture, ""))
+	if active_fire_clip == &"":
+		return &""
+	animation_tree.set(
+		"parameters/fire_transition/transition_request",
+		normalized_posture
+	)
+	animation_tree.set(
+		"parameters/fire_layer/request",
+		AnimationNodeOneShot.ONE_SHOT_REQUEST_FIRE
+	)
+	fire_trigger_count += 1
+	return active_fire_clip
+
+
 func get_debug_state() -> Dictionary:
 	return {
 		"modern_enabled": modern_enabled,
@@ -191,7 +222,49 @@ func get_debug_state() -> Dictionary:
 		"smoothed_direction": smoothed_direction,
 		"rendered_direction": rendered_direction,
 		"prone_travel_blend": prone_travel_blend,
+		"fire_layer_available": fire_layer_available,
+		"fire_trigger_count": fire_trigger_count,
+		"active_fire_clip": active_fire_clip,
 	}
+
+
+func _build_fire_layer(root: AnimationNodeBlendTree, available_clips: Dictionary) -> void:
+	fire_clips_by_posture = {
+		&"STANDING": _weapon_action_clip("fire_standing", &"combat_fire", available_clips),
+		&"CROUCHED": _weapon_action_clip("fire_crouched", &"crouch_fire", available_clips),
+		&"PRONE": _weapon_action_clip("fire_prone", &"prone_fire", available_clips),
+	}
+	for posture_name: StringName in fire_clips_by_posture:
+		if not available_clips.has(fire_clips_by_posture[posture_name]):
+			return
+
+	fire_transition = AnimationNodeTransition.new()
+	fire_transition.input_count = 3
+	fire_transition.xfade_time = 0.025
+	root.add_node(&"fire_transition", fire_transition, Vector2(980.0, 330.0))
+	var posture_order: Array[StringName] = [&"STANDING", &"CROUCHED", &"PRONE"]
+	for index in posture_order.size():
+		var posture_name := posture_order[index]
+		var node_name := StringName("fire_%s" % String(posture_name).to_lower())
+		fire_transition.set_input_name(index, posture_name)
+		root.add_node(
+			node_name,
+			_animation_node(StringName(fire_clips_by_posture[posture_name])),
+			Vector2(650.0, 300.0 + index * 70.0)
+		)
+		root.connect_node(&"fire_transition", index, node_name)
+
+	var fire_layer := AnimationNodeOneShot.new()
+	fire_layer.fadein_time = 0.025
+	fire_layer.fadeout_time = 0.065
+	fire_layer.sync = true
+	fire_layer.filter_enabled = true
+	for bone_name: StringName in UPPER_BODY_BONES:
+		fire_layer.set_filter_path(NodePath(".:%s" % bone_name), true)
+	root.add_node(&"fire_layer", fire_layer, Vector2(1230.0, 110.0))
+	root.connect_node(&"fire_layer", 0, &"route_blend")
+	root.connect_node(&"fire_layer", 1, &"fire_transition")
+	fire_layer_available = true
 
 
 func _build_legacy_route(root: AnimationNodeBlendTree, available_clips: Dictionary) -> void:

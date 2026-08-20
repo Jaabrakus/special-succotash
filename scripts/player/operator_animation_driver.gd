@@ -13,6 +13,9 @@ const PostureLayer := preload("res://scripts/player/operator_posture_layer.gd")
 const IKContract := preload("res://scripts/player/operator_ik_contract.gd")
 const WeaponPoseSolver := preload("res://scripts/player/operator_weapon_pose_solver.gd")
 const AnimationAudioEvents := preload("res://scripts/audio/audio_animation_event_manager.gd")
+const AnimationFramePoseRuntime := preload(
+	"res://scripts/player/operator_animation_frame_pose_runtime.gd"
+)
 
 @export_group("Runtime route")
 @export var use_modern_locomotion: bool = true
@@ -48,6 +51,7 @@ var posture_layer
 var ik_contract
 var weapon_pose_solver
 var audio_event_manager: AudioAnimationEventManager
+var animation_frame_pose_runtime
 
 # Public runtime references retained for labs, debug views and regressions.
 var model_root: Node3D
@@ -100,7 +104,13 @@ var _recoil_remaining: float = 0.0
 var _last_transition_reason: StringName = &"none"
 var _requested_action_is_transition: bool = false
 var _prone_straighten_weight: float = 0.0
+var _previous_posture: StringName = &""
 var _stabilized_leg_rotations: Dictionary = {}
+var _frame_pose_clip_time: float = 0.0
+var _active_frame_pose: Dictionary = {}
+var _fire_pose_clip: StringName = &""
+var _fire_pose_time: float = 0.0
+var _fire_pose_duration: float = 0.0
 
 
 func _ready() -> void:
@@ -111,6 +121,10 @@ func _ready() -> void:
 	var handling: Variant = equipped_weapon_config.get("handling_profile", {})
 	equipped_weapon_handling_profile = (
 		(handling as Dictionary).duplicate(true) if handling is Dictionary else {}
+	)
+	animation_frame_pose_runtime = AnimationFramePoseRuntime.new()
+	animation_frame_pose_runtime.configure(
+		equipped_weapon_config.get("animation_frame_pose_keys", {})
 	)
 	clip_paths = animation_profile.clip_paths
 	transition_state_machine = TransitionStateMachine.new()
@@ -171,8 +185,13 @@ func _process(delta: float) -> void:
 	)
 	_consider_cosmetic_transition()
 	_update_requested_action(delta)
+	if posture != _previous_posture:
+		_previous_posture = posture
+		if asset_runtime != null:
+			asset_runtime.apply_animation_hand_map(String(posture), posture)
 	if requested_action == &"":
 		_request_clip(_select_visual_clip())
+	_apply_saved_animation_frame_pose(delta)
 	_update_prone_straightening(delta)
 	posture_layer.apply(
 		aim_yaw_rad,
@@ -465,7 +484,17 @@ func get_connected_route(route_name: StringName) -> Array[StringName]:
 
 func notify_fired() -> bool:
 	_trigger_fire_recoil()
-	return skeleton != null
+	if skeleton == null or locomotion_graph == null:
+		return false
+	_fire_pose_clip = locomotion_graph.trigger_fire(posture)
+	_fire_pose_time = 0.0
+	var fire_animation := (
+		animation_player.get_animation(_fire_pose_clip)
+		if animation_player != null and _fire_pose_clip != &""
+		else null
+	)
+	_fire_pose_duration = fire_animation.length if fire_animation != null else 0.0
+	return true
 
 
 func set_trooper_scale(new_scale: float) -> void:
@@ -484,10 +513,16 @@ func _request_clip(clip_name: StringName, blend_seconds: float = -1.0) -> void:
 	if not available_clips.has(clip_name):
 		return
 	if clip_name != current_clip:
+		if weapon_pose_solver != null:
+			weapon_pose_solver.clear_animation_frame_pose()
 		previous_clip = current_clip
 		current_clip = clip_name
+		_frame_pose_clip_time = 0.0
 		if asset_runtime != null:
-			asset_runtime.apply_animation_hand_map(String(clip_paths.get(clip_name, "")))
+			asset_runtime.apply_animation_hand_map(
+				String(clip_paths.get(clip_name, "")),
+				posture if requested_action == &"" else &""
+			)
 	var blend := blend_seconds
 	if blend < 0.0:
 		blend = locomotion_blend_seconds if _is_locomotion_clip(previous_clip) and _is_locomotion_clip(clip_name) else transition_blend_seconds
@@ -498,6 +533,47 @@ func _request_clip(clip_name: StringName, blend_seconds: float = -1.0) -> void:
 	if not locomotion_graph.request_modern_state(_modern_state_for_clip(clip_name)):
 		locomotion_graph.set_modern_enabled(false)
 		locomotion_graph.request_legacy_clip(clip_name, blend)
+
+
+func _apply_saved_animation_frame_pose(delta: float) -> void:
+	if animation_frame_pose_runtime == null or current_clip == &"":
+		return
+	var pose_clip := current_clip
+	var pose_time := _frame_pose_clip_time
+	if _fire_pose_clip != &"" and _fire_pose_time < _fire_pose_duration:
+		pose_clip = _fire_pose_clip
+		_fire_pose_time = minf(_fire_pose_time + maxf(delta, 0.0), _fire_pose_duration)
+		pose_time = _fire_pose_time
+	var animation := animation_player.get_animation(pose_clip) if animation_player != null else null
+	var duration: float = animation.length if animation != null else 0.0
+	var playback_rate_value := (
+		float(locomotion_graph.playback_rate) if locomotion_graph != null else 1.0
+	)
+	_frame_pose_clip_time += maxf(delta, 0.0) * maxf(playback_rate_value, 0.0)
+	if duration > 0.0:
+		if _is_locomotion_clip(current_clip) and locomotion_graph != null:
+			_frame_pose_clip_time = clampf(float(locomotion_graph.shared_phase), 0.0, 1.0) * duration
+		elif animation.loop_mode != Animation.LOOP_NONE:
+			_frame_pose_clip_time = fmod(_frame_pose_clip_time, duration)
+		else:
+			_frame_pose_clip_time = minf(_frame_pose_clip_time, duration)
+	if pose_clip == current_clip:
+		pose_time = _frame_pose_clip_time
+	var candidates: Array = [
+		String(pose_clip),
+		String(clip_paths.get(pose_clip, "")),
+		String(get_source_animation_name(pose_clip)),
+	]
+	_active_frame_pose = animation_frame_pose_runtime.sample(
+		candidates,
+		pose_time
+	)
+	if posture_layer != null:
+		posture_layer.set_animation_frame_rotation_overrides(
+			_active_frame_pose.get("joint_rotations", {})
+		)
+	if weapon_pose_solver != null:
+		weapon_pose_solver.set_animation_frame_pose(_active_frame_pose)
 
 
 func _modern_state_for_clip(clip_name: StringName) -> StringName:
@@ -706,6 +782,8 @@ func get_animation_debug_state() -> Dictionary:
 		snapshot.merge(locomotion_graph.get_debug_state(), true)
 	if posture_layer != null:
 		snapshot.merge(posture_layer.get_debug_state(), true)
+	if animation_frame_pose_runtime != null:
+		snapshot["animation_frame_pose"] = animation_frame_pose_runtime.get_debug_state()
 	if ik_contract != null:
 		snapshot["ik"] = ik_contract.get_debug_state()
 	if weapon_pose_solver != null:

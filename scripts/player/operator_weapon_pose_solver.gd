@@ -82,11 +82,24 @@ var shot_blocked: bool = false
 var socket_contract_active: bool = false
 var adaptive_support_socket: bool = false
 var elbow_pole_offsets_by_posture: Dictionary = {}
+var weapon_animation_parent: Node
+var weapon_solver_anchor: Node3D
+var weapon_solver_owned: bool = false
+var right_hand_ik: SkeletonIK3D
+var left_hand_ik: SkeletonIK3D
+var animation_frame_pose: Dictionary = {}
+var frame_socket_override_active := false
+var frame_trigger_socket_base := Vector3.ZERO
+var frame_support_socket_base := Vector3.ZERO
 
 
 func bind(target_skeleton: Skeleton3D, attached_weapon: Node3D) -> void:
 	skeleton = target_skeleton
 	weapon_node = attached_weapon
+	weapon_animation_parent = weapon_node.get_parent() if weapon_node != null else null
+	weapon_solver_anchor = Node3D.new()
+	weapon_solver_anchor.name = "WeaponSolverAnchor"
+	add_child(weapon_solver_anchor)
 	trigger_socket = _find_weapon_socket("Socket_RightHand")
 	support_socket = _find_weapon_socket("Socket_LeftHand")
 	muzzle_socket = _find_weapon_socket("Socket_Muzzle")
@@ -109,6 +122,7 @@ func bind(target_skeleton: Skeleton3D, attached_weapon: Node3D) -> void:
 		for bone_name in names:
 			bone_indices[StringName(bone_name)] = skeleton.find_bone(StringName(bone_name))
 	_build_targets()
+	_build_socket_ik()
 
 
 func configure_joint_poles(raw_poles: Variant) -> void:
@@ -132,6 +146,45 @@ func configure_joint_poles(raw_poles: Variant) -> void:
 		}
 		for posture_name: StringName in [&"STANDING", &"CROUCHED", &"PRONE"]:
 			elbow_pole_offsets_by_posture[posture_name] = fallback.duplicate(true)
+
+
+func set_animation_frame_pose(raw_pose: Variant) -> void:
+	var next_pose := raw_pose as Dictionary if raw_pose is Dictionary else {}
+	if next_pose.is_empty():
+		_clear_frame_socket_override()
+		animation_frame_pose = {}
+		return
+	if not frame_socket_override_active:
+		frame_trigger_socket_base = trigger_socket.position if trigger_socket != null else Vector3.ZERO
+		frame_support_socket_base = support_socket.position if support_socket != null else Vector3.ZERO
+		frame_socket_override_active = true
+	animation_frame_pose = next_pose.duplicate(true)
+	if (
+		trigger_socket != null
+		and animation_frame_pose.has("right_hand_target")
+		and animation_frame_pose["right_hand_target"] is Dictionary
+	):
+		trigger_socket.position = _vector_from_data(animation_frame_pose["right_hand_target"])
+	if (
+		support_socket != null
+		and animation_frame_pose.has("left_hand_target")
+		and animation_frame_pose["left_hand_target"] is Dictionary
+	):
+		support_socket.position = _vector_from_data(animation_frame_pose["left_hand_target"])
+
+
+func clear_animation_frame_pose() -> void:
+	set_animation_frame_pose({})
+
+
+func _clear_frame_socket_override() -> void:
+	if not frame_socket_override_active:
+		return
+	if trigger_socket != null:
+		trigger_socket.position = frame_trigger_socket_base
+	if support_socket != null:
+		support_socket.position = frame_support_socket_base
+	frame_socket_override_active = false
 
 
 func apply(
@@ -158,6 +211,12 @@ func apply(
 		movement_state in [&"DIVING", &"ROLLING", &"AIRBORNE", &"LANDING"]
 		or requested_action in [&"reload", &"prone_reload"]
 	)
+	if action_owns_arms:
+		_stop_socket_ik()
+		_set_weapon_solver_owned(false)
+		current_weight = 0.0
+		desired_weight = 0.0
+		return
 	desired_weight = (
 		0.0
 		if action_owns_arms
@@ -170,7 +229,9 @@ func apply(
 		1.0 - exp(-response * delta)
 	)
 	if current_weight <= 0.001:
+		_set_weapon_solver_owned(false)
 		return
+	_set_weapon_solver_owned(true)
 
 	var right_shoulder := _bone_world_position(&"mixamorig_RightArm")
 	var left_shoulder := _bone_world_position(&"mixamorig_LeftArm")
@@ -265,6 +326,16 @@ func apply(
 	var saved_poles: Dictionary = elbow_pole_offsets_by_posture.get(posture, {})
 	var right_saved: Vector3 = saved_poles.get("right", Vector3.ZERO)
 	var left_saved: Vector3 = saved_poles.get("left", Vector3.ZERO)
+	if (
+		animation_frame_pose.has("right_elbow_pole")
+		and animation_frame_pose["right_elbow_pole"] is Dictionary
+	):
+		right_saved = _vector_from_data(animation_frame_pose["right_elbow_pole"])
+	if (
+		animation_frame_pose.has("left_elbow_pole")
+		and animation_frame_pose["left_elbow_pole"] is Dictionary
+	):
+		left_saved = _vector_from_data(animation_frame_pose["left_elbow_pole"])
 	right_elbow_pole.global_position = (
 		right_shoulder
 		+ aim_right * (elbow_flare + right_saved.x)
@@ -277,19 +348,15 @@ func apply(
 		+ aim_direction * (0.16 + left_saved.z)
 		+ world_up * (elbow_height + prone_pole_raise + left_saved.y)
 	)
-	for _iteration in range(solve_iterations):
-		_solve_arm(&"right", trigger_hand_target, right_elbow_pole)
-		_solve_arm(&"left", support_hand_target, left_elbow_pole)
-	skeleton.force_update_all_bone_transforms()
 	if socket_contract_active:
 		_place_socketed_weapon(trigger_position, aim_direction, body_forward)
 		if adaptive_support_socket:
 			support_socket.global_position = support_position
 		trigger_hand_target.global_position = trigger_socket.global_position
 		support_hand_target.global_position = support_socket.global_position
-		if not adaptive_support_socket:
-			_solve_arm(&"left", support_hand_target, left_elbow_pole)
-			skeleton.force_update_all_bone_transforms()
+		_solve_socket_arm(right_hand_ik, trigger_hand_target, right_elbow_pole, &"mixamorig_RightHand")
+		_solve_socket_arm(left_hand_ik, support_hand_target, left_elbow_pole, &"mixamorig_LeftHand")
+		skeleton.force_update_all_bone_transforms()
 		_update_socket_weapon_error()
 	else:
 		_align_weapon_to_aim(aim_direction)
@@ -304,6 +371,10 @@ func get_debug_state() -> Dictionary:
 		"target_reachable": target_reachable,
 		"trigger_hand_error_m": trigger_hand_error_m,
 		"support_hand_error_m": support_hand_error_m,
+		"trigger_hand_position": _bone_world_position(&"mixamorig_RightHand"),
+		"support_hand_position": _bone_world_position(&"mixamorig_LeftHand"),
+		"trigger_hand_target": trigger_hand_target.global_position,
+		"support_hand_target": support_hand_target.global_position,
 		"aim_direction": last_aim_direction,
 		"aim_target": last_target_point,
 		"posture": last_posture,
@@ -317,9 +388,11 @@ func get_debug_state() -> Dictionary:
 		"wrist_correction_deg": wrist_correction_deg,
 		"socket_contract_active": socket_contract_active,
 		"adaptive_support_socket": adaptive_support_socket,
+		"weapon_solver_owned": weapon_solver_owned,
 		"cover_pose_amount": cover_pose_amount,
 		"cover_pose_name": cover_pose_name,
 		"shot_blocked": shot_blocked,
+		"animation_frame_pose_active": not animation_frame_pose.is_empty(),
 	}
 
 
@@ -327,6 +400,77 @@ func _find_weapon_socket(socket_name: String) -> Marker3D:
 	if weapon_node == null:
 		return null
 	return weapon_node.find_child(socket_name, true, false) as Marker3D
+
+
+func _set_weapon_solver_owned(enabled: bool) -> void:
+	if weapon_node == null or weapon_solver_owned == enabled:
+		return
+	var next_parent: Node = weapon_solver_anchor if enabled else weapon_animation_parent
+	if next_parent == null or weapon_node.get_parent() == next_parent:
+		weapon_solver_owned = enabled
+		return
+	weapon_node.reparent(next_parent, true)
+	weapon_solver_owned = enabled
+
+
+func _build_socket_ik() -> void:
+	right_hand_ik = _create_socket_ik(
+		"RuntimeRightHandIK",
+		"mixamorig_RightArm",
+		"mixamorig_RightHand"
+	)
+	left_hand_ik = _create_socket_ik(
+		"RuntimeLeftHandIK",
+		"mixamorig_LeftArm",
+		"mixamorig_LeftHand"
+	)
+
+
+func _create_socket_ik(node_name: String, root_bone_name: String, tip_bone_name: String) -> SkeletonIK3D:
+	var ik := SkeletonIK3D.new()
+	ik.name = node_name
+	ik.root_bone = root_bone_name
+	ik.tip_bone = tip_bone_name
+	ik.use_magnet = true
+	ik.interpolation = 1.0
+	ik.override_tip_basis = false
+	ik.max_iterations = 40
+	ik.min_distance = 0.00002
+	skeleton.add_child(ik)
+	ik.stop()
+	return ik
+
+
+func _solve_socket_arm(
+	ik: SkeletonIK3D,
+	target: Marker3D,
+	pole: Marker3D,
+	tip_bone_name: StringName
+) -> void:
+	if ik == null or target == null or pole == null:
+		return
+	ik.interpolation = current_weight
+	ik.magnet = skeleton.global_transform.affine_inverse() * pole.global_position
+	var desired_position := target.global_position
+	var internal_position := desired_position
+	for _correction in range(4):
+		ik.target = Transform3D(target.global_basis.orthonormalized(), internal_position)
+		ik.stop()
+		ik.start(true)
+		skeleton.force_update_all_bone_transforms()
+		# Imported Mixamo bone scales can leave a small deterministic residual.
+		# Offset only the internal IK target; the saved socket stays unchanged.
+		var residual := desired_position - _bone_world_position(tip_bone_name)
+		if residual.length() <= 0.001:
+			break
+		internal_position += residual
+
+
+func _stop_socket_ik() -> void:
+	if right_hand_ik != null and right_hand_ik.is_running():
+		right_hand_ik.stop()
+	if left_hand_ik != null and left_hand_ik.is_running():
+		left_hand_ik.stop()
 
 
 func _place_socketed_weapon(

@@ -2,8 +2,8 @@
   "schema_version": 1,
   "animations": {
     "run_forward": [
-      {"time": 0.08, "cue": "foot_concrete", "bone": "mixamorig_LeftFoot", "volume_db": -2.0, "pitch_min": 0.96, "pitch_max": 1.04},
-      {"time": 0.42, "cue": "foot_concrete", "bone": "mixamorig_RightFoot", "volume_db": -2.0, "pitch_min": 0.96, "pitch_max": 1.04},
+      {"time": 0.08, "event": "footstep", "surface": "", "intensity": 0.90, "cue": "foot_concrete", "bone": "mixamorig_LeftFoot", "volume_db": -2.0, "pitch_min": 0.96, "pitch_max": 1.04},
+      {"time": 0.42, "event": "footstep", "surface": "", "intensity": 0.90, "cue": "foot_concrete", "bone": "mixamorig_RightFoot", "volume_db": -2.0, "pitch_min": 0.96, "pitch_max": 1.04},
       {"time": 0.20, "cue": "gear_rustle", "bone": "mixamorig_Spine", "volume_db": -8.0, "pitch_min": 0.94, "pitch_max": 1.06}
     ],
     "reload": [

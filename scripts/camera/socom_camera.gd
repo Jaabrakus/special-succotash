@@ -517,6 +517,18 @@ func _update_shot_validation() -> void:
 func build_local_aim_intent() -> Dictionary:
     return aim_resolver.build_local_aim_intent()
 
+func get_shared_aim_target() -> Vector3:
+    return aim_resolver.shared_target()
+
+func get_shared_aim_direction(origin: Vector3) -> Vector3:
+    return aim_resolver.shared_direction_from(origin)
+
+func get_shared_aim_yaw_pitch(origin: Vector3) -> Vector2:
+    return aim_resolver.shared_yaw_pitch_from(origin)
+
+func get_shared_body_aim_yaw_pitch() -> Vector2:
+    return aim_resolver.shared_body_yaw_pitch()
+
 func _update_reticle_position(delta: float) -> void:
     input_presenter._update_reticle_position(delta)
 

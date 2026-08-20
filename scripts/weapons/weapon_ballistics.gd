@@ -1,6 +1,8 @@
 class_name SocomWeaponBallistics
 extends Node
 
+const AnatomicalHitResolver := preload("res://scripts/combat/socom_anatomical_hit_resolver.gd")
+
 ## SOCOM II Ballistics & Burst-Fire Accuracy Model
 ## Implements:
 ## - 2-Round Burst pinpoint accuracy (shots 1 & 2 have 0 extra dispersion)
@@ -135,12 +137,13 @@ func try_fire_direction(
     var final_dir := (ray_basis * (Vector3.FORWARD + spread_offset)).normalized()
     var ray_end := muzzle_pos + final_dir * max_range
 
-    # Perform Physics Raycast
-    var query := PhysicsRayQueryParameters3D.create(muzzle_pos, ray_end)
-    query.exclude = exclude_rids
-    query.collision_mask = 1 | (1 << 2) # Environment plus damage-only hurtboxes
-    query.collide_with_areas = true
-    var result := space_state.intersect_ray(query)
+    # Resolve overlapping animated regions consistently with server authority.
+    var result := AnatomicalHitResolver.trace(
+        space_state,
+        muzzle_pos,
+        ray_end,
+        exclude_rids
+    )
 
     var hit_pos := ray_end
     var hit_target := false
@@ -157,6 +160,10 @@ func try_fire_direction(
         "fired": true,
         "hit_pos": hit_pos,
         "hit_collider": hit_collider,
+        "hit_region": StringName(result.get("hit_region", &"")),
+        "anatomical_override": bool(result.get("anatomical_override", false)),
+        "occluding_region": StringName(result.get("occluding_region", &"")),
+        "overlap_depth_m": float(result.get("overlap_depth_m", 0.0)),
         "direction": final_dir,
         "spread_deg": total_current_spread_deg,
         "dispersion_multiplier": applied_dispersion_multiplier,
