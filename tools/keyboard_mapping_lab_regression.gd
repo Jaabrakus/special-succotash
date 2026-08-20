@@ -40,8 +40,32 @@ func _run() -> void:
 	)
 	_expect(
 		&"toggle_debug_hud" not in KeyboardProfile.ACTION_ORDER
-		and &"toggle_trajectory_debug" not in KeyboardProfile.ACTION_ORDER,
+		and &"toggle_trajectory_debug" not in KeyboardProfile.ACTION_ORDER
+		and &"prone" not in KeyboardProfile.ACTION_ORDER
+		and &"roll" not in KeyboardProfile.ACTION_ORDER,
 		"mapping deck contains gameplay controls only"
+	)
+	_expect(
+		lab.find_child("Bind_prone", true, false) == null
+		and lab.find_child("Bind_roll", true, false) == null
+		and not InputMap.has_action(&"prone")
+		and not InputMap.has_action(&"roll"),
+		"legacy prone and roll bindings are removed from the deck and Input Map"
+	)
+	_expect(
+		_file_contains(
+			"res://scripts/player/player_controller.gd",
+			"command.crouch_held = Input.is_action_pressed(\"crouch\")"
+		)
+		and not _file_contains(
+			"res://scripts/player/player_controller.gd",
+			"Input.is_action_just_pressed(\"prone\")"
+		)
+		and not _file_contains(
+			"res://scripts/player/player_controller.gd",
+			"Input.is_action_just_pressed(\"roll\")"
+		),
+		"local posture input uses only the shared tap and hold stance action"
 	)
 	_expect(
 		lab.find_child("KeyboardPreviewOperator", true, false) != null,

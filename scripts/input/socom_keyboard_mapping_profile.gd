@@ -2,10 +2,11 @@ class_name SocomKeyboardMappingProfile
 extends RefCounted
 
 const CONFIG_PATH := "res://config/input/keyboard_mapping.json"
+const REMOVED_LEGACY_ACTIONS: Array[StringName] = [&"prone", &"roll"]
 
 const ACTION_ORDER: Array[StringName] = [
 	&"move_forward", &"move_back", &"move_left", &"move_right",
-	&"jump", &"crouch", &"prone", &"roll", &"dive",
+	&"jump", &"crouch", &"dive",
 	&"peek_left", &"peek_right", &"fire", &"reload_weapon",
 	&"throw_grenade", &"cycle_grenade", &"reset_camera",
 ]
@@ -17,8 +18,6 @@ const ACTION_LABELS := {
 	&"move_right": "Move Right",
 	&"jump": "Jump",
 	&"crouch": "Stance: Tap / Hold",
-	&"prone": "Prone",
-	&"roll": "Roll",
 	&"dive": "Dive",
 	&"peek_left": "Peek Left",
 	&"peek_right": "Peek Right",
@@ -39,8 +38,6 @@ const DEFAULT_BINDINGS := {
 		{"type": "key", "physical_keycode": KEY_C},
 		{"type": "key", "physical_keycode": KEY_X},
 	],
-	&"prone": [],
-	&"roll": [],
 	&"dive": [{"type": "key", "physical_keycode": KEY_Z}],
 	&"peek_left": [{"type": "key", "physical_keycode": KEY_Q}],
 	&"peek_right": [{"type": "key", "physical_keycode": KEY_E}],
@@ -55,6 +52,7 @@ const DEFAULT_BINDINGS := {
 static func apply_project_mapping() -> void:
 	if InputMap.has_action(&"run"):
 		InputMap.erase_action(&"run")
+	_remove_legacy_actions()
 	var saved := load_mapping()
 	for action: StringName in ACTION_ORDER:
 		if not InputMap.has_action(action):
@@ -72,6 +70,7 @@ static func apply_project_mapping() -> void:
 
 
 static func reset_to_defaults() -> void:
+	_remove_legacy_actions()
 	for action: StringName in ACTION_ORDER:
 		if not InputMap.has_action(action):
 			InputMap.add_action(action, 0.10 if action == &"fire" else 0.25)
@@ -80,6 +79,12 @@ static func reset_to_defaults() -> void:
 			var event := descriptor_to_event(descriptor)
 			if event != null:
 				InputMap.action_add_event(action, event)
+
+
+static func _remove_legacy_actions() -> void:
+	for action: StringName in REMOVED_LEGACY_ACTIONS:
+		if InputMap.has_action(action):
+			InputMap.erase_action(action)
 
 
 static func replace_binding(action: StringName, event: InputEvent) -> bool:

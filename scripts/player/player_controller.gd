@@ -257,8 +257,6 @@ func _capture_local_movement_command():
     )
     command.jump_pressed = Input.is_action_just_pressed("jump")
     command.dive_pressed = Input.is_action_just_pressed("dive")
-    command.roll_pressed = Input.is_action_just_pressed("roll")
-    command.prone_pressed = Input.is_action_just_pressed("prone")
     command.crouch_held = Input.is_action_pressed("crouch")
     command.crouch_released = Input.is_action_just_released("crouch")
     command.peek_axis = Input.get_axis("peek_left", "peek_right")
@@ -307,7 +305,8 @@ func _handle_posture_command(command, delta: float, desired_dir: Vector3) -> voi
             stance_held_triggered = false
         return
 
-    # Direct Prone shortcut (Z)
+    # Retain replay/network compatibility with older movement packets. Local
+    # input uses the single tap/hold stance action below.
     if command.prone_pressed:
         _try_set_posture(
             MotionState.CROUCHED if posture == MotionState.PRONE else MotionState.PRONE
@@ -376,7 +375,8 @@ func _try_begin_mobility_action(
         _begin_dive(desired_dir)
         return false
 
-    # Roll shortcut (E / Alt)
+    # Retain replay/network compatibility with older movement packets. Local
+    # input no longer creates a separate roll command.
     if command.roll_pressed and posture != MotionState.PRONE:
         roll_side = -1.0 if input.x < -0.1 else 1.0
         if absf(input.x) > 0.1:

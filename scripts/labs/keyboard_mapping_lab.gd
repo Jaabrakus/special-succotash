@@ -240,12 +240,6 @@ func _build_playtest_keyboard(parent: VBoxContainer) -> void:
 	_add_keycap_row(parent, [
 		&"cycle_grenade", &"reset_camera",
 	], Color("426a80"))
-	var unbound_title := Label.new()
-	unbound_title.text = "UNBOUND PLAYTEST ACTIONS"
-	unbound_title.add_theme_font_size_override("font_size", 11)
-	unbound_title.add_theme_color_override("font_color", Color("8492a6"))
-	parent.add_child(unbound_title)
-	_add_keycap_row(parent, [&"prone", &"roll"], Color("55434b"))
 
 
 func _add_keycap_row(
@@ -538,8 +532,6 @@ func _play_animation_for_action(action: StringName) -> void:
 		&"move_right": ["strafe", "walk"],
 		&"jump": ["jump"],
 		&"crouch": ["crouch"],
-		&"prone": ["prone"],
-		&"roll": ["roll"],
 		&"dive": ["dive"],
 		&"fire": ["fire", "shoot"],
 		&"reload_weapon": ["reload"],
