@@ -372,6 +372,14 @@ func _run() -> void:
 		and int(attached_frame_editor.call("frame_index")) == 0,
 		"the action button opens its exact lifecycle paused at frame zero"
 	)
+	var frame_editor_skeleton := lab.get("skeleton") as Skeleton3D
+	var paused_frame_pose := _snapshot_skeleton_pose(frame_editor_skeleton)
+	for _paused_update in range(12):
+		await process_frame
+	_expect(
+		_skeleton_pose_matches(frame_editor_skeleton, paused_frame_pose),
+		"a paused lifecycle frame stays fixed while runtime posture and IK update"
+	)
 	_expect(
 		lab.find_child("AnimationFrameLifecycle", true, false) != null
 		and lab.find_child("SetAnimationCorrectionKey", true, false) != null
@@ -392,6 +400,21 @@ func _run() -> void:
 		and String(lab.get("dragged_dot_id")) == "muzzle",
 		"grabbing a rig control pauses the lifecycle on the visible frame without firing"
 	)
+	await process_frame
+	var pose_before_muzzle_drag := _snapshot_skeleton_pose(frame_editor_skeleton)
+	var muzzle_before_drag := muzzle_marker.global_position
+	lab.call(
+		"_apply_dot_world_drag",
+		"muzzle",
+		muzzle_before_drag + camera.global_basis.x.normalized() * 0.08
+	)
+	for _muzzle_drag_update in range(4):
+		await process_frame
+	_expect(
+		muzzle_marker.global_position.distance_to(muzzle_before_drag) > 0.01
+		and _skeleton_pose_matches(frame_editor_skeleton, pose_before_muzzle_drag),
+		"dragging the muzzle moves only the ballistic socket and preserves the paused model pose"
+	)
 	var editing_muzzle_release := InputEventMouseButton.new()
 	editing_muzzle_release.button_index = MOUSE_BUTTON_LEFT
 	editing_muzzle_release.pressed = false
@@ -409,6 +432,24 @@ func _find_representative_clip(entries: Array) -> int:
 		if "rifle" in path and "idle" in path:
 			return index
 	return 0
+
+
+func _snapshot_skeleton_pose(skeleton: Skeleton3D) -> Array[Transform3D]:
+	var poses: Array[Transform3D] = []
+	if skeleton == null:
+		return poses
+	for bone_index in range(skeleton.get_bone_count()):
+		poses.append(skeleton.get_bone_pose(bone_index))
+	return poses
+
+
+func _skeleton_pose_matches(skeleton: Skeleton3D, expected: Array[Transform3D]) -> bool:
+	if skeleton == null or skeleton.get_bone_count() != expected.size():
+		return false
+	for bone_index in range(expected.size()):
+		if not skeleton.get_bone_pose(bone_index).is_equal_approx(expected[bone_index]):
+			return false
+	return true
 
 
 func _expect(condition: bool, label: String) -> void:

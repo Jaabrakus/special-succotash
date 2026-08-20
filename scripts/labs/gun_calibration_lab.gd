@@ -193,7 +193,6 @@ var drag_plane := Plane()
 var drag_initial_world := Vector3.ZERO
 var drag_offset_vector := Vector3.ZERO
 var active_gizmo_id := "hand"
-var ballistic_edit_active: bool = false
 var gunsmith_camera_tracking_enabled: bool = false
 var show_joint_bubbles: bool = true
 var isolate_selected_node: bool = false
@@ -490,7 +489,6 @@ func _input(event: InputEvent) -> void:
 					if hud_status:
 						hud_status.text = "✅ %s locked!" % dragged_dot_id
 					dragged_dot_id = ""
-					ballistic_edit_active = false
 	elif event is InputEventMouseMotion:
 		var mm := event as InputEventMouseMotion
 		if is_orbiting:
@@ -1468,6 +1466,10 @@ func _update_animation_frame_editor() -> void:
 		else:
 			animation_frame_editor.playing = false
 			animation_frame_editor.set_time(animation_frame_editor.duration_seconds)
+	else:
+		# Rebuild the authored pose before procedural posture and IK run below.
+		# Without this sample, those additive layers accumulate on the paused pose.
+		animation_player.seek(animation_frame_editor.time_seconds, true)
 	_apply_animation_frame_pose_for_current_time()
 	_refresh_animation_frame_editor_ui()
 
@@ -2350,7 +2352,6 @@ func _apply_dot_world_drag(dot_id: String, world_pos: Vector3) -> void:
 				_update_slider_value("ik_z", left_grip_local_pos.z)
 		"muzzle":
 			if socket_root:
-				ballistic_edit_active = true
 				muzzle_local_pos = socket_root.to_local(world_pos)
 				_sync_ballistic_markers()
 				_update_slider_value("mz_x", muzzle_local_pos.x)
@@ -2358,7 +2359,6 @@ func _apply_dot_world_drag(dot_id: String, world_pos: Vector3) -> void:
 				_update_slider_value("mz_z", muzzle_local_pos.z)
 		"barrel_base":
 			if socket_root:
-				ballistic_edit_active = true
 				barrel_base_local_pos = socket_root.to_local(world_pos)
 				_sync_ballistic_markers()
 				_update_slider_value("bb_x", barrel_base_local_pos.x)
@@ -2905,8 +2905,6 @@ func _get_gunsmith_fixed_aim_target() -> Vector3:
 
 func _apply_runtime_posture_preview() -> void:
 	if runtime_posture_layer == null or skeleton == null:
-		return
-	if ballistic_edit_active:
 		return
 
 	var aim_target: Vector3 = _get_gunsmith_fixed_aim_target()
