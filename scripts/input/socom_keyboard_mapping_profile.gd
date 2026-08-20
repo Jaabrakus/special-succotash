@@ -8,9 +8,6 @@ const ACTION_ORDER: Array[StringName] = [
 	&"jump", &"crouch", &"prone", &"roll", &"dive",
 	&"peek_left", &"peek_right", &"fire", &"reload_weapon",
 	&"throw_grenade", &"cycle_grenade", &"reset_camera",
-	&"toggle_target_range", &"toggle_trajectory_debug",
-	&"toggle_camera_workbench", &"toggle_camera_visualizer",
-	&"toggle_body_stack", &"toggle_debug_hud",
 ]
 
 const ACTION_LABELS := {
@@ -19,7 +16,7 @@ const ACTION_LABELS := {
 	&"move_left": "Move Left",
 	&"move_right": "Move Right",
 	&"jump": "Jump",
-	&"crouch": "Crouch / Stand",
+	&"crouch": "Stance: Tap / Hold",
 	&"prone": "Prone",
 	&"roll": "Roll",
 	&"dive": "Dive",
@@ -30,12 +27,6 @@ const ACTION_LABELS := {
 	&"throw_grenade": "Throw Grenade",
 	&"cycle_grenade": "Cycle Grenade",
 	&"reset_camera": "Reset Camera",
-	&"toggle_target_range": "Target Range",
-	&"toggle_trajectory_debug": "Trajectory Debug",
-	&"toggle_camera_workbench": "Camera Workbench",
-	&"toggle_camera_visualizer": "Camera Visualizer",
-	&"toggle_body_stack": "Body Stack",
-	&"toggle_debug_hud": "Debug HUD",
 }
 
 const DEFAULT_BINDINGS := {
@@ -58,12 +49,6 @@ const DEFAULT_BINDINGS := {
 	&"throw_grenade": [{"type": "key", "physical_keycode": KEY_G}],
 	&"cycle_grenade": [{"type": "key", "physical_keycode": KEY_5}],
 	&"reset_camera": [{"type": "key", "physical_keycode": KEY_HOME}],
-	&"toggle_target_range": [{"type": "key", "physical_keycode": KEY_F4}],
-	&"toggle_trajectory_debug": [{"type": "key", "physical_keycode": KEY_F6}],
-	&"toggle_camera_workbench": [{"type": "key", "physical_keycode": KEY_P}],
-	&"toggle_camera_visualizer": [{"type": "key", "physical_keycode": KEY_V}],
-	&"toggle_body_stack": [{"type": "key", "physical_keycode": KEY_K}],
-	&"toggle_debug_hud": [{"type": "key", "physical_keycode": KEY_H}],
 }
 
 
@@ -142,7 +127,7 @@ static func current_mapping_document() -> Dictionary:
 		bindings[String(action)] = descriptors
 	return {
 		"schema_version": 1,
-		"purpose": "Shared keyboard and mouse bindings loaded by main gameplay and the Keyboard Mapping Lab",
+		"purpose": "Shared player controls loaded by gameplay and the Keyboard Mapping Lab",
 		"bindings": bindings,
 	}
 

@@ -39,6 +39,11 @@ func _run() -> void:
 		"current fire control is shown as left mouse"
 	)
 	_expect(
+		&"toggle_debug_hud" not in KeyboardProfile.ACTION_ORDER
+		and &"toggle_trajectory_debug" not in KeyboardProfile.ACTION_ORDER,
+		"mapping deck contains gameplay controls only"
+	)
+	_expect(
 		lab.find_child("KeyboardPreviewOperator", true, false) != null,
 		"right side contains the canonical gameplay operator driver"
 	)
@@ -53,6 +58,31 @@ func _run() -> void:
 		lab.find_child("KeyboardInputHistory", true, false) is RichTextLabel,
 		"right side contains button-to-action history"
 	)
+
+	lab.call("_start_stance_press", "X")
+	lab.call("_finish_stance_press", "X")
+	_expect(
+		StringName(lab.get("preview_posture")) == &"CROUCHED",
+		"tapping stance previews crouch"
+	)
+	lab.set("preview_posture", &"STANDING")
+	lab.set("preview_motion_state", &"STANDING")
+	lab.call("_start_stance_press", "X")
+	lab.call("_update_stance_hold", Vector2.ZERO, 0.21)
+	_expect(
+		StringName(lab.get("preview_posture")) == &"PRONE",
+		"holding stance while stationary previews prone"
+	)
+	lab.call("_finish_stance_press", "X")
+	lab.set("preview_posture", &"STANDING")
+	lab.set("preview_motion_state", &"STANDING")
+	lab.call("_start_stance_press", "X")
+	lab.call("_update_stance_hold", Vector2(0.0, -1.0), 0.21)
+	_expect(
+		StringName(lab.get("preview_motion_state")) == &"DIVING",
+		"holding stance while moving previews dive-to-prone"
+	)
+	lab.call("_finish_stance_press", "X")
 
 	var replacement := InputEventKey.new()
 	replacement.physical_keycode = KEY_F3

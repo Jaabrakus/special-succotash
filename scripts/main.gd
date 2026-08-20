@@ -161,6 +161,12 @@ func _ensure_input_map() -> void:
     _add_key_action("toggle_camera_recording", KEY_F9)
     _add_key_action("replay_camera_recording", KEY_F10)
     _add_key_action("toggle_anim_studio", KEY_F5)
+    _add_key_action("toggle_debug_hud", KEY_H)
+    _add_key_action("toggle_camera_workbench", KEY_P)
+    _add_key_action("toggle_camera_visualizer", KEY_V)
+    _add_key_action("toggle_body_stack", KEY_K)
+    _add_key_action("toggle_target_range", KEY_F4)
+    _add_key_action("toggle_trajectory_debug", KEY_F6)
 
 func _ensure_action(action: StringName) -> void:
     if not InputMap.has_action(action):

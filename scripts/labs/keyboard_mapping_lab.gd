@@ -4,6 +4,9 @@ extends Control
 const KeyboardProfile := preload("res://scripts/input/socom_keyboard_mapping_profile.gd")
 const OperatorAnimationDriver := preload("res://scripts/player/operator_animation_driver.gd")
 const MAX_HISTORY := 14
+const STANCE_HOLD_THRESHOLD := 0.20
+const DIVE_DURATION := 0.78
+const ROLL_DURATION := 0.62
 
 var awaiting_action: StringName = &""
 var binding_buttons: Dictionary = {}
@@ -14,10 +17,16 @@ var history_entries: Array[String] = []
 var preview_model: Node3D
 var animation_driver: Node3D
 var animation_player: AnimationPlayer
-var crouched := false
 var impulse_pitch := 0.0
 var preview_peek := 0.0
 var preview_fire_time := 0.0
+var preview_posture: StringName = &"STANDING"
+var preview_motion_state: StringName = &"STANDING"
+var preview_action_time := 0.0
+var preview_vertical_speed := 0.0
+var stance_press_active := false
+var stance_hold_timer := 0.0
+var stance_held_triggered := false
 var last_locomotion_animation: StringName = &""
 
 
@@ -52,10 +61,10 @@ func _input(event: InputEvent) -> void:
 			return
 		return
 
-	if event is InputEventKey and event.pressed and not event.echo:
-		_record_matching_actions(event)
-	elif event is InputEventMouseButton and event.pressed:
-		_record_matching_actions(event)
+	if event is InputEventKey and not event.echo:
+		_record_matching_actions(event, event.pressed)
+	elif event is InputEventMouseButton:
+		_record_matching_actions(event, event.pressed)
 
 
 func _process(delta: float) -> void:
@@ -67,32 +76,29 @@ func _process(delta: float) -> void:
 		&"move_forward",
 		&"move_back"
 	)
+	_update_stance_hold(input_vector, delta)
+	_update_preview_motion_state(delta)
 	if input_vector.length() > 0.05:
 		var direction := Vector3(input_vector.x, 0.0, input_vector.y).normalized()
 		preview_model.position += direction * delta * 1.15
 		preview_model.position.x = clampf(preview_model.position.x, -1.25, 1.25)
 		preview_model.position.z = clampf(preview_model.position.z, -1.10, 1.10)
-		preview_model.rotation.y = lerp_angle(
-			preview_model.rotation.y,
-			atan2(direction.x, direction.z),
-			1.0 - exp(-12.0 * delta)
-		)
 	preview_peek = move_toward(preview_peek, 0.0, delta * 3.5)
 	preview_fire_time = maxf(0.0, preview_fire_time - delta)
 	if animation_driver != null and animation_driver.has_method("set_visual_inputs"):
 		animation_driver.call(
 			"set_visual_inputs",
 			Vector2(input_vector.x, -input_vector.y),
-			&"CROUCHED" if crouched else &"STANDING",
+			preview_posture,
 			0.0,
 			0.0,
 			1.0,
 			preview_fire_time > 0.0,
 			0.0,
 			input_vector.length(),
-			&"LOCOMOTION",
-			0.0,
-			&"WALK",
+			preview_motion_state,
+			preview_vertical_speed,
+			&"FULL" if preview_posture == &"STANDING" and input_vector.length() >= 0.72 else &"WALK",
 			input_vector.length() * 2.4,
 			Vector3.ZERO,
 			Vector2(input_vector.x, -input_vector.y),
@@ -222,9 +228,6 @@ func _build_interface() -> void:
 
 func _build_playtest_keyboard(parent: VBoxContainer) -> void:
 	_add_keycap_row(parent, [
-		&"toggle_target_range", &"toggle_trajectory_debug", &"reset_camera",
-	], Color("426a80"))
-	_add_keycap_row(parent, [
 		&"peek_left", &"move_forward", &"peek_right", &"reload_weapon",
 	], Color("35596d"))
 	_add_keycap_row(parent, [
@@ -234,9 +237,8 @@ func _build_playtest_keyboard(parent: VBoxContainer) -> void:
 		&"dive", &"crouch", &"jump", &"fire",
 	], Color("53633e"))
 	_add_keycap_row(parent, [
-		&"cycle_grenade", &"toggle_debug_hud", &"toggle_body_stack",
-		&"toggle_camera_workbench", &"toggle_camera_visualizer",
-	], Color("4f4568"))
+		&"cycle_grenade", &"reset_camera",
+	], Color("426a80"))
 	var unbound_title := Label.new()
 	unbound_title.text = "UNBOUND PLAYTEST ACTIONS"
 	unbound_title.add_theme_font_size_override("font_size", 11)
@@ -372,11 +374,20 @@ func _reset_defaults() -> void:
 	status_label.text = "Defaults restored in preview. Click Save + Apply to keep them."
 
 
-func _record_matching_actions(event: InputEvent) -> void:
+func _record_matching_actions(event: InputEvent, pressed: bool) -> void:
 	for action: StringName in KeyboardProfile.ACTION_ORDER:
 		if InputMap.event_is_action(event, action, true):
-			_append_history(KeyboardProfile.event_label(event), action, "PRESSED")
-			_preview_action(action)
+			var button_text := KeyboardProfile.event_label(event)
+			if action == &"crouch":
+				if pressed:
+					_start_stance_press(button_text)
+				else:
+					_finish_stance_press(button_text)
+			elif pressed:
+				_append_history(button_text, action, "PRESSED")
+				_preview_action(action)
+			elif action == &"fire":
+				preview_fire_time = 0.0
 
 
 func _append_history(button_text: String, action: StringName, state: String) -> void:
@@ -398,11 +409,12 @@ func _preview_action(action: StringName) -> void:
 	]
 	match action:
 		&"jump":
+			preview_motion_state = &"AIRBORNE"
+			preview_action_time = 0.0
+			preview_vertical_speed = 4.8
 			preview_model.position.y = 0.20
 			var tween := create_tween()
-			tween.tween_property(preview_model, "position:y", 0.0, 0.28).set_trans(Tween.TRANS_QUAD)
-		&"crouch":
-			crouched = not crouched
+			tween.tween_property(preview_model, "position:y", 0.0, 0.55).set_trans(Tween.TRANS_QUAD)
 		&"peek_left":
 			preview_peek = -1.0
 		&"peek_right":
@@ -414,17 +426,101 @@ func _preview_action(action: StringName) -> void:
 				animation_driver.call("notify_fired")
 		&"reload_weapon":
 			_play_animation_for_action(action)
-		&"dive", &"roll", &"prone":
-			_play_animation_for_action(action)
+		&"dive":
+			_start_committed_action(&"DIVING")
+		&"roll":
+			_start_committed_action(&"ROLLING")
+		&"prone":
+			preview_posture = &"CROUCHED" if preview_posture == &"PRONE" else &"PRONE"
+			preview_motion_state = preview_posture
+		&"reset_camera":
+			preview_model.position = Vector3.ZERO
 		_:
 			_play_animation_for_action(action)
+
+
+func _start_stance_press(button_text: String) -> void:
+	stance_press_active = true
+	stance_hold_timer = 0.0
+	stance_held_triggered = false
+	_append_history(button_text, &"crouch", "DOWN — TAP OR HOLD")
+	preview_status.text = "%s held: tap changes stance • hold drops prone • hold while moving dives" % button_text
+
+
+func _update_stance_hold(input_vector: Vector2, delta: float) -> void:
+	if not stance_press_active or stance_held_triggered:
+		return
+	stance_hold_timer += delta
+	if stance_hold_timer < STANCE_HOLD_THRESHOLD:
+		return
+	stance_held_triggered = true
+	if preview_posture != &"PRONE" and input_vector.length() >= 0.72:
+		_start_committed_action(&"DIVING")
+		_append_history(KeyboardProfile.binding_text(&"crouch"), &"crouch", "HOLD + MOVE → DIVE")
+		preview_status.text = "Hold stance while moving = dive to prone"
+	else:
+		preview_posture = &"PRONE"
+		preview_motion_state = &"PRONE"
+		_append_history(KeyboardProfile.binding_text(&"crouch"), &"crouch", "HOLD → PRONE")
+		preview_status.text = "Hold stance = prone"
+
+
+func _finish_stance_press(button_text: String) -> void:
+	if not stance_press_active:
+		return
+	if not stance_held_triggered:
+		if preview_posture == &"CROUCHED":
+			preview_posture = &"STANDING"
+		elif preview_posture == &"PRONE":
+			preview_posture = &"CROUCHED"
+		else:
+			preview_posture = &"CROUCHED"
+		preview_motion_state = preview_posture
+		_append_history(button_text, &"crouch", "TAP → %s" % preview_posture)
+		preview_status.text = "Tap stance = %s" % preview_posture.to_lower()
+	stance_press_active = false
+	stance_hold_timer = 0.0
+	stance_held_triggered = false
+
+
+func _start_committed_action(state: StringName) -> void:
+	if preview_posture == &"PRONE":
+		return
+	preview_motion_state = state
+	preview_posture = &"STANDING" if state == &"DIVING" else &"CROUCHED"
+	preview_action_time = 0.0
+
+
+func _update_preview_motion_state(delta: float) -> void:
+	preview_vertical_speed = 0.0
+	match preview_motion_state:
+		&"DIVING":
+			preview_action_time += delta
+			if preview_action_time >= DIVE_DURATION:
+				preview_posture = &"PRONE"
+				preview_motion_state = &"PRONE"
+		&"ROLLING":
+			preview_action_time += delta
+			if preview_action_time >= ROLL_DURATION:
+				preview_posture = &"CROUCHED"
+				preview_motion_state = &"CROUCHED"
+		&"AIRBORNE":
+			preview_action_time += delta
+			preview_vertical_speed = 4.8 if preview_action_time < 0.26 else -3.5
+			if preview_action_time >= 0.58:
+				preview_motion_state = &"LANDING"
+				preview_action_time = 0.0
+		&"LANDING":
+			preview_action_time += delta
+			if preview_action_time >= 0.18:
+				preview_motion_state = preview_posture
 
 
 func _play_animation_for_action(action: StringName) -> void:
 	if animation_driver != null and animation_driver.has_method("play_semantic_action"):
 		var semantic_action: StringName = {
 			&"reload_weapon": &"reload",
-			&"throw_grenade": &"throw_grenade",
+			&"throw_grenade": &"grenade_quick",
 		}.get(action, action)
 		if bool(animation_driver.call("play_semantic_action", semantic_action, 0.12)):
 			return
