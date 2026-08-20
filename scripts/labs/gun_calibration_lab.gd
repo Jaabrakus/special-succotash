@@ -502,6 +502,9 @@ func _input(event: InputEvent) -> void:
 						hitbox_drag_offset_start = _hitbox_offset(selected_hurtbox_region)
 					elif hit_dot == "left_ik":
 						_set_active_gizmo("hand")
+					elif hit_dot == "eye_sight":
+						selected_body_joint = &"head"
+						_sync_body_joint_controls()
 					elif hit_dot == "right_grip" or hit_dot == "weapon_mount":
 						_set_active_gizmo("weapon")
 						if hit_dot == "weapon_mount" and _editing_action_weapon_frame():
@@ -520,7 +523,11 @@ func _input(event: InputEvent) -> void:
 						else:
 							drag_offset_vector = Vector3.ZERO
 						if hud_status:
-							hud_status.text = "🎯 Positioning %s (Left arm biomechanically auto-grips!)" % hit_dot
+							hud_status.text = (
+								"👁 Drag eye sight: horizontal = yaw, vertical = pitch"
+								if hit_dot == "eye_sight"
+								else "🎯 Positioning %s (Left arm biomechanically auto-grips!)" % hit_dot
+							)
 					get_viewport().set_input_as_handled()
 					return
 				mouse_fire_armed = (
@@ -554,6 +561,24 @@ func _input(event: InputEvent) -> void:
 		elif dragged_dot_id != "":
 			if dragged_dot_id.begins_with("body_joint:"):
 				_adjust_selected_joint_rotation(Vector3(-mm.relative.y * 0.25, mm.relative.x * 0.25, 0.0))
+			elif dragged_dot_id == "eye_sight":
+				var eye_correction := _eye_sight_head_correction()
+				_set_eye_sight_head_component(
+					clampf(eye_correction.y + mm.relative.x * 0.25, -38.0, 38.0),
+					&"yaw"
+				)
+				eye_correction = _eye_sight_head_correction()
+				_set_eye_sight_head_component(
+					clampf(eye_correction.x - mm.relative.y * 0.25, -24.0, 24.0),
+					&"pitch"
+				)
+				_sync_eye_sight_controls()
+				if hud_status:
+					eye_correction = _eye_sight_head_correction()
+					hud_status.text = "👁 Eye Pitch %.1f° • Yaw %.1f°" % [
+						eye_correction.x,
+						eye_correction.y,
+					]
 			elif dragged_dot_id == "left_ik_ring_roll":
 				palm_roll = wrapf(palm_roll + mm.relative.x * 0.85, -180.0, 180.0)
 				_update_slider_value("p_roll", palm_roll)
@@ -2656,6 +2681,7 @@ func _register_interactive_dots() -> void:
 	if ejection_marker: interactive_dots.append({"id": "ejection", "mesh": ejection_marker, "label": "🟡 Shell Ejection Port", "color": Color(1.0, 0.85, 0.1)})
 	if optic_marker: interactive_dots.append({"id": "optic", "mesh": optic_marker, "label": "🟢 Optic Scope Rail", "color": Color(0.2, 1.0, 0.4)})
 	if right_grip_marker: interactive_dots.append({"id": "right_grip", "mesh": right_grip_marker, "label": "🟠 Trigger-Hand Grip (moves gun in right hand)", "color": Color(1.0, 0.55, 0.08)})
+	if eye_sight_dot: interactive_dots.append({"id": "eye_sight", "mesh": eye_sight_dot, "label": "🔵 Eye Sight — drag yaw/pitch", "color": Color(0.25, 0.55, 1.0)})
 
 func _find_dot_under_mouse(screen_pos: Vector2) -> String:
 	if not cam: return ""
@@ -2673,6 +2699,21 @@ func _find_dot_under_mouse(screen_pos: Vector2) -> String:
 		if socket_mesh != null and socket_mesh.is_visible_in_tree() and not cam.is_position_behind(socket_mesh.global_position):
 			if screen_pos.distance_to(cam.unproject_position(socket_mesh.global_position)) <= 18.0:
 				return String(socket_pick[0])
+
+	# The head origin is a small dot, so make the visible blue sight segment a
+	# direct authoring handle too. Keep this after weapon sockets so an eye line
+	# crossing the rifle can never steal a muzzle or optic selection.
+	if eye_sight_marker != null and eye_sight_marker.is_visible_in_tree():
+		var eye_origin := eye_sight_marker.global_position
+		var eye_pick_end := eye_origin + _eye_sight_direction_world() * 5.0
+		if not cam.is_position_behind(eye_origin) and not cam.is_position_behind(eye_pick_end):
+			var eye_line_distance := _screen_point_segment_distance(
+				screen_pos,
+				cam.unproject_position(eye_origin),
+				cam.unproject_position(eye_pick_end)
+			)
+			if eye_line_distance <= 14.0:
+				return "eye_sight"
 
 	# Select the real support-hand area instead of requiring a visible sphere.
 	if left_grip_marker and not cam.is_position_behind(left_grip_marker.global_position):

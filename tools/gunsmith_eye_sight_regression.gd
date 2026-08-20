@@ -76,6 +76,48 @@ func _run() -> void:
 		"set_procedural_rotation_degrees",
 		lab.get("preview_posture"),
 		&"head",
+		Vector3.ZERO
+	)
+	lab.call("_update_eye_sight_marker")
+	var camera := lab.get("cam") as Camera3D
+	var eye_origin_screen := camera.unproject_position(eye_marker.global_position)
+	var eye_end_screen := camera.unproject_position(
+		eye_marker.global_position + lab.call("_eye_sight_direction_world") * 5.0
+	)
+	var eye_line_pick := eye_origin_screen.lerp(eye_end_screen, 0.35)
+	_expect(
+		String(lab.call("_find_dot_under_mouse", eye_line_pick)) == "eye_sight",
+		"clicking the visible blue segment selects eye authoring"
+	)
+	var eye_press := InputEventMouseButton.new()
+	eye_press.button_index = MOUSE_BUTTON_LEFT
+	eye_press.pressed = true
+	eye_press.position = eye_line_pick
+	lab.call("_input", eye_press)
+	_expect(
+		String(lab.get("dragged_dot_id")) == "eye_sight"
+		and bool(lab.get("authoring_pointer_down")),
+		"the selected eye line starts a head-only drag"
+	)
+	var eye_drag := InputEventMouseMotion.new()
+	eye_drag.position = eye_line_pick + Vector2(20.0, -12.0)
+	eye_drag.relative = Vector2(20.0, -12.0)
+	lab.call("_input", eye_drag)
+	var dragged_correction: Vector3 = lab.call("_eye_sight_head_correction")
+	_expect(
+		dragged_correction.y > 4.9 and dragged_correction.x > 2.9,
+		"dragging the eye line changes yaw left/right and pitch up/down"
+	)
+	var eye_release := InputEventMouseButton.new()
+	eye_release.button_index = MOUSE_BUTTON_LEFT
+	eye_release.pressed = false
+	eye_release.position = eye_drag.position
+	lab.call("_input", eye_release)
+	_expect(String(lab.get("dragged_dot_id")).is_empty(), "releasing locks the eye direction")
+	posture_layer.call(
+		"set_procedural_rotation_degrees",
+		lab.get("preview_posture"),
+		&"head",
 		original_head_correction
 	)
 
