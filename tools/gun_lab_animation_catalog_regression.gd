@@ -448,6 +448,26 @@ func _run() -> void:
 		) - 12.0) < 0.001,
 		"the weapon correction is stored only in the selected reload clip and frame"
 	)
+	var reload_clip_keys: Dictionary = (
+		(attached_frame_editor.get("pose_keys") as Dictionary).get(
+			String(standing_reload_clip),
+			{}
+		) as Dictionary
+	)
+	var reload_terminal_pose: Dictionary = reload_clip_keys.get(
+		str(attached_frame_editor.call("frame_count")),
+		{}
+	)
+	var terminal_weapon_rotation: Dictionary = reload_terminal_pose.get(
+		"weapon_hand_rotation_correction_deg",
+		{}
+	)
+	_expect(
+		absf(float(terminal_weapon_rotation.get("x", 1.0))) < 0.001
+		and absf(float(terminal_weapon_rotation.get("y", 1.0))) < 0.001
+		and absf(float(terminal_weapon_rotation.get("z", 1.0))) < 0.001,
+		"reload weapon pitch and yaw automatically return to aim-idle neutral on the final frame"
+	)
 	var frame_editor_skeleton := lab.get("skeleton") as Skeleton3D
 	var paused_frame_pose := _snapshot_skeleton_pose(frame_editor_skeleton)
 	for _paused_update in range(12):

@@ -69,6 +69,28 @@ func store_current_pose(pose_data: Dictionary) -> void:
 	pose_keys[clip_key()] = clip_keys
 
 
+func ensure_terminal_weapon_neutral_pose(source_pose: Dictionary) -> void:
+	if not active or clip_name == &"":
+		return
+	var clip_keys: Dictionary = pose_keys.get(clip_key(), {}).duplicate(true)
+	var terminal_key := str(frame_count())
+	var terminal_pose: Dictionary = (
+		(clip_keys.get(terminal_key, {}) as Dictionary).duplicate(true)
+		if clip_keys.get(terminal_key, {}) is Dictionary
+		else {}
+	)
+	if terminal_pose.is_empty():
+		terminal_pose = source_pose.duplicate(true)
+	terminal_pose["weapon_hand_position_correction"] = {
+		"x": 0.0, "y": 0.0, "z": 0.0,
+	}
+	terminal_pose["weapon_hand_rotation_correction_deg"] = {
+		"x": 0.0, "y": 0.0, "z": 0.0,
+	}
+	clip_keys[terminal_key] = terminal_pose
+	pose_keys[clip_key()] = clip_keys
+
+
 func current_pose() -> Dictionary:
 	if not active or clip_name == &"":
 		return {}

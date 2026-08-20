@@ -1648,6 +1648,12 @@ func _enter_animation_frame_editor(slot_name: String, clip_name: StringName) -> 
 			animation_frame_editor.frame_count()
 		)
 	animation_frame_base_pose = _snapshot_animation_frame_pose()
+	if _is_reload_frame_editor() and not animation_frame_editor.saved_frame_indices().is_empty():
+		# Profiles saved before the frame-local weapon split did not have an
+		# explicit return key. Add one in memory when that reload is opened.
+		animation_frame_editor.ensure_terminal_weapon_neutral_pose(
+			animation_frame_base_pose
+		)
 	animation_frame_last_applied = -1
 	animation_player.play(clip_name, 0.0)
 	animation_player.pause()
@@ -1869,12 +1875,16 @@ func _capture_animation_frame_pose_key() -> void:
 		if hud_status:
 			hud_status.text = "⚠ Open an animation with ✎ before saving a pose key."
 		return
-	animation_frame_editor.store_current_pose(_snapshot_animation_frame_pose())
+	var captured_pose := _snapshot_animation_frame_pose()
+	animation_frame_editor.store_current_pose(captured_pose)
+	if _is_reload_frame_editor():
+		animation_frame_editor.ensure_terminal_weapon_neutral_pose(captured_pose)
 	_refresh_animation_frame_editor_ui()
 	if hud_status:
-		hud_status.text = "◆ Saved correction key for %s at frame %d. It holds until the next key; save the weapon profile to keep it." % [
+		hud_status.text = "◆ Saved correction key for %s at frame %d.%s Save the weapon profile to keep it." % [
 			animation_frame_editor.clip_name,
 			animation_frame_editor.frame_index(),
+			" Weapon pitch/yaw return to aim idle at the final frame." if _is_reload_frame_editor() else " It holds until the next key;",
 		]
 
 

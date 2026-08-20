@@ -71,6 +71,32 @@ func _init() -> void:
 		push_error("[GUNSMITH FRAME EDITOR] Runtime did not preserve the editor's endpoint curve.")
 		quit(1)
 		return
+	var reload_editor := FrameEditor.new()
+	reload_editor.begin("reload_standing", &"reload", 3.3)
+	reload_editor.set_time(1.0)
+	var reload_pose := {
+		"joint_rotations": {},
+		"weapon_hand_position_correction": {"x": 0.02, "y": 0.0, "z": 0.0},
+		"weapon_hand_rotation_correction_deg": {"x": 18.0, "y": -14.0, "z": 0.0},
+	}
+	reload_editor.store_current_pose(reload_pose)
+	reload_editor.ensure_terminal_weapon_neutral_pose(reload_pose)
+	reload_editor.set_time(3.3)
+	var reload_terminal := reload_editor.current_pose()
+	var terminal_rotation: Dictionary = reload_terminal.get(
+		"weapon_hand_rotation_correction_deg", {}
+	)
+	var terminal_position: Dictionary = reload_terminal.get(
+		"weapon_hand_position_correction", {}
+	)
+	if (
+		absf(float(terminal_rotation.get("x", 1.0))) > 0.001
+		or absf(float(terminal_rotation.get("y", 1.0))) > 0.001
+		or absf(float(terminal_position.get("x", 1.0))) > 0.001
+	):
+		push_error("[GUNSMITH FRAME EDITOR] Reload weapon pitch/yaw did not return to neutral at the final frame.")
+		quit(1)
+		return
 	var weapon_solver := WeaponPoseSolver.new()
 	weapon_solver.set_animation_frame_pose({
 		"weapon_hand_position_correction": {"x": 0.03, "y": -0.01, "z": 0.02},
