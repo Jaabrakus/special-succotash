@@ -12,6 +12,7 @@ const PALETTE_TYPES: Array[StringName] = [
 	&"point_light", &"ambience_zone",
 	&"curved_wall", &"jagged_wall",
 	&"team_alpha_spawn", &"team_bravo_spawn", &"bomb_pickup", &"alpha_bomb_site", &"bravo_bomb_site",
+	&"training_dummy", &"moving_training_dummy",
 ]
 const GRID_OPTIONS := [0.125, 0.25, 0.5, 1.0, 2.0, 4.0]
 const MAX_UNDO := 100
@@ -472,6 +473,23 @@ func _build_special_property_inspector() -> void:
 	_add_special_number(jagged_panel, "Height Break", "jagged_variance", 0.0, 4.0, 0.1)
 	_add_special_number(jagged_panel, "Edge Tilt", "jagged_rotation", 0.0, 25.0, 1.0)
 
+	var moving_dummy_panel := VBoxContainer.new()
+	moving_dummy_panel.name = "MovingTrainingDummyInspector"
+	inspector_panel.add_child(moving_dummy_panel)
+	special_property_panels["moving_training_dummy"] = moving_dummy_panel
+	var moving_title := Label.new()
+	moving_title.text = "MOVING TRAINING DUMMY"
+	moving_title.add_theme_color_override("font_color", Color("50d8df"))
+	moving_dummy_panel.add_child(moving_title)
+	_add_special_number(moving_dummy_panel, "Travel Distance", "dummy_distance", 0.5, 50.0, 0.25)
+	_add_special_number(moving_dummy_panel, "Move Speed", "dummy_speed", 0.1, 12.0, 0.1)
+	_add_special_number(moving_dummy_panel, "Turn Pause", "dummy_pause", 0.0, 5.0, 0.05)
+	var dummy_note := Label.new()
+	dummy_note.text = "Yaw rotates the patrol line. The cyan line previews total travel distance."
+	dummy_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	dummy_note.add_theme_font_size_override("font_size", 11)
+	moving_dummy_panel.add_child(dummy_note)
+
 	_build_material_inspector()
 
 
@@ -831,6 +849,10 @@ func _refresh_inspector() -> void:
 			(special_fields["jagged_pieces"] as SpinBox).value = float(properties.get("pieces", 6))
 			(special_fields["jagged_variance"] as SpinBox).value = float(properties.get("height_variance", 0.8))
 			(special_fields["jagged_rotation"] as SpinBox).value = float(properties.get("edge_rotation", 5.0))
+		elif object_type == "moving_training_dummy":
+			(special_fields["dummy_distance"] as SpinBox).value = float(properties.get("patrol_distance", 6.0))
+			(special_fields["dummy_speed"] as SpinBox).value = float(properties.get("patrol_speed", 1.5))
+			(special_fields["dummy_pause"] as SpinBox).value = float(properties.get("turn_pause", 0.35))
 	else:
 		material_panel.visible = false
 	updating_inspector = false
@@ -864,6 +886,12 @@ func _special_number_changed(_value: float, field_key: String) -> void:
 		changes["metallic"] = (special_fields[field_key] as SpinBox).value
 	elif field_key == "material_uv_scale":
 		changes["uv_scale"] = (special_fields[field_key] as SpinBox).value
+	elif field_key == "dummy_distance":
+		changes["patrol_distance"] = (special_fields[field_key] as SpinBox).value
+	elif field_key == "dummy_speed":
+		changes["patrol_speed"] = (special_fields[field_key] as SpinBox).value
+	elif field_key == "dummy_pause":
+		changes["turn_pause"] = (special_fields[field_key] as SpinBox).value
 	execute_map_command({"command": "set_object_properties", "id": selected_id, "changes": changes})
 
 
@@ -1188,7 +1216,7 @@ func _handle_left_press(screen_position: Vector2) -> void:
 		var defaults: Dictionary = MapDocument.TYPE_DEFAULTS[placement_type]
 		var size: Vector3 = defaults["size"]
 		var placed := _snap_vector(point as Vector3)
-		if placement_type in [&"player_spawn", &"team_alpha_spawn", &"team_bravo_spawn"]:
+		if placement_type in [&"player_spawn", &"team_alpha_spawn", &"team_bravo_spawn", &"training_dummy", &"moving_training_dummy"]:
 			placed.y = 0.05
 		elif placement_type == &"point_light":
 			placed.y = 2.4

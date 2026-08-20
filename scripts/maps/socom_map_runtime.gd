@@ -36,6 +36,8 @@ static func build_object(object: Dictionary, editor_preview: bool = false) -> No
 		return _build_jagged_wall(object)
 	if type_name == &"ramp":
 		return _build_wedge_ramp(object)
+	if type_name in [&"training_dummy", &"moving_training_dummy"]:
+		return _build_training_marker(object, editor_preview)
 	var body := StaticBody3D.new()
 	body.name = String(object.get("name", type_name)).validate_node_name()
 	body.set_meta("map_object_id", String(object.get("id", "")))
@@ -156,6 +158,61 @@ static func _build_objective_marker(object: Dictionary, editor_preview: bool) ->
 	shape.size = size
 	collision.shape = shape
 	marker.add_child(collision)
+	return marker
+
+
+static func _build_training_marker(object: Dictionary, editor_preview: bool) -> Node3D:
+	var marker := StaticBody3D.new()
+	var type_name := StringName(object.get("type", "training_dummy"))
+	marker.name = String(object.get("name", type_name)).validate_node_name()
+	marker.position = MapDocument.data_to_vector(object.get("position", {}))
+	marker.rotation_degrees = MapDocument.data_to_vector(object.get("rotation_degrees", {}))
+	_set_object_meta(marker, object)
+	marker.set_meta("training_target", true)
+	if not editor_preview:
+		return marker
+	var visual := MeshInstance3D.new()
+	visual.name = "Visual"
+	var capsule := CapsuleMesh.new()
+	capsule.radius = 0.38
+	capsule.height = 1.8
+	visual.mesh = capsule
+	visual.position.y = 0.9
+	var material := StandardMaterial3D.new()
+	material.albedo_color = MapDocument.data_to_color(object.get("color", {}), Color("f39a55"))
+	material.roughness = 0.8
+	visual.material_override = material
+	marker.add_child(visual)
+	var collision := CollisionShape3D.new()
+	collision.name = "CollisionShape3D"
+	var shape := CapsuleShape3D.new()
+	shape.radius = 0.38
+	shape.height = 1.8
+	collision.shape = shape
+	collision.position.y = 0.9
+	marker.add_child(collision)
+	var label := Label3D.new()
+	label.text = "MOVING" if type_name == &"moving_training_dummy" else "STATIC"
+	label.position.y = 2.15
+	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	label.font_size = 22
+	label.modulate = material.albedo_color
+	marker.add_child(label)
+	if type_name == &"moving_training_dummy":
+		var properties: Dictionary = object.get("properties", {})
+		var distance := clampf(float(properties.get("patrol_distance", 6.0)), 0.5, 50.0)
+		var path := MeshInstance3D.new()
+		path.name = "PatrolPath"
+		var path_mesh := BoxMesh.new()
+		path_mesh.size = Vector3(distance, 0.035, 0.08)
+		path.mesh = path_mesh
+		path.position.y = 0.04
+		var path_material := StandardMaterial3D.new()
+		path_material.albedo_color = Color(0.2, 0.95, 1.0, 0.75)
+		path_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		path_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		path.material_override = path_material
+		marker.add_child(path)
 	return marker
 
 

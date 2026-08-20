@@ -30,6 +30,8 @@
         "res://scripts/player/operator_animation_driver.gd",
         "res://scripts/player/operator_procedural_pose_profile.gd",
         "res://scripts/ui/operator_pose_tuner.gd",
+        "res://scripts/ui/socom_controls_guide.gd",
+        "res://scripts/combat/socom_moving_training_dummy.gd",
         "res://scripts/weapons/weapon_rig_contract.gd",
         "res://scripts/weapons/socom_weapon_controller.gd",
         "res://scripts/network/socom_shot_authority.gd"
@@ -153,6 +155,7 @@
         "res://scripts/maps/socom_map_ambience_engine.gd",
         "res://scripts/maps/socom_map_audio_ambience.gd",
         "res://scripts/maps/socom_map_gameplay_contract.gd",
+        "res://scripts/combat/socom_moving_training_dummy.gd",
         "res://scripts/runtime/playtest_state_collector.gd",
         "res://scripts/main.gd"
       ]

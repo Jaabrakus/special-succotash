@@ -12,6 +12,7 @@ const WeaponControllerScript := preload("res://scripts/weapons/socom_weapon_cont
 const DynamicReticleScript := preload("res://scripts/ui/socom_dynamic_reticle.gd")
 const TracerSystemScript := preload("res://scripts/weapons/lab_leak_tracer_system.gd")
 const TargetDummyScript := preload("res://scripts/combat/lab_leak_target_dummy.gd")
+const MovingTargetDummyScript := preload("res://scripts/combat/socom_moving_training_dummy.gd")
 const AudioEngineScript := preload("res://scripts/audio/lab_leak_audio_engine.gd")
 const TacticalScreenEffectsScript := preload("res://scripts/tactical/tactical_screen_effects.gd")
 const TacticalGrenadeThrowerScript := preload("res://scripts/tactical/tactical_grenade_thrower.gd")
@@ -24,6 +25,7 @@ const MapDocument := preload("res://scripts/maps/socom_map_document.gd")
 const MapRuntime := preload("res://scripts/maps/socom_map_runtime.gd")
 const MapAmbience := preload("res://scripts/maps/socom_map_ambience_engine.gd")
 const MapAudioAmbience := preload("res://scripts/maps/socom_map_audio_ambience.gd")
+const ControlsGuideScript := preload("res://scripts/ui/socom_controls_guide.gd")
 const RETICLE_BOX_SIZE := Vector2(32.0, 32.0)
 const OPERATOR_TUNING_PATH := "res://config/operator_movement_tuning.json"
 
@@ -67,6 +69,7 @@ var tactical_grenade_thrower: Node
 var selected_grenade_type: int = 0
 var active_map_document: Dictionary = {}
 var map_audio_ambience: Node
+var controls_guide: CanvasLayer
 
 const REFERENCE_FRAME_PATH := "res://reference/reference_frame.png"
 const ENVIRONMENT_SHADER := """
@@ -158,7 +161,8 @@ func _attach_saved_playtest_bundle() -> void:
 func _ensure_input_map() -> void:
     KeyboardMappingProfile.apply_project_mapping()
     # Keep developer-only controls outside the player-facing mapping profile.
-    _add_key_action("toggle_calibration", KEY_C)
+    _add_key_action("toggle_controls_guide", KEY_F3)
+    _add_key_action("toggle_calibration", KEY_F7)
     _add_key_action("calibration_opacity_down", KEY_BRACKETLEFT)
     _add_key_action("calibration_opacity_up", KEY_BRACKETRIGHT)
     _add_key_action("toggle_roof_test", KEY_T)
@@ -169,6 +173,7 @@ func _ensure_input_map() -> void:
     _add_key_action("toggle_anim_studio", KEY_F5)
     _add_key_action("toggle_debug_hud", KEY_H)
     _add_key_action("toggle_camera_workbench", KEY_P)
+    _add_key_action("toggle_camera_workbench", KEY_F8)
     _add_key_action("toggle_camera_visualizer", KEY_V)
     _add_key_action("toggle_body_stack", KEY_K)
     _add_key_action("toggle_target_range", KEY_F4)
@@ -212,6 +217,8 @@ func _add_key_action(action: StringName, keycode: Key) -> void:
     InputMap.action_add_event(action, event)
 
 func _process(_delta: float) -> void:
+    if Input.is_action_just_pressed("toggle_controls_guide") and controls_guide != null:
+        controls_guide.call("toggle")
     if (
         Input.is_action_just_pressed("reload_weapon")
         and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
@@ -408,8 +415,8 @@ func _process(_delta: float) -> void:
         print("CAMERA_REPORT ", JSON.stringify(d))
     debug_label.text = (
         "SOCOM-141 CAMERA LAB\n"
-        + "WASD move | Space jump | X/C tap crouch, hold prone | Z dive-prone | Q/E peek | F4 targets\n"
-        + "Mouse orbit | R reload | Home reset camera | H clean HUD | K body stack | V camera view | P tune\n"
+        + "WASD move | Space jump | X/C tap crouch, hold prone | Z dive-prone | Q/E peek | F3 all controls\n"
+        + "Mouse aim | R reload | Home reset | F4 targets | F5 studio | F6 trajectory | F8 tune\n"
         + "v2.7 MERGED SOCOM RETICLE + HUMANOID HURTBOX RANGE\n\n"
         + "Vertical FOV     %5.1f°\n" % d.fov
         + "Rear boom       %5.2f m behind player\n" % d.rear_boom_distance
@@ -535,6 +542,16 @@ func _spawn_target_dummy(target_position: Vector3, target_yaw_degrees: float) ->
 
 func _set_target_range_active(enabled: bool) -> void:
     target_range_active = enabled
+    if not active_map_document.is_empty():
+        for dummy in target_dummies:
+            if not is_instance_valid(dummy):
+                continue
+            dummy.visible = enabled
+            dummy.process_mode = Node.PROCESS_MODE_INHERIT if enabled else Node.PROCESS_MODE_DISABLED
+            var hurtbox = dummy.call("get_hurtbox_rig") if dummy.has_method("get_hurtbox_rig") else null
+            if hurtbox != null and hurtbox.has_method("set_enabled"):
+                hurtbox.call("set_enabled", enabled)
+        return
     if enabled:
         _spawn_target_range()
         return
@@ -544,8 +561,6 @@ func _set_target_range_active(enabled: bool) -> void:
     target_dummies.clear()
 
 func _build_player() -> void:
-    if not active_map_document.is_empty():
-        target_range_active = false
     player = PlayerScript.new()
     player.name = "Player"
     player.position = MapDocument.player_spawn(active_map_document, Vector3(0, 0.05, 0.5))
@@ -563,13 +578,38 @@ func _build_player() -> void:
     var mannequin = MannequinScript.new()
     mannequin.name = "Mannequin"
     player.add_child(mannequin)
-    if target_range_active:
+    if not active_map_document.is_empty():
+        _spawn_authored_training_dummies()
+    elif target_range_active:
         _spawn_target_range()
     if not active_map_document.is_empty():
         map_audio_ambience = MapAudioAmbience.new()
         map_audio_ambience.name = "MapAudioAmbience"
         add_child(map_audio_ambience)
         map_audio_ambience.call("configure", active_map_document, player)
+
+
+func _spawn_authored_training_dummies() -> void:
+    for object: Dictionary in active_map_document.get("objects", []):
+        var type_name := StringName(object.get("type", ""))
+        if type_name not in [&"training_dummy", &"moving_training_dummy"]:
+            continue
+        var dummy = (
+            MovingTargetDummyScript.new()
+            if type_name == &"moving_training_dummy"
+            else TargetDummyScript.new()
+        )
+        dummy.name = String(object.get("name", "Training Dummy")).validate_node_name()
+        dummy.position = MapDocument.data_to_vector(object.get("position", {}))
+        dummy.rotation_degrees = MapDocument.data_to_vector(object.get("rotation_degrees", {}))
+        dummy.set_meta("map_object_id", String(object.get("id", "")))
+        var properties: Dictionary = object.get("properties", {})
+        dummy.max_health = clampf(float(properties.get("health", 100.0)), 1.0, 10000.0)
+        dummy.current_health = dummy.max_health
+        add_child(dummy)
+        if type_name == &"moving_training_dummy":
+            dummy.call("configure_patrol", properties)
+        target_dummies.append(dummy)
 
 func _set_roof_test_position(enabled: bool) -> void:
     player.velocity = Vector3.ZERO
@@ -793,6 +833,9 @@ func _build_ui() -> void:
     pose_tuner_panel.name = "OperatorPoseTuner"
     layer.add_child(pose_tuner_panel)
     pose_tuner_panel.configure(_get_animation_driver(), player)
+    controls_guide = ControlsGuideScript.new()
+    controls_guide.name = "SocomControlsGuide"
+    add_child(controls_guide)
 
 
 func _build_camera_workbench(layer: CanvasLayer) -> void:

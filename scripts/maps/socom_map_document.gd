@@ -8,6 +8,7 @@ const SUPPORTED_TYPES: Array[StringName] = [
 	&"point_light", &"ambience_zone",
 	&"curved_wall", &"jagged_wall",
 	&"team_alpha_spawn", &"team_bravo_spawn", &"bomb_pickup", &"alpha_bomb_site", &"bravo_bomb_site",
+	&"training_dummy", &"moving_training_dummy",
 ]
 
 const SOCOM_OBJECTIVE_TYPES: Array[StringName] = [
@@ -58,6 +59,8 @@ const TYPE_DEFAULTS := {
 	&"bomb_pickup": {"label": "Neutral Bomb Pickup", "size": Vector3(0.8, 0.8, 0.8), "color": Color("f4d34f")},
 	&"alpha_bomb_site": {"label": "Alpha Base Target", "size": Vector3(3.0, 0.25, 3.0), "color": Color("4fa3ff")},
 	&"bravo_bomb_site": {"label": "Bravo Base Target", "size": Vector3(3.0, 0.25, 3.0), "color": Color("ff655e")},
+	&"training_dummy": {"label": "Training Dummy", "size": Vector3(0.8, 1.8, 0.8), "color": Color("f39a55")},
+	&"moving_training_dummy": {"label": "Moving Dummy", "size": Vector3(0.8, 1.8, 0.8), "color": Color("50d8df")},
 }
 
 
@@ -252,6 +255,10 @@ static func _default_properties(type_name: StringName) -> Dictionary:
 		return {"energy": 4.0, "range": 8.0, "shadow_enabled": true}
 	if type_name == &"ambience_zone":
 		return {"soundscape": "outdoor_tactical", "audio_stream": "", "volume_db": -8.0, "blend_distance": 2.0}
+	if type_name == &"training_dummy":
+		return {"health": 100.0}
+	if type_name == &"moving_training_dummy":
+		return {"health": 100.0, "patrol_distance": 6.0, "patrol_speed": 1.5, "turn_pause": 0.35}
 	var material := {"texture_path": "", "roughness": 0.9, "metallic": 0.0, "uv_scale": 1.0}
 	if type_name == &"curved_wall":
 		material.merge({"radius": 4.0, "arc_degrees": 90.0, "segments": 8}, true)

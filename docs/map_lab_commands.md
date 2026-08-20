@@ -20,6 +20,8 @@ Supported commands:
 
 SOCOM mission object types include `team_alpha_spawn`, `team_bravo_spawn`, `bomb_pickup`, `alpha_bomb_site`, and `bravo_bomb_site`. A demolition map cannot save until all required objective types are present. The same document can advertise both `demolition` and `team_deathmatch`.
 
+Training objects include `training_dummy` and `moving_training_dummy`. Moving targets expose patrol distance, movement speed, and turn-pause properties. Their yaw rotates the patrol line. They use the gameplay hurtbox rig when the authored map opens in training gameplay.
+
 Tactical geometry includes true wedge `ramp` pieces, segmented `curved_wall` pieces, and deterministic `jagged_wall` pieces. Surface objects accept `texture_path`, `roughness`, `metallic`, and `uv_scale` properties. Texture paths stay project-relative (`res://`) so another human, agent, build, or machine sees the same material.
 
 Example command:

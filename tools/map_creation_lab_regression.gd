@@ -5,6 +5,8 @@ const MapCommands := preload("res://scripts/maps/socom_map_command_service.gd")
 const MapRuntime := preload("res://scripts/maps/socom_map_runtime.gd")
 const MapAmbience := preload("res://scripts/maps/socom_map_ambience_engine.gd")
 const MapGameplay := preload("res://scripts/maps/socom_map_gameplay_contract.gd")
+const MovingTrainingDummy := preload("res://scripts/combat/socom_moving_training_dummy.gd")
+const ControlsGuide := preload("res://scripts/ui/socom_controls_guide.gd")
 
 var failures: Array[String] = []
 
@@ -47,6 +49,13 @@ func _run() -> void:
 		})
 		_expect(bool(shaped.get("ok", false)), "%s is available as authored tactical geometry" % shape_type)
 		document = shaped.get("document", {})
+	for dummy_type in ["training_dummy", "moving_training_dummy"]:
+		var target := MapCommands.apply(document, {
+			"command": "place_object", "type": dummy_type,
+			"position": {"x": 2.0, "y": 0.05, "z": -2.0},
+		})
+		_expect(bool(target.get("ok", false)), "%s is available in the map document" % dummy_type)
+		document = target.get("document", {})
 	var atmosphere := MapCommands.apply(document, {"command": "apply_environment_preset", "preset": "moonlit_night"})
 	_expect(bool(atmosphere.get("ok", false)), "atmosphere preset command succeeds")
 	document = atmosphere.get("document", {})
@@ -65,7 +74,23 @@ func _run() -> void:
 	var runtime_root := MapRuntime.build_into(test_world, document, true)
 	_expect(atmosphere_root != null and atmosphere_root.get_node_or_null("MapWorldEnvironment") != null, "runtime builds the saved sky and lighting")
 	_expect(runtime_root != null and runtime_root.get_child_count() == document.get("objects", []).size(), "runtime builds every authored object")
+	var moving_dummy := MovingTrainingDummy.new()
+	moving_dummy.position = Vector3.ZERO
+	test_world.add_child(moving_dummy)
+	moving_dummy.configure_patrol({"patrol_distance": 6.0, "patrol_speed": 2.0, "turn_pause": 0.0})
+	var dummy_start := moving_dummy.global_position
+	moving_dummy._physics_process(0.5)
+	_expect(not moving_dummy.global_position.is_equal_approx(dummy_start), "moving training dummy follows its authored patrol")
 	test_world.free()
+
+	var controls := ControlsGuide.new()
+	root.add_child(controls)
+	await process_frame
+	_expect(controls.find_child("ControlsGuideButton", true, false) != null, "gameplay exposes the F3 Controls Guide button")
+	controls.toggle()
+	var controls_text := controls.find_child("CompleteControlsText", true, false) as RichTextLabel
+	_expect(controls_text != null and "F10" in controls_text.text and "MAP LAB" in controls_text.text, "Controls Guide lists function keys and Map Lab controls")
+	controls.free()
 
 	var packed := load("res://map_creation_lab.tscn") as PackedScene
 	_expect(packed != null, "Map Lab scene loads")
@@ -81,6 +106,8 @@ func _run() -> void:
 		_expect(lab.find_child("Palette_curved_wall", true, false) != null, "Map Lab exposes curved wall shaping")
 		_expect(lab.find_child("Palette_jagged_wall", true, false) != null, "Map Lab exposes broken tactical walls")
 		_expect(lab.find_child("Palette_bomb_pickup", true, false) != null, "Map Lab exposes the neutral demolition bomb")
+		_expect(lab.find_child("Palette_training_dummy", true, false) != null, "Map Lab exposes stationary training dummies")
+		_expect(lab.find_child("Palette_moving_training_dummy", true, false) != null, "Map Lab exposes moving training dummies")
 		_expect(lab.find_child("MapTransformMode", true, false) != null, "Map Lab exposes mouse transform-mode cycling")
 		_expect(lab.find_child("BrowseMapTextureButton", true, false) != null, "Map Lab exposes texture selection")
 		_expect(lab.find_child("RepairSocomMissionButton", true, false) != null, "older maps can add missing SOCOM mission markers in one click")
