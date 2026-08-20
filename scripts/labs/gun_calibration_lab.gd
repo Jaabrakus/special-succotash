@@ -195,6 +195,11 @@ var drag_initial_world := Vector3.ZERO
 var drag_offset_vector := Vector3.ZERO
 var active_gizmo_id := "hand"
 var gunsmith_camera_tracking_enabled: bool = false
+var live_weapon_aim_enabled: bool = true
+var live_weapon_yaw_deg: float = 0.0
+var live_weapon_pitch_deg: float = 0.0
+var live_aim_preview_toggle: CheckButton
+var gunsmith_live_aim_rotation := Quaternion.IDENTITY
 var show_joint_bubbles: bool = true
 var isolate_selected_node: bool = false
 
@@ -624,6 +629,7 @@ func _process(delta: float) -> void:
 	_update_reload_support_handoff()
 	_apply_runtime_posture_preview()
 	_update_weapon_master_anchor()
+	_update_live_aim_weapon_pose()
 	_update_visual_weapon_recoil(delta)
 
 	_solve_trigger_hand_engine()
@@ -686,6 +692,12 @@ func _solve_trigger_hand_engine() -> void:
 	# copying the rifle's raw basis into the wrist caused the hand to corkscrew.
 	var hand_pose := skeleton.get_bone_global_pose(right_hand_idx)
 	var desired_basis := (skeleton.global_transform.basis * hand_pose.basis).orthonormalized()
+	if _gunsmith_live_aim_active():
+		# Apply the exact same world yaw/pitch delta to the animation-sampled wrist
+		# and the weapon. Their authored relative grip stays intact in every stance.
+		desired_basis = (
+			Basis(gunsmith_live_aim_rotation) * desired_basis
+		).orthonormalized()
 	var skeleton_scale := skeleton.global_transform.basis.get_scale()
 	var scaled_palm_anchor := Vector3(
 		right_palm_anchor_local.x * skeleton_scale.x,
@@ -715,6 +727,23 @@ func _solve_trigger_hand_engine() -> void:
 		if residual.length() <= 0.001:
 			break
 		internal_wrist_position += residual
+	if _gunsmith_live_aim_active():
+		# SkeletonIK can keep the wrist position but reject a large prone tip-basis
+		# turn. Apply the already bounded live-preview wrist transform for this frame
+		# after the arm chain is solved, so the palm contact stays exact.
+		var desired_hand_world := Transform3D(desired_basis, wrist_position)
+		var desired_hand_local := skeleton.global_transform.affine_inverse() * desired_hand_world
+		var current_hand_pose := skeleton.get_bone_global_pose(right_hand_idx)
+		desired_hand_local.basis = desired_hand_local.basis.orthonormalized().scaled(
+			current_hand_pose.basis.get_scale()
+		)
+		skeleton.set_bone_global_pose_override(
+			right_hand_idx,
+			desired_hand_local,
+			1.0,
+			false
+		)
+		skeleton.force_update_all_bone_transforms()
 
 func _right_hand_world_transform() -> Transform3D:
 	if not skeleton or right_hand_idx < 0:
@@ -3242,6 +3271,53 @@ func _update_weapon_master_anchor() -> void:
 	weapon_root.global_transform = _weapon_anchor_target_transform()
 
 
+func _gunsmith_live_aim_active() -> bool:
+	return (
+		live_weapon_aim_enabled
+		and active_lab_tab_name != "Composure"
+		and weapon_master_pose_initialized
+		and weapon_owner_state == WeaponOwnershipContract.OWNER_WEAPON_MASTER
+		and not action_weapon_follow_active
+		and not is_reloading
+		and not authoring_pointer_down
+		and dragged_dot_id == ""
+		and (animation_frame_editor == null or not animation_frame_editor.active)
+	)
+
+
+func _update_live_aim_weapon_pose() -> void:
+	gunsmith_live_aim_rotation = Quaternion.IDENTITY
+	if (
+		not _gunsmith_live_aim_active()
+		or weapon_root == null
+		or right_grip_marker == null
+		or barrel_base_marker == null
+		or muzzle_marker == null
+	):
+		return
+	var trigger_world := right_grip_marker.global_position
+	var current_direction := _barrel_direction_world()
+	if current_direction.length_squared() < 0.50:
+		return
+	# Gunsmith aim preview is deliberately independent of the inspection camera.
+	# Yaw turns around the operator's up axis; pitch follows the yawed weapon-right
+	# axis. Both rotate the attached hand-and-rifle unit around the trigger grip.
+	var up_axis := skeleton.global_basis.y.normalized() if skeleton != null else Vector3.UP
+	var right_axis := current_direction.cross(up_axis).normalized()
+	if right_axis.length_squared() < 0.50:
+		right_axis = weapon_root.global_basis.x.normalized()
+	var yaw_delta := Quaternion(up_axis, deg_to_rad(live_weapon_yaw_deg))
+	var yawed_right_axis := (yaw_delta * right_axis).normalized()
+	var pitch_delta := Quaternion(yawed_right_axis, deg_to_rad(live_weapon_pitch_deg))
+	var aim_delta := (pitch_delta * yaw_delta).normalized()
+	gunsmith_live_aim_rotation = aim_delta
+	var world_scale := weapon_root.global_basis.get_scale()
+	weapon_root.global_basis = (
+		Basis(aim_delta) * weapon_root.global_basis.orthonormalized()
+	).orthonormalized().scaled(world_scale)
+	weapon_root.global_position += trigger_world - right_grip_marker.global_position
+
+
 func _update_visual_weapon_recoil(delta: float) -> void:
 	visual_recoil_pitch_deg = lerpf(
 		visual_recoil_pitch_deg,
@@ -4933,6 +5009,32 @@ func _build_studio_ui() -> void:
 	var btn_ots := Button.new(); btn_ots.text = "🎥 OTS"; btn_ots.pressed.connect(func(): _set_camera_preset("ots")); cam_row.add_child(btn_ots)
 	var btn_side := Button.new(); btn_side.text = "🎥 Side"; btn_side.pressed.connect(func(): _set_camera_preset("side")); cam_row.add_child(btn_side)
 	var btn_full := Button.new(); btn_full.text = "🎥 Full"; btn_full.pressed.connect(func(): _set_camera_preset("full")); cam_row.add_child(btn_full)
+	live_aim_preview_toggle = CheckButton.new()
+	live_aim_preview_toggle.name = "LiveAimPreviewToggle"
+	live_aim_preview_toggle.text = "🎯 Live Weapon Aim — camera stays fixed"
+	live_aim_preview_toggle.tooltip_text = "Yaw and pitch rotate the attached hand and rifle without moving the inspection camera. Frames mode temporarily freezes this preview."
+	live_aim_preview_toggle.button_pressed = live_weapon_aim_enabled
+	live_aim_preview_toggle.toggled.connect(func(enabled: bool):
+		live_weapon_aim_enabled = enabled
+		if hud_status:
+			hud_status.text = (
+				"Live weapon aim enabled — adjust Weapon Yaw and Weapon Pitch; the camera stays fixed."
+				if enabled
+				else "Live weapon aim paused."
+			)
+	)
+	vbox.add_child(live_aim_preview_toggle)
+	_add_slider(vbox, "live_weapon_yaw", "Weapon Yaw (Preview)", -75.0, 75.0, live_weapon_yaw_deg, func(v: float): live_weapon_yaw_deg = v)
+	_add_slider(vbox, "live_weapon_pitch", "Weapon Pitch (Preview)", -55.0, 55.0, live_weapon_pitch_deg, func(v: float): live_weapon_pitch_deg = v)
+	var reset_live_aim_btn := Button.new()
+	reset_live_aim_btn.text = "Reset Weapon Aim Preview"
+	reset_live_aim_btn.pressed.connect(func():
+		live_weapon_yaw_deg = 0.0
+		live_weapon_pitch_deg = 0.0
+		_update_slider_value("live_weapon_yaw", 0.0)
+		_update_slider_value("live_weapon_pitch", 0.0)
+	)
+	vbox.add_child(reset_live_aim_btn)
 
 	vbox.add_child(HSeparator.new())
 

@@ -23,6 +23,7 @@ func _run() -> void:
 	var picker := lab.get("all_animation_select") as OptionButton
 	var gun_tabs := lab.find_child("GunLabTabs", true, false) as TabContainer
 	var reticle_preview := lab.find_child("SharedWeaponReticlePreview", true, false)
+	var live_aim_toggle := lab.find_child("LiveAimPreviewToggle", true, false) as CheckButton
 	_expect(gun_tabs != null and gun_tabs.get_tab_count() == 3, "gun lab exposes rig, firing, and composure tabs")
 	_expect(
 		gun_tabs != null and gun_tabs.get_tab_title(1) == "Reticle & Fire",
@@ -33,6 +34,15 @@ func _run() -> void:
 		"the third gun tab edits the shared composure profile"
 	)
 	_expect(reticle_preview != null, "gun lab previews the shared gameplay reticle")
+	_expect(
+		live_aim_toggle != null and live_aim_toggle.button_pressed,
+		"Gunsmith exposes an enabled live yaw/pitch preview"
+	)
+	_expect(
+		(lab.get("sliders_map") as Dictionary).has("live_weapon_yaw")
+		and (lab.get("sliders_map") as Dictionary).has("live_weapon_pitch"),
+		"Gunsmith exposes dedicated weapon yaw and pitch controls"
+	)
 	_expect(
 		lab.get("runtime_posture_layer") != null,
 		"gun lab uses the gameplay squared-shoulder posture layer"
@@ -135,15 +145,39 @@ func _run() -> void:
 		) < 0.01,
 		"green vector magnitude represents the saved muzzle velocity"
 	)
-	var muzzle_target_before_orbit := Vector3(muzzle_sample.get("position", Vector3.ZERO))
-	lab.set("cam_yaw", float(lab.get("cam_yaw")) + 24.0)
-	lab.call("_update_camera")
-	var muzzle_target_after_orbit := Vector3(
-		(lab.call("_muzzle_axis_sample") as Dictionary).get("position", Vector3.ZERO)
+	lab.call("_update_weapon_master_anchor")
+	var barrel_direction_before_live_aim := lab.call("_barrel_direction_world") as Vector3
+	var trigger_position_before_live_aim := (lab.get("right_grip_marker") as Node3D).global_position
+	var camera_transform_before_live_aim := camera.global_transform
+	lab.set("live_weapon_yaw_deg", 24.0)
+	lab.set("live_weapon_pitch_deg", -12.0)
+	lab.call("_update_live_aim_weapon_pose")
+	lab.call("_solve_trigger_hand_engine")
+	var barrel_direction_after_live_aim := lab.call("_barrel_direction_world") as Vector3
+	var live_rotation_deg := rad_to_deg(
+		barrel_direction_before_live_aim.angle_to(barrel_direction_after_live_aim)
+	)
+	var live_trigger_error := trigger_position_before_live_aim.distance_to(
+		(lab.get("right_grip_marker") as Node3D).global_position
+	)
+	var live_camera_error := camera_transform_before_live_aim.origin.distance_to(
+		camera.global_transform.origin
+	) + camera_transform_before_live_aim.basis.get_rotation_quaternion().angle_to(
+		camera.global_transform.basis.get_rotation_quaternion()
+	)
+	print("GUN_LAB_LIVE_AIM_METRIC rotation_deg=%.2f trigger_error_m=%.5f camera_error=%.5f" % [
+		live_rotation_deg,
+		live_trigger_error,
+		live_camera_error,
+	])
+	_expect(
+		live_rotation_deg > 5.0
+		and live_trigger_error < 0.001,
+		"Gunsmith live preview rotates yaw/pitch around the attached trigger grip"
 	)
 	_expect(
-		muzzle_target_before_orbit.distance_to(muzzle_target_after_orbit) < 0.001,
-		"orbiting the Gunsmith camera cannot steer the muzzle reticle in world space"
+		live_camera_error < 0.00001,
+		"weapon yaw and pitch leave the Gunsmith inspection camera fixed"
 	)
 	await process_frame
 	var aim_sample: Dictionary = lab.call("_camera_aim_sample")
@@ -371,6 +405,10 @@ func _run() -> void:
 		and StringName(attached_frame_editor.get("clip_name")) == standing_reload_clip
 		and int(attached_frame_editor.call("frame_index")) == 0,
 		"the action button opens its exact lifecycle paused at frame zero"
+	)
+	_expect(
+		not bool(lab.call("_gunsmith_live_aim_active")),
+		"Frames mode freezes live aim so the selected lifecycle pose remains editable"
 	)
 	var frame_editor_skeleton := lab.get("skeleton") as Skeleton3D
 	var paused_frame_pose := _snapshot_skeleton_pose(frame_editor_skeleton)

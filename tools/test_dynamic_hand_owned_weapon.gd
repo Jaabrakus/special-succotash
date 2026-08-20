@@ -28,7 +28,11 @@ func _run() -> void:
 		return
 	var muzzle := weapon.find_child("Socket_Muzzle", true, false) as Marker3D
 	var barrel_base := weapon.find_child("Socket_BarrelBase", true, false) as Marker3D
-	_expect(muzzle != null and barrel_base != null, "weapon exposes its authored barrel line")
+	var trigger_socket := weapon.find_child("Socket_RightHand", true, false) as Marker3D
+	_expect(
+		muzzle != null and barrel_base != null and trigger_socket != null,
+		"weapon exposes its authored barrel and trigger grip"
+	)
 	# The mannequin normally copies the live camera rig into this driver every frame.
 	# Pause only that bridge so this focused test can inject exact aim samples.
 	mannequin.set_process(false)
@@ -49,19 +53,22 @@ func _run() -> void:
 	await _steps(30)
 	var aimed_barrel := _barrel_direction(muzzle, barrel_base)
 	var aimed_hand_basis := _hand_world(skeleton).basis.orthonormalized()
+	var grip_orientation_error_deg := rad_to_deg(aimed_barrel.angle_to(-aimed_hand_basis.y))
 	var barrel_rotation_deg := rad_to_deg(initial_barrel.angle_to(aimed_barrel))
 	var hand_rotation_deg := rad_to_deg(
 		initial_hand_basis.get_rotation_quaternion().angle_to(
 			aimed_hand_basis.get_rotation_quaternion()
 		)
 	)
-	var expected_mount: Transform3D = _hand_world(skeleton) * Transform3D(
+	var expected_mount_basis: Basis = (_hand_world(skeleton) * Transform3D(
 		solver.get("weapon_hand_mount_transform")
+	)).basis
+	var grip_position_error := trigger_socket.global_position.distance_to(
+		_hand_world(skeleton).origin
 	)
-	var mount_position_error := weapon.global_position.distance_to(expected_mount.origin)
 	var mount_rotation_error_deg := rad_to_deg(
 		weapon.global_basis.get_rotation_quaternion().angle_to(
-			expected_mount.basis.get_rotation_quaternion()
+			expected_mount_basis.get_rotation_quaternion()
 		)
 	)
 	var aimed_debug: Dictionary = solver.call("get_debug_state")
@@ -83,10 +90,11 @@ func _run() -> void:
 		barrel_alignment_error_deg,
 	])
 	print(
-		"DYNAMIC_HAND_OWNERSHIP_METRIC barrel_rotation_deg=%.2f hand_rotation_deg=%.2f mount_position_error=%.5f mount_rotation_error_deg=%.3f trigger=%.5f support=%.5f" % [
+		"DYNAMIC_HAND_OWNERSHIP_METRIC barrel_rotation_deg=%.2f hand_rotation_deg=%.2f grip_position_error=%.5f grip_orientation_error_deg=%.2f mount_rotation_error_deg=%.3f trigger=%.5f support=%.5f" % [
 			barrel_rotation_deg,
 			hand_rotation_deg,
-			mount_position_error,
+			grip_position_error,
+			grip_orientation_error_deg,
 			mount_rotation_error_deg,
 			float(aimed_debug.get("trigger_hand_error_m", 1.0)),
 			float(aimed_debug.get("support_hand_error_m", 1.0)),
@@ -95,7 +103,8 @@ func _run() -> void:
 	_expect(barrel_rotation_deg >= 12.0, "rifle barrel responds to yaw and pitch")
 	_expect(barrel_alignment_error_deg <= 3.0, "rifle barrel finishes on the requested aim line")
 	_expect(hand_rotation_deg >= 8.0, "right hand rotates dynamically with the rifle")
-	_expect(mount_position_error <= 0.003, "rifle remains position-attached to the right hand")
+	_expect(grip_position_error <= 0.003, "rifle trigger grip remains position-attached to the right hand")
+	_expect(grip_orientation_error_deg <= 12.0, "rifle points along the right-hand grip axis")
 	_expect(mount_rotation_error_deg <= 0.5, "rifle remains rotation-attached to the right hand")
 	_expect(
 		float(aimed_debug.get("trigger_hand_error_m", 1.0)) <= 0.035,

@@ -661,9 +661,11 @@ func _place_hand_owned_weapon(
 	if hand_index < 0:
 		return
 	# First place the rifle from its saved local hand mount. The right hand is the
-	# visual owner; aim correction rotates that hand-and-rifle unit together.
+	# visual owner; the authored trigger socket, not the weapon node origin, must
+	# land on the wrist. The weapon root can be several centimetres away from the
+	# actual grip because it also owns import and model calibration transforms.
 	var hand_world := skeleton.global_transform * skeleton.get_bone_global_pose(hand_index)
-	weapon_node.global_transform = hand_world * weapon_hand_mount_transform
+	_weapon_transform_on_trigger_hand(hand_world)
 	var barrel_origin := (
 		barrel_base_socket.global_position
 		if barrel_base_socket != null
@@ -695,7 +697,7 @@ func _place_hand_owned_weapon(
 		skeleton.set_bone_global_pose_override(hand_index, hand_pose, 1.0, true)
 		skeleton.force_update_all_bone_transforms()
 		hand_world = skeleton.global_transform * skeleton.get_bone_global_pose(hand_index)
-	var target_transform := hand_world * weapon_hand_mount_transform
+	var target_transform := _weapon_transform_on_trigger_hand(hand_world)
 	_apply_ownership_return(target_transform, delta)
 	var solved_barrel_origin := (
 		barrel_base_socket.global_position
@@ -712,6 +714,14 @@ func _place_hand_owned_weapon(
 		if solved_barrel.length_squared() > 0.50
 		else 0.0
 	)
+
+
+func _weapon_transform_on_trigger_hand(hand_world: Transform3D) -> Transform3D:
+	var target_transform := hand_world * weapon_hand_mount_transform
+	weapon_node.global_transform = target_transform
+	if trigger_socket != null:
+		weapon_node.global_position += hand_world.origin - trigger_socket.global_position
+	return weapon_node.global_transform
 
 
 func _render_weapon_direction(aim_direction: Vector3, body_forward: Vector3) -> Vector3:
@@ -994,8 +1004,11 @@ func _bone_world_position(bone_name: StringName) -> Vector3:
 
 
 func _update_errors() -> void:
+	var trigger_error_target := trigger_hand_target.global_position
+	if right_hand_owns_ready_weapon and socket_contract_active and trigger_socket != null:
+		trigger_error_target = trigger_socket.global_position
 	trigger_hand_error_m = _bone_world_position(&"mixamorig_RightHand").distance_to(
-		trigger_hand_target.global_position
+		trigger_error_target
 	)
 	support_hand_error_m = _bone_world_position(&"mixamorig_LeftHand").distance_to(
 		support_hand_target.global_position
