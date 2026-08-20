@@ -62,6 +62,10 @@ func _run() -> void:
 		lab.find_child("ResetKeyboardOperatorPreview", true, false) is Button,
 		"preview provides a one-click standing reset"
 	)
+	_expect(
+		lab.find_child("FullScreenKeyboardPreview", true, false) is Button,
+		"preview provides a full-screen animation mode"
+	)
 
 	lab.call("_start_stance_press", "X")
 	lab.call("_finish_stance_press", "X")

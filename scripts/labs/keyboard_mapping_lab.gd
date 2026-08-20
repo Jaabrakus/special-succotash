@@ -14,7 +14,15 @@ var status_label: Label
 var preview_status: Label
 var preview_state_label: Label
 var history_label: RichTextLabel
+var history_title: Label
 var history_entries: Array[String] = []
+var root_margin: MarginContainer
+var left_panel: PanelContainer
+var preview_viewport_container: SubViewportContainer
+var preview_viewport: SubViewport
+var full_screen_button: Button
+var full_preview := false
+var previous_window_mode := DisplayServer.WINDOW_MODE_WINDOWED
 var preview_model: Node3D
 var animation_driver: Node3D
 var animation_player: AnimationPlayer
@@ -38,9 +46,20 @@ func _ready() -> void:
 	_build_operator_preview()
 	_refresh_binding_buttons()
 	set_process(true)
+	if "--fullscreen-preview" in OS.get_cmdline_user_args():
+		_toggle_full_screen_preview.call_deferred()
 
 
 func _input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo:
+		if event.keycode == KEY_F11:
+			_toggle_full_screen_preview()
+			get_viewport().set_input_as_handled()
+			return
+		if event.keycode == KEY_ESCAPE and full_preview:
+			_toggle_full_screen_preview()
+			get_viewport().set_input_as_handled()
+			return
 	if awaiting_action != &"":
 		if event is InputEventKey and event.pressed and not event.echo:
 			if event.keycode == KEY_ESCAPE:
@@ -117,7 +136,7 @@ func _build_interface() -> void:
 	background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(background)
 
-	var root_margin := MarginContainer.new()
+	root_margin = MarginContainer.new()
 	root_margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	root_margin.add_theme_constant_override("margin_left", 22)
 	root_margin.add_theme_constant_override("margin_right", 22)
@@ -129,7 +148,7 @@ func _build_interface() -> void:
 	split.split_offset = 500
 	root_margin.add_child(split)
 
-	var left_panel := PanelContainer.new()
+	left_panel = PanelContainer.new()
 	left_panel.custom_minimum_size.x = 480
 	split.add_child(left_panel)
 	var left_margin := MarginContainer.new()
@@ -204,6 +223,11 @@ func _build_interface() -> void:
 	reset_preview_button.text = "Reset Operator"
 	reset_preview_button.pressed.connect(_reset_operator_preview)
 	preview_header.add_child(reset_preview_button)
+	full_screen_button = Button.new()
+	full_screen_button.name = "FullScreenKeyboardPreview"
+	full_screen_button.text = "Full Screen Animation"
+	full_screen_button.pressed.connect(_toggle_full_screen_preview)
+	preview_header.add_child(full_screen_button)
 	preview_status = Label.new()
 	preview_status.name = "KeyboardPreviewStatus"
 	preview_status.text = "Press a mapped control. The model and history use the real action name."
@@ -215,20 +239,22 @@ func _build_interface() -> void:
 	preview_state_label.add_theme_font_size_override("font_size", 12)
 	preview_state_label.add_theme_color_override("font_color", Color("8fe6b0"))
 	right_column.add_child(preview_state_label)
-	var viewport_container := SubViewportContainer.new()
-	viewport_container.name = "KeyboardOperatorViewport"
-	viewport_container.stretch = true
-	viewport_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	viewport_container.custom_minimum_size = Vector2(620, 390)
-	right_column.add_child(viewport_container)
-	var viewport := SubViewport.new()
-	viewport.name = "OperatorPreviewViewport"
-	viewport.size = Vector2i(720, 440)
-	viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
-	viewport.own_world_3d = true
-	viewport_container.add_child(viewport)
-	viewport_container.set_meta("preview_viewport", viewport)
-	var history_title := Label.new()
+	preview_viewport_container = SubViewportContainer.new()
+	preview_viewport_container.name = "KeyboardOperatorViewport"
+	preview_viewport_container.stretch = true
+	preview_viewport_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	preview_viewport_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	preview_viewport_container.custom_minimum_size = Vector2(620, 390)
+	right_column.add_child(preview_viewport_container)
+	preview_viewport = SubViewport.new()
+	preview_viewport.name = "OperatorPreviewViewport"
+	preview_viewport.size = Vector2i(720, 440)
+	preview_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	preview_viewport.own_world_3d = true
+	preview_viewport_container.add_child(preview_viewport)
+	preview_viewport_container.set_meta("preview_viewport", preview_viewport)
+	preview_viewport_container.gui_input.connect(_on_preview_gui_input)
+	history_title = Label.new()
 	history_title.text = "INPUT HISTORY — BUTTON → ACTION"
 	history_title.add_theme_color_override("font_color", Color("79d8f2"))
 	right_column.add_child(history_title)
@@ -291,8 +317,7 @@ func _add_keycap_row(
 
 
 func _build_operator_preview() -> void:
-	var container := find_child("KeyboardOperatorViewport", true, false) as SubViewportContainer
-	var viewport := container.get_meta("preview_viewport") as SubViewport
+	var viewport := preview_viewport
 	var environment_node := WorldEnvironment.new()
 	var environment := Environment.new()
 	environment.background_mode = Environment.BG_COLOR
@@ -529,6 +554,32 @@ func _reset_operator_preview() -> void:
 		animation_driver.set("requested_action", &"")
 		animation_driver.set("requested_action_remaining", 0.0)
 	preview_status.text = "Operator reset to standing. Movement animations preview in place."
+
+
+func _toggle_full_screen_preview() -> void:
+	full_preview = not full_preview
+	if full_preview:
+		previous_window_mode = DisplayServer.window_get_mode()
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+	left_panel.visible = not full_preview
+	history_title.visible = not full_preview
+	history_label.visible = not full_preview
+	preview_status.visible = not full_preview
+	root_margin.add_theme_constant_override("margin_left", 4 if full_preview else 22)
+	root_margin.add_theme_constant_override("margin_right", 4 if full_preview else 22)
+	root_margin.add_theme_constant_override("margin_top", 4 if full_preview else 18)
+	root_margin.add_theme_constant_override("margin_bottom", 4 if full_preview else 18)
+	preview_viewport_container.custom_minimum_size = (
+		Vector2.ZERO if full_preview else Vector2(620, 390)
+	)
+	full_screen_button.text = (
+		"Exit Full Screen (Esc / F11)" if full_preview else "Full Screen Animation"
+	)
+	if not full_preview:
+		DisplayServer.window_set_mode(previous_window_mode)
+func _on_preview_gui_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.double_click and event.button_index == MOUSE_BUTTON_LEFT:
+		_toggle_full_screen_preview()
 
 
 func _update_preview_motion_state(delta: float) -> void:
