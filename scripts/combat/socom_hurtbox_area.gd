@@ -74,6 +74,21 @@ func classify_shot_path(
 			Vector3(0.0, half_segment, 0.0)
 		)
 		normalized_distance = closest_distance / maxf(capsule.radius, 0.0001)
+	elif shape_node.shape is BoxShape3D:
+		var box := shape_node.shape as BoxShape3D
+		var closest := Geometry3D.get_closest_point_to_segment(
+			Vector3.ZERO,
+			local_origin,
+			ray_finish
+		)
+		var half_size := box.size * 0.5
+		normalized_distance = maxf(
+			absf(closest.x) / maxf(half_size.x, 0.0001),
+			maxf(
+				absf(closest.y) / maxf(half_size.y, 0.0001),
+				absf(closest.z) / maxf(half_size.z, 0.0001)
+			)
+		)
 	else:
 		return _default_precision_result(precision_core_scale)
 

@@ -219,11 +219,17 @@ func _run() -> void:
 		var custom_area_id := custom_area.get_instance_id()
 		var fluid_edit := normalized_custom.duplicate(true)
 		fluid_edit[0]["width_scale"] = 0.55
+		(fluid_edit[0]["geometry"] as Dictionary)["shape"] = "box"
 		rig.apply_custom_hitboxes(fluid_edit)
 		var fluid_area: Area3D = rig.get_editor_hitbox_area(&"left_upper_arm_extra_test")
 		_assert(
 			fluid_area != null and fluid_area.get_instance_id() == custom_area_id,
-			"fluid custom hitbox resize rebuilt the physics area"
+			"fluid custom hitbox shape change rebuilt the physics area"
+		)
+		_assert(
+			fluid_area != null
+			and (fluid_area.get_child(0) as CollisionShape3D).shape is BoxShape3D,
+			"custom hitbox did not switch to real box collision geometry"
 		)
 	rig.apply_custom_hitboxes([])
 

@@ -78,6 +78,7 @@ func force_pose_update() -> void:
 	if skeleton == null or not is_instance_valid(skeleton):
 		return
 	for record in _records:
+		_ensure_record_shape(record)
 		match StringName(record.kind):
 			&"capsule":
 				_update_capsule(record)
@@ -591,19 +592,7 @@ func _update_capsule_between(record: Dictionary, start: Vector3, finish: Vector3
 		radius * 2.0 + 0.001,
 		maxf(radius * 2.0 + 0.001, bone_length) * length_scale
 	)
-	var capsule: CapsuleShape3D = record.shape
-	capsule.radius = radius
-	capsule.height = total_height
-	var debug_mesh: MeshInstance3D = record.debug_mesh
-	var capsule_mesh := debug_mesh.mesh as CapsuleMesh
-	capsule_mesh.radius = radius
-	capsule_mesh.height = total_height
-	var precision_mesh: MeshInstance3D = record.precision_mesh
-	var precision_capsule := precision_mesh.mesh as CapsuleMesh
-	var core_radius := radius * precision_core_scale
-	precision_capsule.radius = core_radius
-	var center_segment_length := maxf(0.001, total_height - radius * 2.0)
-	precision_capsule.height = center_segment_length + core_radius * 2.0
+	_update_record_shape_dimensions(record, radius, total_height)
 
 	var area_basis := _basis_for_axis(delta / bone_length)
 	var offset := _record_geometry_offset(record)
@@ -619,22 +608,99 @@ func _update_sphere(record: Dictionary) -> void:
 	var reference_position := _bone_world_position(StringName(record.reference_bone))
 	var direction := (bone_position - reference_position).normalized()
 	var radius := _scaled_radius(record)
-	var sphere: SphereShape3D = record.shape
-	sphere.radius = radius
-	var debug_mesh: MeshInstance3D = record.debug_mesh
-	var sphere_mesh := debug_mesh.mesh as SphereMesh
-	sphere_mesh.radius = radius
-	sphere_mesh.height = radius * 2.0
-	var precision_mesh: MeshInstance3D = record.precision_mesh
-	var precision_sphere := precision_mesh.mesh as SphereMesh
-	var core_radius := radius * precision_core_scale
-	precision_sphere.radius = core_radius
-	precision_sphere.height = core_radius * 2.0
+	_update_record_shape_dimensions(record, radius, radius * 2.0)
 	var offset := direction * radius * float(record.directional_offset)
 	var area_basis := _basis_for_axis(direction)
 	offset += area_basis * _record_geometry_offset(record)
 	var area: Area3D = record.area
 	area.global_transform = Transform3D(area_basis, bone_position + offset)
+
+
+func _record_shape_kind(record: Dictionary) -> StringName:
+	var source_region := StringName(record.get(
+		"source_region",
+		record.get("editor_id", &"torso")
+	))
+	var geometry_entry: Dictionary = (
+		(record.get("custom_geometry", {}) as Dictionary)
+		if bool(record.get("custom", false))
+		else (geometry_tuning.get(source_region, {}) as Dictionary)
+	)
+	return HurtboxProfile.geometry_shape(
+		{source_region: geometry_entry},
+		source_region
+	)
+
+
+func _ensure_record_shape(record: Dictionary) -> void:
+	var requested := _record_shape_kind(record)
+	if StringName(record.get("shape_kind", &"")) == requested:
+		return
+	var area := record.area as Area3D
+	var shape_node: CollisionShape3D = null
+	for child in area.get_children():
+		if child is CollisionShape3D:
+			shape_node = child as CollisionShape3D
+			break
+	if shape_node == null:
+		return
+	var collision_shape: Shape3D
+	var visible_mesh: PrimitiveMesh
+	var precision_shape_mesh: PrimitiveMesh
+	match requested:
+		&"sphere":
+			collision_shape = SphereShape3D.new()
+			visible_mesh = SphereMesh.new()
+			precision_shape_mesh = SphereMesh.new()
+		&"box":
+			collision_shape = BoxShape3D.new()
+			visible_mesh = BoxMesh.new()
+			precision_shape_mesh = BoxMesh.new()
+		_:
+			collision_shape = CapsuleShape3D.new()
+			visible_mesh = CapsuleMesh.new()
+			precision_shape_mesh = CapsuleMesh.new()
+	shape_node.shape = collision_shape
+	(record.debug_mesh as MeshInstance3D).mesh = visible_mesh
+	(record.precision_mesh as MeshInstance3D).mesh = precision_shape_mesh
+	record["shape"] = collision_shape
+	record["shape_kind"] = requested
+
+
+func _update_record_shape_dimensions(
+	record: Dictionary,
+	radius: float,
+	total_height: float
+) -> void:
+	var shape_kind := StringName(record.get("shape_kind", &"capsule"))
+	var debug_mesh := record.debug_mesh as MeshInstance3D
+	var precision_mesh := record.precision_mesh as MeshInstance3D
+	var core_radius := radius * precision_core_scale
+	match shape_kind:
+		&"sphere":
+			(record.shape as SphereShape3D).radius = radius
+			var sphere_mesh := debug_mesh.mesh as SphereMesh
+			sphere_mesh.radius = radius
+			sphere_mesh.height = radius * 2.0
+			var precision_sphere := precision_mesh.mesh as SphereMesh
+			precision_sphere.radius = core_radius
+			precision_sphere.height = core_radius * 2.0
+		&"box":
+			var box_size := Vector3(radius * 2.0, total_height, radius * 2.0)
+			(record.shape as BoxShape3D).size = box_size
+			(debug_mesh.mesh as BoxMesh).size = box_size
+			(precision_mesh.mesh as BoxMesh).size = box_size * precision_core_scale
+		_:
+			var capsule := record.shape as CapsuleShape3D
+			capsule.radius = radius
+			capsule.height = total_height
+			var capsule_mesh := debug_mesh.mesh as CapsuleMesh
+			capsule_mesh.radius = radius
+			capsule_mesh.height = total_height
+			var precision_capsule := precision_mesh.mesh as CapsuleMesh
+			precision_capsule.radius = core_radius
+			var center_segment_length := maxf(0.001, total_height - radius * 2.0)
+			precision_capsule.height = center_segment_length + core_radius * 2.0
 
 
 func _basis_for_axis(y_axis: Vector3) -> Basis:

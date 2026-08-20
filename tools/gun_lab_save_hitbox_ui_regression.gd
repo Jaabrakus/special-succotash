@@ -17,7 +17,12 @@ func _run() -> void:
 		await process_frame
 
 	var save_button := lab.get("save_rig_button") as Button
+	var shape_picker := lab.get("hurtbox_shape_picker") as OptionButton
 	_expect(save_button != null, "Save Everything button exists")
+	_expect(
+		shape_picker != null and shape_picker.item_count == HurtboxProfile.SHAPE_KEYS.size(),
+		"Composure exposes capsule, sphere, and box shape selection"
+	)
 	if save_button:
 		_expect(
 			lab.call("_pointer_over_editor_ui", save_button.get_global_rect().get_center()),
@@ -58,12 +63,30 @@ func _run() -> void:
 		rig != null and rig.call("get_editor_hitbox_area", duplicate_id) != null,
 		"Duplicate creates a live physics area in the preview rig"
 	)
+	lab.call("_select_hurtbox_region", &"torso")
+	lab.call("_set_selected_hurtbox_shape", &"box")
+	var torso_area := rig.call("get_editor_hitbox_area", &"torso") as Area3D
+	_expect(
+		torso_area != null
+		and (torso_area.get_child(0) as CollisionShape3D).shape is BoxShape3D,
+		"built-in anatomy can also switch to real box collision"
+	)
+	lab.call("_set_selected_hurtbox_shape", &"capsule")
+	lab.call("_select_hurtbox_region", duplicate_id)
 	lab.call("_set_selected_hurtbox_damage_type", &"NECK")
+	lab.call("_set_selected_hurtbox_shape", &"box")
 	custom_after = lab.get("shared_custom_hitboxes")
 	var duplicate_index := int(lab.call("_custom_hitbox_index", duplicate_id))
 	_expect(
 		duplicate_index >= 0 and StringName(custom_after[duplicate_index].get("damage_region")) == &"NECK",
 		"Paint changes the duplicate damage identity"
+	)
+	var duplicate_area := rig.call("get_editor_hitbox_area", duplicate_id) as Area3D
+	_expect(
+		StringName(lab.call("_hitbox_shape", duplicate_id)) == &"box"
+		and duplicate_area != null
+		and (duplicate_area.get_child(0) as CollisionShape3D).shape is BoxShape3D,
+		"Shape selection rebuilds the live duplicate as box collision"
 	)
 	lab.call("_snap_selected_hurtbox_to_rig")
 	var snapped_offset: Vector3 = lab.call("_hitbox_offset", duplicate_id)
@@ -74,6 +97,10 @@ func _run() -> void:
 	_expect(
 		is_equal_approx(float(lab.call("_hitbox_width", duplicate_id)), 0.73),
 		"Snap preserves authored width"
+	)
+	_expect(
+		StringName(lab.call("_hitbox_shape", duplicate_id)) == &"box",
+		"Snap preserves the selected shape"
 	)
 	lab.call("_delete_selected_hitbox")
 	var custom_deleted: Array[Dictionary] = lab.get("shared_custom_hitboxes")

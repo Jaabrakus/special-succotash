@@ -12,6 +12,12 @@ const MAX_SCALE := 1.0
 const MIN_LENGTH_SCALE := 0.35
 const MAX_LENGTH_SCALE := 1.0
 const MAX_OFFSET_METERS := 0.12
+const SHAPE_KEYS: Array[StringName] = [&"capsule", &"sphere", &"box"]
+const SHAPE_LABELS := {
+	&"capsule": "Capsule",
+	&"sphere": "Sphere",
+	&"box": "Box",
+}
 
 # A duplicated shape keeps its bone anchor but can be painted with a gameplay
 # damage identity. These broad identities are intentional: left/right placement
@@ -107,6 +113,7 @@ static func default_geometry() -> Dictionary:
 			# Lower its center so its rounded top meets, but does not cover, the head.
 			default_offset.y = -0.08
 		result[region_key] = {
+			"shape": String(default_shape_for_region(region_key)),
 			"offset": {
 				"x": default_offset.x,
 				"y": default_offset.y,
@@ -168,6 +175,13 @@ static func normalize_geometry(geometry: Dictionary) -> Dictionary:
 		if not source is Dictionary:
 			continue
 		var source_entry := source as Dictionary
+		var shape_kind := StringName(source_entry.get(
+			"shape",
+			default_shape_for_region(region_key)
+		))
+		if shape_kind not in SHAPE_KEYS:
+			shape_kind = default_shape_for_region(region_key)
+		(normalized[region_key] as Dictionary)["shape"] = String(shape_kind)
 		var source_offset: Variant = source_entry.get("offset", {})
 		if source_offset is Dictionary:
 			var offset_data := source_offset as Dictionary
@@ -231,6 +245,18 @@ static func damage_type_label(damage_type: StringName) -> String:
 	return String(DAMAGE_TYPE_LABELS.get(damage_type, String(damage_type).capitalize()))
 
 
+static func shape_label(shape_kind: StringName) -> String:
+	return String(SHAPE_LABELS.get(shape_kind, String(shape_kind).capitalize()))
+
+
+static func default_shape_for_region(region_key: StringName) -> StringName:
+	return (
+		&"sphere"
+		if region_key in [&"head", &"left_foot", &"right_foot"]
+		else &"capsule"
+	)
+
+
 static func damage_type_for_source_region(source_region: StringName) -> StringName:
 	var text := String(source_region)
 	if text == "head":
@@ -257,6 +283,27 @@ static func geometry_offset(geometry: Dictionary, region_key: StringName) -> Vec
 		Vector3.ONE * -MAX_OFFSET_METERS,
 		Vector3.ONE * MAX_OFFSET_METERS
 	)
+
+
+static func geometry_shape(geometry: Dictionary, region_key: StringName) -> StringName:
+	var entry: Dictionary = geometry.get(region_key, geometry.get(String(region_key), {}))
+	var shape_kind := StringName(entry.get("shape", default_shape_for_region(region_key)))
+	return shape_kind if shape_kind in SHAPE_KEYS else default_shape_for_region(region_key)
+
+
+static func set_geometry_shape(
+	geometry: Dictionary,
+	region_key: StringName,
+	shape_kind: StringName
+) -> void:
+	if shape_kind not in SHAPE_KEYS:
+		return
+	var entry: Dictionary = geometry.get(region_key, {
+		"offset": {"x": 0.0, "y": 0.0, "z": 0.0},
+		"length_scale": 1.0,
+	})
+	entry["shape"] = String(shape_kind)
+	geometry[region_key] = entry
 
 
 static func set_geometry_offset(
@@ -347,7 +394,7 @@ static func save_profile(
 	if file == null:
 		return false
 	file.store_string(JSON.stringify({
-		"schema_version": 4,
+		"schema_version": 5,
 		"purpose": "Authored by the Composure Lab and loaded by all anatomical damage rigs; not camera or movement collision",
 		"radius_scales": normalized_scales,
 		"geometry": normalized_geometry,

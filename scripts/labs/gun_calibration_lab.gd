@@ -255,6 +255,7 @@ var shared_hurtbox_geometry: Dictionary = HurtboxProfile.load_geometry()
 var shared_custom_hitboxes: Array[Dictionary] = HurtboxProfile.load_custom_hitboxes()
 var selected_hurtbox_region: StringName = &"torso"
 var hurtbox_region_picker: OptionButton
+var hurtbox_shape_picker: OptionButton
 var hurtbox_damage_type_picker: OptionButton
 var delete_hitbox_button: Button
 var hurtbox_edit_markers: Dictionary = {}
@@ -5998,6 +5999,22 @@ func _build_composure_tab(tab_container: TabContainer) -> void:
 		_select_hurtbox_region(StringName(hurtbox_region_picker.get_item_metadata(index)))
 	)
 	vbox.add_child(hurtbox_region_picker)
+	hurtbox_shape_picker = OptionButton.new()
+	hurtbox_shape_picker.name = "HurtboxShapePicker"
+	for shape_kind: StringName in HurtboxProfile.SHAPE_KEYS:
+		hurtbox_shape_picker.add_item(
+			"Shape: %s" % HurtboxProfile.shape_label(shape_kind)
+		)
+		hurtbox_shape_picker.set_item_metadata(
+			hurtbox_shape_picker.item_count - 1,
+			shape_kind
+		)
+	hurtbox_shape_picker.item_selected.connect(func(index: int):
+		_set_selected_hurtbox_shape(
+			StringName(hurtbox_shape_picker.get_item_metadata(index))
+		)
+	)
+	vbox.add_child(hurtbox_shape_picker)
 	hurtbox_damage_type_picker = OptionButton.new()
 	hurtbox_damage_type_picker.name = "HurtboxDamageTypePicker"
 	for damage_type: StringName in HurtboxProfile.DAMAGE_TYPE_KEYS:
@@ -6223,6 +6240,10 @@ func _hitbox_offset(editor_id: StringName) -> Vector3:
 	return HurtboxProfile.geometry_offset(_hitbox_geometry(editor_id), editor_id)
 
 
+func _hitbox_shape(editor_id: StringName) -> StringName:
+	return HurtboxProfile.geometry_shape(_hitbox_geometry(editor_id), editor_id)
+
+
 func _set_hitbox_offset(editor_id: StringName, offset: Vector3) -> void:
 	var geometry := _hitbox_geometry(editor_id)
 	HurtboxProfile.set_geometry_offset(geometry, editor_id, offset)
@@ -6299,6 +6320,28 @@ func _set_selected_hurtbox_size(value: float) -> void:
 	_apply_shared_hurtbox_preview()
 
 
+func _set_selected_hurtbox_shape(shape_kind: StringName) -> void:
+	if shape_kind not in HurtboxProfile.SHAPE_KEYS:
+		return
+	var geometry := _hitbox_geometry(selected_hurtbox_region)
+	HurtboxProfile.set_geometry_shape(
+		geometry,
+		selected_hurtbox_region,
+		shape_kind
+	)
+	_set_hitbox_geometry(
+		selected_hurtbox_region,
+		geometry[selected_hurtbox_region]
+	)
+	_apply_shared_hurtbox_preview()
+	_sync_selected_hurtbox_controls()
+	if hud_status:
+		hud_status.text = "🔶 %s changed to %s." % [
+			_hitbox_display_name(selected_hurtbox_region),
+			HurtboxProfile.shape_label(shape_kind),
+		]
+
+
 func _set_selected_hurtbox_length(value: float) -> void:
 	var geometry := _hitbox_geometry(selected_hurtbox_region)
 	HurtboxProfile.set_geometry_length_scale(geometry, selected_hurtbox_region, value)
@@ -6332,9 +6375,13 @@ func _sync_selected_hurtbox_controls() -> void:
 	var length_entry: Dictionary = sliders_map.get("hurtbox_selected_length", {})
 	var length_slider := length_entry.get("slider") as HSlider
 	if length_slider:
-		length_slider.editable = _hitbox_source_region(selected_hurtbox_region) not in [
-			&"head", &"left_foot", &"right_foot"
-		]
+		length_slider.editable = _hitbox_shape(selected_hurtbox_region) != &"sphere"
+	if hurtbox_shape_picker:
+		var selected_shape := _hitbox_shape(selected_hurtbox_region)
+		for shape_index in hurtbox_shape_picker.item_count:
+			if StringName(hurtbox_shape_picker.get_item_metadata(shape_index)) == selected_shape:
+				hurtbox_shape_picker.select(shape_index)
+				break
 	if delete_hitbox_button:
 		delete_hitbox_button.disabled = _custom_hitbox_index(selected_hurtbox_region) < 0
 	if hurtbox_damage_type_picker:
@@ -6423,9 +6470,12 @@ func _set_selected_hurtbox_damage_type(damage_type: StringName) -> void:
 func _snap_selected_hurtbox_to_rig() -> void:
 	var defaults := HurtboxProfile.default_geometry()
 	var source_region := _hitbox_source_region(selected_hurtbox_region)
+	var preserved_shape := _hitbox_shape(selected_hurtbox_region)
+	var snapped_geometry := (defaults[source_region] as Dictionary).duplicate(true)
+	snapped_geometry["shape"] = String(preserved_shape)
 	_set_hitbox_geometry(
 		selected_hurtbox_region,
-		(defaults[source_region] as Dictionary).duplicate(true)
+		snapped_geometry
 	)
 	_apply_shared_hurtbox_preview()
 	_sync_selected_hurtbox_controls()
@@ -6434,7 +6484,12 @@ func _snap_selected_hurtbox_to_rig() -> void:
 
 
 func _align_all_hitboxes_to_rig() -> void:
-	shared_hurtbox_geometry = HurtboxProfile.default_geometry()
+	var aligned_geometry := HurtboxProfile.default_geometry()
+	for region_key: StringName in HurtboxProfile.REGION_KEYS:
+		(aligned_geometry[region_key] as Dictionary)["shape"] = String(
+			HurtboxProfile.geometry_shape(shared_hurtbox_geometry, region_key)
+		)
+	shared_hurtbox_geometry = aligned_geometry
 	_apply_shared_hurtbox_preview()
 	_sync_selected_hurtbox_controls()
 	if hud_status:
