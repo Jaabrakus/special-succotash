@@ -3,10 +3,8 @@ extends Control
 
 const KeyboardProfile := preload("res://scripts/input/socom_keyboard_mapping_profile.gd")
 const OperatorAnimationDriver := preload("res://scripts/player/operator_animation_driver.gd")
+const PlayerController := preload("res://scripts/player/player_controller.gd")
 const MAX_HISTORY := 14
-const STANCE_HOLD_THRESHOLD := 0.20
-const DIVE_DURATION := 0.78
-const ROLL_DURATION := 0.62
 
 var awaiting_action: StringName = &""
 var binding_buttons: Dictionary = {}
@@ -24,19 +22,11 @@ var full_screen_button: Button
 var full_preview := false
 var previous_window_mode := DisplayServer.WINDOW_MODE_WINDOWED
 var preview_model: Node3D
+var preview_player: CharacterBody3D
+var preview_camera: Camera3D
 var animation_driver: Node3D
 var animation_player: AnimationPlayer
-var impulse_pitch := 0.0
-var preview_peek := 0.0
 var preview_fire_time := 0.0
-var preview_posture: StringName = &"STANDING"
-var preview_motion_state: StringName = &"STANDING"
-var preview_action_time := 0.0
-var preview_vertical_speed := 0.0
-var stance_press_active := false
-var stance_hold_timer := 0.0
-var stance_held_triggered := false
-var jump_tween: Tween
 var last_locomotion_animation: StringName = &""
 
 
@@ -89,45 +79,15 @@ func _input(event: InputEvent) -> void:
 
 
 func _process(delta: float) -> void:
-	if preview_model == null:
+	if preview_model == null or preview_player == null:
 		return
-	var input_vector := Input.get_vector(
-		&"move_left",
-		&"move_right",
-		&"move_forward",
-		&"move_back"
-	)
-	_update_stance_hold(input_vector, delta)
-	_update_preview_motion_state(delta)
-	preview_peek = move_toward(preview_peek, 0.0, delta * 3.5)
 	preview_fire_time = maxf(0.0, preview_fire_time - delta)
-	if animation_driver != null and animation_driver.has_method("set_visual_inputs"):
-		animation_driver.call(
-			"set_visual_inputs",
-			Vector2(input_vector.x, -input_vector.y),
-			preview_posture,
-			0.0,
-			0.0,
-			1.0,
-			preview_fire_time > 0.0,
-			0.0,
-			input_vector.length(),
-			preview_motion_state,
-			preview_vertical_speed,
-			&"FULL" if preview_posture == &"STANDING" and input_vector.length() >= 0.72 else &"WALK",
-			input_vector.length() * 2.4,
-			Vector3.ZERO,
-			Vector2(input_vector.x, -input_vector.y),
-			input_vector.length(),
-			&"DIRECT",
-			preview_peek
-		)
-	impulse_pitch = lerpf(impulse_pitch, 0.0, 1.0 - exp(-15.0 * delta))
-	preview_model.rotation.x = deg_to_rad(impulse_pitch)
-	preview_state_label.text = "CURRENT GAMEPLAY STATE  •  %s%s" % [
-		preview_motion_state,
-		"  •  HOLDING STANCE %.2fs" % stance_hold_timer if stance_press_active else "",
-	]
+	_sync_animation_from_gameplay_player()
+	preview_camera.position = preview_player.position + Vector3(0.0, 1.18, 3.0)
+	preview_camera.look_at(preview_player.position + Vector3(0.0, 0.82, 0.0), Vector3.UP)
+	preview_state_label.text = "CURRENT GAMEPLAY STATE  •  %s" % String(
+		preview_player.call("get_motion_state_name")
+	)
 
 
 func _build_interface() -> void:
@@ -329,13 +289,21 @@ func _build_operator_preview() -> void:
 	viewport.add_child(environment_node)
 	var floor := MeshInstance3D.new()
 	var floor_mesh := BoxMesh.new()
-	floor_mesh.size = Vector3(3.4, 0.08, 2.6)
+	floor_mesh.size = Vector3(20.0, 0.08, 20.0)
 	floor.mesh = floor_mesh
 	floor.position.y = -0.04
 	var floor_material := StandardMaterial3D.new()
 	floor_material.albedo_color = Color("2b3542")
 	floor.material_override = floor_material
 	viewport.add_child(floor)
+	var floor_body := StaticBody3D.new()
+	var floor_collision := CollisionShape3D.new()
+	var floor_shape := BoxShape3D.new()
+	floor_shape.size = Vector3(20.0, 0.08, 20.0)
+	floor_collision.shape = floor_shape
+	floor_collision.position.y = -0.04
+	floor_body.add_child(floor_collision)
+	viewport.add_child(floor_body)
 	var light := DirectionalLight3D.new()
 	light.rotation_degrees = Vector3(-48.0, -28.0, 0.0)
 	light.light_energy = 1.35
@@ -346,15 +314,27 @@ func _build_operator_preview() -> void:
 	fill.omni_range = 7.0
 	fill.light_energy = 2.0
 	viewport.add_child(fill)
-	var camera := Camera3D.new()
-	viewport.add_child(camera)
-	camera.fov = 45.0
-	camera.position = Vector3(0.0, 1.18, 3.0)
-	camera.look_at(Vector3(0.0, 0.82, 0.0), Vector3.UP)
+	preview_camera = Camera3D.new()
+	viewport.add_child(preview_camera)
+	preview_camera.fov = 45.0
+	preview_camera.position = Vector3(0.0, 1.18, 3.0)
+	preview_camera.look_at(Vector3(0.0, 0.82, 0.0), Vector3.UP)
+	preview_player = PlayerController.new()
+	preview_player.name = "KeyboardGameplayPlayer"
+	preview_player.position = Vector3(0.0, 0.05, 0.0)
+	viewport.add_child(preview_player)
+	var player_collision := CollisionShape3D.new()
+	player_collision.name = "CollisionShape3D"
+	var player_capsule := CapsuleShape3D.new()
+	player_capsule.radius = 0.38
+	player_capsule.height = 1.85
+	player_collision.shape = player_capsule
+	player_collision.position.y = 0.925
+	preview_player.add_child(player_collision)
 	animation_driver = OperatorAnimationDriver.new()
 	preview_model = animation_driver
 	preview_model.name = "KeyboardPreviewOperator"
-	viewport.add_child(preview_model)
+	preview_player.add_child(preview_model)
 	animation_player = animation_driver.get("animation_player") as AnimationPlayer
 	_play_idle_if_available()
 
@@ -419,16 +399,14 @@ func _record_matching_actions(event: InputEvent, pressed: bool) -> void:
 	for action: StringName in KeyboardProfile.ACTION_ORDER:
 		if InputMap.event_is_action(event, action, true):
 			var button_text := KeyboardProfile.event_label(event)
-			if action == &"crouch":
-				if pressed:
-					_start_stance_press(button_text)
-				else:
-					_finish_stance_press(button_text)
-			elif pressed:
+			if pressed:
 				_append_history(button_text, action, "PRESSED")
 				_preview_action(action)
-			elif action == &"fire":
-				preview_fire_time = 0.0
+			else:
+				if action == &"fire":
+					preview_fire_time = 0.0
+				if action == &"crouch":
+					_append_history(button_text, action, "RELEASED — GAMEPLAY RESOLVES TAP / HOLD")
 
 
 func _append_history(button_text: String, action: StringName, state: String) -> void:
@@ -449,111 +427,72 @@ func _preview_action(action: StringName) -> void:
 		String(KeyboardProfile.ACTION_LABELS.get(action, action)),
 	]
 	match action:
-		&"jump":
-			preview_motion_state = &"AIRBORNE"
-			preview_action_time = 0.0
-			preview_vertical_speed = 4.8
-			preview_model.position.y = 0.20
-			if jump_tween != null and jump_tween.is_valid():
-				jump_tween.kill()
-			jump_tween = create_tween()
-			jump_tween.tween_property(preview_model, "position:y", 0.0, 0.55).set_trans(Tween.TRANS_QUAD)
-		&"peek_left":
-			preview_peek = -1.0
-		&"peek_right":
-			preview_peek = 1.0
 		&"fire":
-			impulse_pitch = -5.0
 			preview_fire_time = 0.12
 			if animation_driver != null and animation_driver.has_method("notify_fired"):
 				animation_driver.call("notify_fired")
-		&"reload_weapon":
+		&"reload_weapon", &"throw_grenade":
 			_play_animation_for_action(action)
-		&"dive":
-			_start_committed_action(&"DIVING")
-		&"roll":
-			_start_committed_action(&"ROLLING")
-		&"prone":
-			preview_posture = &"CROUCHED" if preview_posture == &"PRONE" else &"PRONE"
-			preview_motion_state = preview_posture
 		&"reset_camera":
 			_reset_operator_preview()
-		_:
-			_play_animation_for_action(action)
-
-
-func _start_stance_press(button_text: String) -> void:
-	stance_press_active = true
-	stance_hold_timer = 0.0
-	stance_held_triggered = false
-	_append_history(button_text, &"crouch", "DOWN — TAP OR HOLD")
-	preview_status.text = "%s held: tap changes stance • hold drops prone • hold while moving dives" % button_text
-
-
-func _update_stance_hold(input_vector: Vector2, delta: float) -> void:
-	if not stance_press_active or stance_held_triggered:
-		return
-	stance_hold_timer += delta
-	if stance_hold_timer < STANCE_HOLD_THRESHOLD:
-		return
-	stance_held_triggered = true
-	if preview_posture != &"PRONE" and input_vector.length() >= 0.72:
-		_start_committed_action(&"DIVING")
-		_append_history(KeyboardProfile.binding_text(&"crouch"), &"crouch", "HOLD + MOVE → DIVE")
-		preview_status.text = "Hold stance while moving = dive to prone"
-	else:
-		preview_posture = &"PRONE"
-		preview_motion_state = &"PRONE"
-		_append_history(KeyboardProfile.binding_text(&"crouch"), &"crouch", "HOLD → PRONE")
-		preview_status.text = "Hold stance = prone"
-
-
-func _finish_stance_press(button_text: String) -> void:
-	if not stance_press_active:
-		return
-	if not stance_held_triggered:
-		if preview_posture == &"CROUCHED":
-			preview_posture = &"STANDING"
-		elif preview_posture == &"PRONE":
-			preview_posture = &"CROUCHED"
-		else:
-			preview_posture = &"CROUCHED"
-		preview_motion_state = preview_posture
-		_append_history(button_text, &"crouch", "TAP → %s" % preview_posture)
-		preview_status.text = "Tap stance = %s" % preview_posture.to_lower()
-	stance_press_active = false
-	stance_hold_timer = 0.0
-	stance_held_triggered = false
-
-
-func _start_committed_action(state: StringName) -> void:
-	if preview_posture == &"PRONE":
-		return
-	preview_motion_state = state
-	preview_posture = &"STANDING" if state == &"DIVING" else &"CROUCHED"
-	preview_action_time = 0.0
 
 
 func _reset_operator_preview() -> void:
-	if jump_tween != null and jump_tween.is_valid():
-		jump_tween.kill()
-	preview_posture = &"STANDING"
-	preview_motion_state = &"STANDING"
-	preview_action_time = 0.0
-	preview_vertical_speed = 0.0
-	stance_press_active = false
-	stance_hold_timer = 0.0
-	stance_held_triggered = false
-	preview_peek = 0.0
 	preview_fire_time = 0.0
-	impulse_pitch = 0.0
-	if preview_model != null:
-		preview_model.position = Vector3.ZERO
-		preview_model.rotation = Vector3.ZERO
+	if preview_player != null:
+		preview_player.position = Vector3(0.0, 0.05, 0.0)
+		preview_player.rotation = Vector3.ZERO
+		preview_player.velocity = Vector3.ZERO
+		preview_player.set("posture", 0)
+		preview_player.set("motion_state", 0)
+		preview_player.set("action_elapsed", 0.0)
+		preview_player.set("action_duration", 0.0)
+		preview_player.set("stance_hold_timer", 0.0)
+		preview_player.set("stance_held_triggered", false)
+		preview_player.set("peek_amount", 0.0)
+		preview_player.call("_apply_posture_collider")
 	if animation_driver != null:
 		animation_driver.set("requested_action", &"")
 		animation_driver.set("requested_action_remaining", 0.0)
-	preview_status.text = "Operator reset to standing. Movement animations preview in place."
+	preview_status.text = "Operator reset to the real grounded standing state."
+
+
+func _sync_animation_from_gameplay_player() -> void:
+	if animation_driver == null or not animation_driver.has_method("set_visual_inputs"):
+		return
+	var local_velocity := preview_player.global_basis.inverse() * preview_player.velocity
+	var visual_direction := Vector2(local_velocity.x, -local_velocity.z)
+	var actual_speed := visual_direction.length()
+	var top_speed := maxf(float(preview_player.get("move_speed")), 0.001)
+	var normalized_speed := clampf(actual_speed / top_speed, 0.0, 1.0)
+	if visual_direction.length_squared() > 0.001:
+		visual_direction = visual_direction.normalized() * normalized_speed
+	var desired_world: Vector3 = preview_player.call("get_desired_movement_direction")
+	var local_desired := preview_player.global_basis.inverse() * desired_world
+	var desired_visual := Vector2(local_desired.x, -local_desired.z)
+	var desired_strength := clampf(desired_world.length(), 0.0, 1.0)
+	if desired_visual.length_squared() > 0.001:
+		desired_visual = desired_visual.normalized() * desired_strength
+	animation_driver.call(
+		"set_visual_inputs",
+		visual_direction,
+		StringName(preview_player.call("get_posture_name")),
+		0.0,
+		0.0,
+		1.0,
+		preview_fire_time > 0.0,
+		0.0,
+		normalized_speed,
+		StringName(preview_player.call("get_motion_state_name")),
+		preview_player.velocity.y,
+		StringName(preview_player.call("get_movement_gait_name")),
+		actual_speed,
+		preview_player.global_position + Vector3(0.0, 1.25, -20.0),
+		desired_visual,
+		desired_strength,
+		StringName(preview_player.call("get_horizontal_response_mode")),
+		float(preview_player.call("get_peek_amount"))
+	)
 
 
 func _toggle_full_screen_preview() -> void:
@@ -580,31 +519,6 @@ func _toggle_full_screen_preview() -> void:
 func _on_preview_gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.double_click and event.button_index == MOUSE_BUTTON_LEFT:
 		_toggle_full_screen_preview()
-
-
-func _update_preview_motion_state(delta: float) -> void:
-	preview_vertical_speed = 0.0
-	match preview_motion_state:
-		&"DIVING":
-			preview_action_time += delta
-			if preview_action_time >= DIVE_DURATION:
-				preview_posture = &"PRONE"
-				preview_motion_state = &"PRONE"
-		&"ROLLING":
-			preview_action_time += delta
-			if preview_action_time >= ROLL_DURATION:
-				preview_posture = &"CROUCHED"
-				preview_motion_state = &"CROUCHED"
-		&"AIRBORNE":
-			preview_action_time += delta
-			preview_vertical_speed = 4.8 if preview_action_time < 0.26 else -3.5
-			if preview_action_time >= 0.58:
-				preview_motion_state = &"LANDING"
-				preview_action_time = 0.0
-		&"LANDING":
-			preview_action_time += delta
-			if preview_action_time >= 0.18:
-				preview_motion_state = preview_posture
 
 
 func _play_animation_for_action(action: StringName) -> void:

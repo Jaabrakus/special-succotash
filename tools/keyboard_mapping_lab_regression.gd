@@ -48,11 +48,18 @@ func _run() -> void:
 		"right side contains the canonical gameplay operator driver"
 	)
 	var driver := lab.get("animation_driver") as Node3D
+	var preview_player := lab.get("preview_player") as CharacterBody3D
 	_expect(
 		driver != null
 		and driver.get("model_root") != null
 		and String((driver.get("model_root") as Node3D).name) == "TrooperModel",
 		"preview uses the same gas-mask TrooperModel as gameplay"
+	)
+	_expect(
+		preview_player != null
+		and (preview_player.get_script() as Script).resource_path == "res://scripts/player/player_controller.gd"
+		and driver.get_parent() == preview_player,
+		"preview operator is driven by the real grounded gameplay player"
 	)
 	_expect(
 		lab.find_child("KeyboardInputHistory", true, false) is RichTextLabel,
@@ -67,37 +74,29 @@ func _run() -> void:
 		"preview provides a full-screen animation mode"
 	)
 
-	lab.call("_start_stance_press", "X")
-	lab.call("_finish_stance_press", "X")
+	preview_player.set("posture", 1)
+	preview_player.set("motion_state", 1)
+	lab.call("_sync_animation_from_gameplay_player")
 	_expect(
-		StringName(lab.get("preview_posture")) == &"CROUCHED",
-		"tapping stance previews crouch"
+		StringName(driver.get("posture")) == &"CROUCHED"
+		and StringName(driver.get("movement_state")) == &"CROUCHED",
+		"crouch reaches the animation driver through gameplay state"
+	)
+	preview_player.set("posture", 2)
+	preview_player.set("motion_state", 2)
+	lab.call("_sync_animation_from_gameplay_player")
+	_expect(
+		StringName(driver.get("posture")) == &"PRONE"
+		and StringName(driver.get("movement_state")) == &"PRONE",
+		"prone reaches the animation driver through gameplay state"
 	)
 	lab.call("_reset_operator_preview")
 	_expect(
-		StringName(lab.get("preview_posture")) == &"STANDING"
-		and StringName(lab.get("preview_motion_state")) == &"STANDING"
-		and (lab.get("preview_model") as Node3D).position.is_zero_approx(),
+		StringName(preview_player.call("get_posture_name")) == &"STANDING"
+		and StringName(preview_player.call("get_motion_state_name")) == &"STANDING"
+		and preview_player.position.is_equal_approx(Vector3(0.0, 0.05, 0.0)),
 		"reset restores a centered standing preview"
 	)
-	lab.set("preview_posture", &"STANDING")
-	lab.set("preview_motion_state", &"STANDING")
-	lab.call("_start_stance_press", "X")
-	lab.call("_update_stance_hold", Vector2.ZERO, 0.21)
-	_expect(
-		StringName(lab.get("preview_posture")) == &"PRONE",
-		"holding stance while stationary previews prone"
-	)
-	lab.call("_finish_stance_press", "X")
-	lab.set("preview_posture", &"STANDING")
-	lab.set("preview_motion_state", &"STANDING")
-	lab.call("_start_stance_press", "X")
-	lab.call("_update_stance_hold", Vector2(0.0, -1.0), 0.21)
-	_expect(
-		StringName(lab.get("preview_motion_state")) == &"DIVING",
-		"holding stance while moving previews dive-to-prone"
-	)
-	lab.call("_finish_stance_press", "X")
 
 	var replacement := InputEventKey.new()
 	replacement.physical_keycode = KEY_F3
