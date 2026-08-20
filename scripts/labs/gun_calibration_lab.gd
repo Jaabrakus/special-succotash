@@ -245,6 +245,7 @@ var selected_hurtbox_region: StringName = &"torso"
 var hurtbox_region_picker: OptionButton
 var hurtbox_edit_markers: Dictionary = {}
 var hitbox_drag_offset_start := Vector3.ZERO
+var copied_hurtbox_profile: Dictionary = {}
 var fire_input_held: bool = false
 var active_lab_tab_name := "Rig & Hands"
 var current_aim_target := Vector3.ZERO
@@ -380,7 +381,7 @@ func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed:
 		var ek := event as InputEventKey
 		if ek.keycode == KEY_S and (ek.ctrl_pressed or ek.meta_pressed):
-			_save_weapon_config()
+			_request_save_everything()
 			get_viewport().set_input_as_handled()
 			return
 		elif ek.keycode == KEY_R and not (ek.ctrl_pressed or ek.meta_pressed):
@@ -416,6 +417,21 @@ func _input(event: InputEvent) -> void:
 
 	if event is InputEventMouseButton:
 		var mb := event as InputEventMouseButton
+		if (
+			mb.button_index == MOUSE_BUTTON_LEFT
+			and mb.pressed
+			and save_rig_button != null
+			and not save_rig_button.disabled
+			and save_rig_button.get_global_rect().has_point(mb.position)
+		):
+			_cancel_3d_authoring_pointer()
+			_request_save_everything()
+			get_viewport().set_input_as_handled()
+			return
+		if _pointer_over_editor_ui(mb.position):
+			if mb.button_index == MOUSE_BUTTON_LEFT and not mb.pressed:
+				_cancel_3d_authoring_pointer()
+			return
 		var target_dot := dragged_dot_id if dragged_dot_id != "" else hovered_dot_id
 
 		if mb.button_index == MOUSE_BUTTON_WHEEL_UP:
@@ -518,6 +534,11 @@ func _input(event: InputEvent) -> void:
 					dragged_dot_id = ""
 	elif event is InputEventMouseMotion:
 		var mm := event as InputEventMouseMotion
+		if _pointer_over_editor_ui(mm.position) and dragged_dot_id == "":
+			if hovered_dot_id != "":
+				hovered_dot_id = ""
+				_highlight_dot("")
+			return
 		if is_orbiting:
 			cam_yaw -= mm.relative.x * 0.4
 			cam_pitch = clampf(cam_pitch - mm.relative.y * 0.4, -85.0, 85.0)
@@ -2812,6 +2833,25 @@ func _apply_dot_world_drag(dot_id: String, world_pos: Vector3) -> void:
 				_update_slider_value("rh_z", right_grip_local_pos.z)
 
 
+func _pointer_over_editor_ui(screen_position: Vector2) -> bool:
+	for control in [sidebar_panel, animation_frame_panel, rotation_panel]:
+		if (
+			control != null
+			and (control as Control).visible
+			and (control as Control).get_global_rect().has_point(screen_position)
+		):
+			return true
+	return false
+
+
+func _cancel_3d_authoring_pointer() -> void:
+	mouse_fire_armed = false
+	authoring_pointer_down = false
+	dragged_dot_id = ""
+	hovered_dot_id = ""
+	_highlight_dot("")
+
+
 func _set_elbow_pole_from_world(side: StringName, world_pos: Vector3) -> void:
 	if not skeleton:
 		return
@@ -4652,6 +4692,13 @@ func _find_animation_player(node: Node) -> AnimationPlayer:
 		if f: return f
 	return null
 
+func _request_save_everything() -> void:
+	if hud_status:
+		hud_status.text = "💾 Saving every Rig & Hands, animation, composure, posture, and hitbox change…"
+		hud_status.tooltip_text = hud_status.text
+	_save_weapon_config()
+
+
 func _save_weapon_config() -> bool:
 	if not _validate_weapon_rig_before_save():
 		return false
@@ -4665,8 +4712,9 @@ func _save_weapon_config() -> bool:
 	else:
 		_save_selected_animation_hand_map()
 	_store_current_stance_elbow_poles()
-	if runtime_posture_layer and not animation_frame_editor.active:
-		runtime_posture_layer.save_procedural_profile()
+	if runtime_posture_layer and not runtime_posture_layer.save_procedural_profile():
+		_show_rig_error("Operator joint and posture edits could not be saved. Save blocked.")
+		return false
 	var config_dir := "res://config/weapons/"
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(config_dir))
 	var saved_stance_hands := _hand_maps_without_legacy_mounts(hand_poses_by_stance)
@@ -5575,10 +5623,11 @@ func _build_studio_ui() -> void:
 	action_footer.add_child(HSeparator.new())
 	sidebar.add_child(action_footer)
 	var save_btn := Button.new()
+	save_btn.name = "SaveEverythingButton"
 	save_btn.text = "✅ Save Everything + Equip (Cmd/Ctrl+S)"
 	save_btn.tooltip_text = "Save weapon, sockets, animation corrections, composure, posture, and the complete shared hitbox layout."
 	save_btn.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2))
-	save_btn.pressed.connect(_save_weapon_config)
+	save_btn.pressed.connect(_request_save_everything)
 	save_btn.disabled = not weapon_master_pose_initialized
 	save_rig_button = save_btn
 	action_footer.add_child(save_btn)
@@ -5735,6 +5784,34 @@ func _build_composure_tab(tab_container: TabContainer) -> void:
 	drag_help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	drag_help.add_theme_color_override("font_color", Color("ffb36b"))
 	vbox.add_child(drag_help)
+	var clipboard_row := HBoxContainer.new()
+	vbox.add_child(clipboard_row)
+	var copy_hitbox_button := Button.new()
+	copy_hitbox_button.name = "CopySelectedHitboxButton"
+	copy_hitbox_button.text = "Copy Hitbox"
+	copy_hitbox_button.tooltip_text = "Copy the selected width, length, and local center offset."
+	copy_hitbox_button.pressed.connect(_copy_selected_hurtbox)
+	clipboard_row.add_child(copy_hitbox_button)
+	var paste_hitbox_button := Button.new()
+	paste_hitbox_button.name = "PasteSelectedHitboxButton"
+	paste_hitbox_button.text = "Paste to Selected"
+	paste_hitbox_button.tooltip_text = "Apply the copied shape to the body part currently selected."
+	paste_hitbox_button.pressed.connect(_paste_selected_hurtbox)
+	clipboard_row.add_child(paste_hitbox_button)
+	var alignment_row := HBoxContainer.new()
+	vbox.add_child(alignment_row)
+	var snap_hitbox_button := Button.new()
+	snap_hitbox_button.name = "SnapSelectedHitboxButton"
+	snap_hitbox_button.text = "Snap Selected to Rig"
+	snap_hitbox_button.tooltip_text = "Center this hitbox on its animated bone span and restore bone-matched length. Width is preserved."
+	snap_hitbox_button.pressed.connect(_snap_selected_hurtbox_to_rig)
+	alignment_row.add_child(snap_hitbox_button)
+	var align_all_hitboxes_button := Button.new()
+	align_all_hitboxes_button.name = "AlignAllHitboxesButton"
+	align_all_hitboxes_button.text = "Align All to Rig"
+	align_all_hitboxes_button.tooltip_text = "Rebuild every hitbox center and length from the animated skeleton. Widths are preserved."
+	align_all_hitboxes_button.pressed.connect(_align_all_hitboxes_to_rig)
+	alignment_row.add_child(align_all_hitboxes_button)
 	var save_hurtboxes_button := Button.new()
 	save_hurtboxes_button.name = "SaveSharedHitboxesButton"
 	save_hurtboxes_button.text = "Save Shared Hitboxes to Main Game"
@@ -5884,6 +5961,75 @@ func _apply_shared_hurtbox_preview() -> void:
 	if composure_preview_dummy.has_method("apply_hurtbox_geometry"):
 		composure_preview_dummy.call("apply_hurtbox_geometry", shared_hurtbox_geometry)
 	_update_hurtbox_edit_markers()
+
+
+func _copy_selected_hurtbox() -> void:
+	var entry: Dictionary = shared_hurtbox_geometry.get(selected_hurtbox_region, {})
+	copied_hurtbox_profile = {
+		"schema_version": 1,
+		"type": "socom_animated_hitbox",
+		"source_region": String(selected_hurtbox_region),
+		"width_scale": float(shared_hurtbox_scales.get(selected_hurtbox_region, 1.0)),
+		"geometry": entry.duplicate(true),
+	}
+	DisplayServer.clipboard_set(JSON.stringify(copied_hurtbox_profile))
+	if hud_status:
+		hud_status.text = "📋 Copied %s hitbox: width, length, and rig-local center." % HurtboxProfile.region_label(selected_hurtbox_region)
+
+
+func _paste_selected_hurtbox() -> void:
+	var source := copied_hurtbox_profile
+	if source.is_empty():
+		var clipboard_value: Variant = JSON.parse_string(DisplayServer.clipboard_get())
+		if clipboard_value is Dictionary:
+			source = clipboard_value as Dictionary
+	if source.get("type", "") != "socom_animated_hitbox":
+		_show_rig_error("Copy a hitbox before pasting.")
+		return
+	shared_hurtbox_scales[selected_hurtbox_region] = clampf(
+		float(source.get("width_scale", 1.0)),
+		HurtboxProfile.MIN_SCALE,
+		HurtboxProfile.MAX_SCALE
+	)
+	var geometry_value: Variant = source.get("geometry", {})
+	if geometry_value is Dictionary:
+		var source_geometry := geometry_value as Dictionary
+		HurtboxProfile.set_geometry_offset(
+			shared_hurtbox_geometry,
+			selected_hurtbox_region,
+			HurtboxProfile.geometry_offset(
+				{selected_hurtbox_region: source_geometry},
+				selected_hurtbox_region
+			)
+		)
+		HurtboxProfile.set_geometry_length_scale(
+			shared_hurtbox_geometry,
+			selected_hurtbox_region,
+			float(source_geometry.get("length_scale", 1.0))
+		)
+	_apply_shared_hurtbox_preview()
+	_sync_selected_hurtbox_controls()
+	if hud_status:
+		hud_status.text = "📌 Pasted copied hitbox onto %s. Use Snap Selected if this body part needs bone-centered placement." % HurtboxProfile.region_label(selected_hurtbox_region)
+
+
+func _snap_selected_hurtbox_to_rig() -> void:
+	var defaults := HurtboxProfile.default_geometry()
+	shared_hurtbox_geometry[selected_hurtbox_region] = (
+		(defaults[selected_hurtbox_region] as Dictionary).duplicate(true)
+	)
+	_apply_shared_hurtbox_preview()
+	_sync_selected_hurtbox_controls()
+	if hud_status:
+		hud_status.text = "🦴 %s snapped to its animated rig bones. Width was preserved." % HurtboxProfile.region_label(selected_hurtbox_region)
+
+
+func _align_all_hitboxes_to_rig() -> void:
+	shared_hurtbox_geometry = HurtboxProfile.default_geometry()
+	_apply_shared_hurtbox_preview()
+	_sync_selected_hurtbox_controls()
+	if hud_status:
+		hud_status.text = "🦴 All hitbox centers and lengths aligned to the animated rig. Widths were preserved."
 
 
 func _create_hurtbox_edit_markers() -> void:
