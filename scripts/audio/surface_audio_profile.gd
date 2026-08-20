@@ -2,18 +2,26 @@ class_name SurfaceAudioProfile
 extends RefCounted
 
 const DEFAULT_PATH := "res://config/surface_audio_profiles.json"
+const PlaytestStateCollector := preload("res://scripts/runtime/playtest_state_collector.gd")
 
 var surfaces: Dictionary = {}
 
 
 func load_from_file(path := DEFAULT_PATH) -> bool:
-	if not FileAccess.file_exists(path):
-		return false
-	var file := FileAccess.open(path, FileAccess.READ)
-	var parsed: Variant = JSON.parse_string(file.get_as_text()) if file else null
-	if not (parsed is Dictionary):
-		return false
-	var raw_surfaces: Variant = (parsed as Dictionary).get("surfaces", {})
+	var document := (
+		PlaytestStateCollector.bundled_state("surface_audio")
+		if path == DEFAULT_PATH
+		else {}
+	)
+	if document.is_empty():
+		if not FileAccess.file_exists(path):
+			return false
+		var file := FileAccess.open(path, FileAccess.READ)
+		var parsed: Variant = JSON.parse_string(file.get_as_text()) if file else null
+		if not (parsed is Dictionary):
+			return false
+		document = parsed as Dictionary
+	var raw_surfaces: Variant = document.get("surfaces", {})
 	if not (raw_surfaces is Dictionary):
 		return false
 	surfaces = (raw_surfaces as Dictionary).duplicate(true)

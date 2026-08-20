@@ -86,6 +86,10 @@ func _on_scene_changed() -> void:
 	var scene := get_tree().current_scene
 	if not active or scene == null:
 		return
+	if scene.scene_file_path not in ["res://main.tscn", "res://multiplayer_slice.tscn"]:
+		var collector := get_node_or_null("/root/PlaytestStateCollector")
+		if collector != null:
+			collector.call("deactivate_bundle")
 	# Labs need their full editing surface. History remains one click/F2 away,
 	# while the Home screen keeps it open as the persistent activity rail.
 	if history_panel != null:

@@ -2,18 +2,26 @@ class_name AudioAnimationEventProfile
 extends RefCounted
 
 const DEFAULT_PATH := "res://config/audio_animation_events.json"
+const PlaytestStateCollector := preload("res://scripts/runtime/playtest_state_collector.gd")
 
 var animations: Dictionary = {}
 
 
 func load_from_file(path := DEFAULT_PATH) -> bool:
-	if not FileAccess.file_exists(path):
-		return false
-	var file := FileAccess.open(path, FileAccess.READ)
-	var parsed: Variant = JSON.parse_string(file.get_as_text()) if file else null
-	if not (parsed is Dictionary):
-		return false
-	var raw_animations: Variant = (parsed as Dictionary).get("animations", {})
+	var document := (
+		PlaytestStateCollector.bundled_state("animation_audio")
+		if path == DEFAULT_PATH
+		else {}
+	)
+	if document.is_empty():
+		if not FileAccess.file_exists(path):
+			return false
+		var file := FileAccess.open(path, FileAccess.READ)
+		var parsed: Variant = JSON.parse_string(file.get_as_text()) if file else null
+		if not (parsed is Dictionary):
+			return false
+		document = parsed as Dictionary
+	var raw_animations: Variant = document.get("animations", {})
 	if not (raw_animations is Dictionary):
 		return false
 	animations = (raw_animations as Dictionary).duplicate(true)

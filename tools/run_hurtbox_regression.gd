@@ -182,7 +182,6 @@ func _run() -> void:
 
 	# Extra authored shapes are real physics areas. Their anchor follows the
 	# original bone span, while damage paint is an independent identity.
-	var area_count_before: int = rig.get_hurtbox_areas().size()
 	rig.apply_custom_hitboxes([{
 		"id": "left_upper_arm_extra_test",
 		"source_region": "left_upper_arm",
@@ -197,7 +196,7 @@ func _run() -> void:
 	var custom_area: Area3D = rig.get_editor_hitbox_area(&"left_upper_arm_extra_test")
 	_assert(custom_area != null, "custom hitbox did not create a physics area")
 	_assert(
-		rig.get_hurtbox_areas().size() == area_count_before + 1,
+		rig.get_hurtbox_areas().size() == REQUIRED_REGIONS.size() + 1,
 		"custom hitbox did not increase the physical hurtbox count"
 	)
 	if custom_area:

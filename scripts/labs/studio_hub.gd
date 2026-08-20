@@ -7,6 +7,9 @@ var status_label: Label
 
 
 func _ready() -> void:
+	var collector := get_node_or_null("/root/PlaytestStateCollector")
+	if collector != null:
+		collector.call("deactivate_bundle")
 	_build_interface()
 	_load_manifest()
 	var navigation := get_node_or_null("/root/StudioNavigation")
@@ -93,7 +96,7 @@ func _build_interface() -> void:
 	column.add_child(status_label)
 
 	var note := Label.new()
-	note.text = "The buttons change only the view. Every lab uses this project's shared camera, movement, animation, and weapon contracts."
+	note.text = "Camera + Playable Range collects every saved lab profile, validates the equipped loadout, then opens the real gameplay scene."
 	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	note.add_theme_color_override("font_color", Color("9aa4b5"))
@@ -137,8 +140,24 @@ func _open_lab(lab_id: StringName) -> void:
 	if scene_path.is_empty() or not ResourceLoader.exists(scene_path):
 		status_label.text = "ERROR: registered lab is unavailable: %s" % lab_id
 		return
+	if lab_id == &"camera_gameplay" and not _collect_saved_playtest_state():
+		return
 	var navigation := get_node_or_null("/root/StudioNavigation")
 	if navigation != null and bool(navigation.get("active")):
 		navigation.call("open_scene", scene_path)
 	else:
 		get_tree().change_scene_to_file(scene_path)
+
+
+func _collect_saved_playtest_state() -> bool:
+	var collector := get_node_or_null("/root/PlaytestStateCollector")
+	if collector == null:
+		status_label.text = "ERROR: saved-state collector is unavailable"
+		return false
+	status_label.text = "Collecting saved lab states…"
+	var result: Dictionary = collector.call("collect_saved_state")
+	if not bool(result.get("ok", false)):
+		status_label.text = "PLAY BLOCKED: %s" % " | ".join(result.get("errors", []))
+		return false
+	status_label.text = "READY: %s" % String(collector.call("get_summary"))
+	return true

@@ -5,6 +5,7 @@ extends RefCounted
 ## retargeted and before camera aim, weapon IK, recoil, and obstruction solving.
 
 const PROFILE_PATH := "res://config/operator_procedural_pose_profile.json"
+const PlaytestStateCollector := preload("res://scripts/runtime/playtest_state_collector.gd")
 const SUPPORTED_POSTURES := [&"STANDING", &"CROUCHED", &"PRONE"]
 const SUPPORTED_BONES := [
 	&"spine", &"spine1", &"spine2", &"neck", &"head",
@@ -38,13 +39,15 @@ func _init() -> void:
 
 func load_project_profile() -> bool:
 	_reset_structure()
-	if not FileAccess.file_exists(PROFILE_PATH):
-		return false
-	var file := FileAccess.open(PROFILE_PATH, FileAccess.READ)
-	var parsed: Variant = JSON.parse_string(file.get_as_text()) if file else null
-	if not parsed is Dictionary:
-		return false
-	var document := parsed as Dictionary
+	var document := PlaytestStateCollector.bundled_state("procedural_pose")
+	if document.is_empty():
+		if not FileAccess.file_exists(PROFILE_PATH):
+			return false
+		var file := FileAccess.open(PROFILE_PATH, FileAccess.READ)
+		var parsed: Variant = JSON.parse_string(file.get_as_text()) if file else null
+		if not parsed is Dictionary:
+			return false
+		document = parsed as Dictionary
 	var posture_data: Variant = document.get("postures", {})
 	if not posture_data is Dictionary:
 		return false

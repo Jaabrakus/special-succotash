@@ -6,6 +6,7 @@ extends RefCounted
 ## CharacterBody movement collision intentionally do not use this profile.
 
 const CONFIG_PATH := "res://config/combat/hurtbox_profile.json"
+const PlaytestStateCollector := preload("res://scripts/runtime/playtest_state_collector.gd")
 const MIN_SCALE := 0.45
 const MAX_SCALE := 1.0
 const MIN_LENGTH_SCALE := 0.35
@@ -90,15 +91,10 @@ static func default_scales() -> Dictionary:
 
 static func load_scales() -> Dictionary:
 	var result := default_scales()
-	if not FileAccess.file_exists(CONFIG_PATH):
+	var document := _load_profile_document()
+	if document.is_empty():
 		return result
-	var file := FileAccess.open(CONFIG_PATH, FileAccess.READ)
-	if file == null:
-		return result
-	var parsed: Variant = JSON.parse_string(file.get_as_text())
-	if not parsed is Dictionary:
-		return result
-	var source: Dictionary = parsed.get("radius_scales", {})
+	var source: Dictionary = document.get("radius_scales", {})
 	return normalize_scales(source)
 
 
@@ -122,27 +118,31 @@ static func default_geometry() -> Dictionary:
 
 
 static func load_geometry() -> Dictionary:
-	if not FileAccess.file_exists(CONFIG_PATH):
+	var document := _load_profile_document()
+	if document.is_empty():
 		return default_geometry()
-	var file := FileAccess.open(CONFIG_PATH, FileAccess.READ)
-	if file == null:
-		return default_geometry()
-	var parsed: Variant = JSON.parse_string(file.get_as_text())
-	if not parsed is Dictionary:
-		return default_geometry()
-	return normalize_geometry((parsed as Dictionary).get("geometry", {}))
+	return normalize_geometry(document.get("geometry", {}))
 
 
 static func load_custom_hitboxes() -> Array[Dictionary]:
-	if not FileAccess.file_exists(CONFIG_PATH):
+	var document := _load_profile_document()
+	if document.is_empty():
 		return []
+	return normalize_custom_hitboxes(document.get("custom_hitboxes", []))
+
+
+static func _load_profile_document() -> Dictionary:
+	var bundled := PlaytestStateCollector.bundled_state("hurtboxes")
+	if not bundled.is_empty():
+		return bundled
+	if not FileAccess.file_exists(CONFIG_PATH):
+		return {}
 	var file := FileAccess.open(CONFIG_PATH, FileAccess.READ)
 	if file == null:
-		return []
+		return {}
 	var parsed: Variant = JSON.parse_string(file.get_as_text())
-	if not parsed is Dictionary:
-		return []
-	return normalize_custom_hitboxes((parsed as Dictionary).get("custom_hitboxes", []))
+	file.close()
+	return (parsed as Dictionary) if parsed is Dictionary else {}
 
 
 static func normalize_scales(scales: Dictionary) -> Dictionary:

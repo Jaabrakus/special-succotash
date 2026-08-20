@@ -18,6 +18,7 @@ const TacticalGrenadeThrowerScript := preload("res://scripts/tactical/tactical_g
 const TacticalSmokeGrenadeScript := preload("res://scripts/tactical/smoke_grenade.gd")
 const TacticalFlashbangScript := preload("res://scripts/tactical/flashbang_grenade.gd")
 const TacticalFragGrenadeScript := preload("res://scripts/tactical/frag_grenade.gd")
+const PlaytestStateCollectorScript := preload("res://scripts/runtime/playtest_state_collector.gd")
 const RETICLE_BOX_SIZE := Vector2(32.0, 32.0)
 const OPERATOR_TUNING_PATH := "res://config/operator_movement_tuning.json"
 
@@ -74,6 +75,7 @@ void fragment() {
 """
 
 func _ready() -> void:
+    _attach_saved_playtest_bundle()
     calibration_visible = OS.get_cmdline_user_args().has("--show-calibration")
     debug_hud_visible = not OS.get_cmdline_user_args().has("--clean-hud")
     _load_operator_tuning()
@@ -132,6 +134,18 @@ func _ready() -> void:
         _set_workbench_visible(true)
     if OS.get_cmdline_user_args().has("--audit-record-test"):
         audit_recorder.start_recording()
+
+
+func _attach_saved_playtest_bundle() -> void:
+    var collector := get_node_or_null("/root/PlaytestStateCollector")
+    if collector == null:
+        push_warning("Playable range started without the saved-state collector.")
+        return
+    var result: Dictionary = collector.call("ensure_saved_state")
+    if not bool(result.get("ok", false)):
+        push_error("Playable range could not collect saved lab state: %s" % result.get("errors", []))
+        return
+    set_meta("playtest_state_bundle", result.get("bundle", {}))
 
 
 func _ensure_input_map() -> void:
@@ -1417,15 +1431,18 @@ func _default_operator_tuning() -> Dictionary:
 
 func _load_operator_tuning() -> void:
     operator_tuning = _default_operator_tuning()
-    if not FileAccess.file_exists(OPERATOR_TUNING_PATH):
-        return
-    var file := FileAccess.open(OPERATOR_TUNING_PATH, FileAccess.READ)
-    var parsed: Variant = JSON.parse_string(file.get_as_text()) if file else null
-    if not (parsed is Dictionary):
-        push_warning("Operator tuning JSON is invalid; using safe defaults")
-        return
-    for section_name in (parsed as Dictionary).keys():
-        var incoming: Variant = (parsed as Dictionary)[section_name]
+    var document := PlaytestStateCollectorScript.bundled_state("movement")
+    if document.is_empty():
+        if not FileAccess.file_exists(OPERATOR_TUNING_PATH):
+            return
+        var file := FileAccess.open(OPERATOR_TUNING_PATH, FileAccess.READ)
+        var parsed: Variant = JSON.parse_string(file.get_as_text()) if file else null
+        if not (parsed is Dictionary):
+            push_warning("Operator tuning JSON is invalid; using safe defaults")
+            return
+        document = parsed as Dictionary
+    for section_name in document.keys():
+        var incoming: Variant = document[section_name]
         if section_name == "movement" and incoming is Dictionary:
             var migrated_movement := (incoming as Dictionary).duplicate(true)
             if not migrated_movement.has("move_speed"):

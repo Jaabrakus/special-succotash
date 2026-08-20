@@ -7,6 +7,7 @@ extends RefCounted
 
 const LOADOUT_PATH := "res://config/weapons/operator_loadout.json"
 const CURRENT_SCHEMA_VERSION := 3
+const PlaytestStateCollector := preload("res://scripts/runtime/playtest_state_collector.gd")
 
 
 static func resolve_config_path(fallback_weapon_id: String = "") -> String:
@@ -28,6 +29,11 @@ static func resolve_config_path(fallback_weapon_id: String = "") -> String:
 
 
 static func load_equipped_config(fallback_weapon_id: String = "") -> Dictionary:
+	var bundled := PlaytestStateCollector.bundled_state("equipped_weapon")
+	if not bundled.is_empty():
+		var bundle: Dictionary = ProjectSettings.get_setting("socom/playtest/active_bundle", {})
+		var source: Dictionary = (bundle.get("sources", {}) as Dictionary).get("equipped_weapon", {})
+		return normalize_config(bundled, String(source.get("path", "")))
 	var config_path := resolve_config_path(fallback_weapon_id)
 	if config_path.is_empty():
 		return {}

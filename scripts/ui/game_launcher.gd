@@ -70,13 +70,13 @@ func _add_action(parent: VBoxContainer, label_text: String, callback: Callable) 
 
 
 func _open_training() -> void:
-	get_tree().change_scene_to_file(TRAINING_SCENE)
+	_collect_and_open(TRAINING_SCENE)
 
 
 func _host_match() -> void:
 	ProjectSettings.set_setting("socom/session/launch_mode", "host")
 	ProjectSettings.set_setting("socom/session/join_address", "")
-	get_tree().change_scene_to_file(MULTIPLAYER_SCENE)
+	_collect_and_open(MULTIPLAYER_SCENE)
 
 
 func _join_match() -> void:
@@ -86,7 +86,7 @@ func _join_match() -> void:
 		return
 	ProjectSettings.set_setting("socom/session/launch_mode", "join")
 	ProjectSettings.set_setting("socom/session/join_address", address)
-	get_tree().change_scene_to_file(MULTIPLAYER_SCENE)
+	_collect_and_open(MULTIPLAYER_SCENE)
 
 
 func _open_studio() -> void:
@@ -96,3 +96,17 @@ func _open_studio() -> void:
 		navigation.call("open_home")
 	else:
 		get_tree().change_scene_to_file("res://studio_hub.tscn")
+
+
+func _collect_and_open(scene_path: String) -> void:
+	var collector := get_node_or_null("/root/PlaytestStateCollector")
+	if collector == null:
+		status_label.text = "Play blocked: saved-state collector is unavailable."
+		return
+	status_label.text = "Collecting saved lab states…"
+	var result: Dictionary = collector.call("collect_saved_state")
+	if not bool(result.get("ok", false)):
+		status_label.text = "Play blocked: %s" % " | ".join(result.get("errors", []))
+		return
+	status_label.text = "%s. Opening playtest…" % String(collector.call("get_summary"))
+	get_tree().change_scene_to_file(scene_path)

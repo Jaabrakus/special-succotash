@@ -5,6 +5,7 @@ extends RefCounted
 ## The gameplay controller never reads clip paths or animation timing metadata.
 
 const MAP_PATH := "res://config/operator_animation_map.json"
+const PlaytestStateCollector := preload("res://scripts/runtime/playtest_state_collector.gd")
 
 const DIRECTION_SUFFIXES: Array[StringName] = [
 	&"forward", &"forward_left", &"left", &"back_left",
@@ -233,15 +234,21 @@ func load_project_map(path: String = MAP_PATH) -> void:
 	semantic_actions = DEFAULT_SEMANTIC_ACTIONS.duplicate(true)
 	connected_routes = DEFAULT_CONNECTED_ROUTES.duplicate(true)
 	warnings.clear()
-	if not FileAccess.file_exists(path):
-		warnings.append("animation map missing; using built-in defaults")
-		return
-	var file := FileAccess.open(path, FileAccess.READ)
-	var parsed: Variant = JSON.parse_string(file.get_as_text()) if file else null
-	if not (parsed is Dictionary):
-		warnings.append("animation map is invalid JSON; using built-in defaults")
-		return
-	var config := parsed as Dictionary
+	var config := (
+		PlaytestStateCollector.bundled_state("animation_map")
+		if path == MAP_PATH
+		else {}
+	)
+	if config.is_empty():
+		if not FileAccess.file_exists(path):
+			warnings.append("animation map missing; using built-in defaults")
+			return
+		var file := FileAccess.open(path, FileAccess.READ)
+		var parsed: Variant = JSON.parse_string(file.get_as_text()) if file else null
+		if not (parsed is Dictionary):
+			warnings.append("animation map is invalid JSON; using built-in defaults")
+			return
+		config = parsed as Dictionary
 	_apply_clip_entries(config.get("clips", {}))
 	_apply_mirrored_entries(config.get("mirrored_clips", DEFAULT_MIRRORED_CLIPS))
 	_apply_leg_mirrored_entries(config.get("leg_mirrored_clips", DEFAULT_LEG_MIRRORED_CLIPS))

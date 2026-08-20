@@ -18,6 +18,7 @@ config/features=PackedStringArray("4.7")
 
 StudioNavigation="*res://scripts/ui/studio_navigation.gd"
 TacticalOcclusionManager="*res://scripts/tactical/tactical_occlusion_manager.gd"
+PlaytestStateCollector="*res://scripts/runtime/playtest_state_collector.gd"
 
 [display]
 
