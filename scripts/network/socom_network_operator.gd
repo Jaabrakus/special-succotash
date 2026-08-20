@@ -202,7 +202,13 @@ func take_bullet_damage_region(
 	var multiplier := 1.0
 	if region == "HEAD":
 		multiplier = 2.45
-	elif "ARM" in region or "THIGH" in region or "CALF" in region or "FOOT" in region:
+	elif (
+		"ARM" in region
+		or "LEG" in region
+		or "THIGH" in region
+		or "CALF" in region
+		or "FOOT" in region
+	):
 		multiplier = 0.48
 	elif region == "PELVIS":
 		multiplier = 0.72

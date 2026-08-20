@@ -120,6 +120,11 @@ func apply_hurtbox_geometry(settings: Dictionary) -> void:
 		hurtbox_rig.apply_geometry_tuning(settings)
 
 
+func apply_custom_hitboxes(settings: Variant) -> void:
+	if hurtbox_rig:
+		hurtbox_rig.apply_custom_hitboxes(settings)
+
+
 func save_hurtbox_tuning() -> bool:
 	return bool(hurtbox_rig.save_radius_scales()) if hurtbox_rig else false
 
@@ -130,6 +135,10 @@ func get_hurtbox_tuning() -> Dictionary:
 
 func get_hurtbox_geometry() -> Dictionary:
 	return hurtbox_rig.get_geometry_tuning() if hurtbox_rig else {}
+
+
+func get_custom_hitboxes() -> Array[Dictionary]:
+	return hurtbox_rig.get_custom_hitboxes() if hurtbox_rig else []
 
 
 func get_hurtbox_rig() -> Node3D:
@@ -194,7 +203,8 @@ func take_bullet_damage_region(
 	var is_headshot := region_text == "HEAD"
 	var is_arm := "ARM" in region_text
 	var is_leg := (
-		"THIGH" in region_text
+		"LEG" in region_text
+		or "THIGH" in region_text
 		or "CALF" in region_text
 		or "FOOT" in region_text
 	)

@@ -25,6 +25,7 @@ var precision_core_scale: float = 1.0
 var enabled: bool = true
 var radius_scales: Dictionary = HurtboxProfile.load_scales()
 var geometry_tuning: Dictionary = HurtboxProfile.load_geometry()
+var custom_hitboxes: Array[Dictionary] = HurtboxProfile.load_custom_hitboxes()
 
 var _records: Array[Dictionary] = []
 var _bone_indices: Dictionary = {}
@@ -36,6 +37,7 @@ func bind(target_skeleton: Skeleton3D, receiver: Node) -> bool:
 	damage_receiver = receiver
 	radius_scales = HurtboxProfile.load_scales()
 	geometry_tuning = HurtboxProfile.load_geometry()
+	custom_hitboxes = HurtboxProfile.load_custom_hitboxes()
 	_clear_hurtboxes()
 	if skeleton == null:
 		push_warning("Animated hurtbox rig could not bind: Skeleton3D missing")
@@ -60,6 +62,7 @@ func bind(target_skeleton: Skeleton3D, receiver: Node) -> bool:
 	_add_capsule(&"RIGHT_CALF", &"RightLeg", &"RightFoot", CALF_RADIUS)
 	_add_sphere(&"LEFT_FOOT", &"LeftFoot", &"LeftLeg", FOOT_RADIUS, -0.12)
 	_add_sphere(&"RIGHT_FOOT", &"RightFoot", &"RightLeg", FOOT_RADIUS, -0.12)
+	_rebuild_custom_hitbox_records()
 
 	set_debug_visible(debug_visible)
 	set_enabled(enabled)
@@ -156,8 +159,58 @@ func get_geometry_tuning() -> Dictionary:
 	return geometry_tuning.duplicate(true)
 
 
+func apply_custom_hitboxes(settings: Variant) -> void:
+	var normalized := HurtboxProfile.normalize_custom_hitboxes(settings)
+	if _custom_structure_matches(normalized):
+		custom_hitboxes = normalized
+		_update_custom_record_tuning()
+		force_pose_update()
+		return
+	custom_hitboxes = normalized
+	_rebuild_custom_hitbox_records()
+	set_debug_visible(debug_visible)
+	set_precision_core_debug(precision_core_debug_visible, precision_core_scale)
+	set_enabled(enabled)
+	force_pose_update()
+
+
+func get_custom_hitboxes() -> Array[Dictionary]:
+	return custom_hitboxes.duplicate(true)
+
+
+func _custom_structure_matches(settings: Array[Dictionary]) -> bool:
+	if settings.size() != custom_hitboxes.size():
+		return false
+	var record_count := 0
+	for record in _records:
+		if bool(record.get("custom", false)):
+			record_count += 1
+	if record_count != settings.size():
+		return false
+	for index in settings.size():
+		for key in ["id", "source_region", "damage_region"]:
+			if String(settings[index].get(key, "")) != String(custom_hitboxes[index].get(key, "")):
+				return false
+	return true
+
+
+func _update_custom_record_tuning() -> void:
+	var entries_by_id: Dictionary = {}
+	for entry in custom_hitboxes:
+		entries_by_id[StringName(entry.get("id", &""))] = entry
+	for record in _records:
+		if not bool(record.get("custom", false)):
+			continue
+		var editor_id := StringName(record.editor_id)
+		var entry: Dictionary = entries_by_id.get(editor_id, {})
+		if entry.is_empty():
+			continue
+		record["custom_width_scale"] = float(entry.get("width_scale", 1.0))
+		record["custom_geometry"] = (entry.get("geometry", {}) as Dictionary).duplicate(true)
+
+
 func save_radius_scales() -> bool:
-	return HurtboxProfile.save_profile(radius_scales, geometry_tuning)
+	return HurtboxProfile.save_profile(radius_scales, geometry_tuning, custom_hitboxes)
 
 
 func get_hurtbox_areas() -> Array[Area3D]:
@@ -185,6 +238,20 @@ func get_region_names() -> Array[StringName]:
 func get_region_area(region: StringName) -> Area3D:
 	for record in _records:
 		if StringName(record.region) == region:
+			return record.area as Area3D
+	return null
+
+
+func get_editor_hitbox_ids() -> Array[StringName]:
+	var result: Array[StringName] = []
+	for record in _records:
+		result.append(StringName(record.editor_id))
+	return result
+
+
+func get_editor_hitbox_area(editor_id: StringName) -> Area3D:
+	for record in _records:
+		if StringName(record.editor_id) == editor_id:
 			return record.area as Area3D
 	return null
 
@@ -236,6 +303,8 @@ func _add_capsule(
 	_records.append({
 		"kind": &"capsule",
 		"region": region,
+		"editor_id": HurtboxProfile.region_scale_key(region),
+		"custom": false,
 		"from_bone": from_bone,
 		"to_bone": to_bone,
 		"base_radius": radius,
@@ -258,6 +327,8 @@ func _add_midpoint_capsule(
 	_records.append({
 		"kind": &"midpoint_capsule",
 		"region": region,
+		"editor_id": HurtboxProfile.region_scale_key(region),
+		"custom": false,
 		"from_bone": from_bone,
 		"left_bone": left_bone,
 		"right_bone": right_bone,
@@ -277,38 +348,29 @@ func _add_sphere(
 	radius: float,
 	directional_offset: float
 ) -> void:
-	var area := _create_area(region)
-	var shape_node := CollisionShape3D.new()
-	var sphere := SphereShape3D.new()
-	sphere.radius = radius
-	shape_node.shape = sphere
-	area.add_child(shape_node)
-
-	var debug_mesh := MeshInstance3D.new()
-	var sphere_mesh := SphereMesh.new()
-	sphere_mesh.radius = radius
-	sphere_mesh.height = radius * 2.0
-	debug_mesh.mesh = sphere_mesh
-	_configure_debug_mesh(debug_mesh, region)
-	area.add_child(debug_mesh)
-	var precision_mesh := _create_precision_sphere(radius)
-	area.add_child(precision_mesh)
+	var pair := _create_sphere_nodes(region, radius)
 	_records.append({
 		"kind": &"sphere",
 		"region": region,
+		"editor_id": HurtboxProfile.region_scale_key(region),
+		"custom": false,
 		"bone": bone,
 		"reference_bone": reference_bone,
 		"base_radius": radius,
 		"directional_offset": directional_offset,
-		"area": area,
-		"shape": sphere,
-		"debug_mesh": debug_mesh,
-		"precision_mesh": precision_mesh
+		"area": pair.area,
+		"shape": pair.shape,
+		"debug_mesh": pair.debug_mesh,
+		"precision_mesh": pair.precision_mesh
 	})
 
 
-func _create_capsule_nodes(region: StringName, radius: float) -> Dictionary:
-	var area := _create_area(region)
+func _create_capsule_nodes(
+	region: StringName,
+	radius: float,
+	editor_id: StringName = &""
+) -> Dictionary:
+	var area := _create_area(region, editor_id)
 	var shape_node := CollisionShape3D.new()
 	var capsule := CapsuleShape3D.new()
 	capsule.radius = radius
@@ -333,12 +395,101 @@ func _create_capsule_nodes(region: StringName, radius: float) -> Dictionary:
 	}
 
 
-func _create_area(region: StringName) -> Area3D:
+func _create_sphere_nodes(
+	region: StringName,
+	radius: float,
+	editor_id: StringName = &""
+) -> Dictionary:
+	var area := _create_area(region, editor_id)
+	var shape_node := CollisionShape3D.new()
+	var sphere := SphereShape3D.new()
+	sphere.radius = radius
+	shape_node.shape = sphere
+	area.add_child(shape_node)
+	var debug_mesh := MeshInstance3D.new()
+	var sphere_mesh := SphereMesh.new()
+	sphere_mesh.radius = radius
+	sphere_mesh.height = radius * 2.0
+	debug_mesh.mesh = sphere_mesh
+	_configure_debug_mesh(debug_mesh, region)
+	area.add_child(debug_mesh)
+	var precision_mesh := _create_precision_sphere(radius)
+	area.add_child(precision_mesh)
+	return {
+		"area": area,
+		"shape": sphere,
+		"debug_mesh": debug_mesh,
+		"precision_mesh": precision_mesh,
+	}
+
+
+func _create_area(region: StringName, editor_id: StringName = &"") -> Area3D:
 	var area := HurtboxAreaScript.new() as Area3D
-	area.name = "Hurtbox_%s" % String(region).to_pascal_case()
+	area.name = (
+		"Hurtbox_%s" % String(region).to_pascal_case()
+		if editor_id == &""
+		else "HurtboxExtra_%s" % String(editor_id).to_pascal_case()
+	)
 	area.configure(region, damage_receiver)
 	add_child(area)
 	return area
+
+
+func _rebuild_custom_hitbox_records() -> void:
+	for index in range(_records.size() - 1, -1, -1):
+		var record: Dictionary = _records[index]
+		if not bool(record.get("custom", false)):
+			continue
+		var area := record.area as Area3D
+		if is_instance_valid(area):
+			area.queue_free()
+		_records.remove_at(index)
+	for custom_entry in custom_hitboxes:
+		_append_custom_hitbox_record(custom_entry)
+
+
+func _append_custom_hitbox_record(custom_entry: Dictionary) -> void:
+	var source_region := StringName(custom_entry.get("source_region", &""))
+	var damage_region := StringName(custom_entry.get(
+		"damage_region",
+		HurtboxProfile.damage_type_for_source_region(source_region)
+	))
+	var source_record: Dictionary = {}
+	for candidate in _records:
+		if (
+			not bool(candidate.get("custom", false))
+			and StringName(candidate.editor_id) == source_region
+		):
+			source_record = candidate
+			break
+	if source_record.is_empty():
+		return
+	var editor_id := StringName(custom_entry.get("id", &""))
+	var pair: Dictionary
+	if StringName(source_record.kind) == &"sphere":
+		pair = _create_sphere_nodes(
+			damage_region,
+			float(source_record.base_radius),
+			editor_id
+		)
+	else:
+		pair = _create_capsule_nodes(
+			damage_region,
+			float(source_record.base_radius),
+			editor_id
+		)
+	var record := source_record.duplicate()
+	record["region"] = damage_region
+	record["source_region"] = source_region
+	record["editor_id"] = editor_id
+	record["custom"] = true
+	record["custom_width_scale"] = float(custom_entry.get("width_scale", 1.0))
+	record["custom_geometry"] = (custom_entry.get("geometry", {}) as Dictionary).duplicate(true)
+	record["area"] = pair.area
+	record["shape"] = pair.shape
+	record["debug_mesh"] = pair.debug_mesh
+	record["precision_mesh"] = pair.precision_mesh
+	_records.append(record)
 
 
 func _configure_debug_mesh(mesh: MeshInstance3D, region: StringName) -> void:
@@ -388,6 +539,7 @@ func _debug_material(region: StringName) -> StandardMaterial3D:
 	material.no_depth_test = true
 	match family:
 		&"HEAD": material.albedo_color = Color(1.0, 0.20, 0.18, 0.34)
+		&"NECK": material.albedo_color = Color(0.92, 0.30, 1.0, 0.32)
 		&"TORSO": material.albedo_color = Color(1.0, 0.72, 0.16, 0.28)
 		&"ARMS": material.albedo_color = Color(0.18, 0.82, 1.0, 0.30)
 		_: material.albedo_color = Color(0.28, 1.0, 0.42, 0.30)
@@ -399,6 +551,8 @@ func _region_family(region: StringName) -> StringName:
 	var text := String(region)
 	if text == "HEAD":
 		return &"HEAD"
+	if text == "NECK":
+		return &"NECK"
 	if text in ["TORSO", "PELVIS"]:
 		return &"TORSO"
 	if "ARM" in text:
@@ -429,11 +583,7 @@ func _update_capsule_between(record: Dictionary, start: Vector3, finish: Vector3
 	if bone_length < 0.001:
 		return
 	var radius := _scaled_radius(record)
-	var region_key := HurtboxProfile.region_scale_key(StringName(record.region))
-	var length_scale := HurtboxProfile.geometry_length_scale(
-		geometry_tuning,
-		region_key
-	)
+	var length_scale := _record_length_scale(record)
 	# Capsule height includes both rounded caps. Keeping total height on the
 	# authored bone span prevents the torso cap from covering the head while the
 	# neighboring shapes still meet at their shared joint.
@@ -456,7 +606,7 @@ func _update_capsule_between(record: Dictionary, start: Vector3, finish: Vector3
 	precision_capsule.height = center_segment_length + core_radius * 2.0
 
 	var area_basis := _basis_for_axis(delta / bone_length)
-	var offset := HurtboxProfile.geometry_offset(geometry_tuning, region_key)
+	var offset := _record_geometry_offset(record)
 	var area: Area3D = record.area
 	area.global_transform = Transform3D(
 		area_basis,
@@ -469,7 +619,6 @@ func _update_sphere(record: Dictionary) -> void:
 	var reference_position := _bone_world_position(StringName(record.reference_bone))
 	var direction := (bone_position - reference_position).normalized()
 	var radius := _scaled_radius(record)
-	var region_key := HurtboxProfile.region_scale_key(StringName(record.region))
 	var sphere: SphereShape3D = record.shape
 	sphere.radius = radius
 	var debug_mesh: MeshInstance3D = record.debug_mesh
@@ -483,7 +632,7 @@ func _update_sphere(record: Dictionary) -> void:
 	precision_sphere.height = core_radius * 2.0
 	var offset := direction * radius * float(record.directional_offset)
 	var area_basis := _basis_for_axis(direction)
-	offset += area_basis * HurtboxProfile.geometry_offset(geometry_tuning, region_key)
+	offset += area_basis * _record_geometry_offset(record)
 	var area: Area3D = record.area
 	area.global_transform = Transform3D(area_basis, bone_position + offset)
 
@@ -506,11 +655,38 @@ func _basis_for_axis(y_axis: Vector3) -> Basis:
 func _scaled_radius(record: Dictionary) -> float:
 	var region := StringName(record.region)
 	var region_key := HurtboxProfile.region_scale_key(region)
+	var region_scale := (
+		float(record.get("custom_width_scale", 1.0))
+		if bool(record.get("custom", false))
+		else float(radius_scales.get(region_key, 1.0))
+	)
 	return (
 		float(record.base_radius)
 		* float(radius_scales.get("global", 0.88))
-		* float(radius_scales.get(region_key, 1.0))
+		* region_scale
 	)
+
+
+func _record_geometry_offset(record: Dictionary) -> Vector3:
+	if bool(record.get("custom", false)):
+		var editor_id := StringName(record.editor_id)
+		return HurtboxProfile.geometry_offset(
+			{editor_id: record.get("custom_geometry", {})},
+			editor_id
+		)
+	var region_key := HurtboxProfile.region_scale_key(StringName(record.region))
+	return HurtboxProfile.geometry_offset(geometry_tuning, region_key)
+
+
+func _record_length_scale(record: Dictionary) -> float:
+	if bool(record.get("custom", false)):
+		var editor_id := StringName(record.editor_id)
+		return HurtboxProfile.geometry_length_scale(
+			{editor_id: record.get("custom_geometry", {})},
+			editor_id
+		)
+	var region_key := HurtboxProfile.region_scale_key(StringName(record.region))
+	return HurtboxProfile.geometry_length_scale(geometry_tuning, region_key)
 
 
 func _clear_hurtboxes() -> void:

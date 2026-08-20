@@ -83,6 +83,7 @@ static func _is_limb(region: StringName) -> bool:
 	var text := String(region)
 	return (
 		"ARM" in text
+		or "LEG" in text
 		or "THIGH" in text
 		or "CALF" in text
 		or "FOOT" in text

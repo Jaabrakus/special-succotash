@@ -158,15 +158,15 @@ func _run() -> void:
 			&"torso",
 			initial_torso_offset + Vector3(0.05, -0.04, 0.02)
 		)
-		HurtboxProfile.set_geometry_length_scale(layout_edit, &"torso", 1.40)
+		HurtboxProfile.set_geometry_length_scale(layout_edit, &"torso", 0.60)
 		rig.apply_geometry_tuning(layout_edit)
 		_assert(
 			torso_for_layout.global_position.distance_to(torso_position_before) > 0.05,
 			"torso center edit did not move its physics area"
 		)
 		_assert(
-			torso_shape.height > torso_height_before + 0.05,
-			"torso length edit did not stretch its physics capsule"
+			torso_shape.height <= torso_height_before + 0.001,
+			"torso length edit grew beyond its calibrated physics capsule"
 		)
 		_assert(
 			pelvis_for_layout.global_position.distance_to(pelvis_position_before) < 0.001,
@@ -179,6 +179,54 @@ func _run() -> void:
 		HurtboxProfile.geometry_offset(default_geometry, &"torso").y < -0.05,
 		"default torso center was not lowered away from the head"
 	)
+
+	# Extra authored shapes are real physics areas. Their anchor follows the
+	# original bone span, while damage paint is an independent identity.
+	var area_count_before: int = rig.get_hurtbox_areas().size()
+	rig.apply_custom_hitboxes([{
+		"id": "left_upper_arm_extra_test",
+		"source_region": "left_upper_arm",
+		"damage_region": "NECK",
+		"display_name": "Neck fill test",
+		"width_scale": 5.0,
+		"geometry": {
+			"offset": {"x": 9.0, "y": 0.0, "z": 0.0},
+			"length_scale": 5.0,
+		},
+	}])
+	var custom_area: Area3D = rig.get_editor_hitbox_area(&"left_upper_arm_extra_test")
+	_assert(custom_area != null, "custom hitbox did not create a physics area")
+	_assert(
+		rig.get_hurtbox_areas().size() == area_count_before + 1,
+		"custom hitbox did not increase the physical hurtbox count"
+	)
+	if custom_area:
+		_assert(custom_area.get_hit_region() == &"NECK", "custom hitbox paint was not applied")
+		var custom_shape := (custom_area.get_child(0) as CollisionShape3D).shape as CapsuleShape3D
+		_assert(
+			custom_shape.radius <= SocomAnimatedHurtboxRig.UPPER_ARM_RADIUS * float(rig.get_radius_scales().get("global", 0.88)) + 0.001,
+			"custom hitbox width exceeded its calibrated rig anchor"
+		)
+	var normalized_custom: Array[Dictionary] = rig.get_custom_hitboxes()
+	_assert(
+		is_equal_approx(float(normalized_custom[0].get("width_scale", 0.0)), HurtboxProfile.MAX_SCALE),
+		"custom hitbox width was not bounded by the rig"
+	)
+	_assert(
+		is_equal_approx(float((normalized_custom[0].get("geometry", {}) as Dictionary).get("length_scale", 0.0)), HurtboxProfile.MAX_LENGTH_SCALE),
+		"custom hitbox length was not bounded by the rig"
+	)
+	if custom_area:
+		var custom_area_id := custom_area.get_instance_id()
+		var fluid_edit := normalized_custom.duplicate(true)
+		fluid_edit[0]["width_scale"] = 0.55
+		rig.apply_custom_hitboxes(fluid_edit)
+		var fluid_area: Area3D = rig.get_editor_hitbox_area(&"left_upper_arm_extra_test")
+		_assert(
+			fluid_area != null and fluid_area.get_instance_id() == custom_area_id,
+			"fluid custom hitbox resize rebuilt the physics area"
+		)
+	rig.apply_custom_hitboxes([])
 
 	# There must be no invisible center capsule. A shot through visible air
 	# between independently animated legs is a legitimate miss.

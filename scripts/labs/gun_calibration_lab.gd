@@ -241,11 +241,13 @@ var composure_readout: Label
 var composure_profile_title: Label
 var shared_hurtbox_scales: Dictionary = HurtboxProfile.load_scales()
 var shared_hurtbox_geometry: Dictionary = HurtboxProfile.load_geometry()
+var shared_custom_hitboxes: Array[Dictionary] = HurtboxProfile.load_custom_hitboxes()
 var selected_hurtbox_region: StringName = &"torso"
 var hurtbox_region_picker: OptionButton
+var hurtbox_damage_type_picker: OptionButton
+var delete_hitbox_button: Button
 var hurtbox_edit_markers: Dictionary = {}
 var hitbox_drag_offset_start := Vector3.ZERO
-var copied_hurtbox_profile: Dictionary = {}
 var fire_input_held: bool = false
 var active_lab_tab_name := "Rig & Hands"
 var current_aim_target := Vector3.ZERO
@@ -493,10 +495,7 @@ func _input(event: InputEvent) -> void:
 						_select_body_joint(StringName(hit_dot.trim_prefix("body_joint:")))
 					elif hit_dot.begins_with("hurtbox:"):
 						_select_hurtbox_region(StringName(hit_dot.trim_prefix("hurtbox:")))
-						hitbox_drag_offset_start = HurtboxProfile.geometry_offset(
-							shared_hurtbox_geometry,
-							selected_hurtbox_region
-						)
+						hitbox_drag_offset_start = _hitbox_offset(selected_hurtbox_region)
 					elif hit_dot == "left_ik":
 						_set_active_gizmo("hand")
 					elif hit_dot == "right_grip" or hit_dot == "weapon_mount":
@@ -2757,11 +2756,7 @@ func _apply_dot_world_drag(dot_id: String, world_pos: Vector3) -> void:
 		if area != null:
 			var world_delta := world_pos - drag_initial_world
 			var local_delta := area.global_basis.orthonormalized().inverse() * world_delta
-			HurtboxProfile.set_geometry_offset(
-				shared_hurtbox_geometry,
-				region_key,
-				hitbox_drag_offset_start + local_delta
-			)
+			_set_hitbox_offset(region_key, hitbox_drag_offset_start + local_delta)
 			_apply_shared_hurtbox_preview()
 			_sync_selected_hurtbox_controls()
 		return
@@ -4702,7 +4697,11 @@ func _request_save_everything() -> void:
 func _save_weapon_config() -> bool:
 	if not _validate_weapon_rig_before_save():
 		return false
-	if not HurtboxProfile.save_profile(shared_hurtbox_scales, shared_hurtbox_geometry):
+	if not HurtboxProfile.save_profile(
+		shared_hurtbox_scales,
+		shared_hurtbox_geometry,
+		shared_custom_hitboxes
+	):
 		_show_rig_error(
 			"Shared hitbox profile could not be saved. Weapon save blocked so main cannot drift from this preview."
 		)
@@ -5737,17 +5736,27 @@ func _build_composure_tab(tab_container: TabContainer) -> void:
 	)
 	hurtbox_region_picker = OptionButton.new()
 	hurtbox_region_picker.name = "HurtboxRegionPicker"
-	for region_key: StringName in HurtboxProfile.REGION_KEYS:
-		hurtbox_region_picker.add_item(HurtboxProfile.region_label(region_key))
-		hurtbox_region_picker.set_item_metadata(
-			hurtbox_region_picker.item_count - 1,
-			region_key
-		)
-	hurtbox_region_picker.select(HurtboxProfile.REGION_KEYS.find(selected_hurtbox_region))
+	_refresh_hurtbox_region_picker()
 	hurtbox_region_picker.item_selected.connect(func(index: int):
 		_select_hurtbox_region(StringName(hurtbox_region_picker.get_item_metadata(index)))
 	)
 	vbox.add_child(hurtbox_region_picker)
+	hurtbox_damage_type_picker = OptionButton.new()
+	hurtbox_damage_type_picker.name = "HurtboxDamageTypePicker"
+	for damage_type: StringName in HurtboxProfile.DAMAGE_TYPE_KEYS:
+		hurtbox_damage_type_picker.add_item(
+			"Paint as %s" % HurtboxProfile.damage_type_label(damage_type)
+		)
+		hurtbox_damage_type_picker.set_item_metadata(
+			hurtbox_damage_type_picker.item_count - 1,
+			damage_type
+		)
+	hurtbox_damage_type_picker.item_selected.connect(func(index: int):
+		_set_selected_hurtbox_damage_type(
+			StringName(hurtbox_damage_type_picker.get_item_metadata(index))
+		)
+	)
+	vbox.add_child(hurtbox_damage_type_picker)
 	_add_slider(
 		vbox, "hurtbox_selected_size", "Selected width",
 		HurtboxProfile.MIN_SCALE, HurtboxProfile.MAX_SCALE,
@@ -5784,20 +5793,20 @@ func _build_composure_tab(tab_container: TabContainer) -> void:
 	drag_help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	drag_help.add_theme_color_override("font_color", Color("ffb36b"))
 	vbox.add_child(drag_help)
-	var clipboard_row := HBoxContainer.new()
-	vbox.add_child(clipboard_row)
+	var duplicate_row := HBoxContainer.new()
+	vbox.add_child(duplicate_row)
 	var copy_hitbox_button := Button.new()
 	copy_hitbox_button.name = "CopySelectedHitboxButton"
-	copy_hitbox_button.text = "Copy Hitbox"
-	copy_hitbox_button.tooltip_text = "Copy the selected width, length, and local center offset."
-	copy_hitbox_button.pressed.connect(_copy_selected_hurtbox)
-	clipboard_row.add_child(copy_hitbox_button)
-	var paste_hitbox_button := Button.new()
-	paste_hitbox_button.name = "PasteSelectedHitboxButton"
-	paste_hitbox_button.text = "Paste to Selected"
-	paste_hitbox_button.tooltip_text = "Apply the copied shape to the body part currently selected."
-	paste_hitbox_button.pressed.connect(_paste_selected_hurtbox)
-	clipboard_row.add_child(paste_hitbox_button)
+	copy_hitbox_button.text = "Duplicate Selected"
+	copy_hitbox_button.tooltip_text = "Create another real bone-following damage shape from the selected hitbox."
+	copy_hitbox_button.pressed.connect(_duplicate_selected_hitbox)
+	duplicate_row.add_child(copy_hitbox_button)
+	delete_hitbox_button = Button.new()
+	delete_hitbox_button.name = "DeleteSelectedHitboxButton"
+	delete_hitbox_button.text = "Delete Duplicate"
+	delete_hitbox_button.tooltip_text = "Delete the selected extra shape. Built-in anatomy cannot be deleted."
+	delete_hitbox_button.pressed.connect(_delete_selected_hitbox)
+	duplicate_row.add_child(delete_hitbox_button)
 	var alignment_row := HBoxContainer.new()
 	vbox.add_child(alignment_row)
 	var snap_hitbox_button := Button.new()
@@ -5855,6 +5864,8 @@ func _finish_composure_target_preview() -> void:
 		composure_preview_dummy.call("apply_hurtbox_tuning", shared_hurtbox_scales)
 	if composure_preview_dummy.has_method("apply_hurtbox_geometry"):
 		composure_preview_dummy.call("apply_hurtbox_geometry", shared_hurtbox_geometry)
+	if composure_preview_dummy.has_method("apply_custom_hitboxes"):
+		composure_preview_dummy.call("apply_custom_hitboxes", shared_custom_hitboxes)
 	if composure_preview_dummy.has_method("set_precision_core_debug"):
 		composure_preview_dummy.call(
 			"set_precision_core_debug",
@@ -5868,6 +5879,140 @@ func _finish_composure_target_preview() -> void:
 	_sync_selected_hurtbox_controls()
 
 
+func _editable_hitbox_ids() -> Array[StringName]:
+	var result: Array[StringName] = HurtboxProfile.REGION_KEYS.duplicate()
+	for entry in shared_custom_hitboxes:
+		result.append(StringName(entry.get("id", &"")))
+	return result
+
+
+func _custom_hitbox_index(editor_id: StringName) -> int:
+	for index in shared_custom_hitboxes.size():
+		if StringName(shared_custom_hitboxes[index].get("id", &"")) == editor_id:
+			return index
+	return -1
+
+
+func _hitbox_source_region(editor_id: StringName) -> StringName:
+	var custom_index := _custom_hitbox_index(editor_id)
+	if custom_index >= 0:
+		return StringName(shared_custom_hitboxes[custom_index].get("source_region", &"torso"))
+	return editor_id
+
+
+func _hitbox_damage_type(editor_id: StringName) -> StringName:
+	var custom_index := _custom_hitbox_index(editor_id)
+	if custom_index >= 0:
+		return StringName(shared_custom_hitboxes[custom_index].get(
+			"damage_region",
+			HurtboxProfile.damage_type_for_source_region(_hitbox_source_region(editor_id))
+		))
+	return HurtboxProfile.damage_type_for_source_region(editor_id)
+
+
+func _hitbox_display_name(editor_id: StringName) -> String:
+	var custom_index := _custom_hitbox_index(editor_id)
+	if custom_index >= 0:
+		return String(shared_custom_hitboxes[custom_index].get(
+			"display_name",
+			"%s extra" % HurtboxProfile.region_label(_hitbox_source_region(editor_id))
+		))
+	return HurtboxProfile.region_label(editor_id)
+
+
+func _hitbox_width(editor_id: StringName) -> float:
+	var custom_index := _custom_hitbox_index(editor_id)
+	if custom_index >= 0:
+		return clampf(
+			float(shared_custom_hitboxes[custom_index].get("width_scale", 1.0)),
+			HurtboxProfile.MIN_SCALE,
+			HurtboxProfile.MAX_SCALE
+		)
+	return clampf(
+		float(shared_hurtbox_scales.get(editor_id, 1.0)),
+		HurtboxProfile.MIN_SCALE,
+		HurtboxProfile.MAX_SCALE
+	)
+
+
+func _set_hitbox_width(editor_id: StringName, value: float) -> void:
+	var bounded := clampf(value, HurtboxProfile.MIN_SCALE, HurtboxProfile.MAX_SCALE)
+	var custom_index := _custom_hitbox_index(editor_id)
+	if custom_index >= 0:
+		shared_custom_hitboxes[custom_index]["width_scale"] = bounded
+	else:
+		shared_hurtbox_scales[editor_id] = bounded
+
+
+func _hitbox_geometry(editor_id: StringName) -> Dictionary:
+	var custom_index := _custom_hitbox_index(editor_id)
+	var geometry_entry: Dictionary
+	if custom_index >= 0:
+		geometry_entry = (shared_custom_hitboxes[custom_index].get("geometry", {}) as Dictionary).duplicate(true)
+	else:
+		geometry_entry = (shared_hurtbox_geometry.get(editor_id, {}) as Dictionary).duplicate(true)
+	return {editor_id: geometry_entry}
+
+
+func _set_hitbox_geometry(editor_id: StringName, geometry_entry: Dictionary) -> void:
+	var custom_index := _custom_hitbox_index(editor_id)
+	if custom_index >= 0:
+		shared_custom_hitboxes[custom_index]["geometry"] = geometry_entry.duplicate(true)
+	else:
+		shared_hurtbox_geometry[editor_id] = geometry_entry.duplicate(true)
+
+
+func _hitbox_offset(editor_id: StringName) -> Vector3:
+	return HurtboxProfile.geometry_offset(_hitbox_geometry(editor_id), editor_id)
+
+
+func _set_hitbox_offset(editor_id: StringName, offset: Vector3) -> void:
+	var geometry := _hitbox_geometry(editor_id)
+	HurtboxProfile.set_geometry_offset(geometry, editor_id, offset)
+	_set_hitbox_geometry(editor_id, geometry[editor_id])
+
+
+func _hitbox_length(editor_id: StringName) -> float:
+	return HurtboxProfile.geometry_length_scale(_hitbox_geometry(editor_id), editor_id)
+
+
+func _next_custom_hitbox_id(source_region: StringName) -> StringName:
+	var suffix := 1
+	while true:
+		var candidate := StringName("%s_extra_%d" % [String(source_region), suffix])
+		if candidate not in _editable_hitbox_ids():
+			return candidate
+		suffix += 1
+	return &"extra_hitbox"
+
+
+func _refresh_hurtbox_region_picker() -> void:
+	if hurtbox_region_picker == null:
+		return
+	hurtbox_region_picker.clear()
+	for region_key: StringName in HurtboxProfile.REGION_KEYS:
+		hurtbox_region_picker.add_item(HurtboxProfile.region_label(region_key))
+		hurtbox_region_picker.set_item_metadata(
+			hurtbox_region_picker.item_count - 1,
+			region_key
+		)
+	for entry in shared_custom_hitboxes:
+		var editor_id := StringName(entry.get("id", &""))
+		var damage_type := StringName(entry.get("damage_region", &"TORSO"))
+		hurtbox_region_picker.add_item("➕ %s · %s" % [
+			_hitbox_display_name(editor_id),
+			HurtboxProfile.damage_type_label(damage_type),
+		])
+		hurtbox_region_picker.set_item_metadata(
+			hurtbox_region_picker.item_count - 1,
+			editor_id
+		)
+	for picker_index in hurtbox_region_picker.item_count:
+		if StringName(hurtbox_region_picker.get_item_metadata(picker_index)) == selected_hurtbox_region:
+			hurtbox_region_picker.select(picker_index)
+			break
+
+
 func _set_shared_hurtbox_scale(value: float, region_key: StringName) -> void:
 	shared_hurtbox_scales[region_key] = clampf(
 		value,
@@ -5878,79 +6023,71 @@ func _set_shared_hurtbox_scale(value: float, region_key: StringName) -> void:
 
 
 func _select_hurtbox_region(region_key: StringName) -> void:
-	if region_key not in HurtboxProfile.REGION_KEYS:
+	if region_key not in _editable_hitbox_ids():
 		return
 	selected_hurtbox_region = region_key
 	if hurtbox_region_picker:
-		var picker_index := HurtboxProfile.REGION_KEYS.find(region_key)
-		if picker_index >= 0:
-			hurtbox_region_picker.select(picker_index)
+		for picker_index in hurtbox_region_picker.item_count:
+			if StringName(hurtbox_region_picker.get_item_metadata(picker_index)) == region_key:
+				hurtbox_region_picker.select(picker_index)
+				break
 	_sync_selected_hurtbox_controls()
 	_update_hurtbox_edit_markers()
 	if hud_status:
-		hud_status.text = "🟠 Editing %s hitbox. Drag the orange center or use the size and position controls." % HurtboxProfile.region_label(region_key)
+		hud_status.text = "🟠 Editing %s. Drag its center, resize it, or paint its damage type." % _hitbox_display_name(region_key)
 
 
 func _set_selected_hurtbox_size(value: float) -> void:
-	shared_hurtbox_scales[selected_hurtbox_region] = clampf(
-		value,
-		HurtboxProfile.MIN_SCALE,
-		HurtboxProfile.MAX_SCALE
-	)
+	_set_hitbox_width(selected_hurtbox_region, value)
 	_apply_shared_hurtbox_preview()
 
 
 func _set_selected_hurtbox_length(value: float) -> void:
-	HurtboxProfile.set_geometry_length_scale(
-		shared_hurtbox_geometry,
-		selected_hurtbox_region,
-		value
-	)
+	var geometry := _hitbox_geometry(selected_hurtbox_region)
+	HurtboxProfile.set_geometry_length_scale(geometry, selected_hurtbox_region, value)
+	_set_hitbox_geometry(selected_hurtbox_region, geometry[selected_hurtbox_region])
 	_apply_shared_hurtbox_preview()
 
 
 func _set_selected_hurtbox_offset_component(value: float, axis: StringName) -> void:
-	var selected_offset := HurtboxProfile.geometry_offset(
-		shared_hurtbox_geometry,
-		selected_hurtbox_region
-	)
+	var selected_offset := _hitbox_offset(selected_hurtbox_region)
 	match axis:
 		&"x": selected_offset.x = value
 		&"y": selected_offset.y = value
 		&"z": selected_offset.z = value
-	HurtboxProfile.set_geometry_offset(
-		shared_hurtbox_geometry,
-		selected_hurtbox_region,
-		selected_offset
-	)
+	_set_hitbox_offset(selected_hurtbox_region, selected_offset)
 	_apply_shared_hurtbox_preview()
 
 
 func _sync_selected_hurtbox_controls() -> void:
 	_update_slider_value(
 		"hurtbox_selected_size",
-		float(shared_hurtbox_scales.get(selected_hurtbox_region, 1.0))
+		_hitbox_width(selected_hurtbox_region)
 	)
 	_update_slider_value(
 		"hurtbox_selected_length",
-		HurtboxProfile.geometry_length_scale(
-			shared_hurtbox_geometry,
-			selected_hurtbox_region
-		)
+		_hitbox_length(selected_hurtbox_region)
 	)
-	var selected_offset := HurtboxProfile.geometry_offset(
-		shared_hurtbox_geometry,
-		selected_hurtbox_region
-	)
+	var selected_offset := _hitbox_offset(selected_hurtbox_region)
 	_update_slider_value("hurtbox_offset_x", selected_offset.x)
 	_update_slider_value("hurtbox_offset_y", selected_offset.y)
 	_update_slider_value("hurtbox_offset_z", selected_offset.z)
 	var length_entry: Dictionary = sliders_map.get("hurtbox_selected_length", {})
 	var length_slider := length_entry.get("slider") as HSlider
 	if length_slider:
-		length_slider.editable = selected_hurtbox_region not in [
+		length_slider.editable = _hitbox_source_region(selected_hurtbox_region) not in [
 			&"head", &"left_foot", &"right_foot"
 		]
+	if delete_hitbox_button:
+		delete_hitbox_button.disabled = _custom_hitbox_index(selected_hurtbox_region) < 0
+	if hurtbox_damage_type_picker:
+		var is_custom := _custom_hitbox_index(selected_hurtbox_region) >= 0
+		hurtbox_damage_type_picker.disabled = not is_custom
+		var damage_type := _hitbox_damage_type(selected_hurtbox_region)
+		for type_index in hurtbox_damage_type_picker.item_count:
+			if StringName(hurtbox_damage_type_picker.get_item_metadata(type_index)) == damage_type:
+				hurtbox_damage_type_picker.select(type_index)
+				break
 
 
 func _apply_shared_hurtbox_preview() -> void:
@@ -5960,68 +6097,83 @@ func _apply_shared_hurtbox_preview() -> void:
 		composure_preview_dummy.call("apply_hurtbox_tuning", shared_hurtbox_scales)
 	if composure_preview_dummy.has_method("apply_hurtbox_geometry"):
 		composure_preview_dummy.call("apply_hurtbox_geometry", shared_hurtbox_geometry)
+	if composure_preview_dummy.has_method("apply_custom_hitboxes"):
+		composure_preview_dummy.call("apply_custom_hitboxes", shared_custom_hitboxes)
+	_sync_hurtbox_edit_marker_set()
 	_update_hurtbox_edit_markers()
 
 
-func _copy_selected_hurtbox() -> void:
-	var entry: Dictionary = shared_hurtbox_geometry.get(selected_hurtbox_region, {})
-	copied_hurtbox_profile = {
-		"schema_version": 1,
-		"type": "socom_animated_hitbox",
-		"source_region": String(selected_hurtbox_region),
-		"width_scale": float(shared_hurtbox_scales.get(selected_hurtbox_region, 1.0)),
-		"geometry": entry.duplicate(true),
-	}
-	DisplayServer.clipboard_set(JSON.stringify(copied_hurtbox_profile))
-	if hud_status:
-		hud_status.text = "📋 Copied %s hitbox: width, length, and rig-local center." % HurtboxProfile.region_label(selected_hurtbox_region)
-
-
-func _paste_selected_hurtbox() -> void:
-	var source := copied_hurtbox_profile
-	if source.is_empty():
-		var clipboard_value: Variant = JSON.parse_string(DisplayServer.clipboard_get())
-		if clipboard_value is Dictionary:
-			source = clipboard_value as Dictionary
-	if source.get("type", "") != "socom_animated_hitbox":
-		_show_rig_error("Copy a hitbox before pasting.")
-		return
-	shared_hurtbox_scales[selected_hurtbox_region] = clampf(
-		float(source.get("width_scale", 1.0)),
-		HurtboxProfile.MIN_SCALE,
-		HurtboxProfile.MAX_SCALE
+func _duplicate_selected_hitbox() -> void:
+	var source_region := _hitbox_source_region(selected_hurtbox_region)
+	var editor_id := _next_custom_hitbox_id(source_region)
+	var geometry_entry := (_hitbox_geometry(selected_hurtbox_region)[selected_hurtbox_region] as Dictionary).duplicate(true)
+	var copied_offset := HurtboxProfile.geometry_offset(
+		{editor_id: geometry_entry},
+		editor_id
 	)
-	var geometry_value: Variant = source.get("geometry", {})
-	if geometry_value is Dictionary:
-		var source_geometry := geometry_value as Dictionary
-		HurtboxProfile.set_geometry_offset(
-			shared_hurtbox_geometry,
-			selected_hurtbox_region,
-			HurtboxProfile.geometry_offset(
-				{selected_hurtbox_region: source_geometry},
-				selected_hurtbox_region
-			)
-		)
-		HurtboxProfile.set_geometry_length_scale(
-			shared_hurtbox_geometry,
-			selected_hurtbox_region,
-			float(source_geometry.get("length_scale", 1.0))
-		)
+	# Put the new physical shape just beside its source so it is immediately
+	# visible and selectable instead of hiding perfectly inside the original.
+	copied_offset.x += 0.025 if copied_offset.x <= HurtboxProfile.MAX_OFFSET_METERS - 0.025 else -0.025
+	HurtboxProfile.set_geometry_offset({editor_id: geometry_entry}, editor_id, copied_offset)
+	geometry_entry["offset"] = {
+		"x": copied_offset.x, "y": copied_offset.y, "z": copied_offset.z,
+	}
+	shared_custom_hitboxes.append({
+		"id": String(editor_id),
+		"source_region": String(source_region),
+		"damage_region": String(_hitbox_damage_type(selected_hurtbox_region)),
+		"display_name": "%s extra" % HurtboxProfile.region_label(source_region),
+		"width_scale": _hitbox_width(selected_hurtbox_region),
+		"geometry": geometry_entry,
+	})
+	shared_custom_hitboxes = HurtboxProfile.normalize_custom_hitboxes(shared_custom_hitboxes)
 	_apply_shared_hurtbox_preview()
-	_sync_selected_hurtbox_controls()
+	_refresh_hurtbox_region_picker()
+	_select_hurtbox_region(editor_id)
 	if hud_status:
-		hud_status.text = "📌 Pasted copied hitbox onto %s. Use Snap Selected if this body part needs bone-centered placement." % HurtboxProfile.region_label(selected_hurtbox_region)
+		hud_status.text = "➕ New physical hitbox created. Drag it into place, resize it, then paint its damage type."
+
+
+func _delete_selected_hitbox() -> void:
+	var custom_index := _custom_hitbox_index(selected_hurtbox_region)
+	if custom_index < 0:
+		_show_rig_error("Built-in anatomy cannot be deleted. Select a duplicate first.")
+		return
+	var source_region := StringName(shared_custom_hitboxes[custom_index].get("source_region", &"torso"))
+	shared_custom_hitboxes.remove_at(custom_index)
+	selected_hurtbox_region = source_region
+	_apply_shared_hurtbox_preview()
+	_refresh_hurtbox_region_picker()
+	_select_hurtbox_region(source_region)
+	if hud_status:
+		hud_status.text = "🗑 Duplicate hitbox removed."
+
+
+func _set_selected_hurtbox_damage_type(damage_type: StringName) -> void:
+	var custom_index := _custom_hitbox_index(selected_hurtbox_region)
+	if custom_index < 0 or damage_type not in HurtboxProfile.DAMAGE_TYPE_KEYS:
+		return
+	shared_custom_hitboxes[custom_index]["damage_region"] = String(damage_type)
+	_apply_shared_hurtbox_preview()
+	_refresh_hurtbox_region_picker()
+	if hud_status:
+		hud_status.text = "🎨 %s painted as %s damage." % [
+			_hitbox_display_name(selected_hurtbox_region),
+			HurtboxProfile.damage_type_label(damage_type),
+		]
 
 
 func _snap_selected_hurtbox_to_rig() -> void:
 	var defaults := HurtboxProfile.default_geometry()
-	shared_hurtbox_geometry[selected_hurtbox_region] = (
-		(defaults[selected_hurtbox_region] as Dictionary).duplicate(true)
+	var source_region := _hitbox_source_region(selected_hurtbox_region)
+	_set_hitbox_geometry(
+		selected_hurtbox_region,
+		(defaults[source_region] as Dictionary).duplicate(true)
 	)
 	_apply_shared_hurtbox_preview()
 	_sync_selected_hurtbox_controls()
 	if hud_status:
-		hud_status.text = "🦴 %s snapped to its animated rig bones. Width was preserved." % HurtboxProfile.region_label(selected_hurtbox_region)
+		hud_status.text = "🦴 %s snapped to its animated rig bones. Width and paint were preserved." % _hitbox_display_name(selected_hurtbox_region)
 
 
 func _align_all_hitboxes_to_rig() -> void:
@@ -6029,13 +6181,25 @@ func _align_all_hitboxes_to_rig() -> void:
 	_apply_shared_hurtbox_preview()
 	_sync_selected_hurtbox_controls()
 	if hud_status:
-		hud_status.text = "🦴 All hitbox centers and lengths aligned to the animated rig. Widths were preserved."
+		hud_status.text = "🦴 Built-in hitboxes aligned to the animated rig. Authored duplicates were preserved."
 
 
 func _create_hurtbox_edit_markers() -> void:
-	if not hurtbox_edit_markers.is_empty():
-		return
-	for region_key: StringName in HurtboxProfile.REGION_KEYS:
+	_sync_hurtbox_edit_marker_set()
+
+
+func _sync_hurtbox_edit_marker_set() -> void:
+	var desired_ids := _editable_hitbox_ids()
+	for existing_id: StringName in hurtbox_edit_markers.keys():
+		if existing_id in desired_ids:
+			continue
+		var old_marker := hurtbox_edit_markers[existing_id] as MeshInstance3D
+		if is_instance_valid(old_marker):
+			old_marker.queue_free()
+		hurtbox_edit_markers.erase(existing_id)
+	for region_key: StringName in desired_ids:
+		if hurtbox_edit_markers.has(region_key):
+			continue
 		var marker := _create_marker(
 			Color(1.0, 0.52, 0.12),
 			"HitboxCenter_%s" % String(region_key),
@@ -6053,7 +6217,7 @@ func _hurtbox_region_area(region_key: StringName) -> Area3D:
 	var rig := composure_preview_dummy.call("get_hurtbox_rig") as Node3D
 	if rig == null:
 		return null
-	return rig.call("get_region_area", StringName(String(region_key).to_upper())) as Area3D
+	return rig.call("get_editor_hitbox_area", region_key) as Area3D
 
 
 func _update_hurtbox_edit_markers() -> void:
@@ -6067,7 +6231,11 @@ func _update_hurtbox_edit_markers() -> void:
 
 
 func _save_shared_hurtboxes() -> bool:
-	if not HurtboxProfile.save_profile(shared_hurtbox_scales, shared_hurtbox_geometry):
+	if not HurtboxProfile.save_profile(
+		shared_hurtbox_scales,
+		shared_hurtbox_geometry,
+		shared_custom_hitboxes
+	):
 		_show_rig_error("Could not save the shared gameplay hitbox profile.")
 		return false
 	if hud_status:

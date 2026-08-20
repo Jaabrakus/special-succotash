@@ -7,10 +7,26 @@ extends RefCounted
 
 const CONFIG_PATH := "res://config/combat/hurtbox_profile.json"
 const MIN_SCALE := 0.45
-const MAX_SCALE := 1.25
+const MAX_SCALE := 1.0
 const MIN_LENGTH_SCALE := 0.35
-const MAX_LENGTH_SCALE := 1.65
-const MAX_OFFSET_METERS := 0.35
+const MAX_LENGTH_SCALE := 1.0
+const MAX_OFFSET_METERS := 0.12
+
+# A duplicated shape keeps its bone anchor but can be painted with a gameplay
+# damage identity. These broad identities are intentional: left/right placement
+# belongs to the animated anchor, while damage rules only need anatomy class.
+const DAMAGE_TYPE_KEYS: Array[StringName] = [
+	&"HEAD", &"NECK", &"TORSO", &"PELVIS", &"ARM", &"LEG", &"FOOT",
+]
+const DAMAGE_TYPE_LABELS := {
+	&"HEAD": "Head",
+	&"NECK": "Neck",
+	&"TORSO": "Torso",
+	&"PELVIS": "Pelvis",
+	&"ARM": "Arm",
+	&"LEG": "Leg",
+	&"FOOT": "Foot",
+}
 
 const REGION_KEYS: Array[StringName] = [
 	&"head",
@@ -117,6 +133,18 @@ static func load_geometry() -> Dictionary:
 	return normalize_geometry((parsed as Dictionary).get("geometry", {}))
 
 
+static func load_custom_hitboxes() -> Array[Dictionary]:
+	if not FileAccess.file_exists(CONFIG_PATH):
+		return []
+	var file := FileAccess.open(CONFIG_PATH, FileAccess.READ)
+	if file == null:
+		return []
+	var parsed: Variant = JSON.parse_string(file.get_as_text())
+	if not parsed is Dictionary:
+		return []
+	return normalize_custom_hitboxes((parsed as Dictionary).get("custom_hitboxes", []))
+
+
 static func normalize_scales(scales: Dictionary) -> Dictionary:
 	var normalized := default_scales()
 	for key in [&"global", &"head", &"torso", &"arms", &"legs"]:
@@ -154,6 +182,68 @@ static func normalize_geometry(geometry: Dictionary) -> Dictionary:
 			MAX_LENGTH_SCALE
 		)
 	return normalized
+
+
+static func normalize_custom_hitboxes(raw_hitboxes: Variant) -> Array[Dictionary]:
+	var normalized: Array[Dictionary] = []
+	if not raw_hitboxes is Array:
+		return normalized
+	var used_ids: Dictionary = {}
+	for raw_entry: Variant in raw_hitboxes:
+		if not raw_entry is Dictionary:
+			continue
+		var source_entry := raw_entry as Dictionary
+		var source_region := StringName(source_entry.get("source_region", &""))
+		if source_region not in REGION_KEYS:
+			continue
+		var damage_region := StringName(source_entry.get(
+			"damage_region",
+			damage_type_for_source_region(source_region)
+		))
+		if damage_region not in DAMAGE_TYPE_KEYS:
+			damage_region = damage_type_for_source_region(source_region)
+		var editor_id := StringName(source_entry.get("id", &""))
+		if editor_id == &"" or editor_id in REGION_KEYS or used_ids.has(editor_id):
+			continue
+		used_ids[editor_id] = true
+		var raw_geometry: Variant = source_entry.get("geometry", {})
+		var geometry_map := {source_region: raw_geometry if raw_geometry is Dictionary else {}}
+		var normalized_geometry := normalize_geometry(geometry_map)
+		normalized.append({
+			"id": String(editor_id),
+			"source_region": String(source_region),
+			"damage_region": String(damage_region),
+			"display_name": String(source_entry.get(
+				"display_name",
+				"%s extra" % region_label(source_region)
+			)),
+			"width_scale": clampf(
+				float(source_entry.get("width_scale", 1.0)),
+				MIN_SCALE,
+				MAX_SCALE
+			),
+			"geometry": (normalized_geometry[source_region] as Dictionary).duplicate(true),
+		})
+	return normalized
+
+
+static func damage_type_label(damage_type: StringName) -> String:
+	return String(DAMAGE_TYPE_LABELS.get(damage_type, String(damage_type).capitalize()))
+
+
+static func damage_type_for_source_region(source_region: StringName) -> StringName:
+	var text := String(source_region)
+	if text == "head":
+		return &"HEAD"
+	if text == "torso":
+		return &"TORSO"
+	if text == "pelvis":
+		return &"PELVIS"
+	if "arm" in text or "forearm" in text:
+		return &"ARM"
+	if "foot" in text:
+		return &"FOOT"
+	return &"LEG"
 
 
 static func geometry_offset(geometry: Dictionary, region_key: StringName) -> Vector3:
@@ -231,16 +321,23 @@ static func region_label(region_key: StringName) -> String:
 
 
 static func save_scales(scales: Dictionary) -> bool:
-	return save_profile(scales, load_geometry())
+	return save_profile(scales, load_geometry(), load_custom_hitboxes())
 
 
 static func save_geometry(geometry: Dictionary) -> bool:
-	return save_profile(load_scales(), geometry)
+	return save_profile(load_scales(), geometry, load_custom_hitboxes())
 
 
-static func save_profile(scales: Dictionary, geometry: Dictionary) -> bool:
+static func save_profile(
+	scales: Dictionary,
+	geometry: Dictionary,
+	custom_hitboxes: Variant = null
+) -> bool:
 	var normalized_scales := normalize_scales(scales)
 	var normalized_geometry := normalize_geometry(geometry)
+	var normalized_custom := normalize_custom_hitboxes(
+		load_custom_hitboxes() if custom_hitboxes == null else custom_hitboxes
+	)
 	var directory_error := DirAccess.make_dir_recursive_absolute(
 		ProjectSettings.globalize_path(CONFIG_PATH.get_base_dir())
 	)
@@ -250,10 +347,11 @@ static func save_profile(scales: Dictionary, geometry: Dictionary) -> bool:
 	if file == null:
 		return false
 	file.store_string(JSON.stringify({
-		"schema_version": 3,
+		"schema_version": 4,
 		"purpose": "Authored by the Composure Lab and loaded by all anatomical damage rigs; not camera or movement collision",
 		"radius_scales": normalized_scales,
 		"geometry": normalized_geometry,
+		"custom_hitboxes": normalized_custom,
 	}, "  "))
 	file.close()
 	return true

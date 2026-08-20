@@ -28,48 +28,56 @@ func _run() -> void:
 			"Save Everything button has an active save callback"
 		)
 
-	# Copy transfers a full local shape to another named region. Snap keeps its
-	# width but restores the target region's bone-centered layout.
+	# Duplicate creates another live, selectable physics shape. It keeps the
+	# source bone anchor while its independent damage paint can change.
 	lab.call("_select_hurtbox_region", &"left_upper_arm")
 	var scales: Dictionary = lab.get("shared_hurtbox_scales")
 	var geometry: Dictionary = lab.get("shared_hurtbox_geometry")
 	scales[&"left_upper_arm"] = 0.73
-	HurtboxProfile.set_geometry_length_scale(geometry, &"left_upper_arm", 1.22)
+	HurtboxProfile.set_geometry_length_scale(geometry, &"left_upper_arm", 0.62)
 	HurtboxProfile.set_geometry_offset(
 		geometry,
 		&"left_upper_arm",
 		Vector3(0.03, -0.02, 0.01)
 	)
-	lab.call("_copy_selected_hurtbox")
-	lab.call("_select_hurtbox_region", &"right_upper_arm")
-	lab.call("_paste_selected_hurtbox")
+	var custom_before_count: int = (lab.get("shared_custom_hitboxes") as Array).size()
+	lab.call("_duplicate_selected_hitbox")
+	var custom_after: Array[Dictionary] = lab.get("shared_custom_hitboxes")
+	var duplicate_id := StringName(lab.get("selected_hurtbox_region"))
 	_expect(
-		is_equal_approx(float(scales[&"right_upper_arm"]), 0.73),
-		"Paste transfers hitbox width"
+		custom_after.size() == custom_before_count + 1,
+		"Duplicate creates an additional physical hitbox entry"
 	)
 	_expect(
-		is_equal_approx(
-			HurtboxProfile.geometry_length_scale(geometry, &"right_upper_arm"),
-			1.22
-		),
-		"Paste transfers hitbox length"
+		duplicate_id not in HurtboxProfile.REGION_KEYS,
+		"Duplicate becomes the selected independent shape"
 	)
+	var preview_dummy := lab.get("composure_preview_dummy") as Node
+	var rig := preview_dummy.call("get_hurtbox_rig") as Node3D if preview_dummy else null
 	_expect(
-		HurtboxProfile.geometry_offset(geometry, &"right_upper_arm").is_equal_approx(
-			Vector3(0.03, -0.02, 0.01)
-		),
-		"Paste transfers hitbox center"
+		rig != null and rig.call("get_editor_hitbox_area", duplicate_id) != null,
+		"Duplicate creates a live physics area in the preview rig"
+	)
+	lab.call("_set_selected_hurtbox_damage_type", &"NECK")
+	custom_after = lab.get("shared_custom_hitboxes")
+	var duplicate_index := int(lab.call("_custom_hitbox_index", duplicate_id))
+	_expect(
+		duplicate_index >= 0 and StringName(custom_after[duplicate_index].get("damage_region")) == &"NECK",
+		"Paint changes the duplicate damage identity"
 	)
 	lab.call("_snap_selected_hurtbox_to_rig")
-	geometry = lab.get("shared_hurtbox_geometry")
+	var snapped_offset: Vector3 = lab.call("_hitbox_offset", duplicate_id)
 	_expect(
-		HurtboxProfile.geometry_offset(geometry, &"right_upper_arm").is_zero_approx(),
-		"Snap restores target bone center"
+		snapped_offset.is_zero_approx(),
+		"Snap restores duplicate to its source bone center"
 	)
 	_expect(
-		is_equal_approx(float(scales[&"right_upper_arm"]), 0.73),
+		is_equal_approx(float(lab.call("_hitbox_width", duplicate_id)), 0.73),
 		"Snap preserves authored width"
 	)
+	lab.call("_delete_selected_hitbox")
+	var custom_deleted: Array[Dictionary] = lab.get("shared_custom_hitboxes")
+	_expect(custom_deleted.size() == custom_before_count, "Delete removes only the duplicate")
 
 	lab.queue_free()
 	await process_frame
