@@ -106,10 +106,38 @@ func set_precision_core_debug(value: bool, core_scale: float = 1.0) -> void:
 
 
 func apply_radius_scales(settings: Dictionary) -> void:
-	for key in radius_scales:
-		if settings.has(key) or settings.has(String(key)):
-			var raw_value: Variant = settings.get(key, settings.get(String(key), radius_scales[key]))
-			radius_scales[key] = clampf(float(raw_value), 0.45, 1.25)
+	if settings.has(&"global") or settings.has("global"):
+		radius_scales[&"global"] = clampf(
+			float(settings.get(&"global", settings.get("global", radius_scales[&"global"]))),
+			HurtboxProfile.MIN_SCALE,
+			HurtboxProfile.MAX_SCALE
+		)
+	for group_key: StringName in HurtboxProfile.LEGACY_GROUP_REGIONS:
+		if not (settings.has(group_key) or settings.has(String(group_key))):
+			continue
+		var has_exact_member := false
+		for region_key: StringName in HurtboxProfile.LEGACY_GROUP_REGIONS[group_key]:
+			if region_key == group_key:
+				continue
+			if settings.has(region_key) or settings.has(String(region_key)):
+				has_exact_member = true
+				break
+		if not has_exact_member:
+			var group_value := float(settings.get(
+				group_key,
+				settings.get(String(group_key), radius_scales.get(group_key, 1.0))
+			))
+			HurtboxProfile.set_group_scale(radius_scales, group_key, group_value)
+	for region_key in HurtboxProfile.REGION_KEYS:
+		if settings.has(region_key) or settings.has(String(region_key)):
+			radius_scales[region_key] = clampf(
+				float(settings.get(
+					region_key,
+					settings.get(String(region_key), radius_scales.get(region_key, 1.0))
+				)),
+				HurtboxProfile.MIN_SCALE,
+				HurtboxProfile.MAX_SCALE
+			)
 	force_pose_update()
 
 
@@ -437,17 +465,11 @@ func _update_sphere(record: Dictionary) -> void:
 
 func _scaled_radius(record: Dictionary) -> float:
 	var region := StringName(record.region)
-	var group := &"legs"
-	if region == &"HEAD":
-		group = &"head"
-	elif region in [&"TORSO", &"PELVIS"]:
-		group = &"torso"
-	elif "ARM" in String(region):
-		group = &"arms"
+	var region_key := HurtboxProfile.region_scale_key(region)
 	return (
 		float(record.base_radius)
 		* float(radius_scales.get("global", 0.88))
-		* float(radius_scales.get(String(group), 1.0))
+		* float(radius_scales.get(region_key, 1.0))
 	)
 
 

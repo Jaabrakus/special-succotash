@@ -20,6 +20,7 @@ const GunsmithBallisticsView := preload("res://scripts/labs/gunsmith/gunsmith_ba
 const OperatorComposureScript := preload("res://scripts/weapons/operator_composure.gd")
 const DynamicReticleScript := preload("res://scripts/ui/socom_dynamic_reticle.gd")
 const TargetDummyScript := preload("res://scripts/combat/lab_leak_target_dummy.gd")
+const HurtboxProfile := preload("res://scripts/combat/socom_hurtbox_profile.gd")
 const WEAPON_BASE_PATH := "res://assets/weapons/modular_pack/"
 const HAND_GIZMO_ARROW_LENGTH := 0.12
 const HAND_GIZMO_RING_RADIUS := 0.09
@@ -238,6 +239,7 @@ var composure_opening_stress_multiplier: float = 0.28
 var composure_graze_damage_scale: float = 0.38
 var composure_readout: Label
 var composure_profile_title: Label
+var shared_hurtbox_scales: Dictionary = HurtboxProfile.load_scales()
 var fire_input_held: bool = false
 var active_lab_tab_name := "Rig & Hands"
 var current_aim_target := Vector3.ZERO
@@ -4620,6 +4622,11 @@ func _find_animation_player(node: Node) -> AnimationPlayer:
 func _save_weapon_config() -> bool:
 	if not _validate_weapon_rig_before_save():
 		return false
+	if not HurtboxProfile.save_scales(shared_hurtbox_scales):
+		_show_rig_error(
+			"Shared hitbox profile could not be saved. Weapon save blocked so main cannot drift from this preview."
+		)
+		return false
 	if animation_frame_editor.active:
 		_capture_animation_frame_pose_key()
 	else:
@@ -5624,6 +5631,47 @@ func _build_composure_tab(tab_container: TabContainer) -> void:
 	_add_slider(vbox, "composure_bounce_strength", "Shot impulse strength", 0.0, 2.0, composure.shot_bounce_strength, func(v: float): composure.shot_bounce_strength = v)
 
 	vbox.add_child(HSeparator.new())
+	var hurtbox_title := Label.new()
+	hurtbox_title.text = "SHARED ANATOMICAL HITBOX SIZES"
+	hurtbox_title.add_theme_color_override("font_color", Color("ff9f54"))
+	vbox.add_child(hurtbox_title)
+	var hurtbox_help := Label.new()
+	hurtbox_help.text = (
+		"These are the authoritative damage shapes used by the target range and "
+		+ "network operators in main. Changes update this preview immediately; "
+		+ "Save Rig or the button below writes the shared gameplay profile."
+	)
+	hurtbox_help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	vbox.add_child(hurtbox_help)
+	_add_slider(
+		vbox,
+		"hurtbox_global",
+		"All hitboxes",
+		HurtboxProfile.MIN_SCALE,
+		HurtboxProfile.MAX_SCALE,
+		float(shared_hurtbox_scales.get(&"global", 0.88)),
+		func(v: float): _set_shared_hurtbox_scale(v, &"global")
+	)
+	for region_key: StringName in HurtboxProfile.REGION_KEYS:
+		_add_slider(
+			vbox,
+			"hurtbox_%s" % String(region_key),
+			HurtboxProfile.region_label(region_key),
+			HurtboxProfile.MIN_SCALE,
+			HurtboxProfile.MAX_SCALE,
+			float(shared_hurtbox_scales.get(region_key, 1.0)),
+			_set_shared_hurtbox_scale.bind(region_key)
+		)
+	var save_hurtboxes_button := Button.new()
+	save_hurtboxes_button.name = "SaveSharedHitboxesButton"
+	save_hurtboxes_button.text = "Save Shared Hitboxes to Main Game"
+	save_hurtboxes_button.tooltip_text = (
+		"Writes config/combat/hurtbox_profile.json, loaded by every new gameplay damage rig."
+	)
+	save_hurtboxes_button.pressed.connect(_save_shared_hurtboxes)
+	vbox.add_child(save_hurtboxes_button)
+
+	vbox.add_child(HSeparator.new())
 	composure_readout = Label.new()
 	composure_readout.add_theme_font_size_override("font_size", 12)
 	composure_readout.add_theme_color_override("font_color", Color("a9f4c0"))
@@ -5653,6 +5701,8 @@ func _finish_composure_target_preview() -> void:
 		return
 	if composure_preview_dummy.has_method("set_hurtbox_debug_visible"):
 		composure_preview_dummy.call("set_hurtbox_debug_visible", true)
+	if composure_preview_dummy.has_method("apply_hurtbox_tuning"):
+		composure_preview_dummy.call("apply_hurtbox_tuning", shared_hurtbox_scales)
 	if composure_preview_dummy.has_method("set_precision_core_debug"):
 		composure_preview_dummy.call(
 			"set_precision_core_debug",
@@ -5662,6 +5712,27 @@ func _finish_composure_target_preview() -> void:
 	var preview_health := composure_preview_dummy.get_node_or_null("HealthLabel") as Label3D
 	if preview_health:
 		preview_health.visible = false
+
+
+func _set_shared_hurtbox_scale(value: float, region_key: StringName) -> void:
+	shared_hurtbox_scales[region_key] = clampf(
+		value,
+		HurtboxProfile.MIN_SCALE,
+		HurtboxProfile.MAX_SCALE
+	)
+	if composure_preview_dummy != null and composure_preview_dummy.has_method("apply_hurtbox_tuning"):
+		composure_preview_dummy.call("apply_hurtbox_tuning", shared_hurtbox_scales)
+
+
+func _save_shared_hurtboxes() -> bool:
+	if not HurtboxProfile.save_scales(shared_hurtbox_scales):
+		_show_rig_error("Could not save the shared gameplay hitbox profile.")
+		return false
+	if hud_status:
+		hud_status.text = "✅ Shared hitboxes saved. Main targets and network operators will load these exact sizes."
+		hud_status.tooltip_text = hud_status.text
+		hud_status.add_theme_color_override("font_color", Color(0.2, 1.0, 0.4))
+	return true
 
 
 func _on_gun_lab_tab_changed(tab_index: int, tab_container: TabContainer) -> void:

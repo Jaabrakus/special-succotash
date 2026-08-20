@@ -3,12 +3,14 @@ extends SceneTree
 const TargetDummyScript := preload("res://scripts/combat/lab_leak_target_dummy.gd")
 const ShotAuthorityScript := preload("res://scripts/network/socom_shot_authority.gd")
 const AnatomicalHitResolver := preload("res://scripts/combat/socom_anatomical_hit_resolver.gd")
+const HurtboxProfile := preload("res://scripts/combat/socom_hurtbox_profile.gd")
 const REQUIRED_REGIONS: Array[StringName] = [
 	&"HEAD", &"TORSO", &"PELVIS",
 	&"LEFT_UPPER_ARM", &"RIGHT_UPPER_ARM",
 	&"LEFT_FOREARM", &"RIGHT_FOREARM",
 	&"LEFT_THIGH", &"RIGHT_THIGH",
-	&"LEFT_CALF", &"RIGHT_CALF"
+	&"LEFT_CALF", &"RIGHT_CALF",
+	&"LEFT_FOOT", &"RIGHT_FOOT"
 ]
 
 var failures: Array[String] = []
@@ -85,6 +87,56 @@ func _run() -> void:
 			"global tuning slider did not shrink physics hurtboxes"
 		)
 		rig.apply_radius_scales({&"global": 0.88})
+
+	# Every exact region has an independent canonical scale. Tuning the right arm
+	# must not resize the mirrored left arm or depend on lab-only geometry.
+	var left_tuned_arm: Area3D = rig.get_region_area(&"LEFT_UPPER_ARM")
+	if tuned_arm and left_tuned_arm:
+		var right_shape := (tuned_arm.get_child(0) as CollisionShape3D).shape as CapsuleShape3D
+		var left_shape := (left_tuned_arm.get_child(0) as CollisionShape3D).shape as CapsuleShape3D
+		var initial_scales: Dictionary = rig.get_radius_scales()
+		var exact_scales := initial_scales.duplicate(true)
+		exact_scales[&"right_upper_arm"] = 0.55
+		exact_scales[&"left_upper_arm"] = 1.0
+		rig.apply_radius_scales(exact_scales)
+		var expected_right := (
+			SocomAnimatedHurtboxRig.UPPER_ARM_RADIUS
+			* float(exact_scales.get(&"global", 0.88))
+			* 0.55
+		)
+		var expected_left := (
+			SocomAnimatedHurtboxRig.UPPER_ARM_RADIUS
+			* float(exact_scales.get(&"global", 0.88))
+		)
+		_assert(
+			is_equal_approx(right_shape.radius, expected_right),
+			"right upper-arm exact scale did not reach physics geometry"
+		)
+		_assert(
+			is_equal_approx(left_shape.radius, expected_left),
+			"right upper-arm tuning changed the left upper arm"
+		)
+		rig.apply_radius_scales(initial_scales)
+
+	var migrated := HurtboxProfile.normalize_scales({
+		&"global": 0.9,
+		&"head": 0.8,
+		&"torso": 0.75,
+		&"arms": 0.7,
+		&"legs": 0.65,
+	})
+	_assert(
+		is_equal_approx(float(migrated[&"pelvis"]), 0.75),
+		"legacy torso scale did not migrate to the exact pelvis region"
+	)
+	_assert(
+		is_equal_approx(float(migrated[&"right_forearm"]), 0.7),
+		"legacy arm scale did not migrate to exact arm regions"
+	)
+	_assert(
+		is_equal_approx(float(migrated[&"left_foot"]), 0.65),
+		"legacy leg scale did not migrate to exact foot regions"
+	)
 
 	# There must be no invisible center capsule. A shot through visible air
 	# between independently animated legs is a legitimate miss.

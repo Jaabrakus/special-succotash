@@ -368,7 +368,11 @@ func _select_weapon(index: int) -> void:
 
 
 func _set_shared_hurtbox_scale(key: String, value: float) -> void:
-	shared_hurtbox_scales[key] = value
+	var group_key := StringName(key)
+	if HurtboxProfile.LEGACY_GROUP_REGIONS.has(group_key):
+		HurtboxProfile.set_group_scale(shared_hurtbox_scales, group_key, value)
+	else:
+		shared_hurtbox_scales[group_key] = value
 	if hurtbox_preview_dummy != null and hurtbox_preview_dummy.has_method("apply_hurtbox_tuning"):
 		hurtbox_preview_dummy.call("apply_hurtbox_tuning", shared_hurtbox_scales)
 
