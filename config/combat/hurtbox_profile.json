@@ -1,11 +1,159 @@
 {
-  "schema_version": 1,
+  "custom_hitboxes": [
+    {
+      "damage_region": "TORSO",
+      "display_name": "Torso extra",
+      "geometry": {
+        "length_scale": 0.96,
+        "offset": {
+          "x": 0.0807710960507393,
+          "y": 0.0444660931825638,
+          "z": -0.0105069186538458
+        },
+        "shape": "capsule"
+      },
+      "id": "torso_extra_1",
+      "source_region": "torso",
+      "width_scale": 0.6
+    }
+  ],
+  "geometry": {
+    "head": {
+      "length_scale": 1.0,
+      "offset": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "shape": "sphere"
+    },
+    "left_calf": {
+      "length_scale": 1.0,
+      "offset": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "shape": "capsule"
+    },
+    "left_foot": {
+      "length_scale": 1.0,
+      "offset": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "shape": "sphere"
+    },
+    "left_forearm": {
+      "length_scale": 1.0,
+      "offset": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "shape": "capsule"
+    },
+    "left_thigh": {
+      "length_scale": 1.0,
+      "offset": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "shape": "capsule"
+    },
+    "left_upper_arm": {
+      "length_scale": 1.0,
+      "offset": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "shape": "capsule"
+    },
+    "pelvis": {
+      "length_scale": 1.0,
+      "offset": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "shape": "capsule"
+    },
+    "right_calf": {
+      "length_scale": 1.0,
+      "offset": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "shape": "capsule"
+    },
+    "right_foot": {
+      "length_scale": 1.0,
+      "offset": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "shape": "sphere"
+    },
+    "right_forearm": {
+      "length_scale": 1.0,
+      "offset": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "shape": "capsule"
+    },
+    "right_thigh": {
+      "length_scale": 1.0,
+      "offset": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "shape": "capsule"
+    },
+    "right_upper_arm": {
+      "length_scale": 1.0,
+      "offset": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "shape": "capsule"
+    },
+    "torso": {
+      "length_scale": 1.0,
+      "offset": {
+        "x": -0.0770699828863144,
+        "y": 0.0223341342061758,
+        "z": -0.0214450396597385
+      },
+      "shape": "capsule"
+    }
+  },
   "purpose": "Authored by the Composure Lab and loaded by all anatomical damage rigs; not camera or movement collision",
   "radius_scales": {
-    "global": 0.88,
-    "head": 1.0,
-    "torso": 1.0,
     "arms": 1.0,
-    "legs": 1.0
-  }
+    "global": 0.88,
+    "head": 0.845,
+    "left_calf": 1.0,
+    "left_foot": 1.0,
+    "left_forearm": 1.0,
+    "left_thigh": 1.0,
+    "left_upper_arm": 1.0,
+    "legs": 1.0,
+    "pelvis": 1.0,
+    "right_calf": 1.0,
+    "right_foot": 1.0,
+    "right_forearm": 1.0,
+    "right_thigh": 1.0,
+    "right_upper_arm": 0.725,
+    "torso": 0.6
+  },
+  "schema_version": 5
 }

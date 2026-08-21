@@ -1,0 +1,3539 @@
+{
+  "enabled": true,
+  "environment": {
+    "ambient_color": {
+      "a": 1.0,
+      "b": 0.560784339904785,
+      "g": 0.545098066329956,
+      "r": 0.513725519180298
+    },
+    "ambient_energy": 0.62,
+    "exposure": 0.95,
+    "fog_color": {
+      "a": 1.0,
+      "b": 0.380392163991928,
+      "g": 0.356862753629684,
+      "r": 0.329411774873734
+    },
+    "fog_density": 0.0055,
+    "fog_enabled": true,
+    "ground_color": {
+      "a": 1.0,
+      "b": 0.141176477074623,
+      "g": 0.129411771893501,
+      "r": 0.117647059261799
+    },
+    "preset": "tactical_overcast",
+    "sky_horizon": {
+      "a": 1.0,
+      "b": 0.439215689897537,
+      "g": 0.415686279535294,
+      "r": 0.388235300779343
+    },
+    "sky_top": {
+      "a": 1.0,
+      "b": 0.200000002980232,
+      "g": 0.160784319043159,
+      "r": 0.121568627655506
+    },
+    "soundscape": "outdoor_tactical",
+    "sun_color": {
+      "a": 1.0,
+      "b": 0.843137264251709,
+      "g": 0.823529422283173,
+      "r": 0.7843137383461
+    },
+    "sun_energy": 0.95,
+    "sun_rotation": {
+      "x": -52.0,
+      "y": -32.0,
+      "z": 0.0
+    }
+  },
+  "gameplay": {
+    "bomb_detonation_wins_round": true,
+    "bomb_fuse_seconds": 35,
+    "elimination_wins_round": true,
+    "maximum_rounds": 7,
+    "plant_time_seconds": 5.0,
+    "primary_mode": "demolition",
+    "respawns_enabled": false,
+    "round_time_seconds": 300,
+    "round_timeout_result": "draw",
+    "rounds_to_win": 4,
+    "supported_modes": [
+      "demolition",
+      "team_deathmatch"
+    ]
+  },
+  "grid_size": 0.5,
+  "map_id": "crossfire_basin_8v8",
+  "name": "Crossfire Basin 8v8",
+  "objects": [
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.419607847929001,
+        "g": 0.380392163991928,
+        "r": 0.34901961684227
+      },
+      "id": "basin_floor",
+      "name": "Basin Floor",
+      "position": {
+        "x": 0.0,
+        "y": -0.125,
+        "z": 0.0
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "surface_kind": "dirt",
+        "texture_path": "",
+        "uv_scale": 0.65
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 96.0,
+        "y": 0.25,
+        "z": 72.0
+      },
+      "type": "ground"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.470588237047195,
+        "g": 0.439215689897537,
+        "r": 0.419607847929001
+      },
+      "id": "north_perimeter",
+      "name": "North Perimeter",
+      "position": {
+        "x": 0.0,
+        "y": 1.5,
+        "z": -35.75
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 96.0,
+        "y": 3.0,
+        "z": 0.5
+      },
+      "type": "wall"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.470588237047195,
+        "g": 0.439215689897537,
+        "r": 0.419607847929001
+      },
+      "id": "south_perimeter",
+      "name": "South Perimeter",
+      "position": {
+        "x": 0.0,
+        "y": 1.5,
+        "z": 35.75
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 96.0,
+        "y": 3.0,
+        "z": 0.5
+      },
+      "type": "wall"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.470588237047195,
+        "g": 0.439215689897537,
+        "r": 0.419607847929001
+      },
+      "id": "west_perimeter",
+      "name": "West Perimeter",
+      "position": {
+        "x": -47.75,
+        "y": 1.5,
+        "z": 0.0
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 90.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 72.0,
+        "y": 3.0,
+        "z": 0.5
+      },
+      "type": "wall"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.470588237047195,
+        "g": 0.439215689897537,
+        "r": 0.419607847929001
+      },
+      "id": "east_perimeter",
+      "name": "East Perimeter",
+      "position": {
+        "x": 47.75,
+        "y": 1.5,
+        "z": 0.0
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 90.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 72.0,
+        "y": 3.0,
+        "z": 0.5
+      },
+      "type": "wall"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.627451002597809,
+        "g": 0.862745106220245,
+        "r": 0.333333343267441
+      },
+      "id": "editor_play_spawn",
+      "name": "Editor Play Spawn",
+      "position": {
+        "x": -46.0,
+        "y": 0.0500000007450581,
+        "z": 33.0
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 0.800000011920929,
+        "y": 1.79999995231628,
+        "z": 0.800000011920929
+      },
+      "type": "player_spawn"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 1.0,
+        "g": 0.639215707778931,
+        "r": 0.309803932905197
+      },
+      "id": "alpha_spawn_01",
+      "name": "Alpha Spawn 01",
+      "position": {
+        "x": -44.0,
+        "y": 0.0500000007450581,
+        "z": 33.0
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 1.0,
+        "y": 1.79999995231628,
+        "z": 1.0
+      },
+      "type": "team_alpha_spawn"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.368627458810806,
+        "g": 0.396078437566757,
+        "r": 1.0
+      },
+      "id": "bravo_spawn_01",
+      "name": "Bravo Spawn 01",
+      "position": {
+        "x": 32.0,
+        "y": 0.0500000007450581,
+        "z": -30.5
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 180.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 1.0,
+        "y": 1.79999995231628,
+        "z": 1.0
+      },
+      "type": "team_bravo_spawn"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 1.0,
+        "g": 0.639215707778931,
+        "r": 0.309803932905197
+      },
+      "id": "alpha_spawn_02",
+      "name": "Alpha Spawn 02",
+      "position": {
+        "x": -40.0,
+        "y": 0.0500000007450581,
+        "z": 33.0
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 1.0,
+        "y": 1.79999995231628,
+        "z": 1.0
+      },
+      "type": "team_alpha_spawn"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.368627458810806,
+        "g": 0.396078437566757,
+        "r": 1.0
+      },
+      "id": "bravo_spawn_02",
+      "name": "Bravo Spawn 02",
+      "position": {
+        "x": 36.0,
+        "y": 0.0500000007450581,
+        "z": -30.5
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 180.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 1.0,
+        "y": 1.79999995231628,
+        "z": 1.0
+      },
+      "type": "team_bravo_spawn"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 1.0,
+        "g": 0.639215707778931,
+        "r": 0.309803932905197
+      },
+      "id": "alpha_spawn_03",
+      "name": "Alpha Spawn 03",
+      "position": {
+        "x": -36.0,
+        "y": 0.0500000007450581,
+        "z": 33.0
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 1.0,
+        "y": 1.79999995231628,
+        "z": 1.0
+      },
+      "type": "team_alpha_spawn"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.368627458810806,
+        "g": 0.396078437566757,
+        "r": 1.0
+      },
+      "id": "bravo_spawn_03",
+      "name": "Bravo Spawn 03",
+      "position": {
+        "x": 40.0,
+        "y": 0.0500000007450581,
+        "z": -30.5
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 180.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 1.0,
+        "y": 1.79999995231628,
+        "z": 1.0
+      },
+      "type": "team_bravo_spawn"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 1.0,
+        "g": 0.639215707778931,
+        "r": 0.309803932905197
+      },
+      "id": "alpha_spawn_04",
+      "name": "Alpha Spawn 04",
+      "position": {
+        "x": -32.0,
+        "y": 0.0500000007450581,
+        "z": 33.0
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 1.0,
+        "y": 1.79999995231628,
+        "z": 1.0
+      },
+      "type": "team_alpha_spawn"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.368627458810806,
+        "g": 0.396078437566757,
+        "r": 1.0
+      },
+      "id": "bravo_spawn_04",
+      "name": "Bravo Spawn 04",
+      "position": {
+        "x": 44.0,
+        "y": 0.0500000007450581,
+        "z": -30.5
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 180.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 1.0,
+        "y": 1.79999995231628,
+        "z": 1.0
+      },
+      "type": "team_bravo_spawn"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 1.0,
+        "g": 0.639215707778931,
+        "r": 0.309803932905197
+      },
+      "id": "alpha_spawn_05",
+      "name": "Alpha Spawn 05",
+      "position": {
+        "x": -44.0,
+        "y": 0.0500000007450581,
+        "z": 30.5
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 1.0,
+        "y": 1.79999995231628,
+        "z": 1.0
+      },
+      "type": "team_alpha_spawn"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.368627458810806,
+        "g": 0.396078437566757,
+        "r": 1.0
+      },
+      "id": "bravo_spawn_05",
+      "name": "Bravo Spawn 05",
+      "position": {
+        "x": 32.0,
+        "y": 0.0500000007450581,
+        "z": -33.0
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 180.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 1.0,
+        "y": 1.79999995231628,
+        "z": 1.0
+      },
+      "type": "team_bravo_spawn"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 1.0,
+        "g": 0.639215707778931,
+        "r": 0.309803932905197
+      },
+      "id": "alpha_spawn_06",
+      "name": "Alpha Spawn 06",
+      "position": {
+        "x": -40.0,
+        "y": 0.0500000007450581,
+        "z": 30.5
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 1.0,
+        "y": 1.79999995231628,
+        "z": 1.0
+      },
+      "type": "team_alpha_spawn"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.368627458810806,
+        "g": 0.396078437566757,
+        "r": 1.0
+      },
+      "id": "bravo_spawn_06",
+      "name": "Bravo Spawn 06",
+      "position": {
+        "x": 36.0,
+        "y": 0.0500000007450581,
+        "z": -33.0
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 180.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 1.0,
+        "y": 1.79999995231628,
+        "z": 1.0
+      },
+      "type": "team_bravo_spawn"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 1.0,
+        "g": 0.639215707778931,
+        "r": 0.309803932905197
+      },
+      "id": "alpha_spawn_07",
+      "name": "Alpha Spawn 07",
+      "position": {
+        "x": -36.0,
+        "y": 0.0500000007450581,
+        "z": 30.5
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 1.0,
+        "y": 1.79999995231628,
+        "z": 1.0
+      },
+      "type": "team_alpha_spawn"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.368627458810806,
+        "g": 0.396078437566757,
+        "r": 1.0
+      },
+      "id": "bravo_spawn_07",
+      "name": "Bravo Spawn 07",
+      "position": {
+        "x": 40.0,
+        "y": 0.0500000007450581,
+        "z": -33.0
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 180.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 1.0,
+        "y": 1.79999995231628,
+        "z": 1.0
+      },
+      "type": "team_bravo_spawn"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 1.0,
+        "g": 0.639215707778931,
+        "r": 0.309803932905197
+      },
+      "id": "alpha_spawn_08",
+      "name": "Alpha Spawn 08",
+      "position": {
+        "x": -32.0,
+        "y": 0.0500000007450581,
+        "z": 30.5
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 1.0,
+        "y": 1.79999995231628,
+        "z": 1.0
+      },
+      "type": "team_alpha_spawn"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.368627458810806,
+        "g": 0.396078437566757,
+        "r": 1.0
+      },
+      "id": "bravo_spawn_08",
+      "name": "Bravo Spawn 08",
+      "position": {
+        "x": 44.0,
+        "y": 0.0500000007450581,
+        "z": -33.0
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 180.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 1.0,
+        "y": 1.79999995231628,
+        "z": 1.0
+      },
+      "type": "team_bravo_spawn"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.309803932905197,
+        "g": 0.82745099067688,
+        "r": 0.95686274766922
+      },
+      "id": "neutral_bomb",
+      "name": "Neutral Bomb",
+      "position": {
+        "x": 0.0,
+        "y": 0.400000005960464,
+        "z": 0.0
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 0.800000011920929,
+        "y": 0.800000011920929,
+        "z": 0.800000011920929
+      },
+      "type": "bomb_pickup"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 1.0,
+        "g": 0.639215707778931,
+        "r": 0.309803932905197
+      },
+      "id": "alpha_base_target",
+      "name": "Alpha Base Target",
+      "position": {
+        "x": -39.0,
+        "y": 0.125,
+        "z": 27.5
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 4.0,
+        "y": 0.25,
+        "z": 4.0
+      },
+      "type": "alpha_bomb_site"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.368627458810806,
+        "g": 0.396078437566757,
+        "r": 1.0
+      },
+      "id": "bravo_base_target",
+      "name": "Bravo Base Target",
+      "position": {
+        "x": 39.0,
+        "y": 0.125,
+        "z": -27.5
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 180.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 4.0,
+        "y": 0.25,
+        "z": 4.0
+      },
+      "type": "bravo_bomb_site"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.407843142747879,
+        "g": 0.384313732385635,
+        "r": 0.364705890417099
+      },
+      "id": "alpha_front_left",
+      "name": "Alpha Front Left",
+      "position": {
+        "x": -43.0,
+        "y": 1.29999995231628,
+        "z": 25.5
+      },
+      "properties": {
+        "hole_bottom": 0.35,
+        "hole_height": 1.35,
+        "hole_offset_x": -0.65,
+        "hole_width": 1.9,
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "surface_kind": "concrete",
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 6.0,
+        "y": 2.59999990463257,
+        "z": 0.449999988079071
+      },
+      "type": "breached_wall"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.407843142747879,
+        "g": 0.384313732385635,
+        "r": 0.364705890417099
+      },
+      "id": "alpha_front_right",
+      "name": "Alpha Front Right",
+      "position": {
+        "x": -33.0,
+        "y": 1.29999995231628,
+        "z": 25.5
+      },
+      "properties": {
+        "hole_bottom": 0.35,
+        "hole_height": 1.35,
+        "hole_offset_x": 0.65,
+        "hole_width": 1.9,
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "surface_kind": "concrete",
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 6.0,
+        "y": 2.59999990463257,
+        "z": 0.449999988079071
+      },
+      "type": "breached_wall"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.470588237047195,
+        "g": 0.439215689897537,
+        "r": 0.419607847929001
+      },
+      "id": "alpha_side_left",
+      "name": "Alpha Side Left",
+      "position": {
+        "x": -29.0,
+        "y": 1.5,
+        "z": 31.0
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 90.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 10.0,
+        "y": 3.0,
+        "z": 0.449999988079071
+      },
+      "type": "wall"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.470588237047195,
+        "g": 0.439215689897537,
+        "r": 0.419607847929001
+      },
+      "id": "alpha_side_right",
+      "name": "Alpha Side Right",
+      "position": {
+        "x": -39.0,
+        "y": 1.5,
+        "z": 34.5
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 16.0,
+        "y": 3.0,
+        "z": 0.449999988079071
+      },
+      "type": "wall"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.333333343267441,
+        "g": 0.368627458810806,
+        "r": 0.396078437566757
+      },
+      "id": "alpha_site_cover_left",
+      "name": "Alpha Site Cover Left",
+      "position": {
+        "x": -43.0,
+        "y": 0.550000011920929,
+        "z": 28.0
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 90.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 3.5,
+        "y": 1.10000002384186,
+        "z": 0.699999988079071
+      },
+      "type": "cover_low"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.333333343267441,
+        "g": 0.368627458810806,
+        "r": 0.396078437566757
+      },
+      "id": "alpha_site_cover_right",
+      "name": "Alpha Site Cover Right",
+      "position": {
+        "x": -35.0,
+        "y": 0.550000011920929,
+        "z": 28.0
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 90.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 3.5,
+        "y": 1.10000002384186,
+        "z": 0.699999988079071
+      },
+      "type": "cover_low"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.407843142747879,
+        "g": 0.384313732385635,
+        "r": 0.364705890417099
+      },
+      "id": "bravo_front_left",
+      "name": "Bravo Front Left",
+      "position": {
+        "x": 43.0,
+        "y": 1.29999995231628,
+        "z": -25.5
+      },
+      "properties": {
+        "edge_rotation": 5.0,
+        "height_variance": 0.8,
+        "metallic": 0.0,
+        "pieces": 6.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 180.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 6.0,
+        "y": 2.59999990463257,
+        "z": 0.449999988079071
+      },
+      "type": "jagged_wall"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.407843142747879,
+        "g": 0.384313732385635,
+        "r": 0.364705890417099
+      },
+      "id": "bravo_front_right",
+      "name": "Bravo Front Right",
+      "position": {
+        "x": 33.0,
+        "y": 1.29999995231628,
+        "z": -25.5
+      },
+      "properties": {
+        "edge_rotation": 5.0,
+        "height_variance": 0.8,
+        "metallic": 0.0,
+        "pieces": 6.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 180.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 6.0,
+        "y": 2.59999990463257,
+        "z": 0.449999988079071
+      },
+      "type": "jagged_wall"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.470588237047195,
+        "g": 0.439215689897537,
+        "r": 0.419607847929001
+      },
+      "id": "bravo_side_left",
+      "name": "Bravo Side Left",
+      "position": {
+        "x": 29.0,
+        "y": 1.5,
+        "z": -31.0
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 90.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 10.0,
+        "y": 3.0,
+        "z": 0.449999988079071
+      },
+      "type": "wall"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.470588237047195,
+        "g": 0.439215689897537,
+        "r": 0.419607847929001
+      },
+      "id": "bravo_side_right",
+      "name": "Bravo Side Right",
+      "position": {
+        "x": 39.0,
+        "y": 1.5,
+        "z": -34.5
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 180.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 16.0,
+        "y": 3.0,
+        "z": 0.449999988079071
+      },
+      "type": "wall"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.333333343267441,
+        "g": 0.368627458810806,
+        "r": 0.396078437566757
+      },
+      "id": "bravo_site_cover_left",
+      "name": "Bravo Site Cover Left",
+      "position": {
+        "x": 43.0,
+        "y": 0.550000011920929,
+        "z": -28.0
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 90.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 3.5,
+        "y": 1.10000002384186,
+        "z": 0.699999988079071
+      },
+      "type": "cover_low"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.333333343267441,
+        "g": 0.368627458810806,
+        "r": 0.396078437566757
+      },
+      "id": "bravo_site_cover_right",
+      "name": "Bravo Site Cover Right",
+      "position": {
+        "x": 35.0,
+        "y": 0.550000011920929,
+        "z": -28.0
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 90.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 3.5,
+        "y": 1.10000002384186,
+        "z": 0.699999988079071
+      },
+      "type": "cover_low"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.470588237047195,
+        "g": 0.439215689897537,
+        "r": 0.419607847929001
+      },
+      "id": "west_divider_n23",
+      "name": "West Route Divider",
+      "position": {
+        "x": -14.0,
+        "y": 1.5,
+        "z": -23.0
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 90.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 10.0,
+        "y": 3.0,
+        "z": 0.449999988079071
+      },
+      "type": "wall"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.407843142747879,
+        "g": 0.384313732385635,
+        "r": 0.364705890417099
+      },
+      "id": "west_divider_n09",
+      "name": "West Route Divider",
+      "position": {
+        "x": -14.0,
+        "y": 1.39999997615814,
+        "z": -9.0
+      },
+      "properties": {
+        "edge_rotation": 5.0,
+        "height_variance": 0.8,
+        "metallic": 0.0,
+        "pieces": 6.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 90.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 10.0,
+        "y": 2.79999995231628,
+        "z": 0.449999988079071
+      },
+      "type": "jagged_wall"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.407843142747879,
+        "g": 0.384313732385635,
+        "r": 0.364705890417099
+      },
+      "id": "west_divider_s09",
+      "name": "West Route Divider",
+      "position": {
+        "x": -14.0,
+        "y": 1.39999997615814,
+        "z": 9.0
+      },
+      "properties": {
+        "edge_rotation": 5.0,
+        "height_variance": 0.8,
+        "metallic": 0.0,
+        "pieces": 6.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 90.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 10.0,
+        "y": 2.79999995231628,
+        "z": 0.449999988079071
+      },
+      "type": "jagged_wall"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.470588237047195,
+        "g": 0.439215689897537,
+        "r": 0.419607847929001
+      },
+      "id": "west_divider_s23",
+      "name": "West Route Divider",
+      "position": {
+        "x": -14.0,
+        "y": 1.5,
+        "z": 23.0
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 90.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 10.0,
+        "y": 3.0,
+        "z": 0.449999988079071
+      },
+      "type": "wall"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.470588237047195,
+        "g": 0.439215689897537,
+        "r": 0.419607847929001
+      },
+      "id": "east_divider_n23",
+      "name": "East Route Divider",
+      "position": {
+        "x": 14.0,
+        "y": 1.5,
+        "z": -23.0
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 90.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 10.0,
+        "y": 3.0,
+        "z": 0.449999988079071
+      },
+      "type": "wall"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.407843142747879,
+        "g": 0.384313732385635,
+        "r": 0.364705890417099
+      },
+      "id": "east_divider_n09",
+      "name": "East Route Divider",
+      "position": {
+        "x": 14.0,
+        "y": 1.39999997615814,
+        "z": -9.0
+      },
+      "properties": {
+        "edge_rotation": 5.0,
+        "height_variance": 0.8,
+        "metallic": 0.0,
+        "pieces": 6.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 90.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 10.0,
+        "y": 2.79999995231628,
+        "z": 0.449999988079071
+      },
+      "type": "jagged_wall"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.407843142747879,
+        "g": 0.384313732385635,
+        "r": 0.364705890417099
+      },
+      "id": "east_divider_s09",
+      "name": "East Route Divider",
+      "position": {
+        "x": 14.0,
+        "y": 1.39999997615814,
+        "z": 9.0
+      },
+      "properties": {
+        "edge_rotation": 5.0,
+        "height_variance": 0.8,
+        "metallic": 0.0,
+        "pieces": 6.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 90.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 10.0,
+        "y": 2.79999995231628,
+        "z": 0.449999988079071
+      },
+      "type": "jagged_wall"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.470588237047195,
+        "g": 0.439215689897537,
+        "r": 0.419607847929001
+      },
+      "id": "east_divider_s23",
+      "name": "East Route Divider",
+      "position": {
+        "x": 14.0,
+        "y": 1.5,
+        "z": 23.0
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 90.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 10.0,
+        "y": 3.0,
+        "z": 0.449999988079071
+      },
+      "type": "wall"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.333333343267441,
+        "g": 0.368627458810806,
+        "r": 0.396078437566757
+      },
+      "id": "center_cover_northwest",
+      "name": "Center Cover Northwest",
+      "position": {
+        "x": -6.5,
+        "y": 0.550000011920929,
+        "z": -4.0
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 18.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 4.0,
+        "y": 1.10000002384186,
+        "z": 0.699999988079071
+      },
+      "type": "cover_low"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.333333343267441,
+        "g": 0.368627458810806,
+        "r": 0.396078437566757
+      },
+      "id": "center_cover_southeast",
+      "name": "Center Cover Southeast",
+      "position": {
+        "x": 6.5,
+        "y": 0.550000011920929,
+        "z": 4.0
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 18.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 4.0,
+        "y": 1.10000002384186,
+        "z": 0.699999988079071
+      },
+      "type": "cover_low"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.333333343267441,
+        "g": 0.368627458810806,
+        "r": 0.396078437566757
+      },
+      "id": "center_cover_northeast",
+      "name": "Center Cover Northeast",
+      "position": {
+        "x": 4.0,
+        "y": 0.550000011920929,
+        "z": -7.0
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 90.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 4.0,
+        "y": 1.10000002384186,
+        "z": 0.699999988079071
+      },
+      "type": "cover_low"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.333333343267441,
+        "g": 0.368627458810806,
+        "r": 0.396078437566757
+      },
+      "id": "center_cover_southwest",
+      "name": "Center Cover Southwest",
+      "position": {
+        "x": -4.0,
+        "y": 0.550000011920929,
+        "z": 7.0
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 90.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 4.0,
+        "y": 1.10000002384186,
+        "z": 0.699999988079071
+      },
+      "type": "cover_low"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.407843142747879,
+        "g": 0.364705890417099,
+        "r": 0.333333343267441
+      },
+      "id": "center_pillar_north",
+      "name": "Center Pillar North",
+      "position": {
+        "x": 0.0,
+        "y": 1.10000002384186,
+        "z": -12.5
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 2.20000004768372,
+        "y": 2.20000004768372,
+        "z": 2.20000004768372
+      },
+      "type": "cover_tall"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.407843142747879,
+        "g": 0.364705890417099,
+        "r": 0.333333343267441
+      },
+      "id": "center_pillar_south",
+      "name": "Center Pillar South",
+      "position": {
+        "x": 0.0,
+        "y": 1.10000002384186,
+        "z": 12.5
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 2.20000004768372,
+        "y": 2.20000004768372,
+        "z": 2.20000004768372
+      },
+      "type": "cover_tall"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.407843142747879,
+        "g": 0.384313732385635,
+        "r": 0.364705890417099
+      },
+      "id": "center_broken_north",
+      "name": "Center Broken North",
+      "position": {
+        "x": -7.5,
+        "y": 1.20000004768372,
+        "z": -16.5
+      },
+      "properties": {
+        "edge_rotation": 5.0,
+        "height_variance": 0.8,
+        "metallic": 0.0,
+        "pieces": 6.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": -12.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 7.0,
+        "y": 2.40000009536743,
+        "z": 0.449999988079071
+      },
+      "type": "jagged_wall"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.407843142747879,
+        "g": 0.384313732385635,
+        "r": 0.364705890417099
+      },
+      "id": "center_broken_south",
+      "name": "Center Broken South",
+      "position": {
+        "x": 7.5,
+        "y": 1.20000004768372,
+        "z": 16.5
+      },
+      "properties": {
+        "edge_rotation": 5.0,
+        "height_variance": 0.8,
+        "metallic": 0.0,
+        "pieces": 6.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": -12.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 7.0,
+        "y": 2.40000009536743,
+        "z": 0.449999988079071
+      },
+      "type": "jagged_wall"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.356862753629684,
+        "g": 0.407843142747879,
+        "r": 0.368627458810806
+      },
+      "id": "west_depot_catwalk",
+      "name": "West Depot Catwalk",
+      "position": {
+        "x": -30.0,
+        "y": 0.899999976158142,
+        "z": 0.0
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 12.0,
+        "y": 0.400000005960464,
+        "z": 8.0
+      },
+      "type": "platform"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.313725501298904,
+        "g": 0.411764711141586,
+        "r": 0.458823531866074
+      },
+      "id": "west_depot_ramp_north",
+      "name": "West Depot North Ramp",
+      "position": {
+        "x": -30.0,
+        "y": 0.550000011920929,
+        "z": -7.0
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 180.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 4.0,
+        "y": 1.10000002384186,
+        "z": 6.0
+      },
+      "type": "ramp"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.313725501298904,
+        "g": 0.411764711141586,
+        "r": 0.458823531866074
+      },
+      "id": "west_depot_ramp_south",
+      "name": "West Depot South Ramp",
+      "position": {
+        "x": -30.0,
+        "y": 0.550000011920929,
+        "z": 7.0
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 4.0,
+        "y": 1.10000002384186,
+        "z": 6.0
+      },
+      "type": "ramp"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.470588237047195,
+        "g": 0.439215689897537,
+        "r": 0.419607847929001
+      },
+      "id": "west_depot_outer_north",
+      "name": "West Depot Outer North",
+      "position": {
+        "x": -39.0,
+        "y": 1.5,
+        "z": -7.5
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 90.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 10.0,
+        "y": 3.0,
+        "z": 0.449999988079071
+      },
+      "type": "wall"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.470588237047195,
+        "g": 0.439215689897537,
+        "r": 0.419607847929001
+      },
+      "id": "west_depot_outer_south",
+      "name": "West Depot Outer South",
+      "position": {
+        "x": -39.0,
+        "y": 1.5,
+        "z": 7.5
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 90.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 10.0,
+        "y": 3.0,
+        "z": 0.449999988079071
+      },
+      "type": "wall"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.407843142747879,
+        "g": 0.364705890417099,
+        "r": 0.333333343267441
+      },
+      "id": "west_depot_crate_north",
+      "name": "West Depot Crate North",
+      "position": {
+        "x": -40.5,
+        "y": 1.10000002384186,
+        "z": -18.0
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 2.59999990463257,
+        "y": 2.20000004768372,
+        "z": 2.59999990463257
+      },
+      "type": "cover_tall"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.407843142747879,
+        "g": 0.364705890417099,
+        "r": 0.333333343267441
+      },
+      "id": "west_depot_crate_south",
+      "name": "West Depot Crate South",
+      "position": {
+        "x": -40.5,
+        "y": 1.10000002384186,
+        "z": 18.0
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 2.59999990463257,
+        "y": 2.20000004768372,
+        "z": 2.59999990463257
+      },
+      "type": "cover_tall"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.333333343267441,
+        "g": 0.368627458810806,
+        "r": 0.396078437566757
+      },
+      "id": "west_depot_cover_north",
+      "name": "West Depot Cover North",
+      "position": {
+        "x": -29.0,
+        "y": 0.550000011920929,
+        "z": -18.0
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 8.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 6.0,
+        "y": 1.10000002384186,
+        "z": 0.800000011920929
+      },
+      "type": "cover_low"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.333333343267441,
+        "g": 0.368627458810806,
+        "r": 0.396078437566757
+      },
+      "id": "west_depot_cover_south",
+      "name": "West Depot Cover South",
+      "position": {
+        "x": -29.0,
+        "y": 0.550000011920929,
+        "z": 18.0
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 8.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 6.0,
+        "y": 1.10000002384186,
+        "z": 0.800000011920929
+      },
+      "type": "cover_low"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.407843142747879,
+        "g": 0.384313732385635,
+        "r": 0.364705890417099
+      },
+      "id": "west_depot_gate_north",
+      "name": "West Depot Gate North",
+      "position": {
+        "x": -20.0,
+        "y": 1.25,
+        "z": -17.0
+      },
+      "properties": {
+        "edge_rotation": 5.0,
+        "height_variance": 0.8,
+        "metallic": 0.0,
+        "pieces": 6.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 90.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 7.0,
+        "y": 2.5,
+        "z": 0.449999988079071
+      },
+      "type": "jagged_wall"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.407843142747879,
+        "g": 0.384313732385635,
+        "r": 0.364705890417099
+      },
+      "id": "west_depot_gate_south",
+      "name": "West Depot Gate South",
+      "position": {
+        "x": -20.0,
+        "y": 1.25,
+        "z": 17.0
+      },
+      "properties": {
+        "edge_rotation": 5.0,
+        "height_variance": 0.8,
+        "metallic": 0.0,
+        "pieces": 6.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 90.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 7.0,
+        "y": 2.5,
+        "z": 0.449999988079071
+      },
+      "type": "jagged_wall"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.356862753629684,
+        "g": 0.407843142747879,
+        "r": 0.368627458810806
+      },
+      "id": "east_drain_crossing",
+      "name": "East Drain Crossing",
+      "position": {
+        "x": 30.0,
+        "y": 0.300000011920929,
+        "z": 0.0
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 18.0,
+        "y": 0.349999994039536,
+        "z": 4.0
+      },
+      "type": "platform"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.313725501298904,
+        "g": 0.411764711141586,
+        "r": 0.458823531866074
+      },
+      "id": "east_drain_ramp_north",
+      "name": "East Drain North Ramp",
+      "position": {
+        "x": 30.0,
+        "y": 0.280000001192093,
+        "z": -4.0
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 180.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 5.0,
+        "y": 0.550000011920929,
+        "z": 4.0
+      },
+      "type": "ramp"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.313725501298904,
+        "g": 0.411764711141586,
+        "r": 0.458823531866074
+      },
+      "id": "east_drain_ramp_south",
+      "name": "East Drain South Ramp",
+      "position": {
+        "x": 30.0,
+        "y": 0.280000001192093,
+        "z": 4.0
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 5.0,
+        "y": 0.550000011920929,
+        "z": 4.0
+      },
+      "type": "ramp"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.470588237047195,
+        "g": 0.439215689897537,
+        "r": 0.407843142747879
+      },
+      "id": "east_drain_curve_north",
+      "name": "East Drain Curve North",
+      "position": {
+        "x": 30.0,
+        "y": 1.29999995231628,
+        "z": -11.0
+      },
+      "properties": {
+        "arc_degrees": 72.0,
+        "metallic": 0.0,
+        "radius": 5.0,
+        "roughness": 0.9,
+        "segments": 8.0,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 180.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 7.0,
+        "y": 2.59999990463257,
+        "z": 0.400000005960464
+      },
+      "type": "curved_wall"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.470588237047195,
+        "g": 0.439215689897537,
+        "r": 0.407843142747879
+      },
+      "id": "east_drain_curve_south",
+      "name": "East Drain Curve South",
+      "position": {
+        "x": 30.0,
+        "y": 1.29999995231628,
+        "z": 11.0
+      },
+      "properties": {
+        "arc_degrees": 72.0,
+        "metallic": 0.0,
+        "radius": 5.0,
+        "roughness": 0.9,
+        "segments": 8.0,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 7.0,
+        "y": 2.59999990463257,
+        "z": 0.400000005960464
+      },
+      "type": "curved_wall"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.333333343267441,
+        "g": 0.368627458810806,
+        "r": 0.396078437566757
+      },
+      "id": "east_drain_cover_northwest",
+      "name": "East Drain Cover Northwest",
+      "position": {
+        "x": 20.5,
+        "y": 0.550000011920929,
+        "z": -18.0
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": -10.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 5.0,
+        "y": 1.10000002384186,
+        "z": 0.75
+      },
+      "type": "cover_low"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.333333343267441,
+        "g": 0.368627458810806,
+        "r": 0.396078437566757
+      },
+      "id": "east_drain_cover_southwest",
+      "name": "East Drain Cover Southwest",
+      "position": {
+        "x": 20.5,
+        "y": 0.550000011920929,
+        "z": 18.0
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": -10.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 5.0,
+        "y": 1.10000002384186,
+        "z": 0.75
+      },
+      "type": "cover_low"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.407843142747879,
+        "g": 0.364705890417099,
+        "r": 0.333333343267441
+      },
+      "id": "east_drain_tower_north",
+      "name": "East Drain Tower North",
+      "position": {
+        "x": 41.0,
+        "y": 1.10000002384186,
+        "z": -18.0
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 2.59999990463257,
+        "y": 2.20000004768372,
+        "z": 2.59999990463257
+      },
+      "type": "cover_tall"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.407843142747879,
+        "g": 0.364705890417099,
+        "r": 0.333333343267441
+      },
+      "id": "east_drain_tower_south",
+      "name": "East Drain Tower South",
+      "position": {
+        "x": 41.0,
+        "y": 1.10000002384186,
+        "z": 18.0
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 2.59999990463257,
+        "y": 2.20000004768372,
+        "z": 2.59999990463257
+      },
+      "type": "cover_tall"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.407843142747879,
+        "g": 0.384313732385635,
+        "r": 0.364705890417099
+      },
+      "id": "east_drain_gate_north",
+      "name": "East Drain Gate North",
+      "position": {
+        "x": 30.0,
+        "y": 1.20000004768372,
+        "z": -22.0
+      },
+      "properties": {
+        "edge_rotation": 5.0,
+        "height_variance": 0.8,
+        "metallic": 0.0,
+        "pieces": 6.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 8.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 10.0,
+        "y": 2.40000009536743,
+        "z": 0.449999988079071
+      },
+      "type": "jagged_wall"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.407843142747879,
+        "g": 0.384313732385635,
+        "r": 0.364705890417099
+      },
+      "id": "east_drain_gate_south",
+      "name": "East Drain Gate South",
+      "position": {
+        "x": 30.0,
+        "y": 1.20000004768372,
+        "z": 22.0
+      },
+      "properties": {
+        "edge_rotation": 5.0,
+        "height_variance": 0.8,
+        "metallic": 0.0,
+        "pieces": 6.0,
+        "roughness": 0.9,
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 8.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 10.0,
+        "y": 2.40000009536743,
+        "z": 0.449999988079071
+      },
+      "type": "jagged_wall"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.607843160629272,
+        "g": 0.835294127464294,
+        "r": 1.0
+      },
+      "id": "center_light",
+      "name": "Center Floodlight",
+      "position": {
+        "x": 0.0,
+        "y": 5.0,
+        "z": 0.0
+      },
+      "properties": {
+        "energy": 2.8,
+        "range": 22.0,
+        "shadow_enabled": true
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 0.349999994039536,
+        "y": 0.349999994039536,
+        "z": 0.349999994039536
+      },
+      "type": "point_light"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.607843160629272,
+        "g": 0.835294127464294,
+        "r": 1.0
+      },
+      "id": "west_light",
+      "name": "West Depot Light",
+      "position": {
+        "x": -30.0,
+        "y": 5.0,
+        "z": 0.0
+      },
+      "properties": {
+        "energy": 2.4,
+        "range": 18.0,
+        "shadow_enabled": true
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 0.349999994039536,
+        "y": 0.349999994039536,
+        "z": 0.349999994039536
+      },
+      "type": "point_light"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.607843160629272,
+        "g": 0.835294127464294,
+        "r": 1.0
+      },
+      "id": "east_light",
+      "name": "East Drain Light",
+      "position": {
+        "x": 30.0,
+        "y": 5.0,
+        "z": 0.0
+      },
+      "properties": {
+        "energy": 2.4,
+        "range": 18.0,
+        "shadow_enabled": true
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 0.349999994039536,
+        "y": 0.349999994039536,
+        "z": 0.349999994039536
+      },
+      "type": "point_light"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.909803926944733,
+        "g": 0.419607847929001,
+        "r": 0.545098066329956
+      },
+      "id": "center_ambience",
+      "name": "Center Courtyard Ambience",
+      "position": {
+        "x": 0.0,
+        "y": 2.0,
+        "z": 0.0
+      },
+      "properties": {
+        "audio_stream": "",
+        "blend_distance": 4.0,
+        "soundscape": "outdoor_tactical",
+        "volume_db": -10.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 26.0,
+        "y": 4.0,
+        "z": 58.0
+      },
+      "type": "ambience_zone"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.909803926944733,
+        "g": 0.419607847929001,
+        "r": 0.545098066329956
+      },
+      "id": "west_ambience",
+      "name": "West Depot Ambience",
+      "position": {
+        "x": -31.0,
+        "y": 2.0,
+        "z": 0.0
+      },
+      "properties": {
+        "audio_stream": "",
+        "blend_distance": 4.0,
+        "soundscape": "industrial_wind",
+        "volume_db": -12.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 30.0,
+        "y": 4.0,
+        "z": 62.0
+      },
+      "type": "ambience_zone"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.909803926944733,
+        "g": 0.419607847929001,
+        "r": 0.545098066329956
+      },
+      "id": "east_ambience",
+      "name": "East Drain Ambience",
+      "position": {
+        "x": 31.0,
+        "y": 2.0,
+        "z": 0.0
+      },
+      "properties": {
+        "audio_stream": "",
+        "blend_distance": 4.0,
+        "soundscape": "drainage_wind",
+        "volume_db": -12.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 30.0,
+        "y": 4.0,
+        "z": 62.0
+      },
+      "type": "ambience_zone"
+    },
+    {
+      "id": "alpha_customs_floor", "type": "roof", "name": "Alpha Customs House Floor",
+      "position": {"x": -23.0, "y": 0.175, "z": 22.0}, "rotation_degrees": {"x": 0.0, "y": 0.0, "z": 0.0},
+      "size": {"x": 8.0, "y": 0.35, "z": 8.0}, "color": {},
+      "properties": {"group_id": "alpha_customs_house", "prefab_name": "tactical_room", "floor_level": 0}
+    },
+    {
+      "id": "alpha_customs_door", "type": "doorway_wall", "name": "Alpha Customs Entry",
+      "position": {"x": -23.0, "y": 1.5, "z": 26.0}, "rotation_degrees": {"x": 0.0, "y": 0.0, "z": 0.0},
+      "size": {"x": 8.0, "y": 3.0, "z": 0.35}, "color": {},
+      "properties": {"group_id": "alpha_customs_house", "opening_width": 1.6, "opening_height": 2.25, "roughness": 0.94}
+    },
+    {
+      "id": "alpha_customs_window", "type": "window_wall", "name": "Alpha Customs Firing Window",
+      "position": {"x": -23.0, "y": 1.5, "z": 18.0}, "rotation_degrees": {"x": 0.0, "y": 0.0, "z": 0.0},
+      "size": {"x": 8.0, "y": 3.0, "z": 0.35}, "color": {},
+      "properties": {"group_id": "alpha_customs_house", "opening_width": 2.2, "opening_height": 1.25, "roughness": 0.94}
+    },
+    {
+      "id": "alpha_customs_west", "type": "wall", "name": "Alpha Customs West Wall",
+      "position": {"x": -27.0, "y": 1.5, "z": 22.0}, "rotation_degrees": {"x": 0.0, "y": 90.0, "z": 0.0},
+      "size": {"x": 8.0, "y": 3.0, "z": 0.35}, "color": {}, "properties": {"group_id": "alpha_customs_house", "roughness": 0.94}
+    },
+    {
+      "id": "alpha_customs_east", "type": "doorway_wall", "name": "Alpha Customs Side Entry",
+      "position": {"x": -19.0, "y": 1.5, "z": 22.0}, "rotation_degrees": {"x": 0.0, "y": 90.0, "z": 0.0},
+      "size": {"x": 8.0, "y": 3.0, "z": 0.35}, "color": {},
+      "properties": {"group_id": "alpha_customs_house", "opening_width": 1.25, "opening_height": 2.2, "roughness": 0.94}
+    },
+    {
+      "id": "alpha_customs_roof", "type": "roof", "name": "Alpha Customs Rooftop",
+      "position": {"x": -23.0, "y": 3.175, "z": 22.0}, "rotation_degrees": {"x": 0.0, "y": 0.0, "z": 0.0},
+      "size": {"x": 8.0, "y": 0.35, "z": 8.0}, "color": {}, "properties": {"group_id": "alpha_customs_house", "floor_level": 1, "roughness": 0.96}
+    },
+    {
+      "id": "alpha_customs_stairs_south", "type": "stairs", "name": "Alpha Customs South Stairs",
+      "position": {"x": -23.0, "y": 1.5, "z": 29.0}, "rotation_degrees": {"x": 0.0, "y": 0.0, "z": 0.0},
+      "size": {"x": 3.0, "y": 3.0, "z": 6.0}, "color": {}, "properties": {"group_id": "alpha_customs_house", "steps": 12, "roughness": 0.96}
+    },
+    {
+      "id": "alpha_customs_stairs_east", "type": "stairs", "name": "Alpha Customs East Stairs",
+      "position": {"x": -16.0, "y": 1.5, "z": 22.0}, "rotation_degrees": {"x": 0.0, "y": 90.0, "z": 0.0},
+      "size": {"x": 3.0, "y": 3.0, "z": 6.0}, "color": {}, "properties": {"group_id": "alpha_customs_house", "steps": 12, "roughness": 0.96}
+    },
+    {
+      "id": "alpha_customs_parapet", "type": "cover_low", "name": "Alpha Rooftop Parapet",
+      "position": {"x": -23.0, "y": 3.72, "z": 18.25}, "rotation_degrees": {"x": 0.0, "y": 0.0, "z": 0.0},
+      "size": {"x": 7.5, "y": 0.9, "z": 0.35}, "color": {}, "properties": {"group_id": "alpha_customs_house", "roughness": 0.96}
+    },
+    {
+      "id": "bravo_pump_floor", "type": "roof", "name": "Bravo Pump House Floor",
+      "position": {"x": 23.0, "y": 0.175, "z": -22.0}, "rotation_degrees": {"x": 0.0, "y": 0.0, "z": 0.0},
+      "size": {"x": 8.0, "y": 0.35, "z": 8.0}, "color": {}, "properties": {"group_id": "bravo_pump_house", "prefab_name": "tactical_room", "floor_level": 0}
+    },
+    {
+      "id": "bravo_pump_door", "type": "doorway_wall", "name": "Bravo Pump House Entry",
+      "position": {"x": 23.0, "y": 1.5, "z": -26.0}, "rotation_degrees": {"x": 0.0, "y": 0.0, "z": 0.0},
+      "size": {"x": 8.0, "y": 3.0, "z": 0.35}, "color": {},
+      "properties": {"group_id": "bravo_pump_house", "opening_width": 1.6, "opening_height": 2.25, "roughness": 0.9}
+    },
+    {
+      "id": "bravo_pump_window", "type": "window_wall", "name": "Bravo Pump House Firing Window",
+      "position": {"x": 23.0, "y": 1.5, "z": -18.0}, "rotation_degrees": {"x": 0.0, "y": 0.0, "z": 0.0},
+      "size": {"x": 8.0, "y": 3.0, "z": 0.35}, "color": {},
+      "properties": {"group_id": "bravo_pump_house", "opening_width": 2.2, "opening_height": 1.25, "roughness": 0.9}
+    },
+    {
+      "id": "bravo_pump_east", "type": "wall", "name": "Bravo Pump House East Wall",
+      "position": {"x": 27.0, "y": 1.5, "z": -22.0}, "rotation_degrees": {"x": 0.0, "y": 90.0, "z": 0.0},
+      "size": {"x": 8.0, "y": 3.0, "z": 0.35}, "color": {}, "properties": {"group_id": "bravo_pump_house", "roughness": 0.9}
+    },
+    {
+      "id": "bravo_pump_west", "type": "doorway_wall", "name": "Bravo Pump House Side Entry",
+      "position": {"x": 19.0, "y": 1.5, "z": -22.0}, "rotation_degrees": {"x": 0.0, "y": 90.0, "z": 0.0},
+      "size": {"x": 8.0, "y": 3.0, "z": 0.35}, "color": {},
+      "properties": {"group_id": "bravo_pump_house", "opening_width": 1.25, "opening_height": 2.2, "roughness": 0.9}
+    },
+    {
+      "id": "bravo_pump_roof", "type": "roof", "name": "Bravo Pump House Rooftop",
+      "position": {"x": 23.0, "y": 3.175, "z": -22.0}, "rotation_degrees": {"x": 0.0, "y": 0.0, "z": 0.0},
+      "size": {"x": 8.0, "y": 0.35, "z": 8.0}, "color": {}, "properties": {"group_id": "bravo_pump_house", "floor_level": 1, "roughness": 0.92}
+    },
+    {
+      "id": "bravo_pump_stairs_north", "type": "stairs", "name": "Bravo Pump House North Stairs",
+      "position": {"x": 23.0, "y": 1.5, "z": -29.0}, "rotation_degrees": {"x": 0.0, "y": 180.0, "z": 0.0},
+      "size": {"x": 3.0, "y": 3.0, "z": 6.0}, "color": {}, "properties": {"group_id": "bravo_pump_house", "steps": 12, "roughness": 0.92}
+    },
+    {
+      "id": "bravo_pump_stairs_west", "type": "stairs", "name": "Bravo Pump House West Stairs",
+      "position": {"x": 16.0, "y": 1.5, "z": -22.0}, "rotation_degrees": {"x": 0.0, "y": -90.0, "z": 0.0},
+      "size": {"x": 3.0, "y": 3.0, "z": 6.0}, "color": {}, "properties": {"group_id": "bravo_pump_house", "steps": 12, "roughness": 0.92}
+    },
+    {
+      "id": "bravo_pump_parapet", "type": "cover_low", "name": "Bravo Rooftop Parapet",
+      "position": {"x": 23.0, "y": 3.72, "z": -18.25}, "rotation_degrees": {"x": 0.0, "y": 0.0, "z": 0.0},
+      "size": {"x": 7.5, "y": 0.9, "z": 0.35}, "color": {}, "properties": {"group_id": "bravo_pump_house", "roughness": 0.92}
+    },
+    {
+      "id": "market_west_arch", "type": "doorway_wall", "name": "Old Market West Arch",
+      "position": {"x": -8.5, "y": 1.5, "z": 0.0}, "rotation_degrees": {"x": 0.0, "y": 90.0, "z": 0.0},
+      "size": {"x": 7.0, "y": 3.0, "z": 0.45}, "color": {},
+      "properties": {"group_id": "old_market_crossing", "opening_width": 2.2, "opening_height": 2.35, "roughness": 0.98}
+    },
+    {
+      "id": "market_east_arch", "type": "doorway_wall", "name": "Old Market East Arch",
+      "position": {"x": 8.5, "y": 1.5, "z": 0.0}, "rotation_degrees": {"x": 0.0, "y": 90.0, "z": 0.0},
+      "size": {"x": 7.0, "y": 3.0, "z": 0.45}, "color": {},
+      "properties": {"group_id": "old_market_crossing", "opening_width": 2.2, "opening_height": 2.35, "roughness": 0.98}
+    },
+    {
+      "id": "market_north_awning", "type": "roof", "name": "North Market Awning",
+      "position": {"x": 0.0, "y": 2.7, "z": -7.0}, "rotation_degrees": {"x": 0.0, "y": 0.0, "z": 0.0},
+      "size": {"x": 9.0, "y": 0.25, "z": 3.5}, "color": {}, "properties": {"group_id": "old_market_crossing", "roughness": 0.88}
+    },
+    {
+      "id": "market_south_awning", "type": "roof", "name": "South Market Awning",
+      "position": {"x": 0.0, "y": 2.7, "z": 7.0}, "rotation_degrees": {"x": 0.0, "y": 0.0, "z": 0.0},
+      "size": {"x": 9.0, "y": 0.25, "z": 3.5}, "color": {}, "properties": {"group_id": "old_market_crossing", "roughness": 0.88}
+    },
+    {
+      "id": "market_column_nw", "type": "column", "name": "Market Awning Post NW",
+      "position": {"x": -4.0, "y": 1.35, "z": -8.3}, "rotation_degrees": {"x": 0.0, "y": 0.0, "z": 0.0},
+      "size": {"x": 0.45, "y": 2.7, "z": 0.45}, "color": {}, "properties": {"group_id": "old_market_crossing"}
+    },
+    {
+      "id": "market_column_se", "type": "column", "name": "Market Awning Post SE",
+      "position": {"x": 4.0, "y": 1.35, "z": 8.3}, "rotation_degrees": {"x": 0.0, "y": 0.0, "z": 0.0},
+      "size": {"x": 0.45, "y": 2.7, "z": 0.45}, "color": {}, "properties": {"group_id": "old_market_crossing"}
+    },
+    {
+      "id": "east_drain_dust", "type": "fog_zone", "name": "East Drain Dust Pocket",
+      "position": {"x": 30.0, "y": 1.4, "z": 0.0}, "rotation_degrees": {"x": 0.0, "y": 0.0, "z": 0.0},
+      "size": {"x": 24.0, "y": 2.8, "z": 44.0},
+      "color": {"r": 0.55, "g": 0.50, "b": 0.43, "a": 1.0},
+      "properties": {"density": 0.016, "blend_distance": 3.5, "priority": 1, "occlusion_strength": 0.28, "layer_count": 6}
+    },
+    {
+      "id": "center_market_dust", "type": "fog_zone", "name": "Market Dust Haze",
+      "position": {"x": 0.0, "y": 1.25, "z": 0.0}, "rotation_degrees": {"x": 0.0, "y": 0.0, "z": 0.0},
+      "size": {"x": 18.0, "y": 2.5, "z": 20.0},
+      "color": {"r": 0.49, "g": 0.47, "b": 0.43, "a": 1.0},
+      "properties": {"density": 0.010, "blend_distance": 3.0, "priority": 0, "occlusion_strength": 0.18, "layer_count": 5}
+    },
+    {
+      "id": "west_depot_upper_deck", "type": "platform", "name": "Depot Upper Deck",
+      "position": {"x": -31.0, "y": 3.175, "z": 0.0}, "rotation_degrees": {"x": 0.0, "y": 0.0, "z": 0.0},
+      "size": {"x": 14.0, "y": 0.35, "z": 8.0}, "color": {"r": 0.42, "g": 0.34, "b": 0.27, "a": 1.0},
+      "properties": {"group_id": "west_depot_control_room", "floor_level": 1, "roughness": 0.94}
+    },
+    {
+      "id": "west_depot_upper_north", "type": "window_wall", "name": "Depot North Observation Wall",
+      "position": {"x": -31.0, "y": 4.5, "z": -4.0}, "rotation_degrees": {"x": 0.0, "y": 0.0, "z": 0.0},
+      "size": {"x": 14.0, "y": 2.4, "z": 0.35}, "color": {"r": 0.46, "g": 0.37, "b": 0.29, "a": 1.0},
+      "properties": {"group_id": "west_depot_control_room", "opening_width": 2.4, "opening_height": 1.0, "roughness": 0.94}
+    },
+    {
+      "id": "west_depot_upper_south", "type": "window_wall", "name": "Depot South Observation Wall",
+      "position": {"x": -31.0, "y": 4.5, "z": 4.0}, "rotation_degrees": {"x": 0.0, "y": 0.0, "z": 0.0},
+      "size": {"x": 14.0, "y": 2.4, "z": 0.35}, "color": {"r": 0.46, "g": 0.37, "b": 0.29, "a": 1.0},
+      "properties": {"group_id": "west_depot_control_room", "opening_width": 2.4, "opening_height": 1.0, "roughness": 0.94}
+    },
+    {
+      "id": "west_depot_upper_west", "type": "wall", "name": "Depot Upper West Wall",
+      "position": {"x": -38.0, "y": 4.5, "z": 0.0}, "rotation_degrees": {"x": 0.0, "y": 90.0, "z": 0.0},
+      "size": {"x": 8.0, "y": 2.4, "z": 0.35}, "color": {"r": 0.46, "g": 0.37, "b": 0.29, "a": 1.0},
+      "properties": {"group_id": "west_depot_control_room", "roughness": 0.94}
+    },
+    {
+      "id": "west_depot_upper_east", "type": "doorway_wall", "name": "Depot Upper Rotation Door",
+      "position": {"x": -24.0, "y": 4.5, "z": 0.0}, "rotation_degrees": {"x": 0.0, "y": 90.0, "z": 0.0},
+      "size": {"x": 8.0, "y": 2.4, "z": 0.35}, "color": {"r": 0.46, "g": 0.37, "b": 0.29, "a": 1.0},
+      "properties": {"group_id": "west_depot_control_room", "opening_width": 1.4, "opening_height": 2.1, "roughness": 0.94}
+    },
+    {
+      "id": "west_depot_upper_stairs_north", "type": "stairs", "name": "Depot North Access Stairs",
+      "position": {"x": -31.0, "y": 1.5, "z": -7.0}, "rotation_degrees": {"x": 0.0, "y": 180.0, "z": 0.0},
+      "size": {"x": 3.0, "y": 3.0, "z": 6.0}, "color": {"r": 0.39, "g": 0.34, "b": 0.29, "a": 1.0},
+      "properties": {"group_id": "west_depot_control_room", "steps": 12, "roughness": 0.96}
+    },
+    {
+      "id": "west_depot_upper_stairs_south", "type": "stairs", "name": "Depot South Access Stairs",
+      "position": {"x": -31.0, "y": 1.5, "z": 7.0}, "rotation_degrees": {"x": 0.0, "y": 0.0, "z": 0.0},
+      "size": {"x": 3.0, "y": 3.0, "z": 6.0}, "color": {"r": 0.39, "g": 0.34, "b": 0.29, "a": 1.0},
+      "properties": {"group_id": "west_depot_control_room", "steps": 12, "roughness": 0.96}
+    },
+    {
+      "id": "west_depot_upper_roof", "type": "roof", "name": "Depot Control Room Roof",
+      "position": {"x": -31.0, "y": 5.875, "z": 0.0}, "rotation_degrees": {"x": 0.0, "y": 0.0, "z": 0.0},
+      "size": {"x": 14.5, "y": 0.35, "z": 8.5}, "color": {"r": 0.32, "g": 0.28, "b": 0.24, "a": 1.0},
+      "properties": {"group_id": "west_depot_control_room", "roughness": 0.98}
+    },
+    {
+      "id": "east_waterworks_upper_deck", "type": "platform", "name": "Waterworks Upper Deck",
+      "position": {"x": 31.0, "y": 3.175, "z": 0.0}, "rotation_degrees": {"x": 0.0, "y": 0.0, "z": 0.0},
+      "size": {"x": 14.0, "y": 0.35, "z": 8.0}, "color": {"r": 0.29, "g": 0.38, "b": 0.39, "a": 1.0},
+      "properties": {"group_id": "east_waterworks_control_room", "floor_level": 1, "roughness": 0.9}
+    },
+    {
+      "id": "east_waterworks_upper_north", "type": "window_wall", "name": "Waterworks North Observation Wall",
+      "position": {"x": 31.0, "y": 4.5, "z": -4.0}, "rotation_degrees": {"x": 0.0, "y": 0.0, "z": 0.0},
+      "size": {"x": 14.0, "y": 2.4, "z": 0.35}, "color": {"r": 0.31, "g": 0.41, "b": 0.42, "a": 1.0},
+      "properties": {"group_id": "east_waterworks_control_room", "opening_width": 2.4, "opening_height": 1.0, "roughness": 0.9}
+    },
+    {
+      "id": "east_waterworks_upper_south", "type": "window_wall", "name": "Waterworks South Observation Wall",
+      "position": {"x": 31.0, "y": 4.5, "z": 4.0}, "rotation_degrees": {"x": 0.0, "y": 0.0, "z": 0.0},
+      "size": {"x": 14.0, "y": 2.4, "z": 0.35}, "color": {"r": 0.31, "g": 0.41, "b": 0.42, "a": 1.0},
+      "properties": {"group_id": "east_waterworks_control_room", "opening_width": 2.4, "opening_height": 1.0, "roughness": 0.9}
+    },
+    {
+      "id": "east_waterworks_upper_east", "type": "wall", "name": "Waterworks Upper East Wall",
+      "position": {"x": 38.0, "y": 4.5, "z": 0.0}, "rotation_degrees": {"x": 0.0, "y": 90.0, "z": 0.0},
+      "size": {"x": 8.0, "y": 2.4, "z": 0.35}, "color": {"r": 0.31, "g": 0.41, "b": 0.42, "a": 1.0},
+      "properties": {"group_id": "east_waterworks_control_room", "roughness": 0.9}
+    },
+    {
+      "id": "east_waterworks_upper_west", "type": "doorway_wall", "name": "Waterworks Upper Rotation Door",
+      "position": {"x": 24.0, "y": 4.5, "z": 0.0}, "rotation_degrees": {"x": 0.0, "y": 90.0, "z": 0.0},
+      "size": {"x": 8.0, "y": 2.4, "z": 0.35}, "color": {"r": 0.31, "g": 0.41, "b": 0.42, "a": 1.0},
+      "properties": {"group_id": "east_waterworks_control_room", "opening_width": 1.4, "opening_height": 2.1, "roughness": 0.9}
+    },
+    {
+      "id": "east_waterworks_upper_stairs_north", "type": "stairs", "name": "Waterworks North Access Stairs",
+      "position": {"x": 31.0, "y": 1.5, "z": -7.0}, "rotation_degrees": {"x": 0.0, "y": 180.0, "z": 0.0},
+      "size": {"x": 3.0, "y": 3.0, "z": 6.0}, "color": {"r": 0.27, "g": 0.35, "b": 0.36, "a": 1.0},
+      "properties": {"group_id": "east_waterworks_control_room", "steps": 12, "roughness": 0.94}
+    },
+    {
+      "id": "east_waterworks_upper_stairs_south", "type": "stairs", "name": "Waterworks South Access Stairs",
+      "position": {"x": 31.0, "y": 1.5, "z": 7.0}, "rotation_degrees": {"x": 0.0, "y": 0.0, "z": 0.0},
+      "size": {"x": 3.0, "y": 3.0, "z": 6.0}, "color": {"r": 0.27, "g": 0.35, "b": 0.36, "a": 1.0},
+      "properties": {"group_id": "east_waterworks_control_room", "steps": 12, "roughness": 0.94}
+    },
+    {
+      "id": "east_waterworks_upper_roof", "type": "roof", "name": "Waterworks Control Room Roof",
+      "position": {"x": 31.0, "y": 5.875, "z": 0.0}, "rotation_degrees": {"x": 0.0, "y": 0.0, "z": 0.0},
+      "size": {"x": 14.5, "y": 0.35, "z": 8.5}, "color": {"r": 0.24, "g": 0.31, "b": 0.32, "a": 1.0},
+      "properties": {"group_id": "east_waterworks_control_room", "roughness": 0.95}
+    },
+    {
+      "id": "north_embankment_deck", "type": "platform", "name": "North Embankment Terrace",
+      "position": {"x": 0.0, "y": 1.075, "z": -24.0}, "rotation_degrees": {"x": 0.0, "y": 0.0, "z": 0.0},
+      "size": {"x": 16.0, "y": 0.35, "z": 6.0}, "color": {"r": 0.47, "g": 0.40, "b": 0.31, "a": 1.0},
+      "properties": {"group_id": "north_embankment", "floor_level": 0, "roughness": 0.97}
+    },
+    {
+      "id": "north_embankment_inner_ramp", "type": "ramp", "name": "North Embankment Downramp",
+      "position": {"x": 0.0, "y": 0.55, "z": -18.5}, "rotation_degrees": {"x": 0.0, "y": 0.0, "z": 0.0},
+      "size": {"x": 4.0, "y": 1.1, "z": 5.0}, "color": {"r": 0.45, "g": 0.38, "b": 0.30, "a": 1.0},
+      "properties": {"group_id": "north_embankment", "roughness": 0.98}
+    },
+    {
+      "id": "north_embankment_outer_ramp", "type": "ramp", "name": "North Embankment Rear Ramp",
+      "position": {"x": 0.0, "y": 0.55, "z": -29.5}, "rotation_degrees": {"x": 0.0, "y": 180.0, "z": 0.0},
+      "size": {"x": 4.0, "y": 1.1, "z": 5.0}, "color": {"r": 0.45, "g": 0.38, "b": 0.30, "a": 1.0},
+      "properties": {"group_id": "north_embankment", "roughness": 0.98}
+    },
+    {
+      "id": "north_embankment_west_cover", "type": "cover_low", "name": "North Terrace West Cover",
+      "position": {"x": -7.6, "y": 1.65, "z": -24.0}, "rotation_degrees": {"x": 0.0, "y": 90.0, "z": 0.0},
+      "size": {"x": 4.5, "y": 1.1, "z": 0.5}, "color": {"r": 0.43, "g": 0.36, "b": 0.28, "a": 1.0},
+      "properties": {"group_id": "north_embankment", "roughness": 0.98}
+    },
+    {
+      "id": "north_embankment_east_cover", "type": "cover_low", "name": "North Terrace East Cover",
+      "position": {"x": 7.6, "y": 1.65, "z": -24.0}, "rotation_degrees": {"x": 0.0, "y": 90.0, "z": 0.0},
+      "size": {"x": 4.5, "y": 1.1, "z": 0.5}, "color": {"r": 0.43, "g": 0.36, "b": 0.28, "a": 1.0},
+      "properties": {"group_id": "north_embankment", "roughness": 0.98}
+    },
+    {
+      "id": "south_embankment_deck", "type": "platform", "name": "South Embankment Terrace",
+      "position": {"x": 0.0, "y": 1.075, "z": 24.0}, "rotation_degrees": {"x": 0.0, "y": 0.0, "z": 0.0},
+      "size": {"x": 16.0, "y": 0.35, "z": 6.0}, "color": {"r": 0.48, "g": 0.42, "b": 0.34, "a": 1.0},
+      "properties": {"group_id": "south_embankment", "floor_level": 0, "roughness": 0.97}
+    },
+    {
+      "id": "south_embankment_inner_ramp", "type": "ramp", "name": "South Embankment Downramp",
+      "position": {"x": 0.0, "y": 0.55, "z": 18.5}, "rotation_degrees": {"x": 0.0, "y": 180.0, "z": 0.0},
+      "size": {"x": 4.0, "y": 1.1, "z": 5.0}, "color": {"r": 0.46, "g": 0.40, "b": 0.32, "a": 1.0},
+      "properties": {"group_id": "south_embankment", "roughness": 0.98}
+    },
+    {
+      "id": "south_embankment_outer_ramp", "type": "ramp", "name": "South Embankment Rear Ramp",
+      "position": {"x": 0.0, "y": 0.55, "z": 29.5}, "rotation_degrees": {"x": 0.0, "y": 0.0, "z": 0.0},
+      "size": {"x": 4.0, "y": 1.1, "z": 5.0}, "color": {"r": 0.46, "g": 0.40, "b": 0.32, "a": 1.0},
+      "properties": {"group_id": "south_embankment", "roughness": 0.98}
+    },
+    {
+      "id": "south_embankment_west_cover", "type": "cover_low", "name": "South Terrace West Cover",
+      "position": {"x": -7.6, "y": 1.65, "z": 24.0}, "rotation_degrees": {"x": 0.0, "y": 90.0, "z": 0.0},
+      "size": {"x": 4.5, "y": 1.1, "z": 0.5}, "color": {"r": 0.44, "g": 0.38, "b": 0.30, "a": 1.0},
+      "properties": {"group_id": "south_embankment", "roughness": 0.98}
+    },
+    {
+      "id": "south_embankment_east_cover", "type": "cover_low", "name": "South Terrace East Cover",
+      "position": {"x": 7.6, "y": 1.65, "z": 24.0}, "rotation_degrees": {"x": 0.0, "y": 90.0, "z": 0.0},
+      "size": {"x": 4.5, "y": 1.1, "z": 0.5}, "color": {"r": 0.44, "g": 0.38, "b": 0.30, "a": 1.0},
+      "properties": {"group_id": "south_embankment", "roughness": 0.98}
+    },
+    {
+      "id": "west_depot_upper_light", "type": "point_light", "name": "Depot Amber Beacon",
+      "position": {"x": -31.0, "y": 5.35, "z": 0.0}, "rotation_degrees": {"x": 0.0, "y": 0.0, "z": 0.0},
+      "size": {"x": 0.35, "y": 0.35, "z": 0.35}, "color": {"r": 1.0, "g": 0.58, "b": 0.28, "a": 1.0},
+      "properties": {"energy": 3.2, "range": 10.0, "shadow_enabled": true}
+    },
+    {
+      "id": "east_waterworks_upper_light", "type": "point_light", "name": "Waterworks Cyan Beacon",
+      "position": {"x": 31.0, "y": 5.35, "z": 0.0}, "rotation_degrees": {"x": 0.0, "y": 0.0, "z": 0.0},
+      "size": {"x": 0.35, "y": 0.35, "z": 0.35}, "color": {"r": 0.38, "g": 0.78, "b": 0.88, "a": 1.0},
+      "properties": {"energy": 3.0, "range": 10.0, "shadow_enabled": true}
+    },
+    {
+      "id": "pine_west_n22", "type": "pine_tree", "name": "West Ridge Pine 01",
+      "position": {"x": -44.0, "y": 0.0, "z": -22.0}, "rotation_degrees": {"x": 0.0, "y": 18.0, "z": 0.0},
+      "size": {"x": 3.4, "y": 8.0, "z": 3.4}, "color": {"r": 0.18, "g": 0.34, "b": 0.24, "a": 1.0},
+      "properties": {"canopy_layers": 4, "trunk_ratio": 0.38, "variation_seed": 1101}
+    },
+    {
+      "id": "pine_west_n11", "type": "pine_tree", "name": "West Ridge Pine 02",
+      "position": {"x": -44.5, "y": 0.0, "z": -11.0}, "rotation_degrees": {"x": 0.0, "y": -12.0, "z": 0.0},
+      "size": {"x": 4.0, "y": 9.2, "z": 4.0}, "color": {"r": 0.17, "g": 0.32, "b": 0.23, "a": 1.0},
+      "properties": {"canopy_layers": 4, "trunk_ratio": 0.40, "variation_seed": 1102}
+    },
+    {
+      "id": "pine_west_center", "type": "pine_tree", "name": "West Ridge Pine 03",
+      "position": {"x": -45.0, "y": 0.0, "z": 0.0}, "rotation_degrees": {"x": 0.0, "y": 31.0, "z": 0.0},
+      "size": {"x": 3.7, "y": 8.6, "z": 3.7}, "color": {"r": 0.19, "g": 0.36, "b": 0.25, "a": 1.0},
+      "properties": {"canopy_layers": 4, "trunk_ratio": 0.37, "variation_seed": 1103}
+    },
+    {
+      "id": "pine_west_s11", "type": "pine_tree", "name": "West Ridge Pine 04",
+      "position": {"x": -44.5, "y": 0.0, "z": 11.0}, "rotation_degrees": {"x": 0.0, "y": 7.0, "z": 0.0},
+      "size": {"x": 3.6, "y": 8.3, "z": 3.6}, "color": {"r": 0.18, "g": 0.34, "b": 0.24, "a": 1.0},
+      "properties": {"canopy_layers": 3, "trunk_ratio": 0.39, "variation_seed": 1104}
+    },
+    {
+      "id": "pine_west_s22", "type": "pine_tree", "name": "West Ridge Pine 05",
+      "position": {"x": -44.0, "y": 0.0, "z": 22.0}, "rotation_degrees": {"x": 0.0, "y": -24.0, "z": 0.0},
+      "size": {"x": 4.2, "y": 9.6, "z": 4.2}, "color": {"r": 0.16, "g": 0.31, "b": 0.22, "a": 1.0},
+      "properties": {"canopy_layers": 5, "trunk_ratio": 0.41, "variation_seed": 1105}
+    },
+    {
+      "id": "pine_east_n22", "type": "pine_tree", "name": "East Ridge Pine 01",
+      "position": {"x": 44.0, "y": 0.0, "z": -22.0}, "rotation_degrees": {"x": 0.0, "y": -18.0, "z": 0.0},
+      "size": {"x": 4.2, "y": 9.6, "z": 4.2}, "color": {"r": 0.16, "g": 0.31, "b": 0.22, "a": 1.0},
+      "properties": {"canopy_layers": 5, "trunk_ratio": 0.41, "variation_seed": 1201}
+    },
+    {
+      "id": "pine_east_n11", "type": "pine_tree", "name": "East Ridge Pine 02",
+      "position": {"x": 44.5, "y": 0.0, "z": -11.0}, "rotation_degrees": {"x": 0.0, "y": 24.0, "z": 0.0},
+      "size": {"x": 3.6, "y": 8.3, "z": 3.6}, "color": {"r": 0.18, "g": 0.34, "b": 0.24, "a": 1.0},
+      "properties": {"canopy_layers": 3, "trunk_ratio": 0.39, "variation_seed": 1202}
+    },
+    {
+      "id": "pine_east_center", "type": "pine_tree", "name": "East Ridge Pine 03",
+      "position": {"x": 45.0, "y": 0.0, "z": 0.0}, "rotation_degrees": {"x": 0.0, "y": -31.0, "z": 0.0},
+      "size": {"x": 3.7, "y": 8.6, "z": 3.7}, "color": {"r": 0.19, "g": 0.36, "b": 0.25, "a": 1.0},
+      "properties": {"canopy_layers": 4, "trunk_ratio": 0.37, "variation_seed": 1203}
+    },
+    {
+      "id": "pine_east_s11", "type": "pine_tree", "name": "East Ridge Pine 04",
+      "position": {"x": 44.5, "y": 0.0, "z": 11.0}, "rotation_degrees": {"x": 0.0, "y": 12.0, "z": 0.0},
+      "size": {"x": 4.0, "y": 9.2, "z": 4.0}, "color": {"r": 0.17, "g": 0.32, "b": 0.23, "a": 1.0},
+      "properties": {"canopy_layers": 4, "trunk_ratio": 0.40, "variation_seed": 1204}
+    },
+    {
+      "id": "pine_east_s22", "type": "pine_tree", "name": "East Ridge Pine 05",
+      "position": {"x": 44.0, "y": 0.0, "z": 22.0}, "rotation_degrees": {"x": 0.0, "y": -7.0, "z": 0.0},
+      "size": {"x": 3.4, "y": 8.0, "z": 3.4}, "color": {"r": 0.18, "g": 0.34, "b": 0.24, "a": 1.0},
+      "properties": {"canopy_layers": 4, "trunk_ratio": 0.38, "variation_seed": 1205}
+    },
+    {
+      "id": "pine_north_landmark", "type": "pine_tree", "name": "North Gate Pine",
+      "position": {"x": 0.0, "y": 0.0, "z": -33.0}, "rotation_degrees": {"x": 0.0, "y": 15.0, "z": 0.0},
+      "size": {"x": 4.4, "y": 10.2, "z": 4.4}, "color": {"r": 0.15, "g": 0.30, "b": 0.21, "a": 1.0},
+      "properties": {"canopy_layers": 5, "trunk_ratio": 0.42, "variation_seed": 1301}
+    },
+    {
+      "id": "pine_south_landmark", "type": "pine_tree", "name": "South Gate Pine",
+      "position": {"x": 0.0, "y": 0.0, "z": 33.0}, "rotation_degrees": {"x": 0.0, "y": -15.0, "z": 0.0},
+      "size": {"x": 4.4, "y": 10.2, "z": 4.4}, "color": {"r": 0.15, "g": 0.30, "b": 0.21, "a": 1.0},
+      "properties": {"canopy_layers": 5, "trunk_ratio": 0.42, "variation_seed": 1302}
+    },
+    {
+      "id": "pine_north_backdrop_w36", "type": "pine_tree", "name": "North Backdrop Pine 01",
+      "position": {"x": -36.0, "y": 0.0, "z": -39.0}, "rotation_degrees": {"x": 0.0, "y": 11.0, "z": 0.0},
+      "size": {"x": 3.6, "y": 8.8, "z": 3.6}, "color": {"r": 0.17, "g": 0.32, "b": 0.23, "a": 1.0},
+      "properties": {"canopy_layers": 4, "trunk_ratio": 0.39, "variation_seed": 1311}
+    },
+    {
+      "id": "pine_north_backdrop_w24", "type": "pine_tree", "name": "North Backdrop Pine 02",
+      "position": {"x": -24.0, "y": 0.0, "z": -39.5}, "rotation_degrees": {"x": 0.0, "y": -17.0, "z": 0.0},
+      "size": {"x": 4.0, "y": 9.6, "z": 4.0}, "color": {"r": 0.16, "g": 0.31, "b": 0.22, "a": 1.0},
+      "properties": {"canopy_layers": 5, "trunk_ratio": 0.40, "variation_seed": 1312}
+    },
+    {
+      "id": "pine_north_backdrop_w12", "type": "pine_tree", "name": "North Backdrop Pine 03",
+      "position": {"x": -12.0, "y": 0.0, "z": -39.0}, "rotation_degrees": {"x": 0.0, "y": 23.0, "z": 0.0},
+      "size": {"x": 3.3, "y": 8.1, "z": 3.3}, "color": {"r": 0.18, "g": 0.34, "b": 0.24, "a": 1.0},
+      "properties": {"canopy_layers": 4, "trunk_ratio": 0.38, "variation_seed": 1313}
+    },
+    {
+      "id": "pine_north_backdrop_e12", "type": "pine_tree", "name": "North Backdrop Pine 04",
+      "position": {"x": 12.0, "y": 0.0, "z": -39.0}, "rotation_degrees": {"x": 0.0, "y": -23.0, "z": 0.0},
+      "size": {"x": 3.3, "y": 8.1, "z": 3.3}, "color": {"r": 0.18, "g": 0.34, "b": 0.24, "a": 1.0},
+      "properties": {"canopy_layers": 4, "trunk_ratio": 0.38, "variation_seed": 1314}
+    },
+    {
+      "id": "pine_north_backdrop_e24", "type": "pine_tree", "name": "North Backdrop Pine 05",
+      "position": {"x": 24.0, "y": 0.0, "z": -39.5}, "rotation_degrees": {"x": 0.0, "y": 17.0, "z": 0.0},
+      "size": {"x": 4.0, "y": 9.6, "z": 4.0}, "color": {"r": 0.16, "g": 0.31, "b": 0.22, "a": 1.0},
+      "properties": {"canopy_layers": 5, "trunk_ratio": 0.40, "variation_seed": 1315}
+    },
+    {
+      "id": "pine_north_backdrop_e36", "type": "pine_tree", "name": "North Backdrop Pine 06",
+      "position": {"x": 36.0, "y": 0.0, "z": -39.0}, "rotation_degrees": {"x": 0.0, "y": -11.0, "z": 0.0},
+      "size": {"x": 3.6, "y": 8.8, "z": 3.6}, "color": {"r": 0.17, "g": 0.32, "b": 0.23, "a": 1.0},
+      "properties": {"canopy_layers": 4, "trunk_ratio": 0.39, "variation_seed": 1316}
+    },
+    {
+      "id": "pine_south_backdrop_w36", "type": "pine_tree", "name": "South Backdrop Pine 01",
+      "position": {"x": -36.0, "y": 0.0, "z": 39.0}, "rotation_degrees": {"x": 0.0, "y": -11.0, "z": 0.0},
+      "size": {"x": 3.6, "y": 8.8, "z": 3.6}, "color": {"r": 0.17, "g": 0.32, "b": 0.23, "a": 1.0},
+      "properties": {"canopy_layers": 4, "trunk_ratio": 0.39, "variation_seed": 1321}
+    },
+    {
+      "id": "pine_south_backdrop_w24", "type": "pine_tree", "name": "South Backdrop Pine 02",
+      "position": {"x": -24.0, "y": 0.0, "z": 39.5}, "rotation_degrees": {"x": 0.0, "y": 17.0, "z": 0.0},
+      "size": {"x": 4.0, "y": 9.6, "z": 4.0}, "color": {"r": 0.16, "g": 0.31, "b": 0.22, "a": 1.0},
+      "properties": {"canopy_layers": 5, "trunk_ratio": 0.40, "variation_seed": 1322}
+    },
+    {
+      "id": "pine_south_backdrop_w12", "type": "pine_tree", "name": "South Backdrop Pine 03",
+      "position": {"x": -12.0, "y": 0.0, "z": 39.0}, "rotation_degrees": {"x": 0.0, "y": -23.0, "z": 0.0},
+      "size": {"x": 3.3, "y": 8.1, "z": 3.3}, "color": {"r": 0.18, "g": 0.34, "b": 0.24, "a": 1.0},
+      "properties": {"canopy_layers": 4, "trunk_ratio": 0.38, "variation_seed": 1323}
+    },
+    {
+      "id": "pine_south_backdrop_e12", "type": "pine_tree", "name": "South Backdrop Pine 04",
+      "position": {"x": 12.0, "y": 0.0, "z": 39.0}, "rotation_degrees": {"x": 0.0, "y": 23.0, "z": 0.0},
+      "size": {"x": 3.3, "y": 8.1, "z": 3.3}, "color": {"r": 0.18, "g": 0.34, "b": 0.24, "a": 1.0},
+      "properties": {"canopy_layers": 4, "trunk_ratio": 0.38, "variation_seed": 1324}
+    },
+    {
+      "id": "pine_south_backdrop_e24", "type": "pine_tree", "name": "South Backdrop Pine 05",
+      "position": {"x": 24.0, "y": 0.0, "z": 39.5}, "rotation_degrees": {"x": 0.0, "y": -17.0, "z": 0.0},
+      "size": {"x": 4.0, "y": 9.6, "z": 4.0}, "color": {"r": 0.16, "g": 0.31, "b": 0.22, "a": 1.0},
+      "properties": {"canopy_layers": 5, "trunk_ratio": 0.40, "variation_seed": 1325}
+    },
+    {
+      "id": "pine_south_backdrop_e36", "type": "pine_tree", "name": "South Backdrop Pine 06",
+      "position": {"x": 36.0, "y": 0.0, "z": 39.0}, "rotation_degrees": {"x": 0.0, "y": 11.0, "z": 0.0},
+      "size": {"x": 3.6, "y": 8.8, "z": 3.6}, "color": {"r": 0.17, "g": 0.32, "b": 0.23, "a": 1.0},
+      "properties": {"canopy_layers": 4, "trunk_ratio": 0.39, "variation_seed": 1326}
+    },
+    {
+      "id": "mountain_west_north", "type": "rocky_mountain", "name": "West Basin Ridge North",
+      "position": {"x": -58.0, "y": 0.0, "z": -20.0}, "rotation_degrees": {"x": 0.0, "y": 11.0, "z": 0.0},
+      "size": {"x": 22.0, "y": 15.0, "z": 20.0}, "color": {"r": 0.36, "g": 0.35, "b": 0.32, "a": 1.0},
+      "properties": {"ridge_segments": 14, "roughness_amount": 0.27, "peak_offset_x": -0.12, "peak_offset_z": 0.08, "variation_seed": 2101}
+    },
+    {
+      "id": "mountain_west_south", "type": "rocky_mountain", "name": "West Basin Ridge South",
+      "position": {"x": -58.0, "y": 0.0, "z": 20.0}, "rotation_degrees": {"x": 0.0, "y": -9.0, "z": 0.0},
+      "size": {"x": 24.0, "y": 17.0, "z": 21.0}, "color": {"r": 0.38, "g": 0.36, "b": 0.33, "a": 1.0},
+      "properties": {"ridge_segments": 16, "roughness_amount": 0.25, "peak_offset_x": 0.10, "peak_offset_z": -0.06, "variation_seed": 2102}
+    },
+    {
+      "id": "mountain_east_north", "type": "rocky_mountain", "name": "East Basin Ridge North",
+      "position": {"x": 58.0, "y": 0.0, "z": -20.0}, "rotation_degrees": {"x": 0.0, "y": 9.0, "z": 0.0},
+      "size": {"x": 24.0, "y": 17.0, "z": 21.0}, "color": {"r": 0.38, "g": 0.36, "b": 0.33, "a": 1.0},
+      "properties": {"ridge_segments": 16, "roughness_amount": 0.25, "peak_offset_x": -0.10, "peak_offset_z": -0.06, "variation_seed": 2201}
+    },
+    {
+      "id": "mountain_east_south", "type": "rocky_mountain", "name": "East Basin Ridge South",
+      "position": {"x": 58.0, "y": 0.0, "z": 20.0}, "rotation_degrees": {"x": 0.0, "y": -11.0, "z": 0.0},
+      "size": {"x": 22.0, "y": 15.0, "z": 20.0}, "color": {"r": 0.36, "g": 0.35, "b": 0.32, "a": 1.0},
+      "properties": {"ridge_segments": 14, "roughness_amount": 0.27, "peak_offset_x": 0.12, "peak_offset_z": 0.08, "variation_seed": 2202}
+    },
+    {
+      "id": "surface_center_concrete", "type": "ground", "name": "Old Market Concrete Plaza",
+      "position": {"x": 0.0, "y": 0.02, "z": 0.0}, "rotation_degrees": {"x": 0.0, "y": 0.0, "z": 0.0},
+      "size": {"x": 24.0, "y": 0.04, "z": 22.0}, "color": {},
+      "properties": {"surface_kind": "concrete", "roughness": 0.92, "metallic": 0.0, "texture_path": "", "uv_scale": 0.8, "group_id": "surface_zones"}
+    },
+    {
+      "id": "surface_west_concrete", "type": "ground", "name": "Depot Concrete Apron",
+      "position": {"x": -31.0, "y": 0.02, "z": 0.0}, "rotation_degrees": {"x": 0.0, "y": 0.0, "z": 0.0},
+      "size": {"x": 26.0, "y": 0.04, "z": 58.0}, "color": {},
+      "properties": {"surface_kind": "concrete", "roughness": 0.95, "metallic": 0.0, "texture_path": "", "uv_scale": 0.7, "group_id": "surface_zones"}
+    },
+    {
+      "id": "surface_east_concrete", "type": "ground", "name": "Waterworks Concrete Apron",
+      "position": {"x": 31.0, "y": 0.02, "z": 0.0}, "rotation_degrees": {"x": 0.0, "y": 0.0, "z": 0.0},
+      "size": {"x": 26.0, "y": 0.04, "z": 58.0}, "color": {},
+      "properties": {"surface_kind": "concrete", "roughness": 0.93, "metallic": 0.0, "texture_path": "", "uv_scale": 0.7, "group_id": "surface_zones"}
+    },
+    {
+      "id": "surface_north_grass", "type": "ground", "name": "North Grass Verge",
+      "position": {"x": 0.0, "y": 0.025, "z": -32.0}, "rotation_degrees": {"x": 0.0, "y": 0.0, "z": 0.0},
+      "size": {"x": 82.0, "y": 0.05, "z": 5.5}, "color": {},
+      "properties": {"surface_kind": "grass", "roughness": 1.0, "metallic": 0.0, "texture_path": "", "uv_scale": 0.9, "group_id": "surface_zones"}
+    },
+    {
+      "id": "surface_south_grass", "type": "ground", "name": "South Grass Verge",
+      "position": {"x": 0.0, "y": 0.025, "z": 32.0}, "rotation_degrees": {"x": 0.0, "y": 0.0, "z": 0.0},
+      "size": {"x": 82.0, "y": 0.05, "z": 5.5}, "color": {},
+      "properties": {"surface_kind": "grass", "roughness": 1.0, "metallic": 0.0, "texture_path": "", "uv_scale": 0.9, "group_id": "surface_zones"}
+    },
+    {
+      "id": "surface_west_grass", "type": "ground", "name": "West Pine Verge",
+      "position": {"x": -44.0, "y": 0.03, "z": 0.0}, "rotation_degrees": {"x": 0.0, "y": 0.0, "z": 0.0},
+      "size": {"x": 5.5, "y": 0.06, "z": 50.0}, "color": {},
+      "properties": {"surface_kind": "grass", "roughness": 1.0, "metallic": 0.0, "texture_path": "", "uv_scale": 0.8, "group_id": "surface_zones"}
+    },
+    {
+      "id": "surface_east_grass", "type": "ground", "name": "East Pine Verge",
+      "position": {"x": 44.0, "y": 0.03, "z": 0.0}, "rotation_degrees": {"x": 0.0, "y": 0.0, "z": 0.0},
+      "size": {"x": 5.5, "y": 0.06, "z": 50.0}, "color": {},
+      "properties": {"surface_kind": "grass", "roughness": 1.0, "metallic": 0.0, "texture_path": "", "uv_scale": 0.8, "group_id": "surface_zones"}
+    },
+    {
+      "id": "market_curve_nw", "type": "curved_wall", "name": "Market Rounded Corner NW",
+      "position": {"x": -11.0, "y": 1.25, "z": -11.0}, "rotation_degrees": {"x": 0.0, "y": 0.0, "z": 0.0},
+      "size": {"x": 6.0, "y": 2.5, "z": 0.35}, "color": {"r": 0.43, "g": 0.41, "b": 0.37, "a": 1.0},
+      "properties": {"surface_kind": "concrete", "roughness": 0.95, "metallic": 0.0, "texture_path": "", "uv_scale": 0.8, "radius": 3.5, "arc_degrees": 82.0, "segments": 12, "group_id": "rounded_market"}
+    },
+    {
+      "id": "market_curve_ne", "type": "curved_wall", "name": "Market Rounded Corner NE",
+      "position": {"x": 11.0, "y": 1.25, "z": -11.0}, "rotation_degrees": {"x": 0.0, "y": 90.0, "z": 0.0},
+      "size": {"x": 6.0, "y": 2.5, "z": 0.35}, "color": {"r": 0.43, "g": 0.41, "b": 0.37, "a": 1.0},
+      "properties": {"surface_kind": "concrete", "roughness": 0.95, "metallic": 0.0, "texture_path": "", "uv_scale": 0.8, "radius": 3.5, "arc_degrees": 82.0, "segments": 12, "group_id": "rounded_market"}
+    },
+    {
+      "id": "market_curve_sw", "type": "curved_wall", "name": "Market Rounded Corner SW",
+      "position": {"x": -11.0, "y": 1.25, "z": 11.0}, "rotation_degrees": {"x": 0.0, "y": -90.0, "z": 0.0},
+      "size": {"x": 6.0, "y": 2.5, "z": 0.35}, "color": {"r": 0.43, "g": 0.41, "b": 0.37, "a": 1.0},
+      "properties": {"surface_kind": "concrete", "roughness": 0.95, "metallic": 0.0, "texture_path": "", "uv_scale": 0.8, "radius": 3.5, "arc_degrees": 82.0, "segments": 12, "group_id": "rounded_market"}
+    },
+    {
+      "id": "market_curve_se", "type": "curved_wall", "name": "Market Rounded Corner SE",
+      "position": {"x": 11.0, "y": 1.25, "z": 11.0}, "rotation_degrees": {"x": 0.0, "y": 180.0, "z": 0.0},
+      "size": {"x": 6.0, "y": 2.5, "z": 0.35}, "color": {"r": 0.43, "g": 0.41, "b": 0.37, "a": 1.0},
+      "properties": {"surface_kind": "concrete", "roughness": 0.95, "metallic": 0.0, "texture_path": "", "uv_scale": 0.8, "radius": 3.5, "arc_degrees": 82.0, "segments": 12, "group_id": "rounded_market"}
+    },
+    {
+      "id": "light_alpha_customs", "type": "point_light", "name": "Customs House Warm Lamp",
+      "position": {"x": -23.0, "y": 4.6, "z": 22.0}, "rotation_degrees": {"x": 0.0, "y": 0.0, "z": 0.0}, "size": {"x": 0.35, "y": 0.35, "z": 0.35},
+      "color": {"r": 1.0, "g": 0.72, "b": 0.46, "a": 1.0}, "properties": {"energy": 3.0, "range": 11.0, "shadow_enabled": true}
+    },
+    {
+      "id": "light_bravo_pump", "type": "point_light", "name": "Pump House Cool Flood",
+      "position": {"x": 23.0, "y": 4.6, "z": -22.0}, "rotation_degrees": {"x": 0.0, "y": 0.0, "z": 0.0}, "size": {"x": 0.35, "y": 0.35, "z": 0.35},
+      "color": {"r": 0.50, "g": 0.78, "b": 1.0, "a": 1.0}, "properties": {"energy": 3.2, "range": 11.0, "shadow_enabled": true}
+    },
+    {
+      "id": "light_north_terrace", "type": "point_light", "name": "North Terrace Lamp",
+      "position": {"x": 0.0, "y": 4.0, "z": -24.0}, "rotation_degrees": {"x": 0.0, "y": 0.0, "z": 0.0}, "size": {"x": 0.35, "y": 0.35, "z": 0.35},
+      "color": {"r": 1.0, "g": 0.67, "b": 0.40, "a": 1.0}, "properties": {"energy": 2.6, "range": 10.0, "shadow_enabled": true}
+    },
+    {
+      "id": "light_south_terrace", "type": "point_light", "name": "South Terrace Lamp",
+      "position": {"x": 0.0, "y": 4.0, "z": 24.0}, "rotation_degrees": {"x": 0.0, "y": 0.0, "z": 0.0}, "size": {"x": 0.35, "y": 0.35, "z": 0.35},
+      "color": {"r": 1.0, "g": 0.67, "b": 0.40, "a": 1.0}, "properties": {"energy": 2.6, "range": 10.0, "shadow_enabled": true}
+    },
+    {
+      "id": "light_market_nw", "type": "point_light", "name": "Market Lamp Northwest",
+      "position": {"x": -6.0, "y": 3.8, "z": -6.0}, "rotation_degrees": {"x": 0.0, "y": 0.0, "z": 0.0}, "size": {"x": 0.35, "y": 0.35, "z": 0.35},
+      "color": {"r": 1.0, "g": 0.76, "b": 0.52, "a": 1.0}, "properties": {"energy": 2.2, "range": 8.0, "shadow_enabled": true}
+    },
+    {
+      "id": "light_market_se", "type": "point_light", "name": "Market Lamp Southeast",
+      "position": {"x": 6.0, "y": 3.8, "z": 6.0}, "rotation_degrees": {"x": 0.0, "y": 0.0, "z": 0.0}, "size": {"x": 0.35, "y": 0.35, "z": 0.35},
+      "color": {"r": 1.0, "g": 0.76, "b": 0.52, "a": 1.0}, "properties": {"energy": 2.2, "range": 8.0, "shadow_enabled": true}
+    },
+    {
+      "id": "north_alley_cover_west", "type": "cover_low", "name": "North Alley Sandbag West",
+      "position": {"x": -24.0, "y": 0.60, "z": -29.5}, "rotation_degrees": {"x": 0.0, "y": 12.0, "z": 0.0},
+      "size": {"x": 4.5, "y": 1.1, "z": 0.75}, "color": {"r": 0.42, "g": 0.38, "b": 0.31, "a": 1.0},
+      "properties": {"surface_kind": "concrete", "roughness": 0.98, "metallic": 0.0, "texture_path": "", "uv_scale": 0.8, "group_id": "perimeter_alley_cover"}
+    },
+    {
+      "id": "north_alley_utility_west", "type": "cover_tall", "name": "North Alley Utility Box West",
+      "position": {"x": -10.0, "y": 1.15, "z": -30.0}, "rotation_degrees": {"x": 0.0, "y": -8.0, "z": 0.0},
+      "size": {"x": 2.0, "y": 2.2, "z": 1.8}, "color": {"r": 0.31, "g": 0.36, "b": 0.34, "a": 1.0},
+      "properties": {"surface_kind": "concrete", "roughness": 0.9, "metallic": 0.05, "texture_path": "", "uv_scale": 0.9, "group_id": "perimeter_alley_cover"}
+    },
+    {
+      "id": "north_alley_broken_east", "type": "breached_wall", "name": "North Alley Breached Barrier",
+      "position": {"x": 5.0, "y": 1.15, "z": -29.5}, "rotation_degrees": {"x": 0.0, "y": 5.0, "z": 0.0},
+      "size": {"x": 5.5, "y": 2.2, "z": 0.45}, "color": {"r": 0.44, "g": 0.42, "b": 0.38, "a": 1.0},
+      "properties": {"surface_kind": "concrete", "roughness": 0.97, "metallic": 0.0, "texture_path": "", "uv_scale": 0.8, "hole_width": 1.45, "hole_height": 1.2, "hole_bottom": 0.3, "hole_offset_x": 0.55, "group_id": "perimeter_alley_cover"}
+    },
+    {
+      "id": "north_alley_cover_east", "type": "cover_low", "name": "North Alley Sandbag East",
+      "position": {"x": 19.0, "y": 0.60, "z": -30.0}, "rotation_degrees": {"x": 0.0, "y": -14.0, "z": 0.0},
+      "size": {"x": 4.0, "y": 1.1, "z": 0.75}, "color": {"r": 0.42, "g": 0.38, "b": 0.31, "a": 1.0},
+      "properties": {"surface_kind": "concrete", "roughness": 0.98, "metallic": 0.0, "texture_path": "", "uv_scale": 0.8, "group_id": "perimeter_alley_cover"}
+    },
+    {
+      "id": "south_alley_cover_west", "type": "cover_low", "name": "South Alley Sandbag West",
+      "position": {"x": -19.0, "y": 0.60, "z": 30.0}, "rotation_degrees": {"x": 0.0, "y": -14.0, "z": 0.0},
+      "size": {"x": 4.0, "y": 1.1, "z": 0.75}, "color": {"r": 0.42, "g": 0.38, "b": 0.31, "a": 1.0},
+      "properties": {"surface_kind": "concrete", "roughness": 0.98, "metallic": 0.0, "texture_path": "", "uv_scale": 0.8, "group_id": "perimeter_alley_cover"}
+    },
+    {
+      "id": "south_alley_broken_west", "type": "breached_wall", "name": "South Alley Breached Barrier",
+      "position": {"x": -5.0, "y": 1.15, "z": 29.5}, "rotation_degrees": {"x": 0.0, "y": 5.0, "z": 0.0},
+      "size": {"x": 5.5, "y": 2.2, "z": 0.45}, "color": {"r": 0.44, "g": 0.42, "b": 0.38, "a": 1.0},
+      "properties": {"surface_kind": "concrete", "roughness": 0.97, "metallic": 0.0, "texture_path": "", "uv_scale": 0.8, "hole_width": 1.45, "hole_height": 1.2, "hole_bottom": 0.3, "hole_offset_x": -0.55, "group_id": "perimeter_alley_cover"}
+    },
+    {
+      "id": "south_alley_utility_east", "type": "cover_tall", "name": "South Alley Utility Box East",
+      "position": {"x": 10.0, "y": 1.15, "z": 30.0}, "rotation_degrees": {"x": 0.0, "y": -8.0, "z": 0.0},
+      "size": {"x": 2.0, "y": 2.2, "z": 1.8}, "color": {"r": 0.31, "g": 0.36, "b": 0.34, "a": 1.0},
+      "properties": {"surface_kind": "concrete", "roughness": 0.9, "metallic": 0.05, "texture_path": "", "uv_scale": 0.9, "group_id": "perimeter_alley_cover"}
+    },
+    {
+      "id": "south_alley_cover_east", "type": "cover_low", "name": "South Alley Sandbag East",
+      "position": {"x": 24.0, "y": 0.60, "z": 29.5}, "rotation_degrees": {"x": 0.0, "y": 12.0, "z": 0.0},
+      "size": {"x": 4.5, "y": 1.1, "z": 0.75}, "color": {"r": 0.42, "g": 0.38, "b": 0.31, "a": 1.0},
+      "properties": {"surface_kind": "concrete", "roughness": 0.98, "metallic": 0.0, "texture_path": "", "uv_scale": 0.8, "group_id": "perimeter_alley_cover"}
+    },
+    {
+      "id": "west_alley_cover_north", "type": "cover_low", "name": "West Alley Cover North",
+      "position": {"x": -41.0, "y": 0.60, "z": -18.0}, "rotation_degrees": {"x": 0.0, "y": 90.0, "z": 0.0},
+      "size": {"x": 4.2, "y": 1.1, "z": 0.75}, "color": {"r": 0.40, "g": 0.37, "b": 0.31, "a": 1.0},
+      "properties": {"surface_kind": "concrete", "roughness": 0.98, "metallic": 0.0, "texture_path": "", "uv_scale": 0.8, "group_id": "perimeter_alley_cover"}
+    },
+    {
+      "id": "west_alley_utility", "type": "cover_tall", "name": "West Alley Utility Cabinet",
+      "position": {"x": -41.5, "y": 1.15, "z": -6.0}, "rotation_degrees": {"x": 0.0, "y": 82.0, "z": 0.0},
+      "size": {"x": 2.2, "y": 2.2, "z": 1.7}, "color": {"r": 0.30, "g": 0.35, "b": 0.33, "a": 1.0},
+      "properties": {"surface_kind": "concrete", "roughness": 0.9, "metallic": 0.05, "texture_path": "", "uv_scale": 0.9, "group_id": "perimeter_alley_cover"}
+    },
+    {
+      "id": "west_alley_broken", "type": "breached_wall", "name": "West Alley Breached Barrier",
+      "position": {"x": -41.0, "y": 1.15, "z": 7.0}, "rotation_degrees": {"x": 0.0, "y": 90.0, "z": 0.0},
+      "size": {"x": 5.0, "y": 2.2, "z": 0.45}, "color": {"r": 0.43, "g": 0.41, "b": 0.37, "a": 1.0},
+      "properties": {"surface_kind": "concrete", "roughness": 0.97, "metallic": 0.0, "texture_path": "", "uv_scale": 0.8, "hole_width": 1.4, "hole_height": 1.2, "hole_bottom": 0.3, "hole_offset_x": -0.45, "group_id": "perimeter_alley_cover"}
+    },
+    {
+      "id": "west_alley_cover_south", "type": "cover_low", "name": "West Alley Cover South",
+      "position": {"x": -41.0, "y": 0.60, "z": 19.0}, "rotation_degrees": {"x": 0.0, "y": 90.0, "z": 0.0},
+      "size": {"x": 4.2, "y": 1.1, "z": 0.75}, "color": {"r": 0.40, "g": 0.37, "b": 0.31, "a": 1.0},
+      "properties": {"surface_kind": "concrete", "roughness": 0.98, "metallic": 0.0, "texture_path": "", "uv_scale": 0.8, "group_id": "perimeter_alley_cover"}
+    },
+    {
+      "id": "east_alley_cover_north", "type": "cover_low", "name": "East Alley Cover North",
+      "position": {"x": 41.0, "y": 0.60, "z": -19.0}, "rotation_degrees": {"x": 0.0, "y": 90.0, "z": 0.0},
+      "size": {"x": 4.2, "y": 1.1, "z": 0.75}, "color": {"r": 0.35, "g": 0.40, "b": 0.39, "a": 1.0},
+      "properties": {"surface_kind": "concrete", "roughness": 0.94, "metallic": 0.0, "texture_path": "", "uv_scale": 0.8, "group_id": "perimeter_alley_cover"}
+    },
+    {
+      "id": "east_alley_broken", "type": "breached_wall", "name": "East Alley Breached Barrier",
+      "position": {"x": 41.0, "y": 1.15, "z": -7.0}, "rotation_degrees": {"x": 0.0, "y": 90.0, "z": 0.0},
+      "size": {"x": 5.0, "y": 2.2, "z": 0.45}, "color": {"r": 0.38, "g": 0.42, "b": 0.41, "a": 1.0},
+      "properties": {"surface_kind": "concrete", "roughness": 0.94, "metallic": 0.0, "texture_path": "", "uv_scale": 0.8, "hole_width": 1.4, "hole_height": 1.2, "hole_bottom": 0.3, "hole_offset_x": 0.45, "group_id": "perimeter_alley_cover"}
+    },
+    {
+      "id": "east_alley_utility", "type": "cover_tall", "name": "East Alley Utility Cabinet",
+      "position": {"x": 41.5, "y": 1.15, "z": 6.0}, "rotation_degrees": {"x": 0.0, "y": 82.0, "z": 0.0},
+      "size": {"x": 2.2, "y": 2.2, "z": 1.7}, "color": {"r": 0.29, "g": 0.36, "b": 0.36, "a": 1.0},
+      "properties": {"surface_kind": "concrete", "roughness": 0.9, "metallic": 0.05, "texture_path": "", "uv_scale": 0.9, "group_id": "perimeter_alley_cover"}
+    },
+    {
+      "id": "east_alley_cover_south", "type": "cover_low", "name": "East Alley Cover South",
+      "position": {"x": 41.0, "y": 0.60, "z": 18.0}, "rotation_degrees": {"x": 0.0, "y": 90.0, "z": 0.0},
+      "size": {"x": 4.2, "y": 1.1, "z": 0.75}, "color": {"r": 0.35, "g": 0.40, "b": 0.39, "a": 1.0},
+      "properties": {"surface_kind": "concrete", "roughness": 0.94, "metallic": 0.0, "texture_path": "", "uv_scale": 0.8, "group_id": "perimeter_alley_cover"}
+    },
+    {
+      "id": "north_alley_cross_cover_west", "type": "jagged_wall", "name": "North Alley Transverse Ruin West",
+      "position": {"x": -17.0, "y": 1.05, "z": -28.5}, "rotation_degrees": {"x": 0.0, "y": 90.0, "z": 0.0},
+      "size": {"x": 5.2, "y": 2.1, "z": 0.45}, "color": {"r": 0.43, "g": 0.40, "b": 0.35, "a": 1.0},
+      "properties": {"surface_kind": "concrete", "roughness": 0.97, "metallic": 0.0, "texture_path": "", "uv_scale": 0.8, "pieces": 5, "height_variance": 0.55, "edge_rotation": 5.0, "group_id": "transverse_alley_cover"}
+    },
+    {
+      "id": "north_alley_cross_cover_east", "type": "cover_low", "name": "North Alley Transverse Sandbags East",
+      "position": {"x": 12.0, "y": 0.60, "z": -31.0}, "rotation_degrees": {"x": 0.0, "y": 90.0, "z": 0.0},
+      "size": {"x": 5.0, "y": 1.1, "z": 0.75}, "color": {"r": 0.42, "g": 0.38, "b": 0.31, "a": 1.0},
+      "properties": {"surface_kind": "concrete", "roughness": 0.98, "metallic": 0.0, "texture_path": "", "uv_scale": 0.8, "group_id": "transverse_alley_cover"}
+    },
+    {
+      "id": "south_alley_cross_cover_west", "type": "cover_low", "name": "South Alley Transverse Sandbags West",
+      "position": {"x": -12.0, "y": 0.60, "z": 31.0}, "rotation_degrees": {"x": 0.0, "y": 90.0, "z": 0.0},
+      "size": {"x": 5.0, "y": 1.1, "z": 0.75}, "color": {"r": 0.42, "g": 0.38, "b": 0.31, "a": 1.0},
+      "properties": {"surface_kind": "concrete", "roughness": 0.98, "metallic": 0.0, "texture_path": "", "uv_scale": 0.8, "group_id": "transverse_alley_cover"}
+    },
+    {
+      "id": "south_alley_cross_cover_east", "type": "jagged_wall", "name": "South Alley Transverse Ruin East",
+      "position": {"x": 17.0, "y": 1.05, "z": 28.5}, "rotation_degrees": {"x": 0.0, "y": 90.0, "z": 0.0},
+      "size": {"x": 5.2, "y": 2.1, "z": 0.45}, "color": {"r": 0.43, "g": 0.40, "b": 0.35, "a": 1.0},
+      "properties": {"surface_kind": "concrete", "roughness": 0.97, "metallic": 0.0, "texture_path": "", "uv_scale": 0.8, "pieces": 5, "height_variance": 0.55, "edge_rotation": 5.0, "group_id": "transverse_alley_cover"}
+    },
+    {
+      "id": "west_alley_cross_cover_north", "type": "jagged_wall", "name": "West Alley Transverse Ruin North",
+      "position": {"x": -39.5, "y": 1.05, "z": -12.0}, "rotation_degrees": {"x": 0.0, "y": 0.0, "z": 0.0},
+      "size": {"x": 5.2, "y": 2.1, "z": 0.45}, "color": {"r": 0.42, "g": 0.40, "b": 0.36, "a": 1.0},
+      "properties": {"surface_kind": "concrete", "roughness": 0.97, "metallic": 0.0, "texture_path": "", "uv_scale": 0.8, "pieces": 5, "height_variance": 0.55, "edge_rotation": 5.0, "group_id": "transverse_alley_cover"}
+    },
+    {
+      "id": "west_alley_cross_cover_south", "type": "cover_low", "name": "West Alley Transverse Sandbags South",
+      "position": {"x": -42.0, "y": 0.60, "z": 13.0}, "rotation_degrees": {"x": 0.0, "y": 0.0, "z": 0.0},
+      "size": {"x": 5.0, "y": 1.1, "z": 0.75}, "color": {"r": 0.40, "g": 0.37, "b": 0.31, "a": 1.0},
+      "properties": {"surface_kind": "concrete", "roughness": 0.98, "metallic": 0.0, "texture_path": "", "uv_scale": 0.8, "group_id": "transverse_alley_cover"}
+    },
+    {
+      "id": "east_alley_cross_cover_north", "type": "cover_low", "name": "East Alley Transverse Sandbags North",
+      "position": {"x": 42.0, "y": 0.60, "z": -13.0}, "rotation_degrees": {"x": 0.0, "y": 0.0, "z": 0.0},
+      "size": {"x": 5.0, "y": 1.1, "z": 0.75}, "color": {"r": 0.35, "g": 0.40, "b": 0.39, "a": 1.0},
+      "properties": {"surface_kind": "concrete", "roughness": 0.94, "metallic": 0.0, "texture_path": "", "uv_scale": 0.8, "group_id": "transverse_alley_cover"}
+    },
+    {
+      "id": "east_alley_cross_cover_south", "type": "jagged_wall", "name": "East Alley Transverse Ruin South",
+      "position": {"x": 39.5, "y": 1.05, "z": 12.0}, "rotation_degrees": {"x": 0.0, "y": 0.0, "z": 0.0},
+      "size": {"x": 5.2, "y": 2.1, "z": 0.45}, "color": {"r": 0.38, "g": 0.42, "b": 0.41, "a": 1.0},
+      "properties": {"surface_kind": "concrete", "roughness": 0.94, "metallic": 0.0, "texture_path": "", "uv_scale": 0.8, "pieces": 5, "height_variance": 0.55, "edge_rotation": 5.0, "group_id": "transverse_alley_cover"}
+    },
+    {
+      "id": "north_passage_dust_screen", "type": "fog_zone", "name": "North Passage Dust Screen",
+      "position": {"x": 0.0, "y": 1.5, "z": -29.5}, "rotation_degrees": {"x": 0.0, "y": 0.0, "z": 0.0},
+      "size": {"x": 13.0, "y": 3.0, "z": 7.0}, "color": {"r": 0.36, "g": 0.35, "b": 0.32, "a": 1.0},
+      "properties": {"density": 0.020, "blend_distance": 2.0, "priority": 2, "occlusion_strength": 0.42, "layer_count": 6}
+    },
+    {
+      "id": "south_passage_dust_screen", "type": "fog_zone", "name": "South Passage Dust Screen",
+      "position": {"x": 0.0, "y": 1.5, "z": 29.5}, "rotation_degrees": {"x": 0.0, "y": 0.0, "z": 0.0},
+      "size": {"x": 13.0, "y": 3.0, "z": 7.0}, "color": {"r": 0.36, "g": 0.35, "b": 0.32, "a": 1.0},
+      "properties": {"density": 0.020, "blend_distance": 2.0, "priority": 2, "occlusion_strength": 0.42, "layer_count": 6}
+    },
+    {
+      "id": "west_passage_dust_screen", "type": "fog_zone", "name": "West Passage Dust Screen",
+      "position": {"x": -41.0, "y": 1.5, "z": 0.0}, "rotation_degrees": {"x": 0.0, "y": 0.0, "z": 0.0},
+      "size": {"x": 7.0, "y": 3.0, "z": 13.0}, "color": {"r": 0.34, "g": 0.35, "b": 0.33, "a": 1.0},
+      "properties": {"density": 0.020, "blend_distance": 2.0, "priority": 2, "occlusion_strength": 0.42, "layer_count": 6}
+    },
+    {
+      "id": "east_passage_dust_screen", "type": "fog_zone", "name": "East Passage Dust Screen",
+      "position": {"x": 41.0, "y": 1.5, "z": 0.0}, "rotation_degrees": {"x": 0.0, "y": 0.0, "z": 0.0},
+      "size": {"x": 7.0, "y": 3.0, "z": 13.0}, "color": {"r": 0.34, "g": 0.35, "b": 0.33, "a": 1.0},
+      "properties": {"density": 0.020, "blend_distance": 2.0, "priority": 2, "occlusion_strength": 0.42, "layer_count": 6}
+    },
+    {
+      "id": "map_wall_27998921", "type": "wall", "name": "Wall",
+      "position": {"x": 0.5, "y": 1.5, "z": 3.5}, "rotation_degrees": {"x": 0.0, "y": 0.0, "z": 0.0},
+      "size": {"x": 4.0, "y": 3.0, "z": 0.300000011920929},
+      "color": {"r": 0.419607847929001, "g": 0.439215689897537, "b": 0.470588237047195, "a": 1.0},
+      "properties": {"floor_level": 0, "metallic": 0.0, "roughness": 0.9, "surface_kind": "default", "texture_path": "", "uv_scale": 1.0}
+    },
+    {
+      "id": "bush_northwest_ruin_01", "type": "bush", "name": "Northwest Ruin Concealment 01",
+      "position": {"x": -29.0, "y": 0.0, "z": -23.0}, "rotation_degrees": {"x": 0.0, "y": 18.0, "z": 0.0},
+      "size": {"x": 3.8, "y": 2.15, "z": 3.0}, "color": {"r": 0.20, "g": 0.29, "b": 0.17, "a": 1.0},
+      "properties": {"cluster_count": 8, "variation_seed": 1101, "concealment": true, "blocks_movement": false}
+    },
+    {
+      "id": "bush_northeast_ruin_01", "type": "bush", "name": "Northeast Ruin Concealment 01",
+      "position": {"x": 29.0, "y": 0.0, "z": -23.0}, "rotation_degrees": {"x": 0.0, "y": -18.0, "z": 0.0},
+      "size": {"x": 3.8, "y": 2.15, "z": 3.0}, "color": {"r": 0.20, "g": 0.29, "b": 0.17, "a": 1.0},
+      "properties": {"cluster_count": 8, "variation_seed": 1102, "concealment": true, "blocks_movement": false}
+    },
+    {
+      "id": "bush_southwest_ruin_01", "type": "bush", "name": "Southwest Ruin Concealment 01",
+      "position": {"x": -29.0, "y": 0.0, "z": 23.0}, "rotation_degrees": {"x": 0.0, "y": -18.0, "z": 0.0},
+      "size": {"x": 3.8, "y": 2.15, "z": 3.0}, "color": {"r": 0.20, "g": 0.29, "b": 0.17, "a": 1.0},
+      "properties": {"cluster_count": 8, "variation_seed": 1103, "concealment": true, "blocks_movement": false}
+    },
+    {
+      "id": "bush_southeast_ruin_01", "type": "bush", "name": "Southeast Ruin Concealment 01",
+      "position": {"x": 29.0, "y": 0.0, "z": 23.0}, "rotation_degrees": {"x": 0.0, "y": 18.0, "z": 0.0},
+      "size": {"x": 3.8, "y": 2.15, "z": 3.0}, "color": {"r": 0.20, "g": 0.29, "b": 0.17, "a": 1.0},
+      "properties": {"cluster_count": 8, "variation_seed": 1104, "concealment": true, "blocks_movement": false}
+    },
+    {
+      "id": "bush_west_flank_north", "type": "bush", "name": "West Flank Concealment North",
+      "position": {"x": -44.0, "y": 0.0, "z": -18.0}, "rotation_degrees": {"x": 0.0, "y": 33.0, "z": 0.0},
+      "size": {"x": 4.2, "y": 2.3, "z": 3.0}, "color": {"r": 0.18, "g": 0.27, "b": 0.16, "a": 1.0},
+      "properties": {"cluster_count": 9, "variation_seed": 1201, "concealment": true, "blocks_movement": false}
+    },
+    {
+      "id": "bush_west_flank_south", "type": "bush", "name": "West Flank Concealment South",
+      "position": {"x": -44.0, "y": 0.0, "z": 18.0}, "rotation_degrees": {"x": 0.0, "y": -33.0, "z": 0.0},
+      "size": {"x": 4.2, "y": 2.3, "z": 3.0}, "color": {"r": 0.18, "g": 0.27, "b": 0.16, "a": 1.0},
+      "properties": {"cluster_count": 9, "variation_seed": 1202, "concealment": true, "blocks_movement": false}
+    },
+    {
+      "id": "bush_east_flank_north", "type": "bush", "name": "East Flank Concealment North",
+      "position": {"x": 44.0, "y": 0.0, "z": -18.0}, "rotation_degrees": {"x": 0.0, "y": -33.0, "z": 0.0},
+      "size": {"x": 4.2, "y": 2.3, "z": 3.0}, "color": {"r": 0.18, "g": 0.27, "b": 0.16, "a": 1.0},
+      "properties": {"cluster_count": 9, "variation_seed": 1203, "concealment": true, "blocks_movement": false}
+    },
+    {
+      "id": "bush_east_flank_south", "type": "bush", "name": "East Flank Concealment South",
+      "position": {"x": 44.0, "y": 0.0, "z": 18.0}, "rotation_degrees": {"x": 0.0, "y": 33.0, "z": 0.0},
+      "size": {"x": 4.2, "y": 2.3, "z": 3.0}, "color": {"r": 0.18, "g": 0.27, "b": 0.16, "a": 1.0},
+      "properties": {"cluster_count": 9, "variation_seed": 1204, "concealment": true, "blocks_movement": false}
+    },
+    {
+      "id": "bush_center_northwest", "type": "bush", "name": "Center Concealment Northwest",
+      "position": {"x": -15.5, "y": 0.0, "z": -11.5}, "rotation_degrees": {"x": 0.0, "y": 27.0, "z": 0.0},
+      "size": {"x": 3.2, "y": 1.9, "z": 2.7}, "color": {"r": 0.19, "g": 0.28, "b": 0.16, "a": 1.0},
+      "properties": {"cluster_count": 7, "variation_seed": 1301, "concealment": true, "blocks_movement": false}
+    },
+    {
+      "id": "bush_center_northeast", "type": "bush", "name": "Center Concealment Northeast",
+      "position": {"x": 15.5, "y": 0.0, "z": -11.5}, "rotation_degrees": {"x": 0.0, "y": -27.0, "z": 0.0},
+      "size": {"x": 3.2, "y": 1.9, "z": 2.7}, "color": {"r": 0.19, "g": 0.28, "b": 0.16, "a": 1.0},
+      "properties": {"cluster_count": 7, "variation_seed": 1302, "concealment": true, "blocks_movement": false}
+    },
+    {
+      "id": "bush_center_southwest", "type": "bush", "name": "Center Concealment Southwest",
+      "position": {"x": -15.5, "y": 0.0, "z": 11.5}, "rotation_degrees": {"x": 0.0, "y": -27.0, "z": 0.0},
+      "size": {"x": 3.2, "y": 1.9, "z": 2.7}, "color": {"r": 0.19, "g": 0.28, "b": 0.16, "a": 1.0},
+      "properties": {"cluster_count": 7, "variation_seed": 1303, "concealment": true, "blocks_movement": false}
+    },
+    {
+      "id": "bush_center_southeast", "type": "bush", "name": "Center Concealment Southeast",
+      "position": {"x": 15.5, "y": 0.0, "z": 11.5}, "rotation_degrees": {"x": 0.0, "y": 27.0, "z": 0.0},
+      "size": {"x": 3.2, "y": 1.9, "z": 2.7}, "color": {"r": 0.19, "g": 0.28, "b": 0.16, "a": 1.0},
+      "properties": {"cluster_count": 7, "variation_seed": 1304, "concealment": true, "blocks_movement": false}
+    }
+  ],
+  "schema_version": 1
+}

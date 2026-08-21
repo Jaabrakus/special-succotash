@@ -13,6 +13,11 @@ func _init() -> void:
 		failures.append("flash angle falloff is invalid")
 	if TacticalFlashbangGrenade.calculate_exposure(Vector3.ZERO, Vector3.ONE, Vector3.FORWARD, false) != 0.0:
 		failures.append("blocked flash retained exposure")
+	var frag_near := TacticalFragGrenade.damage_falloff(1.0, 7.0)
+	var frag_mid := TacticalFragGrenade.damage_falloff(3.5, 7.0)
+	var frag_edge := TacticalFragGrenade.damage_falloff(7.0, 7.0)
+	if frag_near <= frag_mid or frag_mid <= frag_edge or frag_edge != 0.0:
+		failures.append("frag distance damage falloff is invalid")
 	var thrower := TacticalGrenadeThrower.new()
 	var overhand := thrower.calculate_launch_velocity(Vector3.FORWARD, Vector3.UP, TacticalGrenadeThrower.ThrowMode.OVERHAND)
 	var underhand := thrower.calculate_launch_velocity(Vector3.FORWARD, Vector3.UP, TacticalGrenadeThrower.ThrowMode.UNDERHAND)
@@ -40,7 +45,7 @@ func _init() -> void:
 	if safe_fuse < thrower.minimum_remaining_fuse_seconds or safe_fuse >= 3.0:
 		failures.append("grenade cook is not capped to a safe human window")
 	if failures.is_empty():
-		print("TACTICAL_GRENADE_REGRESSION_PASS direct=%.3f turned=%.3f charge=%.2f fuse=%.2f" % [direct, turned, full_charge, safe_fuse])
+		print("TACTICAL_GRENADE_REGRESSION_PASS direct=%.3f turned=%.3f frag_near=%.3f frag_mid=%.3f charge=%.2f fuse=%.2f" % [direct, turned, frag_near, frag_mid, full_charge, safe_fuse])
 		thrower.free()
 		quit(0)
 	else:

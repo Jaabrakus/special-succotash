@@ -1,7 +1,16 @@
 class_name TacticalFlashbangGrenade
 extends TacticalGrenadeBase
 
+const BlastVisual := preload("res://scripts/tactical/flashbang_blast_visual.gd")
+
 @export var effective_radius := 18.0
+@export var intensity_multiplier := 1.0
+
+
+func _apply_type_profile(profile: Dictionary) -> void:
+	var values: Dictionary = profile.get("flash", {})
+	effective_radius = float(values.get("effective_radius", effective_radius))
+	intensity_multiplier = float(values.get("intensity_multiplier", intensity_multiplier))
 
 
 static func calculate_exposure(
@@ -23,7 +32,24 @@ static func calculate_exposure(
 
 
 func _on_detonated() -> void:
+	_spawn_blast_visual()
 	for node in get_tree().get_nodes_in_group("tactical_screen_effects"):
 		if node.has_method("apply_flash_from_world"):
-			node.call("apply_flash_from_world", global_position, effective_radius)
+			node.call(
+				"apply_flash_from_world",
+				global_position,
+				effective_radius,
+				get_rid(),
+				intensity_multiplier
+			)
 	queue_free()
+
+
+func _spawn_blast_visual() -> void:
+	var visual := BlastVisual.new()
+	visual.configure(effective_radius)
+	var visual_parent := get_parent()
+	if visual_parent == null:
+		return
+	visual_parent.add_child(visual)
+	visual.global_position = global_position

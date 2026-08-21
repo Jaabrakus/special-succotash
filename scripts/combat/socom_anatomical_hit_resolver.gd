@@ -2,11 +2,13 @@ class_name SocomAnatomicalHitResolver
 extends RefCounted
 
 ## Resolves overlapping animated hurtboxes without changing their geometry.
-## Environment still wins at the nearest depth. For one operator, a torso or
-## pelvis shape may absorb a nearly coplanar limb hit caused by joint overlap.
+## Environment still wins at the nearest depth. Arms are treated as thin,
+## penetrable anatomy when the same ray continues into that operator's core;
+## an arm outside the body silhouette remains a real limb hit.
 
 const WORLD_AND_DAMAGE_MASK: int = 1 | (1 << 2)
-const CORE_DEPTH_BAND_M := 0.14
+const JOINT_OVERLAP_DEPTH_M := 0.14
+const ARM_TO_CORE_PENETRATION_M := 0.62
 const MAX_OVERLAP_HITS := 16
 
 
@@ -64,11 +66,16 @@ static func choose_hit(candidates: Array[Dictionary]) -> Dictionary:
 	var nearest_region := StringName(nearest.get("hit_region", &""))
 	if not _is_limb(nearest_region):
 		return nearest
+	var core_depth_limit := (
+		ARM_TO_CORE_PENETRATION_M
+		if _is_arm(nearest_region)
+		else JOINT_OVERLAP_DEPTH_M
+	)
 
 	for candidate in candidates:
 		var region := StringName(candidate.get("hit_region", &""))
 		var depth := float(candidate.get("distance", nearest_distance)) - nearest_distance
-		if depth > CORE_DEPTH_BAND_M:
+		if depth > core_depth_limit:
 			break
 		if region in [&"TORSO", &"PELVIS"]:
 			var resolved := candidate.duplicate()
@@ -77,6 +84,10 @@ static func choose_hit(candidates: Array[Dictionary]) -> Dictionary:
 			resolved["overlap_depth_m"] = maxf(0.0, depth)
 			return resolved
 	return nearest
+
+
+static func _is_arm(region: StringName) -> bool:
+	return "ARM" in String(region)
 
 
 static func _is_limb(region: StringName) -> bool:

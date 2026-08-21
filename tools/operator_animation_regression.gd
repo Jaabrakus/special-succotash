@@ -16,7 +16,7 @@ const REQUIRED_CLIPS: Array[StringName] = [
     &"dive_roll", &"roll", &"jump_up", &"jump_loop", &"jump_down",
     &"combat_fire", &"crouch_fire", &"reload",
     &"death_right", &"climb", &"crouch_to_prone", &"crouch_to_stand",
-    &"grenade_toss", &"grenade_throw",
+    &"grenade_toss", &"grenade_throw", &"crouch_grenade_toss",
     &"jump_forward_action", &"jump_backward_action",
     &"prone_stop_forward", &"prone_stop_backward",
 ]
@@ -56,7 +56,9 @@ func _run() -> void:
     _check_motion_hysteresis(driver)
     _check_direction_hysteresis(driver)
     _check_layered_recoil(driver)
+    _check_standing_reload_layer(driver)
     _check_crouched_reload_layer(driver)
+    _check_reload_posture_change_cleanup(driver)
     _check_mobility_states(driver)
     _check_modern_blend_graph(driver)
     _check_instant_lateral_selection(driver)
@@ -316,24 +318,70 @@ func _check_layered_recoil(driver) -> void:
     _set_motion(driver, Vector2(0.0, 1.0), 0.8)
     _advance(driver)
     var gait_before_fire: StringName = driver.current_clip
+    var ready_snapshot: Dictionary = driver.get_animation_debug_state()
+    var ready_frame_pose: Dictionary = ready_snapshot.get("animation_frame_pose", {})
+    _expect(
+        String(ready_frame_pose.get("resolved_clip_key", "")) == "aim_idle"
+        and bool(ready_frame_pose.get("pose_active", false))
+        and not bool(ready_snapshot.get("standing_master_pose_active", true)),
+        "standing movement consumes its own Gunsmith Aim Idle source"
+    )
+    _expect(
+        not bool(ready_snapshot.get("standing_master_pose_frame_suppressed", true))
+        and int(ready_snapshot.get("animation_frame_rotation_override_count", 0)) > 0,
+        "standing gameplay consumes its own saved Gunsmith corrections"
+    )
+    var fire_count_before := int(ready_snapshot.get("fire_trigger_count", 0))
     _expect(driver.notify_fired(), "fire recoil request is accepted")
     _advance(driver)
     var snapshot: Dictionary = driver.get_animation_debug_state()
     _expect(driver.current_clip == gait_before_fire, "firing never restarts or replaces the leg loop")
     _expect(driver.requested_action == &"", "fire recoil does not claim full-body action authority")
-    _expect(bool(snapshot.get("upper_body_recoil_layer", false)), "fire recoil is an upper-body layer")
-    _expect(float(snapshot.get("recoil_weight", 0.0)) > 0.0, "fire recoil produces a live additive impulse")
-    _expect(bool(snapshot.get("fire_layer_available", false)), "mapped weapon fire layer is available")
-    _expect(int(snapshot.get("fire_trigger_count", 0)) > 0, "firing triggers the mapped animation layer")
     _expect(
-        StringName(snapshot.get("active_fire_clip", &"")) == &"combat_fire",
-        "standing fire resolves to the weapon profile's editable fire clip"
+        not bool(snapshot.get("upper_body_recoil_layer", true))
+        and is_zero_approx(float(snapshot.get("recoil_weight", 1.0))),
+        "firing adds no arm, shoulder, or weapon visual-recoil layer"
+    )
+    _expect(bool(snapshot.get("fire_layer_available", false)), "mapped weapon fire layer is available")
+    _expect(
+        int(snapshot.get("fire_trigger_count", 0)) == fire_count_before
+        and StringName(snapshot.get("active_fire_clip", &"")) == &"",
+        "standing fire keeps the exact Aim Idle rifle placement"
     )
     _expect(driver.notify_fired(), "a later accepted bullet retriggers the fire reaction")
     var repeated_snapshot: Dictionary = driver.get_animation_debug_state()
     _expect(
-        int(repeated_snapshot.get("fire_trigger_count", 0)) == 2,
-        "every accepted bullet produces one mapped animation reaction"
+        int(repeated_snapshot.get("fire_trigger_count", 0)) == fire_count_before,
+        "repeated standing shots cannot accumulate imported fire-pose ownership"
+    )
+
+    driver.set_visual_inputs(
+        Vector2.ZERO,
+        &"CROUCHED",
+        0.0,
+        0.0,
+        1.0,
+        false,
+        0.0,
+        0.0,
+        &"CROUCHED",
+        0.0,
+        &"WALK",
+        0.0
+    )
+    _advance(driver)
+    var crouch_snapshot: Dictionary = driver.get_animation_debug_state()
+    _expect(
+        not bool(crouch_snapshot.get("standing_master_pose_active", true)),
+        "standing master-pose rules do not alter crouched animation ownership"
+    )
+    _expect(driver.notify_fired(), "crouched fire request is accepted")
+    _advance(driver)
+    crouch_snapshot = driver.get_animation_debug_state()
+    _expect(
+        int(crouch_snapshot.get("fire_trigger_count", 0)) == fire_count_before + 1
+        and StringName(crouch_snapshot.get("active_fire_clip", &"")) == &"crouch_fire",
+        "crouched fire keeps its existing mapped animation layer"
     )
 
 func _check_crouched_reload_layer(driver) -> void:
@@ -375,6 +423,77 @@ func _check_crouched_reload_layer(driver) -> void:
     driver._requested_action_upper_body_layered = false
     driver._clear_reload_visuals()
 
+func _check_standing_reload_layer(driver) -> void:
+    _set_motion(driver, Vector2.ZERO, 0.0, &"STANDING", 0.0, &"WALK", 0.0)
+    _advance(driver)
+    _expect(driver.play_semantic_action(&"reload", 0.12), "standing reload action is accepted")
+    _advance(driver)
+    var snapshot: Dictionary = driver.get_animation_debug_state()
+    _expect(bool(snapshot.get("upper_body_reload_layer", false)), "standing reload owns only the upper-body animation layer")
+    _expect(bool(snapshot.get("standing_reload_layer_available", false)), "standing reload layer is present in the animation graph")
+    _expect(int(snapshot.get("standing_reload_trigger_count", 0)) > 0, "standing reload triggers the masked reload take")
+    var blend_root := driver.animation_tree.tree_root as AnimationNodeBlendTree
+    var reload_layer := blend_root.get_node(&"standing_reload_layer") as AnimationNodeOneShot
+    _expect(
+        reload_layer != null
+        and reload_layer.is_path_filtered(NodePath(".:mixamorig_Spine"))
+        and reload_layer.is_path_filtered(NodePath(".:mixamorig_RightHand"))
+        and not reload_layer.is_path_filtered(NodePath(".:mixamorig_Hips")),
+        "standing reload mask includes torso and hands but excludes hips and legs"
+    )
+    _set_motion(driver, Vector2(0.0, 1.0), 0.65, &"LOCOMOTION", 0.0, &"WALK", 2.0)
+    _advance(driver)
+    _expect(driver.requested_action == &"reload", "standing reload continues while movement begins")
+    _expect(driver.current_clip == &"walk_forward", "walking legs remain active during standing reload")
+    _set_motion(driver, Vector2(0.0, 1.0), 0.65, &"AIRBORNE", 2.0, &"WALK", 2.0)
+    _advance(driver)
+    snapshot = driver.get_animation_debug_state()
+    _expect(driver.requested_action == &"", "jump safely interrupts standing reload")
+    _expect(not bool(snapshot.get("upper_body_reload_layer", true)), "jump releases reload ownership of the arms")
+    _expect(driver.current_clip == &"jump_up", "jump animation replaces the interrupted reload state")
+
+func _check_reload_posture_change_cleanup(driver) -> void:
+    driver.set_visual_inputs(
+        Vector2.ZERO,
+        &"PRONE",
+        0.0,
+        0.0,
+        1.0,
+        false,
+        0.0,
+        0.0,
+        &"PRONE",
+        0.0,
+        &"WALK",
+        0.0
+    )
+    _advance(driver)
+    _expect(driver.play_semantic_action(&"reload", 0.12), "prone reload action is accepted")
+    _advance(driver)
+    _expect(driver.requested_action == &"prone_reload", "prone reload owns the prone action pose")
+    driver.set_visual_inputs(
+        Vector2.ZERO,
+        &"STANDING",
+        0.0,
+        0.0,
+        1.0,
+        false,
+        0.0,
+        0.0,
+        &"STANDING",
+        0.0,
+        &"WALK",
+        0.0
+    )
+    _advance(driver)
+    var snapshot: Dictionary = driver.get_animation_debug_state()
+    _expect(driver.requested_action == &"", "standing up cancels the stale prone reload pose")
+    _expect(not bool(snapshot.get("upper_body_reload_layer", true)), "stance change releases reload ownership of the arms")
+    _expect(
+        not bool((snapshot.get("weapon_pose", {}) as Dictionary).get("action_weapon_follow_active", true)),
+        "stance change releases reload ownership of the rifle"
+    )
+
 func _check_mobility_states(driver) -> void:
     _set_motion(driver, Vector2(0.0, 1.0), 0.8, &"DIVING")
     _advance(driver)
@@ -414,6 +533,7 @@ func _check_modern_blend_graph(driver) -> void:
     )
     var blend_root := driver.animation_tree.tree_root as AnimationNodeBlendTree
     var upper_body_blend := blend_root.get_node(&"standing_upper_body") as AnimationNodeBlend2
+    var idle_upper_body_blend := blend_root.get_node(&"standing_idle_upper_body") as AnimationNodeBlend2
     _expect(
         upper_body_blend != null and upper_body_blend.filter_enabled,
         "standing locomotion has an active upper-body replacement mask"
@@ -433,6 +553,20 @@ func _check_modern_blend_graph(driver) -> void:
             and not upper_body_blend.is_path_filtered(NodePath(".:mixamorig_LeftLeg"))
             and not upper_body_blend.is_path_filtered(NodePath(".:mixamorig_RightLeg")),
             "directional locomotion retains hips and leg ownership"
+        )
+    _expect(
+        idle_upper_body_blend != null and idle_upper_body_blend.filter_enabled,
+        "standing idle has the same explicit upper-body replacement mask"
+    )
+    if idle_upper_body_blend != null:
+        _expect(
+            idle_upper_body_blend.is_path_filtered(NodePath(".:mixamorig_Spine"))
+            and idle_upper_body_blend.is_path_filtered(NodePath(".:mixamorig_LeftHand"))
+            and idle_upper_body_blend.is_path_filtered(NodePath(".:mixamorig_RightHand"))
+            and not idle_upper_body_blend.is_path_filtered(NodePath(".:mixamorig_Hips"))
+            and not idle_upper_body_blend.is_path_filtered(NodePath(".:mixamorig_LeftLeg"))
+            and not idle_upper_body_blend.is_path_filtered(NodePath(".:mixamorig_RightLeg")),
+            "standing idle uses the authored standing torso while standing hips and legs remain authoritative"
         )
     for transition_clip in [
         &"start_forward", &"start_backward",
@@ -652,8 +786,12 @@ func _check_semantic_action_routes(driver) -> void:
     _expect(profile.resolve_semantic_action(&"fire", &"PRONE") == &"prone_fire", "prone fire stays posture-specific")
     _expect(profile.resolve_semantic_action(&"reload", &"PRONE") == &"prone_reload", "prone reload resolves to the selected prone take")
     _expect(profile.resolve_semantic_action(&"reload", &"CROUCHED") == &"reload", "standing and crouched reload can share one compatible take")
-    _expect(profile.resolve_semantic_action(&"grenade_quick", &"STANDING") == &"grenade_toss", "quick grenade resolves to the toss take")
-    _expect(profile.resolve_semantic_action(&"grenade_full", &"STANDING") == &"grenade_throw", "full grenade resolves to the throw take")
+    _expect(profile.resolve_semantic_action(&"grenade_quick", &"STANDING") == &"grenade_toss", "standing quick grenade resolves to the anchored full-body standing toss")
+    _expect(profile.resolve_semantic_action(&"grenade_full", &"STANDING") == &"grenade_toss", "standing full grenade keeps the anchored full-body standing toss")
+    _expect(profile.resolve_semantic_action(&"grenade_quick", &"CROUCHED") == &"crouch_grenade_toss", "crouched grenade resolves to the standing-toss right-arm composite")
+    _expect(profile.resolve_semantic_action(&"grenade_full", &"CROUCHED") == &"crouch_grenade_toss", "crouched full grenade keeps the standing-toss right-arm composite")
+    _expect(profile.resolve_semantic_action(&"grenade_quick", &"PRONE") == &"grenade_throw", "prone quick grenade resolves to the prone throw take")
+    _expect(profile.resolve_semantic_action(&"grenade_full", &"PRONE") == &"grenade_throw", "prone full grenade resolves to the prone throw take")
     _expect(profile.connected_route(&"standing_backward") == [
         &"idle_rifle", &"start_backward", &"walk_backward", &"run_backward",
         &"run_to_stop", &"stop_backward", &"idle_rifle",

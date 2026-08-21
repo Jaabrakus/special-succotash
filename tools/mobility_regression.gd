@@ -29,6 +29,7 @@ func _run() -> void:
 
     await _test_analog_gait_selection(player)
     await _test_direction_independent_acceleration(player)
+    await _test_fast_strafe_response(player)
     await _test_braking_and_reversal_response(player)
     await _test_aim_relative_strafing(scene, player)
     await _test_full_body_peek(player)
@@ -128,6 +129,23 @@ func _test_direction_independent_acceleration(player: CharacterBody3D) -> void:
     _expect(
         absf(diagonal_speed - cardinal_speed) < 0.025,
         "diagonal and cardinal acceleration have the same magnitude"
+    )
+    player.velocity = Vector3.ZERO
+    await _step_physics(2)
+
+func _test_fast_strafe_response(player: CharacterBody3D) -> void:
+    player.velocity = Vector3.ZERO
+    _expect(
+        float(player.get("strafe_speed")) >= float(player.get("move_speed")),
+        "full strafe has no lateral speed penalty"
+    )
+    Input.action_press(&"move_right", 1.0)
+    await physics_frame
+    Input.action_release(&"move_right")
+    var speed := Vector2(player.velocity.x, player.velocity.z).length()
+    _expect(
+        speed >= float(player.get("strafe_speed")) * 0.95,
+        "full strafe reaches maximum speed within one physics frame"
     )
     player.velocity = Vector3.ZERO
     await _step_physics(2)

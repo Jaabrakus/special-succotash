@@ -14,6 +14,7 @@ func _run() -> void:
 
     var rig = scene.camera_rig
     var crosshair: Label = scene.crosshair
+    var dynamic_reticle: Control = scene.dynamic_reticle
     var initial_crosshair: Vector2 = crosshair.position
     Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
     _expect(
@@ -35,8 +36,8 @@ func _run() -> void:
         (fixed_blue.y - 0.5) * viewport_size.y
     )
     _expect(
-        blue_pixels.length() <= rig.profile.mouse_string_max_lead_px + 0.1,
-        "rendered blue line is capped to the short pixel leash"
+        blue_pixels.length() <= rig.get_effective_mouse_string_max_lead_px() + 0.1,
+        "rendered blue line is capped to the live instability leash"
     )
     _expect(
         rig.reticle_screen_normalized.is_equal_approx(Vector2(0.5, 0.5))
@@ -45,6 +46,48 @@ func _run() -> void:
             viewport_size * 0.5
         ) < 0.1,
         "white circle and HUD reticle remain fixed at screen center"
+    )
+    var authoritative_center: Vector2 = dynamic_reticle.call("get_authoritative_center")
+    dynamic_reticle.call("notify_shot", 1, 1.0)
+    dynamic_reticle.set(
+        "shot_bounce_age",
+        float(dynamic_reticle.get("shot_bounce_duration")) * 0.5
+    )
+    var bounced_center: Vector2 = dynamic_reticle.call("get_visual_center")
+    _expect(
+        bounced_center.y < authoritative_center.y
+        and is_equal_approx(bounced_center.x, authoritative_center.x),
+        "center dot and outer ticks share the upward shot bounce"
+    )
+    _expect(
+        (dynamic_reticle.call("get_authoritative_center") as Vector2).is_equal_approx(
+            authoritative_center
+        ),
+        "visual center-dot bounce does not move ballistic aim authority"
+    )
+    dynamic_reticle.set(
+        "shot_bounce_age",
+        float(dynamic_reticle.get("shot_bounce_duration"))
+    )
+    _expect(
+        (dynamic_reticle.call("get_visual_center") as Vector2).is_equal_approx(
+            authoritative_center
+        ),
+        "center dot recovers to the authoritative center after recoil"
+    )
+    dynamic_reticle.call(
+        "update_reticle_state",
+        0.8,
+        false,
+        authoritative_center,
+        false,
+        1.0
+    )
+    dynamic_reticle.call("_process", 0.25)
+    _expect(
+        float(dynamic_reticle.get("current_movement")) > 0.95
+        and float(dynamic_reticle.get("maximum_movement_tick_extension")) >= 16.0,
+        "full movement visibly lengthens the four aiming strings"
     )
     _expect(
         absf(rig.aim_yaw) > 0.0001 or absf(rig.aim_pitch) > 0.0001,

@@ -28,6 +28,16 @@ func _run() -> void:
     camera.set_aim_angles(0.0, 0.0, true)
     camera.set_mouse_aim_string_enabled(true)
 
+    var calm_deadzone: float = camera.get_effective_mouse_string_deadzone_radius_px()
+    var calm_lead: float = camera.get_effective_mouse_string_max_lead_px()
+    camera.set_weapon_aim_instability(1.0)
+    _expect(
+        camera.get_effective_mouse_string_deadzone_radius_px() > calm_deadzone
+        and camera.get_effective_mouse_string_max_lead_px() > calm_lead,
+        "movement and bloom expand both mouse-string slack and leash"
+    )
+    camera.set_weapon_aim_instability(0.0)
+
     camera._apply_mouse_aim_string_input(Vector2(5.0, 0.0))
     camera._update_mouse_aim_string(1.0 / 60.0)
     _expect(
@@ -37,14 +47,15 @@ func _run() -> void:
 
     camera.set_mouse_aim_string_enabled(false)
     camera.set_mouse_aim_string_enabled(true)
+    camera.set_weapon_aim_instability(1.0)
     camera._apply_mouse_aim_string_input(Vector2(96.0, -54.0))
     var fixed_blue: Vector2 = camera.get_mouse_string_screen_normalized()
     var intended_aim := Vector2(camera.mouse_intent_yaw, camera.mouse_intent_pitch)
     camera._update_mouse_aim_string(1.0 / 60.0)
     _expect(
         absf(camera.mouse_aim_model.blue_offset_pixels.length()
-        - camera.profile.mouse_string_max_lead_px) < 0.01,
-        "large mouse flick cannot create a viewport-sized blue line"
+        - camera.get_effective_mouse_string_max_lead_px()) < 0.01,
+        "large mouse flick is capped by the expanded high-instability leash"
     )
     _expect(
         camera.aim_yaw < 0.0 and camera.aim_pitch > 0.0,
@@ -79,7 +90,7 @@ func _run() -> void:
     camera._apply_mouse_aim_string_input(Vector2(12.0, 0.0))
     _expect(
         camera.mouse_aim_model.blue_offset_pixels.length()
-        <= camera.profile.mouse_string_max_lead_px + 0.001
+        <= camera.get_effective_mouse_string_max_lead_px() + 0.001
         and absf(_signed_angle(intent_before_edge_push, camera.mouse_intent_yaw)) > 0.0001,
         "raw mouse keeps turning aim after blue reaches its visual cap"
     )
@@ -99,6 +110,12 @@ func _run() -> void:
     _expect(
         aim_30.distance_to(aim_120) < 0.0001,
         "aim smoothing is frame-rate independent"
+    )
+
+    camera.set_weapon_aim_instability(0.0)
+    _expect(
+        camera.mouse_aim_model.blue_offset_pixels.length() <= calm_lead + 0.001,
+        "mouse-string leash contracts again when movement and bloom settle"
     )
 
     camera.set_mouse_aim_string_enabled(false)

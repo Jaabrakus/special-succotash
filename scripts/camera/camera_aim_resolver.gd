@@ -2,6 +2,7 @@ class_name SocomCameraAimResolver
 extends RefCounted
 
 const AimIntentScript := preload("res://scripts/network/socom_aim_intent.gd")
+const HURTBOX_AIM_DEPTH_M := 0.08
 
 var rig
 
@@ -55,7 +56,12 @@ func update_weapon_aim_point() -> void:
     var destination: Vector3 = lens_origin + direction * rig.profile.aim_distance
     rig.view_aim_point = destination
     var query := PhysicsRayQueryParameters3D.create(origin, destination)
-    query.collide_with_areas = false
+    # Damage anatomy is Area3D on the dedicated hurtbox layer. The sight ray
+    # must acquire that exact visible region; aiming through the operator to
+    # scenery behind it creates third-person parallax and turns head shots into
+    # shoulder/arm hits.
+    query.collision_mask = 1 | (1 << 2)
+    query.collide_with_areas = true
     if rig.target is CollisionObject3D:
         query.exclude = [(rig.target as CollisionObject3D).get_rid()]
 
@@ -63,13 +69,22 @@ func update_weapon_aim_point() -> void:
     rig.aim_hit = not result.is_empty()
     rig.aim_collider_name = "OPEN"
     if rig.aim_hit:
+        var hit_collider: Object = result.get("collider")
         rig.view_aim_point = result["position"]
-        rig.aim_collider_name = _collider_name(result.get("collider"))
+        # Keep the point on the exact camera sight ray, but place it just inside
+        # damage anatomy. A surface-only endpoint can be missed by the offset
+        # muzzle ray because it approaches that capsule from another angle.
+        if hit_collider != null and hit_collider.has_method("get_hit_region"):
+            rig.view_aim_point += direction * HURTBOX_AIM_DEPTH_M
+        rig.aim_collider_name = _collider_name(hit_collider)
 
-    # Keep the ballistic/pose target on the exact reticle ray, but do not force
-    # the muzzle to converge on a point inches in front of the lens. This
-    # preserves close-wall obstruction while removing the exaggerated upward
-    # third-person shot angle.
+    # An acquired visible target is the shared point for sight, pose, muzzle,
+    # and ballistics. The range zero is only a fallback for open sky; it must
+    # never move an actual head or torso target several metres behind itself.
+    if rig.aim_hit:
+        rig.weapon_aim_point = rig.view_aim_point
+        return
+
     var acquired_depth: float = clampf(
         (rig.view_aim_point - lens_origin).dot(direction),
         acquisition_depth,
@@ -111,7 +126,8 @@ func update_shot_validation() -> void:
         muzzle_position,
         rig.weapon_aim_point
     )
-    query.collide_with_areas = false
+    query.collision_mask = 1 | (1 << 2)
+    query.collide_with_areas = true
     if rig.target is CollisionObject3D:
         query.exclude = [(rig.target as CollisionObject3D).get_rid()]
 

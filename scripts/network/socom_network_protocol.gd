@@ -105,7 +105,7 @@ static func sanitize_snapshot(packet: Dictionary) -> Dictionary:
 			"yaw": wrapf(yaw, -PI, PI),
 			"velocity": vel,
 			"posture": clampi(int(data.get("posture", 0)), 0, 6),
-			"health": clampf(float(data.get("health", 100.0)), 0.0, 100.0),
+			"health": clampf(float(data.get("health", 100.0)), 0.0, 1000.0),
 			"alive": bool(data.get("alive", true)),
 			"timestamp_ms": float(data.get("timestamp_ms", packet.get("timestamp_ms", 0.0))),
 		}
@@ -123,4 +123,3 @@ static func snapshot_packet_is_sane(packet: Dictionary) -> bool:
 	if timestamp != null and typeof(timestamp) not in [TYPE_FLOAT, TYPE_INT]:
 		return false
 	return true
-

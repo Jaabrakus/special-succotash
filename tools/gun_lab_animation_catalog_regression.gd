@@ -369,7 +369,8 @@ func _run() -> void:
 	_expect(
 		reticle_profile.has("base_gap_px")
 		and reticle_profile.has("shot_kick_px")
-		and reticle_profile.has("maximum_shot_kick_px"),
+		and reticle_profile.has("maximum_shot_kick_px")
+		and reticle_profile.has("maximum_movement_tick_extension_px"),
 		"reticle response is represented by a saveable per-gun profile"
 	)
 	_expect(lab.get("hand_gizmo_world") != null, "the evolved support-hand gizmo is live")

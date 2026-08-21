@@ -20,7 +20,7 @@ static func runtime_policy(
 	requested_action: StringName,
 	requested_action_may_own_weapon: bool
 ) -> Dictionary:
-	if movement_state in [&"DIVING", &"ROLLING", &"AIRBORNE", &"LANDING"]:
+	if movement_state in [&"DIVING", &"ROLLING"]:
 		return _animated_policy(requested_action)
 	if requested_action == &"" or not requested_action_may_own_weapon:
 		return _weapon_master_policy()

@@ -17,6 +17,15 @@ const JointControlSchema := preload("res://scripts/player/operator_joint_control
 const GunsmithAnimationFrameEditorScript := preload("res://scripts/labs/gunsmith/gunsmith_animation_frame_editor.gd")
 const GunsmithFrameTimelineScript := preload("res://scripts/labs/gunsmith/gunsmith_frame_timeline.gd")
 const GunsmithBallisticsView := preload("res://scripts/labs/gunsmith/gunsmith_ballistics_view.gd")
+const WeaponProfileRepository := preload(
+	"res://scripts/labs/gunsmith/gunsmith_weapon_profile_repository.gd"
+)
+const WeaponSceneExporter := preload(
+	"res://scripts/labs/gunsmith/gunsmith_weapon_scene_exporter.gd"
+)
+const GunsmithHitboxModelScript := preload(
+	"res://scripts/labs/gunsmith/gunsmith_hitbox_model.gd"
+)
 const OperatorComposureScript := preload("res://scripts/weapons/operator_composure.gd")
 const DynamicReticleScript := preload("res://scripts/ui/socom_dynamic_reticle.gd")
 const TargetDummyScript := preload("res://scripts/combat/lab_leak_target_dummy.gd")
@@ -221,25 +230,36 @@ var weapon_name: String = "AssaultRifle_1"
 var selected_category: String = "Assault Rifles"
 var fire_rate_rpm: int = 650
 var damage_per_shot: int = 34
+var headshot_multiplier: float = 3.5
 var muzzle_velocity_mps: float = 715.0
 var is_silenced: bool = false
 var base_spread_deg: float = 0.28
+var moving_spread_deg: float = 0.95
+var full_gait_spread_deg: float = 1.55
+var opening_burst_motion_multiplier: float = 0.35
 var bloom_per_shot_deg: float = 0.32
 var bloom_recovery_speed: float = 10.0
 var max_recoil_bloom_deg: float = 2.4
-var visual_recoil_pitch_deg: float = 0.0
-var visual_recoil_back_m: float = 0.0
-const VISUAL_RECOIL_PITCH_PER_SHOT_DEG := 1.15
-const VISUAL_RECOIL_BACK_PER_SHOT_M := 0.010
-const VISUAL_RECOIL_MAX_PITCH_DEG := 5.0
-const VISUAL_RECOIL_MAX_BACK_M := 0.040
-const VISUAL_RECOIL_RECOVERY := 17.0
+var functional_aim_climb_enabled: bool = true
+var aim_climb_pitch_per_shot_deg: float = 0.35
+var aim_climb_yaw_per_shot_deg: float = 0.0
+var aim_climb_max_pitch_deg: float = 3.5
+var aim_climb_max_yaw_deg: float = 0.75
+var aim_climb_recovery_delay_seconds: float = 0.10
+var aim_climb_recovery_speed_deg_per_second: float = 6.0
+var crouch_spread_multiplier: float = 0.72
+var crouch_bloom_per_shot_deg: float = 1.35
+var crouch_max_recoil_bloom_deg: float = 1.70
+var crouch_bloom_recovery_speed: float = 18.0
+var magazine_capacity: int = 30
+var reserve_ammo: int = 90
 var reticle_base_gap_px: float = 10.0
 var reticle_max_gap_px: float = 46.0
 var reticle_response_speed: float = 24.0
 var reticle_shot_kick_px: float = 6.0
 var reticle_shot_kick_return: float = 18.0
 var reticle_maximum_shot_kick_px: float = 18.0
+var reticle_maximum_movement_tick_extension_px: float = 16.0
 var current_bloom: float = 0.0
 var fire_cooldown: float = 0.0
 var burst_shot_count: int = 0
@@ -253,6 +273,7 @@ var composure_profile_title: Label
 var shared_hurtbox_scales: Dictionary = HurtboxProfile.load_scales()
 var shared_hurtbox_geometry: Dictionary = HurtboxProfile.load_geometry()
 var shared_custom_hitboxes: Array[Dictionary] = HurtboxProfile.load_custom_hitboxes()
+var hitbox_model: GunsmithHitboxModel
 var selected_hurtbox_region: StringName = &"torso"
 var hurtbox_region_picker: OptionButton
 var hurtbox_shape_picker: OptionButton
@@ -376,6 +397,8 @@ var rotation_pad_hover_axis := ""
 var reticle_bloom_radius: float = 12.0
 
 func _ready() -> void:
+	hitbox_model = GunsmithHitboxModelScript.new()
+	hitbox_model.configure(shared_hurtbox_scales, shared_hurtbox_geometry, shared_custom_hitboxes)
 	animation_catalog = OperatorAnimationProfile.new()
 	animation_catalog.load_project_map()
 	_scan_all_animation_assets()
@@ -725,7 +748,6 @@ func _process(delta: float) -> void:
 	_update_reload_support_handoff()
 	_update_weapon_master_anchor()
 	_update_live_aim_weapon_pose()
-	_update_visual_weapon_recoil(delta)
 
 	_solve_trigger_hand_engine()
 	_solve_biomechanical_arm_engine()
@@ -756,7 +778,9 @@ func _process(delta: float) -> void:
 		dynamic_reticle.update_reticle_state(
 			clampf(total_spread / maxf(max_recoil_bloom_deg, 0.001), 0.0, 1.0),
 			bool(aim_sample.target_locked),
-			_reticle_screen_position()
+			_reticle_screen_position(),
+			false,
+			composure_preview_movement
 		)
 	_update_fire_debug_lines()
 	if reticle_canvas:
@@ -767,7 +791,12 @@ func _update_bloom_recovery(delta: float, trigger_held: bool) -> void:
 	if trigger_held:
 		return
 	if current_bloom > 0.0:
-		current_bloom = maxf(0.0, current_bloom - bloom_recovery_speed * delta)
+		var recovery_speed := (
+			crouch_bloom_recovery_speed
+			if preview_posture == &"CROUCHED"
+			else bloom_recovery_speed
+		)
+		current_bloom = maxf(0.0, current_bloom - recovery_speed * delta)
 	if fire_cooldown <= 0.0:
 		burst_shot_count = 0
 
@@ -2178,12 +2207,12 @@ func _save_selected_animation_hand_map() -> void:
 
 
 func _apply_animation_hand_map(clip_key: StringName) -> void:
-	var raw_map: Variant = hand_poses_by_stance.get(preview_posture, {})
+	var resource_path := String(all_animation_paths.get(clip_key, ""))
+	var raw_map: Variant = animation_hand_maps.get(String(clip_key), {})
 	if not (raw_map is Dictionary) or (raw_map as Dictionary).is_empty():
-		var resource_path := String(all_animation_paths.get(clip_key, ""))
 		raw_map = animation_hand_maps.get(resource_path, {})
-		if not (raw_map is Dictionary) or (raw_map as Dictionary).is_empty():
-			raw_map = animation_hand_maps.get(String(clip_key), {})
+	if not (raw_map is Dictionary) or (raw_map as Dictionary).is_empty():
+		raw_map = hand_poses_by_stance.get(preview_posture, {})
 	if not (raw_map is Dictionary) or (raw_map as Dictionary).is_empty():
 		return
 	var hand_map := raw_map as Dictionary
@@ -3716,35 +3745,6 @@ func _match_weapon_rail_to_blue_line() -> bool:
 	return true
 
 
-func _update_visual_weapon_recoil(delta: float) -> void:
-	visual_recoil_pitch_deg = lerpf(
-		visual_recoil_pitch_deg,
-		0.0,
-		1.0 - exp(-VISUAL_RECOIL_RECOVERY * delta)
-	)
-	visual_recoil_back_m = lerpf(
-		visual_recoil_back_m,
-		0.0,
-		1.0 - exp(-VISUAL_RECOIL_RECOVERY * delta)
-	)
-	if (
-		weapon_root == null
-		or weapon_owner_state != WeaponOwnershipContract.OWNER_WEAPON_MASTER
-		or visual_recoil_pitch_deg <= 0.001
-	):
-		return
-	var barrel_direction := _barrel_direction_world()
-	var pitch_axis := barrel_direction.cross(Vector3.UP).normalized()
-	if pitch_axis.length_squared() < 0.50:
-		pitch_axis = weapon_root.global_basis.x.normalized()
-	var world_scale := weapon_root.global_basis.get_scale()
-	weapon_root.global_basis = (
-		Basis(Quaternion(pitch_axis, deg_to_rad(visual_recoil_pitch_deg)))
-		* weapon_root.global_basis.orthonormalized()
-	).orthonormalized().scaled(world_scale)
-	weapon_root.global_position -= barrel_direction * visual_recoil_back_m
-
-
 func _right_hand_pose_is_ready() -> bool:
 	var bone_index: int = _get_right_hand_bone_index()
 	if bone_index < 0 or skeleton == null:
@@ -4220,131 +4220,149 @@ func _setup_reload_magazine_proxy() -> void:
 	add_child(reload_magazine_proxy)
 
 func _try_load_saved_profile(w_id: String) -> void:
-	var cfg_path := "res://config/weapons/" + w_id.to_lower() + ".json"
-	if FileAccess.file_exists(cfg_path):
-		var file := FileAccess.open(cfg_path, FileAccess.READ)
-		if file:
-			var json := JSON.new()
-			if json.parse(file.get_as_text()) == OK and json.data is Dictionary:
-				var d: Dictionary = json.data
-				_loaded_weapon_profile = d.duplicate(true)
-				_load_operator_mount(_loaded_weapon_profile)
-				_load_gun_placement_line_profile(d.get("gun_placement_line", {}))
-				if d.get("animation_hand_maps", {}) is Dictionary:
-					animation_hand_maps = (d.get("animation_hand_maps", {}) as Dictionary).duplicate(true)
-				animation_frame_editor.load_data(d.get("animation_frame_pose_keys", {}))
-				if d.get("handling_profile", {}) is Dictionary and not (d.get("handling_profile", {}) as Dictionary).is_empty():
-					handling_profile = (d.get("handling_profile", {}) as Dictionary).duplicate(true)
-				var sock: Dictionary = d.get("weapon_sockets", {})
-				if sock.has("left_hand_ik_target"):
-					var ik = sock["left_hand_ik_target"]
-					left_grip_local_pos = Vector3(ik.get("x", left_grip_local_pos.x), ik.get("y", left_grip_local_pos.y), ik.get("z", left_grip_local_pos.z))
-				elif d.has("left_hand_ik_target"):
-					var ik = d["left_hand_ik_target"]
-					left_grip_local_pos = Vector3(ik.get("x", left_grip_local_pos.x), ik.get("y", left_grip_local_pos.y), ik.get("z", left_grip_local_pos.z))
-				if sock.has("right_hand_grip_target"):
-					var right_grip: Dictionary = sock["right_hand_grip_target"]
-					right_grip_local_pos = Vector3(
-						float(right_grip.get("x", right_grip_local_pos.x)),
-						float(right_grip.get("y", right_grip_local_pos.y)),
-						float(right_grip.get("z", right_grip_local_pos.z))
-					)
-					right_grip_profile_loaded = true
+	var d: Dictionary = WeaponProfileRepository.load_profile(w_id)
+	if not d.is_empty():
+		_loaded_weapon_profile = d.duplicate(true)
+		_load_operator_mount(_loaded_weapon_profile)
+		_load_gun_placement_line_profile(d.get("gun_placement_line", {}))
+		if d.get("animation_hand_maps", {}) is Dictionary:
+			animation_hand_maps = (d.get("animation_hand_maps", {}) as Dictionary).duplicate(true)
+		animation_frame_editor.load_data(d.get("animation_frame_pose_keys", {}))
+		if d.get("handling_profile", {}) is Dictionary and not (d.get("handling_profile", {}) as Dictionary).is_empty():
+			handling_profile = (d.get("handling_profile", {}) as Dictionary).duplicate(true)
+		var sock: Dictionary = d.get("weapon_sockets", {})
+		if sock.has("left_hand_ik_target"):
+			var ik = sock["left_hand_ik_target"]
+			left_grip_local_pos = Vector3(ik.get("x", left_grip_local_pos.x), ik.get("y", left_grip_local_pos.y), ik.get("z", left_grip_local_pos.z))
+		elif d.has("left_hand_ik_target"):
+			var ik = d["left_hand_ik_target"]
+			left_grip_local_pos = Vector3(ik.get("x", left_grip_local_pos.x), ik.get("y", left_grip_local_pos.y), ik.get("z", left_grip_local_pos.z))
+		if sock.has("right_hand_grip_target"):
+			var right_grip: Dictionary = sock["right_hand_grip_target"]
+			right_grip_local_pos = Vector3(
+				float(right_grip.get("x", right_grip_local_pos.x)),
+				float(right_grip.get("y", right_grip_local_pos.y)),
+				float(right_grip.get("z", right_grip_local_pos.z))
+			)
+			right_grip_profile_loaded = true
 
-				if sock.has("muzzle_socket"):
-					var mz = sock["muzzle_socket"]
-					muzzle_local_pos = Vector3(mz.get("x", muzzle_local_pos.x), mz.get("y", muzzle_local_pos.y), mz.get("z", muzzle_local_pos.z))
-				if sock.has("barrel_base_socket"):
-					var bb = sock["barrel_base_socket"]
-					barrel_base_local_pos = Vector3(bb.get("x", barrel_base_local_pos.x), bb.get("y", barrel_base_local_pos.y), bb.get("z", barrel_base_local_pos.z))
-				if sock.has("ejection_port"):
-					var ej = sock["ejection_port"]
-					ejection_local_pos = Vector3(ej.get("x", ejection_local_pos.x), ej.get("y", ejection_local_pos.y), ej.get("z", ejection_local_pos.z))
-				if sock.has("optic_rail"):
-					var op = sock["optic_rail"]
-					optic_local_pos = Vector3(op.get("x", optic_local_pos.x), op.get("y", optic_local_pos.y), op.get("z", optic_local_pos.z))
-				if d.has("grip_offset"):
-					var gp = d["grip_offset"]
-					grip_offset_pos = Vector3(gp.get("pos_x", 0.0), gp.get("pos_y", 0.0), gp.get("pos_z", 0.0)) - auto_grip_center_offset
-					grip_offset_rot = Vector3(gp.get("rot_x", 0.0), gp.get("rot_y", 0.0), gp.get("rot_z", 0.0))
-				if d.has("support_hand_pose"):
-					var hand_pose: Dictionary = d["support_hand_pose"]
-					palm_pitch = float(hand_pose.get("palm_pitch_deg", palm_pitch))
-					palm_yaw = float(hand_pose.get("palm_yaw_deg", palm_yaw))
-					palm_roll = float(hand_pose.get("palm_roll_deg", palm_roll))
-					finger_curl = float(hand_pose.get("finger_curl", finger_curl))
-					thumb_wrap = float(hand_pose.get("thumb_wrap", thumb_wrap))
-				var stances_data: Variant = d.get("stances", {})
-				if stances_data is Dictionary and not (stances_data as Dictionary).is_empty():
-					for posture: StringName in [&"STANDING", &"CROUCHED", &"PRONE"]:
-						var stance_dict: Dictionary = (stances_data as Dictionary).get(String(posture), {})
-						if not stance_dict.is_empty():
-							hand_poses_by_stance[posture] = stance_dict.duplicate(true)
-				else:
-					for posture: StringName in [&"STANDING", &"CROUCHED", &"PRONE"]:
-						var slot: String = "idle_standing" if posture == &"STANDING" else ("idle_crouched" if posture == &"CROUCHED" else "idle_prone")
-						var clip: String = String((handling_profile.get("animation_slots", {}) as Dictionary).get(slot, ""))
-						var map: Dictionary = animation_hand_maps.get(clip, {})
-						if map.is_empty():
-							map = animation_hand_maps.get(String(all_animation_paths.get(clip, "")), {})
-						if not map.is_empty():
-							hand_poses_by_stance[posture] = map.duplicate(true)
-				var elbow_poles: Variant = d.get("elbow_poles", {})
-				if elbow_poles is Dictionary:
-					var pole_data := elbow_poles as Dictionary
-					var by_stance: Variant = pole_data.get("by_stance", {})
-					if by_stance is Dictionary and not (by_stance as Dictionary).is_empty():
-						for posture: StringName in [&"STANDING", &"CROUCHED", &"PRONE"]:
-							var saved_stance: Dictionary = (by_stance as Dictionary).get(String(posture), {})
-							elbow_poles_by_stance[posture] = {
-								"right": _vector_from_data(saved_stance.get("right", {}), Vector3.ZERO),
-								"left": _vector_from_data(saved_stance.get("left", {}), Vector3.ZERO),
-							}
-					else:
-						var legacy_right := _vector_from_data(pole_data.get("right", {}), Vector3.ZERO)
-						var legacy_left := _vector_from_data(pole_data.get("left", {}), Vector3.ZERO)
-						for posture: StringName in [&"STANDING", &"CROUCHED", &"PRONE"]:
-							elbow_poles_by_stance[posture] = {"right": legacy_right, "left": legacy_left}
-					_restore_current_stance_elbow_poles()
-					_restore_current_stance_hands()
-				var ballistics: Variant = d.get("ballistics", {})
-				if ballistics is Dictionary:
-					var fire_values := ballistics as Dictionary
-					fire_rate_rpm = int(fire_values.get("fire_rate_rpm", fire_rate_rpm))
-					damage_per_shot = int(fire_values.get("damage", damage_per_shot))
-					muzzle_velocity_mps = float(fire_values.get("muzzle_velocity_mps", muzzle_velocity_mps))
-					base_spread_deg = float(fire_values.get("base_spread_deg", base_spread_deg))
-					bloom_per_shot_deg = float(fire_values.get("bloom_per_shot_deg", bloom_per_shot_deg))
-					max_recoil_bloom_deg = float(fire_values.get("max_recoil_bloom_deg", max_recoil_bloom_deg))
-					bloom_recovery_speed = float(fire_values.get("bloom_recovery_speed", bloom_recovery_speed))
-					is_silenced = bool(fire_values.get("is_silenced", is_silenced))
-				var reticle: Variant = d.get("reticle", {})
-				if reticle is Dictionary:
-					var reticle_values := reticle as Dictionary
-					reticle_base_gap_px = float(reticle_values.get("base_gap_px", reticle_base_gap_px))
-					reticle_max_gap_px = float(reticle_values.get("max_gap_px", reticle_max_gap_px))
-					reticle_response_speed = float(reticle_values.get("response_speed", reticle_response_speed))
-					reticle_shot_kick_px = float(reticle_values.get("shot_kick_px", reticle_shot_kick_px))
-					reticle_shot_kick_return = float(reticle_values.get("shot_kick_return", reticle_shot_kick_return))
-					reticle_maximum_shot_kick_px = float(reticle_values.get("maximum_shot_kick_px", reticle_maximum_shot_kick_px))
-				var composure_profile: Variant = d.get("composure", {})
-				if composure_profile is Dictionary:
-					var composure_values := composure_profile as Dictionary
-					composure.configure_weapon(composure_values)
-					composure_opening_stress_multiplier = float(
-						composure_values.get(
-							"opening_stress_multiplier",
-							composure_opening_stress_multiplier
-						)
-					)
-					composure_graze_damage_scale = float(
-						composure_values.get(
-							"graze_damage_scale",
-							composure_graze_damage_scale
-						)
-					)
-				user_scale_multiplier = float(d.get("user_scale_multiplier", user_scale_multiplier))
-			file.close()
+		if sock.has("muzzle_socket"):
+			var mz = sock["muzzle_socket"]
+			muzzle_local_pos = Vector3(mz.get("x", muzzle_local_pos.x), mz.get("y", muzzle_local_pos.y), mz.get("z", muzzle_local_pos.z))
+		if sock.has("barrel_base_socket"):
+			var bb = sock["barrel_base_socket"]
+			barrel_base_local_pos = Vector3(bb.get("x", barrel_base_local_pos.x), bb.get("y", barrel_base_local_pos.y), bb.get("z", barrel_base_local_pos.z))
+		if sock.has("ejection_port"):
+			var ej = sock["ejection_port"]
+			ejection_local_pos = Vector3(ej.get("x", ejection_local_pos.x), ej.get("y", ejection_local_pos.y), ej.get("z", ejection_local_pos.z))
+		if sock.has("optic_rail"):
+			var op = sock["optic_rail"]
+			optic_local_pos = Vector3(op.get("x", optic_local_pos.x), op.get("y", optic_local_pos.y), op.get("z", optic_local_pos.z))
+		if d.has("grip_offset"):
+			var gp = d["grip_offset"]
+			grip_offset_pos = Vector3(gp.get("pos_x", 0.0), gp.get("pos_y", 0.0), gp.get("pos_z", 0.0)) - auto_grip_center_offset
+			grip_offset_rot = Vector3(gp.get("rot_x", 0.0), gp.get("rot_y", 0.0), gp.get("rot_z", 0.0))
+		if d.has("support_hand_pose"):
+			var hand_pose: Dictionary = d["support_hand_pose"]
+			palm_pitch = float(hand_pose.get("palm_pitch_deg", palm_pitch))
+			palm_yaw = float(hand_pose.get("palm_yaw_deg", palm_yaw))
+			palm_roll = float(hand_pose.get("palm_roll_deg", palm_roll))
+			finger_curl = float(hand_pose.get("finger_curl", finger_curl))
+			thumb_wrap = float(hand_pose.get("thumb_wrap", thumb_wrap))
+		var stances_data: Variant = d.get("stances", {})
+		if stances_data is Dictionary and not (stances_data as Dictionary).is_empty():
+			for posture: StringName in [&"STANDING", &"CROUCHED", &"PRONE"]:
+				var stance_dict: Dictionary = (stances_data as Dictionary).get(String(posture), {})
+				if not stance_dict.is_empty():
+					hand_poses_by_stance[posture] = stance_dict.duplicate(true)
+		else:
+			for posture: StringName in [&"STANDING", &"CROUCHED", &"PRONE"]:
+				var slot: String = "idle_standing" if posture == &"STANDING" else ("idle_crouched" if posture == &"CROUCHED" else "idle_prone")
+				var clip: String = String((handling_profile.get("animation_slots", {}) as Dictionary).get(slot, ""))
+				var map: Dictionary = animation_hand_maps.get(clip, {})
+				if map.is_empty():
+					map = animation_hand_maps.get(String(all_animation_paths.get(clip, "")), {})
+				if not map.is_empty():
+					hand_poses_by_stance[posture] = map.duplicate(true)
+		var elbow_poles: Variant = d.get("elbow_poles", {})
+		if elbow_poles is Dictionary:
+			var pole_data := elbow_poles as Dictionary
+			var by_stance: Variant = pole_data.get("by_stance", {})
+			if by_stance is Dictionary and not (by_stance as Dictionary).is_empty():
+				for posture: StringName in [&"STANDING", &"CROUCHED", &"PRONE"]:
+					var saved_stance: Dictionary = (by_stance as Dictionary).get(String(posture), {})
+					elbow_poles_by_stance[posture] = {
+						"right": _vector_from_data(saved_stance.get("right", {}), Vector3.ZERO),
+						"left": _vector_from_data(saved_stance.get("left", {}), Vector3.ZERO),
+					}
+			else:
+				var legacy_right := _vector_from_data(pole_data.get("right", {}), Vector3.ZERO)
+				var legacy_left := _vector_from_data(pole_data.get("left", {}), Vector3.ZERO)
+				for posture: StringName in [&"STANDING", &"CROUCHED", &"PRONE"]:
+					elbow_poles_by_stance[posture] = {"right": legacy_right, "left": legacy_left}
+			_restore_current_stance_elbow_poles()
+			_restore_current_stance_hands()
+		var ballistics: Variant = d.get("ballistics", {})
+		if ballistics is Dictionary:
+			var fire_values := ballistics as Dictionary
+			fire_rate_rpm = int(fire_values.get("fire_rate_rpm", fire_rate_rpm))
+			damage_per_shot = int(fire_values.get("damage", damage_per_shot))
+			headshot_multiplier = float(fire_values.get("headshot_multiplier", headshot_multiplier))
+			muzzle_velocity_mps = float(fire_values.get("muzzle_velocity_mps", muzzle_velocity_mps))
+			base_spread_deg = float(fire_values.get("base_spread_deg", base_spread_deg))
+			moving_spread_deg = float(fire_values.get("moving_spread_deg", moving_spread_deg))
+			full_gait_spread_deg = float(fire_values.get("full_gait_spread_deg", full_gait_spread_deg))
+			opening_burst_motion_multiplier = float(fire_values.get(
+				"opening_burst_motion_multiplier",
+				opening_burst_motion_multiplier
+			))
+			bloom_per_shot_deg = float(fire_values.get("bloom_per_shot_deg", bloom_per_shot_deg))
+			max_recoil_bloom_deg = float(fire_values.get("max_recoil_bloom_deg", max_recoil_bloom_deg))
+			bloom_recovery_speed = float(fire_values.get("bloom_recovery_speed", bloom_recovery_speed))
+			functional_aim_climb_enabled = bool(fire_values.get("functional_aim_climb_enabled", functional_aim_climb_enabled))
+			aim_climb_pitch_per_shot_deg = float(fire_values.get("aim_climb_pitch_per_shot_deg", aim_climb_pitch_per_shot_deg))
+			aim_climb_yaw_per_shot_deg = float(fire_values.get("aim_climb_yaw_per_shot_deg", aim_climb_yaw_per_shot_deg))
+			aim_climb_max_pitch_deg = float(fire_values.get("aim_climb_max_pitch_deg", aim_climb_max_pitch_deg))
+			aim_climb_max_yaw_deg = float(fire_values.get("aim_climb_max_yaw_deg", aim_climb_max_yaw_deg))
+			aim_climb_recovery_delay_seconds = float(fire_values.get("aim_climb_recovery_delay_seconds", aim_climb_recovery_delay_seconds))
+			aim_climb_recovery_speed_deg_per_second = float(fire_values.get("aim_climb_recovery_speed_deg_per_second", aim_climb_recovery_speed_deg_per_second))
+			crouch_spread_multiplier = float(fire_values.get("crouch_spread_multiplier", crouch_spread_multiplier))
+			crouch_bloom_per_shot_deg = float(fire_values.get("crouch_bloom_per_shot_deg", crouch_bloom_per_shot_deg))
+			crouch_max_recoil_bloom_deg = float(fire_values.get("crouch_max_recoil_bloom_deg", crouch_max_recoil_bloom_deg))
+			crouch_bloom_recovery_speed = float(fire_values.get("crouch_bloom_recovery_speed", crouch_bloom_recovery_speed))
+			magazine_capacity = int(fire_values.get("magazine_capacity", magazine_capacity))
+			reserve_ammo = int(fire_values.get("reserve_ammo", reserve_ammo))
+			is_silenced = bool(fire_values.get("is_silenced", is_silenced))
+		var reticle: Variant = d.get("reticle", {})
+		if reticle is Dictionary:
+			var reticle_values := reticle as Dictionary
+			reticle_base_gap_px = float(reticle_values.get("base_gap_px", reticle_base_gap_px))
+			reticle_max_gap_px = float(reticle_values.get("max_gap_px", reticle_max_gap_px))
+			reticle_response_speed = float(reticle_values.get("response_speed", reticle_response_speed))
+			reticle_shot_kick_px = float(reticle_values.get("shot_kick_px", reticle_shot_kick_px))
+			reticle_shot_kick_return = float(reticle_values.get("shot_kick_return", reticle_shot_kick_return))
+			reticle_maximum_shot_kick_px = float(reticle_values.get("maximum_shot_kick_px", reticle_maximum_shot_kick_px))
+			reticle_maximum_movement_tick_extension_px = float(reticle_values.get(
+				"maximum_movement_tick_extension_px",
+				reticle_maximum_movement_tick_extension_px
+			))
+		var composure_profile: Variant = d.get("composure", {})
+		if composure_profile is Dictionary:
+			var composure_values := composure_profile as Dictionary
+			composure.configure_weapon(composure_values)
+			composure_opening_stress_multiplier = float(
+				composure_values.get(
+					"opening_stress_multiplier",
+					composure_opening_stress_multiplier
+				)
+			)
+			composure_graze_damage_scale = float(
+				composure_values.get(
+					"graze_damage_scale",
+					composure_graze_damage_scale
+				)
+			)
+		user_scale_multiplier = float(d.get("user_scale_multiplier", user_scale_multiplier))
 	_refresh_fire_controls()
 	_sync_eye_sight_controls()
 
@@ -4352,18 +4370,36 @@ func _try_load_saved_profile(w_id: String) -> void:
 func _reset_fire_profile_defaults() -> void:
 	fire_rate_rpm = 650
 	damage_per_shot = 34
+	headshot_multiplier = 3.5
 	muzzle_velocity_mps = _default_muzzle_velocity_mps()
 	is_silenced = false
 	base_spread_deg = 0.28
+	moving_spread_deg = 0.95
+	full_gait_spread_deg = 1.55
+	opening_burst_motion_multiplier = 0.35
 	bloom_per_shot_deg = 0.32
 	bloom_recovery_speed = 10.0
 	max_recoil_bloom_deg = 2.4
+	functional_aim_climb_enabled = true
+	aim_climb_pitch_per_shot_deg = 0.35
+	aim_climb_yaw_per_shot_deg = 0.0
+	aim_climb_max_pitch_deg = 3.5
+	aim_climb_max_yaw_deg = 0.75
+	aim_climb_recovery_delay_seconds = 0.10
+	aim_climb_recovery_speed_deg_per_second = 6.0
+	crouch_spread_multiplier = 0.72
+	crouch_bloom_per_shot_deg = 1.35
+	crouch_max_recoil_bloom_deg = 1.70
+	crouch_bloom_recovery_speed = 18.0
+	magazine_capacity = 30
+	reserve_ammo = 90
 	reticle_base_gap_px = 10.0
 	reticle_max_gap_px = 46.0
 	reticle_response_speed = 24.0
 	reticle_shot_kick_px = 6.0
 	reticle_shot_kick_return = 18.0
 	reticle_maximum_shot_kick_px = 18.0
+	reticle_maximum_movement_tick_extension_px = 16.0
 	composure = OperatorComposureScript.new()
 	composure_opening_stress_multiplier = 0.28
 	composure_graze_damage_scale = 0.38
@@ -4378,17 +4414,34 @@ func _refresh_fire_controls() -> void:
 		composure_profile_title.text = "COMPOSURE — %s" % weapon_name
 	_update_slider_value("rpm", float(fire_rate_rpm))
 	_update_slider_value("dmg", float(damage_per_shot))
+	_update_slider_value("headshot_multiplier", headshot_multiplier)
 	_update_slider_value("muzzle_velocity", muzzle_velocity_mps)
 	_update_slider_value("base_spread", base_spread_deg)
+	_update_slider_value("moving_spread", moving_spread_deg)
+	_update_slider_value("full_gait_spread", full_gait_spread_deg)
+	_update_slider_value("opening_motion_control", opening_burst_motion_multiplier)
 	_update_slider_value("bloom", bloom_per_shot_deg)
 	_update_slider_value("max_bloom", max_recoil_bloom_deg)
 	_update_slider_value("rec", bloom_recovery_speed)
+	_update_slider_value("aim_climb_per_shot", aim_climb_pitch_per_shot_deg)
+	_update_slider_value("aim_climb_limit", aim_climb_max_pitch_deg)
+	_update_slider_value("aim_climb_yaw", aim_climb_yaw_per_shot_deg)
+	_update_slider_value("aim_climb_yaw_limit", aim_climb_max_yaw_deg)
+	_update_slider_value("aim_climb_delay", aim_climb_recovery_delay_seconds)
+	_update_slider_value("aim_climb_recovery", aim_climb_recovery_speed_deg_per_second)
+	_update_slider_value("crouch_spread", crouch_spread_multiplier)
+	_update_slider_value("crouch_bloom", crouch_bloom_per_shot_deg)
+	_update_slider_value("crouch_max_bloom", crouch_max_recoil_bloom_deg)
+	_update_slider_value("crouch_recovery", crouch_bloom_recovery_speed)
+	_update_slider_value("magazine_capacity", float(magazine_capacity))
+	_update_slider_value("reserve_ammo", float(reserve_ammo))
 	_update_slider_value("reticle_base", reticle_base_gap_px)
 	_update_slider_value("reticle_max", reticle_max_gap_px)
 	_update_slider_value("reticle_response", reticle_response_speed)
 	_update_slider_value("reticle_kick", reticle_shot_kick_px)
 	_update_slider_value("reticle_return", reticle_shot_kick_return)
 	_update_slider_value("reticle_kick_limit", reticle_maximum_shot_kick_px)
+	_update_slider_value("reticle_movement_length", reticle_maximum_movement_tick_extension_px)
 	_update_slider_value("composure_shot_stress", composure.shot_stress)
 	_update_slider_value("composure_movement_stress", composure.movement_stress)
 	_update_slider_value("composure_turning_stress", composure.turning_stress)
@@ -4647,7 +4700,7 @@ func _muzzle_axis_sample() -> Dictionary:
 func _stance_spread_multiplier() -> float:
 	match preview_posture:
 		&"PRONE": return 0.22
-		&"CROUCHED": return 0.60
+		&"CROUCHED": return crouch_spread_multiplier
 		_: return 1.0
 
 
@@ -4704,18 +4757,10 @@ func _fire_shot() -> void:
 	var interval := 60.0 / float(maxi(100, fire_rate_rpm))
 	fire_cooldown = interval
 	burst_shot_count += 1
-	# Start every fire clip from the authored weapon-placement line. Animation
-	# can add recoil afterward, but the initial rail-to-line relationship is exact.
+	# Start every fire clip from the authored weapon-placement line. Bloom and
+	# reticle kick provide feedback without moving the weapon off that line.
 	_match_weapon_rail_to_blue_line()
 	_preview_fire_animation()
-	visual_recoil_pitch_deg = minf(
-		VISUAL_RECOIL_MAX_PITCH_DEG,
-		visual_recoil_pitch_deg + VISUAL_RECOIL_PITCH_PER_SHOT_DEG
-	)
-	visual_recoil_back_m = minf(
-		VISUAL_RECOIL_MAX_BACK_M,
-		visual_recoil_back_m + VISUAL_RECOIL_BACK_PER_SHOT_M
-	)
 	var dispersion_multiplier := composure.get_shot_dispersion_multiplier(
 		burst_shot_count,
 		composure_preview_movement,
@@ -4729,9 +4774,19 @@ func _fire_shot() -> void:
 	composure.notify_shot(1.0, stress_multiplier)
 
 	if burst_shot_count > 2:
+		var bloom_increment := (
+			crouch_bloom_per_shot_deg
+			if preview_posture == &"CROUCHED"
+			else bloom_per_shot_deg
+		)
+		var bloom_cap := (
+			crouch_max_recoil_bloom_deg
+			if preview_posture == &"CROUCHED"
+			else max_recoil_bloom_deg
+		)
 		current_bloom = minf(
-			max_recoil_bloom_deg,
-			current_bloom + bloom_per_shot_deg
+			bloom_cap,
+			current_bloom + bloom_increment
 		)
 	if dynamic_reticle:
 		dynamic_reticle.notify_shot(
@@ -4881,14 +4936,11 @@ func _save_weapon_config() -> bool:
 		return false
 	if animation_frame_editor.active:
 		_capture_animation_frame_pose_key()
-	else:
-		_save_selected_animation_hand_map()
+	_save_selected_animation_hand_map()
 	_store_current_stance_elbow_poles()
 	if runtime_posture_layer and not runtime_posture_layer.save_procedural_profile():
 		_show_rig_error("Operator joint and posture edits could not be saved. Save blocked.")
 		return false
-	var config_dir := "res://config/weapons/"
-	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(config_dir))
 	var saved_stance_hands := _hand_maps_without_legacy_mounts(hand_poses_by_stance)
 	var saved_animation_hands := _hand_maps_without_legacy_mounts(animation_hand_maps)
 
@@ -4946,41 +4998,52 @@ func _save_weapon_config() -> bool:
 		"ballistics": {
 			"fire_rate_rpm": fire_rate_rpm,
 			"damage": damage_per_shot,
+			"headshot_multiplier": headshot_multiplier,
 			"muzzle_velocity_mps": muzzle_velocity_mps,
 			"base_spread_deg": base_spread_deg,
+			"moving_spread_deg": moving_spread_deg,
+			"full_gait_spread_deg": full_gait_spread_deg,
+			"opening_burst_motion_multiplier": opening_burst_motion_multiplier,
 			"bloom_per_shot_deg": bloom_per_shot_deg,
 			"max_recoil_bloom_deg": max_recoil_bloom_deg,
 			"bloom_recovery_speed": bloom_recovery_speed,
+			"functional_aim_climb_enabled": functional_aim_climb_enabled,
+			"aim_climb_pitch_per_shot_deg": aim_climb_pitch_per_shot_deg,
+			"aim_climb_yaw_per_shot_deg": aim_climb_yaw_per_shot_deg,
+			"aim_climb_max_pitch_deg": aim_climb_max_pitch_deg,
+			"aim_climb_max_yaw_deg": aim_climb_max_yaw_deg,
+			"aim_climb_recovery_delay_seconds": aim_climb_recovery_delay_seconds,
+			"aim_climb_recovery_speed_deg_per_second": aim_climb_recovery_speed_deg_per_second,
+			"crouch_spread_multiplier": crouch_spread_multiplier,
+			"crouch_bloom_per_shot_deg": crouch_bloom_per_shot_deg,
+			"crouch_max_recoil_bloom_deg": crouch_max_recoil_bloom_deg,
+			"crouch_bloom_recovery_speed": crouch_bloom_recovery_speed,
+			"magazine_capacity": magazine_capacity,
+			"reserve_ammo": reserve_ammo,
 			"is_silenced": is_silenced
 		},
 		"reticle": _current_reticle_profile(),
 		"composure": _current_composure_profile()
 	}
 
-	var file_path := config_dir + weapon_name.to_lower() + ".json"
-	# Preserve unknown forward-compatible reticle fields while Gunsmith remains
-	# the authoritative editor for the known reticle and composure contracts.
-	if FileAccess.file_exists(file_path):
-		var existing_file := FileAccess.open(file_path, FileAccess.READ)
-		var existing_value: Variant = JSON.parse_string(existing_file.get_as_text()) if existing_file else null
-		if existing_value is Dictionary:
-			var existing := existing_value as Dictionary
-			if existing.get("reticle", {}) is Dictionary:
-				var existing_reticle := existing.get("reticle", {}) as Dictionary
-				for key: Variant in existing_reticle:
-					if not (config_data["reticle"] as Dictionary).has(key):
-						(config_data["reticle"] as Dictionary)[key] = existing_reticle[key]
-	var file := FileAccess.open(file_path, FileAccess.WRITE)
-	if file == null:
-		_show_rig_error("Weapon profile could not be opened for writing. Save blocked.")
-		return false
-	file.store_string(JSON.stringify(config_data, "  "))
-	file.close()
-	if not _save_operator_loadout(weapon_name.to_lower()):
-		_show_rig_error("Operator loadout could not be written. Save blocked.")
+	var save_result: Dictionary = WeaponProfileRepository.save_and_equip(
+		weapon_name.to_lower(),
+		config_data
+	)
+	if not bool(save_result.get("ok", false)):
+		_show_rig_error(String(save_result.get("error", "Weapon profile save failed.")) + " Save blocked.")
 		return false
 
 	_export_weapon_packed_scene(config_data)
+	var collector := get_node_or_null("/root/PlaytestStateCollector")
+	if collector != null:
+		var bundle_result: Dictionary = collector.call("collect_saved_state")
+		if not bool(bundle_result.get("ok", false)):
+			_show_rig_error(
+				"Rig saved, but gameplay could not collect the latest lab state: %s"
+				% str(bundle_result.get("errors", []))
+			)
+			return false
 	if hud_status:
 		hud_status.text = "💾 SAVED & EQUIPPED! %s • muzzle (%.3f, %.3f, %.3f) saved exactly." % [
 			weapon_name,
@@ -5045,92 +5108,26 @@ func _open_latest_playground() -> void:
 		if change_error != OK and hud_status:
 			hud_status.text = "Could not open the latest playground (%s)." % error_string(change_error)
 
-func _save_operator_loadout(weapon_id: String) -> bool:
-	var path := "res://config/weapons/operator_loadout.json"
-	var loadout := {
-		"schema_version": 1,
-		"primary_weapon_id": weapon_id,
-		"rig_config": "res://config/weapons/%s.json" % weapon_id,
-	}
-	var file := FileAccess.open(path, FileAccess.WRITE)
-	if file == null:
-		return false
-	file.store_string(JSON.stringify(loadout, "  "))
-	file.close()
-	return true
-
 func _export_weapon_packed_scene(config_data: Dictionary) -> void:
-	var scenes_dir := "res://scenes/weapons/"
-	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(scenes_dir))
-
-	var w_id: String = weapon_name.to_lower()
-	var root := Node3D.new()
-	root.name = weapon_name
-
-	if current_weapon_mesh:
-		var model_copy := current_weapon_mesh.duplicate() as Node3D
-		model_copy.name = "WeaponMesh"
-		root.add_child(model_copy)
-		model_copy.owner = root
-
-		var sock_lh := Marker3D.new()
-		sock_lh.name = "Socket_LeftHand"
-		sock_lh.position = left_grip_local_pos
-		root.add_child(sock_lh)
-		sock_lh.owner = root
-
-		var sock_rh := Marker3D.new()
-		sock_rh.name = "Socket_RightHand"
-		sock_rh.position = right_grip_local_pos
-		root.add_child(sock_rh)
-		sock_rh.owner = root
-
-		var sock_mz := Marker3D.new()
-		sock_mz.name = "Socket_Muzzle"
-		sock_mz.position = muzzle_local_pos
-		root.add_child(sock_mz)
-		sock_mz.owner = root
-
-		var sock_barrel := Marker3D.new()
-		sock_barrel.name = "Socket_BarrelBase"
-		sock_barrel.position = _calibrated_barrel_base()
-		root.add_child(sock_barrel)
-		sock_barrel.owner = root
-
-		var sock_ej := Marker3D.new()
-		sock_ej.name = "Socket_Ejection"
-		sock_ej.position = ejection_local_pos
-		root.add_child(sock_ej)
-		sock_ej.owner = root
-
-		var sock_op := Marker3D.new()
-		sock_op.name = "Socket_Optic"
-		sock_op.position = optic_local_pos
-		root.add_child(sock_op)
-		sock_op.owner = root
-
-		if current_silencer_mesh:
-			var sil_copy := current_silencer_mesh.duplicate() as Node3D
-			sil_copy.name = "Attachment_Silencer"
-			root.add_child(sil_copy)
-			sil_copy.owner = root
-
-		if current_scope_mesh:
-			var sc_copy := current_scope_mesh.duplicate() as Node3D
-			sc_copy.name = "Attachment_Scope"
-			root.add_child(sc_copy)
-			sc_copy.owner = root
-
-	var packed := PackedScene.new()
-	var pack_result := packed.pack(root)
-	if pack_result == OK:
-		var tscn_path := scenes_dir + w_id + ".tscn"
-		var save_err := ResourceSaver.save(packed, tscn_path)
-		if save_err == OK:
-			if hud_status:
-				hud_status.text = "✅ SAVED + EQUIPPED: %s | Character will load this exact rig" % w_id
-			print("Successfully exported ready-to-use game asset to: ", tscn_path)
-	root.queue_free()
+	var export_result := WeaponSceneExporter.export_scene({
+		"weapon_id": weapon_name.to_lower(),
+		"display_name": weapon_name,
+		"weapon_mesh": current_weapon_mesh,
+		"silencer_mesh": current_silencer_mesh,
+		"scope_mesh": current_scope_mesh,
+		"left_hand_socket": left_grip_local_pos,
+		"right_hand_socket": right_grip_local_pos,
+		"muzzle_socket": muzzle_local_pos,
+		"barrel_base_socket": _calibrated_barrel_base(),
+		"ejection_socket": ejection_local_pos,
+		"optic_socket": optic_local_pos,
+	})
+	if bool(export_result.get("ok", false)):
+		if hud_status:
+			hud_status.text = "✅ SAVED + EQUIPPED: %s | Character will load this exact rig" % weapon_name.to_lower()
+		print("Successfully exported ready-to-use game asset to: ", export_result.get("path", ""))
+	else:
+		push_error("Gunsmith scene export failed: %s" % export_result.get("error", "unknown error"))
 
 # ─── UI ───────────────────────────────────────────────────────────────────────
 
@@ -5741,11 +5738,44 @@ func _build_studio_ui() -> void:
 	var bal_title := Label.new(); bal_title.text = "FIRE & DISPERSION"; fire_vbox.add_child(bal_title)
 	_add_slider(fire_vbox, "rpm", "Fire Rate (RPM)", 200.0, 1200.0, float(fire_rate_rpm), func(v: float): fire_rate_rpm = int(v))
 	_add_slider(fire_vbox, "dmg", "Damage", 10.0, 100.0, float(damage_per_shot), func(v: float): damage_per_shot = int(v))
+	_add_slider(fire_vbox, "headshot_multiplier", "Headshot Multiplier (x)", 1.0, 10.0, headshot_multiplier, func(v: float): headshot_multiplier = v)
 	_add_slider(fire_vbox, "muzzle_velocity", "Bullet Velocity (m/s)", 150.0, 1200.0, muzzle_velocity_mps, func(v: float): muzzle_velocity_mps = v)
 	_add_slider(fire_vbox, "base_spread", "Base Spread (deg)", 0.0, 3.0, base_spread_deg, func(v: float): base_spread_deg = v)
+	_add_slider(fire_vbox, "moving_spread", "Moving Spread (deg)", 0.0, 4.0, moving_spread_deg, func(v: float): moving_spread_deg = v)
+	_add_slider(fire_vbox, "full_gait_spread", "Full Movement Spread (deg)", 0.0, 5.0, full_gait_spread_deg, func(v: float): full_gait_spread_deg = v)
+	_add_slider(fire_vbox, "opening_motion_control", "Slow-Move Opening Control", 0.10, 1.0, opening_burst_motion_multiplier, func(v: float): opening_burst_motion_multiplier = v)
 	_add_slider(fire_vbox, "bloom", "Bloom Per Shot", 0.0, 5.0, bloom_per_shot_deg, func(v: float): bloom_per_shot_deg = v)
 	_add_slider(fire_vbox, "max_bloom", "Maximum Bloom", 0.25, 8.0, max_recoil_bloom_deg, func(v: float): max_recoil_bloom_deg = v)
 	_add_slider(fire_vbox, "rec", "Bloom Recovery", 2.0, 30.0, bloom_recovery_speed, func(v: float): bloom_recovery_speed = v)
+
+	var aim_climb_title := Label.new()
+	aim_climb_title.text = "FUNCTIONAL AIM CLIMB — AFFECTS FOLLOW-UP SHOTS"
+	aim_climb_title.add_theme_color_override("font_color", Color("f2cf72"))
+	fire_vbox.add_child(aim_climb_title)
+	_add_slider(fire_vbox, "aim_climb_per_shot", "Upward Aim / Shot (deg)", 0.0, 2.0, aim_climb_pitch_per_shot_deg, func(v: float): aim_climb_pitch_per_shot_deg = v)
+	_add_slider(fire_vbox, "aim_climb_limit", "Maximum Upward Aim (deg)", 0.0, 12.0, aim_climb_max_pitch_deg, func(v: float): aim_climb_max_pitch_deg = v)
+	_add_slider(fire_vbox, "aim_climb_yaw", "Side Aim / Shot (deg)", 0.0, 1.0, aim_climb_yaw_per_shot_deg, func(v: float): aim_climb_yaw_per_shot_deg = v)
+	_add_slider(fire_vbox, "aim_climb_yaw_limit", "Maximum Side Aim (deg)", 0.0, 4.0, aim_climb_max_yaw_deg, func(v: float): aim_climb_max_yaw_deg = v)
+	_add_slider(fire_vbox, "aim_climb_delay", "Aim Recovery Delay (sec)", 0.0, 0.75, aim_climb_recovery_delay_seconds, func(v: float): aim_climb_recovery_delay_seconds = v)
+	_add_slider(fire_vbox, "aim_climb_recovery", "Aim Recovery (deg/sec)", 0.1, 30.0, aim_climb_recovery_speed_deg_per_second, func(v: float): aim_climb_recovery_speed_deg_per_second = v)
+
+	var crouch_ballistics_title := Label.new()
+	crouch_ballistics_title.text = "CROUCH FIRE PROFILE — SAVED PER WEAPON"
+	crouch_ballistics_title.add_theme_color_override("font_color", Color("8ee6b0"))
+	fire_vbox.add_child(crouch_ballistics_title)
+	_add_slider(fire_vbox, "crouch_spread", "Crouch Base Multiplier", 0.10, 1.50, crouch_spread_multiplier, func(v: float): crouch_spread_multiplier = v)
+	_add_slider(fire_vbox, "crouch_bloom", "Crouch Bloom Per Shot", 0.0, 5.0, crouch_bloom_per_shot_deg, func(v: float): crouch_bloom_per_shot_deg = v)
+	_add_slider(fire_vbox, "crouch_max_bloom", "Crouch Maximum Bloom", 0.25, 8.0, crouch_max_recoil_bloom_deg, func(v: float): crouch_max_recoil_bloom_deg = v)
+	_add_slider(fire_vbox, "crouch_recovery", "Crouch Bloom Recovery", 2.0, 40.0, crouch_bloom_recovery_speed, func(v: float): crouch_bloom_recovery_speed = v)
+
+	var ammo_title := Label.new()
+	ammo_title.text = "AMMUNITION — SAVED PER WEAPON"
+	ammo_title.add_theme_color_override("font_color", Color("f2cf72"))
+	fire_vbox.add_child(ammo_title)
+	_add_slider(fire_vbox, "magazine_capacity", "Magazine Rounds", 1.0, 200.0, float(magazine_capacity), func(v: float): magazine_capacity = int(round(v)))
+	_add_slider(fire_vbox, "reserve_ammo", "Reserve Rounds", 0.0, 999.0, float(reserve_ammo), func(v: float): reserve_ammo = int(round(v)))
+	(sliders_map["magazine_capacity"]["slider"] as HSlider).step = 1.0
+	(sliders_map["reserve_ammo"]["slider"] as HSlider).step = 1.0
 
 	fire_vbox.add_child(HSeparator.new())
 	var reticle_title := Label.new(); reticle_title.text = "RETICLE RESPONSE"; fire_vbox.add_child(reticle_title)
@@ -5755,6 +5785,7 @@ func _build_studio_ui() -> void:
 	_add_slider(fire_vbox, "reticle_kick", "Shot Kick (px)", 0.0, 20.0, reticle_shot_kick_px, func(v: float): reticle_shot_kick_px = v; _apply_reticle_preview_profile())
 	_add_slider(fire_vbox, "reticle_return", "Kick Recovery", 3.0, 40.0, reticle_shot_kick_return, func(v: float): reticle_shot_kick_return = v; _apply_reticle_preview_profile())
 	_add_slider(fire_vbox, "reticle_kick_limit", "Kick Limit (px)", 0.0, 36.0, reticle_maximum_shot_kick_px, func(v: float): reticle_maximum_shot_kick_px = v; _apply_reticle_preview_profile())
+	_add_slider(fire_vbox, "reticle_movement_length", "Full-Movement Line Length (px)", 0.0, 36.0, reticle_maximum_movement_tick_extension_px, func(v: float): reticle_maximum_movement_tick_extension_px = v; _apply_reticle_preview_profile())
 
 	fire_vbox.add_child(HSeparator.new())
 	var layers_title := Label.new(); layers_title.text = "TRAJECTORY STUDY LAYERS"; fire_vbox.add_child(layers_title)
@@ -6154,116 +6185,39 @@ func _finish_composure_target_preview() -> void:
 
 
 func _editable_hitbox_ids() -> Array[StringName]:
-	var result: Array[StringName] = HurtboxProfile.REGION_KEYS.duplicate()
-	for entry in shared_custom_hitboxes:
-		result.append(StringName(entry.get("id", &"")))
-	return result
-
-
+	return hitbox_model.editable_ids()
 func _custom_hitbox_index(editor_id: StringName) -> int:
-	for index in shared_custom_hitboxes.size():
-		if StringName(shared_custom_hitboxes[index].get("id", &"")) == editor_id:
-			return index
-	return -1
-
-
+	return hitbox_model.custom_index(editor_id)
 func _hitbox_source_region(editor_id: StringName) -> StringName:
-	var custom_index := _custom_hitbox_index(editor_id)
-	if custom_index >= 0:
-		return StringName(shared_custom_hitboxes[custom_index].get("source_region", &"torso"))
-	return editor_id
-
-
+	return hitbox_model.source_region(editor_id)
 func _hitbox_damage_type(editor_id: StringName) -> StringName:
-	var custom_index := _custom_hitbox_index(editor_id)
-	if custom_index >= 0:
-		return StringName(shared_custom_hitboxes[custom_index].get(
-			"damage_region",
-			HurtboxProfile.damage_type_for_source_region(_hitbox_source_region(editor_id))
-		))
-	return HurtboxProfile.damage_type_for_source_region(editor_id)
-
-
+	return hitbox_model.damage_type(editor_id)
 func _hitbox_display_name(editor_id: StringName) -> String:
-	var custom_index := _custom_hitbox_index(editor_id)
-	if custom_index >= 0:
-		return String(shared_custom_hitboxes[custom_index].get(
-			"display_name",
-			"%s extra" % HurtboxProfile.region_label(_hitbox_source_region(editor_id))
-		))
-	return HurtboxProfile.region_label(editor_id)
-
-
+	return hitbox_model.display_name(editor_id)
 func _hitbox_width(editor_id: StringName) -> float:
-	var custom_index := _custom_hitbox_index(editor_id)
-	if custom_index >= 0:
-		return clampf(
-			float(shared_custom_hitboxes[custom_index].get("width_scale", 1.0)),
-			HurtboxProfile.MIN_SCALE,
-			HurtboxProfile.MAX_SCALE
-		)
-	return clampf(
-		float(shared_hurtbox_scales.get(editor_id, 1.0)),
-		HurtboxProfile.MIN_SCALE,
-		HurtboxProfile.MAX_SCALE
-	)
-
-
+	return hitbox_model.width(editor_id)
 func _set_hitbox_width(editor_id: StringName, value: float) -> void:
-	var bounded := clampf(value, HurtboxProfile.MIN_SCALE, HurtboxProfile.MAX_SCALE)
-	var custom_index := _custom_hitbox_index(editor_id)
-	if custom_index >= 0:
-		shared_custom_hitboxes[custom_index]["width_scale"] = bounded
-	else:
-		shared_hurtbox_scales[editor_id] = bounded
-
-
+	hitbox_model.set_width(editor_id, value)
 func _hitbox_geometry(editor_id: StringName) -> Dictionary:
-	var custom_index := _custom_hitbox_index(editor_id)
-	var geometry_entry: Dictionary
-	if custom_index >= 0:
-		geometry_entry = (shared_custom_hitboxes[custom_index].get("geometry", {}) as Dictionary).duplicate(true)
-	else:
-		geometry_entry = (shared_hurtbox_geometry.get(editor_id, {}) as Dictionary).duplicate(true)
-	return {editor_id: geometry_entry}
-
-
+	return hitbox_model.geometry_for(editor_id)
 func _set_hitbox_geometry(editor_id: StringName, geometry_entry: Dictionary) -> void:
-	var custom_index := _custom_hitbox_index(editor_id)
-	if custom_index >= 0:
-		shared_custom_hitboxes[custom_index]["geometry"] = geometry_entry.duplicate(true)
-	else:
-		shared_hurtbox_geometry[editor_id] = geometry_entry.duplicate(true)
-
-
+	hitbox_model.set_geometry(editor_id, geometry_entry)
 func _hitbox_offset(editor_id: StringName) -> Vector3:
-	return HurtboxProfile.geometry_offset(_hitbox_geometry(editor_id), editor_id)
-
-
+	return hitbox_model.offset(editor_id)
 func _hitbox_shape(editor_id: StringName) -> StringName:
-	return HurtboxProfile.geometry_shape(_hitbox_geometry(editor_id), editor_id)
-
-
+	return hitbox_model.shape(editor_id)
 func _set_hitbox_offset(editor_id: StringName, offset: Vector3) -> void:
-	var geometry := _hitbox_geometry(editor_id)
-	HurtboxProfile.set_geometry_offset(geometry, editor_id, offset)
-	_set_hitbox_geometry(editor_id, geometry[editor_id])
-
-
+	hitbox_model.set_offset(editor_id, offset)
 func _hitbox_length(editor_id: StringName) -> float:
-	return HurtboxProfile.geometry_length_scale(_hitbox_geometry(editor_id), editor_id)
-
-
+	return hitbox_model.length(editor_id)
 func _next_custom_hitbox_id(source_region: StringName) -> StringName:
 	var suffix := 1
 	while true:
 		var candidate := StringName("%s_extra_%d" % [String(source_region), suffix])
-		if candidate not in _editable_hitbox_ids():
+		if candidate not in hitbox_model.editable_ids():
 			return candidate
 		suffix += 1
 	return &"extra_hitbox"
-
-
 func _refresh_hurtbox_region_picker() -> void:
 	if hurtbox_region_picker == null:
 		return
@@ -6408,56 +6362,29 @@ func _apply_shared_hurtbox_preview() -> void:
 
 
 func _duplicate_selected_hitbox() -> void:
-	var source_region := _hitbox_source_region(selected_hurtbox_region)
-	var editor_id := _next_custom_hitbox_id(source_region)
-	var geometry_entry := (_hitbox_geometry(selected_hurtbox_region)[selected_hurtbox_region] as Dictionary).duplicate(true)
-	var copied_offset := HurtboxProfile.geometry_offset(
-		{editor_id: geometry_entry},
-		editor_id
-	)
-	# Put the new physical shape just beside its source so it is immediately
-	# visible and selectable instead of hiding perfectly inside the original.
-	copied_offset.x += 0.025 if copied_offset.x <= HurtboxProfile.MAX_OFFSET_METERS - 0.025 else -0.025
-	HurtboxProfile.set_geometry_offset({editor_id: geometry_entry}, editor_id, copied_offset)
-	geometry_entry["offset"] = {
-		"x": copied_offset.x, "y": copied_offset.y, "z": copied_offset.z,
-	}
-	shared_custom_hitboxes.append({
-		"id": String(editor_id),
-		"source_region": String(source_region),
-		"damage_region": String(_hitbox_damage_type(selected_hurtbox_region)),
-		"display_name": "%s extra" % HurtboxProfile.region_label(source_region),
-		"width_scale": _hitbox_width(selected_hurtbox_region),
-		"geometry": geometry_entry,
-	})
-	shared_custom_hitboxes = HurtboxProfile.normalize_custom_hitboxes(shared_custom_hitboxes)
+	var editor_id := hitbox_model.duplicate_hitbox(selected_hurtbox_region)
+	shared_custom_hitboxes = hitbox_model.custom_hitboxes
 	_apply_shared_hurtbox_preview()
 	_refresh_hurtbox_region_picker()
 	_select_hurtbox_region(editor_id)
 	if hud_status:
 		hud_status.text = "➕ New physical hitbox created. Drag it into place, resize it, then paint its damage type."
-
-
 func _delete_selected_hitbox() -> void:
-	var custom_index := _custom_hitbox_index(selected_hurtbox_region)
-	if custom_index < 0:
+	var source_region := hitbox_model.delete_custom(selected_hurtbox_region)
+	if source_region == &"":
 		_show_rig_error("Built-in anatomy cannot be deleted. Select a duplicate first.")
 		return
-	var source_region := StringName(shared_custom_hitboxes[custom_index].get("source_region", &"torso"))
-	shared_custom_hitboxes.remove_at(custom_index)
+	shared_custom_hitboxes = hitbox_model.custom_hitboxes
 	selected_hurtbox_region = source_region
 	_apply_shared_hurtbox_preview()
 	_refresh_hurtbox_region_picker()
 	_select_hurtbox_region(source_region)
 	if hud_status:
 		hud_status.text = "🗑 Duplicate hitbox removed."
-
-
 func _set_selected_hurtbox_damage_type(damage_type: StringName) -> void:
-	var custom_index := _custom_hitbox_index(selected_hurtbox_region)
-	if custom_index < 0 or damage_type not in HurtboxProfile.DAMAGE_TYPE_KEYS:
+	if not hitbox_model.set_damage_type(selected_hurtbox_region, damage_type):
 		return
-	shared_custom_hitboxes[custom_index]["damage_region"] = String(damage_type)
+	shared_custom_hitboxes = hitbox_model.custom_hitboxes
 	_apply_shared_hurtbox_preview()
 	_refresh_hurtbox_region_picker()
 	if hud_status:
@@ -6465,37 +6392,19 @@ func _set_selected_hurtbox_damage_type(damage_type: StringName) -> void:
 			_hitbox_display_name(selected_hurtbox_region),
 			HurtboxProfile.damage_type_label(damage_type),
 		]
-
-
 func _snap_selected_hurtbox_to_rig() -> void:
-	var defaults := HurtboxProfile.default_geometry()
-	var source_region := _hitbox_source_region(selected_hurtbox_region)
-	var preserved_shape := _hitbox_shape(selected_hurtbox_region)
-	var snapped_geometry := (defaults[source_region] as Dictionary).duplicate(true)
-	snapped_geometry["shape"] = String(preserved_shape)
-	_set_hitbox_geometry(
-		selected_hurtbox_region,
-		snapped_geometry
-	)
+	hitbox_model.snap_to_rig(selected_hurtbox_region)
 	_apply_shared_hurtbox_preview()
 	_sync_selected_hurtbox_controls()
 	if hud_status:
 		hud_status.text = "🦴 %s snapped to its animated rig bones. Width and paint were preserved." % _hitbox_display_name(selected_hurtbox_region)
-
-
 func _align_all_hitboxes_to_rig() -> void:
-	var aligned_geometry := HurtboxProfile.default_geometry()
-	for region_key: StringName in HurtboxProfile.REGION_KEYS:
-		(aligned_geometry[region_key] as Dictionary)["shape"] = String(
-			HurtboxProfile.geometry_shape(shared_hurtbox_geometry, region_key)
-		)
-	shared_hurtbox_geometry = aligned_geometry
+	hitbox_model.align_builtins_to_rig()
+	shared_hurtbox_geometry = hitbox_model.geometry
 	_apply_shared_hurtbox_preview()
 	_sync_selected_hurtbox_controls()
 	if hud_status:
 		hud_status.text = "🦴 Built-in hitboxes aligned to the animated rig. Authored duplicates were preserved."
-
-
 func _create_hurtbox_edit_markers() -> void:
 	_sync_hurtbox_edit_marker_set()
 
@@ -6638,6 +6547,7 @@ func _current_reticle_profile() -> Dictionary:
 		"shot_kick_px": reticle_shot_kick_px,
 		"shot_kick_return": reticle_shot_kick_return,
 		"maximum_shot_kick_px": reticle_maximum_shot_kick_px,
+		"maximum_movement_tick_extension_px": reticle_maximum_movement_tick_extension_px,
 		"shot_bounce_duration": composure.shot_bounce_duration,
 	}
 

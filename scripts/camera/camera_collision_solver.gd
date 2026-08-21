@@ -112,6 +112,24 @@ func _solve_collision(desired: Vector3) -> Dictionary:
     var safe_fraction: float = clampf(float(desired_cast.safe_fraction), 0.0, 1.0)
     var compressed_position: Vector3 = anchor + desired_offset * safe_fraction
     var compressed_projection := _subject_projection(compressed_position, true)
+    if profile.hold_rendered_camera_on_obstruction:
+        # Classic collision hold: geometry owns the rendered lens immediately.
+        # Aim and the virtual camera keep turning, but the visible camera never
+        # climbs or switches sides to preserve composition. When this boom is
+        # clear again, the ordinary radial release extends it smoothly.
+        return {
+            "position": compressed_position,
+            "collided": true,
+            "collider_name": "%s / BOOM HELD" % collider_name,
+            "collider_node": collider_node,
+            "escaped": false,
+            "escape_angle_deg": 0.0,
+            "local_cutout": false,
+            "cutout_center": Vector3.ZERO,
+            "cutout_node": null,
+            "hold_lens": true,
+            "near_body_crop_active": true,
+        }
     if (
         _candidate_has_subject_clearance(compressed_position)
         and _projection_is_reframeable(compressed_projection)
@@ -559,4 +577,3 @@ func _cast_camera_volume(anchor: Vector3, destination: Vector3, exclude: Array[R
     var cast_result: PackedFloat32Array = get_world_3d().direct_space_state.cast_motion(query)
     var safe_fraction: float = cast_result[0] if cast_result.size() >= 1 else 1.0
     return {"safe_fraction": safe_fraction}
-

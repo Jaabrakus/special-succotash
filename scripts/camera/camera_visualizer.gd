@@ -55,39 +55,47 @@ func _process(_delta: float) -> void:
     _segment(anchor, camera_rig.collision_camera_position, Color(0.46, 0.34, 0.06))
     _segment(anchor, camera_rig.global_position, Color(0.08, 0.38, 0.16))
 
-    # Draw each real direction for seven metres. Do not force both debug rays
-    # into one nearby display point: that old visualization made a nearly
-    # parallel long-range zero look like the rifle fired sharply upward.
+    # Cyan is the camera sight. Red is the authoritative muzzle shot. White is
+    # the rendered physical rail/barrel. On an acquired target, cyan and red
+    # must meet at the same visible point while white shows any pose mismatch.
     var ray_length := 7.0
     var view_direction: Vector3 = (
         camera_rig.view_aim_point - camera_rig.global_position
     ).normalized()
     if view_direction.length_squared() < 0.99:
         view_direction = -camera_rig.camera.global_basis.z.normalized()
-    # The white/red guide must reveal where the rendered bore physically points.
-    # The shared target direction is used by ballistics, but drawing it here used
-    # to conceal a bad weapon/arm pose by making the guide look corrected already.
-    var ballistic_direction: Vector3 = Vector3.ZERO
+    var barrel_direction: Vector3 = Vector3.ZERO
     if mannequin and mannequin.has_method("get_active_barrel_direction"):
-        ballistic_direction = mannequin.get_active_barrel_direction()
-    if ballistic_direction.length_squared() < 0.99:
-        ballistic_direction = (camera_rig.weapon_aim_point - muzzle).normalized()
-    if ballistic_direction.length_squared() < 0.99:
-        ballistic_direction = view_direction
+        barrel_direction = mannequin.get_active_barrel_direction()
+    if barrel_direction.length_squared() < 0.99:
+        barrel_direction = view_direction
+    var shot_direction: Vector3 = (
+        camera_rig.weapon_aim_point - muzzle
+    ).normalized()
+    if shot_direction.length_squared() < 0.99:
+        shot_direction = view_direction
     var view_display_target: Vector3 = (
-        camera_rig.global_position + view_direction * ray_length
+        camera_rig.view_aim_point
+        if camera_rig.aim_hit
+        else camera_rig.global_position + view_direction * ray_length
     )
-    var weapon_display_target: Vector3 = muzzle + ballistic_direction * ray_length
+    var shot_display_target: Vector3 = (
+        camera_rig.weapon_aim_point
+        if camera_rig.aim_hit
+        else muzzle + shot_direction * ray_length
+    )
+    var barrel_display_target := muzzle + barrel_direction * ray_length
     _segment(
         camera_rig.global_position,
         view_display_target,
         Color(0.15, 0.95, 1.0)
     )
-    _segment(muzzle, weapon_display_target, (
-        Color(1.0, 0.24, 0.18)
-        if camera_rig.shot_blocked
-        else Color(1.0, 1.0, 1.0)
-    ))
+    _segment(muzzle, barrel_display_target, Color(1.0, 1.0, 1.0, 0.82))
+    _segment(
+        muzzle,
+        shot_display_target,
+        Color(1.0, 0.55, 0.12) if camera_rig.shot_blocked else Color(1.0, 0.16, 0.12)
+    )
     _lines.surface_end()
 
     _current_marker.global_position = camera_rig.global_position

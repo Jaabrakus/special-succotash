@@ -26,6 +26,8 @@ const MapRuntime := preload("res://scripts/maps/socom_map_runtime.gd")
 const MapAmbience := preload("res://scripts/maps/socom_map_ambience_engine.gd")
 const MapAudioAmbience := preload("res://scripts/maps/socom_map_audio_ambience.gd")
 const ControlsGuideScript := preload("res://scripts/ui/socom_controls_guide.gd")
+const PlayerGameplayProfileScript := preload("res://scripts/player/player_gameplay_profile.gd")
+const WeaponReloadCoordinatorScript := preload("res://scripts/runtime/weapon_reload_coordinator.gd")
 const RETICLE_BOX_SIZE := Vector2(32.0, 32.0)
 const OPERATOR_TUNING_PATH := "res://config/operator_movement_tuning.json"
 
@@ -67,9 +69,20 @@ var target_range_active: bool = true
 var tactical_screen_effects: CanvasLayer
 var tactical_grenade_thrower: Node
 var selected_grenade_type: int = 0
+var grenade_equipped: bool = false
+var grenade_switch_hold_seconds: float = 0.0
+var grenade_switch_hold_triggered: bool = false
+const GRENADE_SWITCH_HOLD_THRESHOLD := 0.25
+var grenade_limits: Dictionary = {"frag": 3, "flash": 3, "smoke": 3}
+var grenade_inventory: Dictionary = {"frag": 3, "flash": 3, "smoke": 3}
 var grenade_aim_active: bool = false
 var grenade_hold_seconds: float = 0.0
 var grenade_underhand: bool = false
+var grenade_throw_in_progress: bool = false
+var grenade_throw_generation: int = 0
+const GRENADE_SHORT_THROW_PLAYBACK_SPEED := 1.85
+var reload_commit_pending: bool = false
+var reload_coordinator: SocomWeaponReloadCoordinator
 var grenade_arc_preview: MeshInstance3D
 var grenade_charge_panel: PanelContainer
 var grenade_charge_label: Label
@@ -77,6 +90,10 @@ var grenade_charge_bar: ProgressBar
 var active_map_document: Dictionary = {}
 var map_audio_ambience: Node
 var controls_guide: CanvasLayer
+var player_status_label: Label
+var player_health_spinbox: SpinBox
+var grenade_limit_spinboxes: Dictionary = {}
+var public_training_mode: bool = false
 
 const REFERENCE_FRAME_PATH := "res://reference/reference_frame.png"
 const ENVIRONMENT_SHADER := """
@@ -92,9 +109,16 @@ void fragment() {
 """
 
 func _ready() -> void:
+    public_training_mode = (
+        OS.has_feature("web")
+        or OS.has_feature("restricted_web")
+        or OS.get_cmdline_user_args().has("--restricted-web-preview")
+        or OS.get_cmdline_user_args().has("--public-training")
+        or bool(ProjectSettings.get_setting("socom/session/public_training", false))
+    )
     _attach_saved_playtest_bundle()
-    calibration_visible = OS.get_cmdline_user_args().has("--show-calibration")
-    debug_hud_visible = not OS.get_cmdline_user_args().has("--clean-hud")
+    calibration_visible = not public_training_mode and OS.get_cmdline_user_args().has("--show-calibration")
+    debug_hud_visible = not public_training_mode and not OS.get_cmdline_user_args().has("--clean-hud")
     _load_operator_tuning()
     anim_studio_visible = (
         bool(operator_tuning.get("studio_open_on_start", false))
@@ -140,11 +164,13 @@ func _ready() -> void:
     _build_camera()
     _build_tactical_runtime()
     _build_weapon_controller()
-    _build_camera_tools()
+    _build_reload_coordinator()
+    if not public_training_mode:
+        _build_camera_tools()
     _build_ui()
     if anim_studio_visible:
         call_deferred("_set_animation_studio_input_mode", true)
-    if (
+    if not public_training_mode and (
         OS.get_cmdline_user_args().has("--capture-workbench")
         or OS.get_cmdline_user_args().has("--capture-wall-surface")
     ):
@@ -169,6 +195,8 @@ func _ensure_input_map() -> void:
     KeyboardMappingProfile.apply_project_mapping()
     # Keep developer-only controls outside the player-facing mapping profile.
     _add_key_action("toggle_controls_guide", KEY_F3)
+    if public_training_mode:
+        return
     _add_key_action("toggle_calibration", KEY_F7)
     _add_key_action("calibration_opacity_down", KEY_BRACKETLEFT)
     _add_key_action("calibration_opacity_up", KEY_BRACKETRIGHT)
@@ -224,6 +252,7 @@ func _add_key_action(action: StringName, keycode: Key) -> void:
     InputMap.action_add_event(action, event)
 
 func _process(delta: float) -> void:
+    _update_player_status_ui()
     if Input.is_action_just_pressed("toggle_controls_guide") and controls_guide != null:
         controls_guide.call("toggle")
     if (
@@ -232,19 +261,27 @@ func _process(delta: float) -> void:
         and not OS.get_cmdline_user_args().has("--automated-test")
     ):
         _request_weapon_reload()
-    if Input.is_action_just_pressed("cycle_grenade"):
-        selected_grenade_type = (selected_grenade_type + 1) % 3
+    _update_grenade_switch_input(delta)
+    if grenade_equipped and Input.is_action_just_pressed("jump"):
+        _cancel_grenade_for_jump()
     if (
-        Input.is_action_just_pressed("throw_grenade")
+        grenade_equipped
+        and not grenade_aim_active
+        and not grenade_throw_in_progress
+        and Input.is_action_just_pressed("fire")
         and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
         and not OS.get_cmdline_user_args().has("--automated-test")
     ):
         _begin_grenade_aim()
     if grenade_aim_active:
-        if Input.is_action_just_released("throw_grenade"):
+        if Input.is_action_just_released("fire"):
             _release_grenade_aim()
         else:
             _update_grenade_aim(delta)
+    if public_training_mode:
+        if camera_rig != null:
+            _update_crosshair(camera_rig.get_debug_data())
+        return
     _update_camera_tool_input()
     _update_spectator_camera()
     if Input.is_action_just_pressed("toggle_anim_studio"):
@@ -432,7 +469,7 @@ func _process(delta: float) -> void:
     debug_label.text = (
         "SOCOM-141 CAMERA LAB\n"
         + "WASD move | Space jump | X/C tap crouch, hold prone | Z dive-prone | Q/E peek | F3 all controls\n"
-        + "Mouse aim | R reload | Hold G aim/cook, release throw | F3 all controls\n"
+        + "Mouse aim | R reload | Tap G equip/cycle grenade | Hold G rifle | Hold fire throw\n"
         + "Home reset | F4 targets | F5 studio | F6 trajectory | F8 tune\n"
         + "v2.7 MERGED SOCOM RETICLE + HUMANOID HURTBOX RANGE\n\n"
         + "Vertical FOV     %5.1f°\n" % d.fov
@@ -488,13 +525,17 @@ func _process(delta: float) -> void:
 
 
 func _request_weapon_reload() -> bool:
-    if player == null:
-        return false
-    var mannequin: Node = player.get_node_or_null("Mannequin") as Node
-    return (
-        mannequin != null
-        and mannequin.has_method("play_operator_semantic_action")
-        and bool(mannequin.call("play_operator_semantic_action", &"reload", 0.12))
+    return reload_coordinator != null and reload_coordinator.request_reload()
+
+
+func _build_reload_coordinator() -> void:
+    reload_coordinator = WeaponReloadCoordinatorScript.new()
+    reload_coordinator.name = "WeaponReloadCoordinator"
+    add_child(reload_coordinator)
+    reload_coordinator.configure(player, weapon_controller)
+    reload_coordinator.pending_changed.connect(func(pending: bool):
+        reload_commit_pending = pending
+        _update_player_status_ui()
     )
 
 
@@ -582,6 +623,10 @@ func _build_player() -> void:
     player.name = "Player"
     player.position = MapDocument.player_spawn(active_map_document, Vector3(0, 0.05, 0.5))
     add_child(player)
+    var player_profile := PlayerGameplayProfileScript.load_profile()
+    player.call("configure_max_health", float(player_profile.get("max_health", 100.0)))
+    grenade_limits = (player_profile.get("grenade_limits", {}) as Dictionary).duplicate(true)
+    grenade_inventory = grenade_limits.duplicate(true)
 
     var collider := CollisionShape3D.new()
     collider.name = "CollisionShape3D"
@@ -597,6 +642,8 @@ func _build_player() -> void:
     player.add_child(mannequin)
     if not active_map_document.is_empty():
         _spawn_authored_training_dummies()
+        if target_dummies.is_empty():
+            _spawn_target_range()
     elif target_range_active:
         _spawn_target_range()
     if not active_map_document.is_empty():
@@ -713,7 +760,13 @@ func _build_tactical_runtime() -> void:
     add_child(grenade_arc_preview)
 
 func _begin_grenade_aim() -> void:
-    if tactical_grenade_thrower == null or camera_rig == null:
+    if (
+        tactical_grenade_thrower == null
+        or camera_rig == null
+        or not grenade_equipped
+        or grenade_throw_in_progress
+        or _selected_grenade_count() <= 0
+    ):
         return
     grenade_aim_active = true
     grenade_hold_seconds = 0.0
@@ -744,14 +797,115 @@ func _release_grenade_aim() -> void:
     if not grenade_aim_active:
         return
     var charge := float(tactical_grenade_thrower.call("charge_for_hold", grenade_hold_seconds))
-    _throw_selected_grenade(grenade_underhand, charge, grenade_hold_seconds)
+    var release_underhand := grenade_underhand
+    var release_hold_seconds := grenade_hold_seconds
     grenade_aim_active = false
-    if weapon_controller != null and weapon_controller.has_method("set_input_enabled"):
-        weapon_controller.call("set_input_enabled", true)
     if grenade_arc_preview != null:
         grenade_arc_preview.visible = false
     if grenade_charge_panel != null:
         grenade_charge_panel.visible = false
+    grenade_throw_in_progress = true
+    grenade_throw_generation += 1
+    var release_generation := grenade_throw_generation
+    var animation_speed := _grenade_animation_speed_for_charge(charge)
+    var animation_driver := _play_grenade_throw_animation(
+        release_underhand,
+        animation_speed
+    )
+    _set_grenade_movement_locked(true)
+    if animation_driver == null:
+        _complete_grenade_throw(&"", release_generation, release_underhand, charge, release_hold_seconds)
+        return
+    animation_driver.action_completed.connect(
+        _complete_grenade_throw.bind(
+            release_generation,
+            release_underhand,
+            charge,
+            release_hold_seconds
+        ),
+        CONNECT_ONE_SHOT
+    )
+
+
+func _complete_grenade_throw(
+    _clip_name: StringName,
+    release_generation: int,
+    release_underhand: bool,
+    charge: float,
+    release_hold_seconds: float
+) -> void:
+    if (
+        not grenade_throw_in_progress
+        or release_generation != grenade_throw_generation
+        or not grenade_equipped
+    ):
+        return
+    var thrown := _throw_selected_grenade(
+        release_underhand,
+        charge,
+        release_hold_seconds
+    )
+    grenade_throw_in_progress = false
+    _set_grenade_movement_locked(false)
+    # A throw does not silently switch the player back to the rifle. The
+    # selected grenade remains equipped for another hold/release throw. When
+    # that type is empty, advance to the next available grenade; only an empty
+    # inventory or an explicit hold-G command restores the rifle.
+    if thrown and _selected_grenade_count() <= 0:
+        _equip_or_cycle_grenade()
+    elif grenade_equipped and weapon_controller != null and weapon_controller.has_method("set_input_enabled"):
+        weapon_controller.call("set_input_enabled", false)
+    _update_player_status_ui()
+
+
+func _grenade_animation_speed_for_charge(charge: float) -> float:
+    return lerpf(
+        GRENADE_SHORT_THROW_PLAYBACK_SPEED,
+        1.0,
+        clampf(charge, 0.0, 1.0)
+    )
+
+
+func _play_grenade_throw_animation(underhand: bool, playback_speed: float) -> Node:
+    if player == null:
+        return null
+    var mannequin := player.get_node_or_null("Mannequin") as Node
+    var played := (
+        mannequin != null
+        and mannequin.has_method("play_operator_semantic_action")
+        and bool(mannequin.call(
+            "play_operator_semantic_action",
+            &"grenade_quick" if underhand else &"grenade_full",
+            0.10,
+            playback_speed
+        ))
+    )
+    if not played:
+        return null
+    return mannequin.get("production_animation") as Node
+
+
+func _set_grenade_movement_locked(locked: bool) -> void:
+    if player == null:
+        return
+    if player.has_method("set_local_input_enabled"):
+        player.call("set_local_input_enabled", not locked)
+    if locked and player is CharacterBody3D:
+        var body := player as CharacterBody3D
+        body.velocity.x = 0.0
+        body.velocity.z = 0.0
+
+
+func _cancel_grenade_for_jump() -> void:
+    if not grenade_equipped and not grenade_throw_in_progress:
+        return
+    grenade_throw_generation += 1
+    grenade_throw_in_progress = false
+    _set_grenade_movement_locked(false)
+    var mannequin := player.get_node_or_null("Mannequin") as Node if player != null else null
+    if mannequin != null and mannequin.has_method("cancel_operator_grenade_action"):
+        mannequin.call("cancel_operator_grenade_action")
+    _return_to_rifle(false)
 
 
 func _refresh_grenade_aim_preview() -> void:
@@ -776,7 +930,7 @@ func _refresh_grenade_aim_preview() -> void:
         mode,
         charge
     )
-    var origin: Vector3 = player.global_position + Vector3.UP * 1.35 + forward * 0.45
+    var origin := _grenade_arc_origin()
     _draw_grenade_arc(origin, velocity, charge)
     if grenade_charge_bar != null:
         grenade_charge_bar.value = charge * 100.0
@@ -786,8 +940,9 @@ func _refresh_grenade_aim_preview() -> void:
             3.0,
             grenade_hold_seconds
         ))
-        grenade_charge_label.text = "%s  %s  •  POWER %d%%  •  SAFE FUSE %.1fs  •  RELEASE TO THROW" % [
+        grenade_charge_label.text = "%s x%d  •  %s  •  POWER %d%%  •  SAFE FUSE %.1fs  •  RELEASE FIRE" % [
             _grenade_type_name(),
+            _selected_grenade_count(),
             "UNDERHAND" if grenade_underhand else "OVERHAND",
             int(round(charge * 100.0)),
             cooked_fuse,
@@ -824,29 +979,151 @@ func _draw_grenade_arc(origin: Vector3, velocity: Vector3, charge: float) -> voi
 
 
 func _grenade_type_name() -> String:
-    return ["SMOKE", "FLASH", "FRAG"][clampi(selected_grenade_type, 0, 2)]
+    return ["FRAG", "FLASH", "SMOKE"][clampi(selected_grenade_type, 0, 2)]
+
+
+func _grenade_inventory_key() -> String:
+    return ["frag", "flash", "smoke"][clampi(selected_grenade_type, 0, 2)]
+
+
+func _selected_grenade_count() -> int:
+    return int(grenade_inventory.get(_grenade_inventory_key(), 0))
+
+
+func _grenade_arc_origin() -> Vector3:
+    # The guide begins at the rear-right shoulder where the full-body throw
+    # winds up. Because this uses the animated bone, it follows body turns.
+    var shoulder := _operator_bone_world_position(&"mixamorig_RightArm")
+    if shoulder.is_finite():
+        return shoulder + player.global_basis.z.normalized() * 0.18 + Vector3.UP * 0.04
+    return (
+        player.global_position
+        + Vector3.UP * 1.48
+        + player.global_basis.x.normalized() * 0.24
+        + player.global_basis.z.normalized() * 0.16
+    )
+
+
+func _grenade_release_origin() -> Vector3:
+    var hand := _operator_bone_world_position(&"mixamorig_RightHand")
+    return hand if hand.is_finite() else _grenade_arc_origin()
+
+
+func _operator_bone_world_position(bone_name: StringName) -> Vector3:
+    if player == null:
+        return Vector3.INF
+    var mannequin := player.get_node_or_null("Mannequin") as Node
+    var driver: Node = mannequin.get("production_animation") as Node if mannequin != null else null
+    var active_skeleton: Skeleton3D = driver.get("skeleton") as Skeleton3D if driver != null else null
+    if active_skeleton == null:
+        return Vector3.INF
+    var bone_index := active_skeleton.find_bone(bone_name)
+    if bone_index < 0:
+        return Vector3.INF
+    return (
+        active_skeleton.global_transform
+        * active_skeleton.get_bone_global_pose(bone_index)
+    ).origin
+
+
+func _equip_or_cycle_grenade() -> bool:
+    var start_index := selected_grenade_type if not grenade_equipped else selected_grenade_type + 1
+    for offset in 3:
+        var candidate := (start_index + offset) % 3
+        var key: String = ["frag", "flash", "smoke"][candidate]
+        if int(grenade_inventory.get(key, 0)) <= 0:
+            continue
+        selected_grenade_type = candidate
+        grenade_equipped = true
+        _set_operator_rifle_visible(true)
+        if weapon_controller != null and weapon_controller.has_method("set_input_enabled"):
+            weapon_controller.call("set_input_enabled", false)
+        _update_player_status_ui()
+        return true
+    grenade_equipped = false
+    var mannequin := player.get_node_or_null("Mannequin") as Node if player != null else null
+    if mannequin != null and mannequin.has_method("cancel_operator_grenade_action"):
+        mannequin.call("cancel_operator_grenade_action")
+    _set_operator_rifle_visible(true)
+    if weapon_controller != null and weapon_controller.has_method("set_input_enabled"):
+        weapon_controller.call("set_input_enabled", true)
+    _update_player_status_ui()
+    return false
+
+
+func _return_to_rifle(cancel_pending_throw: bool = true) -> void:
+    if cancel_pending_throw:
+        grenade_throw_generation += 1
+        grenade_throw_in_progress = false
+        _set_grenade_movement_locked(false)
+        var mannequin := player.get_node_or_null("Mannequin") as Node if player != null else null
+        if mannequin != null and mannequin.has_method("cancel_operator_grenade_action"):
+            mannequin.call("cancel_operator_grenade_action")
+    grenade_equipped = false
+    grenade_aim_active = false
+    grenade_hold_seconds = 0.0
+    if grenade_arc_preview != null:
+        grenade_arc_preview.visible = false
+    if grenade_charge_panel != null:
+        grenade_charge_panel.visible = false
+    if weapon_controller != null and weapon_controller.has_method("set_input_enabled"):
+        weapon_controller.call("set_input_enabled", true)
+    _set_operator_rifle_visible(true)
+    _update_player_status_ui()
+
+
+func _set_operator_rifle_visible(enabled: bool) -> void:
+    if player == null:
+        return
+    var mannequin := player.get_node_or_null("Mannequin") as Node
+    if mannequin != null and mannequin.has_method("set_operator_weapon_visible"):
+        mannequin.call("set_operator_weapon_visible", enabled)
+
+
+func _update_grenade_switch_input(delta: float) -> void:
+    if (
+        Input.mouse_mode != Input.MOUSE_MODE_CAPTURED
+        or OS.get_cmdline_user_args().has("--automated-test")
+    ):
+        return
+    if Input.is_action_just_pressed("equip_grenade"):
+        grenade_switch_hold_seconds = 0.0
+        grenade_switch_hold_triggered = false
+    if Input.is_action_pressed("equip_grenade") and not grenade_switch_hold_triggered:
+        grenade_switch_hold_seconds += maxf(delta, 0.0)
+        if grenade_switch_hold_seconds >= GRENADE_SWITCH_HOLD_THRESHOLD:
+            grenade_switch_hold_triggered = true
+            _return_to_rifle()
+    if Input.is_action_just_released("equip_grenade"):
+        if not grenade_switch_hold_triggered:
+            _equip_or_cycle_grenade()
+        grenade_switch_hold_seconds = 0.0
+        grenade_switch_hold_triggered = false
 
 
 func _throw_selected_grenade(
     underhand: bool,
     charge: float = 1.0,
     hold_seconds: float = 0.0
-) -> void:
+) -> bool:
     if tactical_grenade_thrower == null or camera_rig == null:
-        return
+        return false
+    var inventory_key := _grenade_inventory_key()
+    if int(grenade_inventory.get(inventory_key, 0)) <= 0:
+        return false
     # In network sessions the server must replace this local spawn with its
     # validated grenade-spawn RPC. Offline training owns the simulation here.
     if multiplayer.has_multiplayer_peer() and not multiplayer.is_server():
-        return
+        return false
     var grenade: RigidBody3D
-    if selected_grenade_type == 1:
-        grenade = TacticalFlashbangScript.new()
-    elif selected_grenade_type == 2:
+    if selected_grenade_type == 0:
         grenade = TacticalFragGrenadeScript.new()
+    elif selected_grenade_type == 1:
+        grenade = TacticalFlashbangScript.new()
     else:
         grenade = TacticalSmokeGrenadeScript.new()
     add_child(grenade)
-    var origin: Vector3 = player.global_position + Vector3.UP * 1.35
+    var origin := _grenade_release_origin()
     var forward: Vector3 = -camera_rig.camera.global_basis.z
     grenade.global_position = origin + forward * 0.45
     var mode := (
@@ -861,6 +1138,9 @@ func _throw_selected_grenade(
         mode,
         charge
     ))
+    grenade_inventory[inventory_key] = maxi(0, int(grenade_inventory[inventory_key]) - 1)
+    _update_player_status_ui()
+    return true
 
 
 func _build_weapon_controller() -> void:
@@ -869,6 +1149,11 @@ func _build_weapon_controller() -> void:
     add_child(weapon_controller)
     weapon_controller.configure(player, camera_rig)
     weapon_controller.authoritative_shot.connect(_on_authoritative_shot)
+    weapon_controller.ammo_changed.connect(_on_ammo_changed)
+
+
+func _on_ammo_changed(_rounds_in_magazine: int, _reserve_rounds: int) -> void:
+    _update_player_status_ui()
 
 func _on_authoritative_shot(result: Dictionary) -> void:
     var origin := Vector3(result.get("origin", Vector3.ZERO))
@@ -934,24 +1219,27 @@ func _build_camera_tools() -> void:
 
 func _build_ui() -> void:
     var layer := CanvasLayer.new()
+    layer.name = "GameplayHUD"
+    layer.layer = 10
     add_child(layer)
 
-    debug_label = Label.new()
-    debug_label.position = Vector2(18, 18)
-    debug_label.visible = debug_hud_visible
-    debug_label.add_theme_font_size_override("font_size", 16)
-    layer.add_child(debug_label)
+    if not public_training_mode:
+        debug_label = Label.new()
+        debug_label.position = Vector2(18, 18)
+        debug_label.visible = debug_hud_visible
+        debug_label.add_theme_font_size_override("font_size", 16)
+        layer.add_child(debug_label)
 
-    body_stack_overlay = BodyStackOverlayScript.new()
-    body_stack_overlay.name = "OperatorBodyStackOverlay"
-    var debug_mannequin = player.get_node_or_null("Mannequin")
-    body_stack_overlay.configure(
-        debug_mannequin.production_animation if debug_mannequin else null,
-        camera_rig.camera,
-        player
-    )
-    body_stack_overlay.visible = debug_hud_visible and body_stack_visible
-    layer.add_child(body_stack_overlay)
+        body_stack_overlay = BodyStackOverlayScript.new()
+        body_stack_overlay.name = "OperatorBodyStackOverlay"
+        var debug_mannequin = player.get_node_or_null("Mannequin")
+        body_stack_overlay.configure(
+            debug_mannequin.production_animation if debug_mannequin else null,
+            camera_rig.camera,
+            player
+        )
+        body_stack_overlay.visible = debug_hud_visible and body_stack_visible
+        layer.add_child(body_stack_overlay)
 
     crosshair = Label.new()
     crosshair.text = "+"
@@ -969,22 +1257,134 @@ func _build_ui() -> void:
 
     dynamic_reticle = DynamicReticleScript.new()
     dynamic_reticle.name = "SocomDynamicReticle"
+    dynamic_reticle.visible = true
     if weapon_controller != null:
         dynamic_reticle.apply_profile(weapon_controller.reticle_profile)
     layer.add_child(dynamic_reticle)
 
+    _build_player_status_ui(layer)
+
     _build_grenade_charge_ui(layer)
 
-    _build_calibration_overlay(layer)
-    _build_camera_workbench(layer)
-    _build_animation_studio(layer)
-    pose_tuner_panel = PoseTunerScript.new()
-    pose_tuner_panel.name = "OperatorPoseTuner"
-    layer.add_child(pose_tuner_panel)
-    pose_tuner_panel.configure(_get_animation_driver(), player)
+    if not public_training_mode:
+        _build_calibration_overlay(layer)
+        _build_camera_workbench(layer)
+        _build_animation_studio(layer)
+        pose_tuner_panel = PoseTunerScript.new()
+        pose_tuner_panel.name = "OperatorPoseTuner"
+        layer.add_child(pose_tuner_panel)
+        pose_tuner_panel.configure(_get_animation_driver(), player)
     controls_guide = ControlsGuideScript.new()
     controls_guide.name = "SocomControlsGuide"
+    controls_guide.public_player_copy = public_training_mode
     add_child(controls_guide)
+    if public_training_mode:
+        _build_public_training_navigation(layer)
+
+
+func _build_public_training_navigation(layer: CanvasLayer) -> void:
+    var title := Label.new()
+    title.name = "PublicTrainingRangeTitle"
+    title.text = "TRAINING RANGE"
+    title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    title.add_theme_font_size_override("font_size", 18)
+    title.add_theme_color_override("font_color", Color("8bc5ae"))
+    title.set_anchors_preset(Control.PRESET_CENTER_TOP)
+    title.offset_left = -130.0
+    title.offset_right = 130.0
+    title.offset_top = 16.0
+    title.offset_bottom = 48.0
+    layer.add_child(title)
+    var menu_button := Button.new()
+    menu_button.name = "TrainingRangeMainMenuButton"
+    menu_button.text = "MAIN MENU"
+    menu_button.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+    menu_button.offset_left = -142.0
+    menu_button.offset_right = -18.0
+    menu_button.offset_top = 16.0
+    menu_button.offset_bottom = 58.0
+    menu_button.pressed.connect(func():
+        ProjectSettings.set_setting("socom/session/public_training", false)
+        Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+        get_tree().change_scene_to_file("res://game_launcher.tscn")
+    )
+    layer.add_child(menu_button)
+
+
+func _build_player_status_ui(layer: CanvasLayer) -> void:
+    var panel := PanelContainer.new()
+    panel.name = "PlayerStatusHUD"
+    panel.visible = true
+    panel.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
+    panel.offset_left = 18.0
+    panel.offset_right = 250.0
+    panel.offset_top = -112.0
+    panel.offset_bottom = -18.0
+    panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    layer.add_child(panel)
+    var margin := MarginContainer.new()
+    margin.add_theme_constant_override("margin_left", 12)
+    margin.add_theme_constant_override("margin_right", 12)
+    margin.add_theme_constant_override("margin_top", 8)
+    margin.add_theme_constant_override("margin_bottom", 8)
+    panel.add_child(margin)
+    player_status_label = Label.new()
+    player_status_label.name = "PlayerHealthAmmoReadout"
+    player_status_label.add_theme_font_size_override("font_size", 15)
+    player_status_label.add_theme_color_override("font_color", Color("a9f4c0"))
+    margin.add_child(player_status_label)
+    _update_player_status_ui()
+
+
+func _update_player_status_ui() -> void:
+    if player_status_label == null or player == null:
+        return
+    var magazine := 0
+    var reserve := 0
+    var weapon_name := "Rifle"
+    if weapon_controller != null and weapon_controller.has_method("get_ammo_snapshot"):
+        var ammo: Dictionary = weapon_controller.call("get_ammo_snapshot")
+        magazine = int(ammo.get("rounds_in_magazine", 0))
+        reserve = int(ammo.get("reserve_ammo", 0))
+        weapon_name = String(ammo.get("display_name", weapon_name))
+    var weapon_state := "HOLSTERED" if grenade_equipped else "EQUIPPED"
+    var tactical_state := "RIFLE ACTIVE"
+    if grenade_equipped:
+        tactical_state = "%s EQUIPPED" % _grenade_type_name()
+    player_status_label.text = (
+        "HEALTH  %d / %d\n"
+        + "WEAPON  %s  •  %s\n"
+        + "AMMO    %d / %d\n"
+        + "GRENADES  F:%d  FL:%d  S:%d  •  %s"
+    ) % [
+        int(round(float(player.get("current_health")))),
+        int(round(float(player.get("max_health")))),
+        weapon_name.to_upper(),
+        weapon_state,
+        magazine,
+        reserve,
+        int(grenade_inventory.get("frag", 0)),
+        int(grenade_inventory.get("flash", 0)),
+        int(grenade_inventory.get("smoke", 0)),
+        tactical_state,
+    ]
+
+
+func _on_player_max_health_changed(value: float) -> void:
+    if player != null and player.has_method("configure_max_health"):
+        player.call("configure_max_health", value, true)
+    if not PlayerGameplayProfileScript.save_max_health(value):
+        push_warning("Player maximum health could not be saved.")
+    _update_player_status_ui()
+
+
+func _on_grenade_limit_changed(value: float, type_name: String) -> void:
+    var bounded := clampi(int(round(value)), 0, PlayerGameplayProfileScript.MAX_GRENADES_PER_TYPE)
+    grenade_limits[type_name] = bounded
+    grenade_inventory[type_name] = bounded
+    if not PlayerGameplayProfileScript.save_grenade_limits(grenade_limits):
+        push_warning("Player grenade limits could not be saved.")
+    _update_player_status_ui()
 
 
 func _build_grenade_charge_ui(layer: CanvasLayer) -> void:
@@ -1059,7 +1459,7 @@ func _build_camera_workbench(layer: CanvasLayer) -> void:
     spectator_viewport.add_child(spectator_camera)
 
     var legend := Label.new()
-    legend.text = "DIM = backward booms  •  CYAN = view  •  WHITE/RED = actual barrel ray (7 m scale)"
+    legend.text = "CYAN = camera sight  •  RED = muzzle shot  •  WHITE = physical weapon rail"
     legend.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
     legend.add_theme_font_size_override("font_size", 11)
     spectator_stack.add_child(legend)
@@ -1259,8 +1659,15 @@ func _update_crosshair(data: Dictionary) -> void:
     var spread_normalized := 0.0
     if weapon_controller != null:
         spread_normalized = weapon_controller.get_reticle_spread_normalized()
+    var movement_normalized := 0.0
+    if weapon_controller != null:
+        movement_normalized = weapon_controller.get_movement_ratio()
     dynamic_reticle.update_reticle_state(
-        spread_normalized, target_locked, screen_position
+        spread_normalized,
+        target_locked,
+        screen_position,
+        false,
+        movement_normalized
     )
 
 func _build_calibration_overlay(layer: CanvasLayer) -> void:
@@ -1397,6 +1804,52 @@ func _build_animation_studio(layer: CanvasLayer) -> void:
     anim_studio_state_label.add_theme_color_override("font_color", Color(0.35, 0.95, 1.0))
     vbox.add_child(anim_studio_state_label)
 
+    var player_settings_title := Label.new()
+    player_settings_title.text = "PLAYTEST PLAYER — SHARED ACROSS ALL WEAPONS"
+    player_settings_title.add_theme_color_override("font_color", Color("8ee6b0"))
+    vbox.add_child(player_settings_title)
+    var health_row := HBoxContainer.new()
+    vbox.add_child(health_row)
+    var health_label := Label.new()
+    health_label.text = "Maximum Health"
+    health_label.custom_minimum_size.x = 150.0
+    health_row.add_child(health_label)
+    player_health_spinbox = SpinBox.new()
+    player_health_spinbox.name = "PlayerMaxHealthInput"
+    player_health_spinbox.min_value = 1.0
+    player_health_spinbox.max_value = 1000.0
+    player_health_spinbox.step = 1.0
+    player_health_spinbox.value = float(player.get("max_health")) if player else 100.0
+    player_health_spinbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    player_health_spinbox.value_changed.connect(_on_player_max_health_changed)
+    health_row.add_child(player_health_spinbox)
+    var health_help := Label.new()
+    health_help.text = "Saves immediately and becomes the server-authoritative spawn health."
+    health_help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+    health_help.add_theme_font_size_override("font_size", 10)
+    vbox.add_child(health_help)
+
+    var grenade_settings_title := Label.new()
+    grenade_settings_title.text = "GRENADE LOADOUT — MAXIMUM 3 EACH"
+    grenade_settings_title.add_theme_color_override("font_color", Color("f2cf72"))
+    vbox.add_child(grenade_settings_title)
+    var grenade_row := HBoxContainer.new()
+    vbox.add_child(grenade_row)
+    for type_name in ["frag", "flash", "smoke"]:
+        var type_label := Label.new()
+        type_label.text = type_name.to_upper()
+        grenade_row.add_child(type_label)
+        var count_input := SpinBox.new()
+        count_input.name = "GrenadeLimit%s" % type_name.capitalize()
+        count_input.min_value = 0.0
+        count_input.max_value = PlayerGameplayProfileScript.MAX_GRENADES_PER_TYPE
+        count_input.step = 1.0
+        count_input.value = int(grenade_limits.get(type_name, 3))
+        count_input.custom_minimum_size.x = 58.0
+        count_input.value_changed.connect(_on_grenade_limit_changed.bind(type_name))
+        grenade_row.add_child(count_input)
+        grenade_limit_spinboxes[type_name] = count_input
+
     var reload_button := Button.new()
     reload_button.text = "Reload movement tuning JSON"
     reload_button.pressed.connect(_reload_operator_tuning)
@@ -1442,7 +1895,7 @@ func _build_animation_studio(layer: CanvasLayer) -> void:
     )
     _add_animation_tuning_slider(
         vbox, "Strafe Speed", 1.0, 10.0,
-        _tuning_value("movement", "strafe_speed", 5.6), 0.1,
+        _tuning_value("movement", "strafe_speed", 6.5), 0.1,
         "movement.strafe_speed",
         func(value: float):
             if player: player.strafe_speed = value
@@ -1457,24 +1910,24 @@ func _build_animation_studio(layer: CanvasLayer) -> void:
             _set_operator_tuning("movement", "full_gait_input_threshold", value)
     )
     _add_animation_tuning_slider(
-        vbox, "Acceleration", 4.0, 40.0,
-        _tuning_value("movement", "acceleration", 18.0), 0.5,
+        vbox, "Acceleration", 4.0, 160.0,
+        _tuning_value("movement", "acceleration", 45.0), 0.5,
         "movement.acceleration",
         func(value: float):
             if player: player.acceleration = value
             _set_operator_tuning("movement", "acceleration", value)
     )
     _add_animation_tuning_slider(
-        vbox, "Braking", 4.0, 50.0,
-        _tuning_value("movement", "braking_acceleration", 26.0), 0.5,
+        vbox, "Braking", 4.0, 160.0,
+        _tuning_value("movement", "braking_acceleration", 60.0), 0.5,
         "movement.braking_acceleration",
         func(value: float):
             if player: player.braking_acceleration = value
             _set_operator_tuning("movement", "braking_acceleration", value)
     )
     _add_animation_tuning_slider(
-        vbox, "Reversal", 4.0, 50.0,
-        _tuning_value("movement", "reversal_acceleration", 22.0), 0.5,
+        vbox, "Reversal", 4.0, 160.0,
+        _tuning_value("movement", "reversal_acceleration", 90.0), 0.5,
         "movement.reversal_acceleration",
         func(value: float):
             if player: player.reversal_acceleration = value
@@ -1652,13 +2105,18 @@ func _default_operator_tuning() -> Dictionary:
         "studio_open_on_start": false,
         "movement": {
             "move_speed": 6.5,
-            "strafe_speed": 5.6,
+            "strafe_speed": 6.5,
+            "instant_strafe_response": true,
             "full_gait_input_threshold": 0.72,
             "crouch_speed": 2.6,
             "prone_speed": 1.25,
-            "acceleration": 18.0,
-            "braking_acceleration": 26.0,
-            "reversal_acceleration": 22.0,
+            "acceleration": 45.0,
+            "braking_acceleration": 60.0,
+            "reversal_acceleration": 90.0,
+            "strafe_burst_frames": 2,
+            "strafe_burst_multiplier": 1.18,
+            "strafe_burst_decay_seconds": 0.12,
+            "strafe_chain_window_seconds": 0.70,
             "torso_to_legs_degrees": 42.0,
         },
         "animation": {
@@ -1707,18 +2165,35 @@ func _load_operator_tuning() -> void:
 func _apply_operator_tuning() -> void:
     if player != null:
         player.move_speed = _tuning_value("movement", "move_speed", 6.5)
-        player.strafe_speed = _tuning_value("movement", "strafe_speed", 5.6)
+        player.strafe_speed = _tuning_value("movement", "strafe_speed", 6.5)
+        var movement_section: Variant = operator_tuning.get("movement", {})
+        if movement_section is Dictionary:
+            player.instant_strafe_response = bool(
+                (movement_section as Dictionary).get("instant_strafe_response", true)
+            )
         player.full_gait_input_threshold = _tuning_value(
             "movement", "full_gait_input_threshold", 0.72
         )
         player.crouch_speed = _tuning_value("movement", "crouch_speed", 2.6)
         player.prone_speed = _tuning_value("movement", "prone_speed", 1.25)
-        player.acceleration = _tuning_value("movement", "acceleration", 18.0)
+        player.acceleration = _tuning_value("movement", "acceleration", 45.0)
         player.braking_acceleration = _tuning_value(
-            "movement", "braking_acceleration", 26.0
+            "movement", "braking_acceleration", 60.0
         )
         player.reversal_acceleration = _tuning_value(
-            "movement", "reversal_acceleration", 22.0
+            "movement", "reversal_acceleration", 90.0
+        )
+        player.strafe_burst_frames = int(round(_tuning_value(
+            "movement", "strafe_burst_frames", 2.0
+        )))
+        player.strafe_burst_multiplier = _tuning_value(
+            "movement", "strafe_burst_multiplier", 1.18
+        )
+        player.strafe_burst_decay_seconds = _tuning_value(
+            "movement", "strafe_burst_decay_seconds", 0.12
+        )
+        player.strafe_chain_window_seconds = _tuning_value(
+            "movement", "strafe_chain_window_seconds", 0.70
         )
         player.torso_turn_in_place_limit_deg = _tuning_value(
             "movement", "torso_to_legs_degrees", 42.0

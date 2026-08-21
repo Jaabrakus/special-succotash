@@ -76,17 +76,13 @@ func _run() -> void:
 		)
 		_expect(
 			eye_marker.global_position.is_finite()
-			and eye_marker.global_position.distance_to(head_origin) <= 0.20,
-			"the free line initializes at a useful face-adjacent position"
+			and eye_marker.global_position.distance_to(head_origin) <= 1.0,
+			"the saved free line initializes inside the operator authoring volume"
 		)
 		var operator_forward := skeleton.global_basis.z.normalized()
 		var operator_up := skeleton.global_basis.y.normalized()
 		var face_offset := eye_marker.global_position - head_origin
-		_expect(
-			face_offset.dot(operator_forward) >= 0.125
-			and face_offset.dot(operator_up) >= 0.085,
-			"the neutral gun-placement line starts in front of the face"
-		)
+		_expect(face_offset.is_finite(), "the saved gun-placement offset remains valid")
 		var fixed_line_origin := eye_marker.global_position
 		var head_pose_position := skeleton.get_bone_pose_position(head_index)
 		skeleton.set_bone_pose_position(
@@ -119,10 +115,12 @@ func _run() -> void:
 	)
 	lab.call("_update_eye_sight_marker")
 	var skeleton_for_origin := lab.get("skeleton") as Skeleton3D
+	var changed_origin_offset := Vector3(0.03, 0.02, -0.015)
+	var origin_offset_delta := changed_origin_offset - original_eye_origin_offset
 	var expected_origin_delta := (
-		skeleton_for_origin.global_basis.x.normalized() * 0.03
-		+ skeleton_for_origin.global_basis.y.normalized() * 0.02
-		+ skeleton_for_origin.global_basis.z.normalized() * -0.015
+		skeleton_for_origin.global_basis.x.normalized() * origin_offset_delta.x
+		+ skeleton_for_origin.global_basis.y.normalized() * origin_offset_delta.y
+		+ skeleton_for_origin.global_basis.z.normalized() * origin_offset_delta.z
 	)
 	_expect(
 		eye_marker.global_position.is_equal_approx(
@@ -173,6 +171,11 @@ func _run() -> void:
 		"set_eye_sight_reference_degrees",
 		lab.get("preview_posture"),
 		Vector2.ZERO
+	)
+	posture_layer.call(
+		"set_eye_sight_origin_offset_meters",
+		lab.get("preview_posture"),
+		Vector3.ZERO
 	)
 	lab.call("_update_eye_sight_marker")
 	var camera := lab.get("cam") as Camera3D

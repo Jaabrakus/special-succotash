@@ -2,3 +2,22 @@
 .DS_Store
 tmp/
 tools/apple_mocap/apple_mocap_extract
+
+# Release output and local signing material.
+builds/*
+!builds/.gdignore
+dist/
+*.p12
+*.pfx
+*.pem
+*.key
+*.keystore
+
+# Never commit local credentials or private release material.
+.env
+.env.*
+!.env.example
+private/
+private_assets/
+server_secrets/
+config/supabase.json

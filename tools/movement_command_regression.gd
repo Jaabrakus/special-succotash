@@ -58,10 +58,51 @@ func _run() -> void:
 	player.velocity = Vector3.ZERO
 	player.call("set_local_input_enabled", true)
 	await _steps(2)
+	await _check_latest_lateral_input_wins(player)
 	await _check_stance_clearance(scene, player)
 	await _check_committed_action_collision(scene, player)
 	scene.queue_free()
 	_finish()
+
+
+func _check_latest_lateral_input_wins(player: CharacterBody3D) -> void:
+	Input.action_press(&"move_left")
+	await physics_frame
+	Input.action_press(&"move_right")
+	await physics_frame
+	var command = player.call("get_last_movement_command")
+	_expect(
+		command != null and command.move_axis.x > 0.99,
+		"D overrides a held A as the newest lateral input"
+	)
+	Input.action_release(&"move_right")
+	await physics_frame
+	command = player.call("get_last_movement_command")
+	_expect(
+		command != null and command.move_axis.x < -0.99,
+		"releasing D falls back to the A that remains held"
+	)
+	Input.action_release(&"move_left")
+	await physics_frame
+
+	Input.action_press(&"move_right")
+	await physics_frame
+	Input.action_press(&"move_left")
+	await physics_frame
+	command = player.call("get_last_movement_command")
+	_expect(
+		command != null and command.move_axis.x < -0.99,
+		"A overrides a held D as the newest lateral input"
+	)
+	Input.action_release(&"move_left")
+	await physics_frame
+	command = player.call("get_last_movement_command")
+	_expect(
+		command != null and command.move_axis.x > 0.99,
+		"releasing A falls back to the D that remains held"
+	)
+	Input.action_release(&"move_right")
+	await physics_frame
 
 
 func _check_stance_clearance(scene: Node, player: CharacterBody3D) -> void:

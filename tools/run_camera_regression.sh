@@ -6,23 +6,23 @@ godot_bin="${GODOT_BIN:-/Users/kiwimango/Downloads/Godot.app/Contents/MacOS/Godo
 report_dir="${TMPDIR:-/private/tmp}/socom-camera-regression"
 mkdir -p "$report_dir"
 
-"$godot_bin" --headless --log-file "$report_dir/wall-entry.log" --path "$project_dir" --quit-after 660 -- \
+"$godot_bin" --headless --log-file "$report_dir/wall-entry.log" --path "$project_dir" res://main.tscn --quit-after 660 -- \
   --automated-test --wall-entry-test --wall-audit-report --transition-audit --clean-hud >/dev/null
-"$godot_bin" --headless --log-file "$report_dir/wall-turn.log" --path "$project_dir" --quit-after 730 -- \
+"$godot_bin" --headless --log-file "$report_dir/wall-turn.log" --path "$project_dir" res://main.tscn --quit-after 730 -- \
   --automated-test --wall-test --wall-turn-test --wall-audit-report --clean-hud >/dev/null
-"$godot_bin" --headless --log-file "$report_dir/wall-follow.log" --path "$project_dir" --quit-after 650 -- \
+"$godot_bin" --headless --log-file "$report_dir/wall-follow.log" --path "$project_dir" res://main.tscn --quit-after 650 -- \
   --automated-test --wall-follow-test --wall-audit-report --clean-hud >/dev/null
-"$godot_bin" --headless --log-file "$report_dir/interior.log" --path "$project_dir" --quit-after 610 -- \
+"$godot_bin" --headless --log-file "$report_dir/interior.log" --path "$project_dir" res://main.tscn --quit-after 610 -- \
   --automated-test --interior-turn-test --wall-audit-report --camera-report --clean-hud >/dev/null
-"$godot_bin" --headless --log-file "$report_dir/roof.log" --path "$project_dir" --quit-after 180 -- \
+"$godot_bin" --headless --log-file "$report_dir/roof.log" --path "$project_dir" res://main.tscn --quit-after 180 -- \
   --automated-test --roof-test --downward-aim-test --camera-report --clean-hud >/dev/null
-"$godot_bin" --headless --log-file "$report_dir/prone.log" --path "$project_dir" --quit-after 150 -- \
+"$godot_bin" --headless --log-file "$report_dir/prone.log" --path "$project_dir" res://main.tscn --quit-after 150 -- \
   --automated-test --prone-camera-test --camera-report --clean-hud >/dev/null
-"$godot_bin" --headless --log-file "$report_dir/audit-recorder.log" --path "$project_dir" --quit-after 150 -- \
+"$godot_bin" --headless --log-file "$report_dir/audit-recorder.log" --path "$project_dir" res://main.tscn --quit-after 150 -- \
   --automated-test --movement-test --audit-record-test --clean-hud >/dev/null
-"$godot_bin" --headless --log-file "$report_dir/multiplayer-contract.log" --path "$project_dir" --quit-after 90 -- \
+"$godot_bin" --headless --log-file "$report_dir/multiplayer-contract.log" --path "$project_dir" res://main.tscn --quit-after 90 -- \
   --automated-test --multiplayer-contract-test --clean-hud >/dev/null
-"$godot_bin" --headless --log-file "$report_dir/multiplayer-wall-contract.log" --path "$project_dir" --quit-after 90 -- \
+"$godot_bin" --headless --log-file "$report_dir/multiplayer-wall-contract.log" --path "$project_dir" res://main.tscn --quit-after 90 -- \
   --automated-test --wall-follow-test --multiplayer-contract-test --clean-hud >/dev/null
 "$godot_bin" --headless --log-file "$report_dir/weapon-fire.log" --path "$project_dir" \
   --script res://tools/weapon_fire_regression.gd >/dev/null

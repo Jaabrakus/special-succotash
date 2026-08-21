@@ -40,6 +40,8 @@ extends Resource
 @export_range(6.0, 20.0, 1.0) var mouse_string_deadzone_radius_px: float = 10.0
 @export_range(3.0, 8.0, 0.5) var mouse_string_blue_radius_px: float = 5.0
 @export_range(24.0, 72.0, 1.0) var mouse_string_max_lead_px: float = 40.0
+@export_range(0.0, 20.0, 1.0) var mouse_string_instability_deadzone_gain_px: float = 10.0
+@export_range(0.0, 48.0, 1.0) var mouse_string_instability_lead_gain_px: float = 28.0
 @export_range(8.0, 40.0, 0.5) var mouse_string_aim_yaw_response: float = 28.0
 @export_range(8.0, 40.0, 0.5) var mouse_string_aim_pitch_response: float = 30.0
 @export_range(0.0, 1.0, 0.05) var mouse_string_debug_opacity: float = 0.90
@@ -64,7 +66,8 @@ extends Resource
 @export var steep_downward_fov: float = 42.0
 @export var downward_fov_response: float = 12.0
 @export var max_downward_camera_raise: float = 1.90
-@export var mid_downward_ledge_raise: float = 0.90
+# Keep a small parapet assist without the old 0.90 m mid-pitch camera hump.
+@export var mid_downward_ledge_raise: float = 0.18
 @export var max_downward_camera_forward: float = 2.90
 @export var max_downward_camera_side: float = 0.0
 @export_range(0.0, 1.0, 0.001) var downward_aim_head_y: float = 0.85
@@ -78,7 +81,7 @@ extends Resource
 ## The former 45 m / 2 degree zero visibly crossed after the range targets and
 ## made correctly aimed shots land low.
 @export var minimum_ballistic_convergence_distance: float = 12.0
-@export_range(0.5, 15.0, 0.25) var maximum_convergence_angle_deg: float = 6.0
+@export_range(0.5, 15.0, 0.25) var maximum_convergence_angle_deg: float = 8.0
 
 @export_group("Screen-space Framing")
 @export_range(0.0, 1.0, 0.001) var desired_head_x: float = 0.50
@@ -136,6 +139,8 @@ extends Resource
 # removed the close orbit needed to glide past a wall behind the operator.
 @export var camera_collision_radius: float = 0.12
 @export var collision_margin: float = 0.025
+@export var hold_rendered_camera_on_obstruction: bool = true
+@export_range(0.05, 0.30, 0.01) var obstruction_release_delay: float = 0.14
 @export var min_distance: float = 2.20
 @export var collision_close_distance: float = 1.35
 @export var min_subject_camera_distance: float = 1.00
@@ -190,3 +195,9 @@ extends Resource
 @export_group("Response")
 @export var obstruction_response: float = 24.0
 @export var normal_return_response: float = 7.0
+
+@export_group("Damage Feedback")
+@export_range(0.08, 0.40, 0.01) var head_impact_duration_seconds: float = 0.22
+@export_range(0.0, 16.0, 0.5) var head_impact_pitch_deg: float = 9.0
+@export_range(0.0, 10.0, 0.5) var head_impact_yaw_deg: float = 4.0
+@export_range(0.0, 12.0, 0.5) var head_impact_roll_deg: float = 6.5

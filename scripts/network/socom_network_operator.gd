@@ -13,12 +13,12 @@ signal eliminated(victim_peer_id: int, attacker_peer_id: int)
 var network_peer_id: int = 0
 var team_id: int = 0
 var display_name: String = "OPERATOR"
-var max_health: float = 100.0
-var current_health: float = 100.0
 var alive: bool = true
 var mannequin: SocomTestMannequin
 var hurtbox_rig: SocomAnimatedHurtboxRig
 var nameplate: Label3D
+var team_visual_color := Color.WHITE
+var carrying_demolition_bomb: bool = false
 
 
 var snapshot_history: Array[Dictionary] = []
@@ -48,8 +48,10 @@ func configure_identity(peer_id: int, assigned_team: int) -> void:
 	network_peer_id = peer_id
 	team_id = assigned_team
 	display_name = "SEAL %d" % peer_id
+	team_visual_color = Color("579fe8") if team_id == 0 else Color("d65a4a")
 	if nameplate:
 		_refresh_nameplate()
+	call_deferred("_apply_team_visual")
 
 
 func set_replica_mode(enabled: bool) -> void:
@@ -186,6 +188,13 @@ func respawn_at(spawn_position: Vector3) -> void:
 	motion_state = MotionState.STANDING
 	_apply_posture_collider()
 	_set_alive_and_health(true, max_health)
+	set_bomb_carrier(false)
+
+
+func set_bomb_carrier(active: bool) -> void:
+	carrying_demolition_bomb = active
+	if mannequin != null:
+		mannequin.set_bomb_backpack_visible(active)
 
 
 func take_bullet_damage_region(
@@ -194,14 +203,15 @@ func take_bullet_damage_region(
 	_hit_position: Vector3,
 	_hit_normal: Vector3,
 	_shooter_origin: Vector3 = Vector3.ZERO,
-	attacker_peer_id: int = 0
+	attacker_peer_id: int = 0,
+	headshot_multiplier: float = 3.5
 ) -> Dictionary:
 	if not multiplayer.is_server() or not alive:
 		return {"accepted": false, "hit_region": hit_region}
 	var region := String(hit_region)
 	var multiplier := 1.0
 	if region == "HEAD":
-		multiplier = 2.45
+		multiplier = clampf(headshot_multiplier, 1.0, 10.0)
 	elif (
 		"ARM" in region
 		or "LEG" in region
@@ -223,6 +233,29 @@ func take_bullet_damage_region(
 		"accepted": true,
 		"hit_region": hit_region,
 		"headshot": region == "HEAD",
+		"damage": damage,
+		"remaining_health": current_health,
+		"eliminated": not alive,
+		"victim_peer_id": network_peer_id,
+	}
+
+
+func take_explosion_damage(
+	damage_value: float,
+	_explosion_origin: Vector3,
+	attacker_peer_id: int = 0
+) -> Dictionary:
+	if not multiplayer.is_server() or not alive:
+		return {"accepted": false}
+	var damage := maxf(0.0, damage_value)
+	current_health = maxf(0.0, current_health - damage)
+	if current_health <= 0.0:
+		_set_alive_and_health(false, 0.0)
+		eliminated.emit(network_peer_id, attacker_peer_id)
+	else:
+		_refresh_nameplate()
+	return {
+		"accepted": damage > 0.0,
 		"damage": damage,
 		"remaining_health": current_health,
 		"eliminated": not alive,
@@ -283,10 +316,48 @@ func _refresh_nameplate() -> void:
 		else "%s  ELIMINATED" % display_name
 	)
 	nameplate.modulate = (
-		Color(0.35, 0.82, 1.0)
+		Color("69b8ff")
 		if team_id == 0
-		else Color(1.0, 0.45, 0.32)
+		else Color("ff6d5c")
 	)
+
+
+func _apply_team_visual() -> void:
+	if mannequin == null or DisplayServer.get_name() == "headless":
+		return
+	var tint := Color("7fb9ea") if team_id == 0 else Color("e88476")
+	for node: Node in mannequin.find_children("*", "MeshInstance3D", true, false):
+		var mesh_instance := node as MeshInstance3D
+		if mesh_instance == null or mesh_instance.mesh == null:
+			continue
+		var ancestor: Node = mesh_instance
+		var is_wearable := false
+		while ancestor != null and ancestor != mannequin:
+			if ancestor.has_meta("socom_wearable"):
+				is_wearable = true
+				break
+			ancestor = ancestor.get_parent()
+		if is_wearable:
+			continue
+		var lower_name := mesh_instance.name.to_lower()
+		if "weapon" in lower_name or "rifle" in lower_name or "magazine" in lower_name or "muzzle" in lower_name:
+			continue
+		for surface_index in mesh_instance.mesh.get_surface_count():
+			var source := mesh_instance.get_surface_override_material(surface_index)
+			if source == null:
+				source = mesh_instance.mesh.surface_get_material(surface_index)
+			var material: BaseMaterial3D
+			if source is BaseMaterial3D:
+				material = (source as BaseMaterial3D).duplicate() as BaseMaterial3D
+			else:
+				material = StandardMaterial3D.new()
+			material.albedo_color = Color(
+				material.albedo_color.r * tint.r,
+				material.albedo_color.g * tint.g,
+				material.albedo_color.b * tint.b,
+				material.albedo_color.a
+			)
+			mesh_instance.set_surface_override_material(surface_index, material)
 
 
 func _bind_animated_hurtboxes() -> void:

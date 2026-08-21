@@ -246,6 +246,7 @@ func get_debug_state() -> Dictionary:
 		"default_hip_roll_input_deg": last_default_hip_roll_input_deg,
 		"default_hip_roll_trim_deg": last_default_hip_roll_trim_deg,
 		"default_hip_roll_output_deg": last_default_hip_roll_output_deg,
+		"animation_frame_rotation_override_count": animation_frame_rotation_overrides.size(),
 	}
 
 

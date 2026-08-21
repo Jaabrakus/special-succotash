@@ -61,6 +61,9 @@ const DEFAULT_CLIPS: Dictionary = {
 	&"crouch_to_stand": "res://assets/animations/mixamo/Crouch To Standing With Rifle.fbx",
 	&"grenade_toss": "res://assets/animations/mixamo/toss grenade.fbx",
 	&"grenade_throw": "res://assets/animations/mixamo/Throw Grenade.fbx",
+	# Loaded from the standing toss take, then replaced at runtime by a crouch-base
+	# composite whose only overridden region is the right throwing arm.
+	&"crouch_grenade_toss": "res://assets/animations/mixamo/toss grenade.fbx",
 	&"jump_forward_action": "res://assets/animations/mixamo/Shooter Pack/jump forward.fbx",
 	&"jump_backward_action": "res://assets/animations/mixamo/Jump Away.fbx",
 	&"prone_stop_forward": "res://assets/animations/mixamo/Prone Forward Stop.fbx",
@@ -157,8 +160,18 @@ const DEFAULT_SEMANTIC_ACTIONS: Dictionary = {
 		"PRONE": "prone_reload",
 		"ANY": "reload",
 	},
-	"grenade_quick": {"ANY": "grenade_toss"},
-	"grenade_full": {"ANY": "grenade_throw"},
+	"grenade_quick": {
+		"STANDING": "grenade_toss",
+		"CROUCHED": "crouch_grenade_toss",
+		"PRONE": "grenade_throw",
+		"ANY": "grenade_toss",
+	},
+	"grenade_full": {
+		"STANDING": "grenade_toss",
+		"CROUCHED": "crouch_grenade_toss",
+		"PRONE": "grenade_throw",
+		"ANY": "grenade_toss",
+	},
 	"climb": {"ANY": "climb"},
 	"death_right": {"ANY": "death_right"},
 	"jump_forward": {"ANY": "jump_forward_action"},

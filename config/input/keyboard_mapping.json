@@ -1,0 +1,90 @@
+{
+  "bindings": {
+    "crouch": [
+      {
+        "button_index": 2,
+        "type": "mouse"
+      }
+    ],
+    "dive": [
+      {
+        "physical_keycode": 90,
+        "type": "key"
+      }
+    ],
+    "equip_grenade": [
+      {
+        "physical_keycode": 71,
+        "type": "key"
+      }
+    ],
+    "fire": [
+      {
+        "button_index": 1,
+        "type": "mouse"
+      }
+    ],
+    "interact": [
+      {
+        "physical_keycode": 70,
+        "type": "key"
+      }
+    ],
+    "jump": [
+      {
+        "button_index": 5,
+        "type": "mouse"
+      }
+    ],
+    "move_back": [
+      {
+        "physical_keycode": 83,
+        "type": "key"
+      }
+    ],
+    "move_forward": [
+      {
+        "physical_keycode": 87,
+        "type": "key"
+      }
+    ],
+    "move_left": [
+      {
+        "physical_keycode": 65,
+        "type": "key"
+      }
+    ],
+    "move_right": [
+      {
+        "physical_keycode": 68,
+        "type": "key"
+      }
+    ],
+    "peek_left": [
+      {
+        "physical_keycode": 81,
+        "type": "key"
+      }
+    ],
+    "peek_right": [
+      {
+        "physical_keycode": 69,
+        "type": "key"
+      }
+    ],
+    "reload_weapon": [
+      {
+        "physical_keycode": 82,
+        "type": "key"
+      }
+    ],
+    "reset_camera": [
+      {
+        "physical_keycode": 4194317,
+        "type": "key"
+      }
+    ]
+  },
+  "purpose": "Shared player controls loaded by gameplay, in-game Controls, and the Keyboard Mapping Lab",
+  "schema_version": 1
+}

@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "max_health": 100.0,
+  "grenade_limits": {
+    "frag": 3,
+    "flash": 3,
+    "smoke": 3
+  }
+}

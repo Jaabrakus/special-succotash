@@ -1,5 +1,34 @@
 {
   "application_order": "after_animation_before_aim_and_weapon_ik",
+  "eye_sight_references": {
+    "CROUCHED": {
+      "origin_offset_meters": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "pitch": 0.0,
+      "yaw": 0.0
+    },
+    "PRONE": {
+      "origin_offset_meters": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "pitch": 0.0,
+      "yaw": 0.0
+    },
+    "STANDING": {
+      "origin_offset_meters": {
+        "x": -0.162499964237213,
+        "y": -0.0974999964237213,
+        "z": 0.0900000035762787
+      },
+      "pitch": 0.75,
+      "yaw": -1.0
+    }
+  },
   "postures": {
     "CROUCHED": {
       "head": {
@@ -117,9 +146,9 @@
     },
     "STANDING": {
       "head": {
-        "pitch": 5.5,
+        "pitch": -12.25,
         "roll": 2.5,
-        "yaw": -21.0
+        "yaw": -28.75
       },
       "left_forearm": {
         "pitch": 0.0,
@@ -127,19 +156,19 @@
         "yaw": 0.0
       },
       "left_shoulder": {
-        "pitch": 0.200000002980232,
+        "pitch": -2.99999952316284,
         "roll": -0.300001353025436,
-        "yaw": -0.100000001490116
+        "yaw": 0.349999964237213
       },
       "left_upper_arm": {
-        "pitch": 1.0,
+        "pitch": -15.0,
         "roll": -1.5,
-        "yaw": -0.5
+        "yaw": 1.75
       },
       "neck": {
-        "pitch": 3.02499938011169,
+        "pitch": -6.73750448226929,
         "roll": 1.37500035762787,
-        "yaw": -11.5500001907349
+        "yaw": -15.8124895095825
       },
       "right_forearm": {
         "pitch": 0.0,
@@ -157,22 +186,22 @@
         "yaw": 0.0
       },
       "spine": {
-        "pitch": 0.0,
+        "pitch": 3.50625061988831,
         "roll": 3.19999980926514,
-        "yaw": 0.0
+        "yaw": -12.0
       },
       "spine1": {
-        "pitch": 0.550000131130219,
+        "pitch": 11.6625061035156,
         "roll": 6.0,
-        "yaw": -2.10000014305115
+        "yaw": -15.125
       },
       "spine2": {
-        "pitch": 1.375,
+        "pitch": -4.8125,
         "roll": 8.0,
-        "yaw": -5.25
+        "yaw": -15.9375
       }
     }
   },
-  "schema_version": 1,
+  "schema_version": 3,
   "space": "local_additive_degrees"
 }

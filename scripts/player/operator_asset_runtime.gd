@@ -9,8 +9,11 @@ const TROOPER_TEXTURE := preload("res://assets/characters/ps1_gas_mask_soldier/t
 const AK47_SCENE := preload("res://assets/weapons/ps1_ak47/source/ak-47.fbx")
 const AK47_TEXTURE := preload("res://assets/weapons/ps1_ak47/textures/AK-47TextureMap.png")
 const ROOT_SANITIZER := preload("res://scripts/player/operator_animation_root_sanitizer.gd")
+const ANIMATION_LAYER_COMPOSER := preload("res://scripts/labs/animation_layer_composer.gd")
 const WEAPON_CONTRACT := preload("res://scripts/weapons/weapon_rig_contract.gd")
+const BACKPACK_VISUAL := preload("res://scripts/player/operator_backpack_visual.gd")
 const WEAPON_LOADOUT_PATH := "res://config/weapons/operator_loadout.json"
+const OPERATOR_GEAR_PATH := "res://config/operator_gear.json"
 
 var model_root: Node3D
 var animation_player: AnimationPlayer
@@ -22,6 +25,9 @@ var calibrated_weapon_pivot: Node3D
 var weapon_sockets: Dictionary = {}
 var reload_magazine_attachment: BoneAttachment3D
 var reload_magazine_visual: MeshInstance3D
+var backpack_attachment: BoneAttachment3D
+var backpack_node: Node3D
+var backpack_config: Dictionary = {}
 var _base_weapon_pivot_position := Vector3.ZERO
 var _base_weapon_pivot_rotation := Vector3.ZERO
 var _base_socket_positions: Dictionary = {}
@@ -62,6 +68,7 @@ func build(
 	animation_player.owner = model_root
 	animation_player.root_node = animation_player.get_path_to(skeleton)
 	_attach_weapon()
+	_attach_wearable_backpack()
 	_attach_reload_magazine_visual()
 	_build_animation_library()
 	return get_runtime()
@@ -75,6 +82,8 @@ func get_runtime() -> Dictionary:
 		"weapon_attachment": weapon_attachment,
 		"weapon_node": weapon_node,
 		"reload_magazine_visual": reload_magazine_visual,
+		"backpack_attachment": backpack_attachment,
+		"backpack_node": backpack_node,
 		"animation_library": animation_library,
 		"available_clips": available_clips,
 		"source_animation_names": source_animation_names,
@@ -89,6 +98,8 @@ func set_operator_scale(new_scale: float) -> void:
 		var inverse_scale := 1.0 / operator_scale
 		weapon_node.position = grip_position * inverse_scale
 		weapon_node.scale = Vector3.ONE * inverse_scale
+	if backpack_node != null:
+		_apply_backpack_transform()
 
 
 func get_source_animation_name(clip_name: StringName) -> StringName:
@@ -221,6 +232,59 @@ func _attach_reload_magazine_visual() -> void:
 	reload_magazine_attachment.add_child(reload_magazine_visual)
 
 
+func _attach_wearable_backpack() -> void:
+	backpack_config = _load_operator_gear_config().get("backpack", {})
+	if not bool(backpack_config.get("enabled", true)):
+		return
+	var requested_bone := String(backpack_config.get("bone_name", "mixamorig_Spine2"))
+	var bone_name := requested_bone
+	if skeleton.find_bone(bone_name) < 0:
+		for fallback in ["mixamorig_Spine2", "mixamorig_Spine1", "mixamorig_Spine"]:
+			if skeleton.find_bone(fallback) >= 0:
+				bone_name = fallback
+				break
+	if skeleton.find_bone(bone_name) < 0:
+		return
+	backpack_attachment = BoneAttachment3D.new()
+	backpack_attachment.name = "BackpackAttachment"
+	backpack_attachment.bone_name = bone_name
+	skeleton.add_child(backpack_attachment)
+	backpack_node = BACKPACK_VISUAL.build(backpack_config)
+	backpack_attachment.add_child(backpack_node)
+	_apply_backpack_transform()
+	backpack_node.visible = false
+
+
+func _apply_backpack_transform() -> void:
+	if backpack_node == null:
+		return
+	var inverse_scale := 1.0 / maxf(operator_scale, 0.001)
+	backpack_node.position = _vector3_from_map(
+		backpack_config.get("position", {}),
+		Vector3(0.0, 0.04, 0.19)
+	) * inverse_scale
+	backpack_node.rotation_degrees = _vector3_from_map(
+		backpack_config.get("rotation_degrees", {}),
+		Vector3.ZERO
+	)
+	backpack_node.scale = Vector3.ONE * inverse_scale * clampf(float(backpack_config.get("scale", 1.0)), 0.4, 1.8)
+
+
+func _load_operator_gear_config() -> Dictionary:
+	if not FileAccess.file_exists(OPERATOR_GEAR_PATH):
+		return {}
+	var file := FileAccess.open(OPERATOR_GEAR_PATH, FileAccess.READ)
+	if file == null:
+		return {}
+	var parsed: Variant = JSON.parse_string(file.get_as_text())
+	return parsed as Dictionary if parsed is Dictionary else {}
+
+
+func set_bomb_backpack_visible(enabled: bool) -> void:
+	if backpack_node != null:
+		backpack_node.visible = enabled
+
+
 func update_reload_magazine_visual(timeline: Dictionary, visible: bool) -> void:
 	if reload_magazine_visual == null or reload_magazine_attachment == null:
 		return
@@ -349,13 +413,31 @@ func _attach_calibrated_weapon(config: Dictionary) -> bool:
 	return true
 
 
-func apply_animation_hand_map(resource_path: String, explicit_stance: StringName = &"") -> bool:
+func apply_animation_hand_map(
+	resource_path: String,
+	explicit_stance: StringName = &"",
+	clip_key: StringName = &""
+) -> bool:
 	_restore_weapon_map_baseline()
 	if resource_path.is_empty() or equipped_weapon_config.is_empty():
 		return false
 	var raw_map: Variant = {}
 	var stances_dict: Variant = equipped_weapon_config.get("stances", {})
-	if stances_dict is Dictionary:
+	# A specifically authored animation map is the closest source of truth.
+	# Stance hands remain the fallback for locomotion clips that have no map.
+	var raw_maps: Variant = equipped_weapon_config.get("animation_hand_maps", {})
+	if (not raw_map is Dictionary or (raw_map as Dictionary).is_empty()) and raw_maps is Dictionary:
+		var maps := raw_maps as Dictionary
+		if clip_key != &"":
+			raw_map = maps.get(String(clip_key), {})
+		if not (raw_map is Dictionary) or (raw_map as Dictionary).is_empty():
+			raw_map = maps.get(resource_path, {})
+		if not (raw_map is Dictionary) or (raw_map as Dictionary).is_empty():
+			for candidate_path in maps.keys():
+				if String(candidate_path).get_file() == resource_path.get_file():
+					raw_map = maps[candidate_path]
+					break
+	if (not (raw_map is Dictionary) or (raw_map as Dictionary).is_empty()) and stances_dict is Dictionary:
 		var stance_key := String(explicit_stance).to_upper()
 		if stance_key not in ["STANDING", "CROUCHED", "PRONE"] and "prone" in resource_path.to_lower():
 			stance_key = "PRONE"
@@ -365,20 +447,23 @@ func apply_animation_hand_map(resource_path: String, explicit_stance: StringName
 			stance_key = "STANDING"
 		if not stance_key.is_empty() and (stances_dict as Dictionary).has(stance_key):
 			raw_map = (stances_dict as Dictionary)[stance_key]
-
-	if not (raw_map is Dictionary) or (raw_map as Dictionary).is_empty():
-		var raw_maps: Variant = equipped_weapon_config.get("animation_hand_maps", {})
-		if raw_maps is Dictionary:
-			var maps := raw_maps as Dictionary
-			raw_map = maps.get(resource_path, {})
-			if not raw_map is Dictionary or (raw_map as Dictionary).is_empty():
-				for candidate_path in maps.keys():
-					if String(candidate_path).get_file() == resource_path.get_file() or String(candidate_path) == resource_path:
-						raw_map = maps[candidate_path]
-						break
 	if not raw_map is Dictionary or (raw_map as Dictionary).is_empty():
 		return false
-	var hand_map := raw_map as Dictionary
+	var hand_map := (raw_map as Dictionary).duplicate(true)
+	var standing_master_pose := _standing_master_pose_for(
+		explicit_stance,
+		resource_path,
+		clip_key
+	)
+	if not standing_master_pose.is_empty():
+		hand_map["left_grip"] = standing_master_pose.get(
+			"support_grip",
+			hand_map.get("left_grip", {})
+		)
+		hand_map["right_grip"] = standing_master_pose.get(
+			"trigger_grip",
+			hand_map.get("right_grip", {})
+		)
 	# The top-level grip_offset is the single weapon master anchor. Legacy
 	# stance and clip maps may contain mount fields, but runtime must ignore them
 	# so animation changes cannot teleport or rotate the rifle.
@@ -391,7 +476,14 @@ func apply_animation_hand_map(resource_path: String, explicit_stance: StringName
 		hand_map.get("right_grip", hand_map.get("right_hand_target", {}))
 	)
 	if weapon_node != null:
-		weapon_node.set_meta("active_animation_hand_map", resource_path)
+		weapon_node.set_meta(
+			"active_animation_hand_map",
+			String(clip_key) if clip_key != &"" else resource_path
+		)
+		weapon_node.set_meta(
+			"standing_master_pose_active",
+			not standing_master_pose.is_empty()
+		)
 		weapon_node.set_meta("support_hand_pose", {
 			"palm_pitch_deg": float(hand_map.get("palm_pitch_deg", 0.0)),
 			"palm_yaw_deg": float(hand_map.get("palm_yaw_deg", 0.0)),
@@ -400,6 +492,25 @@ func apply_animation_hand_map(resource_path: String, explicit_stance: StringName
 			"thumb_wrap": float(hand_map.get("thumb_wrap", 0.0)),
 		})
 	return true
+
+
+func _standing_master_pose_for(
+	explicit_stance: StringName,
+	resource_path: String,
+	clip_key: StringName
+) -> Dictionary:
+	if String(explicit_stance).to_upper() != "STANDING":
+		return {}
+	var action_text := "%s %s" % [String(clip_key), resource_path]
+	if "reload" in action_text.to_lower():
+		return {}
+	var handling: Variant = equipped_weapon_config.get("handling_profile", {})
+	if not handling is Dictionary:
+		return {}
+	var raw_master: Variant = (handling as Dictionary).get("standing_master_pose", {})
+	if not raw_master is Dictionary or not bool((raw_master as Dictionary).get("enabled", false)):
+		return {}
+	return (raw_master as Dictionary).duplicate(true)
 
 
 func _cache_weapon_map_baseline() -> void:
@@ -522,8 +633,76 @@ func _build_animation_library() -> void:
 	_apply_mirrored_clips()
 	_apply_leg_mirrored_clips()
 	_apply_clip_aliases()
+	_anchor_full_body_grenade_toss()
+	_apply_crouch_grenade_composite()
 	_apply_clip_pose_yaw_offsets()
 	animation_player.add_animation_library("", animation_library)
+
+
+func _anchor_full_body_grenade_toss() -> void:
+	if not animation_library.has_animation(&"grenade_toss"):
+		return
+	if not animation_library.has_animation(&"aim_idle"):
+		return
+	var throw_animation := animation_library.get_animation(&"grenade_toss")
+	var standing_reference := animation_library.get_animation(&"aim_idle")
+	var reference_position := Vector3.ZERO
+	var found_reference := false
+	for track in range(standing_reference.get_track_count()):
+		if standing_reference.track_get_type(track) != Animation.TYPE_POSITION_3D:
+			continue
+		if not str(standing_reference.track_get_path(track)).ends_with(":mixamorig_Hips"):
+			continue
+		reference_position = standing_reference.position_track_interpolate(track, 0.0)
+		found_reference = true
+		break
+	if not found_reference:
+		return
+	# The full standing toss owns every joint, but the authoritative body owns
+	# world position. Anchor the imported hips translation to the standing pose so
+	# the take cannot pull the operator down to the floor or move them laterally.
+	for track in range(throw_animation.get_track_count()):
+		if throw_animation.track_get_type(track) != Animation.TYPE_POSITION_3D:
+			continue
+		if not str(throw_animation.track_get_path(track)).ends_with(":mixamorig_Hips"):
+			continue
+		for key in range(throw_animation.track_get_key_count(track)):
+			throw_animation.track_set_key_value(track, key, reference_position)
+
+
+func _apply_crouch_grenade_composite() -> void:
+	if not animation_library.has_animation(&"grenade_toss"):
+		return
+	var throw_source := animation_library.get_animation(&"grenade_toss")
+	_build_right_arm_grenade_composite(&"crouch_grenade_toss", &"idle_crouch", throw_source)
+
+
+func _build_right_arm_grenade_composite(
+	target_name: StringName,
+	base_name: StringName,
+	throw_source: Animation
+) -> void:
+	if not animation_library.has_animation(base_name):
+		return
+	var posture_base := animation_library.get_animation(base_name).duplicate() as Animation
+	# Preserve the authored toss timing while crouch owns every body region except
+	# the throwing arm. The imported full-body toss has incompatible hip/root
+	# motion, so it must never own standing or crouched legs.
+	posture_base.length = maxf(throw_source.length, 1.0 / 30.0)
+	var composite: Animation = ANIMATION_LAYER_COMPOSER.new().compose({
+		"full_body": posture_base,
+		"right_arm": throw_source,
+	})
+	if composite == null:
+		return
+	composite.loop_mode = Animation.LOOP_NONE
+	if animation_library.has_animation(target_name):
+		animation_library.remove_animation(target_name)
+	animation_library.add_animation(target_name, composite)
+	available_clips[target_name] = true
+	source_animation_names[target_name] = StringName(
+		"composite:%s+grenade_toss.right_arm" % base_name
+	)
 
 
 func _settle_idle_pose(clip_name: StringName, animation: Animation) -> Animation:

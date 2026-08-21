@@ -6,11 +6,16 @@ const MapRuntime := preload("res://scripts/maps/socom_map_runtime.gd")
 const MapCommands := preload("res://scripts/maps/socom_map_command_service.gd")
 const MapAmbience := preload("res://scripts/maps/socom_map_ambience_engine.gd")
 const MapAudioAmbience := preload("res://scripts/maps/socom_map_audio_ambience.gd")
+const MapAssetLibrary := preload("res://scripts/maps/socom_map_asset_library.gd")
 
 const PALETTE_TYPES: Array[StringName] = [
 	&"ground", &"wall", &"cover_low", &"cover_tall", &"platform", &"ramp", &"player_spawn",
 	&"point_light", &"ambience_zone",
-	&"curved_wall", &"jagged_wall",
+	&"fog_zone",
+	&"doorway_wall", &"window_wall", &"stairs", &"roof", &"column",
+	&"primitive_box", &"primitive_cylinder", &"primitive_sphere",
+	&"curved_wall", &"jagged_wall", &"breached_wall",
+	&"tree", &"pine_tree", &"bush", &"rocky_mountain",
 	&"team_alpha_spawn", &"team_bravo_spawn", &"bomb_pickup", &"alpha_bomb_site", &"bravo_bomb_site",
 	&"training_dummy", &"moving_training_dummy",
 ]
@@ -25,8 +30,18 @@ const TRANSFORM_MODE_LABELS := {
 	"scale_x": "SCALE X", "scale_y": "SCALE Y", "scale_z": "SCALE Z",
 	"curve_arc": "CURVE ARC", "curve_radius": "CURVE RADIUS",
 }
+enum ContextAction {
+	EDIT_PROPERTIES,
+	ATTACH_NEXT_ITEM,
+	DETACH_ITEM,
+	TOGGLE_COLLISION,
+	DUPLICATE_ITEM,
+	DELETE_ITEM,
+}
 
 var document: Dictionary = {}
+var public_player_build := false
+var library_entries: Array[Dictionary] = []
 var selected_id := ""
 var placement_type: StringName = &"wall"
 var undo_stack: Array[Dictionary] = []
@@ -34,9 +49,25 @@ var redo_stack: Array[Dictionary] = []
 var action_history: Array[String] = []
 
 var map_name_edit: LineEdit
+var map_selector: OptionButton
+var community_map_selector: OptionButton
+var community_entries: Array[Dictionary] = []
+var community_identity_label: Label
+var community_publish_button: Button
+var community_refresh_button: Button
+var community_download_button: Button
 var status_label: Label
 var mode_label: Label
 var transform_mode_button: Button
+var navigation_mode_button: Button
+var full_view_button: Button
+var asset_action_bar: Control
+var asset_action_label: Label
+var asset_action_button_row: HBoxContainer
+var asset_action_buttons: Array[Button] = []
+var main_split: HSplitContainer
+var palette_root: Control
+var inspector_root: Control
 var history_label: RichTextLabel
 var object_list: ItemList
 var viewport_container: SubViewportContainer
@@ -62,8 +93,43 @@ var special_fields: Dictionary = {}
 var material_panel: VBoxContainer
 var texture_path_edit: LineEdit
 var texture_dialog: FileDialog
+var surface_preset_option: OptionButton
+var material_color_picker: ColorPickerButton
+var light_color_picker: ColorPickerButton
+var uniform_scale_spin: SpinBox
+var scale_group_toggle: CheckButton
 var gameplay_mode_option: OptionButton
+var floor_level_spin: SpinBox
+var floor_height_spin: SpinBox
+var surface_snap_toggle: CheckButton
+var group_id_edit: LineEdit
+var attachment_label: Label
+var collision_toggle: CheckButton
+var context_menu: PopupMenu
+var asset_import_dialog: FileDialog
+var asset_library_list: VBoxContainer
+var imported_asset_path_label: Label
+var imported_collision_option: OptionButton
+var attach_parent_id := ""
+var right_press_position := Vector2.ZERO
+var right_dragged := false
+var round_time_spin: SpinBox
+var maximum_rounds_spin: SpinBox
+var rounds_to_win_spin: SpinBox
+var plant_time_spin: SpinBox
+var defuse_time_spin: SpinBox
+var bomb_fuse_spin: SpinBox
+var updating_gameplay := false
 var orbiting := false
+var preview_selected_id := ""
+var navigation_mode := true
+var navigation_dragging := false
+var navigation_panning := false
+var navigation_drag_distance := 0.0
+var navigation_pending_pick_id := ""
+var full_view_enabled := false
+var panning := false
+var middle_dragged := false
 var dragging := false
 var drag_snapshot: Dictionary = {}
 var drag_changed := false
@@ -78,16 +144,37 @@ var orbit_yaw := -38.0
 var orbit_pitch := -32.0
 var orbit_distance := 22.0
 var orbit_target := Vector3.ZERO
+var camera_view_option: OptionButton
+var current_floor_level := 0
+var floor_height_m := 3.0
+var surface_snap_enabled := true
+var original_content_scale_mode := -1
 
 
 func _ready() -> void:
-	document = MapDocument.load_path(MapDocument.ACTIVE_MAP_PATH)
+	public_player_build = (
+		OS.has_feature("web")
+		or OS.has_feature("restricted_web")
+		or OS.get_cmdline_user_args().has("--restricted-web-preview")
+	)
+	original_content_scale_mode = int(get_window().content_scale_mode)
+	get_window().content_scale_mode = Window.CONTENT_SCALE_MODE_DISABLED
+	document = MapDocument.ensure_active_map_in_library()
 	if document.is_empty():
 		document = MapDocument.new_document()
 	_build_interface()
 	_build_preview_world()
+	_refresh_map_library()
 	_refresh_all()
-	_add_history("Map Lab ready — visual and command editing share one document")
+	_refresh_community_identity_label()
+	_add_history("Map Editor ready")
+	if not public_player_build and DisplayServer.get_name() != "headless" and not OS.get_cmdline_user_args().has("--windowed-map-lab"):
+		call_deferred("_set_initial_fullscreen")
+
+
+func _exit_tree() -> void:
+	if original_content_scale_mode >= 0 and is_instance_valid(get_window()):
+		get_window().content_scale_mode = original_content_scale_mode
 
 
 func _unhandled_key_input(event: InputEvent) -> void:
@@ -119,6 +206,21 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		placement_type = &""
 		mode_label.text = "SELECT MODE"
 		get_viewport().set_input_as_handled()
+	elif key_event.keycode == KEY_F:
+		_focus_selected_camera()
+		get_viewport().set_input_as_handled()
+	elif key_event.keycode == KEY_HOME:
+		_frame_all_camera()
+		get_viewport().set_input_as_handled()
+	elif key_event.keycode == KEY_TAB:
+		_toggle_full_view()
+		get_viewport().set_input_as_handled()
+	elif key_event.keycode == KEY_F11:
+		_toggle_window_fullscreen()
+		get_viewport().set_input_as_handled()
+	elif key_event.keycode == KEY_N:
+		_toggle_navigation_mode()
+		get_viewport().set_input_as_handled()
 	elif key_event.keycode == KEY_Q:
 		_rotate_selected(-15.0)
 	elif key_event.keycode == KEY_E:
@@ -137,33 +239,52 @@ func _build_interface() -> void:
 	add_child(root_column)
 	root_column.add_child(_build_toolbar())
 
-	var split := HSplitContainer.new()
-	split.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	split.split_offset = 280
-	root_column.add_child(split)
-	split.add_child(_build_palette())
+	main_split = HSplitContainer.new()
+	main_split.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	main_split.split_offset = 280
+	root_column.add_child(main_split)
+	palette_root = _build_palette()
+	main_split.add_child(palette_root)
 
 	var center := VBoxContainer.new()
 	center.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	center.add_theme_constant_override("separation", 3)
-	split.add_child(center)
+	main_split.add_child(center)
 	var view_header := HBoxContainer.new()
 	center.add_child(view_header)
+	navigation_mode_button = Button.new()
+	navigation_mode_button.name = "MapNavigationMode"
+	navigation_mode_button.tooltip_text = "Left click selects assets. Mouse 3 drag orbits; Shift+Mouse 3 drag pans. Mouse 3 click cycles the transform tool. Shortcut: N."
+	navigation_mode_button.pressed.connect(_toggle_navigation_mode)
+	view_header.add_child(navigation_mode_button)
 	mode_label = Label.new()
 	mode_label.text = "PLACE WALL — CLICK THE MAP"
+	mode_label.clip_text = true
+	mode_label.custom_minimum_size.x = 80
+	mode_label.visible = false
 	mode_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	mode_label.add_theme_color_override("font_color", Color("f2cf6a"))
 	view_header.add_child(mode_label)
 	transform_mode_button = Button.new()
 	transform_mode_button.name = "MapTransformMode"
-	transform_mode_button.text = "TRANSFORM: MOVE GROUND"
+	transform_mode_button.text = "MOVE GROUND ▼"
 	transform_mode_button.tooltip_text = "Middle-click the viewport or click here to cycle move, rotate, scale, and curve modes."
 	transform_mode_button.pressed.connect(_cycle_transform_mode)
 	view_header.add_child(transform_mode_button)
-	var help := Label.new()
-	help.text = "LMB apply  •  MMB cycle transform  •  RMB orbit  •  Wheel zoom"
-	help.add_theme_color_override("font_color", Color("9dacbd"))
-	view_header.add_child(help)
+	camera_view_option = OptionButton.new()
+	camera_view_option.name = "MapCameraView"
+	camera_view_option.tooltip_text = "Jump to a useful map view or frame the selected object."
+	for view_name in ["Perspective", "Top", "Front", "Side", "Focus Selected", "Frame All"]:
+		camera_view_option.add_item(view_name)
+	camera_view_option.item_selected.connect(_camera_view_selected)
+	view_header.add_child(camera_view_option)
+	full_view_button = Button.new()
+	full_view_button.name = "MapFullView"
+	full_view_button.text = "FULL VIEW"
+	full_view_button.tooltip_text = "Hide or show the palette and inspector. Shortcut: Tab."
+	full_view_button.pressed.connect(_toggle_full_view)
+	view_header.add_child(full_view_button)
+	center.add_child(_build_asset_action_bar())
 	viewport_container = SubViewportContainer.new()
 	viewport_container.name = "MapEditorViewport"
 	viewport_container.stretch = true
@@ -174,51 +295,383 @@ func _build_interface() -> void:
 	center.add_child(viewport_container)
 	map_viewport = SubViewport.new()
 	map_viewport.name = "MapSubViewport"
-	map_viewport.size = Vector2i(800, 650)
+	map_viewport.size = Vector2i(1280, 720)
 	map_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	map_viewport.own_world_3d = true
+	map_viewport.msaa_3d = Viewport.MSAA_4X
 	viewport_container.add_child(map_viewport)
 
-	var right := _build_inspector()
-	right.custom_minimum_size.x = 310
-	split.add_child(right)
+	inspector_root = _build_inspector()
+	inspector_root.custom_minimum_size.x = 310
+	main_split.add_child(inspector_root)
+	_build_object_context_menu()
+	_build_asset_import_dialog()
+
+
+func _build_object_context_menu() -> void:
+	context_menu = PopupMenu.new()
+	context_menu.name = "MapObjectContextMenu"
+	context_menu.add_item("Edit Properties", ContextAction.EDIT_PROPERTIES)
+	context_menu.add_item("Attach New Item Here…", ContextAction.ATTACH_NEXT_ITEM)
+	context_menu.add_item("Detach from Parent", ContextAction.DETACH_ITEM)
+	context_menu.add_separator()
+	context_menu.add_item("Toggle Gameplay Collision", ContextAction.TOGGLE_COLLISION)
+	context_menu.add_item("Duplicate", ContextAction.DUPLICATE_ITEM)
+	context_menu.add_item("Delete", ContextAction.DELETE_ITEM)
+	context_menu.id_pressed.connect(_object_context_action)
+	add_child(context_menu)
+
+
+func _build_asset_import_dialog() -> void:
+	asset_import_dialog = FileDialog.new()
+	asset_import_dialog.name = "CommunityGLBImportDialog"
+	asset_import_dialog.file_mode = FileDialog.FILE_MODE_OPEN_FILE
+	asset_import_dialog.access = FileDialog.ACCESS_FILESYSTEM
+	asset_import_dialog.filters = PackedStringArray(["*.glb ; Self-contained glTF binary model"])
+	asset_import_dialog.file_selected.connect(_import_community_asset)
+	add_child(asset_import_dialog)
+
+
+func _open_asset_import_dialog() -> void:
+	asset_import_dialog.popup_centered_ratio(0.78)
+
+
+func _import_community_asset(source_path: String) -> void:
+	var result := MapAssetLibrary.import_glb(source_path)
+	status_label.text = String(result.get("message", "Import failed."))
+	if not bool(result.get("ok", false)):
+		return
+	_refresh_asset_library()
+	_quick_add_imported_asset(String(result.get("path", "")), String(result.get("label", "Imported Asset")))
+
+
+func _refresh_asset_library() -> void:
+	if asset_library_list == null:
+		return
+	for child in asset_library_list.get_children():
+		child.free()
+	var entries := MapAssetLibrary.list_assets()
+	if entries.is_empty():
+		var empty_label := Label.new()
+		empty_label.text = "No GLB assets imported yet."
+		empty_label.add_theme_font_size_override("font_size", 10)
+		empty_label.add_theme_color_override("font_color", Color("7f8a98"))
+		asset_library_list.add_child(empty_label)
+		return
+	for entry: Dictionary in entries:
+		var button := Button.new()
+		button.name = "CommunityAsset_%s" % String(entry["path"]).hash()
+		button.text = "+ %s" % String(entry["label"])
+		button.tooltip_text = "Place this imported asset."
+		button.pressed.connect(_quick_add_imported_asset.bind(String(entry["path"]), String(entry["label"])))
+		asset_library_list.add_child(button)
+
+
+func _quick_add_imported_asset(asset_path: String, asset_label: String) -> void:
+	if not MapAssetLibrary.asset_exists(asset_path):
+		status_label.text = "That GLB is missing from the community asset library."
+		return
+	_set_navigation_mode(false)
+	var placed := _snap_vector(orbit_target)
+	placed.y = _current_floor_y()
+	var properties := {
+		"asset_path": asset_path,
+		"collision_mode": "box",
+		"collision_enabled": true,
+		"floor_level": current_floor_level,
+	}
+	if not attach_parent_id.is_empty():
+		properties["attached_to"] = attach_parent_id
+	var result := execute_map_command({
+		"command": "place_object",
+		"type": "imported_asset",
+		"name": asset_label,
+		"position": MapDocument.vector_to_data(placed),
+		"size": MapDocument.vector_to_data(Vector3.ONE),
+		"properties": properties,
+	})
+	if bool(result.get("ok", false)):
+		attach_parent_id = ""
+		mode_label.text = "IMPORTED ASSET ADDED — MOVE, ROTATE, RESIZE, OR RIGHT-CLICK IT"
+
+
+func _imported_collision_mode_selected(index: int) -> void:
+	if updating_inspector or selected_id.is_empty():
+		return
+	var mode := String(imported_collision_option.get_item_metadata(index))
+	execute_map_command({
+		"command": "set_object_properties",
+		"id": selected_id,
+		"changes": {"collision_mode": mode, "collision_enabled": mode != "none"},
+	})
+
+
+func _show_object_context_menu(screen_position: Vector2) -> void:
+	var hit := _pick_object(screen_position)
+	var hit_id := String(hit.get("id", ""))
+	if hit_id.is_empty():
+		return
+	_set_navigation_mode(false)
+	selected_id = hit_id
+	placement_type = &""
+	_refresh_all()
+	var object := _selected_object()
+	var properties: Dictionary = object.get("properties", {})
+	var collision_enabled := bool(properties.get("collision_enabled", String(object.get("type", "")) != "bush"))
+	context_menu.set_item_text(
+		context_menu.get_item_index(ContextAction.TOGGLE_COLLISION),
+		"Disable Gameplay Collision" if collision_enabled else "Enable Gameplay Collision"
+	)
+	context_menu.set_item_disabled(
+		context_menu.get_item_index(ContextAction.DETACH_ITEM),
+		String(properties.get("attached_to", "")).is_empty()
+	)
+	context_menu.position = Vector2i(viewport_container.get_screen_position() + screen_position)
+	context_menu.popup()
+
+
+func _object_context_action(action_id: int) -> void:
+	match action_id:
+		ContextAction.EDIT_PROPERTIES:
+			if full_view_enabled:
+				_toggle_full_view()
+			status_label.text = "Editing %s properties." % _selected_object().get("name", "object")
+		ContextAction.ATTACH_NEXT_ITEM:
+			_arm_attach_next_item()
+		ContextAction.DETACH_ITEM:
+			_detach_selected_item()
+		ContextAction.TOGGLE_COLLISION:
+			var object := _selected_object()
+			var properties: Dictionary = object.get("properties", {})
+			var enabled := bool(properties.get("collision_enabled", String(object.get("type", "")) != "bush"))
+			execute_map_command({"command": "set_object_properties", "id": selected_id, "changes": {"collision_enabled": not enabled}})
+		ContextAction.DUPLICATE_ITEM:
+			_duplicate_selected()
+		ContextAction.DELETE_ITEM:
+			_delete_selected()
+
+
+func _arm_attach_next_item() -> void:
+	if selected_id.is_empty():
+		status_label.text = "Select the parent object first."
+		return
+	attach_parent_id = selected_id
+	status_label.text = "Choose any palette item. It will attach to %s and follow its movement." % _selected_object().get("name", "the selected object")
+
+
+func _detach_selected_item() -> void:
+	if selected_id.is_empty():
+		return
+	execute_map_command({"command": "detach_object", "id": selected_id})
+
+
+func _gameplay_collision_toggled(enabled: bool) -> void:
+	if updating_inspector or selected_id.is_empty():
+		return
+	execute_map_command({"command": "set_object_properties", "id": selected_id, "changes": {"collision_enabled": enabled}})
+
+
+func _object_name_for_id(object_id: String) -> String:
+	if object_id.is_empty():
+		return "nothing"
+	for object: Dictionary in document.get("objects", []):
+		if String(object.get("id", "")) == object_id:
+			return String(object.get("name", object_id))
+	return "missing object"
+
+
+func _build_asset_action_bar() -> Control:
+	asset_action_bar = VBoxContainer.new()
+	asset_action_bar.name = "MapSelectedAssetActions"
+	asset_action_bar.add_theme_constant_override("separation", 4)
+	asset_action_label = Label.new()
+	asset_action_label.name = "MapSelectedAssetCue"
+	asset_action_label.clip_text = true
+	asset_action_label.custom_minimum_size.x = 150
+	asset_action_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	asset_action_label.add_theme_color_override("font_color", Color("9fe6b8"))
+	asset_action_bar.add_child(asset_action_label)
+	asset_action_button_row = HBoxContainer.new()
+	asset_action_button_row.add_theme_constant_override("separation", 4)
+	asset_action_bar.add_child(asset_action_button_row)
+	_add_asset_action_button("Move", "MapAssetMove", _choose_asset_action.bind("move_ground"))
+	_add_asset_action_button("Rotate", "MapAssetRotate", _choose_asset_action.bind("yaw"))
+	_add_asset_action_button("Resize", "MapAssetResize", _choose_asset_action.bind("scale_x"))
+	_add_asset_action_button("Focus", "MapAssetFocus", _focus_selected_camera)
+	_add_asset_action_button("Duplicate", "MapAssetDuplicate", _duplicate_selected)
+	_add_asset_action_button("Delete", "MapAssetDelete", _delete_selected)
+	return asset_action_bar
+
+
+func _add_asset_action_button(text_value: String, node_name: String, action: Callable) -> void:
+	var button := Button.new()
+	button.name = node_name
+	button.text = text_value
+	button.tooltip_text = "%s the selected asset." % text_value
+	button.pressed.connect(action)
+	asset_action_button_row.add_child(button)
+	asset_action_buttons.append(button)
+
+
+func _set_initial_fullscreen() -> void:
+	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+
+
+func _toggle_window_fullscreen() -> void:
+	var current_mode := DisplayServer.window_get_mode()
+	DisplayServer.window_set_mode(
+		DisplayServer.WINDOW_MODE_WINDOWED
+		if current_mode in [DisplayServer.WINDOW_MODE_FULLSCREEN, DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN]
+		else DisplayServer.WINDOW_MODE_FULLSCREEN
+	)
+
+
+func _toggle_full_view() -> void:
+	full_view_enabled = not full_view_enabled
+	if palette_root != null:
+		palette_root.visible = not full_view_enabled
+	if inspector_root != null:
+		inspector_root.visible = not full_view_enabled
+	full_view_button.text = "SHOW TOOLS" if full_view_enabled else "FULL VIEW"
+	status_label.text = "Full map view. Press Tab to restore tools." if full_view_enabled else "Build tools restored."
+
+
+func _toggle_navigation_mode() -> void:
+	_set_navigation_mode(not navigation_mode)
+
+
+func _set_navigation_mode(enabled: bool) -> void:
+	navigation_mode = enabled
+	navigation_dragging = false
+	navigation_panning = false
+	orbiting = false
+	panning = false
+	dragging = false
+	if navigation_mode:
+		placement_type = &""
+	_refresh_human_cues()
+
+
+func _choose_asset_action(mode: String) -> void:
+	if selected_id.is_empty():
+		status_label.text = "Choose EDIT ASSETS, then click an asset first."
+		return
+	_set_navigation_mode(false)
+	transform_mode = mode
+	_refresh_transform_mode_button()
+	_refresh_human_cues()
+	status_label.text = "%s — drag the selected asset." % TRANSFORM_MODE_LABELS.get(mode, mode)
+
+
+func _refresh_human_cues() -> void:
+	if navigation_mode_button == null or asset_action_label == null:
+		return
+	navigation_mode_button.text = "CAMERA MODE" if navigation_mode else "EDIT MODE"
+	navigation_mode_button.add_theme_color_override(
+		"font_color",
+		Color("79d8f2") if navigation_mode else Color("9fe6b8")
+	)
+	var selected := _selected_object()
+	var has_selection := not selected.is_empty()
+	for button in asset_action_buttons:
+		button.disabled = not has_selection
+	if navigation_mode:
+		asset_action_label.text = "LEFT CLICK select • MOUSE 3 drag orbit • Shift+MOUSE 3 pan • wheel zoom • double-click focus"
+	elif not has_selection:
+		asset_action_label.text = "EDIT ASSETS: click an object to select it. Its available actions appear here."
+	else:
+		asset_action_label.text = "SELECTED: %s [%s] • %s drag active" % [
+			selected.get("name", "Asset"),
+			selected.get("type", "object"),
+			TRANSFORM_MODE_LABELS.get(transform_mode, transform_mode),
+		]
 
 
 func _build_toolbar() -> Control:
 	var panel := PanelContainer.new()
-	panel.custom_minimum_size.y = 54
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 6)
-	panel.add_child(row)
+	var rows := VBoxContainer.new()
+	rows.add_theme_constant_override("separation", 4)
+	panel.add_child(rows)
+	var primary_row := HBoxContainer.new()
+	primary_row.add_theme_constant_override("separation", 6)
+	rows.add_child(primary_row)
 	var title := Label.new()
 	title.text = "  MAP LAB"
-	title.add_theme_font_size_override("font_size", 22)
+	title.add_theme_font_size_override("font_size", 20)
 	title.add_theme_color_override("font_color", Color("8bc5ae"))
-	row.add_child(title)
+	primary_row.add_child(title)
 	map_name_edit = LineEdit.new()
 	map_name_edit.name = "MapName"
-	map_name_edit.custom_minimum_size.x = 230
+	map_name_edit.custom_minimum_size.x = 180
+	map_name_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	map_name_edit.text_submitted.connect(_rename_map)
-	row.add_child(map_name_edit)
-	_add_toolbar_button(row, "New", _new_map)
-	_add_toolbar_button(row, "Load", _load_map)
-	_add_toolbar_button(row, "Save", _save_map, "SaveMapButton")
-	undo_button = _add_toolbar_button(row, "Undo", _undo, "UndoMapButton")
-	redo_button = _add_toolbar_button(row, "Redo", _redo, "RedoMapButton")
-	var spacer := Control.new()
-	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_child(spacer)
-	var automation_button := Button.new()
-	automation_button.text = "LLM Commands"
-	automation_button.tooltip_text = "Show the safe JSON command interface used by automation and LLM tools."
-	automation_button.pressed.connect(_toggle_automation)
-	row.add_child(automation_button)
+	primary_row.add_child(map_name_edit)
+	_add_toolbar_button(primary_row, "Save + Apply", _save_map, "SaveMapButton")
 	var play_button := Button.new()
 	play_button.name = "PlayAuthoredMapButton"
 	play_button.text = "▶ Save + Play Map"
 	play_button.add_theme_color_override("font_color", Color("7df0ad"))
 	play_button.pressed.connect(_play_map)
-	row.add_child(play_button)
+	primary_row.add_child(play_button)
+	var library_row := HBoxContainer.new()
+	library_row.add_theme_constant_override("separation", 6)
+	rows.add_child(library_row)
+	_add_toolbar_button(library_row, "New", _new_map)
+	map_selector = OptionButton.new()
+	map_selector.name = "SavedMapSelector"
+	map_selector.custom_minimum_size.x = 180
+	map_selector.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	map_selector.tooltip_text = "Choose one of your saved maps to continue editing."
+	library_row.add_child(map_selector)
+	_add_toolbar_button(library_row, "Open", _load_map, "OpenSavedMapButton")
+	_add_toolbar_button(library_row, "Validate", _validate_map_now, "ValidateMapButton")
+	undo_button = _add_toolbar_button(library_row, "Undo", _undo, "UndoMapButton")
+	redo_button = _add_toolbar_button(library_row, "Redo", _redo, "RedoMapButton")
+	var spacer := Control.new()
+	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	library_row.add_child(spacer)
+	if not public_player_build:
+		var automation_button := Button.new()
+		automation_button.text = "Automation"
+		automation_button.tooltip_text = "Show the safe JSON command interface used by development automation."
+		automation_button.pressed.connect(_toggle_automation)
+		library_row.add_child(automation_button)
+	var community_row := HBoxContainer.new()
+	community_row.name = "CommunityMapControls"
+	community_row.add_theme_constant_override("separation", 6)
+	rows.add_child(community_row)
+	community_identity_label = Label.new()
+	community_identity_label.name = "CommunityGuestIdentity"
+	community_identity_label.text = "COMMUNITY: Guest connects when needed"
+	community_identity_label.custom_minimum_size.x = 210
+	community_identity_label.add_theme_color_override("font_color", Color("8bc5ae"))
+	community_row.add_child(community_identity_label)
+	community_publish_button = _add_toolbar_button(
+		community_row,
+		"Publish to Community",
+		_publish_community_map,
+		"PublishCommunityMapButton"
+	)
+	community_refresh_button = _add_toolbar_button(
+		community_row,
+		"Refresh Community Maps",
+		_refresh_community_maps,
+		"RefreshCommunityMapsButton"
+	)
+	community_map_selector = OptionButton.new()
+	community_map_selector.name = "CommunityMapSelector"
+	community_map_selector.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	community_map_selector.custom_minimum_size.x = 210
+	community_map_selector.add_item("Press Refresh to browse published maps")
+	community_map_selector.disabled = true
+	community_row.add_child(community_map_selector)
+	community_download_button = _add_toolbar_button(
+		community_row,
+		"Download + Open",
+		_download_community_map,
+		"DownloadCommunityMapButton"
+	)
+	community_download_button.disabled = true
 	return panel
 
 
@@ -235,12 +688,17 @@ func _add_toolbar_button(parent: Control, text: String, callback: Callable, node
 func _build_palette() -> Control:
 	var panel := PanelContainer.new()
 	panel.custom_minimum_size.x = 275
+	var scroll := ScrollContainer.new()
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	panel.add_child(scroll)
 	var margin := MarginContainer.new()
+	margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	margin.add_theme_constant_override("margin_left", 12)
 	margin.add_theme_constant_override("margin_right", 12)
 	margin.add_theme_constant_override("margin_top", 10)
 	margin.add_theme_constant_override("margin_bottom", 10)
-	panel.add_child(margin)
+	scroll.add_child(margin)
 	var column := VBoxContainer.new()
 	column.add_theme_constant_override("separation", 6)
 	margin.add_child(column)
@@ -266,8 +724,89 @@ func _build_palette() -> Control:
 		button.text = "+ %s" % String(defaults["label"])
 		button.custom_minimum_size = Vector2(120, 34)
 		button.add_theme_font_size_override("font_size", 11)
-		button.pressed.connect(_select_tool.bind(type_name))
+		button.tooltip_text = "Add one %s at the view center, then drag it into place." % String(defaults["label"])
+		button.pressed.connect(_quick_add_palette_object.bind(type_name))
 		palette_grid.add_child(button)
+	column.add_child(HSeparator.new())
+	var community_title := Label.new()
+	community_title.text = "COMMUNITY ASSET LIBRARY"
+	community_title.add_theme_color_override("font_color", Color("c0a4ee"))
+	column.add_child(community_title)
+	var import_button := Button.new()
+	import_button.name = "ImportCommunityGLB"
+	import_button.text = "Import Self-Contained GLB…"
+	import_button.tooltip_text = "Copy a safe self-contained 3D model and its embedded materials into this Map Lab library."
+	import_button.pressed.connect(_open_asset_import_dialog)
+	column.add_child(import_button)
+	var community_note := Label.new()
+	community_note.text = "Imported assets can be scaled, attached, duplicated, and assigned no, box, or detailed collision."
+	community_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	community_note.add_theme_font_size_override("font_size", 10)
+	community_note.add_theme_color_override("font_color", Color("9dacbd"))
+	column.add_child(community_note)
+	asset_library_list = VBoxContainer.new()
+	asset_library_list.name = "CommunityAssetList"
+	column.add_child(asset_library_list)
+	_refresh_asset_library()
+	column.add_child(HSeparator.new())
+	var placement_label := Label.new()
+	placement_label.text = "VERTICAL BUILDING"
+	placement_label.add_theme_color_override("font_color", Color("8bc5e8"))
+	column.add_child(placement_label)
+	var floor_row := HBoxContainer.new()
+	column.add_child(floor_row)
+	var floor_label := Label.new()
+	floor_label.text = "Floor"
+	floor_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	floor_row.add_child(floor_label)
+	floor_level_spin = SpinBox.new()
+	floor_level_spin.name = "MapFloorLevel"
+	floor_level_spin.min_value = -4.0
+	floor_level_spin.max_value = 20.0
+	floor_level_spin.step = 1.0
+	floor_level_spin.value_changed.connect(_floor_level_changed)
+	floor_row.add_child(floor_level_spin)
+	floor_height_spin = SpinBox.new()
+	floor_height_spin.name = "MapFloorHeight"
+	floor_height_spin.min_value = 2.0
+	floor_height_spin.max_value = 6.0
+	floor_height_spin.step = 0.25
+	floor_height_spin.suffix = " m"
+	floor_height_spin.value = floor_height_m
+	floor_height_spin.value_changed.connect(_floor_height_changed)
+	floor_row.add_child(floor_height_spin)
+	surface_snap_toggle = CheckButton.new()
+	surface_snap_toggle.name = "MapSurfaceSnap"
+	surface_snap_toggle.text = "Place on clicked surfaces"
+	surface_snap_toggle.button_pressed = true
+	surface_snap_toggle.toggled.connect(_surface_snap_toggled)
+	column.add_child(surface_snap_toggle)
+	var prefab_label := Label.new()
+	prefab_label.text = "REUSABLE PREFABS"
+	prefab_label.add_theme_color_override("font_color", Color("8fe6b0"))
+	column.add_child(prefab_label)
+	var prefab_grid := GridContainer.new()
+	prefab_grid.columns = 2
+	column.add_child(prefab_grid)
+	for prefab_name: String in MapDocument.PREFAB_DEFINITIONS:
+		var prefab_button := Button.new()
+		prefab_button.name = "Prefab_%s" % prefab_name
+		prefab_button.text = "+ %s" % String(MapDocument.PREFAB_DEFINITIONS[prefab_name]["label"])
+		prefab_button.pressed.connect(_place_prefab_at_view.bind(prefab_name))
+		prefab_grid.add_child(prefab_button)
+	var lighting_label := Label.new()
+	lighting_label.text = "LIGHTING PLACEMENT"
+	lighting_label.add_theme_color_override("font_color", Color("ffd59b"))
+	column.add_child(lighting_label)
+	var lighting_grid := GridContainer.new()
+	lighting_grid.columns = 2
+	column.add_child(lighting_grid)
+	for preset_name: String in MapDocument.LIGHT_PRESETS:
+		var light_button := Button.new()
+		light_button.name = "LightPreset_%s" % preset_name
+		light_button.text = "+ %s" % String(MapDocument.LIGHT_PRESETS[preset_name]["label"])
+		light_button.pressed.connect(_place_light_preset.bind(preset_name))
+		lighting_grid.add_child(light_button)
 	column.add_child(HSeparator.new())
 	var mission_label := Label.new()
 	mission_label.text = "SOCOM MISSION RULES"
@@ -281,6 +820,18 @@ func _build_palette() -> Control:
 	gameplay_mode_option.set_item_metadata(1, "team_deathmatch")
 	gameplay_mode_option.item_selected.connect(_gameplay_mode_selected)
 	column.add_child(gameplay_mode_option)
+	round_time_spin = _add_gameplay_spin(column, "Round Time", 1.0, 30.0, 0.5, " min")
+	maximum_rounds_spin = _add_gameplay_spin(column, "Maximum Rounds", 1.0, 25.0, 1.0)
+	rounds_to_win_spin = _add_gameplay_spin(column, "Rounds To Win", 1.0, 25.0, 1.0)
+	plant_time_spin = _add_gameplay_spin(column, "Plant Time", 1.0, 20.0, 0.5, " sec")
+	defuse_time_spin = _add_gameplay_spin(column, "Defuse Time", 1.0, 20.0, 0.5, " sec")
+	bomb_fuse_spin = _add_gameplay_spin(column, "Bomb Fuse", 10.0, 120.0, 1.0, " sec")
+	var win_conditions := Label.new()
+	win_conditions.name = "DemolitionWinConditions"
+	win_conditions.text = "ROUND WIN: eliminate the other team,\ndetonate the bomb, or defuse it.\nA live planted bomb must be defused."
+	win_conditions.add_theme_font_size_override("font_size", 11)
+	win_conditions.add_theme_color_override("font_color", Color("9fe6b8"))
+	column.add_child(win_conditions)
 	var repair_mission := Button.new()
 	repair_mission.name = "RepairSocomMissionButton"
 	repair_mission.text = "Add Missing Team + Bomb Markers"
@@ -310,6 +861,32 @@ func _build_palette() -> Control:
 	return panel
 
 
+func _add_gameplay_spin(
+	parent: VBoxContainer,
+	label_text: String,
+	minimum: float,
+	maximum: float,
+	step: float,
+	suffix_text: String = ""
+) -> SpinBox:
+	var row := HBoxContainer.new()
+	parent.add_child(row)
+	var field_label := Label.new()
+	field_label.text = label_text
+	field_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(field_label)
+	var field := SpinBox.new()
+	field.name = "Map%s" % label_text.replace(" ", "")
+	field.min_value = minimum
+	field.max_value = maximum
+	field.step = step
+	field.suffix = suffix_text
+	field.custom_minimum_size.x = 105
+	field.value_changed.connect(_gameplay_rules_changed)
+	row.add_child(field)
+	return field
+
+
 func _build_inspector() -> VBoxContainer:
 	var outer := VBoxContainer.new()
 	outer.add_theme_constant_override("separation", 6)
@@ -331,8 +908,57 @@ func _build_inspector() -> VBoxContainer:
 	name_edit.name = "MapObjectName"
 	name_edit.text_submitted.connect(_rename_selected)
 	inspector_panel.add_child(name_edit)
+	attachment_label = Label.new()
+	attachment_label.name = "MapAttachmentStatus"
+	attachment_label.text = "Attached to: nothing"
+	attachment_label.add_theme_color_override("font_color", Color("9dacbd"))
+	inspector_panel.add_child(attachment_label)
+	var attachment_actions := HBoxContainer.new()
+	inspector_panel.add_child(attachment_actions)
+	var attach_next := Button.new()
+	attach_next.name = "MapAttachNextItem"
+	attach_next.text = "Attach New Item…"
+	attach_next.tooltip_text = "The next palette item you create will follow this selected object."
+	attach_next.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	attach_next.pressed.connect(_arm_attach_next_item)
+	attachment_actions.add_child(attach_next)
+	var detach := Button.new()
+	detach.name = "MapDetachItem"
+	detach.text = "Detach"
+	detach.pressed.connect(_detach_selected_item)
+	attachment_actions.add_child(detach)
+	collision_toggle = CheckButton.new()
+	collision_toggle.name = "MapGameplayCollision"
+	collision_toggle.text = "Solid collision in gameplay"
+	collision_toggle.tooltip_text = "Off means players and shots can pass through this object. The editor keeps a selection volume."
+	collision_toggle.toggled.connect(_gameplay_collision_toggled)
+	inspector_panel.add_child(collision_toggle)
 	_add_vector_editor("Position", "position", -100.0, 100.0, 0.05)
 	_add_vector_editor("Size", "size", 0.1, 100.0, 0.05)
+	var universal_scale_row := HBoxContainer.new()
+	inspector_panel.add_child(universal_scale_row)
+	var universal_scale_label := Label.new()
+	universal_scale_label.text = "Scale"
+	universal_scale_label.custom_minimum_size.x = 55
+	universal_scale_row.add_child(universal_scale_label)
+	uniform_scale_spin = SpinBox.new()
+	uniform_scale_spin.name = "MapUniformScale"
+	uniform_scale_spin.min_value = 0.1
+	uniform_scale_spin.max_value = 10.0
+	uniform_scale_spin.step = 0.1
+	uniform_scale_spin.value = 1.0
+	uniform_scale_spin.suffix = "×"
+	uniform_scale_spin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	universal_scale_row.add_child(uniform_scale_spin)
+	var apply_scale := Button.new()
+	apply_scale.name = "ApplyMapUniformScale"
+	apply_scale.text = "Apply"
+	apply_scale.pressed.connect(_apply_uniform_scale)
+	universal_scale_row.add_child(apply_scale)
+	scale_group_toggle = CheckButton.new()
+	scale_group_toggle.name = "ScaleWholeMapGroup"
+	scale_group_toggle.text = "Whole group"
+	inspector_panel.add_child(scale_group_toggle)
 	var yaw_row := HBoxContainer.new()
 	inspector_panel.add_child(yaw_row)
 	var yaw_label := Label.new()
@@ -364,6 +990,23 @@ func _build_inspector() -> VBoxContainer:
 	remove.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	remove.pressed.connect(_delete_selected)
 	object_actions.add_child(remove)
+	group_id_edit = LineEdit.new()
+	group_id_edit.name = "MapObjectGroupId"
+	group_id_edit.placeholder_text = "Reusable group id"
+	group_id_edit.text_submitted.connect(_assign_selected_group)
+	inspector_panel.add_child(group_id_edit)
+	var group_actions := HBoxContainer.new()
+	inspector_panel.add_child(group_actions)
+	var duplicate_group := Button.new()
+	duplicate_group.name = "DuplicateMapGroupButton"
+	duplicate_group.text = "Duplicate Group"
+	duplicate_group.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	duplicate_group.pressed.connect(_duplicate_selected_group)
+	group_actions.add_child(duplicate_group)
+	var clear_group := Button.new()
+	clear_group.text = "Ungroup"
+	clear_group.pressed.connect(_assign_selected_group.bind(""))
+	group_actions.add_child(clear_group)
 	_build_special_property_inspector()
 	inspector_panel.add_child(HSeparator.new())
 	_build_environment_inspector()
@@ -426,6 +1069,11 @@ func _build_special_property_inspector() -> void:
 	light_panel.add_child(light_title)
 	_add_special_number(light_panel, "Energy", "light_energy", 0.0, 16.0, 0.1)
 	_add_special_number(light_panel, "Range", "light_range", 0.5, 50.0, 0.25)
+	light_color_picker = ColorPickerButton.new()
+	light_color_picker.name = "MapLightColor"
+	light_color_picker.text = "Light Color"
+	light_color_picker.color_changed.connect(_light_color_changed)
+	light_panel.add_child(light_color_picker)
 
 	var ambience_panel := VBoxContainer.new()
 	ambience_panel.name = "AmbienceZoneInspector"
@@ -448,6 +1096,25 @@ func _build_special_property_inspector() -> void:
 	ambience_panel.add_child(stream)
 	special_fields["audio_stream"] = stream
 	_add_special_number(ambience_panel, "Volume dB", "ambience_volume", -60.0, 6.0, 0.5)
+
+	var fog_panel := VBoxContainer.new()
+	fog_panel.name = "TacticalFogZoneInspector"
+	inspector_panel.add_child(fog_panel)
+	special_property_panels["fog_zone"] = fog_panel
+	var fog_title := Label.new()
+	fog_title.text = "TACTICAL FOG / DUST ZONE"
+	fog_title.add_theme_color_override("font_color", Color("a9c5cf"))
+	fog_panel.add_child(fog_title)
+	_add_special_number(fog_panel, "Density", "fog_zone_density", 0.0, 0.1, 0.001)
+	_add_special_number(fog_panel, "Edge Blend", "fog_zone_blend", 0.1, 20.0, 0.1)
+	_add_special_number(fog_panel, "Sightline Block", "fog_zone_occlusion", 0.0, 0.95, 0.05)
+	_add_special_number(fog_panel, "Visual Layers", "fog_zone_layers", 2.0, 12.0, 1.0)
+	_add_special_number(fog_panel, "Priority", "fog_zone_priority", -10.0, 10.0, 1.0)
+	var fog_note := Label.new()
+	fog_note.text = "Sightline Block obscures the zone from both sides. Players and bullets still pass through."
+	fog_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	fog_note.add_theme_font_size_override("font_size", 11)
+	fog_panel.add_child(fog_note)
 
 	var curve_panel := VBoxContainer.new()
 	curve_panel.name = "CurvedWallInspector"
@@ -473,6 +1140,48 @@ func _build_special_property_inspector() -> void:
 	_add_special_number(jagged_panel, "Height Break", "jagged_variance", 0.0, 4.0, 0.1)
 	_add_special_number(jagged_panel, "Edge Tilt", "jagged_rotation", 0.0, 25.0, 1.0)
 
+	var breach_panel := VBoxContainer.new()
+	breach_panel.name = "BreachedWallInspector"
+	inspector_panel.add_child(breach_panel)
+	special_property_panels["breached_wall"] = breach_panel
+	var breach_title := Label.new()
+	breach_title.text = "BREACHED WALL — PLAYABLE HOLE"
+	breach_title.add_theme_color_override("font_color", Color("e0b68b"))
+	breach_panel.add_child(breach_title)
+	_add_special_number(breach_panel, "Hole Width", "breach_width", 0.7, 20.0, 0.1)
+	_add_special_number(breach_panel, "Hole Height", "breach_height", 0.7, 10.0, 0.1)
+	_add_special_number(breach_panel, "Hole Bottom", "breach_bottom", 0.0, 8.0, 0.1)
+	_add_special_number(breach_panel, "Hole Offset X", "breach_offset", -20.0, 20.0, 0.1)
+	var breach_note := Label.new()
+	breach_note.text = "Resize the wall, then shape and offset its hole. The opening uses compound gameplay collision."
+	breach_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	breach_note.add_theme_font_size_override("font_size", 11)
+	breach_panel.add_child(breach_note)
+
+	_build_tree_property_panel("tree", "BROADLEAF TREE", "tree")
+	_build_tree_property_panel("pine_tree", "PINE TREE", "pine")
+	_build_bush_property_panel()
+	_build_imported_asset_property_panel()
+
+	var mountain_panel := VBoxContainer.new()
+	mountain_panel.name = "RockyMountainInspector"
+	inspector_panel.add_child(mountain_panel)
+	special_property_panels["rocky_mountain"] = mountain_panel
+	var mountain_title := Label.new()
+	mountain_title.text = "ROCKY MOUNTAIN — PROCEDURAL"
+	mountain_title.add_theme_color_override("font_color", Color("c4b9a2"))
+	mountain_panel.add_child(mountain_title)
+	_add_special_number(mountain_panel, "Ridge Detail", "mountain_segments", 6.0, 32.0, 1.0)
+	_add_special_number(mountain_panel, "Roughness", "mountain_roughness", 0.0, 0.45, 0.01)
+	_add_special_number(mountain_panel, "Peak X", "mountain_peak_x", -0.4, 0.4, 0.01)
+	_add_special_number(mountain_panel, "Peak Z", "mountain_peak_z", -0.4, 0.4, 0.01)
+	_add_special_number(mountain_panel, "Variation", "mountain_seed", 0.0, 9999.0, 1.0)
+	var mountain_note := Label.new()
+	mountain_note.text = "Size controls width, height, and depth. Peak values offset the summit as a fraction of the mountain size."
+	mountain_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	mountain_note.add_theme_font_size_override("font_size", 11)
+	mountain_panel.add_child(mountain_note)
+
 	var moving_dummy_panel := VBoxContainer.new()
 	moving_dummy_panel.name = "MovingTrainingDummyInspector"
 	inspector_panel.add_child(moving_dummy_panel)
@@ -493,6 +1202,75 @@ func _build_special_property_inspector() -> void:
 	_build_material_inspector()
 
 
+func _build_tree_property_panel(type_name: String, title_text: String, field_prefix: String) -> void:
+	var panel := VBoxContainer.new()
+	panel.name = "%sInspector" % title_text.to_pascal_case().replace(" ", "")
+	inspector_panel.add_child(panel)
+	special_property_panels[type_name] = panel
+	var title := Label.new()
+	title.text = title_text
+	title.add_theme_color_override("font_color", Color("79bd7d"))
+	panel.add_child(title)
+	_add_special_number(panel, "Canopy Layers", "%s_layers" % field_prefix, 1.0, 6.0, 1.0)
+	_add_special_number(panel, "Trunk Height", "%s_trunk" % field_prefix, 0.2, 0.7, 0.01)
+	_add_special_number(panel, "Variation", "%s_seed" % field_prefix, 0.0, 9999.0, 1.0)
+	var note := Label.new()
+	note.text = "Size controls canopy width, total height, and depth. Variation 0 uses the object id for a unique stable shape."
+	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	note.add_theme_font_size_override("font_size", 11)
+	panel.add_child(note)
+
+
+func _build_bush_property_panel() -> void:
+	var panel := VBoxContainer.new()
+	panel.name = "ConcealmentBushInspector"
+	inspector_panel.add_child(panel)
+	special_property_panels["bush"] = panel
+	var title := Label.new()
+	title.text = "CONCEALMENT BUSH"
+	title.add_theme_color_override("font_color", Color("7faa70"))
+	panel.add_child(title)
+	_add_special_number(panel, "Foliage Density", "bush_clusters", 3.0, 14.0, 1.0)
+	_add_special_number(panel, "Variation", "bush_seed", 0.0, 9999.0, 1.0)
+	var note := Label.new()
+	note.text = "Dense visual concealment. Players can enter it; it does not act as hard cover. Resize it with the standard X, Y, and Z controls."
+	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	note.add_theme_font_size_override("font_size", 11)
+	panel.add_child(note)
+
+
+func _build_imported_asset_property_panel() -> void:
+	var panel := VBoxContainer.new()
+	panel.name = "ImportedCommunityAssetInspector"
+	inspector_panel.add_child(panel)
+	special_property_panels["imported_asset"] = panel
+	var title := Label.new()
+	title.text = "IMPORTED COMMUNITY ASSET"
+	title.add_theme_color_override("font_color", Color("c0a4ee"))
+	panel.add_child(title)
+	imported_asset_path_label = Label.new()
+	imported_asset_path_label.name = "ImportedAssetPath"
+	imported_asset_path_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	imported_asset_path_label.add_theme_font_size_override("font_size", 10)
+	panel.add_child(imported_asset_path_label)
+	imported_collision_option = OptionButton.new()
+	imported_collision_option.name = "ImportedAssetCollisionMode"
+	for entry in [
+		{"label": "No Collision — decoration / foliage", "mode": "none"},
+		{"label": "Simple Box — fast", "mode": "box"},
+		{"label": "Detailed Static Mesh — expensive", "mode": "detailed_mesh"},
+	]:
+		imported_collision_option.add_item(entry["label"])
+		imported_collision_option.set_item_metadata(imported_collision_option.item_count - 1, entry["mode"])
+	imported_collision_option.item_selected.connect(_imported_collision_mode_selected)
+	panel.add_child(imported_collision_option)
+	var note := Label.new()
+	note.text = "Size X/Y/Z scales the imported model. GLB materials and textures remain embedded and portable."
+	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	note.add_theme_font_size_override("font_size", 11)
+	panel.add_child(note)
+
+
 func _build_material_inspector() -> void:
 	material_panel = VBoxContainer.new()
 	material_panel.name = "MapMaterialInspector"
@@ -501,6 +1279,19 @@ func _build_material_inspector() -> void:
 	title.text = "SURFACE MATERIAL"
 	title.add_theme_color_override("font_color", Color("9fc5e8"))
 	material_panel.add_child(title)
+	surface_preset_option = OptionButton.new()
+	surface_preset_option.name = "MapSurfacePreset"
+	for preset_name: String in MapDocument.SURFACE_PRESETS:
+		surface_preset_option.add_item(String(MapDocument.SURFACE_PRESETS[preset_name]["label"]))
+		surface_preset_option.set_item_metadata(surface_preset_option.item_count - 1, preset_name)
+	surface_preset_option.item_selected.connect(_surface_preset_selected)
+	material_panel.add_child(surface_preset_option)
+	material_color_picker = ColorPickerButton.new()
+	material_color_picker.name = "MapMaterialColor"
+	material_color_picker.text = "Paint Surface Tint"
+	material_color_picker.tooltip_text = "Tint the selected procedural surface or imported texture."
+	material_color_picker.color_changed.connect(_material_color_changed)
+	material_panel.add_child(material_color_picker)
 	texture_path_edit = LineEdit.new()
 	texture_path_edit.name = "MapTexturePath"
 	texture_path_edit.placeholder_text = "res://textures/concrete.png"
@@ -538,6 +1329,7 @@ func _add_special_number(parent: Control, label_text: String, field_key: String,
 	label.custom_minimum_size.x = 90
 	row.add_child(label)
 	var field := SpinBox.new()
+	field.name = "Map%s" % label_text.replace(" ", "")
 	field.min_value = minimum
 	field.max_value = maximum
 	field.step = step
@@ -660,13 +1452,23 @@ func _refresh_all() -> void:
 	undo_button.disabled = undo_stack.is_empty()
 	redo_button.disabled = redo_stack.is_empty()
 	_refresh_transform_mode_button()
+	_refresh_human_cues()
 
 
 func _refresh_gameplay_mode() -> void:
 	if gameplay_mode_option == null:
 		return
 	var gameplay := MapDocument.normalize_gameplay(document.get("gameplay", {}))
+	updating_gameplay = true
 	gameplay_mode_option.select(0 if String(gameplay.get("primary_mode", "demolition")) == "demolition" else 1)
+	round_time_spin.value = float(gameplay.get("round_time_seconds", 300)) / 60.0
+	maximum_rounds_spin.value = int(gameplay.get("maximum_rounds", 7))
+	rounds_to_win_spin.max_value = maximum_rounds_spin.value
+	rounds_to_win_spin.value = int(gameplay.get("rounds_to_win", 4))
+	plant_time_spin.value = float(gameplay.get("plant_time_seconds", 5.0))
+	defuse_time_spin.value = float(gameplay.get("defuse_time_seconds", 5.0))
+	bomb_fuse_spin.value = float(gameplay.get("bomb_fuse_seconds", 35))
+	updating_gameplay = false
 
 
 func _gameplay_mode_selected(index: int) -> void:
@@ -677,6 +1479,28 @@ func _gameplay_mode_selected(index: int) -> void:
 		"respawns_enabled": mode == "team_deathmatch",
 	}
 	execute_map_command({"command": "set_gameplay", "changes": changes})
+
+
+func _gameplay_rules_changed(_value: float) -> void:
+	if updating_gameplay:
+		return
+	var maximum_rounds := clampi(roundi(maximum_rounds_spin.value), 1, 25)
+	var rounds_to_win := clampi(roundi(rounds_to_win_spin.value), 1, maximum_rounds)
+	updating_gameplay = true
+	rounds_to_win_spin.max_value = maximum_rounds
+	rounds_to_win_spin.value = rounds_to_win
+	updating_gameplay = false
+	execute_map_command({
+		"command": "set_gameplay",
+		"changes": {
+			"round_time_seconds": roundi(round_time_spin.value * 60.0),
+			"maximum_rounds": maximum_rounds,
+			"rounds_to_win": rounds_to_win,
+			"plant_time_seconds": plant_time_spin.value,
+			"defuse_time_seconds": defuse_time_spin.value,
+			"bomb_fuse_seconds": roundi(bomb_fuse_spin.value),
+		},
+	})
 
 
 func _repair_socom_mission() -> void:
@@ -775,13 +1599,72 @@ func _rebuild_preview() -> void:
 	preview_root = MapRuntime.build_into(preview_world_root, document, true)
 	if preview_root == null:
 		return
-	for child in preview_root.get_children():
-		if child is Node3D and String(child.get_meta("map_object_id", "")) == selected_id:
-			_set_selected_material(child as Node3D)
+	preview_selected_id = ""
+	_refresh_selection_preview()
+
+
+func _refresh_selection_preview(previous_id: String = preview_selected_id) -> void:
+	if preview_root == null:
+		return
+	if not previous_id.is_empty() and previous_id != selected_id:
+		_replace_preview_object(previous_id, false)
+	if not selected_id.is_empty() and (previous_id != selected_id or preview_selected_id.is_empty()):
+		_replace_preview_object(selected_id, true)
+	preview_selected_id = selected_id
+
+
+func _replace_preview_object(object_id: String, highlighted: bool) -> void:
+	if preview_root == null or object_id.is_empty():
+		return
+	var existing: Node3D = null
+	for child: Node in preview_root.get_children():
+		if child is Node3D and String(child.get_meta("map_object_id", "")) == object_id:
+			existing = child as Node3D
+			break
+	var object := _document_object_by_id(object_id)
+	if is_instance_valid(existing):
+		existing.free()
+	if object.is_empty():
+		return
+	var replacement := MapRuntime.build_object(object, true)
+	if replacement == null:
+		return
+	preview_root.add_child(replacement)
+	if highlighted:
+		_set_selected_material(replacement)
+		_add_selection_bounds(
+			replacement,
+			MapDocument.data_to_vector(object.get("size", {}), Vector3.ONE),
+			String(object.get("type", ""))
+		)
+
+
+func _refresh_transformed_preview(root_id: String) -> void:
+	var affected := {root_id: true}
+	var found_more := true
+	while found_more:
+		found_more = false
+		for object: Dictionary in document.get("objects", []):
+			var object_id := String(object.get("id", ""))
+			var parent_id := String((object.get("properties", {}) as Dictionary).get("attached_to", ""))
+			if not affected.has(object_id) and affected.has(parent_id):
+				affected[object_id] = true
+				found_more = true
+	for object_id: String in affected:
+		_replace_preview_object(object_id, object_id == selected_id)
+	preview_selected_id = selected_id
+
+
+func _refresh_selection_ui(previous_id: String) -> void:
+	_refresh_selection_preview(previous_id)
+	_refresh_object_list()
+	_refresh_inspector()
+	_refresh_transform_mode_button()
+	_refresh_human_cues()
 
 
 func _set_selected_material(node: Node3D) -> void:
-	for found: Node in node.find_children("Visual", "MeshInstance3D", true, false):
+	for found: Node in node.find_children("*", "MeshInstance3D", true, false):
 		var visual := found as MeshInstance3D
 		var source := visual.material_override as StandardMaterial3D
 		if source == null:
@@ -793,11 +1676,49 @@ func _set_selected_material(node: Node3D) -> void:
 		visual.material_override = highlighted
 
 
+func _add_selection_bounds(node: Node3D, size: Vector3, object_type: String) -> void:
+	var bounds := Node3D.new()
+	bounds.name = "SelectionBounds"
+	var center_y := size.y * 0.5 if object_type in ["tree", "pine_tree", "bush", "imported_asset", "player_spawn", "team_alpha_spawn", "team_bravo_spawn"] else 0.0
+	bounds.position.y = center_y
+	var material := StandardMaterial3D.new()
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.no_depth_test = true
+	material.albedo_color = Color("ffd84a")
+	material.emission_enabled = true
+	material.emission = Color("ffd84a")
+	material.emission_energy_multiplier = 1.4
+	var thickness := clampf(maxf(size.x, maxf(size.y, size.z)) * 0.012, 0.025, 0.10)
+	for y_sign in [-1.0, 1.0]:
+		for z_sign in [-1.0, 1.0]:
+			_add_selection_edge(bounds, Vector3(maxf(size.x, 0.1), thickness, thickness), Vector3(0.0, y_sign * size.y * 0.5, z_sign * size.z * 0.5), material)
+	for x_sign in [-1.0, 1.0]:
+		for z_sign in [-1.0, 1.0]:
+			_add_selection_edge(bounds, Vector3(thickness, maxf(size.y, 0.1), thickness), Vector3(x_sign * size.x * 0.5, 0.0, z_sign * size.z * 0.5), material)
+	for x_sign in [-1.0, 1.0]:
+		for y_sign in [-1.0, 1.0]:
+			_add_selection_edge(bounds, Vector3(thickness, thickness, maxf(size.z, 0.1)), Vector3(x_sign * size.x * 0.5, y_sign * size.y * 0.5, 0.0), material)
+	node.add_child(bounds)
+
+
+func _add_selection_edge(parent: Node3D, edge_size: Vector3, edge_position: Vector3, material: StandardMaterial3D) -> void:
+	var edge := MeshInstance3D.new()
+	var mesh := BoxMesh.new()
+	mesh.size = edge_size
+	edge.mesh = mesh
+	edge.position = edge_position
+	edge.material_override = material
+	parent.add_child(edge)
+
+
 func _refresh_object_list() -> void:
 	object_list.clear()
 	var selection_index := -1
 	for object: Dictionary in document.get("objects", []):
 		var label := "%s  [%s]" % [object.get("name", "Object"), object.get("type", "")]
+		var attached_to := String((object.get("properties", {}) as Dictionary).get("attached_to", ""))
+		if not attached_to.is_empty():
+			label += "  ↳ attached"
 		object_list.add_item(label)
 		var index := object_list.item_count - 1
 		object_list.set_item_metadata(index, String(object.get("id", "")))
@@ -813,6 +1734,17 @@ func _refresh_inspector() -> void:
 	var has_selection := not object.is_empty()
 	name_edit.editable = has_selection
 	name_edit.text = String(object.get("name", "No object selected"))
+	group_id_edit.editable = has_selection
+	group_id_edit.text = String((object.get("properties", {}) as Dictionary).get("group_id", "")) if has_selection else ""
+	uniform_scale_spin.editable = has_selection
+	scale_group_toggle.disabled = not has_selection or String((object.get("properties", {}) as Dictionary).get("group_id", "")).is_empty()
+	collision_toggle.disabled = not has_selection
+	attachment_label.text = "Attached to: %s" % _object_name_for_id(String((object.get("properties", {}) as Dictionary).get("attached_to", ""))) if has_selection else "Attached to: nothing"
+	if has_selection:
+		var selected_properties: Dictionary = object.get("properties", {})
+		collision_toggle.button_pressed = bool(selected_properties.get("collision_enabled", String(object.get("type", "")) != "bush"))
+	else:
+		collision_toggle.button_pressed = false
 	for field: SpinBox in transform_fields.values():
 		field.editable = has_selection
 	if has_selection:
@@ -830,17 +1762,30 @@ func _refresh_inspector() -> void:
 		var properties: Dictionary = object.get("properties", {})
 		material_panel.visible = properties.has("texture_path")
 		if material_panel.visible:
+			material_color_picker.color = MapDocument.data_to_color(object.get("color", {}), Color("626973"))
 			texture_path_edit.text = String(properties.get("texture_path", ""))
+			var surface_kind := String(properties.get("surface_kind", "default"))
+			for preset_index in surface_preset_option.item_count:
+				if String(surface_preset_option.get_item_metadata(preset_index)) == surface_kind:
+					surface_preset_option.select(preset_index)
+					break
 			(special_fields["material_roughness"] as SpinBox).value = float(properties.get("roughness", 0.9))
 			(special_fields["material_metallic"] as SpinBox).value = float(properties.get("metallic", 0.0))
 			(special_fields["material_uv_scale"] as SpinBox).value = float(properties.get("uv_scale", 1.0))
 		if object_type == "point_light":
 			(special_fields["light_energy"] as SpinBox).value = float(properties.get("energy", 4.0))
 			(special_fields["light_range"] as SpinBox).value = float(properties.get("range", 8.0))
+			light_color_picker.color = MapDocument.data_to_color(object.get("color", {}), Color("ffd59b"))
 		elif object_type == "ambience_zone":
 			(special_fields["soundscape"] as LineEdit).text = String(properties.get("soundscape", "outdoor_tactical"))
 			(special_fields["audio_stream"] as LineEdit).text = String(properties.get("audio_stream", ""))
 			(special_fields["ambience_volume"] as SpinBox).value = float(properties.get("volume_db", -8.0))
+		elif object_type == "fog_zone":
+			(special_fields["fog_zone_density"] as SpinBox).value = float(properties.get("density", 0.035))
+			(special_fields["fog_zone_blend"] as SpinBox).value = float(properties.get("blend_distance", 2.5))
+			(special_fields["fog_zone_occlusion"] as SpinBox).value = float(properties.get("occlusion_strength", 0.35))
+			(special_fields["fog_zone_layers"] as SpinBox).value = float(properties.get("layer_count", 6))
+			(special_fields["fog_zone_priority"] as SpinBox).value = float(properties.get("priority", 0))
 		elif object_type == "curved_wall":
 			(special_fields["curve_arc"] as SpinBox).value = float(properties.get("arc_degrees", 90.0))
 			(special_fields["curve_radius"] as SpinBox).value = float(properties.get("radius", 4.0))
@@ -849,6 +1794,35 @@ func _refresh_inspector() -> void:
 			(special_fields["jagged_pieces"] as SpinBox).value = float(properties.get("pieces", 6))
 			(special_fields["jagged_variance"] as SpinBox).value = float(properties.get("height_variance", 0.8))
 			(special_fields["jagged_rotation"] as SpinBox).value = float(properties.get("edge_rotation", 5.0))
+		elif object_type == "breached_wall":
+			(special_fields["breach_width"] as SpinBox).value = float(properties.get("hole_width", 1.8))
+			(special_fields["breach_height"] as SpinBox).value = float(properties.get("hole_height", 1.55))
+			(special_fields["breach_bottom"] as SpinBox).value = float(properties.get("hole_bottom", 0.55))
+			(special_fields["breach_offset"] as SpinBox).value = float(properties.get("hole_offset_x", 0.0))
+		elif object_type == "tree":
+			(special_fields["tree_layers"] as SpinBox).value = float(properties.get("canopy_layers", 3))
+			(special_fields["tree_trunk"] as SpinBox).value = float(properties.get("trunk_ratio", 0.42))
+			(special_fields["tree_seed"] as SpinBox).value = float(properties.get("variation_seed", 0))
+		elif object_type == "pine_tree":
+			(special_fields["pine_layers"] as SpinBox).value = float(properties.get("canopy_layers", 3))
+			(special_fields["pine_trunk"] as SpinBox).value = float(properties.get("trunk_ratio", 0.42))
+			(special_fields["pine_seed"] as SpinBox).value = float(properties.get("variation_seed", 0))
+		elif object_type == "bush":
+			(special_fields["bush_clusters"] as SpinBox).value = float(properties.get("cluster_count", 7))
+			(special_fields["bush_seed"] as SpinBox).value = float(properties.get("variation_seed", 0))
+		elif object_type == "imported_asset":
+			imported_asset_path_label.text = String(properties.get("asset_path", "Missing GLB"))
+			var collision_mode := String(properties.get("collision_mode", "box"))
+			for collision_index in imported_collision_option.item_count:
+				if String(imported_collision_option.get_item_metadata(collision_index)) == collision_mode:
+					imported_collision_option.select(collision_index)
+					break
+		elif object_type == "rocky_mountain":
+			(special_fields["mountain_segments"] as SpinBox).value = float(properties.get("ridge_segments", 12))
+			(special_fields["mountain_roughness"] as SpinBox).value = float(properties.get("roughness_amount", 0.22))
+			(special_fields["mountain_peak_x"] as SpinBox).value = float(properties.get("peak_offset_x", 0.0))
+			(special_fields["mountain_peak_z"] as SpinBox).value = float(properties.get("peak_offset_z", 0.0))
+			(special_fields["mountain_seed"] as SpinBox).value = float(properties.get("variation_seed", 0))
 		elif object_type == "moving_training_dummy":
 			(special_fields["dummy_distance"] as SpinBox).value = float(properties.get("patrol_distance", 6.0))
 			(special_fields["dummy_speed"] as SpinBox).value = float(properties.get("patrol_speed", 1.5))
@@ -868,6 +1842,16 @@ func _special_number_changed(_value: float, field_key: String) -> void:
 		changes["range"] = (special_fields[field_key] as SpinBox).value
 	elif field_key == "ambience_volume":
 		changes["volume_db"] = (special_fields[field_key] as SpinBox).value
+	elif field_key == "fog_zone_density":
+		changes["density"] = (special_fields[field_key] as SpinBox).value
+	elif field_key == "fog_zone_blend":
+		changes["blend_distance"] = (special_fields[field_key] as SpinBox).value
+	elif field_key == "fog_zone_occlusion":
+		changes["occlusion_strength"] = (special_fields[field_key] as SpinBox).value
+	elif field_key == "fog_zone_layers":
+		changes["layer_count"] = int((special_fields[field_key] as SpinBox).value)
+	elif field_key == "fog_zone_priority":
+		changes["priority"] = int((special_fields[field_key] as SpinBox).value)
 	elif field_key == "curve_arc":
 		changes["arc_degrees"] = (special_fields[field_key] as SpinBox).value
 	elif field_key == "curve_radius":
@@ -880,6 +1864,30 @@ func _special_number_changed(_value: float, field_key: String) -> void:
 		changes["height_variance"] = (special_fields[field_key] as SpinBox).value
 	elif field_key == "jagged_rotation":
 		changes["edge_rotation"] = (special_fields[field_key] as SpinBox).value
+	elif field_key == "breach_width":
+		changes["hole_width"] = (special_fields[field_key] as SpinBox).value
+	elif field_key == "breach_height":
+		changes["hole_height"] = (special_fields[field_key] as SpinBox).value
+	elif field_key == "breach_bottom":
+		changes["hole_bottom"] = (special_fields[field_key] as SpinBox).value
+	elif field_key == "breach_offset":
+		changes["hole_offset_x"] = (special_fields[field_key] as SpinBox).value
+	elif field_key in ["tree_layers", "pine_layers"]:
+		changes["canopy_layers"] = int((special_fields[field_key] as SpinBox).value)
+	elif field_key in ["tree_trunk", "pine_trunk"]:
+		changes["trunk_ratio"] = (special_fields[field_key] as SpinBox).value
+	elif field_key == "bush_clusters":
+		changes["cluster_count"] = int((special_fields[field_key] as SpinBox).value)
+	elif field_key in ["tree_seed", "pine_seed", "bush_seed", "mountain_seed"]:
+		changes["variation_seed"] = int((special_fields[field_key] as SpinBox).value)
+	elif field_key == "mountain_segments":
+		changes["ridge_segments"] = int((special_fields[field_key] as SpinBox).value)
+	elif field_key == "mountain_roughness":
+		changes["roughness_amount"] = (special_fields[field_key] as SpinBox).value
+	elif field_key == "mountain_peak_x":
+		changes["peak_offset_x"] = (special_fields[field_key] as SpinBox).value
+	elif field_key == "mountain_peak_z":
+		changes["peak_offset_z"] = (special_fields[field_key] as SpinBox).value
 	elif field_key == "material_roughness":
 		changes["roughness"] = (special_fields[field_key] as SpinBox).value
 	elif field_key == "material_metallic":
@@ -914,6 +1922,33 @@ func _set_texture_path(path: String) -> void:
 		status_label.text = "Choose a texture inside this project so it survives builds and Git."
 		return
 	execute_map_command({"command": "set_object_properties", "id": selected_id, "changes": {"texture_path": path}})
+
+
+func _surface_preset_selected(index: int) -> void:
+	if updating_inspector or selected_id.is_empty():
+		return
+	var preset_name := String(surface_preset_option.get_item_metadata(index))
+	var preset: Dictionary = MapDocument.SURFACE_PRESETS.get(preset_name, MapDocument.SURFACE_PRESETS["default"])
+	execute_map_command({
+		"command": "set_object_properties", "id": selected_id,
+		"changes": {
+			"surface_kind": preset_name,
+			"roughness": float(preset.get("roughness", 0.9)),
+			"metallic": float(preset.get("metallic", 0.0)),
+		},
+	})
+
+
+func _light_color_changed(color: Color) -> void:
+	if updating_inspector or selected_id.is_empty():
+		return
+	execute_map_command({"command": "set_object_color", "id": selected_id, "color": MapDocument.color_to_data(color)})
+
+
+func _material_color_changed(color: Color) -> void:
+	if updating_inspector or selected_id.is_empty():
+		return
+	execute_map_command({"command": "set_object_color", "id": selected_id, "color": MapDocument.color_to_data(color)})
 
 
 func _refresh_history() -> void:
@@ -1003,8 +2038,149 @@ func _add_history(message: String) -> void:
 
 
 func _select_tool(type_name: StringName) -> void:
+	_set_navigation_mode(false)
 	placement_type = type_name
 	mode_label.text = "SELECT MODE" if type_name == &"" else "PLACE %s — CLICK THE MAP" % String(MapDocument.TYPE_DEFAULTS[type_name]["label"]).to_upper()
+
+
+func _quick_add_palette_object(type_name: StringName) -> void:
+	if type_name not in MapDocument.TYPE_DEFAULTS:
+		return
+	_set_navigation_mode(false)
+	var defaults: Dictionary = MapDocument.TYPE_DEFAULTS[type_name]
+	var size: Vector3 = defaults["size"]
+	var base_y := _current_floor_y()
+	var placed := _snap_vector(orbit_target)
+	if type_name in [&"player_spawn", &"team_alpha_spawn", &"team_bravo_spawn", &"training_dummy", &"moving_training_dummy"]:
+		placed.y = base_y + 0.05
+	elif type_name == &"point_light":
+		placed.y = base_y + 2.4
+	elif type_name == &"bomb_pickup":
+		placed.y = base_y + 0.4
+	elif type_name in [&"alpha_bomb_site", &"bravo_bomb_site"]:
+		placed.y = base_y + 0.125
+	else:
+		placed.y = base_y + size.y * 0.5
+	placement_type = &""
+	var new_properties := {"floor_level": current_floor_level}
+	if not attach_parent_id.is_empty():
+		new_properties["attached_to"] = attach_parent_id
+	var result := execute_map_command({
+		"command": "place_object", "type": String(type_name),
+		"position": MapDocument.vector_to_data(placed),
+		"properties": new_properties,
+	})
+	if bool(result.get("ok", false)):
+		var attached_parent := attach_parent_id
+		attach_parent_id = ""
+		mode_label.text = "%s ADDED%s — DRAG IT INTO PLACE" % [String(defaults["label"]).to_upper(), " + ATTACHED" if not attached_parent.is_empty() else ""]
+
+
+func _place_light_preset(preset_name: String) -> void:
+	if not MapDocument.LIGHT_PRESETS.has(preset_name):
+		return
+	var preset: Dictionary = MapDocument.LIGHT_PRESETS[preset_name]
+	var placed := _snap_vector(orbit_target)
+	placed.y = _current_floor_y() + 4.0
+	placement_type = &""
+	var result := execute_map_command({
+		"command": "place_object", "type": "point_light",
+		"name": String(preset["label"]),
+		"position": MapDocument.vector_to_data(placed),
+		"color": MapDocument.color_to_data(preset["color"]),
+		"properties": {
+			"energy": float(preset["energy"]),
+			"range": float(preset["range"]),
+			"shadow_enabled": bool(preset["shadow_enabled"]),
+			"floor_level": current_floor_level,
+		},
+	})
+	if bool(result.get("ok", false)):
+		mode_label.text = "%s ADDED — DRAG IT INTO PLACE" % String(preset["label"]).to_upper()
+
+
+func _floor_level_changed(value: float) -> void:
+	current_floor_level = roundi(value)
+	status_label.text = "Building on floor %d at %.2f m." % [current_floor_level, _current_floor_y()]
+
+
+func _floor_height_changed(value: float) -> void:
+	floor_height_m = clampf(value, 2.0, 6.0)
+	status_label.text = "Floor height is %.2f m." % floor_height_m
+
+
+func _surface_snap_toggled(enabled: bool) -> void:
+	surface_snap_enabled = enabled
+	status_label.text = "Surface placement %s." % ("enabled" if enabled else "disabled")
+
+
+func _current_floor_y() -> float:
+	return float(current_floor_level) * floor_height_m
+
+
+func _place_prefab_at_view(prefab_name: String) -> void:
+	var origin := _snap_vector(orbit_target)
+	origin.y = _current_floor_y()
+	execute_map_command({"command": "place_prefab", "prefab": prefab_name, "position": MapDocument.vector_to_data(origin)})
+	placement_type = &""
+	mode_label.text = "PREFAB PLACED — SELECT A PIECE OR DUPLICATE ITS GROUP"
+
+
+func _assign_selected_group(group_id: String) -> void:
+	if selected_id.is_empty():
+		return
+	execute_map_command({"command": "assign_group", "id": selected_id, "group_id": group_id})
+
+
+func _duplicate_selected_group() -> void:
+	if selected_id.is_empty():
+		return
+	var grid := float(document.get("grid_size", 0.5))
+	execute_map_command({
+		"command": "duplicate_group", "id": selected_id,
+		"offset": MapDocument.vector_to_data(Vector3(grid * 4.0, 0.0, grid * 4.0)),
+	})
+
+
+func _apply_uniform_scale() -> void:
+	if selected_id.is_empty():
+		return
+	var factor := clampf(uniform_scale_spin.value, 0.1, 10.0)
+	if is_equal_approx(factor, 1.0):
+		status_label.text = "Choose a scale other than 1×."
+		return
+	if scale_group_toggle.button_pressed and not scale_group_toggle.disabled:
+		execute_map_command({"command": "scale_group", "id": selected_id, "factor": factor})
+	else:
+		var object := _selected_object()
+		var size := MapDocument.data_to_vector(object.get("size", {}), Vector3.ONE) * factor
+		execute_map_command({"command": "transform_object", "id": selected_id, "size": MapDocument.vector_to_data(size)})
+	updating_inspector = true
+	uniform_scale_spin.value = 1.0
+	updating_inspector = false
+
+
+func _validate_map_now() -> void:
+	var contract_check := MapCommands.validate_document(document)
+	if not bool(contract_check.get("ok", false)):
+		status_label.text = "Map check failed: %s" % " | ".join(contract_check.get("errors", []))
+		_refresh_history()
+		return
+	var encoded := JSON.stringify(MapDocument.normalize(document))
+	var decoded: Variant = JSON.parse_string(encoded)
+	if not decoded is Dictionary:
+		status_label.text = "Map check failed: JSON save/reload round trip is invalid."
+		return
+	var reloaded := MapDocument.normalize(decoded as Dictionary)
+	if (reloaded.get("objects", []) as Array).size() != (document.get("objects", []) as Array).size():
+		status_label.text = "Map check failed: save/reload changed the object count."
+		return
+	var runtime_check := MapRuntime.validate_build(reloaded)
+	if not bool(runtime_check.get("ok", false)):
+		status_label.text = "Map check failed: %s" % " | ".join(runtime_check.get("errors", []))
+		return
+	status_label.text = "MAP HEALTHY — %d objects save, reload, build, light, and collide." % int(runtime_check.get("built_objects", 0))
+	_add_history("Map Health Check passed")
 
 
 func _available_transform_modes() -> Array[String]:
@@ -1029,14 +2205,16 @@ func _refresh_transform_mode_button() -> void:
 	var modes := _available_transform_modes()
 	if transform_mode not in modes:
 		transform_mode = "move_ground"
-	transform_mode_button.text = "TRANSFORM: %s" % TRANSFORM_MODE_LABELS.get(transform_mode, transform_mode)
+	transform_mode_button.text = "%s ▼" % TRANSFORM_MODE_LABELS.get(transform_mode, transform_mode)
 
 
 func _select_object_from_list(index: int) -> void:
+	_set_navigation_mode(false)
+	var previous_id := selected_id
 	selected_id = String(object_list.get_item_metadata(index))
 	placement_type = &""
 	mode_label.text = "SELECT MODE — DRAG OBJECTS ON THE GRID"
-	_refresh_all()
+	_refresh_selection_ui(previous_id)
 
 
 func _set_grid_from_option(index: int, option: OptionButton) -> void:
@@ -1102,7 +2280,12 @@ func _new_map() -> void:
 
 
 func _load_map() -> void:
-	var loaded := MapDocument.load_path(MapDocument.ACTIVE_MAP_PATH)
+	var loaded: Dictionary = {}
+	if map_selector != null and map_selector.selected >= 0 and map_selector.selected < library_entries.size():
+		var entry: Dictionary = library_entries[map_selector.selected]
+		loaded = MapDocument.select_library_map(String(entry.get("map_id", "")))
+	if loaded.is_empty():
+		loaded = MapDocument.load_active()
 	if loaded.is_empty():
 		status_label.text = "No saved map exists yet. Press Save to create it."
 		return
@@ -1111,7 +2294,7 @@ func _load_map() -> void:
 	selected_id = ""
 	redo_stack.clear()
 	_add_history("Loaded saved map")
-	status_label.text = "Loaded %s" % MapDocument.ACTIVE_MAP_PATH
+	status_label.text = "Opened %s" % String(document.get("name", "saved map"))
 	_refresh_all()
 
 
@@ -1122,12 +2305,133 @@ func _save_map() -> bool:
 		status_label.text = "Save blocked: %s" % " | ".join(validation.get("errors", []))
 		_refresh_history()
 		return false
-	if not MapDocument.save_path(document):
-		status_label.text = "Could not save the map document."
+	var result := MapDocument.save_to_library(document)
+	if not bool(result.get("ok", false)):
+		status_label.text = String(result.get("error", "Could not save the map document."))
 		return false
-	status_label.text = "Saved map — gameplay will load this exact layout."
-	_add_history("Saved %s" % MapDocument.ACTIVE_MAP_PATH)
+	document = (result.get("document", document) as Dictionary).duplicate(true)
+	status_label.text = "Saved and applied %s — Host Game will use this map when selected." % String(document.get("name", "map"))
+	_add_history("Saved map to My Maps")
+	_refresh_map_library(String(document.get("map_id", "")))
 	return true
+
+
+func _refresh_map_library(select_map_id: String = "") -> void:
+	if map_selector == null:
+		return
+	library_entries = MapDocument.list_library_maps()
+	map_selector.clear()
+	var desired_id := select_map_id
+	if desired_id.is_empty():
+		desired_id = String(document.get("map_id", ""))
+	var desired_index := -1
+	for index in library_entries.size():
+		var entry: Dictionary = library_entries[index]
+		map_selector.add_item(String(entry.get("name", "Untitled Tactical Map")))
+		map_selector.set_item_metadata(index, String(entry.get("map_id", "")))
+		if String(entry.get("map_id", "")) == desired_id:
+			desired_index = index
+	if desired_index >= 0:
+		map_selector.select(desired_index)
+	map_selector.disabled = library_entries.is_empty()
+
+
+func _save_and_return() -> void:
+	if _save_map():
+		get_tree().change_scene_to_file("res://game_launcher.tscn")
+
+
+func _refresh_community_identity_label() -> void:
+	if community_identity_label == null:
+		return
+	var service := get_node_or_null("/root/SupabaseClient")
+	if service == null or not bool(service.call("is_configured")):
+		community_identity_label.text = "COMMUNITY: Offline / not configured"
+		return
+	if bool(service.call("has_guest_session")):
+		community_identity_label.text = "COMMUNITY: %s" % String(service.call("display_name"))
+	else:
+		community_identity_label.text = "COMMUNITY: Guest connects when needed"
+
+
+func _set_community_busy(busy: bool) -> void:
+	if community_publish_button != null:
+		community_publish_button.disabled = busy
+	if community_refresh_button != null:
+		community_refresh_button.disabled = busy
+	if community_download_button != null:
+		community_download_button.disabled = busy or community_entries.is_empty()
+	if community_map_selector != null:
+		community_map_selector.disabled = busy or community_entries.is_empty()
+
+
+func _publish_community_map() -> void:
+	if not _save_map():
+		return
+	var service := get_node_or_null("/root/SupabaseClient")
+	if service == null:
+		status_label.text = "Community service is unavailable. Your map remains saved locally."
+		return
+	_set_community_busy(true)
+	status_label.text = "Connecting guest identity and publishing map…"
+	var result: Dictionary = await service.call("publish_map", document)
+	_set_community_busy(false)
+	_refresh_community_identity_label()
+	status_label.text = String(result.get("message", "Community publish failed."))
+	if bool(result.get("ok", false)):
+		_add_history("Published community map version %d" % int(result.get("version", 0)))
+		await _refresh_community_maps()
+
+
+func _refresh_community_maps() -> void:
+	var service := get_node_or_null("/root/SupabaseClient")
+	if service == null:
+		status_label.text = "Community service is unavailable."
+		return
+	_set_community_busy(true)
+	status_label.text = "Loading published community maps…"
+	var result: Dictionary = await service.call("list_public_maps")
+	community_entries = result.get("maps", []) if result.get("maps", []) is Array else []
+	community_map_selector.clear()
+	for entry: Dictionary in community_entries:
+		community_map_selector.add_item("%s  •  v%d" % [entry.get("title", "Community Map"), int(entry.get("current_version", 0))])
+	if community_entries.is_empty():
+		community_map_selector.add_item("No published community maps yet")
+	_set_community_busy(false)
+	status_label.text = String(result.get("message", "Could not load community maps."))
+
+
+func _download_community_map() -> void:
+	if (
+		community_map_selector == null
+		or community_map_selector.selected < 0
+		or community_map_selector.selected >= community_entries.size()
+	):
+		status_label.text = "Choose a published community map first."
+		return
+	var service := get_node_or_null("/root/SupabaseClient")
+	if service == null:
+		status_label.text = "Community service is unavailable."
+		return
+	_set_community_busy(true)
+	var entry: Dictionary = community_entries[community_map_selector.selected]
+	status_label.text = "Downloading %s…" % entry.get("title", "community map")
+	var result: Dictionary = await service.call("download_map", entry)
+	if bool(result.get("ok", false)):
+		var downloaded: Dictionary = result.get("document", {})
+		var saved := MapDocument.save_to_library(downloaded)
+		if bool(saved.get("ok", false)):
+			document = (saved.get("document", downloaded) as Dictionary).duplicate(true)
+			selected_id = ""
+			undo_stack.clear()
+			redo_stack.clear()
+			_refresh_map_library(String(document.get("map_id", "")))
+			_refresh_all()
+			_add_history("Downloaded community map")
+		else:
+			result = {"ok": false, "message": saved.get("error", "Could not save the downloaded map locally.")}
+	_set_community_busy(false)
+	status_label.text = String(result.get("message", "Community download failed."))
 
 
 func _rename_map_without_history(value: String) -> void:
@@ -1173,11 +2477,24 @@ func _on_viewport_gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
 		var button := event as InputEventMouseButton
 		if button.button_index == MOUSE_BUTTON_RIGHT:
-			orbiting = button.pressed
+			if button.pressed:
+				right_press_position = button.position
+				right_dragged = false
+			else:
+				if not right_dragged:
+					_show_object_context_menu(button.position)
 			viewport_container.accept_event()
 			return
-		if button.button_index == MOUSE_BUTTON_MIDDLE and button.pressed:
-			_cycle_transform_mode()
+		if button.button_index == MOUSE_BUTTON_MIDDLE:
+			if button.pressed:
+				orbiting = true
+				navigation_panning = button.shift_pressed
+				middle_dragged = false
+			else:
+				orbiting = false
+				navigation_panning = false
+				if not middle_dragged:
+					_cycle_transform_mode()
 			viewport_container.accept_event()
 			return
 		if button.button_index == MOUSE_BUTTON_WHEEL_UP and button.pressed:
@@ -1186,52 +2503,109 @@ func _on_viewport_gui_input(event: InputEvent) -> void:
 			viewport_container.accept_event()
 			return
 		if button.button_index == MOUSE_BUTTON_WHEEL_DOWN and button.pressed:
-			orbit_distance = minf(65.0, orbit_distance + 1.5)
+			orbit_distance = minf(160.0, orbit_distance + 1.5)
 			_update_camera()
 			viewport_container.accept_event()
 			return
 		if button.button_index == MOUSE_BUTTON_LEFT:
+			if navigation_mode:
+				if button.pressed and button.double_click:
+					_focus_camera_at(button.position)
+				elif button.pressed:
+					var navigation_hit := _pick_object(button.position)
+					navigation_pending_pick_id = "" if button.shift_pressed else String(navigation_hit.get("id", ""))
+					navigation_drag_distance = 0.0
+					navigation_dragging = true
+					navigation_panning = button.shift_pressed
+				else:
+					navigation_dragging = false
+					navigation_panning = false
+					if navigation_drag_distance <= 4.0 and not navigation_pending_pick_id.is_empty():
+						_select_object_from_view_hit(navigation_pending_pick_id)
+					navigation_pending_pick_id = ""
+				viewport_container.accept_event()
+				return
 			if button.pressed:
-				_handle_left_press(button.position)
+				if button.double_click:
+					_focus_camera_at(button.position)
+				else:
+					_handle_left_press(button.position)
 			else:
 				_finish_drag()
 			viewport_container.accept_event()
 	elif event is InputEventMouseMotion:
 		var motion := event as InputEventMouseMotion
-		if orbiting:
-			orbit_yaw -= motion.relative.x * 0.35
-			orbit_pitch = clampf(orbit_pitch - motion.relative.y * 0.3, -82.0, -8.0)
-			_update_camera()
+		if navigation_dragging:
+			navigation_drag_distance += motion.relative.length()
+			viewport_container.accept_event()
+		elif orbiting:
+			if motion.relative.length_squared() > 0.25:
+				middle_dragged = true
+			if navigation_panning or motion.shift_pressed:
+				_pan_camera(motion)
+			else:
+				orbit_yaw -= motion.relative.x * 0.35
+				orbit_pitch = clampf(orbit_pitch - motion.relative.y * 0.3, -82.0, -8.0)
+				_update_camera()
+			viewport_container.accept_event()
+		elif panning:
+			if motion.relative.length_squared() > 0.25:
+				middle_dragged = true
+			_pan_camera(motion)
 			viewport_container.accept_event()
 		elif dragging:
 			_drag_selected(motion)
 			viewport_container.accept_event()
 
 
+func _select_object_from_view_hit(object_id: String) -> void:
+	if object_id.is_empty():
+		return
+	_set_navigation_mode(false)
+	var previous_id := selected_id
+	selected_id = object_id
+	placement_type = &""
+	mode_label.text = "SELECTED — USE THE ACTIONS ABOVE OR RIGHT-CLICK FOR PROPERTIES"
+	_refresh_selection_ui(previous_id)
+
+
 func _handle_left_press(screen_position: Vector2) -> void:
 	if placement_type != &"":
-		var point: Variant = _screen_to_plane(screen_position, 0.0)
+		var floor_y := _current_floor_y()
+		var surface := _surface_hit(screen_position) if surface_snap_enabled else {}
+		var point: Variant = surface.get("position", null) if not surface.is_empty() else _screen_to_plane(screen_position, floor_y)
 		if point == null:
 			return
 		var defaults: Dictionary = MapDocument.TYPE_DEFAULTS[placement_type]
 		var size: Vector3 = defaults["size"]
 		var placed := _snap_vector(point as Vector3)
+		var base_y := float((point as Vector3).y)
 		if placement_type in [&"player_spawn", &"team_alpha_spawn", &"team_bravo_spawn", &"training_dummy", &"moving_training_dummy"]:
-			placed.y = 0.05
+			placed.y = base_y + 0.05
 		elif placement_type == &"point_light":
-			placed.y = 2.4
+			placed.y = base_y + 2.4
 		elif placement_type == &"bomb_pickup":
-			placed.y = 0.4
+			placed.y = base_y + 0.4
 		elif placement_type in [&"alpha_bomb_site", &"bravo_bomb_site"]:
-			placed.y = 0.125
+			placed.y = base_y + 0.125
 		else:
-			placed.y = size.y * 0.5
-		execute_map_command({"command": "place_object", "type": String(placement_type), "position": MapDocument.vector_to_data(placed)})
+			placed.y = base_y + size.y * 0.5
+		var placed_properties := {"floor_level": current_floor_level}
+		if not attach_parent_id.is_empty():
+			placed_properties["attached_to"] = attach_parent_id
+		var place_result := execute_map_command({
+			"command": "place_object", "type": String(placement_type),
+			"position": MapDocument.vector_to_data(placed),
+			"properties": placed_properties,
+		})
+		if bool(place_result.get("ok", false)):
+			attach_parent_id = ""
 		return
+	var previous_id := selected_id
 	var hit := _pick_object(screen_position)
 	selected_id = String(hit.get("id", ""))
 	if selected_id.is_empty():
-		_refresh_all()
+		_refresh_selection_ui(previous_id)
 		return
 	var selected := _selected_object()
 	dragging = true
@@ -1243,7 +2617,7 @@ func _handle_left_press(screen_position: Vector2) -> void:
 	drag_screen_delta = Vector2.ZERO
 	drag_changed = false
 	drag_plane_y = drag_start_position.y
-	_refresh_all()
+	_refresh_selection_ui(previous_id)
 
 
 func _drag_selected(motion: InputEventMouseMotion) -> void:
@@ -1296,7 +2670,7 @@ func _drag_selected(motion: InputEventMouseMotion) -> void:
 	if bool(result.get("ok", false)):
 		document = result["document"]
 		drag_changed = true
-		_rebuild_preview()
+		_refresh_transformed_preview(selected_id)
 		_refresh_inspector()
 
 
@@ -1311,10 +2685,34 @@ func _finish_drag() -> void:
 			undo_stack.pop_front()
 		redo_stack.clear()
 		_add_history("%s — %s" % [TRANSFORM_MODE_LABELS.get(transform_mode, transform_mode), object.get("name", "Object")])
-	_refresh_all()
+	if String(object.get("type", "")) == "ambience_zone":
+		_rebuild_audio_ambience()
+	_refresh_object_list()
+	_refresh_inspector()
+	_refresh_history()
+	undo_button.disabled = undo_stack.is_empty()
+	redo_button.disabled = redo_stack.is_empty()
+	_refresh_transform_mode_button()
+	_refresh_human_cues()
 
 
 func _pick_object(screen_position: Vector2) -> Dictionary:
+	var ray_hit := _surface_hit(screen_position)
+	var screen_hit := _screen_space_pick(screen_position)
+	if ray_hit.is_empty():
+		return screen_hit
+	var ray_id := String(ray_hit.get("id", ""))
+	if ray_id.is_empty():
+		return screen_hit
+	var ray_object := _document_object_by_id(ray_id)
+	if String(ray_object.get("type", "")) == "ground" and not screen_hit.is_empty():
+		return screen_hit
+	return ray_hit
+
+
+func _surface_hit(screen_position: Vector2) -> Dictionary:
+	if camera == null or map_viewport == null or map_viewport.world_3d == null:
+		return {}
 	var mapped := _map_viewport_position(screen_position)
 	var origin := camera.project_ray_origin(mapped)
 	var end := origin + camera.project_ray_normal(mapped) * 500.0
@@ -1325,7 +2723,56 @@ func _pick_object(screen_position: Vector2) -> Dictionary:
 	var collider := hit.get("collider") as Node
 	if collider == null:
 		return {}
-	return {"id": String(collider.get_meta("map_object_id", "")), "position": hit.get("position", Vector3.ZERO)}
+	return {"id": _map_object_id_from_node(collider), "position": hit.get("position", Vector3.ZERO)}
+
+
+func _map_object_id_from_node(node: Node) -> String:
+	var current := node
+	while current != null:
+		var object_id := String(current.get_meta("map_object_id", ""))
+		if not object_id.is_empty():
+			return object_id
+		current = current.get_parent()
+	return ""
+
+
+func _screen_space_pick(screen_position: Vector2) -> Dictionary:
+	if camera == null or map_viewport == null:
+		return {}
+	var mapped := _map_viewport_position(screen_position)
+	var best_score := INF
+	var best: Dictionary = {}
+	var focal_length := float(map_viewport.size.y) / (2.0 * tan(deg_to_rad(camera.fov) * 0.5))
+	for object: Dictionary in document.get("objects", []):
+		var world_position := MapDocument.data_to_vector(object.get("position", {}))
+		var size := MapDocument.data_to_vector(object.get("size", {}), Vector3.ONE)
+		if String(object.get("type", "")) in ["tree", "pine_tree", "bush", "imported_asset", "player_spawn", "team_alpha_spawn", "team_bravo_spawn"]:
+			world_position.y += size.y * 0.5
+		if camera.is_position_behind(world_position):
+			continue
+		var depth := camera.global_position.distance_to(world_position)
+		if depth <= 0.01:
+			continue
+		var projected := camera.unproject_position(world_position)
+		var radius_world := maxf(size.x, maxf(size.y, size.z)) * 0.72
+		var radius_pixels := clampf(radius_world / depth * focal_length, 14.0, 360.0)
+		var pixel_distance := mapped.distance_to(projected)
+		if pixel_distance > radius_pixels:
+			continue
+		var score := pixel_distance / radius_pixels + depth * 0.0002
+		if String(object.get("type", "")) == "ground":
+			score += 0.65
+		if score < best_score:
+			best_score = score
+			best = {"id": String(object.get("id", "")), "position": world_position}
+	return best
+
+
+func _document_object_by_id(object_id: String) -> Dictionary:
+	for object: Dictionary in document.get("objects", []):
+		if String(object.get("id", "")) == object_id:
+			return object
+	return {}
 
 
 func _screen_to_plane(screen_position: Vector2, plane_y: float) -> Variant:
@@ -1353,3 +2800,95 @@ func _update_camera() -> void:
 	var offset := Vector3(cos(pitch) * sin(yaw), -sin(pitch), cos(pitch) * cos(yaw)) * orbit_distance
 	camera.position = orbit_target + offset
 	camera.look_at(orbit_target, Vector3.UP)
+
+
+func _pan_camera(motion: InputEventMouseMotion) -> void:
+	if camera == null:
+		return
+	var meter_per_pixel := maxf(orbit_distance * 0.0025, 0.01)
+	var right := camera.global_transform.basis.x.normalized()
+	var forward := -camera.global_transform.basis.z
+	forward.y = 0.0
+	if forward.length_squared() > 0.0001:
+		forward = forward.normalized()
+	if motion.shift_pressed:
+		orbit_target += -right * motion.relative.x * meter_per_pixel
+		orbit_target += Vector3.UP * motion.relative.y * meter_per_pixel
+	else:
+		orbit_target += -right * motion.relative.x * meter_per_pixel
+		orbit_target += forward * motion.relative.y * meter_per_pixel
+	_update_camera()
+
+
+func _focus_camera_at(screen_position: Vector2) -> void:
+	var hit := _surface_hit(screen_position)
+	if hit.is_empty():
+		return
+	orbit_target = hit.get("position", orbit_target)
+	orbit_distance = clampf(orbit_distance, 4.0, 160.0)
+	_update_camera()
+	status_label.text = "Camera focused on the clicked point."
+
+
+func _focus_selected_camera() -> void:
+	var selected := _selected_object()
+	if selected.is_empty():
+		status_label.text = "Select a map object first, then press F."
+		return
+	orbit_target = MapDocument.data_to_vector(selected.get("position", {}))
+	var size := MapDocument.data_to_vector(selected.get("size", {}), Vector3.ONE)
+	orbit_distance = clampf(maxf(size.length() * 2.0, 6.0), 4.0, 160.0)
+	_update_camera()
+	status_label.text = "Focused: %s" % selected.get("name", "Map object")
+
+
+func _frame_all_camera(show_status := true) -> void:
+	var objects: Array = document.get("objects", [])
+	if objects.is_empty():
+		orbit_target = Vector3.ZERO
+		orbit_distance = 22.0
+		_update_camera()
+		return
+	var minimum := Vector3(INF, INF, INF)
+	var maximum := Vector3(-INF, -INF, -INF)
+	for object_variant in objects:
+		if not object_variant is Dictionary:
+			continue
+		var object := object_variant as Dictionary
+		var position := MapDocument.data_to_vector(object.get("position", {}))
+		var half_size := MapDocument.data_to_vector(object.get("size", {}), Vector3.ONE) * 0.5
+		minimum = minimum.min(position - half_size)
+		maximum = maximum.max(position + half_size)
+	orbit_target = (minimum + maximum) * 0.5
+	var extent := maximum - minimum
+	orbit_distance = clampf(maxf(maxf(extent.x, extent.z) * 0.82, extent.y * 1.4), 8.0, 160.0)
+	_update_camera()
+	if show_status:
+		status_label.text = "Framed the full map."
+
+
+func _camera_view_selected(index: int) -> void:
+	match index:
+		0:
+			orbit_yaw = -38.0
+			orbit_pitch = -32.0
+			_update_camera()
+		1:
+			_frame_all_camera(false)
+			orbit_yaw = 0.0
+			orbit_pitch = -89.0
+			_update_camera()
+		2:
+			_frame_all_camera(false)
+			orbit_yaw = 0.0
+			orbit_pitch = -12.0
+			_update_camera()
+		3:
+			_frame_all_camera(false)
+			orbit_yaw = -90.0
+			orbit_pitch = -12.0
+			_update_camera()
+		4:
+			_focus_selected_camera()
+		5:
+			_frame_all_camera()

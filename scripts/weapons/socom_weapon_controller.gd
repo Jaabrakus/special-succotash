@@ -12,6 +12,7 @@ const WeaponContract := preload("res://scripts/weapons/weapon_rig_contract.gd")
 const Composure := preload("res://scripts/weapons/operator_composure.gd")
 
 signal authoritative_shot(result: Dictionary)
+signal ammo_changed(rounds_in_magazine: int, reserve_rounds: int)
 
 var player: CharacterBody3D
 var camera_rig
@@ -22,6 +23,11 @@ var last_accepted_sequence: int = -1
 var last_result: Dictionary = {}
 var composure = Composure.new()
 var composure_profile: Dictionary = {}
+var magazine_capacity: int = 30
+var rounds_in_magazine: int = 30
+var reserve_rounds: int = 90
+var equipped_weapon_id: StringName = &"rifle"
+var equipped_weapon_display_name: String = "Rifle"
 var _movement_ratio: float = 0.0
 var _turning_ratio: float = 0.0
 var _last_camera_yaw: float = 0.0
@@ -32,6 +38,7 @@ var reticle_profile: Dictionary = {
 	"shot_kick_px": 6.0,
 	"shot_kick_return": 18.0,
 	"maximum_shot_kick_px": 18.0,
+	"maximum_movement_tick_extension_px": 16.0,
 }
 
 
@@ -43,6 +50,8 @@ func configure(target_player: CharacterBody3D, target_camera) -> void:
 	ballistics.name = "WeaponBallistics"
 	add_child(ballistics)
 	_apply_equipped_ballistics()
+	rounds_in_magazine = magazine_capacity
+	ammo_changed.emit(rounds_in_magazine, reserve_rounds)
 	_last_camera_yaw = float(camera_rig.yaw) if camera_rig != null else 0.0
 
 
@@ -52,21 +61,49 @@ func _apply_equipped_ballistics() -> void:
 	var config := WeaponContract.load_equipped_config()
 	if config.is_empty():
 		return
+	equipped_weapon_id = StringName(config.get("weapon_id", "rifle"))
+	equipped_weapon_display_name = String(
+		config.get("display_name", equipped_weapon_id)
+	).replace("_", " ").strip_edges()
+	if equipped_weapon_display_name.is_empty():
+		equipped_weapon_display_name = String(equipped_weapon_id).replace("_", " ")
 	var values: Dictionary = config.get("ballistics", {})
 	var saved_reticle: Variant = config.get("reticle", {})
 	if saved_reticle is Dictionary:
 		reticle_profile.merge((saved_reticle as Dictionary), true)
+	reticle_profile["functional_aim_climb_enabled"] = bool(
+		values.get("functional_aim_climb_enabled", false)
+	)
+	if camera_rig != null and camera_rig.has_method("configure_functional_aim_climb"):
+		camera_rig.call("configure_functional_aim_climb", values)
 	var saved_composure: Variant = config.get("composure", {})
 	if saved_composure is Dictionary:
 		composure_profile = (saved_composure as Dictionary).duplicate(true)
 		composure.configure_weapon(composure_profile)
 	ballistics.fire_rate_rpm = float(values.get("fire_rate_rpm", ballistics.fire_rate_rpm))
 	ballistics.damage_per_shot = float(values.get("damage", ballistics.damage_per_shot))
+	ballistics.headshot_multiplier = clampf(
+		float(values.get("headshot_multiplier", ballistics.headshot_multiplier)),
+		1.0,
+		10.0
+	)
 	ballistics.muzzle_velocity_mps = float(values.get("muzzle_velocity_mps", ballistics.muzzle_velocity_mps))
 	ballistics.base_spread_deg = float(values.get("base_spread_deg", ballistics.base_spread_deg))
+	ballistics.moving_spread_deg = float(values.get("moving_spread_deg", ballistics.moving_spread_deg))
+	ballistics.full_gait_spread_deg = float(values.get("full_gait_spread_deg", ballistics.full_gait_spread_deg))
+	ballistics.opening_burst_motion_multiplier = float(values.get(
+		"opening_burst_motion_multiplier",
+		ballistics.opening_burst_motion_multiplier
+	))
 	ballistics.bloom_per_shot_deg = float(values.get("bloom_per_shot_deg", ballistics.bloom_per_shot_deg))
 	ballistics.max_recoil_bloom_deg = float(values.get("max_recoil_bloom_deg", ballistics.max_recoil_bloom_deg))
 	ballistics.bloom_recovery_speed = float(values.get("bloom_recovery_speed", ballistics.bloom_recovery_speed))
+	ballistics.crouch_spread_multiplier = float(values.get("crouch_spread_multiplier", ballistics.crouch_spread_multiplier))
+	ballistics.crouch_bloom_per_shot_deg = float(values.get("crouch_bloom_per_shot_deg", ballistics.crouch_bloom_per_shot_deg))
+	ballistics.crouch_max_recoil_bloom_deg = float(values.get("crouch_max_recoil_bloom_deg", ballistics.crouch_max_recoil_bloom_deg))
+	ballistics.crouch_bloom_recovery_speed = float(values.get("crouch_bloom_recovery_speed", ballistics.crouch_bloom_recovery_speed))
+	magazine_capacity = clampi(int(values.get("magazine_capacity", magazine_capacity)), 1, 200)
+	reserve_rounds = clampi(int(values.get("reserve_ammo", reserve_rounds)), 0, 999)
 	ballistics.fire_interval = 60.0 / maxf(60.0, ballistics.fire_rate_rpm)
 
 
@@ -91,6 +128,22 @@ func _physics_process(delta: float) -> void:
 	elif posture_name == &"PRONE":
 		stance = OperatorComposure.Stance.PRONE
 	composure.advance(delta, _movement_ratio, _turning_ratio, stance)
+	var retained_instability := composure.get_shot_instability(
+		_movement_ratio,
+		_turning_ratio
+	)
+	ballistics.update_spread_state(
+		posture_name,
+		retained_instability,
+		not player.is_on_floor()
+	)
+	if camera_rig.has_method("set_weapon_aim_instability"):
+		# The higher of locomotion or live reticle bloom drives only the local
+		# mouse-string envelope. It never changes the authoritative shot result.
+		camera_rig.call(
+			"set_weapon_aim_instability",
+			maxf(_movement_ratio, get_reticle_spread_normalized())
+		)
 
 
 func _process(_delta: float) -> void:
@@ -115,6 +168,9 @@ func request_fire() -> Dictionary:
 		or mannequin == null
 	):
 		return {"fired": false, "reason": "WEAPON_NOT_READY"}
+	if rounds_in_magazine <= 0:
+		ballistics.release_trigger()
+		return {"fired": false, "reason": "MAGAZINE_EMPTY"}
 
 	var active_muzzle: Node3D = (
 		mannequin.get_active_muzzle_marker()
@@ -134,7 +190,6 @@ func request_fire() -> Dictionary:
 	if not bool(validation.get("accepted", false)):
 		return {"fired": false, "reason": validation.get("reason", "REJECTED")}
 
-	var movement_ratio := _movement_ratio
 	var posture_name: StringName = (
 		StringName(player.call("get_posture_name"))
 		if player.has_method("get_posture_name")
@@ -143,6 +198,10 @@ func request_fire() -> Dictionary:
 	var seed: int = int(payload.sequence) * 73856093 ^ int(payload.simulation_tick) * 19349663
 	var exclude: Array[RID] = [player.get_rid()]
 	var next_shot_in_burst := int(ballistics.continuous_shot_count) + 1
+	var retained_instability := composure.get_shot_instability(
+		_movement_ratio,
+		_turning_ratio
+	)
 	var dispersion_multiplier := composure.get_shot_dispersion_multiplier(
 		next_shot_in_burst,
 		_movement_ratio,
@@ -159,12 +218,16 @@ func request_fire() -> Dictionary:
 		exclude,
 		seed,
 		posture_name,
-		movement_ratio,
+		retained_instability,
 		not player.is_on_floor(),
 		dispersion_multiplier
 	)
 	if not bool(result.get("fired", false)):
 		return result
+	rounds_in_magazine = maxi(0, rounds_in_magazine - 1)
+	result["rounds_in_magazine"] = rounds_in_magazine
+	result["reserve_ammo"] = reserve_rounds
+	ammo_changed.emit(rounds_in_magazine, reserve_rounds)
 	var opening_stress_multiplier := float(
 		composure_profile.get("opening_stress_multiplier", 0.28)
 		if next_shot_in_burst <= 2
@@ -180,9 +243,15 @@ func request_fire() -> Dictionary:
 		else Vector3(validation.direction)
 	)
 	result["rendered_barrel_direction"] = rendered_barrel_direction
+	result["aim_center_direction"] = Vector3(validation.direction)
 	result["barrel_alignment_error_deg"] = rad_to_deg(
 		rendered_barrel_direction.angle_to(Vector3(validation.direction))
 	)
+	if camera_rig.has_method("notify_functional_aim_climb"):
+		camera_rig.call("notify_functional_aim_climb", next_shot_in_burst)
+		result["functional_aim_climb"] = camera_rig.call(
+			"get_functional_aim_climb_debug_state"
+		)
 
 	last_accepted_sequence = int(payload.sequence)
 	result["origin"] = muzzle
@@ -219,7 +288,8 @@ func request_fire() -> Dictionary:
 			float(ballistics.damage_per_shot) * damage_scale,
 			Vector3(result.hit_pos),
 			Vector3(result.get("normal", Vector3.UP)),
-			player.global_position
+			player.global_position,
+			float(ballistics.headshot_multiplier)
 		)
 	camera_rig.last_fired_direction = Vector3(result.direction)
 	camera_rig.last_fired_point = Vector3(result.hit_pos)
@@ -229,6 +299,29 @@ func request_fire() -> Dictionary:
 		mannequin.call("notify_operator_fired")
 	authoritative_shot.emit(result)
 	return result
+
+
+func request_reload() -> bool:
+	if rounds_in_magazine >= magazine_capacity or reserve_rounds <= 0:
+		# Keep the authored reload preview available even when the magazine is full.
+		return true
+	var needed := magazine_capacity - rounds_in_magazine
+	var transferred := mini(needed, reserve_rounds)
+	rounds_in_magazine += transferred
+	reserve_rounds -= transferred
+	ballistics.release_trigger()
+	ammo_changed.emit(rounds_in_magazine, reserve_rounds)
+	return transferred > 0
+
+
+func get_ammo_snapshot() -> Dictionary:
+	return {
+		"weapon_id": equipped_weapon_id,
+		"display_name": equipped_weapon_display_name,
+		"magazine_capacity": magazine_capacity,
+		"rounds_in_magazine": rounds_in_magazine,
+		"reserve_ammo": reserve_rounds,
+	}
 
 
 func set_input_enabled(enabled: bool) -> void:
@@ -242,3 +335,7 @@ func get_reticle_spread_normalized() -> float:
 	if ballistics != null:
 		ballistic_spread = ballistics.get_normalized_spread()
 	return maxf(ballistic_spread, composure.get_visual_bloom())
+
+
+func get_movement_ratio() -> float:
+	return _movement_ratio

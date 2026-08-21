@@ -36,10 +36,17 @@ func active_device_name() -> String:
 func apply_mouse_motion(
     relative_motion: Vector2,
     aim_angles: Vector2,
-    profile: Resource
+    profile: Resource,
+    deadzone_radius_px: float = -1.0,
+    maximum_lead_px: float = -1.0
 ) -> void:
     activate_mouse(aim_angles)
-    mouse_model.apply_motion(relative_motion, profile)
+    mouse_model.apply_motion(
+        relative_motion,
+        profile,
+        deadzone_radius_px,
+        maximum_lead_px
+    )
 
 func update_mouse_aim(
     aim_angles: Vector2,

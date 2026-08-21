@@ -1,6 +1,9 @@
 class_name SocomOperatorAnimationDriver
 extends Node3D
 
+signal action_completed(clip_name: StringName)
+signal action_cancelled(clip_name: StringName)
+
 ## Thin visual coordinator. CharacterBody owns movement; the camera owns aim.
 ## Asset loading, blending, transitions, posture and IK contracts are isolated.
 
@@ -31,8 +34,6 @@ const AnimationFramePoseRuntime := preload(
 @export_range(0.02, 0.20, 0.005) var locomotion_enter_speed: float = 0.10
 @export_range(0.01, 0.18, 0.005) var locomotion_exit_speed: float = 0.055
 @export_range(0.0, 18.0, 0.5) var direction_hysteresis_deg: float = 7.5
-@export_range(0.04, 0.30, 0.01) var recoil_duration: float = 0.12
-@export_range(0.0, 12.0, 0.25) var recoil_pitch_deg: float = 3.5
 @export_range(0.0, 90.0, 0.5) var chest_yaw_limit_deg: float = 42.0
 @export_range(0.0, 60.0, 0.5) var chest_pitch_limit_deg: float = 28.0
 @export_range(0.0, 90.0, 0.5) var head_yaw_limit_deg: float = 56.0
@@ -73,6 +74,7 @@ var current_clip: StringName = &""
 var previous_clip: StringName = &""
 var requested_action: StringName = &""
 var requested_action_remaining: float = 0.0
+var requested_action_playback_speed: float = 1.0
 var right_grip_pos := Vector3(-0.02, 0.08, 0.05)
 var right_grip_rot := Vector3(-90.0, 180.0, 0.0)
 
@@ -101,7 +103,6 @@ var _previous_movement_state: StringName = &"LOCOMOTION"
 var _locomotion_active: bool = false
 var _direction_initialized: bool = false
 var _stable_direction_octant: int = 0
-var _recoil_remaining: float = 0.0
 var _last_transition_reason: StringName = &"none"
 var _requested_action_is_transition: bool = false
 var _prone_straighten_weight: float = 0.0
@@ -117,6 +118,8 @@ var _active_reload_visual_clip: StringName = &""
 var _reload_visual_time: float = 0.0
 var _reload_support_regrip: bool = false
 var _requested_action_upper_body_layered: bool = false
+var _standing_master_pose_frame_suppressed: bool = false
+var _equipped_weapon_visible: bool = true
 
 
 func _ready() -> void:
@@ -168,6 +171,9 @@ func _ready() -> void:
 	weapon_pose_solver.configure_dynamic_hold(
 		equipped_weapon_handling_profile.get("dynamic_hold", {})
 	)
+	weapon_pose_solver.configure_gun_placement_line(
+		equipped_weapon_config.get("gun_placement_line", {})
+	)
 	audio_event_manager = AnimationAudioEvents.new()
 	audio_event_manager.name = "AudioAnimationEvents"
 	add_child(audio_event_manager)
@@ -181,8 +187,8 @@ func _process(delta: float) -> void:
 	if not _explicit_visual_inputs:
 		_pull_player_inputs()
 	_update_locomotion_latch()
-	if firing and not _previous_firing:
-		_trigger_fire_recoil()
+	_cancel_reload_for_posture_change()
+	_cancel_reload_for_mobility()
 	_cancel_cosmetic_transition_for_gameplay()
 	locomotion_graph.update_locomotion(
 		movement_direction,
@@ -199,7 +205,7 @@ func _process(delta: float) -> void:
 		_previous_posture = posture
 		if asset_runtime != null:
 			asset_runtime.apply_animation_hand_map(String(posture), posture)
-	if requested_action == &"":
+	if requested_action == &"" or _requested_action_upper_body_layered:
 		_request_clip(_select_visual_clip())
 	_apply_saved_animation_frame_pose(delta)
 	_update_prone_straightening(delta)
@@ -208,7 +214,7 @@ func _process(delta: float) -> void:
 		aim_pitch_rad,
 		weapon_ready_weight,
 		obstruction_amount,
-		-deg_to_rad(recoil_pitch_deg) * _recoil_weight(),
+		0.0,
 		deg_to_rad(chest_yaw_limit_deg),
 		deg_to_rad(chest_pitch_limit_deg),
 		deg_to_rad(head_yaw_limit_deg),
@@ -237,7 +243,6 @@ func _process(delta: float) -> void:
 		delta
 	)
 	_stabilize_locomotion_legs(delta)
-	_recoil_remaining = maxf(0.0, _recoil_remaining - delta)
 	_previous_firing = firing
 	_previous_movement_state = movement_state
 
@@ -246,7 +251,7 @@ func _stabilize_locomotion_legs(delta: float) -> void:
 	if skeleton == null:
 		return
 	var ordinary_locomotion := (
-		requested_action == &""
+		(requested_action == &"" or _requested_action_upper_body_layered)
 		and posture != &"PRONE"
 		and movement_state in [&"STANDING", &"CROUCHED", &"LOCOMOTION"]
 	)
@@ -305,6 +310,40 @@ func _cancel_cosmetic_transition_for_gameplay() -> void:
 		_requested_action_is_transition = false
 
 
+func _cancel_reload_for_mobility() -> void:
+	if (
+		not _reload_action_is_active()
+		or movement_state not in [&"DIVING", &"ROLLING", &"AIRBORNE", &"LANDING"]
+	):
+		return
+	_cancel_active_reload()
+
+
+func _cancel_reload_for_posture_change() -> void:
+	if posture == _previous_posture or not _reload_action_is_active():
+		return
+	_cancel_active_reload()
+
+
+func _reload_action_is_active() -> bool:
+	return requested_action != &"" and "reload" in String(requested_action).to_lower()
+
+
+func _cancel_active_reload(emit_cancelled: bool = true) -> void:
+	var cancelled_action := requested_action
+	if locomotion_graph != null:
+		locomotion_graph.cancel_reload_layers()
+	requested_action = &""
+	requested_action_remaining = 0.0
+	_requested_action_is_transition = false
+	_requested_action_upper_body_layered = false
+	_clear_reload_visuals()
+	if weapon_pose_solver != null:
+		weapon_pose_solver.interrupt_action_weapon_follow()
+	if emit_cancelled and cancelled_action != &"":
+		action_cancelled.emit(cancelled_action)
+
+
 func _consider_cosmetic_transition() -> void:
 	var request: Dictionary = transition_state_machine.evaluate(
 		movement_direction,
@@ -338,10 +377,21 @@ func _update_requested_action(delta: float) -> void:
 		if not _requested_action_upper_body_layered:
 			_request_clip(requested_action)
 		return
+	if _reload_action_is_active():
+		var completed_reload := requested_action
+		_cancel_active_reload(false)
+		action_completed.emit(completed_reload)
+		return
+	var completed_action := requested_action
 	requested_action = &""
 	_requested_action_is_transition = false
 	_requested_action_upper_body_layered = false
+	requested_action_playback_speed = 1.0
+	if animation_player != null:
+		animation_player.speed_scale = 1.0
 	_clear_reload_visuals()
+	_update_weapon_visibility()
+	action_completed.emit(completed_action)
 
 
 func _update_reload_visuals(delta: float) -> void:
@@ -494,10 +544,21 @@ func _equipped_action_clip(slot_name: String, fallback: StringName) -> StringNam
 	return candidate if candidate != &"" and available_clips.has(candidate) else fallback
 
 
-func play_action(clip_name: StringName, blend_seconds: float = 0.12) -> bool:
+func play_action(
+	clip_name: StringName,
+	blend_seconds: float = 0.12,
+	playback_speed: float = 1.0
+) -> bool:
 	if not available_clips.has(clip_name) or animation_player == null:
 		return false
+	if requested_action != &"" and requested_action != clip_name:
+		var interrupted_action := requested_action
+		if _reload_action_is_active():
+			_cancel_active_reload(false)
+		action_cancelled.emit(interrupted_action)
 	var animation := animation_player.get_animation(clip_name)
+	requested_action_playback_speed = clampf(playback_speed, 0.25, 3.0)
+	animation_player.speed_scale = requested_action_playback_speed
 	requested_action = clip_name
 	_requested_action_is_transition = false
 	_requested_action_upper_body_layered = false
@@ -506,7 +567,10 @@ func play_action(clip_name: StringName, blend_seconds: float = 0.12) -> bool:
 	elif clip_name == &"roll":
 		requested_action_remaining = roll_trim_duration
 	else:
-		requested_action_remaining = animation.length if animation else 1.0
+		requested_action_remaining = (
+			(animation.length if animation else 1.0)
+			/ requested_action_playback_speed
+		)
 	if "reload" in String(clip_name).to_lower():
 		_active_reload_visual_slot = "reload_%s" % String(posture).to_lower()
 		_active_reload_visual_clip = clip_name
@@ -519,20 +583,94 @@ func play_action(clip_name: StringName, blend_seconds: float = 0.12) -> bool:
 			locomotion_graph != null
 			and locomotion_graph.trigger_crouched_reload(clip_name)
 		)
+	elif posture == &"STANDING" and "reload" in String(clip_name).to_lower():
+		_requested_action_upper_body_layered = bool(
+			locomotion_graph != null
+			and locomotion_graph.trigger_standing_reload(clip_name)
+		)
 	if _requested_action_upper_body_layered:
 		if asset_runtime != null:
 			asset_runtime.apply_animation_hand_map(
 				String(clip_paths.get(clip_name, "")),
-				posture
+				posture,
+				clip_name
 			)
 	else:
 		_request_clip(clip_name, blend_seconds)
+	_update_weapon_visibility()
 	return true
 
 
-func play_semantic_action(action_name: StringName, blend_seconds: float = 0.12) -> bool:
+func play_semantic_action(
+	action_name: StringName,
+	blend_seconds: float = 0.12,
+	playback_speed: float = 1.0
+) -> bool:
 	var clip_name: StringName = _resolve_equipped_weapon_action(action_name)
-	return clip_name != &"" and play_action(clip_name, blend_seconds)
+	return clip_name != &"" and play_action(clip_name, blend_seconds, playback_speed)
+
+
+func play_semantic_action_timed(
+	action_name: StringName,
+	target_duration_seconds: float,
+	blend_seconds: float = 0.12
+) -> bool:
+	var clip_name: StringName = _resolve_equipped_weapon_action(action_name)
+	if clip_name == &"" or animation_player == null:
+		return false
+	var animation := animation_player.get_animation(clip_name)
+	if animation == null:
+		return false
+	var target_duration := clampf(target_duration_seconds, 0.25, 10.0)
+	var playback_speed := clampf(animation.length / target_duration, 0.25, 3.0)
+	return play_action(clip_name, blend_seconds, playback_speed)
+
+
+func weapon_reload_duration_seconds() -> float:
+	return clampf(
+		float(equipped_weapon_handling_profile.get("reload_duration_seconds", 1.75)),
+		0.25,
+		10.0
+	)
+
+
+func set_equipped_weapon_visible(enabled: bool) -> void:
+	_equipped_weapon_visible = enabled
+	_update_weapon_visibility()
+
+
+func set_bomb_backpack_visible(enabled: bool) -> void:
+	if asset_runtime != null:
+		asset_runtime.set_bomb_backpack_visible(enabled)
+
+
+func cancel_grenade_action() -> bool:
+	if animation_player != null:
+		animation_player.speed_scale = 1.0
+	requested_action_playback_speed = 1.0
+	if requested_action == &"" or "grenade" not in String(requested_action).to_lower():
+		return false
+	var cancelled_action := requested_action
+	requested_action = &""
+	requested_action_remaining = 0.0
+	_requested_action_is_transition = false
+	_requested_action_upper_body_layered = false
+	if weapon_pose_solver != null:
+		weapon_pose_solver.interrupt_action_weapon_follow()
+	_request_clip(_select_visual_clip(), 0.08)
+	_update_weapon_visibility()
+	action_cancelled.emit(cancelled_action)
+	return true
+
+
+func _update_weapon_visibility() -> void:
+	if weapon_node == null:
+		return
+	var grenade_action_active := (
+		requested_action != &""
+		and "grenade" in String(requested_action).to_lower()
+	)
+	weapon_node.visible = _equipped_weapon_visible and not grenade_action_active
 
 
 func resolve_semantic_action(action_name: StringName) -> StringName:
@@ -567,9 +705,16 @@ func get_connected_route(route_name: StringName) -> Array[StringName]:
 
 
 func notify_fired() -> bool:
-	_trigger_fire_recoil()
 	if skeleton == null or locomotion_graph == null:
 		return false
+	if _standing_fire_uses_aim_idle():
+		# Standing imports the complete Gunsmith Aim Idle baseline. Bloom and
+		# reticle kick remain as shot feedback; the fire take must not replace the
+		# authored torso, weapon transform, dimensions, or grip sockets.
+		_fire_pose_clip = &""
+		_fire_pose_time = 0.0
+		_fire_pose_duration = 0.0
+		return true
 	_fire_pose_clip = locomotion_graph.trigger_fire(posture)
 	_fire_pose_time = 0.0
 	var fire_animation := (
@@ -605,7 +750,8 @@ func _request_clip(clip_name: StringName, blend_seconds: float = -1.0) -> void:
 		if asset_runtime != null:
 			asset_runtime.apply_animation_hand_map(
 				String(clip_paths.get(clip_name, "")),
-				posture if requested_action == &"" else &""
+				posture if requested_action == &"" or _requested_action_upper_body_layered else &"",
+				clip_name
 			)
 	var blend := blend_seconds
 	if blend < 0.0:
@@ -624,6 +770,13 @@ func _apply_saved_animation_frame_pose(delta: float) -> void:
 		return
 	var pose_clip := current_clip
 	var pose_time := _frame_pose_clip_time
+	# Standing locomotion replaces its upper body with the equipped Aim Idle
+	# clip. Sample the Gunsmith correction keys from that same upper-body source,
+	# not from the walk/run clip that owns only the legs.
+	if posture == &"STANDING" and weapon_ready_weight >= 0.50:
+		var ready_pose_clip := _standing_ready_frame_pose_clip()
+		if ready_pose_clip != &"":
+			pose_clip = ready_pose_clip
 	if _requested_action_upper_body_layered and _active_reload_visual_clip != &"":
 		pose_clip = _active_reload_visual_clip
 		pose_time = _reload_visual_time
@@ -655,6 +808,17 @@ func _apply_saved_animation_frame_pose(delta: float) -> void:
 		candidates,
 		pose_time
 	)
+	_standing_master_pose_frame_suppressed = false
+	if (
+		_standing_master_pose_active()
+		and bool(_standing_master_pose_profile().get("suppress_saved_frame_pose", true))
+		and not _standing_reload_pose_active()
+	):
+		# Gunsmith keeps the saved keys for editing and reload authoring. Gameplay
+		# standing uses the imported Aim Idle as its only torso baseline; the blue
+		# line owns the rifle and the weapon sockets own both hands.
+		_active_frame_pose = {}
+		_standing_master_pose_frame_suppressed = true
 	if posture_layer != null:
 		posture_layer.set_animation_frame_rotation_overrides(
 			_active_frame_pose.get("joint_rotations", {})
@@ -663,8 +827,57 @@ func _apply_saved_animation_frame_pose(delta: float) -> void:
 		weapon_pose_solver.set_animation_frame_pose(_active_frame_pose)
 
 
+func _standing_master_pose_profile() -> Dictionary:
+	var raw_profile: Variant = equipped_weapon_handling_profile.get(
+		"standing_master_pose",
+		{}
+	)
+	return raw_profile as Dictionary if raw_profile is Dictionary else {}
+
+
+func _standing_master_pose_active() -> bool:
+	return (
+		posture == &"STANDING"
+		and bool(_standing_master_pose_profile().get("enabled", false))
+	)
+
+
+func _standing_fire_uses_aim_idle() -> bool:
+	return (
+		posture == &"STANDING"
+		and bool(
+			equipped_weapon_handling_profile.get(
+				"standing_fire_uses_aim_idle",
+				false
+			)
+		)
+	)
+
+
+func _standing_reload_pose_active() -> bool:
+	return (
+		_requested_action_upper_body_layered
+		and "reload" in String(requested_action).to_lower()
+	)
+
+
+func _standing_ready_frame_pose_clip() -> StringName:
+	var animation_slots: Variant = equipped_weapon_handling_profile.get(
+		"animation_slots",
+		{}
+	)
+	if not animation_slots is Dictionary:
+		return &"aim_idle" if available_clips.has(&"aim_idle") else &""
+	var configured := StringName(
+		(animation_slots as Dictionary).get("idle_standing", "aim_idle")
+	)
+	if configured != &"" and available_clips.has(configured):
+		return configured
+	return &"aim_idle" if available_clips.has(&"aim_idle") else &""
+
+
 func _modern_state_for_clip(clip_name: StringName) -> StringName:
-	if requested_action != &"":
+	if requested_action != &"" and not _requested_action_upper_body_layered:
 		return clip_name
 	if posture == &"CROUCHED":
 		return &"crouch" if _locomotion_active else &"idle_crouch"
@@ -734,17 +947,6 @@ func _update_locomotion_latch() -> void:
 	elif not _locomotion_active and movement_speed_normalized >= locomotion_enter_speed:
 		_locomotion_active = true
 		_direction_initialized = false
-
-
-func _trigger_fire_recoil() -> void:
-	_recoil_remaining = recoil_duration
-
-
-func _recoil_weight() -> float:
-	if recoil_duration <= 0.0 or _recoil_remaining <= 0.0:
-		return 0.0
-	var phase := 1.0 - clampf(_recoil_remaining / recoil_duration, 0.0, 1.0)
-	return sin(phase * PI) * exp(-phase * 2.2)
 
 
 func _pull_player_inputs() -> void:
@@ -855,8 +1057,8 @@ func get_animation_debug_state() -> Dictionary:
 		"movement_gait": movement_gait,
 		"locomotion_blend_seconds": locomotion_blend_seconds,
 		"direction_octant": _stable_direction_octant,
-		"recoil_weight": _recoil_weight(),
-		"upper_body_recoil_layer": true,
+		"recoil_weight": 0.0,
+		"upper_body_recoil_layer": false,
 		"upper_body_reload_layer": _requested_action_upper_body_layered,
 		"transition_reason": _last_transition_reason,
 		"movement_speed_mps": movement_speed_mps,
@@ -865,6 +1067,8 @@ func get_animation_debug_state() -> Dictionary:
 		"prone_axis_target_pitch_deg": prone_axis_target_pitch_deg,
 		"prone_axis_max_correction_deg": prone_axis_max_correction_deg,
 		"peek_amount": peek_amount,
+		"standing_master_pose_active": _standing_master_pose_active(),
+		"standing_master_pose_frame_suppressed": _standing_master_pose_frame_suppressed,
 	}
 	if locomotion_graph != null:
 		snapshot.merge(locomotion_graph.get_debug_state(), true)

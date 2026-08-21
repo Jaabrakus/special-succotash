@@ -164,6 +164,10 @@ func step(delta: float) -> void:
     if target == null or camera == null:
         return
 
+    # Any damage jolt lives only on the rendered Camera3D child. Clear it before
+    # aim and collision solve, then reapply it after shot validation below.
+    rig._begin_camera_presentation_frame()
+
     # The lab selects scenario yaw/pitch immediately after add_child() returns,
     # which is after rig._ready(). Capture that final initial orbit once so the
     # camera cannot ease back toward stale startup intent on its first frame.
@@ -245,7 +249,11 @@ func step(delta: float) -> void:
     collision_cast_count = 0
     var collision_solve_started: int = Time.get_ticks_usec()
     var collision_result: Dictionary = rig._solve_collision(bounded_position)
+    collision_result = _stabilize_obstruction_release(collision_result, delta)
     rig._apply_collision_result(collision_result)
+    var collision_holds_lens: bool = bool(
+        collision_result.get("hold_lens", false)
+    )
     post_collision_reframe = false
     post_initial_score = -1.0
     post_validated_score = -1.0
@@ -257,7 +265,7 @@ func step(delta: float) -> void:
     # Recompose from the legal collision result, then volume-cast that correction
     # again. This lets a constrained camera rise enough to lower the head on
     # screen without ever lifting the lens through a ceiling or wall.
-    if collision_active:
+    if collision_active and not collision_holds_lens:
         var initial_collision_name: String = collision_name
         var initial_wall_escape: bool = wall_escape_active
         var initial_escape_angle: float = wall_escape_angle_deg
@@ -465,4 +473,37 @@ func step(delta: float) -> void:
         mannequin.set_near_camera_crop(near_body_geometry_hidden)
     rig._update_visual_crop_state()
     rig._update_shot_validation()
+    rig._apply_head_impact_presentation(delta)
 
+
+func _stabilize_obstruction_release(
+    result: Dictionary,
+    delta: float
+) -> Dictionary:
+    if bool(result.get("hold_lens", false)):
+        rig.obstruction_hold_result = result.duplicate()
+        rig.obstruction_clear_elapsed = 0.0
+        return result
+    if rig.obstruction_hold_result.is_empty():
+        return result
+    if bool(result.get("collided", false)):
+        rig.obstruction_hold_result.clear()
+        rig.obstruction_clear_elapsed = 0.0
+        return result
+
+    rig.obstruction_clear_elapsed += delta
+    if rig.obstruction_clear_elapsed >= profile.obstruction_release_delay:
+        rig.obstruction_hold_result.clear()
+        rig.obstruction_clear_elapsed = 0.0
+        return result
+
+    # A grazing cast can alternate CLEAR/BLOCKED each frame at a wall edge.
+    # Hold the current legal lens during this short exit guard so presentation
+    # cannot pulse. The virtual camera and aim continue updating behind it.
+    var held_result: Dictionary = rig.obstruction_hold_result.duplicate()
+    if current_camera_position != Vector3.ZERO:
+        held_result.position = current_camera_position
+    held_result.collider_name = "%s / RELEASE GUARD" % str(
+        rig.obstruction_hold_result.get("collider_name", "CAMERA VOLUME / BOOM HELD")
+    )
+    return held_result

@@ -19,14 +19,27 @@ func sync_to_aim(aim_angles: Vector2) -> void:
     intent_yaw = wrapf(aim_angles.x, -PI, PI)
     intent_pitch = aim_angles.y
 
-func apply_motion(relative_motion: Vector2, profile: Resource) -> void:
+func apply_motion(
+    relative_motion: Vector2,
+    profile: Resource,
+    deadzone_radius_px: float = -1.0,
+    maximum_lead_px: float = -1.0
+) -> void:
     blue_offset_pixels += relative_motion
-    var maximum_lead: float = profile.mouse_string_max_lead_px
+    var maximum_lead: float = (
+        maximum_lead_px
+        if maximum_lead_px >= 0.0
+        else profile.mouse_string_max_lead_px
+    )
     if blue_offset_pixels.length() > maximum_lead:
         blue_offset_pixels = blue_offset_pixels.normalized() * maximum_lead
 
     var touch_distance: float = (
-        profile.mouse_string_deadzone_radius_px
+        (
+            deadzone_radius_px
+            if deadzone_radius_px >= 0.0
+            else profile.mouse_string_deadzone_radius_px
+        )
         + profile.mouse_string_blue_radius_px
     )
     if blue_offset_pixels.length() <= touch_distance:

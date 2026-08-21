@@ -2,13 +2,16 @@ class_name SocomKeyboardMappingProfile
 extends RefCounted
 
 const CONFIG_PATH := "res://config/input/keyboard_mapping.json"
-const REMOVED_LEGACY_ACTIONS: Array[StringName] = [&"prone", &"roll"]
+const USER_CONFIG_PATH := "user://keyboard_mapping.json"
+const REMOVED_LEGACY_ACTIONS: Array[StringName] = [
+	&"prone", &"roll", &"throw_grenade", &"cycle_grenade",
+]
 
 const ACTION_ORDER: Array[StringName] = [
 	&"move_forward", &"move_back", &"move_left", &"move_right",
 	&"jump", &"crouch", &"dive",
-	&"peek_left", &"peek_right", &"fire", &"reload_weapon",
-	&"throw_grenade", &"cycle_grenade", &"reset_camera",
+	&"peek_left", &"peek_right", &"fire", &"reload_weapon", &"interact",
+	&"equip_grenade", &"reset_camera",
 ]
 
 const ACTION_LABELS := {
@@ -23,8 +26,8 @@ const ACTION_LABELS := {
 	&"peek_right": "Peek Right",
 	&"fire": "Fire",
 	&"reload_weapon": "Reload",
-	&"throw_grenade": "Aim / Throw Grenade",
-	&"cycle_grenade": "Cycle Grenade",
+	&"interact": "Interact / Plant Bomb",
+	&"equip_grenade": "Grenade: Tap Equip/Cycle / Hold Rifle",
 	&"reset_camera": "Reset Camera",
 }
 
@@ -43,17 +46,20 @@ const DEFAULT_BINDINGS := {
 	&"peek_right": [{"type": "key", "physical_keycode": KEY_E}],
 	&"fire": [{"type": "mouse", "button_index": MOUSE_BUTTON_LEFT}],
 	&"reload_weapon": [{"type": "key", "physical_keycode": KEY_R}],
-	&"throw_grenade": [{"type": "key", "physical_keycode": KEY_G}],
-	&"cycle_grenade": [{"type": "key", "physical_keycode": KEY_5}],
+	&"interact": [{"type": "key", "physical_keycode": KEY_F}],
+	&"equip_grenade": [{"type": "key", "physical_keycode": KEY_G}],
 	&"reset_camera": [{"type": "key", "physical_keycode": KEY_HOME}],
 }
 
 
-static func apply_project_mapping() -> void:
+static func apply_project_mapping(
+	user_path: String = USER_CONFIG_PATH,
+	project_path: String = CONFIG_PATH
+) -> void:
 	if InputMap.has_action(&"run"):
 		InputMap.erase_action(&"run")
 	_remove_legacy_actions()
-	var saved := load_mapping()
+	var saved := load_mapping(user_path, project_path)
 	for action: StringName in ACTION_ORDER:
 		if not InputMap.has_action(action):
 			InputMap.add_action(action, 0.10 if action == &"fire" else 0.25)
@@ -67,6 +73,7 @@ static func apply_project_mapping() -> void:
 			var event := descriptor_to_event(descriptor as Dictionary)
 			if event != null:
 				InputMap.action_add_event(action, event)
+	_apply_default_gamepad_bindings()
 
 
 static func reset_to_defaults() -> void:
@@ -79,6 +86,43 @@ static func reset_to_defaults() -> void:
 			var event := descriptor_to_event(descriptor)
 			if event != null:
 				InputMap.action_add_event(action, event)
+	_apply_default_gamepad_bindings()
+
+
+static func _apply_default_gamepad_bindings() -> void:
+	_add_joy_axis(&"move_left", JOY_AXIS_LEFT_X, -1.0)
+	_add_joy_axis(&"move_right", JOY_AXIS_LEFT_X, 1.0)
+	_add_joy_axis(&"move_forward", JOY_AXIS_LEFT_Y, -1.0)
+	_add_joy_axis(&"move_back", JOY_AXIS_LEFT_Y, 1.0)
+	_add_joy_button(&"jump", JOY_BUTTON_A)
+	_add_joy_button(&"crouch", JOY_BUTTON_B)
+	_add_joy_button(&"reload_weapon", JOY_BUTTON_X)
+	_add_joy_button(&"equip_grenade", JOY_BUTTON_Y)
+	_add_joy_button(&"peek_left", JOY_BUTTON_LEFT_SHOULDER)
+	_add_joy_button(&"peek_right", JOY_BUTTON_RIGHT_SHOULDER)
+	_add_joy_button(&"dive", JOY_BUTTON_RIGHT_STICK)
+	_add_joy_button(&"interact", JOY_BUTTON_DPAD_UP)
+	_add_joy_button(&"reset_camera", JOY_BUTTON_LEFT_STICK)
+	_add_joy_axis(&"fire", JOY_AXIS_TRIGGER_RIGHT, 1.0)
+
+
+static func _add_joy_button(action: StringName, button: JoyButton) -> void:
+	if not InputMap.has_action(action):
+		return
+	var event := InputEventJoypadButton.new()
+	event.button_index = button
+	if not InputMap.action_has_event(action, event):
+		InputMap.action_add_event(action, event)
+
+
+static func _add_joy_axis(action: StringName, axis: JoyAxis, value: float) -> void:
+	if not InputMap.has_action(action):
+		return
+	var event := InputEventJoypadMotion.new()
+	event.axis = axis
+	event.axis_value = value
+	if not InputMap.action_has_event(action, event):
+		InputMap.action_add_event(action, event)
 
 
 static func _remove_legacy_actions() -> void:
@@ -90,15 +134,32 @@ static func _remove_legacy_actions() -> void:
 static func replace_binding(action: StringName, event: InputEvent) -> bool:
 	if action not in ACTION_ORDER or not (event is InputEventKey or event is InputEventMouseButton):
 		return false
+	var replacement := event_to_descriptor(event)
+	for other_action: StringName in ACTION_ORDER:
+		if other_action == action or not InputMap.has_action(other_action):
+			continue
+		for existing_event in InputMap.action_get_events(other_action):
+			if event_to_descriptor(existing_event) == replacement:
+				InputMap.action_erase_event(other_action, existing_event)
 	_clear_keyboard_and_mouse_events(action)
 	InputMap.action_add_event(action, event)
 	return true
 
 
-static func load_mapping() -> Dictionary:
-	if not FileAccess.file_exists(CONFIG_PATH):
+static func load_mapping(
+	user_path: String = USER_CONFIG_PATH,
+	project_path: String = CONFIG_PATH
+) -> Dictionary:
+	var user_mapping := _load_mapping_path(user_path)
+	if not user_mapping.is_empty():
+		return user_mapping
+	return _load_mapping_path(project_path)
+
+
+static func _load_mapping_path(path: String) -> Dictionary:
+	if not FileAccess.file_exists(path):
 		return {}
-	var file := FileAccess.open(CONFIG_PATH, FileAccess.READ)
+	var file := FileAccess.open(path, FileAccess.READ)
 	var parsed: Variant = JSON.parse_string(file.get_as_text()) if file else null
 	if not parsed is Dictionary:
 		return {}
@@ -106,14 +167,32 @@ static func load_mapping() -> Dictionary:
 	return (bindings as Dictionary).duplicate(true) if bindings is Dictionary else {}
 
 
-static func save_current_mapping() -> bool:
+static func save_current_mapping(
+	project_path: String = CONFIG_PATH,
+	user_path: String = USER_CONFIG_PATH
+) -> bool:
+	# Gameplay intentionally loads the per-player file before the bundled
+	# project file. Saving only res:// therefore looked successful in the lab
+	# while a stale user:// profile silently won when Play was opened. Always
+	# update the player profile, and mirror to the project when that location is
+	# writable so development builds and source control keep the same defaults.
+	var user_saved := _save_mapping_path(user_path)
+	_save_mapping_path(project_path)
+	return user_saved
+
+
+static func save_user_mapping() -> bool:
+	return _save_mapping_path(USER_CONFIG_PATH)
+
+
+static func _save_mapping_path(path: String) -> bool:
 	var document := current_mapping_document()
 	var directory_error := DirAccess.make_dir_recursive_absolute(
-		ProjectSettings.globalize_path(CONFIG_PATH.get_base_dir())
+		ProjectSettings.globalize_path(path.get_base_dir())
 	)
 	if directory_error != OK and directory_error != ERR_ALREADY_EXISTS:
 		return false
-	var file := FileAccess.open(CONFIG_PATH, FileAccess.WRITE)
+	var file := FileAccess.open(path, FileAccess.WRITE)
 	if file == null:
 		return false
 	file.store_string(JSON.stringify(document, "  "))
@@ -132,7 +211,7 @@ static func current_mapping_document() -> Dictionary:
 		bindings[String(action)] = descriptors
 	return {
 		"schema_version": 1,
-		"purpose": "Shared player controls loaded by gameplay and the Keyboard Mapping Lab",
+		"purpose": "Shared player controls loaded by gameplay, in-game Controls, and the Keyboard Mapping Lab",
 		"bindings": bindings,
 	}
 

@@ -11,6 +11,8 @@ const SAVED_STATE_PATHS := {
 	"animation_layers": "res://config/operator_animation_layer_recipe.json",
 	"procedural_pose": "res://config/operator_procedural_pose_profile.json",
 	"movement": "res://config/operator_movement_tuning.json",
+	"player_gameplay": "res://config/player_gameplay_profile.json",
+	"tactical_grenades": "res://config/tactical_grenade_profile.json",
 	"hurtboxes": "res://config/combat/hurtbox_profile.json",
 	"animation_audio": "res://config/audio_animation_events.json",
 	"surface_audio": "res://config/surface_audio_profiles.json",

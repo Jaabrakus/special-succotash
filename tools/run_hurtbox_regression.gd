@@ -41,7 +41,8 @@ func _run() -> void:
 	for required in REQUIRED_REGIONS:
 		_assert(regions.has(required), "missing region %s" % required)
 
-	# Core anatomy wins only when a limb is almost coplanar due to overlap.
+	# Core anatomy wins at a joint overlap and when a bullet continues through
+	# an arm into the same operator's torso.
 	var overlap_choice: Dictionary = AnatomicalHitResolver.choose_hit([
 		{"hit_region": &"RIGHT_FOREARM", "distance": 4.00},
 		{"hit_region": &"TORSO", "distance": 4.08},
@@ -54,13 +55,28 @@ func _run() -> void:
 		bool(overlap_choice.get("anatomical_override", false)),
 		"resolved overlap did not expose diagnostic metadata"
 	)
-	var exposed_limb_choice: Dictionary = AnatomicalHitResolver.choose_hit([
+	var arm_through_core_choice: Dictionary = AnatomicalHitResolver.choose_hit([
 		{"hit_region": &"RIGHT_FOREARM", "distance": 4.00},
 		{"hit_region": &"TORSO", "distance": 4.30},
 	])
 	_assert(
+		StringName(arm_through_core_choice.get("hit_region", &"")) == &"TORSO",
+		"arm penetration into the same operator core was not resolved to torso"
+	)
+	var exposed_limb_choice: Dictionary = AnatomicalHitResolver.choose_hit([
+		{"hit_region": &"RIGHT_FOREARM", "distance": 4.00},
+	])
+	_assert(
 		StringName(exposed_limb_choice.get("hit_region", &"")) == &"RIGHT_FOREARM",
-		"genuinely exposed limb was incorrectly converted to torso"
+		"an arm outside the body silhouette remains limb damage"
+	)
+	var distant_core_choice: Dictionary = AnatomicalHitResolver.choose_hit([
+		{"hit_region": &"RIGHT_FOREARM", "distance": 4.00},
+		{"hit_region": &"TORSO", "distance": 4.80},
+	])
+	_assert(
+		StringName(distant_core_choice.get("hit_region", &"")) == &"RIGHT_FOREARM",
+		"an implausibly distant core does not absorb an exposed arm hit"
 	)
 
 	# The original defect: shoulder-to-elbow had no reliable collision shape.
@@ -255,12 +271,10 @@ func _run() -> void:
 		)
 		_assert(not bool(result.get("headshot", true)), "upper arm was mislabeled as headshot")
 
-		var outward := left_arm.global_position - dummy.global_position
-		outward.y = 0.0
-		if outward.length_squared() < 0.001:
-			outward = Vector3.LEFT
-		outward = outward.normalized()
-		var authority_origin := left_arm.global_position + outward * 1.5
+		# Shoot the exposed arm from the front so this path does not continue
+		# through the torso. A lateral path through arm + torso is intentionally
+		# resolved as core anatomy by the production resolver.
+		var authority_origin := left_arm.global_position + Vector3.BACK * 1.5
 		var authority_direction := (left_arm.global_position - authority_origin).normalized()
 		var authority_yaw := atan2(-authority_direction.x, -authority_direction.z)
 		var authority_pitch := asin(clampf(authority_direction.y, -1.0, 1.0))

@@ -57,6 +57,9 @@ var active_fire_clip: StringName = &""
 var crouched_reload_clip: StringName = &""
 var crouched_reload_layer_available: bool = false
 var crouched_reload_trigger_count: int = 0
+var standing_reload_clip: StringName = &""
+var standing_reload_layer_available: bool = false
+var standing_reload_trigger_count: int = 0
 
 
 func build(
@@ -85,6 +88,9 @@ func build(
 		if crouched_reload_layer_available
 		else &"route_blend"
 	)
+	_build_standing_reload_layer(root, available_clips, action_source)
+	if standing_reload_layer_available:
+		action_source = &"standing_reload_layer"
 	_build_fire_layer(root, available_clips, action_source)
 	root.connect_node(
 		&"output",
@@ -170,6 +176,7 @@ func update_locomotion(
 	animation_tree.set("parameters/prone_space/blend_position", prone_travel_blend)
 	animation_tree.set("parameters/standing_speed_blend/blend_amount", full_gait_weight)
 	animation_tree.set("parameters/standing_upper_body/blend_amount", 1.0)
+	animation_tree.set("parameters/standing_idle_upper_body/blend_amount", 1.0)
 	for layer_name in standing_transition_layer_nodes:
 		animation_tree.set("parameters/%s/blend_amount" % layer_name, 1.0)
 	for ready_name in standing_transition_ready_nodes:
@@ -236,6 +243,36 @@ func trigger_crouched_reload(clip_name: StringName) -> bool:
 	return true
 
 
+func trigger_standing_reload(clip_name: StringName) -> bool:
+	if (
+		animation_tree == null
+		or not standing_reload_layer_available
+		or clip_name != standing_reload_clip
+	):
+		return false
+	animation_tree.set(
+		"parameters/standing_reload_layer/request",
+		AnimationNodeOneShot.ONE_SHOT_REQUEST_FIRE
+	)
+	standing_reload_trigger_count += 1
+	return true
+
+
+func cancel_reload_layers() -> void:
+	if animation_tree == null:
+		return
+	if crouched_reload_layer_available:
+		animation_tree.set(
+			"parameters/crouched_reload_layer/request",
+			AnimationNodeOneShot.ONE_SHOT_REQUEST_ABORT
+		)
+	if standing_reload_layer_available:
+		animation_tree.set(
+			"parameters/standing_reload_layer/request",
+			AnimationNodeOneShot.ONE_SHOT_REQUEST_ABORT
+		)
+
+
 func get_debug_state() -> Dictionary:
 	return {
 		"modern_enabled": modern_enabled,
@@ -252,6 +289,9 @@ func get_debug_state() -> Dictionary:
 		"crouched_reload_layer_available": crouched_reload_layer_available,
 		"crouched_reload_clip": crouched_reload_clip,
 		"crouched_reload_trigger_count": crouched_reload_trigger_count,
+		"standing_reload_layer_available": standing_reload_layer_available,
+		"standing_reload_clip": standing_reload_clip,
+		"standing_reload_trigger_count": standing_reload_trigger_count,
 	}
 
 
@@ -282,6 +322,36 @@ func _build_crouched_reload_layer(
 	root.connect_node(&"crouched_reload_layer", 0, &"route_blend")
 	root.connect_node(&"crouched_reload_layer", 1, &"crouched_reload_animation")
 	crouched_reload_layer_available = true
+
+
+func _build_standing_reload_layer(
+	root: AnimationNodeBlendTree,
+	available_clips: Dictionary,
+	base_source: StringName
+) -> void:
+	standing_reload_clip = _weapon_action_clip(
+		"reload_standing",
+		&"reload",
+		available_clips
+	)
+	if standing_reload_clip == &"" or not available_clips.has(standing_reload_clip):
+		return
+	root.add_node(
+		&"standing_reload_animation",
+		_animation_node(standing_reload_clip),
+		Vector2(980.0, 550.0)
+	)
+	var reload_layer := AnimationNodeOneShot.new()
+	reload_layer.fadein_time = 0.08
+	reload_layer.fadeout_time = 0.12
+	reload_layer.sync = true
+	reload_layer.filter_enabled = true
+	for bone_name: StringName in UPPER_BODY_BONES:
+		reload_layer.set_filter_path(NodePath(".:%s" % bone_name), true)
+	root.add_node(&"standing_reload_layer", reload_layer, Vector2(1450.0, 330.0))
+	root.connect_node(&"standing_reload_layer", 0, base_source)
+	root.connect_node(&"standing_reload_layer", 1, &"standing_reload_animation")
+	standing_reload_layer_available = true
 
 
 func _build_fire_layer(
@@ -397,8 +467,21 @@ func _build_modern_route(root: AnimationNodeBlendTree, available_clips: Dictiona
 	root.connect_node(&"standing_upper_body", 0, &"standing_time_scale")
 	root.connect_node(&"standing_upper_body", 1, &"standing_upper_ready_blend")
 
+	# Standing idle needs the same ownership split as standing locomotion. The
+	# weapon's authored standing-ready clip owns only the upper body while the
+	# standing base continues to own hips and legs.
+	var standing_idle_upper_body := AnimationNodeBlend2.new()
+	standing_idle_upper_body.sync = true
+	standing_idle_upper_body.filter_enabled = true
+	for bone_name: StringName in UPPER_BODY_BONES:
+		standing_idle_upper_body.set_filter_path(NodePath(".:%s" % bone_name), true)
+	root.add_node(&"standing_idle_base", _animation_node(equipped_idle), Vector2(-300.0, -90.0))
+	root.add_node(&"standing_idle_upper_body", standing_idle_upper_body, Vector2(300.0, -160.0))
+	root.connect_node(&"standing_idle_upper_body", 0, &"standing_idle_base")
+	root.connect_node(&"standing_idle_upper_body", 1, &"idle_ready_blend")
+
 	var state_sources: Dictionary = {
-		&"idle": &"idle_ready_blend",
+		&"idle": &"standing_idle_upper_body",
 		&"standing": &"standing_upper_body",
 		&"idle_crouch": &"modern_idle_crouch",
 		&"crouch": &"crouch_time_scale",
@@ -425,7 +508,7 @@ func _build_modern_route(root: AnimationNodeBlendTree, available_clips: Dictiona
 			var transition_aim_name := StringName("%s_aim_idle" % node_name)
 			root.add_node(transition_ready_name, transition_ready, Vector2(40.0, 560.0 + state_sources.size() * 42.0))
 			root.add_node(transition_idle_name, _animation_node(_fallback_clip(&"idle_rifle", available_clips)), Vector2(-260.0, 550.0 + state_sources.size() * 42.0))
-			root.add_node(transition_aim_name, _animation_node(_fallback_clip(&"aim_idle", available_clips)), Vector2(-260.0, 570.0 + state_sources.size() * 42.0))
+			root.add_node(transition_aim_name, _animation_node(equipped_ready), Vector2(-260.0, 570.0 + state_sources.size() * 42.0))
 			root.connect_node(transition_ready_name, 0, transition_idle_name)
 			root.connect_node(transition_ready_name, 1, transition_aim_name)
 			root.connect_node(layer_name, 0, node_name)

@@ -1,0 +1,43 @@
+{
+  "common": {
+    "bounce_restitution": 0.38,
+    "fuse_seconds": 3.0,
+    "mass_kg": 0.4
+  },
+  "flash": {
+    "effective_radius": 18.0,
+    "intensity_multiplier": 1.0
+  },
+  "frag": {
+    "blast_effect_seconds": 1.0,
+    "blast_radius": 7.0,
+    "blast_smoke_opacity": 0.24,
+    "blast_smoke_particles": 220,
+    "debris_count": 12,
+    "impulse_strength": 14.0,
+    "maximum_damage": 120.0
+  },
+  "schema_version": 1,
+  "smoke": {
+    "dense_seconds": 15.0,
+    "dissipate_seconds": 6.0,
+    "emission_radius": 3.5,
+    "maximum_radius": 9.5,
+    "particle_amount": 384,
+    "particle_lifetime": 5.2,
+    "puff_size_max": 4.9,
+    "puff_size_min": 2.4,
+    "sprout_seconds": 1.35,
+    "visual_opacity": 0.47
+  },
+  "throw": {
+    "full_throw_charge_seconds": 0.85,
+    "maximum_hold_seconds": 1.25,
+    "minimum_overhand_speed": 8.25,
+    "minimum_underhand_speed": 3.8,
+    "overhand_lift": 0.28,
+    "overhand_speed": 14.5,
+    "underhand_lift": 0.06,
+    "underhand_speed": 5.8
+  }
+}

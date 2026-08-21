@@ -117,7 +117,9 @@
       "shared_contracts": [
         "res://scripts/tactical/tactical_occlusion_manager.gd",
         "res://scripts/tactical/tactical_grenade_base.gd",
+        "res://scripts/tactical/tactical_grenade_profile.gd",
         "res://scripts/tactical/tactical_screen_effects.gd",
+        "res://config/tactical_grenade_profile.json",
         "res://scripts/audio/surface_audio_resolver.gd",
         "res://config/surface_audio_profiles.json"
       ]
@@ -155,6 +157,7 @@
         "res://scripts/maps/socom_map_ambience_engine.gd",
         "res://scripts/maps/socom_map_audio_ambience.gd",
         "res://scripts/maps/socom_map_gameplay_contract.gd",
+        "res://scripts/network/socom_supabase_client.gd",
         "res://scripts/combat/socom_moving_training_dummy.gd",
         "res://scripts/runtime/playtest_state_collector.gd",
         "res://scripts/main.gd"

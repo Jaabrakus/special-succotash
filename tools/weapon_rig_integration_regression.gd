@@ -82,6 +82,19 @@ func _run() -> void:
 		"rendered operator receives grip, barrel, muzzle, ejection, and optic sockets"
 	)
 	var weapon_mesh := mannequin.find_child("WeaponMesh", true, false) as Node3D
+	var wearable_backpack := mannequin.find_child("WearableBackpack", true, false) as Node3D
+	_expect(
+		wearable_backpack != null
+			and wearable_backpack.get_parent() is BoneAttachment3D
+			and String((wearable_backpack.get_parent() as BoneAttachment3D).bone_name).contains("Spine"),
+		"the gameplay operator has a bomb backpack attached to the animated upper spine"
+	)
+	_expect(
+		wearable_backpack != null
+			and not wearable_backpack.visible
+			and wearable_backpack.find_child("BombControlPanel", true, false) != null,
+		"the demolition bomb backpack is complete and hidden until this operator becomes the carrier"
+	)
 	var rendered_weapon_span := _rendered_mesh_span(weapon_mesh)
 	print("WEAPON_RIG_INTEGRATION_METRIC rendered_weapon_span_m=%.4f" % rendered_weapon_span)
 	_expect(
@@ -265,6 +278,19 @@ func _test_animation_hand_map_contract() -> void:
 			and left.position.is_equal_approx(Vector3(0.4, 0.1, -0.2))
 			and pivot.position.is_equal_approx(Vector3.ZERO),
 		"explicit gameplay stance adjusts hands without moving the weapon anchor"
+	)
+	runtime.equipped_weapon_config["animation_hand_maps"]["aim_idle"] = {
+		"left_grip": {"x": -0.03, "y": 0.08, "z": 0.34},
+		"right_grip": {"x": 0.0, "y": 0.0, "z": 0.0},
+	}
+	_expect(
+		runtime.apply_animation_hand_map(
+			"res://clips/idle.fbx",
+			&"STANDING",
+			&"aim_idle"
+		)
+			and left.position.is_equal_approx(Vector3(-0.03, 0.08, 0.34)),
+		"authored Aim Idle hands win over the generic standing fallback"
 	)
 	weapon.free()
 

@@ -3,10 +3,9 @@ extends RefCounted
 
 ## Deterministic shooter-owned stability state.
 ##
-## `stress` is authoritative gameplay state. `visual_stress` is a damped
-## presentation spring that lets the reticle breathe without changing shot
-## validation. Enemy geometry never mutates; a shot can derive its temporary
-## precision-core scale from the shooter's authoritative stress.
+## `stress` is authoritative gameplay state. `visual_stress` is the shared,
+## deterministic settling envelope used by the reticle and shot cone. Enemy
+## geometry never mutates; shots derive accuracy only from shooter state.
 
 enum Stance {
 	STANDING,
@@ -29,8 +28,8 @@ var recovery_speed: float = 1.45
 var minimum_core_scale: float = 0.70
 var visual_spring: float = 72.0
 var visual_damping: float = 13.5
-var settled_first_shot_threshold: float = 0.035
-var settled_motion_threshold: float = 0.08
+var settled_first_shot_threshold: float = 0.002
+var settled_motion_threshold: float = 0.02
 var moving_first_shot_multiplier: float = 0.42
 var second_shot_multiplier: float = 0.18
 
@@ -143,22 +142,42 @@ func get_precision_core_scale() -> float:
 	return lerpf(1.0, minimum_core_scale, pow(stress, 1.20))
 
 
+func get_shot_instability(movement_amount: float, turning_amount: float) -> float:
+	# A stopped input does not erase the instability earned while moving. The
+	# authoritative stress and its visible settling envelope must both close
+	# before the weapon can return to its settled first-shot cone.
+	return clampf(
+		maxf(
+			maxf(movement_amount, turning_amount),
+			maxf(stress, visual_stress)
+		),
+		0.0,
+		1.0
+	)
+
+
 func get_shot_dispersion_multiplier(
 	shot_number_in_burst: int,
 	movement_amount: float,
 	turning_amount: float
 ) -> float:
-	# A trained, settled operator owns the exact first shot. Recoil presentation
-	# is applied after this value is read and therefore only informs later shots.
+	var instability := get_shot_instability(movement_amount, turning_amount)
+	# Exact center is earned only at the fully closed resting reticle. Tiny input
+	# noise is tolerated, but residual movement/turning bloom is not.
 	if shot_number_in_burst <= 1:
 		var settled := (
 			stress <= settled_first_shot_threshold
+			and visual_stress <= settled_first_shot_threshold
 			and movement_amount <= settled_motion_threshold
 			and turning_amount <= settled_motion_threshold
 		)
-		return 0.0 if settled else moving_first_shot_multiplier
+		return (
+			0.0
+			if settled
+			else lerpf(moving_first_shot_multiplier, 1.0, instability)
+		)
 	if shot_number_in_burst == 2:
-		return second_shot_multiplier
+		return lerpf(second_shot_multiplier, 1.0, instability)
 	return 1.0
 
 

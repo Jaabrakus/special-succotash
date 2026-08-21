@@ -30,7 +30,9 @@ func _draw() -> void:
     )
     var opacity: float = camera_rig.profile.mouse_string_debug_opacity
     var color := Color(0.20, 0.72, 1.0, opacity)
-    var deadzone_radius: float = camera_rig.profile.mouse_string_deadzone_radius_px
+    var deadzone_radius: float = (
+        camera_rig.get_effective_mouse_string_deadzone_radius_px()
+    )
     var blue_radius: float = camera_rig.profile.mouse_string_blue_radius_px
     # White stays locked to the authoritative HUD '+'. Persistent blue sets
     # turn direction only while the mouse is moving outside this deadzone.

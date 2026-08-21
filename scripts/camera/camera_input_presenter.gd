@@ -63,21 +63,22 @@ func get_viewport() -> Viewport:
     return rig.get_viewport()
 
 func _update_reticle_position(_delta: float) -> void:
-    # The shot reticle is authoritative and permanently centered. Mouse input
-    # moves only the transient blue indicator; camera collision owns neither.
+    # Functional recoil offsets the authoritative sight ray, reticle, muzzle
+    # convergence, and subsequent shots together. The camera remains stable.
+    var recoil_offset: Vector2 = rig.get_functional_recoil_screen_offset_normalized()
     if mouse_aim_string_enabled:
         reticle_dynamic_amount = 0.0
-        reticle_screen_normalized = Vector2(0.5, 0.5)
+        reticle_screen_normalized = Vector2(0.5, 0.5) + recoil_offset
         return
     if not mouse_cursor_cage_enabled:
         reticle_dynamic_amount = 0.0
-        reticle_screen_normalized = Vector2(0.5, 0.5)
+        reticle_screen_normalized = Vector2(0.5, 0.5) + recoil_offset
         return
     reticle_dynamic_amount = maxf(
         absf(mouse_cursor_deflection.x),
         absf(mouse_cursor_deflection.y)
     )
-    reticle_screen_normalized = get_mouse_cursor_screen_normalized()
+    reticle_screen_normalized = get_mouse_cursor_screen_normalized() + recoil_offset
 
 func get_mouse_cursor_screen_normalized() -> Vector2:
     return Vector2(0.5, 0.5) + Vector2(
@@ -142,7 +143,9 @@ func _apply_mouse_aim_string_input(relative_motion: Vector2) -> void:
     aim_input_controller.apply_mouse_motion(
         relative_motion,
         Vector2(aim_yaw, aim_pitch),
-        profile
+        profile,
+        rig.get_effective_mouse_string_deadzone_radius_px(),
+        rig.get_effective_mouse_string_max_lead_px()
     )
 
 func _update_mouse_aim_string(delta: float) -> void:

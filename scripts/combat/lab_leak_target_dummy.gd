@@ -168,7 +168,8 @@ func take_bullet_damage(
 	base_damage: float,
 	hit_position: Vector3,
 	hit_normal: Vector3,
-	shooter_origin: Vector3 = Vector3.ZERO
+	shooter_origin: Vector3 = Vector3.ZERO,
+	headshot_multiplier: float = 3.5
 ) -> Dictionary:
 	# Compatibility for legacy callers. New ballistic rays always resolve the
 	# named hurtbox and call take_bullet_damage_region directly.
@@ -185,7 +186,8 @@ func take_bullet_damage(
 		guessed_region,
 		hit_position,
 		hit_normal,
-		shooter_origin
+		shooter_origin,
+		headshot_multiplier
 	)
 
 
@@ -194,7 +196,8 @@ func take_bullet_damage_region(
 	hit_region: StringName,
 	hit_position: Vector3,
 	_hit_normal: Vector3,
-	shooter_origin: Vector3 = Vector3.ZERO
+	shooter_origin: Vector3 = Vector3.ZERO,
+	headshot_multiplier: float = 3.5
 ) -> Dictionary:
 	if not is_alive:
 		return {"accepted": false, "hit_region": hit_region}
@@ -215,8 +218,9 @@ func take_bullet_damage_region(
 	var hit_type := "TORSO"
 
 	if is_headshot:
-		# Headshot: 85 dmg (Instant 1-2 shots)
-		zone_mult = 2.45
+		# The equipped weapon profile owns this value. Gunsmith can author a
+		# different headshot multiplier for each weapon.
+		zone_mult = clampf(headshot_multiplier, 1.0, 10.0)
 		hit_type = "HEADSHOT"
 	elif is_limb:
 		# Limbs (Arms & Legs): 13.5 dmg -> EXACT 7-8 SHOTS TO KILL
@@ -285,6 +289,31 @@ func take_bullet_damage_region(
 		"damage": actual_damage,
 		"remaining_health": current_health,
 		"headshot": is_headshot
+	}
+
+
+func take_explosion_damage(
+	damage_value: float,
+	_explosion_origin: Vector3,
+	_attacker_peer_id: int = 0
+) -> Dictionary:
+	if not is_alive:
+		return {"accepted": false}
+	var damage := maxf(0.0, damage_value)
+	current_health = maxf(0.0, current_health - damage)
+	flinch_rotation.x = randf_range(-0.15, -0.28)
+	flinch_rotation.z = randf_range(-0.10, 0.10)
+	if health_label:
+		health_label.text = "💥 FRAG -%.0f (%.0f HP)" % [damage, current_health]
+		health_label.modulate = Color(1.0, 0.48, 0.16)
+	_flash_soldier(true)
+	if current_health <= 0.0:
+		_die("EXPLOSION")
+	return {
+		"accepted": damage > 0.0,
+		"damage": damage,
+		"remaining_health": current_health,
+		"eliminated": not is_alive,
 	}
 
 func _flash_soldier(is_critical: bool) -> void:

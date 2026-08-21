@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "backpack": {
+    "enabled": true,
+    "objective_wearable": "demolition_bomb",
+    "bone_name": "mixamorig_Spine2",
+    "position": {"x": 0.0, "y": 0.04, "z": 0.19},
+    "rotation_degrees": {"x": 0.0, "y": 0.0, "z": 0.0},
+    "scale": 0.92,
+    "fabric_color": {"r": 0.18, "g": 0.23, "b": 0.19, "a": 1.0},
+    "webbing_color": {"r": 0.09, "g": 0.12, "b": 0.10, "a": 1.0}
+  }
+}

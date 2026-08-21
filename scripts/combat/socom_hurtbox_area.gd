@@ -171,7 +171,8 @@ func take_bullet_damage(
 	base_damage: float,
 	hit_position: Vector3,
 	hit_normal: Vector3,
-	shooter_origin: Vector3 = Vector3.ZERO
+	shooter_origin: Vector3 = Vector3.ZERO,
+	headshot_multiplier: float = 3.5
 ) -> Dictionary:
 	if damage_receiver == null or not is_instance_valid(damage_receiver):
 		return {"accepted": false, "hit_region": hit_region}
@@ -182,7 +183,8 @@ func take_bullet_damage(
 			hit_region,
 			hit_position,
 			hit_normal,
-			shooter_origin
+			shooter_origin,
+			headshot_multiplier
 		)
 	if damage_receiver.has_method("take_bullet_damage"):
 		damage_receiver.call(

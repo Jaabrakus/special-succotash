@@ -36,6 +36,17 @@ var pitch: float = deg_to_rad(-2.0)
 var orbit_drag_enabled: bool = true
 var mouse_aim_string_enabled: bool = true
 var mouse_string_debug_visible: bool = true
+var weapon_aim_instability: float = 0.0
+var functional_aim_climb_enabled: bool = false
+var functional_recoil_pitch_rad: float = 0.0
+var functional_recoil_yaw_rad: float = 0.0
+var functional_recoil_pitch_per_shot_rad: float = 0.0
+var functional_recoil_yaw_per_shot_rad: float = 0.0
+var functional_recoil_max_pitch_rad: float = 0.0
+var functional_recoil_max_yaw_rad: float = 0.0
+var functional_recoil_recovery_delay_seconds: float = 0.10
+var functional_recoil_recovery_speed_rad: float = deg_to_rad(6.0)
+var functional_recoil_age_seconds: float = 999.0
 var mouse_aim_model := MouseAimModelScript.new()
 var aim_input_controller := CameraInputControllerScript.new()
 var subject_projector := CameraSubjectProjectorScript.new()
@@ -149,6 +160,8 @@ var wall_context_amount: float = 0.0
 var camera_state: int = CameraState.PREFERRED
 var camera_state_age: float = 0.0
 var camera_state_transition_count: int = 0
+var obstruction_hold_result: Dictionary = {}
+var obstruction_clear_elapsed: float = 0.0
 var aim_intent_sequence: int = 0
 var previous_target_position := Vector3.ZERO
 var target_position_initialized: bool = false
@@ -164,6 +177,9 @@ var virtual_wall_original_layers: Dictionary = {}
 var camera: Camera3D
 var orbit_input_enabled: bool = true
 var automated_wall_turn: bool = false
+var head_impact_age: float = 99.0
+var head_impact_strength: float = 1.0
+var head_impact_count: int = 0
 
 func _init() -> void:
     # Solvers must also work in isolated unit tests before this node enters a
@@ -248,12 +264,152 @@ func _unhandled_input(event: InputEvent) -> void:
         Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 func _physics_process(delta: float) -> void:
+    _advance_functional_aim_climb(delta)
     frame_pipeline.step(delta)
+
+
+func configure_functional_aim_climb(values: Dictionary) -> void:
+    functional_aim_climb_enabled = bool(
+        values.get("functional_aim_climb_enabled", false)
+    )
+    functional_recoil_pitch_per_shot_rad = deg_to_rad(maxf(
+        float(values.get("aim_climb_pitch_per_shot_deg", 0.35)),
+        0.0
+    ))
+    functional_recoil_yaw_per_shot_rad = deg_to_rad(maxf(
+        float(values.get("aim_climb_yaw_per_shot_deg", 0.0)),
+        0.0
+    ))
+    functional_recoil_max_pitch_rad = deg_to_rad(maxf(
+        float(values.get("aim_climb_max_pitch_deg", 3.5)),
+        0.0
+    ))
+    functional_recoil_max_yaw_rad = deg_to_rad(maxf(
+        float(values.get("aim_climb_max_yaw_deg", 0.75)),
+        0.0
+    ))
+    functional_recoil_recovery_delay_seconds = maxf(
+        float(values.get("aim_climb_recovery_delay_seconds", 0.10)),
+        0.0
+    )
+    functional_recoil_recovery_speed_rad = deg_to_rad(maxf(
+        float(values.get("aim_climb_recovery_speed_deg_per_second", 6.0)),
+        0.01
+    ))
+    if not functional_aim_climb_enabled:
+        functional_recoil_pitch_rad = 0.0
+        functional_recoil_yaw_rad = 0.0
+
+
+func notify_functional_aim_climb(shot_index: int = 1) -> void:
+    if not functional_aim_climb_enabled:
+        return
+    functional_recoil_pitch_rad = minf(
+        functional_recoil_max_pitch_rad,
+        functional_recoil_pitch_rad + functional_recoil_pitch_per_shot_rad
+    )
+    if functional_recoil_yaw_per_shot_rad > 0.0:
+        var horizontal_sign := -1.0 if posmod(shot_index, 4) in [0, 1] else 1.0
+        functional_recoil_yaw_rad = clampf(
+            functional_recoil_yaw_rad
+            + functional_recoil_yaw_per_shot_rad * horizontal_sign,
+            -functional_recoil_max_yaw_rad,
+            functional_recoil_max_yaw_rad
+        )
+    functional_recoil_age_seconds = 0.0
+
+
+func _advance_functional_aim_climb(delta: float) -> void:
+    if not functional_aim_climb_enabled:
+        return
+    functional_recoil_age_seconds += maxf(delta, 0.0)
+    if functional_recoil_age_seconds < functional_recoil_recovery_delay_seconds:
+        return
+    var recovery_step := functional_recoil_recovery_speed_rad * maxf(delta, 0.0)
+    functional_recoil_pitch_rad = move_toward(
+        functional_recoil_pitch_rad,
+        0.0,
+        recovery_step
+    )
+    functional_recoil_yaw_rad = move_toward(
+        functional_recoil_yaw_rad,
+        0.0,
+        recovery_step
+    )
+
+
+func get_functional_recoil_screen_offset_normalized() -> Vector2:
+    if not functional_aim_climb_enabled or camera == null:
+        return Vector2.ZERO
+    var viewport_size := get_viewport().get_visible_rect().size
+    var aspect := viewport_size.x / maxf(viewport_size.y, 1.0)
+    var vertical_fov := deg_to_rad(camera.fov)
+    var horizontal_fov := 2.0 * atan(tan(vertical_fov * 0.5) * aspect)
+    return Vector2(
+        tan(functional_recoil_yaw_rad) / maxf(2.0 * tan(horizontal_fov * 0.5), 0.001),
+        -tan(functional_recoil_pitch_rad) / maxf(2.0 * tan(vertical_fov * 0.5), 0.001)
+    )
+
+
+func get_functional_aim_climb_debug_state() -> Dictionary:
+    return {
+        "enabled": functional_aim_climb_enabled,
+        "pitch_deg": rad_to_deg(functional_recoil_pitch_rad),
+        "yaw_deg": rad_to_deg(functional_recoil_yaw_rad),
+        "screen_offset": get_functional_recoil_screen_offset_normalized(),
+    }
+
+
+func notify_head_impact(intensity: float = 1.0) -> void:
+    # This is a presentation-only response to server-confirmed damage. It does
+    # not modify yaw, pitch, the shared aim point, or the authoritative body.
+    head_impact_age = 0.0
+    head_impact_strength = clampf(intensity, 0.75, 1.25)
+    head_impact_count += 1
+
+
+func _begin_camera_presentation_frame() -> void:
+    # Remove the previous rendered-lens offset before any projection, collision,
+    # or aim work. The authoritative camera rig always solves from identity.
+    if camera != null:
+        camera.transform = Transform3D.IDENTITY
+
+
+func _apply_head_impact_presentation(delta: float) -> void:
+    if camera == null:
+        return
+    var duration := maxf(profile.head_impact_duration_seconds, 0.01)
+    if head_impact_age >= duration:
+        camera.transform = Transform3D.IDENTITY
+        return
+    head_impact_age = minf(head_impact_age + delta, duration)
+    var phase := clampf(head_impact_age / duration, 0.0, 1.0)
+    # One strong kick and one damped side snap. There is no continuous random
+    # vibration, so each confirmed head impact reads as one discrete event.
+    var kick := sin(phase * PI)
+    var snap := sin(phase * TAU) * pow(1.0 - phase, 1.35)
+    camera.rotation = Vector3(
+        deg_to_rad(-profile.head_impact_pitch_deg * kick * head_impact_strength),
+        deg_to_rad(profile.head_impact_yaw_deg * snap * head_impact_strength),
+        deg_to_rad(profile.head_impact_roll_deg * snap * head_impact_strength)
+    )
+
+
+func get_head_impact_debug_state() -> Dictionary:
+    return {
+        "count": head_impact_count,
+        "active": head_impact_age < profile.head_impact_duration_seconds,
+        "age": head_impact_age,
+        "camera_rotation": camera.rotation if camera != null else Vector3.ZERO,
+    }
 func reset_camera_to_target() -> void:
     _sync_aim_to_orbit()
     initial_orbit_sync_pending = false
     mouse_cursor_deflection = Vector2.ZERO
     mouse_edge_turn = Vector2.ZERO
+    functional_recoil_pitch_rad = 0.0
+    functional_recoil_yaw_rad = 0.0
+    functional_recoil_age_seconds = 999.0
     current_camera_position = Vector3.ZERO
     preferred_camera_position = Vector3.ZERO
     virtual_camera_position = Vector3.ZERO
@@ -269,6 +425,8 @@ func reset_camera_to_target() -> void:
     composition_hard_rebase_count = 0
     camera_state = CameraState.PREFERRED
     camera_state_age = 0.0
+    obstruction_hold_result.clear()
+    obstruction_clear_elapsed = 0.0
     previous_target_position = target.global_position if target else Vector3.ZERO
     target_position_initialized = target != null
 
@@ -570,6 +728,28 @@ func get_active_aim_device_name() -> String:
 
 func get_mouse_string_screen_normalized() -> Vector2:
     return input_presenter.get_mouse_string_screen_normalized()
+
+func set_weapon_aim_instability(value: float) -> void:
+    # Local presentation only. The weapon controller remains authoritative for
+    # the actual spread and supplies the same movement/bloom pressure used here.
+    weapon_aim_instability = clampf(value, 0.0, 1.0)
+    var live_leash := get_effective_mouse_string_max_lead_px()
+    if mouse_aim_model.blue_offset_pixels.length() > live_leash:
+        mouse_aim_model.blue_offset_pixels = (
+            mouse_aim_model.blue_offset_pixels.normalized() * live_leash
+        )
+
+func get_effective_mouse_string_deadzone_radius_px() -> float:
+    return (
+        profile.mouse_string_deadzone_radius_px
+        + profile.mouse_string_instability_deadzone_gain_px * weapon_aim_instability
+    )
+
+func get_effective_mouse_string_max_lead_px() -> float:
+    return (
+        profile.mouse_string_max_lead_px
+        + profile.mouse_string_instability_lead_gain_px * weapon_aim_instability
+    )
 
 func get_operator_alignment_screen_normalized() -> Vector2:
     return input_presenter.get_operator_alignment_screen_normalized()

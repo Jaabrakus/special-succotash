@@ -53,54 +53,97 @@ func _run_all_tests() -> void:
 
 
 func _test_turnaround_inertia() -> void:
-	print("TEST: Locomotion Turnaround Inertia & Reversal Acceleration")
+	print("TEST: Two-frame strafe burst decays to 6.5 m/s sustained speed")
 	var player = PlayerController.new()
 	root.add_child(player)
 	await process_frame
 	await physics_frame
-
-	# Simulate strafing right (+X) until reaching near max strafe speed
 	player.set_local_input_enabled(false)
 	var cmd_right = MovementCommand.new()
-	cmd_right.move_axis = Vector2(1.0, 0.0) # Right
+	cmd_right.move_axis = Vector2(1.0, 0.0)
 	cmd_right.aim_yaw = 0.0
-
-	for _i in range(30):
+	var opening_speeds: Array[float] = []
+	for _i in range(12):
 		player.queue_movement_command(cmd_right)
 		await physics_frame
+		opening_speeds.append(absf(player.velocity.x))
+	print("  -> Opening %.2f, %.2f; decay %.2f, %.2f, %.2f; sustained %.2f m/s" % [
+		opening_speeds[0],
+		opening_speeds[1],
+		opening_speeds[2],
+		opening_speeds[4],
+		opening_speeds[6],
+		opening_speeds[11],
+	])
+	_assert(
+		opening_speeds[0] >= player.strafe_speed * 1.10
+		and opening_speeds[1] >= player.strafe_speed * 1.10,
+		"first two strafe frames did not receive the authored burst"
+	)
+	_assert(
+		opening_speeds[2] > player.strafe_speed * 1.02
+		and opening_speeds[2] < opening_speeds[1],
+		"strafe speed did not begin a smooth decay after frame two"
+	)
+	var decay_is_monotonic := true
+	for speed_index in range(3, opening_speeds.size()):
+		if opening_speeds[speed_index] > opening_speeds[speed_index - 1] + 0.01:
+			decay_is_monotonic = false
+	_assert(decay_is_monotonic, "strafe burst decay increased speed during the settle")
+	_assert(
+		opening_speeds[11] >= player.strafe_speed * 0.98
+		and opening_speeds[11] <= player.strafe_speed * 1.02,
+		"fresh strafe did not settle to normal speed after the decay"
+	)
 
-	var peak_right_speed: float = player.velocity.x
-	_assert(peak_right_speed >= 5.0, "player did not reach strafe speed moving right: %.2f" % peak_right_speed)
-
-	# Now abruptly switch to strafing left (-X)
 	var cmd_left = MovementCommand.new()
-	cmd_left.move_axis = Vector2(-1.0, 0.0) # Left
+	cmd_left.move_axis = Vector2(-1.0, 0.0)
 	cmd_left.aim_yaw = 0.0
+	var first_reversal_speed := 0.0
+	var repeated_reversal_speed: float = float(player.strafe_speed)
+	var repeated_sustained_speed: float = float(player.strafe_speed)
+	for reversal_index in range(5):
+		var command = cmd_left if reversal_index % 2 == 0 else cmd_right
+		for held_frame in range(12):
+			player.queue_movement_command(command)
+			await physics_frame
+			if reversal_index == 0 and held_frame == 0:
+				first_reversal_speed = absf(player.velocity.x)
+			if reversal_index == 4 and held_frame == 0:
+				repeated_reversal_speed = absf(player.velocity.x)
+			if reversal_index == 4 and held_frame == 11:
+				repeated_sustained_speed = absf(player.velocity.x)
+	print("  -> First reversal %.2f m/s; repeated reversal %.2f m/s; sustained %.2f m/s" % [
+		first_reversal_speed,
+		repeated_reversal_speed,
+		repeated_sustained_speed,
+	])
+	_assert(
+		first_reversal_speed >= player.strafe_speed * 1.10,
+		"first reversal lost the violent one-frame direction change"
+	)
+	_assert(
+		repeated_reversal_speed >= player.strafe_speed * 1.10,
+		"a repeated reversal lost the authored two-frame burst"
+	)
+	_assert(
+		repeated_sustained_speed >= player.strafe_speed * 0.98
+		and repeated_sustained_speed <= player.strafe_speed * 1.02,
+		"continued strafe did not settle at the authored sustained speed"
+	)
 
-	var ticks_to_zero := 0
-	var ticks_to_full_reversal := 0
-	var saw_reversal_state := false
-
-	for i in range(30):
-		player.queue_movement_command(cmd_left)
+	var idle = MovementCommand.new()
+	for _frame in range(120):
+		player.queue_movement_command(idle)
 		await physics_frame
-		if player.get_horizontal_response_mode() == &"REVERSING":
-			saw_reversal_state = true
-		if player.velocity.x <= 0.0 and ticks_to_zero == 0:
-			ticks_to_zero = i + 1
-		if player.velocity.x <= -5.0 and ticks_to_full_reversal == 0:
-			ticks_to_full_reversal = i + 1
-
-	var time_to_zero_ms := float(ticks_to_zero) * (1000.0 / 60.0)
-	var time_to_reverse_ms := float(ticks_to_full_reversal) * (1000.0 / 60.0)
-	print("  -> Strafe reversal response mode active: %s" % saw_reversal_state)
-	print("  -> Time to reverse through zero velocity: %.1f ms (%d physics ticks)" % [time_to_zero_ms, ticks_to_zero])
-	print("  -> Time to full reverse speed: %.1f ms (%d physics ticks)" % [time_to_reverse_ms, ticks_to_full_reversal])
-
-	_assert(saw_reversal_state, "horizontal response mode did not report REVERSING")
-	_assert(time_to_zero_ms >= 50.0 and time_to_zero_ms <= 150.0,
-		"zero-crossing reversal time (%.1f ms) is outside deliberate tactical turnaround window (50-150ms)" % time_to_zero_ms)
-	_assert(ticks_to_full_reversal > 0, "player failed to reach full reverse speed")
+	for _frame in range(3):
+		player.queue_movement_command(cmd_right)
+		await physics_frame
+	var recovered_speed := absf(player.velocity.x)
+	_assert(
+		recovered_speed >= player.strafe_speed * 0.98,
+		"strafe did not retain base speed after the player stopped switching"
+	)
 
 	player.queue_free()
 	await process_frame
@@ -181,8 +224,8 @@ func _test_composure_strafe_duel_cadence() -> void:
 		"movement_stress": 0.62,
 		"moving_first_shot_multiplier": 0.45,
 		"recovery_speed": 2.20,
-		"settled_motion_threshold": 0.09,
-		"settled_first_shot_threshold": 0.04,
+		"settled_motion_threshold": 0.02,
+		"settled_first_shot_threshold": 0.002,
 	})
 
 	# 1. When fully settled at rest: dispersion is 0.0 (100% precision core)
@@ -202,12 +245,23 @@ func _test_composure_strafe_duel_cadence() -> void:
 	_assert(moving_dispersion >= 0.40, "moving dispersion did not penalize running shot")
 	_assert(moving_core < 0.90, "moving core scale was not reduced by movement stress")
 
-	# 3. Counter-strafe / micro-pause: recovers within ~300ms
+	# 3. A short counter-strafe pause improves accuracy but does not grant exact
+	# center until both authoritative and visible bloom have fully closed.
 	for _i in range(15):
 		composure.advance(0.02, 0.0, 0.0)
 	var recovered_dispersion: float = composure.get_shot_dispersion_multiplier(1, 0.0, 0.0)
-	print("  -> Recovered dispersion after micro-pause: %.3f" % recovered_dispersion)
-	_assert(is_equal_approx(recovered_dispersion, 0.0), "composure did not recover after counter-strafe micro-pause")
+	print("  -> Dispersion after 300ms micro-pause: %.3f" % recovered_dispersion)
+	_assert(recovered_dispersion > 0.0, "short micro-pause incorrectly granted exact-center fire")
+	var settle_elapsed := 0.30
+	while recovered_dispersion > 0.0 and settle_elapsed < 2.0:
+		composure.advance(0.02, 0.0, 0.0)
+		settle_elapsed += 0.02
+		recovered_dispersion = composure.get_shot_dispersion_multiplier(1, 0.0, 0.0)
+	print("  -> Fully closed reticle earned at %.0f ms" % (settle_elapsed * 1000.0))
+	_assert(
+		is_equal_approx(recovered_dispersion, 0.0),
+		"fully closed reticle did not restore exact-center first shot"
+	)
 
 
 func _assert(condition: bool, message: String) -> void:

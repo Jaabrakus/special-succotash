@@ -171,6 +171,11 @@ static func build(rig) -> Dictionary:
         "camera_state": rig.get_camera_state_name(),
         "camera_state_age": rig.camera_state_age,
         "camera_state_transitions": rig.camera_state_transition_count,
+        "obstruction_release_guard": (
+            not rig.obstruction_hold_result.is_empty()
+            and rig.obstruction_clear_elapsed > 0.0
+        ),
+        "obstruction_clear_seconds": rig.obstruction_clear_elapsed,
         "camera_tether_rebased": rig.camera_tether_rebased,
         "composition_recovery_active": rig.composition_recovery_active,
         "composition_hard_rebase": rig.composition_hard_rebase,

@@ -100,11 +100,43 @@ func play_operator_action(clip_name: StringName, blend_seconds: float = 0.12) ->
         and production_animation.play_action(clip_name, blend_seconds)
 	)
 
-func play_operator_semantic_action(action_name: StringName, blend_seconds: float = 0.12) -> bool:
+func play_operator_semantic_action(
+    action_name: StringName,
+    blend_seconds: float = 0.12,
+    playback_speed: float = 1.0
+) -> bool:
     return (
         production_animation != null
-        and production_animation.play_semantic_action(action_name, blend_seconds)
+        and production_animation.play_semantic_action(action_name, blend_seconds, playback_speed)
     )
+
+func play_operator_semantic_action_timed(
+    action_name: StringName,
+    target_duration_seconds: float,
+    blend_seconds: float = 0.12
+) -> bool:
+    return (
+        production_animation != null
+        and production_animation.play_semantic_action_timed(
+            action_name,
+            target_duration_seconds,
+            blend_seconds
+        )
+    )
+
+func cancel_operator_grenade_action() -> bool:
+    return (
+        production_animation != null
+        and production_animation.cancel_grenade_action()
+    )
+
+func set_operator_weapon_visible(enabled: bool) -> void:
+    if production_animation != null:
+        production_animation.set_equipped_weapon_visible(enabled)
+
+func set_bomb_backpack_visible(enabled: bool) -> void:
+    if production_animation != null:
+        production_animation.set_bomb_backpack_visible(enabled)
 
 func notify_operator_fired() -> bool:
     return production_animation != null and production_animation.notify_fired()

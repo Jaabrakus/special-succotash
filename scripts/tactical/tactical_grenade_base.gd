@@ -2,6 +2,7 @@ class_name TacticalGrenadeBase
 extends RigidBody3D
 
 const FoleyEngine := preload("res://scripts/audio/tactical_foley_engine.gd")
+const GrenadeProfile := preload("res://scripts/tactical/tactical_grenade_profile.gd")
 
 signal fuse_started(duration: float)
 signal detonated(position: Vector3)
@@ -20,9 +21,18 @@ var _previous_linear_velocity := Vector3.ZERO
 var foley: Node
 var _sparks: GPUParticles3D
 var _impact_cooldown := 0.0
+var profile_override: Dictionary = {}
+var active_profile: Dictionary = {}
 
 
 func _ready() -> void:
+	active_profile = (
+		GrenadeProfile.normalize(profile_override)
+		if not profile_override.is_empty()
+		else GrenadeProfile.load_profile()
+	)
+	_apply_common_profile(active_profile)
+	_apply_type_profile(active_profile)
 	mass = mass_kg
 	physics_material_override = PhysicsMaterial.new()
 	physics_material_override.bounce = bounce_restitution
@@ -37,6 +47,28 @@ func _ready() -> void:
 	_build_fuse_sparks()
 	if arm_on_ready:
 		arm()
+
+
+func configure_profile(raw_profile: Dictionary) -> void:
+	profile_override = GrenadeProfile.normalize(raw_profile)
+	if is_node_ready():
+		active_profile = profile_override.duplicate(true)
+		_apply_common_profile(active_profile)
+		_apply_type_profile(active_profile)
+		mass = mass_kg
+		if physics_material_override != null:
+			physics_material_override.bounce = bounce_restitution
+
+
+func _apply_common_profile(profile: Dictionary) -> void:
+	var common: Dictionary = profile.get("common", {})
+	fuse_seconds = float(common.get("fuse_seconds", fuse_seconds))
+	bounce_restitution = float(common.get("bounce_restitution", bounce_restitution))
+	mass_kg = float(common.get("mass_kg", mass_kg))
+
+
+func _apply_type_profile(_profile: Dictionary) -> void:
+	pass
 
 
 func _physics_process(delta: float) -> void:

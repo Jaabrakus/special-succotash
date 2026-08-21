@@ -1,6 +1,8 @@
 class_name TacticalGrenadeThrower
 extends Node
 
+const GrenadeProfile := preload("res://scripts/tactical/tactical_grenade_profile.gd")
+
 enum ThrowMode { OVERHAND, UNDERHAND }
 
 @export var overhand_speed := 14.5
@@ -15,6 +17,34 @@ enum ThrowMode { OVERHAND, UNDERHAND }
 @export var maximum_hold_seconds := 1.25
 @export var maximum_fuse_cook_seconds := 1.20
 @export var minimum_remaining_fuse_seconds := 1.35
+
+var profile_override: Dictionary = {}
+
+
+func _ready() -> void:
+	_apply_profile(
+		GrenadeProfile.normalize(profile_override)
+		if not profile_override.is_empty()
+		else GrenadeProfile.load_profile()
+	)
+
+
+func configure_profile(raw_profile: Dictionary) -> void:
+	profile_override = GrenadeProfile.normalize(raw_profile)
+	if is_node_ready():
+		_apply_profile(profile_override)
+
+
+func _apply_profile(profile: Dictionary) -> void:
+	var values: Dictionary = profile.get("throw", {})
+	overhand_speed = float(values.get("overhand_speed", overhand_speed))
+	underhand_speed = float(values.get("underhand_speed", underhand_speed))
+	overhand_lift = float(values.get("overhand_lift", overhand_lift))
+	underhand_lift = float(values.get("underhand_lift", underhand_lift))
+	minimum_overhand_speed = float(values.get("minimum_overhand_speed", minimum_overhand_speed))
+	minimum_underhand_speed = float(values.get("minimum_underhand_speed", minimum_underhand_speed))
+	full_throw_charge_seconds = float(values.get("full_throw_charge_seconds", full_throw_charge_seconds))
+	maximum_hold_seconds = float(values.get("maximum_hold_seconds", maximum_hold_seconds))
 
 
 func charge_for_hold(hold_seconds: float) -> float:

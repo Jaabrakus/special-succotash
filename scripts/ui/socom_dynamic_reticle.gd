@@ -23,6 +23,7 @@ enum ReticleMode {
 # Reticle Dimensions (Pixels - Authentic SOCOM II Scale)
 @export var center_dot_radius: float = 2.0
 @export var tick_length: float = 9.0
+@export var maximum_movement_tick_extension: float = 16.0
 @export var tick_thickness: float = 2.4
 @export var base_gap: float = 10.0
 @export var max_bloom_gap: float = 46.0
@@ -33,6 +34,8 @@ enum ReticleMode {
 
 var current_gap: float = 8.0
 var target_gap: float = 8.0
+var current_movement: float = 0.0
+var target_movement: float = 0.0
 var is_target_acquired: bool = false
 var is_interact_target: bool = false
 var current_mode: ReticleMode = ReticleMode.COMBAT
@@ -42,14 +45,29 @@ var shot_gap_impulse: float = 0.0
 var shot_bounce_age: float = 99.0
 var shot_bounce_duration: float = 0.070
 var shot_bounce_amplitude: float = 0.0
+var functional_aim_climb_enabled: bool = false
 
 func _ready() -> void:
     mouse_filter = MOUSE_FILTER_IGNORE
-    set_anchors_preset(PRESET_FULL_RECT)
+    _sync_to_viewport()
+    if not get_viewport().size_changed.is_connected(_sync_to_viewport):
+        get_viewport().size_changed.connect(_sync_to_viewport)
+
+func _sync_to_viewport() -> void:
+    if get_parent() is Control:
+        set_anchors_and_offsets_preset(PRESET_FULL_RECT)
+        return
+    position = Vector2.ZERO
+    size = get_viewport_rect().size
 
 func _process(delta: float) -> void:
     # Smooth bloom interpolation
     current_gap = lerpf(current_gap, target_gap, 1.0 - exp(-response_speed * delta))
+    current_movement = lerpf(
+        current_movement,
+        target_movement,
+        1.0 - exp(-response_speed * delta)
+    )
     shot_gap_impulse = lerpf(
         shot_gap_impulse,
         0.0,
@@ -64,11 +82,13 @@ func update_reticle_state(
     spread_normalized: float,
     target_locked: bool,
     screen_pos: Vector2 = Vector2.ZERO,
-    interact_locked: bool = false
+    interact_locked: bool = false,
+    movement_normalized: float = 0.0
 ) -> void:
     is_target_acquired = target_locked
     is_interact_target = interact_locked
     screen_center_override = screen_pos
+    target_movement = clampf(movement_normalized, 0.0, 1.0)
     target_gap = lerpf(base_gap, max_bloom_gap, clampf(spread_normalized, 0.0, 1.0))
     current_mode = ReticleMode.INTERACT if interact_locked else ReticleMode.COMBAT
 
@@ -77,12 +97,17 @@ func notify_hit() -> void:
 
 func notify_shot(shot_index: int = 1, intensity: float = 1.0) -> void:
     # Resolve the bullet before this presentation impulse. The complete tick
-    # group pops upward, then returns before the next trained cadence; it never
-    # drags the authoritative center point or the shot that already fired.
+    # group and center dot pop upward, then return before the next trained
+    # cadence. This never drags the authoritative aim point or the shot that
+    # already fired.
     shot_bounce_age = 0.0
-    shot_bounce_amplitude = minf(
-        maximum_shot_kick_pixels,
-        shot_kick_pixels * clampf(intensity, 0.25, 2.0)
+    shot_bounce_amplitude = (
+        0.0
+        if functional_aim_climb_enabled
+        else minf(
+            maximum_shot_kick_pixels,
+            shot_kick_pixels * clampf(intensity, 0.25, 2.0)
+        )
     )
     # A small simultaneous opening keeps the reticle readable without turning
     # the per-shot kick into generic radial-only bloom.
@@ -92,6 +117,9 @@ func notify_shot(shot_index: int = 1, intensity: float = 1.0) -> void:
     )
 
 func apply_profile(profile: Dictionary) -> void:
+    functional_aim_climb_enabled = bool(
+        profile.get("functional_aim_climb_enabled", false)
+    )
     base_gap = float(profile.get("base_gap_px", base_gap))
     max_bloom_gap = float(profile.get("max_gap_px", max_bloom_gap))
     response_speed = float(profile.get("response_speed", response_speed))
@@ -100,11 +128,18 @@ func apply_profile(profile: Dictionary) -> void:
     maximum_shot_kick_pixels = float(
         profile.get("maximum_shot_kick_px", maximum_shot_kick_pixels)
     )
+    maximum_movement_tick_extension = float(
+        profile.get(
+            "maximum_movement_tick_extension_px",
+            maximum_movement_tick_extension
+        )
+    )
     shot_bounce_duration = float(profile.get("shot_bounce_duration", shot_bounce_duration))
     target_gap = clampf(target_gap, base_gap, max_bloom_gap)
 
 func _draw() -> void:
-    var center: Vector2 = screen_center_override if screen_center_override != Vector2.ZERO else size * 0.5
+    var center := get_authoritative_center()
+    var visible_center := get_visual_center()
     var color := target_color if is_target_acquired else (interact_color if is_interact_target else default_color)
     var shadow_color := Color(0.0, 0.0, 0.0, 0.85)
 
@@ -113,31 +148,32 @@ func _draw() -> void:
         return
 
     # 1. Center Precision Dot (with black outline)
-    draw_circle(center, center_dot_radius + 1.0, shadow_color)
-    draw_circle(center, center_dot_radius, color)
+    draw_circle(visible_center, center_dot_radius + 1.0, shadow_color)
+    draw_circle(visible_center, center_dot_radius, color)
 
     # 2. Translucent Spread / Bloom Circle (exact SOCOM II dispersion ring)
     if current_gap > base_gap + 2.0:
         draw_arc(center, current_gap + tick_length * 0.5, 0, TAU, 32, bloom_ring_color, 1.2, true)
 
     # 3. Four Dynamic Ticks (Top, Bottom, Left, Right with Drop-Shadow Outline)
-    var tick_center := center + Vector2(0.0, -shot_bounce_amplitude * _shot_bounce_weight())
     var g := current_gap + shot_gap_impulse
-    var l := tick_length
+    # Full movement stretches the four aiming strings as well as opening the
+    # gap. It is an immediate, readable warning that the real shot cone is wide.
+    var l := tick_length + maximum_movement_tick_extension * current_movement
     var t := tick_thickness
 
     # Shadow/Border Pass
     var st := t + 2.0
-    draw_line(tick_center + Vector2(0, -g + 1.0), tick_center + Vector2(0, -g - l - 1.0), shadow_color, st)
-    draw_line(tick_center + Vector2(0, g - 1.0), tick_center + Vector2(0, g + l + 1.0), shadow_color, st)
-    draw_line(tick_center + Vector2(-g + 1.0, 0), tick_center + Vector2(-g - l - 1.0, 0), shadow_color, st)
-    draw_line(tick_center + Vector2(g - 1.0, 0), tick_center + Vector2(g + l + 1.0, 0), shadow_color, st)
+    draw_line(visible_center + Vector2(0, -g + 1.0), visible_center + Vector2(0, -g - l - 1.0), shadow_color, st)
+    draw_line(visible_center + Vector2(0, g - 1.0), visible_center + Vector2(0, g + l + 1.0), shadow_color, st)
+    draw_line(visible_center + Vector2(-g + 1.0, 0), visible_center + Vector2(-g - l - 1.0, 0), shadow_color, st)
+    draw_line(visible_center + Vector2(g - 1.0, 0), visible_center + Vector2(g + l + 1.0, 0), shadow_color, st)
 
     # Foreground Color Pass
-    draw_line(tick_center + Vector2(0, -g), tick_center + Vector2(0, -g - l), color, t)
-    draw_line(tick_center + Vector2(0, g), tick_center + Vector2(0, g + l), color, t)
-    draw_line(tick_center + Vector2(-g, 0), tick_center + Vector2(-g - l, 0), color, t)
-    draw_line(tick_center + Vector2(g, 0), tick_center + Vector2(g + l, 0), color, t)
+    draw_line(visible_center + Vector2(0, -g), visible_center + Vector2(0, -g - l), color, t)
+    draw_line(visible_center + Vector2(0, g), visible_center + Vector2(0, g + l), color, t)
+    draw_line(visible_center + Vector2(-g, 0), visible_center + Vector2(-g - l, 0), color, t)
+    draw_line(visible_center + Vector2(g, 0), visible_center + Vector2(g + l, 0), color, t)
 
     # 4. Hit Marker Flash (SOCOM Red X on hit)
     if hit_marker_timer > 0.0:
@@ -152,6 +188,15 @@ func _shot_bounce_weight() -> float:
         return 0.0
     # Smooth sine-eased pulse for silky smooth tactile recoil response
     return sin(phase * PI) * (1.0 - phase * 0.4)
+
+func get_authoritative_center() -> Vector2:
+    return screen_center_override if screen_center_override != Vector2.ZERO else size * 0.5
+
+func get_visual_center() -> Vector2:
+    return get_authoritative_center() + Vector2(
+        0.0,
+        -shot_bounce_amplitude * _shot_bounce_weight()
+    )
 
 func _draw_interact_brackets(center: Vector2, color: Color) -> void:
     # Classic ladder / context bracket box

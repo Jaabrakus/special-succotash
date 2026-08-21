@@ -27,13 +27,29 @@ func _init() -> void:
 	var opening := ComposureScript.new()
 	if opening.get_shot_dispersion_multiplier(1, 0.0, 0.0) != 0.0:
 		failures.append("settled first shot was not exact-center")
+	opening.stress = 0.01
+	if opening.get_shot_dispersion_multiplier(1, 0.0, 0.0) <= 0.0:
+		failures.append("residual bloom incorrectly granted an exact first shot")
+	opening.stress = 0.50
+	var settling_multiplier := opening.get_shot_dispersion_multiplier(1, 0.0, 0.0)
+	if settling_multiplier <= opening.moving_first_shot_multiplier:
+		failures.append("stopping movement erased retained composure from the first-shot cone")
+	opening.stress = 0.0
+	opening.visual_stress = 0.01
+	if opening.get_shot_dispersion_multiplier(1, 0.0, 0.0) <= 0.0:
+		failures.append("visibly open reticle incorrectly granted an exact first shot")
+	opening.visual_stress = 0.0
 	if opening.get_shot_dispersion_multiplier(1, 0.30, 0.0) <= 0.0:
 		failures.append("movement did not invalidate exact-center first shot")
+	if opening.get_shot_dispersion_multiplier(1, 1.0, 0.0) < 0.999:
+		failures.append("full movement did not apply the complete first-shot cone")
 	var second_multiplier := opening.get_shot_dispersion_multiplier(2, 0.0, 0.0)
 	if second_multiplier <= 0.0 or second_multiplier >= 0.30:
 		failures.append("second shot escaped the tight opening-pair range")
 	if opening.get_shot_dispersion_multiplier(3, 0.0, 0.0) != 1.0:
 		failures.append("third shot did not enter the normal dispersion model")
+	if opening.get_shot_dispersion_multiplier(2, 1.0, 0.0) < 0.999:
+		failures.append("full movement did not apply the complete second-shot cone")
 
 	if failures.is_empty():
 		print("COMPOSURE_REGRESSION_PASS fps_stress=%s core_floor=%.3f" % [stresses, core_floor])

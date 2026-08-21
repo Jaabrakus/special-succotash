@@ -26,13 +26,43 @@ func _run() -> void:
 		return
 
 	player.velocity = Vector3.RIGHT * float(player.get("move_speed"))
+	# The regression drives one shot directly rather than holding an InputMap
+	# action through a physics frame, so seed the same normalized movement state
+	# that the controller computes during real full-speed play.
+	weapon.call("_physics_process", 1.0 / 60.0)
+	_expect(
+		float(rig.get("weapon_aim_instability")) >= 0.99,
+		"full movement expands the local mouse-string envelope"
+	)
 	var intent_before: Dictionary = rig.call("build_local_aim_intent")
 	var intended_direction: Vector3 = intent_before.direction
 	var first: Dictionary = weapon.call("request_fire")
 	_expect(bool(first.get("fired", false)), "first authoritative shot fires")
+	var first_climb: Dictionary = first.get("functional_aim_climb", {})
 	_expect(
-		float(first.get("spread_deg", 99.0)) <= 0.66,
-		"first full-strafe shot stays inside the SOCOM opening-burst cone"
+		bool(first_climb.get("enabled", false))
+		and float(first_climb.get("pitch_deg", 0.0)) >= 0.30,
+		"accepted first shot raises the shared follow-up aim center"
+	)
+	var raw_aim_pitch_before_recoil := float(rig.get("aim_pitch"))
+	rig.call("_update_reticle_position", 0.0)
+	rig.call("_update_weapon_aim_point")
+	rig.call("_update_shot_validation")
+	_expect(
+		Vector2(rig.get("reticle_screen_normalized")).y < 0.5,
+		"functional aim climb moves the authoritative reticle upward"
+	)
+	_expect(
+		is_equal_approx(float(rig.get("aim_pitch")), raw_aim_pitch_before_recoil),
+		"functional aim climb leaves the camera aim angle unchanged"
+	)
+	_expect(
+		float(first.get("spread_deg", 0.0)) >= 2.70,
+		"first full-strafe shot receives the wider tap-fire movement cone"
+	)
+	_expect(
+		float(first.get("dispersion_multiplier", 0.0)) >= 0.99,
+		"full movement cannot bypass dispersion by tapping the opening shot"
 	)
 	var first_error := rad_to_deg(
 		intended_direction.angle_to(Vector3(first.get("direction", Vector3.ZERO)))
@@ -42,20 +72,28 @@ func _run() -> void:
 		"dispersion stays centered on authoritative barrel aim"
 	)
 	_expect(
-		tan(deg_to_rad(float(first.get("spread_deg", 99.0)))) * 25.0 <= 0.30,
-		"opening strafe burst remains torso-accurate at 25 metres"
+		tan(deg_to_rad(float(first.get("spread_deg", 0.0)))) * 25.0 >= 0.75,
+		"full-speed opening cone is visibly wider than a torso at 25 metres"
 	)
 
 	var blocked_by_cadence: Dictionary = weapon.call("request_fire")
 	_expect(not bool(blocked_by_cadence.get("fired", false)), "fire rate rejects same-tick shot spam")
-	weapon.ballistics._process(0.11)
+	weapon.ballistics._process(float(weapon.ballistics.fire_interval) + 0.01)
 	var second: Dictionary = weapon.call("request_fire")
 	_expect(bool(second.get("fired", false)), "second burst shot fires after cadence interval")
+	var first_center := Vector3(first.get("aim_center_direction", Vector3.ZERO))
+	var second_center := Vector3(second.get("aim_center_direction", Vector3.ZERO))
 	_expect(
-		float(second.get("spread_deg", 99.0)) <= 0.66,
-		"second shot retains opening-burst accuracy"
+		asin(clampf(second_center.y, -1.0, 1.0))
+		> asin(clampf(first_center.y, -1.0, 1.0)) + deg_to_rad(0.20),
+		"second shot uses the recoil-raised aim center"
 	)
-	weapon.ballistics._process(0.11)
+	_expect(
+		float(second.get("spread_deg", 0.0)) >= 2.70
+		and float(second.get("dispersion_multiplier", 0.0)) >= 0.99,
+		"second full-movement tap cannot restore laser accuracy"
+	)
+	weapon.ballistics._process(float(weapon.ballistics.fire_interval) + 0.01)
 	var third: Dictionary = weapon.call("request_fire")
 	_expect(bool(third.get("fired", false)), "third automatic shot fires")
 	_expect(
@@ -72,6 +110,23 @@ func _run() -> void:
 			Vector3(third.get("direction", Vector3.ZERO))
 		),
 		"workbench tracer records the actual fired direction"
+	)
+	var fired_bloom := float(weapon.ballistics.get_normalized_spread())
+	weapon.ballistics.release_trigger()
+	player.velocity = Vector3.ZERO
+	for _settle_step in range(30):
+		weapon.call("_physics_process", 1.0 / 60.0)
+		weapon.ballistics._process(1.0 / 60.0)
+		rig.call("_advance_functional_aim_climb", 1.0 / 60.0)
+	var recovered_bloom := float(weapon.ballistics.get_normalized_spread())
+	_expect(
+		recovered_bloom < fired_bloom - 0.01,
+		"reticle bloom closes during trigger release without waiting for another shot"
+	)
+	var recovered_climb: Dictionary = rig.call("get_functional_aim_climb_debug_state")
+	_expect(
+		float(recovered_climb.get("pitch_deg", 99.0)) < 0.05,
+		"aim climb recovers independently after firing stops"
 	)
 
 	var mannequin := player.get_node_or_null("Mannequin")
@@ -91,16 +146,11 @@ func _run() -> void:
 			Vector3(first.get("origin", Vector3.INF)).distance_to(muzzle) <= 0.002,
 			"authoritative shot begins at the visible rifle muzzle"
 		)
-		var prospective: Vector3 = (
-			Vector3(rig.get("weapon_aim_point")) - muzzle
-		).normalized()
-		var view_ray: Vector3 = (
-			Vector3(rig.get("view_aim_point")) - rig.global_position
-		).normalized()
-		var convergence := rad_to_deg(view_ray.angle_to(prospective))
 		_expect(
-			convergence <= float(rig.get("profile").maximum_convergence_angle_deg) + 0.15,
-			"prospective barrel ray never inherits the old steep red-line climb"
+			Vector3(rig.get("weapon_aim_point")).distance_to(
+				Vector3(rig.get("view_aim_point"))
+			) <= 0.05,
+			"muzzle shot converges on the visible acquired sight point"
 		)
 
 	scene.queue_free()

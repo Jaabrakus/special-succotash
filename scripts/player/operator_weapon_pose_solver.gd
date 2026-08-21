@@ -10,6 +10,11 @@ const ARM_BONES := {
 	&"right": [&"mixamorig_RightArm", &"mixamorig_RightForeArm", &"mixamorig_RightHand"],
 }
 
+const GUN_PLACEMENT_FACE_UP_M := 0.09
+const GUN_PLACEMENT_FACE_FORWARD_M := 0.13
+const GUN_PLACEMENT_FRAME_BONE := &"mixamorig_Spine2"
+const ArmKinematics := preload("res://scripts/player/operator_arm_kinematics.gd")
+
 @export_category("Response")
 @export_range(1.0, 30.0, 0.5) var enter_response: float = 18.0
 @export_range(1.0, 30.0, 0.5) var exit_response: float = 12.0
@@ -33,6 +38,9 @@ const ARM_BONES := {
 @export_range(0.04, 0.20, 0.005) var prone_hand_floor_clearance_m: float = 0.10
 @export_range(0.03, 0.16, 0.005) var prone_elbow_floor_clearance_m: float = 0.065
 @export_range(0.04, 0.20, 0.005) var prone_muzzle_floor_clearance_m: float = 0.085
+@export_range(0.0, 0.30, 0.005) var prone_ready_grip_drop_m: float = 0.16
+@export_range(0.70, 1.0, 0.01) var prone_support_reach_scale: float = 0.84
+@export_range(0.12, 0.60, 0.01) var prone_minimum_elbow_outward_m: float = 0.46
 @export_range(1.0, 30.0, 0.5) var prone_floor_response: float = 18.0
 @export_range(0.20, 1.20, 0.05) var prone_floor_probe_up_m: float = 0.60
 @export_range(0.20, 1.50, 0.05) var prone_floor_probe_down_m: float = 0.90
@@ -65,6 +73,7 @@ var trigger_socket: Marker3D
 var support_socket: Marker3D
 var muzzle_socket: Marker3D
 var barrel_base_socket: Marker3D
+var optic_socket: Marker3D
 var trigger_hand_target: Marker3D
 var support_hand_target: Marker3D
 var right_elbow_pole: Marker3D
@@ -105,15 +114,28 @@ var action_weapon_follow_start := Transform3D.IDENTITY
 var action_weapon_hand_offset := Transform3D.IDENTITY
 var action_weapon_follow_elapsed: float = 0.0
 var action_weapon_follow_blend_seconds: float = 0.12
+var right_palm_anchor_local := Vector3.ZERO
+var action_trigger_contact_error_m: float = 0.0
+var support_hand_mode: StringName = &"IK_TO_WEAPON"
 var right_hand_ik: SkeletonIK3D
 var left_hand_ik: SkeletonIK3D
 var animation_frame_pose: Dictionary = {}
 var frame_socket_override_active := false
 var frame_trigger_socket_base := Vector3.ZERO
 var frame_support_socket_base := Vector3.ZERO
+var support_socket_clamped := false
 var prone_floor_lift_m: float = 0.0
 var muzzle_floor_clearance_m: float = INF
 var prone_floor_contact_detected: bool = false
+var gun_placement_line_by_posture: Dictionary = {}
+var gun_placement_anchor_local_by_posture: Dictionary = {}
+var gun_placement_baseline_basis_by_posture: Dictionary = {}
+var gun_placement_line_active: bool = false
+var gun_placement_error_m: float = 0.0
+var gun_placement_roll_error_deg: float = 0.0
+var last_gun_placement_origin := Vector3.ZERO
+var last_gun_placement_direction := Vector3.FORWARD
+var gun_placement_relative_yaw_rad: float = 0.0
 
 
 func bind(target_skeleton: Skeleton3D, attached_weapon: Node3D) -> void:
@@ -128,6 +150,7 @@ func bind(target_skeleton: Skeleton3D, attached_weapon: Node3D) -> void:
 	support_socket = _find_weapon_socket("Socket_LeftHand")
 	muzzle_socket = _find_weapon_socket("Socket_Muzzle")
 	barrel_base_socket = _find_weapon_socket("Socket_BarrelBase")
+	optic_socket = _find_weapon_socket("Socket_Optic")
 	socket_contract_active = (
 		use_weapon_socket_contract
 		and trigger_socket != null
@@ -145,6 +168,10 @@ func bind(target_skeleton: Skeleton3D, attached_weapon: Node3D) -> void:
 		var names: Array = ARM_BONES[side]
 		for bone_name in names:
 			bone_indices[StringName(bone_name)] = skeleton.find_bone(StringName(bone_name))
+	right_palm_anchor_local = _calculate_palm_anchor(
+		"Right",
+		int(bone_indices.get(&"mixamorig_RightHand", -1))
+	)
 	_build_targets()
 	_build_socket_ik()
 
@@ -201,6 +228,47 @@ func configure_dynamic_hold(raw_profile: Variant) -> void:
 	)
 
 
+func configure_gun_placement_line(raw_profile: Variant) -> void:
+	gun_placement_line_by_posture.clear()
+	gun_placement_anchor_local_by_posture.clear()
+	gun_placement_line_active = false
+	if not raw_profile is Dictionary:
+		return
+	var by_stance: Variant = (raw_profile as Dictionary).get("by_stance", {})
+	if not by_stance is Dictionary:
+		return
+	for posture: StringName in [&"STANDING", &"CROUCHED", &"PRONE"]:
+		var raw_stance: Variant = (by_stance as Dictionary).get(String(posture), {})
+		if not raw_stance is Dictionary:
+			continue
+		var stance := raw_stance as Dictionary
+		var position_offset := _vector_from_data(
+			stance.get("position_offset_meters", {})
+		)
+		var pitch_degrees := float(stance.get("pitch_degrees", 0.0))
+		var yaw_degrees := float(stance.get("yaw_degrees", 0.0))
+		var roll_degrees := float(stance.get("roll_degrees", 0.0))
+		gun_placement_line_by_posture[posture] = {
+			"position_offset_meters": position_offset,
+			"pitch_degrees": pitch_degrees,
+			"yaw_degrees": yaw_degrees,
+			"roll_degrees": roll_degrees,
+			"authored": (
+				not position_offset.is_zero_approx()
+				or not is_zero_approx(pitch_degrees)
+				or not is_zero_approx(yaw_degrees)
+				or not is_zero_approx(roll_degrees)
+			),
+		}
+		gun_placement_line_active = (
+			gun_placement_line_active
+			or not position_offset.is_zero_approx()
+			or not is_zero_approx(pitch_degrees)
+			or not is_zero_approx(yaw_degrees)
+			or not is_zero_approx(roll_degrees)
+		)
+
+
 func set_animation_frame_pose(raw_pose: Variant) -> void:
 	var next_pose := raw_pose as Dictionary if raw_pose is Dictionary else {}
 	if next_pose.is_empty():
@@ -230,15 +298,20 @@ func clear_animation_frame_pose() -> void:
 	set_animation_frame_pose({})
 
 
+func interrupt_action_weapon_follow() -> void:
+	action_weapon_follow_active = false
+	ownership_return_elapsed = ownership_return_seconds
+	clear_animation_frame_pose()
+	_stop_socket_ik()
+
+
 func _animation_frame_weapon_correction_transform() -> Transform3D:
 	if animation_frame_pose.is_empty():
 		return Transform3D.IDENTITY
 	var position := _vector_from_data(
 		animation_frame_pose.get("weapon_hand_position_correction", {})
 	)
-	var rotation_degrees := _vector_from_data(
-		animation_frame_pose.get("weapon_hand_rotation_correction_deg", {})
-	)
+	var rotation_degrees := _animation_frame_weapon_rotation_degrees()
 	return Transform3D(
 		Basis.from_euler(
 			Vector3(
@@ -249,6 +322,12 @@ func _animation_frame_weapon_correction_transform() -> Transform3D:
 			EULER_ORDER_YXZ
 		),
 		position
+	)
+
+
+func _animation_frame_weapon_rotation_degrees() -> Vector3:
+	return _vector_from_data(
+		animation_frame_pose.get("weapon_hand_rotation_correction_deg", {})
 	)
 
 
@@ -277,6 +356,7 @@ func apply(
 ) -> void:
 	if skeleton == null or body == null:
 		return
+	support_socket_clamped = false
 	# The pose is rebuilt from the animation result every frame. Clearing the
 	# prior visual override prevents the IK result from feeding back into its
 	# own measurements and lets animation remain the source pose.
@@ -284,32 +364,37 @@ func apply(
 	skeleton.force_update_all_bone_transforms()
 	var sampled_trigger_hand_position := _bone_world_position(&"mixamorig_RightHand")
 	last_posture = posture
+	gun_placement_relative_yaw_rad = aim_yaw
+	var reload_action_active := _is_reload_action(requested_action)
+	var grenade_action_active := _is_grenade_action(requested_action)
 	var action_owns_arms := (
-		movement_state in [&"DIVING", &"ROLLING", &"AIRBORNE", &"LANDING"]
-		or requested_action in [&"reload", &"prone_reload"]
+		movement_state in [&"DIVING", &"ROLLING"]
+		or reload_action_active
+		or grenade_action_active
+	)
+	support_hand_mode = (
+		&"IK_TO_WEAPON"
+		if not reload_action_active or reload_support_regrip
+		else &"ANIMATION_FREE"
 	)
 	if action_owns_arms:
-		_update_action_weapon_follow(delta)
-		if (
-			reload_support_regrip
-			and requested_action in [&"reload", &"prone_reload"]
-			and support_socket != null
-		):
-			if right_hand_ik and right_hand_ik.is_running():
-				right_hand_ik.stop()
-			support_hand_target.global_transform = support_socket.global_transform
-			var previous_weight := current_weight
-			current_weight = 1.0
-			_solve_socket_arm(
-				left_hand_ik,
-				support_hand_target,
-				left_elbow_pole,
-				&"mixamorig_LeftHand"
+		if reload_action_active:
+			_update_action_weapon_follow(delta)
+		if reload_action_active and right_hand_ik and right_hand_ik.is_running():
+			right_hand_ik.stop()
+		if reload_action_active and reload_support_regrip and support_socket != null:
+			_solve_reload_support_arm_guardrail(
+				posture,
+				world_aim_target,
+				body,
+				support_socket.global_position
 			)
-			current_weight = previous_weight
-			skeleton.force_update_all_bone_transforms()
+		elif reload_action_active:
+			_solve_reload_support_arm_guardrail(posture, world_aim_target, body)
 		else:
 			_stop_socket_ik()
+		right_elbow_angle_deg = _current_elbow_angle(&"right")
+		left_elbow_angle_deg = _current_elbow_angle(&"left")
 		current_weight = 0.0
 		desired_weight = 0.0
 		return
@@ -328,6 +413,7 @@ func apply(
 		_set_weapon_solver_owned(false)
 		return
 	_set_weapon_solver_owned(true)
+	_capture_gunsmith_ready_baseline(posture)
 
 	var right_shoulder := _bone_world_position(&"mixamorig_RightArm")
 	var left_shoulder := _bone_world_position(&"mixamorig_LeftArm")
@@ -367,6 +453,11 @@ func apply(
 
 	var right_reach := _arm_length(&"right")
 	var left_reach := _arm_length(&"left")
+	var support_arm_reach := (
+		left_reach * prone_support_reach_scale
+		if posture == &"PRONE"
+		else left_reach
+	)
 	var obstruction_target := clampf(obstruction_amount, 0.0, 1.0)
 	cover_pose_amount = lerpf(
 		cover_pose_amount,
@@ -394,7 +485,7 @@ func apply(
 	var raw_support_position := (
 		shoulder_center
 		+ aim_direction * (
-			left_reach * lerpf(support_reach_ratio, tucked_reach_ratio, tuck)
+			support_arm_reach * lerpf(support_reach_ratio, tucked_reach_ratio, tuck)
 		)
 		- aim_right * grip_half_width
 		+ world_up * lerpf(grip_height_offset - 0.01, 0.12, tuck)
@@ -402,6 +493,13 @@ func apply(
 	# The support hand advances along the foregrip only while both arms can
 	# reach it. This keeps the pose useful with different weapon proportions.
 	raw_support_position += aim_direction * support_forward_offset * (1.0 - tuck)
+	if posture == &"PRONE":
+		# Prone shoulders are rolled by the authored crawl pose. Reusing the
+		# standing shoulder-relative height puts the rifle and both elbows over
+		# the operator's head. Lower the complete two-hand grip toward the floor;
+		# the clearance solve below raises it only if the ground requires it.
+		raw_trigger_position -= world_up * prone_ready_grip_drop_m
+		raw_support_position -= world_up * prone_ready_grip_drop_m
 	var desired_floor_lift := 0.0
 	if posture == &"PRONE":
 		desired_floor_lift = maxf(
@@ -426,7 +524,7 @@ func apply(
 		left_shoulder,
 		raw_support_position,
 		aim_direction,
-		left_reach
+		support_arm_reach
 	)
 	if requested_action == &"" and animation_carry_weight > 0.0:
 		var carry_delta := sampled_trigger_hand_position - trigger_position
@@ -450,7 +548,6 @@ func apply(
 		raw_trigger_position.distance_to(trigger_position) <= 0.005
 		and raw_support_position.distance_to(support_position) <= 0.005
 	)
-
 	trigger_hand_target.global_position = trigger_position
 	support_hand_target.global_position = support_position
 	aim_target_marker.global_position = last_target_point
@@ -468,15 +565,21 @@ func apply(
 		and animation_frame_pose["left_elbow_pole"] is Dictionary
 	):
 		left_saved = _vector_from_data(animation_frame_pose["left_elbow_pole"])
+	var right_elbow_outward := elbow_flare + right_saved.x
+	var left_elbow_outward := elbow_flare + left_saved.x
+	if posture == &"PRONE":
+		# A saved extreme inward pole must not fold either elbow across the neck.
+		right_elbow_outward = maxf(right_elbow_outward, prone_minimum_elbow_outward_m)
+		left_elbow_outward = maxf(left_elbow_outward, prone_minimum_elbow_outward_m)
 	right_elbow_pole.global_position = (
 		right_shoulder
-		+ aim_right * (elbow_flare + right_saved.x)
+		+ aim_right * right_elbow_outward
 		+ aim_direction * (0.16 + right_saved.z)
 		+ world_up * (elbow_height + prone_pole_raise + right_saved.y)
 	)
 	left_elbow_pole.global_position = (
 		left_shoulder
-		- aim_right * (elbow_flare + left_saved.x)
+		- aim_right * left_elbow_outward
 		+ aim_direction * (0.16 + left_saved.z)
 		+ world_up * (elbow_height + prone_pole_raise + left_saved.y)
 	)
@@ -496,6 +599,8 @@ func apply(
 		support_position,
 		aim_direction,
 		body_forward,
+		left_shoulder,
+		support_arm_reach,
 		delta
 	)
 	if posture == &"PRONE" and muzzle_socket != null:
@@ -515,6 +620,8 @@ func apply(
 				support_position,
 				aim_direction,
 				body_forward,
+				left_shoulder,
+				support_arm_reach,
 				delta
 			)
 	muzzle_floor_clearance_m = _floor_clearance(body, muzzle_socket.global_position) if muzzle_socket != null else INF
@@ -527,10 +634,12 @@ func _solve_ready_weapon_pose(
 	support_position: Vector3,
 	aim_direction: Vector3,
 	body_forward: Vector3,
+	left_shoulder: Vector3,
+	left_reach: float,
 	delta: float
 ) -> void:
 	if socket_contract_active:
-		if right_hand_owns_ready_weapon:
+		if right_hand_owns_ready_weapon and not _gun_placement_line_active_for(last_posture):
 			trigger_hand_target.global_position = trigger_position
 			_solve_socket_arm(
 				right_hand_ik,
@@ -541,6 +650,17 @@ func _solve_ready_weapon_pose(
 			_place_hand_owned_weapon(aim_direction, body_forward, delta)
 			if adaptive_support_socket:
 				support_socket.global_position = support_position
+			else:
+				var authored_support := support_socket.global_position
+				var reachable_support := _fit_human_reach(
+					left_shoulder,
+					authored_support,
+					aim_direction,
+					left_reach
+				)
+				if authored_support.distance_to(reachable_support) > 0.005:
+					support_socket.global_position = reachable_support
+					support_socket_clamped = true
 			support_hand_target.global_position = support_socket.global_position
 			_solve_socket_arm(
 				left_hand_ik,
@@ -549,17 +669,236 @@ func _solve_ready_weapon_pose(
 				&"mixamorig_LeftHand"
 			)
 		else:
-			_place_socketed_weapon(trigger_position, aim_direction, body_forward, delta)
+			if _gun_placement_line_active_for(last_posture):
+				_place_gunsmith_line_weapon(aim_direction, body_forward, delta)
+				# The Aim Idle clip owns the natural wrist basis. Live blue-line
+				# rotation moves the palm to the trigger socket without forcing a
+				# second rigid wrist twist that can detach the hand at large aim angles.
+				if right_hand_ik != null:
+					right_hand_ik.override_tip_basis = false
+			else:
+				if right_hand_ik != null:
+					right_hand_ik.override_tip_basis = true
+				_place_socketed_weapon(trigger_position, aim_direction, body_forward, delta)
 			if adaptive_support_socket:
 				support_socket.global_position = support_position
+			elif _gun_placement_line_active_for(last_posture):
+				var authored_support := support_socket.global_position
+				var reachable_support := _fit_human_reach(
+					left_shoulder,
+					authored_support,
+					aim_direction,
+					left_reach
+				)
+				if authored_support.distance_to(reachable_support) > 0.005:
+					support_socket.global_position = reachable_support
+					support_socket_clamped = true
 			trigger_hand_target.global_position = trigger_socket.global_position
 			support_hand_target.global_position = support_socket.global_position
-			_solve_socket_arm(right_hand_ik, trigger_hand_target, right_elbow_pole, &"mixamorig_RightHand")
+			if _gun_placement_line_active_for(last_posture):
+				_solve_arm(&"right", trigger_hand_target, right_elbow_pole)
+			else:
+				_solve_socket_arm(
+					right_hand_ik,
+					trigger_hand_target,
+					right_elbow_pole,
+					&"mixamorig_RightHand"
+				)
 			_solve_socket_arm(left_hand_ik, support_hand_target, left_elbow_pole, &"mixamorig_LeftHand")
 		skeleton.force_update_all_bone_transforms()
 		_update_socket_weapon_error()
 	else:
 		_align_weapon_to_aim(aim_direction)
+
+
+func _place_gunsmith_line_weapon(
+	aim_direction: Vector3,
+	body_forward: Vector3,
+	delta: float
+) -> void:
+	if weapon_node == null or optic_socket == null or muzzle_socket == null:
+		return
+	var placement_origin := _gun_placement_origin(last_posture)
+	var placement_direction := _gun_placement_direction(
+		last_posture,
+		_render_weapon_direction(aim_direction, body_forward)
+	)
+	var world_scale := weapon_node.global_basis.get_scale()
+	var baseline_local: Variant = gun_placement_baseline_basis_by_posture.get(
+		last_posture,
+		null
+	)
+	if baseline_local is Basis:
+		# Rebuild from the exact ready pose captured from the Gunsmith-authored
+		# mount. Reload and mobility clips may rotate the weapon temporarily, but
+		# their final frame cannot become the next ready pose's sideways twist.
+		weapon_node.global_basis = (
+			skeleton.global_basis.orthonormalized()
+			* (baseline_local as Basis)
+		).orthonormalized().scaled(world_scale)
+	var barrel_origin: Vector3 = (
+		barrel_base_socket.global_position
+		if barrel_base_socket != null
+		else trigger_socket.global_position
+	)
+	var current_barrel := (muzzle_socket.global_position - barrel_origin).normalized()
+	if current_barrel.length_squared() < 0.50 or placement_direction.length_squared() < 0.50:
+		return
+	var aim_delta := Quaternion(current_barrel, placement_direction).normalized()
+	weapon_node.global_basis = (
+		Basis(aim_delta) * weapon_node.global_basis.orthonormalized()
+	).orthonormalized().scaled(world_scale)
+	var stance: Dictionary = gun_placement_line_by_posture.get(last_posture, {})
+	_correct_gunsmith_weapon_roll(
+		placement_direction,
+		float(stance.get("roll_degrees", 0.0)),
+		world_scale
+	)
+	weapon_node.global_position += placement_origin - optic_socket.global_position
+	_apply_ownership_return(weapon_node.global_transform, delta)
+	last_gun_placement_origin = placement_origin
+	last_gun_placement_direction = placement_direction
+	gun_placement_error_m = optic_socket.global_position.distance_to(placement_origin)
+	gun_placement_roll_error_deg = absf(
+		_measure_gunsmith_weapon_roll_error(
+			placement_direction,
+			float(stance.get("roll_degrees", 0.0))
+		)
+	)
+
+
+func _correct_gunsmith_weapon_roll(
+	barrel_direction: Vector3,
+	desired_roll_degrees: float,
+	world_scale: Vector3
+) -> void:
+	var roll_error := _measure_gunsmith_weapon_roll_error(
+		barrel_direction,
+		desired_roll_degrees
+	)
+	if is_nan(roll_error) or is_inf(roll_error) or absf(roll_error) <= 0.00001:
+		return
+	weapon_node.global_basis = (
+		Basis(Quaternion(barrel_direction.normalized(), roll_error))
+		* weapon_node.global_basis.orthonormalized()
+	).orthonormalized().scaled(world_scale)
+
+
+func _measure_gunsmith_weapon_roll_error(
+	barrel_direction: Vector3,
+	desired_roll_degrees: float
+) -> float:
+	if (
+		weapon_node == null
+		or skeleton == null
+		or optic_socket == null
+		or muzzle_socket == null
+	):
+		return 0.0
+	var direction := barrel_direction.normalized()
+	if direction.length_squared() < 0.50:
+		return 0.0
+	var barrel_origin := (
+		barrel_base_socket.global_position
+		if barrel_base_socket != null
+		else trigger_socket.global_position
+	)
+	# Optic-above-barrel is a model-independent weapon-up reference. Unlike a
+	# mesh axis, it survives FBX axis conversion and the saved grip transform.
+	var actual_up := optic_socket.global_position - barrel_origin
+	actual_up -= direction * actual_up.dot(direction)
+	var desired_up := skeleton.global_basis.y.normalized()
+	desired_up -= direction * desired_up.dot(direction)
+	if actual_up.length_squared() < 0.000001 or desired_up.length_squared() < 0.000001:
+		return 0.0
+	actual_up = actual_up.normalized()
+	desired_up = desired_up.normalized()
+	if not is_zero_approx(desired_roll_degrees):
+		desired_up = Quaternion(
+			direction,
+			deg_to_rad(desired_roll_degrees)
+		) * desired_up
+	return atan2(
+		direction.dot(actual_up.cross(desired_up)),
+		actual_up.dot(desired_up)
+	)
+
+
+func _capture_gunsmith_ready_baseline(posture: StringName) -> void:
+	if (
+		weapon_node == null
+		or skeleton == null
+		or gun_placement_baseline_basis_by_posture.has(posture)
+		or not _gun_placement_line_active_for(posture)
+	):
+		return
+	gun_placement_baseline_basis_by_posture[posture] = (
+		skeleton.global_basis.orthonormalized().inverse()
+		* weapon_node.global_basis.orthonormalized()
+	).orthonormalized()
+
+
+func _gun_placement_origin(posture: StringName) -> Vector3:
+	if not gun_placement_anchor_local_by_posture.has(posture):
+		var operator_right := skeleton.global_basis.x.normalized()
+		var operator_up := skeleton.global_basis.y.normalized()
+		var operator_forward := skeleton.global_basis.z.normalized()
+		var head_index := skeleton.find_bone(&"mixamorig_Head")
+		var head_origin := (
+			skeleton.global_transform * skeleton.get_bone_global_pose(head_index).origin
+			if head_index >= 0
+			else skeleton.global_position
+		)
+		var stance: Dictionary = gun_placement_line_by_posture.get(posture, {})
+		var offset: Vector3 = stance.get("position_offset_meters", Vector3.ZERO)
+		# Reconstruct the existing operator-local Gunsmith point exactly once.
+		# Moving this complete point into chest space preserves the saved neutral
+		# placement instead of reinterpreting its X/Y/Z values after every turn.
+		var initial_origin := (
+			head_origin
+			+ operator_up * GUN_PLACEMENT_FACE_UP_M
+			+ operator_forward * GUN_PLACEMENT_FACE_FORWARD_M
+			+ operator_right * offset.x
+			+ operator_up * offset.y
+			+ operator_forward * offset.z
+		)
+		gun_placement_anchor_local_by_posture[posture] = skeleton.to_local(
+			initial_origin
+		)
+	var neutral_origin := skeleton.to_global(
+		Vector3(gun_placement_anchor_local_by_posture[posture])
+	)
+	var chest_pivot := _gun_placement_torso_pivot_world()
+	var torso_yaw := Quaternion(
+		Vector3.UP,
+		wrapf(gun_placement_relative_yaw_rad, -PI, PI)
+	)
+	return chest_pivot + torso_yaw * (neutral_origin - chest_pivot)
+
+
+func _gun_placement_torso_pivot_world() -> Vector3:
+	var frame_index := skeleton.find_bone(GUN_PLACEMENT_FRAME_BONE)
+	if frame_index < 0:
+		return skeleton.global_position
+	return skeleton.global_transform * skeleton.get_bone_global_pose(
+		frame_index
+	).origin
+
+
+func _gun_placement_direction(posture: StringName, base_direction: Vector3) -> Vector3:
+	var direction := base_direction.normalized()
+	if direction.length_squared() < 0.50:
+		direction = skeleton.global_basis.z.normalized()
+	# Gameplay replaces the static Gunsmith direction with the live reticle ray.
+	# The saved line supplies placement; shot and network aim remain exact.
+	return direction
+
+
+func _gun_placement_line_active_for(posture: StringName) -> bool:
+	if not gun_placement_line_active or optic_socket == null:
+		return false
+	var stance: Dictionary = gun_placement_line_by_posture.get(posture, {})
+	return bool(stance.get("authored", false))
 
 
 func _required_floor_lift(body: Node3D, point: Vector3, clearance: float) -> float:
@@ -609,12 +948,22 @@ func get_debug_state() -> Dictionary:
 		"aim_pitch_demand_deg": aim_pitch_demand_deg,
 		"right_elbow_angle_deg": right_elbow_angle_deg,
 		"left_elbow_angle_deg": left_elbow_angle_deg,
+		"right_elbow_position": _bone_world_position(&"mixamorig_RightForeArm"),
+		"left_elbow_position": _bone_world_position(&"mixamorig_LeftForeArm"),
+		"head_position": _bone_world_position(&"mixamorig_Head"),
+		"right_elbow_pole_position": right_elbow_pole.global_position,
+		"left_elbow_pole_position": left_elbow_pole.global_position,
 		"weapon_aim_error_deg": weapon_aim_error_deg,
 		"wrist_correction_deg": wrist_correction_deg,
 		"socket_contract_active": socket_contract_active,
 		"adaptive_support_socket": adaptive_support_socket,
 		"weapon_solver_owned": weapon_solver_owned,
+		"action_weapon_follow_active": action_weapon_follow_active,
+		"action_trigger_contact_error_m": action_trigger_contact_error_m,
+		"support_hand_mode": support_hand_mode,
+		"animation_frame_weapon_rotation_correction_deg": _animation_frame_weapon_rotation_degrees(),
 		"right_hand_owns_ready_weapon": right_hand_owns_ready_weapon,
+		"support_socket_clamped": support_socket_clamped,
 		"animation_carry_weight": animation_carry_weight,
 		"animation_carry_limit_m": animation_carry_limit_m,
 		"ownership_return_active": ownership_return_elapsed < ownership_return_seconds,
@@ -625,6 +974,15 @@ func get_debug_state() -> Dictionary:
 		"muzzle_floor_clearance_m": muzzle_floor_clearance_m,
 		"prone_floor_contact_detected": prone_floor_contact_detected,
 		"animation_frame_pose_active": not animation_frame_pose.is_empty(),
+		"gun_placement_line_active": _gun_placement_line_active_for(last_posture),
+		"gun_placement_frame_bone": GUN_PLACEMENT_FRAME_BONE,
+		"gun_placement_baseline_active": gun_placement_baseline_basis_by_posture.has(
+			last_posture
+		),
+		"gun_placement_error_m": gun_placement_error_m,
+		"gun_placement_roll_error_deg": gun_placement_roll_error_deg,
+		"gun_placement_origin": last_gun_placement_origin,
+		"gun_placement_direction": last_gun_placement_direction,
 	}
 
 
@@ -658,7 +1016,7 @@ func _update_action_weapon_follow(delta: float) -> void:
 	var hand_index := int(bone_indices.get(&"mixamorig_RightHand", -1))
 	if hand_index < 0:
 		return
-	var hand_world := skeleton.global_transform * skeleton.get_bone_global_pose(hand_index)
+	var hand_world := _right_hand_grip_world_transform()
 	if not action_weapon_follow_active:
 		# Keep the weapon in the solver's world-space parent and drive the action
 		# explicitly. Reparenting directly under BoneAttachment3D produced a one-frame
@@ -688,10 +1046,126 @@ func _update_action_weapon_follow(delta: float) -> void:
 		desired_transform,
 		amount
 	)
+	if trigger_socket != null:
+		# Gunsmith authors the orange trigger point against the palm center, not
+		# the wrist bone origin. Keep that exact contract while the reload hand
+		# owns the rifle so the gameplay clip matches the editor preview. Blend the
+		# positional correction with ownership so reload cannot snap the rifle on
+		# its first frame. The animation layer already blends the palm from ready
+		# into reload; keep the trigger socket on that blended palm every frame.
+		weapon_node.global_position += (
+			hand_world.origin - trigger_socket.global_position
+		)
+		action_trigger_contact_error_m = trigger_socket.global_position.distance_to(
+			hand_world.origin
+		)
 	action_weapon_follow_elapsed = minf(
-		action_weapon_follow_elapsed + maxf(delta, 0.0),
+		# Advance by at least one rendered 60 Hz frame. Headless/editor previews can
+		# report a near-zero delta while still presenting frames, which previously
+		# left reload ownership permanently at the beginning of its blend.
+		action_weapon_follow_elapsed + maxf(delta, 1.0 / 60.0),
 		action_weapon_follow_blend_seconds
 	)
+
+
+func _is_reload_action(action_name: StringName) -> bool:
+	return "reload" in String(action_name).to_lower()
+
+
+func _is_grenade_action(action_name: StringName) -> bool:
+	return "grenade" in String(action_name).to_lower()
+
+
+func _solve_reload_support_arm_guardrail(
+	posture: StringName,
+	world_aim_target: Vector3,
+	body: Node3D,
+	desired_hand_position: Vector3 = Vector3.INF
+) -> void:
+	if left_hand_ik != null and left_hand_ik.is_running():
+		left_hand_ik.stop()
+	var shoulder := _bone_world_position(&"mixamorig_LeftArm")
+	var animated_hand := (
+		_bone_world_position(&"mixamorig_LeftHand")
+		if not desired_hand_position.is_finite()
+		else desired_hand_position
+	)
+	var aim_direction := world_aim_target - shoulder
+	if aim_direction.length_squared() < 0.01:
+		aim_direction = -body.global_basis.z
+	aim_direction = aim_direction.normalized()
+	var aim_right := aim_direction.cross(Vector3.UP).normalized()
+	if aim_right.length_squared() < 0.50:
+		aim_right = body.global_basis.x.normalized()
+	var saved_poles: Dictionary = elbow_pole_offsets_by_posture.get(posture, {})
+	var left_saved: Vector3 = saved_poles.get("left", Vector3.ZERO)
+	left_elbow_pole.global_position = (
+		shoulder
+		- aim_right * (elbow_flare + left_saved.x)
+		+ aim_direction * (0.16 + left_saved.z)
+		+ Vector3.UP * (elbow_height + left_saved.y)
+	)
+	# Preserve the imported reload hand path. The two-bone solve shortens only
+	# unreachable or hyperextended reaches and selects the outward elbow plane.
+	var safe_hand := _fit_human_reach(
+		shoulder,
+		animated_hand,
+		aim_direction,
+		_arm_length(&"left")
+	)
+	support_hand_target.global_position = safe_hand
+	var previous_weight := current_weight
+	current_weight = 1.0
+	left_hand_ik.override_tip_basis = false
+	_solve_socket_arm(
+		left_hand_ik,
+		support_hand_target,
+		left_elbow_pole,
+		&"mixamorig_LeftHand"
+	)
+	current_weight = previous_weight
+	skeleton.force_update_all_bone_transforms()
+
+
+func _right_hand_grip_world_transform() -> Transform3D:
+	var hand_index := int(bone_indices.get(&"mixamorig_RightHand", -1))
+	if skeleton == null or hand_index < 0:
+		return Transform3D.IDENTITY
+	var hand_pose := skeleton.get_bone_global_pose(hand_index)
+	var hand_world := skeleton.global_transform * hand_pose
+	return Transform3D(
+		hand_world.basis.orthonormalized(),
+		skeleton.global_transform * (hand_pose * right_palm_anchor_local)
+	)
+
+
+func _calculate_palm_anchor(side: String, hand_index: int) -> Vector3:
+	if skeleton == null or hand_index < 0:
+		return Vector3.ZERO
+	var hand_rest := _bone_global_rest(hand_index)
+	var anchor := Vector3.ZERO
+	var point_count := 0
+	for finger_name in ["Thumb", "Index", "Middle", "Ring", "Pinky"]:
+		var finger_index := skeleton.find_bone(
+			"mixamorig_%sHand%s1" % [side, finger_name]
+		)
+		if finger_index < 0:
+			continue
+		anchor += hand_rest.affine_inverse() * _bone_global_rest(finger_index).origin
+		point_count += 1
+	return anchor / float(point_count) if point_count > 0 else Vector3.ZERO
+
+
+func _bone_global_rest(bone_index: int) -> Transform3D:
+	var chain: Array[Transform3D] = []
+	var current := bone_index
+	while current >= 0:
+		chain.push_front(skeleton.get_bone_rest(current))
+		current = skeleton.get_bone_parent(current)
+	var result := Transform3D.IDENTITY
+	for local_rest in chain:
+		result *= local_rest
+	return result
 
 
 func _finish_action_weapon_follow() -> void:
@@ -742,7 +1216,7 @@ func _solve_socket_arm(
 	ik.magnet = skeleton.global_transform.affine_inverse() * pole.global_position
 	var desired_position := target.global_position
 	var internal_position := desired_position
-	for _correction in range(4):
+	for _correction in range(8):
 		ik.target = Transform3D(target.global_basis.orthonormalized(), internal_position)
 		ik.stop()
 		ik.start(true)
@@ -958,12 +1432,9 @@ func _resolve_aim_direction(
 	origin: Vector3,
 	body: Node3D
 ) -> Vector3:
-	if world_target != Vector3.ZERO and origin.distance_to(world_target) > 0.10:
-		return (world_target - origin).normalized()
-	var yaw_basis := Basis(Vector3.UP, body.global_rotation.y + aim_yaw)
-	var yaw_forward := yaw_basis * Vector3.FORWARD
-	var right := yaw_basis * Vector3.RIGHT
-	return (Basis(right, aim_pitch) * yaw_forward).normalized()
+	return ArmKinematics.resolve_aim_direction(
+		aim_yaw, aim_pitch, world_target, origin, body
+	)
 
 
 func _arm_length(side: StringName) -> float:
@@ -980,44 +1451,15 @@ func _fit_human_reach(
 	aim_direction: Vector3,
 	reach: float
 ) -> Vector3:
-	var fitted := target
-	# A wall tuck shortens the rifle pose, but a trained operator does not pull
-	# either hand behind the shoulder plane. Preserve enough forward reach for
-	# the elbows to remain outside the torso.
-	var forward_reach := (fitted - origin).dot(aim_direction)
-	var minimum_forward := reach * minimum_forward_reach_ratio
-	if forward_reach < minimum_forward:
-		fitted += aim_direction * (minimum_forward - forward_reach)
-
-	var delta := fitted - origin
-	if delta.length_squared() < 0.000001:
-		delta = aim_direction * minimum_forward
-	var direction := delta.normalized()
-	var upper := reach * 0.5
-	var lower := reach - upper
-	var minimum_distance := _distance_for_elbow_angle(
-		upper,
-		lower,
-		deg_to_rad(minimum_elbow_angle_deg)
+	return ArmKinematics.fit_human_reach(
+		origin,
+		target,
+		aim_direction,
+		reach,
+		minimum_forward_reach_ratio,
+		minimum_elbow_angle_deg,
+		maximum_elbow_angle_deg
 	)
-	var maximum_distance := minf(
-		_distance_for_elbow_angle(
-			upper,
-			lower,
-			deg_to_rad(maximum_elbow_angle_deg)
-		),
-		reach * 0.965
-	)
-	return origin + direction * clampf(delta.length(), minimum_distance, maximum_distance)
-
-
-func _distance_for_elbow_angle(upper: float, lower: float, angle: float) -> float:
-	return sqrt(maxf(
-		upper * upper
-		+ lower * lower
-		- 2.0 * upper * lower * cos(angle),
-		0.0001
-	))
 
 
 func _solve_arm(side: StringName, target_node: Node3D, pole_node: Node3D) -> void:
@@ -1098,10 +1540,7 @@ func _solve_arm(side: StringName, target_node: Node3D, pole_node: Node3D) -> voi
 
 
 func _blend_rotated_basis(source: Basis, delta: Quaternion, weight: float) -> Basis:
-	var source_rotation := source.get_rotation_quaternion().normalized()
-	var solved_rotation := (delta * source_rotation).normalized()
-	var blended := source_rotation.slerp(solved_rotation, clampf(weight, 0.0, 1.0))
-	return Basis(blended).scaled(source.get_scale())
+	return ArmKinematics.blend_rotated_basis(source, delta, weight)
 
 
 func _align_weapon_to_aim(aim_direction: Vector3) -> void:

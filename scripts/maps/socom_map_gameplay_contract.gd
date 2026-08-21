@@ -8,6 +8,18 @@ static func mission_rules(document: Dictionary) -> Dictionary:
 	return MapDocument.normalize_gameplay(document.get("gameplay", {}))
 
 
+static func round_rules(document: Dictionary) -> Dictionary:
+	var rules := mission_rules(document)
+	return {
+		"time_limit_seconds": int(rules["round_time_seconds"]),
+		"maximum_rounds": int(rules["maximum_rounds"]),
+		"rounds_to_win": int(rules["rounds_to_win"]),
+		"win_by_elimination": bool(rules["elimination_wins_round"]),
+		"win_by_bomb_detonation": bool(rules["bomb_detonation_wins_round"]),
+		"timeout_result": String(rules["round_timeout_result"]),
+	}
+
+
 static func markers(document: Dictionary, type_name: StringName) -> Array[Dictionary]:
 	var matches: Array[Dictionary] = []
 	for object: Dictionary in MapDocument.normalize(document).get("objects", []):

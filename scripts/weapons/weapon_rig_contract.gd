@@ -95,6 +95,45 @@ static func normalize_config(raw: Dictionary, config_path: String = "") -> Dicti
 		sockets["optic_rail"] = vector3_to_map(Vector3.ZERO)
 	config["weapon_sockets"] = sockets
 
+	var handling_profile: Dictionary = (
+		(config.get("handling_profile", {}) as Dictionary).duplicate(true)
+		if config.get("handling_profile", {}) is Dictionary
+		else {}
+	)
+	var standing_master_pose: Dictionary = (
+		(handling_profile.get("standing_master_pose", {}) as Dictionary).duplicate(true)
+		if handling_profile.get("standing_master_pose", {}) is Dictionary
+		else {}
+	)
+	standing_master_pose["enabled"] = bool(
+		standing_master_pose.get("enabled", false)
+	)
+	standing_master_pose["suppress_saved_frame_pose"] = bool(
+		standing_master_pose.get("suppress_saved_frame_pose", true)
+	)
+	standing_master_pose["additive_fire_only"] = bool(
+		standing_master_pose.get("additive_fire_only", true)
+	)
+	standing_master_pose["support_grip"] = vector3_to_map(
+		vector3_from_map(
+			standing_master_pose.get("support_grip", {}),
+			left
+		)
+	)
+	standing_master_pose["trigger_grip"] = vector3_to_map(
+		vector3_from_map(
+			standing_master_pose.get("trigger_grip", {}),
+			right
+		)
+	)
+	handling_profile["standing_master_pose"] = standing_master_pose
+	handling_profile["standing_fire_uses_aim_idle"] = bool(
+		handling_profile.get("standing_fire_uses_aim_idle", false)
+	)
+	# Every posture consumes its own Gunsmith stance record. Do not redirect
+	# standing to crouched or prone data at runtime.
+	config["handling_profile"] = handling_profile
+
 	var placement_line := (config.get("gun_placement_line", {}) as Dictionary).duplicate(true)
 	placement_line["space"] = "operator_local_weapon_placement"
 	var placement_by_stance: Dictionary = (
@@ -113,6 +152,7 @@ static func normalize_config(raw: Dictionary, config_path: String = "") -> Dicti
 		)
 		stance["pitch_degrees"] = float(stance.get("pitch_degrees", 0.0))
 		stance["yaw_degrees"] = float(stance.get("yaw_degrees", 0.0))
+		stance["roll_degrees"] = float(stance.get("roll_degrees", 0.0))
 		placement_by_stance[posture] = stance
 	placement_line["by_stance"] = placement_by_stance
 	config["gun_placement_line"] = placement_line
@@ -124,13 +164,60 @@ static func normalize_config(raw: Dictionary, config_path: String = "") -> Dicti
 	)
 	ballistics["fire_rate_rpm"] = float(ballistics.get("fire_rate_rpm", 650.0))
 	ballistics["damage"] = float(ballistics.get("damage", 34.0))
+	ballistics["headshot_multiplier"] = clampf(
+		float(ballistics.get("headshot_multiplier", 3.5)), 1.0, 10.0
+	)
 	ballistics["muzzle_velocity_mps"] = float(
 		ballistics.get("muzzle_velocity_mps", default_muzzle_velocity(config))
 	)
 	ballistics["base_spread_deg"] = float(ballistics.get("base_spread_deg", 0.4))
+	ballistics["moving_spread_deg"] = float(ballistics.get("moving_spread_deg", 0.95))
+	ballistics["full_gait_spread_deg"] = float(ballistics.get("full_gait_spread_deg", 1.55))
+	ballistics["opening_burst_motion_multiplier"] = float(
+		ballistics.get("opening_burst_motion_multiplier", 0.35)
+	)
 	ballistics["bloom_per_shot_deg"] = float(ballistics.get("bloom_per_shot_deg", 1.2))
 	ballistics["max_recoil_bloom_deg"] = float(ballistics.get("max_recoil_bloom_deg", 2.4))
 	ballistics["bloom_recovery_speed"] = float(ballistics.get("bloom_recovery_speed", 14.0))
+	ballistics["functional_aim_climb_enabled"] = bool(
+		ballistics.get("functional_aim_climb_enabled", false)
+	)
+	ballistics["aim_climb_pitch_per_shot_deg"] = float(
+		ballistics.get("aim_climb_pitch_per_shot_deg", 0.35)
+	)
+	ballistics["aim_climb_yaw_per_shot_deg"] = float(
+		ballistics.get("aim_climb_yaw_per_shot_deg", 0.0)
+	)
+	ballistics["aim_climb_max_pitch_deg"] = float(
+		ballistics.get("aim_climb_max_pitch_deg", 3.5)
+	)
+	ballistics["aim_climb_max_yaw_deg"] = float(
+		ballistics.get("aim_climb_max_yaw_deg", 0.75)
+	)
+	ballistics["aim_climb_recovery_delay_seconds"] = float(
+		ballistics.get("aim_climb_recovery_delay_seconds", 0.10)
+	)
+	ballistics["aim_climb_recovery_speed_deg_per_second"] = float(
+		ballistics.get("aim_climb_recovery_speed_deg_per_second", 6.0)
+	)
+	ballistics["crouch_spread_multiplier"] = float(
+		ballistics.get("crouch_spread_multiplier", 0.72)
+	)
+	ballistics["crouch_bloom_per_shot_deg"] = float(
+		ballistics.get("crouch_bloom_per_shot_deg", 1.35)
+	)
+	ballistics["crouch_max_recoil_bloom_deg"] = float(
+		ballistics.get("crouch_max_recoil_bloom_deg", 1.70)
+	)
+	ballistics["crouch_bloom_recovery_speed"] = float(
+		ballistics.get("crouch_bloom_recovery_speed", 18.0)
+	)
+	ballistics["magazine_capacity"] = clampi(
+		int(ballistics.get("magazine_capacity", 30)), 1, 200
+	)
+	ballistics["reserve_ammo"] = clampi(
+		int(ballistics.get("reserve_ammo", 90)), 0, 999
+	)
 	ballistics["is_silenced"] = bool(ballistics.get("is_silenced", false))
 	config["ballistics"] = ballistics
 
@@ -145,6 +232,9 @@ static func normalize_config(raw: Dictionary, config_path: String = "") -> Dicti
 	reticle["shot_kick_px"] = float(reticle.get("shot_kick_px", 6.0))
 	reticle["shot_kick_return"] = float(reticle.get("shot_kick_return", 18.0))
 	reticle["maximum_shot_kick_px"] = float(reticle.get("maximum_shot_kick_px", 18.0))
+	reticle["maximum_movement_tick_extension_px"] = float(
+		reticle.get("maximum_movement_tick_extension_px", 16.0)
+	)
 	reticle["shot_bounce_duration"] = float(reticle.get("shot_bounce_duration", 0.070))
 	config["reticle"] = reticle
 
@@ -164,10 +254,10 @@ static func normalize_config(raw: Dictionary, config_path: String = "") -> Dicti
 	composure["bounce_duration"] = float(composure.get("bounce_duration", 0.070))
 	composure["bounce_strength"] = float(composure.get("bounce_strength", 1.0))
 	composure["settled_first_shot_threshold"] = float(
-		composure.get("settled_first_shot_threshold", 0.035)
+		composure.get("settled_first_shot_threshold", 0.002)
 	)
 	composure["settled_motion_threshold"] = float(
-		composure.get("settled_motion_threshold", 0.08)
+		composure.get("settled_motion_threshold", 0.02)
 	)
 	composure["moving_first_shot_multiplier"] = float(
 		composure.get("moving_first_shot_multiplier", 0.42)

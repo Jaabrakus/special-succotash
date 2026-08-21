@@ -5,6 +5,7 @@ const KeyboardProfile := preload("res://scripts/input/socom_keyboard_mapping_pro
 const OperatorAnimationDriver := preload("res://scripts/player/operator_animation_driver.gd")
 const PlayerController := preload("res://scripts/player/player_controller.gd")
 const MAX_HISTORY := 14
+const GRENADE_SWITCH_HOLD_THRESHOLD := 0.25
 
 var awaiting_action: StringName = &""
 var binding_buttons: Dictionary = {}
@@ -28,6 +29,10 @@ var animation_driver: Node3D
 var animation_player: AnimationPlayer
 var preview_fire_time := 0.0
 var last_locomotion_animation: StringName = &""
+var preview_grenade_equipped := false
+var preview_grenade_aiming := false
+var preview_grenade_switch_down := false
+var preview_grenade_switch_seconds := 0.0
 
 
 func _ready() -> void:
@@ -82,12 +87,20 @@ func _process(delta: float) -> void:
 	if preview_model == null or preview_player == null:
 		return
 	preview_fire_time = maxf(0.0, preview_fire_time - delta)
+	if preview_grenade_switch_down:
+		preview_grenade_switch_seconds += maxf(delta, 0.0)
 	_sync_animation_from_gameplay_player()
 	preview_camera.position = preview_player.position + Vector3(0.0, 1.18, 3.0)
 	preview_camera.look_at(preview_player.position + Vector3(0.0, 0.82, 0.0), Vector3.UP)
-	preview_state_label.text = "CURRENT GAMEPLAY STATE  •  %s" % String(
-		preview_player.call("get_motion_state_name")
-	)
+	var equipment_state := "RIFLE"
+	if preview_grenade_aiming:
+		equipment_state = "GRENADE AIM / COOK"
+	elif preview_grenade_equipped:
+		equipment_state = "GRENADE EQUIPPED"
+	preview_state_label.text = "CURRENT GAMEPLAY STATE  •  %s  •  %s" % [
+		String(preview_player.call("get_motion_state_name")),
+		equipment_state,
+	]
 
 
 func _build_interface() -> void:
@@ -232,13 +245,13 @@ func _build_playtest_keyboard(parent: VBoxContainer) -> void:
 		&"peek_left", &"move_forward", &"peek_right", &"reload_weapon",
 	], Color("35596d"))
 	_add_keycap_row(parent, [
-		&"move_left", &"move_back", &"move_right", &"throw_grenade",
+		&"move_left", &"move_back", &"move_right", &"equip_grenade",
 	], Color("35596d"))
 	_add_keycap_row(parent, [
 		&"dive", &"crouch", &"jump", &"fire",
 	], Color("53633e"))
 	_add_keycap_row(parent, [
-		&"cycle_grenade", &"reset_camera",
+		&"interact", &"reset_camera",
 	], Color("426a80"))
 
 
@@ -376,10 +389,10 @@ func _refresh_binding_buttons() -> void:
 
 func _save_mapping() -> void:
 	if KeyboardProfile.save_current_mapping():
-		status_label.text = "Saved. Camera + Playable Range will load these exact controls."
+		status_label.text = "Saved to your player profile. Playable game controls updated."
 		status_label.add_theme_color_override("font_color", Color("7ff29d"))
 	else:
-		status_label.text = "Could not save config/input/keyboard_mapping.json."
+		status_label.text = "Controls are active now, but the player profile could not be saved."
 		status_label.add_theme_color_override("font_color", Color("ff7575"))
 
 
@@ -393,6 +406,31 @@ func _record_matching_actions(event: InputEvent, pressed: bool) -> void:
 	for action: StringName in KeyboardProfile.ACTION_ORDER:
 		if InputMap.event_is_action(event, action, true):
 			var button_text := KeyboardProfile.event_label(event)
+			if action == &"equip_grenade":
+				if pressed:
+					preview_grenade_switch_down = true
+					preview_grenade_switch_seconds = 0.0
+					_append_history(button_text, action, "DOWN — TAP EQUIPS/CYCLES; HOLD RETURNS TO RIFLE")
+				else:
+					_preview_grenade_switch_released(button_text, action)
+				return
+			if action == &"fire" and preview_grenade_equipped:
+				if pressed:
+					preview_grenade_aiming = true
+					preview_status.text = "Hold Fire = aim/cook grenade • release = throw"
+					_append_history(button_text, action, "HELD — GRENADE AIM / COOK")
+				else:
+					preview_grenade_aiming = false
+					_play_animation_for_action(&"equip_grenade")
+					preview_status.text = "Grenade thrown • grenade loadout stays equipped"
+					_append_history(button_text, action, "RELEASED — THROW; GRENADE STILL EQUIPPED")
+				return
+			if action == &"jump" and pressed and preview_grenade_equipped:
+				preview_grenade_equipped = false
+				preview_grenade_aiming = false
+				preview_status.text = "Jump canceled grenade • rifle restored"
+				_append_history(button_text, action, "PRESSED — CANCEL GRENADE / JUMP")
+				return
 			if pressed:
 				_append_history(button_text, action, "PRESSED")
 				_preview_action(action)
@@ -401,6 +439,20 @@ func _record_matching_actions(event: InputEvent, pressed: bool) -> void:
 					preview_fire_time = 0.0
 				if action == &"crouch":
 					_append_history(button_text, action, "RELEASED — GAMEPLAY RESOLVES TAP / HOLD")
+
+
+func _preview_grenade_switch_released(button_text: String, action: StringName) -> void:
+	preview_grenade_switch_down = false
+	if preview_grenade_switch_seconds >= GRENADE_SWITCH_HOLD_THRESHOLD:
+		preview_grenade_equipped = false
+		preview_grenade_aiming = false
+		preview_status.text = "Grenades put away • rifle equipped"
+		_append_history(button_text, action, "HELD — RETURN TO RIFLE")
+	else:
+		preview_grenade_equipped = true
+		preview_status.text = "Grenade equipped • hold Fire to aim/cook, release to throw"
+		_append_history(button_text, action, "TAP — EQUIP / CYCLE GRENADE")
+	preview_grenade_switch_seconds = 0.0
 
 
 func _append_history(button_text: String, action: StringName, state: String) -> void:
@@ -425,7 +477,7 @@ func _preview_action(action: StringName) -> void:
 			preview_fire_time = 0.12
 			if animation_driver != null and animation_driver.has_method("notify_fired"):
 				animation_driver.call("notify_fired")
-		&"reload_weapon", &"throw_grenade":
+		&"reload_weapon", &"equip_grenade":
 			_play_animation_for_action(action)
 		&"reset_camera":
 			_reset_operator_preview()
@@ -433,6 +485,10 @@ func _preview_action(action: StringName) -> void:
 
 func _reset_operator_preview() -> void:
 	preview_fire_time = 0.0
+	preview_grenade_equipped = false
+	preview_grenade_aiming = false
+	preview_grenade_switch_down = false
+	preview_grenade_switch_seconds = 0.0
 	if preview_player != null:
 		preview_player.position = Vector3(0.0, 0.05, 0.0)
 		preview_player.rotation = Vector3.ZERO
@@ -519,7 +575,7 @@ func _play_animation_for_action(action: StringName) -> void:
 	if animation_driver != null and animation_driver.has_method("play_semantic_action"):
 		var semantic_action: StringName = {
 			&"reload_weapon": &"reload",
-			&"throw_grenade": &"grenade_quick",
+			&"equip_grenade": &"grenade_quick",
 		}.get(action, action)
 		if bool(animation_driver.call("play_semantic_action", semantic_action, 0.12)):
 			return
@@ -535,7 +591,7 @@ func _play_animation_for_action(action: StringName) -> void:
 		&"dive": ["dive"],
 		&"fire": ["fire", "shoot"],
 		&"reload_weapon": ["reload"],
-		&"throw_grenade": ["throw", "grenade"],
+		&"equip_grenade": ["throw", "grenade"],
 	}
 	for keyword: String in keywords.get(action, []):
 		for animation_name: StringName in animation_player.get_animation_list():

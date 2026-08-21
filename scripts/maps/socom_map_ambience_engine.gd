@@ -30,6 +30,10 @@ static func build_into(parent: Node, document: Dictionary) -> Node3D:
 	environment.reflected_light_source = Environment.REFLECTION_SOURCE_SKY
 	environment.tonemap_mode = Environment.TONE_MAPPER_ACES
 	environment.tonemap_exposure = float(data["exposure"])
+	environment.adjustment_enabled = true
+	environment.adjustment_brightness = 0.88
+	environment.adjustment_contrast = 1.03
+	environment.adjustment_saturation = 0.96
 	environment.fog_enabled = bool(data["fog_enabled"])
 	environment.fog_light_color = MapDocument.data_to_color(data["fog_color"])
 	environment.fog_light_energy = 0.7
@@ -44,6 +48,8 @@ static func build_into(parent: Node, document: Dictionary) -> Node3D:
 	sun.light_color = MapDocument.data_to_color(data["sun_color"])
 	sun.light_energy = float(data["sun_energy"])
 	sun.shadow_enabled = true
+	sun.shadow_bias = 0.035
+	sun.shadow_normal_bias = 1.1
 	sun.directional_shadow_max_distance = 90.0
 	sun.directional_shadow_blend_splits = true
 	sun.directional_shadow_fade_start = 0.82

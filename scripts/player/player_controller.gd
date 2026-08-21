@@ -5,12 +5,21 @@ const OperatorOrientationController := preload("res://scripts/player/operator_or
 const MovementCommand := preload("res://scripts/network/socom_movement_command.gd")
 
 @export var move_speed: float = 6.5
-@export var strafe_speed: float = 6.0
+@export var strafe_speed: float = 6.5
+@export var instant_strafe_response: bool = true
 @export var acceleration: float = 45.0
 @export var braking_acceleration: float = 60.0
 @export var reversal_acceleration: float = 90.0
 @export var turn_response: float = 12.0
 @export var gravity: float = 22.0
+@export_range(1.0, 1000.0, 1.0) var max_health: float = 100.0
+var current_health: float = 100.0
+
+@export_group("Competitive strafe")
+@export_range(1, 4, 1) var strafe_burst_frames: int = 2
+@export_range(1.0, 1.5, 0.01) var strafe_burst_multiplier: float = 1.18
+@export_range(0.0, 0.40, 0.01) var strafe_burst_decay_seconds: float = 0.12
+@export_range(0.20, 1.50, 0.05) var strafe_chain_window_seconds: float = 0.70
 
 @export_group("Locomotion orientation")
 @export_range(1.0, 30.0, 0.5) var idle_turn_response: float = 9.0
@@ -65,6 +74,58 @@ var stance_hold_threshold: float = 0.20
 var jump_was_held: bool = false
 var jump_requested: bool = false
 var peek_amount: float = 0.0
+var _strafe_burst_frames_remaining: int = 0
+var _strafe_burst_decay_remaining: float = 0.0
+var _last_lateral_input_sign: int = 0
+var _seconds_since_strafe_reversal: float = INF
+var _last_lateral_input_action: StringName = &""
+var _left_input_was_held: bool = false
+var _right_input_was_held: bool = false
+
+
+func _input(event: InputEvent) -> void:
+    if not local_input_enabled:
+        return
+    if event is InputEventKey and (event as InputEventKey).echo:
+        return
+    # Preserve the order of opposing lateral presses. Input.get_vector()
+    # normally cancels A + D to zero, but tactical movement expects the newest
+    # direction to take control while both buttons remain held.
+    if event.is_action_pressed(&"move_left"):
+        _last_lateral_input_action = &"move_left"
+    if event.is_action_pressed(&"move_right"):
+        _last_lateral_input_action = &"move_right"
+
+
+func configure_max_health(value: float, refill: bool = true) -> void:
+    var previous_max := maxf(max_health, 1.0)
+    var previous_ratio := clampf(current_health / previous_max, 0.0, 1.0)
+    max_health = clampf(value, 1.0, 1000.0)
+    current_health = max_health if refill else max_health * previous_ratio
+
+
+func set_current_health(value: float) -> void:
+    current_health = clampf(value, 0.0, max_health)
+
+
+func apply_damage(value: float) -> float:
+    var previous := current_health
+    set_current_health(current_health - maxf(value, 0.0))
+    return previous - current_health
+
+
+func take_explosion_damage(
+    damage: float,
+    _explosion_origin: Vector3,
+    _attacker_peer_id: int = 0
+) -> Dictionary:
+    var applied := apply_damage(damage)
+    return {
+        "accepted": applied > 0.0,
+        "damage": applied,
+        "remaining_health": current_health,
+        "eliminated": current_health <= 0.0,
+    }
 
 func _physics_process(delta: float) -> void:
     if replay_override_active:
@@ -153,20 +214,28 @@ func _physics_process(delta: float) -> void:
         was_on_floor = is_on_floor()
         return
 
-    var speed := _directional_movement_speed(input, _movement_speed())
+    var competitive_strafe_scale := _update_competitive_strafe(input, delta)
+    var speed := (
+        _directional_movement_speed(input, _movement_speed())
+        * competitive_strafe_scale
+    )
     var desired_velocity := desired_dir * speed
     # Accelerate as one horizontal vector. Advancing X and Z separately makes
     # diagonal response up to sqrt(2) times stronger than cardinal response.
     var horizontal_velocity := Vector2(velocity.x, velocity.z)
     var horizontal_target := Vector2(desired_velocity.x, desired_velocity.z)
-    var response_acceleration := _horizontal_response_acceleration(
-        horizontal_velocity,
-        horizontal_target
-    )
-    horizontal_velocity = horizontal_velocity.move_toward(
-        horizontal_target,
-        response_acceleration * delta
-    )
+    if instant_strafe_response and absf(input.x) > 0.001:
+        horizontal_response_mode = &"INSTANT_STRAFE"
+        horizontal_velocity = horizontal_target
+    else:
+        var response_acceleration := _horizontal_response_acceleration(
+            horizontal_velocity,
+            horizontal_target
+        )
+        horizontal_velocity = horizontal_velocity.move_toward(
+            horizontal_target,
+            response_acceleration * delta
+        )
     velocity.x = horizontal_velocity.x
     velocity.z = horizontal_velocity.y
 
@@ -212,6 +281,50 @@ func _directional_movement_speed(move_axis: Vector2, forward_speed: float) -> fl
     var lateral_weight := absf(move_axis.x) / maxf(move_axis.length(), 0.001)
     return lerpf(forward_speed, forward_speed * standing_ratio, lateral_weight)
 
+
+func _update_competitive_strafe(move_axis: Vector2, delta: float) -> float:
+    # Every simulation owns the same deterministic two-frame burst.
+    # Clients can submit only a bounded axis, so they cannot request a faster
+    # burst. Holding one direction always settles at the authored base speed.
+    _seconds_since_strafe_reversal += maxf(delta, 0.0)
+    var lateral_sign := int(signf(move_axis.x)) if absf(move_axis.x) > 0.05 else 0
+    if posture != MotionState.STANDING or lateral_sign == 0:
+        _strafe_burst_frames_remaining = 0
+        _strafe_burst_decay_remaining = 0.0
+        if _seconds_since_strafe_reversal > strafe_chain_window_seconds:
+            _last_lateral_input_sign = 0
+        return 1.0
+
+    var starting_strafe := _last_lateral_input_sign == 0
+    var reversing := (
+        _last_lateral_input_sign != 0
+        and lateral_sign != _last_lateral_input_sign
+    )
+    if starting_strafe:
+        _strafe_burst_frames_remaining = strafe_burst_frames
+        _strafe_burst_decay_remaining = strafe_burst_decay_seconds
+    elif reversing:
+        _seconds_since_strafe_reversal = 0.0
+        _strafe_burst_frames_remaining = strafe_burst_frames
+        _strafe_burst_decay_remaining = strafe_burst_decay_seconds
+    _last_lateral_input_sign = lateral_sign
+
+    if _strafe_burst_frames_remaining <= 0:
+        if _strafe_burst_decay_remaining <= 0.0:
+            return 1.0
+        _strafe_burst_decay_remaining = maxf(
+            0.0,
+            _strafe_burst_decay_remaining - maxf(delta, 0.0)
+        )
+        var decay_ratio := clampf(
+            _strafe_burst_decay_remaining / maxf(strafe_burst_decay_seconds, 0.001),
+            0.0,
+            1.0
+        )
+        return lerpf(1.0, strafe_burst_multiplier, smoothstep(0.0, 1.0, decay_ratio))
+    _strafe_burst_frames_remaining -= 1
+    return strafe_burst_multiplier
+
 func get_desired_movement_direction() -> Vector3:
     return desired_movement_direction
 
@@ -252,15 +365,49 @@ func _capture_local_movement_command():
         command.aim_yaw = float(rig.get("aim_yaw"))
     if not local_input_enabled:
         return command
-    command.move_axis = Input.get_vector(
+    var raw_move_axis := Input.get_vector(
         "move_left", "move_right", "move_forward", "move_back"
     )
+    command.move_axis = _resolve_opposing_lateral_input(raw_move_axis)
     command.jump_pressed = Input.is_action_just_pressed("jump")
     command.dive_pressed = Input.is_action_just_pressed("dive")
     command.crouch_held = Input.is_action_pressed("crouch")
     command.crouch_released = Input.is_action_just_released("crouch")
     command.peek_axis = Input.get_axis("peek_left", "peek_right")
     return command
+
+
+func _resolve_opposing_lateral_input(raw_move_axis: Vector2) -> Vector2:
+    var left_held := Input.is_action_pressed(&"move_left")
+    var right_held := Input.is_action_pressed(&"move_right")
+    var left_became_held := left_held and not _left_input_was_held
+    var right_became_held := right_held and not _right_input_was_held
+
+    # Input.action_press() does not emit an InputEvent. This fallback keeps
+    # automated tests and replay harnesses consistent with physical input.
+    if left_became_held != right_became_held:
+        _last_lateral_input_action = (
+            &"move_left" if left_became_held else &"move_right"
+        )
+    _left_input_was_held = left_held
+    _right_input_was_held = right_held
+
+    if left_held and right_held:
+        if _last_lateral_input_action == &"move_left":
+            raw_move_axis.x = -Input.get_action_strength(&"move_left")
+        else:
+            _last_lateral_input_action = &"move_right"
+            raw_move_axis.x = Input.get_action_strength(&"move_right")
+    elif left_held:
+        _last_lateral_input_action = &"move_left"
+        raw_move_axis.x = -Input.get_action_strength(&"move_left")
+    elif right_held:
+        _last_lateral_input_action = &"move_right"
+        raw_move_axis.x = Input.get_action_strength(&"move_right")
+    else:
+        _last_lateral_input_action = &""
+        raw_move_axis.x = 0.0
+    return raw_move_axis.limit_length(1.0)
 
 func _movement_speed() -> float:
     if posture == MotionState.PRONE:
@@ -278,6 +425,19 @@ func _horizontal_response_acceleration(current: Vector2, target: Vector2) -> flo
         if alignment < -0.20:
             horizontal_response_mode = &"REVERSING"
             return reversal_acceleration
+        if horizontal_response_mode == &"REVERSING":
+            # Keep the reversal response active after velocity crosses zero.
+            # Without this latch, the second half falls back to ordinary
+            # acceleration and makes a left-right duel feel soft and delayed.
+            var reached_new_direction := (
+                alignment >= 0.95
+                and current.length() >= target.length() * 0.95
+            )
+            if not reached_new_direction:
+                return reversal_acceleration
+    elif horizontal_response_mode == &"REVERSING":
+        # An exact zero is the midpoint of a reversal, not the end of it.
+        return reversal_acceleration
     horizontal_response_mode = &"ACCELERATING"
     return acceleration
 
