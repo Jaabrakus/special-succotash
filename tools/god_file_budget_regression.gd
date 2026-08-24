@@ -5,7 +5,10 @@ extends SceneTree
 const TEMPORARY_CEILINGS := {
 	"res://scripts/labs/gun_calibration_lab.gd": 6700,
 	"res://scripts/labs/map_creation_lab.gd": 2900,
-	"res://scripts/labs/animation_studio/animation_studio_pose_authoring.gd": 1100,
+	"res://scripts/labs/animation_studio/animation_studio_pose_input.gd": 500,
+	"res://scripts/labs/animation_studio/animation_studio_pose_strip.gd": 500,
+	"res://scripts/labs/animation_studio/animation_studio_pose_corrections.gd": 500,
+	"res://scripts/labs/animation_studio/animation_studio_pose_authoring.gd": 50,
 	"res://scripts/main.gd": 500,
 	"res://scripts/runtime/main_animation_studio.gd": 500,
 	"res://scripts/runtime/main_camera_debug_tools.gd": 500,

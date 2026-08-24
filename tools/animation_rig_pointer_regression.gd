@@ -267,9 +267,14 @@ func _drag_marker(
 			skeleton.global_transform
 			* skeleton.get_bone_global_pose(opposite_elbow_bone_index)
 		).origin
+		var opposite_arm_motion := opposite_elbow_during.distance_to(
+			opposite_elbow_before
+		)
 		_expect(
-			opposite_elbow_during.distance_to(opposite_elbow_before) < 0.001,
-			"%s leaves the opposite arm isolated during its drag" % marker_id
+			opposite_arm_motion < 0.001,
+			"%s leaves the opposite arm isolated during its drag (%.6f m)" % [
+				marker_id, opposite_arm_motion,
+			]
 		)
 	var release := InputEventMouseButton.new()
 	release.button_index = MOUSE_BUTTON_LEFT
@@ -289,13 +294,16 @@ func _drag_marker(
 			"%s visibly moves the operator elbow (%.6f m)" % [marker_id, elbow_motion]
 		)
 		if weapon:
+			var weapon_motion := weapon.global_position.distance_to(weapon_before)
 			_expect(
 				weapon.get_parent() == weapon_parent_before,
 				"%s preserves rifle ownership after release" % marker_id
 			)
 			_expect(
-				weapon.global_position.distance_to(weapon_before) < 0.02,
-				"%s does not visibly relocate the rifle" % marker_id
+				weapon_motion < 0.02,
+				"%s does not visibly relocate the rifle (%.6f m)" % [
+					marker_id, weapon_motion,
+				]
 			)
 
 

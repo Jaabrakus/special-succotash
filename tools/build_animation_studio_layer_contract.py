@@ -25,7 +25,11 @@ LAYER_ORDER = [
     MODULE_DIR / "animation_studio_workspace.gd",
     MODULE_DIR / "animation_studio_model.gd",
     MODULE_DIR / "animation_studio_pose_runtime.gd",
+    MODULE_DIR / "animation_studio_pose_input.gd",
+    MODULE_DIR / "animation_studio_pose_strip.gd",
+    MODULE_DIR / "animation_studio_pose_corrections.gd",
     MODULE_DIR / "animation_studio_pose_authoring.gd",
+    MODULE_DIR / "animation_studio_rig_authoring.gd",
     MODULE_DIR / "animation_studio_playback.gd",
     MODULE_DIR / "animation_studio_sequence.gd",
     MODULE_DIR / "animation_studio_weapon.gd",
@@ -34,6 +38,7 @@ LAYER_ORDER = [
     MODULE_DIR / "animation_studio_view_timeline.gd",
     MODULE_DIR / "animation_studio_view.gd",
     MODULE_DIR / "animation_studio_view_controls.gd",
+    MODULE_DIR / "animation_studio_casting.gd",
     MODULE_DIR / "animation_studio_routes.gd",
     ENTRY,
 ]
@@ -73,6 +78,11 @@ def main() -> None:
     state_text = STATE.read_text()
     if MARKER in state_text:
         state_text = state_text.split(MARKER, 1)[0].rstrip() + "\n"
+    # State owns a small set of intentional virtual hooks. Do not generate a
+    # second parsing stub for a method that already has a state declaration.
+    state_method_names = set(
+        re.findall(r"(?m)^func\s+([A-Za-z0-9_]+)\s*\(", state_text)
+    )
 
     methods: dict[str, str] = {}
     owners: dict[str, int] = {}
@@ -93,6 +103,8 @@ def main() -> None:
                 continue
             if re.search(rf"(?<![A-Za-z0-9_]){re.escape(name)}(?![A-Za-z0-9_])", source_without_declarations):
                 required_contract.add(name)
+
+    required_contract.difference_update(state_method_names)
 
     lines = [
         "",

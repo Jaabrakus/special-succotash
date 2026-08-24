@@ -586,11 +586,11 @@ func _assign_to_slot(slot_name: String) -> void:
 func _auto_map_all_slots() -> void:
     pass
 
+func _build_animation_casting_page(page: VBoxContainer) -> void:
+    pass
+
 func _build_assembly_animation(segments: Array[Dictionary]) -> Animation:
     return null
-
-func _build_animation_casting_page(_page: VBoxContainer) -> void:
-    pass
 
 func _clear_highlighted_clips() -> void:
     pass
@@ -637,9 +637,6 @@ func _load_authored_animation(entry: Dictionary) -> void:
 func _load_highlighted_shortlist() -> void:
     pass
 
-func _load_animation_casting_board() -> void:
-    pass
-
 func _on_animation_event_dropped_on_tree_state(event_name: String, slot_name: String) -> void:
     pass
 
@@ -652,13 +649,16 @@ func _on_clip_dropped_on_tree_state(entry: Dictionary, slot_name: String) -> voi
 func _on_graph_candidate_selected(entry: Dictionary) -> void:
     pass
 
-func _on_route_state_selected(slot_name: String) -> void:
-    pass
-
 func _on_route_event_selected(event_name: String) -> void:
     pass
 
+func _on_route_state_selected(slot_name: String) -> void:
+    pass
+
 func _on_search_changed(query: String) -> void:
+    pass
+
+func _on_state_workflow_primary_pressed() -> void:
     pass
 
 func _play_selected() -> void:
@@ -682,10 +682,13 @@ func _rebuild_limb_bubbles() -> void:
 func _rebuild_weapon_socket() -> void:
     pass
 
-func _refresh_assembly_cards() -> void:
+func _refresh_animation_casting_ui() -> void:
     pass
 
-func _refresh_animation_casting_ui() -> void:
+func _refresh_animation_correction_label() -> void:
+    pass
+
+func _refresh_assembly_cards() -> void:
     pass
 
 func _refresh_clip_list_ui() -> void:
@@ -694,13 +697,10 @@ func _refresh_clip_list_ui() -> void:
 func _refresh_event_routing_ui() -> void:
     pass
 
-func _refresh_state_workflow_cues() -> void:
-    pass
-
-func _on_state_workflow_primary_pressed() -> void:
-    pass
-
 func _refresh_frame_editor_labels() -> void:
+    pass
+
+func _refresh_pose_keyframe_label() -> void:
     pass
 
 func _refresh_runtime_state_tree() -> void:
@@ -709,7 +709,16 @@ func _refresh_runtime_state_tree() -> void:
 func _refresh_slot_suggestion() -> void:
     pass
 
+func _refresh_state_workflow_cues() -> void:
+    pass
+
 func _reset_camera() -> void:
+    pass
+
+func _reset_state_event_weapon_solver() -> void:
+    pass
+
+func _restore_raw_animation_frame() -> void:
     pass
 
 func _save_authored_segments(segments: Array[Dictionary], fallback_name: String, clear_assembly: bool) -> void:
@@ -718,10 +727,10 @@ func _save_authored_segments(segments: Array[Dictionary], fallback_name: String,
 func _save_highlighted_shortlist() -> void:
     pass
 
-func _select_animation_event(event_name: String) -> void:
+func _select_and_preview_animation_event(event_name: String) -> void:
     pass
 
-func _select_and_preview_animation_event(event_name: String) -> void:
+func _select_animation_event(event_name: String) -> void:
     pass
 
 func _select_relative(amount: int) -> void:
@@ -741,6 +750,9 @@ func _should_loop(clip_name: String) -> bool:
 
 func _skin_name(skin: SkinType) -> String:
     return ""
+
+func _toggle_animation_correction_overlay(enabled: bool) -> void:
+    pass
 
 func _toggle_gun_lab() -> void:
     pass

@@ -704,6 +704,35 @@ operator or making animation authoritative over movement, ballistics, or damage.
 Animation Studio pose authoring and the multiplayer slice remain explicit
 large-file refactor targets; this checkpoint does not close those gates.
 
+## Animation Studio pose-authoring refactor checkpoint — 2026-08-24
+
+- [x] The 1,027-line pose-authoring module is now a four-line compatibility
+  path. Pointer/joint input (`427` lines), pose-strip authoring (`128`), and
+  saved correction overlays (`475`) have separate ownership under the enforced
+  500-line ceiling.
+- [x] All 48 prior pose-authoring functions remain present exactly once. The
+  split does not change the Gunsmith profile schema, correction-key format, or
+  runtime animation route.
+- [x] The generated cross-layer contract now follows the complete real Studio
+  inheritance chain, including Rig & Hands, timeline, and Casting. It resolves
+  70 forward dependencies without duplicating the state's intentional hooks.
+- [x] The architecture regression now requires every module to parse and be
+  instantiable. It no longer reports a false pass when `load()` returns an
+  invalid Script resource.
+- [x] Project parse, Studio architecture, editor/runtime authoring parity,
+  pose-strip, correction-overlay, Rig & Hands UI, state preview, Gunsmith clip
+  catalog, operator-animation, player-composition, weapon-rig, and Studio
+  navigation regressions pass after extraction.
+- [ ] Direct left-elbow pointer isolation remains open. The focused regression
+  measures `1.49 cm` of opposite-arm motion and `11.47 cm` of rifle relocation
+  after the preceding support-hand edit. This is an existing visual-authoring
+  defect; the refactor preserves it rather than hiding it or weakening the test.
+
+The complete quick integration gate passes on `main` after the split. The
+separate god-file budget still reports concurrent map/environment work exceeding
+the temporary `socom_map_runtime.gd` ceiling by 22 lines. This checkpoint does
+not claim that unrelated debt or the broader architecture-freeze gate is complete.
+
 ## Weekly production scorecard
 
 Track only measurable outcomes:
