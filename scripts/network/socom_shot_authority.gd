@@ -2,6 +2,55 @@ class_name SocomShotAuthority
 extends RefCounted
 
 const AnatomicalHitResolver := preload("res://scripts/combat/socom_anatomical_hit_resolver.gd")
+const DEFAULT_MUZZLE_FORWARD_CLEARANCE_M := 0.18
+
+
+static func validate_muzzle_clearance(
+    space_state: PhysicsDirectSpaceState3D,
+    authoritative_report_anchor: Vector3,
+    authoritative_muzzle_origin: Vector3,
+    authoritative_shot_direction: Vector3,
+    exclude: Array[RID],
+    forward_clearance_m: float = DEFAULT_MUZZLE_FORWARD_CLEARANCE_M
+) -> Dictionary:
+    # This segment is built entirely from server-owned transforms and world
+    # collision. Client camera placement and client obstruction claims are not
+    # inputs, so a muzzle animated through nearby cover cannot shoot past it.
+    if space_state == null:
+        return {"accepted": false, "reason": "MUZZLE_CLEARANCE_WORLD_UNAVAILABLE"}
+    if (
+        not authoritative_report_anchor.is_finite()
+        or not authoritative_muzzle_origin.is_finite()
+        or not authoritative_shot_direction.is_finite()
+        or authoritative_shot_direction.length_squared() < 0.99
+    ):
+        return {"accepted": false, "reason": "MUZZLE_CLEARANCE_INVALID"}
+    var direction := authoritative_shot_direction.normalized()
+    var trace_end := (
+        authoritative_muzzle_origin
+        + direction * clampf(forward_clearance_m, 0.0, 0.5)
+    )
+    if authoritative_report_anchor.distance_squared_to(trace_end) < 0.000001:
+        return {"accepted": true}
+    var query := PhysicsRayQueryParameters3D.create(
+        authoritative_report_anchor,
+        trace_end
+    )
+    query.exclude = exclude
+    query.collide_with_areas = false
+    query.collide_with_bodies = true
+    query.hit_from_inside = true
+    var obstruction := space_state.intersect_ray(query)
+    if obstruction.is_empty():
+        return {"accepted": true}
+    return {
+        "accepted": false,
+        "reason": "MUZZLE_OBSTRUCTED",
+        "position": Vector3(obstruction.get("position", authoritative_muzzle_origin)),
+        "normal": Vector3(obstruction.get("normal", Vector3.ZERO)),
+        "collider": obstruction.get("collider"),
+        "collider_id": int(obstruction.get("collider_id", 0)),
+    }
 
 
 static func validate_and_trace(

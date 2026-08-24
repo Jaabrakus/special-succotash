@@ -284,6 +284,20 @@ func request_fire() -> Dictionary:
 	)
 	var seed: int = int(payload.sequence) * 73856093 ^ int(payload.simulation_tick) * 19349663
 	var exclude: Array[RID] = [player.get_rid()]
+	var muzzle_clearance := ShotAuthority.validate_muzzle_clearance(
+		player.get_world_3d().direct_space_state,
+		Vector3(payload.get("reported_muzzle_origin", muzzle)),
+		muzzle,
+		resolved_shot_direction,
+		exclude
+	)
+	if not bool(muzzle_clearance.get("accepted", false)):
+		ballistics.release_trigger()
+		return {
+			"fired": false,
+			"reason": muzzle_clearance.get("reason", "MUZZLE_OBSTRUCTED"),
+			"obstruction_position": muzzle_clearance.get("position", muzzle),
+		}
 	var next_shot_in_burst := int(ballistics.continuous_shot_count) + 1
 	var retained_instability := composure.get_shot_instability(
 		_movement_ratio,

@@ -87,6 +87,18 @@ func _server_process_shot(peer_id: int, packet: Dictionary) -> void:
 	var exclude: Array[RID] = [shooter.get_rid()]
 	if shooter.hurtbox_rig:
 		exclude.append_array(shooter.hurtbox_rig.get_hurtbox_rids())
+	var muzzle_clearance := ShotAuthority.validate_muzzle_clearance(
+		get_world_3d().direct_space_state,
+		authoritative_report_anchor,
+		muzzle,
+		authoritative_shot_direction,
+		exclude
+	)
+	if not bool(muzzle_clearance.get("accepted", false)):
+		last_rejected_shot_reason[peer_id] = String(
+			muzzle_clearance.get("reason", "MUZZLE_OBSTRUCTED")
+		)
+		return
 	var movement_ratio := clampf(
 		Vector2(shooter.velocity.x, shooter.velocity.z).length()
 		/ maxf(shooter.move_speed, 0.001),
