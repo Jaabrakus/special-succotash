@@ -443,10 +443,12 @@ rollback plan, launch communications, and signed release decision.
    mutable local ammunition is player-owned per weapon identity, while the
    multiplayer server remains authoritative per peer.
 5. Complete one Demolition map and its full round state machine.
-6. ~~Run an automated lobby-to-rematch match with multiple clients.~~ The first
-   separate-process ENet host/client lifecycle probe now completes a match,
-   returns both peers to the lobby, starts a rematch, and returns again. Full
-   advertised-lobby soak remains open.
+6. ~~Run an automated lobby-to-rematch match with multiple clients.~~ Real ENet
+   processes now complete repeated lobby, spawn, snapshot, match, teardown, and
+   rematch cycles with 2, 4, 8, and the advertised 16 peers. Four full visual
+   clients passed three cycles. The 16-peer host test uses lightweight network
+   bots so one workstation does not create 256 animation rigs. Long-duration,
+   reconnect, packet-loss, and simultaneous-fire soak remain open.
 7. Profile startup and a maximum-player firefight.
 8. Build training, settings, complete remapping, and failure messages.
 9. Perform the asset/license audit and replace unapproved content.
@@ -478,6 +480,11 @@ or replacement. A valid register is not the same as asset clearance.
   measured playable instantiation near 132 ms on the development machine.
 - [x] Mutable ammunition is player-owned and persists by weapon identity;
   weapon profiles supply capacity and initial-loadout defaults only.
+- [x] A 16-peer local ENet lifecycle test completes two match/rematch cycles.
+  On the development Mac, the warmed listen-server sample used 174.44 MB and
+  measured 15.685 ms mean / 20.915 ms p95 wall-frame intervals. This is a debug
+  engineering measurement, not a published hardware requirement or firefight
+  performance claim.
 
 This is a technical baseline, not a commercial-release claim. Legal clearance,
 external playtesting, multiplayer soak, production content, accessibility,

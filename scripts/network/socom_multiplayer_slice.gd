@@ -768,6 +768,11 @@ func _spawn_operator_local(peer_id: int, team: int, spawn_position: Vector3) -> 
 	if operators.has(peer_id):
 		return
 	var operator := NetworkOperatorScript.new() as SocomNetworkOperator
+	var lightweight_probe_client := (
+		not multiplayer.is_server()
+		and OS.get_cmdline_user_args().has("--network-probe-lite-client")
+	)
+	operator.visual_runtime_enabled = not lightweight_probe_client
 	operator.name = "NetworkOperator_%d" % peer_id
 	operator.position = spawn_position
 	operator.rotation.y = PI if team == 0 else 0.0
@@ -791,7 +796,8 @@ func _spawn_operator_local(peer_id: int, team: int, spawn_position: Vector3) -> 
 		operator.eliminated.connect(_on_operator_eliminated)
 	if is_local_owner:
 		local_operator = operator
-		_attach_local_camera(operator)
+		if operator.mannequin != null:
+			_attach_local_camera(operator)
 	_update_bomb_visual()
 	print("MP_SLICE OPERATOR_SPAWN peer=%d team=%d local=%s" % [peer_id, team, is_local_owner])
 	_refresh_scoreboard()
@@ -1477,7 +1483,11 @@ func _configured_fire_interval() -> float:
 
 
 func _request_local_reload() -> void:
-	if local_operator == null or local_reload_pending:
+	if (
+		local_operator == null
+		or local_operator.mannequin == null
+		or local_reload_pending
+	):
 		return
 	var driver: Node = local_operator.mannequin.get("production_animation") as Node
 	if driver == null:

@@ -265,6 +265,21 @@ func _run() -> void:
 		operator.hurtbox_rig != null and operator.hurtbox_rig.is_physics_processing(),
 		"the server keeps authoritative animated hurtboxes active"
 	)
+	var lightweight_operator = NetworkOperator.new()
+	lightweight_operator.name = "RegressionLightweightNetworkOperator"
+	lightweight_operator.visual_runtime_enabled = false
+	root.add_child(lightweight_operator)
+	await process_frame
+	_assert(
+		lightweight_operator.mannequin == null
+		and lightweight_operator.hurtbox_rig == null,
+		"network soak bots can skip client-only presentation without creating rigs"
+	)
+	_assert(
+		lightweight_operator.get_node_or_null("CollisionShape3D") != null,
+		"network soak bots retain movement and lifecycle collision"
+	)
+	lightweight_operator.queue_free()
 	var health_before: float = operator.current_health
 	var damage := operator.take_bullet_damage_region(
 		10.0,

@@ -25,10 +25,13 @@ var snapshot_history: Array[Dictionary] = []
 var interpolation_delay_seconds: float = 0.130
 var is_proxy_replica: bool = false
 var authoritative_hurtboxes_enabled: bool = true
+var visual_runtime_enabled: bool = true
 
 
 func _ready() -> void:
 	_ensure_movement_collider()
+	if not visual_runtime_enabled:
+		return
 	_ensure_operator_visual()
 	_build_nameplate()
 	call_deferred("_bind_animated_hurtboxes")
