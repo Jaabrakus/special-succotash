@@ -71,6 +71,7 @@ run_godot_check "manifest" "res://tools/integration_manifest_regression.gd" "INT
 run_godot_check "playtest-state-collection" "res://tools/playtest_state_collection_regression.gd" "PLAYTEST_STATE_COLLECTION_REGRESSION PASS"
 run_godot_check "studio-navigation" "res://tools/studio_navigation_regression.gd" "STUDIO_NAVIGATION_REGRESSION PASS"
 run_godot_check "animation-studio-architecture" "res://tools/animation_studio_architecture_regression.gd" "ANIMATION_STUDIO_ARCHITECTURE_REGRESSION PASS"
+run_godot_check "editor-animation-authoring" "res://tools/editor_animation_authoring_regression.gd" "EDITOR_ANIMATION_AUTHORING_REGRESSION PASS"
 run_godot_check "animation-workshop-repository" "res://tools/animation_workshop_repository_regression.gd" "ANIMATION_WORKSHOP_REPOSITORY_REGRESSION PASS"
 run_godot_check "animation-sequence-service" "res://tools/animation_sequence_service_regression.gd" "ANIMATION_SEQUENCE_SERVICE_REGRESSION PASS"
 run_godot_check "apple-mocap-pipeline" "res://tools/apple_mocap_pipeline_regression.gd" "APPLE_MOCAP_PIPELINE_REGRESSION PASS"

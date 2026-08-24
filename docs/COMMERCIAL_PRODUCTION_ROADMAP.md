@@ -122,6 +122,30 @@ second game editor inside the game. Animation-state authoring is the first
 migration target because duplicate preview/runtime animation ownership has
 caused the most severe regressions.
 
+### Godot-native authoring checkpoint — 2026-08-24
+
+- [x] The project enables a real Godot `EditorPlugin` and `EditorDock` named
+  **SOCOM Routes**, following Godot's documented editor-extension workflow.
+- [x] The dock reads `config/operator_animation_map.json` directly. It does not
+  create another profile, cache, pose store, or runtime animation graph.
+- [x] Event, posture, and weapon-family controls show the resolved state, clip,
+  body layer, presentation effects, and contextual return as a simple vertical
+  flow. The Gameplay Dictionary explains what presentation may and must not do.
+- [x] The dock uses the same normalized state contract and presentation router
+  as the playable operator. Every event across standing, crouched, and prone
+  contexts matches the runtime result in the parity regression.
+- [x] `FIRE_ACCEPTED` exposes `ENTER_READY_AIM` and `RAIL_TO_BLUE_LINE` without
+  gaining bullet, ammunition, aim, damage, or camera authority.
+- [x] Refresh and context selection preserve the animation-map SHA-256. This
+  first migration slice is read-only by design.
+- [x] The dock's Play button delegates to Godot's configured project main scene,
+  which remains `res://game_launcher.tscn` and launches canonical gameplay.
+
+The existing runtime Animation Studio remains available during migration. The
+next slice must add Godot undo/redo and a review-before-save transaction against
+the same profile. Do not remove the old route editor until both authoring paths
+produce identical saved data and the playable regression remains green.
+
 ## Gate two: character and animation quality
 
 ### Canonical rig

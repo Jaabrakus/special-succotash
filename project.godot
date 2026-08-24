@@ -28,12 +28,16 @@ AcousticPropagation="*res://scripts/audio/acoustic_propagation_engine.gd"
 
 window/size/viewport_width=1920
 window/size/viewport_height=1080
+window/size/mode=3
 window/size/window_width_override=1920
 window/size/window_height_override=1080
-window/size/mode=3
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 window/handheld/orientation=1
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/socom_authoring/plugin.cfg")
 
 [input_devices]
 
