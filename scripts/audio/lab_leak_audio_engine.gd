@@ -36,7 +36,7 @@ static func initialize(parent: Node) -> void:
 	for i in range(VOICE_COUNT):
 		var asp := AudioStreamPlayer.new()
 		asp.name = "PooledAudioVoice_%d" % i
-		asp.bus = "Master"
+		asp.bus = &"Effects" if AudioServer.get_bus_index(&"Effects") >= 0 else &"Master"
 		asp.volume_db = 0.0
 		parent.add_child(asp)
 		_audio_players.append(asp)
@@ -73,6 +73,7 @@ static func play_gunshot(
 		)
 		return
 	var player := _get_available_player(tree)
+	player.bus = &"Effects" if AudioServer.get_bus_index(&"Effects") >= 0 else &"Master"
 	player.stream = _silenced_gunshot_stream if is_silenced else _gunshot_stream
 	player.volume_db = 2.0
 	player.pitch_scale = randf_range(0.95, 1.05)
@@ -111,6 +112,7 @@ static func play_body_impact(
 		)
 		return
 	var player := _get_available_player(tree)
+	player.bus = &"Effects" if AudioServer.get_bus_index(&"Effects") >= 0 else &"Master"
 	player.stream = _helmet_impact_stream if is_headshot else _body_impact_thump_stream
 	player.volume_db = -2.0
 	player.pitch_scale = randf_range(0.95, 1.05)
@@ -118,6 +120,7 @@ static func play_body_impact(
 
 static func play_hit_confirm(tree: SceneTree, is_headshot: bool = false) -> void:
 	var player := _get_available_player(tree)
+	player.bus = &"UI" if AudioServer.get_bus_index(&"UI") >= 0 else &"Master"
 	player.stream = _headshot_confirm_stream if is_headshot else _hit_confirm_stream
 	player.volume_db = 1.0
 	player.pitch_scale = 1.0
@@ -125,6 +128,7 @@ static func play_hit_confirm(tree: SceneTree, is_headshot: bool = false) -> void
 
 static func play_casing_clink(tree: SceneTree) -> void:
 	var player := _get_available_player(tree)
+	player.bus = &"Effects" if AudioServer.get_bus_index(&"Effects") >= 0 else &"Master"
 	player.stream = _casing_stream
 	player.volume_db = -8.0
 	player.pitch_scale = randf_range(0.9, 1.1)

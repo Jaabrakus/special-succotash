@@ -17,10 +17,23 @@ func configure(radius: float) -> void:
 
 func _ready() -> void:
 	add_to_group("flashbang_blast_visuals")
+	add_to_group("presentation_quality_consumers")
 	_build_bright_burst()
 	_build_smoke_burst()
 	_build_radius_shell()
 	_build_flash_light()
+
+
+func apply_graphics_preset() -> void:
+	var presentation := get_node_or_null("/root/PresentationSettings")
+	if presentation == null:
+		return
+	if bright_particles != null:
+		bright_particles.amount = int(presentation.call("scaled_effect_count", 128, 36))
+	if smoke_particles != null:
+		smoke_particles.amount = int(presentation.call("scaled_effect_count", 180, 54))
+	if flash_light != null:
+		flash_light.visible = bool(presentation.call("effect_lights_enabled"))
 
 
 func _process(delta: float) -> void:
@@ -43,7 +56,12 @@ func _build_bright_burst() -> void:
 	bright_particles = GPUParticles3D.new()
 	bright_particles.name = "FlashFragmentBurst"
 	bright_particles.one_shot = true
-	bright_particles.amount = 128
+	var presentation := get_node_or_null("/root/PresentationSettings")
+	bright_particles.amount = (
+		int(presentation.call("scaled_effect_count", 128, 36))
+		if presentation != null
+		else 128
+	)
 	bright_particles.lifetime = 0.72
 	bright_particles.explosiveness = 1.0
 	bright_particles.randomness = 0.38
@@ -81,7 +99,12 @@ func _build_smoke_burst() -> void:
 	smoke_particles = GPUParticles3D.new()
 	smoke_particles.name = "FlashSmokeRadiusBurst"
 	smoke_particles.one_shot = true
-	smoke_particles.amount = 180
+	var presentation := get_node_or_null("/root/PresentationSettings")
+	smoke_particles.amount = (
+		int(presentation.call("scaled_effect_count", 180, 54))
+		if presentation != null
+		else 180
+	)
 	smoke_particles.lifetime = 1.10
 	smoke_particles.explosiveness = 0.96
 	smoke_particles.randomness = 0.56
@@ -167,4 +190,10 @@ func _build_flash_light() -> void:
 	flash_light.light_color = Color(1.0, 0.93, 0.78)
 	flash_light.light_energy = 12.0
 	flash_light.omni_range = minf(blast_radius, 24.0)
+	var presentation := get_node_or_null("/root/PresentationSettings")
+	flash_light.visible = (
+		bool(presentation.call("effect_lights_enabled"))
+		if presentation != null
+		else true
+	)
 	add_child(flash_light)

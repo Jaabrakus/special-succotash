@@ -23,9 +23,11 @@ func configure(document: Dictionary, listener_node: Node3D) -> void:
 	if active_player == null:
 		active_player = AudioStreamPlayer.new()
 		active_player.name = "MapAmbienceA"
+		active_player.bus = &"Ambience" if AudioServer.get_bus_index(&"Ambience") >= 0 else &"Master"
 		add_child(active_player)
 		standby_player = AudioStreamPlayer.new()
 		standby_player.name = "MapAmbienceB"
+		standby_player.bus = active_player.bus
 		add_child(standby_player)
 	set_process(listener != null and not zones.is_empty())
 

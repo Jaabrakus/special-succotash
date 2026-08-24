@@ -364,6 +364,33 @@ lighting, objective, networking, and accessibility reviews.
 Exit criterion: a full-lobby match remains readable, performant, stylistically
 consistent, and free of placeholder presentation in customer-facing paths.
 
+### Gate-six presentation-foundation checkpoint — 2026-08-24
+
+- [x] One persistent client-local contract now owns master, music, effects, and
+  voice volume; master mute; wide, balanced, and night dynamic range; output
+  device selection and fallback; graphics preset; UI scale; reduced flashes;
+  and camera-shake strength.
+- [x] Music, effects, voice, UI, ambience, and acoustic routes use distinct
+  buses. Flashbang ducking changes the effects route without overwriting the
+  saved master level.
+- [x] The acoustic runtime has a 24-voice total pool, a 14-event frame budget,
+  event-class limits, range culling, and priority-based replacement. Normal
+  operator foley uses this shared pool instead of allocating 20 fallback voices
+  for every operator.
+- [x] Low through ultra presets scale flash, smoke, fuse-spark, impact-spark,
+  and muzzle-light presentation. Presets do not change smoke radius, smoke
+  density state, hit detection, damage, or other gameplay truth.
+- [x] Player settings expose every new presentation control from both the
+  launcher and in-game controls panel. The focused regression checks 42 mix,
+  routing, budget, UI, quality-scaling, and accessibility conditions.
+
+This checkpoint does not close Gate Six. Runtime gunshots, impacts, footsteps,
+foley, and UI confirmations still include synthesized reference sounds rather
+than licensed production assets. Real-map indoor/outdoor review, hardware audio
+device hot-plug testing, a measured full-lobby mix, production materials and
+lighting, team-identification fairness, and supported-resolution/aspect-ratio
+HUD review remain open.
+
 ## Gate seven: user experience and accessibility
 
 - [ ] First launch, safe defaults, brightness, audio, display, input selection.

@@ -27,6 +27,7 @@ var profile_override: Dictionary = {}
 
 
 func _ready() -> void:
+	add_to_group("presentation_quality_consumers")
 	_apply_profile(
 		GrenadeProfile.normalize(profile_override)
 		if not profile_override.is_empty()
@@ -39,6 +40,16 @@ func _ready() -> void:
 	var manager := get_node_or_null("/root/TacticalOcclusionManager")
 	if manager != null:
 		manager.call("register_cloud", self)
+
+
+func apply_graphics_preset() -> void:
+	if _particles == null:
+		return
+	var presentation := get_node_or_null("/root/PresentationSettings")
+	if presentation != null:
+		_particles.amount = int(
+			presentation.call("scaled_effect_count", particle_amount, 56)
+		)
 
 
 func configure_profile(raw_profile: Dictionary) -> void:
@@ -93,7 +104,12 @@ func _process(delta: float) -> void:
 
 func _build_particles() -> void:
 	_particles = GPUParticles3D.new()
-	_particles.amount = particle_amount
+	var presentation := get_node_or_null("/root/PresentationSettings")
+	_particles.amount = (
+		int(presentation.call("scaled_effect_count", particle_amount, 56))
+		if presentation != null
+		else particle_amount
+	)
 	_particles.lifetime = particle_lifetime
 	_particles.randomness = 0.72
 	_particles.visibility_aabb = AABB(Vector3(-7, -2, -7), Vector3(14, 8, 14))

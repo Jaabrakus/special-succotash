@@ -83,7 +83,12 @@ static func initialize(parent: Node) -> void:
 	_spark_emitter.one_shot = true
 	_spark_emitter.explosiveness = 1.0
 	_spark_emitter.lifetime = 0.18
-	_spark_emitter.amount = 6
+	var presentation := tree_root_presentation(parent)
+	_spark_emitter.amount = (
+		int(presentation.call("scaled_effect_count", 6, 2))
+		if presentation != null
+		else 6
+	)
 	_spark_emitter.spread = 55.0
 	_spark_emitter.initial_velocity_min = 4.0
 	_spark_emitter.initial_velocity_max = 7.0
@@ -150,9 +155,20 @@ static func initialize(parent: Node) -> void:
 	_muzzle_flash_light.light_color = Color(1.0, 0.82, 0.35)
 	_muzzle_flash_light.light_energy = 0.0
 	_muzzle_flash_light.omni_range = 6.0
+	_muzzle_flash_light.visible = (
+		bool(presentation.call("effect_lights_enabled"))
+		if presentation != null
+		else true
+	)
 	parent.add_child(_muzzle_flash_light)
 
 	_is_initialized = true
+
+
+static func tree_root_presentation(parent: Node) -> Node:
+	if parent == null or parent.get_tree() == null:
+		return null
+	return parent.get_tree().root.get_node_or_null("PresentationSettings")
 
 static func spawn_muzzle_flash(tree: SceneTree, muzzle_pos: Vector3) -> void:
 	if not _is_initialized or not _muzzle_flash_light:

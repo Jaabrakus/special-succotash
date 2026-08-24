@@ -2,6 +2,7 @@ class_name SocomControlsGuide
 extends CanvasLayer
 
 const KeyboardProfile := preload("res://scripts/input/socom_keyboard_mapping_profile.gd")
+const PresentationSettingsPanel := preload("res://scripts/ui/socom_presentation_settings_panel.gd")
 
 var panel: PanelContainer
 var guide_text: RichTextLabel
@@ -9,8 +10,12 @@ var binding_scroll: ScrollContainer
 var binding_buttons: Dictionary = {}
 var binding_status: Label
 var edit_controls_button: Button
+var edit_presentation_button: Button
+var presentation_scroll: ScrollContainer
+var presentation_panel: SocomPresentationSettingsPanel
 var awaiting_action: StringName = &""
 var editing_controls := false
+var editing_presentation := false
 var save_changes_to_user_profile := true
 var previous_mouse_mode := Input.MOUSE_MODE_CAPTURED
 var show_hint_button := true
@@ -36,6 +41,7 @@ func set_guide_visible(enabled: bool) -> void:
 	else:
 		_cancel_rebind()
 		_set_editing_controls(false)
+		_set_editing_presentation(false)
 		Input.mouse_mode = previous_mouse_mode
 
 
@@ -116,6 +122,11 @@ func _build_interface() -> void:
 	edit_controls_button.text = "Change Gameplay Buttons"
 	edit_controls_button.pressed.connect(_toggle_editing_controls)
 	header.add_child(edit_controls_button)
+	edit_presentation_button = Button.new()
+	edit_presentation_button.name = "EditPresentationSettingsButton"
+	edit_presentation_button.text = "Audio and Visuals"
+	edit_presentation_button.pressed.connect(_toggle_editing_presentation)
+	header.add_child(edit_presentation_button)
 	var help := Label.new()
 	help.text = (
 		"Choose Change Gameplay Buttons to update and save your controls."
@@ -167,6 +178,13 @@ func _build_interface() -> void:
 	reset_button.text = "Reset Gameplay Controls to Defaults"
 	reset_button.pressed.connect(_reset_bindings)
 	binding_column.add_child(reset_button)
+	presentation_scroll = ScrollContainer.new()
+	presentation_scroll.name = "AudioVisualSettingsEditor"
+	presentation_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	presentation_scroll.visible = false
+	column.add_child(presentation_scroll)
+	presentation_panel = PresentationSettingsPanel.new() as SocomPresentationSettingsPanel
+	presentation_scroll.add_child(presentation_panel)
 	_refresh_binding_buttons()
 	_refresh_text()
 
@@ -175,18 +193,45 @@ func _toggle_editing_controls() -> void:
 	_set_editing_controls(not editing_controls)
 
 
+func _toggle_editing_presentation() -> void:
+	_set_editing_presentation(not editing_presentation)
+
+
 func _set_editing_controls(enabled: bool) -> void:
 	editing_controls = enabled
+	if enabled:
+		editing_presentation = false
+		if presentation_scroll != null:
+			presentation_scroll.visible = false
 	if guide_text != null:
 		guide_text.visible = not enabled
 	if binding_scroll != null:
 		binding_scroll.visible = enabled
 	if edit_controls_button != null:
 		edit_controls_button.text = "Back to Controls Guide" if enabled else "Change Gameplay Buttons"
+	if edit_presentation_button != null:
+		edit_presentation_button.visible = not enabled
 	if not enabled:
 		_cancel_rebind()
 	else:
 		_refresh_binding_buttons()
+
+
+func _set_editing_presentation(enabled: bool) -> void:
+	editing_presentation = enabled
+	if enabled:
+		editing_controls = false
+		_cancel_rebind()
+	if guide_text != null:
+		guide_text.visible = not enabled and not editing_controls
+	if binding_scroll != null:
+		binding_scroll.visible = editing_controls
+	if presentation_scroll != null:
+		presentation_scroll.visible = enabled
+	if edit_presentation_button != null:
+		edit_presentation_button.text = "Back to Controls Guide" if enabled else "Audio and Visuals"
+	if edit_controls_button != null:
+		edit_controls_button.visible = not enabled
 
 
 func _begin_rebind(action: StringName) -> void:

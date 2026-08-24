@@ -11,6 +11,16 @@ const Solver := preload("res://scripts/audio/acoustic_propagation_solver.gd")
 const MapDocument := preload("res://scripts/maps/socom_map_document.gd")
 const VOICE_COUNT := 24
 const MAX_EVENTS_PER_FRAME := 14
+const EVENT_VOICE_LIMITS := {
+	&"weapon": 10,
+	&"explosion": 5,
+	&"body_impact": 6,
+	&"world_impact": 6,
+	&"voice": 6,
+	&"footstep": 5,
+	&"foley": 4,
+	&"ambience": 2,
+}
 
 var profile: AcousticPropagationProfile
 var solver: AcousticPropagationSolver
@@ -21,10 +31,11 @@ var propagation_enabled := true
 var debug_routes_enabled := false
 var _players: Array[AudioStreamPlayer3D] = []
 var _voice_priorities: Dictionary = {}
+var _voice_event_classes: Dictionary = {}
 var _events_this_frame := 0
 var _statistics := {
 	"requested": 0, "played": 0, "culled_range": 0, "culled_budget": 0,
-	"direct": 0, "portal": 0, "blocked": 0,
+	"culled_class_budget": 0, "direct": 0, "portal": 0, "blocked": 0,
 }
 
 
@@ -44,6 +55,7 @@ func _ready() -> void:
 		add_child(player)
 		_players.append(player)
 		_voice_priorities[player.get_instance_id()] = 0
+		_voice_event_classes[player.get_instance_id()] = &""
 
 
 func _process(_delta: float) -> void:
@@ -301,6 +313,21 @@ func statistics() -> Dictionary:
 	return _statistics.duplicate(true)
 
 
+func voice_budget_snapshot() -> Dictionary:
+	var active: Dictionary = {}
+	for player: AudioStreamPlayer3D in _players:
+		if not player.playing:
+			continue
+		var event_class := StringName(_voice_event_classes.get(player.get_instance_id(), &""))
+		active[event_class] = int(active.get(event_class, 0)) + 1
+	return {
+		"total_limit": VOICE_COUNT,
+		"frame_event_limit": MAX_EVENTS_PER_FRAME,
+		"class_limits": EVENT_VOICE_LIMITS.duplicate(true),
+		"active": active,
+	}
+
+
 func reset_statistics() -> void:
 	for key: Variant in _statistics:
 		_statistics[key] = 0
@@ -319,10 +346,12 @@ func _play_route(stream: AudioStream, route: Dictionary) -> void:
 	if stream == null or _players.is_empty() or not is_inside_tree():
 		return
 	var priority := int(route.get("priority", 25))
-	var player := _claim_player(priority)
+	var event_class := StringName(route.get("event_class", &"foley"))
+	var player := _claim_player(priority, event_class)
 	if player == null:
 		_statistics.culled_budget = int(_statistics.culled_budget) + 1
 		return
+	_voice_event_classes[player.get_instance_id()] = event_class
 	player.stream = stream
 	player.global_position = route.get("emission_position", global_position)
 	player.volume_db = clampf(float(route.get("volume_db", 0.0)), -48.0, 8.0)
@@ -342,7 +371,26 @@ func _play_route(stream: AudioStream, route: Dictionary) -> void:
 	_statistics.played = int(_statistics.played) + 1
 
 
-func _claim_player(priority: int) -> AudioStreamPlayer3D:
+func _claim_player(priority: int, event_class: StringName) -> AudioStreamPlayer3D:
+	var class_limit := int(EVENT_VOICE_LIMITS.get(event_class, 4))
+	var active_in_class := 0
+	var lowest_in_class: AudioStreamPlayer3D
+	var lowest_class_priority := 1000000
+	for player: AudioStreamPlayer3D in _players:
+		if not player.playing or StringName(_voice_event_classes.get(player.get_instance_id(), &"")) != event_class:
+			continue
+		active_in_class += 1
+		var voice_priority := int(_voice_priorities.get(player.get_instance_id(), 0))
+		if voice_priority < lowest_class_priority:
+			lowest_in_class = player
+			lowest_class_priority = voice_priority
+	if active_in_class >= class_limit:
+		_statistics.culled_class_budget = int(_statistics.culled_class_budget) + 1
+		if lowest_in_class == null or priority < lowest_class_priority:
+			return null
+		lowest_in_class.stop()
+		_voice_priorities[lowest_in_class.get_instance_id()] = priority
+		return lowest_in_class
 	for player: AudioStreamPlayer3D in _players:
 		if not player.playing:
 			_voice_priorities[player.get_instance_id()] = priority
@@ -459,7 +507,10 @@ func _ensure_bus(bus_name: StringName, cutoff_hz: float, add_reverb: bool) -> vo
 		AudioServer.add_bus()
 		index = AudioServer.bus_count - 1
 		AudioServer.set_bus_name(index, bus_name)
-		AudioServer.set_bus_send(index, &"Master")
+	AudioServer.set_bus_send(
+		index,
+		&"Effects" if AudioServer.get_bus_index(&"Effects") >= 0 else &"Master"
+	)
 	if AudioServer.get_bus_effect_count(index) == 0:
 		AudioServer.add_bus_effect(index, AudioEffectLowPassFilter.new())
 	var lowpass := AudioServer.get_bus_effect(index, 0) as AudioEffectLowPassFilter

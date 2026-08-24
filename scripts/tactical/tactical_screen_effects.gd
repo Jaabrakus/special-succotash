@@ -16,7 +16,8 @@ var shake_strength := 0.0
 var _flash_rect: ColorRect
 var _smoke_rect: ColorRect
 var _foley: Node
-var _master_bus_original_db := 0.0
+var _presentation_settings: Node
+var _effects_bus_original_db := 0.0
 var _base_h_offset := 0.0
 var _base_v_offset := 0.0
 
@@ -29,7 +30,9 @@ func _ready() -> void:
 	_smoke_rect = _make_overlay(Color(0.40, 0.43, 0.40, 1.0))
 	_foley = FoleyEngine.new()
 	add_child(_foley)
-	_master_bus_original_db = AudioServer.get_bus_volume_db(0)
+	_presentation_settings = get_node_or_null("/root/PresentationSettings")
+	var effects_bus := AudioServer.get_bus_index(&"Effects")
+	_effects_bus_original_db = AudioServer.get_bus_volume_db(effects_bus) if effects_bus >= 0 else 0.0
 
 
 func bind_camera(target: Camera3D) -> void:
@@ -40,7 +43,12 @@ func bind_camera(target: Camera3D) -> void:
 
 
 func _exit_tree() -> void:
-	AudioServer.set_bus_volume_db(0, _master_bus_original_db)
+	if _presentation_settings != null:
+		_presentation_settings.call("set_effects_duck_db", 0.0)
+	else:
+		var effects_bus := AudioServer.get_bus_index(&"Effects")
+		if effects_bus >= 0:
+			AudioServer.set_bus_volume_db(effects_bus, _effects_bus_original_db)
 	if camera != null:
 		camera.h_offset = _base_h_offset
 		camera.v_offset = _base_v_offset
@@ -54,11 +62,23 @@ func _process(delta: float) -> void:
 		smoke_strength = move_toward(smoke_strength, target_density, delta * 3.5)
 	_update_flash_material()
 	_smoke_rect.color.a = smoke_strength * 0.86
-	AudioServer.set_bus_volume_db(0, _master_bus_original_db - flash_strength * 12.0)
+	if _presentation_settings != null:
+		_presentation_settings.call("set_effects_duck_db", -flash_strength * 12.0)
+	else:
+		var effects_bus := AudioServer.get_bus_index(&"Effects")
+		if effects_bus >= 0:
+			AudioServer.set_bus_volume_db(
+				effects_bus, _effects_bus_original_db - flash_strength * 12.0
+			)
 	if camera != null:
 		shake_strength = move_toward(shake_strength, 0.0, delta * 2.8)
-		camera.h_offset = _base_h_offset + randf_range(-0.025, 0.025) * shake_strength
-		camera.v_offset = _base_v_offset + randf_range(-0.018, 0.018) * shake_strength
+		var shake_scale := (
+			float(_presentation_settings.call("camera_shake_scale"))
+			if _presentation_settings != null
+			else 1.0
+		)
+		camera.h_offset = _base_h_offset + randf_range(-0.025, 0.025) * shake_strength * shake_scale
+		camera.v_offset = _base_v_offset + randf_range(-0.018, 0.018) * shake_strength * shake_scale
 
 
 func apply_flash_from_world(
@@ -84,8 +104,15 @@ func apply_flash_from_world(
 		# is opaque white. Exposure controls the hold/recovery time, not initial
 		# transparency, so a medium-distance flash cannot be seen through.
 		flash_duration_weight = maxf(flash_duration_weight, duration_weight)
-		flash_peak_strength = 1.0
-		flash_strength = 1.0
+		var reduced_flashes := (
+			bool(_presentation_settings.call("reduced_flashes_enabled"))
+			if _presentation_settings != null
+			else false
+		)
+		# Reduced flashes preserve the full impairment timing and audio cue. They
+		# replace the opaque white peak with a lower-luminance veil only.
+		flash_peak_strength = 0.62 if reduced_flashes else 1.0
+		flash_strength = flash_peak_strength
 		flash_hold_remaining = maxf(
 			flash_hold_remaining,
 			lerpf(0.10, 0.78, duration_weight)

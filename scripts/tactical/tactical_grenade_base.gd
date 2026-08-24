@@ -26,6 +26,7 @@ var active_profile: Dictionary = {}
 
 
 func _ready() -> void:
+	add_to_group("presentation_quality_consumers")
 	active_profile = (
 		GrenadeProfile.normalize(profile_override)
 		if not profile_override.is_empty()
@@ -47,6 +48,14 @@ func _ready() -> void:
 	_build_fuse_sparks()
 	if arm_on_ready:
 		arm()
+
+
+func apply_graphics_preset() -> void:
+	if _sparks == null:
+		return
+	var presentation := get_node_or_null("/root/PresentationSettings")
+	if presentation != null:
+		_sparks.amount = int(presentation.call("scaled_effect_count", 18, 6))
 
 
 func configure_profile(raw_profile: Dictionary) -> void:
@@ -148,7 +157,12 @@ func _build_default_body() -> void:
 
 func _build_fuse_sparks() -> void:
 	_sparks = GPUParticles3D.new()
-	_sparks.amount = 18
+	var presentation := get_node_or_null("/root/PresentationSettings")
+	_sparks.amount = (
+		int(presentation.call("scaled_effect_count", 18, 6))
+		if presentation != null
+		else 18
+	)
 	_sparks.lifetime = 0.35
 	_sparks.visibility_aabb = AABB(Vector3(-1, -1, -1), Vector3(2, 2, 2))
 	var process := ParticleProcessMaterial.new()

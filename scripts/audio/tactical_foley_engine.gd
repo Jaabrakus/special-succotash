@@ -15,13 +15,17 @@ func _ready() -> void:
 	surface_resolver = SurfaceResolver.new()
 	surface_resolver.name = "SurfaceAudioResolver"
 	add_child(surface_resolver)
-	for index in POOL_SIZE:
-		var player := AudioStreamPlayer3D.new()
-		player.name = "FoleyVoice%02d" % index
-		player.max_distance = 24.0
-		player.attenuation_model = AudioStreamPlayer3D.ATTENUATION_INVERSE_DISTANCE
-		add_child(player)
-		_players.append(player)
+	# The shared propagation engine owns the production voice pool. Only build a
+	# local fallback pool in isolated previews that do not have the autoload.
+	if get_node_or_null("/root/AcousticPropagation") == null:
+		for index in POOL_SIZE:
+			var player := AudioStreamPlayer3D.new()
+			player.name = "FoleyVoice%02d" % index
+			player.max_distance = 24.0
+			player.attenuation_model = AudioStreamPlayer3D.ATTENUATION_INVERSE_DISTANCE
+			player.bus = &"Effects" if AudioServer.get_bus_index(&"Effects") >= 0 else &"Master"
+			add_child(player)
+			_players.append(player)
 	_build_streams()
 
 
