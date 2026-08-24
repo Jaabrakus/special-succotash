@@ -17,6 +17,11 @@ func _run() -> void:
 	root.add_child(lab)
 	for _frame in 8:
 		await process_frame
+	# The Lab correctly loads a player's user:// overrides on startup. Reset the
+	# in-memory map after startup so this default-contract regression stays
+	# deterministic without deleting or overwriting the player's saved controls.
+	KeyboardProfile.reset_to_defaults()
+	lab.call("_refresh_binding_buttons")
 
 	var mapping_buttons := lab.get("binding_buttons") as Dictionary
 	_expect(
@@ -167,7 +172,7 @@ func _run() -> void:
 			"KeyboardMappingProfile.apply_project_mapping()"
 		)
 		and _file_contains(
-			"res://scripts/network/socom_multiplayer_slice.gd",
+			"res://scripts/network/socom_multiplayer_world_ui.gd",
 			"KeyboardMappingProfile.apply_project_mapping()"
 		),
 		"solo and multiplayer gameplay load the exact same saved mapping profile"

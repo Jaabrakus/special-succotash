@@ -655,8 +655,9 @@ reordering. Those remain commercial operations and adverse-network gates.
 - [x] The complete quick integration gate passes after the refactor, including
   weapon rigs, dynamic hand ownership, reload handoff, mobility, and multiplayer.
 - [x] The god-file budget gate no longer reports any weapon-pose component. The
-  operator animation driver has since been extracted too; Animation Studio pose
-  authoring and the multiplayer slice remain explicit large-file debt.
+  operator animation driver, Animation Studio pose authoring, and multiplayer
+  authority controller have since been extracted too. Gun calibration and map
+  creation remain explicit large-file debt.
 - [x] Prone Ready Aim now applies its calculated clearance to the right-hand IK
   path. The focused regression measures `9.95 cm` muzzle clearance and `9.88 cm`
   minimum hand/forearm clearance while keeping the rendered barrel within
@@ -702,7 +703,8 @@ platform packaging, and operations remain open gates.
 
 This removes a major ownership bottleneck without changing the canonical PS1
 operator or making animation authoritative over movement, ballistics, or damage.
-Animation Studio pose authoring and the multiplayer slice remain explicit
+Animation Studio pose authoring and the multiplayer authority controller have
+since been extracted. Gun calibration and map creation remain explicit
 large-file refactor targets; this checkpoint does not close those gates.
 
 ## Animation Studio pose-authoring refactor checkpoint — 2026-08-24
@@ -729,10 +731,39 @@ large-file refactor targets; this checkpoint does not close those gates.
   after the preceding support-hand edit. This is an existing visual-authoring
   defect; the refactor preserves it rather than hiding it or weakening the test.
 
-The complete quick integration gate passes on `main` after the split. The
-separate god-file budget still reports concurrent map/environment work exceeding
-the temporary `socom_map_runtime.gd` ceiling by 22 lines. This checkpoint does
-not claim that unrelated debt or the broader architecture-freeze gate is complete.
+The complete quick integration gate and god-file budget pass on `main` after
+the split. This checkpoint does not claim that the separate map branch or the
+broader architecture-freeze gate is complete.
+
+## Multiplayer authority refactor checkpoint — 2026-08-24
+
+- [x] The former `2,142`-line multiplayer controller is now a `109`-line
+  concrete RPC boundary. State (`292` lines), session/lobby (`430`), movement
+  replication (`475`), combat (`257`), round lifecycle (`302`), demolition
+  objectives (`227`), and world/UI integration (`309`) have separate owners.
+- [x] Every authority layer is below the enforced `500`-line ceiling. The
+  concrete RPC boundary remains below its `300`-line ceiling.
+- [x] The generated cross-layer contract resolves `46` inherited dependencies.
+  All `118` original authority methods remain implemented exactly once.
+- [x] Godot runtime metadata registers exactly the original `22` RPC methods on
+  `SocomMultiplayerSlice`, including their concrete authority and transfer-mode
+  annotations. The public scene and class name remain unchanged.
+- [x] Source-owner regressions now inspect acoustic replication and shared input
+  setup in their new round and world/UI owners instead of the removed monolith.
+- [x] A real four-peer ENet probe completed two demolition cycles with three
+  combat shots per client and controlled damage. The final sample measured
+  `16.385 ms` mean frame time, `20.536 ms` p95, and `109.58 MB` host memory.
+- [x] A separate four-peer, two-cycle probe disconnected one client during the
+  live round, restored it as a safe spectator, and admitted it to the next full
+  round. The final sample measured `14.087 ms` mean frame time and `21.160 ms`
+  p95.
+- [x] Project parse, multiplayer architecture, demolition/authority behavior,
+  acoustic propagation, file budgets, controlled-hit lifecycle, reconnect, and
+  the complete quick integration gate pass after extraction.
+
+This proves the local authority split and four-peer lifecycle path. It does not
+replace the existing maximum-lobby soak evidence, adverse-network testing,
+dedicated-server operations, security review, or external closed-alpha proof.
 
 ## Weekly production scorecard
 
