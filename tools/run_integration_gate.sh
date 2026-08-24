@@ -82,6 +82,7 @@ run_godot_check "pose-ownership-contract" "res://tools/pose_ownership_contract_r
 run_godot_check "gun-lab" "res://tools/gun_lab_animation_catalog_regression.gd" "GUN_LAB_ANIMATION_CATALOG_REGRESSION PASS"
 run_godot_check "weapon-rig-integration" "res://tools/weapon_rig_integration_regression.gd" "WEAPON_RIG_INTEGRATION_REGRESSION PASS"
 run_godot_check "weapon-equipment-event" "res://tools/weapon_equipment_event_regression.gd" "WEAPON_EQUIPMENT_EVENT_REGRESSION PASS"
+run_godot_check "player-ammunition-ownership" "res://tools/player_health_weapon_ammo_regression.gd" "PLAYER_HEALTH_WEAPON_AMMO_REGRESSION PASS"
 run_godot_check "dynamic-hand-ownership" "res://tools/test_dynamic_hand_owned_weapon.gd" "DYNAMIC_HAND_OWNERSHIP_REGRESSION PASS"
 run_godot_check "dynamic-reload-handoff" "res://tools/test_dynamic_reload_handoff.gd" "DYNAMIC_RELOAD_HANDOFF_REGRESSION PASS"
 run_godot_check "prone-grounding" "res://tools/prone_grounding_regression.gd" "PRONE_GROUNDING_REGRESSION PASS"

@@ -4,6 +4,7 @@ const MAIN_SCENE := preload("res://main.tscn")
 const GUNSMITH_SCENE := preload("res://gun_calibration_lab.tscn")
 const WeaponContract := preload("res://scripts/weapons/weapon_rig_contract.gd")
 const PlayerProfile := preload("res://scripts/player/player_gameplay_profile.gd")
+const PlayerAmmunitionInventory := preload("res://scripts/player/player_ammunition_inventory.gd")
 
 var failures: Array[String] = []
 
@@ -26,6 +27,19 @@ func _run() -> void:
 	_expect(int(weapon_values.get("reserve_ammo", 0)) == 51, "weapon contract keeps reserve rounds")
 	_expect(is_equal_approx(float(weapon_values.get("headshot_multiplier", 0.0)), 2.25), "weapon contract keeps the per-gun headshot multiplier")
 	_expect(is_equal_approx(float(weapon_values.get("crouch_bloom_per_shot_deg", 0.0)), 1.75), "weapon contract keeps per-gun crouch bloom")
+	var isolated_inventory := PlayerAmmunitionInventory.new()
+	root.add_child(isolated_inventory)
+	isolated_inventory.ensure_weapon(&"rifle", 30, 30, 90)
+	isolated_inventory.consume_round(&"rifle")
+	isolated_inventory.ensure_weapon(&"pistol", 15, 15, 45)
+	isolated_inventory.consume_round(&"pistol")
+	isolated_inventory.ensure_weapon(&"rifle", 30, 30, 90)
+	var retained_rifle := isolated_inventory.snapshot(&"rifle")
+	_expect(
+		int(retained_rifle.get("rounds_in_magazine", -1)) == 29,
+		"switching weapons preserves the player's rounds for each weapon identity"
+	)
+	isolated_inventory.queue_free()
 
 	var normalized_player := PlayerProfile.normalize({"max_health": 175.0})
 	_expect(is_equal_approx(float(normalized_player.get("max_health", 0.0)), 175.0), "player health is independent of weapon data")
@@ -46,6 +60,10 @@ func _run() -> void:
 	var player = main.get("player")
 	var weapon = main.get("weapon_controller")
 	_expect(player != null and float(player.get("max_health")) >= 1.0, "playtest applies saved player health")
+	_expect(
+		player != null and player.get_node_or_null("AmmunitionInventory") != null,
+		"player owns mutable magazine and reserve ammunition"
+	)
 	_expect(main.find_child("PlayerStatusHUD", true, false) != null, "playtest displays health and ammunition")
 	var status_readout := main.find_child("PlayerHealthAmmoReadout", true, false) as Label
 	var equipped_snapshot: Dictionary = weapon.get_ammo_snapshot() if weapon != null else {}
@@ -75,6 +93,7 @@ func _run() -> void:
 			"playtest loads the equipped gun's headshot multiplier"
 		)
 		weapon.magazine_capacity = 3
+		weapon.ammunition_inventory.ensure_weapon(weapon.equipped_weapon_id, 3, 3, 0)
 		weapon.rounds_in_magazine = 1
 		weapon.reserve_rounds = 2
 		weapon.ballistics.fire_cooldown = 0.0

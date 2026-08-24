@@ -10,6 +10,7 @@ const Ballistics := preload("res://scripts/weapons/weapon_ballistics.gd")
 const ShotAuthority := preload("res://scripts/network/socom_shot_authority.gd")
 const WeaponContract := preload("res://scripts/weapons/weapon_rig_contract.gd")
 const Composure := preload("res://scripts/weapons/operator_composure.gd")
+const PlayerAmmunitionInventory := preload("res://scripts/player/player_ammunition_inventory.gd")
 
 signal authoritative_shot(result: Dictionary)
 signal ammo_changed(rounds_in_magazine: int, reserve_rounds: int)
@@ -25,8 +26,34 @@ var last_result: Dictionary = {}
 var composure = Composure.new()
 var composure_profile: Dictionary = {}
 var magazine_capacity: int = 30
-var rounds_in_magazine: int = 30
-var reserve_rounds: int = 90
+var ammunition_inventory: SocomPlayerAmmunitionInventory
+var _fallback_rounds_in_magazine: int = 30
+var _fallback_reserve_rounds: int = 90
+var _starting_reserve_rounds: int = 90
+var rounds_in_magazine: int:
+	get:
+		var state := _ammo_state()
+		return int(state.get("rounds_in_magazine", _fallback_rounds_in_magazine))
+	set(value):
+		_fallback_rounds_in_magazine = clampi(value, 0, magazine_capacity)
+		if ammunition_inventory != null:
+			ammunition_inventory.set_ammo(
+				equipped_weapon_id,
+				_fallback_rounds_in_magazine,
+				reserve_rounds
+			)
+var reserve_rounds: int:
+	get:
+		var state := _ammo_state()
+		return int(state.get("reserve_ammo", _fallback_reserve_rounds))
+	set(value):
+		_fallback_reserve_rounds = clampi(value, 0, 9999)
+		if ammunition_inventory != null:
+			ammunition_inventory.set_ammo(
+				equipped_weapon_id,
+				rounds_in_magazine,
+				_fallback_reserve_rounds
+			)
 var equipped_weapon_id: StringName = &"rifle"
 var equipped_weapon_display_name: String = "Rifle"
 var equipped_weapon_config: Dictionary = {}
@@ -48,11 +75,17 @@ func configure(target_player: CharacterBody3D, target_camera) -> void:
 	player = target_player
 	camera_rig = target_camera
 	mannequin = player.get_node_or_null("Mannequin") if player != null else null
+	_bind_player_ammunition_inventory()
 	ballistics = Ballistics.new()
 	ballistics.name = "WeaponBallistics"
 	add_child(ballistics)
 	_apply_equipped_ballistics()
-	rounds_in_magazine = magazine_capacity
+	ammunition_inventory.ensure_weapon(
+		equipped_weapon_id,
+		magazine_capacity,
+		magazine_capacity,
+		_starting_reserve_rounds
+	)
 	ammo_changed.emit(rounds_in_magazine, reserve_rounds)
 	_last_camera_yaw = float(camera_rig.yaw) if camera_rig != null else 0.0
 
@@ -110,7 +143,13 @@ func _apply_weapon_config(config: Dictionary) -> bool:
 	ballistics.crouch_max_recoil_bloom_deg = float(values.get("crouch_max_recoil_bloom_deg", ballistics.crouch_max_recoil_bloom_deg))
 	ballistics.crouch_bloom_recovery_speed = float(values.get("crouch_bloom_recovery_speed", ballistics.crouch_bloom_recovery_speed))
 	magazine_capacity = clampi(int(values.get("magazine_capacity", magazine_capacity)), 1, 200)
-	reserve_rounds = clampi(int(values.get("reserve_ammo", reserve_rounds)), 0, 999)
+	# This value seeds the player's loadout the first time this weapon is owned.
+	# Mutable reserve ammunition lives in PlayerAmmunitionInventory.
+	_starting_reserve_rounds = clampi(
+		int(values.get("starting_reserve_ammo", values.get("reserve_ammo", _starting_reserve_rounds))),
+		0,
+		9999
+	)
 	ballistics.fire_interval = 60.0 / maxf(60.0, ballistics.fire_rate_rpm)
 	return true
 
@@ -133,7 +172,12 @@ func apply_authorized_weapon_pickup(config_path: String) -> bool:
 		return false
 	if not _apply_weapon_config(config):
 		return false
-	rounds_in_magazine = magazine_capacity
+	ammunition_inventory.ensure_weapon(
+		equipped_weapon_id,
+		magazine_capacity,
+		magazine_capacity,
+		_starting_reserve_rounds
+	)
 	ammo_changed.emit(rounds_in_magazine, reserve_rounds)
 	var handling: Dictionary = config.get("handling_profile", {})
 	weapon_equipped.emit({
@@ -262,7 +306,8 @@ func request_fire() -> Dictionary:
 	)
 	if not bool(result.get("fired", false)):
 		return result
-	rounds_in_magazine = maxi(0, rounds_in_magazine - 1)
+	if ammunition_inventory == null or not ammunition_inventory.consume_round(equipped_weapon_id):
+		return {"fired": false, "reason": "AMMUNITION_STATE_REJECTED"}
 	result["rounds_in_magazine"] = rounds_in_magazine
 	result["reserve_ammo"] = reserve_rounds
 	ammo_changed.emit(rounds_in_magazine, reserve_rounds)
@@ -348,10 +393,11 @@ func request_reload() -> bool:
 	if rounds_in_magazine >= magazine_capacity or reserve_rounds <= 0:
 		# Keep the authored reload preview available even when the magazine is full.
 		return true
-	var needed := magazine_capacity - rounds_in_magazine
-	var transferred := mini(needed, reserve_rounds)
-	rounds_in_magazine += transferred
-	reserve_rounds -= transferred
+	var transferred := (
+		ammunition_inventory.reload_weapon(equipped_weapon_id)
+		if ammunition_inventory != null
+		else 0
+	)
 	ballistics.release_trigger()
 	ammo_changed.emit(rounds_in_magazine, reserve_rounds)
 	return transferred > 0
@@ -365,6 +411,22 @@ func get_ammo_snapshot() -> Dictionary:
 		"rounds_in_magazine": rounds_in_magazine,
 		"reserve_ammo": reserve_rounds,
 	}
+
+
+func _bind_player_ammunition_inventory() -> void:
+	if player == null:
+		return
+	ammunition_inventory = player.get_node_or_null("AmmunitionInventory") as SocomPlayerAmmunitionInventory
+	if ammunition_inventory == null:
+		ammunition_inventory = PlayerAmmunitionInventory.new()
+		ammunition_inventory.name = "AmmunitionInventory"
+		player.add_child(ammunition_inventory)
+
+
+func _ammo_state() -> Dictionary:
+	if ammunition_inventory == null:
+		return {}
+	return ammunition_inventory.snapshot(equipped_weapon_id)
 
 
 func set_input_enabled(enabled: bool) -> void:

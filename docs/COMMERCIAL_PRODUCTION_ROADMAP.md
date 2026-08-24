@@ -438,7 +438,9 @@ rollback plan, launch communications, and signed release decision.
 2. Characterize and fix standing, prone elbow, jump, turn, and weapon-follow
    failures without changing working reload behavior.
 3. Finish the offline motion-matching database builder and Studio review UI.
-4. Consolidate player/server ammunition ownership.
+4. ~~Consolidate player/server ammunition ownership.~~ Completed 2026-08-23:
+   mutable local ammunition is player-owned per weapon identity, while the
+   multiplayer server remains authoritative per peer.
 5. Complete one Demolition map and its full round state machine.
 6. Run an automated lobby-to-rematch match with multiple clients.
 7. Profile startup and a maximum-player firefight.
@@ -470,6 +472,8 @@ or replacement. A valid register is not the same as asset clearance.
   straight pelvis-to-head travel axis.
 - [x] Launcher resource warmup is verified: 11 large resources warmed, with a
   measured playable instantiation near 132 ms on the development machine.
+- [x] Mutable ammunition is player-owned and persists by weapon identity;
+  weapon profiles supply capacity and initial-loadout defaults only.
 
 This is a technical baseline, not a commercial-release claim. Legal clearance,
 external playtesting, multiplayer soak, production content, accessibility,
