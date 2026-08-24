@@ -326,7 +326,8 @@ func _capture_all_edit_bases_after_seek() -> void:
 func _pause_for_pose_edit() -> void:
     if animation_player == null:
         return
-    if animation_player.is_playing():
+    var transitioned_from_playback := animation_player.is_playing()
+    if transitioned_from_playback:
         var current_time := animation_player.current_animation_position
         animation_player.pause()
         animation_player.seek(current_time, true)
@@ -335,7 +336,11 @@ func _pause_for_pose_edit() -> void:
     # made the paused pose a different rig from the playing pose and created a
     # hand -> weapon -> hand feedback loop when IK ran on the next frame.
     _sync_animation_preview_weapon_parent()
-    _capture_all_edit_bases_after_seek()
+    # A real playback-to-pause transition resamples the source clip and needs
+    # fresh edit bases. Repeated selection while already paused must not capture
+    # corrected bones as new bases or the correction applies twice next frame.
+    if transitioned_from_playback:
+        _capture_all_edit_bases_after_seek()
 
 func _toggle_pose_edit_mode() -> void:
     _set_pose_edit_mode(&"MOVE" if pose_edit_mode == &"ROTATE" else &"ROTATE")

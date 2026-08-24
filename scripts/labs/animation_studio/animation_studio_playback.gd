@@ -285,8 +285,11 @@ func _on_range_selector_changed(start_seconds: float, end_seconds: float) -> voi
 func _on_range_playhead_requested(seconds: float) -> void:
     if animation_player == null or animation_player.current_animation.is_empty():
         return
+    var was_playing := animation_player.is_playing()
     animation_player.seek(seconds, true)
     _pause_for_pose_edit()
+    if not was_playing:
+        _capture_all_edit_bases_after_seek()
 
 func _preview_assembly() -> void:
     if animation_player == null or assembly_segments.is_empty():

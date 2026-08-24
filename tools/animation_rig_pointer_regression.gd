@@ -255,6 +255,19 @@ func _drag_marker(
 			weapon.get_parent() == weapon_parent_before,
 			"%s leaves rifle ownership on the authored right hand" % marker_id
 		)
+		if skeleton and opposite_elbow_bone_index >= 0:
+			var opposite_elbow_selected := (
+				skeleton.global_transform
+				* skeleton.get_bone_global_pose(opposite_elbow_bone_index)
+			).origin
+			_expect(
+				opposite_elbow_selected.distance_to(opposite_elbow_before) < 0.001,
+				"selecting %s does not rebase or move the opposite arm" % marker_id
+			)
+		_expect(
+			weapon.global_position.distance_to(weapon_before) < 0.02,
+			"selecting %s does not rebase or relocate the rifle" % marker_id
+		)
 	var motion := InputEventMouseMotion.new()
 	motion.position = screen_position + delta
 	motion.global_position = motion.position

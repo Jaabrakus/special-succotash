@@ -753,10 +753,16 @@ large-file refactor targets; this checkpoint does not close those gates.
   pose-strip, correction-overlay, Rig & Hands UI, state preview, Gunsmith clip
   catalog, operator-animation, player-composition, weapon-rig, and Studio
   navigation regressions pass after extraction.
-- [ ] Direct left-elbow pointer isolation remains open. The focused regression
-  measures `1.49 cm` of opposite-arm motion and `11.47 cm` of rifle relocation
-  after the preceding support-hand edit. This is an existing visual-authoring
-  defect; the refactor preserves it rather than hiding it or weakening the test.
+- [x] Direct left-elbow pointer isolation no longer rebases already-corrected
+  bones when a paused target is selected. The focused viewport regression now
+  measures `0.000000 m` of opposite-arm motion and `0.000000 m` of rifle
+  relocation while the selected elbow moves `0.003686 m`; rifle ownership stays
+  on the authored right hand. Pose-tool, pose-editor, gizmo/weapon-contract,
+  weapon-rig integration, and Studio architecture regressions also pass.
+- [ ] Direction-change planted-foot continuity remains open. The locomotion
+  quality regression preserves its playhead but currently measures a `7.329 cm`
+  planted-contact step, above its `5.0 cm` production budget. This checkpoint
+  does not weaken that budget or claim the locomotion matrix is complete.
 
 The complete quick integration gate and god-file budget pass on `main` after
 the split. This checkpoint does not claim that the separate map branch or the
