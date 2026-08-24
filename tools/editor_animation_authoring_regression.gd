@@ -13,6 +13,8 @@ func _initialize() -> void:
 
 func _run() -> void:
 	var source_hash_before := FileAccess.get_sha256(Repository.PROFILE_PATH)
+	var temporary_profile := "/private/tmp/socom-editor-animation-authoring-%d.json" % OS.get_process_id()
+	_expect(_copy_text_file(Repository.PROFILE_PATH, temporary_profile), "test profile copy is isolated in temporary storage")
 	var repository = Repository.new()
 	_expect(repository.load_profile(), "editor repository loads the saved animation map")
 	var validation := repository.validation_snapshot()
@@ -82,7 +84,83 @@ func _run() -> void:
 		FileAccess.get_sha256(Repository.PROFILE_PATH) == source_hash_before,
 		"read-only dock never rewrites the animation map"
 	)
+
+	var undo_redo := UndoRedo.new()
+	var transaction_handler: Callable = (
+		func(action_name: String, before: Dictionary, after: Dictionary) -> void:
+			undo_redo.create_action(action_name)
+			undo_redo.add_do_method(dock.apply_document_snapshot.bind(after))
+			undo_redo.add_undo_method(dock.apply_document_snapshot.bind(before))
+			undo_redo.commit_action()
+	)
+	dock.document_transaction_requested.connect(transaction_handler)
+	dock.configure_profile_path(temporary_profile)
+	dock.select_context("FIRE_ACCEPTED", "STANDING", "TWO_HAND_RIFLE", "run_forward")
+	var temporary_hash_before := FileAccess.get_sha256(temporary_profile)
+	var proposal := dock.propose_rule(
+		"When a valid rifle shot happens, play this on torso and arms, "
+		+ "blend in 0.08, blend out 0.16, return to current movement",
+		"combat_fire"
+	)
+	_expect(bool(proposal.get("ok", false)), "natural-language fire rule builds a validated proposal")
+	_expect(not dock.repository.is_dirty(), "proposal review does not mutate the in-memory profile")
+	_expect(
+		FileAccess.get_sha256(temporary_profile) == temporary_hash_before,
+		"proposal review never writes the profile"
+	)
+	_expect(dock.approve_pending_proposal(), "approved proposal enters Godot undo history")
+	var edited_fire: Dictionary = dock.repository.resolve(
+		"FIRE_ACCEPTED", "STANDING", "TWO_HAND_RIFLE", "run_forward"
+	)
+	_expect(is_equal_approx(float(edited_fire.get("blend_in_seconds", 0.0)), 0.08), "approved draft updates the live editor preview")
+	_expect(dock.repository.is_dirty(), "approved draft is visibly unsaved")
+	_expect(
+		FileAccess.get_sha256(temporary_profile) == temporary_hash_before,
+		"approved draft still does not write the profile"
+	)
+	undo_redo.undo()
+	var undone_fire: Dictionary = dock.repository.resolve(
+		"FIRE_ACCEPTED", "STANDING", "TWO_HAND_RIFLE", "run_forward"
+	)
+	_expect(is_equal_approx(float(undone_fire.get("blend_in_seconds", 0.0)), 0.04), "Godot undo restores the previous route")
+	_expect(not dock.repository.is_dirty(), "undo restores the saved document identity")
+	undo_redo.redo()
+	var redone_fire: Dictionary = dock.repository.resolve(
+		"FIRE_ACCEPTED", "STANDING", "TWO_HAND_RIFLE", "run_forward"
+	)
+	_expect(is_equal_approx(float(redone_fire.get("blend_in_seconds", 0.0)), 0.08), "Godot redo restores the approved route")
+	var invalid_proposal := dock.propose_rule(
+		"When a valid rifle shot happens, play this on the whole body",
+		"run_forward"
+	)
+	_expect(not bool(invalid_proposal.get("ok", false)), "fire route rejects a locomotion clip")
+	var save_result := dock.save_approved_draft()
+	_expect(bool(save_result.get("ok", false)), "explicit save atomically writes the approved draft")
+	_expect(not dock.repository.is_dirty(), "successful save clears the draft marker")
+	_expect(
+		not FileAccess.file_exists("%s.socom-writing-%d" % [temporary_profile, OS.get_process_id()]),
+		"atomic save leaves no temporary writer file"
+	)
+	var saved_runtime_profile = RuntimeProfile.new()
+	saved_runtime_profile.load_project_map(temporary_profile)
+	var saved_runtime_fire := saved_runtime_profile.resolve_animation_event_presentation(
+		&"FIRE_ACCEPTED", &"STANDING", &"TWO_HAND_RIFLE"
+	)
+	_expect(is_equal_approx(float(saved_runtime_fire.get("blend_in_seconds", 0.0)), 0.08), "saved editor route is consumed unchanged by runtime")
+	_expect(_append_text(temporary_profile, "\n"), "conflict fixture changes the profile outside the dock")
+	var conflict_proposal := dock.propose_rule(
+		"When a valid rifle shot happens, play this on torso and arms, blend in 0.09",
+		"combat_fire"
+	)
+	_expect(bool(conflict_proposal.get("ok", false)), "second valid proposal is available for conflict test")
+	_expect(dock.approve_pending_proposal(), "second proposal becomes a draft")
+	var conflict_save := dock.save_approved_draft()
+	_expect(not bool(conflict_save.get("ok", false)), "save refuses to overwrite a profile changed on disk")
+	dock.document_transaction_requested.disconnect(transaction_handler)
+	undo_redo.clear_history()
 	dock.queue_free()
+	await process_frame
+	DirAccess.remove_absolute(temporary_profile)
 
 	var plugin_config := ConfigFile.new()
 	_expect(
@@ -116,3 +194,27 @@ func _expect(condition: bool, message: String) -> void:
 		print("EDITOR_ANIMATION_AUTHORING_CHECK PASS %s" % message)
 	else:
 		failures.append(message)
+
+
+func _copy_text_file(source_path: String, target_path: String) -> bool:
+	var source := FileAccess.open(source_path, FileAccess.READ)
+	if source == null:
+		return false
+	var contents := source.get_as_text()
+	source.close()
+	var target := FileAccess.open(target_path, FileAccess.WRITE)
+	if target == null:
+		return false
+	target.store_string(contents)
+	target.close()
+	return true
+
+
+func _append_text(path: String, text: String) -> bool:
+	var file := FileAccess.open(path, FileAccess.READ_WRITE)
+	if file == null:
+		return false
+	file.seek_end()
+	file.store_string(text)
+	file.close()
+	return true

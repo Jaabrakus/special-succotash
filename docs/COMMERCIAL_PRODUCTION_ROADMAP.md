@@ -136,15 +136,25 @@ caused the most severe regressions.
   contexts matches the runtime result in the parity regression.
 - [x] `FIRE_ACCEPTED` exposes `ENTER_READY_AIM` and `RAIL_TO_BLUE_LINE` without
   gaining bullet, ammunition, aim, damage, or camera authority.
-- [x] Refresh and context selection preserve the animation-map SHA-256. This
-  first migration slice is read-only by design.
+- [x] Natural-language route commands become visible proposals before any
+  mutation. Clip/event compatibility validation rejects invalid mappings such
+  as routing a fire event to a locomotion clip.
+- [x] Approving a proposal creates an in-memory draft through Godot's native
+  undo/redo history. Proposal review, approval, undo, and redo do not touch the
+  profile on disk.
+- [x] Explicit Save validates again, rejects concurrent disk changes, and uses
+  a same-directory temporary file plus atomic rename. Runtime consumes the
+  saved result without conversion or a second authoring format.
+- [x] Refresh and context selection preserve the animation-map SHA-256 unless
+  the user explicitly saves an approved draft.
 - [x] The dock's Play button delegates to Godot's configured project main scene,
   which remains `res://game_launcher.tscn` and launches canonical gameplay.
 
 The existing runtime Animation Studio remains available during migration. The
-next slice must add Godot undo/redo and a review-before-save transaction against
-the same profile. Do not remove the old route editor until both authoring paths
-produce identical saved data and the playable regression remains green.
+Godot-native route slice now owns review, validation, undo/redo, conflict-safe
+save, and one-click play against the shared profile. Do not remove the old route
+editor until all of its remaining visual preview/edit capabilities have moved
+and the playable regression remains green.
 
 ## Gate two: character and animation quality
 

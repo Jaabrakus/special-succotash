@@ -2,19 +2,28 @@
 class_name SocomAnimationRoutesDock
 extends VBoxContainer
 
-## Read-only first migration slice. It visualizes the exact presentation route
-## used by gameplay and never writes a second animation profile.
+## Godot-native animation-route authoring. Gameplay and the editor consume the
+## same profile, contracts, and resolver; edits remain drafts until explicit save.
 
 signal play_requested
+signal document_transaction_requested(
+	action_name: String,
+	before_document: Dictionary,
+	after_document: Dictionary
+)
 
 const Repository := preload("res://addons/socom_authoring/animation_route_repository.gd")
+const LanguageParser := preload("res://scripts/labs/animation_state_language_parser.gd")
 const PROFILE_PATH := Repository.PROFILE_PATH
 
 var repository = Repository.new()
+var language_parser = LanguageParser.new()
+var profile_path := PROFILE_PATH
 var event_picker: OptionButton
 var posture_picker: OptionButton
 var family_picker: OptionButton
 var current_base_input: LineEdit
+var source_label: Label
 var validation_label: Label
 var event_card: Label
 var context_card: Label
@@ -23,24 +32,127 @@ var layer_card: Label
 var return_card: Label
 var authority_label: Label
 var play_button: Button
+var state_picker: OptionButton
+var rule_input: LineEdit
+var proposal_label: Label
+var approve_button: Button
+var discard_button: Button
+var save_button: Button
+var pending_proposal: Dictionary = {}
 
 
 func _ready() -> void:
 	if event_picker != null:
 		return
 	_build_interface()
-	refresh_profile()
+	refresh_profile(true)
 
 
-func refresh_profile() -> void:
+func refresh_profile(force: bool = false) -> void:
+	if repository.is_dirty() and not force:
+		_show_status("Draft not reloaded. Save, undo, or discard it first.", false)
+		return
 	var previous_event := _selected_metadata(event_picker)
 	var previous_family := _selected_metadata(family_picker)
-	repository.load_profile(PROFILE_PATH)
+	var previous_state := _selected_metadata(state_picker)
+	repository.load_profile(profile_path)
 	_fill_picker(event_picker, repository.event_names(), previous_event, "FIRE_ACCEPTED")
 	var families: Array[String] = ["ANY"]
 	families.append_array(repository.weapon_families())
 	_fill_picker(family_picker, families, previous_family, "TWO_HAND_RIFLE")
+	var states: Array[String] = []
+	for raw_state: Variant in repository.slots.keys():
+		states.append(String(raw_state))
+	states.sort()
+	_fill_picker(state_picker, states, previous_state, "combat_fire")
+	pending_proposal.clear()
+	_update_proposal_controls()
 	_refresh_route()
+
+
+func configure_profile_path(path: String) -> void:
+	profile_path = path
+	if source_label != null:
+		source_label.text = "SOURCE OF TRUTH\n%s" % profile_path
+	refresh_profile(true)
+
+
+func propose_rule(command: String, selected_state: String = "") -> Dictionary:
+	var state_name := selected_state
+	if state_name.is_empty():
+		state_name = _selected_metadata(state_picker)
+	var parsed: Dictionary = language_parser.propose(command, state_name)
+	if not bool(parsed.get("valid", false)):
+		pending_proposal.clear()
+		_show_proposal_error(String(parsed.get("message", "Rule could not be understood.")))
+		return {"ok": false, "errors": [String(parsed.get("message", "Invalid rule."))]}
+	var family := _selected_metadata(family_picker)
+	parsed["weapon_family"] = "" if family == "ANY" else family
+	parsed["source_rule"] = command.strip_edges()
+	var event_name := String(parsed.get("event", ""))
+	var existing_route: Variant = repository.routes.get(event_name, {})
+	if existing_route is Dictionary:
+		parsed["interrupt_policy"] = String(
+			(existing_route as Dictionary).get("interrupt_policy", "RESTART")
+		)
+		parsed["priority"] = int((existing_route as Dictionary).get("priority", 50))
+		parsed["effects"] = (existing_route as Dictionary).get("effects", []).duplicate()
+	var built := repository.build_route_proposal(parsed)
+	if not bool(built.get("ok", false)):
+		pending_proposal.clear()
+		_show_proposal_error("\n".join(built.get("errors", [])))
+		return built
+	pending_proposal = built.duplicate(true)
+	proposal_label.text = "READY TO APPROVE\n%s\nNo source file has changed." % String(
+		built.get("summary", "Validated route proposal")
+	)
+	proposal_label.add_theme_color_override("font_color", Color(0.45, 0.9, 0.62))
+	_update_proposal_controls()
+	return built
+
+
+func approve_pending_proposal() -> bool:
+	if not bool(pending_proposal.get("ok", false)):
+		return false
+	var before := repository.document_snapshot()
+	var after: Dictionary = pending_proposal.get("document", {}).duplicate(true)
+	var summary := String(pending_proposal.get("summary", "Edit animation route"))
+	if document_transaction_requested.get_connections().is_empty():
+		apply_document_snapshot(after)
+	else:
+		document_transaction_requested.emit("SOCOM Route: %s" % summary, before, after)
+	pending_proposal.clear()
+	proposal_label.text = "Approved as an in-memory draft. Cmd/Ctrl+Z undoes it."
+	proposal_label.add_theme_color_override("font_color", Color(0.45, 0.82, 1.0))
+	_update_proposal_controls()
+	return true
+
+
+func discard_pending_proposal() -> void:
+	pending_proposal.clear()
+	proposal_label.text = "No pending proposal."
+	proposal_label.add_theme_color_override("font_color", Color(0.72, 0.78, 0.88))
+	_update_proposal_controls()
+
+
+func apply_document_snapshot(snapshot: Dictionary) -> void:
+	var result := repository.replace_document(snapshot)
+	if not bool(result.get("ok", false)):
+		_show_status("Draft rejected: %s" % "\n".join(result.get("errors", [])), false)
+		return
+	pending_proposal.clear()
+	_update_proposal_controls()
+	_refresh_route()
+
+
+func save_approved_draft() -> Dictionary:
+	var result := repository.save_profile(profile_path)
+	if bool(result.get("ok", false)):
+		_show_status("✓ Saved validated route profile atomically.", true)
+	else:
+		_show_status(String(result.get("error", "Save failed.")), false)
+	_update_proposal_controls()
+	return result
 
 
 func select_context(
@@ -77,6 +189,8 @@ func get_debug_snapshot() -> Dictionary:
 		"validation_text": validation_label.text,
 		"state_text": state_card.text,
 		"return_text": return_card.text,
+		"dirty": repository.is_dirty(),
+		"pending_proposal": pending_proposal.duplicate(true),
 	}
 
 
@@ -90,20 +204,20 @@ func _build_interface() -> void:
 	add_child(title)
 	var boundary := Label.new()
 	boundary.text = (
-		"Godot editor view • reads the same saved profile as gameplay\n"
-		+ "READ ONLY — this first slice cannot change runtime state"
+		"Godot-native authoring • same profile and resolver as gameplay\n"
+		+ "Proposals stay in memory until you explicitly save"
 	)
 	boundary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	boundary.add_theme_color_override("font_color", Color(0.45, 0.9, 0.72))
 	add_child(boundary)
-	var source := Label.new()
-	source.text = "SOURCE OF TRUTH\n%s" % PROFILE_PATH
-	source.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	add_child(source)
+	source_label = Label.new()
+	source_label.text = "SOURCE OF TRUTH\n%s" % profile_path
+	source_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	add_child(source_label)
 
 	var refresh_button := Button.new()
 	refresh_button.text = "Refresh Saved Profile"
-	refresh_button.pressed.connect(refresh_profile)
+	refresh_button.pressed.connect(func() -> void: refresh_profile(false))
 	add_child(refresh_button)
 
 	event_picker = _labeled_picker("1. GAMEPLAY EVENT")
@@ -137,12 +251,82 @@ func _build_interface() -> void:
 	authority_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	authority_label.add_theme_color_override("font_color", Color(0.72, 0.78, 0.88))
 	add_child(authority_label)
+
+	var authoring_title := Label.new()
+	authoring_title.text = "AUTHOR A ROUTE — REVIEW BEFORE APPLYING"
+	authoring_title.add_theme_color_override("font_color", Color(1.0, 0.78, 0.3))
+	add_child(authoring_title)
+	state_picker = _labeled_picker("ANIMATION STATE / CLIP")
+	rule_input = LineEdit.new()
+	rule_input.placeholder_text = (
+		"When a valid rifle shot happens, play this on torso and arms, "
+		+ "blend in 0.04, blend out 0.10, return to current movement"
+	)
+	rule_input.text_submitted.connect(func(_value: String) -> void: _propose_from_interface())
+	add_child(rule_input)
+	var propose_button := Button.new()
+	propose_button.text = "1. Build Reviewable Proposal"
+	propose_button.pressed.connect(_propose_from_interface)
+	add_child(propose_button)
+	proposal_label = Label.new()
+	proposal_label.text = "No pending proposal."
+	proposal_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	add_child(proposal_label)
+	var proposal_actions := HBoxContainer.new()
+	add_child(proposal_actions)
+	approve_button = Button.new()
+	approve_button.text = "2. Approve Draft"
+	approve_button.pressed.connect(approve_pending_proposal)
+	proposal_actions.add_child(approve_button)
+	discard_button = Button.new()
+	discard_button.text = "Discard Proposal"
+	discard_button.pressed.connect(discard_pending_proposal)
+	proposal_actions.add_child(discard_button)
+	save_button = Button.new()
+	save_button.text = "3. Save Approved Draft"
+	save_button.tooltip_text = "Validates again, checks for disk conflicts, then replaces the JSON atomically."
+	save_button.pressed.connect(save_approved_draft)
+	add_child(save_button)
+	var undo_hint := Label.new()
+	undo_hint.text = "Approved drafts use Godot Undo/Redo (Cmd/Ctrl+Z). Save is the only disk write."
+	undo_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	undo_hint.add_theme_color_override("font_color", Color(0.72, 0.78, 0.88))
+	add_child(undo_hint)
+	_update_proposal_controls()
+
 	play_button = Button.new()
 	play_button.name = "PlayCanonicalGame"
 	play_button.text = "▶ Play Canonical Game"
 	play_button.tooltip_text = "Runs the project main scene: res://game_launcher.tscn"
 	play_button.pressed.connect(func() -> void: play_requested.emit())
 	add_child(play_button)
+
+
+func _propose_from_interface() -> void:
+	propose_rule(rule_input.text)
+
+
+func _show_proposal_error(message: String) -> void:
+	proposal_label.text = "PROPOSAL NEEDS ATTENTION\n%s\nNothing was changed." % message
+	proposal_label.add_theme_color_override("font_color", Color(1.0, 0.45, 0.35))
+	_update_proposal_controls()
+
+
+func _show_status(message: String, success: bool) -> void:
+	validation_label.text = message
+	validation_label.add_theme_color_override(
+		"font_color",
+		Color(0.45, 0.9, 0.62) if success else Color(1.0, 0.45, 0.35)
+	)
+
+
+func _update_proposal_controls() -> void:
+	if approve_button == null:
+		return
+	var has_proposal := bool(pending_proposal.get("ok", false))
+	approve_button.disabled = not has_proposal
+	discard_button.disabled = not has_proposal
+	save_button.disabled = not repository.is_dirty() or not repository.errors.is_empty()
 
 
 func _labeled_picker(label_text: String) -> OptionButton:
@@ -208,7 +392,8 @@ func _refresh_route() -> void:
 		return
 	var validation := repository.validation_snapshot()
 	if bool(validation.get("ok", false)):
-		validation_label.text = "✓ %d clips • %d rules • %d connected events" % [
+		validation_label.text = "%s %d clips • %d rules • %d connected events" % [
+			"● UNSAVED DRAFT •" if repository.is_dirty() else "✓",
 			int(validation.get("clip_count", 0)),
 			int(validation.get("rule_count", 0)),
 			int(validation.get("route_count", 0)),
@@ -251,3 +436,4 @@ func _refresh_route() -> void:
 		layer_card.text = "NO PRESENTATION APPLIED"
 		return_card.text = "GAMEPLAY REMAINS AUTHORITATIVE"
 	authority_label.text = repository.event_description(event_name)
+	_update_proposal_controls()

@@ -2,6 +2,7 @@
 extends EditorPlugin
 
 const DockContent := preload("res://addons/socom_authoring/animation_routes_dock.gd")
+const RouteTransaction := preload("res://addons/socom_authoring/route_document_transaction.gd")
 
 var dock: EditorDock
 var content: SocomAnimationRoutesDock
@@ -11,6 +12,7 @@ var scroll: ScrollContainer
 func _enter_tree() -> void:
 	content = DockContent.new()
 	content.play_requested.connect(_play_canonical_game)
+	content.document_transaction_requested.connect(_record_document_transaction)
 	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	dock = EditorDock.new()
 	dock.title = "SOCOM Routes"
@@ -38,3 +40,22 @@ func _exit_tree() -> void:
 
 func _play_canonical_game() -> void:
 	EditorInterface.play_main_scene()
+
+
+func _record_document_transaction(
+	action_name: String,
+	before_document: Dictionary,
+	after_document: Dictionary
+) -> void:
+	var undo_redo := get_undo_redo()
+	var transaction = RouteTransaction.new(content, before_document, after_document)
+	undo_redo.create_action(
+		action_name,
+		UndoRedo.MERGE_DISABLE,
+		content.repository,
+		false,
+		false
+	)
+	undo_redo.add_do_method(transaction, &"apply_after")
+	undo_redo.add_undo_method(transaction, &"apply_before")
+	undo_redo.commit_action()
