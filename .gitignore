@@ -25,3 +25,6 @@ config/supabase.json
 # Local third-party compatibility experiment; never include in a customer or
 # source checkpoint unless commercial rights are documented first.
 counter-strike-urban/
+
+# Generated UID for a removed one-off diagnostic script.
+tools/tmp_head_rotation_diagnostic.gd.uid
