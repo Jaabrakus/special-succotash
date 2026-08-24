@@ -3,6 +3,7 @@ extends EditorPlugin
 
 const DockContent := preload("res://addons/socom_authoring/animation_routes_dock.gd")
 const RouteTransaction := preload("res://addons/socom_authoring/route_document_transaction.gd")
+const TOOL_MENU_TITLE := "SOCOM Routes"
 
 var dock: EditorDock
 var content: SocomAnimationRoutesDock
@@ -26,10 +27,15 @@ func _enter_tree() -> void:
 	scroll.add_child(content)
 	dock.add_child(scroll)
 	add_dock(dock)
+	add_tool_menu_item(TOOL_MENU_TITLE, _show_routes_dock)
+	# A saved Godot layout can remember a newly registered global dock as closed.
+	# Defer the focus request until editor initialization restores that layout.
+	dock.call_deferred(&"make_visible")
 	print("SOCOM_AUTHORING_PLUGIN READY source=%s" % DockContent.PROFILE_PATH)
 
 
 func _exit_tree() -> void:
+	remove_tool_menu_item(TOOL_MENU_TITLE)
 	if dock != null:
 		remove_dock(dock)
 		dock.queue_free()
@@ -40,6 +46,11 @@ func _exit_tree() -> void:
 
 func _play_canonical_game() -> void:
 	EditorInterface.play_main_scene()
+
+
+func _show_routes_dock() -> void:
+	if dock != null:
+		dock.make_visible()
 
 
 func _record_document_transaction(

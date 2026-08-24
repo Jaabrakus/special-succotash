@@ -171,6 +171,17 @@ func _run() -> void:
 		String(plugin_config.get_value("plugin", "script", "")) == "socom_authoring_plugin.gd",
 		"plugin manifest selects the editor plugin"
 	)
+	var plugin_source := FileAccess.get_file_as_string(
+		"res://addons/socom_authoring/socom_authoring_plugin.gd"
+	)
+	_expect(
+		plugin_source.contains("dock.call_deferred(&\"make_visible\")"),
+		"plugin reopens and focuses the route dock after saved layouts restore"
+	)
+	_expect(
+		plugin_source.contains("add_tool_menu_item(TOOL_MENU_TITLE"),
+		"plugin exposes a persistent Project Tools command for route-dock recovery"
+	)
 	var enabled_plugins: PackedStringArray = ProjectSettings.get_setting(
 		"editor_plugins/enabled",
 		PackedStringArray()

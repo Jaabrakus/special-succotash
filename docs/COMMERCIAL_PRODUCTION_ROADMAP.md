@@ -149,6 +149,9 @@ caused the most severe regressions.
   the user explicitly saves an approved draft.
 - [x] The dock's Play button delegates to Godot's configured project main scene,
   which remains `res://game_launcher.tscn` and launches canonical gameplay.
+- [x] The plugin explicitly opens and focuses **SOCOM Routes** after Godot
+  restores a saved layout. A persistent **Project > Tools > SOCOM Routes**
+  command recovers the dock if a user closes or moves it.
 
 The existing runtime Animation Studio remains available during migration. The
 Godot-native route slice now owns review, validation, undo/redo, conflict-safe
