@@ -27,6 +27,15 @@
       },
       "shape": "sphere"
     },
+    "neck": {
+      "length_scale": 0.45,
+      "offset": {
+        "x": 0.0,
+        "y": -0.035,
+        "z": 0.0
+      },
+      "shape": "capsule"
+    },
     "left_calf": {
       "length_scale": 1.0,
       "offset": {
@@ -141,6 +150,7 @@
     "arms": 1.0,
     "global": 0.88,
     "head": 0.845,
+    "neck": 0.78,
     "left_calf": 1.0,
     "left_foot": 1.0,
     "left_forearm": 1.0,
@@ -155,5 +165,5 @@
     "right_upper_arm": 0.725,
     "torso": 0.6
   },
-  "schema_version": 5
+  "schema_version": 6
 }

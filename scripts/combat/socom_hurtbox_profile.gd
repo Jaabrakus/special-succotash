@@ -6,6 +6,7 @@ extends RefCounted
 ## CharacterBody movement collision intentionally do not use this profile.
 
 const CONFIG_PATH := "res://config/combat/hurtbox_profile.json"
+const CURRENT_SCHEMA_VERSION := 6
 const PlaytestStateCollector := preload("res://scripts/runtime/playtest_state_collector.gd")
 const MIN_SCALE := 0.45
 const MAX_SCALE := 1.0
@@ -37,6 +38,7 @@ const DAMAGE_TYPE_LABELS := {
 
 const REGION_KEYS: Array[StringName] = [
 	&"head",
+	&"neck",
 	&"torso",
 	&"pelvis",
 	&"left_upper_arm",
@@ -53,6 +55,7 @@ const REGION_KEYS: Array[StringName] = [
 
 const REGION_LABELS := {
 	&"head": "Head",
+	&"neck": "Neck",
 	&"torso": "Torso",
 	&"pelvis": "Pelvis",
 	&"left_upper_arm": "Left upper arm",
@@ -68,7 +71,7 @@ const REGION_LABELS := {
 }
 
 const LEGACY_GROUP_REGIONS := {
-	&"head": [&"head"],
+	&"head": [&"head", &"neck"],
 	&"torso": [&"torso", &"pelvis"],
 	&"arms": [
 		&"left_upper_arm", &"right_upper_arm",
@@ -261,6 +264,8 @@ static func damage_type_for_source_region(source_region: StringName) -> StringNa
 	var text := String(source_region)
 	if text == "head":
 		return &"HEAD"
+	if text == "neck":
+		return &"NECK"
 	if text == "torso":
 		return &"TORSO"
 	if text == "pelvis":
@@ -394,7 +399,7 @@ static func save_profile(
 	if file == null:
 		return false
 	file.store_string(JSON.stringify({
-		"schema_version": 5,
+		"schema_version": CURRENT_SCHEMA_VERSION,
 		"purpose": "Authored by the Composure Lab and loaded by all anatomical damage rigs; not camera or movement collision",
 		"radius_scales": normalized_scales,
 		"geometry": normalized_geometry,

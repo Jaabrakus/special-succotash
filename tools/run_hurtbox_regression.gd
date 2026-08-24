@@ -6,7 +6,7 @@ const AnatomicalHitResolver := preload("res://scripts/combat/socom_anatomical_hi
 const HurtboxProfile := preload("res://scripts/combat/socom_hurtbox_profile.gd")
 const HurtboxAreaScript := preload("res://scripts/combat/socom_hurtbox_area.gd")
 const REQUIRED_REGIONS: Array[StringName] = [
-	&"HEAD", &"TORSO", &"PELVIS",
+	&"HEAD", &"NECK", &"TORSO", &"PELVIS",
 	&"LEFT_UPPER_ARM", &"RIGHT_UPPER_ARM",
 	&"LEFT_FOREARM", &"RIGHT_FOREARM",
 	&"LEFT_THIGH", &"RIGHT_THIGH",
@@ -77,6 +77,54 @@ func _run() -> void:
 	var regions: Array[StringName] = rig.get_region_names()
 	for required in REQUIRED_REGIONS:
 		_assert(regions.has(required), "missing region %s" % required)
+	_assert(
+		HurtboxProfile.CURRENT_SCHEMA_VERSION >= 6
+		and HurtboxProfile.damage_type_for_source_region(&"neck") == &"NECK",
+		"neck anatomy is not part of the versioned shared profile"
+	)
+	var profile_document: Variant = JSON.parse_string(
+		FileAccess.get_file_as_string(HurtboxProfile.CONFIG_PATH)
+	)
+	_assert(
+		profile_document is Dictionary
+		and int((profile_document as Dictionary).get("schema_version", 0))
+			== HurtboxProfile.CURRENT_SCHEMA_VERSION,
+		"saved hurtbox profile version does not match the runtime contract"
+	)
+	var neck_area: Area3D = rig.get_region_area(&"NECK")
+	var head_area: Area3D = rig.get_region_area(&"HEAD")
+	var torso_area: Area3D = rig.get_region_area(&"TORSO")
+	_assert(
+		neck_area != null and head_area != null and torso_area != null,
+		"head, neck, and torso areas do not form a complete core stack"
+	)
+	if neck_area != null and head_area != null and torso_area != null:
+		var neck_shape := (neck_area.get_child(0) as CollisionShape3D).shape as CapsuleShape3D
+		_assert(
+			neck_area.global_position.y < head_area.global_position.y
+			and neck_area.global_position.y > torso_area.global_position.y,
+			"neck hurtbox is outside the visible head-to-torso span"
+		)
+		_assert(
+			neck_shape.radius <= 0.08 and neck_shape.height <= 0.16,
+			"neck hurtbox exceeds the calibrated production-character silhouette"
+		)
+		_assert(
+			_has_region(_point_hits(neck_area.global_position), &"NECK"),
+			"physics point at neck center did not resolve the neck area"
+		)
+		var neck_damage: Dictionary = neck_area.take_bullet_damage(
+			5.0,
+			neck_area.global_position,
+			Vector3.BACK,
+			neck_area.global_position + Vector3.BACK
+		)
+		_assert(
+			bool(neck_damage.get("accepted", false))
+			and StringName(neck_damage.get("hit_region", &"")) == &"NECK"
+			and not bool(neck_damage.get("headshot", true)),
+			"neck damage did not preserve its non-headshot anatomical identity"
+		)
 
 	# Core anatomy wins at a joint overlap and when a bullet continues through
 	# an arm into the same operator's torso.

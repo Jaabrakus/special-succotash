@@ -9,6 +9,7 @@ const HurtboxAreaScript := preload("res://scripts/combat/socom_hurtbox_area.gd")
 const HurtboxProfile := preload("res://scripts/combat/socom_hurtbox_profile.gd")
 
 const HEAD_RADIUS := 0.19
+const NECK_RADIUS := 0.105
 const TORSO_RADIUS := 0.245
 const PELVIS_RADIUS := 0.22
 const UPPER_ARM_RADIUS := 0.115
@@ -49,6 +50,7 @@ func bind(target_skeleton: Skeleton3D, receiver: Node) -> bool:
 		return false
 
 	_add_sphere(&"HEAD", &"Head", &"Neck", HEAD_RADIUS, 0.42)
+	_add_capsule(&"NECK", &"Neck", &"Head", NECK_RADIUS)
 	_add_capsule(&"TORSO", &"Spine", &"Neck", TORSO_RADIUS)
 	_add_capsule(&"PELVIS", &"Hips", &"Spine", PELVIS_RADIUS)
 
