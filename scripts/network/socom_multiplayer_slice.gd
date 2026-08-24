@@ -375,12 +375,14 @@ func _on_connection_failed() -> void:
 
 
 func _on_server_disconnected() -> void:
-	session_active = false
+	# Replace the disconnected ENet peer before any UI or physics code asks for
+	# a local peer id. Leaving the dead ENet object installed caused one error per
+	# frame after a host exited.
+	_disconnect_existing_peer()
 	_set_status("SERVER DISCONNECTED")
 	menu_panel.visible = true
 	_show_lobby(false)
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-	_clear_operators()
 
 
 func _choose_lobby_team(team: int) -> void:

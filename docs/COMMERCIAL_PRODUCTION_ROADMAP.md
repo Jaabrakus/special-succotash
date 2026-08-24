@@ -443,7 +443,10 @@ rollback plan, launch communications, and signed release decision.
    mutable local ammunition is player-owned per weapon identity, while the
    multiplayer server remains authoritative per peer.
 5. Complete one Demolition map and its full round state machine.
-6. Run an automated lobby-to-rematch match with multiple clients.
+6. ~~Run an automated lobby-to-rematch match with multiple clients.~~ The first
+   separate-process ENet host/client lifecycle probe now completes a match,
+   returns both peers to the lobby, starts a rematch, and returns again. Full
+   advertised-lobby soak remains open.
 7. Profile startup and a maximum-player firefight.
 8. Build training, settings, complete remapping, and failure messages.
 9. Perform the asset/license audit and replace unapproved content.

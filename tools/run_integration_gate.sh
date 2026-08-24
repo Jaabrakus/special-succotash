@@ -92,6 +92,7 @@ if [[ "$mode" == "full" ]]; then
 	run_godot_check "commercial-asset-register" "res://tools/commercial_asset_clearance_audit.gd" "COMMERCIAL_ASSET_AUDIT PASS"
 	"$project_dir/tools/release_protection_check.sh"
 	"$project_dir/tools/run_startup_performance_regression.sh"
+	"$project_dir/tools/run_multiplayer_lifecycle_probe.sh"
 	"$project_dir/tools/run_operator_locomotion_quality_regression.sh"
   "$project_dir/tools/run_operator_pose_tool_regression.sh"
   "$project_dir/tools/run_input_device_ownership_regression.sh"
