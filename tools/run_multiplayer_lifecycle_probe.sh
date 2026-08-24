@@ -10,6 +10,7 @@ cycle_count="${SOCOM_PROBE_CYCLES:-2}"
 lite_clients="${SOCOM_PROBE_LITE_CLIENTS:-0}"
 combat_shots="${SOCOM_PROBE_COMBAT_SHOTS:-0}"
 controlled_hits="${SOCOM_PROBE_CONTROLLED_HITS:-0}"
+reconnect_probe="${SOCOM_PROBE_RECONNECT:-0}"
 if (( peer_count < 2 || peer_count > 16 )); then
   print -u2 "FAIL: SOCOM_PROBE_PEERS must be between 2 and 16"
   exit 2
@@ -26,10 +27,26 @@ if [[ "$controlled_hits" != "0" && "$controlled_hits" != "1" ]]; then
   print -u2 "FAIL: SOCOM_PROBE_CONTROLLED_HITS must be 0 or 1"
   exit 2
 fi
+if [[ "$reconnect_probe" != "0" && "$reconnect_probe" != "1" ]]; then
+  print -u2 "FAIL: SOCOM_PROBE_RECONNECT must be 0 or 1"
+  exit 2
+fi
+if [[ "$reconnect_probe" == "1" && "$cycle_count" -lt 2 ]]; then
+  print -u2 "FAIL: reconnect probe requires at least two cycles"
+  exit 2
+fi
+if [[ "$reconnect_probe" == "1" && ( "$combat_shots" != "0" || "$controlled_hits" != "0" ) ]]; then
+  print -u2 "FAIL: reconnect isolation probe must run without combat phases"
+  exit 2
+fi
 host_log="$report_dir/host.log"
 probe_hit_args=()
 if [[ "$controlled_hits" == "1" ]]; then
   probe_hit_args+=(--controlled-hits)
+fi
+host_reconnect_args=()
+if [[ "$reconnect_probe" == "1" ]]; then
+  host_reconnect_args+=(--expect-reconnect)
 fi
 
 mkdir -p "$report_dir"
@@ -42,7 +59,7 @@ mkdir -p "$report_dir"
   --script res://tools/multiplayer_lifecycle_probe.gd -- \
   --role host --port "$probe_port" --expected-peers "$peer_count" \
   --cycles "$cycle_count" --combat-shots "$combat_shots" \
-  "${probe_hit_args[@]}" >/dev/null 2>&1 &
+  "${probe_hit_args[@]}" "${host_reconnect_args[@]}" >/dev/null 2>&1 &
 host_pid=$!
 client_pids=()
 
@@ -81,6 +98,9 @@ while (( client_index < peer_count )); do
 	client_args=()
 	if [[ "$lite_clients" == "1" ]]; then
 		client_args+=(--network-probe-lite-client)
+	fi
+	if [[ "$reconnect_probe" == "1" && "$client_index" == "1" ]]; then
+		client_args+=(--reconnect-client)
 	fi
 	"$godot_bin" \
     --headless \
@@ -129,6 +149,6 @@ if (( client_failed != 0 )); then
 fi
 
 metric_line="$(rg 'MULTIPLAYER_LIFECYCLE_METRIC' "$host_log" | tail -1)"
-print "MULTIPLAYER_LIFECYCLE_PROBE PASS peers=$peer_count cycles=$cycle_count lite_clients=$lite_clients combat_shots=$combat_shots controlled_hits=$controlled_hits"
+print "MULTIPLAYER_LIFECYCLE_PROBE PASS peers=$peer_count cycles=$cycle_count lite_clients=$lite_clients combat_shots=$combat_shots controlled_hits=$controlled_hits reconnect=$reconnect_probe"
 print "$metric_line"
 print "Reports: $report_dir"

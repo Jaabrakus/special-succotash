@@ -101,6 +101,27 @@ in the build and every public-facing brand element.
 Exit criterion: one diagram can explain every source of truth, and every Lab
 edits the same profiles consumed by gameplay.
 
+### Authoring-tool boundary
+
+- [ ] Use the Godot editor as the primary production surface for scenes,
+  skeleton import, AnimationTree state, collisions, navigation, materials,
+  lighting, audio assignment, and versioned Resources.
+- [ ] Move reusable Animation Studio, Gunsmith, and Map Lab authoring controls
+  into focused `@tool` editor plugins, docks, inspectors, and 3D gizmos.
+- [ ] Keep runtime tools only when they must observe the exact gameplay camera,
+  reticle, networking, acoustic context, or player-facing map-authoring flow.
+- [ ] Make editor tools and runtime load the same Resources. Do not maintain a
+  second saved pose, animation route, weapon mount, or map state in runtime UI.
+- [ ] Migrate one vertical slice at a time. Prove editor/runtime output parity
+  before removing its old Lab path or changing verified playable behavior.
+- [ ] Preserve the non-programmer workflow: direct manipulation, clear visual
+  ownership, natural-language proposals, validation, undo, and one-click test.
+
+This keeps the useful SOCOM-specific visual workflow without maintaining a
+second game editor inside the game. Animation-state authoring is the first
+migration target because duplicate preview/runtime animation ownership has
+caused the most severe regressions.
+
 ## Gate two: character and animation quality
 
 ### Canonical rig
@@ -448,8 +469,10 @@ rollback plan, launch communications, and signed release decision.
    rematch cycles with 2, 4, 8, and the advertised 16 peers. Four full visual
    clients passed three cycles. The 16-peer host test uses lightweight network
    bots so one workstation does not create 256 animation rigs. All 16 peers also
-   completed two cycles of simultaneous fire and reload validation. Long-duration,
-   reconnect, packet-loss, and adverse-network soak remain open.
+   completed two cycles of simultaneous fire and reload validation. A designated
+   client also disconnects and rejoins a 16-player live round as a safe spectator,
+   then regains normal operator authority after the rematch. Long-duration,
+   packet-loss, and adverse-network soak remain open.
 7. ~~Profile startup and an initial maximum-player firefight.~~ The current local
    debug baseline covers 16 peers firing five authoritative rounds each per cycle,
    player-owned ammunition transfer, reload, and bounded server processing. Repeat
@@ -534,8 +557,28 @@ elimination gate.
 
 This closes the local maximum-lobby fire/reload/torso-damage/elimination/rematch
 gate. Headshot, limb, and anatomical overlap classification remain covered by
-focused deterministic regressions. Internet latency, packet loss, reconnect,
-long-duration soak, exploit testing, and target-hardware capacity remain open.
+focused deterministic regressions. Internet latency, packet loss, long-duration
+soak, exploit testing, and target-hardware capacity remain open.
+
+## Reconnect lifecycle milestone — 2026-08-24
+
+- [x] Four and sixteen real ENet peers complete two match/rematch cycles while
+  one designated client deliberately disconnects during the first live round.
+- [x] The returning client receives a new transient ENet peer identity and the
+  server keeps it as a spectator: the lobby contains it, the active operator
+  roster does not, and it receives no local gameplay authority.
+- [x] The complete lobby returns safely after cycle one. Every player readies
+  again, and the returning peer receives a normal authoritative operator in
+  cycle two.
+- [x] The ordinary two-peer lifecycle path still passes with reconnect mode off.
+- [x] The second-cycle maximum-lobby sample used 174.71 MB and measured 15.823 ms
+  mean / 21.374 ms p95 / 21.693 ms maximum wall-frame intervals on the local
+  debug workstation.
+
+This closes local transport reconnect and safe mid-round spectator behavior.
+It does not provide durable account/session identity, reserved slots, recovery
+after host loss, or proof under Internet latency, jitter, packet loss, and
+reordering. Those remain commercial operations and adverse-network gates.
 
 This is a technical baseline, not a commercial-release claim. Legal clearance,
 external playtesting, multiplayer soak, production content, accessibility,

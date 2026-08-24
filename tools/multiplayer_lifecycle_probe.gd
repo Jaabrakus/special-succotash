@@ -2,6 +2,8 @@ extends SceneTree
 
 const MultiplayerScene := preload("res://multiplayer_slice.tscn")
 const ControlledDamageProbe := preload("res://tools/multiplayer_controlled_damage_probe.gd")
+const RECONNECT_LIVE_ROUND_SETTLE_SECONDS := 1.0
+const RECONNECT_SPECTATOR_OBSERVE_SECONDS := 0.5
 
 var role := ""
 var port := 24141
@@ -10,6 +12,8 @@ var client_index := 1
 var cycle_count := 2
 var combat_shots_per_cycle := 0
 var controlled_hits := false
+var expect_reconnect := false
+var reconnect_client := false
 var slice: Node
 var controlled_damage_probe
 
@@ -31,6 +35,10 @@ func _initialize() -> void:
 			combat_shots_per_cycle = clampi(int(args[index + 1]), 0, 20)
 		elif args[index] == "--controlled-hits":
 			controlled_hits = true
+		elif args[index] == "--expect-reconnect":
+			expect_reconnect = true
+		elif args[index] == "--reconnect-client":
+			reconnect_client = true
 	call_deferred("_run")
 
 
@@ -90,6 +98,30 @@ func _run_host() -> void:
 			# construction burst at round spawn.
 			await create_timer(0.90).timeout
 		await _sample_host_performance(cycle, 0.75)
+		if expect_reconnect and cycle == 1:
+			if not await _wait_until(
+				func() -> bool:
+					return (
+						slice.lobby.players.size() == expected_peers
+						and slice.operators.size() == expected_peers - 1
+					),
+				8.0
+			):
+				_fail("reconnecting peer did not return as a safe mid-match spectator")
+				return
+			var spectator_count := 0
+			for raw_id in slice.lobby.players:
+				if not slice.operators.has(raw_id):
+					spectator_count += 1
+			if spectator_count != 1:
+				_fail("reconnect produced %d spectators instead of one" % spectator_count)
+				return
+			print("MULTIPLAYER_LIFECYCLE HOST_RECONNECT_SPECTATOR cycle=1")
+			# Hold the synthetic round open long enough for the returning client to
+			# observe its authoritative spectator state. A real match naturally has
+			# this interval; the probe otherwise ends the round in the same frame that
+			# the reconnect handshake completes.
+			await create_timer(RECONNECT_SPECTATOR_OBSERVE_SECONDS).timeout
 		if combat_shots_per_cycle > 0:
 			if not await _wait_until(
 				func() -> bool: return _all_probe_shots_consumed(starting_ammo),
@@ -183,6 +215,21 @@ func _run_client() -> void:
 			_fail("client %d did not enter cycle %d with %d peers" % [client_index, cycle, expected_peers])
 			return
 		print("MULTIPLAYER_LIFECYCLE CLIENT_MATCH_STARTED index=%d cycle=%d peer=%d" % [client_index, cycle, peer_id])
+		if reconnect_client and cycle == 1:
+			# Every peer receives the live-round snapshot independently. At a full
+			# local lobby, this client can process that snapshot before the host
+			# probe coroutine records its own start marker. Keep the complete roster
+			# stable for one bounded window so this probe measures reconnect behavior
+			# instead of racing the initial round-start observation.
+			await create_timer(RECONNECT_LIVE_ROUND_SETTLE_SECONDS).timeout
+			if not slice.session_active or not slice.round_active:
+				_fail("client %d lost the live round before reconnect" % client_index)
+				return
+			var reconnect_result: Dictionary = await _reconnect_as_spectator(peer_id)
+			if not bool(reconnect_result.get("ok", false)):
+				_fail(String(reconnect_result.get("reason", "reconnect failed")))
+				return
+			peer_id = int(reconnect_result.peer_id)
 		if combat_shots_per_cycle > 0:
 			await _fire_client_probe_shots(cycle, peer_id)
 		if controlled_hits:
@@ -220,6 +267,33 @@ func _local_lobby_ready(peer_id: int) -> bool:
 	var raw_key: Variant = peer_id if slice.lobby.players.has(peer_id) else str(peer_id)
 	var player_state: Variant = slice.lobby.players.get(raw_key, {})
 	return bool((player_state as Dictionary).get("ready", false)) if player_state is Dictionary else false
+
+
+func _reconnect_as_spectator(previous_peer_id: int) -> Dictionary:
+	slice.call("_disconnect_existing_peer")
+	await create_timer(0.10).timeout
+	if slice.call("join_match", "127.0.0.1", port) != OK:
+		return {"ok": false, "reason": "client %d could not reconnect" % client_index}
+	if not await _wait_until(
+		func() -> bool:
+			var new_peer_id: int = slice.multiplayer.get_unique_id()
+			return (
+				new_peer_id > 1
+				and new_peer_id != previous_peer_id
+				and slice.lobby.players.has(new_peer_id)
+				and slice.session_active
+			),
+		8.0
+	):
+		return {"ok": false, "reason": "client %d reconnect handshake timed out" % client_index}
+	var new_peer_id: int = slice.multiplayer.get_unique_id()
+	if slice.operators.has(new_peer_id) or slice.local_operator != null:
+		return {"ok": false, "reason": "reconnecting client received unsafe mid-round authority"}
+	print(
+		"MULTIPLAYER_LIFECYCLE CLIENT_RECONNECTED_SPECTATOR index=%d old=%d new=%d"
+		% [client_index, previous_peer_id, new_peer_id]
+	)
+	return {"ok": true, "peer_id": new_peer_id}
 
 
 func _fire_host_probe_shots(cycle: int) -> void:
