@@ -197,6 +197,20 @@ func _run() -> void:
 		and not bool(player_body.get("local_input_enabled")),
 		"the authored throw motion launches one grenade before the animation ends"
 	)
+	var recovery_fraction := GrenadeReleaseTimeline.recovery_fraction(grenade_clip)
+	grenade_driver.call(
+		"_update_requested_action",
+		grenade_animation_duration * maxf(
+			recovery_fraction - release_fraction + 0.01,
+			0.01
+		)
+	)
+	_expect(
+		bool(main.get("grenade_throw_in_progress"))
+		and not bool(player_body.get("local_input_enabled"))
+		and "grenade" not in String(grenade_driver.get("current_clip")).to_lower(),
+		"locomotion blends during the throw tail before movement translation resumes"
+	)
 	grenade_driver.call(
 		"_update_requested_action",
 		float(grenade_driver.get("requested_action_remaining")) + 0.01

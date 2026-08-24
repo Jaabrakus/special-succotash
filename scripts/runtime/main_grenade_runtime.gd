@@ -182,10 +182,10 @@ func complete_throw(_clip_name: StringName, generation: int) -> void:
 func begin_throw_recovery(_clip_name: StringName, generation: int) -> void:
 	if not throw_in_progress or generation != throw_generation:
 		return
-	# The grenade has left the hand and the authored follow-through is ending.
-	# Re-enable authoritative input now so the animation graph can blend toward
-	# the actual directional locomotion before CharacterBody begins translating.
-	_set_movement_locked(false)
+	# The animation driver starts its locomotion crossfade at this cue. Keep the
+	# authoritative body stationary until the action completes so the operator
+	# cannot translate while the throw pose is still fading out. complete_throw()
+	# restores input after the base locomotion route has regained visual control.
 
 
 func cancel_for_jump() -> void:
@@ -338,8 +338,8 @@ func throw_selected(
 func _animation_speed_for_charge(charge: float) -> float:
 	var throw_profile: Dictionary = GrenadeProfile.load_profile().get("throw", {})
 	return lerpf(
-		float(throw_profile.get("quick_throw_playback_speed", 1.95)),
-		float(throw_profile.get("full_throw_playback_speed", 1.08)),
+		float(throw_profile.get("quick_throw_playback_speed", 2.05)),
+		float(throw_profile.get("full_throw_playback_speed", 1.15)),
 		clampf(charge, 0.0, 1.0)
 	)
 

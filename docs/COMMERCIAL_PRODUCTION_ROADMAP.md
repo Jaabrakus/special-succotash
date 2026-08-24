@@ -669,19 +669,20 @@ platform packaging, and operations remain open gates.
 ## Grenade throw recovery checkpoint — 2026-08-24
 
 - [x] Full and quick grenade throws now read their playback speeds from the one
-  shared Grenade Lab profile (`1.08x` full, `1.95x` quick).
+  shared Grenade Lab profile (`1.15x` full, `2.05x` quick).
 - [x] Full throw power builds in `0.78 s`, and saved overhand/underhand launch
-  speeds are approximately five percent faster while preserving the distinct arcs.
+  speeds are `16.0 m/s` and `6.4 m/s`, preserving their distinct arcs while
+  making grenade flight approximately five percent faster.
 - [x] Grenade release remains tied to the authored hand-release cue rather than
   a detached gameplay timer.
 - [x] A separate recovery cue begins during the final `14–16%` of each stance's
-  throw. It releases the movement lock and blends the full-body throw into the
-  current standing, crouched, or prone directional locomotion over `0.12 s`,
-  preventing a translating last-pose glide.
+  throw. It starts the `0.12 s` full-body-to-locomotion blend while translation
+  remains locked. The action-complete cue restores movement only after the base
+  locomotion route has visual control, preventing the throw pose from gliding.
 - [x] Grenade Lab exposes full/quick playback speed and movement-recovery blend
   controls, and Save continues feeding the playable build through the shared profile.
 - [x] Grenade release-timeline, tactical-grenade, shared-profile, project parse,
-  and complete quick integration regressions pass after the change.
+  and gameplay input/recovery regressions pass after the final timing pass.
 
 ## Operator-animation refactor checkpoint — 2026-08-24
 

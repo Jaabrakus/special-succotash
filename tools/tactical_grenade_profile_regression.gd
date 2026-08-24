@@ -25,11 +25,13 @@ func _run() -> void:
 	)
 	_expect(
 		float(throw_values.get("full_throw_charge_seconds", 9.0)) <= 0.80
-		and float(throw_values.get("full_throw_playback_speed", 0.0)) > 1.0
+		and float(throw_values.get("full_throw_playback_speed", 0.0)) >= 1.15
 		and float(throw_values.get("quick_throw_playback_speed", 0.0))
-			> float(throw_values.get("full_throw_playback_speed", 0.0))
+			>= 2.05
+		and float(throw_values.get("overhand_speed", 0.0)) >= 16.0
+		and float(throw_values.get("underhand_speed", 0.0)) >= 6.4
 		and float(throw_values.get("recovery_blend_seconds", 9.0)) <= 0.15,
-		"saved throw profile accelerates the arc and exposes a bounded locomotion recovery"
+		"saved throw profile slightly accelerates the animation and arc with bounded locomotion recovery"
 	)
 	var clamped := Profile.normalize({
 		"smoke": {"maximum_radius": 99.0, "particle_amount": 2},
