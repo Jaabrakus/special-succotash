@@ -227,11 +227,12 @@ latency, bandwidth, crash, and correctness budgets.
 
 ### Demolition production rules
 
-- [ ] Neutral bomb spawn and ownership.
-- [ ] Pickup, drop, carrier death, recovery, planting, cancellation, defense,
+- [x] Neutral bomb spawn and server-owned carrier state.
+- [x] Pickup, drop, carrier loss, recovery, planting, cancellation, defense,
   defuse if supported, explosion, timeout, elimination, and round winner.
-- [ ] Both teams receive correct objectives and HUD information.
-- [ ] Objective state survives reconnects and late joins safely.
+- [x] Both teams receive correct objectives and HUD information.
+- [x] Mid-match arrivals receive the current objective and round snapshot as
+  safe spectators; reconnectable player identity remains an operations task.
 - [ ] Tie, simultaneous event, and final-frame edge cases are deterministic.
 
 ### Production map requirements

@@ -319,6 +319,20 @@ func _on_peer_connected(peer_id: int) -> void:
 			existing.team_id,
 			existing.global_position
 		)
+	# Mid-match arrivals are safe spectators until the next lobby. They receive
+	# the authoritative clock, score, and objective snapshot, but no operator or
+	# gameplay authority is created for them during an active round.
+	if session_active:
+		receive_round_state.rpc_id(
+			peer_id,
+			round_time_remaining,
+			int(team_round_wins.get(0, 0)),
+			int(team_round_wins.get(1, 0)),
+			round_index,
+			round_active
+		)
+		receive_objective_state.rpc_id(peer_id, _objective_state_snapshot())
+		receive_match_event.rpc_id(peer_id, "MATCH IN PROGRESS  •  waiting for next lobby")
 	_broadcast_lobby()
 	_set_status("PLAYER %d JOINED LOBBY  •  %d connected" % [peer_id, lobby.players.size()])
 	print("MP_SLICE PEER_JOINED peer=%d players=%d" % [peer_id, lobby.players.size()])
@@ -328,6 +342,8 @@ func _on_peer_disconnected(peer_id: int) -> void:
 	if multiplayer.is_server():
 		var departed_operator := operators.get(peer_id) as SocomNetworkOperator
 		var departed_team := departed_operator.team_id if departed_operator != null else -1
+		_drop_bomb_from_peer(peer_id)
+		objective_interact_held.erase(peer_id)
 		lobby.remove_player(peer_id)
 		_remove_operator(peer_id)
 		despawn_operator.rpc(peer_id)
@@ -1643,7 +1659,14 @@ func _broadcast_objective_toast(message: String) -> void:
 
 
 func _broadcast_objective_state() -> void:
-	var state := {
+	var state := _objective_state_snapshot()
+	receive_objective_state(state)
+	if multiplayer.multiplayer_peer != null and multiplayer.is_server():
+		receive_objective_state.rpc(state)
+
+
+func _objective_state_snapshot() -> Dictionary:
+	return {
 		"carrier_peer_id": bomb_carrier_peer_id,
 		"world_position": bomb_world_position,
 		"planted": bomb_planted,
@@ -1653,9 +1676,6 @@ func _broadcast_objective_state() -> void:
 		"defusing_peer_id": bomb_defusing_peer_id,
 		"defuse_progress": bomb_defuse_progress,
 	}
-	receive_objective_state(state)
-	if multiplayer.multiplayer_peer != null and multiplayer.is_server():
-		receive_objective_state.rpc(state)
 
 
 func _server_reload_weapon(peer_id: int) -> void:

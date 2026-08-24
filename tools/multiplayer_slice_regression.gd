@@ -152,6 +152,21 @@ func _run() -> void:
 		"replicated bomb ownership shows the backpack only on the current carrier"
 	)
 	alpha_objective_operator.global_position = Vector3((slice.bomb_site_positions.get(1, []) as Array)[0])
+	slice.call("_advance_demolition_objective", float(slice.mission_rules.get("plant_time_seconds", 5.0)) * 0.5)
+	_assert(slice.bomb_plant_progress > 0.0 and not slice.bomb_planted, "planting advances only while the carrier holds interact at the enemy target")
+	slice.objective_interact_held[101] = false
+	slice.call("_advance_demolition_objective", 0.1)
+	_assert(is_zero_approx(slice.bomb_plant_progress), "releasing interact cancels an incomplete plant")
+	slice.objective_interact_held[101] = true
+	slice.call("_drop_bomb_from_peer", 101)
+	_assert(
+		slice.bomb_carrier_peer_id == 0
+		and slice.bomb_world_position.is_equal_approx(alpha_objective_operator.global_position),
+		"carrier loss drops the bomb at the last authoritative operator position"
+	)
+	slice.call("_advance_demolition_objective", 0.1)
+	_assert(slice.bomb_carrier_peer_id == 101, "a dropped bomb can be recovered through the same validated pickup rule")
+	alpha_objective_operator.global_position = Vector3((slice.bomb_site_positions.get(1, []) as Array)[0])
 	slice.call("_advance_demolition_objective", float(slice.mission_rules.get("plant_time_seconds", 5.0)) + 0.01)
 	_assert(slice.bomb_planted and slice.bomb_planting_team == 0, "Alpha can plant at Bravo's authored target")
 	_assert(alpha_bomb_pack != null and not alpha_bomb_pack.visible, "planting removes the bomb backpack from the carrier")
@@ -176,12 +191,24 @@ func _run() -> void:
 	slice.objective_interact_held[101] = false
 	bravo_objective_operator.global_position = slice.bomb_world_position
 	slice.objective_interact_held[102] = true
+	slice.call("_advance_demolition_objective", float(slice.mission_rules.get("defuse_time_seconds", 5.0)) * 0.5)
+	_assert(slice.bomb_defusing_peer_id == 102 and slice.bomb_defuse_progress > 0.0, "a living defender can begin a server-owned defuse")
+	slice.objective_interact_held[102] = false
+	slice.call("_advance_demolition_objective", 0.1)
+	_assert(slice.bomb_defusing_peer_id == 0 and is_zero_approx(slice.bomb_defuse_progress), "moving away or releasing interact cancels an incomplete defuse")
+	slice.objective_interact_held[102] = true
 	slice.call("_advance_demolition_objective", float(slice.mission_rules.get("defuse_time_seconds", 5.0)) + 0.01)
 	_assert(
 		not slice.round_active
 		and not slice.bomb_planted
 		and int(slice.team_round_wins.get(1, 0)) == 1,
 		"a living defender holding F at the planted bomb completes a server-owned defuse"
+	)
+	var completed_objective_snapshot: Dictionary = slice.call("_objective_state_snapshot")
+	_assert(
+		int(completed_objective_snapshot.get("carrier_peer_id", -1)) == 0
+		and not bool(completed_objective_snapshot.get("planted", true)),
+		"late-join objective snapshots expose the same completed authoritative state"
 	)
 
 	# Start a clean objective state to retain the detonation win regression.
