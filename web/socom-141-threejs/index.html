@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Standalone Three.js SOCOM-141 gameplay vertical slice." />
+    <title>SOCOM-141 / Three.js Field Test</title>
+  </head>
+  <body>
+    <main id="game-shell">
+      <canvas id="game" tabindex="0" aria-label="SOCOM-141 Three.js training range"></canvas>
+
+      <div class="grain" aria-hidden="true"></div>
+      <div class="frame" aria-hidden="true"></div>
+
+      <header class="mission-header">
+        <div>
+          <p>FIELD TEST / WEB-01</p>
+          <h1>TRAINING RANGE</h1>
+        </div>
+        <div class="authority"><span></span>LOCAL VERTICAL SLICE</div>
+      </header>
+
+      <section id="objective" class="objective">
+        <span>OBJECTIVE</span>
+        <strong>ELIMINATE THE RANGE TARGETS</strong>
+      </section>
+
+      <div id="reticle" class="reticle" aria-hidden="true">
+        <i class="reticle-top"></i><i class="reticle-right"></i>
+        <i class="reticle-bottom"></i><i class="reticle-left"></i>
+        <b></b>
+      </div>
+
+      <aside class="status-panel">
+        <div><span>HEALTH</span><strong id="health">100</strong></div>
+        <div><span>RIFLE</span><strong><b id="magazine">30</b><small>/ <span id="reserve">211</span></small></strong></div>
+        <div><span>FRAG</span><strong id="grenades">3</strong></div>
+        <p id="stance">STANDING</p>
+      </aside>
+
+      <aside class="range-panel">
+        <span>RANGE STATUS</span>
+        <strong><b id="targets-left">4</b> TARGETS</strong>
+        <p id="weapon-state">RIFLE READY</p>
+      </aside>
+
+      <div id="grenade-charge" class="grenade-charge" aria-hidden="true">
+        <span>THROW</span><i><b></b></i>
+      </div>
+
+      <section id="deploy" class="deploy-card">
+        <p>SOCOM-141 / CLEAN PORT EXPERIMENT</p>
+        <h2>THREE.JS FIELD TEST</h2>
+        <div class="deploy-rule"></div>
+        <p class="brief">A separate playable build using the current movement, camera, rifle, reticle, reload, and grenade values.</p>
+        <button id="deploy-button">CLICK TO DEPLOY</button>
+        <div class="controls-grid">
+          <span><b>WASD</b> MOVE</span><span><b>MOUSE</b> AIM</span>
+          <span><b>LMB</b> FIRE</span><span><b>R</b> RELOAD</span>
+          <span><b>SPACE</b> JUMP</span><span><b>C / Z</b> CROUCH / PRONE</span>
+          <span><b>HOLD G</b> THROW FRAG</span><span><b>RMB DRAG</b> EMBEDDED AIM</span>
+        </div>
+      </section>
+
+      <div id="message" class="message"></div>
+      <div id="loading" class="loading"><span></span>PREPARING OPERATOR</div>
+    </main>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

@@ -299,8 +299,10 @@ func preview_event(
 		source_zone, listener_zone, source_position, listener_position,
 		portals, direct_clear, profile
 	)
-	route["event_class"] = &"weapon"
-	route["priority"] = 100
+	var event_class := StringName(options.get("event_class", &"weapon"))
+	var policy := profile.policy_for(event_class)
+	route["event_class"] = event_class
+	route["priority"] = int(options.get("priority", policy.get("priority", 25)))
 	route["volume_db"] = float(route.get("volume_db", 0.0)) + float(options.get("volume_db", 0.0))
 	route["pitch_scale"] = float(options.get("pitch_scale", 1.0))
 	route["extra_delay_seconds"] = float(options.get("delay_seconds", 0.0))

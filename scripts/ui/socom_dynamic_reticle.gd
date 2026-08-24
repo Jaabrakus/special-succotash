@@ -47,6 +47,13 @@ var shot_bounce_duration: float = 0.070
 var shot_bounce_amplitude: float = 0.0
 var functional_aim_climb_enabled: bool = false
 
+const CADENCE_BOUNCE_FRACTION: float = 0.52
+const CADENCE_RETURN_REMAINDER: float = 0.10
+const MIN_BOUNCE_DURATION_SECONDS: float = 0.035
+const MAX_BOUNCE_DURATION_SECONDS: float = 0.120
+const MIN_KICK_RETURN_SPEED: float = 8.0
+const MAX_KICK_RETURN_SPEED: float = 40.0
+
 func _ready() -> void:
     mouse_filter = MOUSE_FILTER_IGNORE
     _sync_to_viewport()
@@ -135,7 +142,24 @@ func apply_profile(profile: Dictionary) -> void:
         )
     )
     shot_bounce_duration = float(profile.get("shot_bounce_duration", shot_bounce_duration))
+    if profile.has("fire_interval_seconds"):
+        _apply_fire_cadence(float(profile.get("fire_interval_seconds", 0.0)))
     target_gap = clampf(target_gap, base_gap, max_bloom_gap)
+
+func _apply_fire_cadence(fire_interval_seconds: float) -> void:
+    var interval := maxf(fire_interval_seconds, 0.001)
+    shot_bounce_duration = clampf(
+        interval * CADENCE_BOUNCE_FRACTION,
+        MIN_BOUNCE_DURATION_SECONDS,
+        MAX_BOUNCE_DURATION_SECONDS
+    )
+    # Exponential return leaves ten percent of the radial impulse at the next
+    # legal shot. RPM changes presentation cadence, never ballistic authority.
+    shot_kick_return = clampf(
+        -log(CADENCE_RETURN_REMAINDER) / interval,
+        MIN_KICK_RETURN_SPEED,
+        MAX_KICK_RETURN_SPEED
+    )
 
 func _draw() -> void:
     var center := get_authoritative_center()

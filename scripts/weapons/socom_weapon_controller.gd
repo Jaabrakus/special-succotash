@@ -151,6 +151,7 @@ func _apply_weapon_config(config: Dictionary) -> bool:
 		9999
 	)
 	ballistics.fire_interval = 60.0 / maxf(60.0, ballistics.fire_rate_rpm)
+	reticle_profile["fire_interval_seconds"] = ballistics.fire_interval
 	return true
 
 

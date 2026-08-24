@@ -40,6 +40,8 @@ var legacy_transition: AnimationNodeTransition
 var modern_transition: AnimationNodeTransition
 var modern_state_indices: Dictionary = {}
 var legacy_clip_indices: Dictionary = {}
+var modern_clip_time_scale_paths: Dictionary = {}
+var legacy_clip_time_scale_paths: Dictionary = {}
 var profile
 var weapon_handling_profile: Dictionary = {}
 var modern_enabled: bool = true
@@ -52,6 +54,7 @@ var rendered_direction := Vector2.UP
 var prone_travel_blend: float = 1.0
 var standing_transition_layer_nodes: Array[StringName] = []
 var standing_transition_ready_nodes: Array[StringName] = []
+var airborne_upper_body_layer_nodes: Array[StringName] = []
 var fire_transition: AnimationNodeTransition
 var fire_layer_node: AnimationNodeOneShot
 var fire_clips_by_posture: Dictionary = {}
@@ -227,6 +230,11 @@ func update_locomotion(
 			"parameters/%s/blend_amount" % layer_name,
 			upper_body_ready_blend
 		)
+	for layer_name in airborne_upper_body_layer_nodes:
+		animation_tree.set(
+			"parameters/%s/blend_amount" % layer_name,
+			1.0
+		)
 	for ready_name in standing_transition_ready_nodes:
 		animation_tree.set(
 			"parameters/%s/blend_amount" % ready_name,
@@ -253,6 +261,16 @@ func request_legacy_clip(clip_name: StringName, blend_seconds: float) -> bool:
 	legacy_transition.xfade_time = maxf(blend_seconds, 0.0)
 	animation_tree.set("parameters/legacy_transition/transition_request", clip_name)
 	return true
+
+
+func set_clip_playback_speed(clip_name: StringName, playback_speed: float) -> void:
+	if animation_tree == null:
+		return
+	var resolved_speed := clampf(playback_speed, 0.25, 3.0)
+	if modern_clip_time_scale_paths.has(clip_name):
+		animation_tree.set(modern_clip_time_scale_paths[clip_name], resolved_speed)
+	if legacy_clip_time_scale_paths.has(clip_name):
+		animation_tree.set(legacy_clip_time_scale_paths[clip_name], resolved_speed)
 
 
 func trigger_fire(
@@ -505,9 +523,16 @@ func _build_legacy_route(root: AnimationNodeBlendTree, available_clips: Dictiona
 	for raw_clip_name in available_clips.keys():
 		var clip_name := StringName(raw_clip_name)
 		var node_name := StringName("legacy_%s" % clip_name)
+		var source_name := node_name
 		legacy_transition.set_input_name(index, clip_name)
 		root.add_node(node_name, _animation_node(clip_name), Vector2(-900.0, -500.0 + index * 30.0))
-		root.connect_node(&"legacy_transition", index, node_name)
+		if _uses_action_time_scale(clip_name):
+			var scale_name := StringName("%s_time_scale" % node_name)
+			root.add_node(scale_name, AnimationNodeTimeScale.new(), Vector2(-650.0, -500.0 + index * 30.0))
+			root.connect_node(scale_name, 0, node_name)
+			source_name = scale_name
+			legacy_clip_time_scale_paths[clip_name] = StringName("parameters/%s/scale" % scale_name)
+		root.connect_node(&"legacy_transition", index, source_name)
 		legacy_clip_indices[clip_name] = index
 		index += 1
 
@@ -591,8 +616,15 @@ func _build_modern_route(root: AnimationNodeBlendTree, available_clips: Dictiona
 		if _is_directional_locomotion(clip_name) or clip_name in [&"idle_rifle", &"aim_idle", &"idle_crouch"]:
 			continue
 		var node_name := StringName("modern_state_%s" % clip_name)
+		var source_name := node_name
 		root.add_node(node_name, _animation_node(clip_name), Vector2(40.0, 540.0 + state_sources.size() * 42.0))
-		if _is_standing_locomotion_transition(clip_name):
+		if _uses_action_time_scale(clip_name):
+			var scale_name := StringName("%s_time_scale" % node_name)
+			root.add_node(scale_name, AnimationNodeTimeScale.new(), Vector2(180.0, 540.0 + state_sources.size() * 42.0))
+			root.connect_node(scale_name, 0, node_name)
+			source_name = scale_name
+			modern_clip_time_scale_paths[clip_name] = StringName("parameters/%s/scale" % scale_name)
+		if _uses_upper_body_ready_layer(clip_name):
 			var layer_name := StringName("%s_upper_body" % node_name)
 			var transition_upper_body := AnimationNodeBlend2.new()
 			transition_upper_body.sync = true
@@ -610,13 +642,16 @@ func _build_modern_route(root: AnimationNodeBlendTree, available_clips: Dictiona
 			root.add_node(transition_aim_name, _animation_node(equipped_ready), Vector2(-260.0, 570.0 + state_sources.size() * 42.0))
 			root.connect_node(transition_ready_name, 0, transition_idle_name)
 			root.connect_node(transition_ready_name, 1, transition_aim_name)
-			root.connect_node(layer_name, 0, node_name)
+			root.connect_node(layer_name, 0, source_name)
 			root.connect_node(layer_name, 1, transition_ready_name)
-			standing_transition_layer_nodes.append(layer_name)
+			if _is_jump_mobility_clip(clip_name):
+				airborne_upper_body_layer_nodes.append(layer_name)
+			else:
+				standing_transition_layer_nodes.append(layer_name)
 			standing_transition_ready_nodes.append(transition_ready_name)
 			state_sources[clip_name] = layer_name
 		else:
-			state_sources[clip_name] = node_name
+			state_sources[clip_name] = source_name
 
 	modern_transition = AnimationNodeTransition.new()
 	modern_transition.input_count = state_sources.size()
@@ -698,6 +733,14 @@ func _is_standing_locomotion_transition(clip_name: StringName) -> bool:
 	]
 
 
+func _uses_upper_body_ready_layer(clip_name: StringName) -> bool:
+	return _is_standing_locomotion_transition(clip_name) or _is_jump_mobility_clip(clip_name)
+
+
+func _is_jump_mobility_clip(clip_name: StringName) -> bool:
+	return clip_name in [&"jump_up", &"jump_loop", &"jump_down"]
+
+
 func _animation_node(clip_name: StringName) -> AnimationNodeAnimation:
 	var node := AnimationNodeAnimation.new()
 	node.animation = clip_name
@@ -716,3 +759,7 @@ func _is_directional_locomotion(clip_name: StringName) -> bool:
 		if text in ["walk_%s" % suffix, "run_%s" % suffix, "crouch_%s" % suffix]:
 			return true
 	return false
+
+
+func _uses_action_time_scale(clip_name: StringName) -> bool:
+	return "grenade" in String(clip_name).to_lower()

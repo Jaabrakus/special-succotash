@@ -89,6 +89,8 @@ run_godot_check "multiplayer-slice-architecture" "res://tools/multiplayer_slice_
 run_godot_check "multiplayer-demolition" "res://tools/multiplayer_slice_regression.gd" "MULTIPLAYER_SLICE_REGRESSION PASS"
 run_godot_check "dynamic-hand-ownership" "res://tools/test_dynamic_hand_owned_weapon.gd" "DYNAMIC_HAND_OWNERSHIP_REGRESSION PASS"
 run_godot_check "dynamic-reload-handoff" "res://tools/test_dynamic_reload_handoff.gd" "DYNAMIC_RELOAD_HANDOFF_REGRESSION PASS"
+run_godot_check "weapon-presentation-owner" "res://tools/weapon_presentation_owner_regression.gd" "WEAPON_PRESENTATION_OWNER_REGRESSION PASS"
+run_godot_check "camera-passage-perception" "res://tools/camera_passage_perception_regression.gd" "CAMERA_PASSAGE_PERCEPTION_REGRESSION PASS"
 run_godot_check "prone-grounding" "res://tools/prone_grounding_regression.gd" "PRONE_GROUNDING_REGRESSION PASS"
 
 if [[ "$mode" == "full" ]]; then

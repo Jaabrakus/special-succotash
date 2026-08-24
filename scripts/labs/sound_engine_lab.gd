@@ -266,6 +266,19 @@ func _build_acoustic_ui(layer: CanvasLayer) -> void:
 	helmet_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	helmet_button.pressed.connect(_preview_acoustic_body.bind(true))
 	impact_row.add_child(helmet_button)
+	var grenade_row := HBoxContainer.new()
+	grenade_row.add_theme_constant_override("separation", 8)
+	column.add_child(grenade_row)
+	var frag_button := Button.new()
+	frag_button.text = "Frag Detonation"
+	frag_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	frag_button.pressed.connect(_preview_acoustic_grenade.bind(&"frag"))
+	grenade_row.add_child(frag_button)
+	var flash_button := Button.new()
+	flash_button.text = "Flashbang Detonation"
+	flash_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	flash_button.pressed.connect(_preview_acoustic_grenade.bind(&"flash"))
+	grenade_row.add_child(flash_button)
 	var production_note := _label("RUNTIME: 24 voices • 14 events/frame • weapon/explosion priority • distance culling • material transmission")
 	production_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	production_note.add_theme_font_size_override("font_size", 11)
@@ -368,6 +381,33 @@ func _preview_acoustic_footstep() -> void:
 	)
 	acoustic_preview.show_route(route, bool(setup.portal_open) or bool(setup.direct_clear))
 	acoustic_status.text = "FOOTSTEP • " + acoustic_status.text
+
+
+func _preview_acoustic_grenade(grenade_type: StringName) -> void:
+	_apply_acoustic_controls()
+	var setup := _acoustic_preview_setup()
+	var visible_route: Dictionary = {}
+	for layer: Dictionary in RuntimeAudio.grenade_explosion_layers(grenade_type):
+		var options := layer.duplicate(true)
+		options["event_class"] = &"explosion"
+		var route := acoustic_engine.preview_event(
+			layer.get("stream") as AudioStream,
+			setup.source_position,
+			setup.source_zone,
+			setup.listener_position,
+			setup.listener_zone,
+			setup.portals,
+			setup.direct_clear,
+			options
+		)
+		if visible_route.is_empty():
+			visible_route = route
+	acoustic_preview.show_route(
+		visible_route, bool(setup.portal_open) or bool(setup.direct_clear)
+	)
+	acoustic_status.text = (
+		"FLASHBANG" if grenade_type == &"flash" else "FRAG CORE + TAIL"
+	) + " • " + acoustic_status.text
 
 
 func _acoustic_preview_setup() -> Dictionary:

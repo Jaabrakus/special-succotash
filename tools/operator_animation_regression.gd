@@ -472,10 +472,16 @@ func _check_layered_recoil(driver) -> void:
     _expect(driver.notify_fired(), "crouched fire request is accepted")
     _advance(driver)
     crouch_snapshot = driver.get_animation_debug_state()
+    var crouched_weapon_pose: Dictionary = crouch_snapshot.get("weapon_pose", {})
     _expect(
         int(crouch_snapshot.get("fire_trigger_count", 0)) == fire_count_before + 1
         and StringName(crouch_snapshot.get("active_fire_clip", &"")) == &"crouch_fire",
         "crouched fire keeps its existing mapped animation layer"
+    )
+    _expect(
+        bool(crouched_weapon_pose.get("rail_to_blue_line_event_active", false))
+        and bool(crouched_weapon_pose.get("gun_placement_line_active", false)),
+        "crouched fire activates its saved blue-line placement"
     )
 
 func _check_crouched_reload_layer(driver) -> void:

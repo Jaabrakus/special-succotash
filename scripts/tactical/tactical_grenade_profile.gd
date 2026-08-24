@@ -19,6 +19,10 @@ const DEFAULT_PROFILE := {
 		"underhand_lift": 0.06,
 		"minimum_overhand_speed": 9.0,
 		"minimum_underhand_speed": 4.2,
+		"overhand_pitch_influence": 0.85,
+		"underhand_pitch_influence": 0.55,
+		"minimum_launch_elevation_degrees": -8.0,
+		"maximum_launch_elevation_degrees": 68.0,
 		"full_throw_charge_seconds": 0.78,
 		"maximum_hold_seconds": 1.25,
 		"full_throw_playback_speed": 1.15,
@@ -94,12 +98,20 @@ static func normalize(raw: Dictionary) -> Dictionary:
 		"underhand_lift": clampf(float(throw_values.get("underhand_lift", 0.06)), 0.0, 0.50),
 		"minimum_overhand_speed": clampf(float(throw_values.get("minimum_overhand_speed", 9.0)), 2.0, 20.0),
 		"minimum_underhand_speed": clampf(float(throw_values.get("minimum_underhand_speed", 4.2)), 1.0, 12.0),
+		"overhand_pitch_influence": clampf(float(throw_values.get("overhand_pitch_influence", 0.85)), 0.0, 1.25),
+		"underhand_pitch_influence": clampf(float(throw_values.get("underhand_pitch_influence", 0.55)), 0.0, 1.0),
+		"minimum_launch_elevation_degrees": clampf(float(throw_values.get("minimum_launch_elevation_degrees", -8.0)), -25.0, 10.0),
+		"maximum_launch_elevation_degrees": clampf(float(throw_values.get("maximum_launch_elevation_degrees", 68.0)), 25.0, 85.0),
 		"full_throw_charge_seconds": clampf(float(throw_values.get("full_throw_charge_seconds", 0.78)), 0.10, 2.0),
 		"maximum_hold_seconds": clampf(float(throw_values.get("maximum_hold_seconds", 1.25)), 0.25, 3.0),
 		"full_throw_playback_speed": clampf(float(throw_values.get("full_throw_playback_speed", 1.15)), 0.50, 2.0),
 		"quick_throw_playback_speed": clampf(float(throw_values.get("quick_throw_playback_speed", 2.05)), 0.75, 3.0),
 		"recovery_blend_seconds": clampf(float(throw_values.get("recovery_blend_seconds", 0.12)), 0.04, 0.30),
 	}
+	(profile["throw"] as Dictionary)["maximum_launch_elevation_degrees"] = maxf(
+		float((profile["throw"] as Dictionary).minimum_launch_elevation_degrees) + 10.0,
+		float((profile["throw"] as Dictionary).maximum_launch_elevation_degrees)
+	)
 	profile["smoke"] = {
 		"maximum_radius": clampf(float(smoke.get("maximum_radius", 6.5)), 2.0, 12.0),
 		"sprout_seconds": clampf(float(smoke.get("sprout_seconds", 1.35)), 0.25, 5.0),

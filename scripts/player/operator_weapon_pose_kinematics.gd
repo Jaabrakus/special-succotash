@@ -179,9 +179,11 @@ func _release_support_hand_grip_lock() -> void:
 
 func _weapon_transform_on_trigger_hand(hand_world: Transform3D) -> Transform3D:
 	var target_transform := hand_world * weapon_hand_mount_transform
-	weapon_node.global_transform = target_transform
+	weapon_presentation_owner.set_world_transform(target_transform)
 	if trigger_socket != null:
-		weapon_node.global_position += hand_world.origin - trigger_socket.global_position
+		weapon_presentation_owner.translate_world(
+			hand_world.origin - trigger_socket.global_position
+		)
 	return weapon_node.global_transform
 
 
@@ -204,7 +206,7 @@ func _render_weapon_direction(aim_direction: Vector3, body_forward: Vector3) -> 
 
 
 func _apply_ownership_return(target_transform: Transform3D, delta: float) -> void:
-	weapon_node.global_transform = target_transform
+	weapon_presentation_owner.set_world_transform(target_transform)
 	if ownership_return_elapsed < ownership_return_seconds:
 		var amount := clampf(
 			ownership_return_elapsed / maxf(ownership_return_seconds, 0.001),
@@ -212,9 +214,8 @@ func _apply_ownership_return(target_transform: Transform3D, delta: float) -> voi
 			1.0
 		)
 		amount = amount * amount * (3.0 - 2.0 * amount)
-		weapon_node.global_transform = ownership_return_start.interpolate_with(
-			target_transform,
-			amount
+		weapon_presentation_owner.set_world_transform(
+			ownership_return_start.interpolate_with(target_transform, amount)
 		)
 		ownership_return_elapsed = minf(
 			ownership_return_elapsed + maxf(delta, 0.0),
@@ -449,4 +450,3 @@ func _gun_placement_frame_world_transform() -> Transform3D:
 			stable_chest_anchor_world
 		)
 	return skeleton.global_transform * _gun_placement_frame_pose_local()
-

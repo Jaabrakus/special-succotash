@@ -228,6 +228,32 @@ Exit criterion: external reviewers cannot reproduce weapon detachment, extreme
 limb distortion, foot sliding that affects readability, or state snapback in
 the production movement/action matrix.
 
+### Weapon contact and camera-passage checkpoint — 2026-08-24
+
+- [x] Runtime rifle parent, transform, and visibility writes now pass through a
+  single presentation owner. Relaxed locomotion restores the authored
+  right-palm mount and corrects palm contact with translation only; it no longer
+  reconstructs weapon roll from a second body-forward solver.
+- [x] Crouched obstruction no longer lifts the hands or rifle toward the blue
+  line. The focused pose regression measures `-0.001 m` vertical muzzle drift
+  while keeping the reticle target and authoritative player unchanged.
+- [x] A final, non-accumulating finger-contact pass wraps both operator palms
+  around the saved weapon contacts. Reload/grenade support-hand release remains
+  governed by the existing ownership contract.
+- [x] The rendered camera can ignore only explicitly authored
+  `camera_soft_occluder` map objects; untagged building walls remain hard
+  blockers and gameplay collision layers are unchanged.
+- [x] One non-rendering perception sensor shares the real camera frustum.
+  Visible team relationships can be classified without a second rendered
+  camera, and raw enemies behind world geometry are deliberately rejected.
+- [x] Weapon-pose, aim-idle visibility, reload completion, reload/jump handoff,
+  locomotion-quality, camera-passage/perception, and the complete camera
+  regression suite pass on the combined worktree.
+- [ ] The quick integration gate is not green: the pre-existing running hold-C
+  mobility check completes prone but fails to observe the intermediate
+  `DIVING` state. This checkpoint does not claim the full Gate Two matrix or a
+  promotable restore point until that separately owned failure is resolved.
+
 ## Gate three: combat quality
 
 ### Aim and weapon behavior

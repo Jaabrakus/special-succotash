@@ -8,6 +8,13 @@ func bind(target_skeleton: Skeleton3D, attached_weapon: Node3D) -> void:
 	weapon_solver_anchor = Node3D.new()
 	weapon_solver_anchor.name = "WeaponSolverAnchor"
 	add_child(weapon_solver_anchor)
+	weapon_presentation_owner = WeaponPresentationOwner.new()
+	weapon_presentation_owner.bind(
+		weapon_node,
+		weapon_animation_parent,
+		weapon_solver_anchor,
+		weapon_hand_mount_transform
+	)
 	trigger_socket = _find_weapon_socket("Socket_RightHand")
 	support_socket = _find_weapon_socket("Socket_LeftHand")
 	muzzle_socket = _find_weapon_socket("Socket_Muzzle")
@@ -43,6 +50,7 @@ func bind(target_skeleton: Skeleton3D, attached_weapon: Node3D) -> void:
 		int(bone_indices.get(&"mixamorig_LeftHand", -1))
 	)
 	_calibrate_hand_mount_contact()
+	weapon_presentation_owner.update_hand_mount(weapon_hand_mount_transform)
 	_build_targets()
 	_build_socket_ik()
 
@@ -52,6 +60,14 @@ func rebind_weapon(attached_weapon: Node3D) -> void:
 	weapon_node = attached_weapon
 	weapon_animation_parent = weapon_node.get_parent() if weapon_node != null else null
 	weapon_hand_mount_transform = weapon_node.transform if weapon_node != null else Transform3D.IDENTITY
+	if weapon_presentation_owner == null:
+		weapon_presentation_owner = WeaponPresentationOwner.new()
+	weapon_presentation_owner.bind(
+		weapon_node,
+		weapon_animation_parent,
+		weapon_solver_anchor,
+		weapon_hand_mount_transform
+	)
 	trigger_socket = _find_weapon_socket("Socket_RightHand")
 	support_socket = _find_weapon_socket("Socket_LeftHand")
 	muzzle_socket = _find_weapon_socket("Socket_Muzzle")
@@ -68,6 +84,7 @@ func rebind_weapon(attached_weapon: Node3D) -> void:
 		and not bool(support_socket.get_meta("authored_weapon_socket", false))
 	)
 	_calibrate_hand_mount_contact()
+	weapon_presentation_owner.update_hand_mount(weapon_hand_mount_transform)
 	weapon_solver_owned = false
 	action_weapon_follow_active = false
 	gun_placement_baseline_basis_by_posture.clear()
@@ -86,10 +103,28 @@ func _calibrate_hand_mount_contact() -> void:
 		return
 	skeleton.force_update_all_bone_transforms()
 	var palm_world := _right_hand_grip_world_transform().origin
-	weapon_node.global_position += palm_world - trigger_socket.global_position
+	weapon_presentation_owner.translate_world(
+		palm_world - trigger_socket.global_position
+	)
 	# This corrected transform is the sole persistent hand mount. Ready, relaxed,
 	# reload recovery and weapon swaps all return to the same palm contact.
 	weapon_hand_mount_transform = weapon_node.transform
+	weapon_presentation_owner.update_hand_mount(weapon_hand_mount_transform)
+
+
+func set_weapon_presentation_visible(enabled: bool) -> void:
+	if weapon_presentation_owner != null:
+		weapon_presentation_owner.set_visible(enabled)
+	elif weapon_node != null:
+		weapon_node.visible = enabled
+
+
+func get_weapon_presentation_owner_state() -> Dictionary:
+	return (
+		weapon_presentation_owner.snapshot()
+		if weapon_presentation_owner != null
+		else {}
+	)
 
 
 func configure_joint_poles(raw_poles: Variant) -> void:
@@ -223,7 +258,12 @@ func clear_animation_frame_pose() -> void:
 
 func interrupt_action_weapon_follow() -> void:
 	action_weapon_follow_active = false
-	ownership_return_elapsed = ownership_return_seconds
+	# Preserve the exact visible action frame and let the next approved owner
+	# blend away from it. Marking the return complete here made jump interruption
+	# apply the ready pose in one frame, producing a half-metre rifle teleport.
+	if weapon_node != null:
+		ownership_return_start = weapon_node.global_transform
+	ownership_return_elapsed = 0.0
 	clear_animation_frame_pose()
 	_stop_socket_ik()
 
@@ -236,4 +276,3 @@ func _clear_frame_socket_override() -> void:
 	if support_socket != null:
 		support_socket.position = frame_support_socket_base
 	frame_socket_override_active = false
-

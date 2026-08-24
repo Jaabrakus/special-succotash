@@ -57,6 +57,10 @@ static func resolve(
 		return MOBILITY_CHEST_CARRY
 	if action_follow_active:
 		return RECOVERY_TO_READY
+	# Jump clips own only the lower body. Preserve the rifle state that entered
+	# the jump instead of automatically raising a relaxed gun into Aim Idle.
+	if movement_state in [&"AIRBORNE", &"LANDING"]:
+		return READY_SOLVER if ready_weight > 0.001 else RELAXED_RIFLE_LOCOMOTION
 	if ready_weight > 0.001:
 		return READY_SOLVER
 	return HOLSTERED_ANIMATION
@@ -127,7 +131,10 @@ static func weapon_follows_right_hand(owner: StringName) -> bool:
 
 
 static func weapon_uses_action_follow(owner: StringName) -> bool:
-	return owner in [RELOAD_RIGHT_HAND, MOBILITY_CHEST_CARRY]
+	# Reload is authored around the canonical right-palm attachment. Keeping the
+	# rifle under BoneAttachment3D lets the clip rotate and translate the hand
+	# without a second world-space transform owner chasing it a frame later.
+	return owner == MOBILITY_CHEST_CARRY
 
 
 static func ready_solver_owns_weapon(owner: StringName) -> bool:

@@ -97,14 +97,18 @@ func _run() -> void:
 	var solver_source := _read("res://scripts/player/operator_weapon_pose_solver.gd")
 	var solver_state_source := _read("res://scripts/player/operator_weapon_pose_state.gd")
 	var gunsmith_source := _read("res://scripts/labs/gun_calibration_lab.gd")
+	var gunsmith_dependencies_source := _read(
+		"res://scripts/labs/gunsmith/gunsmith_lab_dependencies.gd"
+	)
 	_expect(
 		"operator_weapon_pose_api.gd" in solver_source
 		and "res://scripts/player/weapon_ownership_contract.gd" in solver_state_source,
 		"componentized gameplay pose solver imports the shared contract once"
 	)
 	_expect(
-		"res://scripts/player/weapon_ownership_contract.gd" in gunsmith_source,
-		"Gunsmith imports the shared contract"
+		"gunsmith_lab_preview_api.gd" in gunsmith_source
+		and "res://scripts/player/weapon_ownership_contract.gd" in gunsmith_dependencies_source,
+		"componentized Gunsmith imports the shared contract once through its dependency layer"
 	)
 	if failures.is_empty():
 		print("POSE_OWNERSHIP_CONTRACT_REGRESSION PASS")

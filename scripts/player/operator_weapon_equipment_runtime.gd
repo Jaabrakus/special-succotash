@@ -49,6 +49,8 @@ static func apply(driver, raw_config: Dictionary) -> bool:
 		driver.weapon_pose_solver.configure_gun_placement_line(
 			driver.equipped_weapon_config.get("gun_placement_line", {})
 		)
+	if driver.weapon_grip_contact != null:
+		driver.weapon_grip_contact.rebind_weapon(driver.weapon_node)
 	driver._last_event_presentation = driver.resolve_presentation_event(
 		&"WEAPON_EQUIPPED"
 	)

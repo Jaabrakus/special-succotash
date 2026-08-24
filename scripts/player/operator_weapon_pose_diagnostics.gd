@@ -80,6 +80,7 @@ static func capture(source) -> Dictionary:
 		"action_weapon_chest_owned": source.action_weapon_chest_owned,
 		"action_weapon_swing_deg": source.action_weapon_swing_deg,
 		"action_trigger_contact_error_m": source.action_trigger_contact_error_m,
+		"action_support_contact_error_m": source.action_support_contact_error_m,
 		"support_hand_mode": source.support_hand_mode,
 		"pose_owners": pose_owners,
 		"ownership_conflicts": WeaponOwnershipContract.ownership_conflicts(

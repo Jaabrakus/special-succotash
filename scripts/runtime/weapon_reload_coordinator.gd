@@ -23,12 +23,32 @@ func _ready() -> void:
 
 
 func configure(player_node: Node, controller: Node) -> void:
+	if player != null and player.has_signal("mobility_action_started"):
+		var previous_mobility_callback := Callable(self, "_on_mobility_action_started")
+		if player.is_connected("mobility_action_started", previous_mobility_callback):
+			player.disconnect("mobility_action_started", previous_mobility_callback)
+	if player != null and player.has_signal("mobility_action_requested"):
+		var previous_request_callback := Callable(self, "_on_mobility_action_requested")
+		if player.is_connected("mobility_action_requested", previous_request_callback):
+			player.disconnect("mobility_action_requested", previous_request_callback)
 	if weapon_controller != null and weapon_controller.has_signal("ammo_changed"):
 		var previous_callback := Callable(self, "_on_ammo_changed")
 		if weapon_controller.is_connected("ammo_changed", previous_callback):
 			weapon_controller.disconnect("ammo_changed", previous_callback)
 	player = player_node
 	weapon_controller = controller
+	if player != null and player.has_signal("mobility_action_started"):
+		player.connect(
+			"mobility_action_started",
+			Callable(self, "_on_mobility_action_started")
+		)
+	if player != null and player.has_signal("mobility_action_requested"):
+		player.connect(
+			"mobility_action_requested",
+			Callable(self, "_on_mobility_action_requested")
+		)
+	if player != null:
+		player.set_meta("reload_action_pending", false)
 	_set_auto_reload_waiting(false)
 	if weapon_controller != null and weapon_controller.has_signal("ammo_changed"):
 		weapon_controller.connect("ammo_changed", Callable(self, "_on_ammo_changed"))
@@ -61,10 +81,31 @@ func _request_auto_reload() -> void:
 
 
 func _physics_process(_delta: float) -> void:
+	if pending and not _player_allows_reload():
+		# Mobility takes ownership before the next rendered pose. Waiting for the
+		# animation driver's process tick leaves one reload frame free to drag the
+		# rifle toward the magazine hand after jump/dive has already started.
+		if animation_driver != null and animation_driver.has_method("cancel_reload_action"):
+			animation_driver.call("cancel_reload_action")
+		return
 	if not auto_reload_waiting_for_safe_state or not _player_allows_reload():
 		return
 	_set_auto_reload_waiting(false)
 	call_deferred("_request_auto_reload")
+
+
+func _on_mobility_action_started(_state_name: StringName) -> void:
+	if not pending:
+		return
+	if animation_driver != null and animation_driver.has_method("cancel_reload_action"):
+		animation_driver.call("cancel_reload_action")
+
+
+func _on_mobility_action_requested(_state_name: StringName) -> void:
+	if not pending:
+		return
+	if animation_driver != null and animation_driver.has_method("cancel_reload_action"):
+		animation_driver.call("cancel_reload_action")
 
 
 func request_reload() -> bool:
@@ -111,7 +152,7 @@ func _player_allows_reload() -> bool:
 
 func _set_auto_reload_waiting(value: bool) -> void:
 	auto_reload_waiting_for_safe_state = value
-	set_physics_process(value)
+	_refresh_physics_process()
 
 
 func _on_animation_completed(clip_name: StringName, request_generation: int) -> void:
@@ -157,4 +198,11 @@ func _set_pending(value: bool) -> void:
 	if pending == value:
 		return
 	pending = value
+	if player != null:
+		player.set_meta("reload_action_pending", pending)
+	_refresh_physics_process()
 	pending_changed.emit(pending)
+
+
+func _refresh_physics_process() -> void:
+	set_physics_process(pending or auto_reload_waiting_for_safe_state)

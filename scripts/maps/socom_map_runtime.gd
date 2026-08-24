@@ -36,6 +36,7 @@ static func build_into(parent: Node3D, document: Dictionary, editor_preview: boo
 		var map_node := build_object(object, editor_preview)
 		if map_node != null:
 			root.add_child(map_node)
+			_apply_camera_passage_policy(map_node, object)
 			_apply_collision_policy(map_node, object, editor_preview)
 		if OS.get_cmdline_user_args().has("--startup-profile"):
 			var elapsed_ms := float(Time.get_ticks_usec() - object_started) / 1000.0
@@ -1158,6 +1159,16 @@ static func _add_box_parts(body: StaticBody3D, size: Vector3, object: Dictionary
 static func _set_object_meta(node: Node, object: Dictionary) -> void:
 	node.set_meta("map_object_id", String(object.get("id", "")))
 	node.set_meta("map_object_type", StringName(object.get("type", "")))
+
+
+static func _apply_camera_passage_policy(node: Node, object: Dictionary) -> void:
+	var properties: Dictionary = object.get("properties", {})
+	if not bool(properties.get("camera_soft_occluder", false)):
+		return
+	# This tag is consumed only by the rendered camera collision solver. The
+	# object's ordinary physics layers continue blocking players and bullets.
+	node.add_to_group("camera_soft_occluder")
+	node.set_meta("camera_soft_occluder", true)
 
 
 static func _material_for_object(object: Dictionary) -> StandardMaterial3D:

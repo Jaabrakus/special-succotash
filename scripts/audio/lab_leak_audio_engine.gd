@@ -1,6 +1,16 @@
 class_name LabLeakAudioEngine
 extends Node
 
+const FRAG_CORE_STREAM := preload(
+	"res://assets/audio/grenades/frag_core_grenade_training_cc0.mp3"
+)
+const FRAG_DISTANT_TAIL_STREAM := preload(
+	"res://assets/audio/grenades/frag_distant_tail_cc0.wav"
+)
+const FLASHBANG_DETONATION_STREAM := preload(
+	"res://assets/audio/grenades/flashbang_detonation_cc0.wav"
+)
+
 ## Project Lab Leak: Heavy Tactical Military Audio Engine
 ## Features:
 ## - Heavy 55Hz Sub-Bass Chest Punch (Physical Acoustic Weight)
@@ -87,26 +97,7 @@ static func play_body_impact(
 ) -> void:
 	var propagation := tree.root.get_node_or_null("AcousticPropagation")
 	if propagation != null and propagation.has_method("play_layered_event"):
-		var layers: Array[Dictionary] = [
-			{
-				"stream": _body_impact_thump_stream,
-				"volume_db": -1.5,
-				"pitch_scale": randf_range(0.94, 1.06),
-			},
-			{
-				"stream": _body_impact_snap_stream,
-				"volume_db": -5.0,
-				"pitch_scale": randf_range(0.96, 1.08),
-				"delay_seconds": 0.006,
-			},
-		]
-		if is_headshot:
-			layers.append({
-				"stream": _helmet_impact_stream,
-				"volume_db": -2.5,
-				"pitch_scale": randf_range(0.96, 1.04),
-				"delay_seconds": 0.003,
-			})
+		var layers := body_impact_layers(is_headshot, true)
 		propagation.call(
 			"play_layered_event", layers, world_position, &"body_impact", {}
 		)
@@ -135,25 +126,88 @@ static func play_casing_clink(tree: SceneTree) -> void:
 	player.play()
 
 
+static func play_grenade_detonation(
+	tree: SceneTree,
+	world_position: Vector3,
+	grenade_type: StringName = &"frag"
+) -> void:
+	var layers := grenade_explosion_layers(grenade_type)
+	var propagation := tree.root.get_node_or_null("AcousticPropagation")
+	if propagation != null and propagation.has_method("play_layered_event"):
+		propagation.call(
+			"play_layered_event",
+			layers,
+			world_position,
+			&"explosion",
+			{}
+		)
+		return
+	# The acoustic autoload is present in normal gameplay. Keep a simple local
+	# fallback for isolated grenade scenes and focused editor previews.
+	for layer: Dictionary in layers:
+		var player := _get_available_player(tree)
+		player.bus = &"Effects" if AudioServer.get_bus_index(&"Effects") >= 0 else &"Master"
+		player.stream = layer.get("stream") as AudioStream
+		player.volume_db = float(layer.get("volume_db", 0.0))
+		player.pitch_scale = float(layer.get("pitch_scale", 1.0))
+		player.play()
+
+
 static func gunshot_stream(is_silenced := false) -> AudioStreamWAV:
 	_build_cached_streams()
 	return _silenced_gunshot_stream if is_silenced else _gunshot_stream
 
 
-static func body_impact_layers(is_headshot := false) -> Array[Dictionary]:
+static func body_impact_layers(
+	is_headshot := false,
+	randomize_pitch := false
+) -> Array[Dictionary]:
 	_build_cached_streams()
 	var layers: Array[Dictionary] = [
-		{"stream": _body_impact_thump_stream, "volume_db": -1.5, "pitch_scale": 1.0},
-		{"stream": _body_impact_snap_stream, "volume_db": -5.0, "pitch_scale": 1.03, "delay_seconds": 0.006},
+		{
+			"stream": _body_impact_thump_stream,
+			"volume_db": -1.5 if is_headshot else 0.75,
+			"pitch_scale": randf_range(0.94, 1.06) if randomize_pitch else 1.0,
+		},
+		{
+			"stream": _body_impact_snap_stream,
+			"volume_db": -5.0 if is_headshot else -9.0,
+			"pitch_scale": randf_range(0.96, 1.08) if randomize_pitch else 1.03,
+			"delay_seconds": 0.006,
+		},
 	]
 	if is_headshot:
 		layers.append({
 			"stream": _helmet_impact_stream,
 			"volume_db": -2.5,
-			"pitch_scale": 1.0,
+			"pitch_scale": randf_range(0.96, 1.04) if randomize_pitch else 1.0,
 			"delay_seconds": 0.003,
 		})
 	return layers
+
+
+static func grenade_explosion_layers(
+	grenade_type: StringName = &"frag"
+) -> Array[Dictionary]:
+	if grenade_type == &"flash":
+		return [{
+			"stream": FLASHBANG_DETONATION_STREAM,
+			"volume_db": -1.5,
+			"pitch_scale": 1.0,
+		}]
+	return [
+		{
+			"stream": FRAG_CORE_STREAM,
+			"volume_db": 1.0,
+			"pitch_scale": randf_range(0.97, 1.03),
+		},
+		{
+			"stream": FRAG_DISTANT_TAIL_STREAM,
+			"volume_db": -8.0,
+			"pitch_scale": randf_range(0.96, 1.02),
+			"delay_seconds": 0.035,
+		},
+	]
 
 
 static func get_cached_resource_ids() -> Dictionary:
@@ -286,14 +340,14 @@ static func _build_casing_stream(frequency: float) -> AudioStreamWAV:
 
 static func _build_body_impact_stream(helmet: bool) -> AudioStreamWAV:
 	var sample_rate := 22050
-	var duration := 0.14 if helmet else 0.16
+	var duration := 0.14 if helmet else 0.20
 	var frame_count := int(sample_rate * duration)
 	var stream := _new_mono_stream(sample_rate, frame_count)
 	var buffer := stream.data
 	var filtered_noise := 0.0
 	for i in range(frame_count):
 		var t := float(i) / sample_rate
-		var thump_frequency_start := 92.0 if helmet else 128.0
+		var thump_frequency_start := 92.0 if helmet else 118.0
 		var thump_frequency_end := 48.0 if helmet else 72.0
 		var thump := (
 			sin(
@@ -301,7 +355,7 @@ static func _build_body_impact_stream(helmet: bool) -> AudioStreamWAV:
 				* lerpf(thump_frequency_start, thump_frequency_end, minf(t * 10.0, 1.0))
 				* t
 			)
-			* exp(-t * (34.0 if helmet else 28.0))
+			* exp(-t * (34.0 if helmet else 32.0))
 		)
 		var noise := randf_range(-1.0, 1.0)
 		filtered_noise = lerpf(noise, filtered_noise, 0.88 if helmet else 0.76)
@@ -314,8 +368,26 @@ static func _build_body_impact_stream(helmet: bool) -> AudioStreamWAV:
 			if helmet
 			else 0.0
 		)
-		var mixed := thump * (0.78 if helmet else 0.66) + texture * 0.30 + low_dud
-		buffer.encode_s16(i * 2, int(clampf(mixed, -1.0, 1.0) * 32767.0))
+		# Put the physical punch in the 82→56 Hz band so it survives ordinary
+		# speakers, then compress it into a short muted "dud" instead of a boom.
+		var body_low_frequency := lerpf(82.0, 56.0, minf(t * 6.5, 1.0))
+		var body_low := (
+			sin(TAU * body_low_frequency * t)
+			* (1.0 - exp(-t * 115.0))
+			* exp(-t * 22.0)
+			if not helmet
+			else 0.0
+		)
+		var mixed := (
+			thump * (0.78 if helmet else 0.70)
+			+ texture * (0.30 if helmet else 0.14)
+			+ low_dud
+			+ body_low * 0.74
+		)
+		# Soft limiting creates the low-mid harmonics that make the pulse tangible
+		# without adding a metallic transient.
+		var saturated := mixed / (1.0 + absf(mixed) * 0.30) * 1.24
+		buffer.encode_s16(i * 2, int(clampf(saturated, -1.0, 1.0) * 32767.0))
 	stream.data = buffer
 	return stream
 

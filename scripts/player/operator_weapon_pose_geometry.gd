@@ -38,7 +38,12 @@ static func stable_chest_anchor(
 			if body.has_method("get_action_phase")
 			else 0.0
 		)
-		local_anchor = STANDING_CHEST_ANCHOR_LOCAL.lerp(
+		var dive_start_anchor := (
+			CROUCHED_CHEST_ANCHOR_LOCAL
+			if posture == &"CROUCHED"
+			else STANDING_CHEST_ANCHOR_LOCAL
+		)
+		local_anchor = dive_start_anchor.lerp(
 			PRONE_CHEST_ANCHOR_LOCAL,
 			smoothstep(0.0, 0.70, dive_phase)
 		)

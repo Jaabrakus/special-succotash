@@ -35,6 +35,13 @@ func _cancel_active_reload(emit_cancelled: bool = true) -> void:
 	if emit_cancelled and cancelled_action != &"":
 		action_cancelled.emit(cancelled_action)
 
+
+func cancel_reload_action() -> bool:
+	if not _reload_action_is_active():
+		return false
+	_cancel_active_reload()
+	return true
+
 func _consider_cosmetic_transition() -> void:
 	var request: Dictionary = transition_state_machine.evaluate(
 		movement_direction,
@@ -85,6 +92,7 @@ func _update_requested_action(delta: float) -> void:
 		action_completed.emit(completed_reload)
 		return
 	var completed_action := requested_action
+	_reset_action_playback_speed(completed_action)
 	requested_action = &""
 	requested_action_total_duration = 0.0
 	_requested_action_release_cue_emitted = false
@@ -92,8 +100,6 @@ func _update_requested_action(delta: float) -> void:
 	_requested_action_is_transition = false
 	_requested_action_upper_body_layered = false
 	requested_action_playback_speed = 1.0
-	if animation_player != null:
-		animation_player.speed_scale = 1.0
 	_clear_reload_visuals()
 	_update_weapon_visibility()
 	action_completed.emit(completed_action)
@@ -128,11 +134,6 @@ func _emit_action_recovery_cue_if_due() -> void:
 	if elapsed_fraction < GrenadeReleaseTimeline.recovery_fraction(requested_action):
 		return
 	_requested_action_recovery_cue_emitted = true
-	# The remaining frames are a blend-out tail. Once locomotion becomes the
-	# active visual again it must use its own authored playback rate, not the
-	# accelerated grenade action rate.
-	if animation_player != null:
-		animation_player.speed_scale = 1.0
 	action_recovery_cue.emit(requested_action)
 
 
@@ -200,12 +201,21 @@ func play_action(
 		return false
 	if requested_action != &"" and requested_action != clip_name:
 		var interrupted_action := requested_action
+		_reset_action_playback_speed(interrupted_action)
 		if _reload_action_is_active():
 			_cancel_active_reload(false)
 		action_cancelled.emit(interrupted_action)
 	var animation := animation_player.get_animation(clip_name)
 	requested_action_playback_speed = clampf(playback_speed, 0.25, 3.0)
-	animation_player.speed_scale = requested_action_playback_speed
+	if GrenadeReleaseTimeline.is_grenade_clip(clip_name):
+		animation_player.speed_scale = 1.0
+		if locomotion_graph != null:
+			locomotion_graph.set_clip_playback_speed(
+				clip_name,
+				requested_action_playback_speed
+			)
+	else:
+		animation_player.speed_scale = requested_action_playback_speed
 	requested_action = clip_name
 	_requested_action_release_cue_emitted = false
 	_requested_action_recovery_cue_emitted = false
@@ -295,12 +305,10 @@ func set_bomb_backpack_visible(enabled: bool) -> void:
 
 
 func cancel_grenade_action() -> bool:
-	if animation_player != null:
-		animation_player.speed_scale = 1.0
-	requested_action_playback_speed = 1.0
 	if requested_action == &"" or "grenade" not in String(requested_action).to_lower():
 		return false
 	var cancelled_action := requested_action
+	_reset_action_playback_speed(cancelled_action)
 	requested_action = &""
 	requested_action_remaining = 0.0
 	requested_action_total_duration = 0.0
@@ -316,6 +324,14 @@ func cancel_grenade_action() -> bool:
 	return true
 
 
+func _reset_action_playback_speed(clip_name: StringName) -> void:
+	if locomotion_graph != null and clip_name != &"":
+		locomotion_graph.set_clip_playback_speed(clip_name, 1.0)
+	if animation_player != null:
+		animation_player.speed_scale = 1.0
+	requested_action_playback_speed = 1.0
+
+
 func _update_weapon_visibility() -> void:
 	if weapon_node == null:
 		return
@@ -323,7 +339,13 @@ func _update_weapon_visibility() -> void:
 		requested_action != &""
 		and "grenade" in String(requested_action).to_lower()
 	)
-	weapon_node.visible = _equipped_weapon_visible and not grenade_action_active
+	var visible := _equipped_weapon_visible and not grenade_action_active
+	if weapon_pose_solver != null and weapon_pose_solver.has_method(
+		"set_weapon_presentation_visible"
+	):
+		weapon_pose_solver.set_weapon_presentation_visible(visible)
+	else:
+		weapon_node.visible = visible
 
 
 func resolve_semantic_action(action_name: StringName) -> StringName:
@@ -351,4 +373,3 @@ func _load_equipped_weapon_handling_profile() -> Dictionary:
 	var config := WeaponContract.load_equipped_config()
 	var handling: Variant = config.get("handling_profile", {})
 	return (handling as Dictionary).duplicate(true) if handling is Dictionary else {}
-

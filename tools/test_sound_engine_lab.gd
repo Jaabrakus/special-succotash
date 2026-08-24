@@ -50,8 +50,20 @@ func _init() -> void:
 		push_error("Gameplay rifle shot does not match the approved Sound Lab duration")
 		quit(1)
 		return
+	var frag_layers := RuntimeAudio.grenade_explosion_layers(&"frag")
+	var flash_layers := RuntimeAudio.grenade_explosion_layers(&"flash")
+	if frag_layers.size() != 2 or flash_layers.size() != 1:
+		push_error("Licensed grenade detonation layers did not load")
+		quit(1)
+		return
+	var body_layers := RuntimeAudio.body_impact_layers(false)
+	var body_thump := body_layers[0].get("stream") as AudioStream
+	if body_thump == null or body_thump.get_length() < 0.19:
+		push_error("Body impact is missing its compact low-frequency pressure pulse")
+		quit(1)
+		return
 	print(
-		"SOUND_ENGINE_PROFILE_PASS animations=%d surfaces=%d sand_energy=%.2f concrete_energy=%.2f rifle_shot=%.2fs@%dHz"
-		% [profile.animations.size(), surface_profile.surfaces.size(), sand_energy, concrete_energy, shot_duration, gameplay_shot.mix_rate]
+		"SOUND_ENGINE_PROFILE_PASS animations=%d surfaces=%d sand_energy=%.2f concrete_energy=%.2f rifle_shot=%.2fs@%dHz grenade_layers=%d/%d body_thump=%.2fs"
+		% [profile.animations.size(), surface_profile.surfaces.size(), sand_energy, concrete_energy, shot_duration, gameplay_shot.mix_rate, frag_layers.size(), flash_layers.size(), body_thump.get_length()]
 	)
 	quit(0)

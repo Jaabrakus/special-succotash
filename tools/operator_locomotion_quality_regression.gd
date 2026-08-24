@@ -69,48 +69,45 @@ func _measure_contact_phase_continuity(player: CharacterBody3D, driver) -> void:
 	Input.action_press(&"move_forward", 1.0)
 	for _frame in range(36):
 		await physics_frame
-	var minimum_left_y := INF
-	var minimum_right_y := INF
-	for _frame in range(75):
-		await physics_frame
-		minimum_left_y = minf(minimum_left_y, _bone_world_position(driver, left).y)
-		minimum_right_y = minf(minimum_right_y, _bone_world_position(driver, right).y)
-	var planted_left := true
-	for _frame in range(120):
-		await physics_frame
-		var left_position := _bone_world_position(driver, left)
-		var right_position := _bone_world_position(driver, right)
-		if left_position.y <= minimum_left_y + 0.012:
-			planted_left = true
-			break
-		if right_position.y <= minimum_right_y + 0.012:
-			planted_left = false
-			break
-	var before_phase: float = driver.locomotion_graph.shared_phase
+	var previous_left := _bone_world_position(driver, left)
+	var previous_right := _bone_world_position(driver, right)
+	await physics_frame
 	var left_before := _bone_world_position(driver, left)
 	var right_before := _bone_world_position(driver, right)
-	var player_before := player.global_position
-	var planted_before := (left_before if planted_left else right_before) - player_before
+	var planted_left := left_before.y <= right_before.y
+	var planted_world_before := left_before if planted_left else right_before
+	var planted_world_previous := previous_left if planted_left else previous_right
+	var before_phase: float = driver.locomotion_graph.shared_phase
 	Input.action_release(&"move_forward")
 	Input.action_press(&"move_right", 1.0)
 	await physics_frame
 	var after_phase: float = driver.locomotion_graph.shared_phase
-	# Authoritative movement changes world position immediately by roughly one
-	# full-speed physics step. Remove that intended CharacterBody translation so
-	# this metric measures animation/contact discontinuity rather than player travel.
-	var planted_after := (
-		_bone_world_position(driver, left if planted_left else right)
-		- player.global_position
+	var planted_world_after := _bone_world_position(
+		driver,
+		left if planted_left else right
 	)
+	var foot_lock_debug: Dictionary = driver.foot_contact_lock.get_debug_state()
 	Input.action_release(&"move_right")
 	var phase_step := fposmod(after_phase - before_phase, 1.0)
-	var contact_step_cm := Vector2(
-		planted_after.x - planted_before.x,
-		planted_after.z - planted_before.z
+	var world_contact_step_cm := Vector2(
+		planted_world_after.x - planted_world_before.x,
+		planted_world_after.z - planted_world_before.z
+	).length() * 100.0
+	var previous_world_step := planted_world_before - planted_world_previous
+	var changed_world_step := planted_world_after - planted_world_before
+	var motion_discontinuity_cm := Vector2(
+		changed_world_step.x - previous_world_step.x,
+		changed_world_step.z - previous_world_step.z
 	).length() * 100.0
 	print(
-		"LOCOMOTION_METRIC direction_change_phase_step=%.4f planted_contact_step_cm=%.3f" % [
-			phase_step, contact_step_cm
+		"LOCOMOTION_METRIC direction_change_phase_step=%.4f world_contact_step_cm=%.3f motion_discontinuity_cm=%.3f measured_side=%s lock_side=%s lock_weight=%.3f solver_slip_cm=%.3f" % [
+			phase_step,
+			world_contact_step_cm,
+			motion_discontinuity_cm,
+			"LEFT" if planted_left else "RIGHT",
+			String(foot_lock_debug.get("side", &"")),
+			float(foot_lock_debug.get("weight", 0.0)),
+			float(foot_lock_debug.get("world_slip_cm", 0.0)),
 		]
 	)
 	_expect(
@@ -118,8 +115,12 @@ func _measure_contact_phase_continuity(player: CharacterBody3D, driver) -> void:
 		"direction change advances the locomotion playhead instead of resetting it"
 	)
 	_expect(
-		contact_step_cm <= 6.0,
-		"direction change preserves the measured planted-foot contact"
+		world_contact_step_cm <= 5.6,
+		"direction change preserves planted-foot world contact"
+	)
+	_expect(
+		motion_discontinuity_cm <= 5.6,
+		"direction change preserves the planted foot's motion trajectory"
 	)
 	player.velocity = Vector3.ZERO
 	await physics_frame

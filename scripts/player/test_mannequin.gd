@@ -73,9 +73,7 @@ var weapon_rest_position := Vector3(0.12, -0.02, -0.23)
 @export var weapon_pitch_scale: float = 0.85
 @export var weapon_obstruction_distance: float = 1.0
 @export var weapon_obstruction_retract: float = 0.42
-@export var weapon_obstruction_raise: float = 0.14
 @export var weapon_cover_side_step: float = 0.20
-@export var weapon_cover_raise: float = 0.20
 @export var weapon_obstruction_enter_response: float = 18.0
 @export var weapon_obstruction_exit_response: float = 8.0
 @export_group("Camera marker follow")
@@ -438,10 +436,9 @@ func _animate_upper_body(player: CharacterBody3D, delta: float) -> void:
     var obstruction_target: float = 0.0
     if not weapon_cover_pose_found:
         obstruction_target = 1.0
-        desired_cover_offset = (
-            Vector3.BACK * weapon_obstruction_retract
-            + Vector3.UP * weapon_obstruction_raise
-        )
+        # Obstruction may retract the lightweight diagnostic rifle, but it must
+        # never lift the production torso or hands toward a wall or ceiling.
+        desired_cover_offset = Vector3.BACK * weapon_obstruction_retract
     var obstruction_response: float = (
         weapon_obstruction_enter_response
         if desired_cover_offset.length() > weapon_cover_offset.length()
@@ -548,11 +545,6 @@ func _find_clear_weapon_offset(player: CharacterBody3D, target_point: Vector3) -
     var saved_basis: Basis = weapon_bone.basis
     var candidates: Array[Vector3] = [
         Vector3.ZERO,
-        Vector3.UP * weapon_cover_raise,
-        Vector3.LEFT * weapon_cover_side_step,
-        Vector3.RIGHT * weapon_cover_side_step,
-        Vector3.LEFT * weapon_cover_side_step + Vector3.UP * weapon_cover_raise,
-        Vector3.RIGHT * weapon_cover_side_step + Vector3.UP * weapon_cover_raise,
     ]
     var selected := Vector3.ZERO
     var found: bool = false

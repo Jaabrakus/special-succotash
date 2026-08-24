@@ -18,6 +18,8 @@ var grenade_aim_active: bool:
     get: return bool(host.get("grenade_aim_active"))
 var grenade_throw_in_progress: bool:
     get: return bool(host.get("grenade_throw_in_progress"))
+var equipment_wheel_open: bool:
+    get: return bool(host.get("equipment_wheel_open"))
 var public_training_mode: bool:
     get: return bool(host.get("public_training_mode"))
 var anim_studio_visible: bool:
@@ -70,6 +72,8 @@ func _request_weapon_reload() -> bool:
     return bool(host.call("_request_weapon_reload"))
 func _update_grenade_switch_input(delta: float) -> void:
     host.call("_update_grenade_switch_input", delta)
+func _return_to_primary_weapon() -> void:
+    host.call("_return_to_primary_weapon")
 func _cancel_grenade_for_jump() -> void:
     host.call("_cancel_grenade_for_jump")
 func _begin_grenade_aim() -> void:
@@ -114,11 +118,18 @@ func process(delta: float) -> void:
         and not OS.get_cmdline_user_args().has("--automated-test")
     ):
         _request_weapon_reload()
+    if (
+        Input.is_action_just_pressed("equip_primary")
+        and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
+        and not OS.get_cmdline_user_args().has("--automated-test")
+    ):
+        _return_to_primary_weapon()
     _update_grenade_switch_input(delta)
     if grenade_equipped and Input.is_action_just_pressed("jump"):
         _cancel_grenade_for_jump()
     if (
         grenade_equipped
+        and not equipment_wheel_open
         and not grenade_aim_active
         and not grenade_throw_in_progress
         and Input.is_action_just_pressed("fire")

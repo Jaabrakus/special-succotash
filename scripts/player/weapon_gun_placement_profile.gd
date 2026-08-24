@@ -45,12 +45,11 @@ static func parse(raw_profile: Variant) -> Dictionary:
 		var pitch := float(raw_stance.get("pitch_degrees", 0.0))
 		var yaw := float(raw_stance.get("yaw_degrees", 0.0))
 		var roll := float(raw_stance.get("roll_degrees", 0.0))
-		var authored := (
-			not offset.is_zero_approx()
-			or not is_zero_approx(pitch)
-			or not is_zero_approx(yaw)
-			or not is_zero_approx(roll)
-		)
+		# Presence is authorship. A saved zero-offset stance means “use this
+		# stance's live head/eye anchor without an extra trim,” not “disable the
+		# blue line.” Treating zero as absent silently disabled crouched and prone
+		# FIRE_ACCEPTED placement even though both entries were saved by Gunsmith.
+		var authored := true
 		parsed_stances[posture] = {
 			"position_offset_meters": offset,
 			"pitch_degrees": pitch,

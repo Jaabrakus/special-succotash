@@ -1,6 +1,10 @@
 class_name SocomCameraCollisionSolver
 extends RefCounted
 
+const CameraPassagePolicy := preload("res://scripts/camera/camera_passage_policy.gd")
+
+var passage_policy := CameraPassagePolicy.new()
+
 var rig
 var profile:
     get: return rig.profile
@@ -93,7 +97,7 @@ func _solve_collision(desired: Vector3) -> Dictionary:
     var collider_name := "CAMERA VOLUME"
     var collider_node: Node3D = null
     var hit_query := PhysicsRayQueryParameters3D.create(anchor, desired)
-    hit_query.exclude = exclude
+    hit_query.exclude = desired_cast.get("exclude", exclude)
     hit_query.collide_with_areas = false
     var center_hit: Dictionary = space.intersect_ray(hit_query)
     if not center_hit.is_empty():
@@ -567,13 +571,11 @@ func _solve_virtual_camera_surface(
 
 func _cast_camera_volume(anchor: Vector3, destination: Vector3, exclude: Array[RID]) -> Dictionary:
     collision_cast_count += 1
-    var query := PhysicsShapeQueryParameters3D.new()
-    query.shape = camera_collision_shape
-    query.transform = Transform3D(Basis.IDENTITY, anchor)
-    query.motion = destination - anchor
-    query.margin = profile.collision_margin
-    query.exclude = exclude
-    query.collide_with_areas = false
-    var cast_result: PackedFloat32Array = get_world_3d().direct_space_state.cast_motion(query)
-    var safe_fraction: float = cast_result[0] if cast_result.size() >= 1 else 1.0
-    return {"safe_fraction": safe_fraction}
+    return passage_policy.cast_camera_motion(
+        get_world_3d(),
+        camera_collision_shape,
+        anchor,
+        destination,
+        profile.collision_margin,
+        exclude
+    )

@@ -79,9 +79,25 @@ func _run() -> void:
 	)
 	_expect(
 		is_equal_approx(thrower.overhand_speed, float((profile.throw as Dictionary).overhand_speed))
-		and is_equal_approx(thrower.underhand_speed, float((profile.throw as Dictionary).underhand_speed)),
+		and is_equal_approx(thrower.underhand_speed, float((profile.throw as Dictionary).underhand_speed))
+		and is_equal_approx(thrower.overhand_pitch_influence, float((profile.throw as Dictionary).overhand_pitch_influence))
+		and is_equal_approx(thrower.underhand_pitch_influence, float((profile.throw as Dictionary).underhand_pitch_influence)),
 		"throw strength consumes the shared profile"
 	)
+	var level_aim := Vector3.FORWARD
+	var high_aim := Vector3(0.0, sin(deg_to_rad(35.0)), -cos(deg_to_rad(35.0)))
+	var low_aim := Vector3(0.0, sin(deg_to_rad(-20.0)), -cos(deg_to_rad(-20.0)))
+	for mode in [Thrower.ThrowMode.OVERHAND, Thrower.ThrowMode.UNDERHAND]:
+		var level_velocity := thrower.calculate_launch_velocity(level_aim, Vector3.UP, mode, 1.0)
+		var high_velocity := thrower.calculate_launch_velocity(high_aim, Vector3.UP, mode, 1.0)
+		var low_velocity := thrower.calculate_launch_velocity(low_aim, Vector3.UP, mode, 1.0)
+		_expect(
+			high_velocity.y > level_velocity.y + 1.0
+			and level_velocity.y > low_velocity.y + 0.5
+			and is_equal_approx(high_velocity.length(), level_velocity.length()),
+			"%s throw arc rises and falls with aim pitch without changing throw power"
+			% ("overhand" if mode == Thrower.ThrowMode.OVERHAND else "underhand")
+		)
 
 	var lab_scene := load("res://tactical_grenade_lab.tscn") as PackedScene
 	var lab := lab_scene.instantiate() if lab_scene != null else null

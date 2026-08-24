@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://socom141.local/contracts/animation-review-v1.schema.json",
+  "title": "SOCOM-141 Browser Animation Review",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "kind",
+    "review_only",
+    "apply_to_gameplay",
+    "authority",
+    "source",
+    "markers",
+    "authored_changes",
+    "created_at_utc"
+  ],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "kind": { "const": "socom141.animation_review" },
+    "review_only": { "const": true },
+    "apply_to_gameplay": { "const": false },
+    "authority": { "const": "godot" },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["asset_path", "asset_name", "clip_name", "duration_seconds", "bone_count"],
+      "properties": {
+        "asset_path": { "type": "string", "minLength": 1 },
+        "asset_name": { "type": "string", "minLength": 1 },
+        "clip_name": { "type": "string", "minLength": 1 },
+        "duration_seconds": { "type": "number", "minimum": 0 },
+        "bone_count": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "markers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "type", "time_seconds", "bone", "note"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "type": {
+            "enum": [
+              "FOOT_PLANT_LEFT",
+              "FOOT_PLANT_RIGHT",
+              "MAGAZINE_REMOVED",
+              "MAGAZINE_INSERTED",
+              "GRENADE_RELEASED",
+              "ACTION_RECOVERY",
+              "CUSTOM"
+            ]
+          },
+          "time_seconds": { "type": "number", "minimum": 0 },
+          "bone": { "type": "string" },
+          "note": { "type": "string" }
+        }
+      }
+    },
+    "authored_changes": { "type": "array", "maxItems": 0 },
+    "created_at_utc": { "type": "string", "format": "date-time" }
+  }
+}

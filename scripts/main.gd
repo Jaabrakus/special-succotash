@@ -77,6 +77,8 @@ var grenade_arc_preview: MeshInstance3D
 var grenade_charge_panel: PanelContainer
 var grenade_charge_label: Label
 var grenade_charge_bar: ProgressBar
+var equipment_wheel: Control
+var equipment_wheel_open: bool = false
 var active_map_document: Dictionary = {}
 var map_audio_ambience: Node
 var controls_guide: CanvasLayer
@@ -224,6 +226,9 @@ func _startup_profile_mark(label: String) -> void:
     ])
     _startup_profile_last_usec = now_usec
 func _unhandled_input(event: InputEvent) -> void:
+    if grenade_runtime != null and grenade_runtime.handle_unhandled_input(event):
+        get_viewport().set_input_as_handled()
+        return
     if (
         event.is_action_pressed("ui_cancel")
         and exit_menu != null
@@ -366,6 +371,10 @@ func _operator_bone_world_position(bone_name: StringName) -> Vector3:
 
 func _equip_or_cycle_grenade() -> bool:
     return grenade_runtime.equip_or_cycle()
+
+
+func _return_to_primary_weapon() -> bool:
+    return grenade_runtime.equip_primary_quick()
 
 
 func _update_grenade_switch_input(delta: float) -> void:

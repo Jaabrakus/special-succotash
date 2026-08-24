@@ -1,0 +1,365 @@
+((
+   SCREENS (
+    LIBRARY ( ui/assetlib/ui2d )
+  
+   FONT ( arialblack )
+  
+   SCRIPT_LIBRARY ( dlgReplayCinematic.rdr )
+  
+   OBJECTS ()
+  
+   ANIMATIONS ((
+      EVENT ( ONSTART )
+    
+     ANIMATION ( ReplayCinematic )
+    
+    )
+   
+   )
+  
+   ANIMATION_DEFINITIONS (
+     ANIMATION_LIST (
+      ANIMATION_DEFINITION_FILE ( data\common\dialog\uianim.rdr )
+    
+     ANIMATION_DEFINITION (
+       ANIMATION_NAME ( ReplayCinematic )
+     
+      ACTIVATION ( ON_CALL )
+     
+      SEQUENCE_DEFINITION (
+        STOP_ANIMATION (
+         NAME ( menu_fade_up )
+       
+       )
+      
+       OBJECT_OPACITY_FROM_TO (
+         NAME ( MENU  MENUFADER )
+       
+        RUN_TIME ( 0.500000 )
+       
+        OPACITY_FROM ( 0.000000 )
+       
+        OPACITY_TO ( 0.990000 )
+       
+       )
+      
+       CALL_SEQUENCE (
+         NAME ( switch )
+       
+       )
+      
+      )
+     
+      SEQUENCE_DEFINITION (
+        NAME ( switch )
+      
+       ACTIVATION ( ON_CALL )
+      
+       IF (
+         VALVE ( uiEquipReturnScreen  ==  5 )
+       
+       )
+      
+       ui::UI_COMMAND (
+         TYPE ( PlayMPEG )
+       
+        ARGUMENT ( run/movies/0100.pss )
+       
+       )
+      
+       ELSEIF (
+         VALVE ( uiEquipReturnScreen  ==  6 )
+       
+       )
+      
+       ui::UI_COMMAND (
+         TYPE ( PlayMPEG )
+       
+        ARGUMENT ( run/movies/0100.pss )
+       
+       )
+      
+       ELSEIF (
+         VALVE ( uiEquipReturnScreen  ==  8 )
+       
+       )
+      
+       ui::UI_COMMAND (
+         TYPE ( PlayMPEG )
+       
+        ARGUMENT ( run/movies/0100.pss )
+       
+       )
+      
+       ELSEIF (
+         VALVE ( uiEquipReturnScreen  ==  9 )
+       
+       )
+      
+       ui::UI_COMMAND (
+         TYPE ( PlayMPEG )
+       
+        ARGUMENT ( run/movies/0300.pss )
+       
+       )
+      
+       ELSEIF (
+         VALVE ( uiEquipReturnScreen  ==  11 )
+       
+       )
+      
+       ui::UI_COMMAND (
+         TYPE ( PlayMPEG )
+       
+        ARGUMENT ( run/movies/0300.pss )
+       
+       )
+      
+       ELSEIF (
+         VALVE ( uiEquipReturnScreen  ==  12 )
+       
+       )
+      
+       ui::UI_COMMAND (
+         TYPE ( PlayMPEG )
+       
+        ARGUMENT ( run/movies/0300.pss )
+       
+       )
+      
+       ELSEIF (
+         VALVE ( uiEquipReturnScreen  ==  17 )
+       
+       )
+      
+       ui::UI_COMMAND (
+         TYPE ( PlayMPEG )
+       
+        ARGUMENT ( run/movies/0500.pss )
+       
+       )
+      
+       ELSEIF (
+         VALVE ( uiEquipReturnScreen  ==  19 )
+       
+       )
+      
+       ui::UI_COMMAND (
+         TYPE ( PlayMPEG )
+       
+        ARGUMENT ( run/movies/0500.pss )
+       
+       )
+      
+       ELSEIF (
+         VALVE ( uiEquipReturnScreen  ==  21 )
+       
+       )
+      
+       ui::UI_COMMAND (
+         TYPE ( PlayMPEG )
+       
+        ARGUMENT ( run/movies/0500.pss )
+       
+       )
+      
+       ELSEIF (
+         VALVE ( uiEquipReturnScreen  ==  13 )
+       
+       )
+      
+       ui::UI_COMMAND (
+         TYPE ( PlayMPEG )
+       
+        ARGUMENT ( run/movies/0400.pss )
+       
+       )
+      
+       ELSEIF (
+         VALVE ( uiEquipReturnScreen  ==  15 )
+       
+       )
+      
+       ui::UI_COMMAND (
+         TYPE ( PlayMPEG )
+       
+        ARGUMENT ( run/movies/0400.pss )
+       
+       )
+      
+       ELSEIF (
+         VALVE ( uiEquipReturnScreen  ==  16 )
+       
+       )
+      
+       ui::UI_COMMAND (
+         TYPE ( PlayMPEG )
+       
+        ARGUMENT ( run/movies/0400.pss )
+       
+       )
+      
+       ENDIF ()
+      
+       WAIT ( 0.300000 )
+      
+       IF (
+         VALVE ( uiEquipReturnScreen  ==  5 )
+       
+       )
+      
+       ui::UI_COMMAND (
+         TYPE ( SWITCHMENU )
+       
+        ARGUMENT ( dlgAlaska_mission1.rdr )
+       
+       )
+      
+       ELSEIF (
+         VALVE ( uiEquipReturnScreen  ==  6 )
+       
+       )
+      
+       ui::UI_COMMAND (
+         TYPE ( SWITCHMENU )
+       
+        ARGUMENT ( dlgAlaska_mission2.rdr )
+       
+       )
+      
+       ELSEIF (
+         VALVE ( uiEquipReturnScreen  ==  8 )
+       
+       )
+      
+       ui::UI_COMMAND (
+         TYPE ( SWITCHMENU )
+       
+        ARGUMENT ( dlgAlaska_mission3.rdr )
+       
+       )
+      
+       ELSEIF (
+         VALVE ( uiEquipReturnScreen  ==  9 )
+       
+       )
+      
+       ui::UI_COMMAND (
+         TYPE ( SWITCHMENU )
+       
+        ARGUMENT ( dlg_thai_mission1.rdr )
+       
+       )
+      
+       ELSEIF (
+         VALVE ( uiEquipReturnScreen  ==  11 )
+       
+       )
+      
+       ui::UI_COMMAND (
+         TYPE ( SWITCHMENU )
+       
+        ARGUMENT ( dlg_thai_mission2.rdr )
+       
+       )
+      
+       ELSEIF (
+         VALVE ( uiEquipReturnScreen  ==  12 )
+       
+       )
+      
+       ui::UI_COMMAND (
+         TYPE ( SWITCHMENU )
+       
+        ARGUMENT ( dlg_thai_mission3.rdr )
+       
+       )
+      
+       ELSEIF (
+         VALVE ( uiEquipReturnScreen  ==  17 )
+       
+       )
+      
+       ui::UI_COMMAND (
+         TYPE ( SWITCHMENU )
+       
+        ARGUMENT ( dlg_Congo_mission1.rdr )
+       
+       )
+      
+       ELSEIF (
+         VALVE ( uiEquipReturnScreen  ==  19 )
+       
+       )
+      
+       ui::UI_COMMAND (
+         TYPE ( SWITCHMENU )
+       
+        ARGUMENT ( dlg_Congo_mission2.rdr )
+       
+       )
+      
+       ELSEIF (
+         VALVE ( uiEquipReturnScreen  ==  21 )
+       
+       )
+      
+       ui::UI_COMMAND (
+         TYPE ( SWITCHMENU )
+       
+        ARGUMENT ( dlg_Congo_mission3.rdr )
+       
+       )
+      
+       ELSEIF (
+         VALVE ( uiEquipReturnScreen  ==  13 )
+       
+       )
+      
+       ui::UI_COMMAND (
+         TYPE ( SWITCHMENU )
+       
+        ARGUMENT ( dlg_Turk_mission1.rdr )
+       
+       )
+      
+       ELSEIF (
+         VALVE ( uiEquipReturnScreen  ==  15 )
+       
+       )
+      
+       ui::UI_COMMAND (
+         TYPE ( SWITCHMENU )
+       
+        ARGUMENT ( dlg_Turk_mission2.rdr )
+       
+       )
+      
+       ELSEIF (
+         VALVE ( uiEquipReturnScreen  ==  16 )
+       
+       )
+      
+       ui::UI_COMMAND (
+         TYPE ( SWITCHMENU )
+       
+        ARGUMENT ( dlg_Turk_mission3.rdr )
+       
+       )
+      
+       ENDIF ()
+      
+      )
+     
+     )
+    
+    )
+   
+   )
+  
+  )
+ 
+ )
+
+)
+

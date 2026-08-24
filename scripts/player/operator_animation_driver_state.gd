@@ -19,7 +19,9 @@ const LocomotionBlendTree := preload("res://scripts/player/operator_locomotion_b
 const TransitionStateMachine := preload("res://scripts/player/operator_transition_state_machine.gd")
 const PostureLayer := preload("res://scripts/player/operator_posture_layer.gd")
 const IKContract := preload("res://scripts/player/operator_ik_contract.gd")
+const FootContactLock := preload("res://scripts/player/operator_foot_contact_lock.gd")
 const WeaponPoseSolver := preload("res://scripts/player/operator_weapon_pose_solver.gd")
+const WeaponGripContact := preload("res://scripts/player/operator_weapon_grip_contact.gd")
 const WeaponEquipmentRuntime := preload(
 	"res://scripts/player/operator_weapon_equipment_runtime.gd"
 )
@@ -66,7 +68,9 @@ var locomotion_graph
 var transition_state_machine
 var posture_layer
 var ik_contract
+var foot_contact_lock
 var weapon_pose_solver
+var weapon_grip_contact: SocomOperatorWeaponGripContact
 var audio_event_manager: AudioAnimationEventManager
 var animation_frame_pose_runtime
 
@@ -143,5 +147,3 @@ var _standing_master_pose_frame_suppressed: bool = false
 var _equipped_weapon_visible: bool = true
 var _fire_ready_hold_remaining: float = 0.0
 var _grenade_recovery_blend_seconds_cached: float = 0.12
-
-

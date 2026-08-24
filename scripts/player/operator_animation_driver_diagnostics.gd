@@ -40,8 +40,9 @@ func get_animation_debug_state() -> Dictionary:
 		snapshot["animation_frame_pose"] = animation_frame_pose_runtime.get_debug_state()
 	if ik_contract != null:
 		snapshot["ik"] = ik_contract.get_debug_state()
+	if foot_contact_lock != null:
+		snapshot["foot_contact_lock"] = foot_contact_lock.get_debug_state()
 	if weapon_pose_solver != null:
 		snapshot["weapon_pose"] = weapon_pose_solver.get_debug_state()
 	return snapshot
-
 

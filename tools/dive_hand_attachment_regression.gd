@@ -42,15 +42,42 @@ func _run() -> void:
 	await _process_steps(8)
 	var dive_debug: Dictionary = solver.call("get_debug_state")
 	var dive_contact := float(dive_debug.get("action_trigger_contact_error_m", 1.0))
-	print("DIVE_HAND_METRIC owner=%s contact_m=%.5f" % [
+	var dive_support_contact := float(
+		dive_debug.get("action_support_contact_error_m", 1.0)
+	)
+	var support_shoulder: Vector3 = solver.call(
+		"_bone_world_position", &"mixamorig_LeftArm"
+	)
+	var support_elbow: Vector3 = solver.call(
+		"_bone_world_position", &"mixamorig_LeftForeArm"
+	)
+	var support_hand: Vector3 = solver.call(
+		"_bone_world_position", &"mixamorig_LeftHand"
+	)
+	var support_target: Vector3 = dive_debug.get("support_hand_target", Vector3.ZERO)
+	var support_reach := (
+		support_shoulder.distance_to(support_elbow)
+		+ support_elbow.distance_to(support_hand)
+	)
+	print("DIVE_HAND_METRIC owner=%s trigger_m=%.5f support_m=%.5f" % [
 		String(dive_debug.get("weapon_owner", &"")),
 		dive_contact,
+		dive_support_contact,
+	])
+	print("DIVE_SUPPORT_REACH_METRIC target_distance=%.5f chain_reach=%.5f wrist_distance=%.5f" % [
+		support_shoulder.distance_to(support_target),
+		support_reach,
+		support_hand.distance_to(support_target),
 	])
 	_expect(
 		StringName(dive_debug.get("weapon_owner", &"")) == &"MOBILITY_CHEST_CARRY",
 		"dive gives the rendered rifle to the stable chest carry"
 	)
-	_expect(dive_contact <= 0.015, "dive keeps the trigger socket within 1.5 cm of the right palm")
+	_expect(dive_contact <= 0.010, "dive keeps the trigger socket within 1.0 cm of the right palm")
+	_expect(
+		dive_support_contact <= 0.020,
+		"dive keeps the bounded foregrip contact within 2.0 cm of the left palm"
+	)
 	await _capture("dive_right_hand")
 
 	for _frame in range(120):
@@ -58,7 +85,10 @@ func _run() -> void:
 		if StringName(player.call("get_motion_state_name")) == &"PRONE":
 			break
 	Input.action_release(&"move_forward")
-	await _process_steps(24)
+	# The pose coordinator advances on physics frames. Render-only frames can
+	# inspect the preceding mobility ownership before prone recovery has solved.
+	await _physics_steps(24)
+	await _process_steps(8)
 	var prone_debug: Dictionary = solver.call("get_debug_state")
 	var prone_contact := float(prone_debug.get("trigger_hand_error_m", 1.0))
 	print("PRONE_HAND_METRIC owner=%s contact_m=%.5f" % [
@@ -76,6 +106,58 @@ func _run() -> void:
 	)
 	_expect(prone_contact <= 0.005, "prone keeps the right hand on its trigger grip")
 	await _capture("prone_right_hand")
+
+	# Reproduce the user's fast crouch -> dive -> prone route. The action must
+	# keep its crouched entry anchor instead of silently switching to standing.
+	Input.action_press(&"crouch")
+	await _physics_steps(2)
+	Input.action_release(&"crouch")
+	await _physics_steps(12)
+	_expect(
+		StringName(player.call("get_posture_name")) == &"CROUCHED",
+		"prone tap returns to crouched before the quick dive"
+	)
+	Input.action_press(&"move_forward")
+	await _physics_steps(3)
+	Input.action_press(&"dive")
+	await _physics_steps(2)
+	Input.action_release(&"dive")
+	await _physics_steps(8)
+	await _process_steps(8)
+	var crouched_dive_debug: Dictionary = solver.call("get_debug_state")
+	print("CROUCHED_DIVE_HAND_METRIC owner=%s trigger_m=%.5f support_m=%.5f" % [
+		String(crouched_dive_debug.get("weapon_owner", &"")),
+		float(crouched_dive_debug.get("action_trigger_contact_error_m", 1.0)),
+		float(crouched_dive_debug.get("action_support_contact_error_m", 1.0)),
+	])
+	_expect(
+		StringName(player.call("get_motion_state_name")) == &"DIVING"
+		and StringName(player.call("get_posture_name")) == &"CROUCHED",
+		"quick crouched dive preserves its crouched entry posture"
+	)
+	_expect(
+		float(crouched_dive_debug.get("action_trigger_contact_error_m", 1.0)) <= 0.010,
+		"quick crouched dive keeps the right palm on the trigger socket"
+	)
+	_expect(
+		float(crouched_dive_debug.get("action_support_contact_error_m", 1.0)) <= 0.030,
+		"quick crouched dive keeps left-palm foregrip contact within 3.0 cm"
+	)
+	for _frame in range(120):
+		await physics_frame
+		if StringName(player.call("get_motion_state_name")) == &"PRONE":
+			break
+	Input.action_release(&"move_forward")
+	await _physics_steps(24)
+	var crouched_prone_debug: Dictionary = solver.call("get_debug_state")
+	_expect(
+		StringName(player.call("get_motion_state_name")) == &"PRONE",
+		"quick crouched dive settles into prone"
+	)
+	_expect(
+		float(crouched_prone_debug.get("trigger_hand_error_m", 1.0)) <= 0.005,
+		"quick crouched dive recovers prone trigger contact"
+	)
 	_finish()
 
 
@@ -114,7 +196,7 @@ func _expect(condition: bool, message: String) -> void:
 
 
 func _finish() -> void:
-	for action in [&"move_forward", &"dive"]:
+	for action in [&"move_forward", &"dive", &"crouch"]:
 		Input.action_release(action)
 	if failures.is_empty():
 		print("DIVE_HAND_ATTACHMENT_REGRESSION PASS")

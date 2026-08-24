@@ -135,10 +135,10 @@ func _place_gunsmith_line_weapon(
 		# Rebuild from the exact ready pose captured from the Gunsmith-authored
 		# mount. Reload and mobility clips may rotate the weapon temporarily, but
 		# their final frame cannot become the next ready pose's sideways twist.
-		weapon_node.global_basis = (
+		weapon_presentation_owner.set_world_basis((
 			skeleton.global_basis.orthonormalized()
 			* (baseline_local as Basis)
-		).orthonormalized().scaled(world_scale)
+		).orthonormalized().scaled(world_scale))
 	var barrel_origin: Vector3 = (
 		barrel_base_socket.global_position
 		if barrel_base_socket != null
@@ -148,16 +148,18 @@ func _place_gunsmith_line_weapon(
 	if current_barrel.length_squared() < 0.50 or placement_direction.length_squared() < 0.50:
 		return
 	var aim_delta := Quaternion(current_barrel, placement_direction).normalized()
-	weapon_node.global_basis = (
+	weapon_presentation_owner.set_world_basis((
 		Basis(aim_delta) * weapon_node.global_basis.orthonormalized()
-	).orthonormalized().scaled(world_scale)
+	).orthonormalized().scaled(world_scale))
 	var stance: Dictionary = gun_placement_line_by_posture.get(last_posture, {})
 	_correct_gunsmith_weapon_roll(
 		placement_direction,
 		float(stance.get("roll_degrees", 0.0)),
 		world_scale
 	)
-	weapon_node.global_position += placement_origin - optic_socket.global_position
+	weapon_presentation_owner.translate_world(
+		placement_origin - optic_socket.global_position
+	)
 	if rail_to_blue_line_event_remaining > 0.0:
 		# An accepted shot must present the rail on the same reticle ray used by
 		# ballistics on that frame. Blending into this pose made the bullet leave
@@ -187,10 +189,10 @@ func _correct_gunsmith_weapon_roll(
 	)
 	if is_nan(roll_error) or is_inf(roll_error) or absf(roll_error) <= 0.00001:
 		return
-	weapon_node.global_basis = (
+	weapon_presentation_owner.set_world_basis((
 		Basis(Quaternion(barrel_direction.normalized(), roll_error))
 		* weapon_node.global_basis.orthonormalized()
-	).orthonormalized().scaled(world_scale)
+	).orthonormalized().scaled(world_scale))
 
 
 func _measure_gunsmith_weapon_roll_error(
@@ -252,6 +254,8 @@ func _capture_gunsmith_ready_baseline(posture: StringName) -> void:
 
 
 func _gun_placement_origin(posture: StringName) -> Vector3:
+	if rail_to_blue_line_event_remaining > 0.0 and posture in [&"CROUCHED", &"PRONE"]:
+		return _live_head_gun_placement_origin(posture)
 	if not gun_placement_anchor_local_by_posture.has(posture):
 		var operator_right := skeleton.global_basis.x.normalized()
 		var operator_up := skeleton.global_basis.y.normalized()
@@ -352,6 +356,32 @@ func _gun_placement_origin(posture: StringName) -> Vector3:
 	return chest_pivot + torso_yaw * (neutral_origin - chest_pivot)
 
 
+func _live_head_gun_placement_origin(posture: StringName) -> Vector3:
+	# Crouch and prone can enter while the previous stance is still blending.
+	# Caching their first frame captures the standing head height and pins the
+	# blue dot above the operator. During the bounded fire event, rebuild the
+	# authored point from the final animated head every frame instead.
+	var head_index := _resolve_bone_index(&"mixamorig_Head")
+	var head_origin := (
+		skeleton.global_transform * skeleton.get_bone_global_pose(head_index).origin
+		if head_index >= 0
+		else skeleton.global_position
+	)
+	var operator_right := skeleton.global_basis.x.normalized()
+	var operator_up := skeleton.global_basis.y.normalized()
+	var operator_forward := skeleton.global_basis.z.normalized()
+	var stance: Dictionary = gun_placement_line_by_posture.get(posture, {})
+	var offset: Vector3 = stance.get("position_offset_meters", Vector3.ZERO)
+	return (
+		head_origin
+		+ operator_up * GUN_PLACEMENT_FACE_UP_M
+		+ operator_forward * GUN_PLACEMENT_FACE_FORWARD_M
+		+ operator_right * offset.x
+		+ operator_up * offset.y
+		+ operator_forward * offset.z
+	)
+
+
 func _stable_chest_anchor(
 	body: Node3D,
 	posture: StringName,
@@ -425,4 +455,3 @@ func _floor_clearance(body: Node3D, point: Vector3) -> float:
 
 func get_debug_state() -> Dictionary:
 	return PoseDiagnostics.capture(self)
-

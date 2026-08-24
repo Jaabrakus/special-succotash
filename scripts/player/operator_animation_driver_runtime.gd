@@ -56,6 +56,10 @@ func _ready() -> void:
 	ik_contract.name = "OperatorIKContract"
 	add_child(ik_contract)
 	ik_contract.bind(skeleton, weapon_node)
+	foot_contact_lock = FootContactLock.new()
+	foot_contact_lock.name = "FootContactLock"
+	add_child(foot_contact_lock)
+	foot_contact_lock.bind(skeleton, _get_player(), ik_contract)
 	weapon_pose_solver = WeaponPoseSolver.new()
 	weapon_pose_solver.name = "WeaponPoseSolver"
 	weapon_pose_solver.use_weapon_socket_contract = use_weapon_socket_contract
@@ -68,6 +72,8 @@ func _ready() -> void:
 	weapon_pose_solver.configure_gun_placement_line(
 		equipped_weapon_config.get("gun_placement_line", {})
 	)
+	weapon_grip_contact = WeaponGripContact.new()
+	weapon_grip_contact.bind(skeleton, weapon_node)
 	audio_event_manager = AnimationAudioEvents.new()
 	audio_event_manager.name = "AudioAnimationEvents"
 	add_child(audio_event_manager)
@@ -88,7 +94,12 @@ func _process(delta: float) -> void:
 	var mobility_owns_full_body := movement_state in [
 		&"DIVING", &"ROLLING", &"AIRBORNE", &"LANDING",
 	]
-	var presentation_ready_weight := 0.0 if mobility_owns_full_body else weapon_ready_weight
+	var displacement_mobility := movement_state in [&"DIVING", &"ROLLING"]
+	var presentation_ready_weight := (
+		0.0
+		if displacement_mobility
+		else weapon_ready_weight
+	)
 	locomotion_graph.update_locomotion(
 		movement_direction,
 		movement_speed_normalized,
@@ -116,11 +127,14 @@ func _process(delta: float) -> void:
 	)
 	var posture_aim_yaw := 0.0 if action_owns_upper_body_rotation else aim_yaw_rad
 	var posture_aim_pitch := 0.0 if action_owns_upper_body_rotation else aim_pitch_rad
+	# The camera/server may still report an obstructed muzzle, but presentation
+	# never reacts by raising or lowering the weapon toward the blue line.
+	var presentation_obstruction := 0.0
 	posture_layer.apply(
 		posture_aim_yaw,
 		posture_aim_pitch,
 		presentation_ready_weight,
-		obstruction_amount,
+		presentation_obstruction,
 		0.0,
 		deg_to_rad(chest_yaw_limit_deg),
 		deg_to_rad(chest_pitch_limit_deg),
@@ -142,7 +156,7 @@ func _process(delta: float) -> void:
 		posture,
 		movement_state,
 		presentation_ready_weight,
-		obstruction_amount,
+		presentation_obstruction,
 		requested_action,
 		_reload_support_regrip,
 		visual_aim_target,
@@ -151,6 +165,21 @@ func _process(delta: float) -> void:
 		_locomotion_active or movement_speed_normalized > 0.05
 	)
 	_stabilize_locomotion_legs(delta)
+	if foot_contact_lock != null:
+		foot_contact_lock.apply(
+			movement_direction,
+			movement_speed_normalized,
+			posture,
+			movement_state,
+			requested_action,
+			delta
+		)
+	if weapon_grip_contact != null:
+		weapon_grip_contact.apply(
+			weapon_pose_solver.weapon_owner,
+			weapon_pose_solver.support_hand_mode,
+			weapon_node != null and weapon_node.visible
+		)
 	_previous_firing = firing
 	_previous_movement_state = movement_state
 
@@ -216,4 +245,3 @@ func _cancel_cosmetic_transition_for_gameplay() -> void:
 		requested_action = &""
 		requested_action_remaining = 0.0
 		_requested_action_is_transition = false
-

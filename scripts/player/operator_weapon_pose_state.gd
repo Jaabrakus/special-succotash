@@ -43,6 +43,9 @@ const MobilityWeaponGripSolver := preload(
 const WeaponContactSolver := preload(
 	"res://scripts/player/operator_weapon_contact_solver.gd"
 )
+const WeaponPresentationOwner := preload(
+	"res://scripts/player/operator_weapon_presentation_owner.gd"
+)
 
 @export_category("Response")
 @export_range(1.0, 30.0, 0.5) var enter_response: float = 18.0
@@ -143,6 +146,7 @@ var elbow_pole_offsets_by_posture: Dictionary = {}
 var weapon_animation_parent: Node
 var weapon_hand_mount_transform := Transform3D.IDENTITY
 var weapon_solver_anchor: Node3D
+var weapon_presentation_owner: SocomOperatorWeaponPresentationOwner
 var weapon_solver_owned: bool = false
 var right_hand_owns_ready_weapon: bool = false
 var animation_drives_ready_hands: bool = false
@@ -163,6 +167,7 @@ var weapon_owner_transition_count: int = 0
 var right_palm_anchor_local := Vector3.ZERO
 var left_palm_anchor_local := Vector3.ZERO
 var action_trigger_contact_error_m: float = 0.0
+var action_support_contact_error_m: float = 0.0
 var support_hand_mode: StringName = &"IK_TO_WEAPON"
 var trigger_hand_grip_basis_by_posture: Dictionary = {}
 var support_hand_grip_basis_by_posture: Dictionary = {}
@@ -202,4 +207,3 @@ var stable_chest_anchor_world := Vector3.ZERO
 var stable_chest_anchor_active := false
 var last_unobstructed_render_direction := Vector3.ZERO
 var obstruction_direction_hold_active := false
-

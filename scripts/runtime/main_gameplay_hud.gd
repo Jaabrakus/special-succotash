@@ -5,6 +5,7 @@ const BodyStackOverlay := preload("res://scripts/ui/operator_body_stack_overlay.
 const PoseTuner := preload("res://scripts/ui/operator_pose_tuner.gd")
 const DynamicReticle := preload("res://scripts/ui/socom_dynamic_reticle.gd")
 const ControlsGuide := preload("res://scripts/ui/socom_controls_guide.gd")
+const EquipmentWheel := preload("res://scripts/ui/socom_equipment_wheel.gd")
 const PlayerProfile := preload("res://scripts/player/player_gameplay_profile.gd")
 const ExitMenu := preload("res://scripts/ui/socom_exit_menu.gd")
 const RETICLE_BOX_SIZE := Vector2(32.0, 32.0)
@@ -53,6 +54,9 @@ var grenade_charge_label: Label:
 var grenade_charge_bar: ProgressBar:
     get: return host.get("grenade_charge_bar") as ProgressBar
     set(value): host.set("grenade_charge_bar", value)
+var equipment_wheel: Control:
+    get: return host.get("equipment_wheel") as Control
+    set(value): host.set("equipment_wheel", value)
 var controls_guide:
     get: return host.get("controls_guide")
     set(value): host.set("controls_guide", value)
@@ -138,6 +142,10 @@ func _build_ui() -> void:
     _build_player_status_ui(layer)
 
     _build_grenade_charge_ui(layer)
+
+    equipment_wheel = EquipmentWheel.new()
+    equipment_wheel.name = "SocomEquipmentWheel"
+    layer.add_child(equipment_wheel)
 
     if not public_training_mode:
         _build_calibration_overlay(layer)

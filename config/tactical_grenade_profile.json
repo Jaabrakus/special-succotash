@@ -34,13 +34,17 @@
     "full_throw_charge_seconds": 0.78,
     "full_throw_playback_speed": 1.15,
     "maximum_hold_seconds": 1.25,
+    "maximum_launch_elevation_degrees": 68.0,
+    "minimum_launch_elevation_degrees": -8.0,
     "minimum_overhand_speed": 9.0,
     "minimum_underhand_speed": 4.2,
     "overhand_lift": 0.28,
+    "overhand_pitch_influence": 0.85,
     "overhand_speed": 16.0,
     "quick_throw_playback_speed": 2.05,
     "recovery_blend_seconds": 0.12,
     "underhand_lift": 0.06,
+    "underhand_pitch_influence": 0.55,
     "underhand_speed": 6.4
   }
 }

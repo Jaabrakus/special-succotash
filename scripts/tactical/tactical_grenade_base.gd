@@ -8,6 +8,10 @@ signal fuse_started(duration: float)
 signal detonated(position: Vector3)
 signal bounced(speed: float, position: Vector3)
 
+const COLLISION_RADIUS_METERS := 0.075
+const COLLISION_MASK := 1
+const OWNER_COLLISION_GRACE_SECONDS := 0.18
+
 @export var fuse_seconds := 3.0
 @export var bounce_restitution := 0.38
 @export var mass_kg := 0.40
@@ -23,10 +27,14 @@ var _sparks: GPUParticles3D
 var _impact_cooldown := 0.0
 var profile_override: Dictionary = {}
 var active_profile: Dictionary = {}
+var visual_scene_override: PackedScene
+var _ignored_launch_body: Node
+var _ignored_launch_body_seconds := 0.0
 
 
 func _ready() -> void:
 	add_to_group("presentation_quality_consumers")
+	add_to_group("tactical_grenades")
 	active_profile = (
 		GrenadeProfile.normalize(profile_override)
 		if not profile_override.is_empty()
@@ -40,6 +48,8 @@ func _ready() -> void:
 	physics_material_override.friction = 0.62
 	contact_monitor = true
 	max_contacts_reported = 4
+	continuous_cd = true
+	collision_mask = COLLISION_MASK
 	body_entered.connect(_on_body_entered)
 	_build_default_body()
 	foley = FoleyEngine.new()
@@ -69,6 +79,10 @@ func configure_profile(raw_profile: Dictionary) -> void:
 			physics_material_override.bounce = bounce_restitution
 
 
+func configure_visual_scene(scene: PackedScene) -> void:
+	visual_scene_override = scene
+
+
 func _apply_common_profile(profile: Dictionary) -> void:
 	var common: Dictionary = profile.get("common", {})
 	fuse_seconds = float(common.get("fuse_seconds", fuse_seconds))
@@ -83,6 +97,7 @@ func _apply_type_profile(_profile: Dictionary) -> void:
 func _physics_process(delta: float) -> void:
 	_previous_linear_velocity = linear_velocity
 	_impact_cooldown = maxf(0.0, _impact_cooldown - delta)
+	_update_launch_collision_exception(delta)
 	if not armed or detonated_once or not _is_simulation_authority():
 		return
 	fuse_remaining -= delta
@@ -100,6 +115,27 @@ func launch(velocity: Vector3, spin := Vector3(8.0, 3.0, 5.0)) -> void:
 	linear_velocity = velocity
 	angular_velocity = spin
 	sleeping = false
+
+
+func ignore_launch_body_temporarily(body: Node) -> void:
+	if body == null:
+		return
+	if _ignored_launch_body != null and is_instance_valid(_ignored_launch_body):
+		remove_collision_exception_with(_ignored_launch_body)
+	_ignored_launch_body = body
+	_ignored_launch_body_seconds = OWNER_COLLISION_GRACE_SECONDS
+	add_collision_exception_with(body)
+
+
+func _update_launch_collision_exception(delta: float) -> void:
+	if _ignored_launch_body == null:
+		return
+	_ignored_launch_body_seconds -= maxf(delta, 0.0)
+	if _ignored_launch_body_seconds > 0.0:
+		return
+	if is_instance_valid(_ignored_launch_body):
+		remove_collision_exception_with(_ignored_launch_body)
+	_ignored_launch_body = null
 
 
 func detonate() -> void:
@@ -144,12 +180,18 @@ func _build_default_body() -> void:
 		return
 	var collision := CollisionShape3D.new()
 	var shape := SphereShape3D.new()
-	shape.radius = 0.075
+	shape.radius = COLLISION_RADIUS_METERS
 	collision.shape = shape
 	add_child(collision)
+	if visual_scene_override != null:
+		var visual := visual_scene_override.instantiate() as Node3D
+		if visual != null:
+			visual.name = "GrenadeVisual"
+			add_child(visual)
+			return
 	var mesh_instance := MeshInstance3D.new()
 	var mesh := SphereMesh.new()
-	mesh.radius = 0.075
+	mesh.radius = COLLISION_RADIUS_METERS
 	mesh.height = 0.15
 	mesh_instance.mesh = mesh
 	add_child(mesh_instance)

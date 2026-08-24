@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Read-only browser animation reviewer for the canonical SOCOM-141 operator."
+    />
+    <title>SOCOM-141 Operator Reviewer</title>
+  </head>
+  <body>
+    <div id="app">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">SOCOM-141 / FIELD WORKBENCH 01</p>
+          <h1>Operator Reviewer</h1>
+        </div>
+        <div class="safety-state">
+          <span class="status-light"></span>
+          Review only · Godot remains authoritative
+        </div>
+      </header>
+
+      <main class="workspace">
+        <aside class="panel panel-left">
+          <section>
+            <p class="section-number">01 / ASSET</p>
+            <h2>Canonical operator</h2>
+            <p class="muted" id="asset-name">Loading PS1 gas-mask operator…</p>
+            <div class="button-grid">
+              <label class="button secondary" for="model-input">Open model</label>
+              <input id="model-input" type="file" accept=".fbx,.glb" hidden />
+              <label class="button secondary" for="animation-input">Open animation</label>
+              <input id="animation-input" type="file" accept=".fbx,.glb" hidden />
+            </div>
+          </section>
+
+          <section>
+            <p class="section-number">02 / TAKE</p>
+            <label for="clip-select">Animation</label>
+            <select id="clip-select" disabled>
+              <option>Waiting for animation…</option>
+            </select>
+            <div class="transport">
+              <button id="play-toggle" class="button primary" disabled>Play</button>
+              <button id="restart" class="button icon" aria-label="Restart animation" disabled>↺</button>
+              <label class="speed-control">
+                <span>Speed</span>
+                <select id="speed-select">
+                  <option value="0.25">0.25×</option>
+                  <option value="0.5">0.5×</option>
+                  <option value="1" selected>1×</option>
+                  <option value="1.5">1.5×</option>
+                  <option value="2">2×</option>
+                </select>
+              </label>
+            </div>
+          </section>
+
+          <section class="bone-section">
+            <p class="section-number">03 / RIG</p>
+            <label for="bone-search">Find a bone</label>
+            <input id="bone-search" type="search" placeholder="hand, elbow, foot…" />
+            <div id="bone-list" class="bone-list" role="listbox" aria-label="Operator bones"></div>
+          </section>
+        </aside>
+
+        <section class="viewport-shell">
+          <canvas id="viewport" aria-label="Three-dimensional operator preview"></canvas>
+          <div class="viewport-badge">DRAG ORBIT · WHEEL ZOOM</div>
+          <div id="drop-hint" class="drop-hint">Drop an FBX or GLB to review it locally</div>
+          <div id="status" class="status-message">Preparing reviewer…</div>
+        </section>
+
+        <aside class="panel panel-right">
+          <section>
+            <p class="section-number">04 / INSPECT</p>
+            <h2 id="selected-bone">No bone selected</h2>
+            <dl class="transform-readout">
+              <div><dt>Position</dt><dd id="bone-position">—</dd></div>
+              <div><dt>Rotation</dt><dd id="bone-rotation">—</dd></div>
+            </dl>
+            <p class="muted small">Inspection is read-only in this first safe slice.</p>
+          </section>
+
+          <section>
+            <p class="section-number">05 / EVENT MARKERS</p>
+            <label for="event-type">Marker type</label>
+            <select id="event-type">
+              <option value="FOOT_PLANT_LEFT">Left foot planted</option>
+              <option value="FOOT_PLANT_RIGHT">Right foot planted</option>
+              <option value="MAGAZINE_REMOVED">Magazine removed</option>
+              <option value="MAGAZINE_INSERTED">Magazine inserted</option>
+              <option value="GRENADE_RELEASED">Grenade released</option>
+              <option value="ACTION_RECOVERY">Action recovery</option>
+              <option value="CUSTOM">Custom review note</option>
+            </select>
+            <button id="add-marker" class="button primary" disabled>Add at current frame</button>
+            <div id="marker-list" class="marker-list"></div>
+          </section>
+
+          <section>
+            <p class="section-number">06 / HANDOFF</p>
+            <div class="button-stack">
+              <button id="export-review" class="button primary">Export review JSON</button>
+              <label class="button secondary" for="review-input">Inspect review JSON</label>
+              <input id="review-input" type="file" accept="application/json,.json" hidden />
+            </div>
+            <p id="contract-status" class="contract-status">No gameplay data has been changed.</p>
+          </section>
+        </aside>
+      </main>
+
+      <footer class="timeline-panel">
+        <div class="timeline-meta">
+          <span id="time-readout">00:00.000</span>
+          <span id="frame-readout">FRAME 0000</span>
+          <span id="duration-readout">/ 00:00.000</span>
+        </div>
+        <div class="timeline-track">
+          <input id="timeline" type="range" min="0" max="1" step="0.001" value="0" disabled />
+          <div id="timeline-markers" class="timeline-markers"></div>
+        </div>
+      </footer>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

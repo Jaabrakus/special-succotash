@@ -192,11 +192,10 @@ func apply(
 	var head_yaw := clampf(aim_yaw, -head_yaw_limit, head_yaw_limit)
 	var head_pitch := clampf(aim_pitch, -head_pitch_limit, head_pitch_limit)
 	var normalized_ready := clampf(ready_weight, 0.0, 1.0)
-	var obstruction_scale := lerpf(
-		1.0,
-		0.62,
-		clampf(obstruction_amount, 0.0, 1.0)
-	)
+	# Close-cover obstruction is a firing-safety result, not an animation input.
+	# Keeping it out of posture prevents the blue-line/cover detector from raising
+	# or lowering the operator's torso and arms.
+	var obstruction_scale := 1.0
 	# The authored full-body rifle run owns the relaxed torso. Ready Aim blends
 	# the spine toward the reticle. The head keeps a small independent look layer
 	# during relaxed travel so the operator can scan without straightening the

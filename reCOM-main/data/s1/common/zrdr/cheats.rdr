@@ -1,0 +1,89 @@
+(
+  cheats ((
+    name ( "No Die" )
+  
+   pattern ( T  O  O )
+  
+  )
+ 
+ (
+    name ( "Infinite Ammo" )
+  
+   pattern ( T  S  O )
+  
+  )
+ 
+ (
+    name ( "Invert Pitch" )
+  
+   pattern ( T  S  S )
+  
+  )
+ 
+ (
+    name ( Invisible )
+  
+   pattern ( T  O  S )
+  
+  )
+ 
+ (
+    name ( "Ai Status" )
+  
+   pattern ( T  O  T )
+  
+  )
+ 
+ (
+    name ( "E3 Bailout" )
+  
+   pattern ( S  S  S )
+  
+  )
+ 
+ (
+    name ( "MP Respawn" )
+  
+   pattern ( S  O  O )
+  
+  )
+ 
+ (
+    name ( "Status Line" )
+  
+   pattern ( T  T  T )
+  
+  )
+ 
+ (
+    name ( FPS )
+  
+   pattern ( T  T  O )
+  
+  )
+ 
+ (
+    name ( "Asset Report" )
+  
+   pattern ( T  T  S )
+  
+  )
+ 
+ (
+    name ( "Task Report" )
+  
+   pattern ( T  T  L )
+  
+  )
+ 
+ (
+    name ( "Render Report" )
+  
+   pattern ( S  T  T )
+  
+  )
+ 
+ )
+
+)
+

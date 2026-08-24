@@ -15,6 +15,9 @@ const CameraRecoverySolverScript := preload("res://scripts/camera/camera_recover
 const CameraRuntimeSupportScript := preload("res://scripts/camera/camera_runtime_support.gd")
 const CameraStateControllerScript := preload("res://scripts/camera/camera_state_controller.gd")
 const CameraSubjectProjectorScript := preload("res://scripts/camera/camera_subject_projector.gd")
+const TacticalPerceptionSensorScript := preload(
+    "res://scripts/camera/tactical_perception_sensor.gd"
+)
 const MouseAimModelScript := preload("res://scripts/camera/mouse_aim_model.gd")
 const MouseCursorGuideScript := preload("res://scripts/camera/mouse_cursor_guide.gd")
 const MouseAimStringGuideScript := preload("res://scripts/camera/mouse_aim_string_guide.gd")
@@ -175,6 +178,7 @@ var virtual_wall_occluder: Node3D
 var virtual_wall_original_layers: Dictionary = {}
 
 var camera: Camera3D
+var tactical_perception_sensor: SocomTacticalPerceptionSensor
 var orbit_input_enabled: bool = true
 var automated_wall_turn: bool = false
 var head_impact_age: float = 99.0
@@ -206,6 +210,10 @@ func _ready() -> void:
     camera.keep_aspect = Camera3D.KEEP_HEIGHT
     camera.near = 0.08
     add_child(camera)
+    tactical_perception_sensor = TacticalPerceptionSensorScript.new()
+    tactical_perception_sensor.name = "TacticalPerceptionSensor"
+    add_child(tactical_perception_sensor)
+    tactical_perception_sensor.configure(camera, target)
     camera.set_cull_mask_value(VIRTUAL_WALL_OBSERVER_LAYER, false)
     camera_collision_shape.radius = profile.camera_collision_radius
     current_fov = profile.vertical_fov

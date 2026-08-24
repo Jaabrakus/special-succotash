@@ -88,7 +88,18 @@ static func solve(
 		left_shoulder - body_right * 0.34 + body_forward * 0.12 + Vector3.UP * 0.02
 	)
 	trigger_target.global_position = trigger_socket.global_position
-	support_target.global_position = support_socket.global_position
+	# Full-body mobility can shorten the animated support-arm reach. Keep the
+	# rifle's stable chest orientation and slide the left contact only along the
+	# physical trigger-to-foregrip line. This prevents the support hand from
+	# rotating the whole rifle while still keeping the palm on the gun.
+	support_target.global_transform = support_socket.global_transform
+	support_target.global_position = _reachable_support_contact(
+		skeleton,
+		bone_indices,
+		trigger_socket.global_position,
+		support_socket.global_position,
+		left_palm_anchor
+	)
 	right_hand_ik.override_tip_basis = false
 	left_hand_ik.override_tip_basis = false
 	_solve_arm(
@@ -100,6 +111,36 @@ static func solve(
 		left_elbow_pole, &"mixamorig_LeftHand", left_palm_anchor
 	)
 	skeleton.force_update_all_bone_transforms()
+	# Finish on the trigger palm. A crouched-entry dive can move the imported hand
+	# farther than a standing dive during its first frames. Translate the rigid
+	# chest-owned rifle to that palm inside one human forearm-sized safety bound;
+	# never let the action leave the gun behind because the residual exceeded the
+	# old 2.5 cm scaled-import tolerance. Re-solve the support arm afterward.
+	var trigger_palm := WeaponContactSolver.palm_contact_world(
+		skeleton,
+		int(bone_indices.get(&"mixamorig_RightHand", -1)),
+		right_palm_anchor
+	)
+	var trigger_residual := trigger_palm - trigger_socket.global_position
+	if trigger_residual.length() <= 0.18:
+		weapon.global_position += trigger_residual
+		trigger_target.global_position = trigger_socket.global_position
+		# Reproject after each IK result because the foregrip contact is allowed to
+		# slide along the weapon. Two bounded passes remove the crouched-dive wrist
+		# residual without rotating or translating the rifle away from the trigger.
+		for _support_pass in range(2):
+			support_target.global_position = _reachable_support_contact(
+				skeleton,
+				bone_indices,
+				trigger_socket.global_position,
+				support_socket.global_position,
+				left_palm_anchor
+			)
+			_solve_arm(
+				skeleton, bone_indices, left_hand_ik, support_target,
+				left_elbow_pole, &"mixamorig_LeftHand", left_palm_anchor
+			)
+			skeleton.force_update_all_bone_transforms()
 	return {
 		"applied": true,
 		"trigger_error_m": trigger_socket.global_position.distance_to(
@@ -109,13 +150,14 @@ static func solve(
 				right_palm_anchor
 			)
 		),
-		"support_error_m": support_socket.global_position.distance_to(
+		"support_error_m": support_target.global_position.distance_to(
 			WeaponContactSolver.palm_contact_world(
 				skeleton,
 				int(bone_indices.get(&"mixamorig_LeftHand", -1)),
 				left_palm_anchor
 			)
 		),
+		"support_contact_position": support_target.global_position,
 	}
 
 
@@ -129,6 +171,7 @@ static func _solve_arm(
 	palm_anchor: Vector3
 ) -> void:
 	ik.interpolation = 1.0
+	ik.use_magnet = true
 	ik.magnet = skeleton.global_transform.affine_inverse() * pole.global_position
 	var desired_contact := target.global_transform
 	var wrist_target := WeaponContactSolver.wrist_target_for_contact(
@@ -152,6 +195,43 @@ static func _solve_arm(
 		if residual.length() <= 0.001:
 			break
 		internal_position += residual
+
+
+static func _reachable_support_contact(
+	skeleton: Skeleton3D,
+	bone_indices: Dictionary,
+	trigger_position: Vector3,
+	support_position: Vector3,
+	left_palm_anchor: Vector3
+) -> Vector3:
+	var left_index := int(bone_indices.get(&"mixamorig_LeftHand", -1))
+	if left_index < 0:
+		return support_position
+	var left_palm := WeaponContactSolver.palm_contact_world(
+		skeleton, left_index, left_palm_anchor
+	)
+	var foregrip_axis := support_position - trigger_position
+	var axis_length := foregrip_axis.length()
+	if axis_length <= 0.001:
+		return support_position
+	var axis_direction := foregrip_axis / axis_length
+	var projected_distance := (left_palm - trigger_position).dot(axis_direction)
+	# Keep the dynamic contact on the forward portion of the weapon and no more
+	# than 18 cm from the authored foregrip marker.
+	var minimum_distance := axis_length * 0.30
+	var maximum_distance := axis_length + 0.18
+	var center_contact := (
+		trigger_position
+		+ axis_direction
+		* clampf(projected_distance, minimum_distance, maximum_distance)
+	)
+	# The socket line runs through the weapon. Offset to the near grip surface so
+	# the palm wraps the rifle instead of being asked to occupy its center.
+	var radial := left_palm - center_contact
+	radial -= axis_direction * radial.dot(axis_direction)
+	if radial.length() > 0.045:
+		radial = radial.normalized() * 0.045
+	return center_contact + radial
 
 
 static func _arm_length(

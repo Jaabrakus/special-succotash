@@ -2,6 +2,7 @@ class_name TacticalFlashbangGrenade
 extends TacticalGrenadeBase
 
 const BlastVisual := preload("res://scripts/tactical/flashbang_blast_visual.gd")
+const RuntimeAudio := preload("res://scripts/audio/lab_leak_audio_engine.gd")
 
 @export var effective_radius := 18.0
 @export var intensity_multiplier := 1.0
@@ -32,6 +33,7 @@ static func calculate_exposure(
 
 
 func _on_detonated() -> void:
+	RuntimeAudio.play_grenade_detonation(get_tree(), global_position, &"flash")
 	_spawn_blast_visual()
 	for node in get_tree().get_nodes_in_group("tactical_screen_effects"):
 		if node.has_method("apply_flash_from_world"):

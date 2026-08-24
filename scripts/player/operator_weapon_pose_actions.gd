@@ -12,10 +12,20 @@ func _set_weapon_owner(next_owner: StringName) -> void:
 	previous_weapon_owner = weapon_owner
 	weapon_owner = next_owner
 	weapon_owner_transition_count += 1
+	if weapon_presentation_owner != null:
+		weapon_presentation_owner.set_owner(next_owner)
 
 
 func _set_weapon_solver_owned(enabled: bool) -> void:
-	if weapon_node == null or weapon_solver_owned == enabled:
+	if weapon_node == null:
+		return
+	if weapon_solver_owned == enabled:
+		# The ownership flag describes the intended parent, not proof that the
+		# weapon still has the correct local mount. Reload adjusts translation to
+		# follow the animated palm; the first relaxed frame must restore the saved
+		# Gunsmith mount even though both states are animation-parented.
+		if not enabled and weapon_presentation_owner != null:
+			weapon_presentation_owner.use_animation_parent(true)
 		return
 	var was_solver_owned := weapon_solver_owned
 	var next_parent: Node = weapon_solver_anchor if enabled else weapon_animation_parent
@@ -29,21 +39,43 @@ func _set_weapon_solver_owned(enabled: bool) -> void:
 		# sample. Never promote that visual correction into the next ready pose.
 		# Restore the exact Gunsmith mount before preserving world space under the
 		# solver anchor.
-		if weapon_animation_parent != null and weapon_node.get_parent() == weapon_animation_parent:
-			weapon_node.transform = weapon_hand_mount_transform
-		weapon_node.reparent(next_parent, true)
+		weapon_presentation_owner.restore_animation_mount_before_solver()
+		weapon_presentation_owner.use_solver_parent(true)
 	else:
 		# Leaving Ready Aim returns the rifle to the exact Gunsmith-authored
 		# right-hand mount. Preserving the solver's last world transform here
 		# converted the aim pose into a new hand-local offset, so the next run clip
 		# moved its hand while the rifle appeared to remain behind.
-		weapon_node.reparent(next_parent, false)
-		weapon_node.transform = weapon_hand_mount_transform
+		weapon_presentation_owner.use_animation_parent(true)
 	weapon_solver_owned = enabled
 	if enabled:
 		_finish_action_weapon_follow()
 	else:
 		ownership_return_elapsed = ownership_return_seconds
+
+
+func _attach_reload_weapon_to_right_hand() -> void:
+	if weapon_node == null or weapon_presentation_owner == null:
+		return
+	# Reload animation owns the right arm, and the weapon is a direct child of
+	# that authored hand mount. Do not detach it into the world-space solver:
+	# doing so creates a second transform owner and makes the rifle drift, vanish,
+	# or rotate sideways when the clip and solver update in different frames.
+	if action_weapon_follow_active:
+		_finish_action_weapon_follow()
+	weapon_presentation_owner.use_animation_parent(true)
+	weapon_solver_owned = false
+	action_weapon_chest_owned = false
+	if trigger_socket != null:
+		# Finger/palm animation can move the authored palm contact relative to the
+		# hand bone. Correct position only; the BoneAttachment remains the sole
+		# rotation owner, so the rifle still follows the reload take naturally.
+		weapon_presentation_owner.translate_world(
+			_right_hand_grip_world_transform().origin - trigger_socket.global_position
+		)
+		action_trigger_contact_error_m = trigger_socket.global_position.distance_to(
+			_right_hand_grip_world_transform().origin
+		)
 
 
 func _update_action_weapon_follow(delta: float, chest_owned: bool = false) -> void:
@@ -59,7 +91,7 @@ func _update_action_weapon_follow(delta: float, chest_owned: bool = false) -> vo
 		# explicitly. Reparenting directly under BoneAttachment3D produced a one-frame
 		# attachment update jump when the reload crossfade began.
 		if weapon_solver_anchor != null and weapon_node.get_parent() != weapon_solver_anchor:
-			weapon_node.reparent(weapon_solver_anchor, true)
+			weapon_presentation_owner.use_solver_parent(true)
 		action_weapon_follow_start = weapon_node.global_transform
 		action_weapon_chest_start_origin = _gun_placement_torso_pivot_world()
 		var start_barrel := (
@@ -101,9 +133,8 @@ func _update_action_weapon_follow(delta: float, chest_owned: bool = false) -> vo
 		1.0
 	)
 	amount = amount * amount * (3.0 - 2.0 * amount)
-	weapon_node.global_transform = action_weapon_follow_start.interpolate_with(
-		desired_transform,
-		amount
+	weapon_presentation_owner.set_world_transform(
+		action_weapon_follow_start.interpolate_with(desired_transform, amount)
 	)
 	if trigger_socket != null and not chest_owned:
 		# Gunsmith authors the orange trigger point against the palm center, not
@@ -114,7 +145,7 @@ func _update_action_weapon_follow(delta: float, chest_owned: bool = false) -> vo
 		# keep exact trigger-to-palm translation; the dive wrist must never detach
 		# merely because it travels farther than the previous correction limit.
 		var hand_correction := hand_world.origin - trigger_socket.global_position
-		weapon_node.global_position += hand_correction
+		weapon_presentation_owner.translate_world(hand_correction)
 		action_trigger_contact_error_m = trigger_socket.global_position.distance_to(
 			hand_world.origin
 		)
@@ -206,19 +237,21 @@ func _place_socketed_weapon(
 		# Calibrated assets may use +X, -Z, or another import axis. Rotate the
 		# authored barrel socket line itself instead of assuming a mesh axis.
 		var aim_delta := Quaternion(current_barrel, render_direction.normalized())
-		weapon_node.global_basis = (
+		weapon_presentation_owner.set_world_basis((
 			Basis(aim_delta) * weapon_node.global_basis.orthonormalized()
-		).orthonormalized().scaled(world_scale)
+		).orthonormalized().scaled(world_scale))
 	else:
 		var stable_up := Vector3.UP
 		if absf(render_direction.dot(stable_up)) > 0.96:
 			stable_up = Vector3.FORWARD
-		weapon_node.global_basis = Basis.looking_at(
+		weapon_presentation_owner.set_world_basis(Basis.looking_at(
 			render_direction.normalized(),
 			stable_up,
 			false
-		).scaled(world_scale)
-	weapon_node.global_position += trigger_goal - trigger_socket.global_position
+		).scaled(world_scale))
+	weapon_presentation_owner.translate_world(
+		trigger_goal - trigger_socket.global_position
+	)
 	_apply_ownership_return(weapon_node.global_transform, delta)
 
 
@@ -289,4 +322,3 @@ func _place_hand_owned_weapon(
 		if solved_barrel.length_squared() > 0.50
 		else 0.0
 	)
-

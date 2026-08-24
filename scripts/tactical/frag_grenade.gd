@@ -2,6 +2,7 @@ class_name TacticalFragGrenade
 extends TacticalGrenadeBase
 
 const BlastVisual := preload("res://scripts/tactical/frag_blast_visual.gd")
+const RuntimeAudio := preload("res://scripts/audio/lab_leak_audio_engine.gd")
 
 signal blast_damage_requested(origin: Vector3, radius: float, maximum_damage: float)
 
@@ -26,6 +27,7 @@ func _apply_type_profile(profile: Dictionary) -> void:
 
 
 func _on_detonated() -> void:
+	RuntimeAudio.play_grenade_detonation(get_tree(), global_position, &"frag")
 	if _is_simulation_authority():
 		blast_damage_requested.emit(global_position, blast_radius, maximum_damage)
 		_apply_blast_gameplay()

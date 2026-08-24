@@ -101,6 +101,18 @@
       "license_or_contract": "not applicable to customer package",
       "evidence": "repository remains private",
       "required_action": "Keep excluded and complete creator/ownership records before derived assets ship."
+    },
+    {
+      "id": "cc0_tactical_grenade_audio",
+      "path": "res://assets/audio/grenades",
+      "purpose": "frag core and tail plus flashbang detonation audio",
+      "included_in_customer_build": true,
+      "status": "approved_open_source",
+      "source": "Freesound sound 162363 and OpenGameArt muffled-distant-explosion / flash-bang-sound",
+      "creator": "qubodup / NenadSimic / teeeece",
+      "license_or_contract": "CC0 1.0 Public Domain Dedication",
+      "evidence": "assets/audio/grenades/PROVENANCE.md with source URLs and SHA-256 hashes",
+      "required_action": "Retain provenance record with shipped source archive."
     }
   ]
 }

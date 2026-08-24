@@ -124,6 +124,10 @@ func _run() -> void:
 	var arc_preview := main.get("grenade_arc_preview") as MeshInstance3D
 	var charge_panel := main.get("grenade_charge_panel") as PanelContainer
 	var charge_bar := main.get("grenade_charge_bar") as ProgressBar
+	var predicted_launch_velocity := Vector3(arc_preview.get_meta(
+		"predicted_launch_velocity",
+		Vector3.INF
+	)) if arc_preview != null else Vector3.INF
 	_expect(
 		arc_preview != null
 		and arc_preview.visible
@@ -158,17 +162,25 @@ func _run() -> void:
 		not bool(main.get("grenade_aim_active"))
 		and bool(main.get("grenade_equipped"))
 		and bool(main.get("grenade_throw_in_progress"))
-		and not arc_preview.visible
+		and arc_preview.visible
 		and not charge_panel.visible,
-		"releasing fire enters the authored grenade release window"
+		"releasing fire keeps the arc visible through the authored wind-up"
 	)
 	_expect(
 		grenade_driver != null
 		and "grenade" in String(grenade_driver.get("requested_action")).to_lower()
-		and (grenade_driver.get("animation_player") as AnimationPlayer).speed_scale > 1.0
+		and is_equal_approx(
+			(grenade_driver.get("animation_player") as AnimationPlayer).speed_scale,
+			1.0
+		)
+		and float((grenade_driver.get("animation_tree") as AnimationTree).get(
+			(grenade_driver.get("locomotion_graph")).modern_clip_time_scale_paths[
+				StringName(grenade_driver.get("requested_action"))
+			]
+		)) > 1.0
 		and not bool(player_body.get("local_input_enabled"))
 		and not bool((grenade_driver.get("weapon_node") as Node3D).visible),
-		"short gameplay release accelerates the full-body take, locks movement, and hides the rifle"
+		"short gameplay release accelerates the rendered take, locks movement, and hides the rifle"
 	)
 	var grenade_clip := StringName(grenade_driver.get("requested_action"))
 	var grenade_animation_duration := float(
@@ -197,19 +209,47 @@ func _run() -> void:
 		and not bool(player_body.get("local_input_enabled")),
 		"the authored throw motion launches one grenade before the animation ends"
 	)
-	var recovery_fraction := GrenadeReleaseTimeline.recovery_fraction(grenade_clip)
+	var launched_grenades := main.get_tree().get_nodes_in_group("tactical_grenades")
+	var launched_grenade := (
+		launched_grenades.back() as TacticalGrenadeBase
+		if not launched_grenades.is_empty()
+		else null
+	)
+	var release_cue_origin := Vector3(arc_preview.get_meta(
+		"predicted_launch_origin",
+		Vector3.INF
+	))
+	var release_cue_velocity := Vector3(arc_preview.get_meta(
+		"predicted_launch_velocity",
+		Vector3.INF
+	))
+	_expect(
+		launched_grenade != null
+		and Vector3(launched_grenade.get_meta(
+			"authoritative_launch_origin",
+			Vector3.INF
+		)).distance_to(release_cue_origin) <= 0.001
+		and Vector3(launched_grenade.get_meta(
+			"authoritative_launch_velocity",
+			Vector3.INF
+		)).distance_to(release_cue_velocity) <= 0.001
+		and release_cue_velocity.distance_to(predicted_launch_velocity) <= 0.001
+		and not arc_preview.visible,
+		"the release cue launches from the animated hand with the arc's saved velocity"
+	)
+	_expect(
+		launched_grenade != null and launched_grenade.continuous_cd,
+		"the live grenade enables continuous collision detection"
+	)
 	grenade_driver.call(
 		"_update_requested_action",
-		grenade_animation_duration * maxf(
-			recovery_fraction - release_fraction + 0.01,
-			0.01
-		)
+		maxf(float(grenade_driver.get("requested_action_remaining")) - 0.01, 0.0)
 	)
 	_expect(
 		bool(main.get("grenade_throw_in_progress"))
 		and not bool(player_body.get("local_input_enabled"))
-		and "grenade" not in String(grenade_driver.get("current_clip")).to_lower(),
-		"locomotion blends during the throw tail before movement translation resumes"
+		and "grenade" in String(grenade_driver.get("current_clip")).to_lower(),
+		"the grenade take owns the rendered body through its final animation frame"
 	)
 	grenade_driver.call(
 		"_update_requested_action",

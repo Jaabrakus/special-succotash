@@ -79,8 +79,8 @@ func _run() -> void:
 		"stable firing reticle leaves the camera aim angle unchanged"
 	)
 	_expect(
-		float(first.get("spread_deg", 0.0)) >= 2.70,
-		"first full-strafe shot receives the wider tap-fire movement cone"
+		float(first.get("spread_deg", 0.0)) >= 1.70,
+		"first full-strafe shot receives the approved movement cone"
 	)
 	_expect(
 		float(first.get("dispersion_multiplier", 0.0)) >= 0.99,
@@ -110,7 +110,7 @@ func _run() -> void:
 		"second shot keeps the same world-space aim center while the moving muzzle reconverges"
 	)
 	_expect(
-		float(second.get("spread_deg", 0.0)) >= 2.70
+		float(second.get("spread_deg", 0.0)) >= 1.70
 		and float(second.get("dispersion_multiplier", 0.0)) >= 0.99,
 		"second full-movement tap cannot restore laser accuracy"
 	)

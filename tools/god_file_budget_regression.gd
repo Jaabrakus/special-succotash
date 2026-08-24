@@ -3,7 +3,7 @@ extends SceneTree
 ## Temporary hard ceilings stop the remaining god files from crossing their
 ## next size boundary. Lower each ceiling after a successful extraction.
 const TEMPORARY_CEILINGS := {
-	"res://scripts/labs/gun_calibration_lab.gd": 6700,
+	"res://scripts/labs/gun_calibration_lab.gd": 500,
 	"res://scripts/labs/map_creation_lab.gd": 2900,
 	"res://scripts/labs/animation_studio/animation_studio_pose_input.gd": 500,
 	"res://scripts/labs/animation_studio/animation_studio_pose_strip.gd": 500,
@@ -45,6 +45,9 @@ const TEMPORARY_CEILINGS := {
 	"res://scripts/player/operator_animation_driver_runtime.gd": 500,
 	"res://scripts/player/operator_animation_driver.gd": 50,
 }
+const COMPONENT_DIRECTORY_CEILINGS := {
+	"res://scripts/labs/gunsmith/": 500,
+}
 const NEW_GOD_FILE_LIMIT := 1000
 
 var failures: Array[String] = []
@@ -63,6 +66,8 @@ func _run() -> void:
 			var ceiling := int(TEMPORARY_CEILINGS[path])
 			if line_count > ceiling:
 				failures.append("%s grew from its %d-line ceiling to %d" % [path, ceiling, line_count])
+		elif _component_ceiling(path) > 0 and line_count > _component_ceiling(path):
+			failures.append("%s exceeds its %d-line component ceiling with %d lines" % [path, _component_ceiling(path), line_count])
 		elif line_count > NEW_GOD_FILE_LIMIT:
 			failures.append("new unbudgeted god file: %s has %d lines" % [path, line_count])
 	for path: String in TEMPORARY_CEILINGS:
@@ -99,3 +104,10 @@ func _line_count(path: String) -> int:
 	if contents.is_empty():
 		return 0
 	return contents.count("\n") + (0 if contents.ends_with("\n") else 1)
+
+
+func _component_ceiling(path: String) -> int:
+	for directory: String in COMPONENT_DIRECTORY_CEILINGS:
+		if path.begins_with(directory):
+			return int(COMPONENT_DIRECTORY_CEILINGS[directory])
+	return 0

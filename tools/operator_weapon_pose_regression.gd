@@ -342,6 +342,64 @@ func _run() -> void:
 			and StringName(dive_recovered_pose.get("weapon_owner", &"")) == &"READY_SOLVER",
 			"dive recovery returns to the exact saved Gunsmith placement"
 		)
+		var clearance_muzzle := solver.get("muzzle_socket") as Node3D
+		for _frame in range(18):
+			solver.call(
+				"apply",
+				0.0,
+				float(rig.get("aim_pitch")),
+				&"CROUCHED",
+				&"CROUCHED",
+				1.0,
+				0.0,
+				&"",
+				false,
+				before_target,
+				player,
+				1.0 / 60.0,
+				false
+			)
+		var clearance_muzzle_before_y := (
+			clearance_muzzle.global_position.y if clearance_muzzle != null else 0.0
+		)
+		for _frame in range(18):
+			solver.call(
+				"apply",
+				1.0,
+				float(rig.get("aim_pitch")),
+				&"CROUCHED",
+				&"CROUCHED",
+				1.0,
+				0.0,
+				&"",
+				false,
+				before_target,
+				player,
+				1.0 / 60.0,
+				false
+			)
+		var clearance_pose: Dictionary = solver.call("get_debug_state")
+		var clearance_muzzle_lift := (
+			clearance_muzzle.global_position.y - clearance_muzzle_before_y
+			if clearance_muzzle != null
+			else 0.0
+		)
+		print("CROUCHED_OBSTRUCTION_HEIGHT_METRIC muzzle_lift=%.3f" % [
+			clearance_muzzle_lift,
+		])
+		_expect(
+			absf(clearance_muzzle_lift) <= 0.03,
+			"crouched obstruction never lifts the rifle or arms toward cover"
+		)
+		_expect(
+			Vector3(clearance_pose.get("aim_target", Vector3.ZERO)).distance_to(before_target)
+			<= 0.001,
+			"crouched obstruction keeps the blue line on the unchanged reticle target"
+		)
+		_expect(
+			player.global_position.distance_to(before_position) <= 0.001,
+			"crouched obstruction never changes authoritative player position"
+		)
 		var clear_render_direction: Vector3 = dive_recovered_pose.get(
 			"last_unobstructed_render_direction",
 			Vector3.FORWARD
@@ -412,12 +470,12 @@ func _run() -> void:
 			str(wall_hold_pose.get("gun_placement_line_active", false)),
 		])
 		_expect(
-			bool(wall_hold_pose.get("obstruction_direction_hold_active", false)),
-			"close wall freezes the last valid visual aim direction"
+			not bool(wall_hold_pose.get("obstruction_direction_hold_active", true)),
+			"close wall cannot take control of the visual aim direction"
 		)
 		_expect(
 			StringName(wall_hold_pose.get("weapon_owner", &"")) == &"READY_SOLVER",
-			"close-wall low ready keeps the ready solver as the only weapon owner"
+			"close wall keeps the ready solver as the only weapon owner"
 		)
 		_expect(
 			maximum_blocked_direction_step_deg <= 6.0,
@@ -439,14 +497,17 @@ func _run() -> void:
 				1.0 / 60.0
 			)
 		var blocked_pose: Dictionary = solver.call("get_debug_state")
-		_expect(bool(blocked_pose.get("shot_blocked", false)), "close cover enters a blocked weapon state")
 		_expect(
-			StringName(blocked_pose.get("cover_pose_name", &"")) == &"PRONE_TUCK",
-			"prone close cover selects its stance-specific tuck"
+			not bool(blocked_pose.get("shot_blocked", true)),
+			"close cover does not create a presentation-owned blocked state"
 		)
 		_expect(
-			float(blocked_pose.get("weapon_aim_error_deg", 0.0)) >= 12.0,
-			"blocked rifle lowers instead of spinning through the wall"
+			StringName(blocked_pose.get("cover_pose_name", &"")) == &"CLEAR",
+			"prone close cover leaves the authored pose clear"
+		)
+		_expect(
+			float(blocked_pose.get("weapon_aim_error_deg", 180.0)) <= 0.10,
+			"cover detection cannot redirect the rifle away from shared aim"
 		)
 		_expect(
 			Vector3(blocked_pose.get("aim_target", Vector3.ZERO)).distance_to(before_target) < 0.001,

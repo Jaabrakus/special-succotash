@@ -11,9 +11,9 @@ const RELEASE_FRACTIONS := {
 	&"grenade_throw": 0.53,
 }
 const RECOVERY_FRACTIONS := {
-	&"grenade_toss": 0.86,
-	&"crouch_grenade_toss": 0.86,
-	&"grenade_throw": 0.84,
+	&"grenade_toss": 1.0,
+	&"crouch_grenade_toss": 1.0,
+	&"grenade_throw": 1.0,
 }
 
 
@@ -35,7 +35,7 @@ static func release_time_seconds(clip_name: StringName, playback_duration: float
 
 static func recovery_fraction(clip_name: StringName) -> float:
 	return clampf(
-		float(RECOVERY_FRACTIONS.get(clip_name, 0.86)),
+		float(RECOVERY_FRACTIONS.get(clip_name, 1.0)),
 		release_fraction(clip_name) + 0.05,
-		0.95
+		1.0
 	)

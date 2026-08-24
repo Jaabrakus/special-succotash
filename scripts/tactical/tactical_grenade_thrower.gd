@@ -13,6 +13,10 @@ enum ThrowMode { OVERHAND, UNDERHAND }
 @export var minimum_underhand_speed := 4.0
 @export var minimum_overhand_lift := 0.12
 @export var minimum_underhand_lift := 0.025
+@export var overhand_pitch_influence := 0.85
+@export var underhand_pitch_influence := 0.55
+@export var minimum_launch_elevation_degrees := -8.0
+@export var maximum_launch_elevation_degrees := 68.0
 @export var full_throw_charge_seconds := 0.78
 @export var maximum_hold_seconds := 1.25
 @export var maximum_fuse_cook_seconds := 1.20
@@ -43,6 +47,16 @@ func _apply_profile(profile: Dictionary) -> void:
 	underhand_lift = float(values.get("underhand_lift", underhand_lift))
 	minimum_overhand_speed = float(values.get("minimum_overhand_speed", minimum_overhand_speed))
 	minimum_underhand_speed = float(values.get("minimum_underhand_speed", minimum_underhand_speed))
+	overhand_pitch_influence = float(values.get("overhand_pitch_influence", overhand_pitch_influence))
+	underhand_pitch_influence = float(values.get("underhand_pitch_influence", underhand_pitch_influence))
+	minimum_launch_elevation_degrees = float(values.get(
+		"minimum_launch_elevation_degrees",
+		minimum_launch_elevation_degrees
+	))
+	maximum_launch_elevation_degrees = float(values.get(
+		"maximum_launch_elevation_degrees",
+		maximum_launch_elevation_degrees
+	))
 	full_throw_charge_seconds = float(values.get("full_throw_charge_seconds", full_throw_charge_seconds))
 	maximum_hold_seconds = float(values.get("maximum_hold_seconds", maximum_hold_seconds))
 
@@ -71,15 +85,51 @@ func calculate_launch_velocity(
 	mode: ThrowMode,
 	charge: float = 1.0
 ) -> Vector3:
-	var flat_forward := forward.slide(up).normalized()
+	var normalized_up := up.normalized()
+	var normalized_forward := forward.normalized()
+	var flat_forward := normalized_forward.slide(normalized_up).normalized()
+	if flat_forward.length_squared() < 0.001:
+		flat_forward = Vector3.FORWARD
 	var human_charge := clampf(charge, 0.0, 1.0)
 	if mode == ThrowMode.UNDERHAND:
 		var underhand_power := lerpf(minimum_underhand_speed, underhand_speed, human_charge)
 		var underhand_arc := lerpf(minimum_underhand_lift, underhand_lift, human_charge)
-		return (flat_forward + up * underhand_arc).normalized() * underhand_power
+		return _pitched_launch_direction(
+			flat_forward,
+			normalized_forward,
+			normalized_up,
+			underhand_arc,
+			underhand_pitch_influence
+		) * underhand_power
 	var overhand_power := lerpf(minimum_overhand_speed, overhand_speed, human_charge)
 	var overhand_arc := lerpf(minimum_overhand_lift, overhand_lift, human_charge)
-	return (flat_forward + up * overhand_arc).normalized() * overhand_power
+	return _pitched_launch_direction(
+		flat_forward,
+		normalized_forward,
+		normalized_up,
+		overhand_arc,
+		overhand_pitch_influence
+	) * overhand_power
+
+
+func _pitched_launch_direction(
+	flat_forward: Vector3,
+	aim_forward: Vector3,
+	up: Vector3,
+	base_lift: float,
+	pitch_influence: float
+) -> Vector3:
+	var aim_pitch := asin(clampf(aim_forward.dot(up), -0.98, 0.98))
+	var base_elevation := atan(maxf(base_lift, 0.0))
+	var launch_elevation := clampf(
+		base_elevation + aim_pitch * clampf(pitch_influence, 0.0, 1.25),
+		deg_to_rad(minimum_launch_elevation_degrees),
+		deg_to_rad(maximum_launch_elevation_degrees)
+	)
+	return (
+		flat_forward * cos(launch_elevation)
+		+ up * sin(launch_elevation)
+	).normalized()
 
 
 func spawn_authoritative(

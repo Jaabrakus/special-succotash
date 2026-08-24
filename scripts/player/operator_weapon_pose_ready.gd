@@ -77,7 +77,9 @@ func apply(
 	if action_owns_arms:
 		_release_trigger_hand_grip_lock()
 		_release_support_hand_grip_lock()
-		if WeaponOwnershipContract.weapon_uses_action_follow(weapon_owner):
+		if reload_action_active:
+			_attach_reload_weapon_to_right_hand()
+		elif WeaponOwnershipContract.weapon_uses_action_follow(weapon_owner):
 			_update_action_weapon_follow(
 				delta,
 				WeaponOwnershipContract.uses_stable_chest_translation(weapon_owner)
@@ -98,6 +100,9 @@ func apply(
 				support_hand_grip_locked = trigger_hand_grip_locked
 				action_trigger_contact_error_m = float(
 					mobility_grip.get("trigger_error_m", INF)
+				)
+				action_support_contact_error_m = float(
+					mobility_grip.get("support_error_m", INF)
 				)
 		if reload_action_active and right_hand_ik and right_hand_ik.is_running():
 			right_hand_ik.stop()
@@ -136,10 +141,17 @@ func apply(
 		_release_support_hand_grip_lock()
 		_set_weapon_solver_owned(false)
 		if weapon_owner == WeaponOwnershipContract.RELAXED_RIFLE_LOCOMOTION:
-			# The imported right hand owns the canonical Gunsmith mount in relaxed
-			# locomotion. Do not derive a second weapon transform from both palms;
-			# that creates a weapon -> support hand -> weapon feedback loop. The
-			# support palm follows the stable foregrip below.
+			# Relaxed locomotion is authored on the right-hand attachment. Do not
+			# reconstruct the rifle from body-forward or the support palm: doing so
+			# creates a second orientation owner and is the source of sideways,
+			# disappearing and lagging rifles during idle/walk/run transitions.
+			# Retargeted hand proportions can move the palm center away from the hand
+			# bone origin. Restore contact with translation only; rotation remains the
+			# single Gunsmith-authored right-hand mount.
+			if trigger_socket != null:
+				weapon_presentation_owner.translate_world(
+					sampled_trigger_palm_position - trigger_socket.global_position
+				)
 			if support_socket != null and left_hand_ik != null:
 				support_hand_target.global_position = support_socket.global_position
 				_lock_support_hand_grip_to_weapon()
@@ -150,6 +162,26 @@ func apply(
 					&"mixamorig_LeftHand"
 				)
 				skeleton.force_update_all_bone_transforms()
+			if trigger_socket != null:
+				# The support-arm solve can update the attachment hierarchy after the
+				# first contact pass. Reassert translation-only palm contact against
+				# the final sampled skeleton so post-action recovery cannot leave a
+				# visible gap or accumulate drift.
+				weapon_presentation_owner.translate_world(
+					_right_hand_grip_world_transform().origin
+					- trigger_socket.global_position
+				)
+				trigger_hand_error_m = trigger_socket.global_position.distance_to(
+					_right_hand_grip_world_transform().origin
+				)
+			if support_socket != null:
+				support_hand_error_m = support_socket.global_position.distance_to(
+					WeaponContactSolver.palm_contact_world(
+						skeleton,
+						int(bone_indices.get(&"mixamorig_LeftHand", -1)),
+						left_palm_anchor_local
+					)
+				)
 		return
 	_set_weapon_solver_owned(true)
 	_capture_gunsmith_ready_baseline(posture)
@@ -202,16 +234,10 @@ func apply(
 		if posture == &"PRONE"
 		else left_reach
 	)
-	var obstruction_target := clampf(obstruction_amount, 0.0, 1.0)
-	obstruction_direction_hold_active = (
-		obstruction_target > 0.02
-		or cover_pose_amount > 0.02
-	)
-	cover_pose_amount = lerpf(
-		cover_pose_amount,
-		obstruction_target,
-		1.0 - exp(-cover_response * clampf(delta, 0.0, 0.05))
-	)
+	# Obstruction remains authoritative shot validation only. It must never move
+	# the presented rifle, hands, or blue-line placement pose.
+	obstruction_direction_hold_active = false
+	cover_pose_amount = 0.0
 	var tuck := cover_pose_amount
 	shot_blocked = cover_pose_amount >= blocked_pose_threshold
 	cover_pose_name = (
@@ -228,7 +254,7 @@ func apply(
 		shoulder_center
 		+ aim_direction * right_reach * trigger_ratio
 		+ aim_right * grip_half_width
-		+ world_up * lerpf(grip_height_offset, 0.10, tuck)
+		+ world_up * grip_height_offset
 	)
 	var raw_support_position := (
 		shoulder_center
@@ -236,7 +262,7 @@ func apply(
 			support_arm_reach * lerpf(support_reach_ratio, tucked_reach_ratio, tuck)
 		)
 		- aim_right * grip_half_width
-		+ world_up * lerpf(grip_height_offset - 0.01, 0.12, tuck)
+		+ world_up * (grip_height_offset - 0.01)
 	)
 	# The support hand advances along the foregrip only while both arms can
 	# reach it. This keeps the pose useful with different weapon proportions.
@@ -392,4 +418,3 @@ func apply(
 	muzzle_floor_clearance_m = _floor_clearance(body, muzzle_socket.global_position) if muzzle_socket != null else INF
 	prone_floor_contact_detected = posture == &"PRONE" and muzzle_floor_clearance_m < INF
 	_update_errors()
-

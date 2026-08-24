@@ -1,6 +1,9 @@
 class_name SocomTestPlayer
 extends CharacterBody3D
 
+signal mobility_action_started(state_name: StringName)
+signal mobility_action_requested(state_name: StringName)
+
 const OperatorOrientationController := preload("res://scripts/player/operator_orientation_controller.gd")
 const MovementCommand := preload("res://scripts/network/socom_movement_command.gd")
 
@@ -73,6 +76,8 @@ var stance_held_triggered: bool = false
 var stance_hold_threshold: float = 0.20
 var jump_was_held: bool = false
 var jump_requested: bool = false
+var jump_queued_after_reload: bool = false
+var jump_reload_recovery_remaining: float = 0.0
 var peek_amount: float = 0.0
 var _strafe_burst_frames_remaining: int = 0
 var _strafe_burst_decay_remaining: float = 0.0
@@ -196,6 +201,22 @@ func _physics_process(delta: float) -> void:
     )
     var jump_started: bool = jump_requested or command.jump_pressed
     jump_requested = false
+    if jump_queued_after_reload:
+        jump_reload_recovery_remaining = maxf(
+            jump_reload_recovery_remaining - delta,
+            0.0
+        )
+        if jump_reload_recovery_remaining <= 0.0:
+            jump_started = true
+            jump_queued_after_reload = false
+    if jump_started and bool(get_meta("reload_action_pending", false)):
+        # Reload and jump cannot author the upper body on the same frame. Cancel
+        # reload synchronously, allow its short return blend, then launch the
+        # already-accepted jump input instead of dropping it.
+        mobility_action_requested.emit(&"AIRBORNE")
+        jump_queued_after_reload = true
+        jump_reload_recovery_remaining = 0.12
+        jump_started = false
     var launched_jump_this_frame := false
     if actions_enabled:
         _handle_posture_command(command, delta, desired_dir)
@@ -504,11 +525,15 @@ func _can_stance_hold_dive(desired_dir: Vector3) -> bool:
     )
 
 func _begin_dive(desired_dir: Vector3) -> void:
+    var dive_entry_posture := posture
     action_direction = _safe_action_direction(desired_dir)
     action_elapsed = 0.0
     action_duration = dive_duration
     motion_state = MotionState.DIVING
-    posture = MotionState.STANDING
+    mobility_action_started.emit(&"DIVING")
+    # Preserve the stance that began the committed dive. Forcing crouch to
+    # standing made the presentation anchor jump upward before falling to prone.
+    posture = dive_entry_posture
     _apply_posture_collider()
     velocity.y = 2.4
 
@@ -528,6 +553,7 @@ func _try_begin_mobility_action(
             return false
         velocity.y = jump_velocity
         motion_state = MotionState.AIRBORNE
+        mobility_action_started.emit(&"AIRBORNE")
         return true
 
     # Z is the independent dive-to-prone action.
@@ -548,6 +574,7 @@ func _try_begin_mobility_action(
         action_elapsed = 0.0
         action_duration = roll_duration
         motion_state = MotionState.ROLLING
+        mobility_action_started.emit(&"ROLLING")
         posture = MotionState.CROUCHED
         _apply_posture_collider()
     return false

@@ -17,7 +17,7 @@ func _init() -> void:
 		push_error("Acoustic profile validation failed: %s" % ", ".join(errors))
 		quit(1)
 		return
-	for event_class in [&"weapon", &"body_impact", &"footstep", &"foley"]:
+	for event_class in [&"weapon", &"explosion", &"body_impact", &"footstep", &"foley"]:
 		var policy := profile.policy_for(event_class)
 		if policy.is_empty() or float(policy.get("max_distance_m", 0.0)) <= 0.0:
 			push_error("Missing production event policy: %s" % event_class)
