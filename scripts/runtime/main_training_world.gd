@@ -1,8 +1,7 @@
 class_name SocomMainTrainingWorld
 extends Node
 
-const Player := preload("res://scripts/player/player_controller.gd")
-const Mannequin := preload("res://scripts/player/test_mannequin.gd")
+const PlayerScene := preload("res://scenes/player/operator_player.tscn")
 const CameraRig := preload("res://scripts/camera/socom_camera.gd")
 const TargetDummy := preload("res://scripts/combat/lab_leak_target_dummy.gd")
 const MovingTargetDummy := preload("res://scripts/combat/socom_moving_training_dummy.gd")
@@ -258,7 +257,7 @@ func set_target_range_active(enabled: bool) -> void:
 
 
 func build_player() -> void:
-	player = Player.new()
+	player = PlayerScene.instantiate() as CharacterBody3D
 	player.name = "Player"
 	player.position = MapDocument.player_spawn(map_document, Vector3(0, 0.05, 0.5))
 	host.add_child(player)
@@ -266,17 +265,6 @@ func build_player() -> void:
 	player.call("configure_max_health", float(profile.get("max_health", 100.0)))
 	host.set("grenade_limits", (profile.get("grenade_limits", {}) as Dictionary).duplicate(true))
 	host.set("grenade_inventory", (host.get("grenade_limits") as Dictionary).duplicate(true))
-	var collider := CollisionShape3D.new()
-	collider.name = "CollisionShape3D"
-	var capsule := CapsuleShape3D.new()
-	capsule.radius = 0.38
-	capsule.height = 1.85
-	collider.shape = capsule
-	collider.position.y = 0.925
-	player.add_child(collider)
-	var mannequin = Mannequin.new()
-	mannequin.name = "Mannequin"
-	player.add_child(mannequin)
 	if not map_document.is_empty():
 		_spawn_authored_dummies()
 		if target_dummies.is_empty():

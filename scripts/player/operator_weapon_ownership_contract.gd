@@ -6,6 +6,7 @@ const Shared := preload("res://scripts/player/weapon_ownership_contract.gd")
 
 const READY_SOLVER := Shared.READY_SOLVER
 const RELOAD_RIGHT_HAND := Shared.RELOAD_RIGHT_HAND
+const MOBILITY_CHEST_CARRY := Shared.MOBILITY_CHEST_CARRY
 const MOBILITY_RIGHT_HAND := Shared.MOBILITY_RIGHT_HAND
 const GRENADE_ACTION := Shared.GRENADE_ACTION
 const RECOVERY_TO_READY := Shared.RECOVERY_TO_READY
@@ -33,6 +34,10 @@ static func action_owns_arms(owner: StringName) -> bool:
 
 static func weapon_follows_right_hand(owner: StringName) -> bool:
 	return Shared.weapon_follows_right_hand(owner)
+
+
+static func weapon_uses_action_follow(owner: StringName) -> bool:
+	return Shared.weapon_uses_action_follow(owner)
 
 
 static func uses_stable_chest_translation(owner: StringName) -> bool:

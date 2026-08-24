@@ -4,11 +4,14 @@ extends RefCounted
 ## One visual ownership rule shared by gameplay and Gunsmith previews.
 ## Gameplay remains authoritative for the reticle and shot result. This policy
 ## only decides whether the rendered weapon is placed by the aim solver or is
-## temporarily carried by an authored right-hand animation.
+## temporarily carried by an authored action.
 
 const READY_SOLVER := &"READY_SOLVER"
 const RELOAD_RIGHT_HAND := &"RELOAD_RIGHT_HAND"
-const MOBILITY_RIGHT_HAND := &"MOBILITY_RIGHT_HAND"
+const MOBILITY_CHEST_CARRY := &"MOBILITY_CHEST_CARRY"
+# Compatibility symbol for older tools. Mobility no longer lets the animated
+# wrist move the rifle. The chest carry owns the weapon and both hands use IK.
+const MOBILITY_RIGHT_HAND := MOBILITY_CHEST_CARRY
 const GRENADE_ACTION := &"GRENADE_ACTION"
 const RECOVERY_TO_READY := &"RECOVERY_TO_READY"
 const RELAXED_RIFLE_LOCOMOTION := &"RELAXED_RIFLE_LOCOMOTION"
@@ -47,11 +50,11 @@ static func resolve(
 		return RELOAD_RIGHT_HAND
 	if "grenade" in action_text:
 		return GRENADE_ACTION
-	# Dive and roll deliberately give the authored full-body action temporary
-	# weapon ownership. A normal jump does not: it keeps the reticle/Gunsmith
-	# solver active so the rifle cannot swing behind the operator in the air.
+	# Dive and roll keep the authored full-body action, but the stable chest carry
+	# owns the rifle. Both palms follow its sockets after the animation sample.
+	# A normal jump keeps the reticle/Gunsmith solver active.
 	if movement_state in [&"DIVING", &"ROLLING"]:
-		return MOBILITY_RIGHT_HAND
+		return MOBILITY_CHEST_CARRY
 	if action_follow_active:
 		return RECOVERY_TO_READY
 	if ready_weight > 0.001:
@@ -77,7 +80,7 @@ static func preview_policy(slot_name: String, clip_name: StringName = &"") -> Di
 	# example, "jump shooting" from being mistaken for a normal fire overlay
 	# just because the browser inferred a fire slot from one word.
 	if _contains_any(action_name, ["jump", "dive", "roll", "fall", "land"]):
-		return _policy_for_owner(MOBILITY_RIGHT_HAND, false, posture)
+		return _policy_for_owner(MOBILITY_CHEST_CARRY, false, posture)
 	if semantic_name.begins_with("reload_"):
 		return _policy_for_owner(RELOAD_RIGHT_HAND, false, posture)
 	if semantic_name.begins_with("fire_"):
@@ -89,7 +92,7 @@ static func preview_policy(slot_name: String, clip_name: StringName = &"") -> Di
 	if "grenade" in action_name:
 		return _policy_for_owner(GRENADE_ACTION, false, posture)
 	if _contains_any(action_name, ["dive", "roll"]):
-		return _policy_for_owner(MOBILITY_RIGHT_HAND, false, posture)
+		return _policy_for_owner(MOBILITY_CHEST_CARRY, false, posture)
 	return _policy_for_name(action_name, posture)
 
 
@@ -99,7 +102,7 @@ static func _policy_for_name(raw_name: String, posture: StringName = &"") -> Dic
 	# name also contains words such as "rifle" or "shooting".  Preview Fire may
 	# show its reticle feedback, but it must not move the airborne weapon.
 	if _contains_any(action_name, ["jump", "dive", "roll", "fall", "land"]):
-		return _policy_for_owner(MOBILITY_RIGHT_HAND, false, posture)
+		return _policy_for_owner(MOBILITY_CHEST_CARRY, false, posture)
 	# Ordinary firing is a recoil/pose layer. The reticle-driven weapon remains
 	# authoritative and both hands are re-solved after the animation sample.
 	if _contains_any(action_name, ["aim", "ready", "fire", "shoot", "recoil"]):
@@ -112,15 +115,19 @@ static func _policy_for_name(raw_name: String, posture: StringName = &"") -> Dic
 		"prone", "crawl", "crouch", "kneel"
 	]):
 		return _policy_for_owner(RELAXED_RIFLE_LOCOMOTION, false, posture)
-	return _policy_for_owner(MOBILITY_RIGHT_HAND, false, posture)
+	return _policy_for_owner(MOBILITY_CHEST_CARRY, false, posture)
 
 
 static func action_owns_arms(owner: StringName) -> bool:
-	return owner in [RELOAD_RIGHT_HAND, MOBILITY_RIGHT_HAND, GRENADE_ACTION]
+	return owner in [RELOAD_RIGHT_HAND, MOBILITY_CHEST_CARRY, GRENADE_ACTION]
 
 
 static func weapon_follows_right_hand(owner: StringName) -> bool:
-	return owner in [RELOAD_RIGHT_HAND, MOBILITY_RIGHT_HAND]
+	return owner == RELOAD_RIGHT_HAND
+
+
+static func weapon_uses_action_follow(owner: StringName) -> bool:
+	return owner in [RELOAD_RIGHT_HAND, MOBILITY_CHEST_CARRY]
 
 
 static func ready_solver_owns_weapon(owner: StringName) -> bool:
@@ -128,10 +135,12 @@ static func ready_solver_owns_weapon(owner: StringName) -> bool:
 
 
 static func uses_stable_chest_translation(owner: StringName) -> bool:
-	return owner == MOBILITY_RIGHT_HAND
+	return owner == MOBILITY_CHEST_CARRY
 
 
 static func arm_owner(owner: StringName) -> StringName:
+	if owner == MOBILITY_CHEST_CARRY:
+		return ARMS_WEAPON_SOCKETS
 	if action_owns_arms(owner):
 		return ARMS_ACTION_CLIP
 	if ready_solver_owns_weapon(owner):
@@ -141,6 +150,8 @@ static func arm_owner(owner: StringName) -> StringName:
 
 static func support_hand_owner(owner: StringName, reload_support_regrip: bool) -> StringName:
 	if owner == RELOAD_RIGHT_HAND and reload_support_regrip:
+		return SUPPORT_IK_TO_WEAPON
+	if owner == MOBILITY_CHEST_CARRY:
 		return SUPPORT_IK_TO_WEAPON
 	if action_owns_arms(owner):
 		return SUPPORT_ANIMATION_FREE
@@ -169,8 +180,8 @@ static func resolve_pose_owners(
 		action_follow_active
 	)
 	var action_text := String(requested_action).to_lower()
-	var action_torso := owner in [RELOAD_RIGHT_HAND, MOBILITY_RIGHT_HAND, GRENADE_ACTION]
-	var action_legs := owner == MOBILITY_RIGHT_HAND or (
+	var action_torso := owner in [RELOAD_RIGHT_HAND, MOBILITY_CHEST_CARRY, GRENADE_ACTION]
+	var action_legs := owner == MOBILITY_CHEST_CARRY or (
 		owner == GRENADE_ACTION and posture != &"CROUCHED"
 	)
 	return {
@@ -223,7 +234,7 @@ static func _policy_for_owner(
 	posture: StringName
 ) -> Dictionary:
 	var owners := resolve_pose_owners(
-		&"DIVING" if owner == MOBILITY_RIGHT_HAND else &"STANDING",
+		&"DIVING" if owner == MOBILITY_CHEST_CARRY else &"STANDING",
 		_reload_action_for_owner(owner),
 		1.0 if owner in [READY_SOLVER, RECOVERY_TO_READY] else 0.0,
 		owner == RECOVERY_TO_READY,

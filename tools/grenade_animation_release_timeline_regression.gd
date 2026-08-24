@@ -15,6 +15,9 @@ func _initialize() -> void:
 		var fast_time := Timeline.release_time_seconds(clip_name, 3.2 / 1.85)
 		if fast_time >= normal_time:
 			failures.append("%s release cue does not scale with playback speed" % clip_name)
+		var recovery := Timeline.recovery_fraction(clip_name)
+		if recovery <= fraction or recovery >= 0.95:
+			failures.append("%s recovery cue does not follow release inside the blend-out tail" % clip_name)
 	if not Timeline.is_grenade_clip(&"crouch_grenade_toss"):
 		failures.append("crouched grenade composite is not recognized")
 	if Timeline.is_grenade_clip(&"reload_rifle"):

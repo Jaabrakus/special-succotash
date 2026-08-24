@@ -332,6 +332,9 @@ func _build_throw_tab(tabs: TabContainer) -> void:
 	_add_tuning_slider(box, "throw", "underhand_lift", "Underhand arc lift", 0.0, 0.50, 0.01)
 	_add_tuning_slider(box, "throw", "full_throw_charge_seconds", "Time to full power (s)", 0.10, 2.0, 0.05)
 	_add_tuning_slider(box, "throw", "maximum_hold_seconds", "Automatic release time (s)", 0.25, 3.0, 0.05)
+	_add_tuning_slider(box, "throw", "full_throw_playback_speed", "Full throw animation speed", 0.50, 2.0, 0.05)
+	_add_tuning_slider(box, "throw", "quick_throw_playback_speed", "Quick throw animation speed", 0.75, 3.0, 0.05)
+	_add_tuning_slider(box, "throw", "recovery_blend_seconds", "Movement recovery blend (s)", 0.04, 0.30, 0.01)
 
 
 func _new_tuning_tab(tabs: TabContainer, tab_name: String) -> VBoxContainer:

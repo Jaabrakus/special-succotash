@@ -175,8 +175,9 @@ func _run() -> void:
 		"res://addons/socom_authoring/socom_authoring_plugin.gd"
 	)
 	_expect(
-		plugin_source.contains("dock.call_deferred(&\"make_visible\")"),
-		"plugin reopens and focuses the route dock after saved layouts restore"
+		plugin_source.contains("dock.transient = true")
+		and plugin_source.contains("_focus_routes_after_layout.call_deferred()"),
+		"plugin ignores stale closed layouts and focuses the dock after restoration"
 	)
 	_expect(
 		plugin_source.contains("add_tool_menu_item(TOOL_MENU_TITLE"),

@@ -40,6 +40,16 @@ func _run() -> void:
 	var fire_animation := animation_player.get_animation(&"prone_fire") if animation_player else null
 	_expect(idle_animation != null and _maximum_transform_keys(idle_animation) <= 1, "idle prone is a frozen supported pose, not a firing loop")
 	_expect(fire_animation != null and _maximum_transform_keys(fire_animation) > 1, "actual prone fire keeps its authored motion")
+	# Floor and barrel alignment belong to the reticle-driven Ready Aim solve.
+	# Relaxed prone intentionally keeps its authored rifle carry and does not point
+	# the rail at the reticle. Enter the same presentation state used by an
+	# accepted shot before auditing the floor and shared-target contract.
+	driver.set("requested_weapon_ready_weight", 1.0)
+	driver.set("weapon_ready_weight", 1.0)
+	driver.set("_fire_ready_hold_remaining", 10.0)
+	for _frame in range(45):
+		await physics_frame
+	await process_frame
 
 	var snapshot: Dictionary = driver.call("get_animation_debug_state")
 	var pose: Dictionary = snapshot.get("weapon_pose", {})

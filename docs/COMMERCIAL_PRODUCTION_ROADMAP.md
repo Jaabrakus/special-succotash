@@ -159,6 +159,30 @@ save, and one-click play against the shared profile. Do not remove the old route
 editor until all of its remaining visual preview/edit capabilities have moved
 and the playable regression remains green.
 
+### Gameplay composition and action-ownership checkpoint — 2026-08-24
+
+- [x] The authoritative player, collision capsule, and operator visual root now
+  live in `scenes/player/operator_player.tscn`. Training gameplay instantiates
+  that scene instead of rebuilding those stable children in code.
+- [x] Dive and roll use a stable chest-owned rifle carry. The full-body clip
+  still owns torso and legs, while final two-hand IK moves both palms to the
+  rifle sockets. The animated wrist can no longer drag the rifle behind the
+  pelvis.
+- [x] The dive regression measures signed trigger and muzzle depth, per-frame
+  rotation, chest-envelope travel, socket contact, and final prone recovery.
+  Current evidence is `0.000°` maximum rotation step, `0.0643 m` maximum chest
+  travel, and a minimum muzzle depth of `0.8197 m` in front of the chest.
+- [x] A grenade-equipped player keeps the rifle holstered for the complete
+  equip/aim/throw state. Completing a throw cannot reveal the rifle with the
+  throwing hand's final transform.
+- [x] Grenade trajectory preview continues through collision, uses the runtime
+  gravity and bounce profile, colors post-impact travel separately, and marks
+  the predicted final landing point.
+
+This is the first scene-composition vertical slice. Camera, operator internals,
+weapon sockets, world geometry, and UI still require staged scene extraction;
+do not convert them in one rewrite.
+
 ## Gate two: character and animation quality
 
 ### Canonical rig
@@ -617,9 +641,68 @@ It does not provide durable account/session identity, reserved slots, recovery
 after host loss, or proof under Internet latency, jitter, packet loss, and
 reordering. Those remain commercial operations and adverse-network gates.
 
+## Weapon-presentation refactor checkpoint — 2026-08-24
+
+- [x] The 2,218-line weapon-pose god file is gone. The compatibility solver is
+  2 lines and retains the public `SocomOperatorWeaponPoseSolver` type.
+- [x] State, IK/kinematics, action ownership/follow, Gunsmith placement, Ready
+  Aim, and public API are separate layers between 205 and 452 lines. Mobility
+  grip, socket mechanics, geometry, and diagnostics remain focused services.
+- [x] The god-file budget now enforces a 500-line ceiling for every weapon-pose
+  implementation layer and a 50-line ceiling for the compatibility entry point.
+- [x] Focused weapon-pose, weapon-anchor, dive-hand attachment, reload-input,
+  and pose-ownership regressions pass after extraction.
+- [x] The complete quick integration gate passes after the refactor, including
+  weapon rigs, dynamic hand ownership, reload handoff, mobility, and multiplayer.
+- [x] The god-file budget gate no longer reports any weapon-pose component. The
+  operator animation driver has since been extracted too; Animation Studio pose
+  authoring and the multiplayer slice remain explicit large-file debt.
+- [x] Prone Ready Aim now applies its calculated clearance to the right-hand IK
+  path. The focused regression measures `9.95 cm` muzzle clearance and `9.88 cm`
+  minimum hand/forearm clearance while keeping the rendered barrel within
+  `0.002°` of the shared reticle target.
+
 This is a technical baseline, not a commercial-release claim. Legal clearance,
 external playtesting, multiplayer soak, production content, accessibility,
 platform packaging, and operations remain open gates.
+
+## Grenade throw recovery checkpoint — 2026-08-24
+
+- [x] Full and quick grenade throws now read their playback speeds from the one
+  shared Grenade Lab profile (`1.08x` full, `1.95x` quick).
+- [x] Full throw power builds in `0.78 s`, and saved overhand/underhand launch
+  speeds are approximately five percent faster while preserving the distinct arcs.
+- [x] Grenade release remains tied to the authored hand-release cue rather than
+  a detached gameplay timer.
+- [x] A separate recovery cue begins during the final `14–16%` of each stance's
+  throw. It releases the movement lock and blends the full-body throw into the
+  current standing, crouched, or prone directional locomotion over `0.12 s`,
+  preventing a translating last-pose glide.
+- [x] Grenade Lab exposes full/quick playback speed and movement-recovery blend
+  controls, and Save continues feeding the playable build through the shared profile.
+- [x] Grenade release-timeline, tactical-grenade, shared-profile, project parse,
+  and complete quick integration regressions pass after the change.
+
+## Operator-animation refactor checkpoint — 2026-08-24
+
+- [x] The 1,393-line operator-animation driver is now a 10-line compatibility
+  entry point that retains the public `SocomOperatorAnimationDriver` type.
+- [x] State (`147` lines), API (`149`), pose/locomotion (`365`), actions (`354`),
+  presentation (`135`), diagnostics (`47`), and runtime (`219`) have distinct
+  ownership layers, each below the enforced 500-line ceiling.
+- [x] Every function from the prior driver remains present exactly once. The
+  only additions are the grenade recovery cue and its saved blend-time reader.
+- [x] Operator-animation, pose-ownership, player-scene composition, weapon-pose,
+  mobility, grenade release/profile, and complete quick integration regressions
+  pass after extraction.
+- [x] Standing, crouched, prone, jump, dive, reload, fire, grenade, directional
+  locomotion, weapon sockets, and contextual return behavior remain covered by
+  deterministic tests.
+
+This removes a major ownership bottleneck without changing the canonical PS1
+operator or making animation authoritative over movement, ballistics, or damage.
+Animation Studio pose authoring and the multiplayer slice remain explicit
+large-file refactor targets; this checkpoint does not close those gates.
 
 ## Weekly production scorecard
 

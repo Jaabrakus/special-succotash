@@ -20,6 +20,9 @@ func _enter_tree() -> void:
 	dock.layout_key = "socom_animation_routes"
 	dock.default_slot = EditorDock.DOCK_SLOT_RIGHT_UL
 	dock.available_layouts = EditorDock.DOCK_LAYOUT_ALL
+	# The SOCOM authoring surface must be discoverable on every project open.
+	# A transient dock keeps its position but ignores a stale saved open/closed state.
+	dock.transient = true
 	scroll = ScrollContainer.new()
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -28,9 +31,11 @@ func _enter_tree() -> void:
 	dock.add_child(scroll)
 	add_dock(dock)
 	add_tool_menu_item(TOOL_MENU_TITLE, _show_routes_dock)
-	# A saved Godot layout can remember a newly registered global dock as closed.
-	# Defer the focus request until editor initialization restores that layout.
-	dock.call_deferred(&"make_visible")
+	dock.open()
+	dock.make_visible()
+	# Editor layout restoration happens after plugin registration. Focus again
+	# after that lifecycle completes so an old layout cannot hide a new tool.
+	_focus_routes_after_layout.call_deferred()
 	print("SOCOM_AUTHORING_PLUGIN READY source=%s" % DockContent.PROFILE_PATH)
 
 
@@ -50,7 +55,16 @@ func _play_canonical_game() -> void:
 
 func _show_routes_dock() -> void:
 	if dock != null:
+		dock.open()
 		dock.make_visible()
+		print("SOCOM_AUTHORING_DOCK VISIBLE")
+
+
+func _focus_routes_after_layout() -> void:
+	if not is_inside_tree():
+		return
+	await get_tree().create_timer(1.0).timeout
+	_show_routes_dock()
 
 
 func _record_document_transaction(

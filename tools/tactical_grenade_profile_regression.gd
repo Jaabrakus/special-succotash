@@ -16,11 +16,20 @@ func _initialize() -> void:
 func _run() -> void:
 	var profile := Profile.load_profile()
 	var smoke_values: Dictionary = profile.get("smoke", {})
+	var throw_values: Dictionary = profile.get("throw", {})
 	_expect(
 		float(smoke_values.get("maximum_radius", 0.0)) >= 6.5
 		and int(smoke_values.get("particle_amount", 0)) >= 320
 		and float(smoke_values.get("visual_opacity", 0.0)) >= 0.30,
 		"saved smoke defaults are larger and denser"
+	)
+	_expect(
+		float(throw_values.get("full_throw_charge_seconds", 9.0)) <= 0.80
+		and float(throw_values.get("full_throw_playback_speed", 0.0)) > 1.0
+		and float(throw_values.get("quick_throw_playback_speed", 0.0))
+			> float(throw_values.get("full_throw_playback_speed", 0.0))
+		and float(throw_values.get("recovery_blend_seconds", 9.0)) <= 0.15,
+		"saved throw profile accelerates the arc and exposes a bounded locomotion recovery"
 	)
 	var clamped := Profile.normalize({
 		"smoke": {"maximum_radius": 99.0, "particle_amount": 2},
@@ -88,6 +97,12 @@ func _run() -> void:
 			and lab.find_child("frag_blast_smoke_particles", true, false) is HSlider
 			and lab.find_child("frag_blast_smoke_opacity", true, false) is HSlider,
 			"Grenade Lab exposes the Frag radius smoke controls"
+		)
+		_expect(
+			lab.find_child("throw_full_throw_playback_speed", true, false) is HSlider
+			and lab.find_child("throw_quick_throw_playback_speed", true, false) is HSlider
+			and lab.find_child("throw_recovery_blend_seconds", true, false) is HSlider,
+			"Grenade Lab exposes throw animation and movement recovery timing"
 		)
 		var throwable_tabs := lab.find_child("ThrowableTabs", true, false) as TabContainer
 		throwable_tabs.current_tab = 2

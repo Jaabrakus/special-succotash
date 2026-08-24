@@ -44,7 +44,12 @@ func _run() -> void:
 	var solver_parent_held := true
 	var maximum_rotation_step_deg := 0.0
 	var maximum_chest_distance_change_m := 0.0
+	var minimum_trigger_forward_m := INF
+	var minimum_muzzle_forward_m := INF
 	var first_chest_distance := -1.0
+	var trigger_socket := weapon.find_child("Socket_RightHand", true, false) as Marker3D
+	var muzzle_socket := weapon.find_child("Socket_Muzzle", true, false) as Marker3D
+	_expect(trigger_socket != null and muzzle_socket != null, "rifle carry sockets are available")
 	var previous_rotation := weapon.global_basis.get_rotation_quaternion()
 	for _frame in range(90):
 		await physics_frame
@@ -80,6 +85,18 @@ func _run() -> void:
 			var chest_distance := weapon.global_position.distance_to(
 				player.global_transform * chest_local
 			)
+			var chest_world := player.global_transform * chest_local
+			var body_forward := (-player.global_basis.z).normalized()
+			if trigger_socket != null:
+				minimum_trigger_forward_m = minf(
+					minimum_trigger_forward_m,
+					(trigger_socket.global_position - chest_world).dot(body_forward)
+				)
+			if muzzle_socket != null:
+				minimum_muzzle_forward_m = minf(
+					minimum_muzzle_forward_m,
+					(muzzle_socket.global_position - chest_world).dot(body_forward)
+				)
 			if first_chest_distance < 0.0:
 				first_chest_distance = chest_distance
 			maximum_chest_distance_change_m = maxf(
@@ -101,20 +118,38 @@ func _run() -> void:
 		maximum_chest_distance_change_m <= 0.12,
 		"dive rifle remains inside its bounded chest carry envelope"
 	)
+	_expect(
+		minimum_trigger_forward_m >= -0.12,
+		"dive trigger never travels behind the torso carry volume"
+	)
+	_expect(
+		minimum_muzzle_forward_m >= 0.10,
+		"dive muzzle remains forward of the torso"
+	)
 	await _steps(30)
 	var recovered: Dictionary = driver.call("get_animation_debug_state").get(
 		"weapon_pose",
 		{}
 	)
+	print("WEAPON_RECOVERY_METRIC posture=%s owner=%s follow=%s solver_owned=%s parent=%s line_error_m=%.5f" % [
+		String(player.call("get_posture_name")),
+		String(recovered.get("weapon_owner", &"")),
+		str(recovered.get("action_weapon_follow_active", true)),
+		str(recovered.get("weapon_solver_owned", false)),
+		String(recovered.get("weapon_parent_name", &"")),
+		float(recovered.get("gun_placement_error_m", 1.0)),
+	])
 	_expect(
 		StringName(player.call("get_posture_name")) == &"PRONE"
 		and not bool(recovered.get("action_weapon_follow_active", true))
 		and float(recovered.get("gun_placement_error_m", 1.0)) <= 0.001,
 		"dive finishes prone on the exact saved Gunsmith line"
 	)
-	print("WEAPON_ANCHOR_METRIC max_rotation_step_deg=%.3f chest_distance_change_m=%.4f" % [
+	print("WEAPON_ANCHOR_METRIC max_rotation_step_deg=%.3f chest_distance_change_m=%.4f trigger_forward_min_m=%.4f muzzle_forward_min_m=%.4f" % [
 		maximum_rotation_step_deg,
 		maximum_chest_distance_change_m,
+		minimum_trigger_forward_m,
+		minimum_muzzle_forward_m,
 	])
 	_finish()
 

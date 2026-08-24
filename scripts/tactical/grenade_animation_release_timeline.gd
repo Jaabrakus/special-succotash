@@ -10,6 +10,11 @@ const RELEASE_FRACTIONS := {
 	&"crouch_grenade_toss": 0.56,
 	&"grenade_throw": 0.53,
 }
+const RECOVERY_FRACTIONS := {
+	&"grenade_toss": 0.86,
+	&"crouch_grenade_toss": 0.86,
+	&"grenade_throw": 0.84,
+}
 
 
 static func is_grenade_clip(clip_name: StringName) -> bool:
@@ -26,3 +31,11 @@ static func release_fraction(clip_name: StringName) -> float:
 
 static func release_time_seconds(clip_name: StringName, playback_duration: float) -> float:
 	return maxf(playback_duration, 0.0) * release_fraction(clip_name)
+
+
+static func recovery_fraction(clip_name: StringName) -> float:
+	return clampf(
+		float(RECOVERY_FRACTIONS.get(clip_name, 0.86)),
+		release_fraction(clip_name) + 0.05,
+		0.95
+	)

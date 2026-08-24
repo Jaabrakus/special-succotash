@@ -61,8 +61,8 @@ func _run() -> void:
 		var mobility_preview := Ownership.preview_policy("fire_standing", mobility_clip)
 		_expect(
 			StringName(mobility_preview.get("resolved_owner", &""))
-			== Ownership.MOBILITY_RIGHT_HAND,
-			"%s keeps full-body right-hand rifle ownership" % mobility_clip
+			== Ownership.MOBILITY_CHEST_CARRY,
+			"%s keeps full-body motion with stable chest rifle ownership" % mobility_clip
 		)
 
 	var grenade_owners := Ownership.resolve_pose_owners(
@@ -95,10 +95,12 @@ func _run() -> void:
 		"legacy ownership path delegates to the shared resolver"
 	)
 	var solver_source := _read("res://scripts/player/operator_weapon_pose_solver.gd")
+	var solver_state_source := _read("res://scripts/player/operator_weapon_pose_state.gd")
 	var gunsmith_source := _read("res://scripts/labs/gun_calibration_lab.gd")
 	_expect(
-		"res://scripts/player/weapon_ownership_contract.gd" in solver_source,
-		"gameplay pose solver imports the shared contract"
+		"operator_weapon_pose_api.gd" in solver_source
+		and "res://scripts/player/weapon_ownership_contract.gd" in solver_state_source,
+		"componentized gameplay pose solver imports the shared contract once"
 	)
 	_expect(
 		"res://scripts/player/weapon_ownership_contract.gd" in gunsmith_source,

@@ -4,6 +4,13 @@ extends RefCounted
 const TacticalGrenadeThrower := preload(
 	"res://scripts/tactical/tactical_grenade_thrower.gd"
 )
+const GrenadeProfile := preload("res://scripts/tactical/tactical_grenade_profile.gd")
+
+const PREDICTION_STEP_SECONDS := 0.05
+const PREDICTION_MAX_SECONDS := 4.5
+const PREDICTION_MAX_BOUNCES := 6
+const RUNTIME_SURFACE_FRICTION := 0.62
+const REST_SPEED_MPS := 0.65
 
 var host
 
@@ -45,16 +52,24 @@ func refresh(
 	var velocity: Vector3 = thrower.call(
 		"calculate_launch_velocity", forward, Vector3.UP, mode, charge
 	)
-	_draw(preview, arc_origin(), velocity, charge, player)
+	var origin := arc_origin()
+	var prediction := _draw(preview, origin, velocity, charge, player)
 	if charge_bar != null:
 		charge_bar.value = charge * 100.0
 	if charge_label != null:
 		var cooked_fuse := float(thrower.call("remaining_fuse", 3.0, hold_seconds))
-		charge_label.text = "%s x%d  •  %s  •  POWER %d%%  •  SAFE FUSE %.1fs  •  RELEASE FIRE" % [
+		var landing: Vector3 = prediction.get("landing_position", origin)
+		var landing_distance := Vector2(
+			landing.x - origin.x,
+			landing.z - origin.z
+		).length()
+		charge_label.text = "%s x%d  •  %s  •  POWER %d%%  •  LAND %.1fm  •  BOUNCES %d  •  FUSE %.1fs" % [
 			type_name,
 			selected_count,
 			"UNDERHAND" if underhand else "OVERHAND",
 			int(round(charge * 100.0)),
+			landing_distance,
+			int(prediction.get("bounce_count", 0)),
 			cooked_fuse,
 		]
 
@@ -100,30 +115,123 @@ func _draw(
 	velocity: Vector3,
 	charge: float,
 	player: CharacterBody3D
-) -> void:
+) -> Dictionary:
+	var prediction := predict_path(origin, velocity, player)
+	var points: Array = prediction.get("points", [])
+	var first_bounce_index := int(prediction.get("first_bounce_index", -1))
 	var mesh := ImmediateMesh.new()
 	var material := StandardMaterial3D.new()
 	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	material.vertex_color_use_as_albedo = true
 	material.emission_enabled = true
-	material.emission = Color(0.25, 0.95, 0.72).lerp(Color(1.0, 0.78, 0.22), charge)
+	material.emission = Color.WHITE
 	mesh.surface_begin(Mesh.PRIMITIVE_LINE_STRIP, material)
-	var gravity := float(ProjectSettings.get_setting("physics/3d/default_gravity", 9.8))
-	var previous := origin
-	mesh.surface_set_color(material.emission)
-	mesh.surface_add_vertex(origin)
-	for index in range(1, 29):
-		var time := float(index) * 0.075
-		var point := origin + velocity * time + Vector3.DOWN * 0.5 * gravity * time * time
-		var query := PhysicsRayQueryParameters3D.create(previous, point)
-		query.exclude = [player.get_rid()]
+	var flight_color := Color(0.25, 0.95, 0.72).lerp(Color(1.0, 0.78, 0.22), charge)
+	var bounce_color := Color(1.0, 0.38, 0.16)
+	for index in points.size():
+		var point: Vector3 = points[index]
+		mesh.surface_set_color(
+			bounce_color
+			if first_bounce_index >= 0 and index >= first_bounce_index
+			else flight_color
+		)
+		mesh.surface_add_vertex(point)
+	mesh.surface_end()
+	_draw_landing_marker(
+		mesh,
+		material,
+		prediction.get("landing_position", origin),
+		prediction.get("landing_normal", Vector3.UP)
+	)
+	preview.mesh = mesh
+	preview.set_meta("predicted_landing_position", prediction.get("landing_position", origin))
+	preview.set_meta("predicted_bounce_count", prediction.get("bounce_count", 0))
+	preview.set_meta("predicted_path_point_count", points.size())
+	return prediction
+
+
+func predict_path(
+	origin: Vector3,
+	velocity: Vector3,
+	player: CharacterBody3D
+) -> Dictionary:
+	var points: Array[Vector3] = [origin]
+	var position := origin
+	var current_velocity := velocity
+	var gravity_strength := float(ProjectSettings.get_setting("physics/3d/default_gravity", 9.8))
+	var gravity := Vector3.DOWN * gravity_strength
+	var profile := GrenadeProfile.load_profile()
+	var common: Dictionary = profile.get("common", {})
+	var restitution := clampf(float(common.get("bounce_restitution", 0.38)), 0.0, 0.95)
+	var bounce_count := 0
+	var first_bounce_index := -1
+	var landing_position := origin
+	var landing_normal := Vector3.UP
+	var step_count := int(ceil(PREDICTION_MAX_SECONDS / PREDICTION_STEP_SECONDS))
+	for _step in step_count:
+		var next_position := (
+			position
+			+ current_velocity * PREDICTION_STEP_SECONDS
+			+ gravity * 0.5 * PREDICTION_STEP_SECONDS * PREDICTION_STEP_SECONDS
+		)
+		var next_velocity := current_velocity + gravity * PREDICTION_STEP_SECONDS
+		var query := PhysicsRayQueryParameters3D.create(position, next_position)
+		query.exclude = [player.get_rid()] if player != null else []
 		query.collide_with_areas = false
 		var hit: Dictionary = host.get_world_3d().direct_space_state.intersect_ray(query)
-		if not hit.is_empty():
-			point = Vector3(hit.get("position", point))
-			mesh.surface_add_vertex(point)
+		if hit.is_empty():
+			position = next_position
+			current_velocity = next_velocity
+			points.append(position)
+			landing_position = position
+			continue
+		var impact_position := Vector3(hit.get("position", next_position))
+		var impact_normal := Vector3(hit.get("normal", Vector3.UP)).normalized()
+		points.append(impact_position)
+		if first_bounce_index < 0:
+			first_bounce_index = points.size() - 1
+		bounce_count += 1
+		landing_position = impact_position
+		landing_normal = impact_normal
+		var normal_speed := next_velocity.dot(impact_normal)
+		var tangent_velocity := next_velocity - impact_normal * normal_speed
+		var outward_speed := maxf(-normal_speed * restitution, 0.0)
+		current_velocity = (
+			tangent_velocity * (1.0 - RUNTIME_SURFACE_FRICTION)
+			+ impact_normal * outward_speed
+		)
+		position = impact_position + impact_normal * 0.015
+		points.append(position)
+		if current_velocity.length() <= REST_SPEED_MPS or bounce_count >= PREDICTION_MAX_BOUNCES:
 			break
-		mesh.surface_add_vertex(point)
-		previous = point
+	return {
+		"points": points,
+		"bounce_count": bounce_count,
+		"first_bounce_index": first_bounce_index,
+		"landing_position": landing_position,
+		"landing_normal": landing_normal,
+		"rest_speed_mps": current_velocity.length(),
+	}
+
+
+func _draw_landing_marker(
+	mesh: ImmediateMesh,
+	material: StandardMaterial3D,
+	center: Vector3,
+	normal: Vector3
+) -> void:
+	var safe_normal := normal.normalized() if normal.length_squared() > 0.5 else Vector3.UP
+	var tangent := safe_normal.cross(Vector3.RIGHT).normalized()
+	if tangent.length_squared() < 0.5:
+		tangent = safe_normal.cross(Vector3.FORWARD).normalized()
+	var bitangent := safe_normal.cross(tangent).normalized()
+	mesh.surface_begin(Mesh.PRIMITIVE_LINE_STRIP, material)
+	for index in range(25):
+		var angle := TAU * float(index) / 24.0
+		mesh.surface_set_color(Color(1.0, 0.20, 0.12))
+		mesh.surface_add_vertex(
+			center
+			+ safe_normal * 0.018
+			+ (tangent * cos(angle) + bitangent * sin(angle)) * 0.18
+		)
 	mesh.surface_end()
-	preview.mesh = mesh

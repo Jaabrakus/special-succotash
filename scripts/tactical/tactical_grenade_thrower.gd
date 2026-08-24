@@ -5,15 +5,15 @@ const GrenadeProfile := preload("res://scripts/tactical/tactical_grenade_profile
 
 enum ThrowMode { OVERHAND, UNDERHAND }
 
-@export var overhand_speed := 14.5
-@export var underhand_speed := 5.8
+@export var overhand_speed := 15.2
+@export var underhand_speed := 6.1
 @export var overhand_lift := 0.28
 @export var underhand_lift := 0.06
-@export var minimum_overhand_speed := 8.25
-@export var minimum_underhand_speed := 3.8
+@export var minimum_overhand_speed := 8.6
+@export var minimum_underhand_speed := 4.0
 @export var minimum_overhand_lift := 0.12
 @export var minimum_underhand_lift := 0.025
-@export var full_throw_charge_seconds := 0.85
+@export var full_throw_charge_seconds := 0.78
 @export var maximum_hold_seconds := 1.25
 @export var maximum_fuse_cook_seconds := 1.20
 @export var minimum_remaining_fuse_seconds := 1.35

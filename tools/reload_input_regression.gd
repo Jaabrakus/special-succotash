@@ -114,8 +114,8 @@ func _run() -> void:
 	_expect(
 		grenade_driver != null
 		and "grenade" not in String(grenade_driver.get("requested_action")).to_lower()
-		and bool((grenade_driver.get("weapon_node") as Node3D).visible),
-		"equipping a grenade does not play or freeze the throw animation"
+		and not bool((grenade_driver.get("weapon_node") as Node3D).visible),
+		"equipping a grenade holsters the rifle without playing the throw animation"
 	)
 	var inventory_before: Dictionary = (main.get("grenade_inventory") as Dictionary).duplicate(true)
 	main.call("_begin_grenade_aim")
@@ -128,8 +128,14 @@ func _run() -> void:
 		arc_preview != null
 		and arc_preview.visible
 		and arc_preview.mesh != null
-		and arc_preview.mesh.get_surface_count() > 0,
-		"holding grenade input draws the live world-space throw arc"
+		and arc_preview.mesh.get_surface_count() >= 2
+		and int(arc_preview.get_meta("predicted_path_point_count", 0)) > 2
+		and int(arc_preview.get_meta("predicted_bounce_count", 0)) >= 1
+		and Vector3(arc_preview.get_meta(
+			"predicted_landing_position",
+			Vector3.INF
+		)).is_finite(),
+		"holding grenade input draws impact, bounce, and final landing prediction"
 	)
 	var arc_origin: Vector3 = main.call("_grenade_arc_origin")
 	var right_shoulder: Vector3 = main.call(
@@ -197,8 +203,9 @@ func _run() -> void:
 	)
 	_expect(
 		not bool(main.get("grenade_throw_in_progress"))
-		and bool(player_body.get("local_input_enabled")),
-		"movement unlocks only after the remaining throw animation completes"
+		and bool(player_body.get("local_input_enabled"))
+		and not bool((grenade_driver.get("weapon_node") as Node3D).visible),
+		"movement unlocks after the throw while the equipped grenade keeps the rifle holstered"
 	)
 
 	main.call("_begin_grenade_aim")

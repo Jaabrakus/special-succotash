@@ -7,8 +7,8 @@ const SmokeGrenade := preload("res://scripts/tactical/smoke_grenade.gd")
 const Flashbang := preload("res://scripts/tactical/flashbang_grenade.gd")
 const FragGrenade := preload("res://scripts/tactical/frag_grenade.gd")
 const Trajectory := preload("res://scripts/runtime/main_grenade_trajectory.gd")
+const GrenadeProfile := preload("res://scripts/tactical/tactical_grenade_profile.gd")
 
-const SHORT_THROW_PLAYBACK_SPEED := 1.85
 const SWITCH_HOLD_THRESHOLD := 0.25
 
 var host
@@ -147,6 +147,10 @@ func release_aim() -> void:
 		),
 		CONNECT_ONE_SHOT
 	)
+	driver.action_recovery_cue.connect(
+		begin_throw_recovery.bind(generation),
+		CONNECT_ONE_SHOT
+	)
 	driver.action_completed.connect(complete_throw.bind(generation), CONNECT_ONE_SHOT)
 
 
@@ -173,6 +177,15 @@ func complete_throw(_clip_name: StringName, generation: int) -> void:
 	elif equipped:
 		_set_weapon_input(false)
 	_update_status()
+
+
+func begin_throw_recovery(_clip_name: StringName, generation: int) -> void:
+	if not throw_in_progress or generation != throw_generation:
+		return
+	# The grenade has left the hand and the authored follow-through is ending.
+	# Re-enable authoritative input now so the animation graph can blend toward
+	# the actual directional locomotion before CharacterBody begins translating.
+	_set_movement_locked(false)
 
 
 func cancel_for_jump() -> void:
@@ -235,7 +248,10 @@ func equip_or_cycle() -> bool:
 			continue
 		selected_type = candidate
 		equipped = true
-		_set_rifle_visible(true)
+		# The grenade loadout owns the hands until the player returns to the rifle.
+		# Do not reveal the hand-mounted rifle between throws; that transform still
+		# contains the completed throw pose and makes the rifle float above the hand.
+		_set_rifle_visible(false)
 		_set_weapon_input(false)
 		_update_status()
 		return true
@@ -320,7 +336,12 @@ func throw_selected(
 
 
 func _animation_speed_for_charge(charge: float) -> float:
-	return lerpf(SHORT_THROW_PLAYBACK_SPEED, 1.0, clampf(charge, 0.0, 1.0))
+	var throw_profile: Dictionary = GrenadeProfile.load_profile().get("throw", {})
+	return lerpf(
+		float(throw_profile.get("quick_throw_playback_speed", 1.95)),
+		float(throw_profile.get("full_throw_playback_speed", 1.08)),
+		clampf(charge, 0.0, 1.0)
+	)
 
 
 func _play_throw_animation(is_underhand: bool, playback_speed: float) -> Node:
