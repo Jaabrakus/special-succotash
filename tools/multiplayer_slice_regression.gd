@@ -7,6 +7,7 @@ const NetworkOperator := preload("res://scripts/network/socom_network_operator.g
 const LobbyState := preload("res://scripts/network/socom_lobby_state.gd")
 const MapDocument := preload("res://scripts/maps/socom_map_document.gd")
 const MatchInvite := preload("res://scripts/network/socom_match_invite.gd")
+const ShotAuthority := preload("res://scripts/network/socom_shot_authority.gd")
 
 var failures: Array[String] = []
 
@@ -53,8 +54,69 @@ func _run() -> void:
 		"pitch": 0.1,
 		"reported_muzzle_origin": Vector3(1.0, 2.0, 3.0),
 		"direction": Vector3(0.0, 0.0, -7.0),
+		"convergence_distance": 12.0,
 	})
 	_assert(is_equal_approx(Vector3(sanitized.direction).length(), 1.0), "aim direction was not normalized")
+	_assert(
+		is_equal_approx(float(sanitized.convergence_distance), 12.0),
+		"aim convergence distance survives packet sanitization"
+	)
+	var report_anchor := Vector3(0.0, 1.35, 0.0)
+	var convergence_target := Vector3(0.0, 1.48, -12.0)
+	var convergence_direction := report_anchor.direction_to(convergence_target)
+	var convergence_packet := {
+		"sequence": 1,
+		"simulation_tick": 10,
+		"yaw": wrapf(atan2(-convergence_direction.x, -convergence_direction.z), -PI, PI),
+		"pitch": asin(convergence_direction.y),
+		"reported_muzzle_origin": report_anchor,
+		"direction": convergence_direction,
+		"convergence_distance": report_anchor.distance_to(convergence_target),
+	}
+	var convergence_validation := ShotAuthority.validate_intent(
+		convergence_packet,
+		report_anchor,
+		-1,
+		10
+	)
+	_assert(
+		bool(convergence_validation.get("accepted", false)),
+		"bounded reticle convergence intent is accepted"
+	)
+	var shifted_server_muzzle := Vector3(0.32, 1.62, 0.15)
+	var resolved_direction := ShotAuthority.resolve_trace_direction(
+		convergence_validation,
+		report_anchor,
+		shifted_server_muzzle
+	)
+	_assert(
+		rad_to_deg(resolved_direction.angle_to(
+			shifted_server_muzzle.direction_to(convergence_target)
+		)) < 0.01,
+		"server muzzle converges on the reticle target despite presentation offset"
+	)
+	var invalid_convergence := convergence_packet.duplicate(true)
+	invalid_convergence["convergence_distance"] = 999.0
+	_assert(
+		not bool(ShotAuthority.validate_intent(
+			invalid_convergence,
+			report_anchor,
+			-1,
+			10
+		).get("accepted", false)),
+		"unbounded client convergence is rejected"
+	)
+	var displaced_anchor := convergence_packet.duplicate(true)
+	displaced_anchor["reported_muzzle_origin"] = report_anchor + Vector3(5.0, 0.0, 0.0)
+	_assert(
+		not bool(ShotAuthority.validate_intent(
+			displaced_anchor,
+			report_anchor,
+			-1,
+			10
+		).get("accepted", false)),
+		"client cannot displace its reported body anchor away from server authority"
+	)
 	var representative_entities: Dictionary = {}
 	var representative_scores: Dictionary = {}
 	for peer_id in range(1, 17):

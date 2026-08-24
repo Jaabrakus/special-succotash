@@ -4,6 +4,7 @@ const TargetDummyScript := preload("res://scripts/combat/lab_leak_target_dummy.g
 const ShotAuthorityScript := preload("res://scripts/network/socom_shot_authority.gd")
 const AnatomicalHitResolver := preload("res://scripts/combat/socom_anatomical_hit_resolver.gd")
 const HurtboxProfile := preload("res://scripts/combat/socom_hurtbox_profile.gd")
+const HurtboxAreaScript := preload("res://scripts/combat/socom_hurtbox_area.gd")
 const REQUIRED_REGIONS: Array[StringName] = [
 	&"HEAD", &"TORSO", &"PELVIS",
 	&"LEFT_UPPER_ARM", &"RIGHT_UPPER_ARM",
@@ -14,6 +15,11 @@ const REQUIRED_REGIONS: Array[StringName] = [
 ]
 
 var failures: Array[String] = []
+
+
+class DamageMovementProxy extends CharacterBody3D:
+	func take_bullet_damage_region() -> Dictionary:
+		return {"accepted": true}
 
 
 func _initialize() -> void:
@@ -27,9 +33,40 @@ func _run() -> void:
 	var dummy := TargetDummyScript.new()
 	dummy.name = "AnimatedTarget"
 	world_root.add_child(dummy)
+	var movement_proxy := DamageMovementProxy.new()
+	movement_proxy.name = "MovementCapsuleInFrontOfAnatomy"
+	movement_proxy.collision_layer = 1
+	movement_proxy.position = Vector3(10.0, 1.0, 0.0)
+	var movement_shape_node := CollisionShape3D.new()
+	var movement_shape := SphereShape3D.new()
+	movement_shape.radius = 0.40
+	movement_shape_node.shape = movement_shape
+	movement_proxy.add_child(movement_shape_node)
+	world_root.add_child(movement_proxy)
+	var anatomy_area := HurtboxAreaScript.new() as Area3D
+	anatomy_area.name = "TorsoBehindMovementCapsule"
+	anatomy_area.position = Vector3(10.0, 1.0, -0.70)
+	anatomy_area.configure(&"TORSO", movement_proxy)
+	var anatomy_shape_node := CollisionShape3D.new()
+	var anatomy_shape := SphereShape3D.new()
+	anatomy_shape.radius = 0.25
+	anatomy_shape_node.shape = anatomy_shape
+	anatomy_area.add_child(anatomy_shape_node)
+	world_root.add_child(anatomy_area)
 
 	await process_frame
 	await physics_frame
+
+	var proxy_trace := AnatomicalHitResolver.trace(
+		world_root.get_world_3d().direct_space_state,
+		Vector3(10.0, 1.0, 1.0),
+		Vector3(10.0, 1.0, -2.0),
+		[]
+	)
+	_assert(
+		StringName(proxy_trace.get("hit_region", &"")) == &"TORSO",
+		"movement capsule blocked the animated anatomical hurtbox behind it"
+	)
 
 	var rig: Node3D = dummy.get_hurtbox_rig()
 	_assert(rig != null, "animated hurtbox rig was not created")

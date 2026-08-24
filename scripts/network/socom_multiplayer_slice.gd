@@ -782,11 +782,16 @@ func _spawn_operator_local(peer_id: int, team: int, spawn_position: Vector3) -> 
 	if operators.has(peer_id):
 		return
 	var operator := NetworkOperatorScript.new() as SocomNetworkOperator
+	var local_id := multiplayer.get_unique_id()
+	var is_local_owner := peer_id == local_id
 	var lightweight_probe_client := (
 		not multiplayer.is_server()
 		and OS.get_cmdline_user_args().has("--network-probe-lite-client")
 	)
-	operator.visual_runtime_enabled = not lightweight_probe_client
+	# A lightweight probe client keeps only its locally owned presentation rig.
+	# That still exercises the real client muzzle/weapon path without multiplying
+	# every remote operator's heavy animation stack across all probe processes.
+	operator.visual_runtime_enabled = not lightweight_probe_client or is_local_owner
 	operator.name = "NetworkOperator_%d" % peer_id
 	operator.position = spawn_position
 	operator.rotation.y = PI if team == 0 else 0.0
@@ -801,8 +806,6 @@ func _spawn_operator_local(peer_id: int, team: int, spawn_position: Vector3) -> 
 	operators[peer_id] = operator
 	operator_state_history[peer_id] = []
 	peer_transport_one_way_ms[peer_id] = 0.0
-	var local_id := multiplayer.get_unique_id()
-	var is_local_owner := peer_id == local_id
 	operator.set_replica_mode(not is_local_owner and not multiplayer.is_server())
 	operator.set_local_input_enabled(is_local_owner)
 	operator.configure_network_presentation(is_local_owner, multiplayer.is_server())
@@ -1110,9 +1113,10 @@ func _server_process_shot(peer_id: int, packet: Dictionary) -> void:
 	if muzzle_marker == null:
 		return
 	var muzzle := muzzle_marker.global_position
+	var authoritative_report_anchor := _authoritative_shot_report_anchor(shooter)
 	var validation := ShotAuthority.validate_intent(
 		packet,
-		_authoritative_shot_report_anchor(shooter),
+		authoritative_report_anchor,
 		int(last_accepted_shot_sequence.get(peer_id, -1)),
 		-1
 	)
@@ -1122,6 +1126,11 @@ func _server_process_shot(peer_id: int, packet: Dictionary) -> void:
 		)
 		return
 	last_accepted_shot_sequence[peer_id] = int(packet.get("sequence", 0))
+	var authoritative_shot_direction := ShotAuthority.resolve_trace_direction(
+		validation,
+		authoritative_report_anchor,
+		muzzle
+	)
 	var exclude: Array[RID] = [shooter.get_rid()]
 	if shooter.hurtbox_rig:
 		exclude.append_array(shooter.hurtbox_rig.get_hurtbox_rids())
@@ -1149,7 +1158,7 @@ func _server_process_shot(peer_id: int, packet: Dictionary) -> void:
 	var rewind_restore := _begin_transport_rewind(peer_id)
 	var result: Dictionary = ballistics.try_fire_direction(
 		muzzle,
-		Vector3(validation.direction),
+		authoritative_shot_direction,
 		get_world_3d().direct_space_state,
 		exclude,
 		seed,

@@ -449,8 +449,7 @@ rollback plan, launch communications, and signed release decision.
    clients passed three cycles. The 16-peer host test uses lightweight network
    bots so one workstation does not create 256 animation rigs. All 16 peers also
    completed two cycles of simultaneous fire and reload validation. Long-duration,
-   reconnect, packet-loss, controlled hit/damage, and adverse-network soak remain
-   open.
+   reconnect, packet-loss, and adverse-network soak remain open.
 7. ~~Profile startup and an initial maximum-player firefight.~~ The current local
    debug baseline covers 16 peers firing five authoritative rounds each per cycle,
    player-owned ammunition transfer, reload, and bounded server processing. Repeat
@@ -507,9 +506,36 @@ or replacement. A valid register is not the same as asset clearance.
   mean / 21.435 ms p95 wall-frame intervals during the two-cycle combat probe.
 
 This milestone validates transport, cadence, ammunition, reload, and lifecycle
-under simultaneous local load. Shots were intentionally directed into safe space,
-so hit registration, damage attribution, elimination, and respawn under load remain
-separate open gates.
+under simultaneous local load. Its shots were intentionally directed into safe
+space; the controlled-damage milestone below closes the separate local hit and
+elimination gate.
+
+## Controlled network-damage milestone — 2026-08-24
+
+- [x] Sixteen real ENet peers complete two match/rematch cycles with eight paired
+  Alpha shooters and Bravo targets after the simultaneous fire/reload phase.
+- [x] Each target receives three authoritative torso hits with the configured
+  `34 + 34 + 34` damage progression and reaches elimination; every shooter remains
+  alive and undamaged.
+- [x] Match teardown restores the complete roster, health, ammunition, and damage
+  state before the second cycle repeats the same result.
+- [x] Ballistic queries pass through an operator's broad movement capsule and use
+  the animated anatomical areas for HEAD/TORSO/PELVIS/LIMB classification. Static
+  world collision still blocks bullets.
+- [x] Multiplayer aim now sends a bounded reticle convergence distance. The server
+  reconstructs that point from its stable player anchor and traces from its own
+  muzzle, preventing client/server animation phase differences from moving the
+  authoritative shot away from the intended reticle target.
+- [x] Convergence above 250 metres is rejected, sequence replay remains rejected,
+  and the client never supplies the authoritative muzzle origin.
+- [x] The second-cycle warmed listen-server sample used 174.76 MB and measured
+  16.147 ms mean / 26.266 ms p95 / 36.060 ms maximum wall-frame intervals. These
+  are local debug engineering measurements, not shipping requirements.
+
+This closes the local maximum-lobby fire/reload/torso-damage/elimination/rematch
+gate. Headshot, limb, and anatomical overlap classification remain covered by
+focused deterministic regressions. Internet latency, packet loss, reconnect,
+long-duration soak, exploit testing, and target-hardware capacity remain open.
 
 This is a technical baseline, not a commercial-release claim. Legal clearance,
 external playtesting, multiplayer soak, production content, accessibility,

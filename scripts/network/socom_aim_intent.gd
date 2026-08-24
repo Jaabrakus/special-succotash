@@ -7,9 +7,10 @@ static func create(
     new_yaw: float,
     new_pitch: float,
     muzzle_origin: Vector3,
-    aim_direction: Vector3
+    aim_direction: Vector3,
+    convergence_distance: float = 0.0
 ) -> Dictionary:
-    return {
+    var packet := {
         "sequence": new_sequence,
         "simulation_tick": new_tick,
         "yaw": new_yaw,
@@ -17,6 +18,9 @@ static func create(
         "reported_muzzle_origin": muzzle_origin,
         "direction": aim_direction.normalized()
     }
+    if convergence_distance > 0.0:
+        packet["convergence_distance"] = convergence_distance
+    return packet
 
 
 static func is_sane(

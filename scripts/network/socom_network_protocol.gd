@@ -56,7 +56,7 @@ static func movement_packet_is_sane(packet: Dictionary) -> bool:
 static func sanitize_aim_packet(packet: Dictionary) -> Dictionary:
 	var direction: Vector3 = packet.get("direction", Vector3.FORWARD)
 	var origin: Vector3 = packet.get("reported_muzzle_origin", Vector3.ZERO)
-	return {
+	var sanitized := {
 		"sequence": maxi(0, int(packet.get("sequence", 0))),
 		"simulation_tick": maxi(0, int(packet.get("simulation_tick", 0))),
 		"yaw": clampf(float(packet.get("yaw", 0.0)), -PI, PI),
@@ -72,6 +72,13 @@ static func sanitize_aim_packet(packet: Dictionary) -> Dictionary:
 			else Vector3.FORWARD
 		),
 	}
+	if packet.has("convergence_distance"):
+		sanitized["convergence_distance"] = clampf(
+			float(packet.get("convergence_distance", 0.0)),
+			0.25,
+			250.0
+		)
+	return sanitized
 
 
 static func _bounded_vector2(value: Variant) -> Vector2:

@@ -18,14 +18,18 @@ static func validate_and_trace(
     # absent from authority; only bounded aim intent crosses the network.
     var validation := validate_intent(
         payload,
-        authoritative_muzzle_origin,
+        Vector3(payload.get("reported_muzzle_origin", authoritative_muzzle_origin)),
         last_accepted_sequence,
         server_simulation_tick
     )
     if not bool(validation.accepted):
         return validation
 
-    var direction: Vector3 = validation.direction
+    var direction := resolve_trace_direction(
+        validation,
+        Vector3(payload.get("reported_muzzle_origin", authoritative_muzzle_origin)),
+        authoritative_muzzle_origin
+    )
     var hit := AnatomicalHitResolver.trace(
         world.direct_space_state,
         authoritative_muzzle_origin,
@@ -66,7 +70,8 @@ static func validate_intent(
     server_simulation_tick: int = -1,
     maximum_tick_age: int = 18,
     maximum_future_ticks: int = 2,
-    maximum_direction_error_deg: float = 12.0
+    maximum_direction_error_deg: float = 12.0,
+    maximum_report_anchor_error_m: float = 1.5
 ) -> Dictionary:
     for field in [
         "sequence",
@@ -114,6 +119,8 @@ static func validate_intent(
     var direction: Vector3 = payload.direction
     if not reported_origin.is_finite():
         return {"accepted": false, "reason": "INVALID_MUZZLE_ORIGIN"}
+    if reported_origin.distance_to(authoritative_muzzle_origin) > maximum_report_anchor_error_m:
+        return {"accepted": false, "reason": "REPORT_ANCHOR_OUT_OF_RANGE"}
     if (
         not direction.is_finite()
         or direction.length_squared() < 0.99
@@ -132,4 +139,34 @@ static func validate_intent(
     var expected_direction := (Basis(right, pitch) * yaw_forward).normalized()
     if rad_to_deg(expected_direction.angle_to(direction)) > maximum_direction_error_deg:
         return {"accepted": false, "reason": "DIRECTION_ANGLE_MISMATCH"}
-    return {"accepted": true, "direction": direction}
+    var result := {"accepted": true, "direction": direction}
+    if payload.has("convergence_distance"):
+        var convergence_type := typeof(payload.convergence_distance)
+        if convergence_type not in [TYPE_FLOAT, TYPE_INT]:
+            return {"accepted": false, "reason": "INVALID_CONVERGENCE_DISTANCE"}
+        var convergence_distance := float(payload.convergence_distance)
+        if (
+            is_nan(convergence_distance)
+            or is_inf(convergence_distance)
+            or convergence_distance < 0.25
+            or convergence_distance > 250.0
+        ):
+            return {"accepted": false, "reason": "INVALID_CONVERGENCE_DISTANCE"}
+        result["convergence_distance"] = convergence_distance
+    return result
+
+
+static func resolve_trace_direction(
+    validation: Dictionary,
+    authoritative_report_anchor: Vector3,
+    authoritative_muzzle_origin: Vector3
+) -> Vector3:
+    var intent_direction := Vector3(validation.get("direction", Vector3.FORWARD)).normalized()
+    if not validation.has("convergence_distance"):
+        return intent_direction
+    var target := (
+        authoritative_report_anchor
+        + intent_direction * float(validation.convergence_distance)
+    )
+    var converged := authoritative_muzzle_origin.direction_to(target)
+    return converged if converged.length_squared() >= 0.99 else intent_direction

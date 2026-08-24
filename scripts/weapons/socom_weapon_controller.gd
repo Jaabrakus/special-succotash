@@ -265,12 +265,17 @@ func request_fire() -> Dictionary:
 	var payload: Dictionary = camera_rig.build_local_aim_intent()
 	var validation: Dictionary = ShotAuthority.validate_intent(
 		payload,
-		muzzle,
+		Vector3(payload.get("reported_muzzle_origin", muzzle)),
 		last_accepted_sequence,
 		Engine.get_physics_frames()
 	)
 	if not bool(validation.get("accepted", false)):
 		return {"fired": false, "reason": validation.get("reason", "REJECTED")}
+	var resolved_shot_direction := ShotAuthority.resolve_trace_direction(
+		validation,
+		Vector3(payload.get("reported_muzzle_origin", muzzle)),
+		muzzle
+	)
 
 	var posture_name: StringName = (
 		StringName(player.call("get_posture_name"))
@@ -295,7 +300,7 @@ func request_fire() -> Dictionary:
 	var shot_precision_core_scale := composure.get_precision_core_scale()
 	var result: Dictionary = ballistics.try_fire_direction(
 		muzzle,
-		Vector3(validation.direction),
+		resolved_shot_direction,
 		player.get_world_3d().direct_space_state,
 		exclude,
 		seed,

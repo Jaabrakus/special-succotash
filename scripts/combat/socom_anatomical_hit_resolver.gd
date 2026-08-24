@@ -34,6 +34,17 @@ static func trace(
 		if hit.is_empty():
 			break
 		var collider: Object = hit.get("collider")
+		# CharacterBody collision owns movement and must stay solid to players,
+		# but its broad capsule is not damage anatomy. Continue through a damage
+		# receiver's movement body so the animated HEAD/TORSO/LIMB areas decide
+		# the hit region. Ordinary world bodies still stop the ray immediately.
+		if (
+			collider is CollisionObject3D
+			and collider.has_method("take_bullet_damage_region")
+			and not collider.has_method("get_hit_region")
+		):
+			working_exclude.append((collider as CollisionObject3D).get_rid())
+			continue
 		if collider == null or not collider.has_method("get_hit_region"):
 			if candidates.is_empty():
 				return hit

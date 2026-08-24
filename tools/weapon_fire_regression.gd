@@ -35,10 +35,14 @@ func _run() -> void:
 		"full movement expands the local mouse-string envelope"
 	)
 	var intent_before: Dictionary = rig.call("build_local_aim_intent")
-	var intended_direction: Vector3 = intent_before.direction
 	var first_muzzle_at_fire: Vector3 = (
 		player.get_node("Mannequin").call("get_active_muzzle_position")
 	)
+	var intent_target := (
+		Vector3(intent_before.reported_muzzle_origin)
+		+ Vector3(intent_before.direction) * float(intent_before.get("convergence_distance", 0.0))
+	)
+	var intended_direction := first_muzzle_at_fire.direction_to(intent_target)
 	var first: Dictionary = weapon.call("request_fire")
 	_expect(bool(first.get("fired", false)), "first authoritative shot fires")
 	var animation_driver = player.get_node_or_null("Mannequin/ProductionAnimation")

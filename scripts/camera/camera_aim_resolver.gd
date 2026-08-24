@@ -147,9 +147,6 @@ func build_local_aim_intent() -> Dictionary:
     var mannequin = rig.target.get_node_or_null("Mannequin")
     if mannequin == null or not mannequin.has_method("get_active_muzzle_position"):
         return {}
-    var muzzle: Vector3 = mannequin.get_active_muzzle_position()
-    var direction := shared_direction_from(muzzle)
-    var intent_angles := direction_to_yaw_pitch(direction)
     var posture_name := StringName(
         rig.target.call("get_posture_name")
         if rig.target.has_method("get_posture_name")
@@ -167,6 +164,12 @@ func build_local_aim_intent() -> Dictionary:
     var stable_reported_origin: Vector3 = (
         Vector3(rig.target.global_position) + Vector3.UP * report_height
     )
+    var target_point := shared_target()
+    var direction := stable_reported_origin.direction_to(target_point)
+    if direction.length_squared() < 0.99:
+        direction = rig._forward_direction()
+    var intent_angles := direction_to_yaw_pitch(direction)
+    var convergence_distance := stable_reported_origin.distance_to(target_point)
     rig.aim_intent_sequence += 1
     return AimIntentScript.create(
         rig.aim_intent_sequence,
@@ -174,7 +177,8 @@ func build_local_aim_intent() -> Dictionary:
         intent_angles.x,
         intent_angles.y,
         stable_reported_origin,
-        direction
+        direction,
+        convergence_distance
     )
 
 func shared_target() -> Vector3:
