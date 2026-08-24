@@ -13,6 +13,7 @@ STATE = MODULE_DIR / "socom_multiplayer_state.gd"
 WRAPPER = MODULE_DIR / "socom_multiplayer_slice.gd"
 MARKER = "# BEGIN GENERATED MULTIPLAYER CROSS-LAYER CONTRACT"
 LAYER_ORDER = [
+    MODULE_DIR / "socom_multiplayer_admission.gd",
     MODULE_DIR / "socom_multiplayer_session.gd",
     MODULE_DIR / "socom_multiplayer_replication.gd",
     MODULE_DIR / "socom_multiplayer_combat.gd",
@@ -141,8 +142,8 @@ def main() -> None:
     rpc_methods: list[tuple[str, str, list[str]]] = []
     for path in LAYER_ORDER:
         rpc_methods.extend(rpc_declarations(path))
-    if len(rpc_methods) != 22:
-        raise RuntimeError(f"Expected 22 multiplayer RPC methods, found {len(rpc_methods)}")
+    if len(rpc_methods) != 25:
+        raise RuntimeError(f"Expected 25 multiplayer RPC methods, found {len(rpc_methods)}")
     wrapper_lines = [
         "class_name SocomMultiplayerSlice",
         'extends "res://scripts/network/socom_multiplayer_world_ui.gd"',

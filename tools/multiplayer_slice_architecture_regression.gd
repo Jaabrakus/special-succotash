@@ -3,6 +3,7 @@ extends SceneTree
 const WRAPPER_PATH := "res://scripts/network/socom_multiplayer_slice.gd"
 const LAYER_PATHS := [
 	"res://scripts/network/socom_multiplayer_state.gd",
+	"res://scripts/network/socom_multiplayer_admission.gd",
 	"res://scripts/network/socom_multiplayer_session.gd",
 	"res://scripts/network/socom_multiplayer_replication.gd",
 	"res://scripts/network/socom_multiplayer_combat.gd",
@@ -20,6 +21,9 @@ const EXPECTED_RPC_METHODS := [
 	"receive_match_started",
 	"receive_round_state",
 	"receive_return_to_lobby",
+	"receive_session_challenge",
+	"request_session_admission",
+	"receive_session_rejected",
 	"submit_movement",
 	"receive_time_sync_probe",
 	"submit_time_sync_echo",
@@ -71,8 +75,8 @@ func _init() -> void:
 		function_count += source.count("\nfunc ")
 		rpc_annotation_count += source.count("\n@rpc(")
 
-	_expect(function_count == 118, "all 118 authority functions remain in one layer")
-	_expect(rpc_annotation_count == 22, "all 22 RPC annotations remain present")
+	_expect(function_count == 124, "all 124 authority functions remain in one layer")
+	_expect(rpc_annotation_count == 25, "all 25 RPC annotations remain present")
 
 	var scene := load("res://multiplayer_slice.tscn") as PackedScene
 	var slice := scene.instantiate() if scene != null else null
@@ -91,7 +95,7 @@ func _init() -> void:
 		_expect(rpc_config_value is Dictionary, "runtime exposes a live RPC configuration")
 		if rpc_config_value is Dictionary:
 			var rpc_config := rpc_config_value as Dictionary
-			_expect(rpc_config.size() == EXPECTED_RPC_METHODS.size(), "runtime exposes exactly 22 RPC methods")
+			_expect(rpc_config.size() == EXPECTED_RPC_METHODS.size(), "runtime exposes exactly 25 RPC methods")
 			for method_name in EXPECTED_RPC_METHODS:
 				_expect(rpc_config.has(method_name), "runtime RPC remains registered: " + method_name)
 		slice.free()

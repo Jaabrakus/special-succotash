@@ -29,6 +29,7 @@ const MapGameplay := preload("res://scripts/maps/socom_map_gameplay_contract.gd"
 const DemolitionBombScene := preload("res://scenes/objectives/demolition_bomb.tscn")
 const MultiplayerHUDScript := preload("res://scripts/network/socom_multiplayer_hud.gd")
 const MatchInvite := preload("res://scripts/network/socom_match_invite.gd")
+const SessionCompatibility := preload("res://scripts/network/socom_session_compatibility.gd")
 const ServerBackendScript := preload("res://scripts/server/socom_server_backend.gd")
 const ExitMenuScript := preload("res://scripts/ui/socom_exit_menu.gd")
 const PlayerScript := preload("res://scripts/player/player_controller.gd")
@@ -43,6 +44,7 @@ const TIME_SYNC_INTERVAL_SECONDS := 1.0
 const MAX_TRANSPORT_COMPENSATION_MS := 80.0
 const OPERATOR_HISTORY_SECONDS := 0.50
 const MAX_QUEUED_SHOTS_PER_PEER := 8
+const SESSION_ADMISSION_TIMEOUT_SECONDS := 5.0
 
 @export var simulated_network_latency_ms: float = 0.0
 @export var remote_interpolation_delay_seconds: float = 0.130
@@ -71,6 +73,9 @@ var server_clock_offset_ms: float = 0.0
 var server_clock_synchronized: bool = false
 var logged_command_peers: Dictionary = {}
 var logged_first_snapshot: bool = false
+var peer_admission_attempts: Dictionary = {}
+var peer_admission_deadlines_ms: Dictionary = {}
+var session_rejection_message := ""
 var spawn_points: Array[Vector3] = [
 	Vector3(-8.0, 0.05, 9.0), Vector3(-5.5, 0.05, 9.0),
 	Vector3(-3.0, 0.05, 9.0), Vector3(-0.5, 0.05, 9.0),
@@ -168,6 +173,9 @@ func _apply_multiplayer_map(document: Dictionary) -> void:
 	pass
 
 func _broadcast_authoritative_state() -> void:
+	pass
+
+func _broadcast_lobby() -> void:
 	pass
 
 func _build_environment() -> void:
@@ -286,6 +294,21 @@ func receive_match_event(message: String) -> void:
 	pass
 
 func receive_objective_state(state: Dictionary) -> void:
+	pass
+
+func receive_round_state(
+	time_remaining: float,
+	alpha_rounds: int,
+	bravo_rounds: int,
+	current_round: int,
+	active: bool
+) -> void:
+	pass
+
+func receive_server_map(document: Dictionary) -> void:
+	pass
+
+func spawn_operator(peer_id: int, team: int, spawn_position: Vector3) -> void:
 	pass
 
 func submit_movement(packet: Dictionary) -> void:

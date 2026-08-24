@@ -7,6 +7,7 @@ extends Node
 ## server discovery and final, server-authored records only.
 
 const CONFIG_PATH := "res://config/supabase.json"
+const SessionCompatibility := preload("res://scripts/network/socom_session_compatibility.gd")
 const HEARTBEAT_SECONDS := 15.0
 const REQUEST_TIMEOUT_SECONDS := 20.0
 
@@ -15,6 +16,8 @@ var server_key := ""
 var server_id := ""
 var match_id := ""
 var heartbeat_timer: Timer
+var request_adapter: Callable
+var draining := false
 
 
 func _ready() -> void:
@@ -39,9 +42,12 @@ func register_dedicated_server(port: int) -> Dictionary:
 		"region": _environment_or("SOCOM_SERVER_REGION", "us-east"),
 		"public_address": public_address,
 		"public_port": port,
-		"game_build": _environment_or("SOCOM_GAME_BUILD", "development"),
+		"game_build": _environment_or("SOCOM_GAME_BUILD", SessionCompatibility.local_build()),
+		"protocol_version": SessionCompatibility.PROTOCOL_VERSION,
 		"ruleset_id": ruleset_id,
 		"capacity": 16,
+		"current_players": 0,
+		"accepting_players": true,
 		"status": "online",
 		"last_heartbeat_at": Time.get_datetime_string_from_system(true),
 	}
@@ -57,6 +63,7 @@ func register_dedicated_server(port: int) -> Dictionary:
 	if rows.is_empty():
 		return {"ok": false, "message": "Server registration returned no identity."}
 	server_id = String((rows[0] as Dictionary).get("id", ""))
+	draining = false
 	_start_heartbeat()
 	return {"ok": not server_id.is_empty(), "server_id": server_id, "message": "Dedicated server registered."}
 
@@ -74,10 +81,29 @@ func complete_ranked_match(result: Dictionary) -> Dictionary:
 func mark_offline() -> void:
 	if not is_configured() or server_id.is_empty():
 		return
+	draining = true
+	if heartbeat_timer != null:
+		heartbeat_timer.stop()
 	await _request_json(
 		"/rest/v1/match_servers?id=eq.%s" % server_id.uri_encode(),
 		HTTPClient.METHOD_PATCH,
 		{"status": "offline", "last_heartbeat_at": Time.get_datetime_string_from_system(true)},
+		"return=minimal"
+	)
+
+
+func begin_drain() -> Dictionary:
+	if not is_configured() or server_id.is_empty():
+		return {"ok": false, "message": "No registered dedicated server is active."}
+	draining = true
+	return await _request_json(
+		"/rest/v1/match_servers?id=eq.%s" % server_id.uri_encode(),
+		HTTPClient.METHOD_PATCH,
+		{
+			"status": "draining",
+			"accepting_players": false,
+			"last_heartbeat_at": Time.get_datetime_string_from_system(true),
+		},
 		"return=minimal"
 	)
 
@@ -98,7 +124,11 @@ func _send_heartbeat() -> void:
 	var response := await _request_json(
 		"/rest/v1/match_servers?id=eq.%s" % server_id.uri_encode(),
 		HTTPClient.METHOD_PATCH,
-		{"status": "online", "last_heartbeat_at": Time.get_datetime_string_from_system(true)},
+		{
+			"status": "draining" if draining else "online",
+			"accepting_players": not draining,
+			"last_heartbeat_at": Time.get_datetime_string_from_system(true),
+		},
 		"return=minimal"
 	)
 	if not bool(response.get("ok", false)):
@@ -106,6 +136,8 @@ func _send_heartbeat() -> void:
 
 
 func _request_json(path: String, method: HTTPClient.Method, body: Variant = null, prefer: String = "") -> Dictionary:
+	if request_adapter.is_valid():
+		return await request_adapter.call(path, method, body, prefer)
 	var request := HTTPRequest.new()
 	request.timeout = REQUEST_TIMEOUT_SECONDS
 	add_child(request)

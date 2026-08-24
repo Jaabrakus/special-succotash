@@ -8,6 +8,7 @@ const LobbyState := preload("res://scripts/network/socom_lobby_state.gd")
 const MapDocument := preload("res://scripts/maps/socom_map_document.gd")
 const MatchInvite := preload("res://scripts/network/socom_match_invite.gd")
 const ShotAuthority := preload("res://scripts/network/socom_shot_authority.gd")
+const SessionCompatibility := preload("res://scripts/network/socom_session_compatibility.gd")
 
 var failures: Array[String] = []
 
@@ -17,6 +18,25 @@ func _initialize() -> void:
 
 
 func _run() -> void:
+	var compatible := SessionCompatibility.admission(
+		SessionCompatibility.PROTOCOL_VERSION,
+		SessionCompatibility.local_build()
+	)
+	_assert(bool(compatible.get("ok", false)), "matching protocol and game build pass admission")
+	_assert(
+		String(SessionCompatibility.admission(
+			SessionCompatibility.PROTOCOL_VERSION + 1,
+			SessionCompatibility.local_build()
+		).get("code", "")) == "PROTOCOL_MISMATCH",
+		"incompatible network protocol is rejected before lobby admission"
+	)
+	_assert(
+		String(SessionCompatibility.admission(
+			SessionCompatibility.PROTOCOL_VERSION,
+			"obsolete-build"
+		).get("code", "")) == "BUILD_MISMATCH",
+		"incompatible game build receives a specific rejection"
+	)
 	var lobby := LobbyState.new()
 	var host_entry := lobby.add_player(1, "HOST")
 	var guest_entry := lobby.add_player(2, "GUEST")

@@ -1,4 +1,4 @@
-extends "res://scripts/network/socom_multiplayer_state.gd"
+extends "res://scripts/network/socom_multiplayer_admission.gd"
 
 func _ready() -> void:
 	process_physics_priority = 100
@@ -14,6 +14,7 @@ func _ready() -> void:
 
 func _physics_process(delta: float) -> void:
 	if multiplayer.is_server():
+		_expire_unadmitted_peers()
 		_advance_time_sync(delta)
 		_advance_lobby_countdown(delta)
 		_advance_demolition_objective(delta)
@@ -171,40 +172,13 @@ func _connect_multiplayer_signals() -> void:
 	multiplayer.server_disconnected.connect(_on_server_disconnected)
 
 
-func _on_peer_connected(peer_id: int) -> void:
-	if not multiplayer.is_server():
-		return
-	lobby.add_player(peer_id)
-	receive_server_map.rpc_id(peer_id, active_map_document)
-	for existing_id in operators:
-		var existing := operators[existing_id] as SocomNetworkOperator
-		spawn_operator.rpc_id(
-			peer_id,
-			int(existing_id),
-			existing.team_id,
-			existing.global_position
-		)
-	# Mid-match arrivals are safe spectators until the next lobby. They receive
-	# the authoritative clock, score, and objective snapshot, but no operator or
-	# gameplay authority is created for them during an active round.
-	if session_active:
-		receive_round_state.rpc_id(
-			peer_id,
-			round_time_remaining,
-			int(team_round_wins.get(0, 0)),
-			int(team_round_wins.get(1, 0)),
-			round_index,
-			round_active
-		)
-		receive_objective_state.rpc_id(peer_id, _objective_state_snapshot())
-		receive_match_event.rpc_id(peer_id, "MATCH IN PROGRESS  •  waiting for next lobby")
-	_broadcast_lobby()
-	_set_status("PLAYER %d JOINED LOBBY  •  %d connected" % [peer_id, lobby.players.size()])
-	print("MP_SLICE PEER_JOINED peer=%d players=%d" % [peer_id, lobby.players.size()])
-
-
 func _on_peer_disconnected(peer_id: int) -> void:
 	if multiplayer.is_server():
+		peer_admission_attempts.erase(peer_id)
+		peer_admission_deadlines_ms.erase(peer_id)
+		if not lobby.players.has(peer_id):
+			print("MP_SLICE UNADMITTED_PEER_LEFT peer=%d" % peer_id)
+			return
 		var departed_operator := operators.get(peer_id) as SocomNetworkOperator
 		var departed_team := departed_operator.team_id if departed_operator != null else -1
 		_drop_bomb_from_peer(peer_id)
@@ -226,6 +200,7 @@ func _on_peer_disconnected(peer_id: int) -> void:
 
 
 func _on_connected_to_server() -> void:
+	session_rejection_message = ""
 	session_active = false
 	round_active = false
 	menu_panel.visible = false
@@ -244,7 +219,7 @@ func _on_server_disconnected() -> void:
 	# a local peer id. Leaving the dead ENet object installed caused one error per
 	# frame after a host exited.
 	_disconnect_existing_peer()
-	_set_status("SERVER DISCONNECTED")
+	_set_status(session_rejection_message if not session_rejection_message.is_empty() else "SERVER DISCONNECTED")
 	menu_panel.visible = true
 	_show_lobby(false)
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE

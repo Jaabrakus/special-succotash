@@ -5,6 +5,18 @@ extends "res://scripts/network/socom_multiplayer_world_ui.gd"
 # forwarders preserve the wire contract while feature layers own logic.
 
 @rpc("authority", "call_remote", "reliable")
+func receive_session_challenge(protocol_version: int, game_build: String) -> void:
+	super.receive_session_challenge(protocol_version, game_build)
+
+@rpc("any_peer", "call_remote", "reliable")
+func request_session_admission(protocol_version: int, game_build: String) -> void:
+	super.request_session_admission(protocol_version, game_build)
+
+@rpc("authority", "call_remote", "reliable")
+func receive_session_rejected(message: String) -> void:
+	super.receive_session_rejected(message)
+
+@rpc("authority", "call_remote", "reliable")
 func spawn_operator(peer_id: int, team: int, spawn_position: Vector3) -> void:
 	super.spawn_operator(peer_id, team, spawn_position)
 
