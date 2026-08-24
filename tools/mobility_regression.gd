@@ -470,15 +470,22 @@ func _test_stance_hold_dive(player: CharacterBody3D) -> void:
         "forward travel reaches the hold-C dive threshold"
     )
     Input.action_press(&"crouch")
+    var saw_committed_dive := false
     var saw_prone := false
-    for _frame in range(30):
+    # The hold threshold is followed by the complete committed dive. Waiting
+    # only 30 frames made this assertion depend on frame rate and could inspect
+    # the operator halfway through the take instead of after prone landing.
+    for _frame in range(120):
         await physics_frame
+        if _state(player) == &"DIVING":
+            saw_committed_dive = true
         if _state(player) == &"PRONE":
             saw_prone = true
             break
     Input.action_release(&"crouch")
     await _step_physics(2)
-    _expect(saw_prone, "holding C enters prone through the shared stance action")
+    _expect(saw_committed_dive, "running hold-C enters the committed dive through the shared stance action")
+    _expect(saw_prone, "holding C completes in prone through the shared stance action")
     _expect(
         not bool(player.get("stance_held_triggered")),
         "releasing C clears the stance-hold latch"

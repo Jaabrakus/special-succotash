@@ -52,14 +52,25 @@ func _run() -> void:
 					skeleton.global_transform
 					* skeleton.get_bone_global_pose(bone_index).origin
 				)
+		# Measure the actual collision surface under the operator. Authored maps may
+		# place the floor above world Y=0, so absolute bone heights made this check
+		# map-offset dependent even when contact was unchanged.
 		var floor_y := 0.0
+		var ground_query := PhysicsRayQueryParameters3D.create(
+			player.global_position + Vector3.UP * 2.0,
+			player.global_position + Vector3.DOWN * 3.0
+		)
+		ground_query.exclude = [player.get_rid()]
+		var ground_hit: Dictionary = player.get_world_3d().direct_space_state.intersect_ray(ground_query)
+		if not ground_hit.is_empty():
+			floor_y = float((ground_hit.get("position", Vector3.ZERO) as Vector3).y)
 		var left_foot_height := float((samples.get("mixamorig_LeftFoot", Vector3.UP * 99.0) as Vector3).y - floor_y)
 		var right_foot_height := float((samples.get("mixamorig_RightFoot", Vector3.UP * 99.0) as Vector3).y - floor_y)
 		var left_knee_height := float((samples.get("mixamorig_LeftLeg", Vector3.UP * 99.0) as Vector3).y - floor_y)
 		var right_knee_height := float((samples.get("mixamorig_RightLeg", Vector3.UP * 99.0) as Vector3).y - floor_y)
 		print(
-			"PRONE_GROUND_METRIC left_foot_m=%.4f right_foot_m=%.4f left_knee_m=%.4f right_knee_m=%.4f"
-			% [left_foot_height, right_foot_height, left_knee_height, right_knee_height]
+			"PRONE_GROUND_METRIC floor_y=%.4f left_foot_m=%.4f right_foot_m=%.4f left_knee_m=%.4f right_knee_m=%.4f"
+			% [floor_y, left_foot_height, right_foot_height, left_knee_height, right_knee_height]
 		)
 		var debug: Dictionary = driver.call("get_animation_debug_state")
 		var axis_error := absf(float(debug.get("prone_axis_residual_error_deg", 999.0)))

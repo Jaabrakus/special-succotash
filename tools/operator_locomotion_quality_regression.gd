@@ -89,12 +89,19 @@ func _measure_contact_phase_continuity(player: CharacterBody3D, driver) -> void:
 	var before_phase: float = driver.locomotion_graph.shared_phase
 	var left_before := _bone_world_position(driver, left)
 	var right_before := _bone_world_position(driver, right)
-	var planted_before := left_before if planted_left else right_before
+	var player_before := player.global_position
+	var planted_before := (left_before if planted_left else right_before) - player_before
 	Input.action_release(&"move_forward")
 	Input.action_press(&"move_right", 1.0)
 	await physics_frame
 	var after_phase: float = driver.locomotion_graph.shared_phase
-	var planted_after := _bone_world_position(driver, left if planted_left else right)
+	# Authoritative movement changes world position immediately by roughly one
+	# full-speed physics step. Remove that intended CharacterBody translation so
+	# this metric measures animation/contact discontinuity rather than player travel.
+	var planted_after := (
+		_bone_world_position(driver, left if planted_left else right)
+		- player.global_position
+	)
 	Input.action_release(&"move_right")
 	var phase_step := fposmod(after_phase - before_phase, 1.0)
 	var contact_step_cm := Vector2(
