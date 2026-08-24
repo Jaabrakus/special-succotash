@@ -150,13 +150,30 @@ func build_local_aim_intent() -> Dictionary:
     var muzzle: Vector3 = mannequin.get_active_muzzle_position()
     var direction := shared_direction_from(muzzle)
     var intent_angles := direction_to_yaw_pitch(direction)
+    var posture_name := StringName(
+        rig.target.call("get_posture_name")
+        if rig.target.has_method("get_posture_name")
+        else &"STANDING"
+    )
+    var report_height := 1.35
+    if posture_name == &"CROUCHED":
+        report_height = 0.95
+    elif posture_name == &"PRONE":
+        report_height = 0.45
+    # The rendered muzzle owns shot direction, but animation phase is local
+    # presentation and can differ from the server. Report a stable body-relative
+    # diagnostic anchor; the server replaces it with its authoritative animated
+    # muzzle before tracing the bullet.
+    var stable_reported_origin: Vector3 = (
+        Vector3(rig.target.global_position) + Vector3.UP * report_height
+    )
     rig.aim_intent_sequence += 1
     return AimIntentScript.create(
         rig.aim_intent_sequence,
         Engine.get_physics_frames(),
         intent_angles.x,
         intent_angles.y,
-        muzzle,
+        stable_reported_origin,
         direction
     )
 

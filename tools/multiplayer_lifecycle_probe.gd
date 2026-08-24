@@ -7,6 +7,7 @@ var port := 24141
 var expected_peers := 2
 var client_index := 1
 var cycle_count := 2
+var combat_shots_per_cycle := 0
 var slice: Node
 
 
@@ -23,6 +24,8 @@ func _initialize() -> void:
 			client_index = maxi(1, int(args[index + 1]))
 		elif args[index] == "--cycles" and index + 1 < args.size():
 			cycle_count = clampi(int(args[index + 1]), 1, 20)
+		elif args[index] == "--combat-shots" and index + 1 < args.size():
+			combat_shots_per_cycle = clampi(int(args[index + 1]), 0, 20)
 	call_deferred("_run")
 
 
@@ -65,7 +68,40 @@ func _run_host() -> void:
 			_fail("cycle %d did not start with %d authoritative peers" % [cycle, expected_peers])
 			return
 		print("MULTIPLAYER_LIFECYCLE HOST_MATCH_STARTED cycle=%d peers=%d" % [cycle, slice.operators.size()])
+		var starting_ammo: Dictionary = {}
+		if combat_shots_per_cycle > 0:
+			for raw_id in slice.operators:
+				starting_ammo[int(raw_id)] = {
+					"magazine": int(slice.server_magazine_ammo.get(raw_id, 0)),
+					"reserve": int(slice.server_reserve_ammo.get(raw_id, 0)),
+				}
+			call_deferred("_fire_host_probe_shots", cycle)
+			# Measure steady combat separately from the one-time animation/resource
+			# construction burst at round spawn.
+			await create_timer(0.90).timeout
 		await _sample_host_performance(cycle, 0.75)
+		if combat_shots_per_cycle > 0:
+			if not await _wait_until(
+				func() -> bool: return _all_probe_shots_consumed(starting_ammo),
+				6.0
+			):
+				_fail(
+					"cycle %d did not authorize every combat-probe shot (%s)"
+					% [cycle, _probe_ammo_diagnostic(starting_ammo)]
+				)
+				return
+			print(
+				"MULTIPLAYER_LIFECYCLE HOST_COMBAT_ACCEPTED cycle=%d peers=%d shots_each=%d"
+				% [cycle, expected_peers, combat_shots_per_cycle]
+			)
+			slice.call("_server_reload_weapon", 1)
+			if not await _wait_until(
+				func() -> bool: return _all_probe_magazines_refilled(starting_ammo),
+				3.0
+			):
+				_fail("cycle %d did not reload every combat-probe magazine" % cycle)
+				return
+			print("MULTIPLAYER_LIFECYCLE HOST_COMBAT_RELOADED cycle=%d" % cycle)
 		slice.call("_server_finish_round", (cycle - 1) % 2, "AUTOMATED CYCLE %d" % cycle)
 		if not await _wait_until(
 			func() -> bool:
@@ -117,6 +153,8 @@ func _run_client() -> void:
 			_fail("client %d did not enter cycle %d with %d peers" % [client_index, cycle, expected_peers])
 			return
 		print("MULTIPLAYER_LIFECYCLE CLIENT_MATCH_STARTED index=%d cycle=%d peer=%d" % [client_index, cycle, peer_id])
+		if combat_shots_per_cycle > 0:
+			await _fire_client_probe_shots(cycle, peer_id)
 		if not await _wait_until(
 			func() -> bool:
 				return (
@@ -134,6 +172,9 @@ func _run_client() -> void:
 		if cycle < cycle_count:
 			slice.call("_toggle_lobby_ready")
 	print("MULTIPLAYER_LIFECYCLE_PROBE CLIENT PASS")
+	# Keep clients connected until the host records its final result. Closing all
+	# 15 ENet peers in the same frame tests shutdown noise instead of gameplay.
+	await create_timer(1.25).timeout
 	quit(0)
 
 
@@ -141,6 +182,109 @@ func _local_lobby_ready(peer_id: int) -> bool:
 	var raw_key: Variant = peer_id if slice.lobby.players.has(peer_id) else str(peer_id)
 	var player_state: Variant = slice.lobby.players.get(raw_key, {})
 	return bool((player_state as Dictionary).get("ready", false)) if player_state is Dictionary else false
+
+
+func _fire_host_probe_shots(cycle: int) -> void:
+	await create_timer(1.0).timeout
+	var host_operator = slice.operators.get(1)
+	if host_operator == null or host_operator.mannequin == null:
+		return
+	for shot_index in combat_shots_per_cycle:
+		var muzzle_marker: Marker3D = host_operator.mannequin.get_active_muzzle_marker()
+		if muzzle_marker == null:
+			return
+		var packet := _combat_probe_packet(
+			cycle * 1000 + shot_index + 1,
+			muzzle_marker.global_position
+		)
+		slice.call("_server_process_shot", 1, packet)
+		await create_timer(0.50).timeout
+
+
+func _fire_client_probe_shots(cycle: int, peer_id: int) -> void:
+	await create_timer(1.0).timeout
+	var operator = slice.operators.get(peer_id)
+	if operator == null:
+		return
+	for shot_index in combat_shots_per_cycle:
+		var reported_muzzle: Vector3 = (
+			Vector3(operator.global_position) + Vector3(0.0, 1.35, 0.0)
+		)
+		var packet := _combat_probe_packet(
+			cycle * 1000 + shot_index + 1,
+			reported_muzzle
+		)
+		slice.rpc_id(1, "submit_shot", packet)
+		await create_timer(0.50).timeout
+	print(
+		"MULTIPLAYER_LIFECYCLE CLIENT_COMBAT_SENT index=%d cycle=%d shots=%d"
+		% [client_index, cycle, combat_shots_per_cycle]
+	)
+	await create_timer(0.80).timeout
+	slice.rpc_id(1, "submit_reload")
+
+
+func _combat_probe_packet(sequence: int, reported_muzzle: Vector3) -> Dictionary:
+	# Fire safely above the map. This loads authorization, composure, ballistics,
+	# tracers, acoustics, ammunition, RPC delivery, and reload without allowing
+	# probe players to eliminate one another and end the measured round early.
+	var direction := Vector3(0.0, 0.8660254, -0.5).normalized()
+	return {
+		"sequence": sequence,
+		"simulation_tick": Engine.get_physics_frames(),
+		"yaw": wrapf(atan2(-direction.x, -direction.z), -PI, PI),
+		"pitch": asin(clampf(direction.y, -1.0, 1.0)),
+		"reported_muzzle_origin": reported_muzzle,
+		"direction": direction,
+	}
+
+
+func _all_probe_shots_consumed(starting_ammo: Dictionary) -> bool:
+	for raw_id in starting_ammo:
+		var peer_id := int(raw_id)
+		var initial: Dictionary = starting_ammo[raw_id]
+		var initial_total := int(initial.magazine) + int(initial.reserve)
+		var current_total := (
+			int(slice.server_magazine_ammo.get(peer_id, -1))
+			+ int(slice.server_reserve_ammo.get(peer_id, -1))
+		)
+		if current_total != initial_total - combat_shots_per_cycle:
+			return false
+	return true
+
+
+func _probe_ammo_diagnostic(starting_ammo: Dictionary) -> String:
+	var entries: Array[String] = []
+	for raw_id in starting_ammo:
+		var peer_id := int(raw_id)
+		var initial: Dictionary = starting_ammo[raw_id]
+		var queue: Array = slice.pending_shot_packets.get(peer_id, [])
+		entries.append("%d:%d->%d accepted=%d enqueued=%d queued=%d reject=%s" % [
+			peer_id,
+			int(initial.magazine) + int(initial.reserve),
+			int(slice.server_magazine_ammo.get(peer_id, -1))
+				+ int(slice.server_reserve_ammo.get(peer_id, -1)),
+			int(slice.last_accepted_shot_sequence.get(peer_id, -1)),
+			int(slice.last_enqueued_shot_sequence.get(peer_id, -1)),
+			queue.size(),
+			String(slice.last_rejected_shot_reason.get(peer_id, "")),
+		])
+	return ", ".join(entries)
+
+
+func _all_probe_magazines_refilled(starting_ammo: Dictionary) -> bool:
+	for raw_id in starting_ammo:
+		var peer_id := int(raw_id)
+		var initial: Dictionary = starting_ammo[raw_id]
+		if int(slice.server_magazine_ammo.get(peer_id, -1)) != int(initial.magazine):
+			return false
+		var current_total := (
+			int(slice.server_magazine_ammo.get(peer_id, -1))
+			+ int(slice.server_reserve_ammo.get(peer_id, -1))
+		)
+		if current_total != int(initial.magazine) + int(initial.reserve) - combat_shots_per_cycle:
+			return false
+	return true
 
 
 func _wait_until(predicate: Callable, timeout_seconds: float) -> bool:

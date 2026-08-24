@@ -36,11 +36,13 @@ const PlayerScript := preload("res://scripts/player/player_controller.gd")
 const DEFAULT_PORT := 14141
 const MAX_PLAYERS := 16
 const SNAPSHOT_INTERVAL := 1.0 / 20.0
+const SNAPSHOT_ENTITIES_PER_PACKET := 4
 const RESPAWN_SECONDS := 3.0
 const SCORE_LIMIT := 5
 const TIME_SYNC_INTERVAL_SECONDS := 1.0
 const MAX_TRANSPORT_COMPENSATION_MS := 80.0
 const OPERATOR_HISTORY_SECONDS := 0.50
+const MAX_QUEUED_SHOTS_PER_PEER := 8
 
 @export var simulated_network_latency_ms: float = 0.0
 @export var remote_interpolation_delay_seconds: float = 0.130
@@ -53,6 +55,10 @@ var server_reserve_ammo: Dictionary = {}
 var latest_commands: Dictionary = {}
 var last_command_tick: Dictionary = {}
 var last_accepted_shot_sequence: Dictionary = {}
+var last_enqueued_shot_sequence: Dictionary = {}
+var pending_shot_packets: Dictionary = {}
+var pending_reload_requests: Dictionary = {}
+var last_rejected_shot_reason: Dictionary = {}
 var scores: Dictionary = {}
 var assigned_spawns: Dictionary = {}
 var pending_snapshots: Dictionary = {}
@@ -170,6 +176,7 @@ func _physics_process(delta: float) -> void:
 
 	if not multiplayer.is_server():
 		return
+	_advance_pending_server_shots()
 	_record_server_operator_history()
 	_advance_server_composure(delta)
 	snapshot_accumulator += delta
@@ -642,7 +649,7 @@ func receive_time_sync_result(server_send_ms: float, measured_rtt_ms: float) -> 
 func submit_shot(packet: Dictionary) -> void:
 	if not multiplayer.is_server():
 		return
-	_server_process_shot(
+	_queue_server_shot(
 		multiplayer.get_remote_sender_id(),
 		packet
 	)
@@ -651,7 +658,9 @@ func submit_shot(packet: Dictionary) -> void:
 @rpc("any_peer", "call_remote", "reliable")
 func submit_reload() -> void:
 	if multiplayer.is_server():
-		_server_reload_weapon(multiplayer.get_remote_sender_id())
+		var peer_id := multiplayer.get_remote_sender_id()
+		if operators.has(peer_id):
+			pending_reload_requests[peer_id] = true
 
 
 @rpc("any_peer", "call_remote", "reliable")
@@ -662,7 +671,8 @@ func submit_objective_interaction(held: bool) -> void:
 
 @rpc("authority", "call_remote", "unreliable_ordered")
 func receive_world_state(snapshot_packet: Dictionary, score_snapshot: Dictionary) -> void:
-	scores = score_snapshot
+	if not score_snapshot.is_empty():
+		scores = score_snapshot
 	var entities: Dictionary = snapshot_packet.get("entities", snapshot_packet)
 	var timestamp_seconds := _server_timestamp_to_local_seconds(
 		float(snapshot_packet.get("timestamp_ms", Time.get_ticks_msec()))
@@ -761,6 +771,10 @@ func _server_spawn_operator(
 	server_composure[peer_id] = composure
 	_reset_ammo_for_peer(peer_id)
 	last_accepted_shot_sequence[peer_id] = -1
+	last_enqueued_shot_sequence[peer_id] = -1
+	pending_shot_packets[peer_id] = []
+	pending_reload_requests[peer_id] = false
+	last_rejected_shot_reason[peer_id] = ""
 	scores[peer_id] = 0
 
 
@@ -848,6 +862,10 @@ func _remove_operator(peer_id: int) -> void:
 	operators.erase(peer_id)
 	latest_commands.erase(peer_id)
 	last_accepted_shot_sequence.erase(peer_id)
+	last_enqueued_shot_sequence.erase(peer_id)
+	pending_shot_packets.erase(peer_id)
+	pending_reload_requests.erase(peer_id)
+	last_rejected_shot_reason.erase(peer_id)
 	last_command_tick.erase(peer_id)
 	operator_state_history.erase(peer_id)
 	peer_transport_one_way_ms.erase(peer_id)
@@ -1046,6 +1064,40 @@ func _try_submit_local_shot() -> void:
 		submit_shot.rpc_id(1, packet)
 
 
+func _queue_server_shot(peer_id: int, packet: Dictionary) -> bool:
+	if not multiplayer.is_server() or not operators.has(peer_id):
+		return false
+	if typeof(packet.get("sequence")) != TYPE_INT:
+		return false
+	var sequence := int(packet.sequence)
+	if sequence <= int(last_enqueued_shot_sequence.get(peer_id, -1)):
+		return false
+	var queue: Array = pending_shot_packets.get(peer_id, [])
+	if queue.size() >= MAX_QUEUED_SHOTS_PER_PEER:
+		return false
+	queue.append(packet.duplicate(true))
+	pending_shot_packets[peer_id] = queue
+	last_enqueued_shot_sequence[peer_id] = sequence
+	return true
+
+
+func _advance_pending_server_shots() -> void:
+	for raw_id in pending_shot_packets:
+		var peer_id := int(raw_id)
+		var queue: Array = pending_shot_packets[raw_id]
+		if queue.is_empty():
+			if bool(pending_reload_requests.get(peer_id, false)):
+				pending_reload_requests[peer_id] = false
+				_server_reload_weapon(peer_id)
+			continue
+		var ballistics = server_ballistics.get(peer_id)
+		if ballistics == null or float(ballistics.fire_cooldown) > 0.0:
+			continue
+		var packet: Dictionary = queue.pop_front()
+		pending_shot_packets[raw_id] = queue
+		_server_process_shot(peer_id, packet)
+
+
 func _server_process_shot(peer_id: int, packet: Dictionary) -> void:
 	var shooter := operators.get(peer_id) as SocomNetworkOperator
 	var ballistics = server_ballistics.get(peer_id)
@@ -1060,11 +1112,14 @@ func _server_process_shot(peer_id: int, packet: Dictionary) -> void:
 	var muzzle := muzzle_marker.global_position
 	var validation := ShotAuthority.validate_intent(
 		packet,
-		muzzle,
+		_authoritative_shot_report_anchor(shooter),
 		int(last_accepted_shot_sequence.get(peer_id, -1)),
 		-1
 	)
 	if not bool(validation.get("accepted", false)):
+		last_rejected_shot_reason[peer_id] = String(
+			validation.get("reason", "INVALID_AIM_INTENT")
+		)
 		return
 	last_accepted_shot_sequence[peer_id] = int(packet.get("sequence", 0))
 	var exclude: Array[RID] = [shooter.get_rid()]
@@ -1104,8 +1159,10 @@ func _server_process_shot(peer_id: int, packet: Dictionary) -> void:
 		dispersion_multiplier
 	)
 	if not bool(result.get("fired", false)):
+		last_rejected_shot_reason[peer_id] = String(result.get("reason", "CADENCE"))
 		_restore_transport_rewind(rewind_restore)
 		return
+	last_rejected_shot_reason[peer_id] = ""
 	server_magazine_ammo[peer_id] = maxi(
 		0,
 		int(server_magazine_ammo.get(peer_id, 0)) - 1
@@ -1163,6 +1220,16 @@ func _server_process_shot(peer_id: int, packet: Dictionary) -> void:
 	receive_shot_effect.rpc(peer_id, muzzle, Vector3(result.hit_pos), hit, damage_message)
 
 
+func _authoritative_shot_report_anchor(shooter: SocomNetworkOperator) -> Vector3:
+	var report_height := 1.35
+	var posture_name := shooter.get_posture_name()
+	if posture_name == &"CROUCHED":
+		report_height = 0.95
+	elif posture_name == &"PRONE":
+		report_height = 0.45
+	return shooter.global_position + Vector3.UP * report_height
+
+
 func _send_head_impact_feedback(
 	victim_peer_id: int,
 	damage: float,
@@ -1197,8 +1264,12 @@ func _advance_server_composure(delta: float) -> void:
 
 
 func _broadcast_authoritative_state() -> void:
-	var snapshot := {}
-	for raw_id in operators:
+	var timestamp_ms := Time.get_ticks_msec()
+	var tick := Engine.get_physics_frames()
+	var snapshot: Dictionary = {}
+	var peer_ids: Array = operators.keys()
+	peer_ids.sort()
+	for raw_id in peer_ids:
 		var operator := operators[raw_id] as SocomNetworkOperator
 		snapshot[raw_id] = {
 			"position": operator.global_position,
@@ -1208,12 +1279,20 @@ func _broadcast_authoritative_state() -> void:
 			"health": operator.current_health,
 			"alive": operator.alive,
 		}
-	var packet := {
-		"timestamp_ms": Time.get_ticks_msec(),
-		"tick": Engine.get_physics_frames(),
-		"entities": snapshot,
-	}
-	receive_world_state.rpc(packet, scores)
+	var chunks := NetworkProtocol.chunk_snapshot_entities(
+		snapshot,
+		SNAPSHOT_ENTITIES_PER_PACKET
+	)
+	var chunk_count := chunks.size()
+	for chunk_index in chunk_count:
+		var packet := {
+			"timestamp_ms": timestamp_ms,
+			"tick": tick,
+			"chunk_index": chunk_index,
+			"chunk_count": chunk_count,
+			"entities": chunks[chunk_index],
+		}
+		receive_world_state.rpc(packet, scores if chunk_index == 0 else {})
 
 
 func _on_operator_eliminated(victim_peer_id: int, attacker_peer_id: int) -> void:

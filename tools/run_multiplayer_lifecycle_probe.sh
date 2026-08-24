@@ -8,12 +8,17 @@ probe_port=$((24141 + ($$ % 1000)))
 peer_count="${SOCOM_PROBE_PEERS:-2}"
 cycle_count="${SOCOM_PROBE_CYCLES:-2}"
 lite_clients="${SOCOM_PROBE_LITE_CLIENTS:-0}"
+combat_shots="${SOCOM_PROBE_COMBAT_SHOTS:-0}"
 if (( peer_count < 2 || peer_count > 16 )); then
   print -u2 "FAIL: SOCOM_PROBE_PEERS must be between 2 and 16"
   exit 2
 fi
 if (( cycle_count < 1 || cycle_count > 20 )); then
   print -u2 "FAIL: SOCOM_PROBE_CYCLES must be between 1 and 20"
+  exit 2
+fi
+if (( combat_shots < 0 || combat_shots > 20 )); then
+  print -u2 "FAIL: SOCOM_PROBE_COMBAT_SHOTS must be between 0 and 20"
   exit 2
 fi
 host_log="$report_dir/host.log"
@@ -27,7 +32,7 @@ mkdir -p "$report_dir"
   --path "$project_dir" \
   --script res://tools/multiplayer_lifecycle_probe.gd -- \
   --role host --port "$probe_port" --expected-peers "$peer_count" \
-  --cycles "$cycle_count" >/dev/null 2>&1 &
+  --cycles "$cycle_count" --combat-shots "$combat_shots" >/dev/null 2>&1 &
 host_pid=$!
 client_pids=()
 
@@ -74,7 +79,8 @@ while (( client_index < peer_count )); do
     --path "$project_dir" \
     --script res://tools/multiplayer_lifecycle_probe.gd -- \
     --role client --port "$probe_port" --expected-peers "$peer_count" \
-		--client-index "$client_index" --cycles "$cycle_count" \
+    --client-index "$client_index" --cycles "$cycle_count" \
+    --combat-shots "$combat_shots" \
 		"${client_args[@]}" >/dev/null 2>&1 &
   client_pids+=("$!")
   (( client_index += 1 ))
@@ -112,6 +118,6 @@ if (( client_failed != 0 )); then
 fi
 
 metric_line="$(rg 'MULTIPLAYER_LIFECYCLE_METRIC' "$host_log" | tail -1)"
-print "MULTIPLAYER_LIFECYCLE_PROBE PASS peers=$peer_count cycles=$cycle_count lite_clients=$lite_clients"
+print "MULTIPLAYER_LIFECYCLE_PROBE PASS peers=$peer_count cycles=$cycle_count lite_clients=$lite_clients combat_shots=$combat_shots"
 print "$metric_line"
 print "Reports: $report_dir"

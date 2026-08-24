@@ -447,9 +447,15 @@ rollback plan, launch communications, and signed release decision.
    processes now complete repeated lobby, spawn, snapshot, match, teardown, and
    rematch cycles with 2, 4, 8, and the advertised 16 peers. Four full visual
    clients passed three cycles. The 16-peer host test uses lightweight network
-   bots so one workstation does not create 256 animation rigs. Long-duration,
-   reconnect, packet-loss, and simultaneous-fire soak remain open.
-7. Profile startup and a maximum-player firefight.
+   bots so one workstation does not create 256 animation rigs. All 16 peers also
+   completed two cycles of simultaneous fire and reload validation. Long-duration,
+   reconnect, packet-loss, controlled hit/damage, and adverse-network soak remain
+   open.
+7. ~~Profile startup and an initial maximum-player firefight.~~ The current local
+   debug baseline covers 16 peers firing five authoritative rounds each per cycle,
+   player-owned ammunition transfer, reload, and bounded server processing. Repeat
+   this on target hardware with effects, real remote clients, and sustained combat
+   before setting a shipping requirement.
 8. Build training, settings, complete remapping, and failure messages.
 9. Perform the asset/license audit and replace unapproved content.
 10. Produce the first reproducible closed-alpha build.
@@ -485,6 +491,25 @@ or replacement. A valid register is not the same as asset clearance.
   measured 15.685 ms mean / 20.915 ms p95 wall-frame intervals. This is a debug
   engineering measurement, not a published hardware requirement or firefight
   performance claim.
+
+## Network combat-load milestone — 2026-08-24
+
+- [x] Sixteen real ENet peers complete two match/rematch cycles while each peer
+  fires five rounds and reloads in every cycle: 160 server-authorized shots total.
+- [x] The server verifies every peer's player-owned total ammunition decrease and
+  subsequent magazine/reserve transfer instead of trusting client counters.
+- [x] Reliable shot requests are queued per player and drained at the authoritative
+  weapon cadence; duplicate sequences and queues beyond eight entries are rejected.
+- [x] Sixteen-entity world state is divided into four-entity packets. The regression
+  serializes representative packets and keeps them below 1,200 bytes, avoiding the
+  observed ENet MTU overflow.
+- [x] The warmed local listen-server sample used 174.65 MB and measured 16.312 ms
+  mean / 21.435 ms p95 wall-frame intervals during the two-cycle combat probe.
+
+This milestone validates transport, cadence, ammunition, reload, and lifecycle
+under simultaneous local load. Shots were intentionally directed into safe space,
+so hit registration, damage attribution, elimination, and respawn under load remain
+separate open gates.
 
 This is a technical baseline, not a commercial-release claim. Legal clearance,
 external playtesting, multiplayer soak, production content, accessibility,

@@ -112,14 +112,18 @@ static func validate_intent(
         return {"accepted": false, "reason": "INVALID_DIRECTION"}
     var reported_origin: Vector3 = payload.reported_muzzle_origin
     var direction: Vector3 = payload.direction
+    if not reported_origin.is_finite():
+        return {"accepted": false, "reason": "INVALID_MUZZLE_ORIGIN"}
     if (
-        not reported_origin.is_finite()
-        or not direction.is_finite()
+        not direction.is_finite()
         or direction.length_squared() < 0.99
         or direction.length_squared() > 1.01
-        or reported_origin.distance_to(authoritative_muzzle_origin) > 0.75
     ):
-        return {"accepted": false, "reason": "INVALID_AIM_INTENT"}
+        return {"accepted": false, "reason": "INVALID_DIRECTION"}
+    # Do not compare a client presentation anchor to the animated server muzzle.
+    # Prediction, reconciliation and animation phase can move those visuals
+    # independently. The server never traces from this reported point; it owns
+    # authoritative_muzzle_origin and uses it for all collision and damage.
 
     direction = direction.normalized()
     var yaw_basis := Basis(Vector3.UP, yaw)

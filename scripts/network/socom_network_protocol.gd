@@ -123,3 +123,22 @@ static func snapshot_packet_is_sane(packet: Dictionary) -> bool:
 	if timestamp != null and typeof(timestamp) not in [TYPE_FLOAT, TYPE_INT]:
 		return false
 	return true
+
+
+static func chunk_snapshot_entities(
+	entities: Dictionary,
+	maximum_entities_per_packet: int = 4
+) -> Array[Dictionary]:
+	var limit := maxi(1, maximum_entities_per_packet)
+	var peer_ids: Array = entities.keys()
+	peer_ids.sort()
+	var chunks: Array[Dictionary] = []
+	var current: Dictionary = {}
+	for raw_id in peer_ids:
+		current[raw_id] = entities[raw_id]
+		if current.size() >= limit:
+			chunks.append(current)
+			current = {}
+	if not current.is_empty():
+		chunks.append(current)
+	return chunks

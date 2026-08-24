@@ -55,6 +55,38 @@ func _run() -> void:
 		"direction": Vector3(0.0, 0.0, -7.0),
 	})
 	_assert(is_equal_approx(Vector3(sanitized.direction).length(), 1.0), "aim direction was not normalized")
+	var representative_entities: Dictionary = {}
+	var representative_scores: Dictionary = {}
+	for peer_id in range(1, 17):
+		representative_entities[peer_id] = {
+			"position": Vector3(float(peer_id), 0.05, -13.0),
+			"yaw": 0.0,
+			"velocity": Vector3.ZERO,
+			"posture": 0,
+			"health": 100.0,
+			"alive": true,
+		}
+		representative_scores[peer_id] = 0
+	var snapshot_chunks := Protocol.chunk_snapshot_entities(representative_entities, 4)
+	_assert(snapshot_chunks.size() == 4, "16-player state is split into four MTU-safe chunks")
+	var chunked_entity_count := 0
+	for chunk_index in snapshot_chunks.size():
+		var chunk: Dictionary = snapshot_chunks[chunk_index]
+		chunked_entity_count += chunk.size()
+		_assert(chunk.size() <= 4, "snapshot chunks never exceed the entity packet limit")
+		var representative_packet := {
+			"timestamp_ms": 1000,
+			"tick": 60,
+			"chunk_index": chunk_index,
+			"chunk_count": snapshot_chunks.size(),
+			"entities": chunk,
+		}
+		var encoded_payload := var_to_bytes([
+			representative_packet,
+			representative_scores if chunk_index == 0 else {},
+		])
+		_assert(encoded_payload.size() < 1200, "snapshot chunk keeps payload headroom below ENet MTU")
+	_assert(chunked_entity_count == 16, "snapshot chunking preserves every operator")
 
 	var slice := MultiplayerScene.instantiate()
 	root.add_child(slice)
@@ -62,6 +94,30 @@ func _run() -> void:
 	_assert(slice != null, "multiplayer scene did not instantiate")
 	_assert(slice.has_method("host_match"), "host entry point missing")
 	_assert(slice.has_method("join_match"), "join entry point missing")
+	var queued_operator = NetworkOperator.new()
+	queued_operator.visual_runtime_enabled = false
+	slice.add_child(queued_operator)
+	slice.operators[501] = queued_operator
+	slice.last_enqueued_shot_sequence[501] = -1
+	slice.pending_shot_packets[501] = []
+	_assert(
+		bool(slice.call("_queue_server_shot", 501, {"sequence": 1})),
+		"server accepts the first sequenced client shot into its cadence queue"
+	)
+	_assert(
+		not bool(slice.call("_queue_server_shot", 501, {"sequence": 1})),
+		"server shot queue rejects replayed sequences before simulation"
+	)
+	for sequence in range(2, 9):
+		slice.call("_queue_server_shot", 501, {"sequence": sequence})
+	_assert(
+		not bool(slice.call("_queue_server_shot", 501, {"sequence": 9})),
+		"server shot queue is bounded against packet floods"
+	)
+	slice.operators.erase(501)
+	slice.pending_shot_packets.erase(501)
+	slice.last_enqueued_shot_sequence.erase(501)
+	queued_operator.queue_free()
 	_assert(slice.spawn_points.size() == 16, "8v8 spawn contract missing")
 	_assert(slice.call("_spawn_for_team", 0, 0).z > 0.0, "team 0 spawn side is invalid")
 	_assert(slice.call("_spawn_for_team", 1, 0).z < 0.0, "team 1 spawn side is invalid")

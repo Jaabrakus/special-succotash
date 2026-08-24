@@ -16,4 +16,5 @@ fi
 SOCOM_PROBE_PEERS=16 \
 SOCOM_PROBE_CYCLES="$soak_cycles" \
 SOCOM_PROBE_LITE_CLIENTS=1 \
+SOCOM_PROBE_COMBAT_SHOTS="${SOCOM_SOAK_COMBAT_SHOTS:-5}" \
 exec "$project_dir/tools/run_multiplayer_lifecycle_probe.sh"
