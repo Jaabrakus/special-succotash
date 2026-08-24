@@ -1,6 +1,7 @@
 extends SceneTree
 
 const MultiplayerScene := preload("res://multiplayer_slice.tscn")
+const ControlledDamageProbe := preload("res://tools/multiplayer_controlled_damage_probe.gd")
 
 var role := ""
 var port := 24141
@@ -10,16 +11,7 @@ var cycle_count := 2
 var combat_shots_per_cycle := 0
 var controlled_hits := false
 var slice: Node
-
-const CONTROLLED_HIT_SHOTS := 3
-const CONTROLLED_HIT_HEIGHT := 30.0
-const CONTROLLED_HIT_LANE_SPACING := 3.0
-const CONTROLLED_HIT_SHOOTER_Z := 1.75
-const CONTROLLED_HIT_TARGET_Z := -1.75
-# Canonical standing torso center measured from the same animated hurtbox rig
-# used by server authority. Keeping the point inside the core makes this a
-# damage-routing test rather than a limb/pelvis classification lottery.
-const CONTROLLED_HIT_TARGET_HEIGHT := 1.48
+var controlled_damage_probe
 
 
 func _initialize() -> void:
@@ -50,6 +42,8 @@ func _run() -> void:
 	root.add_child(slice)
 	await process_frame
 	await process_frame
+	controlled_damage_probe = ControlledDamageProbe.new()
+	controlled_damage_probe.configure(self, slice, client_index)
 	if role == "host":
 		await _run_host()
 	else:
@@ -119,20 +113,24 @@ func _run_host() -> void:
 				return
 			print("MULTIPLAYER_LIFECYCLE HOST_COMBAT_RELOADED cycle=%d" % cycle)
 		if controlled_hits:
-			_prepare_controlled_hit_probe()
-			call_deferred("_fire_host_controlled_hits", cycle)
-			if not await _wait_until(_controlled_targets_eliminated, 8.0):
+			controlled_damage_probe.prepare_host()
+			controlled_damage_probe.call_deferred("fire_host", cycle)
+			if not await _wait_until(controlled_damage_probe.targets_eliminated, 8.0):
 				_fail(
 					"cycle %d did not complete controlled damage (%s)"
-					% [cycle, _controlled_hit_diagnostic()]
+					% [cycle, controlled_damage_probe.diagnostic()]
 				)
 				return
-			if not _controlled_shooters_survived():
+			if not controlled_damage_probe.shooters_survived():
 				_fail("cycle %d damaged a friendly controlled-hit shooter" % cycle)
 				return
 			print(
 				"MULTIPLAYER_LIFECYCLE HOST_CONTROLLED_HITS cycle=%d targets=%d shots_each=%d"
-				% [cycle, _team_peer_ids(1).size(), CONTROLLED_HIT_SHOTS]
+				% [
+					cycle,
+					controlled_damage_probe.target_count(),
+					controlled_damage_probe.SHOTS_PER_TARGET,
+				]
 			)
 		slice.call("_server_finish_round", (cycle - 1) % 2, "AUTOMATED CYCLE %d" % cycle)
 		if not await _wait_until(
@@ -188,7 +186,13 @@ func _run_client() -> void:
 		if combat_shots_per_cycle > 0:
 			await _fire_client_probe_shots(cycle, peer_id)
 		if controlled_hits:
-			await _run_client_controlled_hits(cycle, peer_id)
+			var controlled_result: Dictionary = await controlled_damage_probe.run_client(
+				cycle,
+				peer_id
+			)
+			if not bool(controlled_result.get("ok", false)):
+				_fail(String(controlled_result.get("reason", "controlled damage probe failed")))
+				return
 		if not await _wait_until(
 			func() -> bool:
 				return (
@@ -271,205 +275,6 @@ func _combat_probe_packet(sequence: int, reported_muzzle: Vector3) -> Dictionary
 		"reported_muzzle_origin": reported_muzzle,
 		"direction": direction,
 	}
-
-
-func _prepare_controlled_hit_probe() -> void:
-	var pair_count := mini(_team_peer_ids(0).size(), _team_peer_ids(1).size())
-	for team in [0, 1]:
-		var peer_ids := _team_peer_ids(team)
-		for index in peer_ids.size():
-			var operator = slice.operators.get(peer_ids[index])
-			if operator == null:
-				continue
-			operator.global_position = _controlled_lane_position(index, pair_count, team)
-			operator.rotation.y = 0.0
-			operator.velocity = Vector3.ZERO
-			operator.set_physics_process(false)
-			if operator.hurtbox_rig != null:
-				operator.hurtbox_rig.force_pose_update()
-	print(
-		"MULTIPLAYER_LIFECYCLE HOST_CONTROLLED_HITS_READY pairs=%d"
-		% pair_count
-	)
-
-
-func _run_client_controlled_hits(cycle: int, peer_id: int) -> void:
-	if not await _wait_until(
-		func() -> bool:
-			var operator = slice.operators.get(peer_id)
-			if (
-				operator == null
-				or operator.global_position.distance_to(_controlled_expected_position(peer_id)) > 0.15
-			):
-				return false
-			if operator.team_id != 0:
-				return true
-			var target = _paired_enemy(peer_id)
-			return (
-				target != null
-				and target.global_position.distance_to(
-					_controlled_expected_position(int(target.network_peer_id))
-				) <= 0.15
-			),
-		5.0
-	):
-		_fail("client %d never received the controlled-hit lane" % client_index)
-		return
-	var shooter = slice.operators.get(peer_id)
-	if shooter == null or shooter.team_id != 0:
-		return
-	var target = _paired_enemy(peer_id)
-	if target == null or shooter.mannequin == null:
-		_fail("client %d lacks its controlled-hit presentation path" % client_index)
-		return
-	# Leave more than the bounded rewind window after the teleport so the
-	# server history and every client snapshot agree on the controlled lane.
-	await create_timer(0.35).timeout
-	for shot_index in CONTROLLED_HIT_SHOTS:
-		var report_anchor := _controlled_expected_position(peer_id) + Vector3.UP * 1.35
-		var target_point := (
-			_controlled_expected_position(int(target.network_peer_id))
-			+ Vector3.UP * CONTROLLED_HIT_TARGET_HEIGHT
-		)
-		var packet := _directed_probe_packet(
-			cycle * 1000 + 100 + shot_index,
-			report_anchor,
-			report_anchor.direction_to(target_point),
-			report_anchor.distance_to(target_point)
-		)
-		slice.rpc_id(1, "submit_shot", packet)
-		await create_timer(0.50).timeout
-	print(
-		"MULTIPLAYER_LIFECYCLE CLIENT_CONTROLLED_HITS_SENT index=%d cycle=%d target=%d"
-		% [client_index, cycle, int(target.network_peer_id)]
-	)
-
-
-func _fire_host_controlled_hits(cycle: int) -> void:
-	await create_timer(0.35).timeout
-	var shooter = slice.operators.get(1)
-	var target = _paired_enemy(1)
-	if shooter == null or target == null or shooter.mannequin == null:
-		return
-	for shot_index in CONTROLLED_HIT_SHOTS:
-		var muzzle: Vector3 = shooter.mannequin.get_active_muzzle_position()
-		var target_point: Vector3 = target.global_position + Vector3.UP * CONTROLLED_HIT_TARGET_HEIGHT
-		var torso_area: Area3D = target.hurtbox_rig.get_region_area(&"TORSO") if target.hurtbox_rig != null else null
-		if torso_area != null:
-			target_point = torso_area.global_position
-		var report_anchor: Vector3 = shooter.global_position + Vector3.UP * 1.35
-		var packet := _directed_probe_packet(
-			cycle * 1000 + 100 + shot_index,
-			report_anchor,
-			report_anchor.direction_to(target_point),
-			report_anchor.distance_to(target_point)
-		)
-		print(
-			"MULTIPLAYER_LIFECYCLE HOST_CONTROLLED_SHOT index=%d muzzle=%s target=%s"
-			% [shot_index, muzzle, target_point]
-		)
-		slice.call("_server_process_shot", 1, packet)
-		print(
-			"MULTIPLAYER_LIFECYCLE HOST_CONTROLLED_RESULT index=%d hp=%.1f reject=%s"
-			% [
-				shot_index,
-				target.current_health,
-				String(slice.last_rejected_shot_reason.get(1, "")),
-			]
-		)
-		await create_timer(0.50).timeout
-
-
-func _directed_probe_packet(
-	sequence: int,
-	reported_muzzle: Vector3,
-	direction: Vector3,
-	convergence_distance: float
-) -> Dictionary:
-	var normalized := direction.normalized()
-	return {
-		"sequence": sequence,
-		"simulation_tick": Engine.get_physics_frames(),
-		"yaw": wrapf(atan2(-normalized.x, -normalized.z), -PI, PI),
-		"pitch": asin(clampf(normalized.y, -1.0, 1.0)),
-		"reported_muzzle_origin": reported_muzzle,
-		"direction": normalized,
-		"convergence_distance": convergence_distance,
-	}
-
-
-func _team_peer_ids(team: int) -> Array[int]:
-	var result: Array[int] = []
-	for raw_id in slice.operators:
-		var operator = slice.operators[raw_id]
-		if operator != null and int(operator.team_id) == team:
-			result.append(int(raw_id))
-	result.sort()
-	return result
-
-
-func _paired_enemy(shooter_peer_id: int):
-	var shooters := _team_peer_ids(0)
-	var targets := _team_peer_ids(1)
-	var pair_index := shooters.find(shooter_peer_id)
-	if pair_index < 0 or pair_index >= targets.size():
-		return null
-	return slice.operators.get(targets[pair_index])
-
-
-func _controlled_lane_position(index: int, pair_count: int, team: int) -> Vector3:
-	var centered_index := float(index) - float(maxi(0, pair_count - 1)) * 0.5
-	return Vector3(
-		centered_index * CONTROLLED_HIT_LANE_SPACING,
-		CONTROLLED_HIT_HEIGHT,
-		CONTROLLED_HIT_SHOOTER_Z if team == 0 else CONTROLLED_HIT_TARGET_Z
-	)
-
-
-func _controlled_expected_position(peer_id: int) -> Vector3:
-	var operator = slice.operators.get(peer_id)
-	if operator == null:
-		return Vector3.INF
-	var team := int(operator.team_id)
-	var team_ids := _team_peer_ids(team)
-	var pair_count := mini(_team_peer_ids(0).size(), _team_peer_ids(1).size())
-	var index := team_ids.find(peer_id)
-	return (
-		_controlled_lane_position(index, pair_count, team)
-		if index >= 0
-		else Vector3.INF
-	)
-
-
-func _controlled_targets_eliminated() -> bool:
-	var targets := _team_peer_ids(1)
-	if targets.is_empty():
-		return false
-	for peer_id in targets:
-		var target = slice.operators.get(peer_id)
-		if target == null or target.alive or target.current_health > 0.0:
-			return false
-	return true
-
-
-func _controlled_shooters_survived() -> bool:
-	for peer_id in _team_peer_ids(0):
-		var shooter = slice.operators.get(peer_id)
-		if shooter == null or not shooter.alive or shooter.current_health < shooter.max_health:
-			return false
-	return true
-
-
-func _controlled_hit_diagnostic() -> String:
-	var entries: Array[String] = []
-	for peer_id in _team_peer_ids(1):
-		var target = slice.operators.get(peer_id)
-		entries.append(
-			"%d:hp=%.1f alive=%s" % [peer_id, target.current_health, target.alive]
-			if target != null
-			else "%d:missing" % peer_id
-		)
-	return ", ".join(entries)
 
 
 func _all_probe_shots_consumed(starting_ammo: Dictionary) -> bool:
