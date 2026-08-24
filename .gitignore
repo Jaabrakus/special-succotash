@@ -21,3 +21,7 @@ private/
 private_assets/
 server_secrets/
 config/supabase.json
+
+# Local third-party compatibility experiment; never include in a customer or
+# source checkpoint unless commercial rights are documented first.
+counter-strike-urban/

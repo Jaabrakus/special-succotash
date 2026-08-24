@@ -55,9 +55,9 @@
           "z": -0.202089607715607
         },
         "left_hand_target": {
-          "x": -0.042856901884079,
-          "y": 0.12201988697052,
-          "z": 0.07
+          "x": -0.00334209203720093,
+          "y": 0.0764622688293457,
+          "z": 0.339702010154724
         },
         "posture": "STANDING",
         "right_elbow_pole": {
@@ -331,9 +331,9 @@
     "aim_idle": {
       "finger_curl": 1.0,
       "left_grip": {
-        "x": -0.042856901884079,
-        "y": 0.12201988697052,
-        "z": 0.07
+        "x": -0.00334209203720093,
+        "y": 0.0764622688293457,
+        "z": 0.339702010154724
       },
       "palm_pitch_deg": -24.35,
       "palm_roll_deg": 104.75,
@@ -448,7 +448,7 @@
     "damage": 34,
     "fire_rate_rpm": 435,
     "full_gait_spread_deg": 2.35,
-    "functional_aim_climb_enabled": true,
+    "functional_aim_climb_enabled": false,
     "headshot_multiplier": 3.5,
     "is_silenced": false,
     "magazine_capacity": 30,
@@ -542,6 +542,8 @@
     "rot_z": 79.0499801635742
   },
   "gun_placement_line": {
+    "direction_mode": "reticle_locked",
+    "runtime_enabled": false,
     "by_stance": {
       "CROUCHED": {
         "pitch_degrees": 0.0,
@@ -564,13 +566,13 @@
         "roll_degrees": 0.0
       },
       "STANDING": {
-        "pitch_degrees": 0.75,
+        "pitch_degrees": 0.0,
         "position_offset_meters": {
           "x": -0.162499964237213,
           "y": -0.0974999964237213,
           "z": 0.2200000035762787
         },
-        "yaw_degrees": -1.0,
+        "yaw_degrees": 0.0,
         "roll_degrees": 15.0
       }
     },
@@ -590,11 +592,16 @@
       "reload_standing": "reload"
     },
     "dynamic_hold": {
+      "animation_drives_ready_hands": true,
       "animation_carry_limit_m": 0.035,
       "animation_carry_weight": 0.65,
-      "hand_owned_aim_correction_limit_deg": 180.0,
+      "hand_owned_aim_correction_limit_deg": 32.0,
+      "ready_locomotion_inheritance": 0.0,
       "reload_return_blend_seconds": 0.18,
       "right_hand_owns_weapon": true
+    },
+    "ready_aim": {
+      "fire_hold_seconds": 1.2
     },
     "standing_fire_uses_aim_idle": true,
     "family": "TWO_HAND_RIFLE",

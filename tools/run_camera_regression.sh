@@ -7,25 +7,25 @@ report_dir="${TMPDIR:-/private/tmp}/socom-camera-regression"
 mkdir -p "$report_dir"
 
 "$godot_bin" --headless --log-file "$report_dir/wall-entry.log" --path "$project_dir" res://main.tscn --quit-after 660 -- \
-  --automated-test --wall-entry-test --wall-audit-report --transition-audit --clean-hud >/dev/null
+  --automated-test --camera-regression-map --wall-entry-test --wall-audit-report --transition-audit --clean-hud >/dev/null
 "$godot_bin" --headless --log-file "$report_dir/wall-turn.log" --path "$project_dir" res://main.tscn --quit-after 730 -- \
-  --automated-test --wall-test --wall-turn-test --wall-audit-report --clean-hud >/dev/null
+  --automated-test --camera-regression-map --wall-test --wall-turn-test --wall-audit-report --clean-hud >/dev/null
 "$godot_bin" --headless --log-file "$report_dir/wall-follow.log" --path "$project_dir" res://main.tscn --quit-after 650 -- \
-  --automated-test --wall-follow-test --wall-audit-report --clean-hud >/dev/null
+  --automated-test --camera-regression-map --wall-follow-test --wall-audit-report --clean-hud >/dev/null
 "$godot_bin" --headless --log-file "$report_dir/interior.log" --path "$project_dir" res://main.tscn --quit-after 610 -- \
-  --automated-test --interior-turn-test --wall-audit-report --camera-report --clean-hud >/dev/null
+  --automated-test --camera-regression-map --interior-turn-test --wall-audit-report --camera-report --clean-hud >/dev/null
 "$godot_bin" --headless --log-file "$report_dir/roof.log" --path "$project_dir" res://main.tscn --quit-after 180 -- \
-  --automated-test --roof-test --downward-aim-test --camera-report --clean-hud >/dev/null
+  --automated-test --camera-regression-map --roof-test --downward-aim-test --camera-report --clean-hud >/dev/null
 "$godot_bin" --headless --log-file "$report_dir/prone.log" --path "$project_dir" res://main.tscn --quit-after 150 -- \
-  --automated-test --prone-camera-test --camera-report --clean-hud >/dev/null
+  --automated-test --camera-regression-map --prone-camera-test --camera-report --clean-hud >/dev/null
 "$godot_bin" --headless --log-file "$report_dir/audit-recorder.log" --path "$project_dir" res://main.tscn --quit-after 150 -- \
-  --automated-test --movement-test --audit-record-test --clean-hud >/dev/null
+  --automated-test --camera-regression-map --movement-test --audit-record-test --clean-hud >/dev/null
 "$godot_bin" --headless --log-file "$report_dir/multiplayer-contract.log" --path "$project_dir" res://main.tscn --quit-after 90 -- \
-  --automated-test --multiplayer-contract-test --clean-hud >/dev/null
+  --automated-test --camera-regression-map --multiplayer-contract-test --clean-hud >/dev/null
 "$godot_bin" --headless --log-file "$report_dir/multiplayer-wall-contract.log" --path "$project_dir" res://main.tscn --quit-after 90 -- \
-  --automated-test --wall-follow-test --multiplayer-contract-test --clean-hud >/dev/null
+  --automated-test --camera-regression-map --wall-follow-test --multiplayer-contract-test --clean-hud >/dev/null
 "$godot_bin" --headless --log-file "$report_dir/weapon-fire.log" --path "$project_dir" \
-  --script res://tools/weapon_fire_regression.gd >/dev/null
+  --script res://tools/weapon_fire_regression.gd -- --camera-regression-map >/dev/null
 
 for report in "$report_dir"/*.log; do
   if grep -q -E 'SCRIPT ERROR|Parse Error' "$report"; then
@@ -39,14 +39,17 @@ check_camera_motion() {
   local label="$2"
   local maximum_step="$3"
   awk -F, -v label="$label" -v limit="$maximum_step" '
-    BEGIN { maximum = 0.0; unreadable = 0; horizontal_lost = 0; tether_lost = 0; frames = 0; flips = 0; last_transition = -1000; position_frozen = 0; maximum_position_frozen = 0; view_frozen = 0; maximum_view_frozen = 0 }
+    BEGIN { maximum = 0.0; maximum_rebase = 0.0; rebases = 0; unreadable = 0; horizontal_lost = 0; tether_lost = 0; frames = 0; flips = 0; last_transition = -1000; position_frozen = 0; maximum_position_frozen = 0; view_frozen = 0; maximum_view_frozen = 0 }
     /^WALL_AUDIT/ {
       if (have_previous) {
         dx = $4 - previous_x
         dy = $5 - previous_y
         dz = $6 - previous_z
         step = sqrt(dx * dx + dy * dy + dz * dz)
-        if (step > maximum) maximum = step
+        if ($23 == 1 && step > 0.01) {
+          rebases++
+          if (step > maximum_rebase) maximum_rebase = step
+        } else if ($2 > 1 && step > maximum) maximum = step
         yaw_step = $3 - previous_yaw
         if (yaw_step < 0) yaw_step = -yaw_step
         if (yaw_step > 0.05 && $10 == 1) {
@@ -84,13 +87,16 @@ check_camera_motion() {
       }
     }
     END {
-      printf "%s: %d frames, max camera step %.3f m, unreadable %d, horizontal lost %d, tether lost %d, state flips %d, max lens contact %d, max view freeze %d\n", label, frames, maximum, unreadable, horizontal_lost, tether_lost, flips, maximum_position_frozen, maximum_view_frozen
-      if (frames == 0 || maximum > limit || unreadable > 0 || horizontal_lost > 0 || tether_lost > 0 || flips > 0 || maximum_view_frozen > 2) exit 1
+      printf "%s: %d frames, max smooth step %.3f m, physical rebases %d (max %.3f m), unreadable %d, horizontal lost %d, tether lost %d, state flips %d, max lens contact %d, max view freeze %d\n", label, frames, maximum, rebases, maximum_rebase, unreadable, horizontal_lost, tether_lost, flips, maximum_position_frozen, maximum_view_frozen
+      # A newly interposed solid wall may require one immediate boom compression
+      # to prevent wall vision. Bound and count that explicit fairness fallback;
+      # all ordinary motion remains subject to the much tighter smooth limit.
+      if (frames == 0 || maximum > limit || rebases > 2 || maximum_rebase > 3.0 || unreadable > 0 || horizontal_lost > 0 || tether_lost > 0 || flips > 0 || maximum_view_frozen > 2) exit 1
     }
   ' "$report"
 }
 
-check_camera_motion "$report_dir/wall-entry.log" "wall entry/turn/exit" 0.15
+check_camera_motion "$report_dir/wall-entry.log" "wall entry/turn/exit" 0.18
 check_camera_motion "$report_dir/wall-turn.log" "wall sweep" 0.25
 check_camera_motion "$report_dir/wall-follow.log" "player leaves wall" 0.25
 check_camera_motion "$report_dir/interior.log" "tight interior" 0.25

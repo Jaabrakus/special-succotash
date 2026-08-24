@@ -5,6 +5,10 @@ extends SceneTree
 ## stance changes, camera ownership and the multiplayer-safe CharacterBody
 ## boundary are all present.
 
+const WeaponOwnershipContract := preload(
+	"res://scripts/player/weapon_ownership_contract.gd"
+)
+
 var failures: Array[String] = []
 
 
@@ -13,6 +17,7 @@ func _initialize() -> void:
 
 
 func _run() -> void:
+	_check_weapon_ownership_contract()
 	var packed := load("res://main.tscn") as PackedScene
 	_expect(packed != null, "main scene loads")
 	if packed == null:
@@ -31,12 +36,28 @@ func _run() -> void:
 		_finish()
 		return
 
+	# This regression audits the reticle-driven Ready Aim solver. Normal
+	# gameplay intentionally starts at relaxed rifle carry and enters Ready Aim
+	# after aim/fire intent, so make that presentation input explicit here.
+	driver.set("requested_weapon_ready_weight", 1.0)
+	driver.set("weapon_ready_weight", 1.0)
+	# The production mannequin intentionally supplies a zero manual-ready input;
+	# accepted fire owns the temporary Ready Aim hold. Keep that real semantic
+	# state active for the complete stance/locomotion audit.
+	driver.set("_fire_ready_hold_remaining", 10.0)
+	await _steps(3)
+
 	_check_pose("standing center", driver, rig)
 	var standing_center_pose: Dictionary = driver.call(
 		"get_animation_debug_state"
 	).get("weapon_pose", {})
-	var standing_center_origin: Vector3 = standing_center_pose.get(
-		"gun_placement_origin",
+	_expect(
+		StringName(standing_center_pose.get("weapon_owner", &"")) == &"READY_SOLVER"
+		and StringName(standing_center_pose.get("arm_owner", &"")) == &"WEAPON_SOCKETS",
+		"standing Aim Idle has one explicit weapon-and-socket owner"
+	)
+	var standing_center_weapon_position: Vector3 = standing_center_pose.get(
+		"weapon_world_position",
 		Vector3.ZERO
 	)
 	var standing_center_root_yaw := player.global_rotation.y
@@ -46,14 +67,14 @@ func _run() -> void:
 	var standing_turned_pose: Dictionary = driver.call(
 		"get_animation_debug_state"
 	).get("weapon_pose", {})
-	var standing_turned_origin: Vector3 = standing_turned_pose.get(
-		"gun_placement_origin",
+	var standing_turned_weapon_position: Vector3 = standing_turned_pose.get(
+		"weapon_world_position",
 		Vector3.ZERO
 	)
-	var standing_turn_travel := standing_center_origin.distance_to(
-		standing_turned_origin
+	var standing_turn_travel := standing_center_weapon_position.distance_to(
+		standing_turned_weapon_position
 	)
-	print("STANDING_TORSO_ANCHOR_METRIC root_turn=%.3f placement_travel=%.4f frame=%s" % [
+	print("STANDING_TORSO_ANCHOR_METRIC root_turn=%.3f weapon_travel=%.4f frame=%s" % [
 		rad_to_deg(angle_difference(standing_center_root_yaw, player.global_rotation.y)),
 		standing_turn_travel,
 		str(standing_turned_pose.get("gun_placement_frame_bone", &"")),
@@ -68,7 +89,123 @@ func _run() -> void:
 		"planted torso turn carries the rifle instead of leaving it world-pinned"
 	)
 
+	# A locomotion clip is allowed to move the rendered chest, but the saved
+	# Gunsmith line used to leave the rifle fixed in the player's root space.
+	# Sample one gait cycle and require a small, bounded visual carry instead of
+	# the stretched-arm/world-pinned result. Gameplay aim remains checked below.
+	rig.call("set_aim_angles", 0.0, 0.0, true)
+	await _steps(24)
+	var locomotion_start_position := player.global_position
+	var minimum_relative_weapon_y := INF
+	var maximum_relative_weapon_y := -INF
+	var maximum_locomotion_carry := 0.0
+	var maximum_vertical_weapon_carry := 0.0
+	var maximum_horizontal_weapon_carry := 0.0
+	var locomotion_solver_active_observed := false
+	var minimum_upper_ready_blend := INF
+	var observed_locomotion_clips: Dictionary = {}
+	var maximum_support_grip_rotation_error_deg := 0.0
+	var support_grip_locked_during_locomotion := true
+	Input.action_press(&"move_forward")
+	# Let the start/turn transition settle before measuring the repeating gait.
+	# Transition travel is validated separately above; this block audits bob.
+	await _steps(24)
+	var neutral_pose: Dictionary = driver.call(
+		"get_animation_debug_state"
+	).get("weapon_pose", {})
+	var neutral_weapon_local := player.to_local(
+		Vector3(neutral_pose.get("trigger_hand_position", Vector3.ZERO))
+	)
+	for _frame in range(72):
+		await physics_frame
+		# Character motion is authoritative in physics; the visual rifle follows in
+		# the subsequent presentation frame. Sample after both have completed.
+		await process_frame
+		var moving_snapshot: Dictionary = driver.call("get_animation_debug_state")
+		var moving_pose: Dictionary = moving_snapshot.get("weapon_pose", {})
+		if not bool(moving_snapshot.get("locomotion_active", false)):
+			continue
+		locomotion_solver_active_observed = (
+			locomotion_solver_active_observed
+			or bool(moving_pose.get("gun_placement_locomotion_active", false))
+		)
+		minimum_upper_ready_blend = minf(
+			minimum_upper_ready_blend,
+			float(moving_snapshot.get("upper_body_ready_blend", -1.0))
+		)
+		observed_locomotion_clips[String(moving_snapshot.get("logical_clip", ""))] = true
+		var moving_weapon_world: Vector3 = moving_pose.get(
+			"trigger_hand_position",
+			Vector3.ZERO
+		)
+		var moving_weapon_local := player.to_local(moving_weapon_world)
+		minimum_relative_weapon_y = minf(minimum_relative_weapon_y, moving_weapon_local.y)
+		maximum_relative_weapon_y = maxf(maximum_relative_weapon_y, moving_weapon_local.y)
+		var locomotion_carry := moving_weapon_local - neutral_weapon_local
+		maximum_locomotion_carry = maxf(
+			maximum_locomotion_carry,
+			locomotion_carry.length()
+		)
+		maximum_vertical_weapon_carry = maxf(
+			maximum_vertical_weapon_carry,
+			absf(locomotion_carry.y)
+		)
+		maximum_horizontal_weapon_carry = maxf(
+			maximum_horizontal_weapon_carry,
+			Vector2(locomotion_carry.x, locomotion_carry.z).length()
+		)
+		maximum_support_grip_rotation_error_deg = maxf(
+			maximum_support_grip_rotation_error_deg,
+			float(moving_pose.get("support_hand_grip_rotation_error_deg", 180.0))
+		)
+		support_grip_locked_during_locomotion = (
+			support_grip_locked_during_locomotion
+			and bool(moving_pose.get("support_hand_grip_locked", false))
+		)
+	Input.action_release(&"move_forward")
+	player.global_position = locomotion_start_position
+	player.velocity = Vector3.ZERO
+	rig.call("set_aim_angles", deg_to_rad(28.0), deg_to_rad(-12.0), true)
+	await _steps(24)
+	var locomotion_weapon_travel := maximum_relative_weapon_y - minimum_relative_weapon_y
+	print("STANDING_LOCOMOTION_WEAPON_CARRY_METRIC weapon_y_travel=%.4f max_carry=%.4f vertical=%.4f horizontal=%.4f solver_active=%s upper_ready=%.3f clips=%s" % [
+		locomotion_weapon_travel,
+		maximum_locomotion_carry,
+		maximum_vertical_weapon_carry,
+		maximum_horizontal_weapon_carry,
+		str(locomotion_solver_active_observed),
+		minimum_upper_ready_blend,
+		str(observed_locomotion_clips.keys()),
+	])
+	_expect(
+		locomotion_weapon_travel >= 0.003,
+		"standing locomotion carries the rifle with the animated chest"
+	)
+	_expect(
+		maximum_locomotion_carry >= 0.001,
+		"standing locomotion produces measurable shoulder-driven rifle travel"
+	)
+	_expect(
+		maximum_locomotion_carry <= 0.07,
+		"standing locomotion rifle carry remains visually bounded"
+	)
+	_expect(
+		maximum_vertical_weapon_carry >= 0.001
+		and maximum_vertical_weapon_carry <= 0.040,
+		"standing rifle restores bounded, slow-smoothed authored vertical bob"
+	)
+	_expect(
+		maximum_horizontal_weapon_carry <= 0.030,
+		"standing rifle bob does not become broad lateral sway"
+	)
+	_expect(
+		support_grip_locked_during_locomotion
+		and maximum_support_grip_rotation_error_deg <= 0.5,
+		"standing support hand stays locked to the rifle grip during locomotion"
+	)
 	await _tap(&"crouch")
+	driver.set("requested_weapon_ready_weight", 1.0)
+	driver.set("weapon_ready_weight", 1.0)
 	await _steps(30)
 	_check_pose("crouched lateral/down", driver, rig)
 
@@ -77,6 +214,8 @@ func _run() -> void:
 		StringName(player.call("get_posture_name")) == &"PRONE",
 		"hold-to-stance enters the real prone posture"
 	)
+	driver.set("requested_weapon_ready_weight", 1.0)
+	driver.set("weapon_ready_weight", 1.0)
 	await _steps(45)
 	_check_pose("prone lateral/down", driver, rig)
 
@@ -126,8 +265,149 @@ func _run() -> void:
 		var airborne_pose: Dictionary = solver.call("get_debug_state")
 		_expect(
 			bool(airborne_pose.get("active", false))
-			and not bool(airborne_pose.get("action_weapon_follow_active", true)),
+			and not bool(airborne_pose.get("action_weapon_follow_active", true))
+			and StringName(airborne_pose.get("weapon_owner", &"")) == &"READY_SOLVER",
 			"jump keeps the reticle/Gunsmith weapon solver in control"
+		)
+		for _frame in range(8):
+			solver.call(
+				"apply",
+				0.0,
+				float(rig.get("aim_pitch")),
+				&"STANDING",
+				&"DIVING",
+				1.0,
+				0.0,
+				&"",
+				false,
+				before_target,
+				player,
+				1.0 / 60.0
+			)
+		var dive_follow_pose: Dictionary = solver.call("get_debug_state")
+		_expect(
+			not bool(dive_follow_pose.get("active", true))
+			and bool(dive_follow_pose.get("action_weapon_follow_active", false))
+			and bool(dive_follow_pose.get("action_weapon_chest_owned", false))
+			and StringName(dive_follow_pose.get("weapon_owner", &""))
+			== &"MOBILITY_RIGHT_HAND"
+			and StringName(dive_follow_pose.get("arm_owner", &"")) == &"ACTION_CLIP"
+			and StringName(dive_follow_pose.get("support_hand_mode", &""))
+			== &"ANIMATION_FREE"
+			and not bool(dive_follow_pose.get("support_hand_grip_locked", true))
+			and float(dive_follow_pose.get("action_trigger_contact_error_m", 1.0))
+			<= 0.001
+			and float(dive_follow_pose.get("action_weapon_swing_deg", 180.0)) <= 95.0,
+			"dive keeps authored arms while the right palm carries bounded-yaw/pitch rifle"
+		)
+		for _frame in range(24):
+			solver.call(
+				"apply",
+				0.0,
+				float(rig.get("aim_pitch")),
+				&"STANDING",
+				&"LOCOMOTION",
+				1.0,
+				0.0,
+				&"",
+				false,
+				before_target,
+				player,
+				1.0 / 60.0
+			)
+		var dive_recovered_pose: Dictionary = solver.call("get_debug_state")
+		print("DIVE_RECOVERY_METRIC owner=%s line_error=%.4f solver_owned=%s parent_mount=%s" % [
+			str(dive_recovered_pose.get("weapon_owner", &"")),
+			float(dive_recovered_pose.get("gun_placement_error_m", 0.0)),
+			str(dive_recovered_pose.get("weapon_solver_owned", false)),
+			str(dive_recovered_pose.get("weapon_parent_is_animation_mount", false)),
+		])
+		_expect(
+			not bool(dive_recovered_pose.get("action_weapon_follow_active", true))
+			and float(dive_recovered_pose.get("gun_placement_error_m", 1.0)) <= 0.001
+			and StringName(dive_recovered_pose.get("weapon_owner", &"")) == &"READY_SOLVER",
+			"dive recovery returns to the exact saved Gunsmith placement"
+		)
+		var clear_render_direction: Vector3 = dive_recovered_pose.get(
+			"last_unobstructed_render_direction",
+			Vector3.FORWARD
+		)
+		var solver_muzzle := solver.get("muzzle_socket") as Node3D
+		var pathological_wall_target := (
+			solver_muzzle.global_position - clear_render_direction * 0.25
+			if solver_muzzle != null
+			else player.global_position - clear_render_direction * 0.25
+		)
+		# Let the bounded low-ready transition start, then measure only successive
+		# obstructed frames. The clear-to-blocked pose change is intentional; a
+		# near-180-degree reversal between blocked frames is the regression.
+		solver.call(
+			"apply",
+			0.0,
+			float(rig.get("aim_pitch")),
+			&"STANDING",
+			&"LOCOMOTION",
+			1.0,
+			1.0,
+			&"",
+			false,
+			pathological_wall_target,
+			player,
+			1.0 / 60.0
+		)
+		var first_wall_pose: Dictionary = solver.call("get_debug_state")
+		var previous_blocked_direction: Vector3 = first_wall_pose.get(
+			"gun_placement_direction",
+			clear_render_direction
+		)
+		var maximum_blocked_direction_step_deg := 0.0
+		for _frame in range(24):
+			solver.call(
+				"apply",
+				0.0,
+				float(rig.get("aim_pitch")),
+				&"STANDING",
+				&"LOCOMOTION",
+				1.0,
+				1.0,
+				&"",
+				false,
+				pathological_wall_target,
+				player,
+				1.0 / 60.0
+			)
+			var wall_pose: Dictionary = solver.call("get_debug_state")
+			var blocked_direction: Vector3 = wall_pose.get(
+				"gun_placement_direction",
+				previous_blocked_direction
+			)
+			if (
+				blocked_direction.length_squared() > 0.50
+				and previous_blocked_direction.length_squared() > 0.50
+			):
+				maximum_blocked_direction_step_deg = maxf(
+					maximum_blocked_direction_step_deg,
+					rad_to_deg(previous_blocked_direction.angle_to(blocked_direction))
+				)
+			previous_blocked_direction = blocked_direction
+		var wall_hold_pose: Dictionary = solver.call("get_debug_state")
+		print("WALL_HOLD_METRIC owner=%s weight=%.3f ready=%.3f line_active=%s" % [
+			str(wall_hold_pose.get("weapon_owner", &"")),
+			float(wall_hold_pose.get("weight", 0.0)),
+			float(wall_hold_pose.get("desired_weight", 0.0)),
+			str(wall_hold_pose.get("gun_placement_line_active", false)),
+		])
+		_expect(
+			bool(wall_hold_pose.get("obstruction_direction_hold_active", false)),
+			"close wall freezes the last valid visual aim direction"
+		)
+		_expect(
+			StringName(wall_hold_pose.get("weapon_owner", &"")) == &"READY_SOLVER",
+			"close-wall low ready keeps the ready solver as the only weapon owner"
+		)
+		_expect(
+			maximum_blocked_direction_step_deg <= 6.0,
+			"close-wall rifle direction cannot flip or spin chaotically"
 		)
 		for _frame in range(24):
 			solver.call(
@@ -197,16 +477,55 @@ func _run() -> void:
 	_finish()
 
 
+func _check_weapon_ownership_contract() -> void:
+	_expect(
+		WeaponOwnershipContract.resolve(&"STANDING", &"", 1.0, false)
+		== WeaponOwnershipContract.READY_SOLVER,
+		"ownership contract gives Aim Idle to the ready solver"
+	)
+	_expect(
+		WeaponOwnershipContract.resolve(&"DIVING", &"reload_standing", 1.0, false)
+		== WeaponOwnershipContract.RELOAD_RIGHT_HAND,
+		"reload right hand has deterministic priority over movement state"
+	)
+	_expect(
+		WeaponOwnershipContract.resolve(&"STANDING", &"grenade_throw", 1.0, false)
+		== WeaponOwnershipContract.GRENADE_ACTION,
+		"grenade take owns its arms without inheriting rifle IK"
+	)
+	_expect(
+		WeaponOwnershipContract.resolve(&"ROLLING", &"", 1.0, false)
+		== WeaponOwnershipContract.MOBILITY_RIGHT_HAND,
+		"dive and roll give the authored take one bounded rifle owner"
+	)
+	_expect(
+		WeaponOwnershipContract.resolve(&"STANDING", &"", 1.0, true)
+		== WeaponOwnershipContract.RECOVERY_TO_READY,
+		"action exit enters recovery before Aim Idle retakes ownership"
+	)
+	_expect(
+		WeaponOwnershipContract.support_hand_owner(
+			WeaponOwnershipContract.MOBILITY_RIGHT_HAND,
+			false
+		) == WeaponOwnershipContract.SUPPORT_ANIMATION_FREE,
+		"mobility releases support-hand IK until recovery"
+	)
+
+
 func _check_pose(label: String, driver: Node, rig: Node) -> void:
 	var snapshot: Dictionary = driver.call("get_animation_debug_state")
 	var pose: Dictionary = snapshot.get("weapon_pose", {})
 	if label.begins_with("standing"):
-		print("STANDING_GUN_PLACEMENT_METRIC label=%s right_angle=%.2f left_angle=%.2f trigger_error=%.4f support_error=%.4f line_error=%.4f trigger=(%s) trigger_target=(%s) support=(%s) support_target=(%s)" % [
+		print("STANDING_GUN_PLACEMENT_METRIC label=%s right_angle=%.2f left_angle=%.2f trigger_error=%.4f support_error=%.4f aim_error=%.2f hip_roll=%.2f hip_input=%.2f hip_trim=%.2f line_error=%.4f trigger=(%s) trigger_target=(%s) support=(%s) support_target=(%s)" % [
 			label,
 			float(pose.get("right_elbow_angle_deg", 0.0)),
 			float(pose.get("left_elbow_angle_deg", 0.0)),
 			float(pose.get("trigger_hand_error_m", 0.0)),
 			float(pose.get("support_hand_error_m", 0.0)),
+			float(pose.get("weapon_aim_error_deg", 0.0)),
+			float(snapshot.get("default_hip_roll_output_deg", 0.0)),
+			float(snapshot.get("default_hip_roll_input_deg", 0.0)),
+			float(snapshot.get("default_hip_roll_trim_deg", 0.0)),
 			float(pose.get("gun_placement_error_m", 0.0)),
 			str(pose.get("trigger_hand_position", Vector3.ZERO)),
 			str(pose.get("trigger_hand_target", Vector3.ZERO)),
@@ -360,6 +679,8 @@ func _check_crouched_reload_anatomy(driver: Node) -> void:
 	var maximum_right_elbow := 0.0
 	var maximum_left_elbow := 0.0
 	var maximum_trigger_contact_error := 0.0
+	var reload_owner_was_stable := true
+	var reload_support_released_before_regrip := false
 	var sampled_frames := 0
 	for _frame in range(210):
 		await physics_frame
@@ -382,6 +703,15 @@ func _check_crouched_reload_anatomy(driver: Node) -> void:
 			maximum_trigger_contact_error,
 			float(pose.get("action_trigger_contact_error_m", 1.0))
 		)
+		reload_owner_was_stable = (
+			reload_owner_was_stable
+			and StringName(pose.get("weapon_owner", &"")) == &"RELOAD_RIGHT_HAND"
+			and StringName(pose.get("arm_owner", &"")) == &"ACTION_CLIP"
+		)
+		reload_support_released_before_regrip = (
+			reload_support_released_before_regrip
+			or StringName(pose.get("support_hand_mode", &"")) == &"ANIMATION_FREE"
+		)
 		sampled_frames += 1
 	print("CROUCHED_RELOAD_ANATOMY_METRIC samples=%d right_max=%.2f left_max=%.2f trigger_contact_max=%.4f" % [
 		sampled_frames,
@@ -400,6 +730,10 @@ func _check_crouched_reload_anatomy(driver: Node) -> void:
 	_expect(
 		maximum_trigger_contact_error <= 0.003,
 		"crouched reload keeps the rifle trigger attached to the right palm"
+	)
+	_expect(
+		reload_owner_was_stable and reload_support_released_before_regrip,
+		"reload has one right-hand owner and releases support-hand IK during the take"
 	)
 
 

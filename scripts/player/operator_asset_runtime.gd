@@ -12,6 +12,8 @@ const ROOT_SANITIZER := preload("res://scripts/player/operator_animation_root_sa
 const ANIMATION_LAYER_COMPOSER := preload("res://scripts/labs/animation_layer_composer.gd")
 const WEAPON_CONTRACT := preload("res://scripts/weapons/weapon_rig_contract.gd")
 const BACKPACK_VISUAL := preload("res://scripts/player/operator_backpack_visual.gd")
+const ANIMATION_CACHE := preload("res://scripts/player/operator_animation_library_cache.gd")
+const SKELETON_CONTRACT := preload("res://scripts/player/operator_skeleton_contract.gd")
 const WEAPON_LOADOUT_PATH := "res://config/weapons/operator_loadout.json"
 const OPERATOR_GEAR_PATH := "res://config/operator_gear.json"
 
@@ -90,6 +92,25 @@ func get_runtime() -> Dictionary:
 	}
 
 
+func equip_weapon(config: Dictionary) -> Node3D:
+	# Gameplay authority validates the pickup before calling this visual handoff.
+	# Build the replacement first so a bad asset can never remove the live rifle.
+	if weapon_attachment == null or config.is_empty():
+		return null
+	var previous_weapon := weapon_node
+	if not _attach_calibrated_weapon(config):
+		weapon_node = previous_weapon
+		return null
+	if previous_weapon != null and previous_weapon != weapon_node:
+		previous_weapon.free()
+	if reload_magazine_attachment != null:
+		reload_magazine_attachment.free()
+		reload_magazine_attachment = null
+		reload_magazine_visual = null
+	_attach_reload_magazine_visual()
+	return weapon_node
+
+
 func set_operator_scale(new_scale: float) -> void:
 	operator_scale = new_scale
 	if model_root != null:
@@ -107,22 +128,7 @@ func get_source_animation_name(clip_name: StringName) -> StringName:
 
 
 func _ensure_65_bone_contract() -> void:
-	for side in ["Left", "Right"]:
-		var hand_index := skeleton.find_bone("mixamorig_%sHand" % side)
-		if hand_index < 0:
-			continue
-		for finger in ["Middle", "Ring", "Pinky"]:
-			var parent_index := hand_index
-			for segment in range(1, 5):
-				var bone_name := "mixamorig_%sHand%s%d" % [side, finger, segment]
-				var bone_index := skeleton.find_bone(bone_name)
-				if bone_index < 0:
-					bone_index = skeleton.add_bone(bone_name)
-					var reference := skeleton.find_bone("mixamorig_%sHandIndex%d" % [side, segment])
-					if reference >= 0:
-						skeleton.set_bone_rest(bone_index, skeleton.get_bone_rest(reference))
-				skeleton.set_bone_parent(bone_index, parent_index)
-				parent_index = bone_index
+	SKELETON_CONTRACT.ensure_65_bones(skeleton)
 
 
 func _apply_texture(node: Node) -> void:
@@ -598,6 +604,15 @@ func _apply_material_recursive(node: Node, material: Material) -> void:
 
 
 func _build_animation_library() -> void:
+	var cache = ANIMATION_CACHE.new()
+	var cached: Dictionary = cache.adopt(profile, animation_player)
+	if not cached.is_empty():
+		animation_library = cached["library"] as AnimationLibrary
+		available_clips = (cached["available_clips"] as Dictionary).duplicate(true)
+		source_animation_names = (
+			(cached["source_animation_names"] as Dictionary).duplicate(true)
+		)
+		return
 	animation_library = AnimationLibrary.new()
 	available_clips.clear()
 	source_animation_names.clear()
@@ -637,6 +652,7 @@ func _build_animation_library() -> void:
 	_apply_crouch_grenade_composite()
 	_apply_clip_pose_yaw_offsets()
 	animation_player.add_animation_library("", animation_library)
+	cache.store(profile, animation_library, source_animation_names)
 
 
 func _anchor_full_body_grenade_toss() -> void:

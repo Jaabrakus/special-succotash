@@ -24,7 +24,7 @@
     "strafe_burst_decay_seconds": 0.12,
     "strafe_chain_window_seconds": 0.7,
     "strafe_speed": 6.5,
-    "torso_to_legs_degrees": 48.0
+    "torso_to_legs_degrees": 0.5
   },
   "studio_open_on_start": false,
   "version": 1.0

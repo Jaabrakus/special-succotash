@@ -48,6 +48,7 @@ var attachment_sockets: Dictionary = {}
 var proxy_visuals: Array[GeometryInstance3D] = []
 var proxy_visuals_visible: bool = true
 var production_animation: SocomOperatorAnimationDriver
+var legacy_procedural_updates_enabled: bool = true
 
 var gait_time: float = 0.0
 var gait_strength: float = 0.0
@@ -141,6 +142,9 @@ func set_bomb_backpack_visible(enabled: bool) -> void:
 func notify_operator_fired() -> bool:
     return production_animation != null and production_animation.notify_fired()
 
+func notify_operator_weapon_equipped(config: Dictionary) -> bool:
+    return production_animation != null and production_animation.notify_weapon_equipped(config)
+
 func get_active_weapon_socket(socket_name: StringName) -> Marker3D:
     # The rendered production weapon owns gameplay weapon-space. The old
     # procedural mannequin remains a safe fallback while an asset is loading.
@@ -197,13 +201,18 @@ func get_operator_animation_clips() -> Array[StringName]:
         return []
     return production_animation.get_clip_names()
 
+func set_legacy_procedural_updates_enabled(enabled: bool) -> void:
+    legacy_procedural_updates_enabled = enabled
+
 func _process(delta: float) -> void:
     var player := get_parent() as CharacterBody3D
     if player == null:
         return
 
-    _animate_locomotion(player, delta)
     _sync_production_animation(player)
+    if not legacy_procedural_updates_enabled:
+        return
+    _animate_locomotion(player, delta)
     var motion_state: StringName = (
         StringName(player.call("get_motion_state_name"))
         if player.has_method("get_motion_state_name")
@@ -519,7 +528,7 @@ func _sync_production_animation(player: CharacterBody3D) -> void:
         posture_name,
         relative_yaw,
         shared_angles.y,
-        1.0,
+        0.0,
         false,
         weapon_obstruction_amount,
         normalized_speed,

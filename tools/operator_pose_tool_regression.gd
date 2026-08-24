@@ -77,6 +77,7 @@ func _run() -> void:
     skeleton.set_bone_pose(0, initial_pose)
     lab.skeleton = skeleton
     lab.is_playing = false
+    lab.active_editor_page = "Pose"
 
     lab.call("_capture_bone_edit_base", "TestBone")
     lab.bone_rot_offsets["TestBone"] = Vector3(12.0, -18.0, 4.0)
@@ -101,6 +102,11 @@ func _run() -> void:
     _expect(
         final_pose.basis.is_equal_approx(expected_basis),
         "rotate mode applies the requested local rotation once"
+    )
+    lab.call("_clear_bone_rot_offsets")
+    _expect(
+        skeleton.get_bone_pose(0).is_equal_approx(initial_pose),
+        "reset restores the sampled animation pose"
     )
     _expect(
         lab.rotation_degrees_per_pixel <= 0.20,
@@ -256,12 +262,6 @@ func _run() -> void:
     _expect(
         _find_button_with_text(lab, "+ Add Whole Clip") != null,
         "assembly dock provides a no-drag fallback for the selected clip"
-    )
-
-    lab.call("_clear_bone_rot_offsets")
-    _expect(
-        skeleton.get_bone_pose(0).is_equal_approx(initial_pose),
-        "reset restores the sampled animation pose"
     )
 
     skeleton.free()

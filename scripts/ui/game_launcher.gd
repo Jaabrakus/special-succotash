@@ -6,6 +6,7 @@ const TRAINING_RANGE_SCENE := "res://main.tscn"
 const MapDocument := preload("res://scripts/maps/socom_map_document.gd")
 const KeyboardProfile := preload("res://scripts/input/socom_keyboard_mapping_profile.gd")
 const ControlsGuideScript := preload("res://scripts/ui/socom_controls_guide.gd")
+const PlayableResourceWarmup := preload("res://scripts/runtime/playable_resource_warmup.gd")
 
 var address_edit: LineEdit
 var map_selector: OptionButton
@@ -14,6 +15,7 @@ var status_label: Label
 var identity_label: Label
 var controls_guide: SocomControlsGuide
 var restricted_web_build := false
+var play_open_in_progress := false
 
 
 func _ready() -> void:
@@ -72,7 +74,7 @@ func _build_ui() -> void:
 	join_button.call_deferred("grab_focus")
 	address_edit = LineEdit.new()
 	address_edit.name = "JoinGameAddress"
-	address_edit.placeholder_text = "Room code or server address"
+	address_edit.placeholder_text = "Invite code or server address"
 	address_edit.text = "" if restricted_web_build else "127.0.0.1"
 	address_edit.custom_minimum_size.y = 42.0
 	column.add_child(address_edit)
@@ -82,6 +84,7 @@ func _build_ui() -> void:
 	map_selector.name = "HostMapSelector"
 	map_selector.custom_minimum_size.y = 42.0
 	map_selector.tooltip_text = "Choose which saved map this match will use."
+	map_selector.item_selected.connect(_on_map_selected)
 	column.add_child(map_selector)
 
 	_add_primary_action(column, "MAP EDITOR", _open_map_editor)
@@ -155,6 +158,8 @@ func _open_map_editor() -> void:
 
 
 func _open_training_range() -> void:
+	if not _select_host_map():
+		return
 	ProjectSettings.set_setting("socom/session/public_training", true)
 	_collect_and_open(TRAINING_RANGE_SCENE)
 
@@ -164,11 +169,30 @@ func _refresh_map_selector() -> void:
 		return
 	map_entries = MapDocument.list_library_maps()
 	map_selector.clear()
+	var active_map_id := String(MapDocument.load_active().get("map_id", ""))
+	var active_index := -1
 	for entry: Dictionary in map_entries:
 		map_selector.add_item(String(entry.get("name", "Untitled Tactical Map")))
+		if String(entry.get("map_id", "")) == active_map_id:
+			active_index = map_selector.item_count - 1
 	map_selector.disabled = map_entries.is_empty()
 	if map_entries.is_empty():
 		map_selector.add_item("Create a map in Map Editor first")
+	elif active_index >= 0:
+		map_selector.select(active_index)
+
+
+func _on_map_selected(index: int) -> void:
+	if index < 0 or index >= map_entries.size():
+		return
+	var entry: Dictionary = map_entries[index]
+	var selected := MapDocument.select_library_map(String(entry.get("map_id", "")))
+	if selected.is_empty():
+		status_label.text = "That map could not be selected. Return to Map Editor and save it again."
+		return
+	status_label.text = "%s selected for Training Range and Host Game." % String(
+		selected.get("name", "Saved map")
+	)
 
 
 func _select_host_map() -> bool:
@@ -197,7 +221,7 @@ func _host_match() -> void:
 func _join_match() -> void:
 	var address := address_edit.text.strip_edges()
 	if address.is_empty():
-		status_label.text = "Enter a room code or server address."
+		status_label.text = "Enter an invite code or server address."
 		return
 	if restricted_web_build:
 		status_label.text = "Browser match service is not connected yet."
@@ -208,6 +232,8 @@ func _join_match() -> void:
 
 
 func _collect_and_open(scene_path: String) -> void:
+	if play_open_in_progress:
+		return
 	var collector := get_node_or_null("/root/PlaytestStateCollector")
 	if collector == null:
 		status_label.text = "Play blocked: saved-state collector is unavailable."
@@ -217,4 +243,18 @@ func _collect_and_open(scene_path: String) -> void:
 	if not bool(result.get("ok", false)):
 		status_label.text = "Play blocked: %s" % " | ".join(result.get("errors", []))
 		return
+	play_open_in_progress = true
+	await PlayableResourceWarmup.warm_for_play(
+		get_tree(),
+		scene_path,
+		MapDocument.load_active(),
+		_update_playable_warmup_progress
+	)
+	if not is_inside_tree():
+		return
 	get_tree().change_scene_to_file(scene_path)
+
+
+func _update_playable_warmup_progress(progress: float) -> void:
+	if status_label != null:
+		status_label.text = "Preparing playable build… %d%%" % int(round(progress * 100.0))

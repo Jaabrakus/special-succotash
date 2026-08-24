@@ -5,6 +5,7 @@ const HurtboxProfile := preload("res://scripts/combat/socom_hurtbox_profile.gd")
 const ProceduralPoseProfile := preload("res://scripts/player/operator_procedural_pose_profile.gd")
 const AnimationProfile := preload("res://scripts/player/operator_animation_profile.gd")
 const AnimationAudioProfile := preload("res://scripts/audio/audio_animation_event_profile.gd")
+const MapDocument := preload("res://scripts/maps/socom_map_document.gd")
 
 const REQUIRED_STATES := [
 	"operator_loadout",
@@ -16,6 +17,7 @@ const REQUIRED_STATES := [
 	"hurtboxes",
 	"animation_audio",
 	"surface_audio",
+	"map",
 ]
 
 var failures: Array[String] = []
@@ -31,6 +33,13 @@ func _run() -> void:
 	if collector == null:
 		_finish()
 		return
+	var selected_map := MapDocument.load_path("res://config/maps/current_map.json")
+	selected_map["map_id"] = "map_playtest_selected_regression"
+	selected_map["name"] = "Selected Map Regression"
+	ProjectSettings.set_setting(
+		"socom/session/selected_map_document",
+		selected_map.duplicate(true)
+	)
 	var result: Dictionary = collector.call("collect_saved_state")
 	_expect(bool(result.get("ok", false)), "all saved lab profiles validate")
 	var bundle: Dictionary = result.get("bundle", {})
@@ -47,6 +56,16 @@ func _run() -> void:
 	_expect(
 		not String(bundle.get("equipped_weapon_id", "")).is_empty(),
 		"bundle identifies the equipped weapon"
+	)
+	_expect(
+		String((states.get("map", {}) as Dictionary).get("map_id", ""))
+		== "map_playtest_selected_regression",
+		"bundle preserves the map selected in the editor"
+	)
+	_expect(
+		String((sources.get("map", {}) as Dictionary).get("path", ""))
+		== "session://selected_map_document",
+		"bundle records the selected-map handoff instead of the bundled fallback"
 	)
 	_expect(
 		ProjectSettings.get_setting("socom/playtest/active_bundle", {}) is Dictionary,

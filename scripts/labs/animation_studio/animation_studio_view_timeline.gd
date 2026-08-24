@@ -20,6 +20,14 @@ func _build_ui_timeline(
     var bot_vbox := VBoxContainer.new()
     frame_editor_dock.add_child(bot_vbox)
 
+    timeline_context_label = Label.new()
+    timeline_context_label.name = "FrameParentChain"
+    timeline_context_label.text = "CLIP → FRAMES"
+    timeline_context_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+    timeline_context_label.add_theme_font_size_override("font_size", 10)
+    timeline_context_label.add_theme_color_override("font_color", Color(0.45, 0.95, 1.0))
+    bot_vbox.add_child(timeline_context_label)
+
     var slider_hbox := HBoxContainer.new()
     bot_vbox.add_child(slider_hbox)
 

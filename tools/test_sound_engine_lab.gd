@@ -1,5 +1,7 @@
 extends SceneTree
 
+const RuntimeAudio := preload("res://scripts/audio/lab_leak_audio_engine.gd")
+
 
 func _init() -> void:
 	var surface_profile := SurfaceAudioProfile.new()
@@ -36,10 +38,20 @@ func _init() -> void:
 	if not errors.is_empty():
 		for error in errors:
 			push_error(error)
+			quit(1)
+			return
+	var gameplay_shot := RuntimeAudio.gunshot_stream(false)
+	if gameplay_shot == null or gameplay_shot.mix_rate != 44100:
+		push_error("Gameplay does not use the approved 44.1 kHz Sound Lab rifle shot")
+		quit(1)
+		return
+	var shot_duration := float(gameplay_shot.data.size()) / 2.0 / float(gameplay_shot.mix_rate)
+	if absf(shot_duration - 0.42) > 0.01:
+		push_error("Gameplay rifle shot does not match the approved Sound Lab duration")
 		quit(1)
 		return
 	print(
-		"SOUND_ENGINE_PROFILE_PASS animations=%d surfaces=%d sand_energy=%.2f concrete_energy=%.2f"
-		% [profile.animations.size(), surface_profile.surfaces.size(), sand_energy, concrete_energy]
+		"SOUND_ENGINE_PROFILE_PASS animations=%d surfaces=%d sand_energy=%.2f concrete_energy=%.2f rifle_shot=%.2fs@%dHz"
+		% [profile.animations.size(), surface_profile.surfaces.size(), sand_energy, concrete_energy, shot_duration, gameplay_shot.mix_rate]
 	)
 	quit(0)

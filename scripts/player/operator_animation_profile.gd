@@ -6,6 +6,12 @@ extends RefCounted
 
 const MAP_PATH := "res://config/operator_animation_map.json"
 const PlaytestStateCollector := preload("res://scripts/runtime/playtest_state_collector.gd")
+const AnimationStateContract := preload(
+	"res://scripts/player/operator_animation_state_contract.gd"
+)
+const PresentationRouter := preload(
+	"res://scripts/player/operator_presentation_router.gd"
+)
 
 const DIRECTION_SUFFIXES: Array[StringName] = [
 	&"forward", &"forward_left", &"left", &"back_left",
@@ -134,8 +140,6 @@ const DEFAULT_LEG_MIRRORED_CLIPS: Dictionary = {
 }
 
 const DEFAULT_CLIP_ALIASES: Dictionary = {
-	&"run_left": &"run_forward_left",
-	&"run_right": &"run_forward_right",
 	&"crouch_left": &"crouch_forward_left",
 	&"crouch_right": &"crouch_forward_right",
 }
@@ -210,6 +214,8 @@ var clip_aliases: Dictionary = DEFAULT_CLIP_ALIASES.duplicate(true)
 var pose_yaw_offsets_degrees: Dictionary = DEFAULT_POSE_YAW_OFFSETS_DEGREES.duplicate(true)
 var semantic_actions: Dictionary = DEFAULT_SEMANTIC_ACTIONS.duplicate(true)
 var connected_routes: Dictionary = DEFAULT_CONNECTED_ROUTES.duplicate(true)
+var state_rules: Dictionary = AnimationStateContract.normalized_rules(DEFAULT_CLIPS)
+var event_routes: Dictionary = {}
 var locomotion: Dictionary = {
 	"walk_nominal_speed_mps": 2.15,
 	"full_nominal_speed_mps": 5.70,
@@ -246,6 +252,8 @@ func load_project_map(path: String = MAP_PATH) -> void:
 	pose_yaw_offsets_degrees = DEFAULT_POSE_YAW_OFFSETS_DEGREES.duplicate(true)
 	semantic_actions = DEFAULT_SEMANTIC_ACTIONS.duplicate(true)
 	connected_routes = DEFAULT_CONNECTED_ROUTES.duplicate(true)
+	state_rules = AnimationStateContract.normalized_rules(DEFAULT_CLIPS)
+	event_routes.clear()
 	warnings.clear()
 	var config := (
 		PlaytestStateCollector.bundled_state("animation_map")
@@ -269,6 +277,14 @@ func load_project_map(path: String = MAP_PATH) -> void:
 	_apply_pose_yaw_offset_entries(config.get("pose_yaw_offsets_degrees", DEFAULT_POSE_YAW_OFFSETS_DEGREES))
 	_apply_semantic_action_entries(config.get("semantic_actions", DEFAULT_SEMANTIC_ACTIONS))
 	_apply_connected_route_entries(config.get("connected_routes", DEFAULT_CONNECTED_ROUTES))
+	state_rules = AnimationStateContract.normalized_rules(
+		clip_paths,
+		config.get("state_rules", {}) as Dictionary
+	)
+	event_routes = AnimationStateContract.normalized_event_routes(
+		clip_paths,
+		config.get("event_routes", {}) as Dictionary
+	)
 	_merge_numeric_section(locomotion, config.get("locomotion", {}))
 	_merge_numeric_section(transitions, config.get("transitions", {}))
 
@@ -346,6 +362,58 @@ func connected_route(route_name: StringName) -> Array[StringName]:
 		if clip_paths.has(clip_name):
 			result.append(clip_name)
 	return result
+
+
+func state_blend_in_seconds(clip_name: StringName, fallback: float = 0.12) -> float:
+	return AnimationStateContract.blend_in(state_rules, clip_name, fallback)
+
+
+func state_blend_out_seconds(clip_name: StringName, fallback: float = 0.12) -> float:
+	return AnimationStateContract.blend_out(state_rules, clip_name, fallback)
+
+
+func state_layer(clip_name: StringName) -> String:
+	return AnimationStateContract.layer_for(state_rules, clip_name)
+
+
+func resolve_animation_event(
+	event_name: StringName,
+	posture_name: StringName,
+	weapon_family: StringName = &""
+) -> StringName:
+	var resolved := AnimationStateContract.resolve_event_state(
+		event_routes,
+		event_name,
+		posture_name,
+		weapon_family
+	)
+	return resolved if clip_paths.has(resolved) else &""
+
+
+func resolve_animation_event_presentation(
+	event_name: StringName,
+	posture_name: StringName,
+	weapon_family: StringName = &""
+) -> Dictionary:
+	# Compatibility entry point for older tools. All presentation decisions still
+	# pass through the same router used by Animation Studio and live gameplay.
+	var router := PresentationRouter.new()
+	router.configure(clip_paths, state_rules, event_routes)
+	return router.resolve(event_name, {
+		"posture": String(posture_name),
+		"weapon_family": String(weapon_family),
+	})
+
+
+func transition_blend_seconds(
+	from_clip: StringName,
+	to_clip: StringName,
+	fallback: float = 0.12
+) -> float:
+	return maxf(
+		state_blend_out_seconds(from_clip, fallback),
+		state_blend_in_seconds(to_clip, fallback)
+	)
 
 
 func _apply_clip_entries(data: Variant) -> void:

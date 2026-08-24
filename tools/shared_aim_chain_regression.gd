@@ -61,11 +61,26 @@ func _run() -> void:
 		float(fire_pose.get("right_elbow_angle_deg", 0.0)),
 		float(fire_pose.get("left_elbow_angle_deg", 0.0)),
 	])
-	_expect(bool(fire_pose.get("gun_placement_line_active", false)), "player build consumes the saved Gunsmith placement line")
+	_expect(
+		bool(fire_pose.get("gun_placement_line_active", false))
+		and bool(fire_pose.get("rail_to_blue_line_event_active", false))
+		and bool(fire_pose.get("animation_drives_ready_hands", false)),
+		"accepted fire temporarily raises the animation-owned rifle to the Gunsmith line"
+	)
 	_expect(float(fire_pose.get("trigger_hand_error_m", 1.0)) <= 0.01, "fire keeps the trigger hand attached to the saved rifle socket")
 	_expect(float(fire_pose.get("support_hand_error_m", 1.0)) <= 0.01, "fire keeps the support hand attached to the saved rifle socket")
 	_expect(float(fire_pose.get("weapon_aim_error_deg", 180.0)) <= 0.10, "fire keeps the rendered rail on the live aim line")
-	_expect(optic_fire_delta <= 0.001, "fire never lets the animation drag the optic away from its exact saved placement")
+	_expect(
+		float(fire_pose.get("gun_placement_error_m", 1.0)) <= 0.001,
+		"fire places the optic on the authored blue-line origin"
+	)
+	if OS.get_cmdline_user_args().has("--capture-shared-aim"):
+		RenderingServer.force_draw()
+		await RenderingServer.frame_post_draw
+		root.get_viewport().get_texture().get_image().save_png(
+			"/private/tmp/shared-aim-contact-final.png"
+		)
+		print("SHARED_AIM_CAPTURE /private/tmp/shared-aim-contact-final.png")
 	await _steps(7)
 	var held_shot: Dictionary = weapon.call("request_fire")
 	_expect(bool(held_shot.get("fired", false)), "held-fire cadence accepts the next shot")
@@ -79,7 +94,10 @@ func _run() -> void:
 	_expect(float(held_pose.get("trigger_hand_error_m", 1.0)) <= 0.01, "held fire keeps the trigger hand attached")
 	_expect(float(held_pose.get("support_hand_error_m", 1.0)) <= 0.01, "held fire keeps the support hand attached")
 	_expect(float(held_pose.get("weapon_aim_error_deg", 180.0)) <= 0.10, "held fire keeps the rail aligned")
-	_expect(held_optic_delta <= 0.001, "held fire keeps the optic on its exact saved placement")
+	_expect(
+		float(held_pose.get("gun_placement_error_m", 1.0)) <= 0.001,
+		"held fire keeps the optic on the authored blue-line origin"
+	)
 
 	scene.queue_free()
 	_finish()

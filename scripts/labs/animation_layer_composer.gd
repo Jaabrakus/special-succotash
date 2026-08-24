@@ -12,7 +12,11 @@ const REGIONS: Array[String] = [
 
 func compose(sources: Dictionary, fps: float = 30.0) -> Animation:
 	var full_body: Animation = sources.get("full_body") as Animation
-	var reference: Animation = full_body
+	# A one-shot upper-body preview must keep the action clip's duration while
+	# borrowing only the legs from the current locomotion clip.
+	var reference: Animation = sources.get("duration_reference") as Animation
+	if reference == null:
+		reference = full_body
 	if reference == null:
 		reference = sources.get("lower_body") as Animation
 	if reference == null:

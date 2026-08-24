@@ -8,6 +8,7 @@ extends RefCounted
 const LOADOUT_PATH := "res://config/weapons/operator_loadout.json"
 const CURRENT_SCHEMA_VERSION := 3
 const PlaytestStateCollector := preload("res://scripts/runtime/playtest_state_collector.gd")
+const WeaponAnimationProfile := preload("res://scripts/weapons/weapon_animation_profile.gd")
 
 
 static func resolve_config_path(fallback_weapon_id: String = "") -> String:
@@ -99,6 +100,17 @@ static func normalize_config(raw: Dictionary, config_path: String = "") -> Dicti
 		(config.get("handling_profile", {}) as Dictionary).duplicate(true)
 		if config.get("handling_profile", {}) is Dictionary
 		else {}
+	)
+	var inferred_family := String(handling_profile.get(
+		"family",
+		WeaponAnimationProfile.infer_family(
+			String(config.get("display_name", weapon_id)),
+			String(config.get("category", ""))
+		)
+	))
+	handling_profile = WeaponAnimationProfile.normalized_profile(
+		inferred_family,
+		handling_profile
 	)
 	var standing_master_pose: Dictionary = (
 		(handling_profile.get("standing_master_pose", {}) as Dictionary).duplicate(true)
@@ -229,9 +241,9 @@ static func normalize_config(raw: Dictionary, config_path: String = "") -> Dicti
 	reticle["base_gap_px"] = float(reticle.get("base_gap_px", 10.0))
 	reticle["max_gap_px"] = float(reticle.get("max_gap_px", 46.0))
 	reticle["response_speed"] = float(reticle.get("response_speed", 24.0))
-	reticle["shot_kick_px"] = float(reticle.get("shot_kick_px", 6.0))
+	reticle["shot_kick_px"] = float(reticle.get("shot_kick_px", 0.0))
 	reticle["shot_kick_return"] = float(reticle.get("shot_kick_return", 18.0))
-	reticle["maximum_shot_kick_px"] = float(reticle.get("maximum_shot_kick_px", 18.0))
+	reticle["maximum_shot_kick_px"] = float(reticle.get("maximum_shot_kick_px", 0.0))
 	reticle["maximum_movement_tick_extension_px"] = float(
 		reticle.get("maximum_movement_tick_extension_px", 16.0)
 	)

@@ -11,6 +11,7 @@ signal team_requested(team: int)
 signal ready_requested
 
 const LobbyState := preload("res://scripts/network/socom_lobby_state.gd")
+const MatchInvite := preload("res://scripts/network/socom_match_invite.gd")
 
 var menu_panel: PanelContainer
 var address_edit: LineEdit
@@ -27,6 +28,10 @@ var alpha_team_button: Button
 var bravo_team_button: Button
 var ready_button: Button
 var lobby_status_label: Label
+var invite_panel: PanelContainer
+var invite_code_edit: LineEdit
+var invite_copy_button: Button
+var invite_help_label: Label
 
 
 func _ready() -> void:
@@ -43,6 +48,32 @@ func show_lobby(enabled: bool, session_active: bool) -> void:
 
 func set_status(message: String) -> void:
 	status_label.text = "SOCOM-141 MULTIPLAYER SLICE  •  %s" % message
+
+
+func show_host_invite(port: int) -> void:
+	var invite: Dictionary = MatchInvite.create_for_host(port)
+	invite_panel.visible = true
+	invite_code_edit.text = String(invite.get("code", "INVITE UNAVAILABLE"))
+	invite_copy_button.disabled = not bool(invite.get("ok", false))
+	invite_copy_button.text = "COPY CODE"
+	invite_help_label.text = (
+		"Share this code. Players paste it into JOIN GAME. Internet play still needs UDP %d reachable on the host."
+		% port
+		if bool(invite.get("ok", false))
+		else String(invite.get("message", "Could not create an invite code."))
+	)
+
+
+func clear_host_invite() -> void:
+	if invite_panel != null:
+		invite_panel.visible = false
+
+
+func _copy_host_invite() -> void:
+	if invite_code_edit.text.is_empty() or invite_copy_button.disabled:
+		return
+	DisplayServer.clipboard_set(invite_code_edit.text)
+	invite_copy_button.text = "COPIED"
 
 
 func refresh_scoreboard(mission_rules: Dictionary, round_wins: Dictionary, scores: Dictionary) -> void:
@@ -177,7 +208,7 @@ func _build_match_hud() -> void:
 	explanation.text = "Host one window. Join it from a second window.\nWASD move • Mouse aim • Left click fire • Esc releases mouse"
 	column.add_child(explanation)
 	address_edit = LineEdit.new()
-	address_edit.placeholder_text = "Server address"
+	address_edit.placeholder_text = "Invite code or server address"
 	address_edit.text = "127.0.0.1"
 	column.add_child(address_edit)
 	var row := HBoxContainer.new()
@@ -224,6 +255,37 @@ func _build_lobby() -> void:
 	lobby_map_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lobby_map_label.add_theme_color_override("font_color", Color("f2cf6a"))
 	column.add_child(lobby_map_label)
+	invite_panel = PanelContainer.new()
+	invite_panel.name = "HostInviteCodePanel"
+	invite_panel.visible = false
+	column.add_child(invite_panel)
+	var invite_column := VBoxContainer.new()
+	invite_column.add_theme_constant_override("separation", 4)
+	invite_panel.add_child(invite_column)
+	var invite_title := Label.new()
+	invite_title.text = "INVITE YOUR SQUAD"
+	invite_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	invite_title.add_theme_color_override("font_color", Color("8bc5ae"))
+	invite_column.add_child(invite_title)
+	var invite_row := HBoxContainer.new()
+	invite_column.add_child(invite_row)
+	invite_code_edit = LineEdit.new()
+	invite_code_edit.name = "HostInviteCode"
+	invite_code_edit.editable = false
+	invite_code_edit.alignment = HORIZONTAL_ALIGNMENT_CENTER
+	invite_code_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	invite_row.add_child(invite_code_edit)
+	invite_copy_button = Button.new()
+	invite_copy_button.name = "CopyHostInviteCode"
+	invite_copy_button.text = "COPY CODE"
+	invite_copy_button.pressed.connect(_copy_host_invite)
+	invite_row.add_child(invite_copy_button)
+	invite_help_label = Label.new()
+	invite_help_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	invite_help_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	invite_help_label.add_theme_font_size_override("font_size", 12)
+	invite_help_label.add_theme_color_override("font_color", Color("aeb9c9"))
+	invite_column.add_child(invite_help_label)
 	column.add_child(HSeparator.new())
 	lobby_roster_label = RichTextLabel.new()
 	lobby_roster_label.name = "LobbyPlayerRoster"

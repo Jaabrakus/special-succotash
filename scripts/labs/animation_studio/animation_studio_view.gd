@@ -4,6 +4,32 @@ func _build_ui() -> void:
     overlay = CanvasLayer.new()
     add_child(overlay)
 
+    # A real GUI input surface sits behind every dock and in front of the 3D
+    # stage. This gives rig dots the same dependable click/drag route used by
+    # Gunsmith while buttons and sliders above it keep normal UI ownership.
+    stage_input_surface = Control.new()
+    stage_input_surface.name = "AnimationStageInputSurface"
+    stage_input_surface.mouse_filter = Control.MOUSE_FILTER_STOP
+    stage_input_surface.gui_input.connect(_on_animation_stage_gui_input)
+    overlay.add_child(stage_input_surface)
+
+    # The yellow reticle is a fixed authoring reference. It intentionally sits
+    # below the editor docks and never participates in camera or shot authority.
+    # The blue placement line targets this point in Aim View; orbiting remains
+    # an inspection action and cannot steer the operator's hands or weapon.
+    animation_studio_aim_reticle = SOCOM_DYNAMIC_RETICLE_SCRIPT.new()
+    animation_studio_aim_reticle.name = "AnimationStudioAimReferenceReticle"
+    animation_studio_aim_reticle.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    animation_studio_aim_reticle.apply_profile({
+        "base_gap_px": 9.0,
+        "max_gap_px": 9.0,
+        "response_speed": 40.0,
+        "shot_kick_px": 0.0,
+        "maximum_shot_kick_px": 0.0,
+        "maximum_movement_tick_extension_px": 0.0,
+    })
+    overlay.add_child(animation_studio_aim_reticle)
+
     # All editor docks live under a full-viewport Control so their anchors
     # follow the game window. The old fixed pixel layout was easy to clip at
     # laptop resolutions and made the bottom tools unreachable.

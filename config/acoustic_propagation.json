@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "speed_of_sound_mps": 343.0,
+  "delay_scale": 1.0,
+  "max_portal_hops": 6,
+  "max_path_meters": 160.0,
+  "portal_loss_db": -2.5,
+  "blocked_loss_db": -18.0,
+  "portal_lowpass_hz": 7200.0,
+  "blocked_lowpass_hz": 1350.0,
+  "early_reflection_gain": 0.34,
+  "reverb_wet": 0.24,
+  "event_policies": {
+    "weapon": {"max_distance_m": 220.0, "max_portal_hops": 6, "priority": 100, "delay_scale": 1.0, "volume_bias_db": 0.0},
+    "explosion": {"max_distance_m": 300.0, "max_portal_hops": 6, "priority": 95, "delay_scale": 1.0, "volume_bias_db": 0.0},
+    "body_impact": {"max_distance_m": 90.0, "max_portal_hops": 3, "priority": 70, "delay_scale": 0.85, "volume_bias_db": -1.0},
+    "world_impact": {"max_distance_m": 120.0, "max_portal_hops": 4, "priority": 65, "delay_scale": 0.9, "volume_bias_db": -1.0},
+    "voice": {"max_distance_m": 70.0, "max_portal_hops": 4, "priority": 60, "delay_scale": 0.65, "volume_bias_db": 0.0},
+    "footstep": {"max_distance_m": 32.0, "max_portal_hops": 2, "priority": 30, "delay_scale": 0.35, "volume_bias_db": -1.5},
+    "foley": {"max_distance_m": 45.0, "max_portal_hops": 2, "priority": 25, "delay_scale": 0.35, "volume_bias_db": -2.0},
+    "ambience": {"max_distance_m": 140.0, "max_portal_hops": 3, "priority": 10, "delay_scale": 0.0, "volume_bias_db": -4.0}
+  },
+  "materials": {
+    "concrete": {"loss_db": -12.0, "lowpass_hz": 1100.0},
+    "wood": {"loss_db": -8.0, "lowpass_hz": 2100.0},
+    "glass": {"loss_db": -5.0, "lowpass_hz": 4200.0},
+    "metal": {"loss_db": -15.0, "lowpass_hz": 900.0},
+    "foliage": {"loss_db": -3.0, "lowpass_hz": 5600.0}
+  }
+}

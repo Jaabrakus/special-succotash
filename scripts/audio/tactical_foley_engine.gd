@@ -42,7 +42,16 @@ func surface_physics(surface_name: StringName) -> Dictionary:
 
 
 func play_cue(cue: StringName, world_position: Vector3, volume_db := 0.0, pitch := 1.0) -> void:
-	if not _streams.has(cue) or _players.is_empty():
+	if not _streams.has(cue):
+		return
+	var propagation := get_node_or_null("/root/AcousticPropagation")
+	if propagation != null and propagation.has_method("play_event"):
+		propagation.call(
+			"play_event", _streams[cue], world_position, _event_class_for_cue(cue),
+			{"volume_db": volume_db, "pitch_scale": clampf(pitch, 0.65, 1.45)}
+		)
+		return
+	if _players.is_empty():
 		return
 	var player := _players[_cursor]
 	_cursor = (_cursor + 1) % _players.size()
@@ -53,8 +62,21 @@ func play_cue(cue: StringName, world_position: Vector3, volume_db := 0.0, pitch 
 	player.play()
 
 
+func _event_class_for_cue(cue: StringName) -> StringName:
+	var cue_text := String(cue)
+	if cue_text.begins_with("foot_"):
+		return &"footstep"
+	if cue_text.begins_with("impact_") or cue_text.begins_with("grenade_"):
+		return &"world_impact"
+	return &"foley"
+
+
 func cue_names() -> PackedStringArray:
 	return PackedStringArray(_streams.keys())
+
+
+func stream_for_cue(cue: StringName) -> AudioStream:
+	return _streams.get(cue) as AudioStream
 
 
 func _build_streams() -> void:

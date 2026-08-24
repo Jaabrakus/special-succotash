@@ -21,6 +21,8 @@ TacticalOcclusionManager="*res://scripts/tactical/tactical_occlusion_manager.gd"
 PlaytestStateCollector="*res://scripts/runtime/playtest_state_collector.gd"
 DisplayRuntime="*res://scripts/runtime/display_runtime.gd"
 SupabaseClient="*res://scripts/network/socom_supabase_client.gd"
+ServerBootstrap="*res://scripts/server/socom_server_bootstrap.gd"
+AcousticPropagation="*res://scripts/audio/acoustic_propagation_engine.gd"
 
 [display]
 
@@ -28,7 +30,7 @@ window/size/viewport_width=1920
 window/size/viewport_height=1080
 window/size/window_width_override=1920
 window/size/window_height_override=1080
-window/size/mode=4
+window/size/mode=3
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 window/handheld/orientation=1

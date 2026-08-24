@@ -28,9 +28,9 @@ enum ReticleMode {
 @export var base_gap: float = 10.0
 @export var max_bloom_gap: float = 46.0
 @export var response_speed: float = 24.0
-@export var shot_kick_pixels: float = 6.0
+@export var shot_kick_pixels: float = 0.0
 @export var shot_kick_return: float = 18.0
-@export var maximum_shot_kick_pixels: float = 18.0
+@export var maximum_shot_kick_pixels: float = 0.0
 
 var current_gap: float = 8.0
 var target_gap: float = 8.0

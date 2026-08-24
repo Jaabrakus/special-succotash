@@ -1,7 +1,7 @@
 extends "res://scripts/labs/animation_studio/animation_studio_sequence.gd"
 
 func _toggle_skin() -> void:
-    var next_idx := (int(current_skin) + 1) % 5
+    var next_idx := (int(current_skin) + 1) % SkinType.size()
     _load_skin(next_idx as SkinType)
 
 func _skin_name(skin: SkinType) -> String:
@@ -11,6 +11,7 @@ func _skin_name(skin: SkinType) -> String:
         SkinType.SOCOM_OPERATOR: return "SOCOM Operator (Authored Rig)"
         SkinType.MIXAMO_MANNEQUIN: return "Mixamo Beta Skin"
         SkinType.PS1_NIGHT_VISION_SEAL: return "PS1 Night Vision SEAL"
+        SkinType.COUNTER_STRIKE_URBAN: return "Counter-Strike Urban (Shared SOCOM Rig)"
     return "Unknown"
 
 func _cycle_weapon() -> void:
@@ -52,8 +53,22 @@ func _should_loop(clip_name: String) -> bool:
 
 func _filter_category(cat: String) -> void:
     current_category = cat
-    filtered_entries = workshop_repository.filter_entries(all_clip_entries, cat)
+    if cat in ["LIVE IN GAME", "RIFLE + SHOOTER CANDIDATES", "NEEDS CLASSIFICATION"]:
+        filtered_entries = clip_catalog.filter(all_clip_entries, state_slots, cat)
+    else:
+        filtered_entries = workshop_repository.filter_entries(all_clip_entries, cat)
     clip_index = 0
+    if cat == "LIVE IN GAME":
+        # Aim idle is the neutral, authored two-hand inspection pose. Starting
+        # on the first catalog item previously opened an unclassified crouch
+        # clip and made the Studio look broken before the user selected a job.
+        var neutral_path := String(
+            state_slots.get("aim_idle", state_slots.get("idle_rifle", ""))
+        )
+        for index in range(filtered_entries.size()):
+            if String(filtered_entries[index].get("path", "")) == neutral_path:
+                clip_index = index
+                break
     _play_selected()
     _refresh_clip_list_ui()
 
@@ -70,10 +85,20 @@ func _assign_entry_to_slot(entry: Dictionary, slot_name: String) -> void:
     if not state_slots.has(slot_name):
         status_label.text = "Unknown gameplay slot: %s" % slot_name
         return
+    var clip_label := str(entry.get("display", resource_path.get_file()))
+    var compatibility_error := ANIMATION_STATE_CONTRACT.clip_compatibility_error(
+        slot_name,
+        clip_label,
+        resource_path
+    )
+    if not compatibility_error.is_empty():
+        status_label.text = "NOT APPLIED: %s Choose an aim/fire clip for this action." % compatibility_error
+        return
     state_slots[slot_name] = resource_path
     _save_state_slots()
     _refresh_slot_ui()
-    status_label.text = "%s is now bound to %s." % [str(entry.get("display", resource_path.get_file())), slot_name]
+    _refresh_clip_list_ui()
+    status_label.text = "%s is now bound to %s." % [clip_label, slot_name]
 
 func _refresh_slot_ui() -> void:
     if slot_panel_label == null:
@@ -92,19 +117,583 @@ func _refresh_slot_ui() -> void:
         slot_drop_label.text = "DROP CLIP HERE\n→ %s" % selected_state_slot
     _refresh_runtime_state_tree()
     _refresh_slot_suggestion()
+    _refresh_state_rule_editor()
+    _refresh_event_routing_ui()
+    _refresh_state_workflow_cues()
 
 func _load_state_slots() -> void:
     state_slots = workshop_repository.load_state_slots(ANIMATION_MAP_PATH)
+    clip_catalog.refresh_equipped_family()
     state_slot_keys.clear()
     for slot_name in state_slots.keys():
         state_slot_keys.append(str(slot_name))
     state_slot_keys.sort()
+    state_rules = ANIMATION_STATE_CONTRACT.normalized_rules(
+        state_slots,
+        workshop_repository.load_state_rules(ANIMATION_MAP_PATH)
+    )
+    event_routes = ANIMATION_STATE_CONTRACT.normalized_event_routes(
+        state_slots,
+        workshop_repository.load_event_routes(ANIMATION_MAP_PATH)
+    )
+    presentation_router.configure(state_slots, state_rules, event_routes)
     if not state_slot_keys.is_empty():
         selected_state_slot = state_slot_keys[0]
 
 func _save_state_slots() -> void:
-    if not workshop_repository.save_state_slots(ANIMATION_MAP_PATH, state_slots):
+    state_rules = ANIMATION_STATE_CONTRACT.normalized_rules(state_slots, state_rules)
+    if not workshop_repository.save_state_authoring(
+        ANIMATION_MAP_PATH,
+        state_slots,
+        state_rules,
+        event_routes
+    ):
         status_label.text = "Could not save the runtime animation map."
+
+
+func _save_animation_states() -> void:
+    _save_state_slots()
+    if status_label:
+        status_label.text = "Animation states saved. New playtests will use these clips and blend settings."
+
+
+func _refresh_state_rule_editor() -> void:
+    if state_condition_label == null or not state_rules.has(selected_state_slot):
+        return
+    state_rule_syncing = true
+    var rule: Dictionary = state_rules[selected_state_slot]
+    state_condition_label.text = "WHEN: %s" % ANIMATION_STATE_CONTRACT.condition_summary(
+        selected_state_slot
+    )
+    var layer_name := String(rule.get("layer", ANIMATION_STATE_CONTRACT.FULL_BODY))
+    var layer_index := 0
+    for index in state_layer_selector.item_count:
+        if String(state_layer_selector.get_item_metadata(index)) == layer_name:
+            layer_index = index
+            break
+    state_layer_selector.select(layer_index)
+    state_layer_selector.disabled = not ANIMATION_STATE_CONTRACT.state_supports_layer_choice(
+        selected_state_slot
+    )
+    state_layer_selector.tooltip_text = (
+        "Action states may replace only the torso and arms. Locomotion must retain whole-body ownership."
+        if state_layer_selector.disabled
+        else "Choose whether this action replaces the complete body or only the torso and arms."
+    )
+    state_blend_in_control.value = float(rule.get("blend_in_seconds", 0.12))
+    state_blend_out_control.value = float(rule.get("blend_out_seconds", 0.14))
+    var return_state := String(rule.get("return_state", selected_state_slot))
+    for index in state_return_selector.item_count:
+        if String(state_return_selector.get_item_metadata(index)) == return_state:
+            state_return_selector.select(index)
+            break
+    var return_label := (
+        "current movement / stance"
+        if return_state == ANIMATION_STATE_CONTRACT.CURRENT_BASE
+        else return_state
+    )
+    state_rule_summary_label.text = "%s • %.2fs in • %.2fs out • returns to %s" % [
+        "Torso + arms" if layer_name == ANIMATION_STATE_CONTRACT.UPPER_BODY else "Whole body",
+        float(rule.get("blend_in_seconds", 0.12)),
+        float(rule.get("blend_out_seconds", 0.14)),
+        return_label,
+    ]
+    var source_rule := String(rule.get("source_rule", "")).strip_edges()
+    if not source_rule.is_empty():
+        state_rule_summary_label.text += "\nSOCOM RULE: “%s”" % source_rule
+    state_rule_syncing = false
+
+
+func _on_state_layer_selected(index: int) -> void:
+    if state_rule_syncing or not state_rules.has(selected_state_slot):
+        return
+    var rule: Dictionary = state_rules[selected_state_slot]
+    rule["layer"] = String(state_layer_selector.get_item_metadata(index))
+    state_rules[selected_state_slot] = rule
+    _refresh_state_rule_editor()
+
+
+func _on_state_blend_in_changed(value: float) -> void:
+    if state_rule_syncing or not state_rules.has(selected_state_slot):
+        return
+    var rule: Dictionary = state_rules[selected_state_slot]
+    rule["blend_in_seconds"] = value
+    state_rules[selected_state_slot] = rule
+    _refresh_state_rule_editor()
+
+
+func _on_state_blend_out_changed(value: float) -> void:
+    if state_rule_syncing or not state_rules.has(selected_state_slot):
+        return
+    var rule: Dictionary = state_rules[selected_state_slot]
+    rule["blend_out_seconds"] = value
+    state_rules[selected_state_slot] = rule
+    _refresh_state_rule_editor()
+
+
+func _on_state_return_selected(index: int) -> void:
+    if state_rule_syncing or not state_rules.has(selected_state_slot):
+        return
+    var rule: Dictionary = state_rules[selected_state_slot]
+    rule["return_state"] = String(state_return_selector.get_item_metadata(index))
+    state_rules[selected_state_slot] = rule
+    _refresh_state_rule_editor()
+
+
+func _preview_selected_state_transition(base_state_override: String = "") -> void:
+    var selected_path := String(state_slots.get(selected_state_slot, ""))
+    if selected_path.is_empty():
+        status_label.text = "Assign a clip to this state before previewing it."
+        return
+    state_preview_serial += 1
+    var preview_id := state_preview_serial
+    var rule: Dictionary = state_rules.get(
+        selected_state_slot,
+        ANIMATION_STATE_CONTRACT.default_rule(selected_state_slot)
+    )
+    var layer_name := String(rule.get(
+        "layer",
+        ANIMATION_STATE_CONTRACT.FULL_BODY
+    ))
+    var base_state := (
+        base_state_override
+        if not base_state_override.is_empty()
+        else _contextual_preview_return_state(selected_state_slot)
+    )
+    var base_path := String(state_slots.get(base_state, ""))
+    if not _play_state_resource(
+        selected_path,
+        float(rule.get("blend_in_seconds", 0.12)),
+        base_path,
+        layer_name
+    ):
+        status_label.text = "The assigned clip could not be loaded for preview."
+        return
+    status_label.text = (
+        "Layered preview: %s controls torso + arms; %s keeps the legs."
+        % [selected_state_slot, base_state]
+        if layer_name == ANIMATION_STATE_CONTRACT.UPPER_BODY and not base_path.is_empty()
+        else "Whole-body preview: %s." % selected_state_slot
+    )
+    var current_animation := animation_player.get_animation(animation_player.current_animation)
+    var hold_seconds := minf(
+        (current_animation.length if current_animation else 0.35) / maxf(playback_speed, 0.01),
+        2.0
+    )
+    await get_tree().create_timer(maxf(hold_seconds, 0.15)).timeout
+    if preview_id != state_preview_serial:
+        return
+    var return_state := String(rule.get("return_state", selected_state_slot))
+    if return_state == ANIMATION_STATE_CONTRACT.CURRENT_BASE:
+        return_state = _contextual_preview_return_state(selected_state_slot)
+    var return_path := String(state_slots.get(return_state, ""))
+    if not return_path.is_empty():
+        _play_state_resource(
+            return_path,
+            float(rule.get("blend_out_seconds", 0.14))
+        )
+
+
+func _contextual_preview_return_state(state_name: String) -> String:
+    if state_name.begins_with("prone_"):
+        return "idle_prone"
+    if state_name.begins_with("crouch_"):
+        return "idle_crouch"
+    return "aim_idle" if state_slots.has("aim_idle") else "idle_rifle"
+
+
+func _run_animation_state_demo() -> void:
+    _show_editor_page("States")
+    if not state_slots.has("combat_fire"):
+        status_label.text = "The combat fire state is not mapped yet."
+        return
+    selected_state_slot = "combat_fire"
+    _select_state_slot_in_selector(selected_state_slot)
+    _refresh_slot_ui()
+    selected_animation_event = "FIRE_ACCEPTED"
+    _select_animation_event(selected_animation_event)
+    natural_language_state_input.text = (
+        "When a valid rifle shot happens, play Firing Rifle on the torso and arms. "
+        + "Blend in over 0.04 seconds, blend out over 0.10 seconds, "
+        + "and return to the current aim movement."
+    )
+    _propose_natural_language_state()
+    status_label.text = "DEMO: Review the FIRE_ACCEPTED proposal. Nothing changes until you approve and save it."
+    await get_tree().create_timer(0.8).timeout
+    for shot_index in range(3):
+        _preview_selected_state_transition()
+        if shot_index == 0:
+            await get_tree().create_timer(0.22).timeout
+            await RenderingServer.frame_post_draw
+            get_viewport().get_texture().get_image().save_png(
+                "/private/tmp/socom-animation-event-graph-demo.png"
+            )
+            await get_tree().create_timer(1.98).timeout
+        else:
+            await get_tree().create_timer(2.2).timeout
+        if shot_index < 2:
+            await get_tree().create_timer(0.45).timeout
+    status_label.text = "DEMO COMPLETE: proposal remains unsaved until you approve it."
+
+
+func _preview_presentation_effects(presentation: Dictionary, posture: String) -> void:
+    var effects: Array = presentation.get("effects", [])
+    if ANIMATION_STATE_CONTRACT.RAIL_TO_BLUE_LINE not in effects:
+        return
+    if _animation_preview_is_full_body_mobility():
+        _reset_state_event_weapon_solver()
+        # A jump still accepts and previews the shot, but the full-body clip
+        # keeps ownership of both arms and the right-hand rifle.  Pulse the
+        # fixed authoritative reticle instead of applying the ready solver and
+        # twisting the airborne pose.
+        if animation_studio_aim_reticle != null:
+            animation_studio_aim_reticle.call("notify_shot", 1, 1.0)
+        status_label.text = (
+            "FIRE_ACCEPTED PREVIEW: shot and reticle kick shown. This jump / mobility clip "
+            + "keeps the whole body and right-hand rifle; ready aim begins after landing."
+        )
+        return
+    if not _ensure_state_event_weapon_solver():
+        status_label.text = "The animation played, but the shared blue-line weapon solver is unavailable."
+        return
+    _clear_state_event_return_pose()
+    state_event_return_animation_path = ""
+    if ANIMATION_STATE_CONTRACT.ENTER_READY_AIM in effects:
+        var ready_transition := _state_event_ready_transition()
+        var ready_path := String(ready_transition.get("ready_path", ""))
+        state_event_return_animation_path = String(
+            ready_transition.get("return_path", "")
+        )
+        state_event_return_animation_blend_seconds = float(
+            presentation.get("blend_out_seconds", 0.10)
+        )
+        if not ready_path.is_empty():
+            _play_state_resource(
+                ready_path,
+                float(presentation.get("blend_in_seconds", 0.04))
+            )
+    # Capture the fixed yellow reticle direction once. The event can then lift
+    # the rifle rail to that blue line while later orbit input remains visual
+    # inspection only.
+    state_event_effect_forward_direction = _state_event_reticle_direction_world()
+    state_event_effect_posture = StringName(posture)
+    state_event_effect_active_seconds = 0.65
+    state_event_effect_release_seconds = STATE_EVENT_RETURN_SECONDS
+    state_event_weapon_solver.call(
+        "trigger_rail_to_blue_line",
+        state_event_effect_active_seconds
+    )
+    status_label.text = (
+        "FIRE_ACCEPTED: enter ready aim, raise the rail to the fixed yellow reticle, then return to current movement."
+    )
+
+
+func _state_event_ready_transition() -> Dictionary:
+    if filtered_entries.is_empty() or clip_index < 0 or clip_index >= filtered_entries.size():
+        return {}
+    var entry: Dictionary = filtered_entries[clip_index]
+    var return_path := String(entry.get("path", ""))
+    var source_slot := ""
+    for raw_slot in state_slots.keys():
+        var slot_name := String(raw_slot)
+        if String(state_slots[slot_name]) == return_path:
+            source_slot = slot_name
+            break
+    if source_slot.is_empty():
+        source_slot = workshop_repository.suggest_slot(entry)
+    var ready_slot := ""
+    if source_slot == "idle_rifle":
+        ready_slot = "aim_idle"
+    elif source_slot.begins_with("run_"):
+        ready_slot = "walk_" + source_slot.trim_prefix("run_")
+    elif source_slot.begins_with("walk_"):
+        ready_slot = source_slot
+    if ready_slot.is_empty() or not state_slots.has(ready_slot):
+        return {"return_path": return_path}
+    return {
+        "ready_state": ready_slot,
+        "ready_path": String(state_slots.get(ready_slot, "")),
+        "return_path": return_path,
+    }
+
+
+func _state_event_reticle_direction_world() -> Vector3:
+    var desired := _animation_placement_direction_world().normalized()
+    # The authored blue line is reticle-locked. Do not silently replace it with
+    # body or barrel forward when Preview Fire starts; that made the reference
+    # jump at the exact moment the rifle was supposed to move toward it.
+    if desired.length_squared() > 0.50:
+        return desired
+    var barrel_direction := _state_event_barrel_direction_world().normalized()
+    if barrel_direction.length_squared() > 0.50:
+        return barrel_direction
+    return (-global_basis.z).normalized()
+
+
+func _state_event_barrel_direction_world() -> Vector3:
+    if weapon_barrel_base_marker != null and weapon_muzzle_marker != null:
+        var barrel_direction := (
+            weapon_muzzle_marker.global_position
+            - weapon_barrel_base_marker.global_position
+        ).normalized()
+        if barrel_direction.length_squared() > 0.50:
+            return barrel_direction
+    var fallback := _animation_placement_direction_world().normalized()
+    if fallback.length_squared() > 0.50:
+        return fallback
+    return skeleton.global_basis.z.normalized() if skeleton != null else Vector3.FORWARD
+
+
+func _ensure_state_event_weapon_solver() -> bool:
+    if (
+        state_event_weapon_solver != null
+        and is_instance_valid(state_event_weapon_solver)
+        and state_event_weapon_solver.get("weapon_node") == weapon_node
+    ):
+        return true
+    _reset_state_event_weapon_solver()
+    if skeleton == null or weapon_node == null or gunsmith_weapon_config.is_empty():
+        return false
+    state_event_weapon_solver = OPERATOR_WEAPON_POSE_SOLVER_SCRIPT.new()
+    state_event_weapon_solver.name = "AnimationStateEventWeaponSolver"
+    add_child(state_event_weapon_solver)
+    state_event_weapon_solver.call("bind", skeleton, weapon_node)
+    state_event_weapon_solver.call(
+        "configure_joint_poles",
+        gunsmith_weapon_config.get("elbow_poles", {})
+    )
+    var handling: Variant = gunsmith_weapon_config.get("handling_profile", {})
+    if handling is Dictionary:
+        state_event_weapon_solver.call("configure_dynamic_hold", handling)
+    state_event_weapon_solver.call(
+        "configure_gun_placement_line",
+        gunsmith_weapon_config.get("gun_placement_line", {})
+    )
+    state_event_head_look_layer = OPERATOR_POSTURE_LAYER_SCRIPT.new()
+    state_event_head_look_layer.bind(skeleton)
+    return true
+
+
+func _update_state_event_effect_preview(delta: float) -> bool:
+    if state_event_weapon_solver == null or not is_instance_valid(state_event_weapon_solver):
+        return false
+    if active_editor_page != "States":
+        _reset_state_event_weapon_solver()
+        return false
+    if state_event_effect_active_seconds <= 0.0 and state_event_effect_release_seconds <= 0.0:
+        return false
+    if state_event_effect_active_seconds > 0.0:
+        var placement_origin := _animation_placement_origin_world()
+        var placement_direction := state_event_effect_forward_direction.normalized()
+        if placement_direction.length_squared() < 0.50:
+            placement_direction = _state_event_barrel_direction_world()
+        var world_target := placement_origin + placement_direction * 120.0
+        if state_event_head_look_layer != null:
+            state_event_head_look_radians = state_event_head_look_layer.apply_head_look_at(
+                world_target,
+                1.0,
+                deg_to_rad(56.0),
+                deg_to_rad(34.0)
+            )
+        state_event_weapon_solver.call(
+            "apply",
+            0.0,
+            0.0,
+            state_event_effect_posture,
+            &"LOCOMOTION",
+            1.0,
+            0.0,
+            &"",
+            false,
+            world_target,
+            self,
+            delta
+        )
+        state_event_effect_active_seconds = maxf(
+            state_event_effect_active_seconds - delta,
+            0.0
+        )
+        if state_event_effect_active_seconds <= 0.0:
+            _capture_state_event_return_pose()
+    else:
+        _apply_state_event_return_blend()
+        state_event_effect_release_seconds = maxf(
+            state_event_effect_release_seconds - delta,
+            0.0
+        )
+        if state_event_effect_release_seconds <= 0.0:
+            _clear_state_event_return_pose()
+            state_event_weapon_solver.call("release_visual_control")
+            # The gameplay solver returns the rifle to its hand parent while
+            # preserving world space. That is correct during a live blend, but
+            # the Studio must then restore the canonical Gunsmith hand-local
+            # mount. Otherwise the completed event leaves a large local offset
+            # and the rifle appears to vanish until the next preview.
+            animation_weapon_ownership_preview.restore_hand_mount()
+            if not state_event_return_animation_path.is_empty():
+                _play_state_resource(
+                    state_event_return_animation_path,
+                    state_event_return_animation_blend_seconds
+                )
+                state_event_return_animation_path = ""
+    return true
+
+
+func _capture_state_event_return_pose() -> void:
+    state_event_return_bone_poses.clear()
+    if skeleton == null:
+        return
+    skeleton.force_update_all_bone_transforms()
+    for candidates in STATE_EVENT_RETURN_BONE_CANDIDATES:
+        var bone_index := -1
+        for candidate in candidates:
+            bone_index = skeleton.find_bone(String(candidate))
+            if bone_index >= 0:
+                break
+        if bone_index >= 0:
+            state_event_return_bone_poses[bone_index] = skeleton.get_bone_global_pose(
+                bone_index
+            )
+    if weapon_node != null:
+        state_event_return_weapon_transform = weapon_node.global_transform
+    state_event_return_blend_weight = 1.0
+    state_event_return_pose_captured = not state_event_return_bone_poses.is_empty()
+
+
+func _apply_state_event_return_blend() -> void:
+    if not state_event_return_pose_captured or skeleton == null:
+        return
+    var linear_weight := clampf(
+        state_event_effect_release_seconds / STATE_EVENT_RETURN_SECONDS,
+        0.0,
+        1.0
+    )
+    state_event_return_blend_weight = linear_weight * linear_weight * (
+        3.0 - 2.0 * linear_weight
+    )
+    for bone_index_variant in state_event_return_bone_poses.keys():
+        var bone_index := int(bone_index_variant)
+        var captured_pose: Transform3D = state_event_return_bone_poses[bone_index]
+        skeleton.set_bone_global_pose_override(
+            bone_index,
+            captured_pose,
+            state_event_return_blend_weight,
+            true
+        )
+    skeleton.force_update_all_bone_transforms()
+    if (
+        weapon_node != null
+        and socket_attachment != null
+        and animation_weapon_ownership_preview.has_hand_local_transform
+    ):
+        var movement_weapon_transform: Transform3D = (
+            socket_attachment.global_transform
+            * animation_weapon_ownership_preview.hand_local_transform
+        )
+        weapon_node.global_transform = state_event_return_weapon_transform.interpolate_with(
+            movement_weapon_transform,
+            1.0 - state_event_return_blend_weight
+        )
+    state_event_head_look_radians *= state_event_return_blend_weight
+
+
+func _clear_state_event_return_pose() -> void:
+    if skeleton != null and state_event_return_pose_captured:
+        skeleton.clear_bones_global_pose_override()
+        skeleton.force_update_all_bone_transforms()
+    state_event_return_bone_poses.clear()
+    state_event_return_weapon_transform = Transform3D.IDENTITY
+    state_event_return_blend_weight = 0.0
+    state_event_return_pose_captured = false
+
+
+func _reset_state_event_weapon_solver() -> void:
+    _clear_state_event_return_pose()
+    state_event_effect_active_seconds = 0.0
+    state_event_effect_release_seconds = 0.0
+    state_event_effect_forward_direction = Vector3.ZERO
+    state_event_return_animation_path = ""
+    state_event_head_look_radians = Vector2.ZERO
+    if state_event_head_look_layer != null:
+        state_event_head_look_layer.clear_head_look_additive()
+    state_event_head_look_layer = null
+    if state_event_weapon_solver == null or not is_instance_valid(state_event_weapon_solver):
+        state_event_weapon_solver = null
+        return
+    state_event_weapon_solver.call("release_visual_control")
+    animation_weapon_ownership_preview.restore_hand_mount()
+    state_event_weapon_solver.queue_free()
+    state_event_weapon_solver = null
+
+
+func _play_state_resource(
+    resource_path: String,
+    blend_seconds: float,
+    base_resource_path: String = "",
+    layer_name: String = ANIMATION_STATE_CONTRACT.FULL_BODY
+) -> bool:
+    var entry := workshop_repository.entry_for_path(all_clip_entries, resource_path)
+    if entry.is_empty() or animation_player == null:
+        return false
+    _set_animation_preview_ownership(entry)
+    _apply_gunsmith_hand_map_for_entry(entry)
+    match String(entry.get("type", "")):
+        "FBX":
+            _load_and_retarget_fbx(entry)
+        "AUTHORED":
+            _load_authored_animation(entry)
+    var clip_name := StringName(entry.get("name", ""))
+    var animation := _get_current_animation(entry)
+    if animation == null or not animation_player.has_animation(clip_name):
+        return false
+    if (
+        layer_name == ANIMATION_STATE_CONTRACT.UPPER_BODY
+        and not base_resource_path.is_empty()
+    ):
+        var base_entry := workshop_repository.entry_for_path(
+            all_clip_entries,
+            base_resource_path
+        )
+        if not base_entry.is_empty():
+            match String(base_entry.get("type", "")):
+                "FBX":
+                    _load_and_retarget_fbx(base_entry)
+                "AUTHORED":
+                    _load_authored_animation(base_entry)
+            var base_animation := _get_current_animation(base_entry)
+            if base_animation != null:
+                var layered_preview := layer_composer.compose({
+                    "duration_reference": animation,
+                    "lower_body": base_animation,
+                    "torso": animation,
+                    "left_arm": animation,
+                    "right_arm": animation,
+                    "head": animation,
+                }, EDITOR_FPS)
+                if layered_preview != null and layered_preview.get_track_count() > 0:
+                    var preview_key := StringName("state_upper_body_preview")
+                    if dynamic_anim_lib.has_animation(preview_key):
+                        dynamic_anim_lib.remove_animation(preview_key)
+                    layered_preview.loop_mode = Animation.LOOP_NONE
+                    dynamic_anim_lib.add_animation(preview_key, layered_preview)
+                    animation_player.speed_scale = playback_speed
+                    _sync_animation_preview_weapon_parent()
+                    animation_player.play(
+                        StringName("dyn/%s" % preview_key),
+                        maxf(blend_seconds, 0.0)
+                    )
+                    is_playing = true
+                    return true
+    animation.loop_mode = (
+        Animation.LOOP_LINEAR
+        if _should_loop(String(entry.get("display", "")))
+        else Animation.LOOP_NONE
+    )
+    animation_player.speed_scale = playback_speed
+    _sync_animation_preview_weapon_parent()
+    animation_player.play(clip_name, maxf(blend_seconds, 0.0))
+    is_playing = true
+    return true
 
 func _save_animation_work_and_play_latest() -> void:
     # One project-level commit: animation routes, authored body recipe, review
@@ -195,7 +784,7 @@ func _attach_saved_gunsmith_weapon() -> bool:
     var mount: Dictionary = gunsmith_weapon_config.get("operator_mount", {})
     right_grip_pos = WEAPON_RIG_PREVIEW.vector3_from_map(mount.get("position", {}), right_grip_pos)
     right_grip_rot = WEAPON_RIG_PREVIEW.vector3_from_map(mount.get("rotation_degrees", {}), right_grip_rot)
-    var factor := (1.0 / model_root.scale.x) if (model_root and model_root.scale.x > 1.5) else 1.0
+    var factor := _weapon_attachment_inverse_scale()
     var attached: Dictionary = WEAPON_RIG_PREVIEW.attach_to_hand(
         gunsmith_weapon_config,
         socket_attachment,
@@ -211,10 +800,15 @@ func _attach_saved_gunsmith_weapon() -> bool:
     left_hand_marker = attached.get("left_hand") as Marker3D
     right_hand_marker = attached.get("right_hand") as Marker3D
     weapon_muzzle_marker = attached.get("muzzle") as Marker3D
+    weapon_barrel_base_marker = attached.get("barrel_base") as Marker3D
+    weapon_ejection_marker = attached.get("ejection") as Marker3D
+    weapon_optic_marker = attached.get("optic") as Marker3D
     loaded_gunsmith_config_path = config_path
     return true
 
 func _rebuild_weapon_socket() -> void:
+    _reset_state_event_weapon_solver()
+    animation_weapon_ownership_preview.reset()
     if socket_attachment:
         socket_attachment.queue_free()
         socket_attachment = null
@@ -222,6 +816,9 @@ func _rebuild_weapon_socket() -> void:
         left_hand_marker = null
         right_hand_marker = null
         weapon_muzzle_marker = null
+        weapon_barrel_base_marker = null
+        weapon_ejection_marker = null
+        weapon_optic_marker = null
         weapon_calibrated_pivot = null
         gunsmith_weapon_config.clear()
         loaded_gunsmith_config_path = ""
@@ -250,6 +847,8 @@ func _rebuild_weapon_socket() -> void:
         target_bone = "Hand.R.001"
     elif skeleton.find_bone("HandWrist.R") != -1:
         target_bone = "HandWrist.R"
+    elif skeleton.find_bone("Bip01 R Hand") != -1:
+        target_bone = "Bip01 R Hand"
 
     socket_attachment = BoneAttachment3D.new()
     socket_attachment.name = "WeaponSocketAttachment"
@@ -280,10 +879,20 @@ func _rebuild_weapon_socket() -> void:
 func _sync_weapon_node_transform() -> void:
     if weapon_node == null:
         return
-    var factor := (1.0 / model_root.scale.x) if (model_root and model_root.scale.x > 1.5) else 1.0
+    var factor := _weapon_attachment_inverse_scale()
     weapon_node.position = right_grip_pos * factor
     weapon_node.rotation_degrees = right_grip_rot
     weapon_node.scale = Vector3.ONE * factor * weapon_scale_factor
+
+
+func _weapon_attachment_inverse_scale() -> float:
+    if socket_attachment == null:
+        return 1.0
+    var inherited_scale := socket_attachment.global_basis.get_scale()
+    var average_scale := (
+        inherited_scale.x + inherited_scale.y + inherited_scale.z
+    ) / 3.0
+    return 1.0 / maxf(average_scale, 0.001)
 
 func _hide_baked_rifle_parts(node: Node) -> void:
     if node is MeshInstance3D and ("Rifle" in node.name or "weapon" in node.name.to_lower()):

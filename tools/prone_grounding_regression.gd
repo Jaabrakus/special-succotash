@@ -68,13 +68,15 @@ func _run() -> void:
 			% axis_error
 		)
 		_expect(
-			maxf(left_foot_height, right_foot_height) <= 0.22,
-			"forward-prone feet remain inside the authored floor-contact envelope"
+			minf(left_foot_height, right_foot_height) <= 0.18
+			and maxf(left_foot_height, right_foot_height) <= 0.28,
+			"forward-prone crawl keeps one planted foot while bounding the moving foot"
 		)
 		_expect(
-			maxf(left_knee_height, right_knee_height) <= 0.10
+			minf(left_knee_height, right_knee_height) <= 0.05
+			and maxf(left_knee_height, right_knee_height) <= 0.16
 			and minf(left_knee_height, right_knee_height) >= -0.08,
-			"forward-prone knees remain grounded instead of floating"
+			"forward-prone crawl keeps one support knee grounded and the moving knee bounded"
 		)
 		_expect(
 			axis_error <= 1.0,

@@ -1,0 +1,14 @@
+# 141 automated-use declaration
+# Deploy this file as /ai.txt at the public web-build origin.
+
+Policy: /AI_TRAINING_POLICY.md
+AI-Training: disallow
+AI-Fine-Tuning: disallow
+AI-Evaluation: disallow
+Dataset-Inclusion: disallow
+Embedding-And-Retrieval: disallow
+Generative-Imitation: disallow
+Rights-Reserved: all
+
+Automated access or the absence of a crawler-specific rule does not grant a
+license. Written permission from the applicable rights holder is required.

@@ -4,8 +4,13 @@ extends RefCounted
 const MapDocument := preload("res://scripts/maps/socom_map_document.gd")
 const MapAssetLibrary := preload("res://scripts/maps/socom_map_asset_library.gd")
 const FogZoneController := preload("res://scripts/maps/socom_map_fog_zone_controller.gd")
+const DemolitionBombScene := preload("res://scenes/objectives/demolition_bomb.tscn")
 const SAFETY_WALL_THICKNESS := 0.60
 const SAFETY_WALL_MINIMUM_HEIGHT := 24.0
+# The authored albedo maps carry the visible high-frequency detail. This small,
+# filtered tile adds material depth/roughness without painting 128x128 maps in
+# GDScript for every new surface family during the first playable frame.
+const PROCEDURAL_DETAIL_SIZE := 16
 const WALKABLE_SURFACE_TYPES: Array[StringName] = [&"ground", &"platform", &"ramp", &"roof", &"stairs"]
 const PINE_FOLIAGE_TEXTURE_PATH := "res://assets/textures/environment/original_materials/pine_needles_albedo_v1.png"
 const BROADLEAF_FOLIAGE_TEXTURE_PATH := "res://assets/textures/environment/original_materials/broadleaf_foliage_albedo_v1.png"
@@ -27,10 +32,19 @@ static func build_into(parent: Node3D, document: Dictionary, editor_preview: boo
 	root.set_meta("gameplay", (normalized.get("gameplay", {}) as Dictionary).duplicate(true))
 	parent.add_child(root)
 	for object: Dictionary in normalized.get("objects", []):
+		var object_started := Time.get_ticks_usec()
 		var map_node := build_object(object, editor_preview)
 		if map_node != null:
 			root.add_child(map_node)
 			_apply_collision_policy(map_node, object, editor_preview)
+		if OS.get_cmdline_user_args().has("--startup-profile"):
+			var elapsed_ms := float(Time.get_ticks_usec() - object_started) / 1000.0
+			if elapsed_ms >= 1.0:
+				print("STARTUP_MAP_OBJECT %s type=%s step_ms=%.2f" % [
+					String(object.get("name", object.get("id", "object"))),
+					String(object.get("type", "")),
+					elapsed_ms,
+				])
 	if not editor_preview:
 		_add_safety_perimeter(root, normalized)
 		var fog_controller := FogZoneController.new()
@@ -307,6 +321,11 @@ static func _build_ambience_zone(object: Dictionary, editor_preview: bool) -> No
 	area.rotation_degrees = MapDocument.data_to_vector(object.get("rotation_degrees", {}))
 	area.set_meta("map_object_id", String(object.get("id", "")))
 	area.set_meta("map_object_type", &"ambience_zone")
+	# Audio-zone membership is calculated from the authored document. Runtime
+	# bullets must not collide with this invisible editor/select volume.
+	if not editor_preview:
+		area.collision_layer = 0
+		area.collision_mask = 0
 	var properties: Dictionary = object.get("properties", {})
 	for key: String in properties:
 		area.set_meta(key, properties[key])
@@ -328,6 +347,11 @@ static func _build_fog_zone(object: Dictionary, editor_preview: bool) -> Node3D:
 	area.position = MapDocument.data_to_vector(object.get("position", {}))
 	area.rotation_degrees = MapDocument.data_to_vector(object.get("rotation_degrees", {}))
 	_set_object_meta(area, object)
+	# Fog blending also reads the document directly. Keeping this Area3D on the
+	# world layer made its large invisible box win bullet and camera sight rays.
+	if not editor_preview:
+		area.collision_layer = 0
+		area.collision_mask = 0
 	var properties: Dictionary = object.get("properties", {})
 	for key: String in properties:
 		area.set_meta(key, properties[key])
@@ -359,26 +383,43 @@ static func _add_fog_sightline_layers(parent: Node3D, size: Vector3, color: Colo
 	var layers := Node3D.new()
 	layers.name = "FogSightlineLayers"
 	parent.add_child(layers)
-	var alpha := 1.0 - pow(1.0 - strength, 1.0 / float(layer_count * 2))
-	for index in layer_count:
-		var ratio := float(index + 1) / float(layer_count + 1)
-		var z_layer := MeshInstance3D.new()
-		z_layer.name = "FogZ%02d" % index
-		var z_quad := QuadMesh.new()
-		z_quad.size = Vector2(size.x, size.y)
-		z_layer.mesh = z_quad
-		z_layer.position.z = (ratio - 0.5) * size.z
-		z_layer.material_override = _fog_layer_material(color, alpha)
-		layers.add_child(z_layer)
-		var x_layer := MeshInstance3D.new()
-		x_layer.name = "FogX%02d" % index
-		var x_quad := QuadMesh.new()
-		x_quad.size = Vector2(size.z, size.y)
-		x_layer.mesh = x_quad
-		x_layer.position.x = (ratio - 0.5) * size.x
-		x_layer.rotation_degrees.y = 90.0
-		x_layer.material_override = _fog_layer_material(color, alpha)
-		layers.add_child(x_layer)
+	# One MultiMesh per zone replaces the old crossed stacks of full-volume
+	# transparent planes. The old layout behaved like a visibility wall and made
+	# Crossroads render 72 overlapping transparent objects. These soft billboard
+	# clouds remain see-through and cost one instanced draw object per zone.
+	var cloud_count := clampi(layer_count, 3, 8)
+	var cloud_mesh := QuadMesh.new()
+	cloud_mesh.size = Vector2.ONE
+	cloud_mesh.material = _fog_layer_material(
+		color,
+		minf(0.10, strength * 0.20)
+	)
+	var clouds := MultiMesh.new()
+	clouds.transform_format = MultiMesh.TRANSFORM_3D
+	clouds.mesh = cloud_mesh
+	clouds.instance_count = cloud_count
+	var seed_value := absi(String(parent.get_meta("map_object_id", parent.name)).hash())
+	var cloud_width := maxf(minf(size.x, size.z) * 0.52, 1.6)
+	var cloud_height := maxf(size.y * 0.82, 1.2)
+	for index in cloud_count:
+		var scale_noise := 0.82 + absf(_asset_noise(seed_value, index + 41)) * 0.34
+		var transform := Transform3D(
+			Basis.IDENTITY.scaled(Vector3(
+				cloud_width * scale_noise,
+				cloud_height * scale_noise,
+				1.0
+			)),
+			Vector3(
+				_asset_noise(seed_value, index + 3) * size.x * 0.40,
+				_asset_noise(seed_value, index + 17) * size.y * 0.22,
+				_asset_noise(seed_value, index + 29) * size.z * 0.40
+			)
+		)
+		clouds.set_instance_transform(index, transform)
+	var smoke_instance := MultiMeshInstance3D.new()
+	smoke_instance.name = "SmokeCloudInstances"
+	smoke_instance.multimesh = clouds
+	layers.add_child(smoke_instance)
 
 
 static func _fog_layer_material(color: Color, alpha: float) -> StandardMaterial3D:
@@ -387,6 +428,7 @@ static func _fog_layer_material(color: Color, alpha: float) -> StandardMaterial3
 	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	material.cull_mode = BaseMaterial3D.CULL_DISABLED
 	material.depth_draw_mode = BaseMaterial3D.DEPTH_DRAW_DISABLED
+	material.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
 	material.albedo_color = Color(color.r, color.g, color.b, alpha)
 	material.albedo_texture = _fog_noise()
 	return material
@@ -563,6 +605,10 @@ static func _build_objective_marker(object: Dictionary, editor_preview: bool) ->
 		_add_painted_bomb_site(marker, size, "A" if type_name == &"alpha_bomb_site" else "B")
 	if not editor_preview:
 		return marker
+	if type_name == &"bomb_pickup":
+		var bomb_preview := DemolitionBombScene.instantiate() as Node3D
+		bomb_preview.name = "BombPickupPreview"
+		marker.add_child(bomb_preview)
 	_add_translucent_box(marker, size, MapDocument.data_to_color(object.get("color", {})), 0.46)
 	var collision := CollisionShape3D.new()
 	collision.name = "CollisionShape3D"
@@ -1188,9 +1234,14 @@ static func _tree_texture_material(cache_key: String, texture_path: String) -> S
 static func _procedural_surface_texture(surface_kind: String) -> Texture2D:
 	if surface_texture_cache.has(surface_kind):
 		return surface_texture_cache[surface_kind] as Texture2D
-	var image := Image.create(128, 128, false, Image.FORMAT_RGBA8)
-	for y in 128:
-		for x in 128:
+	var image := Image.create(
+		PROCEDURAL_DETAIL_SIZE,
+		PROCEDURAL_DETAIL_SIZE,
+		false,
+		Image.FORMAT_RGBA8
+	)
+	for y in PROCEDURAL_DETAIL_SIZE:
+		for x in PROCEDURAL_DETAIL_SIZE:
 			var grain := _surface_noise(x, y, 17)
 			var detail := _surface_noise(x, y, 83)
 			var color := Color.WHITE
@@ -1219,14 +1270,19 @@ static func _procedural_surface_texture(surface_kind: String) -> Texture2D:
 static func _procedural_surface_normal(surface_kind: String) -> Texture2D:
 	if surface_normal_cache.has(surface_kind):
 		return surface_normal_cache[surface_kind] as Texture2D
-	var image := Image.create(128, 128, false, Image.FORMAT_RGB8)
+	var image := Image.create(
+		PROCEDURAL_DETAIL_SIZE,
+		PROCEDURAL_DETAIL_SIZE,
+		false,
+		Image.FORMAT_RGB8
+	)
 	var strength := 3.2 if surface_kind in ["rock", "muddy_limestone"] else 2.2
-	for y in 128:
-		for x in 128:
-			var left := _surface_height(surface_kind, posmod(x - 1, 128), y)
-			var right := _surface_height(surface_kind, posmod(x + 1, 128), y)
-			var above := _surface_height(surface_kind, x, posmod(y - 1, 128))
-			var below := _surface_height(surface_kind, x, posmod(y + 1, 128))
+	for y in PROCEDURAL_DETAIL_SIZE:
+		for x in PROCEDURAL_DETAIL_SIZE:
+			var left := _surface_height(surface_kind, posmod(x - 1, PROCEDURAL_DETAIL_SIZE), y)
+			var right := _surface_height(surface_kind, posmod(x + 1, PROCEDURAL_DETAIL_SIZE), y)
+			var above := _surface_height(surface_kind, x, posmod(y - 1, PROCEDURAL_DETAIL_SIZE))
+			var below := _surface_height(surface_kind, x, posmod(y + 1, PROCEDURAL_DETAIL_SIZE))
 			var normal := Vector3((left - right) * strength, (above - below) * strength, 1.0).normalized()
 			image.set_pixel(x, y, Color(normal.x * 0.5 + 0.5, normal.y * 0.5 + 0.5, normal.z * 0.5 + 0.5))
 	var texture := ImageTexture.create_from_image(image)
@@ -1237,10 +1293,15 @@ static func _procedural_surface_normal(surface_kind: String) -> Texture2D:
 static func _procedural_surface_roughness(surface_kind: String) -> Texture2D:
 	if surface_roughness_cache.has(surface_kind):
 		return surface_roughness_cache[surface_kind] as Texture2D
-	var image := Image.create(128, 128, false, Image.FORMAT_R8)
+	var image := Image.create(
+		PROCEDURAL_DETAIL_SIZE,
+		PROCEDURAL_DETAIL_SIZE,
+		false,
+		Image.FORMAT_R8
+	)
 	var base := 0.90 if surface_kind == "concrete" else 0.96
-	for y in 128:
-		for x in 128:
+	for y in PROCEDURAL_DETAIL_SIZE:
+		for x in PROCEDURAL_DETAIL_SIZE:
 			var variation := (_surface_noise(x, y, 157) - 0.5) * 0.04
 			var value := clampf(base + variation, 0.72, 1.0)
 			image.set_pixel(x, y, Color(value, value, value))
@@ -1264,8 +1325,13 @@ static func _surface_height(surface_kind: String, x: int, y: int) -> float:
 
 
 static func _surface_noise(x: int, y: int, seed_value: int) -> float:
-	var value := sin(float(x * 127 + y * 311 + seed_value * 71) * 0.071) * 43758.5453
-	return value - floorf(value)
+	# This runs tens of thousands of times while the first material set is
+	# created. A deterministic integer mix preserves the authored grain without
+	# paying for a trigonometric function on the playable build's first frame.
+	var value: int = x * 374761393 + y * 668265263 + seed_value * 1442695041
+	value = (value ^ (value >> 13)) * 1274126177
+	value = value ^ (value >> 16)
+	return float(value & 0x7fffffff) / 2147483647.0
 
 
 static func _wedge_points(size: Vector3) -> PackedVector3Array:

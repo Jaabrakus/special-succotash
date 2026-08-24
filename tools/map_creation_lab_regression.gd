@@ -236,6 +236,13 @@ func _run() -> void:
 	_expect(breached_runtime != null and breached_runtime.find_children("CollisionShape3D", "CollisionShape3D", true, false).size() >= 4, "breached walls build a playable hole with compound collision")
 	var stairs_runtime := _find_map_node(runtime_root, "stairs")
 	_expect(stairs_runtime != null and stairs_runtime.find_children("CollisionShape3D", "CollisionShape3D", true, false).size() >= 3, "stairs build multiple traversable collision steps")
+	var bomb_pickup_runtime := _find_map_node(runtime_root, "bomb_pickup")
+	_expect(
+		bomb_pickup_runtime != null
+		and bomb_pickup_runtime.find_child("BombPickupPreview", true, false) != null
+		and bomb_pickup_runtime.find_child("Satchel", true, false) is MeshInstance3D,
+		"the editor shows the physical demolition bomb at its authored pickup"
+	)
 	var roof_runtime := _find_map_node(runtime_root, "roof")
 	var roof_visual := roof_runtime.find_child("Visual", true, false) as MeshInstance3D if roof_runtime != null else null
 	var roof_material := roof_visual.material_override as StandardMaterial3D if roof_visual != null else null
@@ -284,6 +291,30 @@ func _run() -> void:
 	)
 	_expect(playable_runtime_root != null and playable_runtime_root.get_node_or_null("TacticalFogZoneController") != null, "playable maps blend localized tactical fog zones")
 	_expect(playable_runtime_root != null and playable_runtime_root.find_child("FogSightlineLayers", true, false) != null, "playable fog zones obscure authored sightlines from both sides")
+	var playable_fog := _find_map_node(playable_runtime_root, "fog_zone") as Area3D
+	var smoke_instances := (
+		playable_fog.find_child("SmokeCloudInstances", true, false) as MultiMeshInstance3D
+		if playable_fog != null
+		else null
+	)
+	_expect(
+		smoke_instances != null
+		and smoke_instances.multimesh != null
+		and smoke_instances.multimesh.instance_count <= 8,
+		"tactical fog uses one bounded instanced smoke group instead of crossed opacity walls"
+	)
+	_expect(
+		playable_fog != null and playable_fog.collision_layer == 0 and playable_fog.collision_mask == 0,
+		"invisible fog volumes never block bullet or camera sight rays"
+	)
+	var ambience_object := MapDocument.make_object(&"ambience_zone", Vector3.ZERO, Vector3(12.0, 4.0, 12.0))
+	var playable_ambience := MapRuntime.build_object(ambience_object, false) as Area3D
+	_expect(
+		playable_ambience != null and playable_ambience.collision_layer == 0 and playable_ambience.collision_mask == 0,
+		"invisible ambience volumes never block bullet or camera sight rays"
+	)
+	if playable_ambience != null:
+		playable_ambience.free()
 	if safety_perimeter != null:
 		var every_border_collides := true
 		for border in safety_perimeter.get_children():

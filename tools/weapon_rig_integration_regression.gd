@@ -30,6 +30,24 @@ func _run() -> void:
 		"optic_rail",
 	]:
 		_expect(sockets.has(socket_name), "contract exposes %s" % socket_name)
+	var hand_maps: Dictionary = config.get("animation_hand_maps", {})
+	var aim_idle_map: Dictionary = hand_maps.get("aim_idle", {})
+	var aim_idle_left := _vector3_from_map(aim_idle_map.get("left_grip", {}))
+	var authored_foregrip := _vector3_from_map(sockets.get("left_hand_ik_target", {}))
+	_expect(
+		aim_idle_left.distance_to(authored_foregrip) <= 0.01,
+		"Aim Idle support hand uses the authored foregrip instead of crossing the face"
+	)
+	var pose_keys: Dictionary = config.get("animation_frame_pose_keys", {})
+	var aim_idle_keys: Dictionary = pose_keys.get("aim_idle", {})
+	var aim_idle_first_key: Dictionary = aim_idle_keys.get("0", {})
+	var paused_aim_left := _vector3_from_map(
+		aim_idle_first_key.get("left_hand_target", {})
+	)
+	_expect(
+		paused_aim_left.distance_to(authored_foregrip) <= 0.01,
+		"paused Aim Idle correction keeps the support hand on the authored foregrip"
+	)
 	var configured_velocity := float((config.get("ballistics", {}) as Dictionary).get("muzzle_velocity_mps", 0.0))
 	_expect(configured_velocity > 100.0, "equipped profile carries physical muzzle velocity")
 	_test_animation_hand_map_contract()
@@ -326,6 +344,17 @@ func _collect_mesh_points(node: Node, points: Array[Vector3]) -> void:
 					)
 	for child in node.get_children():
 		_collect_mesh_points(child, points)
+
+
+func _vector3_from_map(value: Variant) -> Vector3:
+	if not value is Dictionary:
+		return Vector3.ZERO
+	var data := value as Dictionary
+	return Vector3(
+		float(data.get("x", 0.0)),
+		float(data.get("y", 0.0)),
+		float(data.get("z", 0.0))
+	)
 
 
 func _expect(condition: bool, label: String) -> void:

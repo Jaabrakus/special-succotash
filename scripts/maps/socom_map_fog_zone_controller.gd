@@ -40,7 +40,21 @@ func _process(delta: float) -> void:
 			continue
 		winning_priority = priority
 		winning_weight = weight
-		target_density = lerpf(base_density, clampf(float(properties.get("density", 0.035)), 0.0, 0.1), weight)
+		var authored_density := clampf(
+			float(properties.get("density", 0.035)),
+			0.0,
+			0.1
+		)
+		var visibility_scale := clampf(
+			float(properties.get("visibility_scale", 0.62)),
+			0.20,
+			1.0
+		)
+		# Local fog is tactical smoke, not an opaque fog-of-war volume. Keep the
+		# authored color and blend, but cap its camera haze so silhouettes remain
+		# visible through the instanced smoke cards.
+		var smoke_density := maxf(base_density, authored_density * visibility_scale)
+		target_density = lerpf(base_density, smoke_density, weight)
 		target_color = base_color.lerp(MapDocument.data_to_color(zone.get("color", {}), base_color), weight)
 	var response := 1.0 - exp(-maxf(delta, 0.0) * 5.5)
 	current_density = lerpf(current_density, target_density, response)

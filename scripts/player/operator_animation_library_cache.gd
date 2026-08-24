@@ -1,0 +1,100 @@
+class_name SocomOperatorAnimationLibraryCache
+extends RefCounted
+
+## Shares the immutable, processed animation library across operators and loads
+## a fingerprinted packaged cache on cold startup. Asset retargeting remains in
+## the asset runtime; cache lifetime and persistence live here.
+
+const CACHE_SCHEMA := 1
+const PACKAGED_PATH := "res://assets/animations/cache/operator_animation_library.res"
+const USER_PATH := "user://operator_animation_library.res"
+
+static var shared_libraries: Dictionary = {}
+static var shared_sources: Dictionary = {}
+
+
+func adopt(profile, animation_player: AnimationPlayer) -> Dictionary:
+	var fingerprint := fingerprint_for(profile)
+	var library: AnimationLibrary = shared_libraries.get(fingerprint)
+	if library == null:
+		for cache_path in [USER_PATH, PACKAGED_PATH]:
+			if not ResourceLoader.exists(cache_path):
+				continue
+			var candidate := load(cache_path) as AnimationLibrary
+			if (
+				candidate != null
+				and String(candidate.get_meta("socom_fingerprint", "")) == fingerprint
+			):
+				library = candidate
+				break
+	if library == null:
+		return {}
+	var available: Dictionary = {}
+	for clip_name: StringName in library.get_animation_list():
+		available[clip_name] = true
+	var raw_sources: Variant = shared_sources.get(
+		fingerprint,
+		library.get_meta("socom_source_animation_names", {})
+	)
+	var sources := (
+		(raw_sources as Dictionary).duplicate(true)
+		if raw_sources is Dictionary
+		else {}
+	)
+	shared_libraries[fingerprint] = library
+	shared_sources[fingerprint] = sources.duplicate(true)
+	animation_player.add_animation_library("", library)
+	return {
+		"fingerprint": fingerprint,
+		"library": library,
+		"available_clips": available,
+		"source_animation_names": sources,
+	}
+
+
+func store(profile, library: AnimationLibrary, sources: Dictionary) -> void:
+	var fingerprint := fingerprint_for(profile)
+	library.set_meta("socom_fingerprint", fingerprint)
+	library.set_meta("socom_source_animation_names", sources.duplicate(true))
+	shared_libraries[fingerprint] = library
+	shared_sources[fingerprint] = sources.duplicate(true)
+	var save_path := (
+		PACKAGED_PATH
+		if OS.get_cmdline_user_args().has("--build-animation-cache")
+		else USER_PATH
+	)
+	# The editor keeps the process-level cache alive between operator spawns.
+	# Exported builds persist caches generated from user-authored animation maps.
+	if (
+		save_path == USER_PATH
+		and (OS.has_feature("editor") or DisplayServer.get_name() == "headless")
+	):
+		return
+	var save_error := ResourceSaver.save(library, save_path)
+	if save_error != OK:
+		push_warning("Could not save operator animation cache: %s" % error_string(save_error))
+
+
+func fingerprint_for(profile) -> String:
+	var entries: Array[String] = ["schema:%d" % CACHE_SCHEMA]
+	var clip_names: Array = profile.clip_paths.keys()
+	clip_names.sort()
+	for raw_clip_name in clip_names:
+		var clip_name := StringName(raw_clip_name)
+		entries.append("%s=%s:%s:%.4f" % [
+			String(clip_name),
+			String(profile.clip_paths[clip_name]),
+			str(profile.is_looping(clip_name)),
+			profile.pose_yaw_offset_degrees(clip_name),
+		])
+	for property_name in ["mirrored_clips", "leg_mirrored_clips", "clip_aliases"]:
+		var routes: Dictionary = profile.get(property_name) as Dictionary
+		var route_names: Array = routes.keys()
+		route_names.sort()
+		for raw_name in route_names:
+			entries.append("%s:%s=%s" % [
+				property_name,
+				String(raw_name),
+				String(routes[raw_name]),
+			])
+	return "|".join(entries).sha256_text()

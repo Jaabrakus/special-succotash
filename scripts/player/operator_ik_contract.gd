@@ -29,6 +29,15 @@ func bind(target_skeleton: Skeleton3D, weapon_parent: Node3D) -> void:
 	add_child(right_foot_target)
 
 
+func rebind_weapon(weapon_parent: Node3D) -> void:
+	if support_hand_target == null:
+		return
+	var next_parent: Node = weapon_parent if weapon_parent != null else self
+	support_hand_target.reparent(next_parent, weapon_parent == null)
+	if weapon_parent != null:
+		support_hand_target.position = Vector3(-0.18, 0.02, -0.42)
+
+
 func get_debug_state() -> Dictionary:
 	return {
 		"contract_ready": skeleton != null,

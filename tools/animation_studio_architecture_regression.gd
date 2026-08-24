@@ -9,6 +9,7 @@ const PHASE_MODULES := [
     "res://scripts/labs/animation_studio/animation_studio_playback.gd",
     "res://scripts/labs/animation_studio/animation_studio_pose_runtime.gd",
     "res://scripts/labs/animation_studio/animation_studio_pose_authoring.gd",
+    "res://scripts/labs/animation_studio/animation_studio_rig_authoring.gd",
     "res://scripts/labs/animation_studio/animation_studio_sequence.gd",
     "res://scripts/labs/animation_studio/animation_studio_weapon.gd",
     "res://scripts/labs/animation_studio/animation_studio_view_workspace.gd",
@@ -16,6 +17,8 @@ const PHASE_MODULES := [
     "res://scripts/labs/animation_studio/animation_studio_view.gd",
     "res://scripts/labs/animation_studio/animation_studio_view_controls.gd",
     "res://scripts/labs/animation_studio/animation_studio_routes.gd",
+    "res://scripts/labs/animation_studio_rig_overlay.gd",
+    "res://scripts/labs/animation_rig_quick_controls.gd",
 ]
 
 var failures: int = 0

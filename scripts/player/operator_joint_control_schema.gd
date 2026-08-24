@@ -5,9 +5,14 @@ extends RefCounted
 ## Controls change additive rotations or IK targets. They never scale bones.
 
 const ROTATION_JOINTS := [
+	&"hips",
 	&"spine", &"spine1", &"spine2", &"neck", &"head",
 	&"left_shoulder", &"right_shoulder",
 	&"left_upper_arm", &"right_upper_arm",
+	&"left_upper_leg", &"right_upper_leg",
+	&"left_lower_leg", &"right_lower_leg",
+	&"left_foot", &"right_foot",
+	&"left_toe", &"right_toe",
 ]
 const ELBOW_POLE_JOINTS := [&"left_forearm", &"right_forearm"]
 const HAND_TARGET_JOINTS := [&"left_hand", &"right_hand"]
@@ -41,6 +46,10 @@ static func axis_labels(joint_name: StringName) -> PackedStringArray:
 static func help_text(joint_name: StringName) -> String:
 	if joint_name == &"head":
 		return "Curves the head through the neck and upper spine. This is the base for future lean mechanics."
+	if joint_name in [&"left_upper_leg", &"right_upper_leg", &"left_lower_leg", &"right_lower_leg"]:
+		return "Rotates this leg joint without changing bone length or gameplay collision."
+	if joint_name in [&"left_foot", &"right_foot", &"left_toe", &"right_toe"]:
+		return "Rotates this foot contact joint without moving the authoritative body."
 	match control_mode(joint_name):
 		&"elbow_pole":
 			return "Moves the elbow IK pole. Arm length stays locked."

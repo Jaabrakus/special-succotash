@@ -326,6 +326,7 @@ func _nudge_trim_out(frame_delta: int) -> void:
     _refresh_frame_editor_labels()
 
 func _refresh_frame_editor_labels() -> void:
+    _refresh_frame_parent_chain()
     if trim_label:
         trim_label.text = "KEEP FRAMES %d → %d  •  %d frames total" % [
             roundi(trim_in_seconds * EDITOR_FPS),
@@ -350,6 +351,70 @@ func _refresh_frame_editor_labels() -> void:
             "" if lane_durations.size() == 1 else "s",
             roundi(duration * EDITOR_FPS),
         ]
+
+
+func _refresh_frame_parent_chain() -> void:
+    if timeline_context_label == null:
+        return
+    if filtered_entries.is_empty() or clip_index < 0 or clip_index >= filtered_entries.size():
+        timeline_context_label.text = "NO CLIP → NO FRAMES"
+        return
+    var entry: Dictionary = filtered_entries[clip_index]
+    var clip_path := String(entry.get("path", ""))
+    var clip_title := String(entry.get("display", entry.get("name", "Animation clip")))
+    var bound_states: Array[String] = []
+    for raw_state in state_slots.keys():
+        if not clip_path.is_empty() and String(state_slots[raw_state]) == clip_path:
+            bound_states.append(String(raw_state))
+    bound_states.sort()
+    if bound_states.is_empty():
+        timeline_context_label.text = "PREVIEW ONLY → CLIP: %s → FRAMES / CORRECTION KEYS" % clip_title
+        return
+    var connected_events: Array[String] = []
+    for raw_event in event_routes.keys():
+        var targets := _timeline_event_targets(event_routes[raw_event])
+        for state_name in bound_states:
+            if state_name in targets:
+                connected_events.append(String(raw_event))
+                break
+    connected_events.sort()
+    timeline_context_label.text = "%s → STATE: %s → CLIP: %s → FRAMES / CORRECTION KEYS" % [
+        "EVENT: " + ", ".join(connected_events) if not connected_events.is_empty() else "NO EVENT YET",
+        ", ".join(bound_states),
+        clip_title,
+    ]
+
+
+func _timeline_event_targets(raw_route: Variant) -> Array[String]:
+    var targets: Array[String] = []
+    if not raw_route is Dictionary:
+        return targets
+    var route := raw_route as Dictionary
+    var default_state := String(route.get("default_state", ""))
+    if not default_state.is_empty():
+        targets.append(default_state)
+    var posture_states: Variant = route.get("posture_states", {})
+    if posture_states is Dictionary:
+        for state_name in (posture_states as Dictionary).values():
+            var normalized := String(state_name)
+            if not normalized.is_empty() and normalized not in targets:
+                targets.append(normalized)
+    var family_states: Variant = route.get("family_states", {})
+    if family_states is Dictionary:
+        for raw_family in (family_states as Dictionary).values():
+            if not raw_family is Dictionary:
+                continue
+            var family := raw_family as Dictionary
+            var family_default := String(family.get("default_state", ""))
+            if not family_default.is_empty() and family_default not in targets:
+                targets.append(family_default)
+            var family_postures: Variant = family.get("posture_states", {})
+            if family_postures is Dictionary:
+                for state_name in (family_postures as Dictionary).values():
+                    var normalized := String(state_name)
+                    if not normalized.is_empty() and normalized not in targets:
+                        targets.append(normalized)
+    return targets
 
 func _save_authored_assembly() -> void:
     var segments: Array[Dictionary] = []

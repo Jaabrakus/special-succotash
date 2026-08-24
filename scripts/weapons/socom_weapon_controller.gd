@@ -13,6 +13,7 @@ const Composure := preload("res://scripts/weapons/operator_composure.gd")
 
 signal authoritative_shot(result: Dictionary)
 signal ammo_changed(rounds_in_magazine: int, reserve_rounds: int)
+signal weapon_equipped(result: Dictionary)
 
 var player: CharacterBody3D
 var camera_rig
@@ -28,6 +29,7 @@ var rounds_in_magazine: int = 30
 var reserve_rounds: int = 90
 var equipped_weapon_id: StringName = &"rifle"
 var equipped_weapon_display_name: String = "Rifle"
+var equipped_weapon_config: Dictionary = {}
 var _movement_ratio: float = 0.0
 var _turning_ratio: float = 0.0
 var _last_camera_yaw: float = 0.0
@@ -35,9 +37,9 @@ var reticle_profile: Dictionary = {
 	"base_gap_px": 10.0,
 	"max_gap_px": 46.0,
 	"response_speed": 24.0,
-	"shot_kick_px": 6.0,
+	"shot_kick_px": 0.0,
 	"shot_kick_return": 18.0,
-	"maximum_shot_kick_px": 18.0,
+	"maximum_shot_kick_px": 0.0,
 	"maximum_movement_tick_extension_px": 16.0,
 }
 
@@ -59,8 +61,13 @@ func _apply_equipped_ballistics() -> void:
 	if ballistics == null:
 		return
 	var config := WeaponContract.load_equipped_config()
-	if config.is_empty():
-		return
+	_apply_weapon_config(config)
+
+
+func _apply_weapon_config(config: Dictionary) -> bool:
+	if ballistics == null or config.is_empty():
+		return false
+	equipped_weapon_config = config.duplicate(true)
 	equipped_weapon_id = StringName(config.get("weapon_id", "rifle"))
 	equipped_weapon_display_name = String(
 		config.get("display_name", equipped_weapon_id)
@@ -105,6 +112,37 @@ func _apply_equipped_ballistics() -> void:
 	magazine_capacity = clampi(int(values.get("magazine_capacity", magazine_capacity)), 1, 200)
 	reserve_rounds = clampi(int(values.get("reserve_ammo", reserve_rounds)), 0, 999)
 	ballistics.fire_interval = 60.0 / maxf(60.0, ballistics.fire_rate_rpm)
+	return true
+
+
+func apply_authorized_weapon_pickup(config_path: String) -> bool:
+	# This is the post-validation handoff. Network/server code must approve the
+	# pickup before it reaches this method; animation never grants equipment.
+	if (
+		not config_path.begins_with("res://config/weapons/")
+		or not config_path.ends_with(".json")
+	):
+		return false
+	var config := WeaponContract.load_config(config_path)
+	if config.is_empty() or mannequin == null:
+		return false
+	if (
+		not mannequin.has_method("notify_operator_weapon_equipped")
+		or not bool(mannequin.call("notify_operator_weapon_equipped", config))
+	):
+		return false
+	if not _apply_weapon_config(config):
+		return false
+	rounds_in_magazine = magazine_capacity
+	ammo_changed.emit(rounds_in_magazine, reserve_rounds)
+	var handling: Dictionary = config.get("handling_profile", {})
+	weapon_equipped.emit({
+		"event": "WEAPON_EQUIPPED",
+		"weapon_id": String(equipped_weapon_id),
+		"family": String(handling.get("family", "")),
+		"config_path": config_path,
+	})
+	return true
 
 
 func _physics_process(delta: float) -> void:
@@ -244,6 +282,11 @@ func request_fire() -> Dictionary:
 	)
 	result["rendered_barrel_direction"] = rendered_barrel_direction
 	result["aim_center_direction"] = Vector3(validation.direction)
+	result["aim_center_point"] = (
+		Vector3(camera_rig.call("get_shared_aim_target"))
+		if camera_rig.has_method("get_shared_aim_target")
+		else muzzle + Vector3(validation.direction) * 100.0
+	)
 	result["barrel_alignment_error_deg"] = rad_to_deg(
 		rendered_barrel_direction.angle_to(Vector3(validation.direction))
 	)

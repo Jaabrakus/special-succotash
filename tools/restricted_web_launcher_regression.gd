@@ -12,6 +12,8 @@ func _initialize() -> void:
 
 func _run() -> void:
 	MapDocument.library_directory_override = "/private/tmp/socom_public_launcher_maps_%s" % Time.get_ticks_usec()
+	var first_saved := MapDocument.save_to_library(MapDocument.new_document("Crossfire Selection A"))
+	var second_saved := MapDocument.save_to_library(MapDocument.new_document("Crossfire Selection B"))
 	var launcher := LAUNCHER_SCENE.instantiate()
 	root.add_child(launcher)
 	for _frame in 3:
@@ -44,6 +46,30 @@ func _run() -> void:
 	_expect(
 		launcher.find_child("HostMapSelector", true, false) is OptionButton,
 		"Host Game exposes the saved-map selector"
+	)
+	var map_selector := launcher.find_child("HostMapSelector", true, false) as OptionButton
+	_expect(
+		map_selector != null
+		and map_selector.get_item_text(map_selector.selected) == "Crossfire Selection B",
+		"launcher keeps the active saved map selected"
+	)
+	var first_map_id := String(first_saved.get("map_id", ""))
+	var first_index := -1
+	var entries: Array = launcher.get("map_entries")
+	for index in entries.size():
+		if String((entries[index] as Dictionary).get("map_id", "")) == first_map_id:
+			first_index = index
+			break
+	if map_selector != null and first_index >= 0:
+		map_selector.select(first_index)
+		map_selector.item_selected.emit(first_index)
+	_expect(
+		first_index >= 0 and String(MapDocument.load_active().get("map_id", "")) == first_map_id,
+		"choosing a launcher map immediately makes it the Training Range map"
+	)
+	_expect(
+		bool(second_saved.get("ok", false)),
+		"launcher selection fixture saves more than one map"
 	)
 	_expect(
 		launcher.find_child("OpenCreatorStudio", true, false) == null

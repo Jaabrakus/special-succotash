@@ -9,24 +9,28 @@ const ProceduralPoseProfile := preload(
 )
 
 const BONE_CANDIDATES: Dictionary = {
-	&"hips": [&"mixamorig_Hips"],
-	&"spine": [&"mixamorig_Spine"],
-	&"spine1": [&"mixamorig_Spine1", &"mixamorig_Spine"],
-	&"spine2": [&"mixamorig_Spine2", &"mixamorig_Spine1"],
-	&"neck": [&"mixamorig_Neck"],
-	&"head": [&"mixamorig_Head"],
-	&"left_shoulder": [&"mixamorig_LeftShoulder"],
-	&"right_shoulder": [&"mixamorig_RightShoulder"],
-	&"left_upper_arm": [&"mixamorig_LeftArm"],
-	&"right_upper_arm": [&"mixamorig_RightArm"],
-	&"left_forearm": [&"mixamorig_LeftForeArm"],
-	&"right_forearm": [&"mixamorig_RightForeArm"],
-	&"left_hand": [&"mixamorig_LeftHand"],
-	&"right_hand": [&"mixamorig_RightHand"],
-	&"left_upper_leg": [&"mixamorig_LeftUpLeg"],
-	&"right_upper_leg": [&"mixamorig_RightUpLeg"],
-	&"left_lower_leg": [&"mixamorig_LeftLeg"],
-	&"right_lower_leg": [&"mixamorig_RightLeg"],
+	&"hips": [&"mixamorig_Hips", &"mixamorig:Hips", &"Spinelower", &"Bip01 Pelvis"],
+	&"spine": [&"mixamorig_Spine", &"Bip01 Spine"],
+	&"spine1": [&"mixamorig_Spine1", &"mixamorig_Spine", &"Bip01 Spine1"],
+	&"spine2": [&"mixamorig_Spine2", &"mixamorig_Spine1", &"Bip01 Spine3"],
+	&"neck": [&"mixamorig_Neck", &"Bip01 Neck"],
+	&"head": [&"mixamorig_Head", &"Bip01 Head"],
+	&"left_shoulder": [&"mixamorig_LeftShoulder", &"Bip01 L Clavicle"],
+	&"right_shoulder": [&"mixamorig_RightShoulder", &"Bip01 R Clavicle"],
+	&"left_upper_arm": [&"mixamorig_LeftArm", &"Bip01 L UpperArm"],
+	&"right_upper_arm": [&"mixamorig_RightArm", &"Bip01 R UpperArm"],
+	&"left_forearm": [&"mixamorig_LeftForeArm", &"Bip01 L Forearm"],
+	&"right_forearm": [&"mixamorig_RightForeArm", &"Bip01 R Forearm"],
+	&"left_hand": [&"mixamorig_LeftHand", &"Bip01 L Hand"],
+	&"right_hand": [&"mixamorig_RightHand", &"Bip01 R Hand"],
+	&"left_upper_leg": [&"mixamorig_LeftUpLeg", &"Bip01 L Thigh"],
+	&"right_upper_leg": [&"mixamorig_RightUpLeg", &"Bip01 R Thigh"],
+	&"left_lower_leg": [&"mixamorig_LeftLeg", &"Bip01 L Calf"],
+	&"right_lower_leg": [&"mixamorig_RightLeg", &"Bip01 R Calf"],
+	&"left_foot": [&"mixamorig_LeftFoot", &"mixamorig:LeftFoot", &"Foot.L", &"Bip01 L Foot"],
+	&"right_foot": [&"mixamorig_RightFoot", &"mixamorig:RightFoot", &"Foot.R", &"Bip01 R Foot"],
+	&"left_toe": [&"mixamorig_LeftToeBase", &"mixamorig:LeftToeBase", &"ToeBase.L", &"Bip01 L Toe0"],
+	&"right_toe": [&"mixamorig_RightToeBase", &"mixamorig:RightToeBase", &"ToeBase.R", &"Bip01 R Toe0"],
 }
 
 const TORSO_YAW_WEIGHTS: Dictionary = {
@@ -68,12 +72,18 @@ var last_default_hip_roll_trim_deg: float = 0.0
 var last_default_hip_roll_output_deg: float = 0.0
 var procedural_profile := ProceduralPoseProfile.new()
 var animation_frame_rotation_overrides: Dictionary = {}
+var head_look_base_rotations: Dictionary = {}
+var head_look_applied_rotations: Dictionary = {}
+
+const HEAD_LOOK_REUSE_EPSILON_RAD := 0.002
 
 
 func bind(target_skeleton: Skeleton3D, neutral_pose_hip_rotation := Quaternion.IDENTITY) -> void:
 	skeleton = target_skeleton
 	neutral_hip_rotation = neutral_pose_hip_rotation.normalized()
 	bone_indices.clear()
+	head_look_base_rotations.clear()
+	head_look_applied_rotations.clear()
 	if skeleton == null:
 		return
 	for logical_name: StringName in BONE_CANDIDATES:
@@ -181,8 +191,18 @@ func apply(
 	var torso_pitch := clampf(aim_pitch, -chest_pitch_limit, chest_pitch_limit)
 	var head_yaw := clampf(aim_yaw, -head_yaw_limit, head_yaw_limit)
 	var head_pitch := clampf(aim_pitch, -head_pitch_limit, head_pitch_limit)
-	var ready_scale := lerpf(0.30, 1.0, clampf(ready_weight, 0.0, 1.0))
-	ready_scale *= lerpf(1.0, 0.62, clampf(obstruction_amount, 0.0, 1.0))
+	var normalized_ready := clampf(ready_weight, 0.0, 1.0)
+	var obstruction_scale := lerpf(
+		1.0,
+		0.62,
+		clampf(obstruction_amount, 0.0, 1.0)
+	)
+	# The authored full-body rifle run owns the relaxed torso. Ready Aim blends
+	# the spine toward the reticle. The head keeps a small independent look layer
+	# during relaxed travel so the operator can scan without straightening the
+	# complete body silhouette.
+	var torso_ready_scale := normalized_ready * obstruction_scale
+	var head_ready_scale := lerpf(0.22, 1.0, normalized_ready) * obstruction_scale
 
 	last_applied_yaw = 0.0
 	last_applied_pitch = 0.0
@@ -191,8 +211,8 @@ func apply(
 		gait_roll_retention
 	)
 	for bone_name: StringName in TORSO_YAW_WEIGHTS:
-		var yaw_amount := torso_yaw * float(TORSO_YAW_WEIGHTS[bone_name]) * ready_scale
-		var pitch_amount := torso_pitch * float(TORSO_PITCH_WEIGHTS[bone_name]) * ready_scale
+		var yaw_amount := torso_yaw * float(TORSO_YAW_WEIGHTS[bone_name]) * torso_ready_scale
+		var pitch_amount := torso_pitch * float(TORSO_PITCH_WEIGHTS[bone_name]) * torso_ready_scale
 		if bone_name == &"spine2":
 			pitch_amount += recoil_pitch
 		_apply_bone_additive(
@@ -203,14 +223,9 @@ func apply(
 		)
 		last_applied_yaw += yaw_amount
 		last_applied_pitch += pitch_amount
-	var residual_head_yaw := head_yaw - torso_yaw
-	var residual_head_pitch := head_pitch - torso_pitch
-	for bone_name: StringName in HEAD_RESIDUAL_WEIGHTS:
-		_apply_bone_additive(
-			bone_name,
-			residual_head_yaw * float(HEAD_RESIDUAL_WEIGHTS[bone_name]) * ready_scale,
-			residual_head_pitch * float(HEAD_RESIDUAL_WEIGHTS[bone_name]) * ready_scale
-		)
+	var residual_head_yaw := head_yaw - last_applied_yaw
+	var residual_head_pitch := head_pitch - last_applied_pitch
+	_apply_head_additive(residual_head_yaw, residual_head_pitch, head_ready_scale)
 
 	# Arms inherit the complete reticle-facing spine transform. Shoulders only
 	# receive the small recoil impulse so they do not overshoot the aim direction.
@@ -218,12 +233,89 @@ func apply(
 	_apply_bone_additive(&"left_shoulder", 0.0, shoulder_pitch)
 	_apply_bone_additive(&"right_shoulder", 0.0, shoulder_pitch)
 	_apply_full_body_peek(posture_name, peek_amount)
-	# Keep the combat silhouette broad and level. The spine supplies the large
-	# aim turn, these clavicles square the upper-arm roots, and hand IK performs
-	# only the final weapon reach. This layer is visual and never rotates hips or
-	# changes the authoritative aim direction.
-	_apply_square_shoulders(world_aim_target)
+	# The authored animation owns the shoulder silhouette. The former global
+	# square-shoulder pass rewrote every clip after Animation Studio and made the
+	# playable operator diverge from its approved pose. Reticle-facing spine aim
+	# and bounded hand IK remain later presentation layers.
+	last_chest_square_correction_deg = 0.0
+	last_shoulder_square_error_deg = 0.0
+	last_shoulder_level_error_cm = 0.0
 	last_angular_error_deg = rad_to_deg(absf(aim_yaw - last_applied_yaw))
+
+
+func apply_head_look_at(
+	world_target: Vector3,
+	weight: float = 1.0,
+	yaw_limit: float = deg_to_rad(56.0),
+	pitch_limit: float = deg_to_rad(34.0)
+) -> Vector2:
+	if skeleton == null or world_target == Vector3.ZERO:
+		return Vector2.ZERO
+	var head_index := int(bone_indices.get(&"head", -1))
+	var head_origin := (
+		(skeleton.global_transform * skeleton.get_bone_global_pose(head_index)).origin
+		if head_index >= 0
+		else skeleton.global_position
+	)
+	var direction := (world_target - head_origin).normalized()
+	if direction.length_squared() < 0.50:
+		return Vector2.ZERO
+	var body_basis := skeleton.global_basis.orthonormalized()
+	var body_forward := (-body_basis.z).normalized()
+	var body_right := body_basis.x.normalized()
+	var body_up := body_basis.y.normalized()
+	var flat_direction := (direction - body_up * direction.dot(body_up)).normalized()
+	var yaw := 0.0
+	if flat_direction.length_squared() > 0.50:
+		yaw = atan2(flat_direction.dot(body_right), flat_direction.dot(body_forward))
+	var pitch := asin(clampf(direction.dot(body_up), -1.0, 1.0))
+	yaw = clampf(yaw, -yaw_limit, yaw_limit)
+	pitch = clampf(pitch, -pitch_limit, pitch_limit)
+	_apply_head_additive(yaw, pitch, clampf(weight, 0.0, 1.0))
+	return Vector2(yaw, pitch)
+
+
+func _apply_head_additive(yaw: float, pitch: float, weight: float) -> void:
+	for bone_name: StringName in HEAD_RESIDUAL_WEIGHTS:
+		var index := int(bone_indices.get(bone_name, -1))
+		if index < 0:
+			continue
+		var current := skeleton.get_bone_pose_rotation(index).normalized()
+		var base := current
+		# AnimationPlayer may leave an unchanged/paused frame in place. In that
+		# case current is our own previous result, not a fresh authored pose.
+		# Reuse its recorded base instead of multiplying head look forever.
+		if (
+			head_look_applied_rotations.has(index)
+			and current.angle_to(
+				head_look_applied_rotations[index] as Quaternion
+			) <= HEAD_LOOK_REUSE_EPSILON_RAD
+		):
+			base = head_look_base_rotations.get(index, current) as Quaternion
+		var bone_weight := float(HEAD_RESIDUAL_WEIGHTS[bone_name]) * weight
+		var additive := (
+			Quaternion(Vector3.UP, yaw * bone_weight)
+			* Quaternion(Vector3.RIGHT, pitch * bone_weight)
+		).normalized()
+		var applied := (base * additive).normalized()
+		skeleton.set_bone_pose_rotation(index, applied)
+		head_look_base_rotations[index] = base
+		head_look_applied_rotations[index] = applied
+
+
+func clear_head_look_additive() -> void:
+	if skeleton != null:
+		for raw_index in head_look_applied_rotations.keys():
+			var index := int(raw_index)
+			var current := skeleton.get_bone_pose_rotation(index).normalized()
+			var applied := head_look_applied_rotations[index] as Quaternion
+			if current.angle_to(applied) <= HEAD_LOOK_REUSE_EPSILON_RAD:
+				skeleton.set_bone_pose_rotation(
+					index,
+					head_look_base_rotations.get(index, current) as Quaternion
+				)
+	head_look_base_rotations.clear()
+	head_look_applied_rotations.clear()
 
 
 func get_debug_state() -> Dictionary:
@@ -266,7 +358,7 @@ func _apply_default_hip_leveling(posture_name: StringName, maximum_trim_deg: flo
 		return
 	# Remove most of a small baked idle slant, but cap the trim so authored
 	# locomotion still keeps its deliberate tactical hip action.
-	var trim := minf(absf(current_roll) * 0.70, deg_to_rad(maximum_trim_deg))
+	var trim := minf(absf(current_roll) * 0.80, deg_to_rad(maximum_trim_deg))
 	trim *= -signf(current_roll)
 	skeleton.set_bone_pose_rotation(
 		hips_index,

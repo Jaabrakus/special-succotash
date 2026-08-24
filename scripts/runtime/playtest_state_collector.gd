@@ -20,6 +20,8 @@ const SAVED_STATE_PATHS := {
 const OPTIONAL_STATE_PATHS := {
 	"map": "res://config/maps/current_map.json",
 }
+const SELECTED_MAP_SETTING := "socom/session/selected_map_document"
+const USER_ACTIVE_MAP_PATH := "user://maps/active_map.json"
 
 var active_bundle: Dictionary = {}
 var last_errors: Array[String] = []
@@ -37,9 +39,12 @@ func collect_saved_state() -> Dictionary:
 			sources
 		)
 	for state_id: String in OPTIONAL_STATE_PATHS:
-		var optional_path := String(OPTIONAL_STATE_PATHS[state_id])
-		if FileAccess.file_exists(optional_path):
-			_collect_dictionary(state_id, optional_path, states, sources)
+		_collect_optional_dictionary(
+			state_id,
+			String(OPTIONAL_STATE_PATHS[state_id]),
+			states,
+			sources
+		)
 
 	var loadout: Dictionary = states.get("operator_loadout", {})
 	var weapon_path := String(loadout.get("rig_config", ""))
@@ -138,4 +143,45 @@ func _collect_dictionary(
 		"path": path,
 		"sha256": FileAccess.get_sha256(path),
 		"modified_unix_time": int(FileAccess.get_modified_time(path)),
+	}
+
+
+func _collect_optional_dictionary(
+	state_id: String,
+	fallback_path: String,
+	states: Dictionary,
+	sources: Dictionary
+) -> void:
+	if state_id == "map":
+		var session_selected: Variant = ProjectSettings.get_setting(SELECTED_MAP_SETTING, {})
+		if session_selected is Dictionary and not (session_selected as Dictionary).is_empty():
+			_collect_dictionary_value(
+				state_id,
+				session_selected as Dictionary,
+				"session://selected_map_document",
+				states,
+				sources
+			)
+			return
+		if FileAccess.file_exists(USER_ACTIVE_MAP_PATH):
+			_collect_dictionary(state_id, USER_ACTIVE_MAP_PATH, states, sources)
+			return
+	if FileAccess.file_exists(fallback_path):
+		_collect_dictionary(state_id, fallback_path, states, sources)
+
+
+func _collect_dictionary_value(
+	state_id: String,
+	value: Dictionary,
+	source_path: String,
+	states: Dictionary,
+	sources: Dictionary
+) -> void:
+	var snapshot := value.duplicate(true)
+	var serialized := JSON.stringify(snapshot)
+	states[state_id] = snapshot
+	sources[state_id] = {
+		"path": source_path,
+		"sha256": serialized.sha256_text(),
+		"modified_unix_time": int(Time.get_unix_time_from_system()),
 	}

@@ -56,14 +56,14 @@ func _run() -> void:
     var bounced_center: Vector2 = dynamic_reticle.call("get_visual_center")
     _expect(
         bounced_center.y < authoritative_center.y
-        and is_equal_approx(bounced_center.x, authoritative_center.x),
-        "center dot and outer ticks share the upward shot bounce"
+        and float(dynamic_reticle.get("shot_bounce_amplitude")) > 0.0,
+        "center dot and outer ticks bounce upward when a shot fires"
     )
     _expect(
         (dynamic_reticle.call("get_authoritative_center") as Vector2).is_equal_approx(
             authoritative_center
         ),
-        "visual center-dot bounce does not move ballistic aim authority"
+        "stable firing reticle remains on ballistic aim authority"
     )
     dynamic_reticle.set(
         "shot_bounce_age",
@@ -73,7 +73,7 @@ func _run() -> void:
         (dynamic_reticle.call("get_visual_center") as Vector2).is_equal_approx(
             authoritative_center
         ),
-        "center dot recovers to the authoritative center after recoil"
+        "center dot remains at the authoritative center after recoil"
     )
     dynamic_reticle.call(
         "update_reticle_state",

@@ -1,9 +1,17 @@
 extends "res://scripts/labs/animation_studio/animation_studio_model.gd"
 
 func _process(delta: float) -> void:
-    if active_editor_page != "Pose" and not dragging and not panning and active_dragged_bone == "":
+    if (
+        active_editor_page != "Pose"
+        and active_editor_page != "States"
+        and active_editor_page != "Casting"
+        and not dragging
+        and not panning
+        and active_dragged_bone == ""
+    ):
         orbit_yaw += delta * 0.04
     _update_camera()
+    _update_animation_studio_aim_reticle()
     _update_ui_state()
     _update_assembly_playhead()
     if active_editor_page == "Build" and build_waiting_for_clip:
@@ -13,8 +21,26 @@ func _process(delta: float) -> void:
             skeleton.clear_bones_global_pose_override()
             skeleton.reset_bone_poses()
     elif active_editor_page != "Build":
-        _apply_two_hand_ik()
+        _prepare_state_event_return_frame()
+        if (
+            active_editor_page == "States"
+            and (state_event_effect_active_seconds > 0.0 or state_event_effect_release_seconds > 0.0)
+            and animation_player != null
+            and not animation_player.current_animation.is_empty()
+        ):
+            # Re-sample the current authored frame before additive presentation
+            # layers whether playback is paused or running. AnimationPlayer does
+            # not promise to rewrite every unchanged bone on every render tick,
+            # so an additive head-look could otherwise stack across a loop.
+            animation_player.seek(animation_player.current_animation_position, true)
+        _update_animation_correction_overlay()
         _apply_bone_rot_overrides()
+        var state_effect_owns_weapon := _update_state_event_effect_preview(delta)
+        if not state_effect_owns_weapon:
+            _apply_two_hand_ik()
+        _update_animation_rig_visual_overlay()
+    elif animation_rig_overlay:
+        animation_rig_overlay.visible = false
     _update_skeleton_chain_visual()
     _update_bubble_positions()
     _update_pose_transform_gizmo()
@@ -30,26 +56,27 @@ func _rebuild_limb_bubbles() -> void:
 
     _ensure_skeleton_chain_visual()
     _ensure_pose_transform_gizmo()
+    _ensure_animation_rig_overlay()
 
     # Direct-manipulation landmarks. The small rendered node is separate from
     # its generous screen-space picking radius, so joints remain easy to grab
     # without covering the operator.
     var landmarks := {
-        "HEAD": {"names": ["mixamorig_Head", "mixamorig:Head", "head"], "color": Color(1.0, 0.85, 0.2, 0.95), "radius": 0.040},
-        "NECK": {"names": ["mixamorig_Neck", "mixamorig:Neck", "neck"], "color": Color(0.45, 1.0, 0.55, 0.95), "radius": 0.032},
-        "CHEST": {"names": ["mixamorig_Spine2", "mixamorig:Spine2", "Spineupper"], "color": Color(0.45, 1.0, 0.55, 0.95), "radius": 0.040},
-        "SPINE": {"names": ["mixamorig_Spine1", "mixamorig:Spine1", "Spine"], "color": Color(0.45, 1.0, 0.55, 0.95), "radius": 0.037},
-        "HIPS": {"names": ["mixamorig_Hips", "mixamorig:Hips", "Spinelower"], "color": Color(1.0, 1.0, 1.0, 0.95), "radius": 0.043},
-        "RIGHT_SHOULDER": {"names": ["mixamorig_RightShoulder", "mixamorig:RightShoulder", "Shoulder.R"], "color": Color(0.12, 0.9, 1.0, 0.95), "radius": 0.034},
-        "LEFT_SHOULDER": {"names": ["mixamorig_LeftShoulder", "mixamorig:LeftShoulder", "Shoulder.L"], "color": Color(0.12, 0.9, 1.0, 0.95), "radius": 0.034},
-        "RIGHT_ELBOW": {"names": ["mixamorig_RightForeArm", "mixamorig:RightForeArm", "ArmLower.R"], "color": Color(0.12, 0.9, 1.0, 0.95), "radius": 0.034},
-        "LEFT_ELBOW": {"names": ["mixamorig_LeftForeArm", "mixamorig:LeftForeArm", "ArmLower.L"], "color": Color(0.12, 0.9, 1.0, 0.95), "radius": 0.034},
-        "RIGHT_HAND": {"names": ["mixamorig_RightHand", "mixamorig:RightHand", "Hand.R.001"], "color": Color(0.1, 0.95, 0.85, 0.98), "radius": 0.037},
-        "LEFT_HAND": {"names": ["mixamorig_LeftHand", "mixamorig:LeftHand", "Hand.L.001"], "color": Color(0.2, 1.0, 0.35, 0.98), "radius": 0.037},
-        "RIGHT_KNEE": {"names": ["mixamorig_RightLeg", "mixamorig:RightLeg", "LegLower.R"], "color": Color(0.2, 0.58, 1.0, 0.95), "radius": 0.035},
-        "LEFT_KNEE": {"names": ["mixamorig_LeftLeg", "mixamorig:LeftLeg", "LegLower.L"], "color": Color(0.2, 0.58, 1.0, 0.95), "radius": 0.035},
-        "RIGHT_FOOT": {"names": ["mixamorig_RightFoot", "mixamorig:RightFoot", "Foot.R"], "color": Color(1.0, 0.5, 0.1, 0.98), "radius": 0.037},
-        "LEFT_FOOT": {"names": ["mixamorig_LeftFoot", "mixamorig:LeftFoot", "Foot.L"], "color": Color(1.0, 0.2, 0.6, 0.98), "radius": 0.037},
+        "HEAD": {"names": ["mixamorig_Head", "mixamorig:Head", "head", "Bip01 Head"], "color": Color(1.0, 0.85, 0.2, 0.95), "radius": 0.040},
+        "NECK": {"names": ["mixamorig_Neck", "mixamorig:Neck", "neck", "Bip01 Neck"], "color": Color(0.45, 1.0, 0.55, 0.95), "radius": 0.032},
+        "CHEST": {"names": ["mixamorig_Spine2", "mixamorig:Spine2", "Spineupper", "Bip01 Spine3"], "color": Color(0.45, 1.0, 0.55, 0.95), "radius": 0.040},
+        "SPINE": {"names": ["mixamorig_Spine1", "mixamorig:Spine1", "Spine", "Bip01 Spine1"], "color": Color(0.45, 1.0, 0.55, 0.95), "radius": 0.037},
+        "HIPS": {"names": ["mixamorig_Hips", "mixamorig:Hips", "Spinelower", "Bip01 Pelvis"], "color": Color(1.0, 1.0, 1.0, 0.95), "radius": 0.043},
+        "RIGHT_SHOULDER": {"names": ["mixamorig_RightShoulder", "mixamorig:RightShoulder", "Shoulder.R", "Bip01 R Clavicle"], "color": Color(0.12, 0.9, 1.0, 0.95), "radius": 0.034},
+        "LEFT_SHOULDER": {"names": ["mixamorig_LeftShoulder", "mixamorig:LeftShoulder", "Shoulder.L", "Bip01 L Clavicle"], "color": Color(0.12, 0.9, 1.0, 0.95), "radius": 0.034},
+        "RIGHT_ELBOW": {"names": ["mixamorig_RightForeArm", "mixamorig:RightForeArm", "ArmLower.R", "Bip01 R Forearm"], "color": Color(0.12, 0.9, 1.0, 0.95), "radius": 0.034},
+        "LEFT_ELBOW": {"names": ["mixamorig_LeftForeArm", "mixamorig:LeftForeArm", "ArmLower.L", "Bip01 L Forearm"], "color": Color(0.12, 0.9, 1.0, 0.95), "radius": 0.034},
+        "RIGHT_HAND": {"names": ["mixamorig_RightHand", "mixamorig:RightHand", "Hand.R.001", "Bip01 R Hand"], "color": Color(0.1, 0.95, 0.85, 0.98), "radius": 0.037},
+        "LEFT_HAND": {"names": ["mixamorig_LeftHand", "mixamorig:LeftHand", "Hand.L.001", "Bip01 L Hand"], "color": Color(0.2, 1.0, 0.35, 0.98), "radius": 0.037},
+        "RIGHT_KNEE": {"names": ["mixamorig_RightLeg", "mixamorig:RightLeg", "LegLower.R", "Bip01 R Calf"], "color": Color(0.2, 0.58, 1.0, 0.95), "radius": 0.035},
+        "LEFT_KNEE": {"names": ["mixamorig_LeftLeg", "mixamorig:LeftLeg", "LegLower.L", "Bip01 L Calf"], "color": Color(0.2, 0.58, 1.0, 0.95), "radius": 0.035},
+        "RIGHT_FOOT": {"names": ["mixamorig_RightFoot", "mixamorig:RightFoot", "Foot.R", "Bip01 R Foot"], "color": Color(1.0, 0.5, 0.1, 0.98), "radius": 0.037},
+        "LEFT_FOOT": {"names": ["mixamorig_LeftFoot", "mixamorig:LeftFoot", "Foot.L", "Bip01 L Foot"], "color": Color(1.0, 0.2, 0.6, 0.98), "radius": 0.037},
     }
 
     for landmark_id in landmarks.keys():
@@ -112,6 +139,13 @@ func _ensure_pose_transform_gizmo() -> void:
     pose_transform_gizmo.visible = false
     add_child(pose_transform_gizmo)
 
+func _ensure_animation_rig_overlay() -> void:
+    if animation_rig_overlay != null:
+        return
+    animation_rig_overlay = ANIMATION_RIG_OVERLAY_SCRIPT.new()
+    animation_rig_overlay.visible = false
+    add_child(animation_rig_overlay)
+
 func _update_pose_transform_gizmo() -> void:
     if pose_transform_gizmo == null:
         return
@@ -119,22 +153,43 @@ func _update_pose_transform_gizmo() -> void:
         active_editor_page == "Pose"
         and bubbles_enabled
         and skeleton != null
-        and not selected_pose_bone.is_empty()
+        and (
+            not selected_pose_bone.is_empty()
+            or not animation_rig_selected_target.is_empty()
+        )
     )
     pose_transform_gizmo.visible = should_show
     if not should_show:
         return
-    var bone_index := skeleton.find_bone(selected_pose_bone)
-    if bone_index < 0:
-        pose_transform_gizmo.visible = false
-        return
-    var bone_global := skeleton.global_transform * skeleton.get_bone_global_pose(bone_index)
-    pose_transform_gizmo.global_position = bone_global.origin
+    var target_position := Vector3.ZERO
+    if not animation_rig_selected_target.is_empty() and animation_rig_overlay:
+        target_position = animation_rig_overlay.target_position(animation_rig_selected_target)
+    else:
+        var bone_index := skeleton.find_bone(selected_pose_bone)
+        if bone_index < 0:
+            pose_transform_gizmo.visible = false
+            return
+        target_position = (
+            skeleton.global_transform * skeleton.get_bone_global_pose(bone_index)
+        ).origin
+    # Keep the large transform control in a stable workbench corner. The
+    # selected fine-joint dot stays on the body, so the rings never cover the
+    # pose that the designer is trying to inspect.
+    var viewport_size := get_viewport().get_visible_rect().size
+    var corner_screen_position := Vector2(
+        viewport_size.x * 0.72,
+        viewport_size.y * 0.18
+    )
+    var target_depth := maxf(camera.global_position.distance_to(target_position), 0.5)
+    pose_transform_gizmo.global_position = camera.project_position(
+        corner_screen_position,
+        target_depth
+    )
     # Keep axes aligned to the operator rig rather than inheriting a wrist or
     # ankle's animated twist. This matches the predictable Gunsmith controls.
     pose_transform_gizmo.global_basis = skeleton.global_basis.orthonormalized()
     if camera:
-        var distance_scale := clampf(camera.global_position.distance_to(bone_global.origin) / 3.4, 0.72, 1.45)
+        var distance_scale := clampf(target_depth / 3.4, 0.72, 1.45)
         pose_transform_gizmo.scale = Vector3.ONE * distance_scale
 
 func _update_skeleton_chain_visual() -> void:
@@ -190,7 +245,15 @@ func _sequence_region_for_bone_name(bone_name: String) -> String:
     return ""
 
 func _update_bubble_positions() -> void:
-    if not bubbles_enabled or skeleton == null:
+    # Rig & Hands uses the fine-joint overlay. Keep the old large landmark
+    # bubbles available on the other Studio pages, but do not draw duplicate
+    # controls over the operator while fine joint editing is active.
+    var show_large_landmarks := (
+        bubbles_enabled
+        and active_editor_page != "Pose"
+        and active_editor_page != "States"
+    )
+    if not show_large_landmarks or skeleton == null:
         for b in bubble_nodes.values():
             if is_instance_valid(b["node"]):
                 b["node"].visible = false
@@ -200,7 +263,7 @@ func _update_bubble_positions() -> void:
         var b: Dictionary = bubble_nodes[landmark_id]
         var node: Node3D = b["node"]
         if is_instance_valid(node):
-            node.visible = bubbles_enabled
+            node.visible = show_large_landmarks
             var bone_global_trans := skeleton.global_transform * skeleton.get_bone_global_pose(b["bone_idx"])
             node.global_position = bone_global_trans.origin
             var is_selected: bool = b["bone_name"] in [selected_pose_bone, active_dragged_bone]
@@ -210,7 +273,10 @@ func _update_bubble_positions() -> void:
                 material.albedo_color = Color.WHITE if is_selected else b["color"]
 
 func _apply_bone_rot_overrides() -> void:
-    if skeleton == null:
+    # These are interactive Pose-authoring offsets. States and Casting have
+    # their own explicit presentation layers and must never inherit a stale
+    # joint offset from a previously edited animation.
+    if skeleton == null or active_editor_page != "Pose":
         return
     var edited_bones: Dictionary = {}
     for bone_name in bone_rot_offsets.keys():
@@ -265,6 +331,10 @@ func _pause_for_pose_edit() -> void:
         animation_player.pause()
         animation_player.seek(current_time, true)
     is_playing = false
+    # Pausing must preserve the exact authored hierarchy. Detaching the rifle
+    # made the paused pose a different rig from the playing pose and created a
+    # hand -> weapon -> hand feedback loop when IK ran on the next frame.
+    _sync_animation_preview_weapon_parent()
     _capture_all_edit_bases_after_seek()
 
 func _toggle_pose_edit_mode() -> void:
@@ -477,22 +547,91 @@ func _drag_selected_translation_axis(axis: StringName, mouse_delta_from_start: V
 func _apply_two_hand_ik() -> void:
     if not two_hand_ik_enabled or skeleton == null or left_hand_marker == null or current_weapon == WeaponType.NONE:
         return
-    # Skip IK on scaled models — the target positions don't match
-    if model_root and model_root.scale.x > 1.5:
+    if (
+        WEAPON_OWNERSHIP_CONTRACT.ready_solver_owns_weapon(
+            animation_preview_weapon_owner
+        )
+        or animation_preview_weapon_owner
+        == WEAPON_OWNERSHIP_CONTRACT.RELAXED_RIFLE_LOCOMOTION
+    ):
+        # Ready Aim has one stable source of truth: the saved Gunsmith
+        # right-hand mount. Reapply it before support-arm IK so a completed
+        # event, scrub, or pause cannot leave its temporary weapon transform
+        # behind. The left palm follows the rifle; it never drives the rifle.
+        animation_weapon_ownership_preview.restore_hand_mount()
+    if animation_preview_weapon_owner in [
+        WEAPON_OWNERSHIP_CONTRACT.MOBILITY_RIGHT_HAND,
+    ]:
+        # Full-body mobility carries the rifle from authored palm motion and
+        # does not run support-hand IK. Ready and relaxed two-hand states use
+        # the stable mount above; feeding either through this placement pass
+        # and then through weapon-to-hand IK creates a circular solve.
+        animation_weapon_ownership_preview.stabilize_two_hand_carry(
+            right_hand_marker,
+            left_hand_marker,
+            weapon_barrel_base_marker,
+            weapon_muzzle_marker,
+            weapon_optic_marker,
+            _animation_placement_direction_world()
+        )
+    if not _animation_preview_uses_ready_hand_solver():
+        animation_rig_ik_preview.stop()
         return
-    
-    var left_hand_idx := skeleton.find_bone("mixamorig_LeftHand")
-    if left_hand_idx == -1: left_hand_idx = skeleton.find_bone("mixamorig:LeftHand")
-    if left_hand_idx == -1: left_hand_idx = skeleton.find_bone("Hand.L.001")
-    if left_hand_idx == -1: return
+    if active_editor_page == "Pose" and not animation_correction_enabled:
+        # Rig & Hands keeps an explicit raw-source inspection mode. Normal
+        # Preview/Casting playback, however, must show the shared two-hand
+        # presentation contract rather than a visibly detached support hand.
+        animation_rig_ik_preview.stop()
+        return
+    # A joint selection only releases the arm that owns that joint. Selecting
+    # the chest, head, spine, or legs must not disconnect both hands from the
+    # rifle. This preserves one writer per arm without disabling the whole rig.
+    var solve_left_arm := true
+    # The rifle is owned by the animated right hand. Solving that same hand to
+    # a marker below its own weapon hierarchy is cyclic and must never happen.
+    # The editor correction layer may only bring the support hand to the rifle.
+    var solve_right_arm := false
+    if active_editor_page == "Pose" and not selected_pose_bone.is_empty():
+        var selected_lower := selected_pose_bone.to_lower()
+        solve_left_arm = not (
+            "leftarm" in selected_lower
+            or "leftforearm" in selected_lower
+            or "lefthand" in selected_lower
+            or ".l" in selected_lower
+        )
+    if animation_rig_active_drag_target == &"right_elbow_pole":
+        solve_left_arm = false
+    # The imported PS1 operator is intentionally scaled in the Studio scene.
+    # SkeletonIK receives world-space hand targets and a skeleton-space magnet,
+    # so scale is already accounted for. Skipping scaled models disconnected
+    # every hand and elbow control from the visible operator.
+    animation_rig_ik_preview.solve(
+        skeleton,
+        left_hand_marker,
+        right_hand_marker,
+        correction_left_elbow,
+        correction_right_elbow,
+        correction_right_hand_rotation,
+        solve_left_arm,
+        solve_right_arm,
+        _active_left_palm_rotation_degrees()
+    )
 
-    var target_global_pos := left_hand_marker.global_position
-    var target_in_skel := skeleton.global_transform.affine_inverse() * target_global_pos
-    var current_hand_pose := skeleton.get_bone_global_pose(left_hand_idx)
-    
-    var blend_pos := current_hand_pose.origin.lerp(target_in_skel, 0.85 * two_hand_ik_weight)
-    current_hand_pose.origin = blend_pos
-    skeleton.set_bone_global_pose_override(left_hand_idx, current_hand_pose, 0.85 * two_hand_ik_weight, true)
+func _active_left_palm_rotation_degrees() -> Vector3:
+    if weapon_calibrated_pivot == null:
+        return Vector3.ZERO
+    var active_map: Variant = weapon_calibrated_pivot.get_meta(
+        "active_animation_hand_map",
+        {}
+    )
+    if not active_map is Dictionary:
+        return Vector3.ZERO
+    var hand_map := active_map as Dictionary
+    return Vector3(
+        float(hand_map.get("palm_pitch_deg", 0.0)),
+        float(hand_map.get("palm_yaw_deg", 0.0)),
+        float(hand_map.get("palm_roll_deg", 0.0))
+    )
 
 func _update_ui_state() -> void:
     if animation_player == null or filtered_entries.is_empty():

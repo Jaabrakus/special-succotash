@@ -13,6 +13,9 @@ var check_accumulator := 0.0
 
 func configure(document: Dictionary, listener_node: Node3D) -> void:
 	listener = listener_node
+	var propagation := get_node_or_null("/root/AcousticPropagation")
+	if propagation != null and propagation.has_method("configure_map"):
+		propagation.call("configure_map", document)
 	zones.clear()
 	for object: Dictionary in MapDocument.normalize(document).get("objects", []):
 		if String(object.get("type", "")) == "ambience_zone":

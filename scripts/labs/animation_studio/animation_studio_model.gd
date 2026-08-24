@@ -6,6 +6,7 @@ func _load_skin(skin: SkinType) -> void:
         model_root = null
     
     current_skin = skin
+    animation_placement_anchor_local_by_posture.clear()
     
     match skin:
         SkinType.PS1_GAS_MASK_SOLDIER:
@@ -24,9 +25,21 @@ func _load_skin(skin: SkinType) -> void:
 
         SkinType.PS1_NIGHT_VISION_SEAL:
             model_root = PS1_NV_SCENE.instantiate() as Node3D
+
+        SkinType.COUNTER_STRIKE_URBAN:
+            model_root = COUNTER_STRIKE_URBAN_SCENE.instantiate() as Node3D
+            # The FBX hierarchy already carries its centimetre-to-metre scale.
+            # A small skin scale matches the PS1 operator's rendered height;
+            # multiplying by the raw skeleton unit ratio would apply that FBX
+            # conversion twice and put the camera inside the character.
+            model_root.scale = Vector3.ONE * 0.94
+            _apply_counter_strike_urban_textures(model_root)
     
     model_root.name = "PreviewOperator"
-    model_root.rotation.y = PI
+    # Godot's FBX importer already converts Urban's Z-up source hierarchy to
+    # the Y-up scene. Every preview skin therefore needs only the same facing
+    # correction as the PS1 operator.
+    model_root.rotation_degrees = Vector3(0.0, 180.0, 0.0)
     add_child(model_root)
 
     if skin == SkinType.SOCOM_OPERATOR:
@@ -71,7 +84,6 @@ func _load_skin(skin: SkinType) -> void:
         highlight_shortlist_loaded = true
 
     _filter_category(current_category)
-    clip_index = 0
     if active_editor_page == "Build":
         _show_body_composer_rest_pose()
     else:
@@ -93,6 +105,21 @@ func _apply_trooper_texture(node: Node) -> void:
         (node as MeshInstance3D).material_override = mat
     for c in node.get_children():
         _apply_trooper_texture(c)
+
+
+func _apply_counter_strike_urban_textures(node: Node) -> void:
+    if node is MeshInstance3D:
+        var material := StandardMaterial3D.new()
+        material.albedo_texture = (
+            COUNTER_STRIKE_URBAN_BACKPACK_TEXTURE
+            if "defuse" in node.name.to_lower() or "backpack" in node.name.to_lower()
+            else COUNTER_STRIKE_URBAN_BODY_TEXTURE
+        )
+        material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+        material.roughness = 0.92
+        (node as MeshInstance3D).material_override = material
+    for child in node.get_children():
+        _apply_counter_strike_urban_textures(child)
 
 func _generate_auto_skinned_mesh(src_mesh: ArrayMesh, skel: Skeleton3D) -> ArrayMesh:
     var src_arrays := src_mesh.surface_get_arrays(0)

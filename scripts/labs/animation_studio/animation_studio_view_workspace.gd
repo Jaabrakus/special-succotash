@@ -1,5 +1,36 @@
 extends "res://scripts/labs/animation_studio/animation_studio_stage.gd"
 
+func _add_animation_correction_slider(
+    parent: Control,
+    label_text: String,
+    key: String,
+    min_val: float,
+    max_val: float,
+    step_val: float
+) -> void:
+    var row := HBoxContainer.new()
+    parent.add_child(row)
+    var label := Label.new()
+    label.text = label_text
+    label.custom_minimum_size.x = 108.0
+    label.add_theme_font_size_override("font_size", 11)
+    row.add_child(label)
+    var slider := HSlider.new()
+    slider.min_value = min_val
+    slider.max_value = max_val
+    slider.step = step_val
+    slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    row.add_child(slider)
+    var value_label := Label.new()
+    value_label.custom_minimum_size.x = 64.0
+    value_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+    value_label.add_theme_font_size_override("font_size", 11)
+    row.add_child(value_label)
+    animation_correction_controls[key] = {"slider": slider, "label": value_label}
+    slider.value_changed.connect(
+        func(value: float): _set_animation_correction_value(key, value)
+    )
+
 func _build_ui_workspace(
     ui_root: Control,
     workspace_margin: float,
@@ -32,7 +63,7 @@ func _build_ui_workspace(
     # powerful, but the first screen now reads like a simple clip browser.
     category_container = HBoxContainer.new()
     top_vbox.add_child(category_container)
-    var categories := ["ALL", "RIFLE LOCO", "PISTOL", "CROUCH & PRONE", "COMBAT & FIRE", "AGILITY & DIVE", "DEATH & HIT", "AUTHORED"]
+    var categories := ["ALL", "LIVE IN GAME", "RIFLE + SHOOTER CANDIDATES", "NEEDS CLASSIFICATION", "RIFLE LOCO", "PISTOL", "CROUCH & PRONE", "COMBAT & FIRE", "AGILITY & DIVE", "DEATH & HIT", "AUTHORED"]
     var category_label := Label.new()
     category_label.text = "Show"
     category_label.custom_minimum_size.x = 48.0
@@ -42,6 +73,9 @@ func _build_ui_workspace(
     category_picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     for category_name in categories:
         category_picker.add_item(category_name)
+    var active_category_index := categories.find(current_category)
+    if active_category_index >= 0:
+        category_picker.select(active_category_index)
     category_picker.item_selected.connect(func(index: int):
         _filter_category(category_picker.get_item_text(index))
     )
@@ -64,6 +98,14 @@ func _build_ui_workspace(
     search_bar.placeholder_text = "🔍 Search 341 Mixamo animations..."
     search_bar.text_changed.connect(_on_search_changed)
     left_vbox.add_child(search_bar)
+
+    var catalog_legend := Label.new()
+    catalog_legend.name = "AnimationCatalogLegend"
+    catalog_legend.text = clip_catalog.legend_text()
+    catalog_legend.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+    catalog_legend.add_theme_font_size_override("font_size", 11)
+    catalog_legend.add_theme_color_override("font_color", Color(0.72, 0.82, 0.92))
+    left_vbox.add_child(catalog_legend)
 
     clip_scroll = ScrollContainer.new()
     clip_scroll.custom_minimum_size = Vector2(300, 240)
@@ -108,12 +150,12 @@ func _build_ui_workspace(
     slot_vbox.add_child(mode_help)
 
     var mode_grid := GridContainer.new()
-    mode_grid.columns = 4
+    mode_grid.columns = 3
     slot_vbox.add_child(mode_grid)
-    for mode_name in ["Preview", "Pose", "Build", "Routes"]:
+    for mode_name in ["Preview", "Casting", "Pose", "Build", "Body", "States"]:
         var mode_button := Button.new()
         mode_button.name = "%sModeButton" % mode_name
-        mode_button.text = mode_name
+        mode_button.text = "Rig & Hands" if mode_name == "Pose" else mode_name
         mode_button.toggle_mode = true
         mode_button.custom_minimum_size = Vector2(90.0, 42.0)
         mode_button.pressed.connect(_show_editor_page.bind(mode_name))
@@ -121,15 +163,18 @@ func _build_ui_workspace(
         editor_mode_buttons[mode_name] = mode_button
 
     var preview_page := VBoxContainer.new()
+    var casting_page := VBoxContainer.new()
     var pose_page := VBoxContainer.new()
     var trim_page := VBoxContainer.new()
     var layers_page := VBoxContainer.new()
     var routes_page := VBoxContainer.new()
     editor_pages = {
         "Preview": preview_page,
+        "Casting": casting_page,
         "Pose": pose_page,
         "Build": trim_page,
-        "Routes": routes_page,
+        "Body": layers_page,
+        "States": routes_page,
     }
     for page_name in editor_pages.keys():
         var editor_page: Control = editor_pages[page_name]
@@ -148,19 +193,37 @@ func _build_ui_workspace(
     preview_help.add_theme_color_override("font_color", Color(0.72, 0.93, 1.0))
     preview_page.add_child(preview_help)
 
+    animation_preview_ownership_label = Label.new()
+    animation_preview_ownership_label.name = "AnimationPreviewOwnershipLabel"
+    animation_preview_ownership_label.text = (
+        "READY AIM • torso faces reticle • weapon solver owns both grips"
+    )
+    animation_preview_ownership_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+    animation_preview_ownership_label.add_theme_font_size_override("font_size", 13)
+    animation_preview_ownership_label.add_theme_color_override(
+        "font_color",
+        Color(0.35, 1.0, 0.62)
+    )
+    preview_page.add_child(animation_preview_ownership_label)
+
+    _build_animation_casting_page(casting_page)
+
     var pose_title := Label.new()
-    pose_title.text = "POSE AN IMPORTED FRAME"
+    pose_title.text = "ANIMATION RIG & HANDS"
     pose_title.add_theme_font_size_override("font_size", 17)
     pose_title.add_theme_color_override("font_color", Color(0.35, 1.0, 0.62))
     pose_page.add_child(pose_title)
     var pose_help := Label.new()
-    pose_help.text = "Click one skeleton joint, then use its XYZ arrows or rotation rings. Only that joint changes by default. Turn Follow Chain on when nearby joints must help. Human limits prevent stretching."
+    pose_help.text = "Tune the selected animation only. Click a joint or choose it below, then adjust joints, elbow bend targets, hand contact, palm orientation, and weapon motion. Saved keys blend across frames."
     pose_help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
     pose_help.add_theme_color_override("font_color", Color(0.72, 0.93, 1.0))
     pose_page.add_child(pose_help)
 
-    pose_follow_chain_button = _touch_button("Follow Chain: OFF")
-    pose_follow_chain_button.tooltip_text = "OFF edits one joint. ON shares part of the change with its anatomical parent."
+    pose_follow_chain_button = _touch_button("Isolated Joint: ON")
+    pose_follow_chain_button.tooltip_text = (
+        "ON writes only the selected joint correction and pauses hand IK. "
+        + "Turn it OFF only when you intentionally want parent joints to help."
+    )
     pose_follow_chain_button.pressed.connect(_toggle_pose_follow_chain)
     pose_page.add_child(pose_follow_chain_button)
 
@@ -168,6 +231,25 @@ func _build_ui_workspace(
     pose_selected_bone_label.text = "SELECTED JOINT: click a cyan skeleton node"
     pose_selected_bone_label.add_theme_color_override("font_color", Color.WHITE)
     pose_page.add_child(pose_selected_bone_label)
+
+    animation_rig_joint_picker = OptionButton.new()
+    animation_rig_joint_picker.name = "AnimationRigJointPicker"
+    animation_rig_joint_picker.tooltip_text = "Select the same bounded rig controls that were previously exposed in Gunsmith."
+    for joint_name: StringName in JOINT_CONTROL_SCHEMA.SELECTABLE_JOINTS:
+        animation_rig_joint_picker.add_item(JOINT_CONTROL_SCHEMA.display_name(joint_name))
+        animation_rig_joint_picker.set_item_metadata(
+            animation_rig_joint_picker.item_count - 1,
+            joint_name
+        )
+    animation_rig_joint_picker.item_selected.connect(_select_animation_rig_joint)
+    pose_page.add_child(animation_rig_joint_picker)
+
+    var rig_quick_controls := preload(
+        "res://scripts/labs/animation_rig_quick_controls.gd"
+    ).new()
+    rig_quick_controls.target_selected.connect(_select_animation_rig_target)
+    rig_quick_controls.elbow_guides_toggled.connect(_toggle_animation_elbow_guides)
+    pose_page.add_child(rig_quick_controls)
 
     var move_title := Label.new()
     move_title.text = "FINE POSITION (hips/root only)"
@@ -184,6 +266,105 @@ func _build_ui_workspace(
     _add_pose_slider(pose_page, "Bend", "rot_x", -90.0, 90.0, 1.0)
     _add_pose_slider(pose_page, "Turn", "rot_y", -120.0, 120.0, 1.0)
     _add_pose_slider(pose_page, "Twist", "rot_z", -90.0, 90.0, 1.0)
+
+    var correction_separator := HSeparator.new()
+    pose_page.add_child(correction_separator)
+    animation_correction_toggle = CheckButton.new()
+    animation_correction_toggle.name = "AnimationCorrectionOverlayToggle"
+    animation_correction_toggle.text = "Edit This Animation's Rig & Hands"
+    animation_correction_toggle.tooltip_text = (
+        "Add small joint, hand, and weapon corrections over this imported animation. "
+        + "Keys hold to the clip ends and blend between saved frames."
+    )
+    animation_correction_toggle.toggled.connect(_toggle_animation_correction_overlay)
+    pose_page.add_child(animation_correction_toggle)
+    animation_correction_label = Label.new()
+    animation_correction_label.text = "CORRECTION OVERLAY: OFF"
+    animation_correction_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+    animation_correction_label.add_theme_font_size_override("font_size", 11)
+    animation_correction_label.add_theme_color_override("font_color", Color(0.95, 0.72, 1.0))
+    pose_page.add_child(animation_correction_label)
+    animation_correction_panel = VBoxContainer.new()
+    animation_correction_panel.name = "AnimationCorrectionControls"
+    animation_correction_panel.visible = false
+    pose_page.add_child(animation_correction_panel)
+
+    var elbow_title := Label.new()
+    elbow_title.text = "ELBOW BEND TARGETS"
+    elbow_title.add_theme_color_override("font_color", Color(0.9, 0.45, 1.0))
+    animation_correction_panel.add_child(elbow_title)
+    var elbow_help := Label.new()
+    elbow_help.text = "Move the IK bend targets. Arm length stays locked."
+    elbow_help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+    elbow_help.add_theme_font_size_override("font_size", 11)
+    animation_correction_panel.add_child(elbow_help)
+    for side in ["right", "left"]:
+        for axis in ["x", "y", "z"]:
+            _add_animation_correction_slider(
+                animation_correction_panel,
+                "%s Elbow %s" % [side.capitalize(), axis.to_upper()],
+                "%s_elbow_%s" % [side, axis],
+                -0.30,
+                0.30,
+                0.005
+            )
+
+    var hand_title := Label.new()
+    hand_title.text = "HAND CONTACT ON WEAPON"
+    hand_title.add_theme_color_override("font_color", Color(0.25, 0.95, 0.9))
+    animation_correction_panel.add_child(hand_title)
+    for axis in ["x", "y", "z"]:
+        _add_animation_correction_slider(
+            animation_correction_panel, "Right Hand %s" % axis.to_upper(), "right_hand_%s" % axis,
+            -0.50, 0.50, 0.005
+        )
+    for axis in ["x", "y", "z"]:
+        _add_animation_correction_slider(
+            animation_correction_panel, "Left Hand %s" % axis.to_upper(), "left_hand_%s" % axis,
+            -0.50, 0.50, 0.005
+        )
+
+    var palm_title := Label.new()
+    palm_title.text = "PALM ORIENTATION"
+    palm_title.add_theme_color_override("font_color", Color(0.25, 0.95, 0.9))
+    animation_correction_panel.add_child(palm_title)
+    for side in ["right", "left"]:
+        _add_animation_correction_slider(
+            animation_correction_panel, "%s Palm Pitch" % side.capitalize(),
+            "%s_hand_rot_x" % side, -90.0, 90.0, 1.0
+        )
+        _add_animation_correction_slider(
+            animation_correction_panel, "%s Palm Yaw" % side.capitalize(),
+            "%s_hand_rot_y" % side, -120.0, 120.0, 1.0
+        )
+        _add_animation_correction_slider(
+            animation_correction_panel, "%s Palm Roll" % side.capitalize(),
+            "%s_hand_rot_z" % side, -180.0, 180.0, 1.0
+        )
+
+    var weapon_correction_title := Label.new()
+    weapon_correction_title.text = "WEAPON MOTION IN THIS ANIMATION"
+    weapon_correction_title.add_theme_color_override("font_color", Color(1.0, 0.78, 0.3))
+    animation_correction_panel.add_child(weapon_correction_title)
+    for axis in ["x", "y", "z"]:
+        _add_animation_correction_slider(
+            animation_correction_panel, "Weapon %s" % axis.to_upper(), "weapon_pos_%s" % axis,
+            -0.35, 0.35, 0.005
+        )
+    _add_animation_correction_slider(animation_correction_panel, "Weapon Pitch", "weapon_rot_x", -90.0, 90.0, 1.0)
+    _add_animation_correction_slider(animation_correction_panel, "Weapon Yaw", "weapon_rot_y", -120.0, 120.0, 1.0)
+    _add_animation_correction_slider(animation_correction_panel, "Weapon Roll", "weapon_rot_z", -90.0, 90.0, 1.0)
+    var correction_key_row := HBoxContainer.new()
+    animation_correction_panel.add_child(correction_key_row)
+    var save_correction_button := _touch_button("Save Correction Key")
+    save_correction_button.name = "SaveAnimationCorrectionKey"
+    save_correction_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    save_correction_button.pressed.connect(_save_animation_correction_key)
+    correction_key_row.add_child(save_correction_button)
+    var delete_correction_button := _touch_button("Delete Key")
+    delete_correction_button.name = "DeleteAnimationCorrectionKey"
+    delete_correction_button.pressed.connect(_delete_animation_correction_key)
+    correction_key_row.add_child(delete_correction_button)
 
     var contact_row := HBoxContainer.new()
     pose_page.add_child(contact_row)
@@ -333,11 +514,218 @@ func _build_ui_workspace(
     simple_play_button.pressed.connect(_save_animation_work_and_play_latest)
     layers_page.add_child(simple_play_button)
 
+    var simple_guide := PanelContainer.new()
+    simple_guide.name = "SimpleStateWorkflowGuide"
+    var guide_style := StyleBoxFlat.new()
+    guide_style.bg_color = Color(0.025, 0.075, 0.095, 0.98)
+    guide_style.border_color = Color(0.25, 0.88, 1.0)
+    guide_style.set_border_width_all(2)
+    guide_style.set_corner_radius_all(7)
+    guide_style.content_margin_left = 12.0
+    guide_style.content_margin_right = 12.0
+    guide_style.content_margin_top = 10.0
+    guide_style.content_margin_bottom = 10.0
+    simple_guide.add_theme_stylebox_override("panel", guide_style)
+    routes_page.add_child(simple_guide)
+    var guide_vbox := VBoxContainer.new()
+    simple_guide.add_child(guide_vbox)
+    var guide_title := Label.new()
+    guide_title.text = "DO THIS TOP → BOTTOM"
+    guide_title.add_theme_font_size_override("font_size", 16)
+    guide_title.add_theme_color_override("font_color", Color(0.35, 1.0, 0.62))
+    guide_vbox.add_child(guide_title)
+    var step_row := VBoxContainer.new()
+    guide_vbox.add_child(step_row)
+    state_workflow_step_labels.clear()
+    for step_text in [
+        "1  CLICK AN ORANGE EVENT",
+        "2  SEE ITS CONNECTED STATE",
+        "3  WATCH ITS ANIMATION",
+        "4  EDIT FRAMES",
+        "5  SAVE + TEST",
+    ]:
+        var step_label := Label.new()
+        step_label.text = step_text
+        step_label.custom_minimum_size = Vector2(0, 28)
+        step_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+        step_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+        step_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+        step_label.add_theme_font_size_override("font_size", 11)
+        step_row.add_child(step_label)
+        state_workflow_step_labels.append(step_label)
+    state_workflow_current_label = Label.new()
+    state_workflow_current_label.name = "SimpleStateCurrentCue"
+    state_workflow_current_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+    state_workflow_current_label.add_theme_font_size_override("font_size", 13)
+    guide_vbox.add_child(state_workflow_current_label)
+    var guide_actions := HBoxContainer.new()
+    guide_vbox.add_child(guide_actions)
+    state_workflow_primary_button = Button.new()
+    state_workflow_primary_button.name = "SimpleStatePrimaryAction"
+    state_workflow_primary_button.custom_minimum_size.y = 48.0
+    state_workflow_primary_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    state_workflow_primary_button.add_theme_font_size_override("font_size", 14)
+    state_workflow_primary_button.pressed.connect(_on_state_workflow_primary_pressed)
+    guide_actions.add_child(state_workflow_primary_button)
+    var guide_save_play_button := Button.new()
+    guide_save_play_button.name = "SimpleStateSaveAndTest"
+    guide_save_play_button.text = "5  SAVE EVERYTHING + TEST"
+    guide_save_play_button.custom_minimum_size.y = 48.0
+    guide_save_play_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    guide_save_play_button.add_theme_font_size_override("font_size", 14)
+    guide_save_play_button.add_theme_color_override("font_color", Color(0.35, 1.0, 0.55))
+    guide_save_play_button.pressed.connect(_save_animation_work_and_play_latest)
+    guide_actions.add_child(guide_save_play_button)
+
     var routes_help := Label.new()
-    routes_help.text = "ADVANCED ROUTES\nConnect clips to gameplay states. Beginners can ignore this page."
+    routes_help.text = "The graph below is the detailed view. Use the five steps above for normal work."
     routes_help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
     routes_help.add_theme_color_override("font_color", Color(0.9, 0.75, 1.0))
     routes_page.add_child(routes_help)
+
+    var presentation_title := Label.new()
+    presentation_title.text = "CHARACTER PRESENTATION ROUTER — VISUAL SOURCE OF TRUTH"
+    presentation_title.add_theme_color_override("font_color", Color(0.35, 1.0, 0.62))
+    routes_page.add_child(presentation_title)
+
+    gameplay_dictionary_label = Label.new()
+    gameplay_dictionary_label.name = "GameplayDictionaryCard"
+    gameplay_dictionary_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+    gameplay_dictionary_label.add_theme_font_size_override("font_size", 11)
+    gameplay_dictionary_label.add_theme_color_override("font_color", Color(0.83, 0.88, 0.96))
+    routes_page.add_child(gameplay_dictionary_label)
+
+    var event_help := Label.new()
+    event_help.text = "Gameplay approves an event. This router chooses its clip, body layer, blend, effects, and return. Drag an event onto a state card or connect it below."
+    event_help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+    event_help.add_theme_color_override("font_color", Color(1.0, 0.84, 0.45))
+    routes_page.add_child(event_help)
+    var event_palette := GridContainer.new()
+    event_palette.name = "AnimationEventPalette"
+    event_palette.columns = 2
+    routes_page.add_child(event_palette)
+    for event_name in ANIMATION_STATE_CONTRACT.VALID_EVENTS:
+        var event_button := ANIMATION_EVENT_DRAG_BUTTON.new()
+        event_button.animation_event = event_name
+        event_button.text = String(event_name).replace("_", " ").capitalize()
+        event_button.tooltip_text = "Click to preview this live route. Drag it onto a state card to reconnect it."
+        event_button.custom_minimum_size.y = 38.0
+        event_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+        event_button.pressed.connect(_select_and_preview_animation_event.bind(event_name))
+        event_palette.add_child(event_button)
+
+    var event_connect_row := HBoxContainer.new()
+    routes_page.add_child(event_connect_row)
+    animation_event_selector = OptionButton.new()
+    animation_event_selector.name = "AnimationEventSelector"
+    animation_event_selector.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    for event_name in ANIMATION_STATE_CONTRACT.VALID_EVENTS:
+        animation_event_selector.add_item(String(event_name).replace("_", " ").capitalize())
+        animation_event_selector.set_item_metadata(
+            animation_event_selector.item_count - 1,
+            event_name
+        )
+    animation_event_selector.item_selected.connect(_on_animation_event_selected)
+    event_connect_row.add_child(animation_event_selector)
+    var connect_event_button := Button.new()
+    connect_event_button.name = "ConnectEventToStateButton"
+    connect_event_button.text = "Connect to Selected State"
+    connect_event_button.pressed.connect(_connect_selected_event_to_state)
+    event_connect_row.add_child(connect_event_button)
+
+    var event_preview_row := HBoxContainer.new()
+    routes_page.add_child(event_preview_row)
+    animation_event_posture_selector = OptionButton.new()
+    animation_event_posture_selector.name = "AnimationEventPostureSelector"
+    animation_event_posture_selector.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    for posture_name in ["STANDING", "CROUCHED", "PRONE"]:
+        animation_event_posture_selector.add_item(posture_name.capitalize())
+        animation_event_posture_selector.set_item_metadata(
+            animation_event_posture_selector.item_count - 1,
+            posture_name
+        )
+    event_preview_row.add_child(animation_event_posture_selector)
+    animation_event_posture_selector.item_selected.connect(func(_index: int):
+        _refresh_event_routing_ui()
+    )
+    animation_event_family_selector = OptionButton.new()
+    animation_event_family_selector.name = "AnimationEventFamilySelector"
+    animation_event_family_selector.tooltip_text = "Preview the same event for a weapon-handling family."
+    animation_event_family_selector.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    for family_name in ["TWO_HAND_RIFLE", "PISTOL", "UNARMED"]:
+        animation_event_family_selector.add_item(family_name.replace("_", " ").capitalize())
+        animation_event_family_selector.set_item_metadata(
+            animation_event_family_selector.item_count - 1,
+            family_name
+        )
+    animation_event_family_selector.item_selected.connect(func(_index: int):
+        _refresh_event_routing_ui()
+    )
+    event_preview_row.add_child(animation_event_family_selector)
+    var preview_event_button := Button.new()
+    preview_event_button.name = "PreviewSelectedEventButton"
+    preview_event_button.text = "▶ Preview This Event"
+    preview_event_button.tooltip_text = "Resolve this event exactly as Playable Range does for the selected posture."
+    preview_event_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    preview_event_button.pressed.connect(_preview_selected_animation_event)
+    event_preview_row.add_child(preview_event_button)
+
+    var event_route_action_row := HBoxContainer.new()
+    routes_page.add_child(event_route_action_row)
+    var verify_event_button := Button.new()
+    verify_event_button.name = "VerifySelectedEventRouteButton"
+    verify_event_button.text = "Verify Route"
+    verify_event_button.tooltip_text = "Check every posture with the same route rules used by the playable runtime."
+    verify_event_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    verify_event_button.pressed.connect(_verify_selected_event_route)
+    event_route_action_row.add_child(verify_event_button)
+    var disconnect_event_button := Button.new()
+    disconnect_event_button.name = "DisconnectSelectedEventButton"
+    disconnect_event_button.text = "Remove Route"
+    disconnect_event_button.tooltip_text = "Remove this event connection from the draft. Save only when the graph is correct."
+    disconnect_event_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    disconnect_event_button.pressed.connect(_disconnect_selected_event)
+    event_route_action_row.add_child(disconnect_event_button)
+
+    animation_event_route_label = Label.new()
+    animation_event_route_label.name = "AnimationEventRouteLabel"
+    animation_event_route_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+    animation_event_route_label.add_theme_font_size_override("font_size", 11)
+    routes_page.add_child(animation_event_route_label)
+
+    presentation_plan_label = Label.new()
+    presentation_plan_label.name = "PresentationPlanCard"
+    presentation_plan_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+    presentation_plan_label.add_theme_font_size_override("font_size", 12)
+    presentation_plan_label.add_theme_color_override("font_color", Color(0.45, 0.95, 1.0))
+    routes_page.add_child(presentation_plan_label)
+
+    var language_title := Label.new()
+    language_title.text = "SOCOM RULES — WRITE IT YOUR WAY"
+    language_title.add_theme_color_override("font_color", Color(0.9, 0.75, 1.0))
+    routes_page.add_child(language_title)
+    natural_language_state_input = LineEdit.new()
+    natural_language_state_input.name = "NaturalLanguageStateInput"
+    natural_language_state_input.placeholder_text = "When a valid rifle shot happens, play this on torso and arms, blend in 0.04, blend out 0.10, return to current movement."
+    natural_language_state_input.tooltip_text = "Use normal language. The Gameplay Dictionary converts known terms into a review proposal; it never writes arbitrary code."
+    natural_language_state_input.custom_minimum_size.y = 42.0
+    routes_page.add_child(natural_language_state_input)
+    var proposal_button := Button.new()
+    proposal_button.name = "CreateStateProposalButton"
+    proposal_button.text = "Translate My Rule"
+    proposal_button.pressed.connect(_propose_natural_language_state)
+    routes_page.add_child(proposal_button)
+    natural_language_proposal_label = Label.new()
+    natural_language_proposal_label.name = "NaturalLanguageProposalLabel"
+    natural_language_proposal_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+    natural_language_proposal_label.add_theme_color_override("font_color", Color(1.0, 0.84, 0.45))
+    routes_page.add_child(natural_language_proposal_label)
+    natural_language_apply_button = Button.new()
+    natural_language_apply_button.name = "ApplyStateProposalButton"
+    natural_language_apply_button.text = "Approve Proposal (Not Saved Yet)"
+    natural_language_apply_button.visible = false
+    natural_language_apply_button.pressed.connect(_apply_natural_language_state_proposal)
+    routes_page.add_child(natural_language_apply_button)
 
     var graph_scroll := ScrollContainer.new()
     graph_scroll.custom_minimum_size = Vector2(0, 250)
@@ -348,11 +736,20 @@ func _build_ui_workspace(
     runtime_route_graph = ROUTE_GRAPH.new()
     runtime_route_graph.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     runtime_route_graph.state_selected.connect(_on_route_state_selected)
+    runtime_route_graph.event_selected.connect(_on_route_event_selected)
     runtime_route_graph.clip_dropped_on_state.connect(_on_clip_dropped_on_tree_state)
+    runtime_route_graph.event_dropped_on_state.connect(_on_animation_event_dropped_on_tree_state)
     runtime_route_graph.candidate_selected.connect(_on_graph_candidate_selected)
     graph_scroll.add_child(runtime_route_graph)
 
+    state_condition_label = Label.new()
+    state_condition_label.name = "StateConditionLabel"
+    state_condition_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+    state_condition_label.add_theme_color_override("font_color", Color(0.45, 0.95, 1.0))
+    routes_page.add_child(state_condition_label)
+
     state_slot_selector = OptionButton.new()
+    state_slot_selector.name = "StateSlotSelector"
     for slot_name in state_slot_keys:
         state_slot_selector.add_item(slot_name)
     state_slot_selector.item_selected.connect(func(index: int):
@@ -361,6 +758,62 @@ func _build_ui_workspace(
     )
     routes_page.add_child(state_slot_selector)
 
+    var state_settings_grid := GridContainer.new()
+    state_settings_grid.columns = 2
+    routes_page.add_child(state_settings_grid)
+
+    var layer_label := Label.new()
+    layer_label.text = "Body control"
+    state_settings_grid.add_child(layer_label)
+    state_layer_selector = OptionButton.new()
+    state_layer_selector.name = "StateLayerSelector"
+    state_layer_selector.add_item("Whole body", 0)
+    state_layer_selector.set_item_metadata(0, ANIMATION_STATE_CONTRACT.FULL_BODY)
+    state_layer_selector.add_item("Torso + arms", 1)
+    state_layer_selector.set_item_metadata(1, ANIMATION_STATE_CONTRACT.UPPER_BODY)
+    state_layer_selector.item_selected.connect(_on_state_layer_selected)
+    state_settings_grid.add_child(state_layer_selector)
+
+    var blend_in_label := Label.new()
+    blend_in_label.text = "Blend into state"
+    state_settings_grid.add_child(blend_in_label)
+    state_blend_in_control = _state_seconds_control()
+    state_blend_in_control.name = "StateBlendIn"
+    state_blend_in_control.value_changed.connect(_on_state_blend_in_changed)
+    state_settings_grid.add_child(state_blend_in_control)
+
+    var blend_out_label := Label.new()
+    blend_out_label.text = "Blend back out"
+    state_settings_grid.add_child(blend_out_label)
+    state_blend_out_control = _state_seconds_control()
+    state_blend_out_control.name = "StateBlendOut"
+    state_blend_out_control.value_changed.connect(_on_state_blend_out_changed)
+    state_settings_grid.add_child(state_blend_out_control)
+
+    var return_label := Label.new()
+    return_label.text = "Return to"
+    state_settings_grid.add_child(return_label)
+    state_return_selector = OptionButton.new()
+    state_return_selector.name = "StateReturnSelector"
+    state_return_selector.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    state_return_selector.add_item("Current movement / stance")
+    state_return_selector.set_item_metadata(0, ANIMATION_STATE_CONTRACT.CURRENT_BASE)
+    for return_state in state_slot_keys:
+        state_return_selector.add_item(return_state)
+        state_return_selector.set_item_metadata(
+            state_return_selector.item_count - 1,
+            return_state
+        )
+    state_return_selector.item_selected.connect(_on_state_return_selected)
+    state_settings_grid.add_child(state_return_selector)
+
+    state_rule_summary_label = Label.new()
+    state_rule_summary_label.name = "StateRuleSummary"
+    state_rule_summary_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+    state_rule_summary_label.add_theme_font_size_override("font_size", 11)
+    state_rule_summary_label.add_theme_color_override("font_color", Color(0.72, 0.93, 1.0))
+    routes_page.add_child(state_rule_summary_label)
+
     var btn_row := HBoxContainer.new()
     routes_page.add_child(btn_row)
 
@@ -368,6 +821,12 @@ func _build_ui_workspace(
     assign_button.text = "Bind Selected Clip ➔"
     assign_button.pressed.connect(func(): _assign_to_slot(selected_state_slot))
     btn_row.add_child(assign_button)
+
+    var preview_state_button := Button.new()
+    preview_state_button.name = "PreviewStateButton"
+    preview_state_button.text = "▶ Preview State"
+    preview_state_button.pressed.connect(_preview_selected_state_transition)
+    btn_row.add_child(preview_state_button)
 
     var auto_map_button := Button.new()
     auto_map_button.text = "⚡ Auto-Build Known States"
@@ -390,6 +849,14 @@ func _build_ui_workspace(
     use_suggestion_button.text = "Approve Selected Suggestion"
     use_suggestion_button.pressed.connect(_assign_selected_to_suggested_slot)
     routes_page.add_child(use_suggestion_button)
+
+    var save_states_button := Button.new()
+    save_states_button.name = "SaveAnimationStatesButton"
+    save_states_button.text = "Save States + Apply to Playtest"
+    save_states_button.custom_minimum_size.y = 46.0
+    save_states_button.add_theme_color_override("font_color", Color(0.35, 1.0, 0.55))
+    save_states_button.pressed.connect(_save_animation_states)
+    routes_page.add_child(save_states_button)
 
     var clear_highlights_button := Button.new()
     clear_highlights_button.text = "Clear Highlighted Clips"
@@ -502,3 +969,14 @@ func _build_ui_workspace(
     )
     action_hbox.add_child(reset_btn)
     return {"preview": preview_page, "trim": trim_page}
+
+
+func _state_seconds_control() -> SpinBox:
+    var control := SpinBox.new()
+    control.min_value = 0.0
+    control.max_value = 1.0
+    control.step = 0.01
+    control.suffix = " sec"
+    control.custom_minimum_size = Vector2(150.0, 40.0)
+    control.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    return control

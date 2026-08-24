@@ -3,7 +3,8 @@ extends RefCounted
 
 ## Separates camera-relative travel from mouse/right-stick aim authority.
 ## Movement never rewrites aim. The lower body catches up only after torso twist
-## reaches its limit, preserving true strafing and backpedaling.
+## receives aim input. There is no large pre-turn dead zone; smoothing controls
+## how fast it follows without delaying when the turn begins.
 
 var movement_direction := Vector3.ZERO
 var aim_relative_yaw: float = 0.0
@@ -18,7 +19,7 @@ func update(
     moving_turn_response: float,
     idle_turn_response: float,
     torso_yaw_limit: float,
-    catchup_release_ratio: float = 0.72
+    catchup_release_ratio: float = 0.0
 ) -> void:
     movement_direction = desired_direction
     movement_direction.y = 0.0
@@ -30,7 +31,7 @@ func update(
     if not catchup_active and absf(yaw_error) > torso_yaw_limit:
         catchup_active = true
 
-    var release_limit := torso_yaw_limit * clampf(catchup_release_ratio, 0.45, 0.90)
+    var release_limit := torso_yaw_limit * clampf(catchup_release_ratio, 0.0, 0.90)
     if catchup_active:
         # Finish the hip catch-up inside the limit. Stopping directly on the
         # limit caused rapid enter/exit chatter under tiny mouse corrections.

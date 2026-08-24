@@ -1,6 +1,9 @@
 extends SceneTree
 
 const MAIN_SCENE := preload("res://main.tscn")
+const GrenadeReleaseTimeline := preload(
+	"res://scripts/tactical/grenade_animation_release_timeline.gd"
+)
 
 var failures: Array[String] = []
 
@@ -18,7 +21,11 @@ func _run() -> void:
 	_expect(_action_has_key(&"reload_weapon", KEY_R), "R belongs to weapon reload")
 	_expect(not _action_has_key(&"reset_camera", KEY_R), "R no longer resets the camera")
 	_expect(_action_has_key(&"reset_camera", KEY_HOME), "Home owns manual camera reset")
-	_expect(_action_has_key(&"equip_grenade", KEY_G), "G owns grenade equip and cycling")
+	_expect(
+		InputMap.has_action(&"equip_grenade")
+		and not InputMap.action_get_events(&"equip_grenade").is_empty(),
+		"the saved gameplay binding owns grenade equip and cycling"
+	)
 	_expect(
 		not InputMap.has_action(&"throw_grenade") and not InputMap.has_action(&"cycle_grenade"),
 		"separate grenade throw and cycle actions are removed"
@@ -82,6 +89,10 @@ func _run() -> void:
 	_expect(
 		StringName(reload_pose.get("support_hand_mode", &"")) == &"ANIMATION_FREE",
 		"reload releases only the left foregrip IK before the saved regrip frame"
+	)
+	_expect(
+		(reload_pose.get("ownership_conflicts", []) as Array).is_empty(),
+		"reload has one rifle owner and one owner for each arm region"
 	)
 	var reload_snapshot: Dictionary = driver.call("get_animation_debug_state") if driver != null else {}
 	var sampled_frame_pose: Dictionary = reload_snapshot.get("animation_frame_pose", {})
@@ -153,12 +164,41 @@ func _run() -> void:
 		and not bool((grenade_driver.get("weapon_node") as Node3D).visible),
 		"short gameplay release accelerates the full-body take, locks movement, and hides the rifle"
 	)
-	var grenade_animation_remaining := float(grenade_driver.get("requested_action_remaining"))
-	await create_timer(grenade_animation_remaining + 0.10).timeout
-	var inventory_after: Dictionary = main.get("grenade_inventory") as Dictionary
+	var grenade_clip := StringName(grenade_driver.get("requested_action"))
+	var grenade_animation_duration := float(
+		grenade_driver.get("requested_action_total_duration")
+	)
+	var release_fraction := GrenadeReleaseTimeline.release_fraction(grenade_clip)
+	grenade_driver.call(
+		"_update_requested_action",
+		grenade_animation_duration * (release_fraction - 0.02)
+	)
+	var inventory_before_release_cue: Dictionary = main.get("grenade_inventory") as Dictionary
 	_expect(
-		int(inventory_after.get("frag", 0)) == int(inventory_before.get("frag", 0)) - 1,
-		"the animation release cue spawns and consumes one equipped frag"
+		int(inventory_before_release_cue.get("frag", 0)) == int(inventory_before.get("frag", 0))
+		and bool(main.get("grenade_throw_in_progress"))
+		and not bool(player_body.get("local_input_enabled")),
+		"grenade stays in hand and movement stays locked before the authored release motion"
+	)
+	grenade_driver.call(
+		"_update_requested_action",
+		grenade_animation_duration * 0.04
+	)
+	var inventory_at_release_cue: Dictionary = main.get("grenade_inventory") as Dictionary
+	_expect(
+		int(inventory_at_release_cue.get("frag", 0)) == int(inventory_before.get("frag", 0)) - 1
+		and bool(main.get("grenade_throw_in_progress"))
+		and not bool(player_body.get("local_input_enabled")),
+		"the authored throw motion launches one grenade before the animation ends"
+	)
+	grenade_driver.call(
+		"_update_requested_action",
+		float(grenade_driver.get("requested_action_remaining")) + 0.01
+	)
+	_expect(
+		not bool(main.get("grenade_throw_in_progress"))
+		and bool(player_body.get("local_input_enabled")),
+		"movement unlocks only after the remaining throw animation completes"
 	)
 
 	main.call("_begin_grenade_aim")
@@ -193,8 +233,15 @@ func _action_has_key(action: StringName, keycode: Key) -> bool:
 	if not InputMap.has_action(action):
 		return false
 	for event in InputMap.action_get_events(action):
-		if event is InputEventKey and event.physical_keycode == keycode:
-			return true
+		if event is InputEventKey:
+			var key_event := event as InputEventKey
+			var mapped_code: Key = (
+				key_event.physical_keycode
+				if key_event.physical_keycode != 0
+				else key_event.keycode
+			)
+			if mapped_code == keycode:
+				return true
 	return false
 
 

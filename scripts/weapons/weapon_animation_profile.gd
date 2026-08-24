@@ -154,6 +154,34 @@ static func build_default(family: String, available_clips: Dictionary = {}) -> D
 	}
 
 
+static func normalized_profile(
+	family: String,
+	saved_profile: Dictionary = {},
+	available_clips: Dictionary = {}
+) -> Dictionary:
+	var safe_family := family if family in FAMILIES else FAMILY_TWO_HAND_RIFLE
+	var normalized := build_default(safe_family, available_clips)
+	for raw_key in saved_profile.keys():
+		var key := String(raw_key)
+		if key not in ["animation_slots", "locomotion_slots"]:
+			normalized[key] = saved_profile[raw_key]
+	for section_name in ["animation_slots", "locomotion_slots"]:
+		var merged: Dictionary = (normalized[section_name] as Dictionary).duplicate(true)
+		var saved_section: Variant = saved_profile.get(section_name, {})
+		if saved_section is Dictionary:
+			merged.merge((saved_section as Dictionary).duplicate(true), true)
+		normalized[section_name] = merged
+	normalized["family"] = safe_family
+	normalized["support_hand_required"] = (
+		bool(saved_profile.get("support_hand_required", safe_family != FAMILY_ONE_HAND))
+	)
+	normalized["locomotion_family"] = String(saved_profile.get(
+		"locomotion_family",
+		"PISTOL" if safe_family in [FAMILY_ONE_HAND, FAMILY_TWO_HAND_PISTOL] else "RIFLE"
+	))
+	return normalized
+
+
 static func validate(profile: Dictionary, available_clips: Dictionary = {}) -> Dictionary:
 	var slots: Dictionary = profile.get("animation_slots", {})
 	var missing: Array[String] = []

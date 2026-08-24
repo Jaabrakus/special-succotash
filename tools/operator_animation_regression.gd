@@ -2,6 +2,7 @@ extends SceneTree
 
 const DRIVER_SCRIPT := preload("res://scripts/player/operator_animation_driver.gd")
 const TRANSITION_SCRIPT := preload("res://scripts/player/operator_transition_state_machine.gd")
+const WEAPON_OWNERSHIP := preload("res://scripts/player/weapon_ownership_contract.gd")
 const HIGHLIGHTED_CLIPS_PATH := "res://config/highlighted_animation_candidates.json"
 const FAVORITE_ROUTES_PATH := "res://config/operator_animation_favorite_routes.json"
 
@@ -42,17 +43,30 @@ func _run() -> void:
     for clip_name in REQUIRED_CLIPS:
         _expect(driver.has_clip(clip_name), "mapped clip exists: %s" % clip_name)
 
+    var missing_live_states: Array[String] = []
+    for raw_state_name in driver.animation_profile.clip_paths.keys():
+        var state_name := StringName(raw_state_name)
+        if String(state_name).begins_with("pistol_"):
+            continue
+        if not driver.has_clip(state_name):
+            missing_live_states.append(String(state_name))
+    _expect(
+        missing_live_states.is_empty(),
+        "every approved rifle/shared state loads in the playable operator graph"
+    )
+
     _check_favorite_route_manifest(driver)
     _check_semantic_action_routes(driver)
 
     _check_symmetric_left_locomotion(driver)
-    _check_forward_diagonal_lateral_aliases(driver)
+    _check_lateral_locomotion_sources(driver)
 
     # Preserve the old selector checks as a fallback contract. Modern
     # transitions have their own deterministic tests below.
     driver.animation_profile.transitions["enabled"] = false
     _check_eight_way_mapping(driver)
     _check_analog_gait_separation(driver)
+    _check_ready_aim_locomotion(driver)
     _check_motion_hysteresis(driver)
     _check_direction_hysteresis(driver)
     _check_layered_recoil(driver)
@@ -98,10 +112,31 @@ func _check_symmetric_left_locomotion(driver) -> void:
             "%s is a track-level sagittal mirror of %s" % [target, source]
         )
 
-func _check_forward_diagonal_lateral_aliases(driver) -> void:
+func _check_lateral_locomotion_sources(driver) -> void:
+    # The reviewed left tactical run uses the forward-left take. Its direct
+    # lateral source produced the wrong weapon/shoulder silhouette. Right keeps
+    # its authored lateral take.
+    _expect(
+        driver.animation_profile.alias_source(&"run_left") == &"run_forward_left",
+        "run_left uses the approved forward-left take"
+    )
+    _expect(
+        driver.asset_runtime.get_source_animation_name(&"run_left")
+        == &"alias:run_forward_left",
+        "run_left reports the approved aliased animation source"
+    )
+    _expect(
+        driver.animation_profile.alias_source(&"run_right") == &"",
+        "run_right uses its authored source"
+    )
+    _expect(
+        not String(driver.asset_runtime.get_source_animation_name(&"run_right")).begins_with("alias:"),
+        "run_right reports a direct animation source"
+    )
+
+    # The crouch pack still needs the approved diagonal fallback because its
+    # direct side takes do not preserve the rifle-ready silhouette.
     var expected_aliases := {
-        &"run_left": &"run_forward_left",
-        &"run_right": &"run_forward_right",
         &"crouch_left": &"crouch_forward_left",
         &"crouch_right": &"crouch_forward_right",
     }
@@ -263,7 +298,7 @@ func _check_eight_way_mapping(driver) -> void:
 func _check_motion_hysteresis(driver) -> void:
     _set_motion(driver, Vector2.ZERO, 0.0)
     _advance(driver)
-    _expect(driver.current_clip == &"aim_idle", "standing still selects ready idle")
+    _expect(driver.current_clip == &"idle_rifle", "standing still selects relaxed rifle idle")
 
     _set_motion(driver, Vector2(0.0, 1.0), 0.11)
     _advance(driver)
@@ -275,7 +310,43 @@ func _check_motion_hysteresis(driver) -> void:
 
     _set_motion(driver, Vector2(0.0, 1.0), 0.04)
     _advance(driver)
-    _expect(driver.current_clip == &"aim_idle", "movement stops after the lower exit threshold")
+    _expect(driver.current_clip == &"idle_rifle", "movement stops at relaxed rifle idle")
+
+func _check_ready_aim_locomotion(driver) -> void:
+    _set_motion(driver, Vector2(0.0, 1.0), 0.9, &"STANDING", 0.0, &"FULL")
+    _advance(driver)
+    _expect(
+        driver.current_clip == &"run_forward",
+        "relaxed full movement uses Rifle Run"
+    )
+    _expect(driver.notify_fired(), "valid fire enters the shared ready-aim state")
+    _advance(driver)
+    var ready_snapshot: Dictionary = driver.get_animation_debug_state()
+    _expect(
+        driver.current_clip == &"walk_forward"
+        and float(ready_snapshot.get("weapon_ready_weight", 0.0)) >= 0.99,
+        "ready fire switches moving presentation to Rifle Walk"
+    )
+    _expect(
+        float(ready_snapshot.get("upper_body_ready_blend", 0.0)) >= 0.99,
+        "moving Ready Aim gives Aim Idle full upper-body ownership"
+    )
+    for _frame in range(120):
+        _advance(driver)
+    var relaxed_snapshot: Dictionary = driver.get_animation_debug_state()
+    _expect(
+        driver.current_clip == &"run_forward"
+        and float(relaxed_snapshot.get("weapon_ready_weight", 1.0)) < 0.5,
+        "ready timeout returns contextually to Rifle Run"
+    )
+    var relaxed_weapon_pose: Dictionary = relaxed_snapshot.get("weapon_pose", {})
+    _expect(
+        bool(relaxed_weapon_pose.get("weapon_parent_is_animation_mount", false))
+        and float(
+            relaxed_weapon_pose.get("animation_mount_position_error_m", 1.0)
+        ) <= 0.0001,
+        "ready timeout restores the exact authored right-hand rifle mount"
+    )
 
 func _check_analog_gait_separation(driver) -> void:
     _set_motion(driver, Vector2.ZERO, 0.0)
@@ -318,41 +389,64 @@ func _check_layered_recoil(driver) -> void:
     _set_motion(driver, Vector2(0.0, 1.0), 0.8)
     _advance(driver)
     var gait_before_fire: StringName = driver.current_clip
-    var ready_snapshot: Dictionary = driver.get_animation_debug_state()
-    var ready_frame_pose: Dictionary = ready_snapshot.get("animation_frame_pose", {})
+    var relaxed_snapshot: Dictionary = driver.get_animation_debug_state()
+    _expect(gait_before_fire == &"run_forward", "fire test begins in relaxed Rifle Run")
+    var fire_count_before := int(relaxed_snapshot.get("fire_trigger_count", 0))
+    _expect(driver.notify_fired(), "combat fire request is accepted")
+    _advance(driver)
+    var snapshot: Dictionary = driver.get_animation_debug_state()
+    var ready_frame_pose: Dictionary = snapshot.get("animation_frame_pose", {})
     _expect(
         String(ready_frame_pose.get("resolved_clip_key", "")) == "aim_idle"
         and bool(ready_frame_pose.get("pose_active", false))
-        and not bool(ready_snapshot.get("standing_master_pose_active", true)),
-        "standing movement consumes its own Gunsmith Aim Idle source"
+        and not bool(snapshot.get("standing_master_pose_active", true)),
+        "ready fire consumes the saved Gunsmith Aim Idle source"
     )
     _expect(
-        not bool(ready_snapshot.get("standing_master_pose_frame_suppressed", true))
-        and int(ready_snapshot.get("animation_frame_rotation_override_count", 0)) > 0,
-        "standing gameplay consumes its own saved Gunsmith corrections"
+        not bool(snapshot.get("standing_master_pose_frame_suppressed", true))
+        and int(snapshot.get("animation_frame_rotation_override_count", 0)) > 0,
+        "ready fire consumes its saved Gunsmith corrections"
     )
-    var fire_count_before := int(ready_snapshot.get("fire_trigger_count", 0))
-    _expect(driver.notify_fired(), "fire recoil request is accepted")
-    _advance(driver)
-    var snapshot: Dictionary = driver.get_animation_debug_state()
-    _expect(driver.current_clip == gait_before_fire, "firing never restarts or replaces the leg loop")
+    var event_presentation: Dictionary = snapshot.get("last_event_presentation", {})
+    var weapon_pose: Dictionary = snapshot.get("weapon_pose", {})
+    _expect(
+        String(event_presentation.get("event", "")) == "FIRE_ACCEPTED"
+        and String(event_presentation.get("state", "")) == "combat_fire"
+        and "RAIL_TO_BLUE_LINE" in (event_presentation.get("effects", []) as Array),
+        "playable fire consumes the complete shared event presentation recipe"
+    )
+    _expect(
+        bool(weapon_pose.get("rail_to_blue_line_event_active", false))
+        and bool(weapon_pose.get("gun_placement_line_active", false)),
+        "combat fire raises the rendered weapon rail to the saved blue line"
+    )
+    _expect(
+        driver.current_clip == &"walk_forward",
+        "firing keeps locomotion active but changes the ready base to Rifle Walk"
+    )
     _expect(driver.requested_action == &"", "fire recoil does not claim full-body action authority")
     _expect(
         not bool(snapshot.get("upper_body_recoil_layer", true))
         and is_zero_approx(float(snapshot.get("recoil_weight", 1.0))),
-        "firing adds no arm, shoulder, or weapon visual-recoil layer"
+        "combat fire adds no separate procedural recoil layer"
     )
     _expect(bool(snapshot.get("fire_layer_available", false)), "mapped weapon fire layer is available")
     _expect(
         int(snapshot.get("fire_trigger_count", 0)) == fire_count_before
         and StringName(snapshot.get("active_fire_clip", &"")) == &"",
-        "standing fire keeps the exact Aim Idle rifle placement"
+        "standing fire keeps Aim Idle and does not replace the upper-body pose"
     )
     _expect(driver.notify_fired(), "a later accepted bullet retriggers the fire reaction")
     var repeated_snapshot: Dictionary = driver.get_animation_debug_state()
     _expect(
-        int(repeated_snapshot.get("fire_trigger_count", 0)) == fire_count_before,
-        "repeated standing shots cannot accumulate imported fire-pose ownership"
+        int(repeated_snapshot.get("fire_trigger_count", 0)) == fire_count_before
+        and bool(
+            (repeated_snapshot.get("weapon_pose", {}) as Dictionary).get(
+                "rail_to_blue_line_event_active",
+                false
+            )
+        ),
+        "each accepted standing shot restarts only the bounded blue-line weapon effect"
     )
 
     driver.set_visual_inputs(
@@ -504,11 +598,17 @@ func _check_mobility_states(driver) -> void:
     _set_motion(driver, Vector2.ZERO, 0.0, &"AIRBORNE", 2.0)
     _advance(driver)
     _expect(driver.current_clip == &"jump_up", "positive airborne velocity selects jump-up")
+    _expect(
+        WEAPON_OWNERSHIP.resolve(&"AIRBORNE", &"", 1.0, false)
+        == WEAPON_OWNERSHIP.READY_SOLVER,
+        "jump keeps the reticle/Gunsmith weapon solver in control"
+    )
     _set_motion(driver, Vector2.ZERO, 0.0, &"AIRBORNE", -2.0)
     _advance(driver)
     _expect(driver.current_clip == &"jump_down", "negative airborne velocity selects jump-down")
 
 func _check_modern_blend_graph(driver) -> void:
+    driver.clear_fire_ready_aim()
     _set_motion(driver, Vector2(0.0, 1.0), 0.25, &"STANDING", 0.0, &"WALK", 1.45)
     for _frame in range(30):
         _advance(driver)
@@ -848,14 +948,15 @@ func _set_motion(
     vertical_speed: float = 0.0,
     gait: StringName = &"FULL",
     actual_speed_mps: float = -1.0,
-    aim_yaw: float = 0.0
+    aim_yaw: float = 0.0,
+    ready_weight: float = 0.0
 ) -> void:
     driver.set_visual_inputs(
         direction,
         &"STANDING",
         aim_yaw,
         0.0,
-        1.0,
+        ready_weight,
         false,
         0.0,
         speed,

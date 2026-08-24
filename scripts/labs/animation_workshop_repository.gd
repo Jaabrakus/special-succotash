@@ -283,6 +283,37 @@ func save_state_slots(path: String, slots: Dictionary) -> bool:
 	return _save_json_dictionary(path, config)
 
 
+func load_state_rules(path: String) -> Dictionary:
+	var config := _load_json_dictionary(path)
+	var rules: Variant = config.get("state_rules", {})
+	return (rules as Dictionary).duplicate(true) if rules is Dictionary else {}
+
+
+func load_event_routes(path: String) -> Dictionary:
+	var config := _load_json_dictionary(path)
+	var routes: Variant = config.get("event_routes", {})
+	return (routes as Dictionary).duplicate(true) if routes is Dictionary else {}
+
+
+func save_state_authoring(
+	path: String,
+	slots: Dictionary,
+	rules: Dictionary,
+	event_routes: Dictionary = {}
+) -> bool:
+	var config := _load_json_dictionary(path)
+	if config.is_empty():
+		config = {
+			"version": 4,
+			"description": "Gameplay animation states and presentation-only transition rules.",
+		}
+	config["version"] = maxi(4, int(config.get("version", 1)))
+	config["clips"] = slots.duplicate(true)
+	config["state_rules"] = rules.duplicate(true)
+	config["event_routes"] = event_routes.duplicate(true)
+	return _save_json_dictionary(path, config)
+
+
 func load_layer_recipe(path: String, defaults: Dictionary) -> Dictionary:
 	var recipe := defaults.duplicate(true)
 	var saved := _load_json_dictionary(path)

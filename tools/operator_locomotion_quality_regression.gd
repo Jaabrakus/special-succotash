@@ -30,7 +30,7 @@ func _run() -> void:
 	await _measure_foot_slip(player, driver)
 	await _measure_contact_phase_continuity(player, driver)
 	await _measure_direction_pop(player, driver)
-	_measure_torso_error(driver)
+	await _measure_torso_error(driver)
 	await _measure_body_stack_stability(driver)
 	_finish()
 
@@ -167,7 +167,11 @@ func _measure_torso_error(driver) -> void:
 		Vector2.ZERO, &"STANDING", deg_to_rad(30.0), 0.0,
 		1.0, false, 0.0, 0.0, &"STANDING", 0.0, &"WALK", 0.0
 	)
-	driver._process(1.0 / 60.0)
+	# Ready Aim intentionally eases in so a relaxed rifle run cannot snap into
+	# its combat upper-body pose. Measure the settled contract, not frame one of
+	# that transition.
+	for _frame in range(30):
+		await process_frame
 	var snapshot: Dictionary = driver.get_animation_debug_state()
 	var error := float(snapshot.get("torso_to_aim_error_deg", 180.0))
 	print("LOCOMOTION_METRIC torso_to_aim_error_deg=%.3f" % error)

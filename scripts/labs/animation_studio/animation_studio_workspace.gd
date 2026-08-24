@@ -122,6 +122,13 @@ func _refresh_layer_recipe_summary() -> void:
 
 func _show_editor_page(page_name: String) -> void:
     var previous_page := active_editor_page
+    if previous_page == "Pose" and page_name != "Pose":
+        # Restore the sampled animation before leaving the authoring page. The
+        # saved correction data remains in the weapon profile and is reloaded
+        # when Pose opens again; transient editor transforms do not leak into
+        # state previews.
+        if has_method("_restore_raw_animation_frame"):
+            call("_restore_raw_animation_frame")
     active_editor_page = page_name
     trim_preview_active = false
     if page_name == "Build" and previous_page != "Build":
@@ -145,12 +152,18 @@ func _show_editor_page(page_name: String) -> void:
         _refresh_trim_preview_button()
     if page_name == "Build" and previous_page != "Build":
         _show_body_composer_rest_pose()
-    elif previous_page == "Build":
+    elif page_name == "Body" and previous_page != "Body":
+        _show_body_composer_rest_pose()
+    elif previous_page == "Build" or previous_page == "Body":
         if weapon_node:
             weapon_node.visible = current_weapon != WeaponType.NONE
         _play_selected()
     if page_name == "Pose":
         _prepare_pose_mode()
+    elif page_name == "Casting":
+        _refresh_animation_casting_ui()
+    _refresh_clip_list_ui()
+    _refresh_frame_editor_labels()
 
 func _apply_editor_workspace_layout() -> void:
     if frame_editor_dock == null or clip_library_panel == null or runtime_map_panel == null:
@@ -200,6 +213,10 @@ func _fit_editor_ui_to_window() -> void:
     editor_ui_root.position = Vector2.ZERO
     editor_ui_root.scale = Vector2.ONE * EDITOR_UI_SCALE
     editor_ui_root.size = viewport_size / EDITOR_UI_SCALE
+    if stage_input_surface != null:
+        stage_input_surface.position = Vector2.ZERO
+        stage_input_surface.scale = Vector2.ONE
+        stage_input_surface.size = viewport_size
 
 func _show_body_composer_rest_pose() -> void:
     trim_preview_active = false
@@ -292,9 +309,17 @@ func _create_body_layer_target(layer_key: String, title: String, minimum_size: V
 func _scan_all_mixamo_fbx() -> void:
     fbx_files = workshop_repository.scan_mixamo("res://assets/animations/mixamo")
     authored_animation_files = workshop_repository.scan_authored(AUTHORED_ANIMATION_DIR)
+    authored_animation_files.merge(
+        workshop_repository.scan_authored(APPLE_MOCAP_REVIEW_DIR),
+        true
+    )
 
 func _scan_authored_animations() -> void:
     authored_animation_files = workshop_repository.scan_authored(AUTHORED_ANIMATION_DIR)
+    authored_animation_files.merge(
+        workshop_repository.scan_authored(APPLE_MOCAP_REVIEW_DIR),
+        true
+    )
 
 func _scan_dir_recursive(dir_path: String) -> void:
     # Compatibility wrapper for older tests/tools that invoke the scene method.

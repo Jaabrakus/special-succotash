@@ -15,7 +15,9 @@ const ShotAuthority := preload("res://scripts/network/socom_shot_authority.gd")
 const BallisticsScript := preload("res://scripts/weapons/weapon_ballistics.gd")
 const ComposureScript := preload("res://scripts/weapons/operator_composure.gd")
 const WeaponContract := preload("res://scripts/weapons/weapon_rig_contract.gd")
+const AutoReloadPolicy := preload("res://scripts/weapons/weapon_auto_reload_policy.gd")
 const TracerSystemScript := preload("res://scripts/weapons/lab_leak_tracer_system.gd")
+const AudioEngine := preload("res://scripts/audio/lab_leak_audio_engine.gd")
 const KeyboardMappingProfile := preload("res://scripts/input/socom_keyboard_mapping_profile.gd")
 const PlayerGameplayProfile := preload("res://scripts/player/player_gameplay_profile.gd")
 const PlaytestStateCollector := preload("res://scripts/runtime/playtest_state_collector.gd")
@@ -26,7 +28,9 @@ const MapAmbience := preload("res://scripts/maps/socom_map_ambience_engine.gd")
 const MapGameplay := preload("res://scripts/maps/socom_map_gameplay_contract.gd")
 const DemolitionBombScene := preload("res://scenes/objectives/demolition_bomb.tscn")
 const MultiplayerHUDScript := preload("res://scripts/network/socom_multiplayer_hud.gd")
-
+const MatchInvite := preload("res://scripts/network/socom_match_invite.gd")
+const ServerBackendScript := preload("res://scripts/server/socom_server_backend.gd")
+const ExitMenuScript := preload("res://scripts/ui/socom_exit_menu.gd")
 const PlayerScript := preload("res://scripts/player/player_controller.gd")
 
 const DEFAULT_PORT := 14141
@@ -73,6 +77,9 @@ var spawn_points: Array[Vector3] = [
 ]
 
 var network_peer: ENetMultiplayerPeer
+var dedicated_server_mode := false
+var server_backend: SocomServerBackend
+var exit_menu: SocomExitMenu
 var local_camera: SocomCameraRig
 var local_operator: SocomNetworkOperator
 var snapshot_accumulator: float = 0.0
@@ -136,6 +143,7 @@ func _ready() -> void:
 	equipped_config = WeaponContract.load_equipped_config()
 	_build_ui()
 	TracerSystemScript.initialize(self)
+	AudioEngine.initialize(self)
 	_connect_multiplayer_signals()
 	_apply_command_line_mode()
 
@@ -212,12 +220,8 @@ func _process(_delta: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("ui_cancel") and session_active:
-		Input.mouse_mode = (
-			Input.MOUSE_MODE_VISIBLE
-			if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
-			else Input.MOUSE_MODE_CAPTURED
-		)
+	if event.is_action_pressed("ui_cancel") and not dedicated_server_mode:
+		exit_menu.toggle(session_active)
 		get_viewport().set_input_as_handled()
 
 
@@ -235,18 +239,57 @@ func host_match(port: int = DEFAULT_PORT) -> Error:
 	round_active = false
 	menu_panel.visible = false
 	_show_lobby(true)
+	multiplayer_hud.show_host_invite(port)
 	_set_status("HOSTING :%d  •  choose a side and green up" % port)
 	_broadcast_lobby()
 	print("MP_SLICE HOST_READY port=%d peer=1" % port)
 	return OK
 
 
+func host_dedicated_server(port: int = DEFAULT_PORT) -> Error:
+	_disconnect_existing_peer()
+	dedicated_server_mode = true
+	network_peer = ENetMultiplayerPeer.new()
+	var error := network_peer.create_server(port, MAX_PLAYERS)
+	if error != OK:
+		_set_status("DEDICATED HOST FAILED: %s" % error_string(error))
+		return error
+	multiplayer.multiplayer_peer = network_peer
+	lobby.reset()
+	session_active = false
+	round_active = false
+	menu_panel.visible = false
+	_show_lobby(false)
+	_set_status("DEDICATED SERVER :%d" % port)
+	server_backend = ServerBackendScript.new() as SocomServerBackend
+	server_backend.name = "ServerBackend"
+	add_child(server_backend)
+	_register_server_backend.call_deferred(port)
+	print("MP_SLICE DEDICATED_READY port=%d peer=1" % port)
+	return OK
+
+
+func _register_server_backend(port: int) -> void:
+	if server_backend == null:
+		return
+	var result := await server_backend.register_dedicated_server(port)
+	if bool(result.get("offline", false)):
+		print("MP_SLICE CLOUD_REGISTRATION_SKIPPED %s" % String(result.get("message", "")))
+	elif not bool(result.get("ok", false)):
+		push_warning("MP_SLICE CLOUD_REGISTRATION_FAILED %s" % String(result.get("message", "")))
+	else:
+		print("MP_SLICE CLOUD_REGISTERED server_id=%s" % String(result.get("server_id", "")))
+
+
 func join_match(address: String, port: int = DEFAULT_PORT) -> Error:
 	_disconnect_existing_peer()
 	network_peer = ENetMultiplayerPeer.new()
-	var clean_address := address.strip_edges()
-	if clean_address.is_empty():
-		clean_address = "127.0.0.1"
+	var target: Dictionary = MatchInvite.parse(address, port)
+	if not bool(target.get("ok", false)):
+		_set_status("JOIN FAILED: %s" % String(target.get("message", "Invalid invite code.")))
+		return ERR_INVALID_PARAMETER
+	var clean_address := String(target.get("address", "127.0.0.1"))
+	port = int(target.get("port", port))
 	var error := network_peer.create_client(clean_address, port)
 	if error != OK:
 		_set_status("JOIN FAILED: %s" % error_string(error))
@@ -254,7 +297,6 @@ func join_match(address: String, port: int = DEFAULT_PORT) -> Error:
 	multiplayer.multiplayer_peer = network_peer
 	_set_status("CONNECTING TO %s:%d" % [clean_address, port])
 	return OK
-
 
 func _connect_multiplayer_signals() -> void:
 	multiplayer.peer_connected.connect(_on_peer_connected)
@@ -668,7 +710,7 @@ func receive_ammo_state(magazine_rounds: int, reserve_rounds: int) -> void:
 	local_magazine_ammo = maxi(0, magazine_rounds)
 	local_reserve_ammo = maxi(0, reserve_rounds)
 	_refresh_player_state()
-
+	if AutoReloadPolicy.should_start(local_magazine_ammo, local_reserve_ammo, local_reload_pending): call_deferred("_request_local_reload")
 
 @rpc("authority", "call_remote", "reliable")
 func receive_objective_state(state: Dictionary) -> void:
@@ -726,6 +768,7 @@ func _spawn_operator_local(peer_id: int, team: int, spawn_position: Vector3) -> 
 	var is_local_owner := peer_id == local_id
 	operator.set_replica_mode(not is_local_owner and not multiplayer.is_server())
 	operator.set_local_input_enabled(is_local_owner)
+	operator.configure_network_presentation(is_local_owner, multiplayer.is_server())
 	if multiplayer.is_server():
 		operator.eliminated.connect(_on_operator_eliminated)
 	if is_local_owner:
@@ -819,6 +862,9 @@ func _attach_local_camera(operator: SocomNetworkOperator) -> void:
 	local_camera.feet_marker = operator.mannequin.feet_marker
 	local_camera.yaw = operator.global_rotation.y
 	add_child(local_camera)
+	var acoustic: Node = get_node_or_null("/root/AcousticPropagation")
+	if acoustic != null and acoustic.has_method("set_listener"):
+		acoustic.call("set_listener", local_camera)
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 
@@ -963,6 +1009,7 @@ func _try_submit_local_shot() -> void:
 		or Input.mouse_mode != Input.MOUSE_MODE_CAPTURED
 		or not Input.is_action_pressed("fire")
 		or local_fire_cooldown > 0.0
+		or local_reload_pending
 	):
 		return
 	local_fire_cooldown = _configured_fire_interval()
@@ -1346,10 +1393,40 @@ func _present_shot(
 		Color(1.0, 0.86, 0.30),
 		float(equipped_config.get("ballistics", {}).get("muzzle_velocity_mps", 715.0))
 	)
+	if not dedicated_server_mode:
+		AudioEngine.play_gunshot(
+			get_tree(),
+			bool(equipped_config.get("ballistics", {}).get("is_silenced", false)),
+			origin,
+			false,
+			_acoustic_exclusions_for_shooter(shooter_peer_id)
+		)
 	if hit:
-		TracerSystemScript.spawn_impact_effect(get_tree(), impact, Vector3.UP)
+		if message != "MISS":
+			TracerSystemScript.spawn_body_hit_effect(
+				get_tree(), impact, Vector3.UP, message.begins_with("HEAD")
+			)
+			if not dedicated_server_mode:
+				AudioEngine.play_body_impact(
+					get_tree(), impact, message.begins_with("HEAD")
+				)
+		else:
+			TracerSystemScript.spawn_impact_effect(get_tree(), impact, Vector3.UP)
 	if shooter_peer_id == multiplayer.get_unique_id():
 		_set_status("SHOT  •  %s" % message)
+
+
+func _acoustic_exclusions_for_shooter(shooter_peer_id: int) -> Array:
+	var exclusions: Array = []
+	var shooter := operators.get(shooter_peer_id) as Node
+	if shooter == null:
+		return exclusions
+	if shooter is CollisionObject3D:
+		exclusions.append((shooter as CollisionObject3D).get_rid())
+	for child in shooter.find_children("*", "CollisionObject3D", true, false):
+		if child is CollisionObject3D:
+			exclusions.append((child as CollisionObject3D).get_rid())
+	return exclusions
 
 
 func _apply_ballistics_profile(ballistics) -> void:
@@ -1407,7 +1484,6 @@ func _on_local_reload_animation_completed(clip_name: StringName) -> void:
 		_server_reload_weapon(peer_id)
 	else:
 		submit_reload.rpc_id(1)
-
 
 func _on_local_reload_animation_cancelled(clip_name: StringName) -> void:
 	if "reload" in String(clip_name).to_lower():
@@ -1648,6 +1724,7 @@ func _disconnect_existing_peer() -> void:
 	round_resolution_pending = false
 	lobby_countdown_remaining = 0.0
 	_reset_demolition_objective()
+	if multiplayer_hud != null: multiplayer_hud.clear_host_invite()
 
 
 func _build_environment() -> void:
@@ -1670,6 +1747,9 @@ func _apply_multiplayer_map(document: Dictionary) -> void:
 	add_child(active_map_root)
 	MapAmbience.build_into(active_map_root, active_map_document)
 	MapRuntime.build_into(active_map_root, active_map_document)
+	var acoustic: Node = get_node_or_null("/root/AcousticPropagation")
+	if acoustic != null and acoustic.has_method("configure_map"):
+		acoustic.call("configure_map", active_map_document, local_camera)
 	var layout := MapGameplay.demolition_layout(active_map_document)
 	team_spawn_points[0] = (layout.get("alpha_spawns", []) as Array).duplicate()
 	team_spawn_points[1] = (layout.get("bravo_spawns", []) as Array).duplicate()
@@ -1822,6 +1902,10 @@ func _build_ui() -> void:
 	ready_button = multiplayer_hud.ready_button
 	lobby_status_label = multiplayer_hud.lobby_status_label
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	exit_menu = ExitMenuScript.new() as SocomExitMenu
+	exit_menu.name = "InGameExitMenu"
+	exit_menu.return_to_launcher_requested.connect(_leave_to_main_menu)
+	add_child(exit_menu)
 	_refresh_scoreboard()
 	_refresh_player_state()
 	_refresh_match_clock()
@@ -1831,10 +1915,6 @@ func _build_ui() -> void:
 func _leave_to_main_menu() -> void:
 	_disconnect_existing_peer()
 	get_tree().change_scene_to_file("res://game_launcher.tscn")
-func _build_lobby_ui(_layer: CanvasLayer) -> void:
-	# Compatibility entry point retained for older tools. The HUD owns this view.
-	if multiplayer_hud == null:
-		_build_ui()
 func _show_lobby(enabled: bool) -> void:
 	if multiplayer_hud == null:
 		return
@@ -1938,3 +2018,5 @@ func _apply_command_line_mode() -> void:
 			host_match(port)
 		elif launch_mode == "join":
 			join_match(launcher_address, port)
+		elif launch_mode == "dedicated":
+			host_dedicated_server(port)

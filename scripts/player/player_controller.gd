@@ -23,8 +23,8 @@ var current_health: float = 100.0
 
 @export_group("Locomotion orientation")
 @export_range(1.0, 30.0, 0.5) var idle_turn_response: float = 9.0
-@export_range(20.0, 85.0, 1.0) var torso_turn_in_place_limit_deg: float = 42.0
-@export_range(0.45, 0.90, 0.01) var torso_catchup_release_ratio: float = 0.72
+@export_range(0.0, 10.0, 0.1) var torso_turn_in_place_limit_deg: float = 0.5
+@export_range(0.0, 0.90, 0.01) var torso_catchup_release_ratio: float = 0.0
 @export_range(0.25, 0.95, 0.01) var full_gait_input_threshold: float = 0.72
 
 @export_group("Tactical mobility")

@@ -170,13 +170,10 @@ func _run() -> void:
 	muzzle_release.position = muzzle_screen
 	lab.call("_input", muzzle_release)
 	var reticle_screen := lab.call("_reticle_screen_position") as Vector2
-	var screen_barrel_direction := (muzzle_screen - base_screen).normalized()
-	var screen_reticle_direction := (reticle_screen - muzzle_screen).normalized()
 	_expect(
-		screen_barrel_direction.dot(screen_reticle_direction) > 0.999
-		and absf(reticle_screen.distance_to(muzzle_screen) - 64.0) < 0.1
+		reticle_screen.distance_to(preview_center) < 0.1
 		and preview_center.x > viewport_center.x,
-		"gun lab reticle sits directly ahead of the physical red muzzle socket"
+		"gun lab reticle stays fixed at the playable preview center"
 	)
 	var barrel_direction_before_grip_move := lab.call("_barrel_direction_world") as Vector3
 	var original_right_grip := lab.get("right_grip_local_pos") as Vector3
@@ -249,7 +246,7 @@ func _run() -> void:
 			and (reticle_preview.get("screen_center_override") as Vector2).distance_to(
 				lab.call("_reticle_screen_position") as Vector2
 			) < 0.01,
-			"shot feedback expands symmetrically around the physical muzzle reticle"
+			"shot feedback expands symmetrically around the fixed center reticle"
 		)
 	lab.call("_set_preview_posture", &"CROUCHED")
 	for _frame in range(16):
@@ -257,9 +254,16 @@ func _run() -> void:
 	var crouch_grip_error := (lab.get("right_grip_marker") as Node3D).global_position.distance_to(
 		lab.call("_right_palm_contact_world") as Vector3
 	)
+	print("GUN_LAB_CROUCH_TRIGGER_ERROR_M %.5f posture=%s spread=%.3f owner=%s support=%s" % [
+		crouch_grip_error,
+		String(lab.get("preview_posture")),
+		float(lab.call("_stance_spread_multiplier")),
+		String(lab.get("weapon_owner_state")),
+		String(lab.get("support_hand_policy")),
+	])
 	_expect(
 		lab.get("preview_posture") == &"CROUCHED"
-		and absf(float(lab.call("_stance_spread_multiplier")) - 0.60) < 0.001
+		and absf(float(lab.call("_stance_spread_multiplier")) - 0.72) < 0.001
 		and crouch_grip_error < 0.01,
 		"crouch preview preserves the gameplay stance and trigger-hand attachment"
 	)

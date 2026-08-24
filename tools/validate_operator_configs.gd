@@ -42,7 +42,7 @@ func _validate_tuning(config: Dictionary) -> void:
     _range(movement, "acceleration", 1.0, 80.0)
     _range(movement, "braking_acceleration", 1.0, 80.0)
     _range(movement, "reversal_acceleration", 1.0, 120.0)
-    _range(movement, "torso_to_legs_degrees", 20.0, 70.0)
+    _range(movement, "torso_to_legs_degrees", 0.0, 10.0)
     _range(animation, "state_blend_seconds", 0.02, 0.4)
     _range(animation, "dive_trim_seconds", 0.4, 1.6)
     _range(animation, "roll_trim_seconds", 0.3, 1.4)

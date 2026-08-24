@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "mode": "SHADOW",
+  "live_selection_enabled": false,
+  "sample_rate_hz": 30,
+  "search_interval_seconds": 0.10,
+  "continuing_pose_bias": 0.18,
+  "minimum_switch_improvement": 0.08,
+  "weights": {
+    "velocity": 2.0,
+    "future_velocity": 3.0,
+    "facing_delta": 1.25,
+    "left_foot_position": 0.65,
+    "right_foot_position": 0.65,
+    "left_foot_velocity": 0.45,
+    "right_foot_velocity": 0.45
+  },
+  "database_filters": ["posture", "gait", "weapon_family"],
+  "notes": "Shadow mode only. CharacterBody3D, camera aim, weapon ownership, and multiplayer authority remain unchanged."
+}

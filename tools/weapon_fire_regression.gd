@@ -36,25 +36,43 @@ func _run() -> void:
 	)
 	var intent_before: Dictionary = rig.call("build_local_aim_intent")
 	var intended_direction: Vector3 = intent_before.direction
+	var first_muzzle_at_fire: Vector3 = (
+		player.get_node("Mannequin").call("get_active_muzzle_position")
+	)
 	var first: Dictionary = weapon.call("request_fire")
 	_expect(bool(first.get("fired", false)), "first authoritative shot fires")
+	var animation_driver = player.get_node_or_null("Mannequin/ProductionAnimation")
+	if animation_driver != null:
+		animation_driver.call("_process", 1.0 / 60.0)
+		var fire_pose: Dictionary = animation_driver.call(
+			"get_animation_debug_state"
+		).get("weapon_pose", {})
+		var fire_pose_weight := float(fire_pose.get("weight", 0.0))
+		print("FIRE_READY_BLEND_METRIC weight=%.4f desired=%.4f" % [
+			fire_pose_weight,
+			float(fire_pose.get("desired_weight", 0.0)),
+		])
+		_expect(
+			fire_pose_weight > 0.0 and fire_pose_weight < 1.0,
+			"accepted fire enters the final hand/weapon layer smoothly"
+		)
 	var first_climb: Dictionary = first.get("functional_aim_climb", {})
 	_expect(
-		bool(first_climb.get("enabled", false))
-		and float(first_climb.get("pitch_deg", 0.0)) >= 0.30,
-		"accepted first shot raises the shared follow-up aim center"
+		not bool(first_climb.get("enabled", true))
+		and absf(float(first_climb.get("pitch_deg", 99.0))) < 0.001,
+		"accepted shot leaves the shared reticle center stable"
 	)
 	var raw_aim_pitch_before_recoil := float(rig.get("aim_pitch"))
 	rig.call("_update_reticle_position", 0.0)
 	rig.call("_update_weapon_aim_point")
 	rig.call("_update_shot_validation")
 	_expect(
-		Vector2(rig.get("reticle_screen_normalized")).y < 0.5,
-		"functional aim climb moves the authoritative reticle upward"
+		Vector2(rig.get("reticle_screen_normalized")).is_equal_approx(Vector2(0.5, 0.5)),
+		"firing does not jump the reticle away from screen center"
 	)
 	_expect(
 		is_equal_approx(float(rig.get("aim_pitch")), raw_aim_pitch_before_recoil),
-		"functional aim climb leaves the camera aim angle unchanged"
+		"stable firing reticle leaves the camera aim angle unchanged"
 	)
 	_expect(
 		float(first.get("spread_deg", 0.0)) >= 2.70,
@@ -81,12 +99,11 @@ func _run() -> void:
 	weapon.ballistics._process(float(weapon.ballistics.fire_interval) + 0.01)
 	var second: Dictionary = weapon.call("request_fire")
 	_expect(bool(second.get("fired", false)), "second burst shot fires after cadence interval")
-	var first_center := Vector3(first.get("aim_center_direction", Vector3.ZERO))
-	var second_center := Vector3(second.get("aim_center_direction", Vector3.ZERO))
+	var first_center := Vector3(first.get("aim_center_point", Vector3.ZERO))
+	var second_center := Vector3(second.get("aim_center_point", Vector3.ZERO))
 	_expect(
-		asin(clampf(second_center.y, -1.0, 1.0))
-		> asin(clampf(first_center.y, -1.0, 1.0)) + deg_to_rad(0.20),
-		"second shot uses the recoil-raised aim center"
+		second_center.distance_to(first_center) < 0.01,
+		"second shot keeps the same world-space aim center while the moving muzzle reconverges"
 	)
 	_expect(
 		float(second.get("spread_deg", 0.0)) >= 2.70
@@ -125,8 +142,9 @@ func _run() -> void:
 	)
 	var recovered_climb: Dictionary = rig.call("get_functional_aim_climb_debug_state")
 	_expect(
-		float(recovered_climb.get("pitch_deg", 99.0)) < 0.05,
-		"aim climb recovers independently after firing stops"
+		not bool(recovered_climb.get("enabled", true))
+		and float(recovered_climb.get("pitch_deg", 99.0)) < 0.05,
+		"disabled aim climb cannot leave a hidden recoil offset"
 	)
 
 	var mannequin := player.get_node_or_null("Mannequin")
@@ -141,9 +159,8 @@ func _run() -> void:
 			active_muzzle != mannequin.muzzle_marker,
 			"live shot origin does not use the hidden proxy muzzle"
 		)
-		var muzzle: Vector3 = active_muzzle.global_position
 		_expect(
-			Vector3(first.get("origin", Vector3.INF)).distance_to(muzzle) <= 0.002,
+			Vector3(first.get("origin", Vector3.INF)).distance_to(first_muzzle_at_fire) <= 0.002,
 			"authoritative shot begins at the visible rifle muzzle"
 		)
 		_expect(

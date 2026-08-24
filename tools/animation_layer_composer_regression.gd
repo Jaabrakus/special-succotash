@@ -40,6 +40,17 @@ func _initialize() -> void:
 	if layered:
 		_expect(layered.get_track_count() == 2, "body-region override replaces rather than duplicates the base track")
 		_expect(_last_key_value(layered, "mixamorig_Spine2").is_equal_approx(Vector3(0.0, 9.0, 0.0)), "highlighted torso lane overrides the full-body torso")
+	var short_legs := _clip("mixamorig_Hips", Vector3(1.0, 0.0, 0.0), 0.5)
+	var long_action := _clip("mixamorig_Spine2", Vector3(0.0, 3.0, 0.0), 1.25)
+	var action_timed: Animation = COMPOSER.new().compose({
+		"duration_reference": long_action,
+		"lower_body": short_legs,
+		"torso": long_action,
+	})
+	_expect(
+		action_timed != null and is_equal_approx(action_timed.length, 1.25),
+		"upper-body event preview keeps the action duration while borrowing locomotion legs"
+	)
 	if failures.is_empty():
 		print("ANIMATION_LAYER_COMPOSER_REGRESSION PASS")
 		quit(0)

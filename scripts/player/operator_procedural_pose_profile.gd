@@ -8,15 +8,21 @@ const PROFILE_PATH := "res://config/operator_procedural_pose_profile.json"
 const PlaytestStateCollector := preload("res://scripts/runtime/playtest_state_collector.gd")
 const SUPPORTED_POSTURES := [&"STANDING", &"CROUCHED", &"PRONE"]
 const SUPPORTED_BONES := [
+	&"hips",
 	&"spine", &"spine1", &"spine2", &"neck", &"head",
 	&"left_shoulder", &"right_shoulder",
 	&"left_upper_arm", &"right_upper_arm",
 	&"left_forearm", &"right_forearm",
+	&"left_upper_leg", &"right_upper_leg",
+	&"left_lower_leg", &"right_lower_leg",
+	&"left_foot", &"right_foot",
+	&"left_toe", &"right_toe",
 ]
 
 # Local additive limits in degrees: pitch, yaw, roll. These controls rotate
 # joints only. They never translate a bone or change its length.
 const JOINT_AXIS_LIMITS: Dictionary = {
+	&"hips": Vector3(35.0, 55.0, 35.0),
 	&"spine": Vector3(10.0, 12.0, 8.0),
 	&"spine1": Vector3(14.0, 16.0, 10.0),
 	&"spine2": Vector3(18.0, 20.0, 12.0),
@@ -28,6 +34,14 @@ const JOINT_AXIS_LIMITS: Dictionary = {
 	&"right_upper_arm": Vector3(34.0, 38.0, 32.0),
 	&"left_forearm": Vector3(48.0, 14.0, 24.0),
 	&"right_forearm": Vector3(48.0, 14.0, 24.0),
+	&"left_upper_leg": Vector3(115.0, 55.0, 55.0),
+	&"right_upper_leg": Vector3(115.0, 55.0, 55.0),
+	&"left_lower_leg": Vector3(145.0, 24.0, 28.0),
+	&"right_lower_leg": Vector3(145.0, 24.0, 28.0),
+	&"left_foot": Vector3(55.0, 30.0, 25.0),
+	&"right_foot": Vector3(55.0, 30.0, 25.0),
+	&"left_toe": Vector3(35.0, 20.0, 18.0),
+	&"right_toe": Vector3(35.0, 20.0, 18.0),
 }
 
 var corrections: Dictionary = {}

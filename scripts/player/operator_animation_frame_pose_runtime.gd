@@ -111,6 +111,8 @@ func _blend_pose(first: Dictionary, second: Dictionary, weight: float) -> Dictio
 	for field in [
 		"right_elbow_pole", "left_elbow_pole",
 		"right_hand_target", "left_hand_target",
+		"right_hand_rotation_correction_deg",
+		"left_hand_rotation_correction_deg",
 		"weapon_hand_position_correction",
 		"weapon_hand_rotation_correction_deg",
 	]:

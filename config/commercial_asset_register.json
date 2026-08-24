@@ -1,0 +1,106 @@
+{
+  "schema_version": 1,
+  "product": "141",
+  "release_policy": {
+    "approved_statuses": ["approved_original", "approved_licensed", "approved_open_source"],
+    "customer_build_requires_all_included_assets_approved": true
+  },
+  "packages": [
+    {
+      "id": "production_operator_ps1_gas_mask",
+      "path": "res://assets/characters/ps1_gas_mask_soldier",
+      "purpose": "current canonical development operator",
+      "included_in_customer_build": true,
+      "status": "blocked_unverified",
+      "source": "unknown",
+      "creator": "unknown",
+      "license_or_contract": "missing",
+      "evidence": "missing",
+      "required_action": "Replace with original production operator or attach written commercial rights evidence."
+    },
+    {
+      "id": "mixamo_animation_library",
+      "path": "res://assets/animations/mixamo",
+      "purpose": "production animation source library",
+      "included_in_customer_build": true,
+      "status": "terms_review_required",
+      "source": "Adobe Mixamo-compatible downloads",
+      "creator": "Adobe and/or listed pack creators",
+      "license_or_contract": "not recorded per package",
+      "evidence": "missing download/account records",
+      "required_action": "Record source and applicable terms for every animation package and confirm end-product redistribution."
+    },
+    {
+      "id": "modular_weapon_pack",
+      "path": "res://assets/weapons/modular_pack",
+      "purpose": "weapon models",
+      "included_in_customer_build": true,
+      "status": "blocked_unverified",
+      "source": "unknown",
+      "creator": "unknown",
+      "license_or_contract": "missing",
+      "evidence": "missing",
+      "required_action": "Locate the purchase/license record or replace with original weapon models."
+    },
+    {
+      "id": "ps1_ak47_reference_weapon",
+      "path": "res://assets/weapons/ps1_ak47",
+      "purpose": "development rifle/reference",
+      "included_in_customer_build": true,
+      "status": "blocked_unverified",
+      "source": "unknown",
+      "creator": "unknown",
+      "license_or_contract": "missing",
+      "evidence": "missing",
+      "required_action": "Remove from customer export or replace with an original/licensed rifle."
+    },
+    {
+      "id": "environment_original_materials",
+      "path": "res://assets/textures/environment/original_materials",
+      "purpose": "production map materials",
+      "included_in_customer_build": true,
+      "status": "ownership_evidence_required",
+      "source": "project-authored claim",
+      "creator": "not recorded",
+      "license_or_contract": "project proprietary",
+      "evidence": "creation provenance missing",
+      "required_action": "Record creator, creation method, source inputs, and ownership assignment."
+    },
+    {
+      "id": "operator_animation_reference_sheets",
+      "path": "res://assets/animation_reference/operator",
+      "purpose": "internal animation direction",
+      "included_in_customer_build": false,
+      "status": "development_only",
+      "source": "project reference",
+      "creator": "not recorded",
+      "license_or_contract": "not required for customer build if excluded",
+      "evidence": "export exclusion required",
+      "required_action": "Keep excluded from every customer export."
+    },
+    {
+      "id": "counter_strike_urban_experiment",
+      "path": "res://counter-strike-urban",
+      "purpose": "experimental rig compatibility",
+      "included_in_customer_build": false,
+      "status": "development_only_blocked",
+      "source": "Counter-Strike-derived naming/content",
+      "creator": "third party",
+      "license_or_contract": "commercial redistribution not established",
+      "evidence": "missing",
+      "required_action": "Exclude permanently or delete after the compatibility experiment."
+    },
+    {
+      "id": "editable_source_art",
+      "path": "res://art_source",
+      "purpose": "internal editable production sources",
+      "included_in_customer_build": false,
+      "status": "development_only",
+      "source": "mixed project sources",
+      "creator": "not fully recorded",
+      "license_or_contract": "not applicable to customer package",
+      "evidence": "repository remains private",
+      "required_action": "Keep excluded and complete creator/ownership records before derived assets ship."
+    }
+  ]
+}

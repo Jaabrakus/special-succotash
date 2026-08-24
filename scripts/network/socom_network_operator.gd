@@ -24,6 +24,7 @@ var carrying_demolition_bomb: bool = false
 var snapshot_history: Array[Dictionary] = []
 var interpolation_delay_seconds: float = 0.130
 var is_proxy_replica: bool = false
+var authoritative_hurtboxes_enabled: bool = true
 
 
 func _ready() -> void:
@@ -58,6 +59,16 @@ func set_replica_mode(enabled: bool) -> void:
 	is_proxy_replica = enabled
 	replay_override_active = enabled
 	set_local_input_enabled(not enabled)
+
+
+func configure_network_presentation(
+	is_local_visual_owner: bool,
+	requires_authoritative_hurtboxes: bool
+) -> void:
+	authoritative_hurtboxes_enabled = requires_authoritative_hurtboxes
+	if mannequin != null:
+		mannequin.set_legacy_procedural_updates_enabled(is_local_visual_owner)
+	_apply_hurtbox_runtime_mode()
 
 
 func push_network_snapshot(
@@ -270,7 +281,7 @@ func _set_alive_and_health(value: bool, health_value: float) -> void:
 	if mannequin:
 		mannequin.visible = alive
 	if hurtbox_rig:
-		hurtbox_rig.set_enabled(alive)
+		hurtbox_rig.set_enabled(alive and authoritative_hurtboxes_enabled)
 	_refresh_nameplate()
 
 
@@ -373,3 +384,11 @@ func _bind_animated_hurtboxes() -> void:
 	add_child(hurtbox_rig)
 	hurtbox_rig.bind(skeleton, self)
 	hurtbox_rig.set_debug_visible(false)
+	_apply_hurtbox_runtime_mode()
+
+
+func _apply_hurtbox_runtime_mode() -> void:
+	if hurtbox_rig == null:
+		return
+	hurtbox_rig.set_physics_process(authoritative_hurtboxes_enabled)
+	hurtbox_rig.set_enabled(alive and authoritative_hurtboxes_enabled)

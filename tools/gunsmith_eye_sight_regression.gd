@@ -27,19 +27,27 @@ func _run() -> void:
 	var eye_toggle := lab.find_child("EyeSightToggle", true, false) as CheckButton
 	var sliders := lab.get("sliders_map") as Dictionary
 	_expect(int(lab.get("head_idx")) >= 0, "operator head supplies the neutral line start")
-	_expect(eye_marker != null, "Gunsmith creates a free gun-placement line")
-	_expect(direction_marker != null, "Gunsmith creates a separate pitch/yaw handle")
+	_expect(eye_marker != null, "Gunsmith creates a reticle-locked gun-placement line")
+	_expect(direction_marker != null, "Gunsmith creates a visible reticle-lock direction indicator")
 	_expect(
 		eye_toggle != null and eye_toggle.button_pressed,
 		"gun-placement line is visible and user-toggleable"
 	)
 	_expect(
-		sliders.has("eye_sight_pitch")
-		and sliders.has("eye_sight_yaw")
+		not sliders.has("eye_sight_pitch")
+		and not sliders.has("eye_sight_yaw")
 		and sliders.has("eye_origin_x")
 		and sliders.has("eye_origin_y")
 		and sliders.has("eye_origin_z"),
-		"Gunsmith exposes direction and X/Y/Z gun-placement controls"
+		"Gunsmith exposes X/Y/Z placement while yaw and pitch remain reticle-locked"
+	)
+	_expect(lab.find_child("GunPlacementReticleLockNotice", true, false) != null, "Gunsmith labels the reticle-lock rule")
+	var fire_presentation: Dictionary = lab.call("_fire_event_presentation")
+	_expect(
+		String(fire_presentation.get("event", "")) == "FIRE_ACCEPTED"
+		and String(fire_presentation.get("state", "")) == "combat_fire"
+		and "RAIL_TO_BLUE_LINE" in (fire_presentation.get("effects", []) as Array),
+		"Gunsmith fire preview consumes the same standing event recipe as playtest"
 	)
 	var profile := ProceduralPoseProfile.new()
 	profile.set_eye_sight_origin_offset_meters(
@@ -143,30 +151,18 @@ func _run() -> void:
 		original_eye_origin_offset
 	)
 	lab.call("_update_eye_sight_marker")
-	posture_layer.call(
-		"set_eye_sight_reference_degrees",
-		lab.get("preview_posture"),
-		Vector2.ZERO
+	posture_layer.call("set_eye_sight_reference_degrees", lab.get("preview_posture"), Vector2(20.0, 30.0))
+	var locked_direction: Vector3 = lab.call("_eye_sight_direction_world")
+	var camera_for_lock := lab.get("cam") as Camera3D
+	var reticle_screen: Vector2 = lab.call("_reticle_screen_position")
+	var lock_ray_origin := camera_for_lock.project_ray_origin(reticle_screen)
+	var lock_ray_direction := camera_for_lock.project_ray_normal(reticle_screen).normalized()
+	var lock_target := lock_ray_origin + lock_ray_direction * 120.0
+	var lock_projection := camera_for_lock.unproject_position(
+		eye_marker.global_position
+		+ locked_direction * eye_marker.global_position.distance_to(lock_target)
 	)
-	var straight_direction: Vector3 = lab.call("_eye_sight_direction_world")
-	var skeleton := lab.get("skeleton") as Skeleton3D
-	var operator_forward := skeleton.global_basis.z.normalized()
-	_expect(
-		rad_to_deg(straight_direction.angle_to(operator_forward)) <= 0.05,
-		"zero eye correction points straight and parallel to operator forward"
-	)
-	lab.call("_set_eye_sight_component", 20.0, &"yaw")
-	var yawed_direction: Vector3 = lab.call("_eye_sight_direction_world")
-	_expect(
-		absf(rad_to_deg(straight_direction.angle_to(yawed_direction)) - 20.0) <= 0.25,
-		"eye yaw turns the head sight line left/right"
-	)
-	lab.call("_set_eye_sight_component", 10.0, &"pitch")
-	var pitched_direction: Vector3 = lab.call("_eye_sight_direction_world")
-	_expect(
-		pitched_direction.y > yawed_direction.y,
-		"positive eye pitch raises the head sight line"
-	)
+	_expect(lock_projection.distance_to(reticle_screen) <= 0.5, "saved yaw/pitch cannot move the blue line away from the active reticle")
 	posture_layer.call(
 		"set_eye_sight_reference_degrees",
 		lab.get("preview_posture"),
@@ -180,10 +176,7 @@ func _run() -> void:
 	lab.call("_update_eye_sight_marker")
 	var camera := lab.get("cam") as Camera3D
 	var eye_origin_screen := camera.unproject_position(eye_marker.global_position)
-	var eye_end_screen := camera.unproject_position(
-		eye_marker.global_position + lab.call("_eye_sight_direction_world") * 0.5
-	)
-	var eye_line_pick := eye_origin_screen.lerp(eye_end_screen, 0.35)
+	var eye_line_pick := eye_origin_screen
 	_expect(
 		String(lab.call("_find_dot_under_mouse", eye_line_pick)) == "eye_sight",
 		"clicking the visible blue segment selects gun-placement authoring"
@@ -192,6 +185,9 @@ func _run() -> void:
 	eye_press.button_index = MOUSE_BUTTON_LEFT
 	eye_press.pressed = true
 	eye_press.position = eye_line_pick
+	var headless_sidebar := lab.get("sidebar_panel") as Control
+	if DisplayServer.get_name() == "headless" and headless_sidebar:
+		headless_sidebar.visible = false
 	lab.call("_input", eye_press)
 	var fixed_eye_origin := eye_marker.global_position
 	var drag_start_offset: Vector3 = lab.call("_eye_sight_origin_offset")
@@ -240,8 +236,8 @@ func _run() -> void:
 	lab.call("_update_eye_sight_marker")
 	var direction_screen := camera.unproject_position(direction_marker.global_position)
 	_expect(
-		String(lab.call("_find_dot_under_mouse", direction_screen)) == "eye_sight_direction",
-		"the second blue dot selects direction authoring instead of position"
+		String(lab.call("_find_dot_under_mouse", direction_screen)).is_empty(),
+		"the pale-blue reticle-lock indicator is not an editable direction handle"
 	)
 	var direction_press := InputEventMouseButton.new()
 	direction_press.button_index = MOUSE_BUTTON_LEFT
@@ -256,9 +252,9 @@ func _run() -> void:
 	lab.call("_input", direction_drag)
 	var direction_end_correction: Vector3 = lab.call("_eye_sight_correction")
 	_expect(
-		direction_end_correction.y >= direction_start_correction.y + 4.9
-		and direction_end_correction.x >= direction_start_correction.x + 2.9,
-		"dragging the second dot changes yaw and pitch"
+		direction_end_correction.is_equal_approx(direction_start_correction)
+		and String(lab.get("dragged_dot_id")).is_empty(),
+		"the second blue dot cannot change reticle-locked yaw or pitch"
 	)
 	_expect(
 		eye_marker.global_position.distance_to(fixed_position_for_direction) <= 0.0001,
@@ -269,9 +265,11 @@ func _run() -> void:
 	direction_release.pressed = false
 	direction_release.position = direction_drag.position
 	lab.call("_input", direction_release)
+	if DisplayServer.get_name() == "headless" and headless_sidebar:
+		headless_sidebar.visible = true
 	_expect(
 		String(lab.get("dragged_dot_id")).is_empty(),
-		"releasing locks the line direction"
+		"the line direction stays locked after release"
 	)
 	var head_rotation_after_drag: Vector3 = posture_layer.call(
 		"get_procedural_rotation_degrees",

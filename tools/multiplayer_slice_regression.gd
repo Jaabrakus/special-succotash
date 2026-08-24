@@ -6,6 +6,7 @@ const MultiplayerScene := preload("res://multiplayer_slice.tscn")
 const NetworkOperator := preload("res://scripts/network/socom_network_operator.gd")
 const LobbyState := preload("res://scripts/network/socom_lobby_state.gd")
 const MapDocument := preload("res://scripts/maps/socom_map_document.gd")
+const MatchInvite := preload("res://scripts/network/socom_match_invite.gd")
 
 var failures: Array[String] = []
 
@@ -79,6 +80,12 @@ func _run() -> void:
 	_assert(slice.find_child("ChooseAlphaTeamButton", true, false) != null, "players can choose Alpha")
 	_assert(slice.find_child("ChooseBravoTeamButton", true, false) != null, "players can choose Bravo")
 	_assert(slice.find_child("GreenUpReadyButton", true, false) != null, "players have a green-ready button")
+	_assert(slice.find_child("HostInviteCodePanel", true, false) != null, "host lobby exposes a squad invite code")
+	_assert(slice.find_child("CopyHostInviteCode", true, false) is Button, "host can copy the invite code")
+	slice.multiplayer_hud.show_host_invite(14141)
+	var invite_edit := slice.find_child("HostInviteCode", true, false) as LineEdit
+	var decoded_invite: Dictionary = MatchInvite.decode(invite_edit.text if invite_edit != null else "")
+	_assert(bool(decoded_invite.get("ok", false)) and int(decoded_invite.get("port", 0)) == 14141, "visible host code resolves to the hosted UDP port")
 	_assert(slice.find_child("MultiplayerRoundClock", true, false) != null, "match HUD exposes the authored round timer")
 	_assert(slice.find_child("DemolitionObjectiveStatus", true, false) != null, "match HUD exposes the bomb objective")
 	var authored_map := MapDocument.new_document("Multiplayer Regression Map")
@@ -213,6 +220,24 @@ func _run() -> void:
 			operator.hurtbox_rig.get_region_area(&"RIGHT_UPPER_ARM") != null,
 			"network operator is missing an anatomical upper-arm region"
 		)
+	operator.configure_network_presentation(false, false)
+	_assert(
+		not operator.mannequin.legacy_procedural_updates_enabled,
+		"remote operators disable the hidden legacy mannequin solver"
+	)
+	_assert(
+		operator.hurtbox_rig != null and not operator.hurtbox_rig.is_physics_processing(),
+		"client replicas disable unused hurtbox physics"
+	)
+	operator.configure_network_presentation(true, true)
+	_assert(
+		operator.mannequin.legacy_procedural_updates_enabled,
+		"the local visual owner keeps camera-marker mannequin updates"
+	)
+	_assert(
+		operator.hurtbox_rig != null and operator.hurtbox_rig.is_physics_processing(),
+		"the server keeps authoritative animated hurtboxes active"
+	)
 	var health_before: float = operator.current_health
 	var damage := operator.take_bullet_damage_region(
 		10.0,

@@ -1,7 +1,9 @@
 extends Control
 
 signal state_selected(slot_name: String)
+signal event_selected(event_name: String)
 signal clip_dropped_on_state(entry: Dictionary, slot_name: String)
+signal event_dropped_on_state(event_name: String, slot_name: String)
 signal candidate_selected(entry: Dictionary)
 
 const GROUP_ORDER := [
@@ -23,6 +25,10 @@ var group_rects: Dictionary = {}
 var candidate_entries: Array[Dictionary] = []
 var candidate_rects: Dictionary = {}
 var candidate_group_rect := Rect2()
+var event_routes: Dictionary = {}
+var event_rects: Dictionary = {}
+var event_group_rect := Rect2()
+var selected_event: String = ""
 var hovered_slot: String = ""
 var drag_active: bool = false
 
@@ -32,9 +38,17 @@ func _ready() -> void:
 	custom_minimum_size.x = 390.0
 
 
-func set_state_data(slots: Dictionary, selected: String, candidates: Array = []) -> void:
+func set_state_data(
+	slots: Dictionary,
+	selected: String,
+	candidates: Array = [],
+	routes: Dictionary = {},
+	active_event: String = ""
+) -> void:
 	state_slots = slots.duplicate(true)
 	selected_slot = selected
+	event_routes = routes.duplicate(true)
+	selected_event = active_event
 	candidate_entries.clear()
 	for raw_candidate in candidates:
 		if raw_candidate is Dictionary:
@@ -48,6 +62,8 @@ func _rebuild_layout() -> void:
 	group_rects.clear()
 	candidate_rects.clear()
 	candidate_group_rect = Rect2()
+	event_rects.clear()
+	event_group_rect = Rect2()
 	var grouped: Dictionary = {}
 	for group_name in GROUP_ORDER:
 		grouped[group_name] = []
@@ -58,6 +74,20 @@ func _rebuild_layout() -> void:
 		grouped[_group_for_slot(slot_name)].append(slot_name)
 
 	var y := 80.0
+	if not event_routes.is_empty():
+		var event_top := y
+		var event_names: Array = event_routes.keys()
+		event_names.sort()
+		for event_name in event_names:
+			event_rects[event_name] = Rect2(158.0, y, 222.0, NODE_HEIGHT)
+			y += NODE_HEIGHT + NODE_GAP
+		event_group_rect = Rect2(
+			14.0,
+			event_top,
+			122.0,
+			maxf(NODE_HEIGHT, y - NODE_GAP - event_top)
+		)
+		y += GROUP_GAP
 	if not candidate_entries.is_empty():
 		var candidate_top := y
 		for index in range(candidate_entries.size()):
@@ -95,6 +125,53 @@ func _draw() -> void:
 		var last_group: Rect2 = group_rects.values()[-1]
 		draw_line(Vector2(spine_x, root_rect.end.y), Vector2(spine_x, last_group.get_center().y), Color(0.2, 0.75, 0.9, 0.7), 2.0)
 	draw_line(Vector2(root_rect.get_center().x, root_rect.end.y), Vector2(spine_x, root_rect.end.y), Color(0.2, 0.75, 0.9, 0.7), 2.0)
+	if not event_group_rect.size.is_zero_approx():
+		var event_header := Rect2(
+			event_group_rect.position.x,
+			event_group_rect.get_center().y - 18.0,
+			event_group_rect.size.x,
+			36.0
+		)
+		draw_line(
+			Vector2(spine_x, event_header.get_center().y),
+			event_header.position + Vector2(0.0, event_header.size.y * 0.5),
+			Color(1.0, 0.66, 0.2, 0.8),
+			2.0
+		)
+		draw_rect(event_header, Color(0.22, 0.13, 0.04), true)
+		draw_rect(event_header, Color(1.0, 0.66, 0.2), false, 1.5)
+		draw_string(font, event_header.position + Vector2(7.0, 22.0), "EVENTS", HORIZONTAL_ALIGNMENT_LEFT, event_header.size.x - 12.0, 10, Color(1.0, 0.84, 0.45))
+		for event_name in event_rects.keys():
+			var event_rect: Rect2 = event_rects[event_name]
+			var route: Dictionary = event_routes.get(event_name, {})
+			var targets := _event_targets(route)
+			var event_accent := (
+				Color(1.0, 0.92, 0.25)
+				if String(event_name) == selected_event
+				else Color(1.0, 0.66, 0.2)
+			)
+			_draw_card(
+				event_rect,
+				String(event_name).replace("_", " ").capitalize(),
+				(
+					"▶ CLICKED → %s" % String(targets[0])
+					if String(event_name) == selected_event and not targets.is_empty()
+					else "→ %s" % (String(targets[0]) if not targets.is_empty() else "UNCONNECTED")
+				),
+				event_accent,
+				font
+			)
+			for target_state in targets:
+				if not node_rects.has(target_state):
+					continue
+				var target_rect: Rect2 = node_rects[target_state]
+				draw_dashed_line(
+					event_rect.end - Vector2(event_rect.size.x * 0.5, 0.0),
+					Vector2(target_rect.get_center().x, target_rect.position.y),
+					Color(1.0, 0.66, 0.2, 0.55),
+					1.5,
+					6.0
+				)
 	if not candidate_group_rect.size.is_zero_approx():
 		var candidate_center := Vector2(candidate_group_rect.position.x, candidate_group_rect.get_center().y)
 		draw_line(Vector2(spine_x, candidate_center.y), candidate_center, Color(0.72, 0.38, 1.0, 0.8), 2.0)
@@ -165,15 +242,24 @@ func _gui_input(event: InputEvent) -> void:
 			state_selected.emit(slot)
 			queue_redraw()
 		else:
-			var candidate_index := _candidate_at(event.position)
-			if candidate_index >= 0:
-				candidate_selected.emit(candidate_entries[candidate_index].duplicate(true))
+			var event_name := _event_at(event.position)
+			if not event_name.is_empty():
+				selected_event = event_name
+				event_selected.emit(event_name)
+				queue_redraw()
+			else:
+				var candidate_index := _candidate_at(event.position)
+				if candidate_index >= 0:
+					candidate_selected.emit(candidate_entries[candidate_index].duplicate(true))
 
 
 func _can_drop_data(at_position: Vector2, data: Variant) -> bool:
 	var valid_payload := (
 		data is Dictionary
-		and str((data as Dictionary).get("kind", "")) == "operator_animation_clip"
+		and str((data as Dictionary).get("kind", "")) in [
+			"operator_animation_clip",
+			"operator_animation_event",
+		]
 	)
 	var slot := _slot_at(at_position) if valid_payload else ""
 	drag_active = valid_payload
@@ -187,10 +273,17 @@ func _drop_data(at_position: Vector2, data: Variant) -> void:
 	var slot := _slot_at(at_position)
 	if slot.is_empty() or not data is Dictionary:
 		return
-	var entry: Dictionary = ((data as Dictionary).get("entry", {}) as Dictionary).duplicate(true)
 	selected_slot = slot
 	hovered_slot = ""
-	clip_dropped_on_state.emit(entry, slot)
+	var kind := String((data as Dictionary).get("kind", ""))
+	if kind == "operator_animation_event":
+		event_dropped_on_state.emit(
+			String((data as Dictionary).get("event", "")),
+			slot
+		)
+	else:
+		var entry: Dictionary = ((data as Dictionary).get("entry", {}) as Dictionary).duplicate(true)
+		clip_dropped_on_state.emit(entry, slot)
 	queue_redraw()
 
 
@@ -218,10 +311,31 @@ func _candidate_at(point: Vector2) -> int:
 	return -1
 
 
+func _event_at(point: Vector2) -> String:
+	for event_name in event_rects.keys():
+		if (event_rects[event_name] as Rect2).has_point(point):
+			return String(event_name)
+	return ""
+
+
 func _tooltip_for_slot(slot_name: String) -> String:
 	if slot_name.is_empty():
-		return "Drag an animation clip onto a connected state card."
+		return "Drag an animation clip or gameplay event onto a state card."
 	return "%s\n%s" % [slot_name, str(state_slots.get(slot_name, "UNASSIGNED"))]
+
+
+func _event_targets(route: Dictionary) -> Array[String]:
+	var targets: Array[String] = []
+	var default_state := String(route.get("default_state", ""))
+	if not default_state.is_empty():
+		targets.append(default_state)
+	var raw_postures: Variant = route.get("posture_states", {})
+	if raw_postures is Dictionary:
+		for raw_target in (raw_postures as Dictionary).values():
+			var target := String(raw_target)
+			if not target.is_empty() and target not in targets:
+				targets.append(target)
+	return targets
 
 
 func _group_for_slot(slot_name: String) -> String:

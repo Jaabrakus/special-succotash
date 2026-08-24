@@ -56,6 +56,7 @@ static func attach_to_hand(
 		float(grip.get("rot_y", 0.0)),
 		float(grip.get("rot_z", 0.0))
 	)
+	calibrated_pivot.set_meta("canonical_weapon_pivot_transform", calibrated_pivot.transform)
 
 	var weapon_model := model_scene.instantiate() as Node3D
 	weapon_model.name = "WeaponMesh"
@@ -118,35 +119,54 @@ static func apply_animation_hand_map(
 	resource_path: String,
 	calibrated_pivot: Node3D,
 	left_hand: Marker3D,
-	right_hand: Marker3D
+	right_hand: Marker3D,
+	explicit_posture: StringName = &"",
+	candidate_keys: PackedStringArray = PackedStringArray()
 ) -> bool:
+	_restore_preview_socket_baseline(calibrated_pivot, left_hand, right_hand)
 	var raw_map: Variant = {}
-	var stances_dict: Variant = config.get("stances", {})
-	if stances_dict is Dictionary:
-		var stance_key := ""
-		if "prone" in resource_path.to_lower():
-			stance_key = "PRONE"
-		elif "crouch" in resource_path.to_lower():
-			stance_key = "CROUCHED"
-		elif "stand" in resource_path.to_lower() or "aim_idle" in resource_path.to_lower() or "idle" in resource_path.to_lower():
-			stance_key = "STANDING"
-		if not stance_key.is_empty() and (stances_dict as Dictionary).has(stance_key):
-			raw_map = (stances_dict as Dictionary)[stance_key]
-
-	if not (raw_map is Dictionary) or (raw_map as Dictionary).is_empty():
-		var raw_maps: Variant = config.get("animation_hand_maps", {})
-		if raw_maps is Dictionary:
-			var maps := raw_maps as Dictionary
-			raw_map = maps.get(resource_path, {})
-			if not raw_map is Dictionary:
-				for candidate_path in maps.keys():
-					if String(candidate_path).get_file() == resource_path.get_file() or String(candidate_path) == resource_path:
-						raw_map = maps[candidate_path]
-						break
+	# Match gameplay: a clip-specific hand map is more precise than a broad
+	# stance fallback. The old reverse order connected action clips to idle
+	# grips and folded both elbows through one another.
+	var raw_maps: Variant = config.get("animation_hand_maps", {})
+	if raw_maps is Dictionary:
+		var maps := raw_maps as Dictionary
+		var lookup_keys := PackedStringArray([resource_path])
+		lookup_keys.append_array(candidate_keys)
+		for lookup_key in lookup_keys:
+			raw_map = maps.get(String(lookup_key), {})
+			if raw_map is Dictionary and not (raw_map as Dictionary).is_empty():
+				break
+		if not raw_map is Dictionary or (raw_map as Dictionary).is_empty():
+			for candidate_path in maps.keys():
+				if _hand_map_key_matches(String(candidate_path), lookup_keys):
+					raw_map = maps[candidate_path]
+					break
+	if not raw_map is Dictionary or (raw_map as Dictionary).is_empty():
+		var stances_dict: Variant = config.get("stances", {})
+		if stances_dict is Dictionary:
+			var stance_key := String(explicit_posture).to_upper()
+			var semantic_text := (resource_path + " " + " ".join(candidate_keys)).to_lower()
+			if stance_key not in ["STANDING", "CROUCHED", "PRONE"] and "prone" in semantic_text:
+				stance_key = "PRONE"
+			elif stance_key not in ["STANDING", "CROUCHED", "PRONE"] and ("crouch" in semantic_text or "kneel" in semantic_text):
+				stance_key = "CROUCHED"
+			elif stance_key not in ["STANDING", "CROUCHED", "PRONE"]:
+				stance_key = "STANDING"
+			if not stance_key.is_empty() and (stances_dict as Dictionary).has(stance_key):
+				raw_map = (stances_dict as Dictionary)[stance_key]
 	if not raw_map is Dictionary or (raw_map as Dictionary).is_empty():
 		return false
 	var hand_map := raw_map as Dictionary
 	if calibrated_pivot:
+		# The Studio IK pass needs the same palm orientation that Gunsmith used
+		# when this grip was authored. Keep the resolved map on the preview pivot
+		# so the hand and elbow solver cannot silently fall back to a bare weapon
+		# socket basis.
+		calibrated_pivot.set_meta(
+			"active_animation_hand_map",
+			hand_map.duplicate(true)
+		)
 		calibrated_pivot.position = vector3_from_map(
 			hand_map.get("weapon_mount_position", {}), calibrated_pivot.position
 		)
@@ -166,12 +186,65 @@ static func apply_animation_hand_map(
 	return true
 
 
+static func restore_animation_hand_map_baseline(
+	calibrated_pivot: Node3D,
+	left_hand: Marker3D,
+	right_hand: Marker3D
+) -> void:
+	## Remove the previous clip's map without inventing a stance fallback for a
+	## raw or unapproved animation.
+	_restore_preview_socket_baseline(calibrated_pivot, left_hand, right_hand)
+
+
 static func _socket(parent: Node3D, socket_name: String, position: Vector3) -> Marker3D:
 	var marker := Marker3D.new()
 	marker.name = socket_name
 	marker.position = position
+	marker.set_meta("authored_weapon_socket", true)
+	marker.set_meta("canonical_socket_transform", marker.transform)
 	parent.add_child(marker)
 	return marker
+
+
+static func _restore_preview_socket_baseline(
+	calibrated_pivot: Node3D,
+	left_hand: Marker3D,
+	right_hand: Marker3D
+) -> void:
+	if calibrated_pivot and calibrated_pivot.has_meta("canonical_weapon_pivot_transform"):
+		calibrated_pivot.transform = calibrated_pivot.get_meta(
+			"canonical_weapon_pivot_transform"
+		) as Transform3D
+		calibrated_pivot.set_meta("active_animation_hand_map", {})
+	for marker in [left_hand, right_hand]:
+		if marker and marker.has_meta("canonical_socket_transform"):
+			marker.transform = marker.get_meta("canonical_socket_transform") as Transform3D
+
+
+static func _hand_map_key_matches(
+	map_key: String,
+	lookup_keys: PackedStringArray
+) -> bool:
+	var normalized_map := _normalized_hand_map_key(map_key)
+	for lookup_key in lookup_keys:
+		var lookup := String(lookup_key)
+		if map_key == lookup or map_key.get_file() == lookup.get_file():
+			return true
+		var normalized_lookup := _normalized_hand_map_key(lookup)
+		if (
+			not normalized_map.is_empty()
+			and normalized_map == normalized_lookup
+		):
+			return true
+	return false
+
+
+static func _normalized_hand_map_key(value: String) -> String:
+	return (
+		value.get_file().get_basename().to_snake_case()
+		.replace("rifle_", "")
+		.replace("_rifle", "")
+	)
 
 
 static func vector3_from_map(value: Variant, fallback: Vector3) -> Vector3:

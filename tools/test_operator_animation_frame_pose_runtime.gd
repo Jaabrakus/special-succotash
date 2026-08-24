@@ -31,9 +31,12 @@ func _initialize() -> void:
 		quit(1)
 		return
 	var outside: Dictionary = runtime.sample([&"aim_idle"], 1.5)
-	if not outside.is_empty():
-		push_error("[FRAME POSE RUNTIME] FAIL: correction leaked beyond authored frames")
+	var outside_head: Dictionary = (
+		outside.get("joint_rotations", {}) as Dictionary
+	).get("head", {})
+	if absf(float(outside_head.get("y", -1.0)) - 20.0) > 0.001:
+		push_error("[FRAME POSE RUNTIME] FAIL: terminal correction did not hold to clip end")
 		quit(1)
 		return
-	print("[FRAME POSE RUNTIME] PASS: saved Gunsmith keys interpolate and stay bounded.")
+	print("[FRAME POSE RUNTIME] PASS: saved correction keys interpolate and hold to clip bounds.")
 	quit(0)

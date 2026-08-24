@@ -15,6 +15,9 @@ const DIRECTION_POINTS: Dictionary = {
 	&"forward_right": Vector2(0.7071, 0.7071),
 }
 
+const PRESENTATION_RELAXED_RIFLE := &"RELAXED_RIFLE"
+const PRESENTATION_READY_AIM := &"READY_AIM"
+
 const UPPER_BODY_BONES: Array[StringName] = [
 	&"mixamorig_Spine", &"mixamorig_Spine1", &"mixamorig_Spine2",
 	&"mixamorig_Neck", &"mixamorig_Head",
@@ -50,6 +53,7 @@ var prone_travel_blend: float = 1.0
 var standing_transition_layer_nodes: Array[StringName] = []
 var standing_transition_ready_nodes: Array[StringName] = []
 var fire_transition: AnimationNodeTransition
+var fire_layer_node: AnimationNodeOneShot
 var fire_clips_by_posture: Dictionary = {}
 var fire_layer_available: bool = false
 var fire_trigger_count: int = 0
@@ -60,6 +64,8 @@ var crouched_reload_trigger_count: int = 0
 var standing_reload_clip: StringName = &""
 var standing_reload_layer_available: bool = false
 var standing_reload_trigger_count: int = 0
+var presentation_mode: StringName = PRESENTATION_RELAXED_RIFLE
+var upper_body_ready_blend: float = 0.0
 
 
 func build(
@@ -152,7 +158,40 @@ func update_locomotion(
 	# presentation fix cannot shift the crawl phase or lift knees off the floor.
 	if posture == &"PRONE":
 		rendered_direction = smoothed_direction
-	var target_full_weight: float = profile.full_gait_weight(speed_normalized)
+	presentation_mode = (
+		PRESENTATION_READY_AIM
+		if ready_weight >= 0.50
+		else PRESENTATION_RELAXED_RIFLE
+	)
+	var normalized_ready := clampf(ready_weight, 0.0, 1.0)
+	var movement_amount := smoothstep(0.08, 0.55, speed_normalized)
+	var dynamic_hold: Variant = weapon_handling_profile.get("dynamic_hold", {})
+	var ready_locomotion_inheritance := 0.22
+	if dynamic_hold is Dictionary:
+		ready_locomotion_inheritance = clampf(
+			float(
+				(dynamic_hold as Dictionary).get(
+					"ready_locomotion_inheritance",
+					ready_locomotion_inheritance
+				)
+			),
+			0.0,
+			0.35
+		)
+	# Aim Idle remains the dominant firing pose, but a moving player retains a
+	# small amount of the active rifle-walk torso and arm motion. The right-hand
+	# weapon mount therefore breathes with the body instead of looking pinned in
+	# space while the legs move underneath it.
+	upper_body_ready_blend = normalized_ready * (
+		1.0 - ready_locomotion_inheritance * movement_amount
+	)
+	# Relaxed locomotion uses the authored rifle-run family. A ready weapon
+	# deliberately drops the visual legs to the rifle-walk family while Aim Idle
+	# owns the torso. CharacterBody speed and collision stay unchanged.
+	var target_full_weight: float = (
+		profile.full_gait_weight(speed_normalized)
+		* (1.0 - clampf(ready_weight, 0.0, 1.0))
+	)
 	var speed_alpha := 1.0 - exp(-float(profile.locomotion["speed_blend_response"]) * delta)
 	full_gait_weight = lerpf(full_gait_weight, target_full_weight, speed_alpha)
 	playback_rate = profile.playback_rate(actual_speed_mps, posture, full_gait_weight)
@@ -175,10 +214,19 @@ func update_locomotion(
 	prone_travel_blend = lerpf(prone_travel_blend, prone_target, direction_alpha)
 	animation_tree.set("parameters/prone_space/blend_position", prone_travel_blend)
 	animation_tree.set("parameters/standing_speed_blend/blend_amount", full_gait_weight)
-	animation_tree.set("parameters/standing_upper_body/blend_amount", 1.0)
-	animation_tree.set("parameters/standing_idle_upper_body/blend_amount", 1.0)
+	animation_tree.set(
+		"parameters/standing_upper_body/blend_amount",
+		upper_body_ready_blend
+	)
+	animation_tree.set(
+		"parameters/standing_idle_upper_body/blend_amount",
+		clampf(ready_weight, 0.0, 1.0)
+	)
 	for layer_name in standing_transition_layer_nodes:
-		animation_tree.set("parameters/%s/blend_amount" % layer_name, 1.0)
+		animation_tree.set(
+			"parameters/%s/blend_amount" % layer_name,
+			upper_body_ready_blend
+		)
 	for ready_name in standing_transition_ready_nodes:
 		animation_tree.set(
 			"parameters/%s/blend_amount" % ready_name,
@@ -207,15 +255,29 @@ func request_legacy_clip(clip_name: StringName, blend_seconds: float) -> bool:
 	return true
 
 
-func trigger_fire(posture: StringName) -> StringName:
+func trigger_fire(
+	posture: StringName,
+	event_clip: StringName = &""
+) -> StringName:
 	if animation_tree == null or not fire_layer_available:
 		return &""
 	var normalized_posture := posture
 	if normalized_posture not in [&"STANDING", &"CROUCHED", &"PRONE"]:
 		normalized_posture = &"STANDING"
-	active_fire_clip = StringName(fire_clips_by_posture.get(normalized_posture, ""))
+	var mapped_clip := StringName(fire_clips_by_posture.get(normalized_posture, ""))
+	active_fire_clip = event_clip if event_clip == mapped_clip else mapped_clip
 	if active_fire_clip == &"":
 		return &""
+	if fire_layer_node != null:
+		fire_layer_node.fadein_time = profile.state_blend_in_seconds(
+			active_fire_clip,
+			0.025
+		)
+		fire_layer_node.fadeout_time = profile.state_blend_out_seconds(
+			active_fire_clip,
+			0.065
+		)
+		fire_layer_node.filter_enabled = profile.state_layer(active_fire_clip) == "UPPER_BODY"
 	animation_tree.set(
 		"parameters/fire_transition/transition_request",
 		normalized_posture
@@ -292,6 +354,8 @@ func get_debug_state() -> Dictionary:
 		"standing_reload_layer_available": standing_reload_layer_available,
 		"standing_reload_clip": standing_reload_clip,
 		"standing_reload_trigger_count": standing_reload_trigger_count,
+		"presentation_mode": presentation_mode,
+		"upper_body_ready_blend": upper_body_ready_blend,
 	}
 
 
@@ -306,14 +370,16 @@ func _build_crouched_reload_layer(
 	)
 	if crouched_reload_clip == &"" or not available_clips.has(crouched_reload_clip):
 		return
+	if profile.state_layer(crouched_reload_clip) != "UPPER_BODY":
+		return
 	root.add_node(
 		&"crouched_reload_animation",
 		_animation_node(crouched_reload_clip),
 		Vector2(980.0, 470.0)
 	)
 	var reload_layer := AnimationNodeOneShot.new()
-	reload_layer.fadein_time = 0.08
-	reload_layer.fadeout_time = 0.12
+	reload_layer.fadein_time = profile.state_blend_in_seconds(crouched_reload_clip, 0.08)
+	reload_layer.fadeout_time = profile.state_blend_out_seconds(crouched_reload_clip, 0.12)
 	reload_layer.sync = true
 	reload_layer.filter_enabled = true
 	for bone_name: StringName in UPPER_BODY_BONES:
@@ -336,14 +402,16 @@ func _build_standing_reload_layer(
 	)
 	if standing_reload_clip == &"" or not available_clips.has(standing_reload_clip):
 		return
+	if profile.state_layer(standing_reload_clip) != "UPPER_BODY":
+		return
 	root.add_node(
 		&"standing_reload_animation",
 		_animation_node(standing_reload_clip),
 		Vector2(980.0, 550.0)
 	)
 	var reload_layer := AnimationNodeOneShot.new()
-	reload_layer.fadein_time = 0.08
-	reload_layer.fadeout_time = 0.12
+	reload_layer.fadein_time = profile.state_blend_in_seconds(standing_reload_clip, 0.08)
+	reload_layer.fadeout_time = profile.state_blend_out_seconds(standing_reload_clip, 0.12)
 	reload_layer.sync = true
 	reload_layer.filter_enabled = true
 	for bone_name: StringName in UPPER_BODY_BONES:
@@ -360,9 +428,24 @@ func _build_fire_layer(
 	base_source: StringName
 ) -> void:
 	fire_clips_by_posture = {
-		&"STANDING": _weapon_action_clip("fire_standing", &"combat_fire", available_clips),
-		&"CROUCHED": _weapon_action_clip("fire_crouched", &"crouch_fire", available_clips),
-		&"PRONE": _weapon_action_clip("fire_prone", &"prone_fire", available_clips),
+		&"STANDING": _event_fire_clip(
+			&"STANDING",
+			"fire_standing",
+			&"combat_fire",
+			available_clips
+		),
+		&"CROUCHED": _event_fire_clip(
+			&"CROUCHED",
+			"fire_crouched",
+			&"crouch_fire",
+			available_clips
+		),
+		&"PRONE": _event_fire_clip(
+			&"PRONE",
+			"fire_prone",
+			&"prone_fire",
+			available_clips
+		),
 	}
 	for posture_name: StringName in fire_clips_by_posture:
 		if not available_clips.has(fire_clips_by_posture[posture_name]):
@@ -384,17 +467,33 @@ func _build_fire_layer(
 		)
 		root.connect_node(&"fire_transition", index, node_name)
 
-	var fire_layer := AnimationNodeOneShot.new()
-	fire_layer.fadein_time = 0.025
-	fire_layer.fadeout_time = 0.065
-	fire_layer.sync = true
-	fire_layer.filter_enabled = true
+	fire_layer_node = AnimationNodeOneShot.new()
+	fire_layer_node.fadein_time = profile.state_blend_in_seconds(&"combat_fire", 0.025)
+	fire_layer_node.fadeout_time = profile.state_blend_out_seconds(&"combat_fire", 0.065)
+	fire_layer_node.sync = true
+	fire_layer_node.filter_enabled = profile.state_layer(&"combat_fire") == "UPPER_BODY"
 	for bone_name: StringName in UPPER_BODY_BONES:
-		fire_layer.set_filter_path(NodePath(".:%s" % bone_name), true)
-	root.add_node(&"fire_layer", fire_layer, Vector2(1230.0, 110.0))
+		fire_layer_node.set_filter_path(NodePath(".:%s" % bone_name), true)
+	root.add_node(&"fire_layer", fire_layer_node, Vector2(1230.0, 110.0))
 	root.connect_node(&"fire_layer", 0, base_source)
 	root.connect_node(&"fire_layer", 1, &"fire_transition")
 	fire_layer_available = true
+
+
+func _event_fire_clip(
+	posture_name: StringName,
+	weapon_slot: String,
+	fallback: StringName,
+	available_clips: Dictionary
+) -> StringName:
+	var event_clip: StringName = profile.resolve_animation_event(
+		&"FIRE_ACCEPTED",
+		posture_name,
+		StringName(weapon_handling_profile.get("family", ""))
+	)
+	if event_clip != &"" and available_clips.has(event_clip):
+		return event_clip
+	return _weapon_action_clip(weapon_slot, fallback, available_clips)
 
 
 func _build_legacy_route(root: AnimationNodeBlendTree, available_clips: Dictionary) -> void:
@@ -442,7 +541,7 @@ func _build_modern_route(root: AnimationNodeBlendTree, available_clips: Dictiona
 	var idle_blend := AnimationNodeBlend2.new()
 	idle_blend.sync = true
 	root.add_node(&"idle_ready_blend", idle_blend, Vector2(-40.0, -180.0))
-	var equipped_idle := _weapon_action_clip("idle_standing", &"idle_rifle", available_clips)
+	var equipped_idle := _fallback_clip(&"idle_rifle", available_clips)
 	var equipped_ready := _weapon_action_clip("idle_standing", &"aim_idle", available_clips)
 	var equipped_crouch_idle := _weapon_action_clip("idle_crouched", &"idle_crouch", available_clips)
 	root.add_node(&"modern_idle_rifle", _animation_node(equipped_idle), Vector2(-640.0, -250.0))

@@ -1,4 +1,4 @@
-extends "res://scripts/labs/animation_studio/animation_studio_pose_authoring.gd"
+extends "res://scripts/labs/animation_studio/animation_studio_rig_authoring.gd"
 
 func _select_relative(amount: int) -> void:
     if filtered_entries.is_empty():
@@ -10,6 +10,11 @@ func _select_relative(amount: int) -> void:
 func _play_selected() -> void:
     if animation_player == null or filtered_entries.is_empty():
         return
+    # A fire preview is temporary state owned by the clip that started it.
+    # Clear it before changing clips so a jump cannot inherit and then release
+    # the previous locomotion solver when the author clicks Preview Fire.
+    if has_method("_reset_state_event_weapon_solver"):
+        call("_reset_state_event_weapon_solver")
     trim_preview_active = false
     assembly_preview_active = false
     if active_editor_page == "Build":
@@ -19,7 +24,17 @@ func _play_selected() -> void:
         weapon_node.visible = current_weapon != WeaponType.NONE
     var entry: Dictionary = filtered_entries[clip_index]
     var clip_name: StringName = entry["name"]
+    # Pose offsets belong to one clip and one authoring frame. Never let a
+    # correction from the previously selected clip become an additive layer on
+    # the next clip; that made head/neck rotations accumulate while looping in
+    # States and looked like the head was spinning.
+    bone_rot_offsets.clear()
+    bone_pos_offsets.clear()
+    bone_edit_base_poses.clear()
+    _set_animation_preview_ownership(entry)
     _apply_gunsmith_hand_map_for_entry(entry)
+    _capture_animation_correction_bases()
+    animation_correction_last_frame = -1
     
     if entry["type"] == "FBX":
         _load_and_retarget_fbx(entry)
@@ -32,6 +47,7 @@ func _play_selected() -> void:
     
     animation_player.speed_scale = playback_speed
     if animation_player.has_animation(clip_name):
+        _sync_animation_preview_weapon_parent()
         animation_player.play(clip_name, 0.1)
         is_playing = true
         trim_in_seconds = 0.0
@@ -42,21 +58,154 @@ func _play_selected() -> void:
         if active_editor_page == "Pose":
             animation_player.seek(0.0, true)
             _pause_for_pose_edit()
-            bone_rot_offsets.clear()
-            bone_pos_offsets.clear()
-            bone_edit_base_poses.clear()
+            _load_animation_correction_at_current_frame(true)
             _sync_pose_sliders_from_selection()
 
 func _apply_gunsmith_hand_map_for_entry(entry: Dictionary) -> void:
     if gunsmith_weapon_config.is_empty() or weapon_calibrated_pivot == null:
         return
+    var catalog_info := clip_catalog.describe(
+        entry,
+        state_slots
+    )
+    if String(catalog_info.get("status", "")) != clip_catalog.LIVE:
+        # A stance fallback is a gameplay correction. Applying it to a raw,
+        # unclassified clip folds generic arms around rifle sockets and hides
+        # whether the source animation is actually compatible.
+        WEAPON_RIG_PREVIEW.restore_animation_hand_map_baseline(
+            weapon_calibrated_pivot,
+            left_hand_marker,
+            right_hand_marker
+        )
+        return
+    var semantic_text := "%s %s %s" % [
+        String(entry.get("display", "")),
+        String(entry.get("key", "")),
+        String(entry.get("path", "")),
+    ]
+    var semantic_lower := semantic_text.to_lower()
+    var posture: StringName = (
+        &"PRONE"
+        if "prone" in semantic_lower
+        else &"CROUCHED"
+        if "crouch" in semantic_lower or "kneel" in semantic_lower
+        else &"STANDING"
+    )
+    var candidate_keys := PackedStringArray([
+        String(entry.get("key", "")),
+        String(entry.get("name", "")),
+        String(entry.get("display", "")),
+    ])
+    var resource_path := String(entry.get("path", ""))
+    for slot_name in state_slots.keys():
+        if String(state_slots[slot_name]) == resource_path:
+            candidate_keys.append(String(slot_name))
     WEAPON_RIG_PREVIEW.apply_animation_hand_map(
         gunsmith_weapon_config,
-        String(entry.get("path", "")),
+        resource_path,
         weapon_calibrated_pivot,
         left_hand_marker,
-        right_hand_marker
+        right_hand_marker,
+        posture,
+        candidate_keys
     )
+
+
+func _set_animation_preview_ownership(entry: Dictionary) -> void:
+    var semantic_name := "%s %s %s" % [
+        String(entry.get("display", "")),
+        String(entry.get("key", "")),
+        String(entry.get("path", "")),
+    ]
+    var lower := semantic_name.to_lower()
+    var catalog_info := clip_catalog.describe(
+        entry,
+        state_slots
+    )
+    if String(catalog_info.get("status", "")) != clip_catalog.LIVE:
+        # Names are hints, not authority. Only a saved, approved rifle state
+        # may activate the two-hand solver. Raw clips retain their authored
+        # arms so the reviewer can accept, repair, or reject them honestly.
+        animation_preview_weapon_owner = WEAPON_OWNERSHIP_CONTRACT.MOBILITY_RIGHT_HAND
+        animation_preview_support_hand_owner = WEAPON_OWNERSHIP_CONTRACT.SUPPORT_ANIMATION_FREE
+        animation_rig_ik_preview.stop()
+        _refresh_animation_preview_ownership_label()
+        if animation_preview_ownership_label != null:
+            animation_preview_ownership_label.text = (
+                "RAW PREVIEW • no rifle grip correction until this clip is approved"
+            )
+            animation_preview_ownership_label.add_theme_color_override(
+                "font_color", Color(1.0, 0.72, 0.34)
+            )
+        return
+    var posture := (
+        "prone"
+        if "prone" in lower or "crawl" in lower
+        else "crouched"
+        if "crouch" in lower or "kneel" in lower
+        else "standing"
+    )
+    var slot_name := ""
+    if "reload" in lower:
+        slot_name = "reload_%s" % posture
+    elif "idle" in lower:
+        slot_name = "idle_%s" % posture
+    elif "fire" in lower or "shoot" in lower or "recoil" in lower:
+        slot_name = "fire_%s" % posture
+    var policy: Dictionary = WEAPON_OWNERSHIP_CONTRACT.preview_policy(
+        slot_name,
+        StringName(semantic_name)
+    )
+    animation_preview_weapon_owner = StringName(
+        policy.get("weapon_owner", WEAPON_OWNERSHIP_CONTRACT.MOBILITY_RIGHT_HAND)
+    )
+    animation_preview_support_hand_owner = StringName(
+        policy.get("support_hand", WEAPON_OWNERSHIP_CONTRACT.SUPPORT_ANIMATION_FREE)
+    )
+    _refresh_animation_preview_ownership_label()
+    if not _animation_preview_uses_ready_hand_solver():
+        animation_rig_ik_preview.stop()
+
+
+func _refresh_animation_preview_ownership_label() -> void:
+    if animation_preview_ownership_label == null:
+        return
+    match animation_preview_weapon_owner:
+        WEAPON_OWNERSHIP_CONTRACT.READY_SOLVER, WEAPON_OWNERSHIP_CONTRACT.RECOVERY_TO_READY:
+            animation_preview_ownership_label.text = (
+                "READY AIM • torso faces reticle • weapon solver owns both grips"
+            )
+            animation_preview_ownership_label.add_theme_color_override(
+                "font_color", Color(0.35, 1.0, 0.62)
+            )
+        WEAPON_OWNERSHIP_CONTRACT.RELAXED_RIFLE_LOCOMOTION:
+            animation_preview_ownership_label.text = (
+                "RELAXED RIFLE • clip owns body + trigger arm • left hand stays on foregrip"
+            )
+            animation_preview_ownership_label.add_theme_color_override(
+                "font_color", Color(0.35, 0.82, 1.0)
+            )
+        WEAPON_OWNERSHIP_CONTRACT.RELOAD_RIGHT_HAND:
+            animation_preview_ownership_label.text = (
+                "RELOAD • clip owns right hand + rifle • support hand releases until regrip"
+            )
+            animation_preview_ownership_label.add_theme_color_override(
+                "font_color", Color(1.0, 0.76, 0.30)
+            )
+        WEAPON_OWNERSHIP_CONTRACT.MOBILITY_RIGHT_HAND:
+            animation_preview_ownership_label.text = (
+                "FULL-BODY ACTION • clip owns the body • rifle follows right hand"
+            )
+            animation_preview_ownership_label.add_theme_color_override(
+                "font_color", Color(0.86, 0.62, 1.0)
+            )
+        _:
+            animation_preview_ownership_label.text = (
+                "ACTION CLIP • animation owns its approved body regions"
+            )
+            animation_preview_ownership_label.add_theme_color_override(
+                "font_color", Color(0.82, 0.86, 0.92)
+            )
 
 func _load_authored_animation(entry: Dictionary) -> void:
     retarget_service.load_authored(
@@ -67,15 +216,25 @@ func _load_authored_animation(entry: Dictionary) -> void:
     )
 
 func _load_and_retarget_fbx(entry: Dictionary) -> void:
+    var target_bone_map: Dictionary = (
+        MIXAMO_TO_URBAN_MAP
+        if current_skin == SkinType.COUNTER_STRIKE_URBAN
+        else MIXAMO_TO_PS1_MAP
+    )
+    var uses_target_map := current_skin in [
+        SkinType.PS1_NIGHT_VISION_SEAL,
+        SkinType.COUNTER_STRIKE_URBAN,
+    ]
     retarget_service.load_fbx(
         entry,
         dynamic_anim_lib,
         animation_player,
         skeleton,
-        current_skin == SkinType.PS1_NIGHT_VISION_SEAL,
-        MIXAMO_TO_PS1_MAP,
+        uses_target_map,
+        target_bone_map,
         _should_loop(str(entry.get("display", ""))),
-        ROOT_SANITIZER
+        ROOT_SANITIZER,
+        current_skin == SkinType.COUNTER_STRIKE_URBAN
     )
 
 func _toggle_play_pause() -> void:
@@ -87,6 +246,7 @@ func _toggle_play_pause() -> void:
     if animation_player.is_playing():
         _pause_for_pose_edit()
     else:
+        _sync_animation_preview_weapon_parent()
         animation_player.play()
         is_playing = true
 
@@ -126,9 +286,7 @@ func _on_range_playhead_requested(seconds: float) -> void:
     if animation_player == null or animation_player.current_animation.is_empty():
         return
     animation_player.seek(seconds, true)
-    if animation_player.is_playing():
-        animation_player.pause()
-    is_playing = false
+    _pause_for_pose_edit()
 
 func _preview_assembly() -> void:
     if animation_player == null or assembly_segments.is_empty():
@@ -145,6 +303,7 @@ func _preview_assembly() -> void:
     dynamic_anim_lib.add_animation(preview_key, combined)
     combined.loop_mode = Animation.LOOP_LINEAR
     animation_player.speed_scale = playback_speed
+    _sync_animation_preview_weapon_parent()
     animation_player.play(StringName("dyn/%s" % preview_key), 0.08)
     is_playing = true
     trim_preview_active = false
@@ -189,6 +348,7 @@ func _play_sequence_animation(animation: Animation, key_text: String, message: S
     animation.loop_mode = Animation.LOOP_LINEAR
     dynamic_anim_lib.add_animation(preview_key, animation)
     animation_player.speed_scale = playback_speed
+    _sync_animation_preview_weapon_parent()
     animation_player.play(StringName("dyn/%s" % preview_key), 0.06)
     is_playing = true
     trim_preview_active = false

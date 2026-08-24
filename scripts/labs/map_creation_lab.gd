@@ -7,6 +7,8 @@ const MapCommands := preload("res://scripts/maps/socom_map_command_service.gd")
 const MapAmbience := preload("res://scripts/maps/socom_map_ambience_engine.gd")
 const MapAudioAmbience := preload("res://scripts/maps/socom_map_audio_ambience.gd")
 const MapAssetLibrary := preload("res://scripts/maps/socom_map_asset_library.gd")
+const CommunityMapWorkflow := preload("res://scripts/maps/socom_community_map_workflow.gd")
+const MapEditorCameraOrbit := preload("res://scripts/maps/socom_map_editor_camera_orbit.gd")
 
 const PALETTE_TYPES: Array[StringName] = [
 	&"ground", &"wall", &"cover_low", &"cover_tall", &"platform", &"ramp", &"player_spawn",
@@ -140,15 +142,27 @@ var drag_start_size := Vector3.ONE
 var drag_start_properties: Dictionary = {}
 var drag_screen_delta := Vector2.ZERO
 var drag_plane_y := 0.0
-var orbit_yaw := -38.0
-var orbit_pitch := -32.0
-var orbit_distance := 22.0
-var orbit_target := Vector3.ZERO
+var camera_orbit := MapEditorCameraOrbit.new()
+# Compatibility properties keep existing automation and editor plugins working
+# while the camera implementation lives outside this scene coordinator.
+var orbit_yaw: float:
+	get: return camera_orbit.yaw_degrees
+	set(value): camera_orbit.yaw_degrees = value
+var orbit_pitch: float:
+	get: return camera_orbit.pitch_degrees
+	set(value): camera_orbit.pitch_degrees = value
+var orbit_distance: float:
+	get: return camera_orbit.distance
+	set(value): camera_orbit.distance = value
+var orbit_target: Vector3:
+	get: return camera_orbit.target
+	set(value): camera_orbit.target = value
 var camera_view_option: OptionButton
 var current_floor_level := 0
 var floor_height_m := 3.0
 var surface_snap_enabled := true
 var original_content_scale_mode := -1
+var community_workflow := CommunityMapWorkflow.new()
 
 
 func _ready() -> void:
@@ -372,7 +386,7 @@ func _quick_add_imported_asset(asset_path: String, asset_label: String) -> void:
 		status_label.text = "That GLB is missing from the community asset library."
 		return
 	_set_navigation_mode(false)
-	var placed := _snap_vector(orbit_target)
+	var placed := _snap_vector(camera_orbit.target)
 	placed.y = _current_floor_y()
 	var properties := {
 		"asset_path": asset_path,
@@ -2050,7 +2064,7 @@ func _quick_add_palette_object(type_name: StringName) -> void:
 	var defaults: Dictionary = MapDocument.TYPE_DEFAULTS[type_name]
 	var size: Vector3 = defaults["size"]
 	var base_y := _current_floor_y()
-	var placed := _snap_vector(orbit_target)
+	var placed := _snap_vector(camera_orbit.target)
 	if type_name in [&"player_spawn", &"team_alpha_spawn", &"team_bravo_spawn", &"training_dummy", &"moving_training_dummy"]:
 		placed.y = base_y + 0.05
 	elif type_name == &"point_light":
@@ -2080,7 +2094,7 @@ func _place_light_preset(preset_name: String) -> void:
 	if not MapDocument.LIGHT_PRESETS.has(preset_name):
 		return
 	var preset: Dictionary = MapDocument.LIGHT_PRESETS[preset_name]
-	var placed := _snap_vector(orbit_target)
+	var placed := _snap_vector(camera_orbit.target)
 	placed.y = _current_floor_y() + 4.0
 	placement_type = &""
 	var result := execute_map_command({
@@ -2119,7 +2133,7 @@ func _current_floor_y() -> float:
 
 
 func _place_prefab_at_view(prefab_name: String) -> void:
-	var origin := _snap_vector(orbit_target)
+	var origin := _snap_vector(camera_orbit.target)
 	origin.y = _current_floor_y()
 	execute_map_command({"command": "place_prefab", "prefab": prefab_name, "position": MapDocument.vector_to_data(origin)})
 	placement_type = &""
@@ -2345,13 +2359,7 @@ func _refresh_community_identity_label() -> void:
 	if community_identity_label == null:
 		return
 	var service := get_node_or_null("/root/SupabaseClient")
-	if service == null or not bool(service.call("is_configured")):
-		community_identity_label.text = "COMMUNITY: Offline / not configured"
-		return
-	if bool(service.call("has_guest_session")):
-		community_identity_label.text = "COMMUNITY: %s" % String(service.call("display_name"))
-	else:
-		community_identity_label.text = "COMMUNITY: Guest connects when needed"
+	community_identity_label.text = community_workflow.identity_text(service)
 
 
 func _set_community_busy(busy: bool) -> void:
@@ -2369,12 +2377,9 @@ func _publish_community_map() -> void:
 	if not _save_map():
 		return
 	var service := get_node_or_null("/root/SupabaseClient")
-	if service == null:
-		status_label.text = "Community service is unavailable. Your map remains saved locally."
-		return
 	_set_community_busy(true)
 	status_label.text = "Connecting guest identity and publishing map…"
-	var result: Dictionary = await service.call("publish_map", document)
+	var result: Dictionary = await community_workflow.publish(service, document)
 	_set_community_busy(false)
 	_refresh_community_identity_label()
 	status_label.text = String(result.get("message", "Community publish failed."))
@@ -2385,13 +2390,10 @@ func _publish_community_map() -> void:
 
 func _refresh_community_maps() -> void:
 	var service := get_node_or_null("/root/SupabaseClient")
-	if service == null:
-		status_label.text = "Community service is unavailable."
-		return
 	_set_community_busy(true)
 	status_label.text = "Loading published community maps…"
-	var result: Dictionary = await service.call("list_public_maps")
-	community_entries = result.get("maps", []) if result.get("maps", []) is Array else []
+	var result: Dictionary = await community_workflow.list_public(service)
+	community_entries = result.get("maps", [])
 	community_map_selector.clear()
 	for entry: Dictionary in community_entries:
 		community_map_selector.add_item("%s  •  v%d" % [entry.get("title", "Community Map"), int(entry.get("current_version", 0))])
@@ -2410,26 +2412,18 @@ func _download_community_map() -> void:
 		status_label.text = "Choose a published community map first."
 		return
 	var service := get_node_or_null("/root/SupabaseClient")
-	if service == null:
-		status_label.text = "Community service is unavailable."
-		return
 	_set_community_busy(true)
 	var entry: Dictionary = community_entries[community_map_selector.selected]
 	status_label.text = "Downloading %s…" % entry.get("title", "community map")
-	var result: Dictionary = await service.call("download_map", entry)
+	var result: Dictionary = await community_workflow.download_to_library(service, entry)
 	if bool(result.get("ok", false)):
-		var downloaded: Dictionary = result.get("document", {})
-		var saved := MapDocument.save_to_library(downloaded)
-		if bool(saved.get("ok", false)):
-			document = (saved.get("document", downloaded) as Dictionary).duplicate(true)
-			selected_id = ""
-			undo_stack.clear()
-			redo_stack.clear()
-			_refresh_map_library(String(document.get("map_id", "")))
-			_refresh_all()
-			_add_history("Downloaded community map")
-		else:
-			result = {"ok": false, "message": saved.get("error", "Could not save the downloaded map locally.")}
+		document = (result.get("document", {}) as Dictionary).duplicate(true)
+		selected_id = ""
+		undo_stack.clear()
+		redo_stack.clear()
+		_refresh_map_library(String(document.get("map_id", "")))
+		_refresh_all()
+		_add_history("Downloaded community map")
 	_set_community_busy(false)
 	status_label.text = String(result.get("message", "Community download failed."))
 
@@ -2498,12 +2492,12 @@ func _on_viewport_gui_input(event: InputEvent) -> void:
 			viewport_container.accept_event()
 			return
 		if button.button_index == MOUSE_BUTTON_WHEEL_UP and button.pressed:
-			orbit_distance = maxf(4.0, orbit_distance - 1.5)
+			camera_orbit.zoom(-1.5)
 			_update_camera()
 			viewport_container.accept_event()
 			return
 		if button.button_index == MOUSE_BUTTON_WHEEL_DOWN and button.pressed:
-			orbit_distance = minf(160.0, orbit_distance + 1.5)
+			camera_orbit.zoom(1.5)
 			_update_camera()
 			viewport_container.accept_event()
 			return
@@ -2544,8 +2538,7 @@ func _on_viewport_gui_input(event: InputEvent) -> void:
 			if navigation_panning or motion.shift_pressed:
 				_pan_camera(motion)
 			else:
-				orbit_yaw -= motion.relative.x * 0.35
-				orbit_pitch = clampf(orbit_pitch - motion.relative.y * 0.3, -82.0, -8.0)
+				camera_orbit.rotate(motion.relative)
 				_update_camera()
 			viewport_container.accept_event()
 		elif panning:
@@ -2623,7 +2616,7 @@ func _handle_left_press(screen_position: Vector2) -> void:
 func _drag_selected(motion: InputEventMouseMotion) -> void:
 	drag_screen_delta += motion.relative
 	var grid := float(document.get("grid_size", 0.5))
-	var meter_per_pixel := maxf(orbit_distance * 0.0025, 0.01)
+	var meter_per_pixel := camera_orbit.meters_per_pixel()
 	var command := {"command": "transform_object", "id": selected_id}
 	if transform_mode == "move_ground":
 		var point: Variant = _screen_to_plane(motion.position, drag_plane_y)
@@ -2793,39 +2786,18 @@ func _snap_vector(value: Vector3) -> Vector3:
 
 
 func _update_camera() -> void:
-	if camera == null:
-		return
-	var yaw := deg_to_rad(orbit_yaw)
-	var pitch := deg_to_rad(orbit_pitch)
-	var offset := Vector3(cos(pitch) * sin(yaw), -sin(pitch), cos(pitch) * cos(yaw)) * orbit_distance
-	camera.position = orbit_target + offset
-	camera.look_at(orbit_target, Vector3.UP)
+	camera_orbit.apply(camera)
 
 
 func _pan_camera(motion: InputEventMouseMotion) -> void:
-	if camera == null:
-		return
-	var meter_per_pixel := maxf(orbit_distance * 0.0025, 0.01)
-	var right := camera.global_transform.basis.x.normalized()
-	var forward := -camera.global_transform.basis.z
-	forward.y = 0.0
-	if forward.length_squared() > 0.0001:
-		forward = forward.normalized()
-	if motion.shift_pressed:
-		orbit_target += -right * motion.relative.x * meter_per_pixel
-		orbit_target += Vector3.UP * motion.relative.y * meter_per_pixel
-	else:
-		orbit_target += -right * motion.relative.x * meter_per_pixel
-		orbit_target += forward * motion.relative.y * meter_per_pixel
-	_update_camera()
+	camera_orbit.pan(camera, motion.relative, motion.shift_pressed)
 
 
 func _focus_camera_at(screen_position: Vector2) -> void:
 	var hit := _surface_hit(screen_position)
 	if hit.is_empty():
 		return
-	orbit_target = hit.get("position", orbit_target)
-	orbit_distance = clampf(orbit_distance, 4.0, 160.0)
+	camera_orbit.focus(hit.get("position", camera_orbit.target))
 	_update_camera()
 	status_label.text = "Camera focused on the clicked point."
 
@@ -2835,33 +2807,16 @@ func _focus_selected_camera() -> void:
 	if selected.is_empty():
 		status_label.text = "Select a map object first, then press F."
 		return
-	orbit_target = MapDocument.data_to_vector(selected.get("position", {}))
+	var focus_position := MapDocument.data_to_vector(selected.get("position", {}))
 	var size := MapDocument.data_to_vector(selected.get("size", {}), Vector3.ONE)
-	orbit_distance = clampf(maxf(size.length() * 2.0, 6.0), 4.0, 160.0)
+	camera_orbit.focus(focus_position, maxf(size.length() * 2.0, 6.0))
 	_update_camera()
 	status_label.text = "Focused: %s" % selected.get("name", "Map object")
 
 
 func _frame_all_camera(show_status := true) -> void:
 	var objects: Array = document.get("objects", [])
-	if objects.is_empty():
-		orbit_target = Vector3.ZERO
-		orbit_distance = 22.0
-		_update_camera()
-		return
-	var minimum := Vector3(INF, INF, INF)
-	var maximum := Vector3(-INF, -INF, -INF)
-	for object_variant in objects:
-		if not object_variant is Dictionary:
-			continue
-		var object := object_variant as Dictionary
-		var position := MapDocument.data_to_vector(object.get("position", {}))
-		var half_size := MapDocument.data_to_vector(object.get("size", {}), Vector3.ONE) * 0.5
-		minimum = minimum.min(position - half_size)
-		maximum = maximum.max(position + half_size)
-	orbit_target = (minimum + maximum) * 0.5
-	var extent := maximum - minimum
-	orbit_distance = clampf(maxf(maxf(extent.x, extent.z) * 0.82, extent.y * 1.4), 8.0, 160.0)
+	camera_orbit.frame_objects(objects)
 	_update_camera()
 	if show_status:
 		status_label.text = "Framed the full map."
@@ -2870,23 +2825,19 @@ func _frame_all_camera(show_status := true) -> void:
 func _camera_view_selected(index: int) -> void:
 	match index:
 		0:
-			orbit_yaw = -38.0
-			orbit_pitch = -32.0
+			camera_orbit.set_angles(-38.0, -32.0)
 			_update_camera()
 		1:
 			_frame_all_camera(false)
-			orbit_yaw = 0.0
-			orbit_pitch = -89.0
+			camera_orbit.set_angles(0.0, -89.0)
 			_update_camera()
 		2:
 			_frame_all_camera(false)
-			orbit_yaw = 0.0
-			orbit_pitch = -12.0
+			camera_orbit.set_angles(0.0, -12.0)
 			_update_camera()
 		3:
 			_frame_all_camera(false)
-			orbit_yaw = -90.0
-			orbit_pitch = -12.0
+			camera_orbit.set_angles(-90.0, -12.0)
 			_update_camera()
 		4:
 			_focus_selected_camera()

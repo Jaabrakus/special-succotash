@@ -28,6 +28,8 @@
         "res://scripts/camera/camera_aim_resolver.gd",
         "res://scripts/player/test_mannequin.gd",
         "res://scripts/player/operator_animation_driver.gd",
+        "res://scripts/player/operator_weapon_equipment_runtime.gd",
+        "res://scripts/player/weapon_ownership_contract.gd",
         "res://scripts/player/operator_procedural_pose_profile.gd",
         "res://scripts/ui/operator_pose_tuner.gd",
         "res://scripts/ui/socom_controls_guide.gd",
@@ -130,7 +132,12 @@
       "scene": "res://apple_mocap_intake_lab.tscn",
       "controller": "res://scripts/labs/apple_mocap_intake_lab.gd",
       "shared_contracts": [
-        "res://tools/apple_mocap/AppleMocapExtractor.swift"
+        "res://tools/apple_mocap/AppleMocapExtractor.swift",
+        "res://scripts/mocap/apple_mocap_motion_processor.gd",
+        "res://scripts/mocap/apple_mocap_operator_retargeter.gd",
+        "res://scripts/player/operator_skeleton_contract.gd",
+        "res://scripts/player/operator_ik_contract.gd",
+        "res://scripts/player/weapon_ownership_contract.gd"
       ]
     },
     {
@@ -208,6 +215,7 @@
       "res://tools/keyboard_mapping_lab_regression.gd",
       "res://tools/map_creation_lab_regression.gd",
       "res://tools/weapon_rig_integration_regression.gd",
+      "res://tools/weapon_equipment_event_regression.gd",
       "res://tools/operator_composure_regression.gd",
       "res://tools/prone_grounding_regression.gd",
       "res://tools/prone_weapon_floor_regression.gd",

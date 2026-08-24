@@ -8,6 +8,7 @@ struct Arguments {
     let input: String
     let output: String
     let fps: Double
+    let crop: CGRect?
 
     init?() {
         let values = CommandLine.arguments
@@ -18,6 +19,16 @@ struct Arguments {
             fps = max(1.0, min(60.0, Double(values[index + 1]) ?? 30.0))
         } else {
             fps = 30.0
+        }
+        if let index = values.firstIndex(of: "--crop"), index + 4 < values.count,
+           let x = Double(values[index + 1]), let y = Double(values[index + 2]),
+           let width = Double(values[index + 3]), let height = Double(values[index + 4]) {
+            let requested = CGRect(x: x, y: y, width: width, height: height)
+            let unit = CGRect(x: 0, y: 0, width: 1, height: 1)
+            let clipped = requested.intersection(unit)
+            crop = clipped.width > 0.05 && clipped.height > 0.05 ? clipped : nil
+        } else {
+            crop = nil
         }
     }
 }
@@ -34,7 +45,7 @@ func cleanKey<T>(_ value: T) -> String {
 }
 
 guard let args = Arguments() else {
-    FileHandle.standardError.write(Data("usage: apple_mocap_extract INPUT_VIDEO OUTPUT_JSON [--fps 30]\n".utf8))
+    FileHandle.standardError.write(Data("usage: apple_mocap_extract INPUT_VIDEO OUTPUT_JSON [--fps 30] [--crop X Y W H]\n".utf8))
     exit(2)
 }
 
@@ -52,6 +63,9 @@ generator.appliesPreferredTrackTransform = true
 generator.requestedTimeToleranceBefore = .zero
 generator.requestedTimeToleranceAfter = .zero
 let request = VNDetectHumanBodyPose3DRequest()
+if let crop = args.crop {
+    request.regionOfInterest = crop
+}
 let frameCount = Int(floor(durationSeconds * args.fps)) + 1
 var frames: [[String: Any]] = []
 var detectedFrames = 0
@@ -112,6 +126,7 @@ let result: [String: Any] = [
     "frame_count": frameCount,
     "detected_frames": detectedFrames,
     "detected_ratio": Double(detectedFrames) / Double(max(1, frameCount)),
+    "crop_region": args.crop.map { ["x": $0.minX, "y": $0.minY, "width": $0.width, "height": $0.height] } ?? NSNull(),
     "coordinate_space": "Apple Vision model space; root-relative meters; image points use normalized lower-left origin",
     "frames": frames,
 ]
