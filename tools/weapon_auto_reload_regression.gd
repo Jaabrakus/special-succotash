@@ -7,19 +7,29 @@ class FakeDriver:
 	extends Node
 	signal action_completed(clip_name: StringName)
 	signal action_cancelled(clip_name: StringName)
+	var play_count := 0
 
 	func weapon_reload_duration_seconds() -> float:
 		return 0.25
+
+	func present_event(event_name: StringName, _context: Dictionary) -> Dictionary:
+		if event_name != &"RELOAD_STARTED":
+			return {"applied": false}
+		play_count += 1
+		return {"applied": true}
+
+
+class FakePlayer:
+	extends Node
+	var movement_state := &"STANDING"
+
+	func get_motion_state_name() -> StringName:
+		return movement_state
 
 
 class FakeMannequin:
 	extends Node
 	var production_animation: Node
-	var play_count := 0
-
-	func play_operator_semantic_action_timed(_action: StringName, _duration: float, _blend: float) -> bool:
-		play_count += 1
-		return true
 
 
 class FakeWeaponController:
@@ -51,7 +61,7 @@ func _run() -> void:
 	_expect(AutoReloadPolicy.should_start(0, 12, false), "shared policy starts at zero rounds with reserve ammo")
 	_expect(not AutoReloadPolicy.should_start(0, 0, false), "shared policy does not reload without reserve ammo")
 	_expect(not AutoReloadPolicy.should_start(0, 12, true), "shared policy does not restart an active reload")
-	var player := Node.new()
+	var player := FakePlayer.new()
 	root.add_child(player)
 	var driver := FakeDriver.new()
 	var mannequin := FakeMannequin.new()
@@ -70,17 +80,54 @@ func _run() -> void:
 	weapon.ammo_changed.emit(0, 6)
 	await process_frame
 	_expect(bool(coordinator.pending), "empty magazine starts the authored reload")
-	_expect(mannequin.play_count == 1, "auto reload starts exactly one animation")
+	_expect(driver.play_count == 1, "auto reload starts exactly one animation")
 	weapon.ammo_changed.emit(0, 6)
 	await process_frame
-	_expect(mannequin.play_count == 1, "repeated empty-ammo updates do not restart reload")
+	_expect(driver.play_count == 1, "repeated empty-ammo updates do not restart reload")
 	driver.action_completed.emit(&"reload")
 	_expect(weapon.reload_commits == 1 and weapon.magazine == 6, "ammo transfers only when the reload animation completes")
 	weapon.magazine = 0
 	weapon.reserve = 0
 	weapon.ammo_changed.emit(0, 0)
 	await process_frame
-	_expect(mannequin.play_count == 1, "zero reserve does not start an empty reload")
+	_expect(driver.play_count == 1, "zero reserve does not start an empty reload")
+
+	weapon.magazine = 0
+	weapon.reserve = 6
+	player.movement_state = &"AIRBORNE"
+	weapon.ammo_changed.emit(0, 6)
+	await process_frame
+	await process_frame
+	_expect(not bool(coordinator.pending), "zero-ammo auto reload waits while airborne")
+	_expect(
+		bool(coordinator.auto_reload_waiting_for_safe_state),
+		"airborne zero-ammo state keeps one grounded retry queued"
+	)
+	_expect(driver.play_count == 1, "airborne auto reload does not flicker the animation")
+	player.movement_state = &"STANDING"
+	await physics_frame
+	await process_frame
+	_expect(bool(coordinator.pending), "queued zero-ammo reload starts after landing")
+	_expect(driver.play_count == 2, "landing starts the queued reload exactly once")
+	player.movement_state = &"AIRBORNE"
+	driver.action_cancelled.emit(&"reload")
+	await process_frame
+	await process_frame
+	_expect(not bool(coordinator.pending), "jump interruption cancels the active reload commit")
+	_expect(
+		bool(coordinator.auto_reload_waiting_for_safe_state),
+		"cancelled zero-ammo reload remains queued for landing"
+	)
+	player.movement_state = &"STANDING"
+	await physics_frame
+	await process_frame
+	_expect(bool(coordinator.pending), "cancelled zero-ammo reload restarts after landing")
+	_expect(driver.play_count == 3, "grounded retry starts one replacement animation")
+	driver.action_completed.emit(&"reload")
+	_expect(
+		weapon.reload_commits == 2 and weapon.magazine == 6,
+		"grounded replacement reload commits the reserved ammunition"
+	)
 
 	coordinator.queue_free()
 	weapon.queue_free()

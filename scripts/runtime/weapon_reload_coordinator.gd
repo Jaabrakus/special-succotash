@@ -15,6 +15,11 @@ var generation: int = 0
 var animation_driver: Node
 var completion_callback: Callable
 var cancellation_callback: Callable
+var auto_reload_waiting_for_safe_state: bool = false
+
+
+func _ready() -> void:
+	set_physics_process(false)
 
 
 func configure(player_node: Node, controller: Node) -> void:
@@ -24,6 +29,7 @@ func configure(player_node: Node, controller: Node) -> void:
 			weapon_controller.disconnect("ammo_changed", previous_callback)
 	player = player_node
 	weapon_controller = controller
+	_set_auto_reload_waiting(false)
 	if weapon_controller != null and weapon_controller.has_signal("ammo_changed"):
 		weapon_controller.connect("ammo_changed", Callable(self, "_on_ammo_changed"))
 
@@ -31,18 +37,38 @@ func configure(player_node: Node, controller: Node) -> void:
 func _on_ammo_changed(rounds_in_magazine: int, reserve_rounds: int) -> void:
 	if AutoReloadPolicy.should_start(rounds_in_magazine, reserve_rounds, pending):
 		call_deferred("_request_auto_reload")
+	elif rounds_in_magazine > 0 or reserve_rounds <= 0:
+		_set_auto_reload_waiting(false)
 
 
 func _request_auto_reload() -> void:
 	if weapon_controller == null or pending or not weapon_controller.has_method("get_ammo_snapshot"):
+		_set_auto_reload_waiting(false)
 		return
 	var ammo: Dictionary = weapon_controller.call("get_ammo_snapshot")
-	if AutoReloadPolicy.should_start(int(ammo.get("rounds_in_magazine", 0)), int(ammo.get("reserve_ammo", 0)), pending):
-		request_reload()
+	if not AutoReloadPolicy.should_start(
+		int(ammo.get("rounds_in_magazine", 0)),
+		int(ammo.get("reserve_ammo", 0)),
+		pending
+	):
+		_set_auto_reload_waiting(false)
+		return
+	if not _player_allows_reload():
+		_set_auto_reload_waiting(true)
+		return
+	_set_auto_reload_waiting(false)
+	request_reload()
+
+
+func _physics_process(_delta: float) -> void:
+	if not auto_reload_waiting_for_safe_state or not _player_allows_reload():
+		return
+	_set_auto_reload_waiting(false)
+	call_deferred("_request_auto_reload")
 
 
 func request_reload() -> bool:
-	if player == null or pending:
+	if player == null or pending or not _player_allows_reload():
 		return false
 	var mannequin := player.get_node_or_null("Mannequin")
 	var driver: Node = mannequin.get("production_animation") as Node if mannequin != null else null
@@ -72,6 +98,22 @@ func request_reload() -> bool:
 	return true
 
 
+func _player_allows_reload() -> bool:
+	var movement_state := &""
+	if player.has_method("get_motion_state_name"):
+		movement_state = StringName(player.call("get_motion_state_name"))
+	if movement_state in [&"AIRBORNE", &"LANDING", &"DIVING", &"ROLLING"]:
+		return false
+	if player is CharacterBody3D and not (player as CharacterBody3D).is_on_floor():
+		return false
+	return true
+
+
+func _set_auto_reload_waiting(value: bool) -> void:
+	auto_reload_waiting_for_safe_state = value
+	set_physics_process(value)
+
+
 func _on_animation_completed(clip_name: StringName, request_generation: int) -> void:
 	if request_generation != generation or "reload" not in String(clip_name).to_lower():
 		return
@@ -85,6 +127,10 @@ func _on_animation_cancelled(clip_name: StringName, request_generation: int) -> 
 	if request_generation == generation and "reload" in String(clip_name).to_lower():
 		_disconnect_driver_signals()
 		_set_pending(false)
+		# An empty magazine still needs its approved automatic reload after an
+		# airborne or mobility interruption. Retry now; unsafe movement states
+		# queue the request until the operator is grounded.
+		call_deferred("_request_auto_reload")
 
 
 func _disconnect_driver_signals() -> void:

@@ -77,6 +77,46 @@ func _run() -> void:
 	_expect(saw_magazine_handoff, "reload transfers the visual magazine to the left hand")
 	_expect(saw_support_regrip, "reload reaches its saved two-hand regrip frame")
 	_expect(magazine == null or not magazine.visible, "reload cancellation/end hides the loose magazine")
+	var player := scene.get_node("Player") as CharacterBody3D
+	var coordinator = scene.get_node_or_null("WeaponReloadCoordinator")
+	_expect(player != null and coordinator != null, "jump/reload coordinator is live")
+	if player != null and coordinator != null:
+		player.call("request_jump")
+		await physics_frame
+		await physics_frame
+		var airborne_reload := bool(coordinator.call("request_reload"))
+		_expect(not airborne_reload, "airborne input cannot start a one-frame reload handoff")
+		_expect(not bool(coordinator.get("pending")), "airborne reload rejection leaves no pending commit")
+		var airborne_start := _weapon_relative_to_player(player, weapon)
+		var airborne_max_step := 0.0
+		var airborne_max_rotation := 0.0
+		var airborne_previous := airborne_start
+		for _frame in 6:
+			await process_frame
+			var airborne_current := _weapon_relative_to_player(player, weapon)
+			airborne_max_step = maxf(
+				airborne_max_step,
+				airborne_previous.origin.distance_to(airborne_current.origin)
+			)
+			airborne_max_rotation = maxf(
+				airborne_max_rotation,
+				rad_to_deg(
+					airborne_previous.basis.get_rotation_quaternion().angle_to(
+						airborne_current.basis.get_rotation_quaternion()
+					)
+				)
+			)
+			airborne_previous = airborne_current
+		print(
+			"JUMP_RELOAD_REJECTION_METRIC max_step=%.5f max_rotation_deg=%.3f" % [
+				airborne_max_step,
+				airborne_max_rotation,
+			]
+		)
+		_expect(
+			airborne_max_step < 0.01 and airborne_max_rotation < 2.0,
+			"rejected airborne reload leaves the rifle stable on the operator"
+		)
 	scene.queue_free()
 	_finish()
 
@@ -84,6 +124,10 @@ func _run() -> void:
 func _steps(count: int) -> void:
 	for _index in count:
 		await process_frame
+
+
+func _weapon_relative_to_player(player: CharacterBody3D, weapon: Node3D) -> Transform3D:
+	return player.global_transform.affine_inverse() * weapon.global_transform
 
 
 func _expect(condition: bool, message: String) -> void:
