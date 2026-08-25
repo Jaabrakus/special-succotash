@@ -117,7 +117,12 @@ static func capture(source) -> Dictionary:
 		"rail_to_blue_line_event_active": source.rail_to_blue_line_event_remaining > 0.0,
 		"rail_to_blue_line_event_remaining": source.rail_to_blue_line_event_remaining,
 		"gun_placement_frame_bone": &"mixamorig_Spine2",
-		"gun_placement_anchor_space": &"STABLE_CHEST",
+		"gun_placement_anchor_space": (
+			&"LIVE_HEAD_PREVIEW"
+			if source.rail_to_blue_line_event_remaining > 0.0
+			and source.last_posture in [&"CROUCHED", &"PRONE"]
+			else &"STABLE_CHEST"
+		),
 		"gun_placement_baseline_active": (
 			source.gun_placement_baseline_basis_by_posture.has(source.last_posture)
 		),

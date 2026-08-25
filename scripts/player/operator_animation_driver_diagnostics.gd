@@ -43,6 +43,12 @@ func get_animation_debug_state() -> Dictionary:
 	if foot_contact_lock != null:
 		snapshot["foot_contact_lock"] = foot_contact_lock.get_debug_state()
 	if weapon_pose_solver != null:
-		snapshot["weapon_pose"] = weapon_pose_solver.get_debug_state()
+		var weapon_pose: Dictionary = weapon_pose_solver.get_debug_state()
+		snapshot["weapon_pose"] = weapon_pose
+		snapshot["presentation_ownership_conflicts"] = (
+			PoseOwnershipContract.presentation_conflicts(
+				_last_event_presentation,
+				weapon_pose
+			)
+		)
 	return snapshot
-

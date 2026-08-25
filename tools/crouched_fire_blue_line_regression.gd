@@ -46,9 +46,8 @@ func _run() -> void:
 	await _steps(20)
 	driver.call("notify_fired")
 	await _steps(3)
-	var standing: Dictionary = driver.call(
-		"get_animation_debug_state"
-	).get("weapon_pose", {})
+	var standing_snapshot: Dictionary = driver.call("get_animation_debug_state")
+	var standing: Dictionary = standing_snapshot.get("weapon_pose", {})
 	var standing_position := player.global_position
 	var weapon := driver.get("weapon_node") as Node3D
 	var previous_weapon := (
@@ -114,9 +113,8 @@ func _run() -> void:
 		)
 		previous_right_elbow_deg = right_elbow_deg
 		previous_left_elbow_deg = left_elbow_deg
-	var crouched: Dictionary = driver.call(
-		"get_animation_debug_state"
-	).get("weapon_pose", {})
+	var crouched_snapshot: Dictionary = driver.call("get_animation_debug_state")
+	var crouched: Dictionary = crouched_snapshot.get("weapon_pose", {})
 	var standing_head: Vector3 = standing.get("head_position", Vector3.ZERO)
 	var crouched_head: Vector3 = crouched.get("head_position", Vector3.ZERO)
 	var crouched_shared_target: Vector3 = rig.call("get_shared_aim_target")
@@ -136,6 +134,11 @@ func _run() -> void:
 		not bool(standing.get("rail_to_blue_line_event_active", true))
 		and not bool(crouched.get("rail_to_blue_line_event_active", true)),
 		"standing and crouched fire never start event-owned blue-line placement"
+	)
+	_expect(
+		(standing_snapshot.get("presentation_ownership_conflicts", []) as Array).is_empty()
+		and (crouched_snapshot.get("presentation_ownership_conflicts", []) as Array).is_empty(),
+		"live standing and crouched fire retain one owner per body region"
 	)
 	_expect(
 		standing_head.y - crouched_head.y >= 0.30,

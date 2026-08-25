@@ -89,6 +89,31 @@ func _run() -> void:
 		"ownership audit detects visual shot-authority conflicts"
 	)
 
+	var unsafe_fire_plan := {
+		"event": "FIRE_ACCEPTED",
+		"effects": ["ENTER_READY_AIM", "RAIL_TO_BLUE_LINE"],
+	}
+	var safe_fire_plan := Ownership.sanitize_presentation_plan(unsafe_fire_plan)
+	_expect(
+		"RAIL_TO_BLUE_LINE" not in (safe_fire_plan.get("effects", []) as Array)
+		and "RAIL_TO_BLUE_LINE" in (safe_fire_plan.get("blocked_effects", []) as Array),
+		"fire plans cannot reintroduce event-owned blue-line weapon placement"
+	)
+	_expect(
+		is_equal_approx(Ownership.bounded_ready_weight(0.0, 1.0, 1000.0, 1.0), 0.35),
+		"ready aim cannot take full arm ownership in one frame"
+	)
+	var unsafe_weapon_pose := {
+		"rail_to_blue_line_event_active": true,
+		"gun_placement_anchor_space": &"LIVE_HEAD_PREVIEW",
+		"pose_owners": {"right_arm": Ownership.ARMS_WEAPON_SOCKETS},
+		"weapon_solver_owned": true,
+	}
+	_expect(
+		Ownership.presentation_conflicts(unsafe_fire_plan, unsafe_weapon_pose).size() == 3,
+		"runtime audit reports fire effect, rail ownership, and moving-anchor conflicts"
+	)
+
 	_expect(
 		CompatibilityOwnership.resolve(&"DIVING", &"", 1.0, false)
 		== Ownership.resolve(&"DIVING", &"", 1.0, false),

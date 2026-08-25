@@ -272,6 +272,14 @@ the production movement/action matrix.
   the `24 degree` continuity limit, and the authoritative player does not move.
 - [x] The full weapon-pose regression and dynamic reload handoff regression
   pass after this change.
+- [x] A shared pose-ownership gate now sanitizes every Studio and runtime
+  presentation plan before it reaches the rig. Fire cannot request blue-line
+  weapon ownership, ready aim cannot replace both arm chains in one frame,
+  and diagnostics expose any action/solver ownership conflict.
+- [x] Registered regressions enforce the ownership contract at three levels:
+  route sanitization, live standing/crouched presentation, and the complete
+  65-bone operator matrix. Reload remains right-palm owned and the live fixture
+  reports no standing or crouched fire ownership conflicts.
 - [ ] The shared quick integration gate is currently blocked by an unrelated
   concurrent `game_launcher.tscn` controller-registration mismatch. Do not use
   that shared-lane failure as Gate Two completion evidence.

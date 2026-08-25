@@ -321,6 +321,13 @@ func _check_ready_aim_locomotion(driver) -> void:
     )
     _expect(driver.notify_fired(), "valid fire enters the shared ready-aim state")
     _advance(driver)
+    var entering_snapshot: Dictionary = driver.get_animation_debug_state()
+    _expect(
+        float(entering_snapshot.get("weapon_ready_weight", 1.0)) < 0.50,
+        "ready fire cannot take full arm ownership on its first frame"
+    )
+    for _frame in range(11):
+        _advance(driver)
     var ready_snapshot: Dictionary = driver.get_animation_debug_state()
     _expect(
         driver.current_clip == &"walk_forward"
@@ -393,7 +400,8 @@ func _check_layered_recoil(driver) -> void:
     _expect(gait_before_fire == &"run_forward", "fire test begins in relaxed Rifle Run")
     var fire_count_before := int(relaxed_snapshot.get("fire_trigger_count", 0))
     _expect(driver.notify_fired(), "combat fire request is accepted")
-    _advance(driver)
+    for _frame in range(12):
+        _advance(driver)
     var snapshot: Dictionary = driver.get_animation_debug_state()
     var ready_frame_pose: Dictionary = snapshot.get("animation_frame_pose", {})
     _expect(

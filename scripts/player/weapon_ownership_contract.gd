@@ -38,6 +38,68 @@ const SHOT_SERVER_WEAPON := &"SERVER_WEAPON"
 const TORSO_POSTURE_AIM := &"POSTURE_AIM"
 const LEGS_LOCOMOTION := &"LOCOMOTION"
 
+const FIRE_ACCEPTED := &"FIRE_ACCEPTED"
+const ENTER_READY_AIM := "ENTER_READY_AIM"
+const RAIL_TO_BLUE_LINE := "RAIL_TO_BLUE_LINE"
+const STABLE_CHEST := &"STABLE_CHEST"
+const MAX_READY_WEIGHT_STEP := 0.35
+
+
+static func sanitize_presentation_plan(raw_plan: Dictionary) -> Dictionary:
+	var plan := raw_plan.duplicate(true)
+	var effects: Array = (plan.get("effects", []) as Array).duplicate()
+	var blocked_effects: Array[String] = []
+	if StringName(plan.get("event", &"")) == FIRE_ACCEPTED:
+		while RAIL_TO_BLUE_LINE in effects:
+			effects.erase(RAIL_TO_BLUE_LINE)
+			blocked_effects.append(RAIL_TO_BLUE_LINE)
+		if ENTER_READY_AIM not in effects:
+			effects.append(ENTER_READY_AIM)
+	plan["effects"] = effects
+	plan["blocked_effects"] = blocked_effects
+	plan["ownership_contract"] = "ONE_OWNER_PER_REGION"
+	return plan
+
+
+static func bounded_ready_weight(
+	current: float,
+	target: float,
+	response: float,
+	delta: float
+) -> float:
+	var safe_current := clampf(current, 0.0, 1.0)
+	var safe_target := clampf(target, 0.0, 1.0)
+	var blended := lerpf(
+		safe_current,
+		safe_target,
+		1.0 - exp(-maxf(response, 0.0) * maxf(delta, 0.0))
+	)
+	return safe_current + clampf(
+		blended - safe_current,
+		-MAX_READY_WEIGHT_STEP,
+		MAX_READY_WEIGHT_STEP
+	)
+
+
+static func presentation_conflicts(plan: Dictionary, weapon_pose: Dictionary) -> Array[String]:
+	var conflicts: Array[String] = []
+	var event_name := StringName(plan.get("event", &""))
+	var effects: Array = plan.get("effects", [])
+	if event_name == FIRE_ACCEPTED:
+		if RAIL_TO_BLUE_LINE in effects:
+			conflicts.append("fire requested event-owned blue-line placement")
+		if bool(weapon_pose.get("rail_to_blue_line_event_active", false)):
+			conflicts.append("fire activated event-owned blue-line placement")
+		if StringName(weapon_pose.get("gun_placement_anchor_space", STABLE_CHEST)) != STABLE_CHEST:
+			conflicts.append("fire weapon anchor left the stable chest frame")
+	var pose_owners: Dictionary = weapon_pose.get("pose_owners", {})
+	if (
+		StringName(pose_owners.get("right_arm", &"")) == ARMS_ACTION_CLIP
+		and bool(weapon_pose.get("weapon_solver_owned", false))
+	):
+		conflicts.append("action clip and weapon solver both own the right arm")
+	return conflicts
+
 
 static func resolve(
 	movement_state: StringName,

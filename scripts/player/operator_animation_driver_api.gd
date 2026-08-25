@@ -2,6 +2,10 @@ extends "res://scripts/player/operator_animation_driver_state.gd"
 
 ## Stable visual-input, tuning, clip-query, and player-access API.
 
+const PoseOwnershipContract := preload(
+	"res://scripts/player/weapon_ownership_contract.gd"
+)
+
 func set_visual_inputs(
 	direction: Vector2,
 	posture_name: StringName,
@@ -72,10 +76,11 @@ func _update_weapon_ready(delta: float) -> void:
 		if ready_target > weapon_ready_weight
 		else ready_exit_response
 	)
-	weapon_ready_weight = lerpf(
+	weapon_ready_weight = PoseOwnershipContract.bounded_ready_weight(
 		weapon_ready_weight,
 		ready_target,
-		1.0 - exp(-response * maxf(delta, 0.0))
+		response,
+		delta
 	)
 	if ready_target <= 0.0 and weapon_ready_weight <= 0.001:
 		weapon_ready_weight = 0.0

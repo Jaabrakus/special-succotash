@@ -7,6 +7,7 @@ extends RefCounted
 ## Animation Studio and the playable runtime both resolve those events here.
 
 const StateContract := preload("res://scripts/player/operator_animation_state_contract.gd")
+const OwnershipContract := preload("res://scripts/player/weapon_ownership_contract.gd")
 
 var slots: Dictionary = {}
 var rules: Dictionary = {}
@@ -45,6 +46,7 @@ func resolve(event_name: StringName, context: Dictionary = {}) -> Dictionary:
 			"error": "No presentation route is connected for this context.",
 			"source": "operator_presentation_router",
 		}
+	plan = OwnershipContract.sanitize_presentation_plan(plan)
 	var current_base := String(context.get("current_base_state", ""))
 	var return_policy := String(plan.get("return_policy", StateContract.CURRENT_BASE))
 	plan["valid"] = true
@@ -79,12 +81,18 @@ func describe(plan: Dictionary) -> String:
 		]
 	var effects: Array = plan.get("effects", [])
 	var effect_text := "none" if effects.is_empty() else ", ".join(effects)
+	var blocked_effects: Array = plan.get("blocked_effects", [])
+	var blocked_text := (
+		""
+		if blocked_effects.is_empty()
+		else "\nBlocked by pose ownership: %s" % ", ".join(blocked_effects)
+	)
 	var family := String(plan.get("weapon_family", "ANY"))
 	if family.is_empty():
 		family = "ANY WEAPON"
 	return (
 		"%s\n%s + %s\n↓\n%s → %s\n%s • %.2fs in / %.2fs out\n"
-		+ "↓ %s\nEffects: %s"
+		+ "↓ %s\nEffects: %s%s"
 	) % [
 		String(plan.get("event", "EVENT")),
 		family,
@@ -96,6 +104,7 @@ func describe(plan: Dictionary) -> String:
 		float(plan.get("blend_out_seconds", 0.0)),
 		String(plan.get("resolved_return_state", "CURRENT MOVEMENT")),
 		effect_text,
+		blocked_text,
 	]
 
 
@@ -111,4 +120,7 @@ func _build_trace(plan: Dictionary) -> Array[String]:
 		String(plan.get("layer", StateContract.FULL_BODY)),
 		String(plan.get("resolved_return_state", "")),
 	]
+	var blocked_effects: Array = plan.get("blocked_effects", [])
+	if not blocked_effects.is_empty():
+		result.append("BLOCKED: %s" % ", ".join(blocked_effects))
 	return result
