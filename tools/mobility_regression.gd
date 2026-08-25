@@ -457,11 +457,13 @@ func _test_dive(player: CharacterBody3D) -> void:
 func _test_stance_hold_dive(player: CharacterBody3D) -> void:
     _expect(_state(player) == &"STANDING", "hold-C stance begins standing")
     # Earlier movement tests intentionally cross most of the lab. Reset this
-    # action test to a clear runway so a cover collision cannot turn the hold
-    # into a stationary prone transition before the dive threshold is reached.
+    # action test and face the clearest cardinal runway so nearby cover cannot
+    # turn a valid running hold into a stationary prone transition.
     player.global_position = Vector3(0.0, 0.05, 6.0)
     player.velocity = Vector3.ZERO
     await _step_physics(6)
+    var runway := _face_clearest_hold_dive_runway(player)
+    await _step_physics(2)
     Input.action_press(&"move_forward")
     await _step_physics(30)
     _expect(
@@ -469,12 +471,13 @@ func _test_stance_hold_dive(player: CharacterBody3D) -> void:
         >= float(player.get("dive_minimum_run_speed")),
         "forward travel reaches the hold-C dive threshold"
     )
+    _expect(
+        Vector3(player.get("desired_movement_direction")).dot(runway) >= 0.99,
+        "hold-C fixture runs along its verified clear runway"
+    )
     Input.action_press(&"crouch")
     var saw_committed_dive := false
     var saw_prone := false
-    # The hold threshold is followed by the complete committed dive. Waiting
-    # only 30 frames made this assertion depend on frame rate and could inspect
-    # the operator halfway through the take instead of after prone landing.
     for _frame in range(120):
         await physics_frame
         if _state(player) == &"DIVING":
@@ -490,7 +493,6 @@ func _test_stance_hold_dive(player: CharacterBody3D) -> void:
         not bool(player.get("stance_held_triggered")),
         "releasing C clears the stance-hold latch"
     )
-
     _expect(_state(player) == &"PRONE", "hold-C stance finishes prone")
 
     # Keep W held after landing so the authored crawl and the procedural prone
@@ -518,6 +520,33 @@ func _test_stance_hold_dive(player: CharacterBody3D) -> void:
         )
     Input.action_release(&"move_forward")
     await _step_physics(4)
+
+
+func _face_clearest_hold_dive_runway(player: CharacterBody3D) -> Vector3:
+    var origin := player.global_position + Vector3.UP * 0.70
+    var best_direction := Vector3.FORWARD
+    var best_clearance := -1.0
+    for direction in [Vector3.FORWARD, Vector3.BACK, Vector3.LEFT, Vector3.RIGHT]:
+        var query := PhysicsRayQueryParameters3D.create(origin, origin + direction * 8.0)
+        query.exclude = [player.get_rid()]
+        var hit := player.get_world_3d().direct_space_state.intersect_ray(query)
+        var clearance := 8.0 if hit.is_empty() else origin.distance_to(Vector3(hit.get("position", origin)))
+        if clearance > best_clearance:
+            best_clearance = clearance
+            best_direction = direction
+    var aim_yaw := Vector3.FORWARD.signed_angle_to(best_direction, Vector3.UP)
+    var rig := player.get_tree().get_first_node_in_group("socom_camera_rig")
+    if rig != null and rig.has_method("set_aim_angles"):
+        rig.call("set_aim_angles", aim_yaw, 0.0, true)
+    var player_rotation := player.global_rotation
+    player_rotation.y = aim_yaw
+    player.global_rotation = player_rotation
+    print("MOBILITY_HOLD_DIVE_RUNWAY_METRIC direction=%s clearance=%.3f yaw=%.2f" % [
+        str(best_direction),
+        best_clearance,
+        rad_to_deg(aim_yaw),
+    ])
+    return best_direction
 
 func _test_prone_backward_animation(player: CharacterBody3D) -> void:
     var driver := player.get_node_or_null("Mannequin/ProductionAnimation")

@@ -412,13 +412,14 @@ func _check_layered_recoil(driver) -> void:
     _expect(
         String(event_presentation.get("event", "")) == "FIRE_ACCEPTED"
         and String(event_presentation.get("state", "")) == "combat_fire"
-        and "RAIL_TO_BLUE_LINE" in (event_presentation.get("effects", []) as Array),
-        "playable fire consumes the complete shared event presentation recipe"
+        and "ENTER_READY_AIM" in (event_presentation.get("effects", []) as Array)
+        and "RAIL_TO_BLUE_LINE" not in (event_presentation.get("effects", []) as Array),
+        "playable fire enters ready aim without a blue-line relocation effect"
     )
     _expect(
-        bool(weapon_pose.get("rail_to_blue_line_event_active", false))
-        and bool(weapon_pose.get("gun_placement_line_active", false)),
-        "combat fire raises the rendered weapon rail to the saved blue line"
+        not bool(weapon_pose.get("rail_to_blue_line_event_active", true))
+        and not bool(weapon_pose.get("gun_placement_line_active", true)),
+        "combat fire keeps the rendered weapon on its authored hand-owned pose"
     )
     _expect(
         driver.current_clip == &"walk_forward",
@@ -440,13 +441,13 @@ func _check_layered_recoil(driver) -> void:
     var repeated_snapshot: Dictionary = driver.get_animation_debug_state()
     _expect(
         int(repeated_snapshot.get("fire_trigger_count", 0)) == fire_count_before
-        and bool(
+        and not bool(
             (repeated_snapshot.get("weapon_pose", {}) as Dictionary).get(
                 "rail_to_blue_line_event_active",
-                false
+                true
             )
         ),
-        "each accepted standing shot restarts only the bounded blue-line weapon effect"
+        "repeated standing fire never starts the retired blue-line weapon effect"
     )
 
     driver.set_visual_inputs(
@@ -479,9 +480,9 @@ func _check_layered_recoil(driver) -> void:
         "crouched fire keeps its existing mapped animation layer"
     )
     _expect(
-        bool(crouched_weapon_pose.get("rail_to_blue_line_event_active", false))
-        and bool(crouched_weapon_pose.get("gun_placement_line_active", false)),
-        "crouched fire activates its saved blue-line placement"
+        not bool(crouched_weapon_pose.get("rail_to_blue_line_event_active", true))
+        and not bool(crouched_weapon_pose.get("gun_placement_line_active", true)),
+        "crouched fire keeps its authored weapon pose without blue-line placement"
     )
 
 func _check_crouched_reload_layer(driver) -> void:

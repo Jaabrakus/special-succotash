@@ -12,7 +12,10 @@ const RAIL_TO_BLUE_LINE := "RAIL_TO_BLUE_LINE"
 const ENTER_READY_AIM := "ENTER_READY_AIM"
 const APPLY_WEAPON_FAMILY := "APPLY_WEAPON_FAMILY"
 const VALID_LAYERS := [FULL_BODY, UPPER_BODY]
-const VALID_EFFECTS := [RAIL_TO_BLUE_LINE, ENTER_READY_AIM, APPLY_WEAPON_FAMILY]
+# RAIL_TO_BLUE_LINE remains a lab authoring term for backward-compatible saved
+# data, but it is not a valid live presentation effect. Fire enters the authored
+# ready pose without relocating the weapon away from its right-hand mount.
+const VALID_EFFECTS := [ENTER_READY_AIM, APPLY_WEAPON_FAMILY]
 const VALID_EVENTS := [
 	"WEAPON_EQUIPPED",
 	"FIRE_ACCEPTED",
@@ -134,7 +137,7 @@ static func normalized_event_routes(
 
 static func default_effects(event_name: String) -> Array[String]:
 	if event_name == "FIRE_ACCEPTED":
-		return [ENTER_READY_AIM, RAIL_TO_BLUE_LINE]
+		return [ENTER_READY_AIM]
 	if event_name == "WEAPON_EQUIPPED":
 		return [APPLY_WEAPON_FAMILY]
 	return []
@@ -247,11 +250,11 @@ static func clip_compatibility_error(
 	clip_label: String,
 	clip_path: String
 ) -> String:
-	# Designers may deliberately use an idle/aim take for fire because the
-	# RAIL_TO_BLUE_LINE effect supplies the visible firing posture. Reject only
-	# clips that clearly describe an unrelated locomotion action. This prevents a
-	# full-body sprint from being masked onto crouched torso/arms while keeping
-	# custom and neutrally named authored clips available.
+	# Designers may deliberately use an idle/aim take for fire because ready aim
+	# supplies the visible firing posture. Reject only clips that clearly describe
+	# an unrelated locomotion action. This prevents a full-body sprint from being
+	# masked onto crouched torso/arms while keeping custom and neutrally named
+	# authored clips available.
 	var text := (clip_label + " " + clip_path).to_lower()
 	var is_fire_slot := _is_fire_state(slot_name)
 	var is_reload_slot := "reload" in slot_name

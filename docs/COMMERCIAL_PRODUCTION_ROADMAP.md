@@ -237,6 +237,10 @@ the production movement/action matrix.
 - [x] Crouched obstruction no longer lifts the hands or rifle toward the blue
   line. The focused pose regression measures `-0.001 m` vertical muzzle drift
   while keeping the reticle target and authoritative player unchanged.
+- [x] `FIRE_ACCEPTED` no longer relocates the live weapon or hands to the saved
+  blue placement line in standing or crouched play. The line remains an
+  authoring/aim reference; the fire event now owns only its bounded animation
+  overlay and contextual return, while the right-palm mount stays authoritative.
 - [x] A final, non-accumulating finger-contact pass wraps both operator palms
   around the saved weapon contacts. Reload/grenade support-hand release remains
   governed by the existing ownership contract.
@@ -249,10 +253,11 @@ the production movement/action matrix.
 - [x] Weapon-pose, aim-idle visibility, reload completion, reload/jump handoff,
   locomotion-quality, camera-passage/perception, and the complete camera
   regression suite pass on the combined worktree.
-- [ ] The quick integration gate is not green: the pre-existing running hold-C
-  mobility check completes prone but fails to observe the intermediate
-  `DIVING` state. This checkpoint does not claim the full Gate Two matrix or a
-  promotable restore point until that separately owned failure is resolved.
+- [x] The complete quick integration gate is green on the combined worktree.
+  Its running hold-C fixture now faces the clearest verified runway before
+  measuring the transition, and observes `STANDING -> DIVING -> PRONE` without
+  weakening the gameplay dive-speed threshold. This still does not claim the
+  full Gate Two production matrix.
 
 ## Gate three: combat quality
 

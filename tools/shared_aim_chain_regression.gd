@@ -62,18 +62,14 @@ func _run() -> void:
 		float(fire_pose.get("left_elbow_angle_deg", 0.0)),
 	])
 	_expect(
-		bool(fire_pose.get("gun_placement_line_active", false))
-		and bool(fire_pose.get("rail_to_blue_line_event_active", false))
+		not bool(fire_pose.get("gun_placement_line_active", true))
+		and not bool(fire_pose.get("rail_to_blue_line_event_active", true))
 		and bool(fire_pose.get("animation_drives_ready_hands", false)),
-		"accepted fire temporarily raises the animation-owned rifle to the Gunsmith line"
+		"accepted fire keeps the rifle animation-owned without live blue-line relocation"
 	)
 	_expect(float(fire_pose.get("trigger_hand_error_m", 1.0)) <= 0.01, "fire keeps the trigger hand attached to the saved rifle socket")
 	_expect(float(fire_pose.get("support_hand_error_m", 1.0)) <= 0.01, "fire keeps the support hand attached to the saved rifle socket")
 	_expect(float(fire_pose.get("weapon_aim_error_deg", 180.0)) <= 0.10, "fire keeps the rendered rail on the live aim line")
-	_expect(
-		float(fire_pose.get("gun_placement_error_m", 1.0)) <= 0.001,
-		"fire places the optic on the authored blue-line origin"
-	)
 	if OS.get_cmdline_user_args().has("--capture-shared-aim"):
 		RenderingServer.force_draw()
 		await RenderingServer.frame_post_draw
@@ -95,8 +91,8 @@ func _run() -> void:
 	_expect(float(held_pose.get("support_hand_error_m", 1.0)) <= 0.01, "held fire keeps the support hand attached")
 	_expect(float(held_pose.get("weapon_aim_error_deg", 180.0)) <= 0.10, "held fire keeps the rail aligned")
 	_expect(
-		float(held_pose.get("gun_placement_error_m", 1.0)) <= 0.001,
-		"held fire keeps the optic on the authored blue-line origin"
+		not bool(held_pose.get("rail_to_blue_line_event_active", true)),
+		"held fire never starts live blue-line relocation"
 	)
 
 	scene.queue_free()

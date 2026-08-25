@@ -70,8 +70,8 @@ func _initialize() -> void:
 		"CURRENT_BASE returns to the live locomotion state"
 	)
 	_expect(
-		"RAIL_TO_BLUE_LINE" in (fire.get("effects", []) as Array),
-		"presentation effects travel in the same plan as the animation"
+		"RAIL_TO_BLUE_LINE" not in (fire.get("effects", []) as Array),
+		"the router rejects retired live blue-line relocation data"
 	)
 	_expect(
 		"ENTER_READY_AIM" in (fire.get("effects", []) as Array),

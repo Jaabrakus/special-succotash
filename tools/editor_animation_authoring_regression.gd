@@ -58,8 +58,9 @@ func _run() -> void:
 	_expect(String(fire.get("layer", "")) == "UPPER_BODY", "standing fire remains an upper-body overlay")
 	_expect(String(fire.get("resolved_return_state", "")) == "run_forward", "fire returns to current movement")
 	_expect(
-		(fire.get("effects", []) as Array).has("RAIL_TO_BLUE_LINE"),
-		"editor exposes the saved rail-to-blue-line effect"
+		(fire.get("effects", []) as Array).has("ENTER_READY_AIM")
+		and not (fire.get("effects", []) as Array).has("RAIL_TO_BLUE_LINE"),
+		"editor exposes ready aim without a live rail relocation effect"
 	)
 
 	var dock = Dock.new()

@@ -219,8 +219,6 @@ func _run() -> void:
 				route_label != null and route_label.text.begins_with("VERIFIED DRAFT"),
 				"route verifier resolves standing, crouched, and prone through the runtime contract"
 			)
-			var pre_fire_animation: StringName = studio.get("animation_player").current_animation
-			var ready_transition: Dictionary = studio.call("_state_event_ready_transition")
 			var expected_reticle_direction: Vector3 = studio.call(
 				"_state_event_reticle_direction_world"
 			)
@@ -248,26 +246,20 @@ func _run() -> void:
 				"event preview resolves through the authored route instead of a separate Lab clip"
 			)
 			_expect(
-				studio.get("state_event_weapon_solver") != null
-				and float(studio.get("state_event_effect_active_seconds")) > 0.0,
-				"Fire Accepted preview executes the shared blue-line weapon effect"
+				float(studio.get("state_event_effect_active_seconds")) <= 0.0,
+				"Fire Accepted preview does not start live blue-line weapon relocation"
 			)
 			var fire_preview_direction: Vector3 = studio.get(
 				"state_event_effect_forward_direction"
 			)
 			_expect(
 				expected_reticle_direction.length_squared() > 0.50
-				and fire_preview_direction.length_squared() > 0.50
-				and expected_reticle_direction.dot(fire_preview_direction) >= 0.999,
-				"Fire Accepted captures the fixed reticle direction once"
+				and fire_preview_direction.length_squared() <= 0.001,
+				"Fire Accepted leaves the manual blue-line authoring direction untouched"
 			)
 			_expect(
-				(
-					not String(ready_transition.get("ready_path", "")).is_empty()
-					and not String(studio.get("state_event_return_animation_path")).is_empty()
-				)
-				or studio.get("animation_player").current_animation == pre_fire_animation,
-				"Fire Accepted enters a mapped ready base or preserves an incompatible full-body clip"
+				String(studio.get("state_event_return_animation_path")).is_empty(),
+				"Fire Accepted needs no temporary blue-line return animation"
 			)
 			studio.call("_update_animation_rig_visual_overlay")
 			var blue_direction_after_fire := (
@@ -293,70 +285,16 @@ func _run() -> void:
 				and blue_direction_after_fire.dot(blue_direction_before_fire) >= 0.999,
 				"Fire Accepted keeps the blue line aimed at the same fixed reticle"
 			)
-			_expect(
-				String(studio.get("state_event_effect_posture")) == expected_posture,
-				"Fire Accepted matches the posture of the animation being inspected"
-			)
 			var head_look_radians: Vector2 = studio.get("state_event_head_look_radians")
 			_expect(
-				head_look_radians.length() > 0.001
-				and absf(rad_to_deg(head_look_radians.x)) <= 56.01
-				and absf(rad_to_deg(head_look_radians.y)) <= 34.01,
-				"Fire Accepted turns the head toward the blue-line target within human limits"
+				head_look_radians.length() <= 0.001,
+				"Fire Accepted does not add a blue-line head-look correction"
 			)
-			if preview_skeleton != null:
-				var event_head_index := preview_skeleton.find_bone("mixamorig_Head")
-				if event_head_index < 0:
-					event_head_index = preview_skeleton.find_bone("mixamorig:Head")
-				if event_head_index < 0:
-					event_head_index = preview_skeleton.find_bone("head")
-				if event_head_index >= 0:
-					var state_animation_player := studio.get("animation_player") as AnimationPlayer
-					var event_position: float = state_animation_player.current_animation_position
-					state_animation_player.seek(event_position, true)
-					studio.call("_update_state_event_effect_preview", 0.0)
-					var stable_head_rotation := preview_skeleton.get_bone_pose_rotation(
-						event_head_index
-					)
-					for repeat in range(4):
-						# Deliberately leave the same paused/end frame in place. The
-						# head-look layer must recognize its own last output instead of
-						# multiplying another yaw/pitch rotation onto it.
-						studio.call("_update_state_event_effect_preview", 0.0)
-					_expect(
-						preview_skeleton.get_bone_pose_rotation(event_head_index).is_equal_approx(
-							stable_head_rotation
-						),
-						"Fire Accepted head look is stable when the same animation frame repeats"
-					)
 			var preview_weapon := studio.get("weapon_node") as Node3D
 			var preview_hand_mount := studio.get("socket_attachment") as BoneAttachment3D
 			var preview_mount_keeper: Variant = studio.get(
 				"animation_weapon_ownership_preview"
 			)
-			var preview_solver: Variant = studio.get("state_event_weapon_solver")
-			studio.set("state_event_effect_active_seconds", 0.001)
-			studio.set("state_event_effect_release_seconds", 0.45)
-			studio.call("_update_state_event_effect_preview", 0.01)
-			_expect(
-				bool(studio.get("state_event_return_pose_captured"))
-				and not (studio.get("state_event_return_bone_poses") as Dictionary).is_empty(),
-				"Fire Accepted captures its solved upper body before contextual return"
-			)
-			studio.call("_prepare_state_event_return_frame")
-			studio.call("_update_state_event_effect_preview", 1.0 / 60.0)
-			studio.call("_prepare_state_event_return_frame")
-			studio.call("_update_state_event_effect_preview", 1.0 / 60.0)
-			var return_blend_weight := float(
-				studio.get("state_event_return_blend_weight")
-			)
-			_expect(
-				return_blend_weight > 0.0 and return_blend_weight < 1.0,
-				"Fire Accepted blends back into the live movement pose instead of snapping"
-			)
-			studio.set("state_event_effect_active_seconds", 0.0)
-			studio.set("state_event_effect_release_seconds", 0.001)
-			studio.call("_update_state_event_effect_preview", 0.01)
 			_expect(
 				preview_weapon != null
 				and preview_hand_mount != null
@@ -364,16 +302,12 @@ func _run() -> void:
 				and preview_weapon.transform.is_equal_approx(
 					preview_mount_keeper.get("hand_local_transform")
 				),
-				"completed Fire Accepted preview restores the canonical right-hand mount"
+				"Fire Accepted preview preserves the canonical right-hand mount"
 			)
 			_expect(
 				not bool(studio.get("state_event_return_pose_captured"))
 				and (studio.get("state_event_return_bone_poses") as Dictionary).is_empty(),
-				"completed Fire Accepted preview clears its temporary return pose"
-			)
-			_expect(
-				String(studio.get("state_event_return_animation_path")).is_empty(),
-				"completed Fire Accepted preview restores and clears its contextual movement return"
+				"Fire Accepted preview creates no blue-line return pose"
 			)
 			var workflow_cue := studio.find_child(
 				"SimpleStateCurrentCue", true, false
@@ -381,9 +315,9 @@ func _run() -> void:
 			_expect(
 				workflow_cue != null
 				and workflow_cue.text.contains("EVENT  FIRE_ACCEPTED")
-				and workflow_cue.text.contains("RAIL → FIXED RETICLE")
-				and workflow_cue.text.contains("RUN → WALK / IDLE → AIM IDLE"),
-				"guided cue explains the temporary ready-aim movement switch"
+				and workflow_cue.text.contains("STATE  %s" % expected_event_state)
+				and not workflow_cue.text.contains("RAIL → FIXED RETICLE"),
+				"guided cue previews the fire state without live rail relocation"
 			)
 			studio.call("_on_route_event_selected", "FIRE_ACCEPTED")
 			_expect(

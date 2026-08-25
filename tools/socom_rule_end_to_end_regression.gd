@@ -50,8 +50,9 @@ func _initialize() -> void:
 		"the saved sentence resolves through the same runtime presentation router"
 	)
 	_expect(
-		"RAIL_TO_BLUE_LINE" in (standing.get("effects", []) as Array),
-		"the compiled rule retains the verified blue-line fire effect"
+		"ENTER_READY_AIM" in (standing.get("effects", []) as Array)
+		and "RAIL_TO_BLUE_LINE" not in (standing.get("effects", []) as Array),
+		"the compiled rule enters ready aim without relocating the rifle"
 	)
 	_finish()
 

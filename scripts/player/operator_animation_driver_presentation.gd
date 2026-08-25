@@ -86,18 +86,9 @@ func _apply_fire_presentation(plan: Dictionary) -> bool:
 	if skeleton == null or locomotion_graph == null:
 		return false
 	var event_fire_clip := StringName(plan.get("state", ""))
-	var effect_duration := float(plan.get("blend_in_seconds", 0.04)) + float(plan.get("blend_out_seconds", 0.10))
-	if animation_player != null and animation_player.has_animation(event_fire_clip):
-		effect_duration = maxf(effect_duration, animation_player.get_animation(event_fire_clip).length)
 	var presentation_effects: Array = plan.get("effects", [])
 	if AnimationStateContract.ENTER_READY_AIM in presentation_effects:
 		_trigger_fire_ready_aim()
-	if (
-		weapon_pose_solver != null
-		and AnimationStateContract.RAIL_TO_BLUE_LINE in presentation_effects
-		and movement_state not in [&"DIVING", &"ROLLING", &"AIRBORNE", &"LANDING"]
-	):
-		weapon_pose_solver.trigger_rail_to_blue_line(effect_duration)
 	if _standing_fire_uses_aim_idle(event_fire_clip):
 		# Standing imports the complete Gunsmith Aim Idle baseline. Bloom and
 		# reticle kick remain as shot feedback; the fire take must not replace the
@@ -131,5 +122,4 @@ func set_modern_locomotion_enabled(enabled: bool) -> void:
 	use_modern_locomotion = enabled
 	if locomotion_graph != null:
 		locomotion_graph.set_modern_enabled(enabled)
-
 

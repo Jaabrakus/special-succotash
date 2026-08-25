@@ -46,8 +46,9 @@ func _run() -> void:
 	_expect(
 		String(fire_presentation.get("event", "")) == "FIRE_ACCEPTED"
 		and String(fire_presentation.get("state", "")) == "combat_fire"
-		and "RAIL_TO_BLUE_LINE" in (fire_presentation.get("effects", []) as Array),
-		"Gunsmith fire preview consumes the same standing event recipe as playtest"
+		and "ENTER_READY_AIM" in (fire_presentation.get("effects", []) as Array)
+		and "RAIL_TO_BLUE_LINE" not in (fire_presentation.get("effects", []) as Array),
+		"Gunsmith and playtest share fire routing without live rail relocation"
 	)
 	var profile := ProceduralPoseProfile.new()
 	profile.set_eye_sight_origin_offset_meters(

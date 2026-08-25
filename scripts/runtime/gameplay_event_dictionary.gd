@@ -58,7 +58,7 @@ const EVENTS: Dictionary = {
 		"emitter": "Weapon gameplay authority after ammo and cadence validation",
 		"accepted_when": "The weapon can fire, has ammunition, and the shot sequence is valid.",
 		"context": ["weapon family", "posture", "current movement", "shot sequence"],
-		"presentation_may": "Play fire animation, raise the rail to the blue line, and show effects.",
+		"presentation_may": "Enter ready aim, play the posture-aware fire animation, and show effects.",
 		"presentation_never": "Create a bullet, spend ammo, redirect aim, or apply damage.",
 	},
 	"RELOAD_STARTED": {

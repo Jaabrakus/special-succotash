@@ -91,7 +91,7 @@ func _initialize() -> void:
 				},
 			},
 			"return_policy": "CURRENT_BASE",
-			"effects": ["RAIL_TO_BLUE_LINE"],
+			"effects": ["ENTER_READY_AIM", "RAIL_TO_BLUE_LINE"],
 		},
 	})
 	_expect(
@@ -121,8 +121,9 @@ func _initialize() -> void:
 	_expect(
 		String(fire_presentation.get("state", "")) == "combat_fire"
 		and String(fire_presentation.get("layer", "")) == "UPPER_BODY"
-		and "RAIL_TO_BLUE_LINE" in (fire_presentation.get("effects", []) as Array),
-		"one event recipe carries animation, body ownership, and presentation effects"
+		and "ENTER_READY_AIM" in (fire_presentation.get("effects", []) as Array)
+		and "RAIL_TO_BLUE_LINE" not in (fire_presentation.get("effects", []) as Array),
+		"fire recipes retain ready aim and reject retired live rail relocation"
 	)
 	var proposal := LanguageParser.new().propose(
 		"When a valid rifle shot happens, play this on torso and arms, blend in 0.04, blend out 0.10, return to current movement.",
@@ -160,8 +161,9 @@ func _initialize() -> void:
 	)
 	_expect(
 		String(saved_fire_presentation.get("state", "")) == "combat_fire"
-		and "RAIL_TO_BLUE_LINE" in (saved_fire_presentation.get("effects", []) as Array),
-		"runtime resolves the saved standing fire route and blue-line effect together"
+		and "ENTER_READY_AIM" in (saved_fire_presentation.get("effects", []) as Array)
+		and "RAIL_TO_BLUE_LINE" not in (saved_fire_presentation.get("effects", []) as Array),
+		"runtime resolves saved standing fire without relocating the rifle"
 	)
 	var saved_reload_presentation := profile.resolve_animation_event_presentation(
 		&"RELOAD_STARTED",

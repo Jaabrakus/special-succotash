@@ -142,8 +142,7 @@
     "FIRE_ACCEPTED": {
       "default_state": "combat_fire",
       "effects": [
-        "ENTER_READY_AIM",
-        "RAIL_TO_BLUE_LINE"
+        "ENTER_READY_AIM"
       ],
       "family_states": {
         "TWO_HAND_RIFLE": {

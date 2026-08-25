@@ -44,41 +44,45 @@ func _run() -> void:
 	var crouched: Dictionary = driver.call(
 		"get_animation_debug_state"
 	).get("weapon_pose", {})
-	var standing_origin: Vector3 = standing.get("gun_placement_origin", Vector3.ZERO)
-	var crouched_origin: Vector3 = crouched.get("gun_placement_origin", Vector3.ZERO)
 	var standing_head: Vector3 = standing.get("head_position", Vector3.ZERO)
 	var crouched_head: Vector3 = crouched.get("head_position", Vector3.ZERO)
 	var crouched_shared_target: Vector3 = rig.call("get_shared_aim_target")
-	print("CROUCHED_FIRE_BLUE_LINE_METRIC head_drop=%.4f dot_drop=%.4f standing=%s crouched=%s" % [
+	print("CROUCHED_FIRE_HAND_OWNERSHIP_METRIC head_drop=%.4f standing_trigger=%.4f standing_support=%.4f crouched_trigger=%.4f crouched_support=%.4f" % [
 		standing_head.y - crouched_head.y,
-		standing_origin.y - crouched_origin.y,
-		str(standing_origin),
-		str(crouched_origin),
+		float(standing.get("trigger_hand_error_m", 1.0)),
+		float(standing.get("support_hand_error_m", 1.0)),
+		float(crouched.get("trigger_hand_error_m", 1.0)),
+		float(crouched.get("support_hand_error_m", 1.0)),
 	])
 	_expect(
-		bool(standing.get("gun_placement_line_active", false))
-		and bool(crouched.get("gun_placement_line_active", false)),
-		"standing and crouched fire both activate blue-line placement"
+		not bool(standing.get("rail_to_blue_line_event_active", true))
+		and not bool(crouched.get("rail_to_blue_line_event_active", true))
+		and not bool(standing.get("gun_placement_line_active", true))
+		and not bool(crouched.get("gun_placement_line_active", true)),
+		"standing and crouched fire never activate live blue-line placement"
 	)
 	_expect(
 		standing_head.y - crouched_head.y >= 0.30,
 		"crouched animation lowers the live head anchor"
 	)
 	_expect(
-		standing_origin.y - crouched_origin.y >= 0.30,
-		"crouched fire lowers the blue dot with the live head"
+		float(standing.get("trigger_hand_error_m", 1.0)) <= 0.01
+		and float(standing.get("support_hand_error_m", 1.0)) <= 0.01
+		and float(crouched.get("trigger_hand_error_m", 1.0)) <= 0.01
+		and float(crouched.get("support_hand_error_m", 1.0)) <= 0.01,
+		"standing and crouched fire keep both hands on their authored sockets"
 	)
 	_expect(
 		Vector3(crouched.get("aim_target", Vector3.ZERO)).distance_to(
 			crouched_shared_target
 		) <= 0.01,
-		"stance-specific blue dot points to the current shared reticle target"
+		"crouched weapon aim still consumes the current shared reticle target"
 	)
 	_expect(
 		Vector2(player.global_position.x, player.global_position.z).distance_to(
 			Vector2(standing_position.x, standing_position.z)
 		) <= 0.001,
-		"blue-line presentation never moves the authoritative player horizontally"
+		"fire presentation never moves the authoritative player horizontally"
 	)
 	scene.queue_free()
 	_finish()
