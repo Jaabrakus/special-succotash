@@ -166,17 +166,37 @@ func update_locomotion(
 		if ready_weight >= 0.50
 		else PRESENTATION_RELAXED_RIFLE
 	)
-	# FIRE_ACCEPTED raises ready_weight and turns on the authored square Aim Idle
-	# node over the sprint legs. This is a graph blend, not the retired procedural
-	# shoulder/camera correction. The fire OneShot then plays over this stable,
-	# square upper-body base.
-	upper_body_ready_blend = clampf(ready_weight, 0.0, 1.0)
-	# Standing movement always uses the approved eight-way sprint family. Ready
-	# Aim and fire remain upper-body layers; neither is allowed to replace the
-	# lower-body movement source or alter CharacterBody speed/collision.
+	var normalized_ready := clampf(ready_weight, 0.0, 1.0)
+	var movement_amount := smoothstep(0.08, 0.55, speed_normalized)
+	var dynamic_hold: Variant = weapon_handling_profile.get("dynamic_hold", {})
+	var ready_locomotion_inheritance := 0.22
+	if dynamic_hold is Dictionary:
+		ready_locomotion_inheritance = clampf(
+			float(
+				(dynamic_hold as Dictionary).get(
+					"ready_locomotion_inheritance",
+					ready_locomotion_inheritance
+				)
+			),
+			0.0,
+			0.35
+		)
+	# Aim Idle remains the dominant firing pose, but a moving player retains a
+	# small amount of the active rifle-walk torso and arm motion. The right-hand
+	# weapon mount therefore breathes with the body instead of looking pinned in
+	# space while the legs move underneath it.
+	upper_body_ready_blend = normalized_ready * (
+		1.0 - ready_locomotion_inheritance * movement_amount
+	)
+	# Standing uses one continuous sprint matrix. Aim/fire only replaces the
+	# upper body; it must never change the lower-body gait back to Rifle Walk.
+	var standing_sprint_only := (
+		posture == &"STANDING"
+		and bool(profile.locomotion.get("standing_sprint_only", false))
+	)
 	var target_full_weight: float = (
 		1.0
-		if posture == &"STANDING" and speed_normalized > 0.01
+		if standing_sprint_only
 		else profile.full_gait_weight(speed_normalized)
 	)
 	var speed_alpha := 1.0 - exp(-float(profile.locomotion["speed_blend_response"]) * delta)
@@ -229,8 +249,6 @@ func update_locomotion(
 	animation_tree.set("parameters/prone_time_scale/scale", playback_rate)
 	animation_tree.set("parameters/idle_ready_blend/blend_amount", clampf(ready_weight, 0.0, 1.0))
 	animation_tree.set("parameters/standing_upper_ready_blend/blend_amount", clampf(ready_weight, 0.0, 1.0))
-	animation_tree.set("parameters/crouch_upper_body/blend_amount", 1.0)
-	animation_tree.set("parameters/crouch_idle_upper_body/blend_amount", 1.0)
 
 
 func request_modern_state(state_name: StringName) -> bool:
@@ -577,28 +595,6 @@ func _build_modern_route(root: AnimationNodeBlendTree, available_clips: Dictiona
 	root.connect_node(&"standing_upper_body", 0, &"standing_time_scale")
 	root.connect_node(&"standing_upper_body", 1, &"standing_upper_ready_blend")
 
-	# Crouch keeps its authored hips and legs, but shares the same square Aim
-	# Idle torso and arms as standing. Fire and reload remain later upper-body
-	# action layers, so stance changes cannot replace the planted lower body.
-	var crouch_upper_body := AnimationNodeBlend2.new()
-	crouch_upper_body.sync = true
-	crouch_upper_body.filter_enabled = true
-	var crouch_idle_upper_body := AnimationNodeBlend2.new()
-	crouch_idle_upper_body.sync = true
-	crouch_idle_upper_body.filter_enabled = true
-	for bone_name: StringName in UPPER_BODY_BONES:
-		var bone_path := NodePath(".:%s" % bone_name)
-		crouch_upper_body.set_filter_path(bone_path, true)
-		crouch_idle_upper_body.set_filter_path(bone_path, true)
-	root.add_node(&"crouch_moving_aim_idle", _animation_node(equipped_ready), Vector2(-40.0, 390.0))
-	root.add_node(&"crouch_idle_aim_idle", _animation_node(equipped_ready), Vector2(-40.0, 470.0))
-	root.add_node(&"crouch_upper_body", crouch_upper_body, Vector2(300.0, 390.0))
-	root.connect_node(&"crouch_upper_body", 0, &"crouch_time_scale")
-	root.connect_node(&"crouch_upper_body", 1, &"crouch_moving_aim_idle")
-	root.add_node(&"crouch_idle_upper_body", crouch_idle_upper_body, Vector2(300.0, 470.0))
-	root.connect_node(&"crouch_idle_upper_body", 0, &"modern_idle_crouch")
-	root.connect_node(&"crouch_idle_upper_body", 1, &"crouch_idle_aim_idle")
-
 	# Standing idle needs the same ownership split as standing locomotion. The
 	# weapon's authored standing-ready clip owns only the upper body while the
 	# standing base continues to own hips and legs.
@@ -615,8 +611,8 @@ func _build_modern_route(root: AnimationNodeBlendTree, available_clips: Dictiona
 	var state_sources: Dictionary = {
 		&"idle": &"standing_idle_upper_body",
 		&"standing": &"standing_upper_body",
-		&"idle_crouch": &"crouch_idle_upper_body",
-		&"crouch": &"crouch_upper_body",
+		&"idle_crouch": &"modern_idle_crouch",
+		&"crouch": &"crouch_time_scale",
 		&"prone": &"prone_time_scale",
 	}
 	for raw_clip_name in available_clips.keys():

@@ -21,14 +21,14 @@ const DIRECTION_SUFFIXES: Array[StringName] = [
 const DEFAULT_CLIPS: Dictionary = {
 	&"idle_rifle": "res://assets/animations/mixamo/Lite Rifle Pack/idle.fbx",
 	&"aim_idle": "res://assets/animations/mixamo/Shooter Pack/rifle aiming idle.fbx",
-	&"run_forward": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/sprint forward.fbx",
-	&"run_backward": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/sprint backward.fbx",
-	&"run_left": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/sprint left.fbx",
-	&"run_right": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/sprint right.fbx",
-	&"run_forward_left": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/sprint forward left.fbx",
-	&"run_forward_right": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/sprint forward right.fbx",
-	&"run_back_left": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/sprint backward left.fbx",
-	&"run_back_right": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/sprint backward right.fbx",
+	&"run_forward": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/run forward.fbx",
+	&"run_backward": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/run backward.fbx",
+	&"run_left": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/run left.fbx",
+	&"run_right": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/run right.fbx",
+	&"run_forward_left": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/run forward left.fbx",
+	&"run_forward_right": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/run forward right.fbx",
+	&"run_back_left": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/run backward left.fbx",
+	&"run_back_right": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/run backward right.fbx",
 	&"walk_forward": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/walk forward.fbx",
 	&"walk_backward": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/walk backward.fbx",
 	&"walk_left": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/walk left.fbx",
@@ -130,6 +130,8 @@ const DEFAULT_MIRRORED_CLIPS: Dictionary = {
 	&"walk_forward_left": &"walk_forward_right",
 	&"walk_left": &"walk_right",
 	&"walk_back_left": &"walk_back_right",
+	&"run_forward_left": &"run_forward_right",
+	&"run_back_left": &"run_back_right",
 	&"crouch_forward_left": &"crouch_forward_right",
 	&"crouch_back_left": &"crouch_back_right",
 }
@@ -217,6 +219,7 @@ var event_routes: Dictionary = {}
 var locomotion: Dictionary = {
 	"walk_nominal_speed_mps": 2.15,
 	"full_nominal_speed_mps": 5.70,
+	"standing_sprint_only": false,
 	"crouch_nominal_speed_mps": 2.60,
 	"prone_nominal_speed_mps": 1.25,
 	"speed_blend_start": 0.38,
@@ -232,6 +235,7 @@ var locomotion: Dictionary = {
 }
 var transitions: Dictionary = {
 	"enabled": true,
+	"standing_enabled": true,
 	"start_seconds": 0.18,
 	"stop_seconds": 0.20,
 	"reversal_seconds": 0.22,

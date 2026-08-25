@@ -1,12 +1,13 @@
 {
   "clip_aliases": {
     "crouch_left": "crouch_forward_left",
-    "crouch_right": "crouch_forward_right"
+    "crouch_right": "crouch_forward_right",
+    "run_left": "run_forward_left"
   },
   "clips": {
     "aim_idle": "res://assets/animations/mixamo/Shooter Pack/rifle aiming idle.fbx",
     "climb": "res://assets/animations/mixamo/Climbing.fbx",
-    "combat_fire": "res://assets/animations/mixamo/Shooter Pack/firing rifle.fbx",
+    "combat_fire": "res://assets/animations/mixamo/Shooter Pack/rifle aiming idle.fbx",
     "crouch_back_left": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/walk crouching backward left.fbx",
     "crouch_back_right": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/walk crouching backward right.fbx",
     "crouch_backward": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/walk crouching backward.fbx",
@@ -72,6 +73,16 @@
     "run_left": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/sprint left.fbx",
     "run_right": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/sprint right.fbx",
     "run_to_stop": "res://assets/animations/mixamo/Run To Stop.fbx",
+    "sprint_back_left": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/sprint backward left.fbx",
+    "sprint_back_right": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/sprint backward right.fbx",
+    "sprint_backward": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/sprint backward.fbx",
+    "sprint_backward_left": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/sprint backward left.fbx",
+    "sprint_backward_right": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/sprint backward right.fbx",
+    "sprint_forward": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/sprint forward.fbx",
+    "sprint_forward_left": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/sprint forward left.fbx",
+    "sprint_forward_right": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/sprint forward right.fbx",
+    "sprint_left": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/sprint left.fbx",
+    "sprint_right": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/sprint right.fbx",
     "start_backward": "res://assets/animations/mixamo/Shooter Pack/start walking backwards.fbx",
     "start_forward": "res://assets/animations/mixamo/Start Walking.fbx",
     "stop_backward": "res://assets/animations/mixamo/Shooter Pack/walk backwards stop.fbx",
@@ -136,7 +147,7 @@
       "idle_rifle"
     ]
   },
-  "description": "Logical animation slots, posture-aware semantic actions, connected transitions, and normalized locomotion calibration. Standing locomotion uses the approved rifle sprint family.",
+  "description": "Standing gameplay uses the authored eight-direction sprint family. Crouch, prone, and dive remain posture-specific; crouched ready/fire borrows the standing aim upper body.",
   "event_routes": {
     "FIRE_ACCEPTED": {
       "default_state": "combat_fire",
@@ -215,6 +226,7 @@
     "direction_response": 16.0,
     "direction_turn_playback_floor": 0.72,
     "full_nominal_speed_mps": 5.7,
+    "standing_sprint_only": true,
     "lateral_snap_threshold": 0.92,
     "maximum_playback_rate": 1.32,
     "minimum_playback_rate": 0.72,
@@ -246,6 +258,8 @@
   "mirrored_clips": {
     "crouch_back_left": "crouch_back_right",
     "crouch_forward_left": "crouch_forward_right",
+    "run_back_left": "run_back_right",
+    "run_forward_left": "run_forward_right",
     "walk_back_left": "walk_back_right",
     "walk_forward_left": "walk_forward_right",
     "walk_left": "walk_right"
@@ -798,6 +812,7 @@
   },
   "transitions": {
     "enabled": true,
+    "standing_enabled": false,
     "planted_turn_degrees": 34.0,
     "planted_turn_seconds": 0.3,
     "reversal_dot_threshold": -0.55,

@@ -279,22 +279,33 @@ func _draw_shoulder_map(skeleton: Skeleton3D) -> float:
 	for pivot in [left_clavicle, right_clavicle, left_arm, right_arm]:
 		draw_circle(camera.unproject_position(pivot), 7.0, cyan, false, 2.5, true)
 
-	# The white bar is the reticle-parallel shoulder target. Its center follows
-	# shoulder height, but its angle is always screen-horizontal. Camera pitch,
-	# weapon aim, and IK therefore cannot rotate this diagnostic reference.
-	var left_arm_screen := camera.unproject_position(left_arm)
-	var right_arm_screen := camera.unproject_position(right_arm)
-	var shoulder_center_screen := (left_arm_screen + right_arm_screen) * 0.5
-	var half_width_px := maxf(left_arm_screen.distance_to(right_arm_screen) * 0.5, 18.0)
-	var reference_left := shoulder_center_screen - Vector2.RIGHT * half_width_px
-	var reference_right := shoulder_center_screen + Vector2.RIGHT * half_width_px
-	draw_dashed_line(reference_left, reference_right, square_reference, 2.0, 7.0, true)
-	draw_circle(reference_left, 5.0, square_reference, false, 2.0, true)
-	draw_circle(reference_right, 5.0, square_reference, false, 2.0, true)
-	var actual_screen_right := (right_arm_screen - left_arm_screen).normalized()
-	if actual_screen_right.x < 0.0:
-		actual_screen_right = -actual_screen_right
-	return rad_to_deg(acos(clampf(actual_screen_right.dot(Vector2.RIGHT), -1.0, 1.0)))
+	var actual_right := (right_arm - left_arm).normalized()
+	var aim_forward := -subject.global_basis.z.normalized() if subject != null else Vector3.FORWARD
+	var weapon_solver = driver.get("weapon_pose_solver")
+	if weapon_solver != null:
+		var solver_direction: Vector3 = weapon_solver.get("last_aim_direction")
+		if solver_direction.length_squared() > 0.50:
+			aim_forward = solver_direction.normalized()
+	var desired_right := aim_forward.cross(Vector3.UP).normalized()
+	if desired_right.length_squared() < 0.50:
+		desired_right = actual_right
+	if desired_right.dot(actual_right) < 0.0:
+		desired_right = -desired_right
+	var half_width := left_arm.distance_to(right_arm) * 0.5
+	var reference_left := chest - desired_right * half_width
+	var reference_right := chest + desired_right * half_width
+	if not camera.is_position_behind(reference_left) and not camera.is_position_behind(reference_right):
+		draw_dashed_line(
+			camera.unproject_position(reference_left),
+			camera.unproject_position(reference_right),
+			square_reference,
+			2.0,
+			7.0,
+			true
+		)
+		draw_circle(camera.unproject_position(reference_left), 5.0, square_reference, false, 2.0, true)
+		draw_circle(camera.unproject_position(reference_right), 5.0, square_reference, false, 2.0, true)
+	return rad_to_deg(acos(clampf(actual_right.dot(desired_right), -1.0, 1.0)))
 
 
 func _draw_joint_trails() -> void:

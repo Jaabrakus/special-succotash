@@ -196,12 +196,10 @@ func apply(
 	# Keeping it out of posture prevents the blue-line/cover detector from raising
 	# or lowering the operator's torso and arms.
 	var obstruction_scale := 1.0
-	# The authored full-body rifle run owns the relaxed torso. Ready Aim blends
-	# the spine toward the reticle. The head keeps a small independent look layer
-	# during relaxed travel so the operator can scan without straightening the
-	# complete body silhouette.
+	# The authored idle/sprint clips own the complete relaxed body. Only the
+	# fire/ready command may rotate the head, spine, and shoulders toward aim.
 	var torso_ready_scale := normalized_ready * obstruction_scale
-	var head_ready_scale := lerpf(0.22, 1.0, normalized_ready) * obstruction_scale
+	var head_ready_scale := normalized_ready * obstruction_scale
 
 	last_applied_yaw = 0.0
 	last_applied_pitch = 0.0
@@ -232,10 +230,15 @@ func apply(
 	_apply_bone_additive(&"left_shoulder", 0.0, shoulder_pitch)
 	_apply_bone_additive(&"right_shoulder", 0.0, shoulder_pitch)
 	_apply_full_body_peek(posture_name, peek_amount)
-	# Force the upper body to rigidly track the camera reticle and maintain a square silhouette.
-	_apply_square_shoulders(world_aim_target)
-
-	last_chest_square_correction_deg = 0.0
+	# Shoulder squaring is a shooting pose, not a locomotion correction. Leaving
+	# it active during sprint overwrites the authored lean and makes the head and
+	# arms appear detached from the gait.
+	if normalized_ready >= 0.50:
+		_apply_square_shoulders(world_aim_target)
+	else:
+		last_shoulder_square_error_deg = 0.0
+		last_shoulder_level_error_cm = 0.0
+		last_chest_square_correction_deg = 0.0
 	last_angular_error_deg = rad_to_deg(absf(aim_yaw - last_applied_yaw))
 
 

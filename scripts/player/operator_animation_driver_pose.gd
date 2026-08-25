@@ -1,5 +1,4 @@
 extends "res://scripts/player/operator_animation_driver_api.gd"
-
 ## Animation graph, clip selection, saved frame pose, and locomotion helpers.
 
 func _build_animation_tree() -> void:
@@ -37,10 +36,16 @@ func _neutral_pose_hip_rotation() -> Quaternion:
 
 
 func _lower_body_separation_weight() -> float:
-	# Standing locomotion is one authored full-body pose. Splitting its hips from
-	# its torso makes the shoulders rotate with the camera and causes the visual
-	# body to diverge from the selected sprint clip.
-	return 0.0
+	if posture != &"STANDING":
+		return 0.0
+	if movement_state in [&"DIVING", &"ROLLING", &"AIRBORNE", &"LANDING"]:
+		return 0.0
+	# Relaxed rifle locomotion is a complete authored pose: its hips, torso,
+	# shoulders, arms, and right-hand weapon carry must turn together. Once the
+	# weapon enters Ready Aim, progressively separate the locomotion legs from
+	# the reticle-facing upper body. This preserves directional run silhouettes
+	# without weakening the approved combat aim state.
+	return smoothstep(0.12, 0.82, weapon_ready_weight)
 
 
 func _select_visual_clip() -> StringName:
@@ -80,9 +85,10 @@ func _select_visual_clip() -> StringName:
 			if weapon_ready_weight >= 0.5
 			else &"idle_rifle"
 		)
-	# Standing movement has one visual source of truth: the approved eight-way
-	# sprint family. Ready Aim and fire are upper-body layers and must not swap
-	# the locomotion base back to a different walk skeleton.
+	# The live standing family is always the run_* logical matrix. Those slots
+	# resolve to the approved sprint clips in operator_animation_map.json. Ready
+	# aim is an upper-body layer and must not silently replace sprinting legs with
+	# the old walk family.
 	var prefix := "run"
 	var slot_name := "%s_%s" % [prefix, _direction_suffix(movement_direction)]
 	var directional_fallback := StringName(slot_name)
