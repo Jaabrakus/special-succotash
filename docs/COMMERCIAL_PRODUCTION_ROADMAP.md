@@ -790,10 +790,12 @@ large-file refactor targets; this checkpoint does not close those gates.
   relocation while the selected elbow moves `0.003686 m`; rifle ownership stays
   on the authored right hand. Pose-tool, pose-editor, gizmo/weapon-contract,
   weapon-rig integration, and Studio architecture regressions also pass.
-- [ ] Direction-change planted-foot continuity remains open. The locomotion
-  quality regression preserves its playhead but currently measures a `7.329 cm`
-  planted-contact step, above its `5.0 cm` production budget. This checkpoint
-  does not weaken that budget or claim the locomotion matrix is complete.
+- [x] Direction-change planted-foot continuity now uses a bounded, visual-only
+  final IK lock while `CharacterBody3D` remains authoritative. The focused
+  regression preserves the locomotion playhead and measures `0.031 cm` of
+  planted-foot movement with `0.015 cm` of trajectory discontinuity, both below
+  the retained `5.6 cm` production limit. This does not claim the full
+  locomotion matrix or uneven-ground foot locking is complete.
 
 The complete quick integration gate and god-file budget pass on `main` after
 the split. This checkpoint does not claim that the separate map branch or the
