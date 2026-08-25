@@ -53,8 +53,9 @@ func _trigger_fire_ready_aim() -> void:
 			(ready_profile as Dictionary).get("fire_hold_seconds", hold_seconds)
 		)
 	_fire_ready_hold_remaining = maxf(hold_seconds, 0.0)
-	# A valid shot must raise the weapon immediately. Only the return is eased.
-	weapon_ready_weight = 1.0
+	# Let the normal bounded ready response raise the weapon. A one-frame jump to
+	# full ownership makes the socket IK replace the current arm chain before the
+	# stance/fire animation has blended, which visibly folds the elbows.
 
 
 func _update_weapon_ready(delta: float) -> void:

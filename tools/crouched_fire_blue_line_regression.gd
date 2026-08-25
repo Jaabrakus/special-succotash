@@ -25,6 +25,21 @@ func _run() -> void:
 		_finish()
 		return
 	player.call("set_local_input_enabled", false)
+	driver.set("requested_weapon_ready_weight", 0.0)
+	driver.set("weapon_ready_weight", 0.0)
+	driver.set("_fire_ready_hold_remaining", 0.0)
+	driver.call("notify_fired")
+	var immediate_fire_ready := float(driver.get("weapon_ready_weight"))
+	await _steps(8)
+	var blended_fire_ready := float(driver.get("weapon_ready_weight"))
+	print("FIRE_READY_BLEND_METRIC immediate=%.3f blended=%.3f" % [
+		immediate_fire_ready,
+		blended_fire_ready,
+	])
+	_expect(
+		immediate_fire_ready <= 0.001 and blended_fire_ready >= 0.50,
+		"accepted fire enters ready aim through the bounded blend"
+	)
 	driver.set("requested_weapon_ready_weight", 1.0)
 	driver.set("weapon_ready_weight", 1.0)
 	driver.set("_fire_ready_hold_remaining", 10.0)
@@ -35,12 +50,70 @@ func _run() -> void:
 		"get_animation_debug_state"
 	).get("weapon_pose", {})
 	var standing_position := player.global_position
+	var weapon := driver.get("weapon_node") as Node3D
+	var previous_weapon := (
+		player.global_transform.affine_inverse() * weapon.global_transform
+		if weapon != null
+		else Transform3D.IDENTITY
+	)
+	var maximum_weapon_step_m := 0.0
+	var maximum_weapon_rotation_step_deg := 0.0
+	var maximum_elbow_step_deg := 0.0
+	var previous_right_elbow_deg := float(standing.get("right_elbow_angle_deg", 0.0))
+	var previous_left_elbow_deg := float(standing.get("left_elbow_angle_deg", 0.0))
 	player.set("posture", 1)
 	player.set("motion_state", 1)
 	player.call("_apply_posture_collider")
-	await _steps(40)
+	for _frame in 40:
+		await process_frame
+		var pose: Dictionary = driver.call("get_animation_debug_state").get("weapon_pose", {})
+		if weapon != null:
+			var current_weapon := player.global_transform.affine_inverse() * weapon.global_transform
+			maximum_weapon_step_m = maxf(
+				maximum_weapon_step_m,
+				previous_weapon.origin.distance_to(current_weapon.origin)
+			)
+			maximum_weapon_rotation_step_deg = maxf(
+				maximum_weapon_rotation_step_deg,
+				rad_to_deg(previous_weapon.basis.get_rotation_quaternion().angle_to(
+					current_weapon.basis.get_rotation_quaternion()
+				))
+			)
+			previous_weapon = current_weapon
+		var right_elbow_deg := float(pose.get("right_elbow_angle_deg", 0.0))
+		var left_elbow_deg := float(pose.get("left_elbow_angle_deg", 0.0))
+		maximum_elbow_step_deg = maxf(
+			maximum_elbow_step_deg,
+			maxf(
+				absf(right_elbow_deg - previous_right_elbow_deg),
+				absf(left_elbow_deg - previous_left_elbow_deg)
+			)
+		)
+		previous_right_elbow_deg = right_elbow_deg
+		previous_left_elbow_deg = left_elbow_deg
 	driver.call("notify_fired")
-	await _steps(3)
+	for _frame in 12:
+		await process_frame
+		var pose: Dictionary = driver.call("get_animation_debug_state").get("weapon_pose", {})
+		if weapon != null:
+			var current_weapon := player.global_transform.affine_inverse() * weapon.global_transform
+			maximum_weapon_step_m = maxf(maximum_weapon_step_m, previous_weapon.origin.distance_to(current_weapon.origin))
+			maximum_weapon_rotation_step_deg = maxf(
+				maximum_weapon_rotation_step_deg,
+				rad_to_deg(previous_weapon.basis.get_rotation_quaternion().angle_to(current_weapon.basis.get_rotation_quaternion()))
+			)
+			previous_weapon = current_weapon
+		var right_elbow_deg := float(pose.get("right_elbow_angle_deg", 0.0))
+		var left_elbow_deg := float(pose.get("left_elbow_angle_deg", 0.0))
+		maximum_elbow_step_deg = maxf(
+			maximum_elbow_step_deg,
+			maxf(
+				absf(right_elbow_deg - previous_right_elbow_deg),
+				absf(left_elbow_deg - previous_left_elbow_deg)
+			)
+		)
+		previous_right_elbow_deg = right_elbow_deg
+		previous_left_elbow_deg = left_elbow_deg
 	var crouched: Dictionary = driver.call(
 		"get_animation_debug_state"
 	).get("weapon_pose", {})
@@ -54,12 +127,15 @@ func _run() -> void:
 		float(crouched.get("trigger_hand_error_m", 1.0)),
 		float(crouched.get("support_hand_error_m", 1.0)),
 	])
+	print("CROUCHED_FIRE_CONTINUITY_METRIC weapon_step=%.4f rotation_step_deg=%.2f elbow_step_deg=%.2f" % [
+		maximum_weapon_step_m,
+		maximum_weapon_rotation_step_deg,
+		maximum_elbow_step_deg,
+	])
 	_expect(
 		not bool(standing.get("rail_to_blue_line_event_active", true))
-		and not bool(crouched.get("rail_to_blue_line_event_active", true))
-		and not bool(standing.get("gun_placement_line_active", true))
-		and not bool(crouched.get("gun_placement_line_active", true)),
-		"standing and crouched fire never activate live blue-line placement"
+		and not bool(crouched.get("rail_to_blue_line_event_active", true)),
+		"standing and crouched fire never start event-owned blue-line placement"
 	)
 	_expect(
 		standing_head.y - crouched_head.y >= 0.30,
@@ -71,6 +147,12 @@ func _run() -> void:
 		and float(crouched.get("trigger_hand_error_m", 1.0)) <= 0.01
 		and float(crouched.get("support_hand_error_m", 1.0)) <= 0.01,
 		"standing and crouched fire keep both hands on their authored sockets"
+	)
+	_expect(
+		maximum_weapon_step_m <= 0.16
+		and maximum_weapon_rotation_step_deg <= 35.0
+		and maximum_elbow_step_deg <= 24.0,
+		"crouch and fire cannot teleport the rifle or snap either elbow"
 	)
 	_expect(
 		Vector3(crouched.get("aim_target", Vector3.ZERO)).distance_to(

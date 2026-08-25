@@ -259,6 +259,23 @@ the production movement/action matrix.
   weakening the gameplay dive-speed threshold. This still does not claim the
   full Gate Two production matrix.
 
+### Fire and stance arm-ownership follow-up — 2026-08-25
+
+- [x] Accepted fire now enters ready aim through the bounded response instead
+  of replacing both arm chains at full weight in one frame. The focused fixture
+  measures ready weight `0.000 -> 0.735` across eight frames.
+- [x] Fire no longer starts an event-owned blue-line weapon placement. Normal
+  weapon placement uses the stable torso-relative anchor, while the live blue
+  reference remains available to authoring and explicit previews.
+- [x] Standing-to-crouched fire keeps both palms within `0.04 cm` of their
+  authored sockets. The measured maximum elbow step is `10.02 degrees`, below
+  the `24 degree` continuity limit, and the authoritative player does not move.
+- [x] The full weapon-pose regression and dynamic reload handoff regression
+  pass after this change.
+- [ ] The shared quick integration gate is currently blocked by an unrelated
+  concurrent `game_launcher.tscn` controller-registration mismatch. Do not use
+  that shared-lane failure as Gate Two completion evidence.
+
 ## Gate three: combat quality
 
 ### Aim and weapon behavior
