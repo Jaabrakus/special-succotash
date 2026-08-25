@@ -125,15 +125,27 @@ func _process(delta: float) -> void:
 		requested_action != &""
 		and "grenade" in String(requested_action).to_lower()
 	)
-	var posture_aim_yaw := 0.0 if action_owns_upper_body_rotation else aim_yaw_rad
-	var posture_aim_pitch := 0.0 if action_owns_upper_body_rotation else aim_pitch_rad
+	var authored_standing_locomotion := (
+		posture == &"STANDING"
+		and (_locomotion_active or movement_speed_normalized > 0.05)
+		and movement_state not in [&"DIVING", &"ROLLING", &"AIRBORNE", &"LANDING"]
+	)
+	var posture_aim_yaw := (
+		0.0 if action_owns_upper_body_rotation or authored_standing_locomotion else aim_yaw_rad
+	)
+	var posture_aim_pitch := (
+		0.0 if action_owns_upper_body_rotation or authored_standing_locomotion else aim_pitch_rad
+	)
+	var posture_ready_weight := (
+		0.0 if authored_standing_locomotion else presentation_ready_weight
+	)
 	# The camera/server may still report an obstructed muzzle, but presentation
 	# never reacts by raising or lowering the weapon toward the blue line.
 	var presentation_obstruction := 0.0
 	posture_layer.apply(
 		posture_aim_yaw,
 		posture_aim_pitch,
-		presentation_ready_weight,
+		posture_ready_weight,
 		presentation_obstruction,
 		0.0,
 		deg_to_rad(chest_yaw_limit_deg),
@@ -148,14 +160,14 @@ func _process(delta: float) -> void:
 		posture,
 		peek_amount,
 		visual_aim_target,
-		neutral_hip_roll_trim_deg
+		0.0 if authored_standing_locomotion else neutral_hip_roll_trim_deg
 	)
 	weapon_pose_solver.apply(
 		aim_yaw_rad,
 		aim_pitch_rad,
 		posture,
 		movement_state,
-		presentation_ready_weight,
+		posture_ready_weight,
 		presentation_obstruction,
 		requested_action,
 		_reload_support_regrip,

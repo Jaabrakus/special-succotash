@@ -26,6 +26,10 @@ SupabaseClient="*res://scripts/network/socom_supabase_client.gd"
 ServerBootstrap="*res://scripts/server/socom_server_bootstrap.gd"
 AcousticPropagation="*res://scripts/audio/acoustic_propagation_engine.gd"
 
+[audio]
+
+driver/enable_input=true
+
 [display]
 
 window/size/viewport_width=1920

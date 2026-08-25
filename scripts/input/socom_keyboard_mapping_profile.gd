@@ -11,7 +11,8 @@ const ACTION_ORDER: Array[StringName] = [
 	&"move_forward", &"move_back", &"move_left", &"move_right",
 	&"jump", &"crouch", &"dive",
 	&"peek_left", &"peek_right", &"fire", &"reload_weapon", &"interact",
-	&"equip_primary", &"equip_grenade", &"reset_camera",
+	&"equip_primary", &"equip_grenade", &"reset_camera", &"toggle_nvg",
+	&"radio_comms", &"push_to_talk", &"toggle_scoreboard",
 ]
 
 const ACTION_LABELS := {
@@ -30,6 +31,10 @@ const ACTION_LABELS := {
 	&"equip_primary": "Quick Equip Primary",
 	&"equip_grenade": "Equipment: Tap Last Grenade / Hold Wheel",
 	&"reset_camera": "Reset Camera",
+	&"toggle_nvg": "Toggle Night Vision (NVG)",
+	&"radio_comms": "Tactical Radio Comms Wheel",
+	&"push_to_talk": "Microphone Voice Push-To-Talk",
+	&"toggle_scoreboard": "Match Scorecard / SITREP",
 }
 
 const DEFAULT_BINDINGS := {
@@ -51,6 +56,10 @@ const DEFAULT_BINDINGS := {
 	&"equip_primary": [{"type": "key", "physical_keycode": KEY_1}],
 	&"equip_grenade": [{"type": "key", "physical_keycode": KEY_G}],
 	&"reset_camera": [{"type": "key", "physical_keycode": KEY_HOME}],
+	&"toggle_nvg": [{"type": "key", "physical_keycode": KEY_N}],
+	&"radio_comms": [{"type": "key", "physical_keycode": KEY_V}],
+	&"push_to_talk": [{"type": "key", "physical_keycode": KEY_T}],
+	&"toggle_scoreboard": [{"type": "key", "physical_keycode": KEY_TAB}],
 }
 
 

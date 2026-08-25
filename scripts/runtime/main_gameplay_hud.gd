@@ -8,7 +8,32 @@ const ControlsGuide := preload("res://scripts/ui/socom_controls_guide.gd")
 const EquipmentWheel := preload("res://scripts/ui/socom_equipment_wheel.gd")
 const PlayerProfile := preload("res://scripts/player/player_gameplay_profile.gd")
 const ExitMenu := preload("res://scripts/ui/socom_exit_menu.gd")
+const TacticalCompass := preload("res://scripts/ui/socom_tactical_compass.gd")
+const NightVisionOverlay := preload("res://scripts/effects/socom_night_vision_overlay.gd")
+const TrainingTacticalNavigation := preload(
+    "res://scripts/ui/socom_training_tactical_navigation.gd"
+)
+const RadioCommandWheel := preload("res://scripts/ui/socom_radio_command_wheel.gd")
+const SitrepHudOverlay := preload("res://scripts/ui/socom_sitrep_hud_overlay.gd")
+const VoiceChatController := preload("res://scripts/audio/socom_voice_chat_controller.gd")
+const TeamRosterHUD := preload("res://scripts/ui/socom_team_roster_hud.gd")
+const KillfeedOverlay := preload("res://scripts/ui/socom_killfeed_overlay.gd")
+const DamageIndicatorOverlay := preload("res://scripts/ui/socom_damage_indicator_overlay.gd")
+const StanceIndicator := preload("res://scripts/ui/socom_stance_indicator.gd")
+const SteamIdentity := preload("res://scripts/network/socom_steam_identity.gd")
 const RETICLE_BOX_SIZE := Vector2(32.0, 32.0)
+
+var tactical_compass: SocomTacticalCompass
+var night_vision_overlay: SocomNightVisionOverlay
+var radio_command_wheel: SocomRadioCommandWheel
+var sitrep_hud_overlay: SocomSitrepHudOverlay
+var voice_chat_controller: SocomVoiceChatController
+var voice_status_label: Label
+var team_roster_hud: SocomTeamRosterHUD
+var killfeed_overlay: SocomKillfeedOverlay
+var damage_indicator: SocomDamageIndicatorOverlay
+var stance_indicator: SocomStanceIndicator
+var _camera_orbit_before_radio_wheel: bool = true
 
 var host
 
@@ -20,6 +45,8 @@ var weapon_controller:
     get: return host.get("weapon_controller")
 var public_training_mode: bool:
     get: return bool(host.get("public_training_mode"))
+var player_build_tactical_hud_enabled: bool:
+    get: return public_training_mode or not OS.has_feature("editor")
 var debug_hud_visible: bool:
     get: return bool(host.get("debug_hud_visible"))
 var body_stack_visible: bool:
@@ -139,6 +166,16 @@ func _build_ui() -> void:
         dynamic_reticle.apply_profile(weapon_controller.reticle_profile)
     layer.add_child(dynamic_reticle)
 
+    if player_build_tactical_hud_enabled:
+        tactical_compass = TacticalCompass.new()
+        tactical_compass.name = "SocomTacticalCompass"
+        layer.add_child(tactical_compass)
+        _configure_tactical_compass_sites()
+
+        night_vision_overlay = NightVisionOverlay.new()
+        night_vision_overlay.name = "SocomNightVisionOverlay"
+        add_child(night_vision_overlay)
+
     _build_player_status_ui(layer)
 
     _build_grenade_charge_ui(layer)
@@ -146,6 +183,48 @@ func _build_ui() -> void:
     equipment_wheel = EquipmentWheel.new()
     equipment_wheel.name = "SocomEquipmentWheel"
     layer.add_child(equipment_wheel)
+
+    if player_build_tactical_hud_enabled:
+        sitrep_hud_overlay = SitrepHudOverlay.new()
+        sitrep_hud_overlay.name = "SocomSitrepHudOverlay"
+        layer.add_child(sitrep_hud_overlay)
+
+        radio_command_wheel = RadioCommandWheel.new()
+        radio_command_wheel.name = "SocomRadioCommandWheel"
+        layer.add_child(radio_command_wheel)
+
+        voice_chat_controller = VoiceChatController.new()
+        voice_chat_controller.name = "SocomVoiceChatController"
+        add_child(voice_chat_controller)
+
+        voice_status_label = Label.new()
+        voice_status_label.name = "VoiceStatusHUD"
+        voice_status_label.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
+        voice_status_label.offset_left = -260.0
+        voice_status_label.offset_right = -20.0
+        voice_status_label.offset_top = -60.0
+        voice_status_label.offset_bottom = -20.0
+        voice_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+        voice_status_label.add_theme_font_size_override("font_size", 14)
+        voice_status_label.add_theme_color_override("font_color", Color("3fc486"))
+        voice_status_label.visible = false
+        layer.add_child(voice_status_label)
+
+        team_roster_hud = TeamRosterHUD.new()
+        team_roster_hud.name = "SocomTeamRosterHUD"
+        layer.add_child(team_roster_hud)
+
+        killfeed_overlay = KillfeedOverlay.new()
+        killfeed_overlay.name = "SocomKillfeedOverlay"
+        layer.add_child(killfeed_overlay)
+
+        damage_indicator = DamageIndicatorOverlay.new()
+        damage_indicator.name = "SocomDamageIndicatorOverlay"
+        layer.add_child(damage_indicator)
+
+        stance_indicator = StanceIndicator.new()
+        stance_indicator.name = "SocomStanceIndicator"
+        layer.add_child(stance_indicator)
 
     if not public_training_mode:
         _build_calibration_overlay(layer)
@@ -286,7 +365,27 @@ func _on_grenade_limit_changed(value: float, type_name: String) -> void:
     grenade_inventory[type_name] = bounded
     if not PlayerProfile.save_grenade_limits(grenade_limits):
         push_warning("Player grenade limits could not be saved.")
+    var loadout_runtime: Node = host.get("weapon_runtime") as Node
+    if loadout_runtime != null and loadout_runtime.has_method("refresh_player_encumbrance"):
+        loadout_runtime.call("refresh_player_encumbrance")
     _update_player_status_ui()
+
+
+func _configure_tactical_compass_sites() -> void:
+    TrainingTacticalNavigation.configure_sites(
+        tactical_compass,
+        host.get("active_map_document") as Dictionary
+    )
+
+
+func _refresh_training_bomb_compass() -> void:
+    TrainingTacticalNavigation.refresh_bomb(
+        tactical_compass,
+        player,
+        bool(host.get("training_bomb_carried")),
+        bool(host.get("training_bomb_planted")),
+        host.get("training_bomb_visuals") as Array
+    )
 
 
 func _build_grenade_charge_ui(layer: CanvasLayer) -> void:
@@ -366,3 +465,94 @@ func _update_crosshair(data: Dictionary) -> void:
         false,
         movement_normalized
     )
+
+    if tactical_compass != null and camera_rig != null and camera_rig.camera != null and player != null:
+        var cam_yaw_deg: float = -rad_to_deg(camera_rig.camera.global_transform.basis.get_euler().y)
+        tactical_compass.update_compass(cam_yaw_deg, player.global_position)
+        _refresh_training_bomb_compass()
+
+    if team_roster_hud != null:
+        var timer_val := 180.0
+        var is_armed := false
+        if host != null and host.has_node("DemolitionRules"):
+            var demo = host.get_node("DemolitionRules")
+            timer_val = float(demo.get("fuse_timer")) if int(demo.get("bomb_state")) == 2 else 180.0
+            is_armed = int(demo.get("bomb_state")) == 2
+        team_roster_hud.update_match_state(4, 4, 0, 4, 4, 0, timer_val, "", is_armed)
+
+    if voice_chat_controller != null and voice_status_label != null:
+        if voice_chat_controller.is_transmitting:
+            var meter_bars := int(voice_chat_controller.mic_volume_level * 8.0)
+            var bar_str := "▮".repeat(clampi(meter_bars, 1, 8))
+            voice_status_label.text = "🎙️ [VOICE: TX]  %s" % bar_str
+            voice_status_label.visible = true
+        else:
+            voice_status_label.visible = false
+
+    if stance_indicator != null and player != null:
+        var p_state: int = int(player.get("motion_state"))
+        var s_idx := 0
+        if p_state == 1:
+            s_idx = 1 # CROUCH
+        elif p_state == 2:
+            s_idx = 2 # PRONE
+        elif p_state == 4:
+            s_idx = 3 # SPRINT / DIVE
+        stance_indicator.set_stance(s_idx)
+
+
+func _unhandled_input(event: InputEvent) -> void:
+    if not player_build_tactical_hud_enabled:
+        return
+    if (
+        event is InputEventMouseMotion
+        and radio_command_wheel != null
+        and radio_command_wheel.is_wheel_open
+    ):
+        radio_command_wheel.apply_mouse_motion(event.relative)
+        get_viewport().set_input_as_handled()
+    elif event.is_action_pressed(&"toggle_nvg"):
+        _toggle_public_night_vision()
+    elif event.is_action_pressed(&"radio_comms"):
+        _set_radio_wheel_open(true)
+    elif event.is_action_released(&"radio_comms"):
+        _set_radio_wheel_open(false)
+    elif event.is_action_pressed(&"push_to_talk"):
+        if voice_chat_controller != null:
+            voice_chat_controller.start_transmitting()
+    elif event.is_action_released(&"push_to_talk"):
+        if voice_chat_controller != null:
+            voice_chat_controller.stop_transmitting()
+    elif event.is_action_pressed(&"toggle_scoreboard"):
+        _set_sitrep_open(true)
+    elif event.is_action_released(&"toggle_scoreboard"):
+        _set_sitrep_open(false)
+
+
+func _toggle_public_night_vision() -> void:
+    if night_vision_overlay == null:
+        return
+    night_vision_overlay.toggle_nvg()
+    # N belongs to NVG in the player build. The mouse-string model can keep
+    # driving aim, but its calibration line and blue debug dot stay hidden.
+    if camera_rig != null:
+        camera_rig.mouse_string_debug_visible = false
+
+
+func _set_radio_wheel_open(open: bool) -> void:
+    if radio_command_wheel == null:
+        return
+    if open:
+        if camera_rig != null:
+            _camera_orbit_before_radio_wheel = camera_rig.orbit_input_enabled
+            camera_rig.orbit_input_enabled = false
+        radio_command_wheel.open_wheel()
+    else:
+        radio_command_wheel.close_wheel_and_commit()
+        if camera_rig != null:
+            camera_rig.orbit_input_enabled = _camera_orbit_before_radio_wheel
+
+
+func _set_sitrep_open(open: bool) -> void:
+    if team_roster_hud != null:
+        team_roster_hud.show_scorecard(open)

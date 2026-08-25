@@ -253,6 +253,12 @@ func _build_playtest_keyboard(parent: VBoxContainer) -> void:
 	_add_keycap_row(parent, [
 		&"interact", &"reset_camera",
 	], Color("426a80"))
+	_add_keycap_row(parent, [
+		&"equip_primary", &"toggle_nvg", &"toggle_scoreboard",
+	], Color("426a80"))
+	_add_keycap_row(parent, [
+		&"radio_comms", &"push_to_talk",
+	], Color("4f475d"))
 
 
 func _add_keycap_row(

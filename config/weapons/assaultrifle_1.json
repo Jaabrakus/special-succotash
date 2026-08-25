@@ -603,7 +603,7 @@
     "ready_aim": {
       "fire_hold_seconds": 1.2
     },
-    "standing_fire_uses_aim_idle": true,
+    "standing_fire_uses_aim_idle": false,
     "family": "TWO_HAND_RIFLE",
     "locomotion_family": "RIFLE",
     "locomotion_slots": {

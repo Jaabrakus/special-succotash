@@ -37,16 +37,10 @@ func _neutral_pose_hip_rotation() -> Quaternion:
 
 
 func _lower_body_separation_weight() -> float:
-	if posture != &"STANDING":
-		return 0.0
-	if movement_state in [&"DIVING", &"ROLLING", &"AIRBORNE", &"LANDING"]:
-		return 0.0
-	# Relaxed rifle locomotion is a complete authored pose: its hips, torso,
-	# shoulders, arms, and right-hand weapon carry must turn together. Once the
-	# weapon enters Ready Aim, progressively separate the locomotion legs from
-	# the reticle-facing upper body. This preserves directional run silhouettes
-	# without weakening the approved combat aim state.
-	return smoothstep(0.12, 0.82, weapon_ready_weight)
+	# Standing locomotion is one authored full-body pose. Splitting its hips from
+	# its torso makes the shoulders rotate with the camera and causes the visual
+	# body to diverge from the selected sprint clip.
+	return 0.0
 
 
 func _select_visual_clip() -> StringName:
@@ -86,11 +80,10 @@ func _select_visual_clip() -> StringName:
 			if weapon_ready_weight >= 0.5
 			else &"idle_rifle"
 		)
-	var prefix := (
-		"walk"
-		if weapon_ready_weight >= 0.5
-		else "run" if movement_gait == &"FULL" else "walk"
-	)
+	# Standing movement has one visual source of truth: the approved eight-way
+	# sprint family. Ready Aim and fire are upper-body layers and must not swap
+	# the locomotion base back to a different walk skeleton.
+	var prefix := "run"
 	var slot_name := "%s_%s" % [prefix, _direction_suffix(movement_direction)]
 	var directional_fallback := StringName(slot_name)
 	var fallback := (
@@ -361,5 +354,3 @@ func _pull_player_inputs() -> void:
 	peek_amount = float(player.call("get_peek_amount")) if player.has_method("get_peek_amount") else 0.0
 	movement_state = player.get_motion_state_name() if player.has_method("get_motion_state_name") else &"LOCOMOTION"
 	vertical_speed = player.velocity.y
-
-

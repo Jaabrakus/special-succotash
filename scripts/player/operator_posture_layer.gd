@@ -232,13 +232,10 @@ func apply(
 	_apply_bone_additive(&"left_shoulder", 0.0, shoulder_pitch)
 	_apply_bone_additive(&"right_shoulder", 0.0, shoulder_pitch)
 	_apply_full_body_peek(posture_name, peek_amount)
-	# The authored animation owns the shoulder silhouette. The former global
-	# square-shoulder pass rewrote every clip after Animation Studio and made the
-	# playable operator diverge from its approved pose. Reticle-facing spine aim
-	# and bounded hand IK remain later presentation layers.
+	# Force the upper body to rigidly track the camera reticle and maintain a square silhouette.
+	_apply_square_shoulders(world_aim_target)
+
 	last_chest_square_correction_deg = 0.0
-	last_shoulder_square_error_deg = 0.0
-	last_shoulder_level_error_cm = 0.0
 	last_angular_error_deg = rad_to_deg(absf(aim_yaw - last_applied_yaw))
 
 
