@@ -113,6 +113,7 @@ func _check_symmetric_left_locomotion(driver) -> void:
 func _check_forward_left_lower_body_mirror(driver) -> void:
     var pairs := {
         &"run_forward_left": &"run_forward_right",
+        &"run_left": &"run_right",
         &"crouch_forward_left": &"crouch_forward_right",
     }
     var library: AnimationLibrary = driver.animation_player.get_animation_library("")
@@ -137,17 +138,8 @@ func _check_forward_left_lower_body_mirror(driver) -> void:
         )
 
 func _check_lateral_locomotion_sources(driver) -> void:
-    # Every approved sprint direction is now a direct source. No legacy alias
-    # may silently replace the clip selected in Animation Studio.
-    _expect(
-        driver.animation_profile.alias_source(&"run_left") == &"",
-        "run_left uses its authored sprint source"
-    )
-    _expect(
-        not String(driver.asset_runtime.get_source_animation_name(&"run_left")).begins_with("alias:")
-        and not String(driver.asset_runtime.get_source_animation_name(&"run_left")).begins_with("mirrored:"),
-        "run_left reports a direct sprint animation source"
-    )
+    # The imported pure-left and pure-right takes both face right. The body-only
+    # mirror is verified above; the right take remains the single authored source.
     _expect(
         driver.animation_profile.alias_source(&"run_right") == &"",
         "run_right uses its authored source"

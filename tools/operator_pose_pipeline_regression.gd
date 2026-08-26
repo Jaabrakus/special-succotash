@@ -134,6 +134,14 @@ func _run() -> void:
 		int(idle_snapshot.get("square_idle_reference_bone_count", 0)) == 2,
 		"standing idle squares the head without replacing authored leg rotations"
 	)
+	var idle_hip_input := absf(float(idle_snapshot.get("default_hip_roll_input_deg", 0.0)))
+	var idle_hip_trim := absf(float(idle_snapshot.get("default_hip_roll_trim_deg", 0.0)))
+	var idle_hip_output := absf(float(idle_snapshot.get("default_hip_roll_output_deg", 0.0)))
+	_expect(
+		idle_hip_trim <= driver.neutral_hip_roll_trim_deg + 0.01
+		and idle_hip_output <= idle_hip_input + 0.01,
+		"standing idle keeps authored pelvis direction with only a bounded roll trim"
+	)
 	if fire_layer != null:
 		for bone_name in [
 			"mixamorig_Spine", "mixamorig_Spine1", "mixamorig_Spine2",

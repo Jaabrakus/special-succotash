@@ -211,7 +211,7 @@ func _process(delta: float) -> void:
 		visual_aim_target,
 		0.0 if authored_standing_locomotion else neutral_hip_roll_trim_deg,
 		(_presentation_fire_selected and posture != &"PRONE") or square_idle_frame,
-		square_idle_frame,
+		false,
 		square_idle_frame
 	)
 	weapon_pose_solver.apply(
