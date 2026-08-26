@@ -146,11 +146,17 @@ static func _save_weapon_config(lab: Node) -> bool:
 
 
 static func _weapon_sockets_save_data(lab: Node) -> Dictionary:
+	var buttstock: Vector3 = (
+		lab.right_grip_local_pos
+		- _barrel_axis_local(lab) * 0.30
+		+ Vector3.UP * 0.08
+	)
 	return {
 		"right_hand_grip_target": lab._vector3_to_dictionary(lab.right_grip_local_pos),
 		"left_hand_ik_target": lab._vector3_to_dictionary(lab.left_grip_local_pos),
 		"muzzle_socket": lab._vector3_to_dictionary(lab.muzzle_local_pos),
 		"barrel_base_socket": lab._vector3_to_dictionary(lab._calibrated_barrel_base()),
+		"buttstock_socket": lab._vector3_to_dictionary(buttstock),
 		"ejection_port": lab._vector3_to_dictionary(lab.ejection_local_pos),
 		"optic_rail": lab._vector3_to_dictionary(lab.optic_local_pos),
 	}
@@ -209,6 +215,11 @@ static func _export_weapon_packed_scene(lab: Node,config_data: Dictionary) -> vo
 		"right_hand_socket": lab.right_grip_local_pos,
 		"muzzle_socket": lab.muzzle_local_pos,
 		"barrel_base_socket": lab._calibrated_barrel_base(),
+		"buttstock_socket": (
+			lab.right_grip_local_pos
+			- _barrel_axis_local(lab) * 0.30
+			+ Vector3.UP * 0.08
+		),
 		"ejection_socket": lab.ejection_local_pos,
 		"optic_socket": lab.optic_local_pos,
 	})

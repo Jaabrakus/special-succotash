@@ -51,6 +51,28 @@ func _run() -> void:
 	var standing_center_pose: Dictionary = driver.call(
 		"get_animation_debug_state"
 	).get("weapon_pose", {})
+	var stock_state: Dictionary = standing_center_pose.get("buttstock_constraint", {})
+	_expect(
+		bool(stock_state.get("active", false))
+		and StringName(stock_state.get("socket", &"")) == &"Socket_Buttstock",
+		"ready rifle uses the hierarchical buttstock-to-shoulder contract"
+	)
+	_expect(
+		float(stock_state.get("contact_error_m", 1.0)) <= 0.025,
+		"buttstock remains within 2.5 cm of the right shoulder pocket"
+	)
+	var stock_solver := driver.get("weapon_pose_solver") as Node
+	var stock_component := (
+		stock_solver.get_node_or_null("ButtstockConstraint")
+		if stock_solver != null
+		else null
+	)
+	_expect(
+		stock_component != null
+		and stock_solver.get_parent().name == "40_WeaponMuzzleAlignment"
+		and stock_component.get_node_or_null("RightShoulderPocket") != null,
+		"buttstock constraint and shoulder pocket exist in the pose node hierarchy"
+	)
 	_expect(
 		StringName(standing_center_pose.get("weapon_owner", &"")) == &"READY_SOLVER"
 		and StringName(standing_center_pose.get("arm_owner", &"")) == &"WEAPON_SOCKETS",
@@ -191,8 +213,8 @@ func _run() -> void:
 	)
 	_expect(
 		maximum_vertical_weapon_carry >= 0.001
-		and maximum_vertical_weapon_carry <= 0.040,
-		"standing rifle restores bounded, slow-smoothed authored vertical bob"
+		and maximum_vertical_weapon_carry <= 0.060,
+		"shouldered standing rifle follows bounded vertical shoulder travel"
 	)
 	_expect(
 		maximum_horizontal_weapon_carry <= 0.030,

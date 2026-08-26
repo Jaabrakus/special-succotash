@@ -38,6 +38,7 @@ class FakeWeaponController:
 	var magazine := 1
 	var reserve := 6
 	var reload_commits := 0
+	var reload_locked := false
 
 	func get_ammo_snapshot() -> Dictionary:
 		return {"rounds_in_magazine": magazine, "reserve_ammo": reserve}
@@ -48,6 +49,9 @@ class FakeWeaponController:
 		reserve = 0
 		ammo_changed.emit(magazine, reserve)
 		return true
+
+	func set_reload_locked(active: bool) -> void:
+		reload_locked = active
 
 
 var failures: Array[String] = []
@@ -80,12 +84,14 @@ func _run() -> void:
 	weapon.ammo_changed.emit(0, 6)
 	await process_frame
 	_expect(bool(coordinator.pending), "empty magazine starts the authored reload")
+	_expect(weapon.reload_locked, "active reload exclusively owns the trigger boundary")
 	_expect(driver.play_count == 1, "auto reload starts exactly one animation")
 	weapon.ammo_changed.emit(0, 6)
 	await process_frame
 	_expect(driver.play_count == 1, "repeated empty-ammo updates do not restart reload")
 	driver.action_completed.emit(&"reload")
 	_expect(weapon.reload_commits == 1 and weapon.magazine == 6, "ammo transfers only when the reload animation completes")
+	_expect(not weapon.reload_locked, "completed reload returns trigger ownership once")
 	weapon.magazine = 0
 	weapon.reserve = 0
 	weapon.ammo_changed.emit(0, 0)
@@ -99,6 +105,7 @@ func _run() -> void:
 	await process_frame
 	await process_frame
 	_expect(not bool(coordinator.pending), "zero-ammo auto reload waits while airborne")
+	_expect(not weapon.reload_locked, "queued airborne reload does not lock fire before animation starts")
 	_expect(
 		bool(coordinator.auto_reload_waiting_for_safe_state),
 		"airborne zero-ammo state keeps one grounded retry queued"
@@ -114,6 +121,7 @@ func _run() -> void:
 	await process_frame
 	await process_frame
 	_expect(not bool(coordinator.pending), "jump interruption cancels the active reload commit")
+	_expect(not weapon.reload_locked, "cancelled reload releases trigger ownership")
 	_expect(
 		bool(coordinator.auto_reload_waiting_for_safe_state),
 		"cancelled zero-ammo reload remains queued for landing"

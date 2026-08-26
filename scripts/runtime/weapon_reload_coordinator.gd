@@ -23,6 +23,8 @@ func _ready() -> void:
 
 
 func configure(player_node: Node, controller: Node) -> void:
+	if weapon_controller != null and weapon_controller.has_method("set_reload_locked"):
+		weapon_controller.call("set_reload_locked", false)
 	if player != null and player.has_signal("mobility_action_started"):
 		var previous_mobility_callback := Callable(self, "_on_mobility_action_started")
 		if player.is_connected("mobility_action_started", previous_mobility_callback):
@@ -37,6 +39,8 @@ func configure(player_node: Node, controller: Node) -> void:
 			weapon_controller.disconnect("ammo_changed", previous_callback)
 	player = player_node
 	weapon_controller = controller
+	if weapon_controller != null and weapon_controller.has_method("set_reload_locked"):
+		weapon_controller.call("set_reload_locked", false)
 	if player != null and player.has_signal("mobility_action_started"):
 		player.connect(
 			"mobility_action_started",
@@ -159,9 +163,9 @@ func _on_animation_completed(clip_name: StringName, request_generation: int) -> 
 	if request_generation != generation or "reload" not in String(clip_name).to_lower():
 		return
 	_disconnect_driver_signals()
-	_set_pending(false)
 	if weapon_controller != null and weapon_controller.has_method("request_reload"):
 		weapon_controller.call("request_reload")
+	_set_pending(false)
 
 
 func _on_animation_cancelled(clip_name: StringName, request_generation: int) -> void:
@@ -200,6 +204,8 @@ func _set_pending(value: bool) -> void:
 	pending = value
 	if player != null:
 		player.set_meta("reload_action_pending", pending)
+	if weapon_controller != null and weapon_controller.has_method("set_reload_locked"):
+		weapon_controller.call("set_reload_locked", pending)
 	_refresh_physics_process()
 	pending_changed.emit(pending)
 

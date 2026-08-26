@@ -46,6 +46,9 @@ const WeaponContactSolver := preload(
 const WeaponPresentationOwner := preload(
 	"res://scripts/player/operator_weapon_presentation_owner.gd"
 )
+const WeaponStockConstraint := preload(
+	"res://scripts/player/operator_weapon_stock_constraint.gd"
+)
 
 @export_category("Response")
 @export_range(1.0, 30.0, 0.5) var enter_response: float = 18.0
@@ -111,6 +114,8 @@ var support_socket: Marker3D
 var muzzle_socket: Marker3D
 var barrel_base_socket: Marker3D
 var optic_socket: Marker3D
+var stock_socket: Marker3D
+var stock_constraint: SocomOperatorWeaponStockConstraint
 var trigger_hand_target: Marker3D
 var support_hand_target: Marker3D
 var right_elbow_pole: Marker3D

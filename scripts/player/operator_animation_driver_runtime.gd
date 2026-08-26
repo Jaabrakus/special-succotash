@@ -8,6 +8,13 @@ func _ready() -> void:
 	pose_pipeline.name = "OperatorPosePipeline"
 	add_child(pose_pipeline)
 	pose_pipeline.build()
+	pose_handoff = PoseHandoff.new()
+	pose_handoff.name = "BodyBeforeHandsHandoff"
+	pose_pipeline.attach_component(
+		&"20_PostureAndShoulderFrame",
+		pose_handoff
+	)
+	pose_handoff.prime(posture, _locomotion_active, weapon_ready_weight)
 	fire_upper_body_latch = FireUpperBodyLatch.new()
 	fire_upper_body_latch.name = "FireUpperBodyLatch"
 	pose_pipeline.attach_component(
@@ -101,8 +108,8 @@ func _process(delta: float) -> void:
 		movement_state in [&"DIVING", &"ROLLING", &"AIRBORNE", &"LANDING"]
 		or requested_action != &""
 	)
-	_update_weapon_ready(delta, upper_body_action_override)
 	_update_locomotion_latch()
+	_update_weapon_ready(delta, upper_body_action_override)
 	_cancel_reload_for_posture_change()
 	_cancel_reload_for_mobility()
 	_cancel_cosmetic_transition_for_gameplay()
@@ -115,12 +122,27 @@ func _process(delta: float) -> void:
 		if displacement_mobility
 		else weapon_ready_weight
 	)
+	var handoff: Dictionary = pose_handoff.resolve(
+		posture,
+		_locomotion_active,
+		presentation_ready_weight
+	)
+	_presentation_posture = StringName(
+		handoff.get("presentation_posture", posture)
+	)
+	_presentation_ready_weight = float(
+		handoff.get("presentation_ready_weight", presentation_ready_weight)
+	)
+	_presentation_fire_selected = (
+		_fire_upper_body_selected()
+		and not bool(handoff.get("barrier_active", false))
+	)
 	locomotion_graph.update_locomotion(
 		movement_direction,
 		movement_speed_normalized,
 		movement_speed_mps,
 		posture,
-		presentation_ready_weight,
+		_presentation_ready_weight,
 		delta
 	)
 	_consider_cosmetic_transition()
@@ -128,8 +150,12 @@ func _process(delta: float) -> void:
 	_update_reload_visuals(delta)
 	if posture != _previous_posture:
 		_previous_posture = posture
-		if asset_runtime != null:
-			asset_runtime.apply_animation_hand_map(String(posture), posture)
+	if bool(handoff.get("released_hands", false)) and asset_runtime != null:
+		asset_runtime.apply_animation_hand_map(
+			String(clip_paths.get(current_clip, "")),
+			_presentation_posture,
+			current_clip
+		)
 	if requested_action == &"" or _requested_action_upper_body_layered:
 		_request_clip(_select_visual_clip())
 	_apply_saved_animation_frame_pose(delta)
@@ -143,7 +169,7 @@ func _process(delta: float) -> void:
 	var authored_standing_locomotion := (
 		posture == &"STANDING"
 		and (_locomotion_active or movement_speed_normalized > 0.05)
-		and not _fire_upper_body_selected()
+		and not _presentation_fire_selected
 		and movement_state not in [&"DIVING", &"ROLLING", &"AIRBORNE", &"LANDING"]
 	)
 	var square_idle_hips := (
@@ -160,7 +186,7 @@ func _process(delta: float) -> void:
 		0.0 if action_owns_upper_body_rotation or authored_standing_locomotion else aim_pitch_rad
 	)
 	var posture_ready_weight := (
-		0.0 if authored_standing_locomotion else presentation_ready_weight
+		0.0 if authored_standing_locomotion else _presentation_ready_weight
 	)
 	# The camera/server may still report an obstructed muzzle, but presentation
 	# never reacts by raising or lowering the weapon toward the blue line.
@@ -175,7 +201,7 @@ func _process(delta: float) -> void:
 		deg_to_rad(chest_pitch_limit_deg),
 		deg_to_rad(head_yaw_limit_deg),
 		deg_to_rad(head_pitch_limit_deg),
-		_lower_body_separation_weight(),
+		_lower_body_separation_weight(posture, _presentation_ready_weight),
 		upper_body_gait_roll_retention,
 		_prone_straighten_weight,
 		deg_to_rad(prone_axis_max_correction_deg),
@@ -184,13 +210,13 @@ func _process(delta: float) -> void:
 		peek_amount,
 		visual_aim_target,
 		0.0 if authored_standing_locomotion else neutral_hip_roll_trim_deg,
-		_fire_upper_body_selected(),
+		_presentation_fire_selected,
 		square_idle_hips
 	)
 	weapon_pose_solver.apply(
 		aim_yaw_rad,
 		aim_pitch_rad,
-		posture,
+		_presentation_posture,
 		movement_state,
 		posture_ready_weight,
 		presentation_obstruction,

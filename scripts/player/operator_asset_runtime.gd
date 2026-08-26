@@ -199,6 +199,11 @@ func _attach_weapon() -> void:
 	barrel_base.position = Vector3(0.0, 0.0, -0.12)
 	weapon_node.add_child(barrel_base)
 
+	var buttstock := Marker3D.new()
+	buttstock.name = "Socket_Buttstock"
+	buttstock.position = Vector3(0.0, 0.08, 0.30)
+	weapon_node.add_child(buttstock)
+
 	var ejection := Marker3D.new()
 	ejection.name = "Socket_Ejection"
 	ejection.position = Vector3(0.05, 0.03, -0.10)
@@ -388,6 +393,14 @@ func _attach_calibrated_weapon(config: Dictionary) -> bool:
 		sockets.get("barrel_base_socket", {}),
 		_derived_barrel_base(right_position, muzzle_position)
 	)
+	var buttstock_position := _vector3_from_map(
+		sockets.get("buttstock_socket", {}),
+		WEAPON_CONTRACT.derived_buttstock(
+			right_position,
+			barrel_base_position,
+			muzzle_position
+		)
+	)
 	# Socket coordinates are calibrated in normalized weapon metres, not in the
 	# imported mesh's arbitrary FBX scale. Keep them beside the scaled model.
 	_add_weapon_socket(calibrated_pivot, "Socket_RightHand", right_position, true)
@@ -399,6 +412,7 @@ func _attach_calibrated_weapon(config: Dictionary) -> bool:
 	)
 	_add_weapon_socket(calibrated_pivot, "Socket_BarrelBase", barrel_base_position, true)
 	_add_weapon_socket(calibrated_pivot, "Socket_Muzzle", muzzle_position, true)
+	_add_weapon_socket(calibrated_pivot, "Socket_Buttstock", buttstock_position, true)
 	_add_weapon_socket(
 		calibrated_pivot,
 		"Socket_Ejection",
@@ -528,7 +542,7 @@ func _cache_weapon_map_baseline() -> void:
 	_base_weapon_pivot_rotation = calibrated_weapon_pivot.rotation_degrees
 	for socket_name in [
 		"Socket_RightHand", "Socket_LeftHand", "Socket_BarrelBase",
-		"Socket_Muzzle", "Socket_Ejection", "Socket_Optic",
+		"Socket_Muzzle", "Socket_Buttstock", "Socket_Ejection", "Socket_Optic",
 	]:
 		var socket := calibrated_weapon_pivot.find_child(socket_name, true, false) as Marker3D
 		if socket != null:

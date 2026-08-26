@@ -33,6 +33,19 @@ func _run() -> void:
 	weapon.set("reserve_rounds", 20)
 	var started := bool(main.call("_request_weapon_reload"))
 	_expect(started, "playable reload request starts")
+	_expect(
+		bool(weapon.get("reload_locked"))
+		and bool(player.get_meta("reload_action_pending", false)),
+		"reload owns both gameplay and presentation trigger state"
+	)
+	var ammo_before_blocked_fire := int(weapon.get("rounds_in_magazine"))
+	var blocked_fire: Dictionary = weapon.call("request_fire")
+	_expect(
+		not bool(blocked_fire.get("fired", false))
+		and String(blocked_fire.get("reason", "")) == "RELOADING"
+		and int(weapon.get("rounds_in_magazine")) == ammo_before_blocked_fire,
+		"shooting cannot overlap the active reload"
+	)
 	var planned_duration := float(driver.get("requested_action_total_duration"))
 	for _frame in 12:
 		await process_frame
@@ -59,6 +72,7 @@ func _run() -> void:
 		]
 	)
 	_expect(not bool(main.get("reload_commit_pending")), "playable reload completes without test fast-forwarding")
+	_expect(not bool(weapon.get("reload_locked")), "reload completion returns trigger ownership")
 	_expect(rendered_rifle.visible, "rifle remains visible after reload")
 	_expect(
 		rendered_rifle.global_position.distance_to(player.global_position) <= 2.5,

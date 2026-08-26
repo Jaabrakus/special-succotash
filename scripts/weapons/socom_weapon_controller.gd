@@ -21,6 +21,7 @@ var camera_rig
 var mannequin
 var ballistics
 var input_enabled: bool = true
+var reload_locked: bool = false
 var last_accepted_sequence: int = -1
 var last_result: Dictionary = {}
 var composure = Composure.new()
@@ -234,6 +235,7 @@ func _process(_delta: float) -> void:
 		return
 	var local_fire_allowed := (
 		input_enabled
+		and not _reload_blocks_fire()
 		and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
 		and not OS.get_cmdline_user_args().has("--automated-test")
 	)
@@ -253,6 +255,11 @@ func _set_presentation_trigger_held(active: bool) -> void:
 
 
 func request_fire() -> Dictionary:
+	if _reload_blocks_fire():
+		if ballistics != null:
+			ballistics.release_trigger()
+		_set_presentation_trigger_held(false)
+		return {"fired": false, "reason": "RELOADING"}
 	if (
 		ballistics == null
 		or player == null
@@ -430,6 +437,21 @@ func request_reload() -> bool:
 	ballistics.release_trigger()
 	ammo_changed.emit(rounds_in_magazine, reserve_rounds)
 	return transferred > 0
+
+
+func set_reload_locked(active: bool) -> void:
+	reload_locked = active
+	if active:
+		if ballistics != null:
+			ballistics.release_trigger()
+		_set_presentation_trigger_held(false)
+
+
+func _reload_blocks_fire() -> bool:
+	return reload_locked or (
+		player != null
+		and bool(player.get_meta("reload_action_pending", false))
+	)
 
 
 func get_ammo_snapshot() -> Dictionary:

@@ -35,8 +35,11 @@ func _neutral_pose_hip_rotation() -> Quaternion:
 	return Quaternion.IDENTITY
 
 
-func _lower_body_separation_weight() -> float:
-	if posture != &"STANDING":
+func _lower_body_separation_weight(
+	presentation_posture: StringName = posture,
+	presentation_ready: float = weapon_ready_weight
+) -> float:
+	if presentation_posture != &"STANDING":
 		return 0.0
 	if movement_state in [&"DIVING", &"ROLLING", &"AIRBORNE", &"LANDING"]:
 		return 0.0
@@ -45,7 +48,7 @@ func _lower_body_separation_weight() -> float:
 	# weapon enters Ready Aim, progressively separate the locomotion legs from
 	# the reticle-facing upper body. This preserves directional run silhouettes
 	# without weakening the approved combat aim state.
-	return smoothstep(0.12, 0.82, weapon_ready_weight)
+	return smoothstep(0.12, 0.82, presentation_ready)
 
 
 func _select_visual_clip() -> StringName:
@@ -122,10 +125,15 @@ func _request_clip(clip_name: StringName, blend_seconds: float = -1.0) -> void:
 		previous_clip = current_clip
 		current_clip = clip_name
 		_frame_pose_clip_time = 0.0
-		if asset_runtime != null:
+		var body_handoff_active := (
+			pose_handoff != null and bool(pose_handoff.barrier_active)
+		)
+		if asset_runtime != null and not body_handoff_active:
 			asset_runtime.apply_animation_hand_map(
 				String(clip_paths.get(clip_name, "")),
-				posture if requested_action == &"" or _requested_action_upper_body_layered else &"",
+				_presentation_posture
+				if requested_action == &"" or _requested_action_upper_body_layered
+				else &"",
 				clip_name
 			)
 	var blend := blend_seconds

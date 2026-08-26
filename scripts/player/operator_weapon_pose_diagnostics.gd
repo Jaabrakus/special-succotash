@@ -100,6 +100,11 @@ static func capture(source) -> Dictionary:
 		"support_socket_clamped": source.support_socket_clamped,
 		"animation_carry_weight": source.animation_carry_weight,
 		"animation_carry_limit_m": source.animation_carry_limit_m,
+		"buttstock_constraint": (
+			source.stock_constraint.get_debug_state()
+			if source.stock_constraint != null
+			else {}
+		),
 		"ownership_return_active": (
 			source.ownership_return_elapsed < source.ownership_return_seconds
 		),

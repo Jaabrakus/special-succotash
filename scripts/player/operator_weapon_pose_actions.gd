@@ -252,7 +252,13 @@ func _place_socketed_weapon(
 	weapon_presentation_owner.translate_world(
 		trigger_goal - trigger_socket.global_position
 	)
+	if stock_constraint != null and stock_constraint.is_active():
+		weapon_presentation_owner.translate_world(
+			stock_constraint.correction_for(render_direction)
+		)
 	_apply_ownership_return(weapon_node.global_transform, delta)
+	if stock_constraint != null and stock_constraint.is_active():
+		stock_constraint.measure_contact_error()
 
 
 func _place_hand_owned_weapon(

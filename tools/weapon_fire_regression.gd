@@ -34,6 +34,16 @@ func _run() -> void:
 		float(rig.get("weapon_aim_instability")) >= 0.99,
 		"full movement expands the local mouse-string envelope"
 	)
+	var ammo_before_reload_lock := int(weapon.get("rounds_in_magazine"))
+	weapon.call("set_reload_locked", true)
+	var reload_blocked: Dictionary = weapon.call("request_fire")
+	_expect(
+		not bool(reload_blocked.get("fired", false))
+		and String(reload_blocked.get("reason", "")) == "RELOADING"
+		and int(weapon.get("rounds_in_magazine")) == ammo_before_reload_lock,
+		"reload ownership rejects fire before cadence, ammo, or presentation changes"
+	)
+	weapon.call("set_reload_locked", false)
 	var intent_before: Dictionary = rig.call("build_local_aim_intent")
 	var first_muzzle_at_fire: Vector3 = (
 		player.get_node("Mannequin").call("get_active_muzzle_position")
@@ -58,8 +68,16 @@ func _run() -> void:
 			and bool(held_fire_state.get("selected", false)),
 			"held trigger reaches the persistent fire upper-body owner"
 		)
+		var body_first_handoff: Dictionary = animation_driver.call(
+			"get_animation_debug_state"
+		).get("pose_handoff", {})
+		_expect(
+			bool(body_first_handoff.get("barrier_active", false)),
+			"movement body route evaluates before accepted-fire hands follow"
+		)
 		weapon.call("_set_presentation_trigger_held", false)
 		player.get_node("Mannequin").call("_sync_production_animation", player)
+		animation_driver.call("_process", 1.0 / 60.0)
 		var fire_pose: Dictionary = animation_driver.call(
 			"get_animation_debug_state"
 		).get("weapon_pose", {})

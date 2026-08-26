@@ -595,6 +595,13 @@
       "animation_drives_ready_hands": true,
       "animation_carry_limit_m": 0.035,
       "animation_carry_weight": 0.65,
+      "buttstock_constraint": {
+        "downward_offset_m": -0.02,
+        "enabled": true,
+        "forward_offset_m": 0.015,
+        "inward_offset_m": 0.055,
+        "maximum_correction_m": 0.4
+      },
       "hand_owned_aim_correction_limit_deg": 32.0,
       "relaxed_idle_upper_body_weight": 0.52,
       "ready_locomotion_inheritance": 0.0,
@@ -755,6 +762,11 @@
       "x": -0.00937926769256592,
       "y": 0.108807682991028,
       "z": -0.119999997317791
+    },
+    "buttstock_socket": {
+      "x": -0.00886692386120558,
+      "y": 0.0789746195077896,
+      "z": -0.29986783862114
     },
     "ejection_port": {
       "x": 0.0352391004562378,

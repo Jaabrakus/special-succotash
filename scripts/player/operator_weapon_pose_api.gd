@@ -20,6 +20,11 @@ func bind(target_skeleton: Skeleton3D, attached_weapon: Node3D) -> void:
 	muzzle_socket = _find_weapon_socket("Socket_Muzzle")
 	barrel_base_socket = _find_weapon_socket("Socket_BarrelBase")
 	optic_socket = _find_weapon_socket("Socket_Optic")
+	stock_socket = _find_weapon_socket("Socket_Buttstock")
+	stock_constraint = WeaponStockConstraint.new()
+	stock_constraint.name = "ButtstockConstraint"
+	add_child(stock_constraint)
+	stock_constraint.bind(skeleton, stock_socket)
 	socket_contract_active = (
 		use_weapon_socket_contract
 		and trigger_socket != null
@@ -73,6 +78,12 @@ func rebind_weapon(attached_weapon: Node3D) -> void:
 	muzzle_socket = _find_weapon_socket("Socket_Muzzle")
 	barrel_base_socket = _find_weapon_socket("Socket_BarrelBase")
 	optic_socket = _find_weapon_socket("Socket_Optic")
+	stock_socket = _find_weapon_socket("Socket_Buttstock")
+	if stock_constraint == null:
+		stock_constraint = WeaponStockConstraint.new()
+		stock_constraint.name = "ButtstockConstraint"
+		add_child(stock_constraint)
+	stock_constraint.bind(skeleton, stock_socket)
 	socket_contract_active = (
 		use_weapon_socket_contract
 		and trigger_socket != null
@@ -180,6 +191,8 @@ func configure_dynamic_hold(raw_profile: Variant) -> void:
 	animation_drives_ready_hands = bool(
 		profile.get("animation_drives_ready_hands", animation_drives_ready_hands)
 	)
+	if stock_constraint != null:
+		stock_constraint.configure(profile.get("buttstock_constraint", {}))
 
 
 func configure_gun_placement_line(raw_profile: Variant) -> void:

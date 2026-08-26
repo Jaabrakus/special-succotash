@@ -21,6 +21,7 @@ static func export_scene(snapshot: Dictionary) -> Dictionary:
 		_add_socket(root, "Socket_RightHand", snapshot.get("right_hand_socket", Vector3.ZERO))
 		_add_socket(root, "Socket_Muzzle", snapshot.get("muzzle_socket", Vector3.ZERO))
 		_add_socket(root, "Socket_BarrelBase", snapshot.get("barrel_base_socket", Vector3.ZERO))
+		_add_socket(root, "Socket_Buttstock", snapshot.get("buttstock_socket", Vector3.ZERO))
 		_add_socket(root, "Socket_Ejection", snapshot.get("ejection_socket", Vector3.ZERO))
 		_add_socket(root, "Socket_Optic", snapshot.get("optic_socket", Vector3.ZERO))
 		_add_attachment(root, snapshot.get("silencer_mesh") as Node3D, "Attachment_Silencer")

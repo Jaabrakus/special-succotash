@@ -3,6 +3,9 @@ extends SceneTree
 const DriverScript := preload(
 	"res://scripts/player/operator_animation_driver.gd"
 )
+const PoseHandoff := preload(
+	"res://scripts/player/operator_pose_handoff.gd"
+)
 
 var failures: Array[String] = []
 
@@ -30,6 +33,12 @@ func _run() -> void:
 		]
 		_expect(pipeline.ordered_stage_names() == expected, "pose stages use one deterministic order")
 		_expect(
+			pipeline.get_node_or_null(
+				"20_PostureAndShoulderFrame/BodyBeforeHandsHandoff"
+			) != null,
+			"posture stage owns the body-before-hands evaluation barrier"
+		)
+		_expect(
 			pipeline.get_node_or_null("40_WeaponMuzzleAlignment/WeaponPoseSolver") != null,
 			"muzzle alignment owns the weapon solver node"
 		)
@@ -43,6 +52,24 @@ func _run() -> void:
 			) != null,
 			"fire stage owns the real held-trigger latch component"
 		)
+	var handoff = PoseHandoff.new()
+	handoff.prime(&"STANDING", false, 0.0)
+	var body_first: Dictionary = handoff.resolve(&"CROUCHED", true, 1.0)
+	_expect(
+		bool(body_first.get("barrier_active", false))
+		and StringName(body_first.get("presentation_posture", &"")) == &"STANDING"
+		and is_zero_approx(float(body_first.get("presentation_ready_weight", -1.0))),
+		"simultaneous stance/movement/fire gives the body one evaluation first"
+	)
+	var hands_follow: Dictionary = handoff.resolve(&"CROUCHED", true, 1.0)
+	_expect(
+		not bool(hands_follow.get("barrier_active", true))
+		and bool(hands_follow.get("released_hands", false))
+		and StringName(hands_follow.get("presentation_posture", &"")) == &"CROUCHED"
+		and is_equal_approx(float(hands_follow.get("presentation_ready_weight", 0.0)), 1.0),
+		"hands and weapon follow the committed crouch route on the next evaluation"
+	)
+	handoff.free()
 	var fire_layer = driver.locomotion_graph.fire_layer_node
 	_expect(fire_layer != null, "fire shoulder-arm layer exists")
 	var graph_root := driver.animation_tree.tree_root as AnimationNodeBlendTree

@@ -26,6 +26,7 @@ func _run() -> void:
 		"left_hand_ik_target",
 		"barrel_base_socket",
 		"muzzle_socket",
+		"buttstock_socket",
 		"ejection_port",
 		"optic_rail",
 	]:
@@ -91,13 +92,18 @@ func _run() -> void:
 	var active_barrel_base: Marker3D = mannequin.call("get_active_barrel_base_marker")
 	var active_right: Marker3D = mannequin.call("get_active_weapon_socket", &"Socket_RightHand")
 	var active_left: Marker3D = mannequin.call("get_active_weapon_socket", &"Socket_LeftHand")
+	var active_buttstock: Marker3D = mannequin.call(
+		"get_active_weapon_socket",
+		&"Socket_Buttstock"
+	)
 	var active_ejection: Marker3D = mannequin.call("get_active_ejection_marker")
 	var active_optic: Marker3D = mannequin.call("get_active_optic_marker")
 	_expect(
 		active_muzzle != null and active_barrel_base != null
 			and active_right != null and active_left != null
+			and active_buttstock != null
 			and active_ejection != null and active_optic != null,
-		"rendered operator receives grip, barrel, muzzle, ejection, and optic sockets"
+		"rendered operator receives grip, stock, barrel, muzzle, ejection, and optic sockets"
 	)
 	var weapon_mesh := mannequin.find_child("WeaponMesh", true, false) as Node3D
 	var wearable_backpack := mannequin.find_child("WearableBackpack", true, false) as Node3D

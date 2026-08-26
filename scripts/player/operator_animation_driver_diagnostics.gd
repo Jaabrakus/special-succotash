@@ -14,6 +14,9 @@ func get_animation_debug_state() -> Dictionary:
 		"movement_gait": movement_gait,
 		"weapon_ready_weight": weapon_ready_weight,
 		"requested_weapon_ready_weight": requested_weapon_ready_weight,
+		"presentation_posture": _presentation_posture,
+		"presentation_ready_weight": _presentation_ready_weight,
+		"presentation_fire_selected": _presentation_fire_selected,
 		"fire_ready_hold_remaining": _fire_ready_hold_remaining,
 		"locomotion_blend_seconds": locomotion_blend_seconds,
 		"direction_octant": _stable_direction_octant,
@@ -53,11 +56,13 @@ func get_animation_debug_state() -> Dictionary:
 		)
 	if pose_pipeline != null:
 		snapshot["pose_pipeline"] = pose_pipeline.get_debug_state(
-			_fire_upper_body_selected()
+			_presentation_fire_selected
 		)
 		snapshot["fire_upper_body_grace_seconds"] = _fire_ready_hold_remaining
 	if fire_upper_body_latch != null:
 		snapshot["fire_upper_body_latch"] = (
 			fire_upper_body_latch.get_debug_state()
 		)
+	if pose_handoff != null:
+		snapshot["pose_handoff"] = pose_handoff.get_debug_state()
 	return snapshot

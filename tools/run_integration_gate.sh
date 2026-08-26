@@ -49,6 +49,7 @@ run_godot_check() {
   local label="$1"
   local script_path="$2"
   local pass_marker="$3"
+  local -a script_args=("${@:4}")
   local log_path="$report_dir/${label}.log"
   print "Running $label"
   "$godot_bin" \
@@ -56,7 +57,8 @@ run_godot_check() {
     --rendering-method gl_compatibility \
     --log-file "$log_path" \
     --path "$project_dir" \
-    --script "$script_path"
+    --script "$script_path" \
+    "${script_args[@]}"
   if rg -q 'SCRIPT ERROR|Parse Error|_CHECK FAIL|_REGRESSION FAIL' "$log_path"; then
     print -u2 "FAIL: $label reported an error"
     exit 1
@@ -76,6 +78,11 @@ run_godot_check "animation-workshop-repository" "res://tools/animation_workshop_
 run_godot_check "animation-sequence-service" "res://tools/animation_sequence_service_regression.gd" "ANIMATION_SEQUENCE_SERVICE_REGRESSION PASS"
 run_godot_check "apple-mocap-pipeline" "res://tools/apple_mocap_pipeline_regression.gd" "APPLE_MOCAP_PIPELINE_REGRESSION PASS"
 run_godot_check "pose-ownership-contract" "res://tools/pose_ownership_contract_regression.gd" "POSE_OWNERSHIP_CONTRACT_REGRESSION PASS"
+run_godot_check "animation-state-authoring" "res://tools/animation_state_authoring_regression.gd" "ANIMATION_STATE_AUTHORING_REGRESSION PASS"
+run_godot_check "operator-pose-pipeline" "res://tools/operator_pose_pipeline_regression.gd" "OPERATOR_POSE_PIPELINE_REGRESSION PASS"
+run_godot_check "weapon-auto-reload" "res://tools/weapon_auto_reload_regression.gd" "WEAPON_AUTO_RELOAD_REGRESSION PASS"
+run_godot_check "weapon-fire" "res://tools/weapon_fire_regression.gd" "WEAPON_FIRE_REGRESSION PASS" -- --camera-regression-map
+run_godot_check "gameplay-reload-completion" "res://tools/gameplay_reload_completion_regression.gd" "GAMEPLAY_RELOAD_COMPLETION_REGRESSION PASS"
 "$project_dir/tools/run_operator_config_validation.sh"
 "$project_dir/tools/run_operator_animation_regression.sh"
 "$project_dir/tools/run_operator_weapon_pose_regression.sh"

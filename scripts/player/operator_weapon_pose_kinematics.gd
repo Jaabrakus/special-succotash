@@ -136,9 +136,13 @@ func _lock_trigger_hand_grip_to_weapon() -> void:
 		or trigger_hand_target == null
 		or weapon_node == null
 		or skeleton == null
-		or not trigger_hand_grip_basis_by_posture.has(last_posture)
 	):
 		return
+	if not trigger_hand_grip_basis_by_posture.has(last_posture):
+		trigger_hand_grip_basis_by_posture[last_posture] = (
+			weapon_node.global_basis.orthonormalized().inverse()
+			* _bone_world_basis(&"mixamorig_RightHand")
+		).orthonormalized()
 	var grip_basis: Basis = trigger_hand_grip_basis_by_posture[last_posture]
 	grip_basis = (
 		grip_basis * _animation_frame_hand_rotation_basis(&"right")

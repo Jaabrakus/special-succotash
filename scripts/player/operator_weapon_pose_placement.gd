@@ -51,7 +51,11 @@ func _solve_ready_weapon_pose(
 	delta: float
 ) -> void:
 	if socket_contract_active:
-		if right_hand_owns_ready_weapon and not _gun_placement_line_active_for(last_posture):
+		if (
+			right_hand_owns_ready_weapon
+			and not _gun_placement_line_active_for(last_posture)
+			and (stock_constraint == null or not stock_constraint.is_active())
+		):
 			if (
 				animation_drives_ready_hands
 				and not gun_placement_locomotion_active
@@ -110,7 +114,10 @@ func _solve_ready_weapon_pose(
 				_place_socketed_weapon(trigger_position, aim_direction, body_forward, delta)
 			if adaptive_support_socket:
 				support_socket.global_position = support_position
-			elif _gun_placement_line_active_for(last_posture):
+			elif (
+				_gun_placement_line_active_for(last_posture)
+				or (stock_constraint != null and stock_constraint.is_active())
+			):
 				var authored_support := support_socket.global_position
 				var reachable_support := _fit_human_reach(
 					left_shoulder,
@@ -124,7 +131,10 @@ func _solve_ready_weapon_pose(
 			trigger_hand_target.global_position = trigger_socket.global_position
 			support_hand_target.global_position = support_socket.global_position
 			_lock_support_hand_grip_to_weapon()
-			if _gun_placement_line_active_for(last_posture):
+			if (
+				_gun_placement_line_active_for(last_posture)
+				or (stock_constraint != null and stock_constraint.is_active())
+			):
 				# The saved placement line owns the rifle in ready state. Solve the
 				# trigger hand to its socket with the same residual-corrected IK used
 				# by the support hand. Keep the imported Aim Idle wrist basis: forcing

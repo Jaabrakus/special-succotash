@@ -37,6 +37,9 @@ const PosePipeline := preload("res://scripts/player/operator_pose_pipeline.gd")
 const FireUpperBodyLatch := preload(
 	"res://scripts/player/operator_fire_upper_body_latch.gd"
 )
+const PoseHandoff := preload(
+	"res://scripts/player/operator_pose_handoff.gd"
+)
 
 @export_group("Runtime route")
 @export var use_modern_locomotion: bool = true
@@ -79,6 +82,7 @@ var audio_event_manager: AudioAnimationEventManager
 var animation_frame_pose_runtime
 var pose_pipeline
 var fire_upper_body_latch
+var pose_handoff
 
 # Public runtime references retained for labs, debug views and regressions.
 var model_root: Node3D
@@ -153,3 +157,6 @@ var _standing_master_pose_frame_suppressed: bool = false
 var _equipped_weapon_visible: bool = true
 var _fire_ready_hold_remaining: float = 0.0
 var _grenade_recovery_blend_seconds_cached: float = 0.12
+var _presentation_posture: StringName = &"STANDING"
+var _presentation_ready_weight: float = 0.0
+var _presentation_fire_selected: bool = false

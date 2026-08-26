@@ -86,10 +86,15 @@ static func normalize_config(raw: Dictionary, config_path: String = "") -> Dicti
 		sockets.get("barrel_base_socket", {}),
 		derived_barrel_base(right, muzzle)
 	)
+	var buttstock := vector3_from_map(
+		sockets.get("buttstock_socket", {}),
+		derived_buttstock(right, barrel_base, muzzle)
+	)
 	sockets["right_hand_grip_target"] = vector3_to_map(right)
 	sockets["left_hand_ik_target"] = vector3_to_map(left)
 	sockets["barrel_base_socket"] = vector3_to_map(barrel_base)
 	sockets["muzzle_socket"] = vector3_to_map(muzzle)
+	sockets["buttstock_socket"] = vector3_to_map(buttstock)
 	if not sockets.has("ejection_port"):
 		sockets["ejection_port"] = vector3_to_map(Vector3.ZERO)
 	if not sockets.has("optic_rail"):
@@ -312,6 +317,17 @@ static func derived_barrel_base(right_grip: Vector3, muzzle: Vector3) -> Vector3
 		0.18,
 		maxf(absf(muzzle.x - right_grip.x) * 0.35, 0.08)
 	)
+
+
+static func derived_buttstock(
+	right_grip: Vector3,
+	barrel_base: Vector3,
+	muzzle: Vector3
+) -> Vector3:
+	var bore := muzzle - barrel_base
+	if bore.length_squared() < 0.000001:
+		bore = Vector3.FORWARD
+	return right_grip - bore.normalized() * 0.30 + Vector3.UP * 0.08
 
 
 static func vector3_from_map(value: Variant, fallback: Vector3) -> Vector3:
