@@ -53,6 +53,10 @@ func _run() -> void:
 
 	var snapshot: Dictionary = driver.call("get_animation_debug_state")
 	var pose: Dictionary = snapshot.get("weapon_pose", {})
+	var ready_buttstock: Dictionary = pose.get("buttstock_constraint", {})
+	var ready_pocket: Vector3 = ready_buttstock.get(
+		"pocket_world_position", Vector3.ZERO
+	)
 	var solver: Node = driver.get("weapon_pose_solver") as Node
 	var floor_clearance := float(pose.get("muzzle_floor_clearance_m", -1.0))
 	print(
@@ -112,12 +116,91 @@ func _run() -> void:
 			rad_to_deg(barrel_direction.angle_to(target_direction)) <= 0.15,
 			"visible prone rifle and authoritative target share one line"
 		)
+	_expect(driver.call("notify_fired"), "prone fire enters its upper-body action")
+	var fire_layer = driver.get("locomotion_graph").fire_layer_node
+	_expect(
+		fire_layer != null
+		and not fire_layer.is_path_filtered(NodePath(".:mixamorig_Spine2"))
+		and not fire_layer.is_path_filtered(NodePath(".:mixamorig_RightShoulder"))
+		and fire_layer.is_path_filtered(NodePath(".:mixamorig_RightArm")),
+		"prone fire keeps the settled torso frame while the firing arms animate"
+	)
+	for _frame in range(12):
+		await physics_frame
+	await process_frame
+	var firing_snapshot: Dictionary = driver.call("get_animation_debug_state")
+	var firing_pose: Dictionary = firing_snapshot.get("weapon_pose", {})
+	var firing_buttstock: Dictionary = firing_pose.get("buttstock_constraint", {})
+	var firing_pocket: Vector3 = firing_buttstock.get(
+		"pocket_world_position", Vector3.INF
+	)
+	_expect(
+		bool(firing_buttstock.get("stable_reference_active", false)),
+		"prone fire uses the settled chest-relative buttstock reference"
+	)
+	_expect(
+		firing_pocket.is_finite()
+		and firing_pocket.distance_to(ready_pocket) <= 0.03,
+		"prone fire cannot lift the shoulder pocket with its animated shoulder"
+	)
+	if skeleton != null and muzzle != null:
+		var head_index := skeleton.find_bone("mixamorig_Head")
+		if head_index >= 0:
+			var head_world := (
+				skeleton.global_transform
+				* skeleton.get_bone_global_pose(head_index).origin
+			)
+			var optic_socket := solver.get("optic_socket") as Node3D if solver != null else null
+			var trigger_socket := solver.get("trigger_socket") as Node3D if solver != null else null
+			var stock_socket := solver.get("stock_socket") as Node3D if solver != null else null
+			print(
+				"PRONE_WEAPON_FACE_METRIC head_y=%.4f stock_y=%.4f trigger_y=%.4f optic_y=%.4f muzzle_y=%.4f delta_y=%.4f"
+				% [
+					head_world.y,
+					stock_socket.global_position.y if stock_socket != null else INF,
+					trigger_socket.global_position.y if trigger_socket != null else INF,
+					optic_socket.global_position.y if optic_socket != null else INF,
+					muzzle.global_position.y,
+					muzzle.global_position.y - head_world.y,
+				]
+			)
+			_expect(
+				trigger_socket != null
+				and optic_socket != null
+				and absf(trigger_socket.global_position.y - head_world.y) <= 0.08
+				and optic_socket.global_position.y <= head_world.y + 0.22,
+				"prone firing keeps the receiver in the face band instead of above the head"
+			)
 	var target_pixels: Vector2 = rig.get("camera").unproject_position(shared_target)
 	var viewport_size: Vector2 = rig.get_viewport().get_visible_rect().size
 	var reticle: Vector2 = rig.get("reticle_screen_normalized")
 	_expect(
 		target_pixels.distance_to(Vector2(reticle.x * viewport_size.x, reticle.y * viewport_size.y)) <= 2.0,
 		"prone ballistic target stays on the visible reticle"
+	)
+	var settled_lift := float(pose.get("prone_floor_lift_m", 0.0))
+	var maximum_moving_lift := settled_lift
+	Input.action_press(&"move_forward")
+	for _frame in range(90):
+		await physics_frame
+		var moving_snapshot: Dictionary = driver.call("get_animation_debug_state")
+		var moving_pose: Dictionary = moving_snapshot.get("weapon_pose", {})
+		maximum_moving_lift = maxf(
+			maximum_moving_lift,
+			float(moving_pose.get("prone_floor_lift_m", 0.0))
+		)
+	Input.action_release(&"move_forward")
+	var final_moving_snapshot: Dictionary = driver.call("get_animation_debug_state")
+	var final_moving_pose: Dictionary = final_moving_snapshot.get("weapon_pose", {})
+	var final_moving_lift := float(final_moving_pose.get("prone_floor_lift_m", 0.0))
+	print(
+		"PRONE_WEAPON_MOVEMENT_LIFT_METRIC settled=%.4f maximum=%.4f final=%.4f"
+		% [settled_lift, maximum_moving_lift, final_moving_lift]
+	)
+	_expect(
+		maximum_moving_lift <= settled_lift + 0.05
+		and final_moving_lift <= settled_lift + 0.05,
+		"moving prone clearance remains bounded instead of lifting the rifle every frame"
 	)
 
 	scene.queue_free()

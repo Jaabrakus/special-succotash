@@ -254,7 +254,11 @@ func _place_socketed_weapon(
 	)
 	if stock_constraint != null and stock_constraint.is_active():
 		weapon_presentation_owner.translate_world(
-			stock_constraint.correction_for(render_direction)
+			stock_constraint.correction_for(
+				render_direction,
+				last_posture,
+				stable_chest_anchor_world
+			)
 		)
 	_apply_ownership_return(weapon_node.global_transform, delta)
 	if stock_constraint != null and stock_constraint.is_active():

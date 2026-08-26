@@ -3,6 +3,7 @@ extends Control
 const MULTIPLAYER_SCENE := "res://multiplayer_slice.tscn"
 const MAP_EDITOR_SCENE := "res://map_creation_lab.tscn"
 const TRAINING_RANGE_SCENE := "res://main.tscn"
+const ANIMATION_STUDIO_SCENE := "res://animation_library_lab.tscn"
 const MapDocument := preload("res://scripts/maps/socom_map_document.gd")
 const KeyboardProfile := preload("res://scripts/input/socom_keyboard_mapping_profile.gd")
 const ControlsGuideScript := preload("res://scripts/ui/socom_controls_guide.gd")
@@ -42,7 +43,7 @@ func _build_ui() -> void:
 	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(center)
 	var panel := PanelContainer.new()
-	panel.custom_minimum_size = Vector2(600.0, 610.0)
+	panel.custom_minimum_size = Vector2(600.0, 680.0)
 	center.add_child(panel)
 	var margin := MarginContainer.new()
 	for side in ["left", "right", "top", "bottom"]:
@@ -88,6 +89,7 @@ func _build_ui() -> void:
 	column.add_child(map_selector)
 
 	_add_primary_action(column, "MAP EDITOR", _open_map_editor)
+	_add_primary_action(column, "ANIMATION STUDIO", _open_animation_studio)
 	_add_primary_action(column, "TRAINING RANGE", _open_training_range)
 	column.add_child(HSeparator.new())
 	var utility_row := HBoxContainer.new()
@@ -155,6 +157,14 @@ func _initialize_guest_identity() -> void:
 
 func _open_map_editor() -> void:
 	get_tree().change_scene_to_file(MAP_EDITOR_SCENE)
+
+
+func _open_animation_studio() -> void:
+	var navigation := get_node_or_null("/root/StudioNavigation")
+	if navigation != null and bool(navigation.get("active")):
+		navigation.call("open_scene", ANIMATION_STUDIO_SCENE)
+	else:
+		get_tree().change_scene_to_file(ANIMATION_STUDIO_SCENE)
 
 
 func _open_training_range() -> void:

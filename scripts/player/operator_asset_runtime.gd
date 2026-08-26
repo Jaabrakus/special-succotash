@@ -865,7 +865,7 @@ func _mirror_leg_tracks(source: Animation) -> Animation:
 	var reflection := Basis.from_scale(Vector3(-1.0, 1.0, 1.0))
 	for track in range(mirrored.get_track_count()):
 		var path := str(mirrored.track_get_path(track))
-		if not _is_leg_track(path):
+		if not _is_body_mirror_track(path):
 			continue
 		mirrored.track_set_path(track, NodePath(_swap_left_right(path)))
 		var track_type := mirrored.track_get_type(track)
@@ -885,8 +885,12 @@ func _mirror_leg_tracks(source: Animation) -> Animation:
 	return mirrored
 
 
-func _is_leg_track(path: String) -> bool:
+func _is_body_mirror_track(path: String) -> bool:
+	# Mirror the travel frame through the torso so W+A and W+D carry equal and
+	# opposite weight. Keep both shoulder/arm/hand chains on their authored
+	# rifle side; swapping those tracks would move the weapon to the left shoulder.
 	for token in [
+		"mixamorig_Hips", "mixamorig_Spine", "mixamorig_Neck", "mixamorig_Head",
 		"LeftUpLeg", "LeftLeg", "LeftFoot", "LeftToeBase", "LeftToe_End",
 		"RightUpLeg", "RightLeg", "RightFoot", "RightToeBase", "RightToe_End",
 	]:

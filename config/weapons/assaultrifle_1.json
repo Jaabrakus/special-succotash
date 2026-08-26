@@ -600,7 +600,14 @@
         "enabled": true,
         "forward_offset_m": 0.015,
         "inward_offset_m": 0.055,
-        "maximum_correction_m": 0.4
+        "maximum_correction_m": 0.4,
+        "by_stance": {
+          "PRONE": {
+            "downward_offset_m": 0.12,
+            "forward_offset_m": -0.03,
+            "inward_offset_m": 0.055
+          }
+        }
       },
       "hand_owned_aim_correction_limit_deg": 32.0,
       "relaxed_idle_upper_body_weight": 0.52,

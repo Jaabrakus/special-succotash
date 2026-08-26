@@ -226,6 +226,7 @@ var locomotion: Dictionary = {
 	"speed_blend_end": 0.86,
 	"minimum_playback_rate": 0.72,
 	"maximum_playback_rate": 1.32,
+	"visual_playback_scale": 1.0,
 	"direction_response": 16.0,
 	"rendered_direction_response": 8.0,
 	"direction_turn_playback_floor": 0.72,
@@ -317,10 +318,15 @@ func full_gait_weight(speed_normalized: float) -> float:
 
 func playback_rate(actual_speed_mps: float, posture: StringName, full_weight: float) -> float:
 	var nominal := maxf(nominal_speed(posture, full_weight), 0.001)
-	return clampf(
+	var stride_rate := clampf(
 		actual_speed_mps / nominal,
 		float(locomotion["minimum_playback_rate"]),
 		float(locomotion["maximum_playback_rate"])
+	)
+	return stride_rate * clampf(
+		float(locomotion.get("visual_playback_scale", 1.0)),
+		0.50,
+		1.20
 	)
 
 

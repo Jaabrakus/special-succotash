@@ -59,6 +59,7 @@ func _run() -> void:
     _check_semantic_action_routes(driver)
 
     _check_symmetric_left_locomotion(driver)
+    _check_forward_left_lower_body_mirror(driver)
     _check_lateral_locomotion_sources(driver)
 
     # Preserve the old selector checks as a fallback contract. Modern
@@ -109,6 +110,28 @@ func _check_symmetric_left_locomotion(driver) -> void:
             _is_exact_sagittal_mirror(left_animation, right_animation),
             "%s is a track-level sagittal mirror of %s" % [target, source]
         )
+
+func _check_forward_left_lower_body_mirror(driver) -> void:
+    var target := StringName(&"run_forward_left")
+    var source := StringName(&"run_forward_right")
+    _expect(
+        driver.animation_profile.leg_mirror_source(target) == source
+        and driver.animation_profile.mirror_source(target) == &"",
+        "run_forward_left mirrors the forward-right travel body"
+    )
+    _expect(
+        driver.asset_runtime.get_source_animation_name(target)
+        == StringName("leg_mirrored:%s" % source),
+        "run_forward_left reports the lower-body mirror source"
+    )
+    var library: AnimationLibrary = driver.animation_player.get_animation_library("")
+    _expect(
+        _is_travel_body_sagittal_mirror(
+            library.get_animation(target),
+            library.get_animation(source)
+        ),
+        "forward-left mirrors hips, spine, head, and legs while preserving rifle-side arms"
+    )
 
 func _check_lateral_locomotion_sources(driver) -> void:
     # Every approved sprint direction is now a direct source. No legacy alias
@@ -267,6 +290,50 @@ func _is_exact_sagittal_mirror(left_animation: Animation, right_animation: Anima
                 if absf(left_rotation.normalized().dot(expected_rotation)) < 0.9999:
                     return false
     return true
+
+func _is_travel_body_sagittal_mirror(left_animation: Animation, right_animation: Animation) -> bool:
+    if left_animation == null or right_animation == null:
+        return false
+    if left_animation.get_track_count() != right_animation.get_track_count():
+        return false
+    var reflection := Basis.from_scale(Vector3(-1.0, 1.0, 1.0))
+    for right_track in range(right_animation.get_track_count()):
+        var track_type := right_animation.track_get_type(right_track)
+        var right_path := str(right_animation.track_get_path(right_track))
+        var travel_body := _is_travel_body_track(right_path)
+        var expected_path := NodePath(_swap_left_right(right_path) if travel_body else right_path)
+        var left_track := left_animation.find_track(expected_path, track_type)
+        if left_track < 0:
+            return false
+        if left_animation.track_get_key_count(left_track) != right_animation.track_get_key_count(right_track):
+            return false
+        for key in range(right_animation.track_get_key_count(right_track)):
+            var right_value: Variant = right_animation.track_get_key_value(right_track, key)
+            var expected_value: Variant = right_value
+            if travel_body and track_type == Animation.TYPE_POSITION_3D:
+                var right_position := right_value as Vector3
+                expected_value = Vector3(-right_position.x, right_position.y, right_position.z)
+            elif travel_body and track_type == Animation.TYPE_ROTATION_3D:
+                var right_rotation := right_value as Quaternion
+                expected_value = (
+                    reflection * Basis(right_rotation) * reflection
+                ).get_rotation_quaternion().normalized()
+            if not _animation_values_match(
+                left_animation.track_get_key_value(left_track, key),
+                expected_value
+            ):
+                return false
+    return true
+
+func _is_travel_body_track(path: String) -> bool:
+    for token in [
+        "mixamorig_Hips", "mixamorig_Spine", "mixamorig_Neck", "mixamorig_Head",
+        "LeftUpLeg", "LeftLeg", "LeftFoot", "LeftToeBase", "LeftToe_End",
+        "RightUpLeg", "RightLeg", "RightFoot", "RightToeBase", "RightToe_End",
+    ]:
+        if token in path:
+            return true
+    return false
 
 func _swap_left_right(path: String) -> String:
     return path.replace("Left", "__MIRROR_SIDE__").replace("Right", "Left").replace("__MIRROR_SIDE__", "Right")
@@ -645,9 +712,18 @@ func _check_modern_blend_graph(driver) -> void:
     _expect(float(slow.get("full_gait_weight", 0.0)) > 0.95, "partial standing input stays on the sprint family")
     _expect(float(fast.get("full_gait_weight", 0.0)) > 0.95, "full input reaches the tactical gait")
     _expect(
-        float(fast.get("playback_rate", 0.0)) >= 0.72
-        and float(fast.get("playback_rate", 2.0)) <= 1.32,
+        float(fast.get("playback_rate", 0.0)) >= 0.63
+        and float(fast.get("playback_rate", 2.0)) <= 1.17,
         "stride correction stays inside the calibrated playback range"
+    )
+    var full_speed_rate: float = driver.animation_profile.playback_rate(
+        6.5,
+        &"STANDING",
+        1.0
+    )
+    _expect(
+        full_speed_rate >= 0.90 and full_speed_rate <= 0.93,
+        "full-speed locomotion uses the slower visual cadence without changing movement speed"
     )
     var blend_root := driver.animation_tree.tree_root as AnimationNodeBlendTree
     var upper_body_blend := blend_root.get_node(&"standing_upper_body") as AnimationNodeBlend2

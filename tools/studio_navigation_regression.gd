@@ -29,8 +29,15 @@ func _run() -> void:
 
 	navigation.call("open_scene", "res://game_launcher.tscn")
 	await scene_changed
-	navigation.call("open_scene", "res://animation_library_lab.tscn")
-	await scene_changed
+	await process_frame
+	var studio_button := current_scene.find_child("AnimationStudio", true, false) as Button
+	_expect(studio_button != null, "current game launcher exposes Animation Studio directly")
+	if studio_button != null:
+		studio_button.pressed.emit()
+		await scene_changed
+	else:
+		navigation.call("open_scene", "res://animation_library_lab.tscn")
+		await scene_changed
 	var recorded: Dictionary = navigation.call("get_debug_state")
 	_expect(int(recorded.get("history_size", 0)) == 2, "Visited Studio pages are retained in order")
 	_expect(int(recorded.get("history_cursor", -1)) == 1, "History points at the current page")

@@ -6,6 +6,9 @@ const DriverScript := preload(
 const PoseHandoff := preload(
 	"res://scripts/player/operator_pose_handoff.gd"
 )
+const CameraMarkerFilter := preload(
+	"res://scripts/player/operator_camera_marker_filter.gd"
+)
 
 var failures: Array[String] = []
 
@@ -52,6 +55,34 @@ func _run() -> void:
 			) != null,
 			"fire stage owns the real held-trigger latch component"
 		)
+	var marker_filter = CameraMarkerFilter.new()
+	marker_filter.name = "CameraMarkerFilter"
+	root.add_child(marker_filter)
+	var bounded_head_delta: Vector3 = marker_filter.filtered_delta(
+		Vector3(1.0, 1.0, 1.0),
+		&"HEAD"
+	)
+	_expect(
+		bounded_head_delta.y <= 0.0151
+		and absf(bounded_head_delta.x) <= 0.0251
+		and marker_filter.maximum_weighted_vertical_offset(&"HEAD") <= 0.0151,
+		"camera marker filter limits animated head bob before camera framing"
+	)
+	var ready_moving_head_delta: Vector3 = marker_filter.filtered_delta(
+		Vector3(1.0, 1.0, 1.0),
+		&"HEAD",
+		&"READY_MOVING"
+	)
+	_expect(
+		ready_moving_head_delta.is_zero_approx()
+		and is_zero_approx(
+			marker_filter.maximum_weighted_vertical_offset(
+				&"HEAD", &"READY_MOVING"
+			)
+		),
+		"ready locomotion keeps the camera head marker on its stable stance anchor"
+	)
+	marker_filter.queue_free()
 	var handoff = PoseHandoff.new()
 	handoff.prime(&"STANDING", false, 0.0)
 	var body_first: Dictionary = handoff.resolve(&"CROUCHED", true, 1.0)

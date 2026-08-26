@@ -2,6 +2,7 @@ class_name SocomTestMannequin
 extends Node3D
 
 const OperatorAnimationDriver := preload("res://scripts/player/operator_animation_driver.gd")
+const CameraMarkerFilter := preload("res://scripts/player/operator_camera_marker_filter.gd")
 
 # SOCOM-141 procedural character rig.
 # Purpose: camera + body/aim calibration, not final art.
@@ -50,6 +51,7 @@ var proxy_visuals_visible: bool = true
 var production_animation: SocomOperatorAnimationDriver
 var legacy_procedural_updates_enabled: bool = true
 var operator_fire_trigger_held: bool = false
+var camera_marker_filter: SocomOperatorCameraMarkerFilter
 
 var gait_time: float = 0.0
 var gait_strength: float = 0.0
@@ -78,14 +80,13 @@ var weapon_rest_position := Vector3(0.12, -0.02, -0.23)
 @export var weapon_obstruction_enter_response: float = 18.0
 @export var weapon_obstruction_exit_response: float = 8.0
 @export_group("Camera marker follow")
-@export_range(0.0, 1.0, 0.01) var camera_head_follow_weight: float = 0.45
-@export_range(0.0, 1.0, 0.01) var camera_torso_follow_weight: float = 0.35
-@export_range(0.0, 1.0, 0.01) var camera_pelvis_follow_weight: float = 0.20
 @export_range(1.0, 30.0, 0.5) var camera_marker_follow_response: float = 12.0
-@export_range(0.0, 0.30, 0.01) var camera_marker_max_horizontal_offset: float = 0.14
-@export_range(0.0, 0.20, 0.01) var camera_marker_max_vertical_offset: float = 0.10
+@export_range(1.0, 30.0, 0.5) var camera_marker_ready_follow_response: float = 6.0
 
 func _ready() -> void:
+    camera_marker_filter = CameraMarkerFilter.new()
+    camera_marker_filter.name = "CameraMarkerFilter"
+    add_child(camera_marker_filter)
     _build_rig()
     if skeleton_root:
         skeleton_root.visible = false
@@ -317,11 +318,12 @@ func _animate_locomotion(player: CharacterBody3D, delta: float) -> void:
         left_knee.rotation.x += deg_to_rad(54.0) * air_tuck
         right_knee.rotation.x += deg_to_rad(54.0) * air_tuck
 
-    _update_camera_markers(motion_state, action_phase, delta)
+    _update_camera_markers(motion_state, action_phase, moving, delta)
 
 func _update_camera_markers(
     motion_state: StringName,
     action_phase: float,
+    moving: bool,
     delta: float
 ) -> void:
     if head_marker == null or torso_marker == null or pelvis_marker == null:
@@ -357,10 +359,27 @@ func _update_camera_markers(
     # The stable stance anchors remain authoritative. Add only the animated
     # skeleton's displacement from its rest pose so the camera follows the
     # operator the player can actually see without inheriting clip root motion.
-    var head_target := stable_head + _camera_bone_pose_delta(&"mixamorig_Head") * camera_head_follow_weight
-    var torso_target := stable_torso + _camera_bone_pose_delta(&"mixamorig_Spine2") * camera_torso_follow_weight
-    var pelvis_target := stable_pelvis + _camera_bone_pose_delta(&"mixamorig_Hips") * camera_pelvis_follow_weight
-    var follow_alpha := 1.0 - exp(-camera_marker_follow_response * delta)
+    var ready_moving := (
+        moving
+        and production_animation != null
+        and float(production_animation.get("weapon_ready_weight")) >= 0.50
+    )
+    var marker_mode := &"READY_MOVING" if ready_moving else &"DEFAULT"
+    var head_target := stable_head + camera_marker_filter.filtered_delta(
+        _camera_bone_pose_delta(&"mixamorig_Head"), &"HEAD", marker_mode
+    )
+    var torso_target := stable_torso + camera_marker_filter.filtered_delta(
+        _camera_bone_pose_delta(&"mixamorig_Spine2"), &"TORSO", marker_mode
+    )
+    var pelvis_target := stable_pelvis + camera_marker_filter.filtered_delta(
+        _camera_bone_pose_delta(&"mixamorig_Hips"), &"PELVIS", marker_mode
+    )
+    var follow_response := (
+        camera_marker_ready_follow_response
+        if ready_moving
+        else camera_marker_follow_response
+    )
+    var follow_alpha := 1.0 - exp(-follow_response * delta)
     head_marker.position = head_marker.position.lerp(head_target, follow_alpha)
     torso_marker.position = torso_marker.position.lerp(torso_target, follow_alpha)
     pelvis_marker.position = pelvis_marker.position.lerp(pelvis_target, follow_alpha)
@@ -382,23 +401,7 @@ func _camera_bone_pose_delta(bone_name: StringName) -> Vector3:
         * production_skeleton.get_bone_global_rest(bone_index).origin
     )
     var local_delta := global_basis.inverse() * (posed_world - rest_world)
-    return Vector3(
-        clampf(
-            local_delta.x,
-            -camera_marker_max_horizontal_offset,
-            camera_marker_max_horizontal_offset
-        ),
-        clampf(
-            local_delta.y,
-            -camera_marker_max_vertical_offset,
-            camera_marker_max_vertical_offset
-        ),
-        clampf(
-            local_delta.z,
-            -camera_marker_max_horizontal_offset,
-            camera_marker_max_horizontal_offset
-        )
-    )
+    return local_delta
 
 func _animate_upper_body(player: CharacterBody3D, delta: float) -> void:
     var rig = get_tree().get_first_node_in_group("socom_camera_rig")

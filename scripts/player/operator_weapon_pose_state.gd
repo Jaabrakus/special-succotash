@@ -82,6 +82,7 @@ const WeaponStockConstraint := preload(
 @export_range(0.70, 1.0, 0.01) var prone_support_reach_scale: float = 0.84
 @export_range(0.12, 0.60, 0.01) var prone_minimum_elbow_outward_m: float = 0.46
 @export_range(1.0, 30.0, 0.5) var prone_floor_response: float = 18.0
+@export_range(0.05, 0.25, 0.005) var prone_maximum_floor_lift_m: float = 0.12
 @export_range(0.20, 1.20, 0.05) var prone_floor_probe_up_m: float = 0.60
 @export_range(0.20, 1.50, 0.05) var prone_floor_probe_down_m: float = 0.90
 
@@ -190,6 +191,7 @@ var frame_trigger_socket_base := Vector3.ZERO
 var frame_support_socket_base := Vector3.ZERO
 var support_socket_clamped := false
 var prone_floor_lift_m: float = 0.0
+var prone_floor_smoothed_lift_m: float = 0.0
 var muzzle_floor_clearance_m: float = INF
 var prone_floor_contact_detected: bool = false
 var gun_placement_line_by_posture: Dictionary = {}

@@ -126,6 +126,7 @@ func _validate_animation_map(config: Dictionary) -> void:
     _range(locomotion, "speed_blend_end", 0.3, 1.0)
     _range(locomotion, "minimum_playback_rate", 0.4, 1.0)
     _range(locomotion, "maximum_playback_rate", 1.0, 2.0)
+    _range(locomotion, "visual_playback_scale", 0.5, 1.2)
     _range(locomotion, "direction_response", 4.0, 30.0)
     _range(locomotion, "lateral_snap_threshold", 0.75, 1.0)
     _range(locomotion, "speed_blend_response", 4.0, 30.0)

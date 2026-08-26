@@ -40,6 +40,14 @@ const FIRE_EXCLUDED_BONES: Array[StringName] = [
 	&"mixamorig_Head",
 ]
 
+const PRONE_FIRE_STABLE_FRAME_BONES: Array[StringName] = [
+	&"mixamorig_Spine",
+	&"mixamorig_Spine1",
+	&"mixamorig_Spine2",
+	&"mixamorig_LeftShoulder",
+	&"mixamorig_RightShoulder",
+]
+
 var animation_tree: AnimationTree
 var legacy_transition: AnimationNodeTransition
 var modern_transition: AnimationNodeTransition
@@ -333,6 +341,7 @@ func trigger_fire(
 			0.065
 		)
 		fire_layer_node.filter_enabled = profile.state_layer(active_fire_clip) == "UPPER_BODY"
+		_configure_fire_filter(normalized_posture)
 	animation_tree.set(
 		"parameters/fire_transition/transition_request",
 		normalized_posture
@@ -343,6 +352,16 @@ func trigger_fire(
 	)
 	fire_trigger_count += 1
 	return active_fire_clip
+
+
+func _configure_fire_filter(posture: StringName) -> void:
+	if fire_layer_node == null:
+		return
+	for bone_name: StringName in UPPER_BODY_BONES:
+		var owns_bone := bone_name not in FIRE_EXCLUDED_BONES
+		if posture == &"PRONE" and bone_name in PRONE_FIRE_STABLE_FRAME_BONES:
+			owns_bone = false
+		fire_layer_node.set_filter_path(NodePath(".:%s" % bone_name), owns_bone)
 
 
 func trigger_crouched_reload(clip_name: StringName) -> bool:

@@ -209,16 +209,19 @@
       "return_policy": "CURRENT_BASE"
     }
   },
-  "leg_mirrored_clips": {},
+  "leg_mirrored_clips": {
+    "run_forward_left": "run_forward_right"
+  },
   "locomotion": {
     "crouch_nominal_speed_mps": 2.6,
     "direction_response": 16.0,
     "direction_turn_playback_floor": 0.72,
-    "full_nominal_speed_mps": 5.7,
+    "full_nominal_speed_mps": 6.25,
     "standing_sprint_only": true,
     "lateral_snap_threshold": 0.92,
     "maximum_playback_rate": 1.32,
     "minimum_playback_rate": 0.72,
+    "visual_playback_scale": 0.88,
     "phase_offsets": {
       "run_back_left": 0.0,
       "run_back_right": 0.0,
@@ -248,7 +251,6 @@
     "crouch_back_left": "crouch_back_right",
     "crouch_forward_left": "crouch_forward_right",
     "run_back_left": "run_back_right",
-    "run_forward_left": "run_forward_right",
     "walk_back_left": "walk_back_right",
     "walk_forward_left": "walk_forward_right",
     "walk_left": "walk_right"

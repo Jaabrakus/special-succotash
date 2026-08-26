@@ -62,6 +62,15 @@ func apply(
 			).length() > 0.15
 		)
 	)
+	if stock_constraint != null:
+		# Learn the posture pocket only while the authored body is settled and the
+		# ready/fire solver is not active. Prone fire then uses this stable chest-
+		# relative reference instead of following the firing clip's raised shoulder.
+		stock_constraint.observe_reference(
+			posture,
+			stable_chest_anchor_world,
+			ready_weight < 0.50 and not gun_placement_locomotion_active
+		)
 	_set_weapon_owner(
 		WeaponOwnershipContract.resolve(
 			movement_state,
@@ -288,15 +297,24 @@ func apply(
 		raw_support_position -= world_up * prone_ready_grip_drop_m
 	var desired_floor_lift := 0.0
 	if posture == &"PRONE":
-		desired_floor_lift = maxf(
+		desired_floor_lift = minf(maxf(
 			_required_floor_lift(body, raw_trigger_position, prone_hand_floor_clearance_m),
 			_required_floor_lift(body, raw_support_position, prone_hand_floor_clearance_m)
-		)
-	prone_floor_lift_m = lerpf(
-		prone_floor_lift_m,
+		), prone_maximum_floor_lift_m)
+	# Keep the smoothed input separate from the extra corrections applied later
+	# in this frame. Feeding the settled hand or muzzle correction back into the
+	# filter made the rifle climb higher on every moving-prone update.
+	prone_floor_smoothed_lift_m = lerpf(
+		prone_floor_smoothed_lift_m,
 		desired_floor_lift,
 		1.0 - exp(-prone_floor_response * clampf(delta, 0.0, 0.05))
 	)
+	prone_floor_smoothed_lift_m = clampf(
+		prone_floor_smoothed_lift_m,
+		0.0,
+		prone_maximum_floor_lift_m
+	)
+	prone_floor_lift_m = prone_floor_smoothed_lift_m
 	if posture == &"PRONE" and prone_floor_lift_m > 0.0001:
 		raw_trigger_position += world_up * prone_floor_lift_m
 		raw_support_position += world_up * prone_floor_lift_m
@@ -338,6 +356,10 @@ func apply(
 		var settled_floor_lift := maxf(
 			_required_floor_lift(body, trigger_position, prone_hand_floor_clearance_m),
 			_required_floor_lift(body, support_position, prone_hand_floor_clearance_m)
+		)
+		settled_floor_lift = minf(
+			settled_floor_lift,
+			maxf(prone_maximum_floor_lift_m - prone_floor_lift_m, 0.0)
 		)
 		if settled_floor_lift > 0.0001:
 			trigger_position += world_up * settled_floor_lift
@@ -419,6 +441,10 @@ func apply(
 			body,
 			muzzle_socket.global_position,
 			prone_muzzle_floor_clearance_m
+		)
+		muzzle_lift = minf(
+			muzzle_lift,
+			maxf(prone_maximum_floor_lift_m - prone_floor_lift_m, 0.0)
 		)
 		if muzzle_lift > 0.0001:
 			trigger_position += world_up * muzzle_lift

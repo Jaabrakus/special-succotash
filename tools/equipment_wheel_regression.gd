@@ -21,6 +21,8 @@ func _run() -> void:
 	var mannequin: Node = main.get("player").get_node_or_null("Mannequin") as Node
 	var driver: Node = mannequin.get("production_animation") as Node if mannequin != null else null
 	var rifle: Node3D = driver.get("weapon_node") as Node3D if driver != null else null
+	if driver != null:
+		driver.set("_fire_ready_hold_remaining", 0.0)
 	var yaw_before := float(camera_rig.get("yaw"))
 	var inventory_before := (main.get("grenade_inventory") as Dictionary).duplicate(true)
 
@@ -100,6 +102,12 @@ func _run() -> void:
 		and rifle_screen.y >= 0.0
 		and rifle_screen.y <= viewport_size.y,
 		"the restored rifle remains inside the playable viewport after settling"
+	)
+	_expect(
+		not bool(runtime.get("active_rifle_ready_latched"))
+		and driver != null
+		and float(driver.get("_fire_ready_hold_remaining")) <= 0.001,
+		"grenade return restores relaxed rifle state instead of forcing Aim Idle"
 	)
 	_expect(
 		(main.get("grenade_inventory") as Dictionary) == inventory_before,

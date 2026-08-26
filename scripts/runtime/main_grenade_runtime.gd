@@ -28,6 +28,7 @@ var held_grenade_mesh: Node3D
 var pending_launch_state: Dictionary = {}
 var wheel_selected_index := 0
 var active_rifle_ready_latched := false
+var rifle_ready_before_grenade := false
 
 var player:
 	get: return host.get("player")
@@ -310,6 +311,8 @@ func equip_or_cycle() -> bool:
 		var key: String = ["frag", "flash", "smoke"][candidate]
 		if int(inventory.get(key, 0)) <= 0:
 			continue
+		if not equipped:
+			_capture_rifle_ready_state()
 		selected_type = candidate
 		equipped = true
 		active_rifle_ready_latched = false
@@ -322,13 +325,7 @@ func equip_or_cycle() -> bool:
 		_set_weapon_input(false)
 		_update_status()
 		return true
-	equipped = false
-	active_rifle_ready_latched = true
-	_set_held_grenade_visible(false)
-	_cancel_operator_action()
-	_set_rifle_visible(true)
-	_set_weapon_input(true)
-	_update_status()
+	return_to_rifle()
 	return false
 
 
@@ -347,6 +344,8 @@ func equip_grenade_type(type_index: int) -> bool:
 	var key: String = ["frag", "flash", "smoke"][candidate]
 	if int(inventory.get(key, 0)) <= 0:
 		return false
+	if not equipped:
+		_capture_rifle_ready_state()
 	selected_type = candidate
 	equipped = true
 	active_rifle_ready_latched = false
@@ -368,7 +367,7 @@ func return_to_rifle(cancel_pending_throw: bool = true) -> void:
 		_set_movement_locked(false)
 		_cancel_operator_action()
 	equipped = false
-	active_rifle_ready_latched = true
+	active_rifle_ready_latched = rifle_ready_before_grenade
 	aim_active = false
 	hold_seconds = 0.0
 	pending_launch_state.clear()
@@ -379,7 +378,7 @@ func return_to_rifle(cancel_pending_throw: bool = true) -> void:
 		charge_panel.visible = false
 	_set_weapon_input(true)
 	_set_rifle_visible(true)
-	_raise_active_rifle_immediately()
+	_restore_captured_rifle_ready_state()
 	_update_status()
 
 
@@ -534,9 +533,26 @@ func _restore_input_for_current_equipment() -> void:
 	_set_weapon_input(not equipped)
 	_set_rifle_visible(not equipped)
 	_set_held_grenade_visible(equipped and selected_count() > 0)
-	if not equipped:
-		active_rifle_ready_latched = true
+
+
+func _capture_rifle_ready_state() -> void:
+	var driver := _operator_animation_driver()
+	rifle_ready_before_grenade = (
+		active_rifle_ready_latched
+		or (
+			driver != null
+			and float(driver.get("_fire_ready_hold_remaining")) > 0.001
+		)
+	)
+
+
+func _restore_captured_rifle_ready_state() -> void:
+	active_rifle_ready_latched = rifle_ready_before_grenade
+	var driver := _operator_animation_driver()
+	if rifle_ready_before_grenade:
 		_raise_active_rifle_immediately()
+	elif driver != null:
+		driver.set("_fire_ready_hold_remaining", 0.0)
 
 
 func _maintain_active_rifle_ready_presentation() -> void:
