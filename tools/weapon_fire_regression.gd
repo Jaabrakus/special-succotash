@@ -47,7 +47,19 @@ func _run() -> void:
 	_expect(bool(first.get("fired", false)), "first authoritative shot fires")
 	var animation_driver = player.get_node_or_null("Mannequin/ProductionAnimation")
 	if animation_driver != null:
+		weapon.call("_set_presentation_trigger_held", true)
+		player.get_node("Mannequin").call("_sync_production_animation", player)
 		animation_driver.call("_process", 1.0 / 60.0)
+		var held_fire_state: Dictionary = animation_driver.call(
+			"get_animation_debug_state"
+		).get("fire_upper_body_latch", {})
+		_expect(
+			bool(held_fire_state.get("trigger_held", false))
+			and bool(held_fire_state.get("selected", false)),
+			"held trigger reaches the persistent fire upper-body owner"
+		)
+		weapon.call("_set_presentation_trigger_held", false)
+		player.get_node("Mannequin").call("_sync_production_animation", player)
 		var fire_pose: Dictionary = animation_driver.call(
 			"get_animation_debug_state"
 		).get("weapon_pose", {})
@@ -59,6 +71,22 @@ func _run() -> void:
 		_expect(
 			fire_pose_weight > 0.0 and fire_pose_weight < 1.0,
 			"accepted fire enters the final hand/weapon layer smoothly"
+		)
+		for _frame in range(16):
+			animation_driver.call("_process", 1.0 / 60.0)
+		var mannequin := player.get_node("Mannequin")
+		var aligned_muzzle: Vector3 = mannequin.call("get_active_muzzle_position")
+		var white_barrel_direction: Vector3 = mannequin.call("get_active_barrel_direction")
+		var red_shot_direction := aligned_muzzle.direction_to(
+			Vector3(rig.get("weapon_aim_point"))
+		)
+		var white_red_error_deg := rad_to_deg(
+			white_barrel_direction.angle_to(red_shot_direction)
+		)
+		print("FIRE_WHITE_RED_ALIGNMENT_METRIC error_deg=%.4f" % white_red_error_deg)
+		_expect(
+			white_red_error_deg <= 0.10,
+			"Fire aligns the white physical barrel line to the red muzzle-shot line"
 		)
 	var first_climb: Dictionary = first.get("functional_aim_climb", {})
 	_expect(

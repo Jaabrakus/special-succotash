@@ -33,6 +33,10 @@ const GrenadeReleaseTimeline := preload(
 	"res://scripts/tactical/grenade_animation_release_timeline.gd"
 )
 const GrenadeProfile := preload("res://scripts/tactical/tactical_grenade_profile.gd")
+const PosePipeline := preload("res://scripts/player/operator_pose_pipeline.gd")
+const FireUpperBodyLatch := preload(
+	"res://scripts/player/operator_fire_upper_body_latch.gd"
+)
 
 @export_group("Runtime route")
 @export var use_modern_locomotion: bool = true
@@ -73,6 +77,8 @@ var weapon_pose_solver
 var weapon_grip_contact: SocomOperatorWeaponGripContact
 var audio_event_manager: AudioAnimationEventManager
 var animation_frame_pose_runtime
+var pose_pipeline
+var fire_upper_body_latch
 
 # Public runtime references retained for labs, debug views and regressions.
 var model_root: Node3D

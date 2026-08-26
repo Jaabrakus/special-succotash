@@ -3,7 +3,7 @@
   "project_id": "socom-141",
   "authoritative_branch": "main",
   "canonical_path_alias": "/Users/kiwimango/Documents/SOCOM-141",
-  "studio_entry_scene": "res://studio_hub.tscn",
+  "studio_entry_scene": "res://game_launcher.tscn",
   "runtime_entry_scene": "res://game_launcher.tscn",
   "labs": [
     {

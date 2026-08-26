@@ -48,6 +48,22 @@ func _right_hand_grip_world_transform() -> Transform3D:
 	)
 
 
+func _left_hand_grip_world_transform() -> Transform3D:
+	var hand_index := int(bone_indices.get(&"mixamorig_LeftHand", -1))
+	if skeleton == null or hand_index < 0:
+		return Transform3D.IDENTITY
+	var hand_pose := skeleton.get_bone_global_pose(hand_index)
+	var hand_world := skeleton.global_transform * hand_pose
+	return Transform3D(
+		hand_world.basis.orthonormalized(),
+		WeaponContactSolver.palm_contact_world(
+			skeleton,
+			hand_index,
+			left_palm_anchor_local
+		)
+	)
+
+
 func _calculate_palm_anchor(side: String, hand_index: int) -> Vector3:
 	return WeaponContactSolver.calculate_palm_anchor(
 		skeleton,

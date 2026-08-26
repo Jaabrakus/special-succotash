@@ -8,6 +8,10 @@ func _initialize() -> void:
 
 
 func _run() -> void:
+	# Match the 16:10 desktop playtest instead of accepting the headless
+	# runner's square default viewport. The square viewport previously called a
+	# rifle below the live window "on screen".
+	root.size = Vector2i(1920, 1200)
 	var packed := load("res://main.tscn") as PackedScene
 	_expect(packed != null, "main scene loads")
 	if packed == null:
@@ -37,10 +41,10 @@ func _run() -> void:
 	var viewport_size := scene.get_viewport().get_visible_rect().size
 	var on_screen := (
 		not camera.is_position_behind(rifle.global_position)
-		and screen_position.x >= -viewport_size.x * 0.20
-		and screen_position.x <= viewport_size.x * 1.20
-		and screen_position.y >= -viewport_size.y * 0.20
-		and screen_position.y <= viewport_size.y * 1.20
+		and screen_position.x >= -viewport_size.x * 0.05
+		and screen_position.x <= viewport_size.x * 1.05
+		and screen_position.y >= -viewport_size.y * 0.05
+		and screen_position.y <= viewport_size.y * 1.05
 	)
 	print("AIM_IDLE_WEAPON_VISIBILITY_METRIC visible=%s owner=%s weight=%.3f distance=%.3f screen=%s viewport=%s on_screen=%s" % [
 		str(rifle.visible),
@@ -67,10 +71,10 @@ func _run() -> void:
 	screen_position = camera.unproject_position(rifle.global_position)
 	on_screen = (
 		not camera.is_position_behind(rifle.global_position)
-		and screen_position.x >= -viewport_size.x * 0.20
-		and screen_position.x <= viewport_size.x * 1.20
-		and screen_position.y >= -viewport_size.y * 0.20
-		and screen_position.y <= viewport_size.y * 1.20
+		and screen_position.x >= -viewport_size.x * 0.05
+		and screen_position.x <= viewport_size.x * 1.05
+		and screen_position.y >= -viewport_size.y * 0.05
+		and screen_position.y <= viewport_size.y * 1.05
 	)
 	print("RELAXED_RIFLE_VISIBILITY_METRIC visible=%s owner=%s weight=%.3f distance=%.3f screen=%s on_screen=%s" % [
 		str(rifle.visible),
@@ -90,6 +94,10 @@ func _run() -> void:
 		"Aim Idle exit keeps the relaxed rifle attached"
 	)
 	_expect(on_screen, "Aim Idle exit keeps the relaxed rifle inside the camera view")
+	_expect(
+		absf(float(debug.get("default_hip_roll_output_deg", 180.0))) <= 0.10,
+		"relaxed standing idle returns to square hips"
+	)
 	_expect(
 		float(pose.get("gun_placement_roll_error_deg", 180.0)) <= 2.0,
 		"Aim Idle exit restores the saved Gunsmith rifle roll"

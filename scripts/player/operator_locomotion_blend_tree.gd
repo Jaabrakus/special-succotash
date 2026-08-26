@@ -35,6 +35,11 @@ const UPPER_BODY_BONES: Array[StringName] = [
 	&"mixamorig_RightHandPinky1", &"mixamorig_RightHandPinky2", &"mixamorig_RightHandPinky3",
 ]
 
+const FIRE_EXCLUDED_BONES: Array[StringName] = [
+	&"mixamorig_Neck",
+	&"mixamorig_Head",
+]
+
 var animation_tree: AnimationTree
 var legacy_transition: AnimationNodeTransition
 var modern_transition: AnimationNodeTransition
@@ -170,6 +175,7 @@ func update_locomotion(
 	var movement_amount := smoothstep(0.08, 0.55, speed_normalized)
 	var dynamic_hold: Variant = weapon_handling_profile.get("dynamic_hold", {})
 	var ready_locomotion_inheritance := 0.22
+	var relaxed_idle_upper_body_weight := 0.52
 	if dynamic_hold is Dictionary:
 		ready_locomotion_inheritance = clampf(
 			float(
@@ -181,6 +187,16 @@ func update_locomotion(
 			0.0,
 			0.35
 		)
+		relaxed_idle_upper_body_weight = clampf(
+			float(
+				(dynamic_hold as Dictionary).get(
+					"relaxed_idle_upper_body_weight",
+					relaxed_idle_upper_body_weight
+				)
+			),
+			0.0,
+			0.75
+		)
 	# Aim Idle remains the dominant firing pose, but a moving player retains a
 	# small amount of the active rifle-walk torso and arm motion. The right-hand
 	# weapon mount therefore breathes with the body instead of looking pinned in
@@ -188,6 +204,16 @@ func update_locomotion(
 	upper_body_ready_blend = normalized_ready * (
 		1.0 - ready_locomotion_inheritance * movement_amount
 	)
+	# The relaxed rifle remains attached to the authored right hand. At a true
+	# standing idle, blend the complete upper body toward Aim Idle just enough to
+	# keep the hands and rifle inside the live camera. This is presentation only:
+	# it does not grant READY_SOLVER ownership or affect sprint locomotion.
+	var idle_upper_body_blend := normalized_ready
+	if posture == &"STANDING" and speed_normalized <= 0.05:
+		idle_upper_body_blend = maxf(
+			idle_upper_body_blend,
+			relaxed_idle_upper_body_weight
+		)
 	# Standing uses one continuous sprint matrix. Aim/fire only replaces the
 	# upper body; it must never change the lower-body gait back to Rifle Walk.
 	var standing_sprint_only := (
@@ -227,6 +253,14 @@ func update_locomotion(
 	)
 	animation_tree.set(
 		"parameters/standing_idle_upper_body/blend_amount",
+		idle_upper_body_blend
+	)
+	animation_tree.set(
+		"parameters/crouch_upper_body/blend_amount",
+		clampf(ready_weight, 0.0, 1.0)
+	)
+	animation_tree.set(
+		"parameters/crouch_idle_upper_body/blend_amount",
 		clampf(ready_weight, 0.0, 1.0)
 	)
 	for layer_name in standing_transition_layer_nodes:
@@ -247,7 +281,6 @@ func update_locomotion(
 	animation_tree.set("parameters/standing_time_scale/scale", playback_rate)
 	animation_tree.set("parameters/crouch_time_scale/scale", playback_rate)
 	animation_tree.set("parameters/prone_time_scale/scale", playback_rate)
-	animation_tree.set("parameters/idle_ready_blend/blend_amount", clampf(ready_weight, 0.0, 1.0))
 	animation_tree.set("parameters/standing_upper_ready_blend/blend_amount", clampf(ready_weight, 0.0, 1.0))
 
 
@@ -494,8 +527,12 @@ func _build_fire_layer(
 	fire_layer_node.fadeout_time = profile.state_blend_out_seconds(&"combat_fire", 0.065)
 	fire_layer_node.sync = true
 	fire_layer_node.filter_enabled = profile.state_layer(&"combat_fire") == "UPPER_BODY"
+	# Fire owns the torso, both clavicles, and the complete arm/hand chains. The
+	# posture stage keeps the head, then the muzzle stage aligns the physical
+	# barrel to authoritative shot direction and hand IK closes the contacts.
 	for bone_name: StringName in UPPER_BODY_BONES:
-		fire_layer_node.set_filter_path(NodePath(".:%s" % bone_name), true)
+		if bone_name not in FIRE_EXCLUDED_BONES:
+			fire_layer_node.set_filter_path(NodePath(".:%s" % bone_name), true)
 	root.add_node(&"fire_layer", fire_layer_node, Vector2(1230.0, 110.0))
 	root.connect_node(&"fire_layer", 0, base_source)
 	root.connect_node(&"fire_layer", 1, &"fire_transition")
@@ -567,17 +604,33 @@ func _build_modern_route(root: AnimationNodeBlendTree, available_clips: Dictiona
 	root.add_node(&"prone_time_scale", prone_scale, Vector2(-40.0, 610.0))
 	root.connect_node(&"prone_time_scale", 0, &"prone_space")
 
-	var idle_blend := AnimationNodeBlend2.new()
-	idle_blend.sync = true
-	root.add_node(&"idle_ready_blend", idle_blend, Vector2(-40.0, -180.0))
 	var equipped_idle := _fallback_clip(&"idle_rifle", available_clips)
 	var equipped_ready := _weapon_action_clip("idle_standing", &"aim_idle", available_clips)
 	var equipped_crouch_idle := _weapon_action_clip("idle_crouched", &"idle_crouch", available_clips)
 	root.add_node(&"modern_idle_rifle", _animation_node(equipped_idle), Vector2(-640.0, -250.0))
 	root.add_node(&"modern_aim_idle", _animation_node(equipped_ready), Vector2(-640.0, -160.0))
-	root.connect_node(&"idle_ready_blend", 0, &"modern_idle_rifle")
-	root.connect_node(&"idle_ready_blend", 1, &"modern_aim_idle")
 	root.add_node(&"modern_idle_crouch", _animation_node(equipped_crouch_idle), Vector2(-640.0, 360.0))
+	# Crouch keeps its authored hips and legs. Ready Aim replaces the same upper
+	# body bones used by standing so posture changes do not invent a second arm
+	# pose or force the hand solver to repair incompatible shoulder rotations.
+	root.add_node(&"crouch_upper_aim_idle", _animation_node(equipped_ready), Vector2(-300.0, 390.0))
+	var crouch_upper_body := AnimationNodeBlend2.new()
+	crouch_upper_body.sync = true
+	crouch_upper_body.filter_enabled = true
+	for bone_name: StringName in UPPER_BODY_BONES:
+		crouch_upper_body.set_filter_path(NodePath(".:%s" % bone_name), true)
+	root.add_node(&"crouch_upper_body", crouch_upper_body, Vector2(300.0, 430.0))
+	root.connect_node(&"crouch_upper_body", 0, &"crouch_time_scale")
+	root.connect_node(&"crouch_upper_body", 1, &"crouch_upper_aim_idle")
+	root.add_node(&"crouch_idle_aim_idle", _animation_node(equipped_ready), Vector2(-300.0, 345.0))
+	var crouch_idle_upper_body := AnimationNodeBlend2.new()
+	crouch_idle_upper_body.sync = true
+	crouch_idle_upper_body.filter_enabled = true
+	for bone_name: StringName in UPPER_BODY_BONES:
+		crouch_idle_upper_body.set_filter_path(NodePath(".:%s" % bone_name), true)
+	root.add_node(&"crouch_idle_upper_body", crouch_idle_upper_body, Vector2(300.0, 360.0))
+	root.connect_node(&"crouch_idle_upper_body", 0, &"modern_idle_crouch")
+	root.connect_node(&"crouch_idle_upper_body", 1, &"crouch_idle_aim_idle")
 	var standing_upper_ready_blend := AnimationNodeBlend2.new()
 	standing_upper_ready_blend.sync = true
 	root.add_node(&"standing_upper_ready_blend", standing_upper_ready_blend, Vector2(-40.0, 230.0))
@@ -606,13 +659,13 @@ func _build_modern_route(root: AnimationNodeBlendTree, available_clips: Dictiona
 	root.add_node(&"standing_idle_base", _animation_node(equipped_idle), Vector2(-300.0, -90.0))
 	root.add_node(&"standing_idle_upper_body", standing_idle_upper_body, Vector2(300.0, -160.0))
 	root.connect_node(&"standing_idle_upper_body", 0, &"standing_idle_base")
-	root.connect_node(&"standing_idle_upper_body", 1, &"idle_ready_blend")
+	root.connect_node(&"standing_idle_upper_body", 1, &"modern_aim_idle")
 
 	var state_sources: Dictionary = {
 		&"idle": &"standing_idle_upper_body",
 		&"standing": &"standing_upper_body",
-		&"idle_crouch": &"modern_idle_crouch",
-		&"crouch": &"crouch_time_scale",
+		&"idle_crouch": &"crouch_idle_upper_body",
+		&"crouch": &"crouch_upper_body",
 		&"prone": &"prone_time_scale",
 	}
 	for raw_clip_name in available_clips.keys():

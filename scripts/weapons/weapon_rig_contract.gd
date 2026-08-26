@@ -142,6 +142,9 @@ static func normalize_config(raw: Dictionary, config_path: String = "") -> Dicti
 	handling_profile["standing_fire_uses_aim_idle"] = bool(
 		handling_profile.get("standing_fire_uses_aim_idle", false)
 	)
+	handling_profile["crouched_fire_uses_aim_idle"] = bool(
+		handling_profile.get("crouched_fire_uses_aim_idle", false)
+	)
 	# Every posture consumes its own Gunsmith stance record. Do not redirect
 	# standing to crouched or prone data at runtime.
 	config["handling_profile"] = handling_profile

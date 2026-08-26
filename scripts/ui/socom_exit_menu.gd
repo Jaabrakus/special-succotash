@@ -6,6 +6,7 @@ extends CanvasLayer
 ## would interrupt packet processing.
 
 signal return_to_launcher_requested
+signal launch_studio_requested
 
 var overlay: Control
 var resume_captures_mouse := true
@@ -87,6 +88,11 @@ func _build_ui() -> void:
 		overlay.visible = false
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 		return_to_launcher_requested.emit()
+	))
+	column.add_child(_menu_button("LAUNCH STUDIO", func():
+		overlay.visible = false
+		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+		launch_studio_requested.emit()
 	))
 	if not OS.has_feature("web"):
 		column.add_child(_menu_button("EXIT GAME", get_tree().quit))

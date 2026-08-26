@@ -51,4 +51,13 @@ func get_animation_debug_state() -> Dictionary:
 				weapon_pose
 			)
 		)
+	if pose_pipeline != null:
+		snapshot["pose_pipeline"] = pose_pipeline.get_debug_state(
+			_fire_upper_body_selected()
+		)
+		snapshot["fire_upper_body_grace_seconds"] = _fire_ready_hold_remaining
+	if fire_upper_body_latch != null:
+		snapshot["fire_upper_body_latch"] = (
+			fire_upper_body_latch.get_debug_state()
+		)
 	return snapshot

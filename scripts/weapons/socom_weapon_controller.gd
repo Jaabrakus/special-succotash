@@ -237,10 +237,19 @@ func _process(_delta: float) -> void:
 		and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
 		and not OS.get_cmdline_user_args().has("--automated-test")
 	)
-	if local_fire_allowed and Input.is_action_pressed("fire"):
+	var trigger_held := (
+		local_fire_allowed and Input.is_action_pressed("fire")
+	)
+	_set_presentation_trigger_held(trigger_held)
+	if trigger_held:
 		request_fire()
 	else:
 		ballistics.release_trigger()
+
+
+func _set_presentation_trigger_held(active: bool) -> void:
+	if mannequin != null and mannequin.has_method("set_operator_fire_trigger_held"):
+		mannequin.call("set_operator_fire_trigger_held", active)
 
 
 func request_fire() -> Dictionary:

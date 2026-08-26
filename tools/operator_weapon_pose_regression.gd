@@ -663,8 +663,8 @@ func _check_pose(label: String, driver: Node, rig: Node) -> void:
 	)
 	if label.begins_with("standing"):
 		_expect(
-			absf(float(snapshot.get("default_hip_roll_output_deg", 180.0))) <= 0.75,
-			"%s neutral hip slant remains below 0.75 degrees" % label
+			absf(float(snapshot.get("default_hip_roll_output_deg", 180.0))) <= 0.10,
+			"%s idle hips return to the square reference" % label
 		)
 	if bool(pose.get("gun_placement_line_active", false)):
 		_expect(

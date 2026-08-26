@@ -15,6 +15,8 @@ func _ready() -> void:
     _load_state_slots()
     _load_animation_casting_board()
     _load_layer_recipe()
+    if OS.get_cmdline_user_args().has("--show-authored"):
+        current_category = "AUTHORED"
     _build_stage()
     _build_ui()
     if (

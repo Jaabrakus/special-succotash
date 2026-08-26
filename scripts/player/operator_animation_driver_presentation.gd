@@ -89,8 +89,8 @@ func _apply_fire_presentation(plan: Dictionary) -> bool:
 	var presentation_effects: Array = plan.get("effects", [])
 	if AnimationStateContract.ENTER_READY_AIM in presentation_effects:
 		_trigger_fire_ready_aim()
-	if _standing_fire_uses_aim_idle(event_fire_clip):
-		# Standing imports the complete Gunsmith Aim Idle baseline. Bloom and
+	if _fire_uses_aim_idle(event_fire_clip):
+		# Standing and crouch import the complete Gunsmith Aim Idle baseline. Bloom and
 		# reticle kick remain as shot feedback; the fire take must not replace the
 		# authored torso, weapon transform, dimensions, or grip sockets.
 		_fire_pose_clip = &""
@@ -122,4 +122,3 @@ func set_modern_locomotion_enabled(enabled: bool) -> void:
 	use_modern_locomotion = enabled
 	if locomotion_graph != null:
 		locomotion_graph.set_modern_enabled(enabled)
-

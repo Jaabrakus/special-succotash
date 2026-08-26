@@ -12,7 +12,8 @@ func apply(
 	world_aim_target: Vector3,
 	body: Node3D,
 	delta: float,
-	locomotion_active_hint: bool = false
+	locomotion_active_hint: bool = false,
+	peek_amount: float = 0.0
 ) -> void:
 	if skeleton == null or body == null:
 		return
@@ -39,6 +40,7 @@ func apply(
 	last_requested_action = requested_action
 	last_reload_support_regrip = reload_support_regrip
 	last_ready_weight = ready_weight
+	last_peek_amount = clampf(peek_amount, -1.0, 1.0)
 	# Keep the presentation target current even while the rifle is at low ready.
 	# Fire can enter ready aim on this frame; a stale target would make the visual
 	# rail solve toward the previous camera direction before the next update.
@@ -141,6 +143,16 @@ func apply(
 		_release_support_hand_grip_lock()
 		_set_weapon_solver_owned(false)
 		if weapon_owner == WeaponOwnershipContract.RELAXED_RIFLE_LOCOMOTION:
+			var left_lean_handoff := (
+				posture == &"STANDING"
+				and last_peek_amount < -0.15
+				and requested_action == &""
+				and not locomotion_active_hint
+			)
+			if left_lean_handoff:
+				_apply_left_lean_weapon_handoff()
+				return
+			left_lean_weapon_handoff_active = false
 			# Relaxed locomotion is authored on the right-hand attachment. Do not
 			# reconstruct the rifle from body-forward or the support palm: doing so
 			# creates a second orientation owner and is the source of sideways,
@@ -343,7 +355,15 @@ func apply(
 	support_hand_target.global_position = support_position
 	aim_target_marker.global_position = last_target_point
 	var prone_pole_raise := 0.12 if posture == &"PRONE" else 0.0
-	var saved_poles: Dictionary = elbow_pole_offsets_by_posture.get(posture, {})
+	# Standing and crouch share one Aim Idle shoulder-and-arm source. They must
+	# also share one elbow frame while that ready layer owns the upper body.
+	# Prone remains posture-specific because its arms solve against the floor.
+	var pole_posture := (
+		&"STANDING"
+		if posture == &"CROUCHED" and current_weight > 0.001
+		else posture
+	)
+	var saved_poles: Dictionary = elbow_pole_offsets_by_posture.get(pole_posture, {})
 	var right_saved: Vector3 = saved_poles.get("right", Vector3.ZERO)
 	var left_saved: Vector3 = saved_poles.get("left", Vector3.ZERO)
 	if (

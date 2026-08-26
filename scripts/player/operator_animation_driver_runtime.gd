@@ -4,6 +4,17 @@ extends "res://scripts/player/operator_animation_driver_diagnostics.gd"
 
 func _ready() -> void:
 	process_priority = 100
+	pose_pipeline = PosePipeline.new()
+	pose_pipeline.name = "OperatorPosePipeline"
+	add_child(pose_pipeline)
+	pose_pipeline.build()
+	fire_upper_body_latch = FireUpperBodyLatch.new()
+	fire_upper_body_latch.name = "FireUpperBodyLatch"
+	pose_pipeline.attach_component(
+		&"30_FireTorsoShoulderArms",
+		fire_upper_body_latch
+	)
+	fire_upper_body_latch.configure(fire_ready_hold_seconds)
 	var grenade_profile := GrenadeProfile.load_profile()
 	var grenade_throw_profile: Dictionary = grenade_profile.get("throw", {})
 	_grenade_recovery_blend_seconds_cached = float(
@@ -54,16 +65,16 @@ func _ready() -> void:
 	posture_layer.bind(skeleton, _neutral_pose_hip_rotation())
 	ik_contract = IKContract.new()
 	ik_contract.name = "OperatorIKContract"
-	add_child(ik_contract)
+	pose_pipeline.attach_component(&"50_HandContact", ik_contract)
 	ik_contract.bind(skeleton, weapon_node)
 	foot_contact_lock = FootContactLock.new()
 	foot_contact_lock.name = "FootContactLock"
-	add_child(foot_contact_lock)
+	pose_pipeline.attach_component(&"60_FootGrounding", foot_contact_lock)
 	foot_contact_lock.bind(skeleton, _get_player(), ik_contract)
 	weapon_pose_solver = WeaponPoseSolver.new()
 	weapon_pose_solver.name = "WeaponPoseSolver"
 	weapon_pose_solver.use_weapon_socket_contract = use_weapon_socket_contract
-	add_child(weapon_pose_solver)
+	pose_pipeline.attach_component(&"40_WeaponMuzzleAlignment", weapon_pose_solver)
 	weapon_pose_solver.bind(skeleton, weapon_node)
 	weapon_pose_solver.configure_joint_poles(equipped_weapon_config.get("elbow_poles", {}))
 	weapon_pose_solver.configure_dynamic_hold(
@@ -76,7 +87,7 @@ func _ready() -> void:
 	weapon_grip_contact.bind(skeleton, weapon_node)
 	audio_event_manager = AnimationAudioEvents.new()
 	audio_event_manager.name = "AudioAnimationEvents"
-	add_child(audio_event_manager)
+	pose_pipeline.attach_component(&"70_PresentationEvents", audio_event_manager)
 	audio_event_manager.bind(animation_player, skeleton)
 	_request_clip(&"idle_rifle")
 
@@ -86,7 +97,11 @@ func _process(delta: float) -> void:
 		return
 	if not _explicit_visual_inputs:
 		_pull_player_inputs()
-	_update_weapon_ready(delta)
+	var upper_body_action_override := (
+		movement_state in [&"DIVING", &"ROLLING", &"AIRBORNE", &"LANDING"]
+		or requested_action != &""
+	)
+	_update_weapon_ready(delta, upper_body_action_override)
 	_update_locomotion_latch()
 	_cancel_reload_for_posture_change()
 	_cancel_reload_for_mobility()
@@ -128,7 +143,15 @@ func _process(delta: float) -> void:
 	var authored_standing_locomotion := (
 		posture == &"STANDING"
 		and (_locomotion_active or movement_speed_normalized > 0.05)
+		and not _fire_upper_body_selected()
 		and movement_state not in [&"DIVING", &"ROLLING", &"AIRBORNE", &"LANDING"]
+	)
+	var square_idle_hips := (
+		posture == &"STANDING"
+		and not _locomotion_active
+		and movement_speed_normalized <= 0.05
+		and not mobility_owns_full_body
+		and requested_action == &""
 	)
 	var posture_aim_yaw := (
 		0.0 if action_owns_upper_body_rotation or authored_standing_locomotion else aim_yaw_rad
@@ -160,7 +183,9 @@ func _process(delta: float) -> void:
 		posture,
 		peek_amount,
 		visual_aim_target,
-		0.0 if authored_standing_locomotion else neutral_hip_roll_trim_deg
+		0.0 if authored_standing_locomotion else neutral_hip_roll_trim_deg,
+		_fire_upper_body_selected(),
+		square_idle_hips
 	)
 	weapon_pose_solver.apply(
 		aim_yaw_rad,
@@ -174,7 +199,8 @@ func _process(delta: float) -> void:
 		visual_aim_target,
 		_get_player(),
 		delta,
-		_locomotion_active or movement_speed_normalized > 0.05
+		_locomotion_active or movement_speed_normalized > 0.05,
+		peek_amount
 	)
 	_stabilize_locomotion_legs(delta)
 	if foot_contact_lock != null:

@@ -230,15 +230,20 @@ func _standing_master_pose_active() -> bool:
 	)
 
 
-func _standing_fire_uses_aim_idle(event_state: StringName = &"") -> bool:
-	if posture != &"STANDING":
+func _fire_uses_aim_idle(event_state: StringName = &"") -> bool:
+	if posture == &"PRONE":
 		return false
-	if bool(
+	var configured := bool(
 		equipped_weapon_handling_profile.get(
-			"standing_fire_uses_aim_idle",
+			(
+				"crouched_fire_uses_aim_idle"
+				if posture == &"CROUCHED"
+				else "standing_fire_uses_aim_idle"
+			),
 			false
 		)
-	):
+	)
+	if configured:
 		return true
 	if event_state == &"":
 		event_state = animation_profile.resolve_animation_event(

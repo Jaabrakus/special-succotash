@@ -1,6 +1,6 @@
 extends Node
 
-const HOME_SCENE := "res://studio_hub.tscn"
+const HOME_SCENE := "res://game_launcher.tscn"
 const MANIFEST_PATH := "res://config/integration_manifest.json"
 const HISTORY_PATH := "user://studio_navigation_history.json"
 const HISTORY_LIMIT := 14
@@ -8,7 +8,7 @@ const HISTORY_LIMIT := 14
 var active: bool = false
 var history: Array[Dictionary] = []
 var history_cursor: int = -1
-var scene_labels: Dictionary = {HOME_SCENE: "Studio Home"}
+var scene_labels: Dictionary = {HOME_SCENE: "Current Game Launcher"}
 var overlay: CanvasLayer
 var history_panel: PanelContainer
 var history_list: VBoxContainer

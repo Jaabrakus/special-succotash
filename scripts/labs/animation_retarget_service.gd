@@ -8,6 +8,10 @@ extends RefCounted
 func load_authored(
 	entry: Dictionary,
 	dynamic_library: AnimationLibrary,
+	target_player: AnimationPlayer,
+	target_skeleton: Skeleton3D,
+	use_bone_map: bool,
+	target_bone_map: Dictionary,
 	should_loop: bool,
 	root_sanitizer: Variant
 ) -> bool:
@@ -20,6 +24,17 @@ func load_authored(
 	if source == null:
 		return false
 	var authored := source.duplicate(true) as Animation
+	var skeleton_path := NodePath("GeneralSkeleton")
+	if target_player != null and target_skeleton != null:
+		var animation_root := target_player.get_node(target_player.root_node)
+		skeleton_path = animation_root.get_path_to(target_skeleton)
+	_retarget_tracks(
+		authored,
+		target_skeleton,
+		skeleton_path,
+		use_bone_map,
+		target_bone_map
+	)
 	root_sanitizer.sanitize(authored, should_loop)
 	dynamic_library.add_animation(animation_key, authored)
 	return true

@@ -1,5 +1,46 @@
 extends "res://scripts/player/operator_weapon_pose_actions.gd"
 
+
+func _apply_left_lean_weapon_handoff() -> void:
+	if trigger_socket == null or support_socket == null or weapon_node == null:
+		return
+	left_lean_weapon_handoff_active = true
+	# Left lean is the sole mirrored ownership state: the left palm carries the
+	# trigger grip while the right palm becomes the support hand. Preserve the
+	# authored rifle basis so this presentation swap cannot rotate the muzzle or
+	# alter authoritative shot direction.
+	if left_hand_ik != null and left_hand_ik.is_running():
+		left_hand_ik.stop()
+	_release_support_hand_grip_lock()
+	weapon_presentation_owner.translate_world(
+		_left_hand_grip_world_transform().origin - trigger_socket.global_position
+	)
+	trigger_hand_target.global_position = support_socket.global_position
+	if right_hand_ik != null:
+		right_hand_ik.override_tip_basis = false
+	_solve_socket_arm(
+		right_hand_ik,
+		trigger_hand_target,
+		right_elbow_pole,
+		&"mixamorig_RightHand"
+	)
+	skeleton.force_update_all_bone_transforms()
+	# Solving the support arm can update the skinned attachment hierarchy. Reassert
+	# left-palm contact once, without changing rifle rotation.
+	weapon_presentation_owner.translate_world(
+		_left_hand_grip_world_transform().origin - trigger_socket.global_position
+	)
+	trigger_hand_error_m = support_socket.global_position.distance_to(
+		WeaponContactSolver.palm_contact_world(
+			skeleton,
+			int(bone_indices.get(&"mixamorig_RightHand", -1)),
+			right_palm_anchor_local
+		)
+	)
+	support_hand_error_m = trigger_socket.global_position.distance_to(
+		_left_hand_grip_world_transform().origin
+	)
+
 func _solve_ready_weapon_pose(
 	trigger_position: Vector3,
 	support_position: Vector3,

@@ -113,8 +113,10 @@ func _validate_animation_map(config: Dictionary) -> void:
         failures.append("left tactical run must not mirror hips or upper-body tracks")
     if leg_mirrored_clips.has("run_left"):
         failures.append("left tactical run must use the approved forward-left take, not a leg mirror")
-    if str(clip_aliases.get("run_left", "")) != "run_forward_left":
-        failures.append("left tactical run must alias the approved run-forward-left take")
+    if clip_aliases.has("run_left"):
+        failures.append("left tactical run must use its direct authored sprint take")
+    if not str(clips.get("run_left", "")).ends_with("/sprint left.fbx"):
+        failures.append("left tactical run must resolve to the approved sprint-left take")
     var locomotion: Dictionary = config.get("locomotion", {})
     _range(locomotion, "walk_nominal_speed_mps", 0.5, 4.0)
     _range(locomotion, "full_nominal_speed_mps", 2.0, 9.0)

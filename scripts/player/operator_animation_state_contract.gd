@@ -16,6 +16,7 @@ const VALID_LAYERS := [FULL_BODY, UPPER_BODY]
 # data, but it is not a valid live presentation effect. Fire enters the authored
 # ready pose without relocating the weapon away from its right-hand mount.
 const VALID_EFFECTS := [ENTER_READY_AIM, APPLY_WEAPON_FAMILY]
+const VALID_INTERRUPT_POLICIES := ["RESTART", "REPLACE", "IGNORE_WHILE_ACTIVE"]
 const VALID_EVENTS := [
 	"WEAPON_EQUIPPED",
 	"FIRE_ACCEPTED",
@@ -123,14 +124,32 @@ static func normalized_event_routes(
 				var effect_name := String(raw_effect).to_upper()
 				if effect_name in VALID_EFFECTS and effect_name not in effects:
 					effects.append(effect_name)
+		var timed_cues: Array[Dictionary] = []
+		var raw_cues: Variant = raw_route.get("timed_cues", [])
+		if raw_cues is Array:
+			for raw_cue in raw_cues:
+				if not raw_cue is Dictionary:
+					continue
+				var cue := raw_cue as Dictionary
+				var cue_name := String(cue.get("name", "")).strip_edges().to_upper()
+				if cue_name.is_empty():
+					continue
+				timed_cues.append({
+					"time": maxf(0.0, float(cue.get("time", 0.0))),
+					"name": cue_name,
+				})
+		var interrupt_policy := String(raw_route.get("interrupt_policy", "RESTART"))
+		if interrupt_policy not in VALID_INTERRUPT_POLICIES:
+			interrupt_policy = "RESTART"
 		routes[event_name] = {
 			"default_state": default_state,
 			"posture_states": posture_states,
 			"family_states": family_states,
 			"return_policy": CURRENT_BASE,
-			"interrupt_policy": String(raw_route.get("interrupt_policy", "RESTART")),
+			"interrupt_policy": interrupt_policy,
 			"priority": clampi(int(raw_route.get("priority", 50)), 0, 100),
 			"effects": effects,
+			"timed_cues": timed_cues,
 		}
 	return routes
 
@@ -212,6 +231,7 @@ static func resolve_event_presentation(
 		"interrupt_policy": String(route.get("interrupt_policy", "RESTART")),
 		"priority": int(route.get("priority", 50)),
 		"effects": (route.get("effects", []) as Array).duplicate(),
+		"timed_cues": (route.get("timed_cues", []) as Array).duplicate(true),
 	}
 
 

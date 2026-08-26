@@ -176,11 +176,17 @@ func apply(
 	posture_name: StringName = &"STANDING",
 	peek_amount: float = 0.0,
 	world_aim_target: Vector3 = Vector3.ZERO,
-	neutral_hip_roll_trim_deg: float = 1.20
+	neutral_hip_roll_trim_deg: float = 1.20,
+	force_square_shoulders: bool = false,
+	force_square_hips: bool = false
 ) -> void:
 	if skeleton == null:
 		return
-	_apply_default_hip_leveling(posture_name, neutral_hip_roll_trim_deg)
+	_apply_default_hip_leveling(
+		posture_name,
+		neutral_hip_roll_trim_deg,
+		force_square_hips
+	)
 	_apply_prone_axis_alignment(
 		prone_axis_weight,
 		prone_axis_max_correction,
@@ -233,7 +239,7 @@ func apply(
 	# Shoulder squaring is a shooting pose, not a locomotion correction. Leaving
 	# it active during sprint overwrites the authored lean and makes the head and
 	# arms appear detached from the gait.
-	if normalized_ready >= 0.50:
+	if force_square_shoulders or normalized_ready >= 0.50:
 		_apply_square_shoulders(world_aim_target)
 	else:
 		last_shoulder_square_error_deg = 0.0
@@ -341,11 +347,15 @@ func get_debug_state() -> Dictionary:
 	}
 
 
-func _apply_default_hip_leveling(posture_name: StringName, maximum_trim_deg: float) -> void:
+func _apply_default_hip_leveling(
+	posture_name: StringName,
+	maximum_trim_deg: float,
+	force_square: bool = false
+) -> void:
 	last_default_hip_roll_input_deg = 0.0
 	last_default_hip_roll_trim_deg = 0.0
 	last_default_hip_roll_output_deg = 0.0
-	if posture_name != &"STANDING" or maximum_trim_deg <= 0.0:
+	if posture_name != &"STANDING":
 		return
 	var hips_index := int(bone_indices.get(&"hips", -1))
 	if hips_index < 0:
@@ -353,11 +363,21 @@ func _apply_default_hip_leveling(posture_name: StringName, maximum_trim_deg: flo
 	var current_rotation := skeleton.get_bone_pose_rotation(hips_index).normalized()
 	var current_roll := current_rotation.get_euler().z
 	last_default_hip_roll_input_deg = rad_to_deg(current_roll)
+	last_default_hip_roll_output_deg = last_default_hip_roll_input_deg
+	# A zero trim means authored locomotion owns the hips. Report that real pose
+	# instead of erasing it from diagnostics; no correction is applied here.
+	if maximum_trim_deg <= 0.0 and not force_square:
+		return
 	if absf(current_roll) <= 0.0001:
 		return
-	# Remove most of a small baked idle slant, but cap the trim so authored
-	# locomotion still keeps its deliberate tactical hip action.
-	var trim := minf(absf(current_roll) * 0.80, deg_to_rad(maximum_trim_deg))
+	# A stationary idle has a single square reference, while motion keeps the
+	# authored tactical hip action. The older bounded trim remains available for
+	# non-idle previews that only need a small neutral correction.
+	var trim := (
+		absf(current_roll)
+		if force_square
+		else minf(absf(current_roll) * 0.80, deg_to_rad(maximum_trim_deg))
+	)
 	trim *= -signf(current_roll)
 	skeleton.set_bone_pose_rotation(
 		hips_index,

@@ -2,11 +2,11 @@
   "version": 1,
   "weapon_family": "CUSTOM_BODY",
   "layers": {
-    "lower_body": "",
-    "torso": "",
-    "left_arm": "",
-    "right_arm": "",
-    "head": ""
+    "lower_body": "res://assets/animations/mixamo/Lite Rifle Pack/idle.fbx",
+    "torso": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/idle crouching.fbx",
+    "left_arm": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/idle crouching.fbx",
+    "right_arm": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/idle crouching.fbx",
+    "head": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/idle crouching.fbx"
   },
-  "note": "Bone-masked animation sources. Gameplay aim remains authoritative over the final head and weapon pose."
+  "note": "Standing rifle-idle legs with crouch-idle-aim torso, arms, and head. Gameplay aim and final hand IK remain authoritative after this base clip."
 }

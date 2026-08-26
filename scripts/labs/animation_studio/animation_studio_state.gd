@@ -29,6 +29,9 @@ const CLIP_DRAG_BUTTON := preload("res://scripts/labs/animation_clip_drag_button
 const SLOT_DROP_TARGET := preload("res://scripts/labs/animation_slot_drop_target.gd")
 const STATE_TREE_DROP := preload("res://scripts/labs/animation_state_tree_drop.gd")
 const ROUTE_GRAPH := preload("res://scripts/labs/animation_route_graph.gd")
+const ROUTE_SEQUENCE_EDITOR := preload(
+    "res://scripts/labs/animation_route_sequence_editor.gd"
+)
 const CLIP_EDITOR_SCRIPT := preload("res://scripts/labs/animation_clip_editor.gd")
 const RANGE_SELECTOR_SCRIPT := preload("res://scripts/labs/animation_range_selector.gd")
 const SEQUENCE_TIMELINE_SCRIPT := preload("res://scripts/labs/animation_sequence_timeline.gd")
@@ -508,6 +511,7 @@ var animation_event_posture_selector: OptionButton
 var animation_event_family_selector: OptionButton
 var animation_event_route_label: Label
 var presentation_plan_label: Label
+var route_sequence_editor: Control
 var gameplay_dictionary_label: Label
 var natural_language_state_input: LineEdit
 var natural_language_proposal_label: Label
@@ -653,6 +657,9 @@ func _on_route_event_selected(event_name: String) -> void:
     pass
 
 func _on_route_state_selected(slot_name: String) -> void:
+    pass
+
+func _on_visual_sequence_changed(patch: Dictionary) -> void:
     pass
 
 func _on_search_changed(query: String) -> void:

@@ -208,9 +208,22 @@ func _refresh_animation_preview_ownership_label() -> void:
             )
 
 func _load_authored_animation(entry: Dictionary) -> void:
+    var target_bone_map: Dictionary = (
+        MIXAMO_TO_URBAN_MAP
+        if current_skin == SkinType.COUNTER_STRIKE_URBAN
+        else MIXAMO_TO_PS1_MAP
+    )
+    var uses_target_map := current_skin in [
+        SkinType.PS1_NIGHT_VISION_SEAL,
+        SkinType.COUNTER_STRIKE_URBAN,
+    ]
     retarget_service.load_authored(
         entry,
         dynamic_anim_lib,
+        animation_player,
+        skeleton,
+        uses_target_map,
+        target_bone_map,
         _should_loop(str(entry.get("display", ""))),
         ROOT_SANITIZER
     )

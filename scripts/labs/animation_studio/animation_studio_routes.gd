@@ -537,7 +537,68 @@ func _refresh_event_routing_ui() -> void:
             }
         )
         presentation_plan_label.text = presentation_router.describe(plan)
+        _refresh_visual_sequence_editor(plan, route)
     _refresh_state_workflow_cues()
+
+
+func _refresh_visual_sequence_editor(plan: Dictionary, route: Dictionary) -> void:
+    if route_sequence_editor == null:
+        return
+    var state_name := String(plan.get("state", route.get("default_state", "")))
+    var posture := "STANDING"
+    if animation_event_posture_selector != null:
+        posture = String(animation_event_posture_selector.get_item_metadata(
+            animation_event_posture_selector.selected
+        ))
+    var rule: Dictionary = state_rules.get(
+        state_name,
+        ANIMATION_STATE_CONTRACT.default_rule(state_name)
+    )
+    route_sequence_editor.call(
+        "set_sequence",
+        selected_animation_event,
+        posture,
+        _selected_presentation_family(),
+        state_name,
+        String(state_slots.get(state_name, "")),
+        route,
+        rule,
+        state_slot_keys
+    )
+
+
+func _on_visual_sequence_changed(patch: Dictionary) -> void:
+    if not event_routes.has(selected_animation_event):
+        return
+    var route: Dictionary = event_routes[selected_animation_event].duplicate(true)
+    route["interrupt_policy"] = String(patch.get("interrupt_policy", "RESTART"))
+    route["priority"] = int(patch.get("priority", 50))
+    route["effects"] = (patch.get("effects", []) as Array).duplicate()
+    route["timed_cues"] = (patch.get("timed_cues", []) as Array).duplicate(true)
+    event_routes[selected_animation_event] = route
+    var posture := "STANDING"
+    if animation_event_posture_selector != null:
+        posture = String(animation_event_posture_selector.get_item_metadata(
+            animation_event_posture_selector.selected
+        ))
+    var state_name := String(ANIMATION_STATE_CONTRACT.resolve_event_state(
+        event_routes,
+        StringName(selected_animation_event),
+        StringName(posture),
+        StringName(_selected_presentation_family())
+    ))
+    if state_rules.has(state_name):
+        var rule: Dictionary = state_rules[state_name].duplicate(true)
+        rule["layer"] = String(patch.get("layer", ANIMATION_STATE_CONTRACT.FULL_BODY))
+        rule["blend_in_seconds"] = float(patch.get("blend_in_seconds", 0.12))
+        rule["blend_out_seconds"] = float(patch.get("blend_out_seconds", 0.14))
+        rule["return_state"] = String(patch.get("return_state", ANIMATION_STATE_CONTRACT.CURRENT_BASE))
+        state_rules[state_name] = rule
+    _sync_presentation_router()
+    _refresh_state_rule_editor()
+    _refresh_runtime_state_tree()
+    _refresh_event_routing_ui()
+    status_label.text = "Visual sequence updated as an unsaved draft. Preview it, then save when it is correct."
 
 
 func _sync_presentation_router() -> void:

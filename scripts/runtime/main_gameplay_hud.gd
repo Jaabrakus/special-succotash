@@ -245,6 +245,16 @@ func _build_ui() -> void:
         Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
         get_tree().change_scene_to_file("res://game_launcher.tscn")
     )
+    exit_menu.launch_studio_requested.connect(func():
+        ProjectSettings.set_setting("socom/session/public_training", false)
+        Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+        var navigation := get_node_or_null("/root/StudioNavigation")
+        if navigation != null:
+            navigation.call("activate")
+            navigation.call("open_home")
+        else:
+            get_tree().change_scene_to_file("res://game_launcher.tscn")
+    )
     add_child(exit_menu)
     if public_training_mode:
         _build_public_training_navigation(layer)

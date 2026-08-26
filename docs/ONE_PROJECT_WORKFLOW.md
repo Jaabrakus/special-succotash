@@ -10,9 +10,9 @@ implementation of gameplay behavior.
 - Project ID: `socom-141`
 - Authoritative branch: `main`
 - Stable local path: `/Users/kiwimango/Documents/SOCOM-141`
-- Runtime entry: `main.tscn`
+- Runtime entry: `game_launcher.tscn` (which validates saved state before opening `main.tscn`)
 - Machine-readable registry: `config/integration_manifest.json`
-- Human launcher: `tools/run_studio.sh`
+- Human launcher: `tools/run_studio.sh` (opens the same `game_launcher.tscn` as Godot Run)
 
 Copies and worktrees elsewhere are references or staging areas. A feature does
 not exist in the canonical game until it is merged to `main` here and passes

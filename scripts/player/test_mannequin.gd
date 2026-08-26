@@ -49,6 +49,7 @@ var proxy_visuals: Array[GeometryInstance3D] = []
 var proxy_visuals_visible: bool = true
 var production_animation: SocomOperatorAnimationDriver
 var legacy_procedural_updates_enabled: bool = true
+var operator_fire_trigger_held: bool = false
 
 var gait_time: float = 0.0
 var gait_strength: float = 0.0
@@ -139,6 +140,9 @@ func set_bomb_backpack_visible(enabled: bool) -> void:
 
 func notify_operator_fired() -> bool:
     return production_animation != null and production_animation.notify_fired()
+
+func set_operator_fire_trigger_held(active: bool) -> void:
+    operator_fire_trigger_held = active
 
 func notify_operator_weapon_equipped(config: Dictionary) -> bool:
     return production_animation != null and production_animation.notify_weapon_equipped(config)
@@ -526,7 +530,7 @@ func _sync_production_animation(player: CharacterBody3D) -> void:
         relative_yaw,
         shared_angles.y,
         0.0,
-        false,
+        operator_fire_trigger_held,
         weapon_obstruction_amount,
         normalized_speed,
         state_name,

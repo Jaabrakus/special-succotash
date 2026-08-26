@@ -192,6 +192,7 @@ func _build_ui() -> void:
 	exit_menu = ExitMenuScript.new() as SocomExitMenu
 	exit_menu.name = "InGameExitMenu"
 	exit_menu.return_to_launcher_requested.connect(_leave_to_main_menu)
+	exit_menu.launch_studio_requested.connect(_leave_to_studio)
 	add_child(exit_menu)
 	_refresh_scoreboard()
 	_refresh_player_state()
@@ -202,6 +203,16 @@ func _build_ui() -> void:
 func _leave_to_main_menu() -> void:
 	_disconnect_existing_peer()
 	get_tree().change_scene_to_file("res://game_launcher.tscn")
+
+
+func _leave_to_studio() -> void:
+	_disconnect_existing_peer()
+	var navigation := get_node_or_null("/root/StudioNavigation")
+	if navigation != null:
+		navigation.call("activate")
+		navigation.call("open_home")
+	else:
+		get_tree().change_scene_to_file("res://game_launcher.tscn")
 func _show_lobby(enabled: bool) -> void:
 	if multiplayer_hud == null:
 		return

@@ -73,6 +73,10 @@ func _run() -> void:
 		"Studio explains and resolves each event through the shared dictionary and router"
 	)
 	_expect(
+		studio.find_child("VisualSequenceEditor", true, false) != null,
+		"States exposes one visual trigger-to-recovery sequence editor"
+	)
+	_expect(
 		studio.find_child("SimpleStateWorkflowGuide", true, false) != null
 		and studio.find_child("SimpleStateCurrentCue", true, false) != null
 		and studio.find_child("SimpleStatePrimaryAction", true, false) != null

@@ -35,6 +35,8 @@ func set_visual_inputs(
 	aim_pitch_rad = aim_pitch
 	requested_weapon_ready_weight = clampf(ready_weight, 0.0, 1.0)
 	firing = is_firing
+	if fire_upper_body_latch != null:
+		fire_upper_body_latch.set_trigger_held(firing)
 	obstruction_amount = clampf(obstruction, 0.0, 1.0)
 	movement_state = state_name
 	vertical_speed = vertical_velocity
@@ -56,20 +58,44 @@ func _trigger_fire_ready_aim() -> void:
 		hold_seconds = float(
 			(ready_profile as Dictionary).get("fire_hold_seconds", hold_seconds)
 		)
-	_fire_ready_hold_remaining = maxf(hold_seconds, 0.0)
+	if fire_upper_body_latch != null:
+		fire_upper_body_latch.configure(hold_seconds)
+		fire_upper_body_latch.notify_accepted_shot()
+		_fire_ready_hold_remaining = (
+			fire_upper_body_latch.grace_remaining_seconds
+		)
+	else:
+		_fire_ready_hold_remaining = maxf(hold_seconds, 0.0)
 	# Let the normal bounded ready response raise the weapon. A one-frame jump to
 	# full ownership makes the socket IK replace the current arm chain before the
 	# stance/fire animation has blended, which visibly folds the elbows.
 
 
-func _update_weapon_ready(delta: float) -> void:
-	_fire_ready_hold_remaining = maxf(
-		_fire_ready_hold_remaining - maxf(delta, 0.0),
-		0.0
-	)
+func _update_weapon_ready(delta: float, reload_active: bool = false) -> void:
+	if fire_upper_body_latch != null:
+		fire_upper_body_latch.set_context(posture, reload_active)
+		# Preserve compatibility with focused tools that seed the old diagnostic
+		# scalar directly while the latch becomes the canonical live owner.
+		if (
+			_fire_ready_hold_remaining
+			> fire_upper_body_latch.grace_remaining_seconds
+		):
+			fire_upper_body_latch.set_grace_remaining(
+				_fire_ready_hold_remaining
+			)
+		fire_upper_body_latch.set_trigger_held(firing)
+		fire_upper_body_latch.advance(delta, reload_active)
+		_fire_ready_hold_remaining = (
+			fire_upper_body_latch.grace_remaining_seconds
+		)
+	else:
+		_fire_ready_hold_remaining = maxf(
+			_fire_ready_hold_remaining - maxf(delta, 0.0),
+			0.0
+		)
 	var ready_target := maxf(
 		requested_weapon_ready_weight,
-		1.0 if _fire_ready_hold_remaining > 0.0 else 0.0
+		1.0 if _fire_upper_body_selected() else 0.0
 	)
 	var response := (
 		ready_enter_response
@@ -88,8 +114,16 @@ func _update_weapon_ready(delta: float) -> void:
 
 func clear_fire_ready_aim() -> void:
 	_fire_ready_hold_remaining = 0.0
+	if fire_upper_body_latch != null:
+		fire_upper_body_latch.clear()
 	if requested_weapon_ready_weight <= 0.0:
 		weapon_ready_weight = 0.0
+
+
+func _fire_upper_body_selected() -> bool:
+	if fire_upper_body_latch != null:
+		return fire_upper_body_latch.is_selected()
+	return firing or _fire_ready_hold_remaining > 0.0
 
 
 func set_pose_preview_paused(paused: bool) -> void:

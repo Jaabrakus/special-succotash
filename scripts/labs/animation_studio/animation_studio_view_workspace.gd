@@ -700,6 +700,12 @@ func _build_ui_workspace(
     presentation_plan_label.add_theme_color_override("font_color", Color(0.45, 0.95, 1.0))
     routes_page.add_child(presentation_plan_label)
 
+    route_sequence_editor = ROUTE_SEQUENCE_EDITOR.new()
+    route_sequence_editor.sequence_changed.connect(_on_visual_sequence_changed)
+    route_sequence_editor.preview_requested.connect(_preview_selected_animation_event)
+    route_sequence_editor.verify_requested.connect(_verify_selected_event_route)
+    routes_page.add_child(route_sequence_editor)
+
     var language_title := Label.new()
     language_title.text = "SOCOM RULES — WRITE IT YOUR WAY"
     language_title.add_theme_color_override("font_color", Color(0.9, 0.75, 1.0))

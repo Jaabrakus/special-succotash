@@ -21,6 +21,7 @@ const PHASE_MODULES := [
     "res://scripts/labs/animation_studio/animation_studio_view_controls.gd",
     "res://scripts/labs/animation_studio/animation_studio_casting.gd",
     "res://scripts/labs/animation_studio/animation_studio_routes.gd",
+    "res://scripts/labs/animation_route_sequence_editor.gd",
     "res://scripts/labs/animation_studio_rig_overlay.gd",
     "res://scripts/labs/animation_rig_quick_controls.gd",
 ]

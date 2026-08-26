@@ -363,9 +363,9 @@ func _build_ui_timeline(
     bot_vbox.add_child(persistent_action_controls)
 
     var studio_home_btn := Button.new()
-    studio_home_btn.text = "⌂ Studio Home"
+    studio_home_btn.text = "⌂ Main Launcher"
     studio_home_btn.custom_minimum_size = Vector2(150.0, 42.0)
-    studio_home_btn.tooltip_text = "Return to the Studio home screen and open another lab."
+    studio_home_btn.tooltip_text = "Return to the current canonical game launcher."
     studio_home_btn.pressed.connect(func():
         var navigation := get_node_or_null("/root/StudioNavigation")
         if navigation != null:
@@ -373,7 +373,7 @@ func _build_ui_timeline(
                 navigation.call("activate", false)
             navigation.call("open_home")
         else:
-            get_tree().change_scene_to_file("res://studio_hub.tscn")
+            get_tree().change_scene_to_file("res://game_launcher.tscn")
     )
     persistent_action_controls.add_child(studio_home_btn)
 

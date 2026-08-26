@@ -20,14 +20,14 @@ func _run() -> void:
 	_expect(bool(initial.get("active", false)), "Studio navigation activates independently of gameplay")
 	_expect(bool(initial.get("overlay_live", false)), "Home and history overlay remains outside lab scenes")
 	var registered: Dictionary = initial.get("registered_scenes", {})
-	_expect(registered.has("res://studio_hub.tscn"), "Studio Home is registered")
+	_expect(registered.has("res://game_launcher.tscn"), "current game launcher is registered as Home")
 	_expect(registered.has("res://main.tscn"), "Camera and playable range is registered")
 	_expect(registered.has("res://animation_library_lab.tscn"), "Animation Studio is registered")
 	_expect(registered.has("res://gun_calibration_lab.tscn"), "Weapon Gunsmith is registered")
 	_expect(registered.has("res://keyboard_mapping_lab.tscn"), "Keyboard Mapping Lab is registered")
 	_expect(registered.has("res://map_creation_lab.tscn"), "Map Creation Lab is registered")
 
-	navigation.call("open_scene", "res://studio_hub.tscn")
+	navigation.call("open_scene", "res://game_launcher.tscn")
 	await scene_changed
 	navigation.call("open_scene", "res://animation_library_lab.tscn")
 	await scene_changed
@@ -42,12 +42,12 @@ func _run() -> void:
 	navigation.call("go_back")
 	await scene_changed
 	_expect(
-		current_scene != null and current_scene.scene_file_path == "res://studio_hub.tscn",
-		"Back returns to the previous Studio page"
+		current_scene != null and current_scene.scene_file_path == "res://game_launcher.tscn",
+		"Back returns to the current game launcher"
 	)
 	var backed: Dictionary = navigation.call("get_debug_state")
 	_expect(int(backed.get("history_cursor", -1)) == 0, "Back moves the history cursor without deleting forward history")
-	_expect(bool(backed.get("history_visible", false)), "History rail is visible on Studio Home")
+	_expect(bool(backed.get("history_visible", false)), "History rail is visible on the current launcher")
 
 	_finish()
 

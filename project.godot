@@ -28,7 +28,7 @@ AcousticPropagation="*res://scripts/audio/acoustic_propagation_engine.gd"
 
 [audio]
 
-driver/enable_input=true
+driver/enable_input=false
 
 [display]
 

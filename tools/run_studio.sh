@@ -16,11 +16,11 @@ if [[ "$current_branch" != "$canonical_branch" ]]; then
   exit 1
 fi
 
-print "SOCOM-141 CANONICAL STUDIO"
+print "SOCOM-141 CANONICAL LAUNCHER"
 print "Project: $project_dir"
 print "Build:   $canonical_branch@$current_commit"
 if [[ ! -x "$apple_mocap_binary" || "$apple_mocap_source" -nt "$apple_mocap_binary" ]]; then
   print "Preparing Apple Video Mocap…"
   "$apple_mocap_builder" >/dev/null
 fi
-exec "$godot_bin" --path "$project_dir" res://studio_hub.tscn -- --studio
+exec "$godot_bin" --path "$project_dir" res://game_launcher.tscn -- --studio

@@ -434,21 +434,26 @@ func _check_layered_recoil(driver) -> void:
     )
     _expect(bool(snapshot.get("fire_layer_available", false)), "mapped weapon fire layer is available")
     _expect(
-        int(snapshot.get("fire_trigger_count", 0)) == fire_count_before + 1
-        and StringName(snapshot.get("active_fire_clip", &"")) == &"combat_fire",
-        "standing fire triggers the mapped upper-body fire action"
+        int(snapshot.get("fire_trigger_count", 0)) == fire_count_before
+        and bool(
+            (snapshot.get("fire_upper_body_latch", {}) as Dictionary).get(
+                "selected",
+                false
+            )
+        ),
+        "standing fire selects persistent Aim Idle without restarting a one-shot"
     )
-    _expect(driver.notify_fired(), "a later accepted bullet retriggers the fire reaction")
+    _expect(driver.notify_fired(), "a later accepted bullet refreshes the fire latch")
     var repeated_snapshot: Dictionary = driver.get_animation_debug_state()
     _expect(
-        int(repeated_snapshot.get("fire_trigger_count", 0)) == fire_count_before + 2
+        int(repeated_snapshot.get("fire_trigger_count", 0)) == fire_count_before
         and not bool(
             (repeated_snapshot.get("weapon_pose", {}) as Dictionary).get(
                 "rail_to_blue_line_event_active",
                 true
             )
         ),
-        "repeated standing fire retriggers the action without a blue-line weapon effect"
+        "repeated standing fire refreshes ownership without a pose restart"
     )
 
     driver.set_visual_inputs(
@@ -476,9 +481,14 @@ func _check_layered_recoil(driver) -> void:
     crouch_snapshot = driver.get_animation_debug_state()
     var crouched_weapon_pose: Dictionary = crouch_snapshot.get("weapon_pose", {})
     _expect(
-        int(crouch_snapshot.get("fire_trigger_count", 0)) == fire_count_before + 3
-        and StringName(crouch_snapshot.get("active_fire_clip", &"")) == &"crouch_fire",
-        "crouched fire keeps its existing mapped animation layer"
+        int(crouch_snapshot.get("fire_trigger_count", 0)) == fire_count_before
+        and bool(
+            (crouch_snapshot.get("fire_upper_body_latch", {}) as Dictionary).get(
+                "selected",
+                false
+            )
+        ),
+        "crouched fire keeps persistent Aim Idle upper-body ownership"
     )
     _expect(
         not bool(crouched_weapon_pose.get("rail_to_blue_line_event_active", true))

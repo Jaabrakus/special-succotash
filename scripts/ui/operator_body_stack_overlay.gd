@@ -280,12 +280,10 @@ func _draw_shoulder_map(skeleton: Skeleton3D) -> float:
 		draw_circle(camera.unproject_position(pivot), 7.0, cyan, false, 2.5, true)
 
 	var actual_right := (right_arm - left_arm).normalized()
-	var aim_forward := -subject.global_basis.z.normalized() if subject != null else Vector3.FORWARD
-	var weapon_solver = driver.get("weapon_pose_solver")
-	if weapon_solver != null:
-		var solver_direction: Vector3 = weapon_solver.get("last_aim_direction")
-		if solver_direction.length_squared() > 0.50:
-			aim_forward = solver_direction.normalized()
+	# The white bar is the reticle-facing shoulder contract. Read the gameplay
+	# camera directly so weapon smoothing, muzzle obstruction, body facing and IK
+	# can never rotate this reference away from the centered reticle ray.
+	var aim_forward := -camera.global_basis.z.normalized()
 	var desired_right := aim_forward.cross(Vector3.UP).normalized()
 	if desired_right.length_squared() < 0.50:
 		desired_right = actual_right

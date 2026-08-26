@@ -596,6 +596,7 @@
       "animation_carry_limit_m": 0.035,
       "animation_carry_weight": 0.65,
       "hand_owned_aim_correction_limit_deg": 32.0,
+      "relaxed_idle_upper_body_weight": 0.52,
       "ready_locomotion_inheritance": 0.0,
       "reload_return_blend_seconds": 0.18,
       "right_hand_owns_weapon": true
@@ -604,6 +605,7 @@
       "fire_hold_seconds": 1.2
     },
     "standing_fire_uses_aim_idle": true,
+    "crouched_fire_uses_aim_idle": true,
     "family": "TWO_HAND_RIFLE",
     "locomotion_family": "RIFLE",
     "locomotion_slots": {
