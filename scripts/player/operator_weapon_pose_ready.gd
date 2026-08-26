@@ -295,6 +295,11 @@ func apply(
 		# the clearance solve below raises it only if the ground requires it.
 		raw_trigger_position -= world_up * prone_ready_grip_drop_m
 		raw_support_position -= world_up * prone_ready_grip_drop_m
+		var prone_grip_ceiling_y := (
+			stable_chest_anchor_world.y + prone_maximum_grip_above_chest_m
+		)
+		raw_trigger_position.y = minf(raw_trigger_position.y, prone_grip_ceiling_y)
+		raw_support_position.y = minf(raw_support_position.y, prone_grip_ceiling_y)
 	var desired_floor_lift := 0.0
 	if posture == &"PRONE":
 		desired_floor_lift = minf(maxf(
@@ -365,6 +370,11 @@ func apply(
 			trigger_position += world_up * settled_floor_lift
 			support_position += world_up * settled_floor_lift
 			prone_floor_lift_m += settled_floor_lift
+		var prone_grip_ceiling_y := (
+			stable_chest_anchor_world.y + prone_maximum_grip_above_chest_m
+		)
+		trigger_position.y = minf(trigger_position.y, prone_grip_ceiling_y)
+		support_position.y = minf(support_position.y, prone_grip_ceiling_y)
 	anatomical_adjustment_m = maxf(
 		raw_trigger_position.distance_to(trigger_position),
 		raw_support_position.distance_to(support_position)
@@ -376,7 +386,7 @@ func apply(
 	trigger_hand_target.global_position = trigger_position
 	support_hand_target.global_position = support_position
 	aim_target_marker.global_position = last_target_point
-	var prone_pole_raise := 0.12 if posture == &"PRONE" else 0.0
+	var prone_pole_raise := prone_elbow_raise_m if posture == &"PRONE" else 0.0
 	# Standing and crouch share one Aim Idle shoulder-and-arm source. They must
 	# also share one elbow frame while that ready layer owns the upper body.
 	# Prone remains posture-specific because its arms solve against the floor.
@@ -427,6 +437,17 @@ func apply(
 			left_elbow_pole.global_position,
 			prone_elbow_floor_clearance_m
 		)
+		var prone_elbow_ceiling_y := (
+			stable_chest_anchor_world.y + prone_maximum_elbow_above_chest_m
+		)
+		right_elbow_pole.global_position.y = minf(
+			right_elbow_pole.global_position.y,
+			prone_elbow_ceiling_y
+		)
+		left_elbow_pole.global_position.y = minf(
+			left_elbow_pole.global_position.y,
+			prone_elbow_ceiling_y
+		)
 	_solve_ready_weapon_pose(
 		trigger_position,
 		support_position,
@@ -452,6 +473,22 @@ func apply(
 			right_elbow_pole.global_position += world_up * muzzle_lift
 			left_elbow_pole.global_position += world_up * muzzle_lift
 			prone_floor_lift_m += muzzle_lift
+			var prone_grip_ceiling_y := (
+				stable_chest_anchor_world.y + prone_maximum_grip_above_chest_m
+			)
+			trigger_position.y = minf(trigger_position.y, prone_grip_ceiling_y)
+			support_position.y = minf(support_position.y, prone_grip_ceiling_y)
+			var prone_elbow_ceiling_y := (
+				stable_chest_anchor_world.y + prone_maximum_elbow_above_chest_m
+			)
+			right_elbow_pole.global_position.y = minf(
+				right_elbow_pole.global_position.y,
+				prone_elbow_ceiling_y
+			)
+			left_elbow_pole.global_position.y = minf(
+				left_elbow_pole.global_position.y,
+				prone_elbow_ceiling_y
+			)
 			_solve_ready_weapon_pose(
 				trigger_position,
 				support_position,

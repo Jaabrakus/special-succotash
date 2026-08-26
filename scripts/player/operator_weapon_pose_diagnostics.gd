@@ -51,6 +51,14 @@ static func capture(source) -> Dictionary:
 		"right_elbow_position": source._bone_world_position(&"mixamorig_RightForeArm"),
 		"left_elbow_position": source._bone_world_position(&"mixamorig_LeftForeArm"),
 		"head_position": source._bone_world_position(&"mixamorig_Head"),
+		"prone_grip_ceiling_y": (
+			source.stable_chest_anchor_world.y
+			+ source.prone_maximum_grip_above_chest_m
+		),
+		"prone_elbow_ceiling_y": (
+			source.stable_chest_anchor_world.y
+			+ source.prone_maximum_elbow_above_chest_m
+		),
 		"right_elbow_pole_position": source.right_elbow_pole.global_position,
 		"left_elbow_pole_position": source.left_elbow_pole.global_position,
 		"weapon_aim_error_deg": source.weapon_aim_error_deg,

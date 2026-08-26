@@ -323,7 +323,7 @@ func _animate_locomotion(player: CharacterBody3D, delta: float) -> void:
 func _update_camera_markers(
     motion_state: StringName,
     action_phase: float,
-    moving: bool,
+    _moving: bool,
     delta: float
 ) -> void:
     if head_marker == null or torso_marker == null or pelvis_marker == null:
@@ -359,12 +359,13 @@ func _update_camera_markers(
     # The stable stance anchors remain authoritative. Add only the animated
     # skeleton's displacement from its rest pose so the camera follows the
     # operator the player can actually see without inheriting clip root motion.
-    var ready_moving := (
-        moving
-        and production_animation != null
+    var ready_pose := (
+        production_animation != null
         and float(production_animation.get("weapon_ready_weight")) >= 0.50
     )
-    var marker_mode := &"READY_MOVING" if ready_moving else &"DEFAULT"
+    # A competitive ready/fire sight picture follows the stable stance anchors,
+    # not head, torso, or pelvis displacement authored into the animation take.
+    var marker_mode := &"READY" if ready_pose else &"DEFAULT"
     var head_target := stable_head + camera_marker_filter.filtered_delta(
         _camera_bone_pose_delta(&"mixamorig_Head"), &"HEAD", marker_mode
     )
@@ -376,7 +377,7 @@ func _update_camera_markers(
     )
     var follow_response := (
         camera_marker_ready_follow_response
-        if ready_moving
+        if ready_pose
         else camera_marker_follow_response
     )
     var follow_alpha := 1.0 - exp(-follow_response * delta)

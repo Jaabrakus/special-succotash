@@ -68,19 +68,31 @@ func _run() -> void:
 		and marker_filter.maximum_weighted_vertical_offset(&"HEAD") <= 0.0151,
 		"camera marker filter limits animated head bob before camera framing"
 	)
-	var ready_moving_head_delta: Vector3 = marker_filter.filtered_delta(
+	var ready_head_delta: Vector3 = marker_filter.filtered_delta(
 		Vector3(1.0, 1.0, 1.0),
 		&"HEAD",
-		&"READY_MOVING"
+		&"READY"
+	)
+	var ready_torso_delta: Vector3 = marker_filter.filtered_delta(
+		Vector3(1.0, 1.0, 1.0),
+		&"TORSO",
+		&"READY"
+	)
+	var ready_pelvis_delta: Vector3 = marker_filter.filtered_delta(
+		Vector3(1.0, 1.0, 1.0),
+		&"PELVIS",
+		&"READY"
 	)
 	_expect(
-		ready_moving_head_delta.is_zero_approx()
+		ready_head_delta.is_zero_approx()
+		and ready_torso_delta.is_zero_approx()
+		and ready_pelvis_delta.is_zero_approx()
 		and is_zero_approx(
 			marker_filter.maximum_weighted_vertical_offset(
-				&"HEAD", &"READY_MOVING"
+				&"HEAD", &"READY"
 			)
 		),
-		"ready locomotion keeps the camera head marker on its stable stance anchor"
+		"ready and fire keep all camera markers on stable stance anchors"
 	)
 	marker_filter.queue_free()
 	var handoff = PoseHandoff.new()
@@ -109,6 +121,18 @@ func _run() -> void:
 		and graph_root.has_node(&"crouch_upper_body")
 		and graph_root.has_node(&"crouch_idle_upper_body"),
 		"crouch movement and idle share the Aim Idle upper-body owner"
+	)
+	for layer_name in driver.locomotion_graph.standing_transition_layer_nodes:
+		_expect(
+			is_equal_approx(float(driver.animation_tree.get(
+				"parameters/%s/blend_amount" % layer_name
+			)), 1.0),
+			"standing transition keeps its Idle Rifle/Aim Idle upper-body owner"
+		)
+	var idle_snapshot: Dictionary = driver.get_animation_debug_state()
+	_expect(
+		int(idle_snapshot.get("square_idle_reference_bone_count", 0)) == 2,
+		"standing idle squares the head without replacing authored leg rotations"
 	)
 	if fire_layer != null:
 		for bone_name in [
@@ -179,6 +203,30 @@ func _run() -> void:
 		crouch_trigger.y <= crouch_head.y + 0.02
 		and crouch_support.y <= crouch_head.y + 0.02,
 		"crouch ready hands remain below the operator head"
+	)
+	driver.set_visual_inputs(
+		Vector2.ZERO, &"PRONE", 0.0, 0.0, 0.0, true, 0.0,
+		0.0, &"PRONE", 0.0, &"WALK", 0.0
+	)
+	for _frame in range(20):
+		driver._process(1.0 / 60.0)
+	var prone_snapshot: Dictionary = driver.get_animation_debug_state()
+	var prone_pose: Dictionary = prone_snapshot.get("weapon_pose", {})
+	var prone_trigger := Vector3(prone_pose.get("trigger_hand_target", Vector3.ZERO))
+	var prone_support := Vector3(prone_pose.get("support_hand_target", Vector3.ZERO))
+	var prone_right_pole := Vector3(prone_pose.get("right_elbow_pole_position", Vector3.ZERO))
+	var prone_left_pole := Vector3(prone_pose.get("left_elbow_pole_position", Vector3.ZERO))
+	var prone_grip_ceiling := float(prone_pose.get("prone_grip_ceiling_y", INF))
+	var prone_elbow_ceiling := float(prone_pose.get("prone_elbow_ceiling_y", INF))
+	_expect(
+		prone_trigger.y <= prone_grip_ceiling + 0.001
+		and prone_support.y <= prone_grip_ceiling + 0.001,
+		"prone fire hands stay inside the chest-relative height rail"
+	)
+	_expect(
+		prone_right_pole.y <= prone_elbow_ceiling + 0.001
+		and prone_left_pole.y <= prone_elbow_ceiling + 0.001,
+		"prone fire elbow guides cannot rise over the chest frame"
 	)
 	driver.set_visual_inputs(
 		Vector2.DOWN, &"STANDING", 0.0, 0.0, 0.0, false, 0.0,

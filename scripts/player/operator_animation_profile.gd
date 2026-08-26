@@ -132,11 +132,11 @@ const DEFAULT_MIRRORED_CLIPS: Dictionary = {
 	&"walk_back_left": &"walk_back_right",
 	&"run_forward_left": &"run_forward_right",
 	&"run_back_left": &"run_back_right",
-	&"crouch_forward_left": &"crouch_forward_right",
 	&"crouch_back_left": &"crouch_back_right",
 }
 
 const DEFAULT_LEG_MIRRORED_CLIPS: Dictionary = {
+	&"crouch_forward_left": &"crouch_forward_right",
 }
 
 const DEFAULT_CLIP_ALIASES: Dictionary = {

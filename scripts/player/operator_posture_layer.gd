@@ -50,6 +50,10 @@ const HEAD_RESIDUAL_WEIGHTS: Dictionary = {
 	&"head": 0.55,
 }
 
+const SQUARE_IDLE_REFERENCE_BONES: Array[StringName] = [
+	&"neck", &"head",
+]
+
 var skeleton: Skeleton3D
 var bone_indices: Dictionary = {}
 var last_applied_yaw: float = 0.0
@@ -74,6 +78,7 @@ var procedural_profile := ProceduralPoseProfile.new()
 var animation_frame_rotation_overrides: Dictionary = {}
 var head_look_base_rotations: Dictionary = {}
 var head_look_applied_rotations: Dictionary = {}
+var last_square_idle_reference_bone_count: int = 0
 
 const HEAD_LOOK_REUSE_EPSILON_RAD := 0.002
 
@@ -178,7 +183,8 @@ func apply(
 	world_aim_target: Vector3 = Vector3.ZERO,
 	neutral_hip_roll_trim_deg: float = 1.20,
 	force_square_shoulders: bool = false,
-	force_square_hips: bool = false
+	force_square_hips: bool = false,
+	force_square_idle_reference: bool = false
 ) -> void:
 	if skeleton == null:
 		return
@@ -193,6 +199,7 @@ func apply(
 		prone_axis_target_pitch
 	)
 	_apply_procedural_profile(posture_name)
+	_apply_square_idle_reference(force_square_idle_reference)
 	var torso_yaw := clampf(aim_yaw, -chest_yaw_limit, chest_yaw_limit)
 	var torso_pitch := clampf(aim_pitch, -chest_pitch_limit, chest_pitch_limit)
 	var head_yaw := clampf(aim_yaw, -head_yaw_limit, head_yaw_limit)
@@ -343,8 +350,24 @@ func get_debug_state() -> Dictionary:
 		"default_hip_roll_input_deg": last_default_hip_roll_input_deg,
 		"default_hip_roll_trim_deg": last_default_hip_roll_trim_deg,
 		"default_hip_roll_output_deg": last_default_hip_roll_output_deg,
+		"square_idle_reference_bone_count": last_square_idle_reference_bone_count,
 		"animation_frame_rotation_override_count": animation_frame_rotation_overrides.size(),
 	}
+
+
+func _apply_square_idle_reference(enabled: bool) -> void:
+	last_square_idle_reference_bone_count = 0
+	if not enabled:
+		return
+	# Square describes the shoulder and pelvis frames, not the direction of each
+	# limb bone. Keep every authored leg rotation so knees and feet cannot swing
+	# upward when entering idle. Only the head uses this neutral reference.
+	for logical_name: StringName in SQUARE_IDLE_REFERENCE_BONES:
+		var bone_index := int(bone_indices.get(logical_name, -1))
+		if bone_index < 0:
+			continue
+		skeleton.set_bone_pose_rotation(bone_index, Quaternion.IDENTITY)
+		last_square_idle_reference_bone_count += 1
 
 
 func _apply_default_hip_leveling(

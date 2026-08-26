@@ -4,14 +4,14 @@ extends Node
 ## Bounds animation-driven marker motion before the camera framing solver sees
 ## it. This is presentation only: it never changes the operator or camera aim.
 
-@export_range(0.0, 1.0, 0.01) var head_follow_weight: float = 0.25
-@export_range(0.0, 1.0, 0.01) var torso_follow_weight: float = 0.15
-@export_range(0.0, 1.0, 0.01) var pelvis_follow_weight: float = 0.08
+@export_range(0.0, 1.0, 0.01) var head_follow_weight: float = 0.18
+@export_range(0.0, 1.0, 0.01) var torso_follow_weight: float = 0.10
+@export_range(0.0, 1.0, 0.01) var pelvis_follow_weight: float = 0.05
 @export_range(0.0, 1.0, 0.01) var ready_moving_head_follow_weight: float = 0.0
-@export_range(0.0, 1.0, 0.01) var ready_moving_torso_follow_weight: float = 0.08
-@export_range(0.0, 1.0, 0.01) var ready_moving_pelvis_follow_weight: float = 0.04
+@export_range(0.0, 1.0, 0.01) var ready_moving_torso_follow_weight: float = 0.0
+@export_range(0.0, 1.0, 0.01) var ready_moving_pelvis_follow_weight: float = 0.0
 @export_range(0.0, 0.30, 0.01) var maximum_horizontal_offset_m: float = 0.10
-@export_range(0.0, 0.20, 0.01) var maximum_vertical_offset_m: float = 0.06
+@export_range(0.0, 0.20, 0.01) var maximum_vertical_offset_m: float = 0.05
 
 
 func filtered_delta(
@@ -35,7 +35,7 @@ func maximum_weighted_vertical_offset(
 
 
 func _weight_for(marker_role: StringName, presentation_mode: StringName) -> float:
-	if presentation_mode == &"READY_MOVING":
+	if presentation_mode in [&"READY", &"READY_MOVING"]:
 		match marker_role:
 			&"HEAD":
 				return ready_moving_head_follow_weight

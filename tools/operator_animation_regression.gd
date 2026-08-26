@@ -90,7 +90,6 @@ func _check_symmetric_left_locomotion(driver) -> void:
         &"walk_forward_left": &"walk_forward_right",
         &"walk_left": &"walk_right",
         &"walk_back_left": &"walk_back_right",
-        &"crouch_forward_left": &"crouch_forward_right",
         &"crouch_back_left": &"crouch_back_right",
     }
     for target in expected_pairs:
@@ -112,26 +111,30 @@ func _check_symmetric_left_locomotion(driver) -> void:
         )
 
 func _check_forward_left_lower_body_mirror(driver) -> void:
-    var target := StringName(&"run_forward_left")
-    var source := StringName(&"run_forward_right")
-    _expect(
-        driver.animation_profile.leg_mirror_source(target) == source
-        and driver.animation_profile.mirror_source(target) == &"",
-        "run_forward_left mirrors the forward-right travel body"
-    )
-    _expect(
-        driver.asset_runtime.get_source_animation_name(target)
-        == StringName("leg_mirrored:%s" % source),
-        "run_forward_left reports the lower-body mirror source"
-    )
+    var pairs := {
+        &"run_forward_left": &"run_forward_right",
+        &"crouch_forward_left": &"crouch_forward_right",
+    }
     var library: AnimationLibrary = driver.animation_player.get_animation_library("")
-    _expect(
-        _is_travel_body_sagittal_mirror(
-            library.get_animation(target),
-            library.get_animation(source)
-        ),
-        "forward-left mirrors hips, spine, head, and legs while preserving rifle-side arms"
-    )
+    for target: StringName in pairs:
+        var source: StringName = pairs[target]
+        _expect(
+            driver.animation_profile.leg_mirror_source(target) == source
+            and driver.animation_profile.mirror_source(target) == &"",
+            "%s mirrors the forward-right travel body" % target
+        )
+        _expect(
+            driver.asset_runtime.get_source_animation_name(target)
+            == StringName("leg_mirrored:%s" % source),
+            "%s reports the body-only mirror source" % target
+        )
+        _expect(
+            _is_travel_body_sagittal_mirror(
+                library.get_animation(target),
+                library.get_animation(source)
+            ),
+            "%s mirrors hips, spine, head, and legs while preserving rifle-side arms" % target
+        )
 
 func _check_lateral_locomotion_sources(driver) -> void:
     # Every approved sprint direction is now a direct source. No legacy alias
@@ -730,6 +733,18 @@ func _check_modern_blend_graph(driver) -> void:
     var idle_upper_body_blend := blend_root.get_node(&"standing_idle_upper_body") as AnimationNodeBlend2
     var crouch_upper_body_blend := blend_root.get_node(&"crouch_upper_body") as AnimationNodeBlend2
     var crouch_idle_upper_body_blend := blend_root.get_node(&"crouch_idle_upper_body") as AnimationNodeBlend2
+    _set_motion(driver, Vector2.ZERO, 0.0, &"STANDING", 0.0, &"FULL", 0.0)
+    _advance(driver)
+    _expect(
+        is_zero_approx(
+            float(
+                driver.animation_tree.get(
+                    "parameters/standing_idle_upper_body/blend_amount"
+                )
+            )
+        ),
+        "relaxed standing idle uses Idle Rifle without an Aim Idle arm blend"
+    )
     _expect(
         upper_body_blend != null and upper_body_blend.filter_enabled,
         "standing locomotion has an active upper-body replacement mask"
@@ -900,11 +915,19 @@ func _check_transition_state_machine(driver) -> void:
     var machine = TRANSITION_SCRIPT.new()
     var settings: Dictionary = driver.animation_profile.transitions.duplicate(true)
     settings["enabled"] = true
+    settings["standing_enabled"] = true
     var available: Dictionary = driver.available_clips
     var idle: Dictionary = machine.evaluate(Vector2.ZERO, 0.0, &"STANDING", 0.0, available, settings)
     var start: Dictionary = machine.evaluate(Vector2.UP, 0.8, &"STANDING", 0.0, available, settings)
     var reverse: Dictionary = machine.evaluate(Vector2.DOWN, 0.8, &"STANDING", 0.0, available, settings)
     var stop: Dictionary = machine.evaluate(Vector2.ZERO, 0.0, &"STANDING", 0.0, available, settings)
+    machine.reset()
+    settings["standing_enabled"] = false
+    machine.evaluate(Vector2.ZERO, 0.0, &"STANDING", 0.0, available, settings)
+    var disabled_standing_start: Dictionary = machine.evaluate(
+        Vector2.UP, 0.8, &"STANDING", 0.0, available, settings
+    )
+    settings["standing_enabled"] = true
     machine.reset()
     var planted: Dictionary = machine.evaluate(
         Vector2.ZERO,
@@ -944,6 +967,10 @@ func _check_transition_state_machine(driver) -> void:
     _expect(start["reason"] == &"start", "movement onset requests a start transition")
     _expect(reverse["reason"] == &"reversal", "opposed input requests a planted reversal")
     _expect(stop["reason"] == &"stop", "movement release requests a settle transition")
+    _expect(
+        disabled_standing_start["clip"] == &"",
+        "disabled standing transitions cannot replace sprint startup"
+    )
     _expect(planted["reason"] == &"planted_turn", "large idle aim error requests a planted turn")
     _expect(
         crouched_planted["clip"] == &"",
@@ -1020,6 +1047,7 @@ func _read_json_dictionary(path: String) -> Dictionary:
 
 func _check_crouch_cancels_standing_turn(driver) -> void:
     driver.animation_profile.transitions["enabled"] = true
+    driver.animation_profile.transitions["standing_enabled"] = true
     driver.transition_state_machine.reset()
     driver.set_visual_inputs(
         Vector2.ZERO, &"STANDING", deg_to_rad(48.0), 0.0,
@@ -1040,6 +1068,7 @@ func _check_crouch_cancels_standing_turn(driver) -> void:
         "entering crouch immediately cancels an in-progress standing turn"
     )
     driver.animation_profile.transitions["enabled"] = false
+    driver.animation_profile.transitions["standing_enabled"] = false
     driver.transition_state_machine.reset()
 
 func _check_posture_and_ik_contract(driver) -> void:

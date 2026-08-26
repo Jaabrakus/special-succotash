@@ -36,6 +36,9 @@ func evaluate(
 	if not bool(settings.get("enabled", true)):
 		_store(normalized_direction, speed_normalized, moving, normalized_intent, intent_active)
 		return result
+	if posture == &"STANDING" and not bool(settings.get("standing_enabled", true)):
+		_store(normalized_direction, speed_normalized, moving, normalized_intent, intent_active)
+		return result
 
 	if intent_active and not previous_intent_active:
 		var start_clip := &"" if posture == &"PRONE" else (

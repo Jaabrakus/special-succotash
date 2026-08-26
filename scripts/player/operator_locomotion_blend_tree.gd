@@ -183,7 +183,7 @@ func update_locomotion(
 	var movement_amount := smoothstep(0.08, 0.55, speed_normalized)
 	var dynamic_hold: Variant = weapon_handling_profile.get("dynamic_hold", {})
 	var ready_locomotion_inheritance := 0.22
-	var relaxed_idle_upper_body_weight := 0.52
+	var relaxed_idle_upper_body_weight := 0.0
 	if dynamic_hold is Dictionary:
 		ready_locomotion_inheritance = clampf(
 			float(
@@ -203,7 +203,7 @@ func update_locomotion(
 				)
 			),
 			0.0,
-			0.75
+			1.0
 		)
 	# Aim Idle remains the dominant firing pose, but a moving player retains a
 	# small amount of the active rifle-walk torso and arm motion. The right-hand
@@ -212,10 +212,9 @@ func update_locomotion(
 	upper_body_ready_blend = normalized_ready * (
 		1.0 - ready_locomotion_inheritance * movement_amount
 	)
-	# The relaxed rifle remains attached to the authored right hand. At a true
-	# standing idle, blend the complete upper body toward Aim Idle just enough to
-	# keep the hands and rifle inside the live camera. This is presentation only:
-	# it does not grant READY_SOLVER ownership or affect sprint locomotion.
+	# The relaxed standing pose is the complete Idle Rifle take. Aim Idle enters
+	# only when ready/fire owns the upper body; do not mix two unrelated arm poses
+	# into the neutral stance.
 	var idle_upper_body_blend := normalized_ready
 	if posture == &"STANDING" and speed_normalized <= 0.05:
 		idle_upper_body_blend = maxf(
@@ -274,7 +273,7 @@ func update_locomotion(
 	for layer_name in standing_transition_layer_nodes:
 		animation_tree.set(
 			"parameters/%s/blend_amount" % layer_name,
-			upper_body_ready_blend
+			1.0
 		)
 	for layer_name in airborne_upper_body_layer_nodes:
 		animation_tree.set(

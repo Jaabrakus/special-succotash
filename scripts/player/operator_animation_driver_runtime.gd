@@ -172,7 +172,7 @@ func _process(delta: float) -> void:
 		and not _presentation_fire_selected
 		and movement_state not in [&"DIVING", &"ROLLING", &"AIRBORNE", &"LANDING"]
 	)
-	var square_idle_hips := (
+	var square_idle_frame := (
 		posture == &"STANDING"
 		and not _locomotion_active
 		and movement_speed_normalized <= 0.05
@@ -210,8 +210,9 @@ func _process(delta: float) -> void:
 		peek_amount,
 		visual_aim_target,
 		0.0 if authored_standing_locomotion else neutral_hip_roll_trim_deg,
-		_presentation_fire_selected,
-		square_idle_hips
+		(_presentation_fire_selected and posture != &"PRONE") or square_idle_frame,
+		square_idle_frame,
+		square_idle_frame
 	)
 	weapon_pose_solver.apply(
 		aim_yaw_rad,
