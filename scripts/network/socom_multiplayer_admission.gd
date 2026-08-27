@@ -19,6 +19,17 @@ func _on_peer_connected(peer_id: int) -> void:
 func _admit_peer(peer_id: int) -> void:
 	if not multiplayer.is_server() or lobby.players.has(peer_id):
 		return
+	# Room capacity is scale-driven: players-per-side x 2, host included. The
+	# host sets it at launch; tournament lobbies widen it to the bracket size.
+	var room_cap := clampi(
+		int(ProjectSettings.get_setting("socom/session/max_match_players", 16)), 2, MAX_PLAYERS
+	)
+	if lobby.players.size() >= room_cap:
+		peer_admission_attempts.erase(peer_id)
+		peer_admission_deadlines_ms.erase(peer_id)
+		receive_session_rejected.rpc_id(peer_id, "Connection rejected: the room is full.")
+		_disconnect_rejected_peer.call_deferred(peer_id)
+		return
 	peer_admission_attempts.erase(peer_id)
 	peer_admission_deadlines_ms.erase(peer_id)
 	lobby.add_player(peer_id)

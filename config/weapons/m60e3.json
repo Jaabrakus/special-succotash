@@ -22,17 +22,31 @@
     "muzzle_velocity_mps": 853.0,
     "reserve_ammo": 200.0
   },
-  "burst_size": 3,
+  "burst_size": 3.0,
   "catalog_source": "reCOM zweapon.rdr",
   "catalog_weapon_id": "m60e3",
   "category": "Machine Guns",
   "default_fire_mode": "auto",
   "display_name": "M60E3",
-  "encumbrance": 3,
+  "encumbrance": 3.0,
   "fire_modes": [
     "auto"
   ],
+  "grip_offset": {
+    "pos_x": 0.0,
+    "pos_y": 0.0,
+    "pos_z": 0.0,
+    "rot_x": 0.0,
+    "rot_y": 0.0,
+    "rot_z": 0.0
+  },
   "model_fbx": "res://assets/weapons/modular_pack/AssaultRifle2_1.fbx",
+  "model_rotation_degrees": {
+    "x": 0.0,
+    "y": 0.0,
+    "z": 0.0
+  },
+  "normalized_scale": 0.201400719192748,
   "recom_assets": {
     "icon_texture": "m60e.tif",
     "model_name": "m60e",
@@ -46,6 +60,39 @@
     "shot_kick_px": 20.0,
     "shot_kick_return": 40.0
   },
-  "socom_original_id": 91,
-  "weapon_id": "m60e3"
+  "socket_contract_authored": false,
+  "socom_original_id": 91.0,
+  "weapon_id": "m60e3",
+  "weapon_sockets": {
+    "barrel_base_socket": {
+      "x": -0.0104999989271164,
+      "y": 0.109999999403954,
+      "z": -0.125999987125397
+    },
+    "buttstock_socket": {
+      "x": -0.0104999989271164,
+      "y": 0.0799999982118607,
+      "z": -0.314999997615814
+    },
+    "ejection_port": {
+      "x": 0.0524999983608723,
+      "y": 0.0299999993294477,
+      "z": 0.0629999935626984
+    },
+    "left_hand_ik_target": {
+      "x": 0.209999993443489,
+      "y": -0.0299999993294477,
+      "z": 0.0
+    },
+    "muzzle_socket": {
+      "x": 0.73499995470047,
+      "y": 0.0199999995529652,
+      "z": 0.0
+    },
+    "optic_rail": {
+      "x": 0.0524999983608723,
+      "y": 0.0799999982118607,
+      "z": 0.0
+    }
+  }
 }

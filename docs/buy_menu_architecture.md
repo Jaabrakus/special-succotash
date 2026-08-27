@@ -20,8 +20,8 @@ Two constraint systems gate multiplayer purchases:
 
 The training range runs the same menu with the economy disabled: no cash, no
 window, no weight enforcement, so every catalog firearm can be tested freely.
-The menu opens with **B** while the operator stands in the equipment zone at
-the range spawn; everywhere else B toggles fire mode as before.
+The menu opens with **P** anywhere in the Training Range. Multiplayer limits
+the same menu to the server-controlled buy window. B remains the fire-mode key.
 
 ## Layers
 

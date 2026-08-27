@@ -114,6 +114,7 @@ static func sanitize_snapshot(packet: Dictionary) -> Dictionary:
 			"posture": clampi(int(data.get("posture", 0)), 0, 6),
 			"health": clampf(float(data.get("health", 100.0)), 0.0, 1000.0),
 			"alive": bool(data.get("alive", true)),
+			"weapon_id": String(data.get("weapon_id", "")).to_lower().strip_edges(),
 			"timestamp_ms": float(data.get("timestamp_ms", packet.get("timestamp_ms", 0.0))),
 		}
 	return {

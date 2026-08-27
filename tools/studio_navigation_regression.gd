@@ -21,8 +21,10 @@ func _run() -> void:
 	_expect(bool(initial.get("overlay_live", false)), "Home and history overlay remains outside lab scenes")
 	var registered: Dictionary = initial.get("registered_scenes", {})
 	_expect(registered.has("res://game_launcher.tscn"), "current game launcher is registered as Home")
+	_expect(registered.has("res://studio_workbench.tscn"), "Studio Workbench is registered")
 	_expect(registered.has("res://main.tscn"), "Camera and playable range is registered")
 	_expect(registered.has("res://animation_library_lab.tscn"), "Animation Studio is registered")
+	_expect(registered.has("res://operator_import_studio.tscn"), "Operator Import Studio is registered")
 	_expect(registered.has("res://gun_calibration_lab.tscn"), "Weapon Gunsmith is registered")
 	_expect(registered.has("res://keyboard_mapping_lab.tscn"), "Keyboard Mapping Lab is registered")
 	_expect(registered.has("res://map_creation_lab.tscn"), "Map Creation Lab is registered")
@@ -30,14 +32,18 @@ func _run() -> void:
 	navigation.call("open_scene", "res://game_launcher.tscn")
 	await scene_changed
 	await process_frame
-	var studio_button := current_scene.find_child("AnimationStudio", true, false) as Button
-	_expect(studio_button != null, "current game launcher exposes Animation Studio directly")
-	if studio_button != null:
-		studio_button.pressed.emit()
+	var workbench_button := current_scene.find_child("StudioWorkbench", true, false) as Button
+	_expect(workbench_button != null, "current game launcher exposes the complete Studio Workbench")
+	if workbench_button != null:
+		workbench_button.pressed.emit()
 		await scene_changed
 	else:
-		navigation.call("open_scene", "res://animation_library_lab.tscn")
+		navigation.call("open_scene", "res://studio_workbench.tscn")
 		await scene_changed
+	_expect(current_scene.find_child("OpenAnimation", true, false) != null, "Workbench exposes Animation Studio")
+	_expect(current_scene.find_child("OpenOperatorImport", true, false) != null, "Workbench exposes Operator Import")
+	_expect(current_scene.find_child("OpenWeapon", true, false) != null, "Workbench exposes Weapon Gunsmith")
+	_expect(current_scene.find_child("OpenMapCreation", true, false) != null, "Workbench exposes Map Creation")
 	var recorded: Dictionary = navigation.call("get_debug_state")
 	_expect(int(recorded.get("history_size", 0)) == 2, "Visited Studio pages are retained in order")
 	_expect(int(recorded.get("history_cursor", -1)) == 1, "History points at the current page")
@@ -54,7 +60,7 @@ func _run() -> void:
 	)
 	var backed: Dictionary = navigation.call("get_debug_state")
 	_expect(int(backed.get("history_cursor", -1)) == 0, "Back moves the history cursor without deleting forward history")
-	_expect(bool(backed.get("history_visible", false)), "History rail is visible on the current launcher")
+	_expect(not bool(backed.get("history_visible", true)), "History drawer stays collapsed on the player launcher")
 
 	_finish()
 

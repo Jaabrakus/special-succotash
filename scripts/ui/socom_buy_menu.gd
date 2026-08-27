@@ -224,6 +224,8 @@ func _build_detail_column() -> Control:
 	_detail_body = RichTextLabel.new()
 	_detail_body.bbcode_enabled = true
 	_detail_body.fit_content = true
+	_detail_body.focus_mode = Control.FOCUS_NONE
+	_detail_body.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_detail_body.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_detail_body.add_theme_font_size_override("normal_font_size", 13)
 	_detail_body.add_theme_color_override("default_color", PALETTE_TEXT)

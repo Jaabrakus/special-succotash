@@ -58,6 +58,7 @@ const DEFAULT_CLIPS: Dictionary = {
 	&"jump_up": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/jump up.fbx",
 	&"jump_loop": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/jump loop.fbx",
 	&"jump_down": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/jump down.fbx",
+	&"rifle_jump": "res://assets/animations/mixamo/rifle jump.fbx",
 	&"combat_fire": "res://assets/animations/mixamo/Shooter Pack/firing rifle.fbx",
 	&"crouch_fire": "res://assets/animations/mixamo/Crouch Rapid Fire.fbx",
 	&"reload": "res://assets/animations/mixamo/Reloading.fbx",

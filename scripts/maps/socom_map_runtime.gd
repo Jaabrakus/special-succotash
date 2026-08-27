@@ -1385,3 +1385,46 @@ static func _add_translucent_box(parent: Node3D, size: Vector3, color: Color, al
 	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	visual.material_override = material
 	parent.add_child(visual)
+
+
+## Bare training/lobby arena used when no authored map document is active.
+## Moved here from the world UI layer so all geometry building stays in the
+## map module.
+static func build_fallback_environment(parent: Node3D) -> void:
+	var environment := WorldEnvironment.new()
+	var settings := Environment.new()
+	settings.background_mode = Environment.BG_COLOR
+	settings.background_color = Color(0.09, 0.11, 0.14)
+	settings.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+	settings.ambient_light_color = Color(0.75, 0.78, 0.84)
+	settings.ambient_light_energy = 0.82
+	environment.environment = settings
+	parent.add_child(environment)
+	var sun := DirectionalLight3D.new()
+	sun.rotation_degrees = Vector3(-50.0, -30.0, 0.0)
+	sun.shadow_enabled = true
+	parent.add_child(sun)
+	_add_env_box(parent, "ArenaFloor", Vector3(22.0, 0.25, 26.0), Vector3(0.0, -0.125, -2.0), Color(0.31, 0.34, 0.38))
+	_add_env_box(parent, "CenterCover", Vector3(7.0, 1.15, 0.7), Vector3(0.0, 0.575, -2.0), Color(0.44, 0.40, 0.35))
+	_add_env_box(parent, "LeftCover", Vector3(0.7, 2.4, 5.0), Vector3(-5.2, 1.2, -2.0), Color(0.32, 0.36, 0.42))
+	_add_env_box(parent, "RightCover", Vector3(0.7, 2.4, 5.0), Vector3(5.2, 1.2, -2.0), Color(0.32, 0.36, 0.42))
+
+
+static func _add_env_box(parent: Node3D, node_name: String, size: Vector3, position: Vector3, color: Color) -> void:
+	var body := StaticBody3D.new()
+	body.name = node_name
+	body.position = position
+	var mesh := MeshInstance3D.new()
+	var box_mesh := BoxMesh.new()
+	box_mesh.size = size
+	mesh.mesh = box_mesh
+	var material := StandardMaterial3D.new()
+	material.albedo_color = color
+	mesh.material_override = material
+	body.add_child(mesh)
+	var collision := CollisionShape3D.new()
+	var shape := BoxShape3D.new()
+	shape.size = size
+	collision.shape = shape
+	body.add_child(collision)
+	parent.add_child(body)

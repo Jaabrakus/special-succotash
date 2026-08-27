@@ -3,8 +3,7 @@ extends Node
 
 ## Training-range driver for the buy menu. Free-issue sandbox: every catalog
 ## firearm is available with no cash, window, or carry-weight enforcement.
-## B opens the menu while the operator stands in the equipment zone at the
-## range spawn; everywhere else B keeps toggling fire mode. The menu itself
+## P opens the menu anywhere in the Training Range. The menu itself
 ## is a dumb view — this runtime owns input gating and performs the equip
 ## through the weapon controller's authorized pickup path.
 
@@ -12,14 +11,10 @@ const BuyMenuScript := preload("res://scripts/ui/socom_buy_menu.gd")
 const Validator := preload("res://scripts/economy/socom_purchase_validator.gd")
 
 const WEAPON_CONFIG_DIRECTORY := "res://config/weapons/"
-const EQUIPMENT_ZONE_RADIUS := 8.0
-
 var host
 var buy_menu
 var _layer: CanvasLayer
 var _loadout: Dictionary = {"primary": "", "secondary": ""}
-var _zone_center: Vector3 = Vector3.ZERO
-var _zone_captured: bool = false
 var _orbit_input_before_menu: bool = true
 var _mouse_was_captured: bool = true
 
@@ -40,9 +35,6 @@ func configure(host_root) -> void:
 	_layer.add_child(buy_menu)
 	buy_menu.purchase_requested.connect(_handle_purchase)
 	buy_menu.close_requested.connect(close_menu)
-	if host.player != null:
-		_zone_center = host.player.global_position
-		_zone_captured = true
 
 
 func is_open() -> bool:
@@ -50,7 +42,7 @@ func is_open() -> bool:
 
 
 ## Returns true when the event was consumed. Called first from the gameplay
-## HUD's unhandled-input chain so the shared B binding stays context-sensitive.
+## HUD's unhandled-input chain so the menu receives P before other overlays.
 func handle_unhandled_input(event: InputEvent) -> bool:
 	if buy_menu == null:
 		return false
@@ -59,7 +51,7 @@ func handle_unhandled_input(event: InputEvent) -> bool:
 			close_menu()
 			return true
 		return buy_menu.handle_unhandled_input(event)
-	if event.is_action_pressed(&"open_buy_menu") and _player_in_zone():
+	if event.is_action_pressed(&"open_buy_menu"):
 		open_menu()
 		return true
 	return false
@@ -90,12 +82,6 @@ func close_menu() -> void:
 	Input.mouse_mode = (
 		Input.MOUSE_MODE_CAPTURED if _mouse_was_captured else Input.MOUSE_MODE_VISIBLE
 	)
-
-
-func _player_in_zone() -> bool:
-	if not _zone_captured or host.player == null:
-		return false
-	return host.player.global_position.distance_to(_zone_center) <= EQUIPMENT_ZONE_RADIUS
 
 
 func _refresh_menu_state() -> void:

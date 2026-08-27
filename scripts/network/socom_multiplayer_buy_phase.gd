@@ -21,6 +21,7 @@ var local_cash: int = 0
 var local_loadout: Dictionary = {"primary": "", "secondary": ""}
 var local_buy_window_remaining: float = 0.0
 var local_buy_phase_open: bool = false
+var presented_weapon_id_by_peer: Dictionary = {}
 # Assigned by the world_ui layer; receives phase/cash pushes for the menu.
 var buy_menu_driver
 
@@ -78,8 +79,9 @@ func _advance_round_clock(delta: float) -> void:
 	super._advance_round_clock(delta)
 
 
-func _server_finish_round(winner_team: int, reason: String) -> void:
-	if multiplayer.is_server() and winner_team in [0, 1]:
+func _on_round_resolution_started(winner_team: int) -> void:
+	super._on_round_resolution_started(winner_team)
+	if winner_team in [0, 1]:
 		for raw_id: Variant in operators.keys():
 			var peer_id := int(raw_id)
 			var operator := operators[raw_id] as SocomNetworkOperator
@@ -95,7 +97,23 @@ func _server_finish_round(winner_team: int, reason: String) -> void:
 				int(peer_cash.get(peer_id, 0)) + award
 			)
 			_send_cash_state(peer_id)
-	super._server_finish_round(winner_team, reason)
+
+
+func _server_return_to_lobby(last_winner_team: int) -> void:
+	buy_phase_active = false
+	buy_time_remaining = 0.0
+	_broadcast_buy_phase()
+	super._server_return_to_lobby(last_winner_team)
+
+
+func _award_objective_cash(peer_id: int) -> void:
+	if not multiplayer.is_server() or not operators.has(peer_id):
+		return
+	peer_cash[peer_id] = mini(
+		Economy.maximum_cash(),
+		int(peer_cash.get(peer_id, 0)) + Economy.round_award("objective_plant_or_defuse")
+	)
+	_send_cash_state(peer_id)
 
 
 func _on_operator_eliminated(victim_peer_id: int, attacker_peer_id: int) -> void:
@@ -123,7 +141,7 @@ func _send_cash_state(peer_id: int) -> void:
 	var cash := int(peer_cash.get(peer_id, 0))
 	if peer_id == multiplayer.get_unique_id():
 		receive_cash_state(cash)
-	else:
+	elif multiplayer.multiplayer_peer != null and peer_id in multiplayer.get_peers():
 		receive_cash_state.rpc_id(peer_id, cash)
 
 
@@ -135,6 +153,10 @@ func _weapon_config_for_peer(peer_id: int) -> Dictionary:
 		return super._weapon_config_for_peer(peer_id)
 	var config := WeaponContract.load_config(WEAPON_CONFIG_DIRECTORY + weapon_id + ".json")
 	return config if not config.is_empty() else super._weapon_config_for_peer(peer_id)
+
+
+func _weapon_id_for_peer(peer_id: int) -> String:
+	return String(server_equipped_weapon_id.get(peer_id, _default_weapon_id()))
 
 
 func _reset_ammo_for_peer(peer_id: int) -> void:
@@ -193,6 +215,7 @@ func _server_handle_purchase(peer_id: int, weapon_id: String) -> void:
 	peer_loadout[peer_id] = applied.get("loadout", {})
 	server_equipped_weapon_id[peer_id] = clean_id
 	var weapon_config := _weapon_config_for_peer(peer_id)
+	_apply_operator_weapon_presentation(peer_id, weapon_config)
 	var ballistics = server_ballistics.get(peer_id)
 	if ballistics != null:
 		_apply_ballistics_profile(ballistics, weapon_config)
@@ -204,6 +227,26 @@ func _server_handle_purchase(peer_id: int, weapon_id: String) -> void:
 	_send_purchase_result(
 		peer_id, true, "", clean_id, peer_loadout[peer_id]
 	)
+
+
+func _apply_operator_weapon_presentation(peer_id: int, weapon_config: Dictionary) -> void:
+	var operator := operators.get(peer_id) as SocomNetworkOperator
+	if (
+		operator != null
+		and operator.mannequin != null
+		and operator.mannequin.has_method("notify_operator_weapon_equipped")
+	):
+		operator.mannequin.call("notify_operator_weapon_equipped", weapon_config)
+
+
+func _apply_replicated_weapon_presentation(peer_id: int, weapon_id: String) -> void:
+	if weapon_id.is_empty() or String(presented_weapon_id_by_peer.get(peer_id, "")) == weapon_id:
+		return
+	var config := WeaponContract.load_config(WEAPON_CONFIG_DIRECTORY + weapon_id + ".json")
+	if config.is_empty():
+		return
+	_apply_operator_weapon_presentation(peer_id, config)
+	presented_weapon_id_by_peer[peer_id] = weapon_id
 
 
 func _send_purchase_result(

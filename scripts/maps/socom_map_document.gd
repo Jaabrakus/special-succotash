@@ -352,6 +352,7 @@ static func normalize(document: Dictionary) -> Dictionary:
 		"grid_size": clampf(float(document.get("grid_size", 0.5)), 0.125, 4.0),
 		"environment": normalize_environment(document.get("environment", {})),
 		"gameplay": normalize_gameplay(document.get("gameplay", {})),
+		"lore": normalize_lore(document.get("lore", {})),
 		"objects": [],
 	}
 	if String(result["map_id"]).is_empty():
@@ -442,27 +443,41 @@ static func default_gameplay() -> Dictionary:
 	}
 
 
+const SUPPORTED_PRIMARY_MODES: Array[String] = [
+	"demolition", "team_deathmatch", "gunfight",
+]
+const SUPPORTED_TIMEOUT_RESULTS: Array[String] = [
+	"draw", "alpha", "bravo", "overtime_flag",
+]
+const SUPPORTED_LOADOUT_MODES: Array[String] = [
+	"economy", "rotation", "fixed_allowance",
+]
+
+
 static func normalize_gameplay(value: Variant) -> Dictionary:
 	var source := value as Dictionary if value is Dictionary else {}
 	var primary_mode := String(source.get("primary_mode", "demolition"))
-	if primary_mode not in ["demolition", "team_deathmatch"]:
+	if primary_mode not in SUPPORTED_PRIMARY_MODES:
 		primary_mode = "demolition"
 	var supported: Array = source.get("supported_modes", [primary_mode])
 	var clean_supported: Array[String] = []
 	for mode: Variant in supported:
 		var mode_name := String(mode)
-		if mode_name in ["demolition", "team_deathmatch"] and mode_name not in clean_supported:
+		if mode_name in SUPPORTED_PRIMARY_MODES and mode_name not in clean_supported:
 			clean_supported.append(mode_name)
 	if primary_mode not in clean_supported:
 		clean_supported.push_front(primary_mode)
 	var maximum_rounds := clampi(int(source.get("maximum_rounds", 7)), 1, 25)
 	var timeout_result := String(source.get("round_timeout_result", "draw"))
-	if timeout_result not in ["draw", "alpha", "bravo"]:
+	if timeout_result not in SUPPORTED_TIMEOUT_RESULTS:
 		timeout_result = "draw"
+	var loadout_mode := String(source.get("loadout_mode", "economy"))
+	if loadout_mode not in SUPPORTED_LOADOUT_MODES:
+		loadout_mode = "economy"
 	return {
 		"primary_mode": primary_mode,
 		"supported_modes": clean_supported,
-		"round_time_seconds": clampi(int(source.get("round_time_seconds", 300)), 60, 1800),
+		"round_time_seconds": clampi(int(source.get("round_time_seconds", 300)), 30, 1800),
 		"maximum_rounds": maximum_rounds,
 		"rounds_to_win": clampi(int(source.get("rounds_to_win", 4)), 1, maximum_rounds),
 		"elimination_wins_round": bool(source.get("elimination_wins_round", true)),
@@ -472,6 +487,30 @@ static func normalize_gameplay(value: Variant) -> Dictionary:
 		"plant_time_seconds": clampf(float(source.get("plant_time_seconds", 5.0)), 1.0, 20.0),
 		"defuse_time_seconds": clampf(float(source.get("defuse_time_seconds", 5.0)), 1.0, 20.0),
 		"respawns_enabled": bool(source.get("respawns_enabled", primary_mode == "team_deathmatch")),
+		"loadout_mode": loadout_mode,
+		"fixed_allowance_amount": clampi(int(source.get("fixed_allowance_amount", 2500)), 0, 16000),
+		"overtime_flag_radius_m": clampf(float(source.get("overtime_flag_radius_m", 2.5)), 1.0, 8.0),
+		"overtime_hold_seconds": clampf(float(source.get("overtime_hold_seconds", 3.0)), 1.0, 10.0),
+	}
+
+
+static func normalize_lore(value: Variant) -> Dictionary:
+	# The five words of the Square (docs/SQUARE_DESIGN_LANGUAGE.md). This is a
+	# schema whitelist like SUPPORTED_TYPES; SocomTeamNomenclature holds the
+	# runtime copy and square_regression.gd pins the two together.
+	var valid_houses: Array[String] = ["SATOR", "AREPO", "TENET", "OPERA", "ROTAS"]
+	var source := value as Dictionary if value is Dictionary else {}
+	var axis := String(source.get("axis", "default"))
+	if axis not in ["default", "alternate", "classic"]:
+		axis = "default"
+	var house := String(source.get("house", "")).to_upper()
+	if house not in valid_houses:
+		house = ""
+	var brief := String(source.get("brief", "")).strip_edges().substr(0, 160)
+	return {
+		"axis": axis,
+		"house": house,
+		"brief": brief,
 	}
 
 

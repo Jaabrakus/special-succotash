@@ -38,14 +38,14 @@
     "muzzle_velocity_mps": 393.0,
     "reserve_ammo": 36.0
   },
-  "burst_size": 3,
+  "burst_size": 3.0,
   "camo_skin": "Factory Classic (Wood & Steel)",
   "catalog_source": "reCOM zweapon.rdr",
   "catalog_weapon_id": "mk_3-a2",
   "category": "Shotguns",
   "default_fire_mode": "semi",
   "display_name": "MK 3-A2",
-  "encumbrance": 1,
+  "encumbrance": 1.0,
   "fire_modes": [
     "semi",
     "auto"
@@ -59,7 +59,7 @@
     "rot_z": 0.0
   },
   "model_fbx": "res://assets/weapons/modular_pack/Shotgun_1.fbx",
-  "normalized_scale": 1.0,
+  "normalized_scale": 0.201494561259859,
   "recom_assets": {
     "icon_texture": "jackhammer_icon.tif",
     "model_name": "jackhammer",
@@ -75,7 +75,7 @@
   },
   "scope_attachment": "None",
   "silencer_attachment": "None",
-  "socom_original_id": 83,
+  "socom_original_id": 83.0,
   "socom_recom_data": {
     "ammo_spec": {
       "impact_damage": 1.4,

@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "purpose": "Curated loadout pairs for the Gunfight rotation ruleset. Both teams receive the SAME primary+secondary pair each round; the server picks the pair, so balance is a content decision, not a meta decision. Every id must be a catalog firearm with an authored profile in config/weapons/.",
+  "pairs": [
+    ["m16a2", "m9"],
+    ["ak-47", "226"],
+    ["m4a1", "f57"],
+    ["552", "9mm_pistol"],
+    ["aks-74", "model_18"],
+    ["m14", "mark_23"],
+    ["hk5", "de__50"],
+    ["9mm_sub", "m9"],
+    ["f90", "226"],
+    ["870", "f57"],
+    ["mk_3-a2", "mark_23"],
+    ["sr-25", "9mm_pistol"],
+    ["sr-25_sd", "m9"],
+    ["m40a1", "model_18"],
+    ["m4a1_sd", "f57"],
+    ["hk5sd", "226"],
+    ["m60e3", "m9"],
+    ["m63a", "9mm_pistol"],
+    ["mark_46_mod_0", "f57"],
+    ["m82a1a", "de__50"],
+    ["m87elr", "mark_23"]
+  ]
+}

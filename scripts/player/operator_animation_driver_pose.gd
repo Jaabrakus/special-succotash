@@ -57,6 +57,14 @@ func _select_visual_clip() -> StringName:
 	if movement_state == &"ROLLING":
 		return &"roll"
 	if movement_state == &"AIRBORNE":
+		# A moving jump uses the weapon family's authored whole-body jump. A
+		# stationary jump keeps the existing up/loop/down vertical phases.
+		if _locomotion_active:
+			var moving_jump := StringName(
+				(equipped_weapon_handling_profile.get("locomotion_slots", {}) as Dictionary).get("jump", "")
+			)
+			if moving_jump != &"" and available_clips.has(moving_jump):
+				return moving_jump
 		if vertical_speed > 1.0:
 			return &"jump_up"
 		if vertical_speed < -1.0:

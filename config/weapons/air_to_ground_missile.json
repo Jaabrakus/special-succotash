@@ -38,14 +38,14 @@
     "muzzle_velocity_mps": 0.0,
     "reserve_ammo": 6.0
   },
-  "burst_size": 3,
+  "burst_size": 3.0,
   "camo_skin": "Factory Classic (Wood & Steel)",
   "catalog_source": "reCOM zweapon.rdr",
   "catalog_weapon_id": "air_to_ground_missile",
   "category": "Assault Rifles",
   "default_fire_mode": "semi",
   "display_name": "air_to_ground_missile",
-  "encumbrance": 4,
+  "encumbrance": 4.0,
   "fire_modes": [
     "semi"
   ],
@@ -58,7 +58,7 @@
     "rot_z": 0.0
   },
   "model_fbx": "res://assets/weapons/modular_pack/AssaultRifle_2.fbx",
-  "normalized_scale": 1.0,
+  "normalized_scale": 0.173257508107346,
   "recom_assets": {
     "icon_texture": "(null",
     "model_name": "grenade",
@@ -74,7 +74,7 @@
   },
   "scope_attachment": "None",
   "silencer_attachment": "None",
-  "socom_original_id": 155,
+  "socom_original_id": 155.0,
   "socom_recom_data": {
     "ammo_spec": {
       "impact_damage": 2.3,

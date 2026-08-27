@@ -113,6 +113,10 @@ func receive_world_state(snapshot_packet: Dictionary, score_snapshot: Dictionary
 		if operator == null:
 			continue
 		var state: Dictionary = entities[raw_id]
+		_apply_replicated_weapon_presentation(
+			peer_id,
+			String(state.get("weapon_id", ""))
+		)
 		if peer_id == local_id:
 			pending_snapshots[raw_id] = state
 		else:

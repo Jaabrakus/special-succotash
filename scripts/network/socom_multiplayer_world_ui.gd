@@ -1,11 +1,12 @@
 extends "res://scripts/network/socom_multiplayer_objectives.gd"
 
 const BuyMenuScript := preload("res://scripts/ui/socom_buy_menu.gd")
-
+const TeamNomenclature := preload("res://scripts/network/socom_team_nomenclature.gd")
 var buy_menu: SocomBuyMenu
 var _buy_menu_layer: CanvasLayer
 var _buy_menu_mouse_was_captured: bool = true
 var _buy_menu_window_remaining: float = 0.0
+var _buy_menu_dismissed_for_window: bool = false
 
 
 func _disconnect_existing_peer() -> void:
@@ -19,7 +20,10 @@ func _disconnect_existing_peer() -> void:
 	round_resolution_pending = false
 	buy_phase_active = false
 	local_buy_phase_open = false
-	_close_buy_menu()
+	_overtime_active = false
+	_buy_menu_dismissed_for_window = false
+	_close_buy_menu(false)
+	multiplayer_hud.clear_round_strip()
 	lobby_countdown_remaining = 0.0
 	_reset_demolition_objective()
 	if multiplayer_hud != null: multiplayer_hud.clear_host_invite()
@@ -27,10 +31,30 @@ func _disconnect_existing_peer() -> void:
 
 func _build_environment() -> void:
 	active_map_document = MapDocument.load_active()
+	var launch_mode := String(ProjectSettings.get_setting("socom/session/match_mode", ""))
+	if launch_mode == "gunfight":
+		# The ruleset travels inside the map document so every admitted peer
+		# receives the identical gameplay block through receive_server_map.
+		var ruleset := load_ruleset_gameplay()
+		if not ruleset.is_empty():
+			if active_map_document.is_empty():
+				active_map_document = {"map_id": "gunfight_ruleset", "objects": []}
+			active_map_document["gameplay"] = ruleset
+	ProjectSettings.set_setting("socom/session/match_mode", "")
+	# Scale plumbing: the launcher's players-per-side becomes the admission
+	# cap (both sides, host included). Tournament lobbies preset a wide side.
+	var players_per_side := clampi(int(ProjectSettings.get_setting("socom/session/players_per_side", 8)), 1, 16)
+	ProjectSettings.set_setting("socom/session/players_per_side", 8)
+	ProjectSettings.set_setting("socom/session/max_match_players", clampi(players_per_side * 2, 2, MAX_PLAYERS))
+	ProjectSettings.set_setting(
+		"socom/session/room_title",
+		"%dV%d %s ROOM" % [players_per_side, players_per_side, "GUNFIGHT" if launch_mode != "" else "DEMOLITION"]
+	)
 	if not active_map_document.is_empty() and bool(active_map_document.get("enabled", true)):
 		_apply_multiplayer_map(active_map_document)
 		return
-	_build_fallback_environment()
+	_apply_team_nomenclature()
+	MapRuntime.build_fallback_environment(self)
 
 
 func _apply_multiplayer_map(document: Dictionary) -> void:
@@ -56,8 +80,19 @@ func _apply_multiplayer_map(document: Dictionary) -> void:
 	bomb_site_positions[1] = (layout.get("bravo_targets", []) as Array).duplicate()
 	mission_rules = MapGameplay.mission_rules(active_map_document)
 	round_rules = MapGameplay.round_rules(active_map_document)
+	_apply_team_nomenclature()
 	_build_objective_beacons()
 	_refresh_lobby_ui()
+
+
+## The Square opens with the match: the map's declared axis becomes the team
+## words everywhere in-match. The lobby keeps ALPHA/BRAVO — faces are revealed
+## when play begins. Never changes team ids.
+func _apply_team_nomenclature() -> void:
+	var labels := TeamNomenclature.labels_for_document(active_map_document)
+	team_labels = {0: labels[0], 1: labels[1]}
+	if multiplayer_hud != null:
+		multiplayer_hud.set_team_labels(labels[0], labels[1])
 
 
 func _build_objective_beacons() -> void:
@@ -70,9 +105,9 @@ func _build_objective_beacons() -> void:
 	for position: Vector3 in bomb_pickup_positions:
 		_add_objective_beacon(root, position, Color("f4d34f"), "BOMB PICKUP")
 	for raw_position: Variant in bomb_site_positions.get(0, []):
-		_add_objective_beacon(root, Vector3(raw_position), Color("4fa3ff"), "ALPHA TARGET")
+		_add_objective_beacon(root, Vector3(raw_position), Color("4fa3ff"), "%s TARGET" % team_labels[0])
 	for raw_position: Variant in bomb_site_positions.get(1, []):
-		_add_objective_beacon(root, Vector3(raw_position), Color("ff655e"), "BRAVO TARGET")
+		_add_objective_beacon(root, Vector3(raw_position), Color("ff655e"), "%s TARGET" % team_labels[1])
 	if not bomb_pickup_positions.is_empty():
 		bomb_visual = DemolitionBombScene.instantiate() as Node3D
 		bomb_visual.name = "DemolitionBombVisual"
@@ -135,46 +170,6 @@ func _update_bomb_visual() -> void:
 		bomb_visual.call("set_bomb_state", &"AVAILABLE", 0.0)
 
 
-func _build_fallback_environment() -> void:
-	var environment := WorldEnvironment.new()
-	var settings := Environment.new()
-	settings.background_mode = Environment.BG_COLOR
-	settings.background_color = Color(0.09, 0.11, 0.14)
-	settings.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	settings.ambient_light_color = Color(0.75, 0.78, 0.84)
-	settings.ambient_light_energy = 0.82
-	environment.environment = settings
-	add_child(environment)
-	var sun := DirectionalLight3D.new()
-	sun.rotation_degrees = Vector3(-50.0, -30.0, 0.0)
-	sun.shadow_enabled = true
-	add_child(sun)
-	_add_box("ArenaFloor", Vector3(22.0, 0.25, 26.0), Vector3(0.0, -0.125, -2.0), Color(0.31, 0.34, 0.38))
-	_add_box("CenterCover", Vector3(7.0, 1.15, 0.7), Vector3(0.0, 0.575, -2.0), Color(0.44, 0.40, 0.35))
-	_add_box("LeftCover", Vector3(0.7, 2.4, 5.0), Vector3(-5.2, 1.2, -2.0), Color(0.32, 0.36, 0.42))
-	_add_box("RightCover", Vector3(0.7, 2.4, 5.0), Vector3(5.2, 1.2, -2.0), Color(0.32, 0.36, 0.42))
-
-
-func _add_box(node_name: String, size: Vector3, position: Vector3, color: Color) -> void:
-	var body := StaticBody3D.new()
-	body.name = node_name
-	body.position = position
-	var mesh := MeshInstance3D.new()
-	var box_mesh := BoxMesh.new()
-	box_mesh.size = size
-	mesh.mesh = box_mesh
-	var material := StandardMaterial3D.new()
-	material.albedo_color = color
-	mesh.material_override = material
-	body.add_child(mesh)
-	var collision := CollisionShape3D.new()
-	var shape := BoxShape3D.new()
-	shape.size = size
-	collision.shape = shape
-	body.add_child(collision)
-	add_child(body)
-
-
 func _build_ui() -> void:
 	multiplayer_hud = MultiplayerHUDScript.new()
 	multiplayer_hud.name = "MultiplayerHUD"
@@ -206,10 +201,36 @@ func _build_ui() -> void:
 	exit_menu.launch_studio_requested.connect(_leave_to_studio)
 	add_child(exit_menu)
 	_build_buy_menu()
+	multiplayer_hud.build_round_strip()
+	# Environment (and its axis) is applied before the UI exists; re-apply the
+	# resolved team words so the HUD and strip never show a stale default.
+	multiplayer_hud.set_team_labels(team_labels[0], team_labels[1])
 	_refresh_scoreboard()
 	_refresh_player_state()
 	_refresh_match_clock()
 	_refresh_objective_status()
+
+
+func receive_round_state(
+	time_remaining: float,
+	alpha_rounds: int,
+	bravo_rounds: int,
+	current_round: int,
+	active: bool
+) -> void:
+	super.receive_round_state(time_remaining, alpha_rounds, bravo_rounds, current_round, active)
+	multiplayer_hud.update_round_strip(
+		time_remaining,
+		alpha_rounds,
+		bravo_rounds,
+		current_round,
+		active,
+		int(round_rules.get("rounds_to_win", 6)),
+		int(round_rules.get("maximum_rounds", 11)),
+		_overtime_active,
+		buy_phase_active and local_buy_phase_open,
+		local_buy_window_remaining
+	)
 
 
 func _build_buy_menu() -> void:
@@ -224,7 +245,7 @@ func _build_buy_menu() -> void:
 	buy_menu.economy_enabled = true
 	_buy_menu_layer.add_child(buy_menu)
 	buy_menu.purchase_requested.connect(_on_buy_menu_purchase_requested)
-	buy_menu.close_requested.connect(_close_buy_menu)
+	buy_menu.close_requested.connect(_on_buy_menu_close_requested)
 	buy_menu_driver = self
 
 
@@ -232,10 +253,16 @@ func on_buy_phase(open: bool, seconds_remaining: float) -> void:
 	_buy_menu_window_remaining = seconds_remaining
 	if buy_menu == null:
 		return
-	if open and session_active and local_operator != null:
+	if not open:
+		_buy_menu_dismissed_for_window = false
+		_close_buy_menu(false)
+	elif (
+		session_active
+		and local_operator != null
+		and not _buy_menu_dismissed_for_window
+		and (exit_menu == null or not exit_menu.is_open())
+	):
 		_open_buy_menu()
-	elif not open:
-		_close_buy_menu()
 
 
 func on_purchase_result(_ok: bool, _reason: String) -> void:
@@ -251,7 +278,13 @@ func _open_buy_menu() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 
-func _close_buy_menu() -> void:
+func _on_buy_menu_close_requested() -> void:
+	_close_buy_menu(true)
+
+
+func _close_buy_menu(dismiss_for_window: bool = false) -> void:
+	if dismiss_for_window and local_buy_phase_open:
+		_buy_menu_dismissed_for_window = true
 	if buy_menu == null or not buy_menu.is_open():
 		return
 	buy_menu.close_menu()
@@ -284,7 +317,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if buy_menu != null and session_active:
 		if buy_menu.is_open():
 			if event.is_action_pressed(&"open_buy_menu"):
-				_close_buy_menu()
+				_close_buy_menu(true)
 				get_viewport().set_input_as_handled()
 				return
 			if buy_menu.handle_unhandled_input(event):
@@ -294,6 +327,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			event.is_action_pressed(&"open_buy_menu")
 			and local_buy_phase_open
 			and local_operator != null
+			and (exit_menu == null or not exit_menu.is_open())
 		):
 			_open_buy_menu()
 			get_viewport().set_input_as_handled()
@@ -315,6 +349,9 @@ func _leave_to_studio() -> void:
 	else:
 		get_tree().change_scene_to_file("res://game_launcher.tscn")
 func _show_lobby(enabled: bool) -> void:
+	if enabled:
+		_buy_menu_dismissed_for_window = false
+		_close_buy_menu(false)
 	if multiplayer_hud == null:
 		return
 	multiplayer_hud.show_lobby(enabled, session_active)

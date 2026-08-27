@@ -38,14 +38,14 @@
     "muzzle_velocity_mps": 991.0,
     "reserve_ammo": 90.0
   },
-  "burst_size": 3,
+  "burst_size": 3.0,
   "camo_skin": "Factory Classic (Wood & Steel)",
   "catalog_source": "reCOM zweapon.rdr",
   "catalog_weapon_id": "m16a2-m203",
   "category": "Assault Rifles",
   "default_fire_mode": "semi",
   "display_name": "M16A2-M203",
-  "encumbrance": 2,
+  "encumbrance": 2.0,
   "fire_modes": [
     "semi",
     "burst"
@@ -59,7 +59,7 @@
     "rot_z": 0.0
   },
   "model_fbx": "res://assets/weapons/modular_pack/AssaultRifle_2.fbx",
-  "normalized_scale": 1.0,
+  "normalized_scale": 0.173258525981846,
   "recom_assets": {
     "icon_texture": "m16a203_icon.tif",
     "model_name": "m16_M203",
@@ -75,7 +75,7 @@
   },
   "scope_attachment": "None",
   "silencer_attachment": "None",
-  "socom_original_id": 52,
+  "socom_original_id": 52.0,
   "socom_recom_data": {
     "ammo_spec": {
       "impact_damage": 2.3,

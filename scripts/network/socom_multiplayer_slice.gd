@@ -1,5 +1,5 @@
 class_name SocomMultiplayerSlice
-extends "res://scripts/network/socom_multiplayer_world_ui.gd"
+extends "res://scripts/network/socom_multiplayer_tournament.gd"
 
 # RPC annotations must live on the concrete scene script. These thin
 # forwarders preserve the wire contract while feature layers own logic.

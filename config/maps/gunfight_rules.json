@@ -1,0 +1,20 @@
+{
+  "map_id": "gunfight_ruleset",
+  "display_name": "Gunfight Ruleset",
+  "purpose": "Gameplay ruleset merged onto any hosted map when Gunfight mode is selected in the launcher. Geometry comes from the chosen map; only the gameplay block matters here.",
+  "gameplay": {
+    "primary_mode": "gunfight",
+    "supported_modes": ["gunfight"],
+    "round_time_seconds": 40,
+    "maximum_rounds": 11,
+    "rounds_to_win": 6,
+    "elimination_wins_round": true,
+    "bomb_detonation_wins_round": false,
+    "round_timeout_result": "overtime_flag",
+    "respawns_enabled": false,
+    "loadout_mode": "rotation",
+    "fixed_allowance_amount": 2500,
+    "overtime_flag_radius_m": 2.5,
+    "overtime_hold_seconds": 3.0
+  }
+}

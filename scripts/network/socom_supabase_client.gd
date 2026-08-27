@@ -6,6 +6,7 @@ extends Node
 
 const MapDocument := preload("res://scripts/maps/socom_map_document.gd")
 const MapAssetLibrary := preload("res://scripts/maps/socom_map_asset_library.gd")
+const SessionCompatibility := preload("res://scripts/network/socom_session_compatibility.gd")
 const CONFIG_PATH := "res://config/supabase.json"
 const SESSION_PATH := "user://supabase_guest_session.json"
 const CLOUD_LINKS_PATH := "user://community_map_links.json"
@@ -88,6 +89,27 @@ func list_public_maps() -> Dictionary:
 		return {"ok": false, "message": _response_message(response), "maps": []}
 	var rows: Array = response.get("data", []) if response.get("data", []) is Array else []
 	return {"ok": true, "message": "%d community maps found." % rows.size(), "maps": rows}
+
+
+func list_match_servers() -> Dictionary:
+	if not is_configured():
+		return {"ok": false, "message": "Match service is not configured.", "servers": []}
+	var identity := await ensure_guest_session()
+	if not bool(identity.get("ok", false)):
+		return {"ok": false, "message": String(identity.get("message", "Identity unavailable.")), "servers": []}
+	var path := (
+		"/rest/v1/match_servers"
+		+ "?select=id,name,region,public_address,public_port,game_build,capacity,status,last_heartbeat_at,protocol_version,accepting_players,current_players"
+		+ "&game_build=eq.%s&protocol_version=eq.%d&order=current_players.asc,name.asc&limit=50"
+	) % [
+		SessionCompatibility.local_build().uri_encode(),
+		SessionCompatibility.PROTOCOL_VERSION,
+	]
+	var response := await _request_json(path, HTTPClient.METHOD_GET, null, true)
+	if not bool(response.get("ok", false)):
+		return {"ok": false, "message": _response_message(response), "servers": []}
+	var rows: Array = response.get("data", []) if response.get("data", []) is Array else []
+	return {"ok": true, "message": "%d compatible servers online." % rows.size(), "servers": rows}
 
 
 func publish_map(map_document: Dictionary) -> Dictionary:

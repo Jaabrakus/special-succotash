@@ -252,6 +252,7 @@ func _broadcast_authoritative_state() -> void:
 			"posture": operator.posture,
 			"health": operator.current_health,
 			"alive": operator.alive,
+			"weapon_id": _weapon_id_for_peer(int(raw_id)),
 		}
 	var chunks := NetworkProtocol.chunk_snapshot_entities(
 		snapshot,

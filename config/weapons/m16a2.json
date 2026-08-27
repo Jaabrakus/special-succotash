@@ -60,10 +60,10 @@
           "y": -0.18940544128418,
           "z": -0.202089607715607
         },
-	        "left_hand_target": {
-	          "x": -0.00752294063568115,
-	          "y": 0.0161714553833008,
-	          "z": 0.454770445823669
+        "left_hand_target": {
+          "x": -0.00752294063568115,
+          "y": 0.0161714553833008,
+          "z": 0.454770445823669
         },
         "posture": "STANDING",
         "right_elbow_pole": {
@@ -336,10 +336,10 @@
   "animation_hand_maps": {
     "aim_idle": {
       "finger_curl": 1.0,
-	      "left_grip": {
-	        "x": -0.00752294063568115,
-	        "y": 0.0161714553833008,
-	        "z": 0.454770445823669
+      "left_grip": {
+        "x": -0.00752294063568115,
+        "y": 0.0161714553833008,
+        "z": 0.454770445823669
       },
       "palm_pitch_deg": -24.35,
       "palm_roll_deg": 104.75,
@@ -371,9 +371,9 @@
     "gunsmith_catalog_4031626968": {
       "finger_curl": 1.0,
       "left_grip": {
-	        "x": -0.00334209203720093,
-	        "y": 0.0764622688293457,
-	        "z": 0.339702010154724
+        "x": -0.00334209203720093,
+        "y": 0.0764622688293457,
+        "z": 0.339702010154724
       },
       "palm_pitch_deg": -24.35,
       "palm_roll_deg": 104.75,
@@ -422,9 +422,9 @@
     "res://assets/animations/mixamo/Climbing.fbx": {
       "finger_curl": 1.0,
       "left_grip": {
-	        "x": -0.00334209203720093,
-	        "y": 0.0764622688293457,
-	        "z": 0.339702010154724
+        "x": -0.00334209203720093,
+        "y": 0.0764622688293457,
+        "z": 0.339702010154724
       },
       "palm_pitch_deg": -24.35,
       "palm_roll_deg": 104.75,
@@ -451,22 +451,22 @@
     "crouch_bloom_recovery_speed": 16.5,
     "crouch_max_recoil_bloom_deg": 1.0,
     "crouch_spread_multiplier": 0.72,
-    "damage": 37,
+    "damage": 37.0,
     "effective_range_m": 600.0,
-    "fire_rate_rpm": 600,
+    "fire_rate_rpm": 600.0,
     "full_gait_spread_deg": 1.543,
     "functional_aim_climb_enabled": false,
     "headshot_multiplier": 3.5,
     "is_silenced": false,
-    "magazine_capacity": 30,
+    "magazine_capacity": 30.0,
     "max_range_m": 1200.0,
     "max_recoil_bloom_deg": 2.6,
     "moving_spread_deg": 1.029,
     "muzzle_velocity_mps": 948.0,
     "opening_burst_motion_multiplier": 0.35,
-    "reserve_ammo": 90
+    "reserve_ammo": 90.0
   },
-  "burst_size": 3,
+  "burst_size": 3.0,
   "camo_skin": "Factory Classic (Wood & Steel)",
   "catalog_source": "reCOM zweapon.rdr",
   "catalog_weapon_id": "m16a2",
@@ -528,9 +528,9 @@
           "z": -0.202089607715607
         },
         "right": {
-	          "x": 0.245000004768372,
-	          "y": -0.26656174659729,
-	          "z": 0.0799999982118607
+          "x": 0.245000004768372,
+          "y": -0.26656174659729,
+          "z": 0.0799999982118607
         }
       }
     },
@@ -540,12 +540,12 @@
       "z": -0.202089607715607
     },
     "right": {
-	      "x": 0.245000004768372,
-	      "y": -0.26656174659729,
-	      "z": 0.0799999982118607
+      "x": 0.245000004768372,
+      "y": -0.26656174659729,
+      "z": 0.0799999982118607
     }
   },
-  "encumbrance": 1,
+  "encumbrance": 1.0,
   "fire_modes": [
     "semi",
     "burst"
@@ -692,7 +692,7 @@
     "y": -90.0,
     "z": 0.0
   },
-  "normalized_scale": 0.20587466481428,
+  "normalized_scale": 0.328772936500451,
   "operator_mount": {
     "position": {
       "x": -0.0199999995529652,
@@ -721,11 +721,11 @@
     "shot_kick_px": 20.0,
     "shot_kick_return": 40.0
   },
-  "schema_version": 3,
+  "schema_version": 3.0,
   "scope_attachment": "None",
   "silencer_attachment": "None",
   "socket_contract_authored": true,
-  "socom_original_id": 51,
+  "socom_original_id": 51.0,
   "stances": {
     "CROUCHED": {
       "finger_curl": 1.0,

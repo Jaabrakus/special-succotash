@@ -88,9 +88,12 @@ func _server_finish_round(winner_team: int, reason: String) -> void:
 		return
 	round_resolution_pending = true
 	round_active = false
+	_on_round_resolution_started(winner_team)
 	if winner_team in [0, 1]:
 		team_round_wins[winner_team] = int(team_round_wins.get(winner_team, 0)) + 1
-	var winner_text := "DRAW" if winner_team < 0 else ("ALPHA" if winner_team == 0 else "BRAVO")
+	var winner_text: String = (
+		"DRAW" if winner_team < 0 else String(team_labels.get(winner_team, "ALPHA"))
+	)
 	var message := "%s ROUND  •  %s  •  resetting in 4 seconds" % [winner_text, reason]
 	_set_status(message)
 	receive_match_event.rpc(message)
@@ -108,6 +111,10 @@ func _server_finish_round(winner_team: int, reason: String) -> void:
 		_server_return_to_lobby(winner_team)
 	else:
 		_server_start_next_round()
+
+
+func _on_round_resolution_started(_winner_team: int) -> void:
+	pass
 
 
 func _server_start_next_round() -> void:
@@ -142,7 +149,11 @@ func _server_return_to_lobby(last_winner_team: int) -> void:
 	var winner_team := last_winner_team
 	if alpha_rounds != bravo_rounds:
 		winner_team = 0 if alpha_rounds > bravo_rounds else 1
-	var winner_text := "MATCH DRAW" if alpha_rounds == bravo_rounds else "%s WINS MATCH" % ("ALPHA" if winner_team == 0 else "BRAVO")
+	var winner_text: String = (
+		"MATCH DRAW"
+		if alpha_rounds == bravo_rounds
+		else "%s WINS MATCH" % String(team_labels.get(winner_team, "ALPHA"))
+	)
 	var message := "%s  •  %d-%d" % [winner_text, alpha_rounds, bravo_rounds]
 	session_active = false
 	round_active = false

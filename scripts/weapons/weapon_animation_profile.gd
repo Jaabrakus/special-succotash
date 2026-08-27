@@ -91,7 +91,7 @@ const RIFLE_LOCOMOTION := {
 	"run_forward_right": "run_forward_right",
 	"run_back_left": "run_back_left",
 	"run_back_right": "run_back_right",
-	"jump": "jump_loop",
+	"jump": "rifle_jump",
 	"stand_to_crouch": "crouch_start",
 	"crouch_to_stand": "crouch_to_stand",
 }

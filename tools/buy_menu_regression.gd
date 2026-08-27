@@ -21,12 +21,16 @@ func _expect(condition: bool, message: String) -> void:
 
 
 func _initialize() -> void:
+	_run.call_deferred()
+
+
+func _run() -> void:
 	_check_economy_rules()
 	_check_price_table()
 	_check_weapon_profiles()
 	_check_validator()
 	_check_input_profile()
-	_check_ui_construction()
+	await _check_ui_construction()
 	_check_source_contracts()
 	_finish()
 
@@ -151,6 +155,17 @@ func _check_input_profile() -> void:
 		KeyboardMappingProfile.DEFAULT_BINDINGS.has(&"open_buy_menu"),
 		"buy action has a default binding"
 	)
+	var buy_bindings: Array = KeyboardMappingProfile.DEFAULT_BINDINGS[&"open_buy_menu"]
+	_expect(
+		buy_bindings.size() == 1
+		and int((buy_bindings[0] as Dictionary).get("physical_keycode", 0)) == KEY_P,
+		"buy action defaults to P"
+	)
+	var fire_mode_bindings: Array = KeyboardMappingProfile.DEFAULT_BINDINGS[&"toggle_fire_mode"]
+	_expect(
+		int((fire_mode_bindings[0] as Dictionary).get("physical_keycode", 0)) == KEY_B,
+		"B remains dedicated to fire mode"
+	)
 	_expect(
 		String(KeyboardMappingProfile.ACTION_LABELS.get(&"open_buy_menu", "")).length() > 4,
 		"buy action has a player-facing label"
@@ -182,13 +197,13 @@ func _check_ui_construction() -> void:
 	await process_frame
 	_expect(requested.size() == 1 and requested[0] == "ak-47", "purchase request signal carries the weapon id")
 
-	var closed := false
-	menu.close_requested.connect(func(): closed = true)
+	var close_events: Array[bool] = []
+	menu.close_requested.connect(func(): close_events.append(true))
 	var cancel_event := InputEventAction.new()
 	cancel_event.action = "ui_cancel"
 	cancel_event.pressed = true
 	_expect(menu.handle_unhandled_input(cancel_event), "escape is consumed while open")
-	_expect(closed, "escape requests close")
+	_expect(close_events.size() == 1, "escape requests close")
 
 	menu.close_menu()
 	_expect(not menu.is_open(), "menu closes")
@@ -228,6 +243,14 @@ func _check_source_contracts() -> void:
 		"accepted purchases reconfigure authoritative per-peer ballistics"
 	)
 	_expect(
+		buy_phase_source.contains("func _on_round_resolution_started"),
+		"round cash is awarded only after the parent resolution guard"
+	)
+	_expect(
+		buy_phase_source.contains("_apply_replicated_weapon_presentation"),
+		"world snapshots apply purchased presentation to every operator view"
+	)
+	_expect(
 		buy_phase_source.contains("peer_id == multiplayer.get_unique_id()"),
 		"host purchases receive their result without a self RPC"
 	)
@@ -238,8 +261,32 @@ func _check_source_contracts() -> void:
 		not range_runtime_source.contains("buy_menu.close_menu()\n\t\tclose_menu()"),
 		"training purchase restores input through one runtime close path"
 	)
+	_expect(
+		not range_runtime_source.contains("_player_in_zone"),
+		"training range opens the buy menu without a hidden spawn-radius gate"
+	)
+	var gunfight_source := FileAccess.get_file_as_string("res://scripts/network/socom_multiplayer_gunfight.gd")
+	_expect(
+		gunfight_source.begins_with("extends \"res://scripts/network/socom_multiplayer_buy_phase.gd\""),
+		"gunfight layer sits above the buy phase layer"
+	)
 	var objectives_source := FileAccess.get_file_as_string("res://scripts/network/socom_multiplayer_objectives.gd")
 	_expect(
-		objectives_source.begins_with("extends \"res://scripts/network/socom_multiplayer_buy_phase.gd\""),
-		"objectives layer sits above the buy phase layer"
+		objectives_source.begins_with("extends \"res://scripts/network/socom_multiplayer_gunfight.gd\""),
+		"objectives layer sits above the gunfight layer"
+	)
+	_expect(
+		objectives_source.count("_award_objective_cash(") == 2,
+		"plant and defuse both grant the configured objective award"
+	)
+	var world_ui_source := FileAccess.get_file_as_string(
+		"res://scripts/network/socom_multiplayer_world_ui.gd"
+	)
+	_expect(
+		world_ui_source.contains("_buy_menu_dismissed_for_window"),
+		"multiplayer remembers a player-dismissed menu for the current window"
+	)
+	_expect(
+		world_ui_source.contains("not exit_menu.is_open()"),
+		"buy menu cannot open underneath the exit menu"
 	)

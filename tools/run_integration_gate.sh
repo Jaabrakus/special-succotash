@@ -90,6 +90,9 @@ run_godot_check "gameplay-reload-completion" "res://tools/gameplay_reload_comple
 run_godot_check "gun-lab" "res://tools/gun_lab_animation_catalog_regression.gd" "GUN_LAB_ANIMATION_CATALOG_REGRESSION PASS"
 run_godot_check "gunsmith-recom-catalog" "res://tools/gunsmith_recom_catalog_regression.gd" "GUNSMITH_RECOM_CATALOG_REGRESSION PASS"
 run_godot_check "buy-menu" "res://tools/buy_menu_regression.gd" "BUY_MENU_REGRESSION PASS"
+run_godot_check "gunfight" "res://tools/gunfight_regression.gd" "GUNFIGHT_REGRESSION PASS"
+run_godot_check "square" "res://tools/square_regression.gd" "SQUARE_REGRESSION PASS"
+run_godot_check "tournament" "res://tools/tournament_regression.gd" "TOURNAMENT_REGRESSION PASS"
 run_godot_check "weapon-rig-integration" "res://tools/weapon_rig_integration_regression.gd" "WEAPON_RIG_INTEGRATION_REGRESSION PASS"
 run_godot_check "weapon-equipment-event" "res://tools/weapon_equipment_event_regression.gd" "WEAPON_EQUIPMENT_EVENT_REGRESSION PASS"
 run_godot_check "player-ammunition-ownership" "res://tools/player_health_weapon_ammo_regression.gd" "PLAYER_HEALTH_WEAPON_AMMO_REGRESSION PASS"
@@ -103,7 +106,7 @@ run_godot_check "camera-passage-perception" "res://tools/camera_passage_percepti
 run_godot_check "prone-grounding" "res://tools/prone_grounding_regression.gd" "PRONE_GROUNDING_REGRESSION PASS"
 
 if [[ "$mode" == "full" ]]; then
-	run_godot_check "commercial-asset-register" "res://tools/commercial_asset_clearance_audit.gd" "COMMERCIAL_ASSET_AUDIT PASS"
+	run_godot_check "commercial-asset-register" "res://tools/commercial_asset_clearance_audit.gd" "COMMERCIAL_ASSET_AUDIT PASS" -- --enforce-clearance
 	"$project_dir/tools/release_protection_check.sh"
 	"$project_dir/tools/run_startup_performance_regression.sh"
 	"$project_dir/tools/run_multiplayer_lifecycle_probe.sh"

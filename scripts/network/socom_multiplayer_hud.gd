@@ -14,6 +14,21 @@ const LobbyState := preload("res://scripts/network/socom_lobby_state.gd")
 const MatchInvite := preload("res://scripts/network/socom_match_invite.gd")
 const TeamRosterHUD := preload("res://scripts/ui/socom_team_roster_hud.gd")
 const LoadoutCardHUD := preload("res://scripts/ui/socom_loadout_card_hud.gd")
+const RoundScoreStrip := preload("res://scripts/ui/socom_round_score_strip.gd")
+
+var round_strip: SocomRoundScoreStrip
+var team_word_0 := "ALPHA"
+var team_word_1 := "BRAVO"
+
+
+## The Square's axis words for this match (docs/SQUARE_DESIGN_LANGUAGE.md).
+## Presentation only; team ids 0/1 are unchanged.
+func set_team_labels(word_0: String, word_1: String) -> void:
+	team_word_0 = word_0
+	team_word_1 = word_1
+	if round_strip != null:
+		round_strip.set_team_labels(word_0, word_1)
+	refresh_scoreboard(_last_mission_rules, _last_round_wins, _last_scores)
 
 var menu_panel: PanelContainer
 var address_edit: LineEdit
@@ -80,10 +95,19 @@ func _copy_host_invite() -> void:
 	invite_copy_button.text = "COPIED"
 
 
+var _last_mission_rules: Dictionary = {}
+var _last_round_wins: Dictionary = {}
+var _last_scores: Dictionary = {}
+
+
 func refresh_scoreboard(mission_rules: Dictionary, round_wins: Dictionary, scores: Dictionary) -> void:
+	_last_mission_rules = mission_rules
+	_last_round_wins = round_wins
+	_last_scores = scores
 	if String(mission_rules.get("primary_mode", "demolition")) == "demolition":
-		score_label.text = "ROUNDS  ALPHA %d  •  BRAVO %d" % [
-			int(round_wins.get(0, 0)), int(round_wins.get(1, 0)),
+		score_label.text = "ROUNDS  %s %d  •  %s %d" % [
+			team_word_0, int(round_wins.get(0, 0)),
+			team_word_1, int(round_wins.get(1, 0)),
 		]
 		return
 	var entries: Array[String] = []
@@ -100,6 +124,60 @@ func refresh_match_clock(round_index: int, remaining: float, session_active: boo
 		maxi(round_index, 1), total_seconds / 60, total_seconds % 60,
 	]
 	match_clock_label.visible = session_active
+
+
+func build_round_strip() -> void:
+	round_strip = RoundScoreStrip.new()
+	round_strip.name = "RoundScoreStrip"
+	add_child(round_strip)
+	round_strip.update_round_score(0, 0, 11, 6, 1, 0.0, "", &"live")
+
+
+func clear_round_strip() -> void:
+	if round_strip != null:
+		round_strip.update_round_score(0, 0, 11, 6, 1, 0.0, "", &"live")
+
+
+## Pushed on every authoritative round-state broadcast. Presentation only:
+## derives the phase label from state the world layer already validated.
+func update_round_strip(
+	time_remaining: float,
+	alpha_rounds: int,
+	bravo_rounds: int,
+	current_round: int,
+	active: bool,
+	rounds_to_win: int,
+	maximum_rounds: int,
+	overtime_active: bool,
+	buy_window_open: bool,
+	buy_window_seconds: float
+) -> void:
+	if round_strip == null:
+		return
+	var phase := "ROUND %d  •  LIVE" % maxi(current_round, 1)
+	var kind := &"live"
+	if not active:
+		phase = "MATCH COMPLETE"
+		kind = &"round_end"
+	elif overtime_active:
+		phase = "OVERTIME  •  CAPTURE THE FLAG"
+		kind = &"overtime"
+	elif buy_window_open:
+		phase = "BUY WINDOW %ds" % ceili(maxf(0.0, buy_window_seconds))
+		kind = &"buy"
+	elif alpha_rounds == rounds_to_win - 1 or bravo_rounds == rounds_to_win - 1:
+		phase = "MATCH POINT"
+		kind = &"match_point"
+	round_strip.update_round_score(
+		alpha_rounds,
+		bravo_rounds,
+		maximum_rounds,
+		rounds_to_win,
+		current_round,
+		time_remaining,
+		phase,
+		kind
+	)
 
 
 func refresh_player_state(health: float, maximum: float, magazine: int, reserve: int) -> void:
@@ -193,8 +271,8 @@ func refresh_lobby(
 		(alpha_lines if int(entry.get("team", 0)) == 0 else bravo_lines).append(line)
 	lobby_roster_label.text = (
 		"[table=2]"
-		+ "[cell][font_size=20][color=#6eb6ff]ALPHA[/color][/font_size]\n%s[/cell]" % ("\n".join(alpha_lines) if not alpha_lines.is_empty() else "—")
-		+ "[cell][font_size=20][color=#ff7d76]BRAVO[/color][/font_size]\n%s[/cell]" % ("\n".join(bravo_lines) if not bravo_lines.is_empty() else "—")
+		+ "[cell][font_size=20][color=#6eb6ff]%s[/color][/font_size]\n%s[/cell]" % [team_word_0, "\n".join(alpha_lines) if not alpha_lines.is_empty() else "—"]
+		+ "[cell][font_size=20][color=#ff7d76]%s[/color][/font_size]\n%s[/cell]" % [team_word_1, "\n".join(bravo_lines) if not bravo_lines.is_empty() else "—"]
 		+ "[/table]"
 	)
 	var local_entry: Dictionary = lobby.players.get(local_peer_id, {})
@@ -250,7 +328,8 @@ func _build_match_hud() -> void:
 	var column := VBoxContainer.new()
 	menu_panel.add_child(column)
 	var title := Label.new()
-	title.text = "8v8 DIRECT-IP MATCH"
+	title.text = String(ProjectSettings.get_setting("socom/session/room_title", "8V8 DEMOLITION ROOM"))
+	ProjectSettings.set_setting("socom/session/room_title", "")
 	title.add_theme_font_size_override("font_size", 20)
 	column.add_child(title)
 	var explanation := Label.new()

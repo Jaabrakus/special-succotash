@@ -9,6 +9,7 @@ const LOADOUT_PATH := "res://config/weapons/operator_loadout.json"
 const CURRENT_SCHEMA_VERSION := 3
 const PlaytestStateCollector := preload("res://scripts/runtime/playtest_state_collector.gd")
 const WeaponAnimationProfile := preload("res://scripts/weapons/weapon_animation_profile.gd")
+const WeaponClassHoldProfile := preload("res://scripts/weapons/weapon_class_hold_profile.gd")
 
 
 static func resolve_config_path(fallback_weapon_id: String = "") -> String:
@@ -52,7 +53,7 @@ static func load_config(config_path: String) -> Dictionary:
 
 
 static func normalize_config(raw: Dictionary, config_path: String = "") -> Dictionary:
-	var config := raw.duplicate(true)
+	var config := WeaponClassHoldProfile.apply_to_config(raw)
 	config["_rig_config_path"] = config_path
 	config["_source_schema_version"] = int(config.get("schema_version", 0))
 	config["schema_version"] = CURRENT_SCHEMA_VERSION

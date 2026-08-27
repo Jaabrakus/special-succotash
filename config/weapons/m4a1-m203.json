@@ -22,18 +22,32 @@
     "muzzle_velocity_mps": 921.0,
     "reserve_ammo": 90.0
   },
-  "burst_size": 3,
+  "burst_size": 3.0,
   "catalog_source": "reCOM zweapon.rdr",
   "catalog_weapon_id": "m4a1-m203",
   "category": "Assault Rifles",
   "default_fire_mode": "semi",
   "display_name": "M4A1-M203",
-  "encumbrance": 2,
+  "encumbrance": 2.0,
   "fire_modes": [
     "semi",
     "auto"
   ],
+  "grip_offset": {
+    "pos_x": 0.0,
+    "pos_y": 0.0,
+    "pos_z": 0.0,
+    "rot_x": 0.0,
+    "rot_y": 0.0,
+    "rot_z": 0.0
+  },
   "model_fbx": "res://assets/weapons/modular_pack/AssaultRifle_5.fbx",
+  "model_rotation_degrees": {
+    "x": 0.0,
+    "y": 0.0,
+    "z": 0.0
+  },
+  "normalized_scale": 0.16728573307525,
   "recom_assets": {
     "icon_texture": "m4carbine203_icon.tif",
     "model_name": "m4Acarbine_203",
@@ -47,6 +61,39 @@
     "shot_kick_px": 20.0,
     "shot_kick_return": 40.0
   },
-  "socom_original_id": 61,
-  "weapon_id": "m4a1-m203"
+  "socket_contract_authored": false,
+  "socom_original_id": 61.0,
+  "weapon_id": "m4a1-m203",
+  "weapon_sockets": {
+    "barrel_base_socket": {
+      "x": -0.00899999961256981,
+      "y": 0.109999999403954,
+      "z": -0.107999995350838
+    },
+    "buttstock_socket": {
+      "x": -0.00899999961256981,
+      "y": 0.0799999982118607,
+      "z": -0.270000010728836
+    },
+    "ejection_port": {
+      "x": 0.044999998062849,
+      "y": 0.0299999993294477,
+      "z": 0.0539999976754189
+    },
+    "left_hand_ik_target": {
+      "x": 0.179999992251396,
+      "y": -0.0299999993294477,
+      "z": 0.0
+    },
+    "muzzle_socket": {
+      "x": 0.629999995231628,
+      "y": 0.0199999995529652,
+      "z": 0.0
+    },
+    "optic_rail": {
+      "x": 0.044999998062849,
+      "y": 0.0799999982118607,
+      "z": 0.0
+    }
+  }
 }

@@ -90,10 +90,10 @@ func _on_scene_changed() -> void:
 		var collector := get_node_or_null("/root/PlaytestStateCollector")
 		if collector != null:
 			collector.call("deactivate_bundle")
-	# Labs need their full editing surface. History remains one click/F2 away,
-	# while the Home screen keeps it open as the persistent activity rail.
+	# Keep the activity drawer available from the hamburger/F2 without covering
+	# player-facing launcher panels or lab editing surfaces.
 	if history_panel != null:
-		history_panel.visible = scene.scene_file_path == HOME_SCENE
+		history_panel.visible = false
 	if suppress_next_scene_record:
 		suppress_next_scene_record = false
 	else:
@@ -207,8 +207,7 @@ func _build_overlay() -> void:
 	history_panel.offset_right = -10.0
 	history_panel.offset_top = 60.0
 	history_panel.offset_bottom = -10.0
-	var current_scene := get_tree().current_scene
-	history_panel.visible = current_scene != null and current_scene.scene_file_path == HOME_SCENE
+	history_panel.visible = false
 	overlay.add_child(history_panel)
 
 	var margin := MarginContainer.new()

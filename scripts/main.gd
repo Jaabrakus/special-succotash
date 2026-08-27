@@ -273,7 +273,6 @@ func _ensure_input_map() -> void:
     _add_key_action("replay_camera_recording", KEY_F10)
     _add_key_action("toggle_anim_studio", KEY_F5)
     _add_key_action("toggle_debug_hud", KEY_H)
-    _add_key_action("toggle_camera_workbench", KEY_P)
     _add_key_action("toggle_camera_workbench", KEY_F8)
     _add_key_action("toggle_camera_visualizer", KEY_V)
     _add_key_action("toggle_body_stack", KEY_K)

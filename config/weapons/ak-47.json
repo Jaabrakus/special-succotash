@@ -19,22 +19,28 @@
     "base_spread_deg": 0.429,
     "bloom_per_shot_deg": 1.0,
     "bloom_recovery_speed": 17.5,
-    "damage": 37,
-    "fire_rate_rpm": 375,
-    "is_silenced": false,
-    "headshot_multiplier": 3.5,
-    "muzzle_velocity_mps": 710.0,
-    "moving_spread_deg": 1.029,
-    "full_gait_spread_deg": 1.543,
-    "max_recoil_bloom_deg": 2.6,
-    "magazine_capacity": 30,
-    "reserve_ammo": 90,
+    "damage": 37.0,
     "effective_range_m": 600.0,
-    "max_range_m": 1000.0
+    "fire_rate_rpm": 375.0,
+    "full_gait_spread_deg": 1.543,
+    "headshot_multiplier": 3.5,
+    "is_silenced": false,
+    "magazine_capacity": 30.0,
+    "max_range_m": 1000.0,
+    "max_recoil_bloom_deg": 2.6,
+    "moving_spread_deg": 1.029,
+    "muzzle_velocity_mps": 710.0,
+    "reserve_ammo": 90.0
   },
+  "burst_size": 3.0,
   "camo_skin": "Factory Classic (Wood & Steel)",
   "category": "Assault Rifles",
+  "default_fire_mode": "semi",
   "display_name": "ak-47",
+  "fire_modes": [
+    "semi",
+    "auto"
+  ],
   "grip_offset": {
     "pos_x": 0.0,
     "pos_y": 0.0,
@@ -44,9 +50,27 @@
     "rot_z": 0.0
   },
   "model_fbx": "res://assets/weapons/ps1_ak47/source/ak-47.fbx",
-  "normalized_scale": 1.0,
+  "normalized_scale": 0.0334527641433629,
+  "reticle": {
+    "base_gap_px": 5.1,
+    "max_gap_px": 41.6,
+    "maximum_shot_kick_px": 60.0,
+    "response_speed": 26.2,
+    "shot_kick_px": 20.0,
+    "shot_kick_return": 40.0
+  },
   "scope_attachment": "None",
   "silencer_attachment": "None",
+  "socom_recom_data": {
+    "ammo_spec": {
+      "impact_damage": 2.3,
+      "piercing": 6.0,
+      "stun": 4.0,
+      "type": "7.62 x 39mm M1943"
+    },
+    "encumbrance": 1.0,
+    "original_name": "AK-47"
+  },
   "weapon_id": "ak-47",
   "weapon_sockets": {
     "ejection_port": {
@@ -69,29 +93,5 @@
       "y": 0.0799999982118607,
       "z": 0.0
     }
-  },
-  "reticle": {
-    "shot_kick_px": 20.0,
-    "shot_kick_return": 40.0,
-    "maximum_shot_kick_px": 60.0,
-    "base_gap_px": 5.1,
-    "max_gap_px": 41.6,
-    "response_speed": 26.2
-  },
-  "fire_modes": [
-    "semi",
-    "auto"
-  ],
-  "socom_recom_data": {
-    "original_name": "AK-47",
-    "encumbrance": 1,
-    "ammo_spec": {
-      "type": "7.62 x 39mm M1943",
-      "impact_damage": 2.3,
-      "stun": 4.0,
-      "piercing": 6.0
-    }
-  },
-  "default_fire_mode": "semi",
-  "burst_size": 3
+  }
 }

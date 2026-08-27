@@ -14,7 +14,7 @@ const REQUIRED_CLIPS: Array[StringName] = [
     &"walk_backward", &"walk_back_right", &"walk_right", &"walk_forward_right",
     &"idle_crouch", &"crouch_forward", &"crouch_backward",
     &"idle_prone", &"prone_forward", &"prone_backward",
-    &"dive_roll", &"roll", &"jump_up", &"jump_loop", &"jump_down",
+    &"dive_roll", &"roll", &"jump_up", &"jump_loop", &"jump_down", &"rifle_jump",
     &"combat_fire", &"crouch_fire", &"reload",
     &"death_right", &"climb", &"crouch_to_prone", &"crouch_to_stand",
     &"grenade_toss", &"grenade_throw", &"crouch_grenade_toss",
@@ -635,7 +635,7 @@ func _check_standing_reload_layer(driver) -> void:
     snapshot = driver.get_animation_debug_state()
     _expect(driver.requested_action == &"", "jump safely interrupts standing reload")
     _expect(not bool(snapshot.get("upper_body_reload_layer", true)), "jump releases reload ownership of the arms")
-    _expect(driver.current_clip == &"jump_up", "jump animation replaces the interrupted reload state")
+    _expect(driver.current_clip == &"rifle_jump", "moving rifle jump replaces the interrupted reload state")
 
 func _check_reload_posture_change_cleanup(driver) -> void:
     driver.set_visual_inputs(

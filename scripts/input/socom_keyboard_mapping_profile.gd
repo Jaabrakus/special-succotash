@@ -3,6 +3,7 @@ extends RefCounted
 
 const CONFIG_PATH := "res://config/input/keyboard_mapping.json"
 const USER_CONFIG_PATH := "user://keyboard_mapping.json"
+const BUY_BINDING_MIGRATION_MARKER := "user://buy_binding_p_migration_v1"
 const REMOVED_LEGACY_ACTIONS: Array[StringName] = [
 	&"prone", &"roll", &"throw_grenade", &"cycle_grenade",
 ]
@@ -34,7 +35,7 @@ const ACTION_LABELS := {
 	&"equip_grenade": "Equipment & Weapon Wheel (Hold G / Tap)",
 	&"reset_camera": "Reset Camera",
 	&"toggle_nvg": "Toggle Night Vision (NVG)",
-	&"open_buy_menu": "Armory / Buy Menu (B during buy window or at the range spawn)",
+	&"open_buy_menu": "Armory / Buy Menu (P in the Training Range or during a buy window)",
 	&"radio_comms": "Tactical Radio Comms Wheel",
 	&"push_to_talk": "Microphone Voice Push-To-Talk",
 	&"toggle_scoreboard": "Match Scorecard / SITREP",
@@ -61,7 +62,7 @@ const DEFAULT_BINDINGS := {
 	&"equip_grenade": [{"type": "key", "physical_keycode": KEY_G}],
 	&"reset_camera": [{"type": "key", "physical_keycode": KEY_HOME}],
 	&"toggle_nvg": [{"type": "key", "physical_keycode": KEY_N}],
-	&"open_buy_menu": [{"type": "key", "physical_keycode": KEY_B}],
+	&"open_buy_menu": [{"type": "key", "physical_keycode": KEY_P}],
 	&"radio_comms": [{"type": "key", "physical_keycode": KEY_V}],
 	&"push_to_talk": [{"type": "key", "physical_keycode": KEY_T}],
 	&"toggle_scoreboard": [{"type": "key", "physical_keycode": KEY_TAB}],
@@ -76,6 +77,11 @@ static func apply_project_mapping(
 		InputMap.erase_action(&"run")
 	_remove_legacy_actions()
 	var saved := load_mapping(user_path, project_path)
+	if not FileAccess.file_exists(BUY_BINDING_MIGRATION_MARKER):
+		_migrate_legacy_buy_menu_binding(saved)
+		var marker := FileAccess.open(BUY_BINDING_MIGRATION_MARKER, FileAccess.WRITE)
+		if marker != null:
+			marker.store_string("complete")
 	for action: StringName in ACTION_ORDER:
 		if not InputMap.has_action(action):
 			InputMap.add_action(action, 0.10 if action == &"fire" else 0.25)
@@ -90,6 +96,20 @@ static func apply_project_mapping(
 			if event != null:
 				InputMap.action_add_event(action, event)
 	_apply_default_gamepad_bindings()
+
+
+static func _migrate_legacy_buy_menu_binding(mapping: Dictionary) -> void:
+	var descriptors: Variant = mapping.get("open_buy_menu", [])
+	if not descriptors is Array:
+		return
+	for descriptor: Variant in descriptors:
+		if (
+			descriptor is Dictionary
+			and String((descriptor as Dictionary).get("type", "")) == "key"
+			and int((descriptor as Dictionary).get("physical_keycode", 0)) == KEY_B
+		):
+			mapping["open_buy_menu"] = DEFAULT_BINDINGS[&"open_buy_menu"].duplicate(true)
+			return
 
 
 static func reset_to_defaults() -> void:

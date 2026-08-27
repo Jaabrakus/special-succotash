@@ -6,6 +6,9 @@ extends RefCounted
 ## meshes, sockets, hand poses, and authored gameplay tuning.
 
 const WeaponCatalog := preload("res://scripts/weapons/socom_weapon_catalog.gd")
+const WeaponClassHoldProfile := preload(
+	"res://scripts/weapons/weapon_class_hold_profile.gd"
+)
 const CONFIG_DIRECTORY := "res://config/weapons/"
 const MODULAR_DIRECTORY := "res://assets/weapons/modular_pack/"
 const FIREARM_CATEGORIES: Array[String] = [
@@ -73,13 +76,15 @@ static func resolve(weapon_id: String) -> Dictionary:
 static func load_editable_profile(weapon_id: String) -> Dictionary:
 	var resolved := resolve(weapon_id)
 	if resolved.is_empty():
-		return _read_json(CONFIG_DIRECTORY + weapon_id.to_lower() + ".json")
+		return WeaponClassHoldProfile.apply_to_config(
+			_read_json(CONFIG_DIRECTORY + weapon_id.to_lower() + ".json")
+		)
 	var authored_path := CONFIG_DIRECTORY + String(resolved.catalog_id).to_lower() + ".json"
 	if FileAccess.file_exists(authored_path):
-		return _read_json(authored_path)
+		return WeaponClassHoldProfile.apply_to_config(_read_json(authored_path))
 	var visual_path := CONFIG_DIRECTORY + String(resolved.visual_profile_id) + ".json"
 	var profile := _read_json(visual_path)
-	return _apply_catalog_baseline(profile, resolved)
+	return WeaponClassHoldProfile.apply_to_config(_apply_catalog_baseline(profile, resolved))
 
 
 static func decorate_saved_profile(profile: Dictionary, weapon_id: String) -> Dictionary:
@@ -106,7 +111,7 @@ static func decorate_saved_profile(profile: Dictionary, weapon_id: String) -> Di
 		if catalog_ballistics.has(field) and not saved_ballistics.has(field):
 			saved_ballistics[field] = catalog_ballistics[field]
 	profile["ballistics"] = saved_ballistics
-	return profile
+	return WeaponClassHoldProfile.apply_to_config(profile)
 
 
 static func _apply_catalog_baseline(profile: Dictionary, resolved: Dictionary) -> Dictionary:

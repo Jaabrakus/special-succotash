@@ -813,7 +813,7 @@ func _uses_upper_body_ready_layer(clip_name: StringName) -> bool:
 
 
 func _is_jump_mobility_clip(clip_name: StringName) -> bool:
-	return clip_name in [&"jump_up", &"jump_loop", &"jump_down"]
+	return clip_name in [&"jump_up", &"jump_loop", &"jump_down", &"rifle_jump"]
 
 
 func _animation_node(clip_name: StringName) -> AnimationNodeAnimation:

@@ -38,14 +38,14 @@
     "muzzle_velocity_mps": 900.0,
     "reserve_ammo": 90.0
   },
-  "burst_size": 3,
+  "burst_size": 3.0,
   "camo_skin": "Factory Classic (Wood & Steel)",
   "catalog_source": "reCOM zweapon.rdr",
   "catalog_weapon_id": "m4a1_sd",
   "category": "Assault Rifles",
   "default_fire_mode": "semi",
   "display_name": "M4A1 SD",
-  "encumbrance": 1,
+  "encumbrance": 1.0,
   "fire_modes": [
     "semi",
     "auto"
@@ -59,7 +59,7 @@
     "rot_z": 0.0
   },
   "model_fbx": "res://assets/weapons/modular_pack/AssaultRifle_4.fbx",
-  "normalized_scale": 1.0,
+  "normalized_scale": 0.171364072825315,
   "recom_assets": {
     "icon_texture": "m4carbine_icon.tif",
     "model_name": "m4Acarbine_sd",
@@ -75,7 +75,7 @@
   },
   "scope_attachment": "None",
   "silencer_attachment": "None",
-  "socom_original_id": 62,
+  "socom_original_id": 62.0,
   "socom_recom_data": {
     "ammo_spec": {
       "impact_damage": 2.3,

@@ -1,4 +1,4 @@
-extends "res://scripts/network/socom_multiplayer_buy_phase.gd"
+extends "res://scripts/network/socom_multiplayer_gunfight.gd"
 
 func _set_local_objective_interaction(held: bool) -> void:
 	var peer_id := multiplayer.get_unique_id()
@@ -62,6 +62,7 @@ func _advance_demolition_objective(delta: float) -> void:
 		bomb_plant_progress += delta
 		var plant_seconds := float(mission_rules.get("plant_time_seconds", 5.0))
 		if bomb_plant_progress >= plant_seconds:
+			var planting_peer_id := bomb_carrier_peer_id
 			bomb_planted = true
 			bomb_planting_team = carrier.team_id
 			bomb_carrier_peer_id = 0
@@ -69,6 +70,7 @@ func _advance_demolition_objective(delta: float) -> void:
 			bomb_fuse_remaining = float(mission_rules.get("bomb_fuse_seconds", 35))
 			bomb_defusing_peer_id = 0
 			bomb_defuse_progress = 0.0
+			_award_objective_cash(planting_peer_id)
 			_broadcast_objective_toast("BOMB PLANTED")
 			_broadcast_objective_state()
 			return
@@ -114,6 +116,7 @@ func _advance_bomb_defuse(delta: float) -> void:
 	bomb_planted = false
 	bomb_fuse_remaining = 0.0
 	bomb_defuse_progress = defuse_seconds
+	_award_objective_cash(active_defuser)
 	_broadcast_objective_state()
 	_server_finish_round(defending_team, "BOMB DEFUSED")
 

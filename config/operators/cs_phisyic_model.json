@@ -1,0 +1,87 @@
+{
+  "bone_map": {
+    "chest": "spine_3",
+    "head": "head_0",
+    "hips": "pelvis",
+    "left_foot": "ankle_L",
+    "left_hand": "hand_L",
+    "left_lower_arm": "arm_lower_L",
+    "left_lower_leg": "leg_lower_L",
+    "left_shoulder": "clavicle_L",
+    "left_toe": "ball_L",
+    "left_upper_arm": "arm_upper_L",
+    "left_upper_leg": "leg_upper_L",
+    "neck": "neck_0",
+    "right_foot": "ankle_R",
+    "right_hand": "hand_R",
+    "right_lower_arm": "arm_lower_R",
+    "right_lower_leg": "leg_lower_R",
+    "right_shoulder": "clavicle_R",
+    "right_toe": "ball_R",
+    "right_upper_arm": "arm_upper_R",
+    "right_upper_leg": "leg_upper_R",
+    "spine": "spine_0"
+  },
+  "display_name": "CS PHISYIC MODEL",
+  "material_slots": [
+    {
+      "albedo_texture": "res://source/CS PHISYIC MODEL_0.png",
+      "material": "tm_leet_lowerbody_variantb",
+      "mesh": "tm_leet_variantb_tm_leet_variantb_004",
+      "surface": 0
+    },
+    {
+      "albedo_texture": "",
+      "material": "  phy",
+      "mesh": "tm_phoenix_default_grunt_physics",
+      "surface": 0
+    }
+  ],
+  "model_path": "res://source/CS PHISYIC MODEL.fbx",
+  "normalization": {
+    "anchor": "hips_xz_and_average_feet_y",
+    "contract": "SOCOM_OPERATOR_SPACE_V1",
+    "forward": "+Z_FROM_AVERAGE_TOES",
+    "position": {
+      "x": 0.000118524665595032,
+      "y": -0.110435307025909,
+      "z": 0.0729919895529747
+    },
+    "rotation_degrees": {
+      "x": 0.0,
+      "y": 0.0929567001491182,
+      "z": 0.0
+    },
+    "scale": 0.025579672403888,
+    "source_rig_height": 66.4590215682983,
+    "target_rig_height_m": 1.7
+  },
+  "profile_id": "cs_phisyic_model",
+  "requires_canonical_conversion": true,
+  "schema_version": 2,
+  "skeleton_contract": "SOCOM_OPERATOR_CORE_V1",
+  "source_bone_count": 118,
+  "source_skeleton": "Skeleton3D",
+  "status": "APPROVED_FOR_CONVERSION",
+  "transform": {
+    "position": {
+      "x": 0.000118524665595032,
+      "y": -0.110435307025909,
+      "z": 0.0729919895529747
+    },
+    "rotation_degrees": {
+      "x": 0.0,
+      "y": 0.0929567001491182,
+      "z": 0.0
+    },
+    "scale": 0.025579672403888
+  },
+  "updated_at": "2026-08-27 11:24:36",
+  "validation": {
+    "compatible": true,
+    "warnings": [
+      "Some material slots have no albedo texture. Assign them before promotion.",
+      "Source units differ from metres; normalized operator space will correct them."
+    ]
+  }
+}

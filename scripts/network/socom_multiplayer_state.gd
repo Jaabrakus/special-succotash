@@ -35,7 +35,11 @@ const ExitMenuScript := preload("res://scripts/ui/socom_exit_menu.gd")
 const PlayerScript := preload("res://scripts/player/player_controller.gd")
 
 const DEFAULT_PORT := 14141
-const MAX_PLAYERS := 16
+# Transport ceiling (remote joiners; the host rides on top). Admitted room
+# size is separately capped per mode by players-per-side; 32 exists so a
+# full 16-squad Square can connect. 8v8 rooms still admit 16 via the
+# admission cap, not this const.
+const MAX_PLAYERS := 32
 const SNAPSHOT_INTERVAL := 1.0 / 20.0
 const SNAPSHOT_ENTITIES_PER_PACKET := 4
 const RESPAWN_SECONDS := 3.0
@@ -109,6 +113,9 @@ var team_spawn_points := {0: [], 1: []}
 var mission_rules: Dictionary = {}
 var round_rules: Dictionary = {}
 var team_round_wins := {0: 0, 1: 0}
+# The Square's axis words for teams 0/1 (docs/SQUARE_DESIGN_LANGUAGE.md).
+# Netcode only ever uses the numeric ids; presentation reads these labels.
+var team_labels := {0: "ALPHA", 1: "BRAVO"}
 var round_index := 0
 var round_time_remaining := 0.0
 var last_round_clock_second := -1
@@ -192,6 +199,12 @@ func _configured_fire_interval() -> float:
 
 func _weapon_config_for_peer(_peer_id: int) -> Dictionary:
 	return equipped_config
+
+func _weapon_id_for_peer(_peer_id: int) -> String:
+	return ""
+
+func _apply_replicated_weapon_presentation(_peer_id: int, _weapon_id: String) -> void:
+	pass
 
 func _disconnect_existing_peer() -> void:
 	pass

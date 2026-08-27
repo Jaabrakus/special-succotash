@@ -18,6 +18,16 @@
       ]
     },
     {
+      "id": "studio_workbench",
+      "label": "Studio Workbench",
+      "scene": "res://studio_workbench.tscn",
+      "controller": "res://scripts/ui/studio_workbench.gd",
+      "shared_contracts": [
+        "res://config/integration_manifest.json",
+        "res://scripts/ui/studio_navigation.gd"
+      ]
+    },
+    {
       "id": "camera_gameplay",
       "label": "Camera + Playable Range",
       "scene": "res://main.tscn",
@@ -51,6 +61,18 @@
         "res://scripts/player/operator_posture_layer.gd",
         "res://scripts/player/operator_procedural_pose_profile.gd",
         "res://scripts/player/operator_ik_contract.gd"
+      ]
+    },
+    {
+      "id": "operator_import",
+      "label": "Operator Import Studio",
+      "scene": "res://operator_import_studio.tscn",
+      "controller": "res://scripts/labs/operator_import/operator_import_studio.gd",
+      "shared_contracts": [
+        "res://scripts/characters/operator_model_normalizer.gd",
+        "res://scripts/characters/operator_visual_profile.gd",
+        "res://scripts/player/operator_skeleton_contract.gd",
+        "res://scripts/player/operator_asset_runtime.gd"
       ]
     },
     {
@@ -207,6 +229,7 @@
       "res://tools/animation_workshop_repository_regression.gd",
       "res://tools/animation_sequence_service_regression.gd",
       "res://tools/animation_pose_editor_regression.gd",
+      "res://tools/operator_import_studio_regression.gd",
       "res://tools/validate_operator_configs.gd",
       "res://tools/operator_animation_regression.gd",
       "res://tools/operator_weapon_pose_regression.gd",

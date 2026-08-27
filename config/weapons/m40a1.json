@@ -466,7 +466,7 @@
     "opening_burst_motion_multiplier": 0.35,
     "reserve_ammo": 25.0
   },
-  "burst_size": 3,
+  "burst_size": 3.0,
   "camo_skin": "Factory Classic (Wood & Steel)",
   "catalog_source": "reCOM zweapon.rdr",
   "catalog_weapon_id": "m40a1",
@@ -545,7 +545,7 @@
       "z": 0.0799999982118607
     }
   },
-  "encumbrance": 1,
+  "encumbrance": 1.0,
   "fire_modes": [
     "semi"
   ],
@@ -691,7 +691,7 @@
     "y": -90.0,
     "z": 0.0
   },
-  "normalized_scale": 0.190543572753643,
+  "normalized_scale": 0.328776082776324,
   "operator_mount": {
     "position": {
       "x": -0.0199999995529652,
@@ -723,7 +723,7 @@
   "scope_attachment": "None",
   "silencer_attachment": "None",
   "socket_contract_authored": true,
-  "socom_original_id": 102,
+  "socom_original_id": 102.0,
   "socom_recom_data": {
     "ammo_spec": {
       "impact_damage": 2.3,

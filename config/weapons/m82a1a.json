@@ -38,14 +38,14 @@
     "muzzle_velocity_mps": 843.0,
     "reserve_ammo": 30.0
   },
-  "burst_size": 3,
+  "burst_size": 3.0,
   "camo_skin": "Factory Classic (Wood & Steel)",
   "catalog_source": "reCOM zweapon.rdr",
   "catalog_weapon_id": "m82a1a",
   "category": "Sniper Rifles",
   "default_fire_mode": "semi",
   "display_name": "M82A1A",
-  "encumbrance": 3,
+  "encumbrance": 3.0,
   "fire_modes": [
     "semi"
   ],
@@ -58,7 +58,7 @@
     "rot_z": 0.0
   },
   "model_fbx": "res://assets/weapons/modular_pack/SniperRifle_1.fbx",
-  "normalized_scale": 1.0,
+  "normalized_scale": 0.15633596665756,
   "recom_assets": {
     "icon_texture": "barrettm82a.tif",
     "model_name": "barretm82A1",
@@ -74,7 +74,7 @@
   },
   "scope_attachment": "None",
   "silencer_attachment": "None",
-  "socom_original_id": 101,
+  "socom_original_id": 101.0,
   "socom_recom_data": {
     "ammo_spec": {
       "impact_damage": 9.0,

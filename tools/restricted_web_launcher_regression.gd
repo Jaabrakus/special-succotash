@@ -24,12 +24,14 @@ func _run() -> void:
 		"restricted Web mode is active"
 	)
 	_expect(
-		launcher.find_child("JoinGame", true, false) is Button,
-		"public player build exposes Join Game"
+		launcher.find_child("JoinGame", true, false) is Button
+		and (launcher.find_child("JoinGame", true, false) as Button).text == "JOIN INVITE",
+		"public player build exposes Join Invite"
 	)
 	_expect(
-		launcher.find_child("HostGame", true, false) is Button,
-		"public player build exposes Host Game"
+		launcher.find_child("HostGame", true, false) is Button
+		and (launcher.find_child("HostGame", true, false) as Button).text == "HOST TOURNAMENT",
+		"public player build exposes tournament hosting"
 	)
 	_expect(
 		launcher.find_child("MapEditor", true, false) is Button,
@@ -45,7 +47,7 @@ func _run() -> void:
 	)
 	_expect(
 		launcher.find_child("HostMapSelector", true, false) is OptionButton,
-		"Host Game exposes the saved-map selector"
+		"private room creation exposes the saved-map selector"
 	)
 	var map_selector := launcher.find_child("HostMapSelector", true, false) as OptionButton
 	_expect(

@@ -22,17 +22,31 @@
     "muzzle_velocity_mps": 650.0,
     "reserve_ammo": 60.0
   },
-  "burst_size": 3,
+  "burst_size": 3.0,
   "catalog_source": "reCOM zweapon.rdr",
   "catalog_weapon_id": "f57",
   "category": "Pistols",
   "default_fire_mode": "semi",
   "display_name": "F57",
-  "encumbrance": 4,
+  "encumbrance": 4.0,
   "fire_modes": [
     "semi"
   ],
+  "grip_offset": {
+    "pos_x": 0.0,
+    "pos_y": 0.0,
+    "pos_z": 0.0,
+    "rot_x": 0.0,
+    "rot_y": 0.0,
+    "rot_z": 0.0
+  },
   "model_fbx": "res://assets/weapons/modular_pack/Pistol_3.fbx",
+  "model_rotation_degrees": {
+    "x": 0.0,
+    "y": 0.0,
+    "z": 0.0
+  },
+  "normalized_scale": 0.119326630731427,
   "recom_assets": {
     "icon_texture": "fiveSeven_icon.tif",
     "model_name": "fiveseven",
@@ -46,6 +60,39 @@
     "shot_kick_px": 20.0,
     "shot_kick_return": 40.0
   },
-  "socom_original_id": 4,
-  "weapon_id": "f57"
+  "socket_contract_authored": false,
+  "socom_original_id": 4.0,
+  "weapon_id": "f57",
+  "weapon_sockets": {
+    "barrel_base_socket": {
+      "x": -0.00239999988116324,
+      "y": 0.109999999403954,
+      "z": -0.0287999995052814
+    },
+    "buttstock_socket": {
+      "x": -0.00239999988116324,
+      "y": 0.0799999982118607,
+      "z": -0.0720000043511391
+    },
+    "ejection_port": {
+      "x": 0.0120000001043081,
+      "y": 0.0299999993294477,
+      "z": 0.0143999997526407
+    },
+    "left_hand_ik_target": {
+      "x": 0.0480000004172325,
+      "y": -0.0299999993294477,
+      "z": 0.0
+    },
+    "muzzle_socket": {
+      "x": 0.167999997735023,
+      "y": 0.0199999995529652,
+      "z": 0.0
+    },
+    "optic_rail": {
+      "x": 0.0120000001043081,
+      "y": 0.0799999982118607,
+      "z": 0.0
+    }
+  }
 }
