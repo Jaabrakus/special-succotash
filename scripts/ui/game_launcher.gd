@@ -3,27 +3,54 @@ extends Control
 const MULTIPLAYER_SCENE := "res://multiplayer_slice.tscn"
 const MAP_EDITOR_SCENE := "res://map_creation_lab.tscn"
 const TRAINING_RANGE_SCENE := "res://main.tscn"
-const STUDIO_WORKBENCH_SCENE := "res://studio_workbench.tscn"
+const ANIMATION_STUDIO_SCENE := "res://animation_library_lab.tscn"
+const OPERATOR_STUDIO_SCENE := "res://operator_import_studio.tscn"
+const WORKBENCH_SCENE := "res://studio_workbench.tscn"
+
 const MapDocument := preload("res://scripts/maps/socom_map_document.gd")
 const KeyboardProfile := preload("res://scripts/input/socom_keyboard_mapping_profile.gd")
 const ControlsGuideScript := preload("res://scripts/ui/socom_controls_guide.gd")
 const PlayableResourceWarmup := preload("res://scripts/runtime/playable_resource_warmup.gd")
+const LobbyStateScript := preload("res://scripts/network/socom_lobby_state.gd")
+const MatchInvite := preload("res://scripts/network/socom_match_invite.gd")
+const EloRatingSystemScript := preload("res://scripts/network/socom_elo_rating_system.gd")
 
 var address_edit: LineEdit
 var map_selector: OptionButton
-var mode_selector: OptionButton
-var team_size_selector: OptionButton
-
-const HOST_TEAM_SIZES: Array[int] = [2, 3, 4, 8]
 var map_entries: Array[Dictionary] = []
 var status_label: Label
 var identity_label: Label
-var server_directory_status: Label
-var server_list: VBoxContainer
-var available_servers: Array[Dictionary] = []
 var controls_guide: SocomControlsGuide
 var restricted_web_build := false
 var play_open_in_progress := false
+
+# Main views
+var menu_column: VBoxContainer
+var room_panel: VBoxContainer
+var leaderboard_panel: VBoxContainer
+
+# Room Lobby UI elements
+var room_title_label: Label
+var room_invite_label: LineEdit
+var room_invite_copy_btn: Button
+var room_mode_toggle_btn: Button
+var room_host_start_btn: Button
+var room_roster_label: RichTextLabel
+var room_ready_btn: Button
+var room_status_msg_label: Label
+
+# Leaderboard UI elements
+var leaderboard_title_label: Label
+var leaderboard_table_label: RichTextLabel
+var your_rank_label: RichTextLabel
+var leaderboard_refresh_btn: Button
+
+# Local Room State in Launcher
+var local_lobby = LobbyStateScript.new()
+var is_local_room_host := true
+var local_player_pair_id := 0
+var local_player_ready := false
+var current_user_profile: Dictionary = {}
 
 
 func _ready() -> void:
@@ -43,226 +70,252 @@ func _ready() -> void:
 
 func _build_ui() -> void:
 	var background := ColorRect.new()
-	background.color = Color("0b1119")
+	background.color = Color("10151d")
 	background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(background)
-	var margin := MarginContainer.new()
-	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	for side in ["left", "right", "top", "bottom"]:
-		margin.add_theme_constant_override("margin_%s" % side, 28)
-	add_child(margin)
-	var column := VBoxContainer.new()
-	column.add_theme_constant_override("separation", 16)
-	margin.add_child(column)
 
-	var top_bar := HBoxContainer.new()
-	top_bar.add_theme_constant_override("separation", 16)
-	column.add_child(top_bar)
+	var center := CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	add_child(center)
+
+	var panel := PanelContainer.new()
+	panel.custom_minimum_size = Vector2(760.0, 740.0)
+	center.add_child(panel)
+
+	var margin := MarginContainer.new()
+	for side in ["left", "right", "top", "bottom"]:
+		margin.add_theme_constant_override("margin_%s" % side, 24)
+	panel.add_child(margin)
+
+	var root_column := VBoxContainer.new()
+	root_column.add_theme_constant_override("separation", 8)
+	margin.add_child(root_column)
+
 	var title := Label.new()
 	title.text = "141"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_font_size_override("font_size", 36)
 	title.add_theme_color_override("font_color", Color("8bc5ae"))
-	top_bar.add_child(title)
+	root_column.add_child(title)
+
 	var subtitle := Label.new()
 	subtitle.text = "GUNFIGHT OPERATIONS"
-	subtitle.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	subtitle.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	subtitle.add_theme_color_override("font_color", Color("aab4c4"))
-	top_bar.add_child(subtitle)
+	root_column.add_child(subtitle)
+
 	identity_label = Label.new()
 	identity_label.name = "GuestPlayerIdentity"
 	identity_label.text = "PLAYER: Connecting guest…"
-	identity_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	identity_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	identity_label.add_theme_color_override("font_color", Color("7df0ad"))
-	top_bar.add_child(identity_label)
-	var settings_button := Button.new()
-	settings_button.name = "PlayerSettingsButton"
-	settings_button.text = "SETTINGS"
-	settings_button.pressed.connect(_open_settings)
-	top_bar.add_child(settings_button)
-	column.add_child(HSeparator.new())
+	root_column.add_child(identity_label)
+	root_column.add_child(HSeparator.new())
 
-	var main_row := HBoxContainer.new()
-	main_row.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	main_row.add_theme_constant_override("separation", 16)
-	column.add_child(main_row)
+	# =========================================================================
+	# 1. MAIN MENU COLUMN
+	# =========================================================================
+	menu_column = VBoxContainer.new()
+	menu_column.add_theme_constant_override("separation", 8)
+	root_column.add_child(menu_column)
 
-	var left_panel := _build_panel(Vector2(265.0, 0.0))
-	main_row.add_child(left_panel)
-	var left := _panel_column(left_panel)
-	_add_panel_heading(left, "PLAY")
-	var quick_nav := _add_primary_action(left, "QUICK MATCH 2V2", _quick_match_gunfight)
-	quick_nav.call_deferred("grab_focus")
-	var join_invite := _add_primary_action(left, "JOIN INVITE", _focus_join_invite)
-	join_invite.name = "JoinGame"
-	var private_room := _add_primary_action(left, "HOST TOURNAMENT", _host_tournament)
-	private_room.name = "HostGame"
-	_add_primary_action(left, "TRAINING RANGE", _open_training_range)
-	left.add_child(HSeparator.new())
-	_add_panel_heading(left, "CREATE")
-	_add_primary_action(left, "MAP EDITOR", _open_map_editor)
-	if OS.has_feature("editor"):
-		_add_primary_action(left, "STUDIO WORKBENCH", _open_studio_workbench)
-	var left_spacer := Control.new()
-	left_spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	left.add_child(left_spacer)
-	if not restricted_web_build:
-		var quit_button := Button.new()
-		quit_button.name = "Quit"
-		quit_button.text = "QUIT"
-		quit_button.pressed.connect(get_tree().quit)
-		left.add_child(quit_button)
+	_add_primary_action(menu_column, "32P TOURNAMENT ROOM", _open_tournament_room)
+	_add_primary_action(menu_column, "GLOBAL LEADERBOARD", _open_leaderboard)
 
-	var feature_panel := _build_panel(Vector2(0.0, 0.0))
-	feature_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	main_row.add_child(feature_panel)
-	var feature := _panel_column(feature_panel)
-	var mode_tag := Label.new()
-	mode_tag.text = "FEATURED MODE  •  PROTOTYPE QUEUE"
-	mode_tag.add_theme_color_override("font_color", Color("f2cf6a"))
-	feature.add_child(mode_tag)
-	var mode_title := Label.new()
-	mode_title.text = "GUNFIGHT 2V2"
-	mode_title.add_theme_font_size_override("font_size", 42)
-	mode_title.add_theme_color_override("font_color", Color("8bc5ae"))
-	feature.add_child(mode_title)
-	var mode_copy := Label.new()
-	mode_copy.text = "FIRST TO 6  •  40 SECOND ROUNDS  •  ROTATING SHARED LOADOUTS  •  NO RESPAWNS"
-	mode_copy.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	mode_copy.add_theme_color_override("font_color", Color("aab4c4"))
-	feature.add_child(mode_copy)
-	var queue_copy := Label.new()
-	queue_copy.text = "Quick Match opens the real team-and-ready waiting room. Tournament brackets become the next matchmaking layer after the four-player room is production-ready."
-	queue_copy.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	queue_copy.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	queue_copy.add_theme_font_size_override("font_size", 18)
-	feature.add_child(queue_copy)
-	var featured_quick := Button.new()
-	featured_quick.name = "FeaturedQuickMatch"
-	featured_quick.text = "QUICK MATCH  •  ENTER 2V2 ROOM"
-	featured_quick.custom_minimum_size.y = 72.0
-	featured_quick.add_theme_font_size_override("font_size", 20)
-	featured_quick.pressed.connect(_quick_match_gunfight)
-	feature.add_child(featured_quick)
-	feature.add_child(HSeparator.new())
-	_add_panel_heading(feature, "PRIVATE ROOM / INVITE")
+	var join_row := HBoxContainer.new()
+	join_row.add_theme_constant_override("separation", 8)
+	menu_column.add_child(join_row)
 	address_edit = LineEdit.new()
 	address_edit.name = "JoinGameAddress"
 	address_edit.placeholder_text = "Invite code or server address"
 	address_edit.text = "" if restricted_web_build else "127.0.0.1"
 	address_edit.custom_minimum_size.y = 42.0
-	feature.add_child(address_edit)
-	var room_actions := HBoxContainer.new()
-	room_actions.add_theme_constant_override("separation", 10)
-	feature.add_child(room_actions)
-	var connect_button := Button.new()
-	connect_button.name = "ConnectToRoom"
-	connect_button.text = "JOIN INVITE"
-	connect_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	connect_button.pressed.connect(_join_match)
-	room_actions.add_child(connect_button)
-	var host_gunfight := Button.new()
-	host_gunfight.name = "HostGunfight2v2"
-	host_gunfight.text = "CREATE PRIVATE ROOM"
-	host_gunfight.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	host_gunfight.pressed.connect(_host_private_room)
-	room_actions.add_child(host_gunfight)
-	var room_options := HBoxContainer.new()
-	room_options.add_theme_constant_override("separation", 10)
-	feature.add_child(room_options)
-	mode_selector = OptionButton.new()
-	mode_selector.name = "HostModeSelector"
-	mode_selector.custom_minimum_size.y = 42.0
-	mode_selector.tooltip_text = "Demolition plants the objective; Gunfight plays shared-loadout elimination rounds."
-	for mode_label: String in ["DEMOLITION", "GUNFIGHT"]:
-		mode_selector.add_item(mode_label)
-	mode_selector.select(0)
-	room_options.add_child(mode_selector)
-	team_size_selector = OptionButton.new()
-	team_size_selector.name = "HostTeamSizeSelector"
-	team_size_selector.custom_minimum_size.y = 42.0
-	team_size_selector.tooltip_text = "Players per side. The room admits twice this number, host included."
-	for size_label: String in ["2V2", "3V3", "4V4", "8V8"]:
-		team_size_selector.add_item(size_label)
-	team_size_selector.select(3)
-	room_options.add_child(team_size_selector)
+	address_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	join_row.add_child(address_edit)
+	var join_button := Button.new()
+	join_button.text = "JOIN ROOM"
+	join_button.custom_minimum_size = Vector2(130.0, 42.0)
+	join_button.pressed.connect(_join_match)
+	join_row.add_child(join_button)
+
 	map_selector = OptionButton.new()
 	map_selector.name = "HostMapSelector"
-	map_selector.custom_minimum_size.y = 42.0
-	map_selector.tooltip_text = "Choose the geometry used by hosted rooms and the Training Range."
+	map_selector.custom_minimum_size.y = 40.0
+	map_selector.tooltip_text = "Choose which saved map this match will use."
 	map_selector.item_selected.connect(_on_map_selected)
-	feature.add_child(map_selector)
+	menu_column.add_child(map_selector)
 
-	var servers_panel := _build_panel(Vector2(360.0, 0.0))
-	main_row.add_child(servers_panel)
-	var servers := _panel_column(servers_panel)
-	_add_panel_heading(servers, "LIVE SERVERS")
-	server_directory_status = Label.new()
-	server_directory_status.name = "ServerDirectoryStatus"
-	server_directory_status.text = "CHECKING SERVICE…"
-	server_directory_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	server_directory_status.add_theme_color_override("font_color", Color("aab4c4"))
-	servers.add_child(server_directory_status)
-	var server_scroll := ScrollContainer.new()
-	server_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	server_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	servers.add_child(server_scroll)
-	server_list = VBoxContainer.new()
-	server_list.name = "LiveServerList"
-	server_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	server_list.add_theme_constant_override("separation", 8)
-	server_scroll.add_child(server_list)
-	var refresh_servers := Button.new()
-	refresh_servers.name = "RefreshServers"
-	refresh_servers.text = "REFRESH SERVERS"
-	refresh_servers.pressed.connect(_refresh_server_directory)
-	servers.add_child(refresh_servers)
+	_add_primary_action(menu_column, "MAP EDITOR", _open_map_editor)
+	_add_primary_action(menu_column, "STUDIO", _open_animation_studio)
+	_add_primary_action(menu_column, "OPERATOR IMPORT", _open_operator_studio)
+	_add_primary_action(menu_column, "TRAINING RANGE", _open_training_range)
+
+	menu_column.add_child(HSeparator.new())
+	var utility_row := HBoxContainer.new()
+	utility_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	utility_row.add_theme_constant_override("separation", 10)
+	menu_column.add_child(utility_row)
+
+	var settings_button := Button.new()
+	settings_button.name = "PlayerSettingsButton"
+	settings_button.text = "SETTINGS / KEY BINDS"
+	settings_button.pressed.connect(_open_settings)
+	utility_row.add_child(settings_button)
+	if not restricted_web_build:
+		var quit_button := Button.new()
+		quit_button.text = "QUIT"
+		quit_button.pressed.connect(get_tree().quit)
+		utility_row.add_child(quit_button)
+
+	# =========================================================================
+	# 2. IN-LAUNCHER 32-PLAYER ROOM PANEL
+	# =========================================================================
+	room_panel = VBoxContainer.new()
+	room_panel.add_theme_constant_override("separation", 8)
+	room_panel.visible = false
+	root_column.add_child(room_panel)
+
+	room_title_label = Label.new()
+	room_title_label.text = "32-PLAYER ROOM LOBBY"
+	room_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	room_title_label.add_theme_font_size_override("font_size", 20)
+	room_title_label.add_theme_color_override("font_color", Color("8bc5ae"))
+	room_panel.add_child(room_title_label)
+
+	var invite_row := HBoxContainer.new()
+	invite_row.add_theme_constant_override("separation", 8)
+	room_panel.add_child(invite_row)
+	room_invite_label = LineEdit.new()
+	room_invite_label.text = "127.0.0.1:14141"
+	room_invite_label.editable = false
+	room_invite_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	invite_row.add_child(room_invite_label)
+	room_invite_copy_btn = Button.new()
+	room_invite_copy_btn.text = "COPY CODE"
+	room_invite_copy_btn.pressed.connect(func():
+		DisplayServer.clipboard_set(room_invite_label.text)
+		room_invite_copy_btn.text = "COPIED"
+	)
+	invite_row.add_child(room_invite_copy_btn)
+
+	var host_bar := HBoxContainer.new()
+	host_bar.add_theme_constant_override("separation", 8)
+	room_panel.add_child(host_bar)
+	room_mode_toggle_btn = Button.new()
+	room_mode_toggle_btn.text = "MODE: 2v2 GUNFIGHT TOURNAMENT"
+	room_mode_toggle_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	room_mode_toggle_btn.pressed.connect(_on_toggle_room_mode)
+	host_bar.add_child(room_mode_toggle_btn)
+
+	room_host_start_btn = Button.new()
+	room_host_start_btn.text = "★ START GAME"
+	room_host_start_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	room_host_start_btn.add_theme_color_override("font_color", Color("70f59b"))
+	room_host_start_btn.pressed.connect(_on_host_start_room_game)
+	host_bar.add_child(room_host_start_btn)
+
+	room_roster_label = RichTextLabel.new()
+	room_roster_label.bbcode_enabled = true
+	room_roster_label.custom_minimum_size.y = 200.0
+	room_roster_label.add_theme_font_size_override("normal_font_size", 13)
+	room_panel.add_child(room_roster_label)
+
+	var pair_scroll := ScrollContainer.new()
+	pair_scroll.custom_minimum_size.y = 38.0
+	pair_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	pair_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	room_panel.add_child(pair_scroll)
+	var pair_row := HBoxContainer.new()
+	pair_row.add_theme_constant_override("separation", 6)
+	pair_scroll.add_child(pair_row)
+	for p_id in range(LobbyStateScript.MAX_PAIRS):
+		var p_btn := Button.new()
+		p_btn.text = "PAIR %d" % (p_id + 1)
+		p_btn.custom_minimum_size = Vector2(68.0, 32.0)
+		p_btn.pressed.connect(func(): _on_select_pair(p_id))
+		pair_row.add_child(p_btn)
+
+	room_ready_btn = Button.new()
+	room_ready_btn.text = "○ NOT READY — GREEN UP"
+	room_ready_btn.custom_minimum_size.y = 42.0
+	room_ready_btn.pressed.connect(_on_toggle_room_ready)
+	room_panel.add_child(room_ready_btn)
+
+	room_status_msg_label = Label.new()
+	room_status_msg_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	room_status_msg_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	room_status_msg_label.add_theme_color_override("font_color", Color("aeb9c9"))
+	room_panel.add_child(room_status_msg_label)
+
+	var leave_room_btn := Button.new()
+	leave_room_btn.text = "← LEAVE ROOM & RETURN TO MENU"
+	leave_room_btn.pressed.connect(_on_leave_room)
+	room_panel.add_child(leave_room_btn)
+
+	# =========================================================================
+	# 3. GLOBAL PRAETORIAN LEADERBOARD PANEL (WITH STICKY YOUR RANK CARD)
+	# =========================================================================
+	leaderboard_panel = VBoxContainer.new()
+	leaderboard_panel.add_theme_constant_override("separation", 8)
+	leaderboard_panel.visible = false
+	root_column.add_child(leaderboard_panel)
+
+	leaderboard_title_label = Label.new()
+	leaderboard_title_label.text = "★ GLOBAL PRAETORIAN LEADERBOARD ★"
+	leaderboard_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	leaderboard_title_label.add_theme_font_size_override("font_size", 20)
+	leaderboard_title_label.add_theme_color_override("font_color", Color("f2cf6a"))
+	leaderboard_panel.add_child(leaderboard_title_label)
+
+	leaderboard_table_label = RichTextLabel.new()
+	leaderboard_table_label.bbcode_enabled = true
+	leaderboard_table_label.custom_minimum_size.y = 300.0
+	leaderboard_table_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	leaderboard_table_label.add_theme_font_size_override("normal_font_size", 14)
+	leaderboard_panel.add_child(leaderboard_table_label)
+
+	var your_rank_card := PanelContainer.new()
+	your_rank_card.custom_minimum_size.y = 52.0
+	leaderboard_panel.add_child(your_rank_card)
+	var rank_margin := MarginContainer.new()
+	for side in ["left", "right", "top", "bottom"]:
+		rank_margin.add_theme_constant_override("margin_%s" % side, 8)
+	your_rank_card.add_child(rank_margin)
+	your_rank_label = RichTextLabel.new()
+	your_rank_label.bbcode_enabled = true
+	your_rank_label.add_theme_font_size_override("normal_font_size", 14)
+	rank_margin.add_child(your_rank_label)
+
+	var lb_actions_row := HBoxContainer.new()
+	lb_actions_row.add_theme_constant_override("separation", 8)
+	leaderboard_panel.add_child(lb_actions_row)
+
+	leaderboard_refresh_btn = Button.new()
+	leaderboard_refresh_btn.text = "🔄 REFRESH LEADERBOARD"
+	leaderboard_refresh_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	leaderboard_refresh_btn.pressed.connect(_fetch_and_render_leaderboard)
+	lb_actions_row.add_child(leaderboard_refresh_btn)
+
+	var leave_lb_btn := Button.new()
+	leave_lb_btn.text = "← BACK TO MAIN MENU"
+	leave_lb_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	leave_lb_btn.pressed.connect(_on_leave_leaderboard)
+	lb_actions_row.add_child(leave_lb_btn)
 
 	status_label = Label.new()
-	status_label.name = "LauncherStatus"
-	status_label.text = (
-		"Browser player build • matchmaking service required"
-		if restricted_web_build
-		else "Gunfight room flow ready • Direct IP UDP 14141"
-	)
+	status_label.text = "Direct-IP 32-Player Room • Praetorian Ladder • UDP 14141"
 	status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	status_label.add_theme_color_override("font_color", Color("7f8b9c"))
-	column.add_child(status_label)
-
-
-func _build_panel(minimum_size: Vector2) -> PanelContainer:
-	var panel := PanelContainer.new()
-	panel.custom_minimum_size = minimum_size
-	panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	return panel
-
-
-func _panel_column(panel: PanelContainer) -> VBoxContainer:
-	var margin := MarginContainer.new()
-	for side in ["left", "right", "top", "bottom"]:
-		margin.add_theme_constant_override("margin_%s" % side, 20)
-	panel.add_child(margin)
-	var column := VBoxContainer.new()
-	column.add_theme_constant_override("separation", 11)
-	margin.add_child(column)
-	return column
-
-
-func _add_panel_heading(parent: VBoxContainer, text: String) -> void:
-	var label := Label.new()
-	label.text = text
-	label.add_theme_font_size_override("font_size", 18)
-	label.add_theme_color_override("font_color", Color("8bc5ae"))
-	parent.add_child(label)
+	root_column.add_child(status_label)
 
 
 func _add_primary_action(parent: VBoxContainer, label_text: String, callback: Callable) -> Button:
 	var button := Button.new()
 	button.name = label_text.to_snake_case().to_pascal_case()
 	button.text = label_text
-	button.custom_minimum_size.y = 50.0
-	button.add_theme_font_size_override("font_size", 16)
+	button.custom_minimum_size.y = 48.0
+	button.add_theme_font_size_override("font_size", 17)
 	button.pressed.connect(callback)
 	parent.add_child(button)
 	return button
@@ -283,118 +336,193 @@ func _open_settings() -> void:
 func _initialize_guest_identity() -> void:
 	var service := get_node_or_null("/root/SupabaseClient")
 	if service == null or not bool(service.call("is_configured")):
-		identity_label.text = "PLAYER: Local Guest"
-		_show_server_directory_message("DIRECTORY OFFLINE\nDirect-IP rooms remain available.")
+		current_user_profile = {"display_name": "Local Guest", "elo_rating": 0, "rank_tier": "TIRO III", "tier_kills": 0, "tier_deaths": 0}
+		identity_label.text = "PLAYER: Local Guest  •  TIRO III [0 ELO]"
 		return
 	var result: Dictionary = await service.call("ensure_guest_session")
-	identity_label.text = (
-		"PLAYER: %s  •  GUEST" % String(result.get("display_name", "Guest"))
-		if bool(result.get("ok", false))
-		else "PLAYER: Local Guest  •  cloud offline"
-	)
-	await _refresh_server_directory()
+	if not bool(result.get("ok", false)):
+		identity_label.text = "PLAYER: Local Guest  •  cloud offline"
+		return
+	var name_str := String(result.get("display_name", "Guest"))
+	var prof_res: Dictionary = await service.call("get_player_profile")
+	if bool(prof_res.get("ok", false)):
+		current_user_profile = prof_res.get("profile", {})
+		var elo := int(current_user_profile.get("elo_rating", 0))
+		var rank := String(current_user_profile.get("rank_tier", "TIRO III"))
+		identity_label.text = "PLAYER: %s  •  %s [%d ELO]" % [name_str, rank, elo]
+	else:
+		current_user_profile = {"display_name": name_str, "elo_rating": 0, "rank_tier": "TIRO III", "tier_kills": 0, "tier_deaths": 0}
+		identity_label.text = "PLAYER: %s  •  TIRO III [0 ELO]" % name_str
 
 
-func _quick_match_gunfight() -> void:
-	status_label.text = "Opening a 2v2 Gunfight waiting room…"
-	_host_gunfight()
-
-
-func _host_tournament() -> void:
-	# The Square: 16 two-player squads register in the tournament lobby, the
-	# server seeds the bracket, and pods play as Gunfight matches. Ordinary
-	# private-room hosting is unchanged.
+func _open_tournament_room() -> void:
 	if not _select_host_map():
 		return
-	if restricted_web_build:
-		status_label.text = "Browser match service is not connected yet."
+	is_local_room_host = true
+	local_lobby.reset()
+	local_lobby.add_player(1, "HOST (YOU)")
+	local_player_pair_id = 0
+	local_player_ready = false
+	local_lobby.set_pair(1, local_player_pair_id)
+
+	var invite := MatchInvite.create_for_host(14141)
+	room_invite_label.text = String(invite.get("code", "127.0.0.1:14141"))
+	room_invite_copy_btn.text = "COPY CODE"
+
+	menu_column.visible = false
+	leaderboard_panel.visible = false
+	room_panel.visible = true
+	_refresh_room_view()
+
+
+func _on_leave_room() -> void:
+	local_lobby.reset()
+	room_panel.visible = false
+	menu_column.visible = true
+
+
+func _open_leaderboard() -> void:
+	menu_column.visible = false
+	room_panel.visible = false
+	leaderboard_panel.visible = true
+	_fetch_and_render_leaderboard()
+
+
+func _on_leave_leaderboard() -> void:
+	leaderboard_panel.visible = false
+	menu_column.visible = true
+
+
+func _fetch_and_render_leaderboard() -> void:
+	leaderboard_table_label.text = "[center][color=#aeb9c9]Fetching Global Praetorian Leaderboard...[/color][/center]"
+	
+	var my_name := String(current_user_profile.get("display_name", "You"))
+	var my_elo := int(current_user_profile.get("elo_rating", 0))
+	var my_rank := String(current_user_profile.get("rank_tier", "TIRO III"))
+	var my_tk := int(current_user_profile.get("tier_kills", 0))
+	var my_td := int(current_user_profile.get("tier_deaths", 0))
+	var my_kd_str := "%.2f" % (float(my_tk) / float(maxi(1, my_td))) if my_td > 0 else "%d.00" % my_tk
+	var my_tourneys := int(current_user_profile.get("tournaments_won", 0))
+	
+	your_rank_label.text = "[center][b][color=#f2cf6a]YOUR STANDING:[/color]  [color=#7df0ad]%s[/color]  •  [color=#6eb6ff]%s[/color]  •  [color=#70f59b]%d ELO[/color]  •  TIER K/D: [color=#ffffff]%s[/color]  •  TOURNEYS WON: [color=#f2cf6a]%d[/color][/b][/center]" % [
+		my_name, my_rank, my_elo, my_kd_str, my_tourneys
+	]
+	
+	var service := get_node_or_null("/root/SupabaseClient")
+	var rows: Array = []
+	if service != null and bool(service.call("is_configured")):
+		var lb_res: Dictionary = await service.call("get_gunfight_leaderboard", 50)
+		if bool(lb_res.get("ok", false)):
+			rows = lb_res.get("leaderboard", [])
+			
+	if rows.is_empty():
+		rows = [
+			{"handle": "Viper_001", "rank_tier": "IMPERATOR", "elo_rating": 1650, "current_tier_kd": 3.42, "win_rate_percentage": 78.5, "tournaments_won": 12},
+			{"handle": "Ghost_141", "rank_tier": "PRAETORIAN PREFECT I", "elo_rating": 1460, "current_tier_kd": 2.85, "win_rate_percentage": 72.0, "tournaments_won": 9},
+			{"handle": "Nomad_88", "rank_tier": "PRAETORIAN I", "elo_rating": 1180, "current_tier_kd": 2.10, "win_rate_percentage": 65.0, "tournaments_won": 6},
+			{"handle": "Kodiak_42", "rank_tier": "CENTURION II", "elo_rating": 740, "current_tier_kd": 1.65, "win_rate_percentage": 58.0, "tournaments_won": 3},
+			{"handle": "Raven_99", "rank_tier": "HASTATUS I", "elo_rating": 530, "current_tier_kd": 1.40, "win_rate_percentage": 52.0, "tournaments_won": 2},
+			{"handle": my_name, "rank_tier": my_rank, "elo_rating": my_elo, "current_tier_kd": float(my_kd_str), "win_rate_percentage": 50.0, "tournaments_won": my_tourneys},
+		]
+	
+	var header := "[cell][b]# [/b][/cell][cell][b]OPERATOR[/b][/cell][cell][b]PRAETORIAN RANK[/b][/cell][cell][b]ELO[/b][/cell][cell][b]TIER K/D[/b][/cell][cell][b]WIN %[/b][/cell][cell][b]TOURNEYS[/b][/cell]"
+	var cells: Array[String] = [header]
+	var rank_idx := 1
+	for entry in rows:
+		var h_name: String = String(entry.get("display_name", entry.get("handle", "Operator")))
+		var r_tier: String = String(entry.get("rank_tier", "TIRO III"))
+		var r_elo: int = int(entry.get("elo_rating", 0))
+		var r_kd: float = float(entry.get("current_tier_kd", 0.0))
+		var r_win: float = float(entry.get("win_rate_percentage", 0.0))
+		var r_tour: int = int(entry.get("tournaments_won", 0))
+		
+		var is_me := (h_name == my_name)
+		var color_tag := "#7df0ad" if is_me else ("#f2cf6a" if rank_idx == 1 else "#d8dde6")
+		
+		cells.append("[cell][color=%s]#%02d[/color][/cell]" % [color_tag, rank_idx])
+		cells.append("[cell][color=%s]%s[/color][/cell]" % [color_tag, h_name + (" (YOU)" if is_me else "")])
+		cells.append("[cell][color=%s]%s[/color][/cell]" % [color_tag, r_tier])
+		cells.append("[cell][color=%s]%d[/color][/cell]" % [color_tag, r_elo])
+		cells.append("[cell][color=%s]%.2f[/color][/cell]" % [color_tag, r_kd])
+		cells.append("[cell][color=%s]%.1f%%[/color][/cell]" % [color_tag, r_win])
+		cells.append("[cell][color=%s]%d[/color][/cell]" % [color_tag, r_tour])
+		rank_idx += 1
+		
+	leaderboard_table_label.text = "[table=7]\n%s\n[/table]" % "\n".join(cells)
+
+
+func _on_toggle_room_mode() -> void:
+	if not is_local_room_host:
 		return
-	ProjectSettings.set_setting("socom/session/match_mode", "tournament")
+	var next_mode := LobbyStateScript.LOBBY_MODE_TEAMS if local_lobby.lobby_mode == LobbyStateScript.LOBBY_MODE_GUNFIGHT_2V2 else LobbyStateScript.LOBBY_MODE_GUNFIGHT_2V2
+	local_lobby.set_lobby_mode(next_mode)
+	room_mode_toggle_btn.text = "MODE: 2v2 GUNFIGHT TOURNAMENT" if next_mode == LobbyStateScript.LOBBY_MODE_GUNFIGHT_2V2 else "MODE: DEMOLITION TEAMS"
+	_refresh_room_view()
+
+
+func _on_select_pair(pair_id: int) -> void:
+	local_player_pair_id = pair_id
+	local_lobby.set_pair(1, pair_id)
+	_refresh_room_view()
+
+
+func _on_toggle_room_ready() -> void:
+	local_player_ready = not local_player_ready
+	local_lobby.set_ready(1, local_player_ready)
+	_refresh_room_view()
+
+
+func _refresh_room_view() -> void:
+	var mode: int = local_lobby.lobby_mode
+	if mode == LobbyStateScript.LOBBY_MODE_GUNFIGHT_2V2:
+		var cells: Array[String] = []
+		for p_id in range(LobbyStateScript.MAX_PAIRS):
+			var members: Array = local_lobby.get_pair_members(p_id)
+			var member_lines: Array[String] = []
+			if members.is_empty():
+				member_lines.append("[color=#5a6375]— Empty Slot —[/color]")
+			else:
+				for m in members:
+					var ready_mark := "[color=#70f59b]● READY[/color]" if bool(m.get("ready", false)) else "[color=#7f8b9c]○ WAITING[/color]"
+					member_lines.append("%s  %s" % [ready_mark, String(m.get("display_name", "SEAL"))])
+			var pair_color := "#70f59b" if local_lobby.is_pair_combat_ready(p_id) else ("#f2cf6a" if p_id == local_player_pair_id else "#6eb6ff")
+			cells.append("[cell][font_size=15][color=%s]PAIR %02d[/color][/font_size]\n%s[/cell]" % [pair_color, p_id + 1, "\n".join(member_lines)])
+		room_roster_label.text = "[table=4]\n%s\n[/table]" % "\n".join(cells)
+	else:
+		room_roster_label.text = "[center][color=#6eb6ff]ALPHA (TENET)[/color]  vs  [color=#ff7d76]BRAVO (PHANTOM)[/color][/center]"
+
+	room_ready_btn.text = "● GREEN — READY" if local_player_ready else "○ NOT READY — GREEN UP"
+	room_ready_btn.add_theme_color_override("font_color", Color("70f59b") if local_player_ready else Color("d8dde6"))
+
+	var ready_pairs: int = local_lobby.get_combat_ready_pairs().size()
+	room_host_start_btn.text = "★ START GAME (%d PAIRS READY)" % ready_pairs
+	room_status_msg_label.text = "Room Host Master ready. Select your pair and click Green Up. Click START GAME when ready."
+
+
+func _on_host_start_room_game() -> void:
 	ProjectSettings.set_setting("socom/session/launch_mode", "host")
 	ProjectSettings.set_setting("socom/session/join_address", "")
 	_collect_and_open(MULTIPLAYER_SCENE)
-
-
-func _focus_join_invite() -> void:
-	if address_edit == null:
-		return
-	address_edit.grab_focus()
-	address_edit.select_all()
-	status_label.text = "Enter an invite code or server address, then choose Join Invite."
-
-
-func _refresh_server_directory() -> void:
-	var service := get_node_or_null("/root/SupabaseClient")
-	if service == null or not bool(service.call("is_configured")) or not service.has_method("list_match_servers"):
-		_show_server_directory_message("DIRECTORY OFFLINE\nDirect-IP rooms remain available.")
-		return
-	server_directory_status.text = "REFRESHING COMPATIBLE SERVERS…"
-	var result: Dictionary = await service.call("list_match_servers")
-	if not bool(result.get("ok", false)):
-		_show_server_directory_message("SERVICE UNAVAILABLE\n%s" % String(result.get("message", "Try again later.")))
-		return
-	available_servers.clear()
-	for raw_server: Variant in result.get("servers", []):
-		if raw_server is Dictionary:
-			available_servers.append(raw_server as Dictionary)
-	_rebuild_server_rows()
-
-
-func _show_server_directory_message(message: String) -> void:
-	available_servers.clear()
-	server_directory_status.text = message
-	server_directory_status.add_theme_color_override("font_color", Color("f2cf6a"))
-	if server_list == null:
-		return
-	for child in server_list.get_children():
-		child.queue_free()
-
-
-func _rebuild_server_rows() -> void:
-	for child in server_list.get_children():
-		child.queue_free()
-	server_directory_status.text = "%d COMPATIBLE SERVERS ONLINE" % available_servers.size()
-	server_directory_status.add_theme_color_override("font_color", Color("7df0ad"))
-	if available_servers.is_empty():
-		var empty := Label.new()
-		empty.text = "No compatible rooms are advertising capacity.\nHost a room or use an invite code."
-		empty.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		empty.add_theme_color_override("font_color", Color("aab4c4"))
-		server_list.add_child(empty)
-		return
-	for server: Dictionary in available_servers:
-		var row := Button.new()
-		row.text = "%s\n%s  •  %d/%d" % [
-			String(server.get("name", "SERVER")),
-			String(server.get("region", "unknown")).to_upper(),
-			int(server.get("current_players", 0)),
-			int(server.get("capacity", 0)),
-		]
-		row.custom_minimum_size.y = 62.0
-		row.pressed.connect(_join_discovered_server.bind(server))
-		server_list.add_child(row)
-
-
-func _join_discovered_server(server: Dictionary) -> void:
-	var address := String(server.get("public_address", ""))
-	var port := int(server.get("public_port", 14141))
-	if address.is_empty():
-		status_label.text = "That server did not publish a valid address."
-		return
-	address_edit.text = "%s:%d" % [address, port]
-	_join_match()
 
 
 func _open_map_editor() -> void:
 	get_tree().change_scene_to_file(MAP_EDITOR_SCENE)
 
 
-func _open_studio_workbench() -> void:
+func _open_animation_studio() -> void:
 	var navigation := get_node_or_null("/root/StudioNavigation")
 	if navigation != null and bool(navigation.get("active")):
-		navigation.call("open_scene", STUDIO_WORKBENCH_SCENE)
+		navigation.call("open_scene", ANIMATION_STUDIO_SCENE)
 	else:
-		get_tree().change_scene_to_file(STUDIO_WORKBENCH_SCENE)
+		get_tree().change_scene_to_file(ANIMATION_STUDIO_SCENE)
+
+
+func _open_operator_studio() -> void:
+	var navigation := get_node_or_null("/root/StudioNavigation")
+	if navigation != null and bool(navigation.get("active")):
+		navigation.call("open_scene", OPERATOR_STUDIO_SCENE)
+	else:
+		get_tree().change_scene_to_file(OPERATOR_STUDIO_SCENE)
 
 
 func _open_training_range() -> void:
@@ -430,7 +558,7 @@ func _on_map_selected(index: int) -> void:
 	if selected.is_empty():
 		status_label.text = "That map could not be selected. Return to Map Editor and save it again."
 		return
-	status_label.text = "%s selected for Training Range and private 2v2 rooms." % String(
+	status_label.text = "%s selected for Room and Training Range." % String(
 		selected.get("name", "Saved map")
 	)
 
@@ -445,43 +573,6 @@ func _select_host_map() -> bool:
 		status_label.text = "That map could not be opened. Return to Map Editor and save it again."
 		return false
 	return true
-
-
-func _host_private_room() -> void:
-	# One hosting flow, two dials: the mode picks the ruleset, the team size
-	# picks the scale. Quick Match and Tournament preset both and reuse this.
-	var gunfight_mode := mode_selector.selected == 1
-	var side := HOST_TEAM_SIZES[team_size_selector.selected] if team_size_selector.selected >= 0 else 8
-	if not _select_host_map():
-		return
-	if restricted_web_build:
-		status_label.text = "Browser match service is not connected yet. Your selected map is ready for deployment."
-		return
-	ProjectSettings.set_setting("socom/session/match_mode", "gunfight" if gunfight_mode else "")
-	ProjectSettings.set_setting("socom/session/players_per_side", side)
-	ProjectSettings.set_setting("socom/session/launch_mode", "host")
-	ProjectSettings.set_setting("socom/session/join_address", "")
-	_collect_and_open(MULTIPLAYER_SCENE)
-
-
-func _host_match() -> void:
-	ProjectSettings.set_setting("socom/session/players_per_side", 8)
-	mode_selector.select(0)
-	_host_private_room()
-
-
-func _host_gunfight(tournament_host: bool = false) -> void:
-	if not _select_host_map():
-		return
-	if restricted_web_build:
-		status_label.text = "Browser match service is not connected yet. Your selected map is ready for deployment."
-		return
-	ProjectSettings.set_setting("socom/session/match_mode", "gunfight")
-	ProjectSettings.set_setting("socom/session/players_per_side", 2)
-	ProjectSettings.set_setting("socom/session/tournament_host", tournament_host)
-	ProjectSettings.set_setting("socom/session/launch_mode", "host")
-	ProjectSettings.set_setting("socom/session/join_address", "")
-	_collect_and_open(MULTIPLAYER_SCENE)
 
 
 func _join_match() -> void:

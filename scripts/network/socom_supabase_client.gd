@@ -76,6 +76,32 @@ func ensure_guest_session() -> Dictionary:
 	return _identity_result()
 
 
+func get_player_profile() -> Dictionary:
+	if not is_configured():
+		return {"ok": false, "message": "Supabase service is not configured."}
+	var u_id := user_id()
+	if u_id.is_empty():
+		return {"ok": false, "message": "No active user session."}
+	var path := "/rest/v1/player_profiles?user_id=eq.%s&select=*" % u_id
+	var response: Dictionary = await _request_json(path, HTTPClient.METHOD_GET, {}, true)
+	if not bool(response.get("ok", false)):
+		return {"ok": false, "message": _response_message(response)}
+	var rows: Array = response.get("data", [])
+	if rows.is_empty():
+		return {"ok": true, "profile": {"elo_rating": 0, "rank_tier": "TIRO III", "tier_kills": 0, "tier_deaths": 0}}
+	return {"ok": true, "profile": rows[0]}
+
+
+func get_gunfight_leaderboard(limit: int = 50) -> Dictionary:
+	if not is_configured():
+		return {"ok": false, "message": "Supabase service is not configured.", "leaderboard": []}
+	var path := "/rest/v1/gunfight_leaderboard?select=*&limit=%d" % limit
+	var response: Dictionary = await _request_json(path, HTTPClient.METHOD_GET, {}, true)
+	if not bool(response.get("ok", false)):
+		return {"ok": false, "message": _response_message(response), "leaderboard": []}
+	return {"ok": true, "leaderboard": response.get("data", [])}
+
+
 func list_public_maps() -> Dictionary:
 	if not is_configured():
 		return {"ok": false, "message": "Community service is not configured.", "maps": []}

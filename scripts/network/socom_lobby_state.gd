@@ -3,8 +3,13 @@ extends RefCounted
 
 const TEAM_ALPHA := 0
 const TEAM_BRAVO := 1
-const TEAM_CAPACITY := 8
+const TEAM_CAPACITY := 16
 const MINIMUM_PLAYERS := 2
+const MAX_PLAYERS_32 := 32
+const MAX_PAIRS := 16
+
+const LOBBY_MODE_TEAMS := 0
+const LOBBY_MODE_GUNFIGHT_2V2 := 1
 
 const PHASE_WAITING := "WAITING"
 const PHASE_COUNTDOWN := "COUNTDOWN"
@@ -13,6 +18,8 @@ const PHASE_ROUND_END := "ROUND_END"
 const PHASE_MATCH_END := "MATCH_END"
 
 var phase := PHASE_WAITING
+var lobby_mode: int = LOBBY_MODE_GUNFIGHT_2V2
+var host_master_peer_id: int = 1
 var players: Dictionary = {}
 
 
@@ -25,11 +32,14 @@ func add_player(peer_id: int, display_name: String = "") -> Dictionary:
 	if players.has(peer_id):
 		return (players[peer_id] as Dictionary).duplicate(true)
 	var team := _balanced_team()
+	var pair_id := _assign_first_available_pair()
 	var entry := {
 		"peer_id": peer_id,
 		"display_name": display_name if not display_name.is_empty() else "SEAL %d" % peer_id,
 		"team": team,
+		"pair_id": pair_id,
 		"ready": false,
+		"is_host": (peer_id == 1),
 	}
 	players[peer_id] = entry
 	return entry.duplicate(true)
@@ -37,84 +47,134 @@ func add_player(peer_id: int, display_name: String = "") -> Dictionary:
 
 func remove_player(peer_id: int) -> void:
 	players.erase(peer_id)
+	if host_master_peer_id == peer_id and not players.is_empty():
+		host_master_peer_id = int(players.keys()[0])
+		if players.has(host_master_peer_id):
+			players[host_master_peer_id]["is_host"] = true
 	if phase == PHASE_COUNTDOWN:
-		phase = PHASE_WAITING
+		if lobby_mode == LOBBY_MODE_GUNFIGHT_2V2:
+			if get_combat_ready_pairs().size() < 2:
+				phase = PHASE_WAITING
+		elif not are_all_ready():
+			phase = PHASE_WAITING
 
 
 func set_team(peer_id: int, team: int) -> bool:
-	if phase != PHASE_WAITING or not players.has(peer_id) or team not in [TEAM_ALPHA, TEAM_BRAVO]:
+	if not players.has(peer_id) or phase != PHASE_WAITING:
 		return false
-	var current: Dictionary = players[peer_id]
-	if int(current.get("team", TEAM_ALPHA)) == team:
-		return true
-	if team_count(team) >= TEAM_CAPACITY:
+	if team != TEAM_ALPHA and team != TEAM_BRAVO:
 		return false
-	current["team"] = team
-	current["ready"] = false
-	players[peer_id] = current
+	if _team_count(team) >= TEAM_CAPACITY and players[peer_id].team != team:
+		return false
+	players[peer_id].team = team
+	return true
+
+
+func set_pair(peer_id: int, pair_id: int) -> bool:
+	if not players.has(peer_id) or phase != PHASE_WAITING:
+		return false
+	if pair_id < 0 or pair_id >= MAX_PAIRS:
+		return false
+	if get_pair_members(pair_id).size() >= 2 and players[peer_id].pair_id != pair_id:
+		return false
+	players[peer_id].pair_id = pair_id
 	return true
 
 
 func set_ready(peer_id: int, ready: bool) -> bool:
-	if phase != PHASE_WAITING or not players.has(peer_id):
+	if not players.has(peer_id) or phase != PHASE_WAITING:
 		return false
-	var entry: Dictionary = players[peer_id]
-	entry["ready"] = ready
-	players[peer_id] = entry
+	players[peer_id].ready = ready
 	return true
 
 
-func team_count(team: int) -> int:
-	var count := 0
-	for raw_entry: Variant in players.values():
-		if raw_entry is Dictionary and int((raw_entry as Dictionary).get("team", -1)) == team:
-			count += 1
-	return count
+func set_lobby_mode(mode: int) -> void:
+	lobby_mode = mode
 
 
-func all_players_ready() -> bool:
+func are_all_ready() -> bool:
 	if players.size() < MINIMUM_PLAYERS:
 		return false
-	if team_count(TEAM_ALPHA) == 0 or team_count(TEAM_BRAVO) == 0:
-		return false
-	for raw_entry: Variant in players.values():
-		if not raw_entry is Dictionary or not bool((raw_entry as Dictionary).get("ready", false)):
+	for p in players.values():
+		if not bool(p.get("ready", false)):
 			return false
 	return true
 
 
-func clear_ready_states() -> void:
-	for raw_id: Variant in players.keys():
-		var entry: Dictionary = players[raw_id]
-		entry["ready"] = false
-		players[raw_id] = entry
+func get_pair_members(pair_id: int) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	for p in players.values():
+		if int(p.get("pair_id", -1)) == pair_id:
+			result.append(p.duplicate(true))
+	return result
 
 
-func snapshot(countdown_seconds: float = 0.0) -> Dictionary:
-	var roster: Array[Dictionary] = []
-	var ids := players.keys()
-	ids.sort()
-	for raw_id: Variant in ids:
-		roster.append((players[raw_id] as Dictionary).duplicate(true))
+func is_pair_combat_ready(pair_id: int) -> bool:
+	var members := get_pair_members(pair_id)
+	if members.size() < 2:
+		return false
+	for m in members:
+		if not bool(m.get("ready", false)):
+			return false
+	return true
+
+
+func get_combat_ready_pairs() -> Array[int]:
+	var ready_pairs: Array[int] = []
+	for p_id in range(MAX_PAIRS):
+		if is_pair_combat_ready(p_id):
+			ready_pairs.append(p_id)
+	return ready_pairs
+
+
+func can_host_master_start() -> bool:
+	if lobby_mode == LOBBY_MODE_GUNFIGHT_2V2:
+		var ready_pairs := get_combat_ready_pairs()
+		return ready_pairs.size() >= 2
+	return are_all_ready()
+
+
+func snapshot(countdown: float = 0.0) -> Dictionary:
 	return {
 		"phase": phase,
-		"countdown_seconds": maxf(countdown_seconds, 0.0),
-		"all_ready": all_players_ready(),
-		"players": roster,
+		"lobby_mode": lobby_mode,
+		"host_master_peer_id": host_master_peer_id,
+		"countdown_remaining": countdown,
+		"players": players.duplicate(true),
 	}
 
 
-func apply_snapshot(value: Dictionary) -> void:
-	phase = String(value.get("phase", PHASE_WAITING))
-	players.clear()
-	for raw_entry: Variant in value.get("players", []):
-		if not raw_entry is Dictionary:
-			continue
-		var entry := (raw_entry as Dictionary).duplicate(true)
-		var peer_id := int(entry.get("peer_id", 0))
-		if peer_id > 0:
-			players[peer_id] = entry
+func get_roster_snapshot() -> Dictionary:
+	return snapshot(0.0)
+
+
+func apply_roster_snapshot(snapshot: Dictionary) -> void:
+	phase = String(snapshot.get("phase", PHASE_WAITING))
+	lobby_mode = int(snapshot.get("lobby_mode", LOBBY_MODE_GUNFIGHT_2V2))
+	host_master_peer_id = int(snapshot.get("host_master_peer_id", 1))
+	players = (snapshot.get("players", {}) as Dictionary).duplicate(true)
+
+
+func _team_count(team: int) -> int:
+	var count := 0
+	for p in players.values():
+		if int(p.get("team", -1)) == team:
+			count += 1
+	return count
 
 
 func _balanced_team() -> int:
-	return TEAM_ALPHA if team_count(TEAM_ALPHA) <= team_count(TEAM_BRAVO) else TEAM_BRAVO
+	var alpha_count := _team_count(TEAM_ALPHA)
+	var bravo_count := _team_count(TEAM_BRAVO)
+	if alpha_count <= bravo_count and alpha_count < TEAM_CAPACITY:
+		return TEAM_ALPHA
+	elif bravo_count < TEAM_CAPACITY:
+		return TEAM_BRAVO
+	return TEAM_ALPHA
+
+
+func _assign_first_available_pair() -> int:
+	for p_id in range(MAX_PAIRS):
+		if get_pair_members(p_id).size() < 2:
+			return p_id
+	return 0

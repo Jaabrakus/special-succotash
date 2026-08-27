@@ -49,9 +49,17 @@ func collect_saved_state() -> Dictionary:
 	var loadout: Dictionary = states.get("operator_loadout", {})
 	var weapon_path := String(loadout.get("rig_config", ""))
 	if weapon_path.is_empty():
-		last_errors.append("The saved operator loadout does not select a weapon rig.")
-	else:
+		var weapon_id := String(loadout.get("primary_weapon_id", "m16a2"))
+		if weapon_id.is_empty():
+			weapon_id = "m16a2"
+		weapon_path = "res://config/weapons/%s.json" % weapon_id.to_lower()
+		if not FileAccess.file_exists(weapon_path):
+			weapon_path = "res://config/weapons/m16a2.json"
+	
+	if FileAccess.file_exists(weapon_path):
 		_collect_dictionary("equipped_weapon", weapon_path, states, sources)
+	else:
+		last_errors.append("No valid weapon profile found in config/weapons/.")
 
 	if not last_errors.is_empty():
 		active_bundle.clear()

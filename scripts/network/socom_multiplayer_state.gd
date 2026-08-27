@@ -149,7 +149,7 @@ var bravo_team_button: Button
 var ready_button: Button
 var lobby_status_label: Label
 var objective_status_label: Label
-var multiplayer_hud: SocomMultiplayerHUD
+var multiplayer_hud = null
 var local_magazine_ammo: int = 0
 var local_reserve_ammo: int = 0
 

@@ -551,12 +551,12 @@
     "burst"
   ],
   "grip_offset": {
-    "pos_x": 0.0798392295837402,
-    "pos_y": -0.0417042523622513,
-    "pos_z": 0.00821352005004883,
-    "rot_x": 4.55000019073486,
-    "rot_y": 3.0,
-    "rot_z": 79.0499801635742
+    "pos_x": 0.0,
+    "pos_y": 0.0,
+    "pos_z": 0.0,
+    "rot_x": 0.0,
+    "rot_y": 0.0,
+    "rot_z": 0.0
   },
   "gun_placement_line": {
     "by_stance": {
@@ -621,7 +621,7 @@
           }
         },
         "downward_offset_m": -0.02,
-        "enabled": true,
+        "enabled": false,
         "forward_offset_m": 0.015,
         "inward_offset_m": 0.055,
         "maximum_correction_m": 0.4
@@ -692,7 +692,7 @@
     "y": -90.0,
     "z": 0.0
   },
-  "normalized_scale": 0.328772936500451,
+  "normalized_scale": 0.20587466481428,
   "operator_mount": {
     "position": {
       "x": -0.0199999995529652,
@@ -721,7 +721,7 @@
     "shot_kick_px": 20.0,
     "shot_kick_return": 40.0
   },
-  "schema_version": 3.0,
+  "schema_version": 3,
   "scope_attachment": "None",
   "silencer_attachment": "None",
   "socket_contract_authored": true,
@@ -786,7 +786,7 @@
     "palm_yaw_deg": 0.75,
     "thumb_wrap": 0.7
   },
-  "user_scale_multiplier": 0.94,
+  "user_scale_multiplier": 1.0,
   "weapon_id": "m16a2",
   "weapon_sockets": {
     "barrel_base_socket": {
@@ -823,6 +823,16 @@
       "x": 0.0,
       "y": 0.0,
       "z": 0.0
+    },
+    "sky_socket": {
+      "x": 0.0,
+      "y": 0.23,
+      "z": 0.2
+    },
+    "ground_socket": {
+      "x": 0.0,
+      "y": -0.07,
+      "z": 0.2
     }
   }
 }

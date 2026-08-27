@@ -44,10 +44,10 @@
   "model_fbx": "res://assets/weapons/modular_pack/AssaultRifle_5.fbx",
   "model_rotation_degrees": {
     "x": 0.0,
-    "y": 0.0,
+    "y": -90.0,
     "z": 0.0
   },
-  "normalized_scale": 0.16728573307525,
+  "normalized_scale": 0.20587466481428,
   "recom_assets": {
     "icon_texture": "m4carbine203_icon.tif",
     "model_name": "m4Acarbine_203",
@@ -61,7 +61,7 @@
     "shot_kick_px": 20.0,
     "shot_kick_return": 40.0
   },
-  "socket_contract_authored": false,
+  "socket_contract_authored": true,
   "socom_original_id": 61.0,
   "weapon_id": "m4a1-m203",
   "weapon_sockets": {
@@ -81,19 +81,143 @@
       "z": 0.0539999976754189
     },
     "left_hand_ik_target": {
-      "x": 0.179999992251396,
-      "y": -0.0299999993294477,
-      "z": 0.0
+      "x": -0.0075,
+      "y": 0.016,
+      "z": 0.455
     },
     "muzzle_socket": {
-      "x": 0.629999995231628,
-      "y": 0.0199999995529652,
-      "z": 0.0
+      "x": 0.009,
+      "y": 0.111,
+      "z": 0.51
     },
     "optic_rail": {
       "x": 0.044999998062849,
       "y": 0.0799999982118607,
       "z": 0.0
+    },
+    "right_hand_grip_target": {
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    },
+    "sky_socket": {
+      "x": 0.0,
+      "y": 0.23,
+      "z": 0.2
+    },
+    "ground_socket": {
+      "x": 0.0,
+      "y": -0.07,
+      "z": 0.2
     }
+  },
+  "user_scale_multiplier": 1.0,
+  "operator_mount": {
+    "position": {
+      "x": -0.0199999995529652,
+      "y": 0.0799999982118607,
+      "z": 0.0500000007450581
+    },
+    "rotation_degrees": {
+      "x": -90.0,
+      "y": -179.999984741211,
+      "z": 0.0
+    }
+  },
+  "handling_profile": {
+    "reload_duration_seconds": 1.75,
+    "animation_slots": {
+      "fire_crouched": "crouch_fire",
+      "fire_prone": "prone_fire",
+      "fire_standing": "combat_fire",
+      "idle_crouched": "idle_crouch",
+      "idle_prone": "idle_prone",
+      "idle_standing": "aim_idle",
+      "reload_crouched": "reload",
+      "reload_prone": "prone_reload",
+      "reload_standing": "reload"
+    },
+    "dynamic_hold": {
+      "animation_drives_ready_hands": true,
+      "animation_carry_limit_m": 0.035,
+      "animation_carry_weight": 0.65,
+      "buttstock_constraint": {
+        "downward_offset_m": -0.02,
+        "enabled": true,
+        "forward_offset_m": 0.015,
+        "inward_offset_m": 0.055,
+        "maximum_correction_m": 0.4,
+        "by_stance": {
+          "PRONE": {
+            "downward_offset_m": 0.12,
+            "forward_offset_m": -0.03,
+            "inward_offset_m": 0.055
+          }
+        }
+      },
+      "hand_owned_aim_correction_limit_deg": 32.0,
+      "relaxed_idle_upper_body_weight": 0.0,
+      "ready_locomotion_inheritance": 0.0,
+      "reload_return_blend_seconds": 0.18,
+      "right_hand_owns_weapon": true
+    },
+    "ready_aim": {
+      "fire_hold_seconds": 1.2
+    },
+    "standing_fire_uses_aim_idle": true,
+    "crouched_fire_uses_aim_idle": true,
+    "family": "TWO_HAND_RIFLE",
+    "locomotion_family": "RIFLE",
+    "locomotion_slots": {
+      "crouch_to_stand": "crouch_to_stand",
+      "jump": "jump_loop",
+      "run_back_left": "run_back_left",
+      "run_back_right": "run_back_right",
+      "run_backward": "run_backward",
+      "run_forward": "run_forward",
+      "run_forward_left": "run_forward_left",
+      "run_forward_right": "run_forward_right",
+      "run_left": "run_left",
+      "run_right": "run_right",
+      "stand_to_crouch": "crouch_start",
+      "walk_back_left": "walk_back_left",
+      "walk_back_right": "walk_back_right",
+      "walk_backward": "walk_backward",
+      "walk_forward": "walk_forward",
+      "walk_forward_left": "walk_forward_left",
+      "walk_forward_right": "walk_forward_right",
+      "walk_left": "walk_left",
+      "walk_right": "walk_right"
+    },
+    "mapping_version": 1.0,
+    "reload_visuals": {
+      "reload_standing": {
+        "events": {
+          "magazine_in": 75.0,
+          "magazine_out": 20.0,
+          "new_magazine_ready": 51.0,
+          "old_magazine_away": 40.0,
+          "support_regrip": 91.0
+        },
+        "magazine_hand_offset": {
+          "position": {
+            "x": 0.0,
+            "y": -0.075,
+            "z": 0.018
+          },
+          "rotation_degrees": {
+            "x": 8.0,
+            "y": 0.0,
+            "z": 90.0
+          }
+        }
+      }
+    },
+    "support_hand_required": true
+  },
+  "schema_version": 3,
+  "coordinate_space": {
+    "grip_offset": "weapon_root_local_meters",
+    "weapon_sockets": "weapon_pivot_local_meters"
   }
 }

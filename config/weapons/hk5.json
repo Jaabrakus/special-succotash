@@ -72,22 +72,79 @@
     "auto"
   ],
   "grip_offset": {
-    "pos_x": 0.0736640691757202,
-    "pos_y": 0.00937758479267359,
-    "pos_z": -0.0658707022666931,
-    "rot_x": 87.1000366210938,
-    "rot_y": -1.5,
-    "rot_z": 85.8499984741211
+    "pos_x": 0.0,
+    "pos_y": 0.0,
+    "pos_z": 0.0,
+    "rot_x": 0.0,
+    "rot_y": 0.0,
+    "rot_z": 0.0
   },
   "gun_placement_line": {},
-  "handling_profile": {},
+  "handling_profile": {
+    "dynamic_hold": {
+      "animation_drives_ready_hands": true,
+      "animation_carry_limit_m": 0.035,
+      "animation_carry_weight": 0.65,
+      "buttstock_constraint": {
+        "downward_offset_m": -0.02,
+        "enabled": true,
+        "forward_offset_m": 0.015,
+        "inward_offset_m": 0.055,
+        "maximum_correction_m": 0.4,
+        "by_stance": {
+          "PRONE": {
+            "downward_offset_m": 0.12,
+            "forward_offset_m": -0.03,
+            "inward_offset_m": 0.055
+          }
+        }
+      },
+      "hand_owned_aim_correction_limit_deg": 32.0,
+      "relaxed_idle_upper_body_weight": 0.0,
+      "ready_locomotion_inheritance": 0.0,
+      "reload_return_blend_seconds": 0.18,
+      "right_hand_owns_weapon": true
+    },
+    "animation_slots": {
+      "fire_crouched": "crouch_fire",
+      "fire_prone": "prone_fire",
+      "fire_standing": "combat_fire",
+      "idle_crouched": "idle_crouch",
+      "idle_prone": "idle_prone",
+      "idle_standing": "aim_idle",
+      "reload_crouched": "reload",
+      "reload_prone": "prone_reload",
+      "reload_standing": "reload"
+    },
+    "locomotion_slots": {
+      "crouch_to_stand": "crouch_to_stand",
+      "jump": "jump_loop",
+      "run_back_left": "run_back_left",
+      "run_back_right": "run_back_right",
+      "run_backward": "run_backward",
+      "run_forward": "run_forward",
+      "run_forward_left": "run_forward_left",
+      "run_forward_right": "run_forward_right",
+      "run_left": "run_left",
+      "run_right": "run_right",
+      "stand_to_crouch": "crouch_start",
+      "walk_back_left": "walk_back_left",
+      "walk_back_right": "walk_back_right",
+      "walk_backward": "walk_backward",
+      "walk_forward": "walk_forward",
+      "walk_forward_left": "walk_forward_left",
+      "walk_forward_right": "walk_forward_right",
+      "walk_left": "walk_left",
+      "walk_right": "walk_right"
+    }
+  },
   "model_fbx": "res://assets/weapons/modular_pack/SubmachineGun_1.fbx",
   "model_rotation_degrees": {
     "x": 0.0,
     "y": -90.0,
     "z": 0.0
   },
-  "normalized_scale": 0.134405250205086,
+  "normalized_scale": 0.20587466481428,
   "operator_mount": {
     "position": {
       "x": -0.0199999995529652,
@@ -123,7 +180,7 @@
   "socom_original_id": 31,
   "stances": {},
   "support_hand_pose": {},
-  "user_scale_multiplier": 0.745,
+  "user_scale_multiplier": 1.0,
   "weapon_id": "hk5",
   "weapon_sockets": {
     "barrel_base_socket": {
@@ -160,6 +217,16 @@
       "x": 0.0,
       "y": 0.0,
       "z": 0.0
+    },
+    "sky_socket": {
+      "x": 0.0,
+      "y": 0.23,
+      "z": 0.2
+    },
+    "ground_socket": {
+      "x": 0.0,
+      "y": -0.07,
+      "z": 0.2
     }
   }
 }
