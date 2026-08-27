@@ -146,8 +146,15 @@ var match_weapon_rail_to_blue_line := true
 var show_joint_bubbles := true
 var isolate_selected_node := false
 
-var weapon_name := "AssaultRifle_1"
+var weapon_name := "m16a2"
+var weapon_display_name := "M16A2"
 var selected_category := "Assault Rifles"
+var selected_catalog_weapon_id := "m16a2"
+var selected_visual_profile_id := "assaultrifle_1"
+var selected_model_path := "res://assets/weapons/modular_pack/AssaultRifle_1.fbx"
+var catalog_fire_modes: Array[String] = ["semi", "burst"]
+var catalog_default_fire_mode := "semi"
+var catalog_burst_size := 3
 var fire_rate_rpm := 650
 var damage_per_shot := 34
 var headshot_multiplier := 3.5
@@ -202,7 +209,7 @@ var delete_hitbox_button: Button
 var hurtbox_edit_markers: Dictionary = {}
 var hitbox_drag_offset_start := Vector3.ZERO
 var fire_input_held := false
-var active_lab_tab_name := "Weapon Setup"
+var active_lab_tab_name := "Weapon Rig"
 var current_aim_target := Vector3.ZERO
 var is_reloading := false
 var weapon_owner_state: StringName = WeaponOwnershipContract.OWNER_WEAPON_MASTER
@@ -242,7 +249,7 @@ var weapon_categories: Dictionary = {
 }
 var silencer_options: Array[String] = ["None", "Silencer_1", "Silencer_2", "Silencer_3", "Silencer_long", "Silencer_Short"]
 var scope_options: Array[String] = ["None", "Scope_1", "Scope_2", "Scope_3"]
-var selected_weapon_file := "AssaultRifle_1"
+var selected_weapon_file := "m16a2"
 var selected_silencer := "None"
 var selected_scope := "None"
 

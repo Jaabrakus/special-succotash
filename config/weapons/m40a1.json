@@ -1,0 +1,836 @@
+{
+  "ammo_spec": {
+    "impact_damage": 2.3,
+    "piercing": 8.0,
+    "stun": 4.0,
+    "type": "7.62 x 51mm"
+  },
+  "animation_frame_pose_keys": {
+    "aim_idle": {
+      "0": {
+        "joint_rotations": {
+          "head": {
+            "x": -7.75,
+            "y": -12.75,
+            "z": 2.5
+          },
+          "left_shoulder": {
+            "x": 0.200000002980232,
+            "y": -0.100000001490116,
+            "z": -0.300001353025436
+          },
+          "left_upper_arm": {
+            "x": 1.0,
+            "y": -0.5,
+            "z": -1.5
+          },
+          "neck": {
+            "x": -4.26250076293945,
+            "y": -7.01249837875366,
+            "z": 1.37500035762787
+          },
+          "right_shoulder": {
+            "x": 7.96500015258789,
+            "y": -5.16499996185303,
+            "z": 0.200000002980232
+          },
+          "right_upper_arm": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "spine": {
+            "x": 10.0,
+            "y": -12.0,
+            "z": 1.7024998664856
+          },
+          "spine1": {
+            "x": 1.21250212192535,
+            "y": 2.64999961853027,
+            "z": 0.0100002288818359
+          },
+          "spine2": {
+            "x": 2.3125,
+            "y": -17.0,
+            "z": 8.0
+          }
+        },
+        "left_elbow_pole": {
+          "x": 0.300000011920929,
+          "y": -0.18940544128418,
+          "z": -0.202089607715607
+        },
+        "left_hand_target": {
+          "x": -0.00334209203720093,
+          "y": 0.0764622688293457,
+          "z": 0.339702010154724
+        },
+        "posture": "STANDING",
+        "right_elbow_pole": {
+          "x": 0.245000004768372,
+          "y": -0.26656174659729,
+          "z": 0.0799999982118607
+        },
+        "right_hand_target": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "weapon_hand_position_correction": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "weapon_hand_rotation_correction_deg": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      }
+    },
+    "combat_fire": {
+      "35": {
+        "joint_rotations": {
+          "head": {
+            "x": -12.25,
+            "y": -28.75,
+            "z": 2.5
+          },
+          "left_shoulder": {
+            "x": -2.99999952316284,
+            "y": 0.349999964237213,
+            "z": -0.300001353025436
+          },
+          "left_upper_arm": {
+            "x": -15.0,
+            "y": 1.75,
+            "z": -1.5
+          },
+          "neck": {
+            "x": -6.73750448226929,
+            "y": -15.8124895095825,
+            "z": 1.37500035762787
+          },
+          "right_shoulder": {
+            "x": 7.96500015258789,
+            "y": -5.16499996185303,
+            "z": 0.200000002980232
+          },
+          "right_upper_arm": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "spine": {
+            "x": 3.50625061988831,
+            "y": -12.0,
+            "z": 3.19999980926514
+          },
+          "spine1": {
+            "x": 11.6625061035156,
+            "y": -15.125,
+            "z": 6.0
+          },
+          "spine2": {
+            "x": -4.8125,
+            "y": -15.9375,
+            "z": 8.0
+          }
+        },
+        "left_elbow_pole": {
+          "x": 0.300000011920929,
+          "y": -0.18940544128418,
+          "z": -0.202089607715607
+        },
+        "left_hand_target": {
+          "x": -0.00334209203720093,
+          "y": 0.0764622688293457,
+          "z": 0.339702010154724
+        },
+        "posture": "STANDING",
+        "right_elbow_pole": {
+          "x": 0.245000004768372,
+          "y": -0.26656174659729,
+          "z": 0.0799999982118607
+        },
+        "right_hand_target": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "weapon_hand_position_correction": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "weapon_hand_rotation_correction_deg": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      }
+    },
+    "reload": {
+      "0": {
+        "joint_rotations": {
+          "head": {
+            "x": 5.5,
+            "y": -21.0,
+            "z": 2.5
+          },
+          "left_shoulder": {
+            "x": 0.200000002980232,
+            "y": -0.100000001490116,
+            "z": -0.300001353025436
+          },
+          "left_upper_arm": {
+            "x": 1.0,
+            "y": -0.5,
+            "z": -1.5
+          },
+          "neck": {
+            "x": 3.02499938011169,
+            "y": -11.5500001907349,
+            "z": 1.37500035762787
+          },
+          "right_shoulder": {
+            "x": 7.96500015258789,
+            "y": -5.16499996185303,
+            "z": 0.200000002980232
+          },
+          "right_upper_arm": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "spine": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 3.19999980926514
+          },
+          "spine1": {
+            "x": 0.550000131130219,
+            "y": -2.10000014305115,
+            "z": 6.0
+          },
+          "spine2": {
+            "x": 1.375,
+            "y": -5.25,
+            "z": 8.0
+          }
+        },
+        "left_elbow_pole": {
+          "x": 0.300000011920929,
+          "y": -0.18940544128418,
+          "z": -0.202089607715607
+        },
+        "left_hand_target": {
+          "x": 0.456383347511292,
+          "y": -0.200000002980232,
+          "z": 0.00979900360107422
+        },
+        "posture": "STANDING",
+        "right_elbow_pole": {
+          "x": 0.245000004768372,
+          "y": -0.26656174659729,
+          "z": 0.0799999982118607
+        },
+        "right_hand_target": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "weapon_hand_position_correction": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "weapon_hand_rotation_correction_deg": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      },
+      "99": {
+        "joint_rotations": {
+          "head": {
+            "x": 5.5,
+            "y": -21.0,
+            "z": 2.5
+          },
+          "left_shoulder": {
+            "x": 0.200000002980232,
+            "y": -0.100000001490116,
+            "z": -0.300001353025436
+          },
+          "left_upper_arm": {
+            "x": 1.0,
+            "y": -0.5,
+            "z": -1.5
+          },
+          "neck": {
+            "x": 3.02499938011169,
+            "y": -11.5500001907349,
+            "z": 1.37500035762787
+          },
+          "right_shoulder": {
+            "x": 7.96500015258789,
+            "y": -5.16499996185303,
+            "z": 0.200000002980232
+          },
+          "right_upper_arm": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "spine": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 3.19999980926514
+          },
+          "spine1": {
+            "x": 0.550000131130219,
+            "y": -2.10000014305115,
+            "z": 6.0
+          },
+          "spine2": {
+            "x": 1.375,
+            "y": -5.25,
+            "z": 8.0
+          }
+        },
+        "left_elbow_pole": {
+          "x": 0.300000011920929,
+          "y": -0.18940544128418,
+          "z": -0.202089607715607
+        },
+        "left_hand_target": {
+          "x": 0.00810074713081121,
+          "y": 0.0962740182876587,
+          "z": 0.293328106403351
+        },
+        "posture": "STANDING",
+        "right_elbow_pole": {
+          "x": 0.245000004768372,
+          "y": -0.26656174659729,
+          "z": 0.0799999982118607
+        },
+        "right_hand_target": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "weapon_hand_position_correction": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "weapon_hand_rotation_correction_deg": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      }
+    }
+  },
+  "animation_hand_maps": {
+    "aim_idle": {
+      "finger_curl": 1.0,
+      "left_grip": {
+        "x": -0.00334209203720093,
+        "y": 0.0764622688293457,
+        "z": 0.339702010154724
+      },
+      "palm_pitch_deg": -24.35,
+      "palm_roll_deg": 104.75,
+      "palm_yaw_deg": 0.75,
+      "right_grip": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "thumb_wrap": 0.7
+    },
+    "combat_fire": {
+      "finger_curl": 1.0,
+      "left_grip": {
+        "x": -0.00334209203720093,
+        "y": 0.0764622688293457,
+        "z": 0.339702010154724
+      },
+      "palm_pitch_deg": -24.35,
+      "palm_roll_deg": 104.75,
+      "palm_yaw_deg": 0.75,
+      "right_grip": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "thumb_wrap": 0.7
+    },
+    "gunsmith_catalog_4031626968": {
+      "finger_curl": 1.0,
+      "left_grip": {
+        "x": -0.00334209203720093,
+        "y": 0.0764622688293457,
+        "z": 0.339702010154724
+      },
+      "palm_pitch_deg": -24.35,
+      "palm_roll_deg": 104.75,
+      "palm_yaw_deg": 0.75,
+      "right_grip": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "thumb_wrap": 0.7
+    },
+    "idle_crouch": {
+      "finger_curl": 1.0,
+      "left_grip": {
+        "x": -0.042856901884079,
+        "y": 0.12201988697052,
+        "z": 0.07
+      },
+      "palm_pitch_deg": -24.35,
+      "palm_roll_deg": 104.75,
+      "palm_yaw_deg": 0.75,
+      "right_grip": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "thumb_wrap": 0.7
+    },
+    "idle_prone": {
+      "finger_curl": 1.0,
+      "left_grip": {
+        "x": -0.042856901884079,
+        "y": 0.12201988697052,
+        "z": 0.07
+      },
+      "palm_pitch_deg": -24.35,
+      "palm_roll_deg": 104.75,
+      "palm_yaw_deg": 0.75,
+      "right_grip": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "thumb_wrap": 0.7
+    },
+    "res://assets/animations/mixamo/Climbing.fbx": {
+      "finger_curl": 1.0,
+      "left_grip": {
+        "x": -0.00334209203720093,
+        "y": 0.0764622688293457,
+        "z": 0.339702010154724
+      },
+      "palm_pitch_deg": -24.35,
+      "palm_roll_deg": 104.75,
+      "palm_yaw_deg": 0.75,
+      "right_grip": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "thumb_wrap": 0.7
+    }
+  },
+  "ballistics": {
+    "aim_climb_max_pitch_deg": 3.5,
+    "aim_climb_max_yaw_deg": 0.75,
+    "aim_climb_pitch_per_shot_deg": 0.35,
+    "aim_climb_recovery_delay_seconds": 0.1,
+    "aim_climb_recovery_speed_deg_per_second": 6.0,
+    "aim_climb_yaw_per_shot_deg": 0.0,
+    "base_spread_deg": 0.429,
+    "bloom_per_shot_deg": 1.0,
+    "bloom_recovery_speed": 17.5,
+    "crouch_bloom_per_shot_deg": 0.3,
+    "crouch_bloom_recovery_speed": 16.5,
+    "crouch_max_recoil_bloom_deg": 1.0,
+    "crouch_spread_multiplier": 0.72,
+    "damage": 37.0,
+    "effective_range_m": 1500.0,
+    "fire_rate_rpm": 120.0,
+    "full_gait_spread_deg": 1.543,
+    "functional_aim_climb_enabled": false,
+    "headshot_multiplier": 3.5,
+    "is_silenced": false,
+    "magazine_capacity": 25.0,
+    "max_range_m": 2000.0,
+    "max_recoil_bloom_deg": 2.6,
+    "moving_spread_deg": 1.029,
+    "muzzle_velocity_mps": 777.0,
+    "opening_burst_motion_multiplier": 0.35,
+    "reserve_ammo": 25.0
+  },
+  "burst_size": 3,
+  "camo_skin": "Factory Classic (Wood & Steel)",
+  "catalog_source": "reCOM zweapon.rdr",
+  "catalog_weapon_id": "m40a1",
+  "category": "Assault Rifles",
+  "composure": {
+    "bounce_duration": 0.07,
+    "bounce_strength": 1.0,
+    "graze_damage_scale": 0.375,
+    "minimum_core_scale": 0.65,
+    "movement_stress": 0.82,
+    "moving_first_shot_multiplier": 0.45,
+    "opening_stress_multiplier": 0.27,
+    "recovery_speed": 2.2,
+    "second_shot_multiplier": 0.18,
+    "settled_first_shot_threshold": 0.002,
+    "settled_motion_threshold": 0.02,
+    "shot_stress": 0.085,
+    "stress_attack_speed": 5.0,
+    "turning_stress": 0.335,
+    "visual_damping": 13.5,
+    "visual_spring": 72.0
+  },
+  "coordinate_space": {
+    "grip_offset": "weapon_root_local_meters",
+    "weapon_sockets": "weapon_pivot_local_meters"
+  },
+  "default_fire_mode": "semi",
+  "display_name": "M40A1",
+  "elbow_poles": {
+    "by_stance": {
+      "CROUCHED": {
+        "left": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "right": {
+          "x": 0.0987921953201294,
+          "y": -0.17975127696991,
+          "z": -0.109185189008713
+        }
+      },
+      "PRONE": {
+        "left": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "right": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
+      },
+      "STANDING": {
+        "left": {
+          "x": 0.300000011920929,
+          "y": -0.18940544128418,
+          "z": -0.202089607715607
+        },
+        "right": {
+          "x": 0.245000004768372,
+          "y": -0.26656174659729,
+          "z": 0.0799999982118607
+        }
+      }
+    },
+    "left": {
+      "x": 0.300000011920929,
+      "y": -0.18940544128418,
+      "z": -0.202089607715607
+    },
+    "right": {
+      "x": 0.245000004768372,
+      "y": -0.26656174659729,
+      "z": 0.0799999982118607
+    }
+  },
+  "encumbrance": 1,
+  "fire_modes": [
+    "semi"
+  ],
+  "grip_offset": {
+    "pos_x": 0.0798392295837402,
+    "pos_y": -0.0417042523622513,
+    "pos_z": 0.00821352005004883,
+    "rot_x": 4.55000019073486,
+    "rot_y": 3.0,
+    "rot_z": 79.0499801635742
+  },
+  "gun_placement_line": {
+    "by_stance": {
+      "CROUCHED": {
+        "pitch_degrees": 0.0,
+        "position_offset_meters": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "roll_degrees": 0.0,
+        "yaw_degrees": 0.0
+      },
+      "PRONE": {
+        "pitch_degrees": 0.0,
+        "position_offset_meters": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "roll_degrees": 0.0,
+        "yaw_degrees": 0.0
+      },
+      "STANDING": {
+        "pitch_degrees": 0.0,
+        "position_offset_meters": {
+          "x": -0.162499964237213,
+          "y": -0.0974999964237213,
+          "z": 0.220000003576279
+        },
+        "roll_degrees": 15.0,
+        "yaw_degrees": 0.0
+      }
+    },
+    "direction_mode": "reticle_locked",
+    "runtime_enabled": false,
+    "space": "operator_local_weapon_placement"
+  },
+  "handling_profile": {
+    "animation_slots": {
+      "fire_crouched": "crouch_fire",
+      "fire_prone": "prone_fire",
+      "fire_standing": "combat_fire",
+      "idle_crouched": "idle_crouch",
+      "idle_prone": "idle_prone",
+      "idle_standing": "aim_idle",
+      "reload_crouched": "reload",
+      "reload_prone": "prone_reload",
+      "reload_standing": "reload"
+    },
+    "crouched_fire_uses_aim_idle": true,
+    "dynamic_hold": {
+      "animation_carry_limit_m": 0.035,
+      "animation_carry_weight": 0.65,
+      "animation_drives_ready_hands": true,
+      "buttstock_constraint": {
+        "by_stance": {
+          "PRONE": {
+            "downward_offset_m": 0.12,
+            "forward_offset_m": -0.03,
+            "inward_offset_m": 0.055
+          }
+        },
+        "downward_offset_m": -0.02,
+        "enabled": true,
+        "forward_offset_m": 0.015,
+        "inward_offset_m": 0.055,
+        "maximum_correction_m": 0.4
+      },
+      "hand_owned_aim_correction_limit_deg": 32.0,
+      "ready_locomotion_inheritance": 0.0,
+      "relaxed_idle_upper_body_weight": 0.0,
+      "reload_return_blend_seconds": 0.18,
+      "right_hand_owns_weapon": true
+    },
+    "family": "TWO_HAND_RIFLE",
+    "locomotion_family": "RIFLE",
+    "locomotion_slots": {
+      "crouch_to_stand": "crouch_to_stand",
+      "jump": "jump_loop",
+      "run_back_left": "run_back_left",
+      "run_back_right": "run_back_right",
+      "run_backward": "run_backward",
+      "run_forward": "run_forward",
+      "run_forward_left": "run_forward_left",
+      "run_forward_right": "run_forward_right",
+      "run_left": "run_left",
+      "run_right": "run_right",
+      "stand_to_crouch": "crouch_start",
+      "walk_back_left": "walk_back_left",
+      "walk_back_right": "walk_back_right",
+      "walk_backward": "walk_backward",
+      "walk_forward": "walk_forward",
+      "walk_forward_left": "walk_forward_left",
+      "walk_forward_right": "walk_forward_right",
+      "walk_left": "walk_left",
+      "walk_right": "walk_right"
+    },
+    "mapping_version": 1.0,
+    "ready_aim": {
+      "fire_hold_seconds": 1.2
+    },
+    "reload_duration_seconds": 1.75,
+    "reload_visuals": {
+      "reload_standing": {
+        "events": {
+          "magazine_in": 75.0,
+          "magazine_out": 20.0,
+          "new_magazine_ready": 51.0,
+          "old_magazine_away": 40.0,
+          "support_regrip": 91.0
+        },
+        "magazine_hand_offset": {
+          "position": {
+            "x": 0.0,
+            "y": -0.075,
+            "z": 0.018
+          },
+          "rotation_degrees": {
+            "x": 8.0,
+            "y": 0.0,
+            "z": 90.0
+          }
+        }
+      }
+    },
+    "standing_fire_uses_aim_idle": true,
+    "support_hand_required": true
+  },
+  "model_fbx": "res://assets/weapons/modular_pack/AssaultRifle_1.fbx",
+  "model_rotation_degrees": {
+    "x": 0.0,
+    "y": -90.0,
+    "z": 0.0
+  },
+  "normalized_scale": 0.190543572753643,
+  "operator_mount": {
+    "position": {
+      "x": -0.0199999995529652,
+      "y": 0.0799999982118607,
+      "z": 0.0500000007450581
+    },
+    "rotation_degrees": {
+      "x": -90.0,
+      "y": -179.999984741211,
+      "z": 0.0
+    }
+  },
+  "recom_assets": {
+    "icon_texture": "model700_icon.tif",
+    "model_name": "remington700",
+    "reload_sound": "SND_MODEL_700_REMINGTON_RELOAD"
+  },
+  "reticle": {
+    "base_gap_px": 5.1,
+    "max_gap_px": 41.6,
+    "maximum_movement_tick_extension_px": 16.0,
+    "maximum_shot_kick_px": 60.0,
+    "response_speed": 26.2,
+    "shot_bounce_duration": 0.07,
+    "shot_kick_px": 20.0,
+    "shot_kick_return": 40.0
+  },
+  "schema_version": 3.0,
+  "scope_attachment": "None",
+  "silencer_attachment": "None",
+  "socket_contract_authored": true,
+  "socom_original_id": 102,
+  "socom_recom_data": {
+    "ammo_spec": {
+      "impact_damage": 2.3,
+      "piercing": 3.0,
+      "stun": 3.0,
+      "type": "5.56 x 45mm"
+    },
+    "encumbrance": 1.0,
+    "original_name": "M16A2"
+  },
+  "stances": {
+    "CROUCHED": {
+      "finger_curl": 1.0,
+      "left_grip": {
+        "x": -0.042856901884079,
+        "y": 0.12201988697052,
+        "z": 0.07
+      },
+      "palm_pitch_deg": -24.35,
+      "palm_roll_deg": 104.75,
+      "palm_yaw_deg": 0.75,
+      "right_grip": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "thumb_wrap": 0.7
+    },
+    "PRONE": {
+      "finger_curl": 1.0,
+      "left_grip": {
+        "x": -0.042856901884079,
+        "y": 0.12201988697052,
+        "z": 0.07
+      },
+      "palm_pitch_deg": -24.35,
+      "palm_roll_deg": 104.75,
+      "palm_yaw_deg": 0.75,
+      "right_grip": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "thumb_wrap": 0.7
+    },
+    "STANDING": {
+      "finger_curl": 1.0,
+      "left_grip": {
+        "x": -0.042856901884079,
+        "y": 0.12201988697052,
+        "z": 0.07
+      },
+      "palm_pitch_deg": -24.35,
+      "palm_roll_deg": 104.75,
+      "palm_yaw_deg": 0.75,
+      "right_grip": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "thumb_wrap": 0.7
+    }
+  },
+  "support_hand_pose": {
+    "finger_curl": 1.0,
+    "palm_pitch_deg": -24.35,
+    "palm_roll_deg": 104.75,
+    "palm_yaw_deg": 0.75,
+    "thumb_wrap": 0.7
+  },
+  "user_scale_multiplier": 0.87,
+  "weapon_id": "m40a1",
+  "weapon_sockets": {
+    "barrel_base_socket": {
+      "x": -0.00937926769256592,
+      "y": 0.108807682991028,
+      "z": -0.119999997317791
+    },
+    "buttstock_socket": {
+      "x": -0.00886692386120558,
+      "y": 0.0789746195077896,
+      "z": -0.29986783862114
+    },
+    "ejection_port": {
+      "x": 0.0352391004562378,
+      "y": 0.00197041034698486,
+      "z": 0.227410614490509
+    },
+    "left_hand_ik_target": {
+      "x": -0.00334209203720093,
+      "y": 0.0764622688293457,
+      "z": 0.339702010154724
+    },
+    "muzzle_socket": {
+      "x": 0.00924092531204224,
+      "y": 0.110959649085999,
+      "z": 0.509886622428894
+    },
+    "optic_rail": {
+      "x": -0.049259215593338,
+      "y": 0.174966096878052,
+      "z": 0.0648307204246521
+    },
+    "right_hand_grip_target": {
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    }
+  }
+}

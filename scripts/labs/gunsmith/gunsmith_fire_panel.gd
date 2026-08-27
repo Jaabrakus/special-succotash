@@ -20,7 +20,7 @@ static func build(lab, tab_container: TabContainer) -> void:
 	fire_scroll.add_child(fire_vbox)
 
 	lab.fire_profile_title = Label.new()
-	lab.fire_profile_title.text = "RETICLE & FIRE — %s" % lab.weapon_name
+	lab.fire_profile_title.text = "RETICLE & FIRE — %s" % lab.weapon_display_name
 	lab.fire_profile_title.add_theme_font_size_override("font_size", 17)
 	lab.fire_profile_title.add_theme_color_override("font_color", Color(0.3, 0.95, 1.0))
 	fire_vbox.add_child(lab.fire_profile_title)

@@ -32,6 +32,29 @@ for protected_pattern in 'art_source/*' 'reference/*' 'tools/*' 'scripts/labs/gu
 	fi
 done
 
+preset_count=$(grep -c '^\[preset\.[0-9][0-9]*\]$' export_presets.cfg)
+for protected_pattern in \
+	'addons/socom_authoring/*' \
+	'reCOM-main/*' \
+	'counter-strike-urban/*' \
+	'motion/*' \
+	'source/*' \
+	'config/supabase.json' \
+	'supabase/*' \
+	'animation_library_lab.tscn' \
+	'scripts/labs/acoustic_*' \
+	'scripts/labs/animation_studio/*'
+do
+	protected_count=$(grep 'exclude_filter=' export_presets.cfg | grep -Fc "$protected_pattern" || true)
+	if [ "$protected_count" -ne "$preset_count" ]; then
+		report_failure "every export preset must exclude $protected_pattern"
+	fi
+done
+
+if grep -R -Fq 'preload("res://counter-strike-urban/' scripts; then
+	report_failure "runtime scripts hard-preload optional counter-strike-urban staging content"
+fi
+
 tracked_secrets=$(git ls-files | awk '
 	/(^|\/)\.env($|\.)/ ||
 	/\.(p12|pfx|pem|key|keystore)$/ ||

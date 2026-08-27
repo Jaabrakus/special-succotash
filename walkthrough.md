@@ -35,6 +35,14 @@ All features, tests, and data imports are implemented and verified on the branch
 * **Safe In-Place Enrichment:** Enriched existing weapon configs in [`config/weapons/`](file:///Users/kiwimango/socom-141-camera-lab/config/weapons/) (`ak-47.json`, `assaultrifle_1.json`, `submachinegun_1.json`, `shotgun_1.json`, `sniperrifle_1.json`) while 100% preserving 3D models (`.fbx`), sockets, and hand poses.
 * **Runtime Catalog API:** [`scripts/weapons/socom_weapon_catalog.gd`](file:///Users/kiwimango/socom-141-camera-lab/scripts/weapons/socom_weapon_catalog.gd) for querying weapons by ID or category at runtime.
 
+## 6. Pre-Round Buy Menu over the reCOM Catalog
+* **The menu:** [`scripts/ui/socom_buy_menu.gd`](file:///Users/kiwimango/socom-141-camera-lab/scripts/ui/socom_buy_menu.gd) — all 34 catalog firearms across six categories with damage/RPM/magazine/ammo detail panels, fire-mode pips, and the authentic SOCOM encumbrance stat.
+* **Both constraint systems in multiplayer:** cash (round win/loss awards, elimination bonuses, configurable in [`config/economy/buy_menu_config.json`](file:///Users/kiwimango/socom-141-camera-lab/config/economy/buy_menu_config.json)) plus an original carry-weight budget ([`config/economy/weapon_prices.json`](file:///Users/kiwimango/socom-141-camera-lab/config/economy/weapon_prices.json)) — heavy weapons cost your sidearm slot.
+* **Server authority:** [`scripts/network/socom_multiplayer_buy_phase.gd`](file:///Users/kiwimango/socom-141-camera-lab/scripts/network/socom_multiplayer_buy_phase.gd) owns cash, loadouts, and the buy window; the client menu is prediction-only and equips only after server acceptance (`submit_purchase` / `receive_purchase_result` RPCs).
+* **Training range sandbox:** the same menu runs free-issue — stand in the equipment zone at spawn and press `B`; everywhere else `B` still toggles fire mode ([`scripts/runtime/main_buy_menu_runtime.gd`](file:////Users/kiwimango/socom-141-camera-lab/scripts/runtime/main_buy_menu_runtime.gd)).
+* **Every firearm equippable:** [`tools/generate_catalog_weapon_profiles.gd`](file:///Users/kiwimango/socom-141-camera-lab/tools/generate_catalog_weapon_profiles.gd) authored the 32 missing weapon profiles through the Gunsmith catalog-baseline merge.
+* **Architecture reference:** Kisak-Strike informed the buy-period/purchase-validation structure only; no code copied ([`docs/buy_menu_architecture.md`](file:///Users/kiwimango/socom-141-camera-lab/docs/buy_menu_architecture.md)).
+
 ---
 
 ## Verification Results

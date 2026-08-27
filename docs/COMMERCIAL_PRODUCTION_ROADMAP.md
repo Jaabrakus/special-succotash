@@ -627,8 +627,9 @@ rollback plan, launch communications, and signed release decision.
 10. Produce the first reproducible closed-alpha build.
 
 Current asset register: `config/commercial_asset_register.json`. Its existence
-is complete; five included packages remain explicitly blocked pending evidence
-or replacement. A valid register is not the same as asset clearance.
+is complete; six included packages remain explicitly blocked pending evidence,
+replacement, or a data-provenance decision (the reCOM weapon catalog). A valid
+register is not the same as asset clearance.
 
 ## Verified production baseline — 2026-08-23
 
@@ -855,6 +856,26 @@ broader architecture-freeze gate is complete.
 This proves the local authority split and four-peer lifecycle path. It does not
 replace the existing maximum-lobby soak evidence, adverse-network testing,
 dedicated-server operations, security review, or external closed-alpha proof.
+
+## Buy menu checkpoint — 2026-08-26
+
+- [x] All 34 reCOM catalog firearms are purchasable through a pre-round buy
+  menu with a server-authoritative cash economy and an original carry-weight
+  budget. Kisak-Strike was used as an architectural reference only (see
+  `docs/buy_menu_architecture.md`); no third-party code is included.
+- [x] The network layer count grew to ten with `socom_multiplayer_buy_phase.gd`
+  between rounds and objectives; the architecture regression now pins 153
+  functions and 29 RPCs and stays green.
+- [x] The training range runs the same menu as a free-issue sandbox (B inside
+  the spawn equipment zone) so every catalog weapon is testable without a
+  match.
+- [x] The 32 previously missing weapon profiles were authored through the
+  Gunsmith catalog-baseline merge; the buy-menu regression fails if any
+  firearm lacks a priced, equippable profile.
+- [ ] Remaining for this feature: per-peer server ballistics validation
+  (shot cadence still reads the shared profile), buy-menu soak inside the
+  multi-client lifecycle probe, and playtest tuning of prices, awards, and
+  the carry cap.
 
 ## Weekly production scorecard
 

@@ -211,8 +211,7 @@
   },
   "leg_mirrored_clips": {
     "crouch_forward_left": "crouch_forward_right",
-    "run_forward_left": "run_forward_right",
-    "run_left": "run_right"
+    "run_forward_left": "run_forward_right"
   },
   "locomotion": {
     "crouch_nominal_speed_mps": 2.6,

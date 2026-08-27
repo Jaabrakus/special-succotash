@@ -27,13 +27,23 @@ func _load_skin(skin: SkinType) -> void:
             model_root = PS1_NV_SCENE.instantiate() as Node3D
 
         SkinType.COUNTER_STRIKE_URBAN:
-            model_root = COUNTER_STRIKE_URBAN_SCENE.instantiate() as Node3D
+            var urban_scene := _load_optional_scene(COUNTER_STRIKE_URBAN_SCENE_PATH)
+            if urban_scene == null:
+                push_warning(
+                    "Optional Counter-Strike Urban staging skin is unavailable; using the PS1 operator."
+                )
+                current_skin = SkinType.PS1_GAS_MASK_SOLDIER
+                model_root = PS1_GAS_MASK_RIGGED_SCENE.instantiate() as Node3D
+                model_root.scale = Vector3.ONE * 55.0
+                _apply_trooper_texture(model_root)
+            else:
+                model_root = urban_scene.instantiate() as Node3D
             # The FBX hierarchy already carries its centimetre-to-metre scale.
             # A small skin scale matches the PS1 operator's rendered height;
             # multiplying by the raw skeleton unit ratio would apply that FBX
             # conversion twice and put the camera inside the character.
-            model_root.scale = Vector3.ONE * 0.94
-            _apply_counter_strike_urban_textures(model_root)
+                model_root.scale = Vector3.ONE * 0.94
+                _apply_counter_strike_urban_textures(model_root)
     
     model_root.name = "PreviewOperator"
     # Godot's FBX importer already converts Urban's Z-up source hierarchy to
@@ -110,16 +120,29 @@ func _apply_trooper_texture(node: Node) -> void:
 func _apply_counter_strike_urban_textures(node: Node) -> void:
     if node is MeshInstance3D:
         var material := StandardMaterial3D.new()
-        material.albedo_texture = (
-            COUNTER_STRIKE_URBAN_BACKPACK_TEXTURE
+        var texture_path := (
+            COUNTER_STRIKE_URBAN_BACKPACK_TEXTURE_PATH
             if "defuse" in node.name.to_lower() or "backpack" in node.name.to_lower()
-            else COUNTER_STRIKE_URBAN_BODY_TEXTURE
+            else COUNTER_STRIKE_URBAN_BODY_TEXTURE_PATH
         )
+        material.albedo_texture = _load_optional_texture(texture_path)
         material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
         material.roughness = 0.92
         (node as MeshInstance3D).material_override = material
     for child in node.get_children():
         _apply_counter_strike_urban_textures(child)
+
+
+func _load_optional_scene(path: String) -> PackedScene:
+    if not ResourceLoader.exists(path):
+        return null
+    return ResourceLoader.load(path, "PackedScene") as PackedScene
+
+
+func _load_optional_texture(path: String) -> Texture2D:
+    if not ResourceLoader.exists(path):
+        return null
+    return ResourceLoader.load(path, "Texture2D") as Texture2D
 
 func _generate_auto_skinned_mesh(src_mesh: ArrayMesh, skel: Skeleton3D) -> ArrayMesh:
     var src_arrays := src_mesh.surface_get_arrays(0)

@@ -10,6 +10,11 @@ Known third-party categories in the development project include:
 - Mixamo-compatible character and animation material. Any material obtained
   from Adobe Mixamo remains subject to Adobe's applicable terms and is excluded
   from the 141 proprietary ownership claim.
+- Weapon statistics, names, and fire-mode data imported from the reCOM
+  reverse-engineering project (SOCOM U.S. Navy SEALs zweapon.rdr weapon
+  table). The original game data is not owned by the 141 rights holder;
+  commercial use of the extracted values is pending review. No reCOM binary
+  assets (models, textures, icons, or sounds) are incorporated into builds.
 
 This is a release-control document, not proof that the asset inventory is
 complete. Before a public release, record each third-party package, its source,

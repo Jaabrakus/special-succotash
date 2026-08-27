@@ -192,10 +192,11 @@ func _server_spawn_operator(
 	var ballistics = BallisticsScript.new()
 	ballistics.name = "ServerBallistics_%d" % peer_id
 	add_child(ballistics)
-	_apply_ballistics_profile(ballistics)
+	var weapon_config: Dictionary = _weapon_config_for_peer(peer_id)
+	_apply_ballistics_profile(ballistics, weapon_config)
 	server_ballistics[peer_id] = ballistics
 	var composure = ComposureScript.new()
-	composure.configure_weapon(equipped_config.get("composure", {}))
+	composure.configure_weapon(weapon_config.get("composure", {}))
 	server_composure[peer_id] = composure
 	_reset_ammo_for_peer(peer_id)
 	last_accepted_shot_sequence[peer_id] = -1

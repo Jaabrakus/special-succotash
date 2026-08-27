@@ -1,4 +1,4 @@
-extends "res://scripts/network/socom_multiplayer_rounds.gd"
+extends "res://scripts/network/socom_multiplayer_buy_phase.gd"
 
 func _set_local_objective_interaction(held: bool) -> void:
 	var peer_id := multiplayer.get_unique_id()

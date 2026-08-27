@@ -11,6 +11,7 @@ const MainGameplayHudScript := preload("res://scripts/runtime/main_gameplay_hud.
 const MainCameraDebugToolsScript := preload("res://scripts/runtime/main_camera_debug_tools.gd")
 const MainFrameRuntimeScript := preload("res://scripts/runtime/main_frame_runtime.gd")
 const MainWeaponRuntimeScript := preload("res://scripts/runtime/main_weapon_runtime.gd")
+const MainBuyMenuRuntimeScript := preload("res://scripts/runtime/main_buy_menu_runtime.gd")
 const PlayableResourceWarmup := preload("res://scripts/runtime/playable_resource_warmup.gd")
 const MapDocumentScript := preload("res://scripts/maps/socom_map_document.gd")
 
@@ -58,6 +59,7 @@ var gameplay_hud: SocomMainGameplayHud
 var camera_debug_tools: SocomMainCameraDebugTools
 var frame_runtime: SocomMainFrameRuntime
 var weapon_runtime: SocomMainWeaponRuntime
+var buy_menu_runtime: SocomMainBuyMenuRuntime
 var selected_grenade_type: int = 0
 var grenade_equipped: bool = false
 var grenade_switch_hold_seconds: float = 0.0
@@ -195,6 +197,11 @@ func _ready() -> void:
     _build_tactical_runtime()
     _build_weapon_controller()
     _build_reload_coordinator()
+    buy_menu_runtime = MainBuyMenuRuntimeScript.new()
+    buy_menu_runtime.name = "MainBuyMenuRuntime"
+    add_child(buy_menu_runtime)
+    buy_menu_runtime.configure(self)
+    gameplay_hud.buy_menu_runtime = buy_menu_runtime
     _startup_profile_mark("gameplay_runtime")
     if not public_training_mode:
         _build_camera_tools()

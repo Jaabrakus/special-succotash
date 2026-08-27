@@ -15,6 +15,11 @@ func _ready() -> void:
 		animation_catalog.state_rules,
 		animation_catalog.event_routes
 	)
+	var catalog_categories := GunsmithRecomCatalogAdapter.gunsmith_categories()
+	if not catalog_categories.is_empty():
+		weapon_categories = catalog_categories
+		selected_category = "Assault Rifles"
+		selected_weapon_file = "m16a2"
 	_scan_all_animation_assets()
 	handling_profile = WeaponAnimationProfile.build_default(
 		WeaponAnimationProfile.infer_family(weapon_name, selected_category),

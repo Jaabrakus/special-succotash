@@ -88,6 +88,8 @@ run_godot_check "gameplay-reload-completion" "res://tools/gameplay_reload_comple
 "$project_dir/tools/run_operator_weapon_pose_regression.sh"
 "$project_dir/tools/run_mobility_regression.sh"
 run_godot_check "gun-lab" "res://tools/gun_lab_animation_catalog_regression.gd" "GUN_LAB_ANIMATION_CATALOG_REGRESSION PASS"
+run_godot_check "gunsmith-recom-catalog" "res://tools/gunsmith_recom_catalog_regression.gd" "GUNSMITH_RECOM_CATALOG_REGRESSION PASS"
+run_godot_check "buy-menu" "res://tools/buy_menu_regression.gd" "BUY_MENU_REGRESSION PASS"
 run_godot_check "weapon-rig-integration" "res://tools/weapon_rig_integration_regression.gd" "WEAPON_RIG_INTEGRATION_REGRESSION PASS"
 run_godot_check "weapon-equipment-event" "res://tools/weapon_equipment_event_regression.gd" "WEAPON_EQUIPMENT_EVENT_REGRESSION PASS"
 run_godot_check "player-ammunition-ownership" "res://tools/player_health_weapon_ammo_regression.gd" "PLAYER_HEALTH_WEAPON_AMMO_REGRESSION PASS"

@@ -43,6 +43,7 @@ const GunsmithEventPreviewController := preload("res://scripts/labs/gunsmith/gun
 const GunsmithAnimationQualityAuditorScript := preload("res://scripts/labs/gunsmith/gunsmith_animation_quality_auditor.gd")
 const GunsmithRotationOrbitControlScript := preload("res://scripts/labs/gunsmith/gunsmith_rotation_orbit_control.gd")
 const GunsmithAnimationAssetCatalogScript := preload("res://scripts/labs/gunsmith/gunsmith_animation_asset_catalog.gd")
+const GunsmithRecomCatalogAdapter := preload("res://scripts/labs/gunsmith/gunsmith_recom_catalog_adapter.gd")
 const OperatorComposureScript := preload("res://scripts/weapons/operator_composure.gd")
 const PresentationRouterScript := preload("res://scripts/player/operator_presentation_router.gd")
 const TargetDummyScript := preload("res://scripts/combat/lab_leak_target_dummy.gd")

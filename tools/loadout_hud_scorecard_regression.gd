@@ -2,6 +2,7 @@ extends SceneTree
 
 const KeyboardProfile := preload("res://scripts/input/socom_keyboard_mapping_profile.gd")
 const EquipmentWheel := preload("res://scripts/ui/socom_equipment_wheel.gd")
+const RadioCommandWheel := preload("res://scripts/ui/socom_radio_command_wheel.gd")
 const LoadoutCardHUD := preload("res://scripts/ui/socom_loadout_card_hud.gd")
 const TeamRosterHUD := preload("res://scripts/ui/socom_team_roster_hud.gd")
 const MultiplayerHUD := preload("res://scripts/network/socom_multiplayer_hud.gd")
@@ -15,6 +16,7 @@ func _initialize() -> void:
 
 	_test_input_mapping()
 	_test_equipment_wheel_directional_selection()
+	_test_radio_wheel_directional_selection()
 	_test_weapon_controller_fire_modes()
 	_test_fire_mode_trigger_gate()
 	_test_imported_fire_mode_contracts()
@@ -52,12 +54,24 @@ func _test_equipment_wheel_directional_selection() -> void:
 
 	# Move mouse downward-right (towards bottom entries)
 	wheel.apply_mouse_motion(Vector2(100.0, 100.0))
+	assert(wheel.selected_index != 0, "Directional mouse motion must leave the initial equipment segment")
 	assert(wheel.selected_index >= 0 and wheel.selected_index < entries.size(), "Selected index should be within bounds")
 
 	wheel.hide_wheel()
 	assert(not wheel.visible, "Wheel should be hidden after hide_wheel")
 	wheel.free()
 	print("✓ Equipment wheel directional selection verified")
+
+
+func _test_radio_wheel_directional_selection() -> void:
+	print("Checking radio wheel directional mouse motion...")
+	var wheel = RadioCommandWheel.new()
+	wheel.open_wheel()
+	assert(wheel.selected_index == 0, "Radio wheel should start on its first sector")
+	wheel.apply_mouse_motion(Vector2(100.0, 100.0))
+	assert(wheel.selected_index != 0, "Directional mouse motion must leave the initial radio sector")
+	wheel.free()
+	print("✓ Radio wheel directional selection verified")
 
 
 func _test_weapon_controller_fire_modes() -> void:

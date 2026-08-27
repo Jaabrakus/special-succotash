@@ -2,6 +2,11 @@ extends "res://scripts/labs/animation_studio/animation_studio_sequence.gd"
 
 func _toggle_skin() -> void:
     var next_idx := (int(current_skin) + 1) % SkinType.size()
+    if (
+        next_idx == SkinType.COUNTER_STRIKE_URBAN
+        and not ResourceLoader.exists(COUNTER_STRIKE_URBAN_SCENE_PATH)
+    ):
+        next_idx = SkinType.PS1_GAS_MASK_SOLDIER
     _load_skin(next_idx as SkinType)
 
 func _skin_name(skin: SkinType) -> String:

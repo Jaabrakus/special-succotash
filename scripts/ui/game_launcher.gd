@@ -89,7 +89,8 @@ func _build_ui() -> void:
 	column.add_child(map_selector)
 
 	_add_primary_action(column, "MAP EDITOR", _open_map_editor)
-	_add_primary_action(column, "ANIMATION STUDIO", _open_animation_studio)
+	if OS.has_feature("editor"):
+		_add_primary_action(column, "ANIMATION STUDIO", _open_animation_studio)
 	_add_primary_action(column, "TRAINING RANGE", _open_training_range)
 	column.add_child(HSeparator.new())
 	var utility_row := HBoxContainer.new()

@@ -1,5 +1,5 @@
 {
-  "primary_weapon_id": "assaultrifle_1",
-  "rig_config": "res://config/weapons/assaultrifle_1.json",
+  "primary_weapon_id": "m16a2",
+  "rig_config": "res://config/weapons/m16a2.json",
   "schema_version": 1
 }

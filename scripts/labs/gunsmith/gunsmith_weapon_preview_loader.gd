@@ -1,14 +1,37 @@
 extends RefCounted
 
 const WeaponAnimationProfile := preload("res://scripts/weapons/weapon_animation_profile.gd")
+const RecomCatalogAdapter := preload(
+	"res://scripts/labs/gunsmith/gunsmith_recom_catalog_adapter.gd"
+)
 const WEAPON_BASE_PATH := "res://assets/weapons/modular_pack/"
 
 static func load_weapon(lab: Node,file_name: String) -> void:
+	var catalog_selection: Dictionary = RecomCatalogAdapter.resolve(file_name)
+	var visual_file: String = file_name
+	if not catalog_selection.is_empty():
+		visual_file = String(catalog_selection.visual_file)
+		lab.selected_catalog_weapon_id = String(catalog_selection.catalog_id)
+		lab.selected_visual_profile_id = String(catalog_selection.visual_profile_id)
+		lab.selected_model_path = String(catalog_selection.model_fbx)
+		lab.weapon_display_name = String(catalog_selection.display_name)
+		lab.selected_category = String(catalog_selection.category)
+		var record: Dictionary = catalog_selection.record
+		lab.catalog_fire_modes.clear()
+		for mode: Variant in (record.get("fire_modes", ["semi"]) as Array):
+			lab.catalog_fire_modes.append(String(mode))
+		lab.catalog_default_fire_mode = String(
+			record.get("default_fire_mode", lab.catalog_fire_modes[0])
+		)
+		lab.catalog_burst_size = clampi(int(record.get("burst_size", 3)), 2, 3)
 	lab.selected_weapon_file = file_name
-	lab.weapon_name = file_name
+	lab.weapon_name = String(catalog_selection.get("catalog_id", file_name))
+	if catalog_selection.is_empty():
+		lab.weapon_display_name = file_name
+		lab.selected_model_path = RecomCatalogAdapter._model_path_for(visual_file)
 	lab._reset_fire_profile_defaults()
 	lab.handling_profile = WeaponAnimationProfile.build_default(
-		WeaponAnimationProfile.infer_family(lab.weapon_name, lab.selected_category),
+		WeaponAnimationProfile.infer_family(lab.weapon_display_name, lab.selected_category),
 		lab.animation_catalog.clip_paths if lab.animation_catalog else {}
 	)
 
@@ -29,15 +52,9 @@ static func load_weapon(lab: Node,file_name: String) -> void:
 		lab.reload_magazine_proxy.queue_free()
 		lab.reload_magazine_proxy = null
 
-	var is_ak := (file_name == "ak-47")
-	var is_9mm := (file_name == "9mm_pistol")
-	var path := ""
-	if is_ak:
-		path = "res://assets/weapons/ps1_ak47/source/ak-47.fbx"
-	elif is_9mm:
-		path = "res://assets/weapons/9mm_pistol/source/model/model.dae"
-	else:
-		path = WEAPON_BASE_PATH + file_name + ".fbx"
+	var is_ak := visual_file == "ak-47"
+	var is_9mm := visual_file == "9mm_pistol"
+	var path: String = String(lab.selected_model_path)
 
 	var scene := load(path) as PackedScene
 	if not scene:
@@ -65,13 +82,13 @@ static func load_weapon(lab: Node,file_name: String) -> void:
 
 	var true_raw_length := maxf(effective_size.x, maxf(effective_size.y, effective_size.z))
 	var target_len := 0.68
-	if "Pistol" in file_name or "Revolver" in file_name or is_9mm:
+	if lab.selected_category == "Pistols" or is_9mm:
 		target_len = 0.22
-	elif "Submachine" in file_name or "Bullpup" in file_name:
+	elif lab.selected_category == "Submachine Guns":
 		target_len = 0.50
-	elif "Sniper" in file_name:
+	elif lab.selected_category == "Sniper Rifles":
 		target_len = 0.95
-	elif "Shotgun" in file_name:
+	elif lab.selected_category == "Shotguns":
 		target_len = 0.72
 
 	if true_raw_length > 0.01:

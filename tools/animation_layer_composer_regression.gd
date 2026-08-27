@@ -1,6 +1,6 @@
 extends SceneTree
 
-const COMPOSER := preload("res://scripts/labs/animation_layer_composer.gd")
+const COMPOSER := preload("res://scripts/player/animation_layer_composer.gd")
 
 var failures: Array[String] = []
 

@@ -1,10 +1,15 @@
 extends RefCounted
 
 const WeaponProfileRepository := preload("res://scripts/labs/gunsmith/gunsmith_weapon_profile_repository.gd")
+const RecomCatalogAdapter := preload(
+	"res://scripts/labs/gunsmith/gunsmith_recom_catalog_adapter.gd"
+)
 const OperatorComposureScript := preload("res://scripts/weapons/operator_composure.gd")
 
 static func load(lab: Node,w_id: String) -> void:
-	var d: Dictionary = WeaponProfileRepository.load_profile(w_id)
+	var d: Dictionary = RecomCatalogAdapter.load_editable_profile(w_id)
+	if d.is_empty():
+		d = WeaponProfileRepository.load_profile(w_id)
 	if not d.is_empty():
 		lab._loaded_weapon_profile = d.duplicate(true)
 		lab._load_operator_mount(lab._loaded_weapon_profile)
@@ -136,6 +141,13 @@ static func load(lab: Node,w_id: String) -> void:
 				"maximum_movement_tick_extension_px",
 				lab.reticle_maximum_movement_tick_extension_px
 			))
+		lab.catalog_fire_modes.clear()
+		for mode: Variant in (d.get("fire_modes", lab.catalog_fire_modes) as Array):
+			lab.catalog_fire_modes.append(String(mode))
+		lab.catalog_default_fire_mode = String(
+			d.get("default_fire_mode", lab.catalog_fire_modes[0] if not lab.catalog_fire_modes.is_empty() else "semi")
+		)
+		lab.catalog_burst_size = clampi(int(d.get("burst_size", 3)), 2, 3)
 		var composure_profile: Variant = d.get("composure", {})
 		if composure_profile is Dictionary:
 			var composure_values := composure_profile as Dictionary
@@ -199,9 +211,9 @@ static func reset_fire_defaults(lab: Node) -> void:
 
 static func refresh_fire_controls(lab: Node) -> void:
 	if lab.fire_profile_title:
-		lab.fire_profile_title.text = "RETICLE & FIRE — %s" % lab.weapon_name
+		lab.fire_profile_title.text = "RETICLE & FIRE — %s" % lab.weapon_display_name
 	if lab.composure_profile_title:
-		lab.composure_profile_title.text = "COMPOSURE — %s" % lab.weapon_name
+		lab.composure_profile_title.text = "COMPOSURE — %s" % lab.weapon_display_name
 	lab._update_slider_value("rpm", float(lab.fire_rate_rpm))
 	lab._update_slider_value("dmg", float(lab.damage_per_shot))
 	lab._update_slider_value("headshot_multiplier", lab.headshot_multiplier)

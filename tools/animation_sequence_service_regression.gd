@@ -2,7 +2,7 @@ extends SceneTree
 
 const SequenceService := preload("res://scripts/labs/animation_sequence_service.gd")
 const ClipEditor := preload("res://scripts/labs/animation_clip_editor.gd")
-const LayerComposer := preload("res://scripts/labs/animation_layer_composer.gd")
+const LayerComposer := preload("res://scripts/player/animation_layer_composer.gd")
 
 var failures: Array[String] = []
 

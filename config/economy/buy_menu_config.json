@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "starting_cash": 800,
+  "maximum_cash": 16000,
+  "buy_window_seconds": 15.0,
+  "round_awards": {
+    "round_win": 3000,
+    "round_loss": 1500,
+    "elimination": 300,
+    "objective_plant_or_defuse": 300
+  },
+  "firearm_categories": [
+    "Pistols",
+    "Submachine Guns",
+    "Shotguns",
+    "Assault Rifles",
+    "Sniper Rifles",
+    "Machine Guns"
+  ],
+  "secondary_categories": ["Pistols"],
+  "carry_weight_cap": 5
+}

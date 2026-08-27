@@ -1,12 +1,17 @@
 class_name GunsmithStudioView
 extends RefCounted
 
+const RecomCatalogAdapter := preload(
+	"res://scripts/labs/gunsmith/gunsmith_recom_catalog_adapter.gd"
+)
+
 ## Builds the Gunsmith shell and weapon-setup view. Runtime behavior remains
 ## owned by the coordinator and focused controllers.
 
 const DynamicReticle := preload("res://scripts/ui/socom_dynamic_reticle.gd")
 const FirePanel := preload("res://scripts/labs/gunsmith/gunsmith_fire_panel.gd")
 const ActionFooter := preload("res://scripts/labs/gunsmith/gunsmith_action_footer.gd")
+const WeaponRigPanel := preload("res://scripts/labs/gunsmith/gunsmith_weapon_rig_panel.gd")
 enum GripStyle { CLASSIC_CRADLE, C_CLAMP_TACTICAL, MAGWELL_GRIP, VERTICAL_FOREGRIP, ANGLED_AFG }
 
 static func build(lab) -> void:
@@ -51,14 +56,24 @@ static func build(lab) -> void:
 	sidebar.add_child(tab_container)
 
 	var scroll := ScrollContainer.new()
-	scroll.name = "Weapon Setup"
+	scroll.name = "Weapon Rig"
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	tab_container.add_child(scroll)
 
+	var setup_stack := VBoxContainer.new()
+	setup_stack.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(setup_stack)
+	var runtime_rig_controls := VBoxContainer.new()
+	runtime_rig_controls.name = "RuntimeWeaponRigControls"
+	runtime_rig_controls.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	setup_stack.add_child(runtime_rig_controls)
+
 	var vbox := VBoxContainer.new()
+	vbox.name = "LegacyWeaponSetupCompatibility"
+	vbox.visible = false
 	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	scroll.add_child(vbox)
+	setup_stack.add_child(vbox)
 
 	var title := Label.new()
 	title.text = "🔫 SOCOM GUNSMITH & BIOMECHANICAL RIG"
@@ -118,19 +133,21 @@ static func build(lab) -> void:
 	var gun_opt := OptionButton.new()
 	var populate_guns := func(cat_name: String):
 		gun_opt.clear()
-		for g in lab.weapon_categories[cat_name]: gun_opt.add_item(g)
+		for weapon_id in lab.weapon_categories[cat_name]:
+			gun_opt.add_item(RecomCatalogAdapter.display_name(String(weapon_id)))
+			gun_opt.set_item_metadata(gun_opt.item_count - 1, String(weapon_id))
 	populate_guns.call(lab.selected_category)
 	vbox.add_child(gun_opt)
 
 	cat_opt.item_selected.connect(func(idx: int):
 		lab.selected_category = lab.weapon_categories.keys()[idx]
 		populate_guns.call(lab.selected_category)
-		lab.selected_weapon_file = lab.weapon_categories[lab.selected_category][0]
+		lab.selected_weapon_file = String(gun_opt.get_item_metadata(0))
 		lab._load_weapon(lab.selected_weapon_file)
 	)
 
 	gun_opt.item_selected.connect(func(idx: int):
-		lab.selected_weapon_file = lab.weapon_categories[lab.selected_category][idx]
+		lab.selected_weapon_file = String(gun_opt.get_item_metadata(idx))
 		lab._load_weapon(lab.selected_weapon_file)
 	)
 
@@ -307,6 +324,8 @@ static func build(lab) -> void:
 	lab._add_slider(vbox, "op_y", "  Optic Y", -0.20, 0.20, lab.optic_local_pos.y, func(v: float): lab.optic_local_pos.y = v; lab._sync_markers())
 	lab._add_slider(vbox, "op_z", "  Optic Z", -0.20, 0.20, lab.optic_local_pos.z, func(v: float): lab.optic_local_pos.z = v; lab._sync_markers())
 
+	WeaponRigPanel.build(lab, runtime_rig_controls)
+
 	FirePanel.build(lab, tab_container)
 
 	lab._build_composure_tab(tab_container)
@@ -314,5 +333,3 @@ static func build(lab) -> void:
 
 	# Save and Play stay outside scrolling settings at every window height.
 	ActionFooter.build(lab, sidebar)
-
-

@@ -44,7 +44,9 @@ func open_wheel() -> void:
 func apply_mouse_motion(relative_motion: Vector2) -> void:
 	if not is_wheel_open or relative_motion.is_zero_approx():
 		return
-	selection_vector = (selection_vector * 96.0 + relative_motion).limit_length(OUTER_RADIUS)
+	# Treat captured relative motion as a virtual cursor. Multiplying the
+	# previous vector made its old direction dominate every new mouse event.
+	selection_vector = (selection_vector + relative_motion).limit_length(OUTER_RADIUS)
 	_update_selected_index(selection_vector)
 
 

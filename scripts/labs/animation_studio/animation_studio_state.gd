@@ -5,13 +5,13 @@ const MILITARY_TACTICAL_SCENE := preload("res://assets/characters/military_tacti
 const OPERATOR_SCENE := preload("res://assets/characters/operator3d/socom_141_operator_animated.glb")
 const MIXAMO_SKIN_SCENE := preload("res://assets/characters/operator3d/mixamo_beta_skin.glb")
 const PS1_NV_SCENE := preload("res://assets/characters/ps1_night_vision_operator/NVoperatorsoldier.glb")
-const COUNTER_STRIKE_URBAN_SCENE := preload(
+const COUNTER_STRIKE_URBAN_SCENE_PATH := (
     "res://counter-strike-urban/source/Counter Strike Urban.fbx"
 )
-const COUNTER_STRIKE_URBAN_BODY_TEXTURE := preload(
+const COUNTER_STRIKE_URBAN_BODY_TEXTURE_PATH := (
     "res://counter-strike-urban/textures/SEAL_Working1.png"
 )
-const COUNTER_STRIKE_URBAN_BACKPACK_TEXTURE := preload(
+const COUNTER_STRIKE_URBAN_BACKPACK_TEXTURE_PATH := (
     "res://counter-strike-urban/textures/Backpack2.png"
 )
 const PS1_GAS_MASK_OBJ := preload("res://assets/characters/ps1_gas_mask_soldier/sasman5.obj")
@@ -35,7 +35,7 @@ const ROUTE_SEQUENCE_EDITOR := preload(
 const CLIP_EDITOR_SCRIPT := preload("res://scripts/labs/animation_clip_editor.gd")
 const RANGE_SELECTOR_SCRIPT := preload("res://scripts/labs/animation_range_selector.gd")
 const SEQUENCE_TIMELINE_SCRIPT := preload("res://scripts/labs/animation_sequence_timeline.gd")
-const LAYER_COMPOSER_SCRIPT := preload("res://scripts/labs/animation_layer_composer.gd")
+const LAYER_COMPOSER_SCRIPT := preload("res://scripts/player/animation_layer_composer.gd")
 const POSE_EDITOR_SCRIPT := preload("res://scripts/labs/animation_pose_editor.gd")
 const ANIMATION_CORRECTION_OVERLAY_SCRIPT := preload(
     "res://scripts/labs/animation_correction_overlay.gd"

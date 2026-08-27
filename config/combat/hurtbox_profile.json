@@ -27,15 +27,6 @@
       },
       "shape": "sphere"
     },
-    "neck": {
-      "length_scale": 0.45,
-      "offset": {
-        "x": 0.0,
-        "y": -0.035,
-        "z": 0.0
-      },
-      "shape": "capsule"
-    },
     "left_calf": {
       "length_scale": 1.0,
       "offset": {
@@ -77,6 +68,15 @@
       "offset": {
         "x": 0.0,
         "y": 0.0,
+        "z": 0.0
+      },
+      "shape": "capsule"
+    },
+    "neck": {
+      "length_scale": 0.45,
+      "offset": {
+        "x": 0.0,
+        "y": -0.035,
         "z": 0.0
       },
       "shape": "capsule"
@@ -150,13 +150,13 @@
     "arms": 1.0,
     "global": 0.88,
     "head": 0.845,
-    "neck": 0.78,
     "left_calf": 1.0,
     "left_foot": 1.0,
     "left_forearm": 1.0,
     "left_thigh": 1.0,
     "left_upper_arm": 1.0,
     "legs": 1.0,
+    "neck": 0.78,
     "pelvis": 1.0,
     "right_calf": 1.0,
     "right_foot": 1.0,

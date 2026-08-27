@@ -163,7 +163,7 @@ func _advance_server_composure(delta: float) -> void:
 func _advance_time_sync(delta: float) -> void:
 	pass
 
-func _apply_ballistics_profile(ballistics) -> void:
+func _apply_ballistics_profile(ballistics, _weapon_config: Dictionary = {}) -> void:
 	pass
 
 func _apply_command_line_mode() -> void:
@@ -189,6 +189,9 @@ func _clear_operators() -> void:
 
 func _configured_fire_interval() -> float:
 	return 0.0
+
+func _weapon_config_for_peer(_peer_id: int) -> Dictionary:
+	return equipped_config
 
 func _disconnect_existing_peer() -> void:
 	pass

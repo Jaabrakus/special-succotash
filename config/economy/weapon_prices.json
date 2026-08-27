@@ -1,0 +1,142 @@
+{
+  "schema_version": 1,
+  "note": "Original price and carry-weight values authored for 141. Price bands are inspired by the Counter-Strike buy-menu structure; no numeric values were extracted from any third-party game. Carry weight is an original 141 loadout model; the separate 'encumbrance' stat in the reCOM catalog is authentic SOCOM data shown for flavour and is not used as weight.",
+  "weapons": {
+    "9mm_pistol": {
+      "price": 400,
+      "carry_weight": 1
+    },
+    "m9": {
+      "price": 450,
+      "carry_weight": 1
+    },
+    "226": {
+      "price": 500,
+      "carry_weight": 1
+    },
+    "f57": {
+      "price": 600,
+      "carry_weight": 1
+    },
+    "model_18": {
+      "price": 700,
+      "carry_weight": 1
+    },
+    "mark_23": {
+      "price": 750,
+      "carry_weight": 1
+    },
+    "mark_23sd": {
+      "price": 800,
+      "carry_weight": 1
+    },
+    "de__50": {
+      "price": 900,
+      "carry_weight": 1
+    },
+    "designator": {
+      "price": 950,
+      "carry_weight": 1
+    },
+    "hk5sd": {
+      "price": 1200,
+      "carry_weight": 2
+    },
+    "hk5": {
+      "price": 1400,
+      "carry_weight": 2
+    },
+    "9mm_sub": {
+      "price": 1500,
+      "carry_weight": 2
+    },
+    "f90": {
+      "price": 1700,
+      "carry_weight": 2
+    },
+    "870": {
+      "price": 1800,
+      "carry_weight": 3
+    },
+    "mk_3-a2": {
+      "price": 2000,
+      "carry_weight": 3
+    },
+    "ak-47": {
+      "price": 2000,
+      "carry_weight": 3
+    },
+    "m16a2": {
+      "price": 2200,
+      "carry_weight": 3
+    },
+    "552": {
+      "price": 2300,
+      "carry_weight": 3
+    },
+    "m4a1": {
+      "price": 2500,
+      "carry_weight": 3
+    },
+    "m4a1_sd": {
+      "price": 3000,
+      "carry_weight": 3
+    },
+    "m40a1": {
+      "price": 2500,
+      "carry_weight": 3
+    },
+    "sr-25": {
+      "price": 2800,
+      "carry_weight": 3
+    },
+    "m14": {
+      "price": 2600,
+      "carry_weight": 3
+    },
+    "aks-74": {
+      "price": 2900,
+      "carry_weight": 3
+    },
+    "sr-25_sd": {
+      "price": 3100,
+      "carry_weight": 3
+    },
+    "m16a2-m203": {
+      "price": 3400,
+      "carry_weight": 5
+    },
+    "m4a1-m203": {
+      "price": 3500,
+      "carry_weight": 5
+    },
+    "m87elr": {
+      "price": 4200,
+      "carry_weight": 3
+    },
+    "m63a": {
+      "price": 4000,
+      "carry_weight": 5
+    },
+    "m60e3": {
+      "price": 4750,
+      "carry_weight": 5
+    },
+    "m82a1a": {
+      "price": 4750,
+      "carry_weight": 5
+    },
+    "mark_46_mod_0": {
+      "price": 5750,
+      "carry_weight": 5
+    },
+    "air_to_ground_missile": {
+      "price": 5500,
+      "carry_weight": 5
+    },
+    "exploding_fuel": {
+      "price": 5500,
+      "carry_weight": 5
+    }
+  }
+}

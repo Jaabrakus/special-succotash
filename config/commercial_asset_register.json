@@ -55,6 +55,18 @@
       "required_action": "Remove from customer export or replace with an original/licensed rifle."
     },
     {
+      "id": "recom_weapon_data_catalog",
+      "path": "res://config/weapons",
+      "purpose": "weapon identity, ballistics, ammo, and fire-mode data imported from the reCOM zweapon.rdr extraction",
+      "included_in_customer_build": true,
+      "status": "terms_review_required",
+      "source": "reCOM reverse-engineering of SOCOM U.S. Navy SEALs (zweapon.rdr weapon table)",
+      "creator": "original data by Zipper Interactive; extracted and normalized by this project",
+      "license_or_contract": "no commercial rights held; use of extracted game data undecided",
+      "evidence": "tools/import_recom_weapons.py importer and reCOM-main/data/s1/common/zrdr/zweapon.rdr source",
+      "required_action": "Decide whether reCOM-extracted statistics and weapon identity data may ship commercially, or re-author the values from original sources."
+    },
+    {
       "id": "environment_original_materials",
       "path": "res://assets/textures/environment/original_materials",
       "purpose": "production map materials",

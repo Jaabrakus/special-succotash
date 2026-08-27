@@ -12,6 +12,7 @@ const ACTION_ORDER: Array[StringName] = [
 	&"jump", &"crouch", &"dive",
 	&"peek_left", &"peek_right", &"fire", &"reload_weapon", &"interact",
 	&"toggle_fire_mode", &"equip_primary", &"equip_grenade", &"reset_camera", &"toggle_nvg",
+	&"open_buy_menu",
 	&"radio_comms", &"push_to_talk", &"toggle_scoreboard",
 ]
 
@@ -33,6 +34,7 @@ const ACTION_LABELS := {
 	&"equip_grenade": "Equipment & Weapon Wheel (Hold G / Tap)",
 	&"reset_camera": "Reset Camera",
 	&"toggle_nvg": "Toggle Night Vision (NVG)",
+	&"open_buy_menu": "Armory / Buy Menu (B during buy window or at the range spawn)",
 	&"radio_comms": "Tactical Radio Comms Wheel",
 	&"push_to_talk": "Microphone Voice Push-To-Talk",
 	&"toggle_scoreboard": "Match Scorecard / SITREP",
@@ -59,6 +61,7 @@ const DEFAULT_BINDINGS := {
 	&"equip_grenade": [{"type": "key", "physical_keycode": KEY_G}],
 	&"reset_camera": [{"type": "key", "physical_keycode": KEY_HOME}],
 	&"toggle_nvg": [{"type": "key", "physical_keycode": KEY_N}],
+	&"open_buy_menu": [{"type": "key", "physical_keycode": KEY_B}],
 	&"radio_comms": [{"type": "key", "physical_keycode": KEY_V}],
 	&"push_to_talk": [{"type": "key", "physical_keycode": KEY_T}],
 	&"toggle_scoreboard": [{"type": "key", "physical_keycode": KEY_TAB}],

@@ -1,5 +1,9 @@
 extends SceneTree
 
+const GunsmithRecomCatalogAdapter := preload(
+	"res://scripts/labs/gunsmith/gunsmith_recom_catalog_adapter.gd"
+)
+
 var failures: Array[String] = []
 
 
@@ -22,9 +26,23 @@ func _run() -> void:
 	var entries: Array = lab.get("all_animation_entries")
 	var picker := lab.get("all_animation_select") as OptionButton
 	var gun_tabs := lab.find_child("GunLabTabs", true, false) as TabContainer
+	var runtime_rig_controls := lab.find_child("RuntimeWeaponRigControls", true, false) as VBoxContainer
+	var legacy_setup := lab.find_child("LegacyWeaponSetupCompatibility", true, false) as VBoxContainer
 	var reticle_preview := lab.find_child("SharedWeaponReticlePreview", true, false)
 	var live_aim_toggle := lab.find_child("LiveAimPreviewToggle", true, false) as CheckButton
 	_expect(gun_tabs != null and gun_tabs.get_tab_count() == 3, "gun lab exposes rig, firing, and composure tabs")
+	_expect(
+		gun_tabs != null and gun_tabs.get_tab_title(0) == "Weapon Rig",
+		"the first gun tab exposes only the runtime weapon-rig workflow"
+	)
+	_expect(
+		runtime_rig_controls != null and runtime_rig_controls.visible,
+		"the runtime weapon selector, model alignment, and sockets are visible"
+	)
+	_expect(
+		legacy_setup != null and not legacy_setup.visible,
+		"preview-only and animation-specific weapon setup controls stay hidden"
+	)
 	_expect(
 		gun_tabs != null and gun_tabs.get_tab_title(1) == "Reticle & Fire",
 		"the second gun tab edits reticle and fire behavior"
@@ -54,14 +72,8 @@ func _run() -> void:
 		"the muzzle controls include the complete saved weapon-local range"
 	)
 	var loaded_muzzle_position := lab.get("muzzle_local_pos") as Vector3
-	var loaded_profile_file := FileAccess.open(
-		"res://config/weapons/%s.json" % String(lab.get("weapon_name")).to_lower(),
-		FileAccess.READ
-	)
-	var loaded_profile_value: Variant = (
-		JSON.parse_string(loaded_profile_file.get_as_text())
-		if loaded_profile_file != null
-		else null
+	var loaded_profile_value: Variant = GunsmithRecomCatalogAdapter.load_editable_profile(
+		String(lab.get("weapon_name"))
 	)
 	var loaded_profile_muzzle: Dictionary = (
 		((loaded_profile_value as Dictionary).get("weapon_sockets", {}) as Dictionary).get(

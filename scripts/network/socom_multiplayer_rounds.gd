@@ -194,17 +194,18 @@ func _present_shot(
 	hit: bool,
 	message: String
 ) -> void:
+	var weapon_config := _weapon_config_for_peer(shooter_peer_id)
 	TracerSystemScript.spawn_tracer(
 		get_tree(),
 		origin,
 		impact,
 		Color(1.0, 0.86, 0.30),
-		float(equipped_config.get("ballistics", {}).get("muzzle_velocity_mps", 715.0))
+		float(weapon_config.get("ballistics", {}).get("muzzle_velocity_mps", 715.0))
 	)
 	if not dedicated_server_mode:
 		AudioEngine.play_gunshot(
 			get_tree(),
-			bool(equipped_config.get("ballistics", {}).get("is_silenced", false)),
+			bool(weapon_config.get("ballistics", {}).get("is_silenced", false)),
 			origin,
 			false,
 			_acoustic_exclusions_for_shooter(shooter_peer_id)
@@ -237,8 +238,9 @@ func _acoustic_exclusions_for_shooter(shooter_peer_id: int) -> Array:
 	return exclusions
 
 
-func _apply_ballistics_profile(ballistics) -> void:
-	var values: Dictionary = equipped_config.get("ballistics", {})
+func _apply_ballistics_profile(ballistics, weapon_config: Dictionary = {}) -> void:
+	var resolved_config := weapon_config if not weapon_config.is_empty() else equipped_config
+	var values: Dictionary = resolved_config.get("ballistics", {})
 	ballistics.fire_rate_rpm = float(values.get("fire_rate_rpm", 600.0))
 	ballistics.damage_per_shot = float(values.get("damage", 34.0))
 	ballistics.headshot_multiplier = clampf(

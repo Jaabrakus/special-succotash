@@ -35,6 +35,7 @@ var loadout_card_hud: SocomLoadoutCardHUD
 var killfeed_overlay: SocomKillfeedOverlay
 var damage_indicator: SocomDamageIndicatorOverlay
 var stance_indicator: SocomStanceIndicator
+var buy_menu_runtime
 var _camera_orbit_before_radio_wheel: bool = true
 
 var host
@@ -569,6 +570,11 @@ func _update_crosshair(data: Dictionary) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+    # The buy menu owns the shared B binding whenever its context is active,
+    # so it must resolve before the fire-mode toggle below.
+    if buy_menu_runtime != null and buy_menu_runtime.handle_unhandled_input(event):
+        get_viewport().set_input_as_handled()
+        return
     if not player_build_tactical_hud_enabled:
         return
     if (

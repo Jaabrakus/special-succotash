@@ -1,6 +1,6 @@
 extends SceneTree
 
-const Composer := preload("res://scripts/labs/animation_layer_composer.gd")
+const Composer := preload("res://scripts/player/animation_layer_composer.gd")
 const STANDING_SOURCE := "res://assets/animations/mixamo/Lite Rifle Pack/idle.fbx"
 const CROUCH_AIM_SOURCE := "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/idle crouching.fbx"
 const OUTPUT := "res://assets/animations/authored/standing_legs_crouch_idle_aim.tres"

@@ -1,13 +1,15 @@
 extends RefCounted
 
-const HurtboxProfile := preload("res://scripts/combat/socom_hurtbox_profile.gd")
 const WeaponProfileRepository := preload("res://scripts/labs/gunsmith/gunsmith_weapon_profile_repository.gd")
 const WeaponSceneExporter := preload("res://scripts/labs/gunsmith/gunsmith_weapon_scene_exporter.gd")
+const RecomCatalogAdapter := preload(
+	"res://scripts/labs/gunsmith/gunsmith_recom_catalog_adapter.gd"
+)
 const WEAPON_BASE_PATH := "res://assets/weapons/modular_pack/"
 
 static func _request_save_everything(lab: Node) -> void:
 	if lab.hud_status:
-		lab.hud_status.text = "💾 Saving every Rig & Hands, animation, composure, posture, and hitbox change…"
+		lab.hud_status.text = "Saving the selected weapon rig and equipping it…"
 		lab.hud_status.tooltip_text = lab.hud_status.text
 	lab._save_weapon_config()
 
@@ -15,24 +17,48 @@ static func _request_save_everything(lab: Node) -> void:
 static func _save_weapon_config(lab: Node) -> bool:
 	if not lab._validate_weapon_rig_before_save():
 		return false
-	if not HurtboxProfile.save_profile(
-		lab.shared_hurtbox_scales,
-		lab.shared_hurtbox_geometry,
-		lab.shared_custom_hitboxes
-	):
-		lab._show_rig_error(
-			"Shared hitbox profile could not be saved. Weapon save blocked so main cannot drift from this preview."
-		)
-		return false
-	if lab.animation_frame_editor.active:
-		lab._capture_animation_frame_pose_key()
-	lab._save_selected_animation_hand_map()
-	lab._store_current_stance_elbow_poles()
-	if lab.runtime_posture_layer and not lab.runtime_posture_layer.save_procedural_profile():
-		lab._show_rig_error("Operator joint and posture edits could not be saved. Save blocked.")
-		return false
-	var saved_stance_hands: Dictionary = lab._hand_maps_without_legacy_mounts(lab.hand_poses_by_stance)
-	var saved_animation_hands: Dictionary = lab._hand_maps_without_legacy_mounts(lab.animation_hand_maps)
+	var loaded_profile: Dictionary = lab._loaded_weapon_profile
+	var saved_stance_hands: Dictionary = (
+		(loaded_profile.get("stances", {}) as Dictionary).duplicate(true)
+		if loaded_profile.get("stances", {}) is Dictionary
+		else {}
+	)
+	var saved_animation_hands: Dictionary = (
+		(loaded_profile.get("animation_hand_maps", {}) as Dictionary).duplicate(true)
+		if loaded_profile.get("animation_hand_maps", {}) is Dictionary
+		else {}
+	)
+	var saved_frame_pose_keys: Dictionary = (
+		(loaded_profile.get("animation_frame_pose_keys", {}) as Dictionary).duplicate(true)
+		if loaded_profile.get("animation_frame_pose_keys", {}) is Dictionary
+		else {}
+	)
+	var saved_support_pose: Dictionary = (
+		(loaded_profile.get("support_hand_pose", {}) as Dictionary).duplicate(true)
+		if loaded_profile.get("support_hand_pose", {}) is Dictionary
+		else {}
+	)
+	var saved_elbow_poles: Dictionary = (
+		(loaded_profile.get("elbow_poles", {}) as Dictionary).duplicate(true)
+		if loaded_profile.get("elbow_poles", {}) is Dictionary
+		else {}
+	)
+	var saved_handling_profile: Dictionary = (
+		(loaded_profile.get("handling_profile", {}) as Dictionary).duplicate(true)
+		if loaded_profile.get("handling_profile", {}) is Dictionary
+		else lab.handling_profile.duplicate(true)
+	)
+	var saved_placement_line: Dictionary = (
+		(loaded_profile.get("gun_placement_line", {}) as Dictionary).duplicate(true)
+		if loaded_profile.get("gun_placement_line", {}) is Dictionary
+		else {}
+	)
+	synchronize_ready_contact(
+		saved_stance_hands,
+		saved_animation_hands,
+		saved_frame_pose_keys,
+		lab.left_grip_local_pos
+	)
 
 	var config_data: Dictionary = {
 		"schema_version": 3,
@@ -42,10 +68,10 @@ static func _save_weapon_config(lab: Node) -> bool:
 			"weapon_sockets": "weapon_pivot_local_meters"
 		},
 		"weapon_id": lab.weapon_name.to_lower(),
-		"display_name": lab.weapon_name,
+		"display_name": lab.weapon_display_name,
 		"category": lab.selected_category,
 		"camo_skin": lab.camo_skins[lab.selected_camo_idx],
-		"model_fbx": WEAPON_BASE_PATH + lab.weapon_name + ".fbx" if (lab.weapon_name != "ak-47" and lab.weapon_name != "9mm_pistol") else ("res://assets/weapons/ps1_ak47/source/ak-47.fbx" if lab.weapon_name == "ak-47" else "res://assets/weapons/9mm_pistol/source/model/model.dae"),
+		"model_fbx": lab.selected_model_path,
 		"silencer_attachment": lab.selected_silencer,
 		"scope_attachment": lab.selected_scope,
 		"normalized_scale": lab.auto_normalized_scale * lab.user_scale_multiplier,
@@ -67,23 +93,13 @@ static func _save_weapon_config(lab: Node) -> bool:
 			"rot_y": lab.grip_offset_rot.y,
 			"rot_z": lab.grip_offset_rot.z
 		},
-		"support_hand_pose": {
-			"palm_pitch_deg": lab.palm_pitch,
-			"palm_yaw_deg": lab.palm_yaw,
-			"palm_roll_deg": lab.palm_roll,
-			"finger_curl": lab.finger_curl,
-			"thumb_wrap": lab.thumb_wrap
-		},
-		"elbow_poles": {
-			"right": {"x": lab.right_elbow_pole_offset.x, "y": lab.right_elbow_pole_offset.y, "z": lab.right_elbow_pole_offset.z},
-			"left": {"x": lab.left_elbow_pole_offset.x, "y": lab.left_elbow_pole_offset.y, "z": lab.left_elbow_pole_offset.z},
-			"by_stance": lab._elbow_poles_save_data()
-		},
+		"support_hand_pose": saved_support_pose,
+		"elbow_poles": saved_elbow_poles,
 		"stances": saved_stance_hands,
 		"animation_hand_maps": saved_animation_hands,
-		"animation_frame_pose_keys": lab.animation_frame_editor.save_data(),
-		"handling_profile": lab.handling_profile.duplicate(true),
-		"gun_placement_line": lab._gun_placement_line_save_data(),
+		"animation_frame_pose_keys": saved_frame_pose_keys,
+		"handling_profile": saved_handling_profile,
+		"gun_placement_line": saved_placement_line,
 		"weapon_sockets": lab._weapon_sockets_save_data(),
 		"ballistics": {
 			"fire_rate_rpm": lab.fire_rate_rpm,
@@ -113,8 +129,15 @@ static func _save_weapon_config(lab: Node) -> bool:
 			"is_silenced": lab.is_silenced
 		},
 		"reticle": lab._current_reticle_profile(),
-		"composure": lab._current_composure_profile()
+		"composure": lab._current_composure_profile(),
+		"fire_modes": lab.catalog_fire_modes.duplicate(),
+		"default_fire_mode": lab.catalog_default_fire_mode,
+		"burst_size": lab.catalog_burst_size,
 	}
+	config_data = RecomCatalogAdapter.decorate_saved_profile(
+		config_data,
+		lab.selected_catalog_weapon_id
+	)
 
 	var save_result: Dictionary = WeaponProfileRepository.save_and_equip(
 		lab.weapon_name.to_lower(),
@@ -136,13 +159,40 @@ static func _save_weapon_config(lab: Node) -> bool:
 			return false
 	if lab.hud_status:
 		lab.hud_status.text = "💾 SAVED & EQUIPPED! %s • muzzle (%.3f, %.3f, %.3f) saved exactly." % [
-			lab.weapon_name,
+			lab.weapon_display_name,
 			lab.muzzle_local_pos.x,
 			lab.muzzle_local_pos.y,
 			lab.muzzle_local_pos.z,
 		]
 		lab.hud_status.add_theme_color_override("font_color", Color(0.2, 1.0, 0.4))
 	return true
+
+
+static func synchronize_ready_contact(
+	stance_hands: Dictionary,
+	animation_hands: Dictionary,
+	frame_pose_keys: Dictionary,
+	support_socket: Vector3
+) -> void:
+	var support_data := {
+		"x": support_socket.x,
+		"y": support_socket.y,
+		"z": support_socket.z,
+	}
+	var standing: Dictionary = stance_hands.get("STANDING", {})
+	if not standing.is_empty():
+		standing["left_grip"] = support_data.duplicate(true)
+		stance_hands["STANDING"] = standing
+	var aim_idle: Dictionary = animation_hands.get("aim_idle", {})
+	if not aim_idle.is_empty():
+		aim_idle["left_grip"] = support_data.duplicate(true)
+		animation_hands["aim_idle"] = aim_idle
+	var aim_idle_frames: Dictionary = frame_pose_keys.get("aim_idle", {})
+	var first_frame: Dictionary = aim_idle_frames.get("0", {})
+	if not first_frame.is_empty():
+		first_frame["left_hand_target"] = support_data.duplicate(true)
+		aim_idle_frames["0"] = first_frame
+		frame_pose_keys["aim_idle"] = aim_idle_frames
 
 
 static func _weapon_sockets_save_data(lab: Node) -> Dictionary:
@@ -207,7 +257,7 @@ static func _open_latest_playground(lab: Node) -> void:
 static func _export_weapon_packed_scene(lab: Node,config_data: Dictionary) -> void:
 	var export_result := WeaponSceneExporter.export_scene({
 		"weapon_id": lab.weapon_name.to_lower(),
-		"display_name": lab.weapon_name,
+		"display_name": lab.weapon_display_name,
 		"weapon_mesh": lab.current_weapon_mesh,
 		"silencer_mesh": lab.current_silencer_mesh,
 		"scope_mesh": lab.current_scope_mesh,

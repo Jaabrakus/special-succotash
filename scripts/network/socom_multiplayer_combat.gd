@@ -161,7 +161,7 @@ func _server_process_shot(peer_id: int, packet: Dictionary) -> void:
 				1.0
 				if bool(classification.get("precision", true))
 				else clampf(
-					float(equipped_config.get("composure", {}).get("graze_damage_scale", 0.38)),
+					float(_weapon_config_for_peer(peer_id).get("composure", {}).get("graze_damage_scale", 0.38)),
 					0.0,
 					1.0
 				)

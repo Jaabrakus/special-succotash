@@ -23,10 +23,10 @@
       "origin_offset_meters": {
         "x": -0.162499964237213,
         "y": -0.0974999964237213,
-        "z": 0.0900000035762787
+        "z": 0.219999998807907
       },
-      "pitch": 0.75,
-      "yaw": -1.0
+      "pitch": 0.0,
+      "yaw": 0.0
     }
   },
   "postures": {
@@ -36,7 +36,22 @@
         "roll": -7.0,
         "yaw": -10.0
       },
+      "hips": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": 0.0
+      },
+      "left_foot": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": 0.0
+      },
       "left_forearm": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": 0.0
+      },
+      "left_lower_leg": {
         "pitch": 0.0,
         "roll": 0.0,
         "yaw": 0.0
@@ -46,7 +61,17 @@
         "roll": 0.0,
         "yaw": 0.0
       },
+      "left_toe": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": 0.0
+      },
       "left_upper_arm": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": 0.0
+      },
+      "left_upper_leg": {
         "pitch": 0.0,
         "roll": 0.0,
         "yaw": 0.0
@@ -56,7 +81,17 @@
         "roll": -3.85000038146973,
         "yaw": -5.50000047683716
       },
+      "right_foot": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": 0.0
+      },
       "right_forearm": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": 0.0
+      },
+      "right_lower_leg": {
         "pitch": 0.0,
         "roll": 0.0,
         "yaw": 0.0
@@ -66,7 +101,17 @@
         "roll": -10.0,
         "yaw": 0.0
       },
+      "right_toe": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": 0.0
+      },
       "right_upper_arm": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": 0.0
+      },
+      "right_upper_leg": {
         "pitch": 0.0,
         "roll": 0.0,
         "yaw": 0.0
@@ -93,7 +138,22 @@
         "roll": 12.0,
         "yaw": 0.0
       },
+      "hips": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": 0.0
+      },
+      "left_foot": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": 0.0
+      },
       "left_forearm": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": 0.0
+      },
+      "left_lower_leg": {
         "pitch": 0.0,
         "roll": 0.0,
         "yaw": 0.0
@@ -103,7 +163,17 @@
         "roll": 0.0,
         "yaw": 0.0
       },
+      "left_toe": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": 0.0
+      },
       "left_upper_arm": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": 0.0
+      },
+      "left_upper_leg": {
         "pitch": 0.0,
         "roll": 0.0,
         "yaw": 0.0
@@ -113,7 +183,17 @@
         "roll": -3.40000009536743,
         "yaw": -1.75
       },
+      "right_foot": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": 0.0
+      },
       "right_forearm": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": 0.0
+      },
+      "right_lower_leg": {
         "pitch": 0.0,
         "roll": 0.0,
         "yaw": 0.0
@@ -123,8 +203,18 @@
         "roll": 10.0,
         "yaw": 5.25
       },
+      "right_toe": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": 0.0
+      },
       "right_upper_arm": {
         "pitch": -34.0,
+        "roll": 0.0,
+        "yaw": 0.0
+      },
+      "right_upper_leg": {
+        "pitch": 0.0,
         "roll": 0.0,
         "yaw": 0.0
       },
@@ -150,7 +240,22 @@
         "roll": 0.0,
         "yaw": 0.0
       },
+      "hips": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": 0.0
+      },
+      "left_foot": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": 0.0
+      },
       "left_forearm": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": 0.0
+      },
+      "left_lower_leg": {
         "pitch": 0.0,
         "roll": 0.0,
         "yaw": 0.0
@@ -160,12 +265,27 @@
         "roll": 0.0,
         "yaw": 0.0
       },
+      "left_toe": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": 0.0
+      },
       "left_upper_arm": {
         "pitch": 0.0,
         "roll": 0.0,
         "yaw": 0.0
       },
+      "left_upper_leg": {
+        "pitch": 0.25,
+        "roll": 0.0,
+        "yaw": 4.5
+      },
       "neck": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": 0.0
+      },
+      "right_foot": {
         "pitch": 0.0,
         "roll": 0.0,
         "yaw": 0.0
@@ -175,12 +295,27 @@
         "roll": 0.0,
         "yaw": 0.0
       },
+      "right_lower_leg": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": 0.0
+      },
       "right_shoulder": {
         "pitch": 0.0,
         "roll": 0.0,
         "yaw": 0.0
       },
+      "right_toe": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": 0.0
+      },
       "right_upper_arm": {
+        "pitch": 0.0,
+        "roll": 0.0,
+        "yaw": 0.0
+      },
+      "right_upper_leg": {
         "pitch": 0.0,
         "roll": 0.0,
         "yaw": 0.0

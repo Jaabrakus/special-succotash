@@ -1,7 +1,6 @@
-class_name SocomAnimationLayerComposer
 extends RefCounted
 
-## Bakes compatible bone tracks from several animations into one reusable clip.
+## Runtime component that bakes compatible bone tracks into one reusable clip.
 ## Each body region owns a disjoint bone set, so the result is deterministic and
 ## does not require multiple AnimationPlayers at runtime.
 
