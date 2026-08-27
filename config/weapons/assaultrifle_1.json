@@ -438,25 +438,27 @@
     "aim_climb_recovery_delay_seconds": 0.1,
     "aim_climb_recovery_speed_deg_per_second": 6.0,
     "aim_climb_yaw_per_shot_deg": 0.0,
-    "base_spread_deg": 0.32,
-    "bloom_per_shot_deg": 0.42,
-    "bloom_recovery_speed": 14.0,
+    "base_spread_deg": 0.429,
+    "bloom_per_shot_deg": 1.0,
+    "bloom_recovery_speed": 17.5,
     "crouch_bloom_per_shot_deg": 0.3,
     "crouch_bloom_recovery_speed": 16.5,
     "crouch_max_recoil_bloom_deg": 1.0,
     "crouch_spread_multiplier": 0.72,
-    "damage": 34,
-    "fire_rate_rpm": 435,
-    "full_gait_spread_deg": 1.45,
+    "damage": 37,
+    "fire_rate_rpm": 600,
+    "full_gait_spread_deg": 1.543,
     "functional_aim_climb_enabled": false,
     "headshot_multiplier": 3.5,
     "is_silenced": false,
     "magazine_capacity": 30,
-    "max_recoil_bloom_deg": 1.45,
-    "moving_spread_deg": 0.95,
-    "muzzle_velocity_mps": 554.0,
+    "max_recoil_bloom_deg": 2.6,
+    "moving_spread_deg": 1.029,
+    "muzzle_velocity_mps": 948.0,
     "opening_burst_motion_multiplier": 0.35,
-    "reserve_ammo": 211
+    "reserve_ammo": 90,
+    "effective_range_m": 600.0,
+    "max_range_m": 1200.0
   },
   "camo_skin": "Factory Classic (Wood & Steel)",
   "category": "Assault Rifles",
@@ -689,14 +691,14 @@
     }
   },
   "reticle": {
-    "base_gap_px": 5.0,
-    "max_gap_px": 46.0,
+    "base_gap_px": 5.1,
+    "max_gap_px": 41.6,
     "maximum_movement_tick_extension_px": 16.0,
-    "maximum_shot_kick_px": 12.5,
-    "response_speed": 18.5,
+    "maximum_shot_kick_px": 60.0,
+    "response_speed": 26.2,
     "shot_bounce_duration": 0.07,
-    "shot_kick_px": 10.5,
-    "shot_kick_return": 18.5
+    "shot_kick_px": 20.0,
+    "shot_kick_return": 40.0
   },
   "schema_version": 3,
   "scope_attachment": "None",
@@ -800,5 +802,21 @@
       "y": 0.0,
       "z": 0.0
     }
-  }
+  },
+  "fire_modes": [
+    "semi",
+    "burst"
+  ],
+  "socom_recom_data": {
+    "original_name": "M16A2",
+    "encumbrance": 1,
+    "ammo_spec": {
+      "type": "5.56 x 45mm",
+      "impact_damage": 2.3,
+      "stun": 3.0,
+      "piercing": 3.0
+    }
+  },
+  "default_fire_mode": "semi",
+  "burst_size": 3
 }

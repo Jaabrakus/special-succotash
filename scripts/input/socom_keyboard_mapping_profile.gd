@@ -11,7 +11,7 @@ const ACTION_ORDER: Array[StringName] = [
 	&"move_forward", &"move_back", &"move_left", &"move_right",
 	&"jump", &"crouch", &"dive",
 	&"peek_left", &"peek_right", &"fire", &"reload_weapon", &"interact",
-	&"equip_primary", &"equip_grenade", &"reset_camera", &"toggle_nvg",
+	&"toggle_fire_mode", &"equip_primary", &"equip_grenade", &"reset_camera", &"toggle_nvg",
 	&"radio_comms", &"push_to_talk", &"toggle_scoreboard",
 ]
 
@@ -28,8 +28,9 @@ const ACTION_LABELS := {
 	&"fire": "Fire",
 	&"reload_weapon": "Reload",
 	&"interact": "Interact / Plant Bomb",
+	&"toggle_fire_mode": "Toggle Fire Mode (Semi / Burst / Auto)",
 	&"equip_primary": "Quick Equip Primary",
-	&"equip_grenade": "Equipment: Tap Last Grenade / Hold Wheel",
+	&"equip_grenade": "Equipment & Weapon Wheel (Hold G / Tap)",
 	&"reset_camera": "Reset Camera",
 	&"toggle_nvg": "Toggle Night Vision (NVG)",
 	&"radio_comms": "Tactical Radio Comms Wheel",
@@ -53,6 +54,7 @@ const DEFAULT_BINDINGS := {
 	&"fire": [{"type": "mouse", "button_index": MOUSE_BUTTON_LEFT}],
 	&"reload_weapon": [{"type": "key", "physical_keycode": KEY_R}],
 	&"interact": [{"type": "key", "physical_keycode": KEY_F}],
+	&"toggle_fire_mode": [{"type": "key", "physical_keycode": KEY_B}],
 	&"equip_primary": [{"type": "key", "physical_keycode": KEY_1}],
 	&"equip_grenade": [{"type": "key", "physical_keycode": KEY_G}],
 	&"reset_camera": [{"type": "key", "physical_keycode": KEY_HOME}],

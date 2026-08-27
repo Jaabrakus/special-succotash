@@ -63,19 +63,21 @@ func _init() -> void:
 	var rpc_annotation_count := 0
 	for path in LAYER_PATHS:
 		_expect(FileAccess.file_exists(path), "authority layer exists: " + path.get_file())
-		var layer_script := load(path) as Script
+		var source := FileAccess.get_file_as_string(path)
+		var layer_script := GDScript.new()
+		layer_script.source_code = source
+		var compile_error := layer_script.reload()
 		_expect(
-			layer_script != null and layer_script.can_instantiate(),
+			compile_error == OK and layer_script.can_instantiate(),
 			"authority layer parses and can instantiate: " + path.get_file()
 		)
-		var source := FileAccess.get_file_as_string(path)
 		_expect(_line_count(path) <= 500, "authority layer stays below 500 lines: " + path.get_file())
 		if path.ends_with("socom_multiplayer_state.gd"):
 			source = source.split("# BEGIN GENERATED MULTIPLAYER CROSS-LAYER CONTRACT")[0]
 		function_count += source.count("\nfunc ")
 		rpc_annotation_count += source.count("\n@rpc(")
 
-	_expect(function_count == 124, "all 124 authority functions remain in one layer")
+	_expect(function_count == 125, "all 125 authority functions remain in one layer")
 	_expect(rpc_annotation_count == 25, "all 25 RPC annotations remain present")
 
 	var scene := load("res://multiplayer_slice.tscn") as PackedScene

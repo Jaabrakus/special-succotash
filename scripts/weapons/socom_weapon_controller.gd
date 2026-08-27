@@ -9,12 +9,14 @@ extends Node
 const Ballistics := preload("res://scripts/weapons/weapon_ballistics.gd")
 const ShotAuthority := preload("res://scripts/network/socom_shot_authority.gd")
 const WeaponContract := preload("res://scripts/weapons/weapon_rig_contract.gd")
+const FireModePolicy := preload("res://scripts/weapons/weapon_fire_mode_policy.gd")
 const Composure := preload("res://scripts/weapons/operator_composure.gd")
 const PlayerAmmunitionInventory := preload("res://scripts/player/player_ammunition_inventory.gd")
 
 signal authoritative_shot(result: Dictionary)
 signal ammo_changed(rounds_in_magazine: int, reserve_rounds: int)
 signal weapon_equipped(result: Dictionary)
+signal fire_mode_changed(fire_mode: String)
 
 var player: CharacterBody3D
 var camera_rig
@@ -28,6 +30,10 @@ var composure = Composure.new()
 var composure_profile: Dictionary = {}
 var magazine_capacity: int = 30
 var ammunition_inventory: SocomPlayerAmmunitionInventory
+var current_fire_mode: String = "auto"
+var available_fire_modes: Array[String] = ["auto", "semi"]
+var burst_size: int = 3
+var fire_mode_policy = FireModePolicy.new()
 var _fallback_rounds_in_magazine: int = 30
 var _fallback_reserve_rounds: int = 90
 var _starting_reserve_rounds: int = 90
@@ -153,7 +159,42 @@ func _apply_weapon_config(config: Dictionary) -> bool:
 	)
 	ballistics.fire_interval = 60.0 / maxf(60.0, ballistics.fire_rate_rpm)
 	reticle_profile["fire_interval_seconds"] = ballistics.fire_interval
+	var raw_modes: Variant = config.get("fire_modes", values.get("fire_modes", []))
+	var configured_modes: Array = raw_modes if raw_modes is Array else []
+	fire_mode_policy.configure(
+		configured_modes,
+		String(config.get("default_fire_mode", "")),
+		int(config.get("burst_size", values.get("burst_size", 3)))
+	)
+	_sync_fire_mode_state()
+	fire_mode_changed.emit(current_fire_mode)
 	return true
+
+
+func cycle_fire_mode() -> String:
+	fire_mode_policy.select_mode(current_fire_mode)
+	current_fire_mode = fire_mode_policy.cycle_mode()
+	_sync_fire_mode_state()
+	fire_mode_changed.emit(current_fire_mode)
+	return current_fire_mode
+
+
+func set_fire_modes(modes: Array) -> void:
+	var previous_mode := current_fire_mode
+	fire_mode_policy.configure(modes, current_fire_mode, burst_size)
+	_sync_fire_mode_state()
+	if current_fire_mode != previous_mode:
+		fire_mode_changed.emit(current_fire_mode)
+
+
+func get_fire_mode() -> String:
+	return current_fire_mode
+
+
+func _sync_fire_mode_state() -> void:
+	current_fire_mode = fire_mode_policy.current_mode
+	available_fire_modes = fire_mode_policy.available_modes.duplicate()
+	burst_size = fire_mode_policy.burst_size
 
 
 func apply_authorized_weapon_pickup(config_path: String) -> bool:
@@ -239,12 +280,19 @@ func _process(_delta: float) -> void:
 		and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
 		and not OS.get_cmdline_user_args().has("--automated-test")
 	)
-	var trigger_held := (
-		local_fire_allowed and Input.is_action_pressed("fire")
+	var trigger_held := local_fire_allowed and Input.is_action_pressed("fire")
+	var trigger_pressed := local_fire_allowed and Input.is_action_just_pressed("fire")
+	if not local_fire_allowed:
+		fire_mode_policy.cancel_pending_burst()
+	var should_attempt := fire_mode_policy.should_attempt_shot(
+		trigger_pressed,
+		trigger_held,
+		rounds_in_magazine
 	)
-	_set_presentation_trigger_held(trigger_held)
-	if trigger_held:
-		request_fire()
+	_set_presentation_trigger_held(should_attempt)
+	if should_attempt:
+		var result := request_fire()
+		fire_mode_policy.notify_shot_result(result)
 	else:
 		ballistics.release_trigger()
 
@@ -426,6 +474,7 @@ func request_fire() -> Dictionary:
 
 
 func request_reload() -> bool:
+	fire_mode_policy.cancel_pending_burst()
 	if rounds_in_magazine >= magazine_capacity or reserve_rounds <= 0:
 		# Keep the authored reload preview available even when the magazine is full.
 		return true
@@ -442,6 +491,7 @@ func request_reload() -> bool:
 func set_reload_locked(active: bool) -> void:
 	reload_locked = active
 	if active:
+		fire_mode_policy.cancel_pending_burst()
 		if ballistics != null:
 			ballistics.release_trigger()
 		_set_presentation_trigger_held(false)
@@ -461,6 +511,9 @@ func get_ammo_snapshot() -> Dictionary:
 		"magazine_capacity": magazine_capacity,
 		"rounds_in_magazine": rounds_in_magazine,
 		"reserve_ammo": reserve_rounds,
+		"fire_mode": current_fire_mode,
+		"available_fire_modes": available_fire_modes.duplicate(),
+		"burst_size": burst_size,
 	}
 
 
@@ -483,6 +536,7 @@ func _ammo_state() -> Dictionary:
 func set_input_enabled(enabled: bool) -> void:
 	input_enabled = enabled
 	if not enabled and ballistics != null:
+		fire_mode_policy.cancel_pending_burst()
 		ballistics.release_trigger()
 
 

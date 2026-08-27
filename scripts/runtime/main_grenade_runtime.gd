@@ -397,6 +397,8 @@ func open_equipment_wheel() -> bool:
 		wheel_selected_index = _next_enabled_equipment_slot(wheel_selected_index, 1)
 	equipment_wheel_open = true
 	_set_weapon_input(false)
+	if camera_rig != null:
+		camera_rig.orbit_input_enabled = false
 	equipment_wheel.call(
 		"show_wheel",
 		_equipment_wheel_entries(),
@@ -423,7 +425,16 @@ func cycle_equipment_wheel(step: int) -> bool:
 func confirm_equipment_wheel() -> bool:
 	if not equipment_wheel_open:
 		return false
-	var selected_id := EQUIPMENT_SLOT_IDS[wheel_selected_index]
+	var selected_id := StringName(&"primary")
+	if equipment_wheel != null and equipment_wheel.get("selected_index") != null:
+		var entries_var: Variant = equipment_wheel.get("entries")
+		if entries_var is Array:
+			var entries: Array = entries_var as Array
+			var s_idx: int = int(equipment_wheel.get("selected_index"))
+			if s_idx >= 0 and s_idx < entries.size():
+				selected_id = StringName(entries[s_idx].get("id", &"primary"))
+	else:
+		selected_id = EQUIPMENT_SLOT_IDS[clampi(wheel_selected_index, 0, EQUIPMENT_SLOT_IDS.size() - 1)]
 	_close_equipment_wheel_visual()
 	if selected_id == &"primary":
 		return_to_rifle()
@@ -525,6 +536,8 @@ func _next_enabled_equipment_slot(from_index: int, direction: int) -> int:
 
 func _close_equipment_wheel_visual() -> void:
 	equipment_wheel_open = false
+	if camera_rig != null:
+		camera_rig.orbit_input_enabled = true
 	if equipment_wheel != null:
 		equipment_wheel.call("hide_wheel")
 

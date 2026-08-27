@@ -235,6 +235,44 @@ func _refresh_scoreboard() -> void:
 	if multiplayer_hud == null:
 		return
 	multiplayer_hud.refresh_scoreboard(mission_rules, team_round_wins, scores)
+	var alpha_list: Array[Dictionary] = []
+	var bravo_list: Array[Dictionary] = []
+	var local_id := multiplayer.get_unique_id()
+	for raw_id: Variant in lobby.players.keys():
+		var peer_id := int(raw_id)
+		var p_entry: Dictionary = lobby.players[raw_id]
+		var team: int = int(p_entry.get("team", 0))
+		var p_name: String = String(p_entry.get("display_name", "SEAL %d" % peer_id))
+		if peer_id == local_id:
+			p_name += " (YOU)"
+		var is_alive := true
+		if operators.has(peer_id):
+			var op = operators[peer_id]
+			if op != null:
+				is_alive = bool(op.alive)
+		var p_kills: int = int(scores.get(peer_id, 0))
+		var item := {
+			"name": p_name,
+			"alive": is_alive,
+			"kills": p_kills,
+			"deaths": 0,
+			"ping": 20,
+		}
+		(alpha_list if team == 0 else bravo_list).append(item)
+	var bomb_msg := "SATCHEL BOMB AT SPAWN"
+	if bomb_planted:
+		bomb_msg = "BOMB ARMED  •  DEFUSE IN PROGRESS"
+	elif bomb_carrier_peer_id != 0:
+		bomb_msg = "SEAL %d HAS BOMB" % bomb_carrier_peer_id
+	multiplayer_hud.update_roster_data(
+		alpha_list,
+		bravo_list,
+		int(team_round_wins.get(0, 0)),
+		int(team_round_wins.get(1, 0)),
+		round_time_remaining,
+		bomb_msg,
+		bomb_planted
+	)
 	_refresh_player_state()
 func _refresh_match_clock() -> void:
 	if multiplayer_hud != null:

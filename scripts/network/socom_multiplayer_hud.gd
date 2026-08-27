@@ -12,6 +12,8 @@ signal ready_requested
 
 const LobbyState := preload("res://scripts/network/socom_lobby_state.gd")
 const MatchInvite := preload("res://scripts/network/socom_match_invite.gd")
+const TeamRosterHUD := preload("res://scripts/ui/socom_team_roster_hud.gd")
+const LoadoutCardHUD := preload("res://scripts/ui/socom_loadout_card_hud.gd")
 
 var menu_panel: PanelContainer
 var address_edit: LineEdit
@@ -32,6 +34,8 @@ var invite_panel: PanelContainer
 var invite_code_edit: LineEdit
 var invite_copy_button: Button
 var invite_help_label: Label
+var team_roster_hud: SocomTeamRosterHUD
+var loadout_card_hud: SocomLoadoutCardHUD
 
 
 func _ready() -> void:
@@ -102,6 +106,45 @@ func refresh_player_state(health: float, maximum: float, magazine: int, reserve:
 	player_state_label.text = "HEALTH %d/%d  •  AMMO %d/%d" % [
 		int(round(health)), int(round(maximum)), magazine, reserve,
 	]
+	if loadout_card_hud != null:
+		loadout_card_hud.update_weapon_state(
+			"RIFLE",
+			"PRIMARY",
+			magazine,
+			reserve,
+			"auto"
+		)
+		loadout_card_hud.update_health(health, maximum)
+
+
+func update_roster_data(
+	alpha: Array,
+	bravo: Array,
+	alpha_score: int = -1,
+	bravo_score: int = -1,
+	timer_sec: float = -1.0,
+	bomb_msg: String = "",
+	bomb_armed: bool = false
+) -> void:
+	if team_roster_hud != null:
+		team_roster_hud.set_roster_data(
+			alpha,
+			bravo,
+			alpha_score,
+			bravo_score,
+			timer_sec,
+			bomb_msg,
+			bomb_armed
+		)
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed(&"toggle_scoreboard"):
+		if team_roster_hud != null:
+			team_roster_hud.show_scorecard(true)
+	elif event.is_action_released(&"toggle_scoreboard"):
+		if team_roster_hud != null:
+			team_roster_hud.show_scorecard(false)
 
 
 func refresh_objective_status(state: Dictionary) -> void:
@@ -186,6 +229,12 @@ func _build_match_hud() -> void:
 	match_clock_label.name = "MultiplayerRoundClock"
 	objective_status_label = _add_label(Vector2(20.0, 116.0), 16, Color("f4d34f"))
 	objective_status_label.name = "DemolitionObjectiveStatus"
+	team_roster_hud = TeamRosterHUD.new()
+	team_roster_hud.name = "SocomTeamRosterHUD"
+	add_child(team_roster_hud)
+	loadout_card_hud = LoadoutCardHUD.new()
+	loadout_card_hud.name = "SocomLoadoutCardHUD"
+	add_child(loadout_card_hud)
 	reticle = Label.new()
 	reticle.text = "+"
 	reticle.add_theme_font_size_override("font_size", 28)

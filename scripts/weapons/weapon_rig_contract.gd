@@ -241,6 +241,25 @@ static func normalize_config(raw: Dictionary, config_path: String = "") -> Dicti
 	ballistics["is_silenced"] = bool(ballistics.get("is_silenced", false))
 	config["ballistics"] = ballistics
 
+	var fire_modes: Array[String] = []
+	var raw_fire_modes: Variant = config.get(
+		"fire_modes",
+		ballistics.get("fire_modes", [])
+	)
+	if raw_fire_modes is Array:
+		for raw_mode: Variant in raw_fire_modes:
+			var mode := String(raw_mode).to_lower().strip_edges()
+			if ["semi", "burst", "auto"].has(mode) and not fire_modes.has(mode):
+				fire_modes.append(mode)
+	if fire_modes.is_empty():
+		fire_modes = ["auto", "semi"]
+	config["fire_modes"] = fire_modes
+	var default_fire_mode := String(config.get("default_fire_mode", fire_modes[0])).to_lower()
+	config["default_fire_mode"] = (
+		default_fire_mode if fire_modes.has(default_fire_mode) else fire_modes[0]
+	)
+	config["burst_size"] = clampi(int(config.get("burst_size", 3)), 2, 3)
+
 	var reticle: Dictionary = (
 		(config.get("reticle", {}) as Dictionary).duplicate(true)
 		if config.get("reticle", {}) is Dictionary

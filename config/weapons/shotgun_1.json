@@ -16,12 +16,21 @@
     }
   },
   "ballistics": {
-    "base_spread_deg": 0.4,
-    "bloom_per_shot_deg": 1.2,
-    "bloom_recovery_speed": 14.0,
-    "damage": 34,
-    "fire_rate_rpm": 650,
-    "is_silenced": false
+    "base_spread_deg": 0.429,
+    "bloom_per_shot_deg": 1.0,
+    "bloom_recovery_speed": 17.5,
+    "damage": 22,
+    "fire_rate_rpm": 600,
+    "is_silenced": false,
+    "headshot_multiplier": 3.5,
+    "muzzle_velocity_mps": 393.0,
+    "moving_spread_deg": 1.029,
+    "full_gait_spread_deg": 1.543,
+    "max_recoil_bloom_deg": 2.6,
+    "magazine_capacity": 12,
+    "reserve_ammo": 36,
+    "effective_range_m": 10.0,
+    "max_range_m": 300.0
   },
   "camo_skin": "Factory Classic (Wood & Steel)",
   "category": "Assault Rifles",
@@ -60,5 +69,29 @@
       "y": 0.0799999982118607,
       "z": 0.0
     }
-  }
+  },
+  "reticle": {
+    "shot_kick_px": 20.0,
+    "shot_kick_return": 40.0,
+    "maximum_shot_kick_px": 60.0,
+    "base_gap_px": 5.1,
+    "max_gap_px": 41.6,
+    "response_speed": 26.2
+  },
+  "fire_modes": [
+    "semi",
+    "auto"
+  ],
+  "socom_recom_data": {
+    "original_name": "MK 3-A2",
+    "encumbrance": 1,
+    "ammo_spec": {
+      "type": "9x19P",
+      "impact_damage": 1.4,
+      "stun": 1.0,
+      "piercing": 1.0
+    }
+  },
+  "default_fire_mode": "semi",
+  "burst_size": 3
 }

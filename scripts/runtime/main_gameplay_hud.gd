@@ -17,6 +17,7 @@ const RadioCommandWheel := preload("res://scripts/ui/socom_radio_command_wheel.g
 const SitrepHudOverlay := preload("res://scripts/ui/socom_sitrep_hud_overlay.gd")
 const VoiceChatController := preload("res://scripts/audio/socom_voice_chat_controller.gd")
 const TeamRosterHUD := preload("res://scripts/ui/socom_team_roster_hud.gd")
+const LoadoutCardHUD := preload("res://scripts/ui/socom_loadout_card_hud.gd")
 const KillfeedOverlay := preload("res://scripts/ui/socom_killfeed_overlay.gd")
 const DamageIndicatorOverlay := preload("res://scripts/ui/socom_damage_indicator_overlay.gd")
 const StanceIndicator := preload("res://scripts/ui/socom_stance_indicator.gd")
@@ -30,6 +31,7 @@ var sitrep_hud_overlay: SocomSitrepHudOverlay
 var voice_chat_controller: SocomVoiceChatController
 var voice_status_label: Label
 var team_roster_hud: SocomTeamRosterHUD
+var loadout_card_hud: SocomLoadoutCardHUD
 var killfeed_overlay: SocomKillfeedOverlay
 var damage_indicator: SocomDamageIndicatorOverlay
 var stance_indicator: SocomStanceIndicator
@@ -214,6 +216,10 @@ func _build_ui() -> void:
         team_roster_hud.name = "SocomTeamRosterHUD"
         layer.add_child(team_roster_hud)
 
+        loadout_card_hud = LoadoutCardHUD.new()
+        loadout_card_hud.name = "SocomLoadoutCardHUD"
+        layer.add_child(loadout_card_hud)
+
         killfeed_overlay = KillfeedOverlay.new()
         killfeed_overlay.name = "SocomKillfeedOverlay"
         layer.add_child(killfeed_overlay)
@@ -359,6 +365,36 @@ func _update_player_status_ui() -> void:
         int(grenade_inventory.get("smoke", 0)),
         tactical_state,
     ]
+    if loadout_card_hud != null:
+        var fire_mode := "auto"
+        var avail_modes: Array[String] = ["auto", "semi"]
+        var burst_size := 3
+        if weapon_controller != null and weapon_controller.has_method("get_ammo_snapshot"):
+            var ammo: Dictionary = weapon_controller.call("get_ammo_snapshot")
+            fire_mode = String(ammo.get("fire_mode", "auto"))
+            burst_size = int(ammo.get("burst_size", 3))
+            avail_modes.clear()
+            for m: Variant in (ammo.get("available_fire_modes", []) as Array):
+                avail_modes.append(String(m))
+        loadout_card_hud.update_weapon_state(
+            weapon_name,
+            "PRIMARY",
+            magazine,
+            reserve,
+            fire_mode,
+            avail_modes,
+            burst_size
+        )
+        loadout_card_hud.update_grenade_state(
+            grenade_inventory,
+            _grenade_type_name(),
+            grenade_equipped
+        )
+        if player != null:
+            loadout_card_hud.update_health(
+                float(player.get("current_health")),
+                float(player.get("max_health"))
+            )
 
 
 func _on_player_max_health_changed(value: float) -> void:
@@ -484,11 +520,32 @@ func _update_crosshair(data: Dictionary) -> void:
     if team_roster_hud != null:
         var timer_val := 180.0
         var is_armed := false
+        var bomb_msg := "SATCHEL BOMB AT SPAWN"
         if host != null and host.has_node("DemolitionRules"):
             var demo = host.get_node("DemolitionRules")
-            timer_val = float(demo.get("fuse_timer")) if int(demo.get("bomb_state")) == 2 else 180.0
-            is_armed = int(demo.get("bomb_state")) == 2
-        team_roster_hud.update_match_state(4, 4, 0, 4, 4, 0, timer_val, "", is_armed)
+            var b_state: int = int(demo.get("bomb_state"))
+            if b_state == 2:
+                timer_val = float(demo.get("fuse_timer"))
+                is_armed = true
+                bomb_msg = "BOMB ARMED  •  DEFUSE IN PROGRESS"
+            elif b_state == 1:
+                bomb_msg = "CARRIER HAS BOMB"
+        var identity: Dictionary = SteamIdentity.get_player_identity()
+        var player_name := String(identity.get("display_name", "SPECTRE"))
+        var is_player_alive: bool = player != null and float(player.get("current_health")) > 0.0
+        var alpha := [
+            {"name": "%s (YOU)" % player_name, "alive": is_player_alive, "kills": 0, "deaths": 0, "ping": 0},
+            {"name": "JESTER", "alive": true, "kills": 0, "deaths": 0, "ping": 14},
+            {"name": "WARDOG", "alive": true, "kills": 0, "deaths": 0, "ping": 22},
+            {"name": "BOOMER", "alive": true, "kills": 0, "deaths": 0, "ping": 18},
+        ]
+        var bravo := [
+            {"name": "TARGET DUMMY 1", "alive": true, "kills": 0, "deaths": 0, "ping": 0},
+            {"name": "TARGET DUMMY 2", "alive": true, "kills": 0, "deaths": 0, "ping": 0},
+            {"name": "TARGET DUMMY 3", "alive": true, "kills": 0, "deaths": 0, "ping": 0},
+            {"name": "TARGET DUMMY 4", "alive": true, "kills": 0, "deaths": 0, "ping": 0},
+        ]
+        team_roster_hud.set_roster_data(alpha, bravo, 0, 0, timer_val, bomb_msg, is_armed)
 
     if voice_chat_controller != null and voice_status_label != null:
         if voice_chat_controller.is_transmitting:
@@ -516,11 +573,22 @@ func _unhandled_input(event: InputEvent) -> void:
         return
     if (
         event is InputEventMouseMotion
+        and equipment_wheel != null
+        and equipment_wheel.visible
+    ):
+        equipment_wheel.call("apply_mouse_motion", event.relative)
+        get_viewport().set_input_as_handled()
+    elif (
+        event is InputEventMouseMotion
         and radio_command_wheel != null
         and radio_command_wheel.is_wheel_open
     ):
         radio_command_wheel.apply_mouse_motion(event.relative)
         get_viewport().set_input_as_handled()
+    elif event.is_action_pressed(&"toggle_fire_mode"):
+        if weapon_controller != null and weapon_controller.has_method("cycle_fire_mode"):
+            weapon_controller.call("cycle_fire_mode")
+            _update_player_status_ui()
     elif event.is_action_pressed(&"toggle_nvg"):
         _toggle_public_night_vision()
     elif event.is_action_pressed(&"radio_comms"):

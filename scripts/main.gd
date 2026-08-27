@@ -287,7 +287,8 @@ func _add_key_action(action: StringName, keycode: Key) -> void:
     InputMap.action_add_event(action, event)
 
 func _process(delta: float) -> void:
-    frame_runtime.process(delta)
+    if frame_runtime != null:
+        frame_runtime.process(delta)
 
 
 func _request_weapon_reload() -> bool:

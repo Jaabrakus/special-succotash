@@ -50,6 +50,36 @@ func show_scorecard(show: bool) -> void:
 		queue_redraw()
 
 
+func set_roster_data(
+	alpha: Array,
+	bravo: Array,
+	alpha_score: int = -1,
+	bravo_score: int = -1,
+	timer_sec: float = -1.0,
+	bomb_msg: String = "",
+	bomb_armed: bool = false
+) -> void:
+	alpha_players.clear()
+	for p: Variant in alpha:
+		if p is Dictionary:
+			alpha_players.append((p as Dictionary).duplicate(true))
+	bravo_players.clear()
+	for p: Variant in bravo:
+		if p is Dictionary:
+			bravo_players.append((p as Dictionary).duplicate(true))
+	if alpha_score >= 0:
+		team_alpha_score = alpha_score
+	if bravo_score >= 0:
+		team_bravo_score = bravo_score
+	if timer_sec >= 0.0:
+		round_timer_seconds = timer_sec
+	if not bomb_msg.is_empty():
+		bomb_status_text = bomb_msg
+	is_bomb_armed = bomb_armed
+	if visible:
+		queue_redraw()
+
+
 func update_match_state(
 	alpha_alive: int, alpha_total: int, alpha_score: int,
 	bravo_alive: int, bravo_total: int, bravo_score: int,

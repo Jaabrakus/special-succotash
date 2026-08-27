@@ -8,6 +8,7 @@ const SEGMENT_GAP_RADIANS := 0.025
 
 var entries: Array[Dictionary] = []
 var selected_index := 0
+var selection_vector := Vector2(0.0, -1.0)
 
 
 func _ready() -> void:
@@ -19,6 +20,10 @@ func _ready() -> void:
 func show_wheel(next_entries: Array[Dictionary], next_selected_index: int) -> void:
 	entries = next_entries.duplicate(true)
 	selected_index = clampi(next_selected_index, 0, maxi(entries.size() - 1, 0))
+	var count := maxi(entries.size(), 1)
+	var segment_angle := TAU / float(count)
+	var angle := -PI * 0.5 + segment_angle * (float(selected_index) + 0.5)
+	selection_vector = Vector2(cos(angle), sin(angle)) * (INNER_RADIUS + 20.0)
 	visible = true
 	queue_redraw()
 
@@ -31,6 +36,33 @@ func update_wheel(next_entries: Array[Dictionary], next_selected_index: int) -> 
 
 func hide_wheel() -> void:
 	visible = false
+
+
+func apply_mouse_motion(relative_motion: Vector2) -> void:
+	if not visible or entries.is_empty() or relative_motion.is_zero_approx():
+		return
+	selection_vector = (selection_vector * 96.0 + relative_motion).limit_length(OUTER_RADIUS)
+	_update_selected_index_from_direction(selection_vector)
+
+
+func _process(_delta: float) -> void:
+	if not visible or entries.is_empty():
+		return
+	if Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
+		_update_selected_index_from_direction(get_viewport().get_mouse_position() - size * 0.5)
+
+
+func _update_selected_index_from_direction(direction: Vector2) -> void:
+	if entries.is_empty() or direction.length() <= INNER_RADIUS * 0.35:
+		return
+	var angle := atan2(direction.y, direction.x) + PI * 0.5
+	if angle < 0.0:
+		angle += TAU
+	var segment_angle := TAU / float(entries.size())
+	var next_index := int(floor(angle / segment_angle)) % entries.size()
+	if next_index != selected_index and next_index >= 0 and next_index < entries.size():
+		selected_index = next_index
+		queue_redraw()
 
 
 func _draw() -> void:
@@ -48,7 +80,9 @@ func _draw() -> void:
 		var selected := index == selected_index
 		var fill := Color(0.08, 0.105, 0.11, 0.94)
 		if selected and enabled:
-			fill = Color(0.70, 0.22, 0.12, 0.98)
+			fill = Color(0.18, 0.65, 0.42, 0.98) # Tactical active green
+		elif selected and not enabled:
+			fill = Color(0.45, 0.18, 0.15, 0.85) # Selected disabled slot
 		elif not enabled:
 			fill = Color(0.045, 0.052, 0.055, 0.82)
 		_draw_ring_segment(center, INNER_RADIUS, OUTER_RADIUS, start_angle, end_angle, fill)
@@ -59,19 +93,19 @@ func _draw() -> void:
 	draw_string(
 		center_font,
 		center + Vector2(-80.0, 6.0),
-		"EQUIPMENT",
+		"WEAPON / GEAR",
 		HORIZONTAL_ALIGNMENT_CENTER,
 		-1.0,
-		18,
+		16,
 		Color("e3d3b3")
 	)
 	draw_string(
 		center_font,
-		center + Vector2(-92.0, 30.0),
-		"SCROLL  •  RELEASE G",
+		center + Vector2(-92.0, 28.0),
+		"MOVE MOUSE  •  RELEASE G",
 		HORIZONTAL_ALIGNMENT_CENTER,
 		-1.0,
-		11,
+		10,
 		Color("8fa09b")
 	)
 
