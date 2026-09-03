@@ -50,6 +50,7 @@ var leaderboard_refresh_btn: Button
 var current_user_profile: Dictionary = {}
 var multiplayer_deployment_profile: Dictionary = {}
 var browser_server_url := ""
+var webrtc_signaling_url := ""
 var matchmaking_directory = null
 var directory_request_in_progress := false
 
@@ -69,13 +70,16 @@ func _ready() -> void:
 	var query_server_url := DeploymentProfile.browser_query_server_url()
 	if not query_server_url.is_empty():
 		browser_server_url = query_server_url
+	webrtc_signaling_url = DeploymentProfile.webrtc_signaling_url(
+		multiplayer_deployment_profile
+	)
 	KeyboardProfile.apply_project_mapping()
 	MapDocument.ensure_active_map_in_library()
 	_build_ui()
 	_build_settings()
 	_refresh_map_selector()
-	if restricted_web_build and browser_server_url.is_empty():
-		status_label.text = "Use Quick Match or Browse Servers. Direct wss:// join remains available."
+	if restricted_web_build:
+		status_label.text = "Host a browser 2v2 or paste a P2P room code."
 	call_deferred("_initialize_guest_identity")
 
 
@@ -134,6 +138,12 @@ func _build_ui() -> void:
 	quick_match_button.name = "QuickMatch"
 	var browse_servers_button := _add_primary_action(menu_column, "BROWSE SERVERS", _open_server_browser)
 	browse_servers_button.name = "BrowseServers"
+	var host_game_button := _add_primary_action(
+		menu_column,
+		"HOST PRIVATE MATCH",
+		_host_private_match
+	)
+	host_game_button.name = "HostGame"
 	if not restricted_web_build:
 		var create_room_button := _add_primary_action(
 			menu_column,
@@ -149,7 +159,7 @@ func _build_ui() -> void:
 	address_edit = LineEdit.new()
 	address_edit.name = "JoinGameAddress"
 	address_edit.placeholder_text = (
-		"wss://your-server.example/game"
+		"P2P room code or wss:// official server"
 		if restricted_web_build
 		else "Invite code or server address"
 	)
@@ -366,6 +376,27 @@ func _open_tournament_room() -> void:
 	ProjectSettings.set_setting("socom/session/launch_mode", "host")
 	ProjectSettings.set_setting("socom/session/join_address", "")
 	_collect_and_open(MULTIPLAYER_SCENE)
+
+
+func _host_private_match() -> void:
+	if not restricted_web_build and not _select_host_map():
+		return
+	_configure_private_host_session()
+	_collect_and_open(MULTIPLAYER_SCENE)
+
+
+func _configure_private_host_session() -> void:
+	# The launcher selects the established native listen-server path. The
+	# canonical multiplayer session still owns the peer, lobby, shots, damage,
+	# and disconnect lifecycle.
+	ProjectSettings.set_setting("socom/session/tournament_mode", false)
+	ProjectSettings.set_setting(
+		"socom/session/launch_mode",
+		"webrtc_host" if restricted_web_build else "host"
+	)
+	ProjectSettings.set_setting("socom/session/join_address", "")
+	ProjectSettings.set_setting("socom/session/webrtc_room_code", "")
+	ProjectSettings.set_setting("socom/session/webrtc_signaling_url", webrtc_signaling_url)
 
 
 func _ensure_matchmaking_directory():
@@ -675,8 +706,14 @@ func _join_match() -> void:
 	# Direct addresses do not carry directory metadata. The authoritative server
 	# enables tournament presentation when it sends an arena layout.
 	ProjectSettings.set_setting("socom/session/tournament_mode", false)
-	ProjectSettings.set_setting("socom/session/launch_mode", "join")
-	ProjectSettings.set_setting("socom/session/join_address", address)
+	if restricted_web_build and DeploymentProfile.is_webrtc_room_code(address):
+		ProjectSettings.set_setting("socom/session/launch_mode", "webrtc_join")
+		ProjectSettings.set_setting("socom/session/webrtc_room_code", address)
+		ProjectSettings.set_setting("socom/session/webrtc_signaling_url", webrtc_signaling_url)
+		ProjectSettings.set_setting("socom/session/join_address", "")
+	else:
+		ProjectSettings.set_setting("socom/session/launch_mode", "join")
+		ProjectSettings.set_setting("socom/session/join_address", address)
 	_collect_and_open(MULTIPLAYER_SCENE)
 
 

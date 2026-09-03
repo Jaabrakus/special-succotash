@@ -2,7 +2,7 @@
   "schema_version": 1,
   "feature_id": "browser_multiarena_playable_deployment",
   "player_intent": "A browser player can enter the canonical game, join one authoritative server, be assigned to one of eight isolated 2v2 map instances, and traverse the authored stairs during a real match.",
-  "acceptance_rule": "The application boots into the launcher; a browser client exposes Quick Match, Browse Servers, and direct Join fallback but never Host, and accepts only secure WebSocket endpoints; an always-on unprivileged Linux container advertises Render's public wss:// endpoint through the existing Supabase heartbeat; the dedicated server admits at most 32 players, starts 16 duos across eight isolated arena maps, derives all four local starts from authored map markers, scopes state and damage to each arena, and uses one smooth map-owned stair collider that the existing CharacterBody3D can ascend and descend.",
+  "acceptance_rule": "The application boots into the launcher; a browser client exposes private WebRTC Host, Quick Match, Browse Servers, and direct dedicated Join fallback, and accepts only secure public WebSocket endpoints; the optional unprivileged Linux container advertises Render's public wss:// endpoint through the existing Supabase heartbeat; the dedicated server admits at most 32 players, starts 16 duos across eight isolated arena maps, derives all four local starts from authored map markers, scopes state and damage to each arena, and uses one smooth map-owned stair collider that the existing CharacterBody3D can ascend and descend.",
   "canonical_scene": "res://multiplayer_slice.tscn",
   "editor_scene": "res://game_launcher.tscn",
   "ownership": {
@@ -18,12 +18,12 @@
     {
       "id": "browser_join_action",
       "type": "Button",
-      "role": "Enters the canonical multiplayer scene with a server-owned secure WebSocket address and no browser-host authority.",
+      "role": "Enters the canonical multiplayer scene with a server-owned secure WebSocket address for optional official dedicated play.",
       "owner": "SocomGameLauncher",
       "source_script": "res://scripts/ui/game_launcher.gd",
       "code_symbols": [
         "join_button.name = \"JoinGame\"",
-        "wss://your-server.example/game",
+        "P2P room code or wss:// official server",
         "get_tree().change_scene_to_file(scene_path)"
       ]
     },
@@ -84,7 +84,7 @@
       ]
     },
     {
-      "path": "res://render.yaml",
+      "path": "res://deploy/server/render.dedicated.yaml",
       "writer": "res://deploy/server/start_server.sh",
       "readers": [
         "res://scripts/server/socom_server_backend.gd",
@@ -134,7 +134,7 @@
       "performance": 3,
       "regression_coverage": 5,
       "evidence_paths": [
-        "res://render.yaml",
+        "res://deploy/server/render.dedicated.yaml",
         "res://deploy/server/Dockerfile",
         "res://deploy/server/start_server.sh",
         "res://docs/RENDER_DEDICATED_SERVER_DEPLOYMENT.md",

@@ -80,6 +80,17 @@ func show_host_invite(port: int) -> void:
 	)
 
 
+func show_webrtc_room(room_code: String) -> void:
+	invite_panel.visible = true
+	invite_code_edit.text = room_code
+	invite_copy_button.disabled = room_code.is_empty()
+	invite_copy_button.text = "COPY ROOM CODE"
+	invite_help_label.text = (
+		"Share this room code. Browser players paste it into JOIN ROOM. "
+		+ "Gameplay connects peer-to-peer after signaling."
+	)
+
+
 func clear_host_invite() -> void:
 	if invite_panel != null:
 		invite_panel.visible = false
@@ -133,14 +144,14 @@ func configure_connection_mode(browser_client: bool, default_server_url: String 
 	if address_edit == null:
 		return
 	if browser_client:
-		connection_title.text = "2v2 TOURNAMENT CLIENT"
+		connection_title.text = "BROWSER PRIVATE 2v2"
 		connection_explanation.text = (
-			"Join the authoritative tournament server. Each duo is assigned to one "
-			+ "of eight isolated map instances."
+			"Host a WebRTC room or paste a P2P room code. The host browser owns "
+			+ "the authoritative match."
 		)
-		address_edit.placeholder_text = "wss://your-server.example/game"
+		address_edit.placeholder_text = "P2P room code or wss:// official server"
 		address_edit.text = default_server_url
-		host_button.visible = false
+		host_button.visible = true
 	else:
 		connection_title.text = "MULTIPLAYER MATCH"
 		connection_explanation.text = (

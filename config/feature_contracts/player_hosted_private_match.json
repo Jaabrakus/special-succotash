@@ -1,0 +1,132 @@
+{
+  "schema_version": 1,
+  "feature_id": "player_hosted_private_match",
+  "player_intent": "A player can host a private 2v2 from either the itch browser build or a native build and share one room code with friends.",
+  "acceptance_rule": "The restricted itch launcher exposes Host Private Match, connects only to the configured secure signaling service, installs a WebRTCMultiplayerPeer in res://multiplayer_slice.tscn, and keeps the host as authoritative peer 1 for the canonical lobby, shots, damage, and rounds. The signaling service admits at most four peers and relays only room, SDP, and ICE messages. Native builds retain the existing ENet listen-server path.",
+  "canonical_scene": "res://multiplayer_slice.tscn",
+  "editor_scene": "res://game_launcher.tscn",
+  "ownership": {
+    "host_and_join_intent": "SocomGameLauncher",
+    "network_peer_and_lobby_authority": "SocomMultiplayerSession",
+    "webrtc_negotiation_adapter": "SocomWebRTCSignalingClient",
+    "shot_and_damage_authority": "AuthoritativeServerWeapon",
+    "host_invite_presentation": "SocomMultiplayerHUD"
+  },
+  "nodes": [
+    {
+      "id": "host_private_match_action",
+      "type": "Button",
+      "role": "Lets browser and native players request the canonical private-host path.",
+      "owner": "SocomGameLauncher",
+      "source_script": "res://scripts/ui/game_launcher.gd",
+      "code_symbols": [
+        "host_game_button.name = \"HostGame\"",
+        "\"HOST PRIVATE MATCH\"",
+        "func _host_private_match() -> void:",
+        "_collect_and_open(MULTIPLAYER_SCENE)"
+      ]
+    },
+    {
+      "id": "webrtc_signaling_adapter",
+      "type": "Node",
+      "role": "Negotiates browser WebRTC peer connections through the lightweight signaling service without owning gameplay state.",
+      "owner": "SocomWebRTCSignalingClient",
+      "source_script": "res://scripts/network/socom_webrtc_signaling_client.gd",
+      "code_symbols": [
+        "class_name SocomWebRTCSignalingClient",
+        "WebRTCMultiplayerPeer.new()",
+        "WebRTCPeerConnection.new()",
+        "rtc_peer.create_server()",
+        "rtc_peer.create_client(peer_id)"
+      ]
+    },
+    {
+      "id": "canonical_private_match_session",
+      "type": "Node3D",
+      "role": "Owns the installed multiplayer peer, authoritative lobby, player admission, shots, damage, rounds, and disconnect lifecycle.",
+      "owner": "SocomMultiplayerSession",
+      "scene_path": "res://multiplayer_slice.tscn",
+      "node_path": "."
+    },
+    {
+      "id": "host_invite_code_panel",
+      "type": "PanelContainer",
+      "role": "Shows the copyable P2P room code after signaling creates a room.",
+      "owner": "SocomMultiplayerHUD",
+      "source_script": "res://scripts/network/socom_multiplayer_hud.gd",
+      "code_symbols": [
+        "invite_panel = PanelContainer.new()",
+        "invite_panel.name = \"HostInviteCodePanel\"",
+        "func show_webrtc_room(room_code: String) -> void:"
+      ]
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://config/network/browser_multiarena_deployment.json",
+      "writer": "res://scripts/network/socom_multiplayer_deployment_profile.gd",
+      "readers": [
+        "res://scripts/ui/game_launcher.gd",
+        "res://scripts/network/socom_multiplayer_session.gd",
+        "res://scripts/network/socom_multiplayer_world_ui.gd",
+        "res://scripts/network/socom_webrtc_signaling_client.gd"
+      ]
+    },
+    {
+      "path": "res://render.yaml",
+      "writer": "res://deploy/signaling/server.mjs",
+      "readers": [
+        "res://tools/browser_webrtc_private_match_regression.gd"
+      ]
+    }
+  ],
+  "must_not_change": [
+    "CharacterBody3D movement and collision ownership",
+    "SOCOM camera and reticle aim ownership",
+    "host-owned shot, damage, ammunition, and ballistics authority",
+    "weapon animation, fire recovery, reload, and hand-contact presentation",
+    "native ENet private hosting",
+    "official Quick Match, server browser, and dedicated tournament code paths"
+  ],
+  "proof_scripts": [
+    "res://tools/browser_webrtc_private_match_regression.gd",
+    "res://tools/player_hosted_private_match_regression.gd",
+    "res://tools/restricted_web_launcher_regression.gd",
+    "res://tools/multiplayer_slice_regression.gd",
+    "res://tools/feature_contract_regression.gd"
+  ],
+  "visual_check": "Deploy the signaling Blueprint, export the restricted Web build, open two independent browser sessions, host in the first, paste its P2P code into the second, and verify both enter the same canonical lobby before completing one authoritative shot-and-damage exchange. Strict NAT pairs require a configured TURN service even when STUN succeeds for ordinary networks.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Add WebRTC only as the browser transport and keep SocomMultiplayerSession as authoritative peer 1. This removes the full dedicated game server from private browser matches while preserving native ENet and official dedicated play.",
+    "current": {
+      "system": "Native ENet private host plus browser clients restricted to a full dedicated WebSocket game server",
+      "correctness": 3,
+      "ownership_clarity": 5,
+      "runtime_parity": 3,
+      "editor_usability": 2,
+      "performance": 3,
+      "regression_coverage": 4,
+      "evidence_paths": [
+        "res://scripts/network/socom_multiplayer_session.gd",
+        "res://scripts/ui/game_launcher.gd",
+        "res://deploy/server/Dockerfile"
+      ]
+    },
+    "candidate": {
+      "system": "Browser WebRTC private host with a lightweight signaling-only service feeding the canonical multiplayer session",
+      "correctness": 5,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 5,
+      "performance": 5,
+      "regression_coverage": 5,
+      "evidence_paths": [
+        "res://scripts/network/socom_webrtc_signaling_client.gd",
+        "res://scripts/network/socom_multiplayer_session.gd",
+        "res://deploy/signaling/server.mjs",
+        "res://tools/browser_webrtc_private_match_regression.gd"
+      ]
+    }
+  }
+}

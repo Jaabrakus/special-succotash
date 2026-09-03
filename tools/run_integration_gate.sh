@@ -102,6 +102,10 @@ run_godot_check "weapon-equipment-event" "res://tools/weapon_equipment_event_reg
 run_godot_check "player-ammunition-ownership" "res://tools/player_health_weapon_ammo_regression.gd" "PLAYER_HEALTH_WEAPON_AMMO_REGRESSION PASS"
 run_godot_check "muzzle-obstruction-authority" "res://tools/muzzle_obstruction_regression.gd" "MUZZLE_OBSTRUCTION_REGRESSION PASS"
 run_godot_check "multiplayer-slice-architecture" "res://tools/multiplayer_slice_architecture_regression.gd" "MULTIPLAYER_SLICE_ARCHITECTURE_REGRESSION PASS"
+run_godot_check "player-hosted-private-match" "res://tools/player_hosted_private_match_regression.gd" "PLAYER_HOSTED_PRIVATE_MATCH_REGRESSION PASS"
+run_godot_check "browser-webrtc-private-match" "res://tools/browser_webrtc_private_match_regression.gd" "BROWSER_WEBRTC_PRIVATE_MATCH_REGRESSION PASS" -- --restricted-web-preview
+print "Running webrtc-signaling"
+npm --prefix "$project_dir/deploy/signaling" test
 run_godot_check "multiplayer-demolition" "res://tools/multiplayer_slice_regression.gd" "MULTIPLAYER_SLICE_REGRESSION PASS"
 run_godot_check "multiplayer-inheritance" "res://tools/multiplayer_inheritance_regression.gd" "MULTIPLAYER_INHERITANCE_REGRESSION PASS"
 run_godot_check "browser-multiarena-deployment" "res://tools/browser_multiarena_deployment_regression.gd" "BROWSER_MULTI_ARENA_DEPLOYMENT_REGRESSION PASS"

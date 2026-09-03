@@ -37,9 +37,12 @@ func _run() -> void:
 		"server browser renders directory-owned server results"
 	)
 	_expect(
-		launcher.find_child("HostGame", true, false) == null
-		and launcher.find_child("CreateTournamentRoom", true, false) == null,
-		"browser client cannot become an authoritative host"
+		launcher.find_child("HostGame", true, false) is Button,
+		"browser client exposes player-hosted WebRTC private matches"
+	)
+	_expect(
+		launcher.find_child("CreateTournamentRoom", true, false) == null,
+		"browser client cannot start the dedicated 32-player tournament host"
 	)
 	_expect(
 		launcher.find_child("MapEditor", true, false) == null,
@@ -59,13 +62,13 @@ func _run() -> void:
 	)
 	var address := launcher.find_child("JoinGameAddress", true, false) as LineEdit
 	_expect(
-		address != null and address.placeholder_text.begins_with("wss://"),
-		"browser join input communicates its secure WebSocket contract"
+		address != null and address.placeholder_text.begins_with("P2P room code"),
+		"browser join input communicates its WebRTC room-code contract"
 	)
 	_expect(
 		launcher.get("status_label") != null
-		and String(launcher.get("status_label").text).contains("Quick Match"),
-		"browser launcher directs players to discovery before manual wss join"
+		and String(launcher.get("status_label").text).contains("Host a browser 2v2"),
+		"browser launcher directs players to private WebRTC hosting"
 	)
 	_expect(
 		launcher.find_child("OpenCreatorStudio", true, false) == null

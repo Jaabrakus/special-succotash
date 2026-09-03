@@ -22,10 +22,11 @@ directory access, while server writes remain privileged.
 
 ## Create the always-on service
 
-1. Push the reviewed project state, including `render.yaml`, `deploy/server/`,
+1. Push the reviewed project state, including `deploy/server/render.dedicated.yaml`, `deploy/server/`,
    and the runtime resources selected by `deploy/server/Dockerfile.dockerignore`,
    to the private GitHub repository connected to Render.
-2. In Render, create a Blueprint from that repository. `render.yaml` requests
+2. In Render, create a Blueprint from that repository and set Blueprint Path to
+   `deploy/server/render.dedicated.yaml`. This optional Blueprint requests
    the paid always-on `1c-2g` service in Virginia. A sleeping free service is
    incompatible with the 45-second directory heartbeat contract.
 3. Enter `SOCOM_SUPABASE_SERVER_KEY` in Render's secret prompt. Use a Supabase

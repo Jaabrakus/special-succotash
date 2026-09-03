@@ -9,6 +9,10 @@ var _buy_menu_window_remaining: float = 0.0
 
 
 func _disconnect_existing_peer() -> void:
+	if webrtc_signaling_client != null and is_instance_valid(webrtc_signaling_client):
+		webrtc_signaling_client.stop()
+		webrtc_signaling_client.queue_free()
+	webrtc_signaling_client = null
 	if multiplayer.multiplayer_peer != null:
 		multiplayer.multiplayer_peer.close()
 	multiplayer.multiplayer_peer = OfflineMultiplayerPeer.new()
@@ -202,8 +206,8 @@ func _build_ui() -> void:
 	multiplayer_hud = MultiplayerHUDScript.new()
 	multiplayer_hud.name = "MultiplayerHUD"
 	add_child(multiplayer_hud)
-	multiplayer_hud.host_requested.connect(func(): host_match(DEFAULT_PORT))
-	multiplayer_hud.join_requested.connect(func(address: String): join_match(address, DEFAULT_PORT))
+	multiplayer_hud.host_requested.connect(_request_host_from_hud)
+	multiplayer_hud.join_requested.connect(_request_join_from_hud)
 	multiplayer_hud.leave_requested.connect(_leave_to_main_menu)
 	multiplayer_hud.team_requested.connect(_choose_lobby_team)
 	multiplayer_hud.pair_requested.connect(_choose_lobby_pair)
@@ -243,6 +247,25 @@ func _build_ui() -> void:
 	add_child(exit_menu)
 	_build_buy_menu()
 	_refresh_scoreboard()
+
+
+func _request_host_from_hud() -> void:
+	if OS.has_feature("web"):
+		host_webrtc_match(DeploymentProfile.webrtc_signaling_url(
+			multiplayer_deployment_profile
+		))
+	else:
+		host_match(DEFAULT_PORT)
+
+
+func _request_join_from_hud(address: String) -> void:
+	if DeploymentProfile.is_webrtc_room_code(address):
+		join_webrtc_match(
+			address,
+			DeploymentProfile.webrtc_signaling_url(multiplayer_deployment_profile)
+		)
+	else:
+		join_match(address, DEFAULT_PORT)
 	_refresh_player_state()
 	_refresh_match_clock()
 	_refresh_objective_status()
@@ -487,11 +510,25 @@ func _apply_command_line_mode() -> void:
 	else:
 		var launch_mode := String(ProjectSettings.get_setting("socom/session/launch_mode", ""))
 		var launcher_address := String(ProjectSettings.get_setting("socom/session/join_address", ""))
+		var webrtc_room_code := String(ProjectSettings.get_setting(
+			"socom/session/webrtc_room_code",
+			""
+		))
+		var webrtc_signaling_url := String(ProjectSettings.get_setting(
+			"socom/session/webrtc_signaling_url",
+			DeploymentProfile.webrtc_signaling_url(multiplayer_deployment_profile)
+		))
 		ProjectSettings.set_setting("socom/session/launch_mode", "")
 		ProjectSettings.set_setting("socom/session/join_address", "")
+		ProjectSettings.set_setting("socom/session/webrtc_room_code", "")
+		ProjectSettings.set_setting("socom/session/webrtc_signaling_url", "")
 		if launch_mode == "host":
 			host_match(port)
 		elif launch_mode == "join":
 			join_match(launcher_address, port)
+		elif launch_mode == "webrtc_host":
+			host_webrtc_match(webrtc_signaling_url)
+		elif launch_mode == "webrtc_join":
+			join_webrtc_match(webrtc_room_code, webrtc_signaling_url)
 		elif launch_mode == "dedicated":
 			host_dedicated_server(port)

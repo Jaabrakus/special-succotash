@@ -8,7 +8,9 @@ extends RefCounted
 const PROFILE_PATH := "res://config/network/browser_multiarena_deployment.json"
 const TRANSPORT_ENET := "enet"
 const TRANSPORT_WEBSOCKET := "websocket"
+const TRANSPORT_WEBRTC := "webrtc"
 const MatchInvite := preload("res://scripts/network/socom_match_invite.gd")
+const WebRTCSignalingClient := preload("res://scripts/network/socom_webrtc_signaling_client.gd")
 
 
 static func load_profile(path: String = PROFILE_PATH) -> Dictionary:
@@ -18,6 +20,12 @@ static func load_profile(path: String = PROFILE_PATH) -> Dictionary:
 		"dedicated_transport": TRANSPORT_WEBSOCKET,
 		"browser_transport": TRANSPORT_WEBSOCKET,
 		"browser_server_url": "",
+		"browser_private_transport": TRANSPORT_WEBRTC,
+		"webrtc_signaling_url": "wss://socom-141-webrtc-signaling.onrender.com/signal",
+		"webrtc_ice_servers": [
+			{"urls": ["stun:stun.l.google.com:19302"]},
+		],
+		"webrtc_max_players": 4,
 		"server_map_document": "res://config/maps/painterly_coastal_village_2v2.json",
 		"require_secure_browser_socket": true,
 		"max_players": 32,
@@ -34,13 +42,20 @@ static func load_profile(path: String = PROFILE_PATH) -> Dictionary:
 	profile["max_players"] = clampi(int(profile.get("max_players", 32)), 1, 32)
 	profile["arena_instances"] = clampi(int(profile.get("arena_instances", 8)), 1, 8)
 	profile["players_per_arena"] = clampi(int(profile.get("players_per_arena", 4)), 2, 4)
+	profile["webrtc_max_players"] = clampi(int(profile.get("webrtc_max_players", 4)), 2, 4)
 	profile["dedicated_transport"] = _normalized_transport(
 		String(profile.get("dedicated_transport", TRANSPORT_WEBSOCKET))
 	)
 	profile["browser_transport"] = TRANSPORT_WEBSOCKET
+	profile["browser_private_transport"] = TRANSPORT_WEBRTC
 	profile["browser_server_url"] = String(
 		profile.get("browser_server_url", "")
 	).strip_edges()
+	profile["webrtc_signaling_url"] = String(
+		profile.get("webrtc_signaling_url", "")
+	).strip_edges()
+	if profile.get("webrtc_ice_servers", []) is not Array:
+		profile["webrtc_ice_servers"] = []
 	profile["server_map_document"] = String(
 		profile.get(
 			"server_map_document",
@@ -76,6 +91,8 @@ static func requested_client_transport(
 	args: PackedStringArray,
 	is_web: bool
 ) -> String:
+	if WebRTCSignalingClient.is_room_code(address):
+		return TRANSPORT_WEBRTC
 	if is_web:
 		return TRANSPORT_WEBSOCKET
 	var clean := address.strip_edges().to_lower()
@@ -137,6 +154,25 @@ static func browser_query_server_url() -> String:
 		"new URLSearchParams(window.location.search).get('server') || ''"
 	)
 	return String(result).strip_edges() if result is String else ""
+
+
+static func webrtc_signaling_url(profile: Dictionary) -> String:
+	if OS.has_feature("web"):
+		var query_result: Variant = JavaScriptBridge.eval(
+			"new URLSearchParams(window.location.search).get('signal') || ''"
+		)
+		if query_result is String and not String(query_result).strip_edges().is_empty():
+			return String(query_result).strip_edges()
+	return String(profile.get("webrtc_signaling_url", "")).strip_edges()
+
+
+static func webrtc_ice_servers(profile: Dictionary) -> Array:
+	var configured: Variant = profile.get("webrtc_ice_servers", [])
+	return (configured as Array).duplicate(true) if configured is Array else []
+
+
+static func is_webrtc_room_code(value: String) -> bool:
+	return WebRTCSignalingClient.is_room_code(value)
 
 
 static func _normalized_transport(value: String) -> String:

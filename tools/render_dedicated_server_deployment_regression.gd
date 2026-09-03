@@ -3,7 +3,7 @@ extends SceneTree
 const DOCKERFILE_PATH := "res://deploy/server/Dockerfile"
 const DOCKERIGNORE_PATH := "res://deploy/server/Dockerfile.dockerignore"
 const START_SCRIPT_PATH := "res://deploy/server/start_server.sh"
-const RENDER_BLUEPRINT_PATH := "res://render.yaml"
+const RENDER_BLUEPRINT_PATH := "res://deploy/server/render.dedicated.yaml"
 const RULESET_MIGRATION_PATH := (
 	"res://supabase/migrations/20260902003000_seed_gunfight_ruleset.sql"
 )
