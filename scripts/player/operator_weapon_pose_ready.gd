@@ -133,6 +133,73 @@ func apply(
 		current_weight = 0.0
 		desired_weight = 0.0
 		return
+	if not hand_socket_ik_enabled:
+		# The authored pose and right-hand attachment keep sole ownership of the
+		# weapon, spine, and trigger arm. A separate bounded support-only pass may
+		# close the left palm onto the physical foregrip without moving those owners.
+		_release_trigger_hand_grip_lock()
+		SocketIK.stop(right_hand_ik)
+		_set_weapon_solver_owned(false)
+		desired_weight = (
+			1.0
+			if support_hand_socket_ik_enabled
+			and support_hand_mode == &"IK_TO_WEAPON"
+			and support_socket != null
+			and left_hand_ik != null
+			else 0.0
+		)
+		current_weight = move_toward(
+			current_weight,
+			desired_weight,
+			clampf(delta, 0.0, 0.05) / support_hand_ik_blend_seconds
+		)
+		if current_weight > 0.001:
+			support_hand_target.global_position = support_socket.global_position
+			var raw_support_pose: Variant = weapon_node.get_meta(
+				"support_hand_pose",
+				{}
+			)
+			var support_pose: Dictionary = (
+				raw_support_pose
+				if raw_support_pose is Dictionary
+				else {}
+			)
+			var support_rotation_degrees := Vector3(
+				float(support_pose.get("palm_pitch_deg", 0.0)),
+				float(support_pose.get("palm_yaw_deg", 0.0)),
+				float(support_pose.get("palm_roll_deg", 0.0))
+			)
+			support_hand_target.global_basis = (
+				support_socket.global_basis.orthonormalized()
+				* Basis.from_euler(
+					support_rotation_degrees * (PI / 180.0),
+					EULER_ORDER_YXZ
+				)
+			).orthonormalized()
+			_update_support_contact_elbow_pole(support_socket.global_position)
+			# The saved Gunsmith contact owns only this wrist basis. The same bounded
+			# modifier closes the palm and rotates the hand onto the handguard without
+			# changing the rifle, trigger arm, shoulder, or torso.
+			support_hand_grip_locked = true
+			left_hand_ik.override_tip_basis = true
+			_solve_socket_arm(
+				left_hand_ik,
+				support_hand_target,
+				left_elbow_pole,
+				&"mixamorig_LeftHand"
+			)
+			skeleton.force_update_all_bone_transforms()
+			support_hand_error_m = support_socket.global_position.distance_to(
+				WeaponContactSolver.palm_contact_world(
+					skeleton,
+					int(bone_indices.get(&"mixamorig_LeftHand", -1)),
+					left_palm_anchor_local
+				)
+			)
+		else:
+			SocketIK.stop(left_hand_ik)
+			_release_support_hand_grip_lock()
+		return
 	# Recovery must enter the canonical socket solver even when the player is not
 	# holding Ready Aim. Otherwise a dive can remain forever in action ownership
 	# because the zero ready weight returns before _finish_action_weapon_follow().

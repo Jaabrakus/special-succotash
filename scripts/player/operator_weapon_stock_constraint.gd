@@ -5,6 +5,11 @@ extends Node3D
 ## still owns aim and the server still owns the shot. This component only keeps
 ## the rendered buttstock on the operator before both hands solve to the rifle.
 
+const DEFAULT_INWARD_OFFSET_M := 0.055
+const DEFAULT_DOWNWARD_OFFSET_M := 0.035
+const DEFAULT_FORWARD_OFFSET_M := 0.015
+const DEFAULT_MAXIMUM_CORRECTION_M := 0.40
+
 var skeleton: Skeleton3D
 var stock_socket: Marker3D
 var pocket_marker: Marker3D
@@ -33,20 +38,27 @@ func bind(target_skeleton: Skeleton3D, target_stock_socket: Marker3D) -> void:
 
 
 func configure(raw_profile: Variant) -> void:
-	if not raw_profile is Dictionary:
-		enabled = false
-		return
-	var profile := raw_profile as Dictionary
+	# Each equipped weapon replaces this contract. Reset omitted values to the
+	# component defaults so an unstocked pistol cannot inherit rifle offsets.
+	var profile := raw_profile as Dictionary if raw_profile is Dictionary else {}
 	enabled = bool(profile.get("enabled", false))
-	inward_offset_m = clampf(float(profile.get("inward_offset_m", inward_offset_m)), 0.0, 0.15)
+	inward_offset_m = clampf(
+		float(profile.get("inward_offset_m", DEFAULT_INWARD_OFFSET_M)),
+		0.0,
+		0.15
+	)
 	downward_offset_m = clampf(
-		float(profile.get("downward_offset_m", downward_offset_m)),
+		float(profile.get("downward_offset_m", DEFAULT_DOWNWARD_OFFSET_M)),
 		-0.10,
 		0.15
 	)
-	forward_offset_m = clampf(float(profile.get("forward_offset_m", forward_offset_m)), -0.10, 0.15)
+	forward_offset_m = clampf(
+		float(profile.get("forward_offset_m", DEFAULT_FORWARD_OFFSET_M)),
+		-0.10,
+		0.15
+	)
 	maximum_correction_m = clampf(
-		float(profile.get("maximum_correction_m", maximum_correction_m)),
+		float(profile.get("maximum_correction_m", DEFAULT_MAXIMUM_CORRECTION_M)),
 		0.05,
 		0.60
 	)

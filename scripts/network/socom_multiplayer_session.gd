@@ -1,7 +1,8 @@
-extends "res://scripts/network/socom_multiplayer_admission.gd"
+extends "res://scripts/network/socom_multiplayer_directory_presence.gd"
 
 func _ready() -> void:
 	process_physics_priority = 100
+	multiplayer_deployment_profile = DeploymentProfile.load_profile()
 	_ensure_input_map()
 	_build_environment()
 	equipped_config = WeaponContract.load_equipped_config()
@@ -60,7 +61,7 @@ func _process(_delta: float) -> void:
 		_request_local_reload()
 	var current_time_sec := Time.get_ticks_msec() / 1000.0
 	for raw_id in operators:
-		var operator := operators[raw_id] as SocomNetworkOperator
+		var operator: Variant = operators[raw_id]
 		if operator != null and operator.is_proxy_replica:
 			operator.update_proxy_interpolation(current_time_sec)
 	_update_bomb_visual()
@@ -68,9 +69,9 @@ func _process(_delta: float) -> void:
 	if pending_snapshots.is_empty():
 		return
 	var local_id := multiplayer.get_unique_id()
-	var raw_key = local_id if pending_snapshots.has(local_id) else str(local_id)
+	var raw_key: Variant = local_id if pending_snapshots.has(local_id) else str(local_id)
 	if pending_snapshots.has(raw_key):
-		var operator := operators.get(local_id) as SocomNetworkOperator
+		var operator: Variant = operators.get(local_id)
 		if operator != null:
 			var state: Dictionary = pending_snapshots[raw_key]
 			operator.set_authoritative_snapshot(
@@ -93,8 +94,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func host_match(port: int = DEFAULT_PORT) -> Error:
 	_disconnect_existing_peer()
-	network_peer = ENetMultiplayerPeer.new()
-	var error := network_peer.create_server(port, MAX_PLAYERS)
+	var error := _create_server_transport(port, false)
 	if error != OK:
 		_set_status("HOST FAILED: %s" % error_string(error))
 		return error
@@ -105,18 +105,22 @@ func host_match(port: int = DEFAULT_PORT) -> Error:
 	round_active = false
 	menu_panel.visible = false
 	_show_lobby(true)
-	multiplayer_hud.show_host_invite(port)
-	_set_status("HOSTING :%d  •  choose a side and green up" % port)
+	if active_network_transport == DeploymentProfile.TRANSPORT_ENET:
+		multiplayer_hud.show_host_invite(port)
+	_set_status("HOSTING %s :%d  •  choose a side and green up" % [
+		active_network_transport.to_upper(), port,
+	])
 	_broadcast_lobby()
-	print("MP_SLICE HOST_READY port=%d peer=1" % port)
+	print("MP_SLICE HOST_READY transport=%s port=%d peer=1" % [
+		active_network_transport, port,
+	])
 	return OK
 
 
 func host_dedicated_server(port: int = DEFAULT_PORT) -> Error:
 	_disconnect_existing_peer()
 	dedicated_server_mode = true
-	network_peer = ENetMultiplayerPeer.new()
-	var error := network_peer.create_server(port, MAX_PLAYERS)
+	var error := _create_server_transport(port, true)
 	if error != OK:
 		_set_status("DEDICATED HOST FAILED: %s" % error_string(error))
 		return error
@@ -126,19 +130,29 @@ func host_dedicated_server(port: int = DEFAULT_PORT) -> Error:
 	round_active = false
 	menu_panel.visible = false
 	_show_lobby(false)
-	_set_status("DEDICATED SERVER :%d" % port)
+	_set_status("DEDICATED %s SERVER :%d" % [
+		active_network_transport.to_upper(), port,
+	])
 	server_backend = ServerBackendScript.new() as SocomServerBackend
 	server_backend.name = "ServerBackend"
+	server_backend.set_directory_snapshot_provider(Callable(self, "_server_directory_snapshot"))
 	add_child(server_backend)
 	_register_server_backend.call_deferred(port)
-	print("MP_SLICE DEDICATED_READY port=%d peer=1" % port)
+	print("MP_SLICE DEDICATED_READY transport=%s port=%d peer=1 map=%s" % [
+		active_network_transport,
+		port,
+		String(active_map_document.get("name", "Fallback Arena")),
+	])
 	return OK
 
 
 func _register_server_backend(port: int) -> void:
 	if server_backend == null:
 		return
-	var result := await server_backend.register_dedicated_server(port)
+	var result: Dictionary = await server_backend.register_dedicated_server(
+		port,
+		_dedicated_server_advertised_capacity()
+	)
 	if bool(result.get("offline", false)):
 		print("MP_SLICE CLOUD_REGISTRATION_SKIPPED %s" % String(result.get("message", "")))
 	elif not bool(result.get("ok", false)):
@@ -147,21 +161,96 @@ func _register_server_backend(port: int) -> void:
 		print("MP_SLICE CLOUD_REGISTERED server_id=%s" % String(result.get("server_id", "")))
 
 
+func _dedicated_server_advertised_capacity() -> int:
+	# Ordinary Demolition is 8v8. Feature layers can raise this only when their
+	# session contract requires it (for example, the 32-player tournament).
+	return 16
+
+
 func join_match(address: String, port: int = DEFAULT_PORT) -> Error:
 	_disconnect_existing_peer()
-	network_peer = ENetMultiplayerPeer.new()
+	var requested_transport := DeploymentProfile.requested_client_transport(
+		address,
+		OS.get_cmdline_user_args(),
+		OS.has_feature("web")
+	)
+	if requested_transport == DeploymentProfile.TRANSPORT_WEBSOCKET:
+		return _join_websocket_match(address, port)
+	var enet_peer := ENetMultiplayerPeer.new()
 	var target: Dictionary = MatchInvite.parse(address, port)
 	if not bool(target.get("ok", false)):
 		_set_status("JOIN FAILED: %s" % String(target.get("message", "Invalid invite code.")))
 		return ERR_INVALID_PARAMETER
 	var clean_address := String(target.get("address", "127.0.0.1"))
 	port = int(target.get("port", port))
-	var error := network_peer.create_client(clean_address, port)
+	var error := enet_peer.create_client(clean_address, port)
 	if error != OK:
 		_set_status("JOIN FAILED: %s" % error_string(error))
 		return error
+	network_peer = enet_peer
 	multiplayer.multiplayer_peer = network_peer
+	active_network_transport = DeploymentProfile.TRANSPORT_ENET
+	active_network_endpoint = "%s:%d" % [clean_address, port]
 	_set_status("CONNECTING TO %s:%d" % [clean_address, port])
+	return OK
+
+
+func _create_server_transport(port: int, dedicated: bool) -> Error:
+	var requested_transport := DeploymentProfile.requested_server_transport(
+		OS.get_cmdline_user_args(),
+		dedicated,
+		multiplayer_deployment_profile
+	)
+	if requested_transport == DeploymentProfile.TRANSPORT_WEBSOCKET:
+		var websocket_peer := WebSocketMultiplayerPeer.new()
+		var websocket_error := websocket_peer.create_server(port)
+		if websocket_error != OK:
+			return websocket_error
+		network_peer = websocket_peer
+		active_network_transport = DeploymentProfile.TRANSPORT_WEBSOCKET
+		active_network_endpoint = "ws://0.0.0.0:%d" % port
+		return OK
+	var enet_peer := ENetMultiplayerPeer.new()
+	var enet_error := enet_peer.create_server(port, MAX_PLAYERS)
+	if enet_error != OK:
+		return enet_error
+	network_peer = enet_peer
+	active_network_transport = DeploymentProfile.TRANSPORT_ENET
+	active_network_endpoint = "0.0.0.0:%d" % port
+	return OK
+
+
+func _join_websocket_match(address: String, port: int) -> Error:
+	var require_secure := (
+		OS.has_feature("web")
+		and bool(multiplayer_deployment_profile.get(
+			"require_secure_browser_socket",
+			true
+		))
+	)
+	var endpoint := DeploymentProfile.websocket_endpoint(
+		address,
+		port,
+		require_secure
+	)
+	if not bool(endpoint.get("ok", false)):
+		_set_status("JOIN FAILED: %s" % String(endpoint.get(
+			"message",
+			"Invalid WebSocket server address."
+		)))
+		return ERR_INVALID_PARAMETER
+	var websocket_peer := WebSocketMultiplayerPeer.new()
+	var url := String(endpoint.get("url", ""))
+	var error := websocket_peer.create_client(url)
+	if error != OK:
+		_set_status("JOIN FAILED: %s" % error_string(error))
+		return error
+	network_peer = websocket_peer
+	multiplayer.multiplayer_peer = network_peer
+	active_network_transport = DeploymentProfile.TRANSPORT_WEBSOCKET
+	active_network_endpoint = url
+	_set_status("CONNECTING TO %s" % url)
+	print("MP_SLICE CLIENT_CONNECTING transport=websocket endpoint=%s" % url)
 	return OK
 
 func _connect_multiplayer_signals() -> void:
@@ -179,8 +268,8 @@ func _on_peer_disconnected(peer_id: int) -> void:
 		if not lobby.players.has(peer_id):
 			print("MP_SLICE UNADMITTED_PEER_LEFT peer=%d" % peer_id)
 			return
-		var departed_operator := operators.get(peer_id) as SocomNetworkOperator
-		var departed_team := departed_operator.team_id if departed_operator != null else -1
+		var departed_operator: Variant = operators.get(peer_id)
+		var departed_team: int = int(departed_operator.team_id) if departed_operator != null else -1
 		_drop_bomb_from_peer(peer_id)
 		objective_interact_held.erase(peer_id)
 		lobby.remove_player(peer_id)
@@ -301,7 +390,12 @@ func _server_begin_match() -> void:
 	round_index = 1
 	_clear_operators()
 	var team_members := {0: 0, 1: 0}
-	var roster: Array = lobby.snapshot().get("players", [])
+	var roster: Array[Dictionary] = []
+	for raw_peer_id: Variant in lobby.players.keys():
+		roster.append((lobby.players[raw_peer_id] as Dictionary).duplicate(true))
+	roster.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		return int(a.get("peer_id", 0)) < int(b.get("peer_id", 0))
+	)
 	for entry: Dictionary in roster:
 		var peer_id := int(entry.get("peer_id", 0))
 		var team := int(entry.get("team", 0))

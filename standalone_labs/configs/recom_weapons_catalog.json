@@ -1,0 +1,3248 @@
+{
+  "catalog_version": 1,
+  "source": "reCOM zweapon.rdr (SOCOM US Navy SEALs)",
+  "total_items": 60,
+  "categories": {
+    "Pistols": 9,
+    "Shotguns": 2,
+    "Assault Rifles": 12,
+    "Machine Guns": 3,
+    "Submachine Guns": 4,
+    "Sniper Rifles": 4,
+    "Tactical Equipment": 8,
+    "Grenades & Explosives": 18
+  },
+  "ammunition_types": {
+    "9x19P": {
+      "name": "9x19P",
+      "id": 1,
+      "impact_damage": 1.4,
+      "stun": 1.0,
+      "piercing": 1.0,
+      "explosion_damage": 0.0,
+      "explosion_radius": 0.0
+    },
+    "9x19P SD": {
+      "name": "9x19P SD",
+      "id": 34,
+      "impact_damage": 1.2,
+      "stun": 1.0,
+      "piercing": 1.0,
+      "explosion_damage": 0.0,
+      "explosion_radius": 0.0
+    },
+    "5.7 x 28mm": {
+      "name": "5.7 x 28mm",
+      "id": 38,
+      "impact_damage": 1.4,
+      "stun": 1.0,
+      "piercing": 2.0,
+      "explosion_damage": 0.0,
+      "explosion_radius": 0.0
+    },
+    ".22 long rifle": {
+      "name": ".22 long rifle",
+      "id": 2,
+      "impact_damage": 2.5,
+      "stun": 1.0,
+      "piercing": 3.0,
+      "explosion_damage": 0.0,
+      "explosion_radius": 0.0
+    },
+    "45 ACP": {
+      "name": "45 ACP",
+      "id": 3,
+      "impact_damage": 3.0,
+      "stun": 2.0,
+      "piercing": 4.0,
+      "explosion_damage": 0.0,
+      "explosion_radius": 0.0
+    },
+    "50 AE": {
+      "name": "50 AE",
+      "id": 5,
+      "impact_damage": 6.4,
+      "stun": 4.0,
+      "piercing": 5.0,
+      "explosion_damage": 0.0,
+      "explosion_radius": 0.0
+    },
+    "5.45 x 39mm Soviet": {
+      "name": "5.45 x 39mm Soviet",
+      "id": 7,
+      "impact_damage": 3.4,
+      "stun": 3.0,
+      "piercing": 4.0,
+      "explosion_damage": 0.0,
+      "explosion_radius": 0.0
+    },
+    "5.56 x 45mm NATO SD": {
+      "name": "5.56 x 45mm NATO SD",
+      "id": 35,
+      "impact_damage": 2.15,
+      "stun": 3.0,
+      "piercing": 2.0,
+      "explosion_damage": 0.0,
+      "explosion_radius": 0.0
+    },
+    "5.56 x 45mm": {
+      "name": "5.56 x 45mm",
+      "id": 8,
+      "impact_damage": 2.3,
+      "stun": 3.0,
+      "piercing": 3.0,
+      "explosion_damage": 0.0,
+      "explosion_radius": 0.0
+    },
+    "7.62 x 51mm": {
+      "name": "7.62 x 51mm",
+      "id": 9,
+      "impact_damage": 2.3,
+      "stun": 4.0,
+      "piercing": 8.0,
+      "explosion_damage": 0.0,
+      "explosion_radius": 0.0
+    },
+    "7.62 x 51mm SD": {
+      "name": "7.62 x 51mm SD",
+      "id": 36,
+      "impact_damage": 2.15,
+      "stun": 4.0,
+      "piercing": 6.0,
+      "explosion_damage": 0.0,
+      "explosion_radius": 0.0
+    },
+    "7.62 x 39mm M1943": {
+      "name": "7.62 x 39mm M1943",
+      "id": 37,
+      "impact_damage": 2.3,
+      "stun": 4.0,
+      "piercing": 6.0,
+      "explosion_damage": 0.0,
+      "explosion_radius": 0.0
+    },
+    ".50 Cal": {
+      "name": ".50 Cal",
+      "id": 10,
+      "impact_damage": 9.0,
+      "stun": 4.0,
+      "piercing": 7.0,
+      "explosion_damage": 0.0,
+      "explosion_radius": 0.0
+    },
+    "12 Gauge": {
+      "name": "12 Gauge",
+      "id": 27,
+      "impact_damage": 0.0,
+      "stun": 4.0,
+      "piercing": 0.0,
+      "explosion_damage": 12.0,
+      "explosion_radius": 20.0
+    },
+    "M67 Ammo": {
+      "name": "M67 Ammo",
+      "id": 11,
+      "impact_damage": 0.0,
+      "stun": 0.0,
+      "piercing": 0.0,
+      "explosion_damage": 10.0,
+      "explosion_radius": 15.0
+    },
+    "HE Grenade Ammo": {
+      "name": "HE Grenade Ammo",
+      "id": 26,
+      "impact_damage": 0.0,
+      "stun": 0.0,
+      "piercing": 0.0,
+      "explosion_damage": 10.0,
+      "explosion_radius": 10.0
+    },
+    "AN-M8 Ammo": {
+      "name": "AN-M8 Ammo",
+      "id": 12,
+      "impact_damage": 0.5,
+      "stun": 0.0,
+      "piercing": 0.0,
+      "explosion_damage": 0.0,
+      "explosion_radius": 0.0
+    },
+    "Mark141 Ammo": {
+      "name": "Mark141 Ammo",
+      "id": 14,
+      "impact_damage": 0.0,
+      "stun": 0.0,
+      "piercing": 0.0,
+      "explosion_damage": 0.0,
+      "explosion_radius": 10.0
+    },
+    "Satchel Charge Ammo": {
+      "name": "Satchel Charge Ammo",
+      "id": 16,
+      "impact_damage": 0.0,
+      "stun": 0.0,
+      "piercing": 0.0,
+      "explosion_damage": 20.0,
+      "explosion_radius": 28.0
+    },
+    "Claymore Ammo": {
+      "name": "Claymore Ammo",
+      "id": 17,
+      "impact_damage": 0.0,
+      "stun": 0.0,
+      "piercing": 0.0,
+      "explosion_damage": 16.0,
+      "explosion_radius": 25.0
+    },
+    "C4 Ammo": {
+      "name": "C4 Ammo",
+      "id": 18,
+      "impact_damage": 0.0,
+      "stun": 0.0,
+      "piercing": 0.0,
+      "explosion_damage": 18.0,
+      "explosion_radius": 8.0
+    },
+    "MPBOMB Ammo": {
+      "name": "MPBOMB Ammo",
+      "id": 19,
+      "impact_damage": 0.0,
+      "stun": 0.0,
+      "piercing": 0.0,
+      "explosion_damage": 50.0,
+      "explosion_radius": 30.0
+    },
+    "M203 HE Ammo": {
+      "name": "M203 HE Ammo",
+      "id": 20,
+      "impact_damage": 0.0,
+      "stun": 10.0,
+      "piercing": 2.0,
+      "explosion_damage": 10.0,
+      "explosion_radius": 10.0
+    },
+    "M203 FRAG Ammo": {
+      "name": "M203 FRAG Ammo",
+      "id": 28,
+      "impact_damage": 0.0,
+      "stun": 10.0,
+      "piercing": 0.0,
+      "explosion_damage": 10.0,
+      "explosion_radius": 15.0
+    },
+    "M203 SMOKE Ammo": {
+      "name": "M203 SMOKE Ammo",
+      "id": 22,
+      "impact_damage": 0.0,
+      "stun": 0.0,
+      "piercing": 0.0,
+      "explosion_damage": 0.0,
+      "explosion_radius": 0.0
+    },
+    "GL HE Ammo": {
+      "name": "GL HE Ammo",
+      "id": 28,
+      "impact_damage": 0.0,
+      "stun": 0.0,
+      "piercing": 0.0,
+      "explosion_damage": 10.0,
+      "explosion_radius": 15.0
+    },
+    "GL Frag Ammo": {
+      "name": "GL Frag Ammo",
+      "id": 29,
+      "impact_damage": 0.0,
+      "stun": 0.0,
+      "piercing": 0.0,
+      "explosion_damage": 10.0,
+      "explosion_radius": 15.0
+    },
+    "GL Smoke Ammo": {
+      "name": "GL Smoke Ammo",
+      "id": 31,
+      "impact_damage": 0.0,
+      "stun": 0.0,
+      "piercing": 0.0,
+      "explosion_damage": 0.0,
+      "explosion_radius": 0.0
+    },
+    "ag_missile": {
+      "name": "ag_missile",
+      "id": 24,
+      "impact_damage": 0.0,
+      "stun": 0.0,
+      "piercing": 0.0,
+      "explosion_damage": 30.0,
+      "explosion_radius": 40.0
+    },
+    "explosive_stuff": {
+      "name": "explosive_stuff",
+      "id": 25,
+      "impact_damage": 0.0,
+      "stun": 0.0,
+      "piercing": 0.0,
+      "explosion_damage": 8.0,
+      "explosion_radius": 15.0
+    }
+  },
+  "weapons": [
+    {
+      "weapon_id": "model_18",
+      "display_name": "Model 18",
+      "description": "MODEL 18",
+      "category": "Pistols",
+      "socom_original_id": 1,
+      "encumbrance": 4,
+      "fire_modes": [
+        "semi",
+        "auto"
+      ],
+      "default_fire_mode": "semi",
+      "burst_size": 3,
+      "ballistics": {
+        "fire_rate_rpm": 1000,
+        "damage": 22,
+        "headshot_multiplier": 3.5,
+        "muzzle_velocity_mps": 340.0,
+        "base_spread_deg": 0.429,
+        "moving_spread_deg": 1.029,
+        "full_gait_spread_deg": 1.543,
+        "bloom_per_shot_deg": 1.0,
+        "max_recoil_bloom_deg": 2.6,
+        "bloom_recovery_speed": 17.5,
+        "magazine_capacity": 17,
+        "reserve_ammo": 51,
+        "effective_range_m": 45.0,
+        "max_range_m": 95.0,
+        "is_silenced": false
+      },
+      "reticle": {
+        "shot_kick_px": 20.0,
+        "shot_kick_return": 40.0,
+        "maximum_shot_kick_px": 60.0,
+        "base_gap_px": 5.1,
+        "max_gap_px": 41.6,
+        "response_speed": 26.2
+      },
+      "ammo_spec": {
+        "type": "9x19P",
+        "impact_damage": 1.4,
+        "stun": 1.0,
+        "piercing": 1.0
+      },
+      "recom_assets": {
+        "model_name": "glock18",
+        "icon_texture": "glock18_icon.tif",
+        "reload_sound": "SND_MODEL_18_GLOCK_RELOAD"
+      }
+    },
+    {
+      "weapon_id": "mark_23",
+      "display_name": "Mark 23",
+      "description": "MARK 23",
+      "category": "Pistols",
+      "socom_original_id": 2,
+      "encumbrance": 4,
+      "fire_modes": [
+        "semi"
+      ],
+      "default_fire_mode": "semi",
+      "burst_size": 3,
+      "ballistics": {
+        "fire_rate_rpm": 300,
+        "damage": 48,
+        "headshot_multiplier": 3.5,
+        "muzzle_velocity_mps": 270.0,
+        "base_spread_deg": 0.429,
+        "moving_spread_deg": 1.029,
+        "full_gait_spread_deg": 1.543,
+        "bloom_per_shot_deg": 1.0,
+        "max_recoil_bloom_deg": 2.6,
+        "bloom_recovery_speed": 17.5,
+        "magazine_capacity": 12,
+        "reserve_ammo": 36,
+        "effective_range_m": 50.0,
+        "max_range_m": 125.0,
+        "is_silenced": false
+      },
+      "reticle": {
+        "shot_kick_px": 20.0,
+        "shot_kick_return": 40.0,
+        "maximum_shot_kick_px": 60.0,
+        "base_gap_px": 5.1,
+        "max_gap_px": 41.6,
+        "response_speed": 26.2
+      },
+      "ammo_spec": {
+        "type": "45 ACP",
+        "impact_damage": 3.0,
+        "stun": 2.0,
+        "piercing": 4.0
+      },
+      "recom_assets": {
+        "model_name": "a_mark23",
+        "icon_texture": "mark23_icon.tif",
+        "reload_sound": "SND_MARK_23_RELOAD"
+      }
+    },
+    {
+      "weapon_id": "f57",
+      "display_name": "F57",
+      "description": "F57",
+      "category": "Pistols",
+      "socom_original_id": 4,
+      "encumbrance": 4,
+      "fire_modes": [
+        "semi"
+      ],
+      "default_fire_mode": "semi",
+      "burst_size": 3,
+      "ballistics": {
+        "fire_rate_rpm": 300,
+        "damage": 22,
+        "headshot_multiplier": 3.5,
+        "muzzle_velocity_mps": 650.0,
+        "base_spread_deg": 0.429,
+        "moving_spread_deg": 1.029,
+        "full_gait_spread_deg": 1.543,
+        "bloom_per_shot_deg": 1.0,
+        "max_recoil_bloom_deg": 2.6,
+        "bloom_recovery_speed": 17.5,
+        "magazine_capacity": 20,
+        "reserve_ammo": 60,
+        "effective_range_m": 50.0,
+        "max_range_m": 125.0,
+        "is_silenced": false
+      },
+      "reticle": {
+        "shot_kick_px": 20.0,
+        "shot_kick_return": 40.0,
+        "maximum_shot_kick_px": 60.0,
+        "base_gap_px": 5.1,
+        "max_gap_px": 41.6,
+        "response_speed": 26.2
+      },
+      "ammo_spec": {
+        "type": "5.7 x 28mm",
+        "impact_damage": 1.4,
+        "stun": 1.0,
+        "piercing": 2.0
+      },
+      "recom_assets": {
+        "model_name": "fiveseven",
+        "icon_texture": "fiveSeven_icon.tif",
+        "reload_sound": "SND_FN_FIVE_SEVEN_RELOAD"
+      }
+    },
+    {
+      "weapon_id": "de__50",
+      "display_name": "DE .50",
+      "description": "DE .50",
+      "category": "Pistols",
+      "socom_original_id": 7,
+      "encumbrance": 4,
+      "fire_modes": [
+        "semi"
+      ],
+      "default_fire_mode": "semi",
+      "burst_size": 3,
+      "ballistics": {
+        "fire_rate_rpm": 200,
+        "damage": 102,
+        "headshot_multiplier": 3.5,
+        "muzzle_velocity_mps": 436.0,
+        "base_spread_deg": 0.429,
+        "moving_spread_deg": 1.029,
+        "full_gait_spread_deg": 1.543,
+        "bloom_per_shot_deg": 1.0,
+        "max_recoil_bloom_deg": 2.6,
+        "bloom_recovery_speed": 17.5,
+        "magazine_capacity": 7,
+        "reserve_ammo": 21,
+        "effective_range_m": 60.0,
+        "max_range_m": 175.0,
+        "is_silenced": false
+      },
+      "reticle": {
+        "shot_kick_px": 20.0,
+        "shot_kick_return": 40.0,
+        "maximum_shot_kick_px": 60.0,
+        "base_gap_px": 5.1,
+        "max_gap_px": 41.6,
+        "response_speed": 26.2
+      },
+      "ammo_spec": {
+        "type": "50 AE",
+        "impact_damage": 6.4,
+        "stun": 4.0,
+        "piercing": 5.0
+      },
+      "recom_assets": {
+        "model_name": "desert_eagle",
+        "icon_texture": "desert_eagle_icon.tif",
+        "reload_sound": "SND_DESERT_EAGLE_50_AE_RELOAD"
+      }
+    },
+    {
+      "weapon_id": "m9",
+      "display_name": "M9",
+      "description": "M9",
+      "category": "Pistols",
+      "socom_original_id": 5,
+      "encumbrance": 4,
+      "fire_modes": [
+        "semi"
+      ],
+      "default_fire_mode": "semi",
+      "burst_size": 3,
+      "ballistics": {
+        "fire_rate_rpm": 333,
+        "damage": 22,
+        "headshot_multiplier": 3.5,
+        "muzzle_velocity_mps": 390.0,
+        "base_spread_deg": 0.429,
+        "moving_spread_deg": 1.029,
+        "full_gait_spread_deg": 1.543,
+        "bloom_per_shot_deg": 1.0,
+        "max_recoil_bloom_deg": 2.6,
+        "bloom_recovery_speed": 17.5,
+        "magazine_capacity": 13,
+        "reserve_ammo": 39,
+        "effective_range_m": 45.0,
+        "max_range_m": 95.0,
+        "is_silenced": false
+      },
+      "reticle": {
+        "shot_kick_px": 20.0,
+        "shot_kick_return": 40.0,
+        "maximum_shot_kick_px": 60.0,
+        "base_gap_px": 5.1,
+        "max_gap_px": 41.6,
+        "response_speed": 26.2
+      },
+      "ammo_spec": {
+        "type": "9x19P",
+        "impact_damage": 1.4,
+        "stun": 1.0,
+        "piercing": 1.0
+      },
+      "recom_assets": {
+        "model_name": "baretta_m9",
+        "icon_texture": "gun_baretta_9mm_icon.tif",
+        "reload_sound": "SND_M9_HANDGUN_RELOAD"
+      }
+    },
+    {
+      "weapon_id": "226",
+      "display_name": "226",
+      "description": "226",
+      "category": "Pistols",
+      "socom_original_id": 6,
+      "encumbrance": 4,
+      "fire_modes": [
+        "semi"
+      ],
+      "default_fire_mode": "semi",
+      "burst_size": 3,
+      "ballistics": {
+        "fire_rate_rpm": 333,
+        "damage": 22,
+        "headshot_multiplier": 3.5,
+        "muzzle_velocity_mps": 340.0,
+        "base_spread_deg": 0.429,
+        "moving_spread_deg": 1.029,
+        "full_gait_spread_deg": 1.543,
+        "bloom_per_shot_deg": 1.0,
+        "max_recoil_bloom_deg": 2.6,
+        "bloom_recovery_speed": 17.5,
+        "magazine_capacity": 15,
+        "reserve_ammo": 60,
+        "effective_range_m": 45.0,
+        "max_range_m": 95.0,
+        "is_silenced": false
+      },
+      "reticle": {
+        "shot_kick_px": 20.0,
+        "shot_kick_return": 40.0,
+        "maximum_shot_kick_px": 60.0,
+        "base_gap_px": 5.1,
+        "max_gap_px": 41.6,
+        "response_speed": 26.2
+      },
+      "ammo_spec": {
+        "type": "9x19P",
+        "impact_damage": 1.4,
+        "stun": 1.0,
+        "piercing": 1.0
+      },
+      "recom_assets": {
+        "model_name": "sig226",
+        "icon_texture": "p226_icon.tif",
+        "reload_sound": "SND_SIG_226_RELOAD"
+      }
+    },
+    {
+      "weapon_id": "mark_23sd",
+      "display_name": "Mark 23SD",
+      "description": "MARK 23SD",
+      "category": "Pistols",
+      "socom_original_id": 3,
+      "encumbrance": 4,
+      "fire_modes": [
+        "semi"
+      ],
+      "default_fire_mode": "semi",
+      "burst_size": 3,
+      "ballistics": {
+        "fire_rate_rpm": 300,
+        "damage": 48,
+        "headshot_multiplier": 3.5,
+        "muzzle_velocity_mps": 270.0,
+        "base_spread_deg": 0.429,
+        "moving_spread_deg": 1.029,
+        "full_gait_spread_deg": 1.543,
+        "bloom_per_shot_deg": 1.0,
+        "max_recoil_bloom_deg": 2.6,
+        "bloom_recovery_speed": 17.5,
+        "magazine_capacity": 12,
+        "reserve_ammo": 36,
+        "effective_range_m": 45.0,
+        "max_range_m": 110.0,
+        "is_silenced": true
+      },
+      "reticle": {
+        "shot_kick_px": 20.0,
+        "shot_kick_return": 40.0,
+        "maximum_shot_kick_px": 60.0,
+        "base_gap_px": 5.1,
+        "max_gap_px": 41.6,
+        "response_speed": 26.2
+      },
+      "ammo_spec": {
+        "type": "45 ACP",
+        "impact_damage": 3.0,
+        "stun": 2.0,
+        "piercing": 4.0
+      },
+      "recom_assets": {
+        "model_name": "a_mark23sd",
+        "icon_texture": "mark23sd_icon.tif",
+        "reload_sound": "SND_MARK_23_SILENCER_RELOAD"
+      }
+    },
+    {
+      "weapon_id": "9mm_pistol",
+      "display_name": "9mm Pistol",
+      "description": "9MM PISTOL",
+      "category": "Pistols",
+      "socom_original_id": 8,
+      "encumbrance": 4,
+      "fire_modes": [
+        "semi"
+      ],
+      "default_fire_mode": "semi",
+      "burst_size": 3,
+      "ballistics": {
+        "fire_rate_rpm": 333,
+        "damage": 19,
+        "headshot_multiplier": 3.5,
+        "muzzle_velocity_mps": 351.0,
+        "base_spread_deg": 0.429,
+        "moving_spread_deg": 1.029,
+        "full_gait_spread_deg": 1.543,
+        "bloom_per_shot_deg": 1.0,
+        "max_recoil_bloom_deg": 2.6,
+        "bloom_recovery_speed": 17.5,
+        "magazine_capacity": 9,
+        "reserve_ammo": 45,
+        "effective_range_m": 40.0,
+        "max_range_m": 85.0,
+        "is_silenced": false
+      },
+      "reticle": {
+        "shot_kick_px": 20.0,
+        "shot_kick_return": 40.0,
+        "maximum_shot_kick_px": 60.0,
+        "base_gap_px": 5.1,
+        "max_gap_px": 41.6,
+        "response_speed": 26.2
+      },
+      "ammo_spec": {
+        "type": "9x19P SD",
+        "impact_damage": 1.2,
+        "stun": 1.0,
+        "piercing": 1.0
+      },
+      "recom_assets": {
+        "model_name": "hkp9s",
+        "icon_texture": "hkp9s_icon.tif",
+        "reload_sound": "SND_H_K_P9S_SILENCER_RELOAD"
+      }
+    },
+    {
+      "weapon_id": "designator",
+      "display_name": "Designator",
+      "description": "DESIGNATOR",
+      "category": "Pistols",
+      "socom_original_id": 11,
+      "encumbrance": 4,
+      "fire_modes": [
+        "semi"
+      ],
+      "default_fire_mode": "semi",
+      "burst_size": 3,
+      "ballistics": {
+        "fire_rate_rpm": 600,
+        "damage": 32,
+        "headshot_multiplier": 3.5,
+        "muzzle_velocity_mps": 0.0,
+        "base_spread_deg": 0.429,
+        "moving_spread_deg": 1.029,
+        "full_gait_spread_deg": 1.543,
+        "bloom_per_shot_deg": 1.0,
+        "max_recoil_bloom_deg": 2.6,
+        "bloom_recovery_speed": 17.5,
+        "magazine_capacity": 10,
+        "reserve_ammo": 10,
+        "effective_range_m": 600.0,
+        "max_range_m": 1200.0,
+        "is_silenced": false
+      },
+      "reticle": {
+        "shot_kick_px": 20.0,
+        "shot_kick_return": 40.0,
+        "maximum_shot_kick_px": 60.0,
+        "base_gap_px": 5.1,
+        "max_gap_px": 41.6,
+        "response_speed": 26.2
+      },
+      "ammo_spec": {
+        "type": "",
+        "impact_damage": 2.0,
+        "stun": 1.0,
+        "piercing": 1.0
+      },
+      "recom_assets": {
+        "model_name": "laser_designator",
+        "icon_texture": "laser_designator_icon.tif",
+        "reload_sound": "SND_M4_A1_RELOAD"
+      }
+    },
+    {
+      "weapon_id": "mk_3-a2",
+      "display_name": "MK 3-A2",
+      "description": "MK 3-A2",
+      "category": "Shotguns",
+      "socom_original_id": 83,
+      "encumbrance": 1,
+      "fire_modes": [
+        "semi",
+        "auto"
+      ],
+      "default_fire_mode": "semi",
+      "burst_size": 3,
+      "ballistics": {
+        "fire_rate_rpm": 600,
+        "damage": 22,
+        "headshot_multiplier": 3.5,
+        "muzzle_velocity_mps": 393.0,
+        "base_spread_deg": 0.429,
+        "moving_spread_deg": 1.029,
+        "full_gait_spread_deg": 1.543,
+        "bloom_per_shot_deg": 1.0,
+        "max_recoil_bloom_deg": 2.6,
+        "bloom_recovery_speed": 17.5,
+        "magazine_capacity": 12,
+        "reserve_ammo": 36,
+        "effective_range_m": 10.0,
+        "max_range_m": 300.0,
+        "is_silenced": false
+      },
+      "reticle": {
+        "shot_kick_px": 20.0,
+        "shot_kick_return": 40.0,
+        "maximum_shot_kick_px": 60.0,
+        "base_gap_px": 5.1,
+        "max_gap_px": 41.6,
+        "response_speed": 26.2
+      },
+      "ammo_spec": {
+        "type": "9x19P",
+        "impact_damage": 1.4,
+        "stun": 1.0,
+        "piercing": 1.0
+      },
+      "recom_assets": {
+        "model_name": "jackhammer",
+        "icon_texture": "jackhammer_icon.tif",
+        "reload_sound": "SND_M4_A1_RELOAD"
+      }
+    },
+    {
+      "weapon_id": "870",
+      "display_name": "870",
+      "description": "870",
+      "category": "Shotguns",
+      "socom_original_id": 84,
+      "encumbrance": 1,
+      "fire_modes": [
+        "semi"
+      ],
+      "default_fire_mode": "semi",
+      "burst_size": 3,
+      "ballistics": {
+        "fire_rate_rpm": 120,
+        "damage": 25,
+        "headshot_multiplier": 3.5,
+        "muzzle_velocity_mps": 393.0,
+        "base_spread_deg": 0.429,
+        "moving_spread_deg": 1.029,
+        "full_gait_spread_deg": 1.543,
+        "bloom_per_shot_deg": 1.0,
+        "max_recoil_bloom_deg": 2.6,
+        "bloom_recovery_speed": 17.5,
+        "magazine_capacity": 12,
+        "reserve_ammo": 36,
+        "effective_range_m": 400.0,
+        "max_range_m": 350.0,
+        "is_silenced": false
+      },
+      "reticle": {
+        "shot_kick_px": 20.0,
+        "shot_kick_return": 40.0,
+        "maximum_shot_kick_px": 60.0,
+        "base_gap_px": 5.1,
+        "max_gap_px": 41.6,
+        "response_speed": 26.2
+      },
+      "ammo_spec": {
+        "type": "12 Gauge",
+        "impact_damage": 0.0,
+        "stun": 4.0,
+        "piercing": 0.0
+      },
+      "recom_assets": {
+        "model_name": "remington870",
+        "icon_texture": "remington870_icon.tif",
+        "reload_sound": "SND_M4_A1_RELOAD"
+      }
+    },
+    {
+      "weapon_id": "m16a2",
+      "display_name": "M16A2",
+      "description": "M16A2",
+      "category": "Assault Rifles",
+      "socom_original_id": 51,
+      "encumbrance": 1,
+      "fire_modes": [
+        "semi",
+        "burst"
+      ],
+      "default_fire_mode": "semi",
+      "burst_size": 3,
+      "ballistics": {
+        "fire_rate_rpm": 600,
+        "damage": 37,
+        "headshot_multiplier": 3.5,
+        "muzzle_velocity_mps": 948.0,
+        "base_spread_deg": 0.429,
+        "moving_spread_deg": 1.029,
+        "full_gait_spread_deg": 1.543,
+        "bloom_per_shot_deg": 1.0,
+        "max_recoil_bloom_deg": 2.6,
+        "bloom_recovery_speed": 17.5,
+        "magazine_capacity": 30,
+        "reserve_ammo": 90,
+        "effective_range_m": 600.0,
+        "max_range_m": 1200.0,
+        "is_silenced": false
+      },
+      "reticle": {
+        "shot_kick_px": 20.0,
+        "shot_kick_return": 40.0,
+        "maximum_shot_kick_px": 60.0,
+        "base_gap_px": 5.1,
+        "max_gap_px": 41.6,
+        "response_speed": 26.2
+      },
+      "ammo_spec": {
+        "type": "5.56 x 45mm",
+        "impact_damage": 2.3,
+        "stun": 3.0,
+        "piercing": 3.0
+      },
+      "recom_assets": {
+        "model_name": "m16a2",
+        "icon_texture": "m16_icon.tif",
+        "reload_sound": "SND_M16A2_RELOAD"
+      }
+    },
+    {
+      "weapon_id": "m16a2-m203",
+      "display_name": "M16A2-M203",
+      "description": "M16A2-M203",
+      "category": "Assault Rifles",
+      "socom_original_id": 52,
+      "encumbrance": 2,
+      "fire_modes": [
+        "semi",
+        "burst"
+      ],
+      "default_fire_mode": "semi",
+      "burst_size": 3,
+      "ballistics": {
+        "fire_rate_rpm": 600,
+        "damage": 37,
+        "headshot_multiplier": 3.5,
+        "muzzle_velocity_mps": 991.0,
+        "base_spread_deg": 0.429,
+        "moving_spread_deg": 1.029,
+        "full_gait_spread_deg": 1.543,
+        "bloom_per_shot_deg": 1.0,
+        "max_recoil_bloom_deg": 2.6,
+        "bloom_recovery_speed": 17.5,
+        "magazine_capacity": 30,
+        "reserve_ammo": 90,
+        "effective_range_m": 600.0,
+        "max_range_m": 1200.0,
+        "is_silenced": false
+      },
+      "reticle": {
+        "shot_kick_px": 20.0,
+        "shot_kick_return": 40.0,
+        "maximum_shot_kick_px": 60.0,
+        "base_gap_px": 5.1,
+        "max_gap_px": 41.6,
+        "response_speed": 26.2
+      },
+      "ammo_spec": {
+        "type": "5.56 x 45mm",
+        "impact_damage": 2.3,
+        "stun": 3.0,
+        "piercing": 3.0
+      },
+      "recom_assets": {
+        "model_name": "m16_M203",
+        "icon_texture": "m16a203_icon.tif",
+        "reload_sound": "SND_M16A2_RELOAD"
+      }
+    },
+    {
+      "weapon_id": "m4a1",
+      "display_name": "M4A1",
+      "description": "M4A1",
+      "category": "Assault Rifles",
+      "socom_original_id": 54,
+      "encumbrance": 1,
+      "fire_modes": [
+        "semi",
+        "auto"
+      ],
+      "default_fire_mode": "semi",
+      "burst_size": 3,
+      "ballistics": {
+        "fire_rate_rpm": 429,
+        "damage": 37,
+        "headshot_multiplier": 3.5,
+        "muzzle_velocity_mps": 921.0,
+        "base_spread_deg": 0.429,
+        "moving_spread_deg": 1.029,
+        "full_gait_spread_deg": 1.543,
+        "bloom_per_shot_deg": 1.0,
+        "max_recoil_bloom_deg": 2.6,
+        "bloom_recovery_speed": 17.5,
+        "magazine_capacity": 30,
+        "reserve_ammo": 90,
+        "effective_range_m": 600.0,
+        "max_range_m": 1000.0,
+        "is_silenced": false
+      },
+      "reticle": {
+        "shot_kick_px": 20.0,
+        "shot_kick_return": 40.0,
+        "maximum_shot_kick_px": 60.0,
+        "base_gap_px": 5.1,
+        "max_gap_px": 41.6,
+        "response_speed": 26.2
+      },
+      "ammo_spec": {
+        "type": "5.56 x 45mm",
+        "impact_damage": 2.3,
+        "stun": 3.0,
+        "piercing": 3.0
+      },
+      "recom_assets": {
+        "model_name": "m4Acarbine",
+        "icon_texture": "m4carbine_icon.tif",
+        "reload_sound": "SND_M4_A1_RELOAD"
+      }
+    },
+    {
+      "weapon_id": "m4a1_sd",
+      "display_name": "M4A1 SD",
+      "description": "M4A1 SD",
+      "category": "Assault Rifles",
+      "socom_original_id": 62,
+      "encumbrance": 1,
+      "fire_modes": [
+        "semi",
+        "auto"
+      ],
+      "default_fire_mode": "semi",
+      "burst_size": 3,
+      "ballistics": {
+        "fire_rate_rpm": 375,
+        "damage": 34,
+        "headshot_multiplier": 3.5,
+        "muzzle_velocity_mps": 900.0,
+        "base_spread_deg": 0.429,
+        "moving_spread_deg": 1.029,
+        "full_gait_spread_deg": 1.543,
+        "bloom_per_shot_deg": 1.0,
+        "max_recoil_bloom_deg": 2.6,
+        "bloom_recovery_speed": 17.5,
+        "magazine_capacity": 30,
+        "reserve_ammo": 90,
+        "effective_range_m": 550.0,
+        "max_range_m": 800.0,
+        "is_silenced": true
+      },
+      "reticle": {
+        "shot_kick_px": 20.0,
+        "shot_kick_return": 40.0,
+        "maximum_shot_kick_px": 60.0,
+        "base_gap_px": 5.1,
+        "max_gap_px": 41.6,
+        "response_speed": 26.2
+      },
+      "ammo_spec": {
+        "type": "5.56 x 45mm NATO SD",
+        "impact_damage": 2.15,
+        "stun": 3.0,
+        "piercing": 2.0
+      },
+      "recom_assets": {
+        "model_name": "m4Acarbine_sd",
+        "icon_texture": "m4carbine_icon.tif",
+        "reload_sound": "SND_M4_A1_RELOAD"
+      }
+    },
+    {
+      "weapon_id": "m4a1-m203",
+      "display_name": "M4A1-M203",
+      "description": "M4A1-M203",
+      "category": "Assault Rifles",
+      "socom_original_id": 61,
+      "encumbrance": 2,
+      "fire_modes": [
+        "semi",
+        "auto"
+      ],
+      "default_fire_mode": "semi",
+      "burst_size": 3,
+      "ballistics": {
+        "fire_rate_rpm": 429,
+        "damage": 37,
+        "headshot_multiplier": 3.5,
+        "muzzle_velocity_mps": 921.0,
+        "base_spread_deg": 0.429,
+        "moving_spread_deg": 1.029,
+        "full_gait_spread_deg": 1.543,
+        "bloom_per_shot_deg": 1.0,
+        "max_recoil_bloom_deg": 2.6,
+        "bloom_recovery_speed": 17.5,
+        "magazine_capacity": 30,
+        "reserve_ammo": 90,
+        "effective_range_m": 600.0,
+        "max_range_m": 1000.0,
+        "is_silenced": false
+      },
+      "reticle": {
+        "shot_kick_px": 20.0,
+        "shot_kick_return": 40.0,
+        "maximum_shot_kick_px": 60.0,
+        "base_gap_px": 5.1,
+        "max_gap_px": 41.6,
+        "response_speed": 26.2
+      },
+      "ammo_spec": {
+        "type": "5.56 x 45mm",
+        "impact_damage": 2.3,
+        "stun": 3.0,
+        "piercing": 3.0
+      },
+      "recom_assets": {
+        "model_name": "m4Acarbine_203",
+        "icon_texture": "m4carbine203_icon.tif",
+        "reload_sound": "SND_M4_A1_RELOAD"
+      }
+    },
+    {
+      "weapon_id": "552",
+      "display_name": "552",
+      "description": "552",
+      "category": "Assault Rifles",
+      "socom_original_id": 57,
+      "encumbrance": 1,
+      "fire_modes": [
+        "semi",
+        "auto"
+      ],
+      "default_fire_mode": "semi",
+      "burst_size": 3,
+      "ballistics": {
+        "fire_rate_rpm": 400,
+        "damage": 37,
+        "headshot_multiplier": 3.5,
+        "muzzle_velocity_mps": 725.0,
+        "base_spread_deg": 0.429,
+        "moving_spread_deg": 1.029,
+        "full_gait_spread_deg": 1.543,
+        "bloom_per_shot_deg": 1.0,
+        "max_recoil_bloom_deg": 2.6,
+        "bloom_recovery_speed": 17.5,
+        "magazine_capacity": 30,
+        "reserve_ammo": 90,
+        "effective_range_m": 600.0,
+        "max_range_m": 1000.0,
+        "is_silenced": false
+      },
+      "reticle": {
+        "shot_kick_px": 20.0,
+        "shot_kick_return": 40.0,
+        "maximum_shot_kick_px": 60.0,
+        "base_gap_px": 5.1,
+        "max_gap_px": 41.6,
+        "response_speed": 26.2
+      },
+      "ammo_spec": {
+        "type": "5.56 x 45mm",
+        "impact_damage": 2.3,
+        "stun": 3.0,
+        "piercing": 3.0
+      },
+      "recom_assets": {
+        "model_name": "sig_commando",
+        "icon_texture": "sigcommando_icon.tif",
+        "reload_sound": "SND_SIG_552_COMMANDO_RELOAD"
+      }
+    },
+    {
+      "weapon_id": "ak-47",
+      "display_name": "AK-47",
+      "description": "AK-47",
+      "category": "Assault Rifles",
+      "socom_original_id": 58,
+      "encumbrance": 1,
+      "fire_modes": [
+        "semi",
+        "auto"
+      ],
+      "default_fire_mode": "semi",
+      "burst_size": 3,
+      "ballistics": {
+        "fire_rate_rpm": 375,
+        "damage": 37,
+        "headshot_multiplier": 3.5,
+        "muzzle_velocity_mps": 710.0,
+        "base_spread_deg": 0.429,
+        "moving_spread_deg": 1.029,
+        "full_gait_spread_deg": 1.543,
+        "bloom_per_shot_deg": 1.0,
+        "max_recoil_bloom_deg": 2.6,
+        "bloom_recovery_speed": 17.5,
+        "magazine_capacity": 30,
+        "reserve_ammo": 90,
+        "effective_range_m": 600.0,
+        "max_range_m": 1000.0,
+        "is_silenced": false
+      },
+      "reticle": {
+        "shot_kick_px": 20.0,
+        "shot_kick_return": 40.0,
+        "maximum_shot_kick_px": 60.0,
+        "base_gap_px": 5.1,
+        "max_gap_px": 41.6,
+        "response_speed": 26.2
+      },
+      "ammo_spec": {
+        "type": "7.62 x 39mm M1943",
+        "impact_damage": 2.3,
+        "stun": 4.0,
+        "piercing": 6.0
+      },
+      "recom_assets": {
+        "model_name": "ak47",
+        "icon_texture": "ak_47_icon.tif",
+        "reload_sound": "SND_AK47_RELOAD"
+      }
+    },
+    {
+      "weapon_id": "aks-74",
+      "display_name": "AKS-74",
+      "description": "AKS-74",
+      "category": "Assault Rifles",
+      "socom_original_id": 59,
+      "encumbrance": 1,
+      "fire_modes": [
+        "semi",
+        "auto"
+      ],
+      "default_fire_mode": "semi",
+      "burst_size": 3,
+      "ballistics": {
+        "fire_rate_rpm": 462,
+        "damage": 54,
+        "headshot_multiplier": 3.5,
+        "muzzle_velocity_mps": 900.0,
+        "base_spread_deg": 0.429,
+        "moving_spread_deg": 1.029,
+        "full_gait_spread_deg": 1.543,
+        "bloom_per_shot_deg": 1.0,
+        "max_recoil_bloom_deg": 2.6,
+        "bloom_recovery_speed": 17.5,
+        "magazine_capacity": 30,
+        "reserve_ammo": 90,
+        "effective_range_m": 600.0,
+        "max_range_m": 1000.0,
+        "is_silenced": false
+      },
+      "reticle": {
+        "shot_kick_px": 20.0,
+        "shot_kick_return": 40.0,
+        "maximum_shot_kick_px": 60.0,
+        "base_gap_px": 5.1,
+        "max_gap_px": 41.6,
+        "response_speed": 26.2
+      },
+      "ammo_spec": {
+        "type": "5.45 x 39mm Soviet",
+        "impact_damage": 3.4,
+        "stun": 3.0,
+        "piercing": 4.0
+      },
+      "recom_assets": {
+        "model_name": "aks74",
+        "icon_texture": "aks74_icon.tif",
+        "reload_sound": "SND_AKS_74_RELOAD"
+      }
+    },
+    {
+      "weapon_id": "m14",
+      "display_name": "M14",
+      "description": "M14",
+      "category": "Assault Rifles",
+      "socom_original_id": 60,
+      "encumbrance": 1,
+      "fire_modes": [
+        "semi",
+        "auto"
+      ],
+      "default_fire_mode": "semi",
+      "burst_size": 3,
+      "ballistics": {
+        "fire_rate_rpm": 500,
+        "damage": 37,
+        "headshot_multiplier": 3.5,
+        "muzzle_velocity_mps": 858.0,
+        "base_spread_deg": 0.429,
+        "moving_spread_deg": 1.029,
+        "full_gait_spread_deg": 1.543,
+        "bloom_per_shot_deg": 1.0,
+        "max_recoil_bloom_deg": 2.6,
+        "bloom_recovery_speed": 17.5,
+        "magazine_capacity": 20,
+        "reserve_ammo": 60,
+        "effective_range_m": 600.0,
+        "max_range_m": 1200.0,
+        "is_silenced": false
+      },
+      "reticle": {
+        "shot_kick_px": 20.0,
+        "shot_kick_return": 40.0,
+        "maximum_shot_kick_px": 60.0,
+        "base_gap_px": 5.1,
+        "max_gap_px": 41.6,
+        "response_speed": 26.2
+      },
+      "ammo_spec": {
+        "type": "7.62 x 51mm",
+        "impact_damage": 2.3,
+        "stun": 4.0,
+        "piercing": 8.0
+      },
+      "recom_assets": {
+        "model_name": "m14_gun",
+        "icon_texture": "m14_icon.tif",
+        "reload_sound": "SND_M14_RELOAD"
+      }
+    },
+    {
+      "weapon_id": "m60e3",
+      "display_name": "M60E3",
+      "description": "M60E3",
+      "category": "Machine Guns",
+      "socom_original_id": 91,
+      "encumbrance": 3,
+      "fire_modes": [
+        "auto"
+      ],
+      "default_fire_mode": "auto",
+      "burst_size": 3,
+      "ballistics": {
+        "fire_rate_rpm": 429,
+        "damage": 37,
+        "headshot_multiplier": 3.5,
+        "muzzle_velocity_mps": 853.0,
+        "base_spread_deg": 0.429,
+        "moving_spread_deg": 1.029,
+        "full_gait_spread_deg": 1.543,
+        "bloom_per_shot_deg": 1.0,
+        "max_recoil_bloom_deg": 2.6,
+        "bloom_recovery_speed": 17.5,
+        "magazine_capacity": 100,
+        "reserve_ammo": 200,
+        "effective_range_m": 400.0,
+        "max_range_m": 800.0,
+        "is_silenced": false
+      },
+      "reticle": {
+        "shot_kick_px": 20.0,
+        "shot_kick_return": 40.0,
+        "maximum_shot_kick_px": 60.0,
+        "base_gap_px": 5.1,
+        "max_gap_px": 41.6,
+        "response_speed": 26.2
+      },
+      "ammo_spec": {
+        "type": "7.62 x 51mm",
+        "impact_damage": 2.3,
+        "stun": 4.0,
+        "piercing": 8.0
+      },
+      "recom_assets": {
+        "model_name": "m60e",
+        "icon_texture": "m60e.tif",
+        "reload_sound": "SND_M60_E3_RELOAD"
+      }
+    },
+    {
+      "weapon_id": "m63a",
+      "display_name": "M63A",
+      "description": "M63A",
+      "category": "Machine Guns",
+      "socom_original_id": 92,
+      "encumbrance": 3,
+      "fire_modes": [
+        "auto"
+      ],
+      "default_fire_mode": "auto",
+      "burst_size": 3,
+      "ballistics": {
+        "fire_rate_rpm": 500,
+        "damage": 37,
+        "headshot_multiplier": 3.5,
+        "muzzle_velocity_mps": 990.0,
+        "base_spread_deg": 0.429,
+        "moving_spread_deg": 1.029,
+        "full_gait_spread_deg": 1.543,
+        "bloom_per_shot_deg": 1.0,
+        "max_recoil_bloom_deg": 2.6,
+        "bloom_recovery_speed": 17.5,
+        "magazine_capacity": 75,
+        "reserve_ammo": 150,
+        "effective_range_m": 400.0,
+        "max_range_m": 800.0,
+        "is_silenced": false
+      },
+      "reticle": {
+        "shot_kick_px": 20.0,
+        "shot_kick_return": 40.0,
+        "maximum_shot_kick_px": 60.0,
+        "base_gap_px": 5.1,
+        "max_gap_px": 41.6,
+        "response_speed": 26.2
+      },
+      "ammo_spec": {
+        "type": "5.56 x 45mm",
+        "impact_damage": 2.3,
+        "stun": 3.0,
+        "piercing": 3.0
+      },
+      "recom_assets": {
+        "model_name": "stoner_m63a",
+        "icon_texture": "stoner_icon.tif",
+        "reload_sound": "SND_M63A_STONER_RELOAD"
+      }
+    },
+    {
+      "weapon_id": "mark_46_mod_0",
+      "display_name": "Mark 46 Mod 0",
+      "description": "placeholder",
+      "category": "Machine Guns",
+      "socom_original_id": 93,
+      "encumbrance": 3,
+      "fire_modes": [
+        "semi",
+        "auto"
+      ],
+      "default_fire_mode": "semi",
+      "burst_size": 3,
+      "ballistics": {
+        "fire_rate_rpm": 600,
+        "damage": 37,
+        "headshot_multiplier": 3.5,
+        "muzzle_velocity_mps": 990.0,
+        "base_spread_deg": 0.429,
+        "moving_spread_deg": 1.029,
+        "full_gait_spread_deg": 1.543,
+        "bloom_per_shot_deg": 1.0,
+        "max_recoil_bloom_deg": 2.6,
+        "bloom_recovery_speed": 17.5,
+        "magazine_capacity": 75,
+        "reserve_ammo": 225,
+        "effective_range_m": 1200.0,
+        "max_range_m": 3200.0,
+        "is_silenced": false
+      },
+      "reticle": {
+        "shot_kick_px": 20.0,
+        "shot_kick_return": 40.0,
+        "maximum_shot_kick_px": 60.0,
+        "base_gap_px": 5.1,
+        "max_gap_px": 41.6,
+        "response_speed": 26.2
+      },
+      "ammo_spec": {
+        "type": "5.56 x 45mm",
+        "impact_damage": 2.3,
+        "stun": 3.0,
+        "piercing": 3.0
+      },
+      "recom_assets": {
+        "model_name": "stoner_m63a",
+        "icon_texture": "stoner_icon.tif",
+        "reload_sound": "SND_MARK_43_RELOAD"
+      }
+    },
+    {
+      "weapon_id": "hk5",
+      "display_name": "HK5",
+      "description": "HK5",
+      "category": "Submachine Guns",
+      "socom_original_id": 31,
+      "encumbrance": 1,
+      "fire_modes": [
+        "semi",
+        "auto"
+      ],
+      "default_fire_mode": "semi",
+      "burst_size": 3,
+      "ballistics": {
+        "fire_rate_rpm": 600,
+        "damage": 22,
+        "headshot_multiplier": 3.5,
+        "muzzle_velocity_mps": 375.0,
+        "base_spread_deg": 0.429,
+        "moving_spread_deg": 1.029,
+        "full_gait_spread_deg": 1.543,
+        "bloom_per_shot_deg": 1.0,
+        "max_recoil_bloom_deg": 2.6,
+        "bloom_recovery_speed": 17.5,
+        "magazine_capacity": 30,
+        "reserve_ammo": 120,
+        "effective_range_m": 150.0,
+        "max_range_m": 300.0,
+        "is_silenced": false
+      },
+      "reticle": {
+        "shot_kick_px": 20.0,
+        "shot_kick_return": 40.0,
+        "maximum_shot_kick_px": 60.0,
+        "base_gap_px": 5.1,
+        "max_gap_px": 41.6,
+        "response_speed": 26.2
+      },
+      "ammo_spec": {
+        "type": "9x19P",
+        "impact_damage": 1.4,
+        "stun": 1.0,
+        "piercing": 1.0
+      },
+      "recom_assets": {
+        "model_name": "mp5",
+        "icon_texture": "mp5_icon.tif",
+        "reload_sound": "SND_MP5_RELOAD"
+      }
+    },
+    {
+      "weapon_id": "hk5sd",
+      "display_name": "HK5SD",
+      "description": "HK5SD",
+      "category": "Submachine Guns",
+      "socom_original_id": 33,
+      "encumbrance": 1,
+      "fire_modes": [
+        "semi",
+        "auto"
+      ],
+      "default_fire_mode": "semi",
+      "burst_size": 3,
+      "ballistics": {
+        "fire_rate_rpm": 500,
+        "damage": 19,
+        "headshot_multiplier": 3.5,
+        "muzzle_velocity_mps": 285.0,
+        "base_spread_deg": 0.429,
+        "moving_spread_deg": 1.029,
+        "full_gait_spread_deg": 1.543,
+        "bloom_per_shot_deg": 1.0,
+        "max_recoil_bloom_deg": 2.6,
+        "bloom_recovery_speed": 17.5,
+        "magazine_capacity": 30,
+        "reserve_ammo": 90,
+        "effective_range_m": 110.0,
+        "max_range_m": 250.0,
+        "is_silenced": true
+      },
+      "reticle": {
+        "shot_kick_px": 20.0,
+        "shot_kick_return": 40.0,
+        "maximum_shot_kick_px": 60.0,
+        "base_gap_px": 5.1,
+        "max_gap_px": 41.6,
+        "response_speed": 26.2
+      },
+      "ammo_spec": {
+        "type": "9x19P SD",
+        "impact_damage": 1.2,
+        "stun": 1.0,
+        "piercing": 1.0
+      },
+      "recom_assets": {
+        "model_name": "mp5sd",
+        "icon_texture": "mp5sd_icon.tif",
+        "reload_sound": "SND_MP5_SIL_RELOAD"
+      }
+    },
+    {
+      "weapon_id": "f90",
+      "display_name": "F90",
+      "description": "F90",
+      "category": "Submachine Guns",
+      "socom_original_id": 34,
+      "encumbrance": 1,
+      "fire_modes": [
+        "semi",
+        "auto"
+      ],
+      "default_fire_mode": "semi",
+      "burst_size": 3,
+      "ballistics": {
+        "fire_rate_rpm": 667,
+        "damage": 22,
+        "headshot_multiplier": 3.5,
+        "muzzle_velocity_mps": 375.0,
+        "base_spread_deg": 0.429,
+        "moving_spread_deg": 1.029,
+        "full_gait_spread_deg": 1.543,
+        "bloom_per_shot_deg": 1.0,
+        "max_recoil_bloom_deg": 2.6,
+        "bloom_recovery_speed": 17.5,
+        "magazine_capacity": 50,
+        "reserve_ammo": 150,
+        "effective_range_m": 150.0,
+        "max_range_m": 300.0,
+        "is_silenced": false
+      },
+      "reticle": {
+        "shot_kick_px": 20.0,
+        "shot_kick_return": 40.0,
+        "maximum_shot_kick_px": 60.0,
+        "base_gap_px": 5.1,
+        "max_gap_px": 41.6,
+        "response_speed": 26.2
+      },
+      "ammo_spec": {
+        "type": "5.7 x 28mm",
+        "impact_damage": 1.4,
+        "stun": 1.0,
+        "piercing": 2.0
+      },
+      "recom_assets": {
+        "model_name": "fnp90",
+        "icon_texture": "fnp90_icon.tif",
+        "reload_sound": "SND_MP5_RELOAD"
+      }
+    },
+    {
+      "weapon_id": "9mm_sub",
+      "display_name": "9mm Sub",
+      "description": "9MM SUB",
+      "category": "Submachine Guns",
+      "socom_original_id": 37,
+      "encumbrance": 1,
+      "fire_modes": [
+        "semi",
+        "auto"
+      ],
+      "default_fire_mode": "semi",
+      "burst_size": 3,
+      "ballistics": {
+        "fire_rate_rpm": 800,
+        "damage": 22,
+        "headshot_multiplier": 3.5,
+        "muzzle_velocity_mps": 375.0,
+        "base_spread_deg": 0.429,
+        "moving_spread_deg": 1.029,
+        "full_gait_spread_deg": 1.543,
+        "bloom_per_shot_deg": 1.0,
+        "max_recoil_bloom_deg": 2.6,
+        "bloom_recovery_speed": 17.5,
+        "magazine_capacity": 30,
+        "reserve_ammo": 90,
+        "effective_range_m": 100.0,
+        "max_range_m": 150.0,
+        "is_silenced": false
+      },
+      "reticle": {
+        "shot_kick_px": 20.0,
+        "shot_kick_return": 40.0,
+        "maximum_shot_kick_px": 60.0,
+        "base_gap_px": 5.1,
+        "max_gap_px": 41.6,
+        "response_speed": 26.2
+      },
+      "ammo_spec": {
+        "type": "9x19P",
+        "impact_damage": 1.4,
+        "stun": 1.0,
+        "piercing": 1.0
+      },
+      "recom_assets": {
+        "model_name": "uzi",
+        "icon_texture": "uzi_icon.tif",
+        "reload_sound": "SND_UZI_RELOAD"
+      }
+    },
+    {
+      "weapon_id": "m82a1a",
+      "display_name": "M82A1A",
+      "description": "M82A1A",
+      "category": "Sniper Rifles",
+      "socom_original_id": 101,
+      "encumbrance": 3,
+      "fire_modes": [
+        "semi"
+      ],
+      "default_fire_mode": "semi",
+      "burst_size": 3,
+      "ballistics": {
+        "fire_rate_rpm": 29,
+        "damage": 110,
+        "headshot_multiplier": 3.5,
+        "muzzle_velocity_mps": 843.0,
+        "base_spread_deg": 0.429,
+        "moving_spread_deg": 1.029,
+        "full_gait_spread_deg": 1.543,
+        "bloom_per_shot_deg": 1.0,
+        "max_recoil_bloom_deg": 2.6,
+        "bloom_recovery_speed": 17.5,
+        "magazine_capacity": 10,
+        "reserve_ammo": 30,
+        "effective_range_m": 1800.0,
+        "max_range_m": 2400.0,
+        "is_silenced": false
+      },
+      "reticle": {
+        "shot_kick_px": 20.0,
+        "shot_kick_return": 40.0,
+        "maximum_shot_kick_px": 60.0,
+        "base_gap_px": 5.1,
+        "max_gap_px": 41.6,
+        "response_speed": 26.2
+      },
+      "ammo_spec": {
+        "type": ".50 Cal",
+        "impact_damage": 9.0,
+        "stun": 4.0,
+        "piercing": 7.0
+      },
+      "recom_assets": {
+        "model_name": "barretm82A1",
+        "icon_texture": "barrettm82a.tif",
+        "reload_sound": "SND_BARRETT_LIGHT_50_RELOAD"
+      }
+    },
+    {
+      "weapon_id": "m40a1",
+      "display_name": "M40A1",
+      "description": "M40A1",
+      "category": "Assault Rifles",
+      "socom_original_id": 102,
+      "encumbrance": 1,
+      "fire_modes": [
+        "semi"
+      ],
+      "default_fire_mode": "semi",
+      "burst_size": 3,
+      "ballistics": {
+        "fire_rate_rpm": 120,
+        "damage": 37,
+        "headshot_multiplier": 3.5,
+        "muzzle_velocity_mps": 777.0,
+        "base_spread_deg": 0.429,
+        "moving_spread_deg": 1.029,
+        "full_gait_spread_deg": 1.543,
+        "bloom_per_shot_deg": 1.0,
+        "max_recoil_bloom_deg": 2.6,
+        "bloom_recovery_speed": 17.5,
+        "magazine_capacity": 25,
+        "reserve_ammo": 25,
+        "effective_range_m": 1500.0,
+        "max_range_m": 2000.0,
+        "is_silenced": false
+      },
+      "reticle": {
+        "shot_kick_px": 20.0,
+        "shot_kick_return": 40.0,
+        "maximum_shot_kick_px": 60.0,
+        "base_gap_px": 5.1,
+        "max_gap_px": 41.6,
+        "response_speed": 26.2
+      },
+      "ammo_spec": {
+        "type": "7.62 x 51mm",
+        "impact_damage": 2.3,
+        "stun": 4.0,
+        "piercing": 8.0
+      },
+      "recom_assets": {
+        "model_name": "remington700",
+        "icon_texture": "model700_icon.tif",
+        "reload_sound": "SND_MODEL_700_REMINGTON_RELOAD"
+      }
+    },
+    {
+      "weapon_id": "m87elr",
+      "display_name": "M87ELR",
+      "description": "M87ELR",
+      "category": "Sniper Rifles",
+      "socom_original_id": 103,
+      "encumbrance": 1,
+      "fire_modes": [
+        "semi"
+      ],
+      "default_fire_mode": "semi",
+      "burst_size": 3,
+      "ballistics": {
+        "fire_rate_rpm": 86,
+        "damage": 110,
+        "headshot_multiplier": 3.5,
+        "muzzle_velocity_mps": 853.0,
+        "base_spread_deg": 0.429,
+        "moving_spread_deg": 1.029,
+        "full_gait_spread_deg": 1.543,
+        "bloom_per_shot_deg": 1.0,
+        "max_recoil_bloom_deg": 2.6,
+        "bloom_recovery_speed": 17.5,
+        "magazine_capacity": 10,
+        "reserve_ammo": 30,
+        "effective_range_m": 1800.0,
+        "max_range_m": 2400.0,
+        "is_silenced": false
+      },
+      "reticle": {
+        "shot_kick_px": 20.0,
+        "shot_kick_return": 40.0,
+        "maximum_shot_kick_px": 60.0,
+        "base_gap_px": 5.1,
+        "max_gap_px": 41.6,
+        "response_speed": 26.2
+      },
+      "ammo_spec": {
+        "type": ".50 Cal",
+        "impact_damage": 9.0,
+        "stun": 4.0,
+        "piercing": 7.0
+      },
+      "recom_assets": {
+        "model_name": "mcmillanM87",
+        "icon_texture": "mcmillanM87_icon.tif",
+        "reload_sound": "SND_MODEL_700_REMINGTON_RELOAD"
+      }
+    },
+    {
+      "weapon_id": "sr-25_sd",
+      "display_name": "SR-25 SD",
+      "description": "SR-25 SD",
+      "category": "Sniper Rifles",
+      "socom_original_id": 105,
+      "encumbrance": 1,
+      "fire_modes": [
+        "semi"
+      ],
+      "default_fire_mode": "semi",
+      "burst_size": 3,
+      "ballistics": {
+        "fire_rate_rpm": 400,
+        "damage": 37,
+        "headshot_multiplier": 3.5,
+        "muzzle_velocity_mps": 853.0,
+        "base_spread_deg": 0.429,
+        "moving_spread_deg": 1.029,
+        "full_gait_spread_deg": 1.543,
+        "bloom_per_shot_deg": 1.0,
+        "max_recoil_bloom_deg": 2.6,
+        "bloom_recovery_speed": 17.5,
+        "magazine_capacity": 20,
+        "reserve_ammo": 60,
+        "effective_range_m": 1100.0,
+        "max_range_m": 1500.0,
+        "is_silenced": true
+      },
+      "reticle": {
+        "shot_kick_px": 20.0,
+        "shot_kick_return": 40.0,
+        "maximum_shot_kick_px": 60.0,
+        "base_gap_px": 5.1,
+        "max_gap_px": 41.6,
+        "response_speed": 26.2
+      },
+      "ammo_spec": {
+        "type": "7.62 x 51mm",
+        "impact_damage": 2.3,
+        "stun": 4.0,
+        "piercing": 8.0
+      },
+      "recom_assets": {
+        "model_name": "stoner_sr25",
+        "icon_texture": "stoner_sr25_icon.tif",
+        "reload_sound": "SND_SR25_SILENCED_RELOAD"
+      }
+    },
+    {
+      "weapon_id": "sr-25",
+      "display_name": "SR-25",
+      "description": "SR-25",
+      "category": "Sniper Rifles",
+      "socom_original_id": 106,
+      "encumbrance": 1,
+      "fire_modes": [
+        "semi"
+      ],
+      "default_fire_mode": "semi",
+      "burst_size": 3,
+      "ballistics": {
+        "fire_rate_rpm": 400,
+        "damage": 37,
+        "headshot_multiplier": 3.5,
+        "muzzle_velocity_mps": 853.0,
+        "base_spread_deg": 0.429,
+        "moving_spread_deg": 1.029,
+        "full_gait_spread_deg": 1.543,
+        "bloom_per_shot_deg": 1.0,
+        "max_recoil_bloom_deg": 2.6,
+        "bloom_recovery_speed": 17.5,
+        "magazine_capacity": 20,
+        "reserve_ammo": 60,
+        "effective_range_m": 1200.0,
+        "max_range_m": 1700.0,
+        "is_silenced": false
+      },
+      "reticle": {
+        "shot_kick_px": 20.0,
+        "shot_kick_return": 40.0,
+        "maximum_shot_kick_px": 60.0,
+        "base_gap_px": 5.1,
+        "max_gap_px": 41.6,
+        "response_speed": 26.2
+      },
+      "ammo_spec": {
+        "type": "7.62 x 51mm",
+        "impact_damage": 2.3,
+        "stun": 4.0,
+        "piercing": 8.0
+      },
+      "recom_assets": {
+        "model_name": "stoner_sr25",
+        "icon_texture": "stoner_sr25_icon.tif",
+        "reload_sound": "SND_SR25_RELOAD"
+      }
+    },
+    {
+      "weapon_id": "knife",
+      "display_name": "Knife",
+      "description": "KNIFE",
+      "category": "Tactical Equipment",
+      "socom_original_id": 186,
+      "encumbrance": 4,
+      "fire_modes": [
+        "semi"
+      ],
+      "default_fire_mode": "semi",
+      "burst_size": 3,
+      "ballistics": {
+        "fire_rate_rpm": 600,
+        "damage": 32,
+        "headshot_multiplier": 3.5,
+        "muzzle_velocity_mps": 0.0,
+        "base_spread_deg": 0.429,
+        "moving_spread_deg": 1.029,
+        "full_gait_spread_deg": 1.543,
+        "bloom_per_shot_deg": 1.0,
+        "max_recoil_bloom_deg": 2.6,
+        "bloom_recovery_speed": 17.5,
+        "magazine_capacity": 0,
+        "reserve_ammo": 0,
+        "effective_range_m": 0.0,
+        "max_range_m": 0.0,
+        "is_silenced": false
+      },
+      "reticle": {
+        "shot_kick_px": 20.0,
+        "shot_kick_return": 40.0,
+        "maximum_shot_kick_px": 60.0,
+        "base_gap_px": 5.1,
+        "max_gap_px": 41.6,
+        "response_speed": 26.2
+      },
+      "ammo_spec": {
+        "type": "",
+        "impact_damage": 2.0,
+        "stun": 1.0,
+        "piercing": 1.0
+      },
+      "recom_assets": {
+        "model_name": "placeholder",
+        "icon_texture": "knife_icon.tif",
+        "reload_sound": "SND_M4_A1_RELOAD"
+      }
+    },
+    {
+      "weapon_id": "flashlight",
+      "display_name": "Flashlight",
+      "description": "FLASHLIGHT",
+      "category": "Tactical Equipment",
+      "socom_original_id": 181,
+      "encumbrance": 4,
+      "fire_modes": [
+        "semi"
+      ],
+      "default_fire_mode": "semi",
+      "burst_size": 3,
+      "ballistics": {
+        "fire_rate_rpm": 600,
+        "damage": 32,
+        "headshot_multiplier": 3.5,
+        "muzzle_velocity_mps": 0.0,
+        "base_spread_deg": 0.429,
+        "moving_spread_deg": 1.029,
+        "full_gait_spread_deg": 1.543,
+        "bloom_per_shot_deg": 1.0,
+        "max_recoil_bloom_deg": 2.6,
+        "bloom_recovery_speed": 17.5,
+        "magazine_capacity": 0,
+        "reserve_ammo": 0,
+        "effective_range_m": 0.0,
+        "max_range_m": 0.0,
+        "is_silenced": false
+      },
+      "reticle": {
+        "shot_kick_px": 20.0,
+        "shot_kick_return": 40.0,
+        "maximum_shot_kick_px": 60.0,
+        "base_gap_px": 5.1,
+        "max_gap_px": 41.6,
+        "response_speed": 26.2
+      },
+      "ammo_spec": {
+        "type": "",
+        "impact_damage": 2.0,
+        "stun": 1.0,
+        "piercing": 1.0
+      },
+      "recom_assets": {
+        "model_name": "placeholder",
+        "icon_texture": "flashlight.tif",
+        "reload_sound": "SND_M4_A1_RELOAD"
+      }
+    },
+    {
+      "weapon_id": "detonator",
+      "display_name": "Detonator",
+      "description": "DETONATOR",
+      "category": "Tactical Equipment",
+      "socom_original_id": 187,
+      "encumbrance": 4,
+      "fire_modes": [
+        "semi"
+      ],
+      "default_fire_mode": "semi",
+      "burst_size": 3,
+      "ballistics": {
+        "fire_rate_rpm": 600,
+        "damage": 32,
+        "headshot_multiplier": 3.5,
+        "muzzle_velocity_mps": 0.0,
+        "base_spread_deg": 0.429,
+        "moving_spread_deg": 1.029,
+        "full_gait_spread_deg": 1.543,
+        "bloom_per_shot_deg": 1.0,
+        "max_recoil_bloom_deg": 2.6,
+        "bloom_recovery_speed": 17.5,
+        "magazine_capacity": 0,
+        "reserve_ammo": 0,
+        "effective_range_m": 0.0,
+        "max_range_m": 0.0,
+        "is_silenced": false
+      },
+      "reticle": {
+        "shot_kick_px": 20.0,
+        "shot_kick_return": 40.0,
+        "maximum_shot_kick_px": 60.0,
+        "base_gap_px": 5.1,
+        "max_gap_px": 41.6,
+        "response_speed": 26.2
+      },
+      "ammo_spec": {
+        "type": "",
+        "impact_damage": 2.0,
+        "stun": 1.0,
+        "piercing": 1.0
+      },
+      "recom_assets": {
+        "model_name": "detonator",
+        "icon_texture": "detonator_icon.tif",
+        "reload_sound": "SND_M4_A1_RELOAD"
+      }
+    },
+    {
+      "weapon_id": "binoculars",
+      "display_name": "Binoculars",
+      "description": "BINOCULARS",
+      "category": "Tactical Equipment",
+      "socom_original_id": 182,
+      "encumbrance": 4,
+      "fire_modes": [
+        "semi"
+      ],
+      "default_fire_mode": "semi",
+      "burst_size": 3,
+      "ballistics": {
+        "fire_rate_rpm": 600,
+        "damage": 32,
+        "headshot_multiplier": 3.5,
+        "muzzle_velocity_mps": 0.0,
+        "base_spread_deg": 0.429,
+        "moving_spread_deg": 1.029,
+        "full_gait_spread_deg": 1.543,
+        "bloom_per_shot_deg": 1.0,
+        "max_recoil_bloom_deg": 2.6,
+        "bloom_recovery_speed": 17.5,
+        "magazine_capacity": 0,
+        "reserve_ammo": 0,
+        "effective_range_m": 0.0,
+        "max_range_m": 0.0,
+        "is_silenced": false
+      },
+      "reticle": {
+        "shot_kick_px": 20.0,
+        "shot_kick_return": 40.0,
+        "maximum_shot_kick_px": 60.0,
+        "base_gap_px": 5.1,
+        "max_gap_px": 41.6,
+        "response_speed": 26.2
+      },
+      "ammo_spec": {
+        "type": "",
+        "impact_damage": 2.0,
+        "stun": 1.0,
+        "piercing": 1.0
+      },
+      "recom_assets": {
+        "model_name": "placeholder",
+        "icon_texture": "binoculars01.tif",
+        "reload_sound": "SND_M4_A1_RELOAD"
+      }
+    },
+    {
+      "weapon_id": "restraints",
+      "display_name": "Restraints",
+      "description": "RESTRAINTS",
+      "category": "Tactical Equipment",
+      "socom_original_id": 183,
+      "encumbrance": 4,
+      "fire_modes": [
+        "semi"
+      ],
+      "default_fire_mode": "semi",
+      "burst_size": 3,
+      "ballistics": {
+        "fire_rate_rpm": 600,
+        "damage": 32,
+        "headshot_multiplier": 3.5,
+        "muzzle_velocity_mps": 0.0,
+        "base_spread_deg": 0.429,
+        "moving_spread_deg": 1.029,
+        "full_gait_spread_deg": 1.543,
+        "bloom_per_shot_deg": 1.0,
+        "max_recoil_bloom_deg": 2.6,
+        "bloom_recovery_speed": 17.5,
+        "magazine_capacity": 0,
+        "reserve_ammo": 0,
+        "effective_range_m": 0.0,
+        "max_range_m": 0.0,
+        "is_silenced": false
+      },
+      "reticle": {
+        "shot_kick_px": 20.0,
+        "shot_kick_return": 40.0,
+        "maximum_shot_kick_px": 60.0,
+        "base_gap_px": 5.1,
+        "max_gap_px": 41.6,
+        "response_speed": 26.2
+      },
+      "ammo_spec": {
+        "type": "",
+        "impact_damage": 2.0,
+        "stun": 1.0,
+        "piercing": 1.0
+      },
+      "recom_assets": {
+        "model_name": "placeholder",
+        "icon_texture": "restraints_icon.tif",
+        "reload_sound": "SND_M4_A1_RELOAD"
+      }
+    },
+    {
+      "weapon_id": "m67",
+      "display_name": "M67",
+      "description": "FRAG",
+      "category": "Grenades & Explosives",
+      "socom_original_id": 121,
+      "encumbrance": 4,
+      "fire_modes": [
+        "semi"
+      ],
+      "default_fire_mode": "semi",
+      "burst_size": 3,
+      "ballistics": {
+        "fire_rate_rpm": 600,
+        "damage": 25,
+        "headshot_multiplier": 3.5,
+        "muzzle_velocity_mps": 0.1,
+        "base_spread_deg": 0.429,
+        "moving_spread_deg": 1.029,
+        "full_gait_spread_deg": 1.543,
+        "bloom_per_shot_deg": 1.0,
+        "max_recoil_bloom_deg": 2.6,
+        "bloom_recovery_speed": 17.5,
+        "magazine_capacity": 6,
+        "reserve_ammo": 6,
+        "effective_range_m": 40.0,
+        "max_range_m": 10000.0,
+        "is_silenced": false
+      },
+      "reticle": {
+        "shot_kick_px": 20.0,
+        "shot_kick_return": 40.0,
+        "maximum_shot_kick_px": 60.0,
+        "base_gap_px": 5.1,
+        "max_gap_px": 41.6,
+        "response_speed": 26.2
+      },
+      "ammo_spec": {
+        "type": "M67 Ammo",
+        "impact_damage": 0.0,
+        "stun": 0.0,
+        "piercing": 0.0
+      },
+      "recom_assets": {
+        "model_name": "grenade",
+        "icon_texture": "grenade_frag_icon.tif",
+        "reload_sound": "SND_M4_A1_RELOAD"
+      }
+    },
+    {
+      "weapon_id": "he",
+      "display_name": "HE",
+      "description": "HE GRENADE",
+      "category": "Grenades & Explosives",
+      "socom_original_id": 126,
+      "encumbrance": 4,
+      "fire_modes": [
+        "semi"
+      ],
+      "default_fire_mode": "semi",
+      "burst_size": 3,
+      "ballistics": {
+        "fire_rate_rpm": 600,
+        "damage": 25,
+        "headshot_multiplier": 3.5,
+        "muzzle_velocity_mps": 0.1,
+        "base_spread_deg": 0.429,
+        "moving_spread_deg": 1.029,
+        "full_gait_spread_deg": 1.543,
+        "bloom_per_shot_deg": 1.0,
+        "max_recoil_bloom_deg": 2.6,
+        "bloom_recovery_speed": 17.5,
+        "magazine_capacity": 6,
+        "reserve_ammo": 6,
+        "effective_range_m": 40.0,
+        "max_range_m": 10000.0,
+        "is_silenced": false
+      },
+      "reticle": {
+        "shot_kick_px": 20.0,
+        "shot_kick_return": 40.0,
+        "maximum_shot_kick_px": 60.0,
+        "base_gap_px": 5.1,
+        "max_gap_px": 41.6,
+        "response_speed": 26.2
+      },
+      "ammo_spec": {
+        "type": "HE Grenade Ammo",
+        "impact_damage": 0.0,
+        "stun": 0.0,
+        "piercing": 0.0
+      },
+      "recom_assets": {
+        "model_name": "HEgrenade",
+        "icon_texture": "grenade_he_icon.tif",
+        "reload_sound": "SND_M4_A1_RELOAD"
+      }
+    },
+    {
+      "weapon_id": "an-m8",
+      "display_name": "AN-M8",
+      "description": "SMOKE",
+      "category": "Grenades & Explosives",
+      "socom_original_id": 122,
+      "encumbrance": 4,
+      "fire_modes": [
+        "semi"
+      ],
+      "default_fire_mode": "semi",
+      "burst_size": 3,
+      "ballistics": {
+        "fire_rate_rpm": 600,
+        "damage": 25,
+        "headshot_multiplier": 3.5,
+        "muzzle_velocity_mps": 0.1,
+        "base_spread_deg": 0.429,
+        "moving_spread_deg": 1.029,
+        "full_gait_spread_deg": 1.543,
+        "bloom_per_shot_deg": 1.0,
+        "max_recoil_bloom_deg": 2.6,
+        "bloom_recovery_speed": 17.5,
+        "magazine_capacity": 3,
+        "reserve_ammo": 3,
+        "effective_range_m": 30.0,
+        "max_range_m": 10000.0,
+        "is_silenced": false
+      },
+      "reticle": {
+        "shot_kick_px": 20.0,
+        "shot_kick_return": 40.0,
+        "maximum_shot_kick_px": 60.0,
+        "base_gap_px": 5.1,
+        "max_gap_px": 41.6,
+        "response_speed": 26.2
+      },
+      "ammo_spec": {
+        "type": "AN-M8 Ammo",
+        "impact_damage": 0.5,
+        "stun": 0.0,
+        "piercing": 0.0
+      },
+      "recom_assets": {
+        "model_name": "a_smoke_grenade",
+        "icon_texture": "grenade_smoke_icon.tif",
+        "reload_sound": "SND_M4_A1_RELOAD"
+      }
+    },
+    {
+      "weapon_id": "mark141",
+      "display_name": "Mark141",
+      "description": "FLASHBANG",
+      "category": "Grenades & Explosives",
+      "socom_original_id": 123,
+      "encumbrance": 4,
+      "fire_modes": [
+        "semi"
+      ],
+      "default_fire_mode": "semi",
+      "burst_size": 3,
+      "ballistics": {
+        "fire_rate_rpm": 600,
+        "damage": 25,
+        "headshot_multiplier": 3.5,
+        "muzzle_velocity_mps": 0.1,
+        "base_spread_deg": 0.429,
+        "moving_spread_deg": 1.029,
+        "full_gait_spread_deg": 1.543,
+        "bloom_per_shot_deg": 1.0,
+        "max_recoil_bloom_deg": 2.6,
+        "bloom_recovery_speed": 17.5,
+        "magazine_capacity": 6,
+        "reserve_ammo": 6,
+        "effective_range_m": 30.0,
+        "max_range_m": 10000.0,
+        "is_silenced": false
+      },
+      "reticle": {
+        "shot_kick_px": 20.0,
+        "shot_kick_return": 40.0,
+        "maximum_shot_kick_px": 60.0,
+        "base_gap_px": 5.1,
+        "max_gap_px": 41.6,
+        "response_speed": 26.2
+      },
+      "ammo_spec": {
+        "type": "Mark141 Ammo",
+        "impact_damage": 0.0,
+        "stun": 0.0,
+        "piercing": 0.0
+      },
+      "recom_assets": {
+        "model_name": "flashbang",
+        "icon_texture": "grenade_flashbang_icon.tif",
+        "reload_sound": "SND_M4_A1_RELOAD"
+      }
+    },
+    {
+      "weapon_id": "satchel",
+      "display_name": "Satchel",
+      "description": "SATCHEL",
+      "category": "Grenades & Explosives",
+      "socom_original_id": 152,
+      "encumbrance": 1,
+      "fire_modes": [
+        "semi",
+        "auto"
+      ],
+      "default_fire_mode": "semi",
+      "burst_size": 3,
+      "ballistics": {
+        "fire_rate_rpm": 600,
+        "damage": 25,
+        "headshot_multiplier": 3.5,
+        "muzzle_velocity_mps": 0.0,
+        "base_spread_deg": 0.429,
+        "moving_spread_deg": 1.029,
+        "full_gait_spread_deg": 1.543,
+        "bloom_per_shot_deg": 1.0,
+        "max_recoil_bloom_deg": 2.6,
+        "bloom_recovery_speed": 17.5,
+        "magazine_capacity": 1,
+        "reserve_ammo": 1,
+        "effective_range_m": 0.0,
+        "max_range_m": 0.0,
+        "is_silenced": false
+      },
+      "reticle": {
+        "shot_kick_px": 20.0,
+        "shot_kick_return": 40.0,
+        "maximum_shot_kick_px": 60.0,
+        "base_gap_px": 5.1,
+        "max_gap_px": 41.6,
+        "response_speed": 26.2
+      },
+      "ammo_spec": {
+        "type": "Satchel Charge Ammo",
+        "impact_damage": 0.0,
+        "stun": 0.0,
+        "piercing": 0.0
+      },
+      "recom_assets": {
+        "model_name": "Satchel",
+        "icon_texture": "satchel_charge.tif",
+        "reload_sound": "SND_M4_A1_RELOAD"
+      }
+    },
+    {
+      "weapon_id": "claymore",
+      "display_name": "Claymore",
+      "description": "CLAYMORE",
+      "category": "Grenades & Explosives",
+      "socom_original_id": 153,
+      "encumbrance": 4,
+      "fire_modes": [
+        "semi",
+        "auto"
+      ],
+      "default_fire_mode": "semi",
+      "burst_size": 3,
+      "ballistics": {
+        "fire_rate_rpm": 600,
+        "damage": 25,
+        "headshot_multiplier": 3.5,
+        "muzzle_velocity_mps": 0.0,
+        "base_spread_deg": 0.429,
+        "moving_spread_deg": 1.029,
+        "full_gait_spread_deg": 1.543,
+        "bloom_per_shot_deg": 1.0,
+        "max_recoil_bloom_deg": 2.6,
+        "bloom_recovery_speed": 17.5,
+        "magazine_capacity": 4,
+        "reserve_ammo": 4,
+        "effective_range_m": 0.0,
+        "max_range_m": 0.0,
+        "is_silenced": false
+      },
+      "reticle": {
+        "shot_kick_px": 20.0,
+        "shot_kick_return": 40.0,
+        "maximum_shot_kick_px": 60.0,
+        "base_gap_px": 5.1,
+        "max_gap_px": 41.6,
+        "response_speed": 26.2
+      },
+      "ammo_spec": {
+        "type": "Claymore Ammo",
+        "impact_damage": 0.0,
+        "stun": 0.0,
+        "piercing": 0.0
+      },
+      "recom_assets": {
+        "model_name": "claymore",
+        "icon_texture": "claymore_icon.tif",
+        "reload_sound": "SND_M4_A1_RELOAD"
+      }
+    },
+    {
+      "weapon_id": "c4",
+      "display_name": "C4",
+      "description": "C4",
+      "category": "Grenades & Explosives",
+      "socom_original_id": 151,
+      "encumbrance": 4,
+      "fire_modes": [
+        "semi"
+      ],
+      "default_fire_mode": "semi",
+      "burst_size": 3,
+      "ballistics": {
+        "fire_rate_rpm": 600,
+        "damage": 25,
+        "headshot_multiplier": 3.5,
+        "muzzle_velocity_mps": 0.0,
+        "base_spread_deg": 0.429,
+        "moving_spread_deg": 1.029,
+        "full_gait_spread_deg": 1.543,
+        "bloom_per_shot_deg": 1.0,
+        "max_recoil_bloom_deg": 2.6,
+        "bloom_recovery_speed": 17.5,
+        "magazine_capacity": 4,
+        "reserve_ammo": 4,
+        "effective_range_m": 0.0,
+        "max_range_m": 0.0,
+        "is_silenced": false
+      },
+      "reticle": {
+        "shot_kick_px": 20.0,
+        "shot_kick_return": 40.0,
+        "maximum_shot_kick_px": 60.0,
+        "base_gap_px": 5.1,
+        "max_gap_px": 41.6,
+        "response_speed": 26.2
+      },
+      "ammo_spec": {
+        "type": "C4 Ammo",
+        "impact_damage": 0.0,
+        "stun": 0.0,
+        "piercing": 0.0
+      },
+      "recom_assets": {
+        "model_name": "c4",
+        "icon_texture": "c4.tif",
+        "reload_sound": "SND_M4_A1_RELOAD"
+      }
+    },
+    {
+      "weapon_id": "mpbomb",
+      "display_name": "MPBOMB",
+      "description": "placeholder",
+      "category": "Grenades & Explosives",
+      "socom_original_id": 154,
+      "encumbrance": 1,
+      "fire_modes": [
+        "semi"
+      ],
+      "default_fire_mode": "semi",
+      "burst_size": 3,
+      "ballistics": {
+        "fire_rate_rpm": 600,
+        "damage": 25,
+        "headshot_multiplier": 3.5,
+        "muzzle_velocity_mps": 0.0,
+        "base_spread_deg": 0.429,
+        "moving_spread_deg": 1.029,
+        "full_gait_spread_deg": 1.543,
+        "bloom_per_shot_deg": 1.0,
+        "max_recoil_bloom_deg": 2.6,
+        "bloom_recovery_speed": 17.5,
+        "magazine_capacity": 1,
+        "reserve_ammo": 1,
+        "effective_range_m": 0.0,
+        "max_range_m": 0.0,
+        "is_silenced": false
+      },
+      "reticle": {
+        "shot_kick_px": 20.0,
+        "shot_kick_return": 40.0,
+        "maximum_shot_kick_px": 60.0,
+        "base_gap_px": 5.1,
+        "max_gap_px": 41.6,
+        "response_speed": 26.2
+      },
+      "ammo_spec": {
+        "type": "MPBOMB Ammo",
+        "impact_damage": 0.0,
+        "stun": 0.0,
+        "piercing": 0.0
+      },
+      "recom_assets": {
+        "model_name": "footbomb",
+        "icon_texture": "satchel_charge.tif",
+        "reload_sound": "SND_M4_A1_RELOAD"
+      }
+    },
+    {
+      "weapon_id": "m203",
+      "display_name": "M203",
+      "description": "placeholder",
+      "category": "Grenades & Explosives",
+      "socom_original_id": 141,
+      "encumbrance": 4,
+      "fire_modes": [
+        "semi"
+      ],
+      "default_fire_mode": "semi",
+      "burst_size": 3,
+      "ballistics": {
+        "fire_rate_rpm": 30,
+        "damage": 32,
+        "headshot_multiplier": 3.5,
+        "muzzle_velocity_mps": 921.0,
+        "base_spread_deg": 0.429,
+        "moving_spread_deg": 1.029,
+        "full_gait_spread_deg": 1.543,
+        "bloom_per_shot_deg": 1.0,
+        "max_recoil_bloom_deg": 2.6,
+        "bloom_recovery_speed": 17.5,
+        "magazine_capacity": 0,
+        "reserve_ammo": 0,
+        "effective_range_m": 350.0,
+        "max_range_m": 1200.0,
+        "is_silenced": false
+      },
+      "reticle": {
+        "shot_kick_px": 20.0,
+        "shot_kick_return": 40.0,
+        "maximum_shot_kick_px": 60.0,
+        "base_gap_px": 5.1,
+        "max_gap_px": 41.6,
+        "response_speed": 26.2
+      },
+      "ammo_spec": {
+        "type": "",
+        "impact_damage": 2.0,
+        "stun": 1.0,
+        "piercing": 1.0
+      },
+      "recom_assets": {
+        "model_name": "(null",
+        "icon_texture": "(null",
+        "reload_sound": "SND_M203_G_LAUNCHER_RELOAD"
+      }
+    },
+    {
+      "weapon_id": "m203_he",
+      "display_name": "M203 HE",
+      "description": "203 HE",
+      "category": "Grenades & Explosives",
+      "socom_original_id": 171,
+      "encumbrance": 4,
+      "fire_modes": [
+        "semi"
+      ],
+      "default_fire_mode": "semi",
+      "burst_size": 3,
+      "ballistics": {
+        "fire_rate_rpm": 60,
+        "damage": 25,
+        "headshot_multiplier": 3.5,
+        "muzzle_velocity_mps": 27.0,
+        "base_spread_deg": 0.429,
+        "moving_spread_deg": 1.029,
+        "full_gait_spread_deg": 1.543,
+        "bloom_per_shot_deg": 1.0,
+        "max_recoil_bloom_deg": 2.6,
+        "bloom_recovery_speed": 17.5,
+        "magazine_capacity": 6,
+        "reserve_ammo": 6,
+        "effective_range_m": 350.0,
+        "max_range_m": 10000.0,
+        "is_silenced": false
+      },
+      "reticle": {
+        "shot_kick_px": 20.0,
+        "shot_kick_return": 40.0,
+        "maximum_shot_kick_px": 60.0,
+        "base_gap_px": 5.1,
+        "max_gap_px": 41.6,
+        "response_speed": 26.2
+      },
+      "ammo_spec": {
+        "type": "M203 HE Ammo",
+        "impact_damage": 0.0,
+        "stun": 10.0,
+        "piercing": 2.0
+      },
+      "recom_assets": {
+        "model_name": "(null",
+        "icon_texture": "firemode_203_he.tif",
+        "reload_sound": "SND_M203_G_LAUNCHER_RELOAD"
+      }
+    },
+    {
+      "weapon_id": "m203_frag",
+      "display_name": "M203 FRAG",
+      "description": "203 FRAG",
+      "category": "Grenades & Explosives",
+      "socom_original_id": 175,
+      "encumbrance": 4,
+      "fire_modes": [
+        "semi"
+      ],
+      "default_fire_mode": "semi",
+      "burst_size": 3,
+      "ballistics": {
+        "fire_rate_rpm": 60,
+        "damage": 25,
+        "headshot_multiplier": 3.5,
+        "muzzle_velocity_mps": 27.0,
+        "base_spread_deg": 0.429,
+        "moving_spread_deg": 1.029,
+        "full_gait_spread_deg": 1.543,
+        "bloom_per_shot_deg": 1.0,
+        "max_recoil_bloom_deg": 2.6,
+        "bloom_recovery_speed": 17.5,
+        "magazine_capacity": 6,
+        "reserve_ammo": 6,
+        "effective_range_m": 350.0,
+        "max_range_m": 10000.0,
+        "is_silenced": false
+      },
+      "reticle": {
+        "shot_kick_px": 20.0,
+        "shot_kick_return": 40.0,
+        "maximum_shot_kick_px": 60.0,
+        "base_gap_px": 5.1,
+        "max_gap_px": 41.6,
+        "response_speed": 26.2
+      },
+      "ammo_spec": {
+        "type": "M203 FRAG Ammo",
+        "impact_damage": 0.0,
+        "stun": 10.0,
+        "piercing": 0.0
+      },
+      "recom_assets": {
+        "model_name": "(null",
+        "icon_texture": "firemode_203_frag.tif",
+        "reload_sound": "SND_M203_G_LAUNCHER_RELOAD"
+      }
+    },
+    {
+      "weapon_id": "m203_smoke",
+      "display_name": "M203 SMOKE",
+      "description": "203 SMOKE",
+      "category": "Grenades & Explosives",
+      "socom_original_id": 173,
+      "encumbrance": 4,
+      "fire_modes": [
+        "semi"
+      ],
+      "default_fire_mode": "semi",
+      "burst_size": 3,
+      "ballistics": {
+        "fire_rate_rpm": 60,
+        "damage": 25,
+        "headshot_multiplier": 3.5,
+        "muzzle_velocity_mps": 27.0,
+        "base_spread_deg": 0.429,
+        "moving_spread_deg": 1.029,
+        "full_gait_spread_deg": 1.543,
+        "bloom_per_shot_deg": 1.0,
+        "max_recoil_bloom_deg": 2.6,
+        "bloom_recovery_speed": 17.5,
+        "magazine_capacity": 3,
+        "reserve_ammo": 3,
+        "effective_range_m": 350.0,
+        "max_range_m": 10000.0,
+        "is_silenced": false
+      },
+      "reticle": {
+        "shot_kick_px": 20.0,
+        "shot_kick_return": 40.0,
+        "maximum_shot_kick_px": 60.0,
+        "base_gap_px": 5.1,
+        "max_gap_px": 41.6,
+        "response_speed": 26.2
+      },
+      "ammo_spec": {
+        "type": "M203 SMOKE Ammo",
+        "impact_damage": 0.0,
+        "stun": 0.0,
+        "piercing": 0.0
+      },
+      "recom_assets": {
+        "model_name": "(null",
+        "icon_texture": "firemode_203_smoke.tif",
+        "reload_sound": "SND_M203_G_LAUNCHER_RELOAD"
+      }
+    },
+    {
+      "weapon_id": "mgl",
+      "display_name": "MGL",
+      "description": "MGL",
+      "category": "Grenades & Explosives",
+      "socom_original_id": 142,
+      "encumbrance": 2,
+      "fire_modes": [
+        "semi"
+      ],
+      "default_fire_mode": "semi",
+      "burst_size": 3,
+      "ballistics": {
+        "fire_rate_rpm": 240,
+        "damage": 32,
+        "headshot_multiplier": 3.5,
+        "muzzle_velocity_mps": 921.0,
+        "base_spread_deg": 0.429,
+        "moving_spread_deg": 1.029,
+        "full_gait_spread_deg": 1.543,
+        "bloom_per_shot_deg": 1.0,
+        "max_recoil_bloom_deg": 2.6,
+        "bloom_recovery_speed": 17.5,
+        "magazine_capacity": 6,
+        "reserve_ammo": 12,
+        "effective_range_m": 350.0,
+        "max_range_m": 1200.0,
+        "is_silenced": false
+      },
+      "reticle": {
+        "shot_kick_px": 20.0,
+        "shot_kick_return": 40.0,
+        "maximum_shot_kick_px": 60.0,
+        "base_gap_px": 5.1,
+        "max_gap_px": 41.6,
+        "response_speed": 26.2
+      },
+      "ammo_spec": {
+        "type": "",
+        "impact_damage": 2.0,
+        "stun": 1.0,
+        "piercing": 1.0
+      },
+      "recom_assets": {
+        "model_name": "mglmk1",
+        "icon_texture": "mglmk1_icon.tif",
+        "reload_sound": "SND_M203_G_LAUNCHER_RELOAD "
+      }
+    },
+    {
+      "weapon_id": "m79",
+      "display_name": "M79",
+      "description": "M79",
+      "category": "Grenades & Explosives",
+      "socom_original_id": 143,
+      "encumbrance": 2,
+      "fire_modes": [
+        "semi"
+      ],
+      "default_fire_mode": "semi",
+      "burst_size": 3,
+      "ballistics": {
+        "fire_rate_rpm": 40,
+        "damage": 32,
+        "headshot_multiplier": 3.5,
+        "muzzle_velocity_mps": 921.0,
+        "base_spread_deg": 0.429,
+        "moving_spread_deg": 1.029,
+        "full_gait_spread_deg": 1.543,
+        "bloom_per_shot_deg": 1.0,
+        "max_recoil_bloom_deg": 2.6,
+        "bloom_recovery_speed": 17.5,
+        "magazine_capacity": 6,
+        "reserve_ammo": 6,
+        "effective_range_m": 350.0,
+        "max_range_m": 1200.0,
+        "is_silenced": false
+      },
+      "reticle": {
+        "shot_kick_px": 20.0,
+        "shot_kick_return": 40.0,
+        "maximum_shot_kick_px": 60.0,
+        "base_gap_px": 5.1,
+        "max_gap_px": 41.6,
+        "response_speed": 26.2
+      },
+      "ammo_spec": {
+        "type": "",
+        "impact_damage": 2.0,
+        "stun": 1.0,
+        "piercing": 1.0
+      },
+      "recom_assets": {
+        "model_name": "m79",
+        "icon_texture": "m79_icon.tif",
+        "reload_sound": "SND_M79_G_LAUNCHER_RELOAD"
+      }
+    },
+    {
+      "weapon_id": "gl_he",
+      "display_name": "GL HE",
+      "description": "M79 HE",
+      "category": "Grenades & Explosives",
+      "socom_original_id": 176,
+      "encumbrance": 4,
+      "fire_modes": [
+        "semi"
+      ],
+      "default_fire_mode": "semi",
+      "burst_size": 3,
+      "ballistics": {
+        "fire_rate_rpm": 600,
+        "damage": 25,
+        "headshot_multiplier": 3.5,
+        "muzzle_velocity_mps": 40.0,
+        "base_spread_deg": 0.429,
+        "moving_spread_deg": 1.029,
+        "full_gait_spread_deg": 1.543,
+        "bloom_per_shot_deg": 1.0,
+        "max_recoil_bloom_deg": 2.6,
+        "bloom_recovery_speed": 17.5,
+        "magazine_capacity": 6,
+        "reserve_ammo": 6,
+        "effective_range_m": 350.0,
+        "max_range_m": 10000.0,
+        "is_silenced": false
+      },
+      "reticle": {
+        "shot_kick_px": 20.0,
+        "shot_kick_return": 40.0,
+        "maximum_shot_kick_px": 60.0,
+        "base_gap_px": 5.1,
+        "max_gap_px": 41.6,
+        "response_speed": 26.2
+      },
+      "ammo_spec": {
+        "type": "GL HE Ammo",
+        "impact_damage": 0.0,
+        "stun": 0.0,
+        "piercing": 0.0
+      },
+      "recom_assets": {
+        "model_name": "(null",
+        "icon_texture": "firemode_203_he.tif",
+        "reload_sound": "SND_M79_G_LAUNCHER_RELOAD"
+      }
+    },
+    {
+      "weapon_id": "gl_frag",
+      "display_name": "GL FRAG",
+      "description": "M79 FRAG",
+      "category": "Grenades & Explosives",
+      "socom_original_id": 179,
+      "encumbrance": 4,
+      "fire_modes": [
+        "semi"
+      ],
+      "default_fire_mode": "semi",
+      "burst_size": 3,
+      "ballistics": {
+        "fire_rate_rpm": 600,
+        "damage": 25,
+        "headshot_multiplier": 3.5,
+        "muzzle_velocity_mps": 40.0,
+        "base_spread_deg": 0.429,
+        "moving_spread_deg": 1.029,
+        "full_gait_spread_deg": 1.543,
+        "bloom_per_shot_deg": 1.0,
+        "max_recoil_bloom_deg": 2.6,
+        "bloom_recovery_speed": 17.5,
+        "magazine_capacity": 6,
+        "reserve_ammo": 6,
+        "effective_range_m": 350.0,
+        "max_range_m": 10000.0,
+        "is_silenced": false
+      },
+      "reticle": {
+        "shot_kick_px": 20.0,
+        "shot_kick_return": 40.0,
+        "maximum_shot_kick_px": 60.0,
+        "base_gap_px": 5.1,
+        "max_gap_px": 41.6,
+        "response_speed": 26.2
+      },
+      "ammo_spec": {
+        "type": "GL Frag Ammo",
+        "impact_damage": 0.0,
+        "stun": 0.0,
+        "piercing": 0.0
+      },
+      "recom_assets": {
+        "model_name": "(null",
+        "icon_texture": "firemode_203_frag.tif",
+        "reload_sound": "SND_M79_G_LAUNCHER_RELOAD"
+      }
+    },
+    {
+      "weapon_id": "gl_smoke",
+      "display_name": "GL SMOKE",
+      "description": "M79 SMOKE",
+      "category": "Grenades & Explosives",
+      "socom_original_id": 178,
+      "encumbrance": 4,
+      "fire_modes": [
+        "semi"
+      ],
+      "default_fire_mode": "semi",
+      "burst_size": 3,
+      "ballistics": {
+        "fire_rate_rpm": 600,
+        "damage": 25,
+        "headshot_multiplier": 3.5,
+        "muzzle_velocity_mps": 40.0,
+        "base_spread_deg": 0.429,
+        "moving_spread_deg": 1.029,
+        "full_gait_spread_deg": 1.543,
+        "bloom_per_shot_deg": 1.0,
+        "max_recoil_bloom_deg": 2.6,
+        "bloom_recovery_speed": 17.5,
+        "magazine_capacity": 3,
+        "reserve_ammo": 3,
+        "effective_range_m": 350.0,
+        "max_range_m": 10000.0,
+        "is_silenced": false
+      },
+      "reticle": {
+        "shot_kick_px": 20.0,
+        "shot_kick_return": 40.0,
+        "maximum_shot_kick_px": 60.0,
+        "base_gap_px": 5.1,
+        "max_gap_px": 41.6,
+        "response_speed": 26.2
+      },
+      "ammo_spec": {
+        "type": "GL Smoke Ammo",
+        "impact_damage": 0.0,
+        "stun": 0.0,
+        "piercing": 0.0
+      },
+      "recom_assets": {
+        "model_name": "(null",
+        "icon_texture": "firemode_203_smoke.tif",
+        "reload_sound": "SND_M79_G_LAUNCHER_RELOAD"
+      }
+    },
+    {
+      "weapon_id": "kevlar_armor",
+      "display_name": "Kevlar Armor",
+      "description": "placeholder",
+      "category": "Tactical Equipment",
+      "socom_original_id": 201,
+      "encumbrance": 2,
+      "fire_modes": [
+        "semi"
+      ],
+      "default_fire_mode": "semi",
+      "burst_size": 3,
+      "ballistics": {
+        "fire_rate_rpm": 600,
+        "damage": 32,
+        "headshot_multiplier": 3.5,
+        "muzzle_velocity_mps": 0.0,
+        "base_spread_deg": 0.429,
+        "moving_spread_deg": 1.029,
+        "full_gait_spread_deg": 1.543,
+        "bloom_per_shot_deg": 1.0,
+        "max_recoil_bloom_deg": 2.6,
+        "bloom_recovery_speed": 17.5,
+        "magazine_capacity": 0,
+        "reserve_ammo": 0,
+        "effective_range_m": 0.0,
+        "max_range_m": 0.0,
+        "is_silenced": false
+      },
+      "reticle": {
+        "shot_kick_px": 20.0,
+        "shot_kick_return": 40.0,
+        "maximum_shot_kick_px": 60.0,
+        "base_gap_px": 5.1,
+        "max_gap_px": 41.6,
+        "response_speed": 26.2
+      },
+      "ammo_spec": {
+        "type": "",
+        "impact_damage": 2.0,
+        "stun": 1.0,
+        "piercing": 1.0
+      },
+      "recom_assets": {
+        "model_name": "(null",
+        "icon_texture": "(null",
+        "reload_sound": "SND_M4_A1_RELOAD"
+      }
+    },
+    {
+      "weapon_id": "kevlar_armor_with_inserts",
+      "display_name": "Kevlar Armor with inserts",
+      "description": "placeholder",
+      "category": "Tactical Equipment",
+      "socom_original_id": 202,
+      "encumbrance": 4,
+      "fire_modes": [
+        "semi"
+      ],
+      "default_fire_mode": "semi",
+      "burst_size": 3,
+      "ballistics": {
+        "fire_rate_rpm": 600,
+        "damage": 32,
+        "headshot_multiplier": 3.5,
+        "muzzle_velocity_mps": 40.0,
+        "base_spread_deg": 0.429,
+        "moving_spread_deg": 1.029,
+        "full_gait_spread_deg": 1.543,
+        "bloom_per_shot_deg": 1.0,
+        "max_recoil_bloom_deg": 2.6,
+        "bloom_recovery_speed": 17.5,
+        "magazine_capacity": 0,
+        "reserve_ammo": 0,
+        "effective_range_m": 1000.0,
+        "max_range_m": 10000.0,
+        "is_silenced": false
+      },
+      "reticle": {
+        "shot_kick_px": 20.0,
+        "shot_kick_return": 40.0,
+        "maximum_shot_kick_px": 60.0,
+        "base_gap_px": 5.1,
+        "max_gap_px": 41.6,
+        "response_speed": 26.2
+      },
+      "ammo_spec": {
+        "type": "",
+        "impact_damage": 2.0,
+        "stun": 1.0,
+        "piercing": 1.0
+      },
+      "recom_assets": {
+        "model_name": "(null",
+        "icon_texture": "(null",
+        "reload_sound": "SND_M4_A1_RELOAD"
+      }
+    },
+    {
+      "weapon_id": "double_ammo_load",
+      "display_name": "Double Ammo Load",
+      "description": "2X AMMO",
+      "category": "Tactical Equipment",
+      "socom_original_id": 188,
+      "encumbrance": 4,
+      "fire_modes": [
+        "semi"
+      ],
+      "default_fire_mode": "semi",
+      "burst_size": 3,
+      "ballistics": {
+        "fire_rate_rpm": 600,
+        "damage": 32,
+        "headshot_multiplier": 3.5,
+        "muzzle_velocity_mps": 40.0,
+        "base_spread_deg": 0.429,
+        "moving_spread_deg": 1.029,
+        "full_gait_spread_deg": 1.543,
+        "bloom_per_shot_deg": 1.0,
+        "max_recoil_bloom_deg": 2.6,
+        "bloom_recovery_speed": 17.5,
+        "magazine_capacity": 0,
+        "reserve_ammo": 0,
+        "effective_range_m": 1000.0,
+        "max_range_m": 10000.0,
+        "is_silenced": false
+      },
+      "reticle": {
+        "shot_kick_px": 20.0,
+        "shot_kick_return": 40.0,
+        "maximum_shot_kick_px": 60.0,
+        "base_gap_px": 5.1,
+        "max_gap_px": 41.6,
+        "response_speed": 26.2
+      },
+      "ammo_spec": {
+        "type": "",
+        "impact_damage": 2.0,
+        "stun": 1.0,
+        "piercing": 1.0
+      },
+      "recom_assets": {
+        "model_name": "(null",
+        "icon_texture": "double_ammo_icon.tif",
+        "reload_sound": "SND_M4_A1_RELOAD"
+      }
+    },
+    {
+      "weapon_id": "air_to_ground_missile",
+      "display_name": "air_to_ground_missile",
+      "description": "placeholder",
+      "category": "Assault Rifles",
+      "socom_original_id": 155,
+      "encumbrance": 4,
+      "fire_modes": [
+        "semi"
+      ],
+      "default_fire_mode": "semi",
+      "burst_size": 3,
+      "ballistics": {
+        "fire_rate_rpm": 600,
+        "damage": 25,
+        "headshot_multiplier": 3.5,
+        "muzzle_velocity_mps": 0.0,
+        "base_spread_deg": 0.429,
+        "moving_spread_deg": 1.029,
+        "full_gait_spread_deg": 1.543,
+        "bloom_per_shot_deg": 1.0,
+        "max_recoil_bloom_deg": 2.6,
+        "bloom_recovery_speed": 17.5,
+        "magazine_capacity": 6,
+        "reserve_ammo": 6,
+        "effective_range_m": 40.0,
+        "max_range_m": 10000.0,
+        "is_silenced": false
+      },
+      "reticle": {
+        "shot_kick_px": 20.0,
+        "shot_kick_return": 40.0,
+        "maximum_shot_kick_px": 60.0,
+        "base_gap_px": 5.1,
+        "max_gap_px": 41.6,
+        "response_speed": 26.2
+      },
+      "ammo_spec": {
+        "type": "ag_missile",
+        "impact_damage": 0.0,
+        "stun": 0.0,
+        "piercing": 0.0
+      },
+      "recom_assets": {
+        "model_name": "grenade",
+        "icon_texture": "(null",
+        "reload_sound": "SND_M4_A1_RELOAD"
+      }
+    },
+    {
+      "weapon_id": "exploding_fuel",
+      "display_name": "exploding_fuel",
+      "description": "placeholder",
+      "category": "Assault Rifles",
+      "socom_original_id": 156,
+      "encumbrance": 4,
+      "fire_modes": [
+        "semi"
+      ],
+      "default_fire_mode": "semi",
+      "burst_size": 3,
+      "ballistics": {
+        "fire_rate_rpm": 600,
+        "damage": 25,
+        "headshot_multiplier": 3.5,
+        "muzzle_velocity_mps": 0.0,
+        "base_spread_deg": 0.429,
+        "moving_spread_deg": 1.029,
+        "full_gait_spread_deg": 1.543,
+        "bloom_per_shot_deg": 1.0,
+        "max_recoil_bloom_deg": 2.6,
+        "bloom_recovery_speed": 17.5,
+        "magazine_capacity": 6,
+        "reserve_ammo": 6,
+        "effective_range_m": 40.0,
+        "max_range_m": 10000.0,
+        "is_silenced": false
+      },
+      "reticle": {
+        "shot_kick_px": 20.0,
+        "shot_kick_return": 40.0,
+        "maximum_shot_kick_px": 60.0,
+        "base_gap_px": 5.1,
+        "max_gap_px": 41.6,
+        "response_speed": 26.2
+      },
+      "ammo_spec": {
+        "type": "explosive_stuff",
+        "impact_damage": 0.0,
+        "stun": 0.0,
+        "piercing": 0.0
+      },
+      "recom_assets": {
+        "model_name": "null",
+        "icon_texture": "(null",
+        "reload_sound": "SND_M4_A1_RELOAD"
+      }
+    },
+    {
+      "weapon_id": "satchel_explosion",
+      "display_name": "Satchel Explosion",
+      "description": "SATCHEL",
+      "category": "Grenades & Explosives",
+      "socom_original_id": 157,
+      "encumbrance": 1,
+      "fire_modes": [
+        "semi",
+        "auto"
+      ],
+      "default_fire_mode": "semi",
+      "burst_size": 3,
+      "ballistics": {
+        "fire_rate_rpm": 600,
+        "damage": 25,
+        "headshot_multiplier": 3.5,
+        "muzzle_velocity_mps": 0.0,
+        "base_spread_deg": 0.429,
+        "moving_spread_deg": 1.029,
+        "full_gait_spread_deg": 1.543,
+        "bloom_per_shot_deg": 1.0,
+        "max_recoil_bloom_deg": 2.6,
+        "bloom_recovery_speed": 17.5,
+        "magazine_capacity": 1,
+        "reserve_ammo": 1,
+        "effective_range_m": 0.0,
+        "max_range_m": 0.0,
+        "is_silenced": false
+      },
+      "reticle": {
+        "shot_kick_px": 20.0,
+        "shot_kick_return": 40.0,
+        "maximum_shot_kick_px": 60.0,
+        "base_gap_px": 5.1,
+        "max_gap_px": 41.6,
+        "response_speed": 26.2
+      },
+      "ammo_spec": {
+        "type": "Satchel Charge Ammo",
+        "impact_damage": 0.0,
+        "stun": 0.0,
+        "piercing": 0.0
+      },
+      "recom_assets": {
+        "model_name": "Satchel",
+        "icon_texture": "satchel_charge.tif",
+        "reload_sound": "SND_M4_A1_RELOAD"
+      }
+    }
+  ]
+}

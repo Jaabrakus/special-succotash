@@ -13,7 +13,7 @@ const MapEditorCameraOrbit := preload("res://scripts/maps/socom_map_editor_camer
 const PALETTE_TYPES: Array[StringName] = [
 	&"ground", &"wall", &"cover_low", &"cover_tall", &"platform", &"ramp", &"player_spawn",
 	&"point_light", &"ambience_zone",
-	&"fog_zone",
+	&"fog_zone", &"water_volume",
 	&"doorway_wall", &"window_wall", &"stairs", &"roof", &"column",
 	&"primitive_box", &"primitive_cylinder", &"primitive_sphere",
 	&"curved_wall", &"jagged_wall", &"breached_wall",

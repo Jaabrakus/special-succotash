@@ -10,6 +10,29 @@ const CameraMarkerFilter := preload(
 	"res://scripts/player/operator_camera_marker_filter.gd"
 )
 
+const AIM_FRAME_BONES: Array[String] = [
+	"mixamorig_Spine",
+	"mixamorig_Spine1",
+	"mixamorig_Spine2",
+	"mixamorig_Neck",
+	"mixamorig_Head",
+]
+
+const FIRE_RECOVERY_LIMB_BONES: Array[String] = [
+	"mixamorig_LeftShoulder", "mixamorig_LeftArm", "mixamorig_LeftForeArm", "mixamorig_LeftHand",
+	"mixamorig_RightShoulder", "mixamorig_RightArm", "mixamorig_RightForeArm", "mixamorig_RightHand",
+	"mixamorig_LeftHandThumb1", "mixamorig_LeftHandThumb2", "mixamorig_LeftHandThumb3",
+	"mixamorig_LeftHandIndex1", "mixamorig_LeftHandIndex2", "mixamorig_LeftHandIndex3",
+	"mixamorig_LeftHandMiddle1", "mixamorig_LeftHandMiddle2", "mixamorig_LeftHandMiddle3",
+	"mixamorig_LeftHandRing1", "mixamorig_LeftHandRing2", "mixamorig_LeftHandRing3",
+	"mixamorig_LeftHandPinky1", "mixamorig_LeftHandPinky2", "mixamorig_LeftHandPinky3",
+	"mixamorig_RightHandThumb1", "mixamorig_RightHandThumb2", "mixamorig_RightHandThumb3",
+	"mixamorig_RightHandIndex1", "mixamorig_RightHandIndex2", "mixamorig_RightHandIndex3",
+	"mixamorig_RightHandMiddle1", "mixamorig_RightHandMiddle2", "mixamorig_RightHandMiddle3",
+	"mixamorig_RightHandRing1", "mixamorig_RightHandRing2", "mixamorig_RightHandRing3",
+	"mixamorig_RightHandPinky1", "mixamorig_RightHandPinky2", "mixamorig_RightHandPinky3",
+]
+
 var failures: Array[String] = []
 
 
@@ -53,7 +76,7 @@ func _run() -> void:
 			pipeline.get_node_or_null(
 				"30_FireTorsoShoulderArms/FireUpperBodyLatch"
 			) != null,
-			"fire stage owns the real held-trigger latch component"
+			"fire stage owns the accepted-shot recovery latch component"
 		)
 	var marker_filter = CameraMarkerFilter.new()
 	marker_filter.name = "CameraMarkerFilter"
@@ -113,14 +136,16 @@ func _run() -> void:
 		"hands and weapon follow the committed crouch route on the next evaluation"
 	)
 	handoff.free()
-	var fire_layer = driver.locomotion_graph.fire_layer_node
-	_expect(fire_layer != null, "fire shoulder-arm layer exists")
 	var graph_root := driver.animation_tree.tree_root as AnimationNodeBlendTree
 	_expect(
 		graph_root != null
 		and graph_root.has_node(&"crouch_upper_body")
-		and graph_root.has_node(&"crouch_idle_upper_body"),
-		"crouch movement and idle share the Aim Idle upper-body owner"
+		and graph_root.has_node(&"crouch_idle_upper_body")
+		and graph_root.has_node(&"standing_aim_frame")
+		and graph_root.has_node(&"standing_idle_aim_frame")
+		and graph_root.has_node(&"crouch_aim_frame")
+		and graph_root.has_node(&"crouch_idle_aim_frame"),
+		"standing and crouched movement/idle expose separate aim-frame and recovery layers"
 	)
 	for layer_name in driver.locomotion_graph.standing_transition_layer_nodes:
 		_expect(
@@ -138,45 +163,140 @@ func _run() -> void:
 	var idle_hip_trim := absf(float(idle_snapshot.get("default_hip_roll_trim_deg", 0.0)))
 	var idle_hip_output := absf(float(idle_snapshot.get("default_hip_roll_output_deg", 0.0)))
 	_expect(
-		idle_hip_trim <= driver.neutral_hip_roll_trim_deg + 0.01
-		and idle_hip_output <= idle_hip_input + 0.01,
-		"standing idle keeps authored pelvis direction with only a bounded roll trim"
+		idle_hip_trim <= idle_hip_input + 0.01
+		and idle_hip_output <= 0.10,
+		"standing idle squares pelvis roll without replacing authored leg rotations"
 	)
-	if fire_layer != null:
+	var recovery_layer_names: Array[StringName] = [
+		&"standing_upper_body",
+		&"standing_idle_upper_body",
+		&"crouch_upper_body",
+		&"crouch_idle_upper_body",
+	]
+	for layer_name: StringName in recovery_layer_names:
+		var recovery_layer := graph_root.get_node(layer_name) as AnimationNodeBlend2
+		_expect(
+			recovery_layer != null and recovery_layer.filter_enabled,
+			"%s is a filtered recovery layer" % layer_name
+		)
+		if recovery_layer == null:
+			continue
+		for bone_name: String in FIRE_RECOVERY_LIMB_BONES:
+			_expect(
+				recovery_layer.is_path_filtered(NodePath(".:%s" % bone_name)),
+				"%s owns recovery limb %s" % [layer_name, bone_name]
+			)
 		for bone_name in [
-			"mixamorig_Spine", "mixamorig_Spine1", "mixamorig_Spine2",
-			"mixamorig_LeftShoulder", "mixamorig_LeftArm",
-			"mixamorig_LeftForeArm", "mixamorig_LeftHand",
-			"mixamorig_RightShoulder", "mixamorig_RightArm",
-			"mixamorig_RightForeArm", "mixamorig_RightHand",
+			"mixamorig_Hips", "mixamorig_Spine", "mixamorig_Spine1",
+			"mixamorig_Spine2", "mixamorig_Neck", "mixamorig_Head",
 		]:
 			_expect(
-				fire_layer.is_path_filtered(NodePath(".:%s" % bone_name)),
-				"Fire owns %s" % bone_name
-			)
-		for bone_name in ["mixamorig_Hips", "mixamorig_Head"]:
+				not recovery_layer.is_path_filtered(NodePath(".:%s" % bone_name)),
+					"%s leaves stable frame bone %s to its declared owner" % [layer_name, bone_name]
+				)
+	var aim_frame_layer_names: Array[StringName] = [
+		&"standing_aim_frame",
+		&"standing_idle_aim_frame",
+		&"crouch_aim_frame",
+		&"crouch_idle_aim_frame",
+	]
+	for layer_name: StringName in aim_frame_layer_names:
+		var aim_frame_layer := graph_root.get_node(layer_name) as AnimationNodeBlend2
+		_expect(
+			aim_frame_layer != null and aim_frame_layer.filter_enabled,
+			"%s is a filtered stationary-pose aim frame" % layer_name
+		)
+		if aim_frame_layer == null:
+			continue
+		for bone_name: String in AIM_FRAME_BONES:
 			_expect(
-				not fire_layer.is_path_filtered(NodePath(".:%s" % bone_name)),
-				"Fire leaves %s to its earlier hierarchy stage" % bone_name
+				aim_frame_layer.is_path_filtered(NodePath(".:%s" % bone_name)),
+				"%s owns aim-frame bone %s" % [layer_name, bone_name]
 			)
+		for bone_name in [
+			"mixamorig_Hips", "mixamorig_LeftShoulder", "mixamorig_RightShoulder",
+			"mixamorig_LeftArm", "mixamorig_RightArm", "mixamorig_LeftHand",
+			"mixamorig_RightHand", "mixamorig_LeftLeg", "mixamorig_RightLeg",
+		]:
+			_expect(
+				not aim_frame_layer.is_path_filtered(NodePath(".:%s" % bone_name)),
+				"%s cannot claim non-frame bone %s" % [layer_name, bone_name]
+			)
+	_expect(
+		is_zero_approx(float(driver.animation_tree.get(
+			"parameters/standing_idle_aim_frame/blend_amount"
+		)))
+		and is_zero_approx(float(driver.animation_tree.get(
+			"parameters/crouch_idle_aim_frame/blend_amount"
+		))),
+		"aim-frame layers stay inactive before an accepted shot"
+	)
+	_expect(
+		driver._lower_body_separation_weight(&"STANDING", 1.0) > 0.99
+		and driver._lower_body_separation_weight(&"CROUCHED", 1.0) > 0.99
+		and is_zero_approx(driver._lower_body_separation_weight(&"PRONE", 1.0)),
+		"ready recovery isolates standing and crouched aim frames without changing prone"
+	)
 	driver.set_visual_inputs(
-		Vector2.DOWN, &"STANDING", 0.0, 0.0, 0.0, false, 0.0,
+		Vector2.DOWN, &"STANDING", deg_to_rad(20.0), deg_to_rad(-8.0), 0.0, false, 0.0,
 		0.8, &"LOCOMOTION", 0.0, &"FULL", 3.0
 	)
 	driver._process(1.0 / 60.0)
 	_expect(driver.notify_fired(), "Fire activates the upper-body hierarchy")
-	for _frame in range(4):
+	for _frame in range(12):
 		driver._process(1.0 / 60.0)
 	var fire_snapshot: Dictionary = driver.get_animation_debug_state()
-	var pipeline_snapshot: Dictionary = fire_snapshot.get("pose_pipeline", {})
+	var fire_latch: Dictionary = fire_snapshot.get("fire_upper_body_latch", {})
+	var combat_ready_ccdik: Dictionary = fire_snapshot.get("combat_ready_ccdik", {})
+	var fire_weapon_pose: Dictionary = fire_snapshot.get("weapon_pose", {})
 	_expect(
-		StringName(pipeline_snapshot.get("active_upper_body_stage", &""))
-		== &"30_FireTorsoShoulderArms",
-		"Fire takes torso, shoulders, and arms from Sprint"
+		StringName(fire_latch.get("owner_state", &"")) == &"FIRE_RECOVERY"
+		and int(fire_snapshot.get("animation_frame_rotation_override_count", -1)) == 0,
+		"FIRE_RECOVERY keeps the imported mapped pose free of saved joint rotation overrides"
+	)
+	_expect(
+		absf(float(fire_snapshot.get("applied_yaw_rad", 0.0)) - deg_to_rad(20.0)) <= 0.02
+		and absf(float(fire_snapshot.get("applied_pitch_rad", 0.0)) - deg_to_rad(-8.0)) <= 0.02
+		and int(fire_snapshot.get("square_idle_reference_bone_count", -1)) == 0,
+		"torso-only recovery aim turns Spine, Spine1, and Spine2 toward the reticle"
+	)
+	_expect(
+		is_zero_approx(float(fire_snapshot.get("shoulder_square_weight", 1.0)))
+		and is_zero_approx(float(fire_snapshot.get("chest_square_correction_deg", 1.0))),
+		"moving FIRE_RECOVERY keeps the authored square frame free of procedural clavicle correction"
+	)
+	_expect(
+		(
+			not combat_ready_ccdik.has("active_weight")
+			or is_zero_approx(float(combat_ready_ccdik.get("active_weight", 0.0)))
+		)
+		and (
+			not combat_ready_ccdik.has("modifier_influence")
+			or is_zero_approx(float(combat_ready_ccdik.get("modifier_influence", 0.0)))
+		),
+		"FIRE_RECOVERY leaves procedural spine CCDIK inactive"
+	)
+	_expect(
+		(
+			not fire_weapon_pose.has("hand_socket_ik_enabled")
+			or not bool(fire_weapon_pose.get("hand_socket_ik_enabled", true))
+		)
+		and bool(fire_weapon_pose.get("support_hand_socket_ik_enabled", false))
+		and (
+			not fire_weapon_pose.has("weapon_solver_owned")
+			or not bool(fire_weapon_pose.get("weapon_solver_owned", true))
+		),
+		"FIRE_RECOVERY enables only support-hand contact while weapon-solver ownership stays inactive"
 	)
 	_expect(
 		float(fire_snapshot.get("fire_upper_body_grace_seconds", 0.0)) > 1.0,
 		"Fire retains upper-body ownership during the ready grace period"
+	)
+	var standing_latch: Dictionary = fire_snapshot.get("fire_upper_body_latch", {})
+	_expect(
+		StringName(standing_latch.get("owner_state", &"")) == &"FIRE_RECOVERY"
+		and StringName(standing_latch.get("posture", &"")) == &"STANDING",
+		"accepted standing shot enters FIRE_RECOVERY without a trigger-held owner"
 	)
 	var standing_fire_count := int(fire_snapshot.get("fire_trigger_count", 0))
 	for _frame in range(120):
@@ -188,9 +308,9 @@ func _run() -> void:
 	var held_snapshot: Dictionary = driver.get_animation_debug_state()
 	var held_latch: Dictionary = held_snapshot.get("fire_upper_body_latch", {})
 	_expect(
-		bool(held_latch.get("selected", false))
-		and bool(held_latch.get("trigger_held", false)),
-		"held automatic fire keeps one persistent upper-body owner"
+		not bool(held_latch.get("selected", true))
+		and StringName(held_latch.get("owner_state", &"")) == &"BASE",
+		"held fire input cannot extend recovery without another accepted shot"
 	)
 	_expect(
 		int(held_snapshot.get("fire_trigger_count", -1)) == standing_fire_count,
@@ -202,11 +322,30 @@ func _run() -> void:
 	)
 	for _frame in range(20):
 		driver._process(1.0 / 60.0)
+	var crouch_base_snapshot: Dictionary = driver.get_animation_debug_state()
+	var crouch_base_latch: Dictionary = crouch_base_snapshot.get(
+		"fire_upper_body_latch", {}
+	)
+	_expect(
+		StringName(crouch_base_latch.get("owner_state", &"")) == &"BASE"
+		and driver.current_clip == &"idle_crouch",
+		"crouched held fire stays in crouched base without an accepted shot"
+	)
+	_expect(driver.notify_fired(), "accepted crouched shot starts recovery")
+	for _frame in range(4):
+		driver._process(1.0 / 60.0)
 	var crouch_snapshot: Dictionary = driver.get_animation_debug_state()
+	var crouch_latch: Dictionary = crouch_snapshot.get("fire_upper_body_latch", {})
 	var crouch_pose: Dictionary = crouch_snapshot.get("weapon_pose", {})
 	var crouch_head := Vector3(crouch_pose.get("head_position", Vector3.ZERO))
 	var crouch_trigger := Vector3(crouch_pose.get("trigger_hand_target", Vector3.ZERO))
 	var crouch_support := Vector3(crouch_pose.get("support_hand_target", Vector3.ZERO))
+	_expect(
+		StringName(crouch_latch.get("owner_state", &"")) == &"FIRE_RECOVERY"
+		and StringName(crouch_latch.get("posture", &"")) == &"CROUCHED"
+		and driver.current_clip == &"idle_crouch",
+		"accepted crouched shot uses FIRE_RECOVERY over the crouched base"
+	)
 	_expect(
 		crouch_trigger.y <= crouch_head.y + 0.02
 		and crouch_support.y <= crouch_head.y + 0.02,
@@ -216,6 +355,7 @@ func _run() -> void:
 		Vector2.ZERO, &"PRONE", 0.0, 0.0, 0.0, true, 0.0,
 		0.0, &"PRONE", 0.0, &"WALK", 0.0
 	)
+	_expect(driver.notify_fired(), "accepted prone shot starts recovery")
 	for _frame in range(20):
 		driver._process(1.0 / 60.0)
 	var prone_snapshot: Dictionary = driver.get_animation_debug_state()
@@ -250,7 +390,7 @@ func _run() -> void:
 				&""
 			)
 		) == &"30_FireTorsoShoulderArms",
-		"trigger release retains the fire owner during grace"
+		"accepted shot retains the fire owner during recovery"
 	)
 	for _frame in range(60):
 		driver._process(1.0 / 60.0)
@@ -262,10 +402,26 @@ func _run() -> void:
 				&""
 			)
 		) == &"10_BaseAnimation",
-		"fire owner returns once after trigger release and grace"
+		"fire owner returns once after accepted-shot recovery"
 	)
 	var latch = driver.get("fire_upper_body_latch")
 	if latch != null:
+		latch.clear()
+		latch.configure(1.2)
+		latch.set_context(&"CROUCHED", false)
+		latch.notify_accepted_shot()
+		latch.advance(1.19, false)
+		_expect(
+			StringName(latch.owner_state()) == &"FIRE_RECOVERY"
+			and StringName(latch.posture) == &"CROUCHED",
+			"crouched accepted shot remains in recovery through 1.19 seconds"
+		)
+		latch.advance(0.02, false)
+		_expect(
+			StringName(latch.owner_state()) == &"BASE"
+			and not latch.is_selected(),
+			"fire recovery returns to crouched base after the 1.2-second boundary"
+		)
 		latch.notify_accepted_shot()
 		latch.advance(2.0, true)
 		_expect(

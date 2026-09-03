@@ -1,0 +1,117 @@
+{
+  "schema_version": 1,
+  "feature_id": "cod_style_reload_commit_timeline",
+  "player_intent": "Reloading stays visible and continuous through every movement technique. It ends only when the authored reload finishes or a fire click interrupts it to shoot ammunition already available in the magazine.",
+  "acceptance_rule": "Standing, crouch, prone, sprint, jump, dive, roll, vault, and landing cannot cancel or restart an active reload. The magazine-in cue commits ammunition exactly once. A fire click with at least one chambered magazine round cancels the reload before the weapon processes that same shot; an empty magazine cannot cancel its required reload. Authored completion ends the reload normally.",
+  "canonical_scene": "res://main.tscn",
+  "ownership": {
+    "reload_transaction": "SocomWeaponReloadCoordinator",
+    "ammo_write": "SocomWeaponController",
+    "timing_cue": "SocomOperatorAnimationDriver",
+    "timeline_data": "WeaponReloadVisualTimeline"
+  },
+  "nodes": [
+    {
+      "id": "reload_transaction_coordinator",
+      "type": "Node",
+      "role": "Owns reload generation, fire interruption, ammo commit timing, and authored completion.",
+      "owner": "SocomWeaponReloadCoordinator",
+      "source_script": "res://scripts/runtime/main_weapon_runtime.gd",
+      "code_symbols": [
+        "ReloadCoordinator.new()",
+        "reload_coordinator.configure(player, weapon_controller)"
+      ]
+    },
+    {
+      "id": "reload_timing_consumer",
+      "type": "Node3D",
+      "role": "Consumes the authored magazine-in frame and emits one presentation timing cue without writing ammunition.",
+      "owner": "SocomOperatorAnimationDriver",
+      "source_script": "res://scripts/player/operator_animation_driver_actions.gd",
+      "code_symbols": [
+        "WeaponReloadVisualTimeline.EVENT_MAGAZINE_IN",
+        "reload_commit_cue.emit(requested_action)"
+      ]
+    },
+    {
+      "id": "persistent_upper_body_reload_layer",
+      "type": "AnimationNodeOneShot",
+      "role": "Keeps one accepted reload clip on one masked upper-body playhead while the continuous lower-body graph changes posture or mobility state underneath it.",
+      "owner": "SocomOperatorLocomotionBlendTree",
+      "source_script": "res://scripts/player/operator_locomotion_blend_tree.gd",
+      "code_symbols": [
+        "crouched_reload_animation_node.animation = clip_name",
+        "parameters/crouched_reload_layer/request",
+        "parameters/standing_reload_layer/request"
+      ]
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://config/weapons/m4a1.json",
+      "writer": "res://scripts/labs/gunsmith/gunsmith_config_serializer.gd",
+      "readers": [
+        "res://scripts/weapons/weapon_reload_visual_timeline.gd",
+        "res://scripts/player/operator_animation_driver_actions.gd"
+      ]
+    },
+    {
+      "path": "res://config/operator_animation_map.json",
+      "writer": "res://scripts/player/operator_animation_profile.gd",
+      "readers": [
+        "res://scripts/player/operator_locomotion_blend_tree.gd",
+        "res://scripts/player/operator_animation_driver_presentation.gd"
+      ]
+    }
+  ],
+  "must_not_change": [
+    "camera transforms or shoulder switching",
+    "movement state authority",
+    "shot validation or damage authority",
+    "reticle presentation",
+    "network authority boundaries",
+    "authored animation transforms"
+  ],
+  "system_delta": {
+    "decision": "REPLACE",
+    "reason": "Replace movement cancellation, posture-specific visual restarts, and the unconditional recovery trigger lock with one continuous upper-body reload timeline. Keep the existing magazine-in transaction, but let a fire click with remaining ammunition request the sole coordinator to cancel before the weapon processes that shot.",
+    "current": {
+      "system": "Reload timeline cancelled by displacement movement and locked against all fire",
+      "correctness": 2,
+      "ownership_clarity": 3,
+      "runtime_parity": 4,
+      "editor_usability": 3,
+      "performance": 5,
+      "regression_coverage": 2,
+      "evidence_paths": [
+        "res://scripts/runtime/weapon_reload_coordinator.gd",
+        "res://tools/weapon_auto_reload_regression.gd"
+      ]
+    },
+    "candidate": {
+      "system": "Movement- and posture-persistent authored reload with one uninterrupted upper-body playhead and accepted fire interruption",
+      "correctness": 5,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 4,
+      "performance": 5,
+      "regression_coverage": 5,
+      "evidence_paths": [
+        "res://scripts/player/operator_animation_driver_actions.gd",
+        "res://scripts/runtime/weapon_reload_coordinator.gd",
+        "res://scripts/runtime/main_weapon_runtime.gd",
+        "res://scripts/weapons/socom_weapon_controller.gd",
+        "res://tools/weapon_auto_reload_regression.gd",
+        "res://tools/gameplay_reload_completion_regression.gd"
+      ]
+    }
+  },
+  "proof_scripts": [
+    "res://tools/weapon_auto_reload_regression.gd",
+    "res://tools/gameplay_reload_completion_regression.gd",
+    "res://tools/operator_animation_regression.gd",
+    "res://tools/test_dynamic_reload_handoff.gd",
+    "res://tools/feature_contract_regression.gd"
+  ],
+  "visual_check": "In main.tscn, begin one reload and move through standing, crouch, prone, sprint, jump, dive, roll, vault, and landing without restarting its playhead. Let it finish once. Then begin a partial-magazine reload and click fire before the magazine-in cue; the reload must cancel and that click must fire one remaining round. An empty-magazine fire click must leave its reload running."
+}

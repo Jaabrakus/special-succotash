@@ -1,0 +1,29 @@
+[gd_scene format=3 uid="uid://dlud50bj8poeu"]
+
+[ext_resource type="PackedScene" path="res://scenes/player/new_ik_operator_visual.tscn" id="1_model"]
+[ext_resource type="PackedScene" path="res://scenes/player/socom_ik_control_graph.tscn" id="2_controls"]
+
+[node name="CanonicalSocomOperatorRig" type="Node3D" unique_id=1194397073]
+
+[node name="VisualModel" parent="." unique_id=297847656 instance=ExtResource("1_model")]
+transform = Transform3D(-62, 0, -5.4202123e-06, 0, 62, 0, 5.4202123e-06, 0, -62, 0, 0, 0)
+
+[node name="IKControlGraph" parent="." unique_id=235914844 instance=ExtResource("2_controls")]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 0, 0)
+
+[node name="RHUpperArmWeaponTarget" parent="IKControlGraph/TargetPivot" index="0"]
+transform = Transform3D(0.1600019, -0.4424553, 0.8824008, 0.23056933, -0.8524405, -0.4692382, 0.9598095, 0.27853477, -0.034375425, -0.1949999, 0.33229828, 0.2581123)
+
+[node name="Handle" parent="IKControlGraph/TargetPivot/RHUpperArmWeaponTarget" index="0"]
+transform = Transform3D(0.99999976, 0, -2.2351742e-08, -5.9604645e-08, 0.9999999, -6.891787e-08, -1.8626451e-08, -9.313226e-10, 0.9999998, -0.29431093, -0.0009267926, 0.052901387)
+
+[node name="RHWeaponTarget" parent="IKControlGraph/TargetPivot" index="1"]
+transform = Transform3D(-0.034893986, 0.0042795064, 0.9993797, 0.9850655, 0.16884746, 0.033669736, -0.16859928, 0.9856317, -0.010108178, 0.14689684, -1.2006341, -0.041627876)
+
+[node name="LHWeaponContactTarget" parent="IKControlGraph/TargetPivot" index="2"]
+transform = Transform3D(-0.5208456, -0.8466786, -0.10888432, 0.37506327, -0.34155184, 0.86178374, -0.76684296, 0.4080172, 0.49545252, 0.081, 0.288638, 0.221)
+
+[node name="SpineTargetWeaponAim" parent="IKControlGraph/TargetPivot" index="3"]
+transform = Transform3D(0.8386705, 0, -0.544639, 0, 0.9999999, 0, 0.544639, 0, 0.83867043, 1.0963284e-08, 0.32832932, 0.0034103547)
+
+[editable path="IKControlGraph"]

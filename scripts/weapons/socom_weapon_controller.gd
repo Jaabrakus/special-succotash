@@ -17,6 +17,7 @@ signal authoritative_shot(result: Dictionary)
 signal ammo_changed(rounds_in_magazine: int, reserve_rounds: int)
 signal weapon_equipped(result: Dictionary)
 signal fire_mode_changed(fire_mode: String)
+signal reload_fire_interrupt_requested
 
 var player: CharacterBody3D
 var camera_rig
@@ -81,7 +82,8 @@ var reticle_profile: Dictionary = {
 func configure(target_player: CharacterBody3D, target_camera) -> void:
 	player = target_player
 	camera_rig = target_camera
-	mannequin = player.get_node_or_null("Mannequin") if player != null else null
+	var child_mannequin: Node = player.get_node_or_null("Mannequin") if player != null else null
+	mannequin = child_mannequin if child_mannequin != null else player
 	_bind_player_ammunition_inventory()
 	ballistics = Ballistics.new()
 	ballistics.name = "WeaponBallistics"
@@ -236,7 +238,10 @@ func _physics_process(delta: float) -> void:
 	if player == null or camera_rig == null:
 		return
 	var horizontal_speed := Vector2(player.velocity.x, player.velocity.z).length()
-	var maximum_speed := maxf(float(player.get("move_speed")), 0.001)
+	var raw_speed = player.get("move_speed") if player != null else null
+	if raw_speed == null and player != null:
+		raw_speed = player.get("SPEED")
+	var maximum_speed := maxf(float(raw_speed if raw_speed != null else 5.0), 0.001)
 	_movement_ratio = clampf(horizontal_speed / maximum_speed, 0.0, 1.0)
 	var current_yaw := float(camera_rig.yaw)
 	var yaw_speed := absf(angle_difference(_last_camera_yaw, current_yaw)) / maxf(delta, 0.0001)
@@ -274,12 +279,18 @@ func _physics_process(delta: float) -> void:
 func _process(_delta: float) -> void:
 	if ballistics == null:
 		return
-	var local_fire_allowed := (
+	var local_input_allowed := (
 		input_enabled
-		and not _reload_blocks_fire()
 		and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
 		and not OS.get_cmdline_user_args().has("--automated-test")
 	)
+	if (
+		local_input_allowed
+		and _reload_blocks_fire()
+		and Input.is_action_just_pressed("fire")
+	):
+		reload_fire_interrupt_requested.emit()
+	var local_fire_allowed := local_input_allowed and not _reload_blocks_fire()
 	var trigger_held := local_fire_allowed and Input.is_action_pressed("fire")
 	var trigger_pressed := local_fire_allowed and Input.is_action_just_pressed("fire")
 	if not local_fire_allowed:
@@ -320,9 +331,9 @@ func request_fire() -> Dictionary:
 		return {"fired": false, "reason": "MAGAZINE_EMPTY"}
 
 	var active_muzzle: Node3D = (
-		mannequin.get_active_muzzle_marker()
-		if mannequin.has_method("get_active_muzzle_marker")
-		else mannequin.muzzle_marker
+		mannequin.call("get_active_muzzle_marker")
+		if mannequin != null and mannequin.has_method("get_active_muzzle_marker")
+		else (mannequin.get("muzzle_marker") as Node3D if mannequin != null else null)
 	)
 	if active_muzzle == null:
 		return {"fired": false, "reason": "WEAPON_NOT_READY"}

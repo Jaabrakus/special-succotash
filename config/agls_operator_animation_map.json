@@ -1,0 +1,204 @@
+{
+  "schema_version": 1,
+  "replace_defaults": false,
+  "root_motion_policy": "visual_only",
+  "clips": {
+    "idle_rifle": "res://assets/animations/mixamo/Lite Rifle Pack/idle.fbx",
+    "aim_idle": "res://assets/external/agls_intake/imported/locomotion_idle/MM_Neutral_Stand_Idle_Loop.scn",
+    "aim_idle_m4a1": "res://scenes/player/native_ik_reference_source.tscn",
+    "aim_sweep_standing_m4a1": "res://assets/external/agls_intake/imported/weapon_hold/ALS_Props_Rifle_Aim_Sweep.scn",
+    "aim_sweep_crouched_m4a1": "res://assets/external/agls_intake/imported/weapon_hold/ALS_Props_Rifle_Aim_Sweep_Crouched.scn",
+    "aim_sweep_prone_m4a1": "res://assets/external/agls_intake/imported/weapon_hold/ALS_Crawl_Props_Rifle_Aim_Sweep.scn",
+
+    "walk_forward": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/walk forward.fbx",
+    "walk_backward": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/walk backward.fbx",
+    "walk_left": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/walk left.fbx",
+    "walk_right": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/walk right.fbx",
+    "walk_forward_left": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/walk forward left.fbx",
+    "walk_forward_right": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/walk forward right.fbx",
+    "walk_back_left": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/walk backward left.fbx",
+    "walk_back_right": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/walk backward right.fbx",
+
+    "run_forward": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/sprint forward.fbx",
+    "run_backward": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/sprint backward.fbx",
+    "run_left": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/sprint left.fbx",
+    "run_right": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/sprint right.fbx",
+    "run_forward_left": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/sprint forward left.fbx",
+    "run_forward_right": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/sprint forward right.fbx",
+    "run_back_left": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/sprint backward left.fbx",
+    "run_back_right": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/sprint backward right.fbx",
+
+    "idle_crouch": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/idle crouching.fbx",
+    "idle_crouch_m4a1": "res://assets/external/agls_intake/imported/weapon_hold/ALS_Props_Rifle_Aim_Sweep_Crouched.scn",
+    "crouch_forward": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/walk crouching forward.fbx",
+    "crouch_backward": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/walk crouching backward.fbx",
+    "crouch_left": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/walk crouching left.fbx",
+    "crouch_right": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/walk crouching right.fbx",
+    "crouch_forward_left": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/walk crouching forward left.fbx",
+    "crouch_forward_right": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/walk crouching forward right.fbx",
+    "crouch_back_left": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/walk crouching backward left.fbx",
+    "crouch_back_right": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/walk crouching backward right.fbx",
+
+    "idle_prone": "res://assets/animations/mixamo/Prone Forward Stop.fbx",
+    "idle_prone_m4a1": "res://assets/external/agls_intake/imported/weapon_hold/ALS_Crawl_Props_Rifle_M4A1_Poses.scn",
+    "prone_forward": "res://assets/animations/mixamo/Prone Forward.fbx",
+    "prone_backward": "res://assets/animations/mixamo/Moving Backward In Prone Position.fbx",
+    "prone_turn_left": "res://assets/animations/mixamo/Prone Left Turn.fbx",
+    "prone_turn_right": "res://assets/animations/mixamo/Prone Left Turn.fbx",
+
+    "turn_90_left": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/turn 90 left.fbx",
+    "turn_90_right": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/turn 90 right.fbx",
+    "roll": "res://assets/animations/mixamo/Run To Rolling.fbx",
+    "dive_roll": "res://assets/animations/mixamo/Running Dive Roll.fbx",
+    "jump_up": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/jump up.fbx",
+    "jump_up_standing": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/jump up.fbx",
+    "jump_loop": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/jump loop.fbx",
+    "jump_down": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/jump down.fbx",
+    "jump_down_moving": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/jump down.fbx",
+
+    "reload": "res://assets/external/agls_intake/imported/weapon_reload/ALSP2_Reloading_Rifle.scn",
+    "reload_m4a1": "res://assets/external/agls_intake/imported/weapon_reload/ALSP2_Reloading_Rifle_M4A4.scn",
+    "crouch_reload": "res://assets/external/agls_intake/imported/weapon_reload/ALSP2_Reloading_Rifle.scn",
+    "prone_reload": "res://assets/external/agls_intake/imported/weapon_reload/ALSP2_Reloading_Rifle.scn",
+    "combat_fire": "res://assets/external/agls_intake/imported/weapon_recoil/ALSv2_Rifle_Recoil_Offset_01.scn",
+    "crouch_fire": "res://assets/external/agls_intake/imported/weapon_recoil/ALSv2_Rifle_Recoil_Offset_01.scn",
+    "prone_fire": "res://assets/external/agls_intake/imported/weapon_recoil/ALSv2_Rifle_Recoil_Offset_01.scn",
+
+    "crouch_to_prone": "res://assets/animations/mixamo/Rifle Kneel To Prone.fbx",
+    "crouch_to_stand": "res://assets/animations/mixamo/Crouch To Standing With Rifle.fbx",
+    "grenade_toss": "res://assets/external/agls_intake/imported/grenade/ALSv2_GrenadeThrow_01.scn",
+    "grenade_throw": "res://assets/external/agls_intake/imported/grenade/ALSv2_GrenadeThrow_01.scn",
+    "crouch_grenade_toss": "res://assets/external/agls_intake/imported/grenade/ALSv2_GrenadeThrow_01.scn",
+    "climb": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Hanging_Idle_Loop.scn"
+  },
+  "clip_source_names": {
+    "aim_idle_m4a1": "@CURRENT_POSE"
+  },
+  "mirrored_clips": {
+    "crouch_back_left": "crouch_back_right",
+    "run_back_left": "run_back_right",
+    "walk_back_left": "walk_back_right",
+    "walk_forward_left": "walk_forward_right",
+    "walk_left": "walk_right"
+  },
+  "leg_mirrored_clips": {
+    "crouch_forward_left": "crouch_forward_right",
+    "run_forward_left": "run_forward_right"
+  },
+  "clip_aliases": {
+    "crouch_left": "crouch_forward_left",
+    "crouch_right": "crouch_forward_right"
+  },
+  "pose_yaw_offsets_degrees": {
+    "crouch_left": 6.0,
+    "crouch_right": -6.0,
+    "run_left": 6.0,
+    "run_right": -6.0
+  },
+  "state_rules": {
+    "reload": {
+      "layer": "UPPER_BODY",
+      "blend_in_seconds": 0.08,
+      "blend_out_seconds": 0.14,
+      "return_state": "CURRENT_BASE"
+    },
+    "reload_m4a1": {
+      "layer": "UPPER_BODY",
+      "blend_in_seconds": 0.08,
+      "blend_out_seconds": 0.14,
+      "return_state": "CURRENT_BASE"
+    },
+    "crouch_reload": {
+      "layer": "UPPER_BODY",
+      "blend_in_seconds": 0.08,
+      "blend_out_seconds": 0.14,
+      "return_state": "CURRENT_BASE"
+    },
+    "prone_reload": {
+      "layer": "UPPER_BODY",
+      "blend_in_seconds": 0.08,
+      "blend_out_seconds": 0.14,
+      "return_state": "CURRENT_BASE"
+    },
+    "combat_fire": {
+      "layer": "UPPER_BODY",
+      "blend_in_seconds": 0.02,
+      "blend_out_seconds": 0.06,
+      "return_state": "CURRENT_BASE"
+    },
+    "crouch_fire": {
+      "layer": "UPPER_BODY",
+      "blend_in_seconds": 0.02,
+      "blend_out_seconds": 0.06,
+      "return_state": "CURRENT_BASE"
+    },
+    "prone_fire": {
+      "layer": "UPPER_BODY",
+      "blend_in_seconds": 0.02,
+      "blend_out_seconds": 0.06,
+      "return_state": "CURRENT_BASE"
+    }
+  },
+  "event_routes": {
+    "FIRE_ACCEPTED": {
+      "default_state": "combat_fire",
+      "posture_states": {
+        "STANDING": "combat_fire",
+        "CROUCHED": "crouch_fire",
+        "PRONE": "prone_fire"
+      },
+      "interrupt_policy": "RESTART",
+      "priority": 60,
+      "effects": ["ENTER_READY_AIM"]
+    },
+    "RELOAD_STARTED": {
+      "default_state": "reload",
+      "posture_states": {
+        "STANDING": "reload",
+        "CROUCHED": "crouch_reload",
+        "PRONE": "prone_reload"
+      },
+      "interrupt_policy": "REPLACE",
+      "priority": 70,
+      "effects": []
+    },
+    "WEAPON_EQUIPPED": {
+      "default_state": "aim_idle",
+      "posture_states": {
+        "STANDING": "aim_idle",
+        "CROUCHED": "idle_crouch",
+        "PRONE": "idle_prone"
+      },
+      "interrupt_policy": "REPLACE",
+      "priority": 80,
+      "effects": ["APPLY_WEAPON_FAMILY"]
+    }
+  },
+  "transitions": {
+    "enabled": true,
+    "standing_enabled": false,
+    "planted_turn_degrees": 34.0,
+    "planted_turn_seconds": 0.3,
+    "reversal_dot_threshold": -0.55,
+    "reversal_seconds": 0.22,
+    "start_seconds": 0.18,
+    "stop_seconds": 0.2
+  },
+  "locomotion": {
+    "walk_nominal_speed_mps": 2.15,
+    "full_nominal_speed_mps": 6.25,
+    "crouch_nominal_speed_mps": 2.60,
+    "prone_nominal_speed_mps": 1.25,
+    "direction_response": 16.0,
+    "direction_turn_playback_floor": 0.72,
+    "standing_sprint_only": true,
+    "lateral_snap_threshold": 0.92,
+    "maximum_playback_rate": 1.32,
+    "minimum_playback_rate": 0.72,
+    "rendered_direction_response": 8.0,
+    "speed_blend_end": 0.86,
+    "speed_blend_response": 12.0,
+    "speed_blend_start": 0.38,
+    "visual_playback_scale": 0.88
+  }
+}

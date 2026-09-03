@@ -45,10 +45,11 @@ func apply(
 		return
 	var raw_pose: Variant = weapon.get_meta("support_hand_pose", {})
 	var pose: Dictionary = raw_pose if raw_pose is Dictionary else {}
-	var curl := clampf(float(pose.get("finger_curl", 0.0)), 0.0, 1.0)
-	var thumb := clampf(float(pose.get("thumb_wrap", 0.0)), 0.0, 1.0)
+	var curl := clampf(float(pose.get("finger_curl", 0.72)), 0.0, 1.0)
+	var thumb := clampf(float(pose.get("thumb_wrap", 0.64)), 0.0, 1.0)
 	if curl <= 0.001 and thumb <= 0.001:
-		return
+		curl = 0.72
+		thumb = 0.64
 
 	# The trigger palm remains attached for every rifle state except grenade.
 	# Keep its index finger comparatively open while the other fingers retain

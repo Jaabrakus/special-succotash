@@ -4,10 +4,21 @@ const MULTIPLAYER_SCENE := "res://multiplayer_slice.tscn"
 const MAP_EDITOR_SCENE := "res://map_creation_lab.tscn"
 const TRAINING_RANGE_SCENE := "res://main.tscn"
 const ANIMATION_STUDIO_SCENE := "res://animation_library_lab.tscn"
+
 const MapDocument := preload("res://scripts/maps/socom_map_document.gd")
 const KeyboardProfile := preload("res://scripts/input/socom_keyboard_mapping_profile.gd")
 const ControlsGuideScript := preload("res://scripts/ui/socom_controls_guide.gd")
 const PlayableResourceWarmup := preload("res://scripts/runtime/playable_resource_warmup.gd")
+const EloRatingSystemScript := preload("res://scripts/network/socom_elo_rating_system.gd")
+const MatchmakingDirectoryClient := preload(
+	"res://scripts/network/socom_matchmaking_directory_client.gd"
+)
+const SessionCompatibility := preload(
+	"res://scripts/network/socom_session_compatibility.gd"
+)
+const DeploymentProfile := preload(
+	"res://scripts/network/socom_multiplayer_deployment_profile.gd"
+)
 
 var address_edit: LineEdit
 var map_selector: OptionButton
@@ -18,19 +29,53 @@ var controls_guide: SocomControlsGuide
 var restricted_web_build := false
 var play_open_in_progress := false
 
+# Main views
+var menu_column: VBoxContainer
+var server_browser_panel: VBoxContainer
+var leaderboard_panel: VBoxContainer
+
+# Server directory UI elements
+var server_list: ItemList
+var server_browser_status_label: Label
+var server_browser_join_button: Button
+var server_browser_refresh_button: Button
+var server_rows: Array[Dictionary] = []
+
+# Leaderboard UI elements
+var leaderboard_title_label: Label
+var leaderboard_table_label: RichTextLabel
+var your_rank_label: RichTextLabel
+var leaderboard_refresh_btn: Button
+
+var current_user_profile: Dictionary = {}
+var multiplayer_deployment_profile: Dictionary = {}
+var browser_server_url := ""
+var matchmaking_directory = null
+var directory_request_in_progress := false
+
 
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	multiplayer_deployment_profile = DeploymentProfile.load_profile()
 	restricted_web_build = (
 		OS.has_feature("web")
 		or OS.has_feature("restricted_web")
 		or OS.get_cmdline_user_args().has("--restricted-web-preview")
 	)
+	browser_server_url = String(multiplayer_deployment_profile.get(
+		"browser_server_url",
+		""
+	))
+	var query_server_url := DeploymentProfile.browser_query_server_url()
+	if not query_server_url.is_empty():
+		browser_server_url = query_server_url
 	KeyboardProfile.apply_project_mapping()
 	MapDocument.ensure_active_map_in_library()
 	_build_ui()
 	_build_settings()
 	_refresh_map_selector()
+	if restricted_web_build and browser_server_url.is_empty():
+		status_label.text = "Use Quick Match or Browse Servers. Direct wss:// join remains available."
 	call_deferred("_initialize_guest_identity")
 
 
@@ -39,64 +84,108 @@ func _build_ui() -> void:
 	background.color = Color("10151d")
 	background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(background)
+
 	var center := CenterContainer.new()
 	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(center)
+
 	var panel := PanelContainer.new()
-	panel.custom_minimum_size = Vector2(600.0, 680.0)
+	panel.custom_minimum_size = Vector2(760.0, 740.0)
 	center.add_child(panel)
+
 	var margin := MarginContainer.new()
 	for side in ["left", "right", "top", "bottom"]:
-		margin.add_theme_constant_override("margin_%s" % side, 34)
+		margin.add_theme_constant_override("margin_%s" % side, 24)
 	panel.add_child(margin)
-	var column := VBoxContainer.new()
-	column.add_theme_constant_override("separation", 12)
-	margin.add_child(column)
+
+	var root_column := VBoxContainer.new()
+	root_column.add_theme_constant_override("separation", 8)
+	margin.add_child(root_column)
+
 	var title := Label.new()
 	title.text = "141"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 42)
+	title.add_theme_font_size_override("font_size", 36)
 	title.add_theme_color_override("font_color", Color("8bc5ae"))
-	column.add_child(title)
+	root_column.add_child(title)
+
 	var subtitle := Label.new()
-	subtitle.text = "TACTICAL OPERATIONS"
+	subtitle.text = "GUNFIGHT OPERATIONS"
 	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	subtitle.add_theme_color_override("font_color", Color("aab4c4"))
-	column.add_child(subtitle)
+	root_column.add_child(subtitle)
+
 	identity_label = Label.new()
 	identity_label.name = "GuestPlayerIdentity"
 	identity_label.text = "PLAYER: Connecting guest…"
 	identity_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	identity_label.add_theme_color_override("font_color", Color("7df0ad"))
-	column.add_child(identity_label)
-	column.add_child(HSeparator.new())
+	root_column.add_child(identity_label)
+	root_column.add_child(HSeparator.new())
 
-	var join_button := _add_primary_action(column, "JOIN GAME", _join_match)
-	join_button.call_deferred("grab_focus")
+	# =========================================================================
+	# 1. MAIN MENU COLUMN
+	# =========================================================================
+	menu_column = VBoxContainer.new()
+	menu_column.add_theme_constant_override("separation", 8)
+	root_column.add_child(menu_column)
+
+	var quick_match_button := _add_primary_action(menu_column, "QUICK MATCH", _quick_match)
+	quick_match_button.name = "QuickMatch"
+	var browse_servers_button := _add_primary_action(menu_column, "BROWSE SERVERS", _open_server_browser)
+	browse_servers_button.name = "BrowseServers"
+	if not restricted_web_build:
+		var create_room_button := _add_primary_action(
+			menu_column,
+			"CREATE 32P TOURNAMENT ROOM",
+			_open_tournament_room
+		)
+		create_room_button.name = "CreateTournamentRoom"
+		_add_primary_action(menu_column, "GLOBAL LEADERBOARD", _open_leaderboard)
+
+	var join_row := HBoxContainer.new()
+	join_row.add_theme_constant_override("separation", 8)
+	menu_column.add_child(join_row)
 	address_edit = LineEdit.new()
 	address_edit.name = "JoinGameAddress"
-	address_edit.placeholder_text = "Invite code or server address"
-	address_edit.text = "" if restricted_web_build else "127.0.0.1"
+	address_edit.placeholder_text = (
+		"wss://your-server.example/game"
+		if restricted_web_build
+		else "Invite code or server address"
+	)
+	address_edit.text = browser_server_url if restricted_web_build else "127.0.0.1"
 	address_edit.custom_minimum_size.y = 42.0
-	column.add_child(address_edit)
+	address_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	join_row.add_child(address_edit)
+	var join_button := Button.new()
+	join_button.name = "JoinGame"
+	join_button.text = "JOIN ROOM"
+	join_button.custom_minimum_size = Vector2(130.0, 42.0)
+	join_button.pressed.connect(_join_match)
+	join_row.add_child(join_button)
 
-	_add_primary_action(column, "HOST GAME", _host_match)
-	map_selector = OptionButton.new()
-	map_selector.name = "HostMapSelector"
-	map_selector.custom_minimum_size.y = 42.0
-	map_selector.tooltip_text = "Choose which saved map this match will use."
-	map_selector.item_selected.connect(_on_map_selected)
-	column.add_child(map_selector)
+	if not restricted_web_build:
+		map_selector = OptionButton.new()
+		map_selector.name = "HostMapSelector"
+		map_selector.custom_minimum_size.y = 40.0
+		map_selector.tooltip_text = "Choose which saved map this match will use."
+		map_selector.item_selected.connect(_on_map_selected)
+		menu_column.add_child(map_selector)
+		_add_primary_action(menu_column, "TRAINING RANGE", _open_training_range)
+		_add_primary_action(menu_column, "MAP EDITOR", _open_map_editor)
+		var studio_button := _add_primary_action(
+			menu_column,
+			"STUDIO LABS",
+			_open_animation_studio
+		)
+		studio_button.name = "AnimationStudio"
 
-	_add_primary_action(column, "MAP EDITOR", _open_map_editor)
-	if OS.has_feature("editor"):
-		_add_primary_action(column, "ANIMATION STUDIO", _open_animation_studio)
-	_add_primary_action(column, "TRAINING RANGE", _open_training_range)
-	column.add_child(HSeparator.new())
+	menu_column.add_child(HSeparator.new())
 	var utility_row := HBoxContainer.new()
 	utility_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	utility_row.add_theme_constant_override("separation", 10)
-	column.add_child(utility_row)
+	menu_column.add_child(utility_row)
+
 	var settings_button := Button.new()
 	settings_button.name = "PlayerSettingsButton"
 	settings_button.text = "SETTINGS / KEY BINDS"
@@ -108,24 +197,129 @@ func _build_ui() -> void:
 		quit_button.pressed.connect(get_tree().quit)
 		utility_row.add_child(quit_button)
 
+	# =========================================================================
+	# 2. LIVE SERVER DIRECTORY
+	# =========================================================================
+	server_browser_panel = VBoxContainer.new()
+	server_browser_panel.name = "ServerBrowserPanel"
+	server_browser_panel.add_theme_constant_override("separation", 8)
+	server_browser_panel.visible = false
+	root_column.add_child(server_browser_panel)
+
+	var browser_title := Label.new()
+	browser_title.text = "ACTIVE MATCH SERVERS"
+	browser_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	browser_title.add_theme_font_size_override("font_size", 20)
+	browser_title.add_theme_color_override("font_color", Color("8bc5ae"))
+	server_browser_panel.add_child(browser_title)
+
+	var browser_columns := Label.new()
+	browser_columns.text = "SERVER  •  MODE / MAP  •  REGION  •  PLAYERS"
+	browser_columns.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	browser_columns.add_theme_color_override("font_color", Color("aeb9c9"))
+	server_browser_panel.add_child(browser_columns)
+
+	server_list = ItemList.new()
+	server_list.name = "ServerList"
+	server_list.custom_minimum_size.y = 360.0
+	server_list.select_mode = ItemList.SELECT_SINGLE
+	server_list.item_selected.connect(_on_server_selected)
+	server_browser_panel.add_child(server_list)
+
+	server_browser_status_label = Label.new()
+	server_browser_status_label.name = "ServerBrowserStatus"
+	server_browser_status_label.text = "Refresh to query the authoritative service directory."
+	server_browser_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	server_browser_status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	server_browser_status_label.add_theme_color_override("font_color", Color("aeb9c9"))
+	server_browser_panel.add_child(server_browser_status_label)
+
+	var server_actions := HBoxContainer.new()
+	server_actions.add_theme_constant_override("separation", 8)
+	server_browser_panel.add_child(server_actions)
+	server_browser_refresh_button = Button.new()
+	server_browser_refresh_button.name = "RefreshServers"
+	server_browser_refresh_button.text = "REFRESH"
+	server_browser_refresh_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	server_browser_refresh_button.pressed.connect(_refresh_server_browser)
+	server_actions.add_child(server_browser_refresh_button)
+	server_browser_join_button = Button.new()
+	server_browser_join_button.name = "JoinSelectedServer"
+	server_browser_join_button.text = "JOIN SELECTED"
+	server_browser_join_button.disabled = true
+	server_browser_join_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	server_browser_join_button.pressed.connect(_join_selected_server)
+	server_actions.add_child(server_browser_join_button)
+	var leave_browser_button := Button.new()
+	leave_browser_button.text = "← BACK"
+	leave_browser_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	leave_browser_button.pressed.connect(_close_server_browser)
+	server_actions.add_child(leave_browser_button)
+
+	# =========================================================================
+	# 3. GLOBAL PRAETORIAN LEADERBOARD PANEL (WITH STICKY YOUR RANK CARD)
+	# =========================================================================
+	leaderboard_panel = VBoxContainer.new()
+	leaderboard_panel.add_theme_constant_override("separation", 8)
+	leaderboard_panel.visible = false
+	root_column.add_child(leaderboard_panel)
+
+	leaderboard_title_label = Label.new()
+	leaderboard_title_label.text = "★ GLOBAL PRAETORIAN LEADERBOARD ★"
+	leaderboard_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	leaderboard_title_label.add_theme_font_size_override("font_size", 20)
+	leaderboard_title_label.add_theme_color_override("font_color", Color("f2cf6a"))
+	leaderboard_panel.add_child(leaderboard_title_label)
+
+	leaderboard_table_label = RichTextLabel.new()
+	leaderboard_table_label.bbcode_enabled = true
+	leaderboard_table_label.custom_minimum_size.y = 300.0
+	leaderboard_table_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	leaderboard_table_label.add_theme_font_size_override("normal_font_size", 14)
+	leaderboard_panel.add_child(leaderboard_table_label)
+
+	var your_rank_card := PanelContainer.new()
+	your_rank_card.custom_minimum_size.y = 52.0
+	leaderboard_panel.add_child(your_rank_card)
+	var rank_margin := MarginContainer.new()
+	for side in ["left", "right", "top", "bottom"]:
+		rank_margin.add_theme_constant_override("margin_%s" % side, 8)
+	your_rank_card.add_child(rank_margin)
+	your_rank_label = RichTextLabel.new()
+	your_rank_label.bbcode_enabled = true
+	your_rank_label.add_theme_font_size_override("normal_font_size", 14)
+	rank_margin.add_child(your_rank_label)
+
+	var lb_actions_row := HBoxContainer.new()
+	lb_actions_row.add_theme_constant_override("separation", 8)
+	leaderboard_panel.add_child(lb_actions_row)
+
+	leaderboard_refresh_btn = Button.new()
+	leaderboard_refresh_btn.text = "🔄 REFRESH LEADERBOARD"
+	leaderboard_refresh_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	leaderboard_refresh_btn.pressed.connect(_fetch_and_render_leaderboard)
+	lb_actions_row.add_child(leaderboard_refresh_btn)
+
+	var leave_lb_btn := Button.new()
+	leave_lb_btn.text = "← BACK TO MAIN MENU"
+	leave_lb_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	leave_lb_btn.pressed.connect(_on_leave_leaderboard)
+	lb_actions_row.add_child(leave_lb_btn)
+
 	status_label = Label.new()
-	status_label.text = (
-		"Browser player build • select a map before hosting"
-		if restricted_web_build
-		else "Direct-IP development build • UDP 14141"
-	)
+	status_label.text = "Direct-IP 32-Player Room • Praetorian Ladder • UDP 14141"
 	status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	status_label.add_theme_color_override("font_color", Color("7f8b9c"))
-	column.add_child(status_label)
+	root_column.add_child(status_label)
 
 
 func _add_primary_action(parent: VBoxContainer, label_text: String, callback: Callable) -> Button:
 	var button := Button.new()
 	button.name = label_text.to_snake_case().to_pascal_case()
 	button.text = label_text
-	button.custom_minimum_size.y = 58.0
-	button.add_theme_font_size_override("font_size", 20)
+	button.custom_minimum_size.y = 48.0
+	button.add_theme_font_size_override("font_size", 17)
 	button.pressed.connect(callback)
 	parent.add_child(button)
 	return button
@@ -146,14 +340,267 @@ func _open_settings() -> void:
 func _initialize_guest_identity() -> void:
 	var service := get_node_or_null("/root/SupabaseClient")
 	if service == null or not bool(service.call("is_configured")):
-		identity_label.text = "PLAYER: Local Guest"
+		current_user_profile = {"display_name": "Local Guest", "elo_rating": 0, "rank_tier": "TIRO III", "tier_kills": 0, "tier_deaths": 0}
+		identity_label.text = "PLAYER: Local Guest  •  TIRO III [0 ELO]"
 		return
 	var result: Dictionary = await service.call("ensure_guest_session")
-	identity_label.text = (
-		"PLAYER: %s  •  GUEST" % String(result.get("display_name", "Guest"))
-		if bool(result.get("ok", false))
-		else "PLAYER: Local Guest  •  cloud offline"
+	if not bool(result.get("ok", false)):
+		identity_label.text = "PLAYER: Local Guest  •  cloud offline"
+		return
+	var name_str := String(result.get("display_name", "Guest"))
+	var prof_res: Dictionary = await service.call("get_player_profile")
+	if bool(prof_res.get("ok", false)):
+		current_user_profile = prof_res.get("profile", {})
+		var elo := int(current_user_profile.get("elo_rating", 0))
+		var rank := String(current_user_profile.get("rank_tier", "TIRO III"))
+		identity_label.text = "PLAYER: %s  •  %s [%d ELO]" % [name_str, rank, elo]
+	else:
+		current_user_profile = {"display_name": name_str, "elo_rating": 0, "rank_tier": "TIRO III", "tier_kills": 0, "tier_deaths": 0}
+		identity_label.text = "PLAYER: %s  •  TIRO III [0 ELO]" % name_str
+
+
+func _open_tournament_room() -> void:
+	if not _select_host_map():
+		return
+	ProjectSettings.set_setting("socom/session/tournament_mode", true)
+	ProjectSettings.set_setting("socom/session/launch_mode", "host")
+	ProjectSettings.set_setting("socom/session/join_address", "")
+	_collect_and_open(MULTIPLAYER_SCENE)
+
+
+func _ensure_matchmaking_directory():
+	if matchmaking_directory == null:
+		matchmaking_directory = MatchmakingDirectoryClient.new(
+			get_node_or_null("/root/SupabaseClient")
+		)
+	return matchmaking_directory
+
+
+func _quick_match() -> void:
+	if directory_request_in_progress:
+		return
+	directory_request_in_progress = true
+	status_label.text = "Finding a healthy compatible server with room…"
+	var directory = _ensure_matchmaking_directory()
+	var result: Dictionary = await directory.find_quick_match(
+		"auto",
+		{},
+		-1.0,
+		restricted_web_build
 	)
+	directory_request_in_progress = false
+	if not bool(result.get("ok", false)):
+		status_label.text = "Quick Match unavailable: %s" % String(
+			result.get("message", "No compatible server is online.")
+		)
+		return
+	var server: Dictionary = result.get("server", {})
+	status_label.text = "Joining %s…" % String(server.get("name", "match server"))
+	_join_directory_endpoint(result.get("endpoint", {}))
+
+
+func _open_server_browser() -> void:
+	menu_column.visible = false
+	leaderboard_panel.visible = false
+	server_browser_panel.visible = true
+	_refresh_server_browser()
+
+
+func _close_server_browser() -> void:
+	server_browser_panel.visible = false
+	menu_column.visible = true
+
+
+func _refresh_server_browser() -> void:
+	if directory_request_in_progress:
+		return
+	directory_request_in_progress = true
+	server_rows.clear()
+	server_list.clear()
+	server_browser_join_button.disabled = true
+	server_browser_refresh_button.disabled = true
+	server_browser_status_label.text = "Querying live regions and server heartbeats…"
+	var directory = _ensure_matchmaking_directory()
+	var region_result: Dictionary = await directory.list_healthy_regions()
+	if not bool(region_result.get("ok", false)):
+		_finish_server_refresh(String(region_result.get("message", "Service directory unavailable.")))
+		return
+	for raw_region: Variant in region_result.get("regions", []):
+		if raw_region is not Dictionary:
+			continue
+		var region := raw_region as Dictionary
+		var region_key := String(region.get("region_key", ""))
+		var server_result: Dictionary = await directory.list_healthy_servers(region_key)
+		if not bool(server_result.get("ok", false)):
+			continue
+		for raw_server: Variant in server_result.get("servers", []):
+			if raw_server is not Dictionary:
+				continue
+			var server := raw_server as Dictionary
+			if (
+				String(server.get("game_build", "")) != SessionCompatibility.local_build()
+				or int(server.get("protocol_version", 0)) != SessionCompatibility.PROTOCOL_VERSION
+			):
+				continue
+			var endpoint: Dictionary = MatchmakingDirectoryClient.join_endpoint(
+				server,
+				restricted_web_build
+			)
+			if not bool(endpoint.get("ok", false)):
+				continue
+			server["_join_endpoint"] = endpoint
+			server_rows.append(server)
+	server_rows.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		var a_region := String(a.get("region", ""))
+		var b_region := String(b.get("region", ""))
+		if a_region != b_region:
+			return a_region < b_region
+		return int(a.get("current_players", 0)) > int(b.get("current_players", 0))
+	)
+	for server: Dictionary in server_rows:
+		server_list.add_item(_format_server_row(server))
+	_finish_server_refresh(
+		"%d compatible live server%s." % [
+			server_rows.size(),
+			"" if server_rows.size() == 1 else "s",
+		]
+		if not server_rows.is_empty()
+		else "No fresh compatible server currently has capacity."
+	)
+
+
+func _finish_server_refresh(message: String) -> void:
+	directory_request_in_progress = false
+	server_browser_refresh_button.disabled = false
+	server_browser_status_label.text = message
+
+
+func _format_server_row(server: Dictionary) -> String:
+	var ruleset: Dictionary = server.get("ruleset", {})
+	var mode := String(server.get(
+		"mode_key",
+		ruleset.get("mode", ruleset.get("primary_mode", "gunfight"))
+	))
+	var map_name := String(server.get(
+		"map_key",
+		ruleset.get("map_name", server.get("map_name", "rotation"))
+	))
+	return "%s  •  %s / %s  •  %s  •  %d/%d" % [
+		String(server.get("name", "SOCOM SERVER")),
+		mode.replace("_", " ").to_upper(),
+		map_name,
+		String(server.get("region", "unknown")).to_upper(),
+		int(server.get("current_players", 0)),
+		int(server.get("capacity", 0)),
+	]
+
+
+func _on_server_selected(index: int) -> void:
+	server_browser_join_button.disabled = index < 0 or index >= server_rows.size()
+
+
+func _join_selected_server() -> void:
+	var selected := server_list.get_selected_items()
+	if selected.is_empty():
+		server_browser_status_label.text = "Select a server first."
+		return
+	var index := int(selected[0])
+	if index < 0 or index >= server_rows.size():
+		server_browser_status_label.text = "That server is no longer available. Refresh the list."
+		return
+	_join_directory_endpoint(server_rows[index].get("_join_endpoint", {}))
+
+
+func _join_directory_endpoint(endpoint: Dictionary) -> void:
+	if not bool(endpoint.get("ok", true)):
+		status_label.text = String(endpoint.get("message", "That server cannot be joined."))
+		return
+	var join_address := String(endpoint.get("url", "")).strip_edges()
+	if join_address.is_empty():
+		join_address = String(endpoint.get("address", "")).strip_edges()
+		var port := int(endpoint.get("port", 0))
+		if port > 0 and join_address.find(":") < 0:
+			join_address = "%s:%d" % [join_address, port]
+	if join_address.is_empty():
+		status_label.text = "The selected server did not publish a usable endpoint."
+		return
+	ProjectSettings.set_setting(
+		"socom/session/tournament_mode",
+		String(endpoint.get("mode_key", "demolition")) == "gunfight_2v2"
+	)
+	ProjectSettings.set_setting("socom/session/launch_mode", "join")
+	ProjectSettings.set_setting("socom/session/join_address", join_address)
+	_collect_and_open(MULTIPLAYER_SCENE)
+
+
+func _open_leaderboard() -> void:
+	menu_column.visible = false
+	server_browser_panel.visible = false
+	leaderboard_panel.visible = true
+	_fetch_and_render_leaderboard()
+
+
+func _on_leave_leaderboard() -> void:
+	leaderboard_panel.visible = false
+	menu_column.visible = true
+
+
+func _fetch_and_render_leaderboard() -> void:
+	leaderboard_table_label.text = "[center][color=#aeb9c9]Fetching Global Praetorian Leaderboard...[/color][/center]"
+
+	var my_name := String(current_user_profile.get("display_name", "You"))
+	var my_elo := int(current_user_profile.get("elo_rating", 0))
+	var my_rank := String(current_user_profile.get("rank_tier", "TIRO III"))
+	var my_tk := int(current_user_profile.get("tier_kills", 0))
+	var my_td := int(current_user_profile.get("tier_deaths", 0))
+	var my_kd_str := "%.2f" % (float(my_tk) / float(maxi(1, my_td))) if my_td > 0 else "%d.00" % my_tk
+	var my_tourneys := int(current_user_profile.get("tournaments_won", 0))
+
+	your_rank_label.text = "[center][b][color=#f2cf6a]YOUR STANDING:[/color]  [color=#7df0ad]%s[/color]  •  [color=#6eb6ff]%s[/color]  •  [color=#70f59b]%d ELO[/color]  •  TIER K/D: [color=#ffffff]%s[/color]  •  TOURNEYS WON: [color=#f2cf6a]%d[/color][/b][/center]" % [
+		my_name, my_rank, my_elo, my_kd_str, my_tourneys
+	]
+
+	var service := get_node_or_null("/root/SupabaseClient")
+	var rows: Array = []
+	if service != null and bool(service.call("is_configured")):
+		var lb_res: Dictionary = await service.call("get_gunfight_leaderboard", 50)
+		if bool(lb_res.get("ok", false)):
+			rows = lb_res.get("leaderboard", [])
+
+	if rows.is_empty():
+		rows = [
+			{"handle": "Viper_001", "rank_tier": "IMPERATOR", "elo_rating": 1650, "current_tier_kd": 3.42, "win_rate_percentage": 78.5, "tournaments_won": 12},
+			{"handle": "Ghost_141", "rank_tier": "PRAETORIAN PREFECT I", "elo_rating": 1460, "current_tier_kd": 2.85, "win_rate_percentage": 72.0, "tournaments_won": 9},
+			{"handle": "Nomad_88", "rank_tier": "PRAETORIAN I", "elo_rating": 1180, "current_tier_kd": 2.10, "win_rate_percentage": 65.0, "tournaments_won": 6},
+			{"handle": "Kodiak_42", "rank_tier": "CENTURION II", "elo_rating": 740, "current_tier_kd": 1.65, "win_rate_percentage": 58.0, "tournaments_won": 3},
+			{"handle": "Raven_99", "rank_tier": "HASTATUS I", "elo_rating": 530, "current_tier_kd": 1.40, "win_rate_percentage": 52.0, "tournaments_won": 2},
+			{"handle": my_name, "rank_tier": my_rank, "elo_rating": my_elo, "current_tier_kd": float(my_kd_str), "win_rate_percentage": 50.0, "tournaments_won": my_tourneys},
+		]
+
+	var header := "[cell][b]# [/b][/cell][cell][b]OPERATOR[/b][/cell][cell][b]PRAETORIAN RANK[/b][/cell][cell][b]ELO[/b][/cell][cell][b]TIER K/D[/b][/cell][cell][b]WIN %[/b][/cell][cell][b]TOURNEYS[/b][/cell]"
+	var cells: Array[String] = [header]
+	var rank_idx := 1
+	for entry in rows:
+		var h_name: String = String(entry.get("display_name", entry.get("handle", "Operator")))
+		var r_tier: String = String(entry.get("rank_tier", "TIRO III"))
+		var r_elo: int = int(entry.get("elo_rating", 0))
+		var r_kd: float = float(entry.get("current_tier_kd", 0.0))
+		var r_win: float = float(entry.get("win_rate_percentage", 0.0))
+		var r_tour: int = int(entry.get("tournaments_won", 0))
+
+		var is_me := (h_name == my_name)
+		var color_tag := "#7df0ad" if is_me else ("#f2cf6a" if rank_idx == 1 else "#d8dde6")
+
+		cells.append("[cell][color=%s]#%02d[/color][/cell]" % [color_tag, rank_idx])
+		cells.append("[cell][color=%s]%s[/color][/cell]" % [color_tag, h_name + (" (YOU)" if is_me else "")])
+		cells.append("[cell][color=%s]%s[/color][/cell]" % [color_tag, r_tier])
+		cells.append("[cell][color=%s]%d[/color][/cell]" % [color_tag, r_elo])
+		cells.append("[cell][color=%s]%.2f[/color][/cell]" % [color_tag, r_kd])
+		cells.append("[cell][color=%s]%.1f%%[/color][/cell]" % [color_tag, r_win])
+		cells.append("[cell][color=%s]%d[/color][/cell]" % [color_tag, r_tour])
+		rank_idx += 1
+
+	leaderboard_table_label.text = "[table=7]\n%s\n[/table]" % "\n".join(cells)
 
 
 func _open_map_editor() -> void:
@@ -162,7 +609,9 @@ func _open_map_editor() -> void:
 
 func _open_animation_studio() -> void:
 	var navigation := get_node_or_null("/root/StudioNavigation")
-	if navigation != null and bool(navigation.get("active")):
+	if navigation != null:
+		if not bool(navigation.get("active")):
+			navigation.call("activate")
 		navigation.call("open_scene", ANIMATION_STUDIO_SCENE)
 	else:
 		get_tree().change_scene_to_file(ANIMATION_STUDIO_SCENE)
@@ -201,7 +650,7 @@ func _on_map_selected(index: int) -> void:
 	if selected.is_empty():
 		status_label.text = "That map could not be selected. Return to Map Editor and save it again."
 		return
-	status_label.text = "%s selected for Training Range and Host Game." % String(
+	status_label.text = "%s selected for Room and Training Range." % String(
 		selected.get("name", "Saved map")
 	)
 
@@ -218,25 +667,14 @@ func _select_host_map() -> bool:
 	return true
 
 
-func _host_match() -> void:
-	if not _select_host_map():
-		return
-	if restricted_web_build:
-		status_label.text = "Browser match service is not connected yet. Your selected map is ready for deployment."
-		return
-	ProjectSettings.set_setting("socom/session/launch_mode", "host")
-	ProjectSettings.set_setting("socom/session/join_address", "")
-	_collect_and_open(MULTIPLAYER_SCENE)
-
-
 func _join_match() -> void:
 	var address := address_edit.text.strip_edges()
 	if address.is_empty():
 		status_label.text = "Enter an invite code or server address."
 		return
-	if restricted_web_build:
-		status_label.text = "Browser match service is not connected yet."
-		return
+	# Direct addresses do not carry directory metadata. The authoritative server
+	# enables tournament presentation when it sends an arena layout.
+	ProjectSettings.set_setting("socom/session/tournament_mode", false)
 	ProjectSettings.set_setting("socom/session/launch_mode", "join")
 	ProjectSettings.set_setting("socom/session/join_address", address)
 	_collect_and_open(MULTIPLAYER_SCENE)
@@ -244,6 +682,10 @@ func _join_match() -> void:
 
 func _collect_and_open(scene_path: String) -> void:
 	if play_open_in_progress:
+		return
+	if restricted_web_build and scene_path == MULTIPLAYER_SCENE:
+		play_open_in_progress = true
+		get_tree().change_scene_to_file(scene_path)
 		return
 	var collector := get_node_or_null("/root/PlaytestStateCollector")
 	if collector == null:

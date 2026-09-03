@@ -13,6 +13,12 @@ static func load(lab: Node,w_id: String) -> void:
 	if not d.is_empty():
 		lab._loaded_weapon_profile = d.duplicate(true)
 		lab._load_operator_mount(lab._loaded_weapon_profile)
+		var saved_model_rotation: Variant = d.get("model_rotation_degrees", {})
+		if saved_model_rotation is Dictionary and lab.current_weapon_mesh != null:
+			lab.current_weapon_mesh.rotation_degrees = lab._vector_from_data(
+				saved_model_rotation,
+				lab.current_weapon_mesh.rotation_degrees
+			)
 		lab._load_gun_placement_line_profile(d.get("gun_placement_line", {}))
 		if d.get("animation_hand_maps", {}) is Dictionary:
 			lab.animation_hand_maps = (d.get("animation_hand_maps", {}) as Dictionary).duplicate(true)
@@ -164,7 +170,23 @@ static func load(lab: Node,w_id: String) -> void:
 					lab.composure_graze_damage_scale
 				)
 			)
-		lab.user_scale_multiplier = float(d.get("user_scale_multiplier", lab.user_scale_multiplier))
+		# normalized_scale is the final scale consumed by canonical gameplay. The
+		# editor multiplier is only the temporary ratio used while moving the scale
+		# control; saved profiles already fold it into normalized_scale. Restoring
+		# both values multiplied the scale twice in Gunsmith while main.tscn used the
+		# correct single normalized value.
+		if d.has("normalized_scale"):
+			lab.auto_normalized_scale = maxf(
+				float(d.get("normalized_scale", lab.auto_normalized_scale)),
+				0.000001
+			)
+			lab.user_scale_multiplier = 1.0
+		elif d.has("user_scale_multiplier"):
+			lab.user_scale_multiplier = float(
+				d.get("user_scale_multiplier", lab.user_scale_multiplier)
+			)
+		lab._sync_weapon_transform(false)
+	lab._load_weapon_contact_graph_profile(d.get("weapon_contact_graph", {}))
 	refresh_fire_controls(lab)
 	lab._sync_eye_sight_controls()
 

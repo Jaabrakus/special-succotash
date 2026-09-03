@@ -7,12 +7,17 @@ const USER_MAP_INDEX_PATH := "user://maps/library.json"
 const USER_ACTIVE_MAP_PATH := "user://maps/active_map.json"
 const SCHEMA_VERSION := 1
 static var library_directory_override := ""
+const BUNDLED_LIBRARY_MAPS := [
+	"res://config/maps/painterly_coastal_village_2v2.json",
+	"res://config/maps/morro_do_sol_v2_2v2.json",
+]
 const SUPPORTED_TYPES: Array[StringName] = [
 	&"ground", &"wall", &"cover_low", &"cover_tall", &"platform", &"ramp", &"player_spawn",
 	&"point_light", &"ambience_zone",
-	&"fog_zone",
+	&"fog_zone", &"water_volume",
 	&"doorway_wall", &"window_wall", &"stairs", &"roof", &"column",
 	&"primitive_box", &"primitive_cylinder", &"primitive_sphere",
+	&"favela_building", &"wooden_crate", &"utility_pole", &"cable_curve",
 	&"curved_wall", &"jagged_wall", &"breached_wall",
 	&"tree", &"pine_tree", &"bush", &"rocky_mountain", &"imported_asset",
 	&"team_alpha_spawn", &"team_bravo_spawn", &"bomb_pickup", &"alpha_bomb_site", &"bravo_bomb_site",
@@ -47,6 +52,18 @@ const ENVIRONMENT_PRESETS := {
 		"ground_color": Color("35433f"), "ambient_color": Color("c9dbdd"), "ambient_energy": 0.62,
 		"sun_color": Color("fff2d0"), "sun_energy": 1.9, "sun_rotation": Vector3(-58.0, -24.0, 0.0),
 		"fog_enabled": false, "fog_density": 0.002, "fog_color": Color("b5cbd4"), "exposure": 1.0,
+	},
+	"painterly_coastal": {
+		"label": "Painterly Coastal Village", "sky_top": Color("2f6f9f"), "sky_horizon": Color("e6c29b"),
+		"ground_color": Color("6f6655"), "ambient_color": Color("c8d8df"), "ambient_energy": 0.64,
+		"sun_color": Color("ffd39a"), "sun_energy": 1.55, "sun_rotation": Vector3(-24.0, -42.0, 0.0),
+		"fog_enabled": true, "fog_density": 0.0035, "fog_color": Color("b9b8aa"), "exposure": 1.04,
+	},
+	"painterly_coastal_v2": {
+		"label": "Painterly Coastal Village V2", "sky_top": Color("0754a0"), "sky_horizon": Color("79bed5"),
+		"ground_color": Color("2d473d"), "ambient_color": Color("b7d2d2"), "ambient_energy": 0.60,
+		"sun_color": Color("fff0bf"), "sun_energy": 1.38, "sun_rotation": Vector3(-28.0, -44.0, 0.0),
+		"fog_enabled": true, "fog_density": 0.0028, "fog_color": Color("a9c6c4"), "exposure": 0.95,
 	},
 }
 
@@ -108,6 +125,7 @@ const TYPE_DEFAULTS := {
 	&"point_light": {"label": "Practical Light", "size": Vector3(0.35, 0.35, 0.35), "color": Color("ffd59b")},
 	&"ambience_zone": {"label": "Ambience Zone", "size": Vector3(6.0, 3.0, 6.0), "color": Color("8b6be8")},
 	&"fog_zone": {"label": "Tactical Fog Zone", "size": Vector3(10.0, 3.0, 10.0), "color": Color("7d99a8")},
+	&"water_volume": {"label": "Swimmable Water", "size": Vector3(12.0, 3.0, 12.0), "color": Color("257ca8")},
 	&"doorway_wall": {"label": "Doorway Wall", "size": Vector3(4.0, 3.0, 0.3), "color": Color("716d67")},
 	&"window_wall": {"label": "Window Wall", "size": Vector3(4.0, 3.0, 0.3), "color": Color("6d716f")},
 	&"stairs": {"label": "Stairs", "size": Vector3(3.0, 2.5, 5.0), "color": Color("71695e")},
@@ -116,6 +134,10 @@ const TYPE_DEFAULTS := {
 	&"primitive_box": {"label": "Freeform Box", "size": Vector3(2.0, 2.0, 2.0), "color": Color("747b82")},
 	&"primitive_cylinder": {"label": "Freeform Cylinder", "size": Vector3(2.0, 2.0, 2.0), "color": Color("707980")},
 	&"primitive_sphere": {"label": "Freeform Sphere", "size": Vector3(2.0, 2.0, 2.0), "color": Color("737b80")},
+	&"favela_building": {"label": "Favela Building Assembly", "size": Vector3(8.0, 4.4, 7.0), "color": Color("d1b58c")},
+	&"wooden_crate": {"label": "Climbable Timber Crate", "size": Vector3(1.4, 0.55, 1.4), "color": Color("4b362d")},
+	&"utility_pole": {"label": "Utility Pole Assembly", "size": Vector3(0.24, 7.6, 0.24), "color": Color("4b362d")},
+	&"cable_curve": {"label": "Overhead Cable Curve", "size": Vector3(12.0, 0.03, 0.03), "color": Color("20262a")},
 	&"curved_wall": {"label": "Curved Wall", "size": Vector3(5.0, 3.0, 0.35), "color": Color("687078")},
 	&"jagged_wall": {"label": "Broken Wall", "size": Vector3(5.0, 2.6, 0.45), "color": Color("5d6268")},
 	&"breached_wall": {"label": "Breached Wall + Hole", "size": Vector3(6.0, 3.0, 0.45), "color": Color("5f5d59")},
@@ -307,6 +329,7 @@ static func list_library_maps() -> Array[Dictionary]:
 
 
 static func ensure_active_map_in_library() -> Dictionary:
+	_seed_bundled_library_maps()
 	var active := load_active()
 	if active.is_empty():
 		active = new_document()
@@ -316,6 +339,22 @@ static func ensure_active_map_in_library() -> Dictionary:
 		return active
 	var result := save_to_library(active)
 	return result.get("document", {}) as Dictionary if bool(result.get("ok", false)) else active
+
+
+static func _seed_bundled_library_maps() -> void:
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(_library_directory()))
+	for source_path: String in BUNDLED_LIBRARY_MAPS:
+		var document := load_path(source_path)
+		if document.is_empty():
+			continue
+		var map_id := _safe_map_id(String(document.get("map_id", "")))
+		if map_id.is_empty():
+			continue
+		var target_path := _library_directory().path_join("%s.json" % map_id)
+		# A player's edited library copy owns itself. New builds seed missing maps,
+		# but never overwrite a version that the Map Creation Lab already saved.
+		if not FileAccess.file_exists(target_path):
+			save_path(document, target_path)
 
 
 static func load_path(path: String) -> Dictionary:
@@ -422,6 +461,12 @@ static func environment_from_preset(preset_name: String) -> Dictionary:
 		"fog_color": color_to_data(preset["fog_color"]),
 		"exposure": preset["exposure"],
 		"soundscape": "outdoor_tactical",
+		# Optional map-owned distant art. Empty values keep existing maps on the
+		# procedural sky only; authored maps can opt into one collision-free matte.
+		"backdrop_texture": "",
+		"backdrop_position": vector_to_data(Vector3.ZERO),
+		"backdrop_size": vector_to_data(Vector3(120.0, 56.0, 0.0)),
+		"backdrop_rotation": vector_to_data(Vector3.ZERO),
 	}
 
 
@@ -493,6 +538,10 @@ static func normalize_environment(value: Variant) -> Dictionary:
 		"fog_color": color_to_data(data_to_color(source.get("fog_color", {}), data_to_color(fallback["fog_color"]))),
 		"exposure": clampf(float(source.get("exposure", fallback["exposure"])), 0.25, 3.0),
 		"soundscape": String(source.get("soundscape", fallback["soundscape"])),
+		"backdrop_texture": String(source.get("backdrop_texture", fallback["backdrop_texture"])),
+		"backdrop_position": vector_to_data(data_to_vector(source.get("backdrop_position", {}), data_to_vector(fallback["backdrop_position"]))),
+		"backdrop_size": vector_to_data(data_to_vector(source.get("backdrop_size", {}), data_to_vector(fallback["backdrop_size"]))),
+		"backdrop_rotation": vector_to_data(data_to_vector(source.get("backdrop_rotation", {}), data_to_vector(fallback["backdrop_rotation"]))),
 	}
 
 
@@ -510,6 +559,34 @@ static func _default_properties(type_name: StringName) -> Dictionary:
 			"occlusion_strength": 0.35,
 			"layer_count": 6,
 		}
+	if type_name == &"water_volume":
+		return {
+			"source_id": "",
+			"clarity": 0.72,
+		}
+	if type_name == &"favela_building":
+		return {
+			"entries": ["south"],
+			"windows": ["north"],
+			"door_width": 1.55,
+			"door_height": 2.35,
+			"window_width": 1.65,
+			"window_height": 1.25,
+			"trim_color": color_to_data(Color("e3d8bd")),
+			"roof_color": color_to_data(Color("62564f")),
+			"masonry_texture_path": "",
+			"wood_texture_path": "",
+			"wood_wall_sides": [],
+			"damage_side": "south",
+			"downspout_side": "east",
+			"parapet_height": 0.35,
+		}
+	if type_name == &"wooden_crate":
+		return {"texture_path": "", "uv_scale": 0.62, "collision_enabled": true, "v2_vertical_route": true}
+	if type_name == &"utility_pole":
+		return {"crossbar_width": 1.4, "wood_texture_path": "", "collision_enabled": true}
+	if type_name == &"cable_curve":
+		return {"points": [], "radius": 0.018, "segment_count": 12, "collision_enabled": false}
 	if type_name in [&"doorway_wall", &"window_wall"]:
 		return {"texture_path": "", "surface_kind": "stucco", "roughness": 0.94, "metallic": 0.0, "uv_scale": 1.0, "opening_width": 1.25, "opening_height": 2.2}
 	if type_name == &"stairs":

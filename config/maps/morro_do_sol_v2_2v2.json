@@ -1,0 +1,5576 @@
+{
+  "enabled": true,
+  "environment": {
+    "ambient_color": {
+      "a": 1.0,
+      "b": 0.823529422283173,
+      "g": 0.823529422283173,
+      "r": 0.717647075653076
+    },
+    "ambient_energy": 0.6,
+    "backdrop_position": {
+      "x": 0.0,
+      "y": 22.0,
+      "z": 105.0
+    },
+    "backdrop_rotation": {
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    },
+    "backdrop_size": {
+      "x": 250.0,
+      "y": 119.300003051758,
+      "z": 0.0
+    },
+    "backdrop_texture": "res://assets/textures/environment/morro_do_sol_v2_distant_coast.png",
+    "exposure": 0.95,
+    "fog_color": {
+      "a": 1.0,
+      "b": 0.768627464771271,
+      "g": 0.776470601558685,
+      "r": 0.662745118141174
+    },
+    "fog_density": 0.0028,
+    "fog_enabled": true,
+    "ground_color": {
+      "a": 1.0,
+      "b": 0.239215686917305,
+      "g": 0.278431385755539,
+      "r": 0.176470592617989
+    },
+    "preset": "painterly_coastal_v2",
+    "sky_horizon": {
+      "a": 1.0,
+      "b": 0.835294127464294,
+      "g": 0.745098054409027,
+      "r": 0.474509805440903
+    },
+    "sky_top": {
+      "a": 1.0,
+      "b": 0.627451002597809,
+      "g": 0.329411774873734,
+      "r": 0.0274509806185961
+    },
+    "soundscape": "outdoor_tactical",
+    "sun_color": {
+      "a": 1.0,
+      "b": 0.749019622802734,
+      "g": 0.941176474094391,
+      "r": 1.0
+    },
+    "sun_energy": 1.38,
+    "sun_rotation": {
+      "x": -28.0,
+      "y": -44.0,
+      "z": 0.0
+    }
+  },
+  "gameplay": {
+    "bomb_detonation_wins_round": true,
+    "bomb_fuse_seconds": 35,
+    "defuse_time_seconds": 5.0,
+    "elimination_wins_round": true,
+    "maximum_rounds": 7,
+    "plant_time_seconds": 5.0,
+    "primary_mode": "demolition",
+    "respawns_enabled": false,
+    "round_time_seconds": 150,
+    "round_timeout_result": "bravo",
+    "rounds_to_win": 4,
+    "supported_modes": [
+      "demolition",
+      "team_deathmatch"
+    ]
+  },
+  "grid_size": 0.25,
+  "map_id": "morro_do_sol_v2_2v2",
+  "name": "Morro do Sol V2 — 2v2 Demolition",
+  "objects": [
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.309803932905197,
+        "g": 0.400000005960464,
+        "r": 0.384313732385635
+      },
+      "id": "village_ground",
+      "name": "Morro do Sol Ground",
+      "position": {
+        "x": 0.0,
+        "y": -0.125,
+        "z": 0.0
+      },
+      "properties": {
+        "metallic": 0.0,
+        "normal_strength": 0.045,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.97,
+        "surface_kind": "dirt",
+        "texture_path": "",
+        "uv_scale": 0.58
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 44.0,
+        "y": 0.25,
+        "z": 36.0
+      },
+      "type": "ground"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.627451002597809,
+        "g": 0.862745106220245,
+        "r": 0.333333343267441
+      },
+      "id": "training_spawn",
+      "name": "Training Spawn",
+      "position": {
+        "x": 0.0,
+        "y": 0.0500000007450581,
+        "z": 14.8000001907349
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "surface_kind": "default",
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 0.800000011920929,
+        "y": 1.79999995231628,
+        "z": 0.800000011920929
+      },
+      "type": "player_spawn"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 1.0,
+        "g": 0.639215707778931,
+        "r": 0.309803932905197
+      },
+      "id": "alpha_spawn_left",
+      "name": "Alpha Left Spawn",
+      "position": {
+        "x": -1.60000002384186,
+        "y": 0.0500000007450581,
+        "z": 15.1999998092651
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "surface_kind": "default",
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 1.0,
+        "y": 1.79999995231628,
+        "z": 1.0
+      },
+      "type": "team_alpha_spawn"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 1.0,
+        "g": 0.639215707778931,
+        "r": 0.309803932905197
+      },
+      "id": "alpha_spawn_right",
+      "name": "Alpha Right Spawn",
+      "position": {
+        "x": 1.60000002384186,
+        "y": 0.0500000007450581,
+        "z": 15.1999998092651
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "surface_kind": "default",
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 1.0,
+        "y": 1.79999995231628,
+        "z": 1.0
+      },
+      "type": "team_alpha_spawn"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.368627458810806,
+        "g": 0.396078437566757,
+        "r": 1.0
+      },
+      "id": "bravo_spawn_left",
+      "name": "Bravo Left Spawn",
+      "position": {
+        "x": -1.60000002384186,
+        "y": 0.0500000007450581,
+        "z": -15.3999996185303
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "surface_kind": "default",
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 1.0,
+        "y": 1.79999995231628,
+        "z": 1.0
+      },
+      "type": "team_bravo_spawn"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.368627458810806,
+        "g": 0.396078437566757,
+        "r": 1.0
+      },
+      "id": "bravo_spawn_right",
+      "name": "Bravo Right Spawn",
+      "position": {
+        "x": 1.60000002384186,
+        "y": 0.0500000007450581,
+        "z": -15.3999996185303
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "surface_kind": "default",
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 1.0,
+        "y": 1.79999995231628,
+        "z": 1.0
+      },
+      "type": "team_bravo_spawn"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.309803932905197,
+        "g": 0.82745099067688,
+        "r": 0.95686274766922
+      },
+      "id": "village_bomb",
+      "name": "Demolition Satchel",
+      "position": {
+        "x": 0.0,
+        "y": 0.349999994039536,
+        "z": 12.1999998092651
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "surface_kind": "default",
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 0.800000011920929,
+        "y": 0.800000011920929,
+        "z": 0.800000011920929
+      },
+      "type": "bomb_pickup"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 1.0,
+        "g": 0.639215707778931,
+        "r": 0.309803932905197
+      },
+      "id": "site_a",
+      "name": "A — Community Hall",
+      "position": {
+        "x": -14.0,
+        "y": 1.92499995231628,
+        "z": -4.5
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "surface_kind": "default",
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 3.20000004768372,
+        "y": 0.25,
+        "z": 3.20000004768372
+      },
+      "type": "alpha_bomb_site"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.368627458810806,
+        "g": 0.396078437566757,
+        "r": 1.0
+      },
+      "id": "site_b",
+      "name": "B — Repair Workshop",
+      "position": {
+        "x": 14.0,
+        "y": 1.92499995231628,
+        "z": -4.5
+      },
+      "properties": {
+        "metallic": 0.0,
+        "roughness": 0.9,
+        "surface_kind": "default",
+        "texture_path": "",
+        "uv_scale": 1.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 3.20000004768372,
+        "y": 0.25,
+        "z": 3.20000004768372
+      },
+      "type": "bravo_bomb_site"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.368627458810806,
+        "g": 0.407843142747879,
+        "r": 0.458823531866074
+      },
+      "id": "north_boundary",
+      "name": "North Retaining Wall",
+      "position": {
+        "x": 0.0,
+        "y": 1.70000004768372,
+        "z": -17.75
+      },
+      "properties": {
+        "metallic": 0.0,
+        "normal_strength": 0.045,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.96,
+        "surface_kind": "stucco",
+        "texture_path": "",
+        "uv_scale": 0.82
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 44.0,
+        "y": 3.40000009536743,
+        "z": 0.5
+      },
+      "type": "wall"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.368627458810806,
+        "g": 0.407843142747879,
+        "r": 0.458823531866074
+      },
+      "id": "south_boundary",
+      "name": "South Retaining Wall",
+      "position": {
+        "x": 0.0,
+        "y": 1.70000004768372,
+        "z": 17.75
+      },
+      "properties": {
+        "metallic": 0.0,
+        "normal_strength": 0.045,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.96,
+        "surface_kind": "stucco",
+        "texture_path": "",
+        "uv_scale": 0.82
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 44.0,
+        "y": 3.40000009536743,
+        "z": 0.5
+      },
+      "type": "wall"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.368627458810806,
+        "g": 0.407843142747879,
+        "r": 0.458823531866074
+      },
+      "id": "west_boundary",
+      "name": "West Retaining Wall",
+      "position": {
+        "x": -21.75,
+        "y": 1.70000004768372,
+        "z": 0.0
+      },
+      "properties": {
+        "metallic": 0.0,
+        "normal_strength": 0.045,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.96,
+        "surface_kind": "stucco",
+        "texture_path": "",
+        "uv_scale": 0.82
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 90.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 36.0,
+        "y": 3.40000009536743,
+        "z": 0.5
+      },
+      "type": "wall"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.368627458810806,
+        "g": 0.407843142747879,
+        "r": 0.458823531866074
+      },
+      "id": "east_boundary",
+      "name": "East Retaining Wall",
+      "position": {
+        "x": 21.75,
+        "y": 1.70000004768372,
+        "z": 0.0
+      },
+      "properties": {
+        "metallic": 0.0,
+        "normal_strength": 0.045,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.96,
+        "surface_kind": "stucco",
+        "texture_path": "",
+        "uv_scale": 0.82
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 90.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 36.0,
+        "y": 3.40000009536743,
+        "z": 0.5
+      },
+      "type": "wall"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.368627458810806,
+        "g": 0.407843142747879,
+        "r": 0.458823531866074
+      },
+      "id": "a_support_sw",
+      "name": "Raised House Support",
+      "position": {
+        "x": -17.2999992370605,
+        "y": 0.899999976158142,
+        "z": -1.20000004768372
+      },
+      "properties": {
+        "metallic": 0.0,
+        "normal_strength": 0.045,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.96,
+        "surface_kind": "concrete",
+        "texture_path": "",
+        "uv_scale": 0.82
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 0.550000011920929,
+        "y": 1.79999995231628,
+        "z": 0.550000011920929
+      },
+      "type": "column"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.368627458810806,
+        "g": 0.407843142747879,
+        "r": 0.458823531866074
+      },
+      "id": "a_support_se",
+      "name": "Raised House Support",
+      "position": {
+        "x": -10.6999998092651,
+        "y": 0.899999976158142,
+        "z": -1.20000004768372
+      },
+      "properties": {
+        "metallic": 0.0,
+        "normal_strength": 0.045,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.96,
+        "surface_kind": "concrete",
+        "texture_path": "",
+        "uv_scale": 0.82
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 0.550000011920929,
+        "y": 1.79999995231628,
+        "z": 0.550000011920929
+      },
+      "type": "column"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.368627458810806,
+        "g": 0.407843142747879,
+        "r": 0.458823531866074
+      },
+      "id": "a_support_nw",
+      "name": "Raised House Support",
+      "position": {
+        "x": -17.2999992370605,
+        "y": 0.899999976158142,
+        "z": -7.80000019073486
+      },
+      "properties": {
+        "metallic": 0.0,
+        "normal_strength": 0.045,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.96,
+        "surface_kind": "concrete",
+        "texture_path": "",
+        "uv_scale": 0.82
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 0.550000011920929,
+        "y": 1.79999995231628,
+        "z": 0.550000011920929
+      },
+      "type": "column"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.368627458810806,
+        "g": 0.407843142747879,
+        "r": 0.458823531866074
+      },
+      "id": "a_support_ne",
+      "name": "Raised House Support",
+      "position": {
+        "x": -10.6999998092651,
+        "y": 0.899999976158142,
+        "z": -7.80000019073486
+      },
+      "properties": {
+        "metallic": 0.0,
+        "normal_strength": 0.045,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.96,
+        "surface_kind": "concrete",
+        "texture_path": "",
+        "uv_scale": 0.82
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 0.550000011920929,
+        "y": 1.79999995231628,
+        "z": 0.550000011920929
+      },
+      "type": "column"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.368627458810806,
+        "g": 0.407843142747879,
+        "r": 0.458823531866074
+      },
+      "id": "b_support_sw",
+      "name": "Raised House Support",
+      "position": {
+        "x": 10.6999998092651,
+        "y": 0.899999976158142,
+        "z": -1.20000004768372
+      },
+      "properties": {
+        "metallic": 0.0,
+        "normal_strength": 0.045,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.96,
+        "surface_kind": "concrete",
+        "texture_path": "",
+        "uv_scale": 0.82
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 0.550000011920929,
+        "y": 1.79999995231628,
+        "z": 0.550000011920929
+      },
+      "type": "column"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.368627458810806,
+        "g": 0.407843142747879,
+        "r": 0.458823531866074
+      },
+      "id": "b_support_se",
+      "name": "Raised House Support",
+      "position": {
+        "x": 17.2999992370605,
+        "y": 0.899999976158142,
+        "z": -1.20000004768372
+      },
+      "properties": {
+        "metallic": 0.0,
+        "normal_strength": 0.045,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.96,
+        "surface_kind": "concrete",
+        "texture_path": "",
+        "uv_scale": 0.82
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 0.550000011920929,
+        "y": 1.79999995231628,
+        "z": 0.550000011920929
+      },
+      "type": "column"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.368627458810806,
+        "g": 0.407843142747879,
+        "r": 0.458823531866074
+      },
+      "id": "b_support_nw",
+      "name": "Raised House Support",
+      "position": {
+        "x": 10.6999998092651,
+        "y": 0.899999976158142,
+        "z": -7.80000019073486
+      },
+      "properties": {
+        "metallic": 0.0,
+        "normal_strength": 0.045,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.96,
+        "surface_kind": "concrete",
+        "texture_path": "",
+        "uv_scale": 0.82
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 0.550000011920929,
+        "y": 1.79999995231628,
+        "z": 0.550000011920929
+      },
+      "type": "column"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.368627458810806,
+        "g": 0.407843142747879,
+        "r": 0.458823531866074
+      },
+      "id": "b_support_ne",
+      "name": "Raised House Support",
+      "position": {
+        "x": 17.2999992370605,
+        "y": 0.899999976158142,
+        "z": -7.80000019073486
+      },
+      "properties": {
+        "metallic": 0.0,
+        "normal_strength": 0.045,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.96,
+        "surface_kind": "concrete",
+        "texture_path": "",
+        "uv_scale": 0.82
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 0.550000011920929,
+        "y": 1.79999995231628,
+        "z": 0.550000011920929
+      },
+      "type": "column"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.298039227724075,
+        "g": 0.498039215803146,
+        "r": 0.74117648601532
+      },
+      "id": "a_direct_ramp",
+      "name": "A Site Main Ramp",
+      "position": {
+        "x": -14.0,
+        "y": 0.899999976158142,
+        "z": 2.75
+      },
+      "properties": {
+        "metallic": 0.0,
+        "normal_strength": 0.045,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.96,
+        "surface_kind": "concrete",
+        "texture_path": "",
+        "uv_scale": 0.82
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 3.0,
+        "y": 1.79999995231628,
+        "z": 6.5
+      },
+      "type": "ramp"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.600000023841858,
+        "g": 0.552941203117371,
+        "r": 0.423529416322708
+      },
+      "id": "b_direct_ramp",
+      "name": "B Site Main Ramp",
+      "position": {
+        "x": 14.0,
+        "y": 0.899999976158142,
+        "z": 2.75
+      },
+      "properties": {
+        "metallic": 0.0,
+        "normal_strength": 0.045,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.96,
+        "surface_kind": "concrete",
+        "texture_path": "",
+        "uv_scale": 0.82
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 3.0,
+        "y": 1.79999995231628,
+        "z": 6.5
+      },
+      "type": "ramp"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.298039227724075,
+        "g": 0.498039215803146,
+        "r": 0.74117648601532
+      },
+      "id": "west_mid_terrace",
+      "name": "West Hillside Terrace",
+      "position": {
+        "x": -8.0,
+        "y": 1.79999995231628,
+        "z": -2.5
+      },
+      "properties": {
+        "metallic": 0.0,
+        "normal_strength": 0.045,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.96,
+        "surface_kind": "concrete",
+        "texture_path": "",
+        "uv_scale": 0.82
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 4.0,
+        "y": 0.349999994039536,
+        "z": 12.0
+      },
+      "type": "platform"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.298039227724075,
+        "g": 0.498039215803146,
+        "r": 0.74117648601532
+      },
+      "id": "west_south_ramp",
+      "name": "West South Ramp",
+      "position": {
+        "x": -8.0,
+        "y": 0.899999976158142,
+        "z": 6.75
+      },
+      "properties": {
+        "metallic": 0.0,
+        "normal_strength": 0.045,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.96,
+        "surface_kind": "concrete",
+        "texture_path": "",
+        "uv_scale": 0.82
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 3.40000009536743,
+        "y": 1.79999995231628,
+        "z": 6.5
+      },
+      "type": "ramp"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.298039227724075,
+        "g": 0.498039215803146,
+        "r": 0.74117648601532
+      },
+      "id": "west_north_ramp",
+      "name": "West North Ramp",
+      "position": {
+        "x": -8.0,
+        "y": 0.899999976158142,
+        "z": -11.75
+      },
+      "properties": {
+        "metallic": 0.0,
+        "normal_strength": 0.045,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.96,
+        "surface_kind": "concrete",
+        "texture_path": "",
+        "uv_scale": 0.82
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 180.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 3.40000009536743,
+        "y": 1.79999995231628,
+        "z": 6.5
+      },
+      "type": "ramp"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.368627458810806,
+        "g": 0.407843142747879,
+        "r": 0.458823531866074
+      },
+      "id": "west_terrace_rail",
+      "name": "West Terrace Wall",
+      "position": {
+        "x": -9.81999969482422,
+        "y": 2.29999995231628,
+        "z": -2.5
+      },
+      "properties": {
+        "metallic": 0.0,
+        "normal_strength": 0.045,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.96,
+        "surface_kind": "concrete",
+        "texture_path": "",
+        "uv_scale": 0.82
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 90.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 9.0,
+        "y": 0.899999976158142,
+        "z": 0.300000011920929
+      },
+      "type": "cover_low"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.600000023841858,
+        "g": 0.552941203117371,
+        "r": 0.423529416322708
+      },
+      "id": "east_mid_terrace",
+      "name": "East Hillside Terrace",
+      "position": {
+        "x": 8.0,
+        "y": 1.79999995231628,
+        "z": -2.5
+      },
+      "properties": {
+        "metallic": 0.0,
+        "normal_strength": 0.045,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.96,
+        "surface_kind": "concrete",
+        "texture_path": "",
+        "uv_scale": 0.82
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 4.0,
+        "y": 0.349999994039536,
+        "z": 12.0
+      },
+      "type": "platform"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.600000023841858,
+        "g": 0.552941203117371,
+        "r": 0.423529416322708
+      },
+      "id": "east_south_ramp",
+      "name": "East South Ramp",
+      "position": {
+        "x": 8.0,
+        "y": 0.899999976158142,
+        "z": 6.75
+      },
+      "properties": {
+        "metallic": 0.0,
+        "normal_strength": 0.045,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.96,
+        "surface_kind": "concrete",
+        "texture_path": "",
+        "uv_scale": 0.82
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 3.40000009536743,
+        "y": 1.79999995231628,
+        "z": 6.5
+      },
+      "type": "ramp"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.600000023841858,
+        "g": 0.552941203117371,
+        "r": 0.423529416322708
+      },
+      "id": "east_north_ramp",
+      "name": "East North Ramp",
+      "position": {
+        "x": 8.0,
+        "y": 0.899999976158142,
+        "z": -11.75
+      },
+      "properties": {
+        "metallic": 0.0,
+        "normal_strength": 0.045,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.96,
+        "surface_kind": "concrete",
+        "texture_path": "",
+        "uv_scale": 0.82
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 180.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 3.40000009536743,
+        "y": 1.79999995231628,
+        "z": 6.5
+      },
+      "type": "ramp"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.368627458810806,
+        "g": 0.407843142747879,
+        "r": 0.458823531866074
+      },
+      "id": "east_terrace_rail",
+      "name": "East Terrace Wall",
+      "position": {
+        "x": 9.81999969482422,
+        "y": 2.29999995231628,
+        "z": -2.5
+      },
+      "properties": {
+        "metallic": 0.0,
+        "normal_strength": 0.045,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.96,
+        "surface_kind": "concrete",
+        "texture_path": "",
+        "uv_scale": 0.82
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 90.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 9.0,
+        "y": 0.899999976158142,
+        "z": 0.300000011920929
+      },
+      "type": "cover_low"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.368627458810806,
+        "g": 0.407843142747879,
+        "r": 0.458823531866074
+      },
+      "id": "cafe_roof_stairs",
+      "name": "Cafe Roof Stairs",
+      "position": {
+        "x": 5.34999990463257,
+        "y": 2.20000004768372,
+        "z": 3.5
+      },
+      "properties": {
+        "metallic": 0.0,
+        "normal_strength": 0.045,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.96,
+        "steps": 10.0,
+        "surface_kind": "concrete",
+        "texture_path": "",
+        "uv_scale": 0.82
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 90.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 2.40000009536743,
+        "y": 4.40000009536743,
+        "z": 5.80000019073486
+      },
+      "type": "stairs"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.309803932905197,
+        "g": 0.337254911661148,
+        "r": 0.384313732385635
+      },
+      "id": "cafe_parapet_north",
+      "name": "Cafe North Parapet",
+      "position": {
+        "x": 0.0,
+        "y": 4.84999990463257,
+        "z": 0.150000005960464
+      },
+      "properties": {
+        "metallic": 0.0,
+        "normal_strength": 0.045,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.96,
+        "surface_kind": "concrete",
+        "texture_path": "",
+        "uv_scale": 0.82
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 8.0,
+        "y": 0.75,
+        "z": 0.349999994039536
+      },
+      "type": "cover_low"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.309803932905197,
+        "g": 0.337254911661148,
+        "r": 0.384313732385635
+      },
+      "id": "cafe_parapet_south",
+      "name": "Cafe South Parapet",
+      "position": {
+        "x": 0.0,
+        "y": 4.84999990463257,
+        "z": 6.84999990463257
+      },
+      "properties": {
+        "metallic": 0.0,
+        "normal_strength": 0.045,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.96,
+        "surface_kind": "concrete",
+        "texture_path": "",
+        "uv_scale": 0.82
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 8.0,
+        "y": 0.75,
+        "z": 0.349999994039536
+      },
+      "type": "cover_low"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.309803932905197,
+        "g": 0.337254911661148,
+        "r": 0.384313732385635
+      },
+      "id": "cafe_parapet_west",
+      "name": "Cafe West Parapet",
+      "position": {
+        "x": -3.84999990463257,
+        "y": 4.84999990463257,
+        "z": 3.5
+      },
+      "properties": {
+        "metallic": 0.0,
+        "normal_strength": 0.045,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.96,
+        "surface_kind": "concrete",
+        "texture_path": "",
+        "uv_scale": 0.82
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 90.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 6.69999980926514,
+        "y": 0.75,
+        "z": 0.349999994039536
+      },
+      "type": "cover_low"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.61176472902298,
+        "g": 0.498039215803146,
+        "r": 0.290196090936661
+      },
+      "id": "cafe_water_tank",
+      "name": "Cafe Roof Water Tank",
+      "position": {
+        "x": -2.5,
+        "y": 5.44999980926514,
+        "z": 3.5
+      },
+      "properties": {
+        "metallic": 0.0,
+        "normal_strength": 0.045,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.96,
+        "surface_kind": "concrete",
+        "texture_path": "",
+        "uv_scale": 0.82
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 1.35000002384186,
+        "y": 1.5,
+        "z": 1.35000002384186
+      },
+      "type": "primitive_cylinder"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.61176472902298,
+        "g": 0.498039215803146,
+        "r": 0.290196090936661
+      },
+      "id": "a_water_tank",
+      "name": "Community Hall Water Tank",
+      "position": {
+        "x": -15.6000003814697,
+        "y": 7.40000009536743,
+        "z": -4.5
+      },
+      "properties": {
+        "metallic": 0.0,
+        "normal_strength": 0.045,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.96,
+        "surface_kind": "concrete",
+        "texture_path": "",
+        "uv_scale": 0.82
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 1.39999997615814,
+        "y": 1.60000002384186,
+        "z": 1.39999997615814
+      },
+      "type": "primitive_cylinder"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.61176472902298,
+        "g": 0.498039215803146,
+        "r": 0.290196090936661
+      },
+      "id": "b_water_tank",
+      "name": "Workshop Water Tank",
+      "position": {
+        "x": 15.6000003814697,
+        "y": 7.19999980926514,
+        "z": -4.5
+      },
+      "properties": {
+        "metallic": 0.0,
+        "normal_strength": 0.045,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.96,
+        "surface_kind": "concrete",
+        "texture_path": "",
+        "uv_scale": 0.82
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 1.39999997615814,
+        "y": 1.60000002384186,
+        "z": 1.39999997615814
+      },
+      "type": "primitive_cylinder"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.600000023841858,
+        "g": 0.552941203117371,
+        "r": 0.423529416322708
+      },
+      "id": "center_fountain",
+      "name": "Old Market Fountain",
+      "position": {
+        "x": 0.0,
+        "y": 0.550000011920929,
+        "z": -2.09999990463257
+      },
+      "properties": {
+        "metallic": 0.0,
+        "normal_strength": 0.045,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.96,
+        "surface_kind": "concrete",
+        "texture_path": "",
+        "uv_scale": 0.82
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 2.79999995231628,
+        "y": 1.10000002384186,
+        "z": 2.79999995231628
+      },
+      "type": "primitive_cylinder"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.61176472902298,
+        "g": 0.764705896377563,
+        "r": 0.850980401039124
+      },
+      "id": "center_broken_west",
+      "name": "West Market Ruin",
+      "position": {
+        "x": -5.80000019073486,
+        "y": 1.35000002384186,
+        "z": -1.70000004768372
+      },
+      "properties": {
+        "edge_rotation": 5.0,
+        "height_variance": 0.8,
+        "metallic": 0.0,
+        "normal_strength": 0.045,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "pieces": 6.0,
+        "roughness": 0.96,
+        "surface_kind": "stucco",
+        "texture_path": "",
+        "uv_scale": 0.82
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 90.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 5.0,
+        "y": 2.70000004768372,
+        "z": 0.449999988079071
+      },
+      "type": "jagged_wall"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.298039227724075,
+        "g": 0.498039215803146,
+        "r": 0.74117648601532
+      },
+      "id": "center_broken_east",
+      "name": "East Market Ruin",
+      "position": {
+        "x": 5.80000019073486,
+        "y": 1.35000002384186,
+        "z": -1.70000004768372
+      },
+      "properties": {
+        "edge_rotation": 5.0,
+        "height_variance": 0.8,
+        "metallic": 0.0,
+        "normal_strength": 0.045,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "pieces": 6.0,
+        "roughness": 0.96,
+        "surface_kind": "stucco",
+        "texture_path": "",
+        "uv_scale": 0.82
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 90.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 5.0,
+        "y": 2.70000004768372,
+        "z": 0.449999988079071
+      },
+      "type": "jagged_wall"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.360784322023392,
+        "g": 0.427450984716415,
+        "r": 0.701960802078247
+      },
+      "id": "market_stall_west",
+      "name": "West Market Stall",
+      "position": {
+        "x": -5.09999990463257,
+        "y": 0.550000011920929,
+        "z": 6.80000019073486
+      },
+      "properties": {
+        "metallic": 0.0,
+        "normal_strength": 0.045,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.96,
+        "surface_kind": "concrete",
+        "texture_path": "",
+        "uv_scale": 0.82
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": -12.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 3.40000009536743,
+        "y": 1.10000002384186,
+        "z": 0.75
+      },
+      "type": "cover_low"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.600000023841858,
+        "g": 0.552941203117371,
+        "r": 0.423529416322708
+      },
+      "id": "market_stall_east",
+      "name": "East Market Stall",
+      "position": {
+        "x": 5.09999990463257,
+        "y": 0.550000011920929,
+        "z": 6.80000019073486
+      },
+      "properties": {
+        "metallic": 0.0,
+        "normal_strength": 0.045,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.96,
+        "surface_kind": "concrete",
+        "texture_path": "",
+        "uv_scale": 0.82
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 12.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 3.40000009536743,
+        "y": 1.10000002384186,
+        "z": 0.75
+      },
+      "type": "cover_low"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.298039227724075,
+        "g": 0.498039215803146,
+        "r": 0.74117648601532
+      },
+      "id": "west_lane_cover_south",
+      "name": "West Lane Cart",
+      "position": {
+        "x": -18.0,
+        "y": 0.550000011920929,
+        "z": 8.10000038146973
+      },
+      "properties": {
+        "metallic": 0.0,
+        "normal_strength": 0.045,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.96,
+        "surface_kind": "concrete",
+        "texture_path": "",
+        "uv_scale": 0.82
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 90.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 3.20000004768372,
+        "y": 1.10000002384186,
+        "z": 0.800000011920929
+      },
+      "type": "cover_low"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.368627458810806,
+        "g": 0.407843142747879,
+        "r": 0.458823531866074
+      },
+      "id": "west_lane_cover_mid",
+      "name": "West Lane Masonry",
+      "position": {
+        "x": -18.1000003814697,
+        "y": 0.550000011920929,
+        "z": 1.0
+      },
+      "properties": {
+        "metallic": 0.0,
+        "normal_strength": 0.045,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.96,
+        "surface_kind": "concrete",
+        "texture_path": "",
+        "uv_scale": 0.82
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 78.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 3.40000009536743,
+        "y": 1.10000002384186,
+        "z": 0.75
+      },
+      "type": "cover_low"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.600000023841858,
+        "g": 0.552941203117371,
+        "r": 0.423529416322708
+      },
+      "id": "east_lane_cover_south",
+      "name": "East Lane Cart",
+      "position": {
+        "x": 18.0,
+        "y": 0.550000011920929,
+        "z": 8.10000038146973
+      },
+      "properties": {
+        "metallic": 0.0,
+        "normal_strength": 0.045,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.96,
+        "surface_kind": "concrete",
+        "texture_path": "",
+        "uv_scale": 0.82
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 90.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 3.20000004768372,
+        "y": 1.10000002384186,
+        "z": 0.800000011920929
+      },
+      "type": "cover_low"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.368627458810806,
+        "g": 0.407843142747879,
+        "r": 0.458823531866074
+      },
+      "id": "east_lane_cover_mid",
+      "name": "East Lane Masonry",
+      "position": {
+        "x": 18.1000003814697,
+        "y": 0.550000011920929,
+        "z": 1.0
+      },
+      "properties": {
+        "metallic": 0.0,
+        "normal_strength": 0.045,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.96,
+        "surface_kind": "concrete",
+        "texture_path": "",
+        "uv_scale": 0.82
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 102.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 3.40000009536743,
+        "y": 1.10000002384186,
+        "z": 0.75
+      },
+      "type": "cover_low"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.309803932905197,
+        "g": 0.337254911661148,
+        "r": 0.384313732385635
+      },
+      "id": "a_site_cover",
+      "name": "Community Hall Bench",
+      "position": {
+        "x": -14.8000001907349,
+        "y": 2.34999990463257,
+        "z": -5.40000009536743
+      },
+      "properties": {
+        "metallic": 0.0,
+        "normal_strength": 0.045,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.96,
+        "surface_kind": "concrete",
+        "texture_path": "",
+        "uv_scale": 0.82
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 90.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 2.40000009536743,
+        "y": 1.10000002384186,
+        "z": 0.600000023841858
+      },
+      "type": "cover_low"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.309803932905197,
+        "g": 0.337254911661148,
+        "r": 0.384313732385635
+      },
+      "id": "b_site_cover",
+      "name": "Workshop Bench",
+      "position": {
+        "x": 14.8000001907349,
+        "y": 2.34999990463257,
+        "z": -5.40000009536743
+      },
+      "properties": {
+        "metallic": 0.0,
+        "normal_strength": 0.045,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.96,
+        "surface_kind": "concrete",
+        "texture_path": "",
+        "uv_scale": 0.82
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 90.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 2.40000009536743,
+        "y": 1.10000002384186,
+        "z": 0.600000023841858
+      },
+      "type": "cover_low"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.368627458810806,
+        "g": 0.407843142747879,
+        "r": 0.458823531866074
+      },
+      "id": "north_exit_west",
+      "name": "North West Sandstone",
+      "position": {
+        "x": -6.69999980926514,
+        "y": 0.550000011920929,
+        "z": -12.3999996185303
+      },
+      "properties": {
+        "metallic": 0.0,
+        "normal_strength": 0.045,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.96,
+        "surface_kind": "concrete",
+        "texture_path": "",
+        "uv_scale": 0.82
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 18.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 3.0,
+        "y": 1.10000002384186,
+        "z": 0.699999988079071
+      },
+      "type": "cover_low"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.368627458810806,
+        "g": 0.407843142747879,
+        "r": 0.458823531866074
+      },
+      "id": "north_exit_east",
+      "name": "North East Sandstone",
+      "position": {
+        "x": 6.69999980926514,
+        "y": 0.550000011920929,
+        "z": -12.3999996185303
+      },
+      "properties": {
+        "metallic": 0.0,
+        "normal_strength": 0.045,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.96,
+        "surface_kind": "concrete",
+        "texture_path": "",
+        "uv_scale": 0.82
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": -18.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 3.0,
+        "y": 1.10000002384186,
+        "z": 0.699999988079071
+      },
+      "type": "cover_low"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.309803932905197,
+        "g": 0.458823531866074,
+        "r": 0.376470595598221
+      },
+      "id": "tree_sw",
+      "name": "Village Plane Tree",
+      "position": {
+        "x": -19.2000007629395,
+        "y": 0.0,
+        "z": 14.0
+      },
+      "properties": {
+        "canopy_layers": 4.0,
+        "trunk_ratio": 0.4,
+        "variation_seed": 201.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 3.0,
+        "y": 6.5,
+        "z": 3.0
+      },
+      "type": "tree"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.309803932905197,
+        "g": 0.458823531866074,
+        "r": 0.376470595598221
+      },
+      "id": "tree_se",
+      "name": "Village Plane Tree",
+      "position": {
+        "x": 19.2000007629395,
+        "y": 0.0,
+        "z": 14.0
+      },
+      "properties": {
+        "canopy_layers": 4.0,
+        "trunk_ratio": 0.4,
+        "variation_seed": 202.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 3.0,
+        "y": 6.5,
+        "z": 3.0
+      },
+      "type": "tree"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.309803932905197,
+        "g": 0.458823531866074,
+        "r": 0.376470595598221
+      },
+      "id": "tree_nw",
+      "name": "Village Plane Tree",
+      "position": {
+        "x": -19.0,
+        "y": 0.0,
+        "z": -13.8000001907349
+      },
+      "properties": {
+        "canopy_layers": 4.0,
+        "trunk_ratio": 0.4,
+        "variation_seed": 203.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 3.0,
+        "y": 6.5,
+        "z": 3.0
+      },
+      "type": "tree"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.309803932905197,
+        "g": 0.458823531866074,
+        "r": 0.376470595598221
+      },
+      "id": "tree_ne",
+      "name": "Village Plane Tree",
+      "position": {
+        "x": 19.0,
+        "y": 0.0,
+        "z": -13.8000001907349
+      },
+      "properties": {
+        "canopy_layers": 4.0,
+        "trunk_ratio": 0.4,
+        "variation_seed": 204.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 3.0,
+        "y": 6.5,
+        "z": 3.0
+      },
+      "type": "tree"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.278431385755539,
+        "g": 0.403921574354172,
+        "r": 0.337254911661148
+      },
+      "id": "bush_a_south",
+      "name": "Low Village Shrub",
+      "position": {
+        "x": -10.1999998092651,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "properties": {
+        "blocks_movement": false,
+        "cluster_count": 6.0,
+        "collision_enabled": false,
+        "concealment": false,
+        "variation_seed": 301.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 2.20000004768372,
+        "y": 1.25,
+        "z": 1.79999995231628
+      },
+      "type": "bush"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.278431385755539,
+        "g": 0.403921574354172,
+        "r": 0.337254911661148
+      },
+      "id": "bush_a_north",
+      "name": "Low Village Shrub",
+      "position": {
+        "x": -10.3000001907349,
+        "y": 0.0,
+        "z": -9.19999980926514
+      },
+      "properties": {
+        "blocks_movement": false,
+        "cluster_count": 6.0,
+        "collision_enabled": false,
+        "concealment": false,
+        "variation_seed": 302.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 2.20000004768372,
+        "y": 1.25,
+        "z": 1.79999995231628
+      },
+      "type": "bush"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.278431385755539,
+        "g": 0.403921574354172,
+        "r": 0.337254911661148
+      },
+      "id": "bush_b_south",
+      "name": "Low Village Shrub",
+      "position": {
+        "x": 10.1999998092651,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "properties": {
+        "blocks_movement": false,
+        "cluster_count": 6.0,
+        "collision_enabled": false,
+        "concealment": false,
+        "variation_seed": 303.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 2.20000004768372,
+        "y": 1.25,
+        "z": 1.79999995231628
+      },
+      "type": "bush"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.278431385755539,
+        "g": 0.403921574354172,
+        "r": 0.337254911661148
+      },
+      "id": "bush_b_north",
+      "name": "Low Village Shrub",
+      "position": {
+        "x": 10.3000001907349,
+        "y": 0.0,
+        "z": -9.19999980926514
+      },
+      "properties": {
+        "blocks_movement": false,
+        "cluster_count": 6.0,
+        "collision_enabled": false,
+        "concealment": false,
+        "variation_seed": 304.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 2.20000004768372,
+        "y": 1.25,
+        "z": 1.79999995231628
+      },
+      "type": "bush"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.603921592235565,
+        "g": 0.815686285495758,
+        "r": 1.0
+      },
+      "id": "lamp_a",
+      "name": "Warm Village Lamp",
+      "position": {
+        "x": -10.3000001907349,
+        "y": 2.40000009536743,
+        "z": -1.10000002384186
+      },
+      "properties": {
+        "energy": 2.2,
+        "range": 6.5,
+        "shadow_enabled": false
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 0.349999994039536,
+        "y": 0.349999994039536,
+        "z": 0.349999994039536
+      },
+      "type": "point_light"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.603921592235565,
+        "g": 0.815686285495758,
+        "r": 1.0
+      },
+      "id": "lamp_b",
+      "name": "Warm Village Lamp",
+      "position": {
+        "x": 10.3000001907349,
+        "y": 2.40000009536743,
+        "z": -1.10000002384186
+      },
+      "properties": {
+        "energy": 2.2,
+        "range": 6.5,
+        "shadow_enabled": false
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 0.349999994039536,
+        "y": 0.349999994039536,
+        "z": 0.349999994039536
+      },
+      "type": "point_light"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.603921592235565,
+        "g": 0.815686285495758,
+        "r": 1.0
+      },
+      "id": "lamp_cafe_s",
+      "name": "Warm Village Lamp",
+      "position": {
+        "x": 0.0,
+        "y": 2.5,
+        "z": 7.09999990463257
+      },
+      "properties": {
+        "energy": 2.2,
+        "range": 6.5,
+        "shadow_enabled": false
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 0.349999994039536,
+        "y": 0.349999994039536,
+        "z": 0.349999994039536
+      },
+      "type": "point_light"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.603921592235565,
+        "g": 0.815686285495758,
+        "r": 1.0
+      },
+      "id": "lamp_cafe_n",
+      "name": "Warm Village Lamp",
+      "position": {
+        "x": 0.0,
+        "y": 2.5,
+        "z": -0.100000001490116
+      },
+      "properties": {
+        "energy": 2.2,
+        "range": 6.5,
+        "shadow_enabled": false
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 0.349999994039536,
+        "y": 0.349999994039536,
+        "z": 0.349999994039536
+      },
+      "type": "point_light"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.600000023841858,
+        "g": 0.552941203117371,
+        "r": 0.423529416322708
+      },
+      "id": "v2_cafe_azul",
+      "name": "Cafe Azul",
+      "position": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 3.5
+      },
+      "properties": {
+        "collision_enabled": true,
+        "damage_side": "south",
+        "door_height": 2.35,
+        "door_width": 1.55,
+        "downspout_side": "east",
+        "entries": [
+          "north",
+          "south"
+        ],
+        "masonry_texture_path": "res://assets/textures/environment/morro_do_sol_v2_painted_plaster.png",
+        "metallic": 0.0,
+        "normal_strength": 0.025,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "parapet_height": 0.0,
+        "roof_color": {
+          "a": 1.0,
+          "b": 0.39215686917305,
+          "g": 0.372549027204514,
+          "r": 0.309803932905197
+        },
+        "roughness": 1.0,
+        "sign_side": "south",
+        "sign_text": "CAFÉ AZUL",
+        "trim_color": {
+          "a": 1.0,
+          "b": 0.721568644046783,
+          "g": 0.839215695858002,
+          "r": 0.901960790157318
+        },
+        "v2_architecture": true,
+        "window_height": 1.25,
+        "window_width": 1.65,
+        "windows": [
+          "east",
+          "west"
+        ],
+        "wood_texture_path": "res://assets/textures/environment/morro_do_sol_v2_exposed_wood.png",
+        "wood_wall_sides": []
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 8.0,
+        "y": 4.40000009536743,
+        "z": 7.0
+      },
+      "type": "favela_building"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.498039215803146,
+        "g": 0.650980412960052,
+        "r": 0.721568644046783
+      },
+      "id": "v2_community_hall",
+      "name": "Community Hall",
+      "position": {
+        "x": -14.0,
+        "y": 1.79999995231628,
+        "z": -4.5
+      },
+      "properties": {
+        "collision_enabled": true,
+        "damage_side": "west",
+        "door_height": 2.35,
+        "door_width": 1.55,
+        "downspout_side": "north",
+        "entries": [
+          "south",
+          "east"
+        ],
+        "masonry_texture_path": "res://assets/textures/environment/morro_do_sol_v2_painted_plaster.png",
+        "metallic": 0.0,
+        "normal_strength": 0.025,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "parapet_height": 0.0,
+        "roof_color": {
+          "a": 1.0,
+          "b": 0.258823543787003,
+          "g": 0.286274522542953,
+          "r": 0.325490206480026
+        },
+        "roughness": 1.0,
+        "sign_side": "south",
+        "sign_text": "SALÃO",
+        "trim_color": {
+          "a": 1.0,
+          "b": 0.239215686917305,
+          "g": 0.282352954149246,
+          "r": 0.458823531866074
+        },
+        "v2_architecture": true,
+        "window_height": 1.25,
+        "window_width": 1.65,
+        "windows": [
+          "north",
+          "west"
+        ],
+        "wood_texture_path": "res://assets/textures/environment/morro_do_sol_v2_exposed_wood.png",
+        "wood_wall_sides": []
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 8.0,
+        "y": 4.80000019073486,
+        "z": 8.0
+      },
+      "type": "favela_building"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.219607844948769,
+        "g": 0.482352942228317,
+        "r": 0.69803923368454
+      },
+      "id": "v2_repair_workshop",
+      "name": "Repair Workshop",
+      "position": {
+        "x": 14.0,
+        "y": 1.79999995231628,
+        "z": -4.5
+      },
+      "properties": {
+        "collision_enabled": true,
+        "damage_side": "east",
+        "door_height": 2.35,
+        "door_width": 1.55,
+        "downspout_side": "south",
+        "entries": [
+          "south",
+          "west"
+        ],
+        "masonry_texture_path": "res://assets/textures/environment/morro_do_sol_v2_painted_plaster.png",
+        "metallic": 0.0,
+        "normal_strength": 0.025,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "parapet_height": 0.0,
+        "roof_color": {
+          "a": 1.0,
+          "b": 0.250980406999588,
+          "g": 0.282352954149246,
+          "r": 0.317647069692612
+        },
+        "roughness": 1.0,
+        "sign_side": "south",
+        "sign_text": "OFICINA",
+        "trim_color": {
+          "a": 1.0,
+          "b": 0.690196096897125,
+          "g": 0.752941191196442,
+          "r": 0.615686297416687
+        },
+        "v2_architecture": true,
+        "window_height": 1.25,
+        "window_width": 1.65,
+        "windows": [
+          "north",
+          "east"
+        ],
+        "wood_texture_path": "res://assets/textures/environment/morro_do_sol_v2_exposed_wood.png",
+        "wood_wall_sides": [
+          "south",
+          "west"
+        ]
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 8.0,
+        "y": 4.59999990463257,
+        "z": 8.0
+      },
+      "type": "favela_building"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.34901961684227,
+        "g": 0.368627458810806,
+        "r": 0.658823549747467
+      },
+      "id": "v2_rose_lane_house",
+      "name": "Rose Lane House",
+      "position": {
+        "x": -13.0,
+        "y": 0.0,
+        "z": 10.0
+      },
+      "properties": {
+        "collision_enabled": true,
+        "damage_side": "west",
+        "door_height": 2.35,
+        "door_width": 1.55,
+        "downspout_side": "south",
+        "entries": [
+          "north"
+        ],
+        "masonry_texture_path": "res://assets/textures/environment/morro_do_sol_v2_painted_plaster.png",
+        "metallic": 0.0,
+        "normal_strength": 0.025,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "parapet_height": 0.0,
+        "roof_color": {
+          "a": 1.0,
+          "b": 0.270588248968124,
+          "g": 0.298039227724075,
+          "r": 0.352941185235977
+        },
+        "roughness": 1.0,
+        "sign_side": "south",
+        "sign_text": "",
+        "trim_color": {
+          "a": 1.0,
+          "b": 0.694117665290833,
+          "g": 0.811764717102051,
+          "r": 0.890196084976196
+        },
+        "v2_architecture": true,
+        "window_height": 1.25,
+        "window_width": 1.65,
+        "windows": [
+          "south",
+          "east"
+        ],
+        "wood_texture_path": "res://assets/textures/environment/morro_do_sol_v2_exposed_wood.png",
+        "wood_wall_sides": []
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 7.0,
+        "y": 4.19999980926514,
+        "z": 5.0
+      },
+      "type": "favela_building"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.219607844948769,
+        "g": 0.482352942228317,
+        "r": 0.69803923368454
+      },
+      "id": "v2_ochre_lane_house",
+      "name": "Ochre Lane House",
+      "position": {
+        "x": 13.0,
+        "y": 0.0,
+        "z": 10.0
+      },
+      "properties": {
+        "collision_enabled": true,
+        "damage_side": "east",
+        "door_height": 2.35,
+        "door_width": 1.55,
+        "downspout_side": "north",
+        "entries": [
+          "north"
+        ],
+        "masonry_texture_path": "res://assets/textures/environment/morro_do_sol_v2_painted_plaster.png",
+        "metallic": 0.0,
+        "normal_strength": 0.025,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "parapet_height": 0.0,
+        "roof_color": {
+          "a": 1.0,
+          "b": 0.258823543787003,
+          "g": 0.294117659330368,
+          "r": 0.345098048448563
+        },
+        "roughness": 1.0,
+        "sign_side": "south",
+        "sign_text": "",
+        "trim_color": {
+          "a": 1.0,
+          "b": 0.631372570991516,
+          "g": 0.686274528503418,
+          "r": 0.529411792755127
+        },
+        "v2_architecture": true,
+        "window_height": 1.25,
+        "window_width": 1.65,
+        "windows": [
+          "south",
+          "west"
+        ],
+        "wood_texture_path": "res://assets/textures/environment/morro_do_sol_v2_exposed_wood.png",
+        "wood_wall_sides": []
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 7.0,
+        "y": 4.19999980926514,
+        "z": 5.0
+      },
+      "type": "favela_building"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.498039215803146,
+        "g": 0.650980412960052,
+        "r": 0.721568644046783
+      },
+      "id": "v2_north_gate_homes",
+      "name": "North Gate Homes",
+      "position": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": -11.5
+      },
+      "properties": {
+        "collision_enabled": true,
+        "damage_side": "north",
+        "door_height": 2.35,
+        "door_width": 1.55,
+        "downspout_side": "west",
+        "entries": [
+          "north",
+          "south"
+        ],
+        "masonry_texture_path": "res://assets/textures/environment/morro_do_sol_v2_painted_plaster.png",
+        "metallic": 0.0,
+        "normal_strength": 0.025,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "parapet_height": 0.0,
+        "roof_color": {
+          "a": 1.0,
+          "b": 0.258823543787003,
+          "g": 0.274509817361832,
+          "r": 0.298039227724075
+        },
+        "roughness": 1.0,
+        "sign_side": "south",
+        "sign_text": "",
+        "trim_color": {
+          "a": 1.0,
+          "b": 0.537254929542542,
+          "g": 0.560784339904785,
+          "r": 0.431372553110123
+        },
+        "v2_architecture": true,
+        "window_height": 1.25,
+        "window_width": 1.65,
+        "windows": [
+          "east",
+          "west"
+        ],
+        "wood_texture_path": "res://assets/textures/environment/morro_do_sol_v2_exposed_wood.png",
+        "wood_wall_sides": []
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 8.0,
+        "y": 4.5,
+        "z": 5.0
+      },
+      "type": "favela_building"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.537254929542542,
+        "g": 0.615686297416687,
+        "r": 0.43529412150383
+      },
+      "id": "v2_a_upper_home",
+      "name": "Community Hall Upper Home",
+      "position": {
+        "x": -12.1000003814697,
+        "y": 6.94999980926514,
+        "z": -4.5
+      },
+      "properties": {
+        "collision_enabled": true,
+        "damage_side": "east",
+        "door_height": 2.35,
+        "door_width": 1.55,
+        "downspout_side": "north",
+        "entries": [
+          "west"
+        ],
+        "masonry_texture_path": "res://assets/textures/environment/morro_do_sol_v2_painted_plaster.png",
+        "metallic": 0.0,
+        "normal_strength": 0.025,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "parapet_height": 0.0,
+        "roof_color": {
+          "a": 1.0,
+          "b": 0.254901975393295,
+          "g": 0.278431385755539,
+          "r": 0.301960796117783
+        },
+        "roughness": 1.0,
+        "sign_side": "south",
+        "sign_text": "",
+        "trim_color": {
+          "a": 1.0,
+          "b": 0.69803923368454,
+          "g": 0.811764717102051,
+          "r": 0.878431379795074
+        },
+        "v2_architecture": true,
+        "v2_stacked_module": true,
+        "v2_vertical_route": true,
+        "window_height": 1.25,
+        "window_width": 1.65,
+        "windows": [
+          "north",
+          "south"
+        ],
+        "wood_texture_path": "res://assets/textures/environment/morro_do_sol_v2_exposed_wood.png",
+        "wood_wall_sides": []
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 3.20000004768372,
+        "y": 3.40000009536743,
+        "z": 3.79999995231628
+      },
+      "type": "favela_building"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.34901961684227,
+        "g": 0.368627458810806,
+        "r": 0.658823549747467
+      },
+      "id": "v2_b_upper_home",
+      "name": "Workshop Upper Home",
+      "position": {
+        "x": 12.1000003814697,
+        "y": 6.75,
+        "z": -4.5
+      },
+      "properties": {
+        "collision_enabled": true,
+        "damage_side": "west",
+        "door_height": 2.35,
+        "door_width": 1.55,
+        "downspout_side": "south",
+        "entries": [
+          "east"
+        ],
+        "masonry_texture_path": "res://assets/textures/environment/morro_do_sol_v2_painted_plaster.png",
+        "metallic": 0.0,
+        "normal_strength": 0.025,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "parapet_height": 0.0,
+        "roof_color": {
+          "a": 1.0,
+          "b": 0.254901975393295,
+          "g": 0.278431385755539,
+          "r": 0.301960796117783
+        },
+        "roughness": 1.0,
+        "sign_side": "south",
+        "sign_text": "",
+        "trim_color": {
+          "a": 1.0,
+          "b": 0.666666686534882,
+          "g": 0.788235306739807,
+          "r": 0.87058824300766
+        },
+        "v2_architecture": true,
+        "v2_stacked_module": true,
+        "v2_vertical_route": true,
+        "window_height": 1.25,
+        "window_width": 1.65,
+        "windows": [
+          "north",
+          "south"
+        ],
+        "wood_texture_path": "res://assets/textures/environment/morro_do_sol_v2_exposed_wood.png",
+        "wood_wall_sides": [
+          "east"
+        ]
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 3.20000004768372,
+        "y": 3.40000009536743,
+        "z": 3.79999995231628
+      },
+      "type": "favela_building"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.176470592617989,
+        "g": 0.211764708161354,
+        "r": 0.294117659330368
+      },
+      "id": "v2_a_roof_ramp_lower",
+      "name": "A Lower Roof Ramp",
+      "position": {
+        "x": -7.0,
+        "y": 3.17499995231628,
+        "z": -3.5
+      },
+      "properties": {
+        "collision_enabled": true,
+        "metallic": 0.0,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.94,
+        "surface_kind": "default",
+        "texture_multiplier": {
+          "a": 1.0,
+          "b": 0.482352942228317,
+          "g": 0.556862771511078,
+          "r": 0.607843160629272
+        },
+        "texture_path": "res://assets/textures/environment/morro_do_sol_v2_exposed_wood.png",
+        "texture_tint_weight": 0.05,
+        "uv_scale": 0.48,
+        "v2_vertical_route": true
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 1.79999995231628,
+        "y": 2.40000009536743,
+        "z": 6.0
+      },
+      "type": "ramp"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.176470592617989,
+        "g": 0.211764708161354,
+        "r": 0.294117659330368
+      },
+      "id": "v2_a_roof_landing",
+      "name": "A Roof Ramp Landing",
+      "position": {
+        "x": -8.5,
+        "y": 4.22499990463257,
+        "z": -6.65000009536743
+      },
+      "properties": {
+        "collision_enabled": true,
+        "metallic": 0.0,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.94,
+        "surface_kind": "default",
+        "texture_multiplier": {
+          "a": 1.0,
+          "b": 0.482352942228317,
+          "g": 0.556862771511078,
+          "r": 0.607843160629272
+        },
+        "texture_path": "res://assets/textures/environment/morro_do_sol_v2_exposed_wood.png",
+        "texture_tint_weight": 0.05,
+        "uv_scale": 0.48,
+        "v2_vertical_route": true
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 5.0,
+        "y": 0.300000011920929,
+        "z": 1.39999997615814
+      },
+      "type": "platform"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.176470592617989,
+        "g": 0.211764708161354,
+        "r": 0.294117659330368
+      },
+      "id": "v2_a_roof_ramp_upper",
+      "name": "A Upper Roof Ramp",
+      "position": {
+        "x": -10.1000003814697,
+        "y": 5.66249990463257,
+        "z": -3.65000009536743
+      },
+      "properties": {
+        "collision_enabled": true,
+        "metallic": 0.0,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.94,
+        "surface_kind": "default",
+        "texture_multiplier": {
+          "a": 1.0,
+          "b": 0.482352942228317,
+          "g": 0.556862771511078,
+          "r": 0.607843160629272
+        },
+        "texture_path": "res://assets/textures/environment/morro_do_sol_v2_exposed_wood.png",
+        "texture_tint_weight": 0.05,
+        "uv_scale": 0.48,
+        "v2_vertical_route": true
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 180.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 1.89999997615814,
+        "y": 2.57500004768372,
+        "z": 6.0
+      },
+      "type": "ramp"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.176470592617989,
+        "g": 0.211764708161354,
+        "r": 0.294117659330368
+      },
+      "id": "v2_a_landing_post_0",
+      "name": "A Landing Timber Post",
+      "position": {
+        "x": -6.34999990463257,
+        "y": 3.17499995231628,
+        "z": -6.65000009536743
+      },
+      "properties": {
+        "collision_enabled": true,
+        "metallic": 0.0,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.94,
+        "surface_kind": "default",
+        "texture_multiplier": {
+          "a": 1.0,
+          "b": 0.482352942228317,
+          "g": 0.556862771511078,
+          "r": 0.607843160629272
+        },
+        "texture_path": "res://assets/textures/environment/morro_do_sol_v2_exposed_wood.png",
+        "texture_tint_weight": 0.05,
+        "uv_scale": 0.48,
+        "v2_vertical_route": true
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 0.180000007152557,
+        "y": 2.40000009536743,
+        "z": 0.180000007152557
+      },
+      "type": "column"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.176470592617989,
+        "g": 0.211764708161354,
+        "r": 0.294117659330368
+      },
+      "id": "v2_a_landing_post_1",
+      "name": "A Landing Timber Post",
+      "position": {
+        "x": -10.6499996185303,
+        "y": 3.17499995231628,
+        "z": -6.65000009536743
+      },
+      "properties": {
+        "collision_enabled": true,
+        "metallic": 0.0,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.94,
+        "surface_kind": "default",
+        "texture_multiplier": {
+          "a": 1.0,
+          "b": 0.482352942228317,
+          "g": 0.556862771511078,
+          "r": 0.607843160629272
+        },
+        "texture_path": "res://assets/textures/environment/morro_do_sol_v2_exposed_wood.png",
+        "texture_tint_weight": 0.05,
+        "uv_scale": 0.48,
+        "v2_vertical_route": true
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 0.180000007152557,
+        "y": 2.40000009536743,
+        "z": 0.180000007152557
+      },
+      "type": "column"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.176470592617989,
+        "g": 0.211764708161354,
+        "r": 0.294117659330368
+      },
+      "id": "v2_b_roof_ramp_lower",
+      "name": "B Lower Roof Ramp",
+      "position": {
+        "x": 7.0,
+        "y": 3.17499995231628,
+        "z": -3.5
+      },
+      "properties": {
+        "collision_enabled": true,
+        "metallic": 0.0,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.94,
+        "surface_kind": "default",
+        "texture_multiplier": {
+          "a": 1.0,
+          "b": 0.482352942228317,
+          "g": 0.556862771511078,
+          "r": 0.607843160629272
+        },
+        "texture_path": "res://assets/textures/environment/morro_do_sol_v2_exposed_wood.png",
+        "texture_tint_weight": 0.05,
+        "uv_scale": 0.48,
+        "v2_vertical_route": true
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 1.79999995231628,
+        "y": 2.40000009536743,
+        "z": 6.0
+      },
+      "type": "ramp"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.176470592617989,
+        "g": 0.211764708161354,
+        "r": 0.294117659330368
+      },
+      "id": "v2_b_roof_landing",
+      "name": "B Roof Ramp Landing",
+      "position": {
+        "x": 8.5,
+        "y": 4.22499990463257,
+        "z": -6.65000009536743
+      },
+      "properties": {
+        "collision_enabled": true,
+        "metallic": 0.0,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.94,
+        "surface_kind": "default",
+        "texture_multiplier": {
+          "a": 1.0,
+          "b": 0.482352942228317,
+          "g": 0.556862771511078,
+          "r": 0.607843160629272
+        },
+        "texture_path": "res://assets/textures/environment/morro_do_sol_v2_exposed_wood.png",
+        "texture_tint_weight": 0.05,
+        "uv_scale": 0.48,
+        "v2_vertical_route": true
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 5.0,
+        "y": 0.300000011920929,
+        "z": 1.39999997615814
+      },
+      "type": "platform"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.176470592617989,
+        "g": 0.211764708161354,
+        "r": 0.294117659330368
+      },
+      "id": "v2_b_roof_ramp_upper",
+      "name": "B Upper Roof Ramp",
+      "position": {
+        "x": 10.1000003814697,
+        "y": 5.5625,
+        "z": -3.65000009536743
+      },
+      "properties": {
+        "collision_enabled": true,
+        "metallic": 0.0,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.94,
+        "surface_kind": "default",
+        "texture_multiplier": {
+          "a": 1.0,
+          "b": 0.482352942228317,
+          "g": 0.556862771511078,
+          "r": 0.607843160629272
+        },
+        "texture_path": "res://assets/textures/environment/morro_do_sol_v2_exposed_wood.png",
+        "texture_tint_weight": 0.05,
+        "uv_scale": 0.48,
+        "v2_vertical_route": true
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 180.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 1.89999997615814,
+        "y": 2.375,
+        "z": 6.0
+      },
+      "type": "ramp"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.176470592617989,
+        "g": 0.211764708161354,
+        "r": 0.294117659330368
+      },
+      "id": "v2_b_landing_post_0",
+      "name": "B Landing Timber Post",
+      "position": {
+        "x": 6.34999990463257,
+        "y": 3.17499995231628,
+        "z": -6.65000009536743
+      },
+      "properties": {
+        "collision_enabled": true,
+        "metallic": 0.0,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.94,
+        "surface_kind": "default",
+        "texture_multiplier": {
+          "a": 1.0,
+          "b": 0.482352942228317,
+          "g": 0.556862771511078,
+          "r": 0.607843160629272
+        },
+        "texture_path": "res://assets/textures/environment/morro_do_sol_v2_exposed_wood.png",
+        "texture_tint_weight": 0.05,
+        "uv_scale": 0.48,
+        "v2_vertical_route": true
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 0.180000007152557,
+        "y": 2.40000009536743,
+        "z": 0.180000007152557
+      },
+      "type": "column"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.176470592617989,
+        "g": 0.211764708161354,
+        "r": 0.294117659330368
+      },
+      "id": "v2_b_landing_post_1",
+      "name": "B Landing Timber Post",
+      "position": {
+        "x": 10.6499996185303,
+        "y": 3.17499995231628,
+        "z": -6.65000009536743
+      },
+      "properties": {
+        "collision_enabled": true,
+        "metallic": 0.0,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.94,
+        "surface_kind": "default",
+        "texture_multiplier": {
+          "a": 1.0,
+          "b": 0.482352942228317,
+          "g": 0.556862771511078,
+          "r": 0.607843160629272
+        },
+        "texture_path": "res://assets/textures/environment/morro_do_sol_v2_exposed_wood.png",
+        "texture_tint_weight": 0.05,
+        "uv_scale": 0.48,
+        "v2_vertical_route": true
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 0.180000007152557,
+        "y": 2.40000009536743,
+        "z": 0.180000007152557
+      },
+      "type": "column"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.176470592617989,
+        "g": 0.211764708161354,
+        "r": 0.294117659330368
+      },
+      "id": "v2_a_access_crate_inner",
+      "name": "A Roof Access Crate",
+      "position": {
+        "x": -7.75,
+        "y": 2.25,
+        "z": 1.64999997615814
+      },
+      "properties": {
+        "collision_enabled": true,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "texture_path": "res://assets/textures/environment/morro_do_sol_v2_exposed_wood.png",
+        "uv_scale": 0.56,
+        "v2_vertical_route": true
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 1.32000005245209,
+        "y": 0.550000011920929,
+        "z": 1.32000005245209
+      },
+      "type": "wooden_crate"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.176470592617989,
+        "g": 0.211764708161354,
+        "r": 0.294117659330368
+      },
+      "id": "v2_a_access_crate_outer",
+      "name": "A Roof Access Crate",
+      "position": {
+        "x": -9.10000038146973,
+        "y": 2.25,
+        "z": 1.64999997615814
+      },
+      "properties": {
+        "collision_enabled": true,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "texture_path": "res://assets/textures/environment/morro_do_sol_v2_exposed_wood.png",
+        "uv_scale": 0.56,
+        "v2_vertical_route": true
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 1.32000005245209,
+        "y": 0.550000011920929,
+        "z": 1.32000005245209
+      },
+      "type": "wooden_crate"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.176470592617989,
+        "g": 0.211764708161354,
+        "r": 0.294117659330368
+      },
+      "id": "v2_a_access_crate_top",
+      "name": "A Roof Access Crate",
+      "position": {
+        "x": -8.42500019073486,
+        "y": 2.79999995231628,
+        "z": 1.64999997615814
+      },
+      "properties": {
+        "collision_enabled": true,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "texture_path": "res://assets/textures/environment/morro_do_sol_v2_exposed_wood.png",
+        "uv_scale": 0.56,
+        "v2_vertical_route": true
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 1.32000005245209,
+        "y": 0.550000011920929,
+        "z": 1.32000005245209
+      },
+      "type": "wooden_crate"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.176470592617989,
+        "g": 0.211764708161354,
+        "r": 0.294117659330368
+      },
+      "id": "v2_b_access_crate_inner",
+      "name": "B Roof Access Crate",
+      "position": {
+        "x": 7.75,
+        "y": 2.25,
+        "z": 1.64999997615814
+      },
+      "properties": {
+        "collision_enabled": true,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "texture_path": "res://assets/textures/environment/morro_do_sol_v2_exposed_wood.png",
+        "uv_scale": 0.56,
+        "v2_vertical_route": true
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 1.32000005245209,
+        "y": 0.550000011920929,
+        "z": 1.32000005245209
+      },
+      "type": "wooden_crate"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.176470592617989,
+        "g": 0.211764708161354,
+        "r": 0.294117659330368
+      },
+      "id": "v2_b_access_crate_outer",
+      "name": "B Roof Access Crate",
+      "position": {
+        "x": 9.10000038146973,
+        "y": 2.25,
+        "z": 1.64999997615814
+      },
+      "properties": {
+        "collision_enabled": true,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "texture_path": "res://assets/textures/environment/morro_do_sol_v2_exposed_wood.png",
+        "uv_scale": 0.56,
+        "v2_vertical_route": true
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 1.32000005245209,
+        "y": 0.550000011920929,
+        "z": 1.32000005245209
+      },
+      "type": "wooden_crate"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.176470592617989,
+        "g": 0.211764708161354,
+        "r": 0.294117659330368
+      },
+      "id": "v2_b_access_crate_top",
+      "name": "B Roof Access Crate",
+      "position": {
+        "x": 8.42500019073486,
+        "y": 2.79999995231628,
+        "z": 1.64999997615814
+      },
+      "properties": {
+        "collision_enabled": true,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "texture_path": "res://assets/textures/environment/morro_do_sol_v2_exposed_wood.png",
+        "uv_scale": 0.56,
+        "v2_vertical_route": true
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 1.32000005245209,
+        "y": 0.550000011920929,
+        "z": 1.32000005245209
+      },
+      "type": "wooden_crate"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.30588236451149,
+        "g": 0.411764711141586,
+        "r": 0.24705882370472
+      },
+      "id": "west_hillside",
+      "name": "Painted Perimeter Hillside",
+      "position": {
+        "x": -31.5,
+        "y": -3.20000004768372,
+        "z": -1.0
+      },
+      "properties": {
+        "collision_enabled": false,
+        "metallic": 0.0,
+        "normal_strength": 0.035,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "peak_offset_x": 0.0,
+        "peak_offset_z": 0.0,
+        "ridge_segments": 18,
+        "roughness": 0.98,
+        "roughness_amount": 0.26,
+        "surface_kind": "rock",
+        "texture_path": "",
+        "uv_scale": 1.0,
+        "v2_detail": true,
+        "v2_detail_kind": "terrain",
+        "variation_seed": 801
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 18.0,
+        "y": 13.5,
+        "z": 34.0
+      },
+      "type": "rocky_mountain"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.30588236451149,
+        "g": 0.411764711141586,
+        "r": 0.24705882370472
+      },
+      "id": "east_hillside",
+      "name": "Painted Perimeter Hillside",
+      "position": {
+        "x": 31.5,
+        "y": -3.0,
+        "z": -3.0
+      },
+      "properties": {
+        "collision_enabled": false,
+        "metallic": 0.0,
+        "normal_strength": 0.035,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "peak_offset_x": 0.0,
+        "peak_offset_z": 0.0,
+        "ridge_segments": 18,
+        "roughness": 0.98,
+        "roughness_amount": 0.26,
+        "surface_kind": "rock",
+        "texture_path": "",
+        "uv_scale": 1.0,
+        "v2_detail": true,
+        "v2_detail_kind": "terrain",
+        "variation_seed": 802
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 18.0,
+        "y": 12.5,
+        "z": 32.0
+      },
+      "type": "rocky_mountain"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.30588236451149,
+        "g": 0.411764711141586,
+        "r": 0.24705882370472
+      },
+      "id": "north_hillside",
+      "name": "Painted Perimeter Hillside",
+      "position": {
+        "x": 0.0,
+        "y": -3.79999995231628,
+        "z": -31.0
+      },
+      "properties": {
+        "collision_enabled": false,
+        "metallic": 0.0,
+        "normal_strength": 0.035,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "peak_offset_x": 0.0,
+        "peak_offset_z": 0.0,
+        "ridge_segments": 18,
+        "roughness": 0.98,
+        "roughness_amount": 0.26,
+        "surface_kind": "rock",
+        "texture_path": "",
+        "uv_scale": 1.0,
+        "v2_detail": true,
+        "v2_detail_kind": "terrain",
+        "variation_seed": 803
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 45.0,
+        "y": 12.0,
+        "z": 18.0
+      },
+      "type": "rocky_mountain"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.278431385755539,
+        "g": 0.447058826684952,
+        "r": 0.24705882370472
+      },
+      "id": "v2_edge_bush_00",
+      "name": "Painted Edge Vegetation",
+      "position": {
+        "x": -23.5,
+        "y": -0.100000001490116,
+        "z": -15.0
+      },
+      "properties": {
+        "blocks_movement": false,
+        "cluster_count": 7,
+        "collision_enabled": false,
+        "concealment": false,
+        "metallic": 0.0,
+        "normal_strength": 0.035,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.98,
+        "v2_detail": true,
+        "v2_detail_kind": "vegetation",
+        "variation_seed": 900
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 3.40000009536743,
+        "y": 2.20000004768372,
+        "z": 2.79999995231628
+      },
+      "type": "bush"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.278431385755539,
+        "g": 0.447058826684952,
+        "r": 0.24705882370472
+      },
+      "id": "v2_edge_bush_01",
+      "name": "Painted Edge Vegetation",
+      "position": {
+        "x": 23.5,
+        "y": -0.100000001490116,
+        "z": -15.0
+      },
+      "properties": {
+        "blocks_movement": false,
+        "cluster_count": 7,
+        "collision_enabled": false,
+        "concealment": false,
+        "metallic": 0.0,
+        "normal_strength": 0.035,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.98,
+        "v2_detail": true,
+        "v2_detail_kind": "vegetation",
+        "variation_seed": 901
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 3.40000009536743,
+        "y": 2.45000004768372,
+        "z": 2.79999995231628
+      },
+      "type": "bush"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.278431385755539,
+        "g": 0.447058826684952,
+        "r": 0.24705882370472
+      },
+      "id": "v2_edge_bush_02",
+      "name": "Painted Edge Vegetation",
+      "position": {
+        "x": -23.5,
+        "y": -0.100000001490116,
+        "z": -9.19999980926514
+      },
+      "properties": {
+        "blocks_movement": false,
+        "cluster_count": 7,
+        "collision_enabled": false,
+        "concealment": false,
+        "metallic": 0.0,
+        "normal_strength": 0.035,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.98,
+        "v2_detail": true,
+        "v2_detail_kind": "vegetation",
+        "variation_seed": 902
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 3.40000009536743,
+        "y": 2.70000004768372,
+        "z": 2.79999995231628
+      },
+      "type": "bush"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.278431385755539,
+        "g": 0.447058826684952,
+        "r": 0.24705882370472
+      },
+      "id": "v2_edge_bush_03",
+      "name": "Painted Edge Vegetation",
+      "position": {
+        "x": 23.5,
+        "y": -0.100000001490116,
+        "z": -9.19999980926514
+      },
+      "properties": {
+        "blocks_movement": false,
+        "cluster_count": 7,
+        "collision_enabled": false,
+        "concealment": false,
+        "metallic": 0.0,
+        "normal_strength": 0.035,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.98,
+        "v2_detail": true,
+        "v2_detail_kind": "vegetation",
+        "variation_seed": 903
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 3.40000009536743,
+        "y": 2.20000004768372,
+        "z": 2.79999995231628
+      },
+      "type": "bush"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.278431385755539,
+        "g": 0.447058826684952,
+        "r": 0.24705882370472
+      },
+      "id": "v2_edge_bush_04",
+      "name": "Painted Edge Vegetation",
+      "position": {
+        "x": -23.5,
+        "y": -0.100000001490116,
+        "z": -3.40000009536743
+      },
+      "properties": {
+        "blocks_movement": false,
+        "cluster_count": 7,
+        "collision_enabled": false,
+        "concealment": false,
+        "metallic": 0.0,
+        "normal_strength": 0.035,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.98,
+        "v2_detail": true,
+        "v2_detail_kind": "vegetation",
+        "variation_seed": 904
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 3.40000009536743,
+        "y": 2.45000004768372,
+        "z": 2.79999995231628
+      },
+      "type": "bush"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.278431385755539,
+        "g": 0.447058826684952,
+        "r": 0.24705882370472
+      },
+      "id": "v2_edge_bush_05",
+      "name": "Painted Edge Vegetation",
+      "position": {
+        "x": 23.5,
+        "y": -0.100000001490116,
+        "z": -3.40000009536743
+      },
+      "properties": {
+        "blocks_movement": false,
+        "cluster_count": 7,
+        "collision_enabled": false,
+        "concealment": false,
+        "metallic": 0.0,
+        "normal_strength": 0.035,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.98,
+        "v2_detail": true,
+        "v2_detail_kind": "vegetation",
+        "variation_seed": 905
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 3.40000009536743,
+        "y": 2.70000004768372,
+        "z": 2.79999995231628
+      },
+      "type": "bush"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.278431385755539,
+        "g": 0.447058826684952,
+        "r": 0.24705882370472
+      },
+      "id": "v2_edge_bush_06",
+      "name": "Painted Edge Vegetation",
+      "position": {
+        "x": -23.5,
+        "y": -0.100000001490116,
+        "z": 2.40000009536743
+      },
+      "properties": {
+        "blocks_movement": false,
+        "cluster_count": 7,
+        "collision_enabled": false,
+        "concealment": false,
+        "metallic": 0.0,
+        "normal_strength": 0.035,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.98,
+        "v2_detail": true,
+        "v2_detail_kind": "vegetation",
+        "variation_seed": 906
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 3.40000009536743,
+        "y": 2.20000004768372,
+        "z": 2.79999995231628
+      },
+      "type": "bush"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.278431385755539,
+        "g": 0.447058826684952,
+        "r": 0.24705882370472
+      },
+      "id": "v2_edge_bush_07",
+      "name": "Painted Edge Vegetation",
+      "position": {
+        "x": 23.5,
+        "y": -0.100000001490116,
+        "z": 2.40000009536743
+      },
+      "properties": {
+        "blocks_movement": false,
+        "cluster_count": 7,
+        "collision_enabled": false,
+        "concealment": false,
+        "metallic": 0.0,
+        "normal_strength": 0.035,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.98,
+        "v2_detail": true,
+        "v2_detail_kind": "vegetation",
+        "variation_seed": 907
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 3.40000009536743,
+        "y": 2.45000004768372,
+        "z": 2.79999995231628
+      },
+      "type": "bush"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.278431385755539,
+        "g": 0.447058826684952,
+        "r": 0.24705882370472
+      },
+      "id": "v2_edge_bush_08",
+      "name": "Painted Edge Vegetation",
+      "position": {
+        "x": -23.5,
+        "y": -0.100000001490116,
+        "z": 8.19999980926514
+      },
+      "properties": {
+        "blocks_movement": false,
+        "cluster_count": 7,
+        "collision_enabled": false,
+        "concealment": false,
+        "metallic": 0.0,
+        "normal_strength": 0.035,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.98,
+        "v2_detail": true,
+        "v2_detail_kind": "vegetation",
+        "variation_seed": 908
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 3.40000009536743,
+        "y": 2.70000004768372,
+        "z": 2.79999995231628
+      },
+      "type": "bush"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.278431385755539,
+        "g": 0.447058826684952,
+        "r": 0.24705882370472
+      },
+      "id": "v2_edge_bush_09",
+      "name": "Painted Edge Vegetation",
+      "position": {
+        "x": 23.5,
+        "y": -0.100000001490116,
+        "z": 8.19999980926514
+      },
+      "properties": {
+        "blocks_movement": false,
+        "cluster_count": 7,
+        "collision_enabled": false,
+        "concealment": false,
+        "metallic": 0.0,
+        "normal_strength": 0.035,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.98,
+        "v2_detail": true,
+        "v2_detail_kind": "vegetation",
+        "variation_seed": 909
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 3.40000009536743,
+        "y": 2.20000004768372,
+        "z": 2.79999995231628
+      },
+      "type": "bush"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.278431385755539,
+        "g": 0.447058826684952,
+        "r": 0.24705882370472
+      },
+      "id": "v2_edge_bush_10",
+      "name": "Painted Edge Vegetation",
+      "position": {
+        "x": -23.5,
+        "y": -0.100000001490116,
+        "z": 14.0
+      },
+      "properties": {
+        "blocks_movement": false,
+        "cluster_count": 7,
+        "collision_enabled": false,
+        "concealment": false,
+        "metallic": 0.0,
+        "normal_strength": 0.035,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.98,
+        "v2_detail": true,
+        "v2_detail_kind": "vegetation",
+        "variation_seed": 910
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 3.40000009536743,
+        "y": 2.45000004768372,
+        "z": 2.79999995231628
+      },
+      "type": "bush"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.278431385755539,
+        "g": 0.447058826684952,
+        "r": 0.24705882370472
+      },
+      "id": "v2_edge_bush_11",
+      "name": "Painted Edge Vegetation",
+      "position": {
+        "x": 23.5,
+        "y": -0.100000001490116,
+        "z": 14.0
+      },
+      "properties": {
+        "blocks_movement": false,
+        "cluster_count": 7,
+        "collision_enabled": false,
+        "concealment": false,
+        "metallic": 0.0,
+        "normal_strength": 0.035,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.98,
+        "v2_detail": true,
+        "v2_detail_kind": "vegetation",
+        "variation_seed": 911
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 3.40000009536743,
+        "y": 2.70000004768372,
+        "z": 2.79999995231628
+      },
+      "type": "bush"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.24705882370472,
+        "g": 0.372549027204514,
+        "r": 0.192156866192818
+      },
+      "id": "v2_tree_west_s",
+      "name": "Boundary Canopy",
+      "position": {
+        "x": -24.5,
+        "y": 0.0,
+        "z": 12.0
+      },
+      "properties": {
+        "canopy_layers": 5,
+        "collision_enabled": false,
+        "metallic": 0.0,
+        "normal_strength": 0.035,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.98,
+        "trunk_ratio": 0.38,
+        "v2_detail": true,
+        "v2_detail_kind": "vegetation",
+        "variation_seed": 921
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 4.0,
+        "y": 8.5,
+        "z": 4.0
+      },
+      "type": "tree"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.24705882370472,
+        "g": 0.372549027204514,
+        "r": 0.192156866192818
+      },
+      "id": "v2_tree_west_n",
+      "name": "Boundary Canopy",
+      "position": {
+        "x": -24.0,
+        "y": 0.0,
+        "z": -12.0
+      },
+      "properties": {
+        "canopy_layers": 5,
+        "collision_enabled": false,
+        "metallic": 0.0,
+        "normal_strength": 0.035,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.98,
+        "trunk_ratio": 0.38,
+        "v2_detail": true,
+        "v2_detail_kind": "vegetation",
+        "variation_seed": 922
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 4.0,
+        "y": 8.5,
+        "z": 4.0
+      },
+      "type": "tree"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.24705882370472,
+        "g": 0.372549027204514,
+        "r": 0.192156866192818
+      },
+      "id": "v2_tree_east_s",
+      "name": "Boundary Canopy",
+      "position": {
+        "x": 24.5,
+        "y": 0.0,
+        "z": 11.0
+      },
+      "properties": {
+        "canopy_layers": 5,
+        "collision_enabled": false,
+        "metallic": 0.0,
+        "normal_strength": 0.035,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.98,
+        "trunk_ratio": 0.38,
+        "v2_detail": true,
+        "v2_detail_kind": "vegetation",
+        "variation_seed": 923
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 4.0,
+        "y": 8.5,
+        "z": 4.0
+      },
+      "type": "tree"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.24705882370472,
+        "g": 0.372549027204514,
+        "r": 0.192156866192818
+      },
+      "id": "v2_tree_east_n",
+      "name": "Boundary Canopy",
+      "position": {
+        "x": 24.0,
+        "y": 0.0,
+        "z": -13.0
+      },
+      "properties": {
+        "canopy_layers": 5,
+        "collision_enabled": false,
+        "metallic": 0.0,
+        "normal_strength": 0.035,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.98,
+        "trunk_ratio": 0.38,
+        "v2_detail": true,
+        "v2_detail_kind": "vegetation",
+        "variation_seed": 924
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 4.0,
+        "y": 8.5,
+        "z": 4.0
+      },
+      "type": "tree"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.176470592617989,
+        "g": 0.211764708161354,
+        "r": 0.294117659330368
+      },
+      "id": "v2_frame_post_-3.2_-13.35",
+      "name": "Unfinished Roof Post",
+      "position": {
+        "x": -3.20000004768372,
+        "y": 6.34999990463257,
+        "z": -13.3500003814697
+      },
+      "properties": {
+        "collision_enabled": false,
+        "metallic": 0.0,
+        "normal_strength": 0.035,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.98,
+        "surface_kind": "default",
+        "texture_path": "res://assets/textures/environment/morro_do_sol_v2_exposed_wood.png",
+        "uv_scale": 0.58,
+        "v2_detail": true,
+        "v2_detail_kind": "frame"
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 0.219999998807907,
+        "y": 3.20000004768372,
+        "z": 0.219999998807907
+      },
+      "type": "primitive_box"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.176470592617989,
+        "g": 0.211764708161354,
+        "r": 0.294117659330368
+      },
+      "id": "v2_frame_post_-3.2_-9.65",
+      "name": "Unfinished Roof Post",
+      "position": {
+        "x": -3.20000004768372,
+        "y": 6.34999990463257,
+        "z": -9.64999961853027
+      },
+      "properties": {
+        "collision_enabled": false,
+        "metallic": 0.0,
+        "normal_strength": 0.035,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.98,
+        "surface_kind": "default",
+        "texture_path": "res://assets/textures/environment/morro_do_sol_v2_exposed_wood.png",
+        "uv_scale": 0.58,
+        "v2_detail": true,
+        "v2_detail_kind": "frame"
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 0.219999998807907,
+        "y": 3.20000004768372,
+        "z": 0.219999998807907
+      },
+      "type": "primitive_box"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.176470592617989,
+        "g": 0.211764708161354,
+        "r": 0.294117659330368
+      },
+      "id": "v2_frame_post_0.0_-13.35",
+      "name": "Unfinished Roof Post",
+      "position": {
+        "x": 0.0,
+        "y": 6.34999990463257,
+        "z": -13.3500003814697
+      },
+      "properties": {
+        "collision_enabled": false,
+        "metallic": 0.0,
+        "normal_strength": 0.035,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.98,
+        "surface_kind": "default",
+        "texture_path": "res://assets/textures/environment/morro_do_sol_v2_exposed_wood.png",
+        "uv_scale": 0.58,
+        "v2_detail": true,
+        "v2_detail_kind": "frame"
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 0.219999998807907,
+        "y": 3.20000004768372,
+        "z": 0.219999998807907
+      },
+      "type": "primitive_box"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.176470592617989,
+        "g": 0.211764708161354,
+        "r": 0.294117659330368
+      },
+      "id": "v2_frame_post_0.0_-9.65",
+      "name": "Unfinished Roof Post",
+      "position": {
+        "x": 0.0,
+        "y": 6.34999990463257,
+        "z": -9.64999961853027
+      },
+      "properties": {
+        "collision_enabled": false,
+        "metallic": 0.0,
+        "normal_strength": 0.035,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.98,
+        "surface_kind": "default",
+        "texture_path": "res://assets/textures/environment/morro_do_sol_v2_exposed_wood.png",
+        "uv_scale": 0.58,
+        "v2_detail": true,
+        "v2_detail_kind": "frame"
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 0.219999998807907,
+        "y": 3.20000004768372,
+        "z": 0.219999998807907
+      },
+      "type": "primitive_box"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.176470592617989,
+        "g": 0.211764708161354,
+        "r": 0.294117659330368
+      },
+      "id": "v2_frame_post_3.2_-13.35",
+      "name": "Unfinished Roof Post",
+      "position": {
+        "x": 3.20000004768372,
+        "y": 6.34999990463257,
+        "z": -13.3500003814697
+      },
+      "properties": {
+        "collision_enabled": false,
+        "metallic": 0.0,
+        "normal_strength": 0.035,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.98,
+        "surface_kind": "default",
+        "texture_path": "res://assets/textures/environment/morro_do_sol_v2_exposed_wood.png",
+        "uv_scale": 0.58,
+        "v2_detail": true,
+        "v2_detail_kind": "frame"
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 0.219999998807907,
+        "y": 3.20000004768372,
+        "z": 0.219999998807907
+      },
+      "type": "primitive_box"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.176470592617989,
+        "g": 0.211764708161354,
+        "r": 0.294117659330368
+      },
+      "id": "v2_frame_post_3.2_-9.65",
+      "name": "Unfinished Roof Post",
+      "position": {
+        "x": 3.20000004768372,
+        "y": 6.34999990463257,
+        "z": -9.64999961853027
+      },
+      "properties": {
+        "collision_enabled": false,
+        "metallic": 0.0,
+        "normal_strength": 0.035,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.98,
+        "surface_kind": "default",
+        "texture_path": "res://assets/textures/environment/morro_do_sol_v2_exposed_wood.png",
+        "uv_scale": 0.58,
+        "v2_detail": true,
+        "v2_detail_kind": "frame"
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 0.219999998807907,
+        "y": 3.20000004768372,
+        "z": 0.219999998807907
+      },
+      "type": "primitive_box"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.176470592617989,
+        "g": 0.211764708161354,
+        "r": 0.294117659330368
+      },
+      "id": "v2_frame_cross_-13.35",
+      "name": "Unfinished Cross Beam",
+      "position": {
+        "x": 0.0,
+        "y": 7.92000007629395,
+        "z": -13.3500003814697
+      },
+      "properties": {
+        "collision_enabled": false,
+        "metallic": 0.0,
+        "normal_strength": 0.035,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.98,
+        "surface_kind": "default",
+        "texture_path": "res://assets/textures/environment/morro_do_sol_v2_exposed_wood.png",
+        "uv_scale": 0.58,
+        "v2_detail": true,
+        "v2_detail_kind": "frame"
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 6.65000009536743,
+        "y": 0.239999994635582,
+        "z": 0.239999994635582
+      },
+      "type": "primitive_box"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.176470592617989,
+        "g": 0.211764708161354,
+        "r": 0.294117659330368
+      },
+      "id": "v2_frame_cross_-9.65",
+      "name": "Unfinished Cross Beam",
+      "position": {
+        "x": 0.0,
+        "y": 7.92000007629395,
+        "z": -9.64999961853027
+      },
+      "properties": {
+        "collision_enabled": false,
+        "metallic": 0.0,
+        "normal_strength": 0.035,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.98,
+        "surface_kind": "default",
+        "texture_path": "res://assets/textures/environment/morro_do_sol_v2_exposed_wood.png",
+        "uv_scale": 0.58,
+        "v2_detail": true,
+        "v2_detail_kind": "frame"
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 6.65000009536743,
+        "y": 0.239999994635582,
+        "z": 0.239999994635582
+      },
+      "type": "primitive_box"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.176470592617989,
+        "g": 0.211764708161354,
+        "r": 0.294117659330368
+      },
+      "id": "v2_frame_depth_-3.2",
+      "name": "Unfinished Depth Beam",
+      "position": {
+        "x": -3.20000004768372,
+        "y": 7.92000007629395,
+        "z": -11.5
+      },
+      "properties": {
+        "collision_enabled": false,
+        "metallic": 0.0,
+        "normal_strength": 0.035,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.98,
+        "surface_kind": "default",
+        "texture_path": "res://assets/textures/environment/morro_do_sol_v2_exposed_wood.png",
+        "uv_scale": 0.58,
+        "v2_detail": true,
+        "v2_detail_kind": "frame"
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 0.239999994635582,
+        "y": 0.239999994635582,
+        "z": 3.95000004768372
+      },
+      "type": "primitive_box"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.176470592617989,
+        "g": 0.211764708161354,
+        "r": 0.294117659330368
+      },
+      "id": "v2_frame_depth_0.0",
+      "name": "Unfinished Depth Beam",
+      "position": {
+        "x": 0.0,
+        "y": 7.92000007629395,
+        "z": -11.5
+      },
+      "properties": {
+        "collision_enabled": false,
+        "metallic": 0.0,
+        "normal_strength": 0.035,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.98,
+        "surface_kind": "default",
+        "texture_path": "res://assets/textures/environment/morro_do_sol_v2_exposed_wood.png",
+        "uv_scale": 0.58,
+        "v2_detail": true,
+        "v2_detail_kind": "frame"
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 0.239999994635582,
+        "y": 0.239999994635582,
+        "z": 3.95000004768372
+      },
+      "type": "primitive_box"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.176470592617989,
+        "g": 0.211764708161354,
+        "r": 0.294117659330368
+      },
+      "id": "v2_frame_depth_3.2",
+      "name": "Unfinished Depth Beam",
+      "position": {
+        "x": 3.20000004768372,
+        "y": 7.92000007629395,
+        "z": -11.5
+      },
+      "properties": {
+        "collision_enabled": false,
+        "metallic": 0.0,
+        "normal_strength": 0.035,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.98,
+        "surface_kind": "default",
+        "texture_path": "res://assets/textures/environment/morro_do_sol_v2_exposed_wood.png",
+        "uv_scale": 0.58,
+        "v2_detail": true,
+        "v2_detail_kind": "frame"
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 0.239999994635582,
+        "y": 0.239999994635582,
+        "z": 3.95000004768372
+      },
+      "type": "primitive_box"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.176470592617989,
+        "g": 0.211764708161354,
+        "r": 0.294117659330368
+      },
+      "id": "v2_frame_brace_left",
+      "name": "Left Roof Brace",
+      "position": {
+        "x": -1.54999995231628,
+        "y": 6.75,
+        "z": -13.3500003814697
+      },
+      "properties": {
+        "collision_enabled": false,
+        "metallic": 0.0,
+        "normal_strength": 0.035,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.98,
+        "surface_kind": "default",
+        "texture_path": "res://assets/textures/environment/morro_do_sol_v2_exposed_wood.png",
+        "uv_scale": 0.58,
+        "v2_detail": true,
+        "v2_detail_kind": "frame"
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 43.0
+      },
+      "size": {
+        "x": 3.5,
+        "y": 0.200000002980232,
+        "z": 0.200000002980232
+      },
+      "type": "primitive_box"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.176470592617989,
+        "g": 0.211764708161354,
+        "r": 0.294117659330368
+      },
+      "id": "v2_frame_brace_right",
+      "name": "Right Roof Brace",
+      "position": {
+        "x": 1.54999995231628,
+        "y": 6.75,
+        "z": -13.3500003814697
+      },
+      "properties": {
+        "collision_enabled": false,
+        "metallic": 0.0,
+        "normal_strength": 0.035,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.98,
+        "surface_kind": "default",
+        "texture_path": "res://assets/textures/environment/morro_do_sol_v2_exposed_wood.png",
+        "uv_scale": 0.58,
+        "v2_detail": true,
+        "v2_detail_kind": "frame"
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": -43.0
+      },
+      "size": {
+        "x": 3.5,
+        "y": 0.200000002980232,
+        "z": 0.200000002980232
+      },
+      "type": "primitive_box"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.176470592617989,
+        "g": 0.211764708161354,
+        "r": 0.294117659330368
+      },
+      "id": "v2_pole_west_s",
+      "name": "Timber Utility Pole Assembly",
+      "position": {
+        "x": -19.2000007629395,
+        "y": 3.79999995231628,
+        "z": 10.0
+      },
+      "properties": {
+        "collision_enabled": false,
+        "crossbar_width": 1.45,
+        "metallic": 0.0,
+        "normal_strength": 0.035,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.98,
+        "v2_detail": true,
+        "v2_detail_kind": "utility_pole",
+        "wood_texture_path": ""
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 0.239999994635582,
+        "y": 7.59999990463257,
+        "z": 0.239999994635582
+      },
+      "type": "utility_pole"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.176470592617989,
+        "g": 0.211764708161354,
+        "r": 0.294117659330368
+      },
+      "id": "v2_pole_east_s",
+      "name": "Timber Utility Pole Assembly",
+      "position": {
+        "x": 19.2000007629395,
+        "y": 3.79999995231628,
+        "z": 10.0
+      },
+      "properties": {
+        "collision_enabled": false,
+        "crossbar_width": 1.45,
+        "metallic": 0.0,
+        "normal_strength": 0.035,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.98,
+        "v2_detail": true,
+        "v2_detail_kind": "utility_pole",
+        "wood_texture_path": ""
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 0.239999994635582,
+        "y": 7.59999990463257,
+        "z": 0.239999994635582
+      },
+      "type": "utility_pole"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.176470592617989,
+        "g": 0.211764708161354,
+        "r": 0.294117659330368
+      },
+      "id": "v2_pole_west_m",
+      "name": "Timber Utility Pole Assembly",
+      "position": {
+        "x": -19.2000007629395,
+        "y": 3.79999995231628,
+        "z": 3.0
+      },
+      "properties": {
+        "collision_enabled": false,
+        "crossbar_width": 1.45,
+        "metallic": 0.0,
+        "normal_strength": 0.035,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.98,
+        "v2_detail": true,
+        "v2_detail_kind": "utility_pole",
+        "wood_texture_path": ""
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 0.239999994635582,
+        "y": 7.59999990463257,
+        "z": 0.239999994635582
+      },
+      "type": "utility_pole"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.176470592617989,
+        "g": 0.211764708161354,
+        "r": 0.294117659330368
+      },
+      "id": "v2_pole_east_m",
+      "name": "Timber Utility Pole Assembly",
+      "position": {
+        "x": 19.2000007629395,
+        "y": 3.79999995231628,
+        "z": 3.0
+      },
+      "properties": {
+        "collision_enabled": false,
+        "crossbar_width": 1.45,
+        "metallic": 0.0,
+        "normal_strength": 0.035,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.98,
+        "v2_detail": true,
+        "v2_detail_kind": "utility_pole",
+        "wood_texture_path": ""
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 0.239999994635582,
+        "y": 7.59999990463257,
+        "z": 0.239999994635582
+      },
+      "type": "utility_pole"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.176470592617989,
+        "g": 0.211764708161354,
+        "r": 0.294117659330368
+      },
+      "id": "v2_pole_west_n",
+      "name": "Timber Utility Pole Assembly",
+      "position": {
+        "x": -19.2000007629395,
+        "y": 3.79999995231628,
+        "z": -11.0
+      },
+      "properties": {
+        "collision_enabled": false,
+        "crossbar_width": 1.45,
+        "metallic": 0.0,
+        "normal_strength": 0.035,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.98,
+        "v2_detail": true,
+        "v2_detail_kind": "utility_pole",
+        "wood_texture_path": ""
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 0.239999994635582,
+        "y": 7.59999990463257,
+        "z": 0.239999994635582
+      },
+      "type": "utility_pole"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.176470592617989,
+        "g": 0.211764708161354,
+        "r": 0.294117659330368
+      },
+      "id": "v2_pole_east_n",
+      "name": "Timber Utility Pole Assembly",
+      "position": {
+        "x": 19.2000007629395,
+        "y": 3.79999995231628,
+        "z": -11.0
+      },
+      "properties": {
+        "collision_enabled": false,
+        "crossbar_width": 1.45,
+        "metallic": 0.0,
+        "normal_strength": 0.035,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.98,
+        "v2_detail": true,
+        "v2_detail_kind": "utility_pole",
+        "wood_texture_path": ""
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 0.239999994635582,
+        "y": 7.59999990463257,
+        "z": 0.239999994635582
+      },
+      "type": "utility_pole"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.164705887436867,
+        "g": 0.149019613862038,
+        "r": 0.125490203499794
+      },
+      "id": "v2_wire_south_a",
+      "name": "Sagging Utility Cable",
+      "position": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "properties": {
+        "collision_enabled": false,
+        "metallic": 0.0,
+        "normal_strength": 0.035,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "points": [
+          {
+            "x": -19.2000007629395,
+            "y": 7.25,
+            "z": 10.0
+          },
+          {
+            "x": -6.40000009536743,
+            "y": 6.76999998092651,
+            "z": 10.0
+          },
+          {
+            "x": 6.40000009536743,
+            "y": 6.67000007629395,
+            "z": 10.0
+          },
+          {
+            "x": 19.2000007629395,
+            "y": 7.25,
+            "z": 10.0
+          }
+        ],
+        "radius": 0.01,
+        "roughness": 0.98,
+        "segment_count": 18,
+        "v2_detail": true,
+        "v2_detail_kind": "cable"
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 38.4000015258789,
+        "y": 0.100000001490116,
+        "z": 0.100000001490116
+      },
+      "type": "cable_curve"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.164705887436867,
+        "g": 0.149019613862038,
+        "r": 0.125490203499794
+      },
+      "id": "v2_wire_south_b",
+      "name": "Sagging Utility Cable",
+      "position": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "properties": {
+        "collision_enabled": false,
+        "metallic": 0.0,
+        "normal_strength": 0.035,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "points": [
+          {
+            "x": -19.2000007629395,
+            "y": 7.40000009536743,
+            "z": 8.89999961853027
+          },
+          {
+            "x": -6.40000009536743,
+            "y": 6.92000007629395,
+            "z": 8.89999961853027
+          },
+          {
+            "x": 6.40000009536743,
+            "y": 6.82000017166138,
+            "z": 8.89999961853027
+          },
+          {
+            "x": 19.2000007629395,
+            "y": 7.40000009536743,
+            "z": 8.89999961853027
+          }
+        ],
+        "radius": 0.01,
+        "roughness": 0.98,
+        "segment_count": 18,
+        "v2_detail": true,
+        "v2_detail_kind": "cable"
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 38.4000015258789,
+        "y": 0.100000001490116,
+        "z": 0.100000001490116
+      },
+      "type": "cable_curve"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.164705887436867,
+        "g": 0.149019613862038,
+        "r": 0.125490203499794
+      },
+      "id": "v2_wire_market",
+      "name": "Sagging Utility Cable",
+      "position": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "properties": {
+        "collision_enabled": false,
+        "metallic": 0.0,
+        "normal_strength": 0.035,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "points": [
+          {
+            "x": -19.2000007629395,
+            "y": 7.30000019073486,
+            "z": 3.0
+          },
+          {
+            "x": -6.40000009536743,
+            "y": 6.82000017166138,
+            "z": 3.0
+          },
+          {
+            "x": 6.40000009536743,
+            "y": 6.71999979019165,
+            "z": 3.0
+          },
+          {
+            "x": 19.2000007629395,
+            "y": 7.30000019073486,
+            "z": 3.0
+          }
+        ],
+        "radius": 0.01,
+        "roughness": 0.98,
+        "segment_count": 18,
+        "v2_detail": true,
+        "v2_detail_kind": "cable"
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 38.4000015258789,
+        "y": 0.100000001490116,
+        "z": 0.100000001490116
+      },
+      "type": "cable_curve"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.164705887436867,
+        "g": 0.149019613862038,
+        "r": 0.125490203499794
+      },
+      "id": "v2_wire_north",
+      "name": "Sagging Utility Cable",
+      "position": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "properties": {
+        "collision_enabled": false,
+        "metallic": 0.0,
+        "normal_strength": 0.035,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "points": [
+          {
+            "x": -19.2000007629395,
+            "y": 7.40000009536743,
+            "z": -11.0
+          },
+          {
+            "x": -6.40000009536743,
+            "y": 6.92000007629395,
+            "z": -11.0
+          },
+          {
+            "x": 6.40000009536743,
+            "y": 6.82000017166138,
+            "z": -11.0
+          },
+          {
+            "x": 19.2000007629395,
+            "y": 7.40000009536743,
+            "z": -11.0
+          }
+        ],
+        "radius": 0.01,
+        "roughness": 0.98,
+        "segment_count": 18,
+        "v2_detail": true,
+        "v2_detail_kind": "cable"
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 38.4000015258789,
+        "y": 0.100000001490116,
+        "z": 0.100000001490116
+      },
+      "type": "cable_curve"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.34901961684227,
+        "g": 0.368627458810806,
+        "r": 0.658823549747467
+      },
+      "id": "v2_collapse_wall_left",
+      "name": "Exterior Collapsed Wall",
+      "position": {
+        "x": -12.5,
+        "y": 2.40000009536743,
+        "z": 20.2000007629395
+      },
+      "properties": {
+        "collision_enabled": false,
+        "edge_rotation": 5.0,
+        "height_variance": 0.8,
+        "metallic": 0.0,
+        "normal_strength": 0.035,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "pieces": 6,
+        "roughness": 0.98,
+        "surface_kind": "stucco",
+        "texture_path": "",
+        "uv_scale": 1.0,
+        "v2_detail": true,
+        "v2_detail_kind": "collapse"
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": -12.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 6.0,
+        "y": 4.80000019073486,
+        "z": 0.349999994039536
+      },
+      "type": "jagged_wall"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.537254929542542,
+        "g": 0.615686297416687,
+        "r": 0.43529412150383
+      },
+      "id": "v2_collapse_wall_right",
+      "name": "Exterior Collapsed Wall",
+      "position": {
+        "x": -7.19999980926514,
+        "y": 1.89999997615814,
+        "z": 20.7999992370605
+      },
+      "properties": {
+        "collision_enabled": false,
+        "edge_rotation": 5.0,
+        "height_variance": 0.8,
+        "metallic": 0.0,
+        "normal_strength": 0.035,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "pieces": 6,
+        "roughness": 0.98,
+        "surface_kind": "stucco",
+        "texture_path": "",
+        "uv_scale": 1.0,
+        "v2_detail": true,
+        "v2_detail_kind": "collapse"
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 16.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 5.0,
+        "y": 3.79999995231628,
+        "z": 0.349999994039536
+      },
+      "type": "jagged_wall"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.176470592617989,
+        "g": 0.211764708161354,
+        "r": 0.294117659330368
+      },
+      "id": "v2_collapse_beam_a",
+      "name": "Collapsed Timber",
+      "position": {
+        "x": -11.5,
+        "y": 3.29999995231628,
+        "z": 19.3999996185303
+      },
+      "properties": {
+        "collision_enabled": false,
+        "metallic": 0.0,
+        "normal_strength": 0.035,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.98,
+        "surface_kind": "default",
+        "texture_path": "res://assets/textures/environment/morro_do_sol_v2_exposed_wood.png",
+        "uv_scale": 0.58,
+        "v2_detail": true,
+        "v2_detail_kind": "collapse"
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 8.0,
+        "z": 24.0
+      },
+      "size": {
+        "x": 5.59999990463257,
+        "y": 0.219999998807907,
+        "z": 0.219999998807907
+      },
+      "type": "primitive_box"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.176470592617989,
+        "g": 0.211764708161354,
+        "r": 0.294117659330368
+      },
+      "id": "v2_collapse_beam_b",
+      "name": "Collapsed Timber",
+      "position": {
+        "x": -9.0,
+        "y": 2.29999995231628,
+        "z": 19.7999992370605
+      },
+      "properties": {
+        "collision_enabled": false,
+        "metallic": 0.0,
+        "normal_strength": 0.035,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.98,
+        "surface_kind": "default",
+        "texture_path": "res://assets/textures/environment/morro_do_sol_v2_exposed_wood.png",
+        "uv_scale": 0.58,
+        "v2_detail": true,
+        "v2_detail_kind": "collapse"
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": -12.0,
+        "z": -18.0
+      },
+      "size": {
+        "x": 5.0,
+        "y": 0.239999994635582,
+        "z": 0.239999994635582
+      },
+      "type": "primitive_box"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.176470592617989,
+        "g": 0.211764708161354,
+        "r": 0.294117659330368
+      },
+      "id": "v2_collapse_beam_c",
+      "name": "Collapsed Timber",
+      "position": {
+        "x": -13.0,
+        "y": 1.20000004768372,
+        "z": 20.0
+      },
+      "properties": {
+        "collision_enabled": false,
+        "metallic": 0.0,
+        "normal_strength": 0.035,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.98,
+        "surface_kind": "default",
+        "texture_path": "res://assets/textures/environment/morro_do_sol_v2_exposed_wood.png",
+        "uv_scale": 0.58,
+        "v2_detail": true,
+        "v2_detail_kind": "collapse"
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 18.0,
+        "z": -11.0
+      },
+      "size": {
+        "x": 3.79999995231628,
+        "y": 0.219999998807907,
+        "z": 0.219999998807907
+      },
+      "type": "primitive_box"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.176470592617989,
+        "g": 0.211764708161354,
+        "r": 0.294117659330368
+      },
+      "id": "v2_collapse_beam_d",
+      "name": "Collapsed Timber",
+      "position": {
+        "x": -7.5,
+        "y": 3.79999995231628,
+        "z": 20.5
+      },
+      "properties": {
+        "collision_enabled": false,
+        "metallic": 0.0,
+        "normal_strength": 0.035,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.98,
+        "surface_kind": "default",
+        "texture_path": "res://assets/textures/environment/morro_do_sol_v2_exposed_wood.png",
+        "uv_scale": 0.58,
+        "v2_detail": true,
+        "v2_detail_kind": "collapse"
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": -8.0,
+        "z": 31.0
+      },
+      "size": {
+        "x": 4.19999980926514,
+        "y": 0.200000002980232,
+        "z": 0.200000002980232
+      },
+      "type": "primitive_box"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.498039215803146,
+        "g": 0.650980412960052,
+        "r": 0.721568644046783
+      },
+      "id": "v2_rubble_a",
+      "name": "Painted Rubble",
+      "position": {
+        "x": -12.6000003814697,
+        "y": 0.449999988079071,
+        "z": 19.1000003814697
+      },
+      "properties": {
+        "collision_enabled": false,
+        "metallic": 0.0,
+        "normal_strength": 0.035,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.98,
+        "surface_kind": "default",
+        "texture_path": "",
+        "uv_scale": 1.0,
+        "v2_detail": true,
+        "v2_detail_kind": "collapse"
+      },
+      "rotation_degrees": {
+        "x": 8.0,
+        "y": 17.0,
+        "z": 12.0
+      },
+      "size": {
+        "x": 1.39999997615814,
+        "y": 0.800000011920929,
+        "z": 1.0
+      },
+      "type": "primitive_box"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.34901961684227,
+        "g": 0.368627458810806,
+        "r": 0.658823549747467
+      },
+      "id": "v2_rubble_b",
+      "name": "Painted Rubble",
+      "position": {
+        "x": -10.1999998092651,
+        "y": 0.349999994039536,
+        "z": 19.7999992370605
+      },
+      "properties": {
+        "collision_enabled": false,
+        "metallic": 0.0,
+        "normal_strength": 0.035,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.98,
+        "surface_kind": "default",
+        "texture_path": "",
+        "uv_scale": 1.0,
+        "v2_detail": true,
+        "v2_detail_kind": "collapse"
+      },
+      "rotation_degrees": {
+        "x": 8.0,
+        "y": 17.0,
+        "z": 12.0
+      },
+      "size": {
+        "x": 1.10000002384186,
+        "y": 0.699999988079071,
+        "z": 1.39999997615814
+      },
+      "type": "primitive_box"
+    },
+    {
+      "color": {
+        "a": 1.0,
+        "b": 0.537254929542542,
+        "g": 0.615686297416687,
+        "r": 0.43529412150383
+      },
+      "id": "v2_rubble_c",
+      "name": "Painted Rubble",
+      "position": {
+        "x": -7.80000019073486,
+        "y": 0.400000005960464,
+        "z": 19.5
+      },
+      "properties": {
+        "collision_enabled": false,
+        "metallic": 0.0,
+        "normal_strength": 0.035,
+        "painterly_material": true,
+        "painterly_material_v2": true,
+        "roughness": 0.98,
+        "surface_kind": "default",
+        "texture_path": "",
+        "uv_scale": 1.0,
+        "v2_detail": true,
+        "v2_detail_kind": "collapse"
+      },
+      "rotation_degrees": {
+        "x": 8.0,
+        "y": 17.0,
+        "z": 12.0
+      },
+      "size": {
+        "x": 1.5,
+        "y": 0.75,
+        "z": 0.899999976158142
+      },
+      "type": "primitive_box"
+    }
+  ],
+  "schema_version": 1
+}

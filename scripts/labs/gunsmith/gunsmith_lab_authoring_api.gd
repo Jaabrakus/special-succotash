@@ -16,6 +16,27 @@ func _set_active_gizmo(gizmo_id: String) -> void:
 func _register_interactive_dots() -> void:
 	GunsmithGizmoInteractionController._register_interactive_dots(self)
 
+func _setup_weapon_contact_graph() -> void:
+	GunsmithContactGraphController.setup(self)
+
+func _load_weapon_contact_graph_profile(raw: Variant) -> void:
+	GunsmithContactGraphController.load_profile(self, raw)
+
+func _weapon_contact_graph_save_data() -> Dictionary:
+	return GunsmithContactGraphController.save_data(self)
+
+func _sync_weapon_contact_graph() -> void:
+	GunsmithContactGraphController.sync(self)
+
+func _set_weapon_contact_target(target_id: String) -> void:
+	GunsmithContactGraphController.set_selected_target(self, target_id)
+
+func _set_weapon_contact_component(kind: String, axis: int, value: float) -> void:
+	GunsmithContactGraphController.set_selected_component(self, kind, axis, value)
+
+func _drag_weapon_contact_target(target_id: String, world_position: Vector3) -> void:
+	GunsmithContactGraphController.apply_world_drag(self, target_id, world_position)
+
 func _find_dot_under_mouse(screen_pos: Vector2) -> String:
 	return GunsmithGizmoInteractionController._find_dot_under_mouse(self, screen_pos)
 

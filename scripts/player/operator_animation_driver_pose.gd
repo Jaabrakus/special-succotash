@@ -18,10 +18,10 @@ func _build_animation_tree() -> void:
 	transition_node = locomotion_graph.legacy_transition
 
 
-func _neutral_pose_hip_rotation() -> Quaternion:
-	if animation_player == null or not animation_player.has_animation(&"aim_idle"):
+func _neutral_pose_hip_rotation(clip_name: StringName = &"aim_idle") -> Quaternion:
+	if animation_player == null or not animation_player.has_animation(clip_name):
 		return Quaternion.IDENTITY
-	var animation := animation_player.get_animation(&"aim_idle")
+	var animation := animation_player.get_animation(clip_name)
 	if animation == null:
 		return Quaternion.IDENTITY
 	for track in range(animation.get_track_count()):
@@ -39,15 +39,13 @@ func _lower_body_separation_weight(
 	presentation_posture: StringName = posture,
 	presentation_ready: float = weapon_ready_weight
 ) -> float:
-	if presentation_posture != &"STANDING":
+	if presentation_posture not in [&"STANDING", &"CROUCHED"]:
 		return 0.0
 	if movement_state in [&"DIVING", &"ROLLING", &"AIRBORNE", &"LANDING"]:
 		return 0.0
-	# Relaxed rifle locomotion is a complete authored pose: its hips, torso,
-	# shoulders, arms, and right-hand weapon carry must turn together. Once the
-	# weapon enters Ready Aim, progressively separate the locomotion legs from
-	# the reticle-facing upper body. This preserves directional run silhouettes
-	# without weakening the approved combat aim state.
+	# Relaxed locomotion is a complete authored pose. Once accepted-shot recovery
+	# enters Ready Aim, standing and crouched locomotion both separate the moving
+	# pelvis/legs from the posture-matched aim frame above Spine.
 	return smoothstep(0.12, 0.82, presentation_ready)
 
 
@@ -58,9 +56,11 @@ func _select_visual_clip() -> StringName:
 		return &"roll"
 	if movement_state == &"AIRBORNE":
 		if vertical_speed > 1.0:
+			if not _locomotion_active and available_clips.has(&"jump_up_standing"):
+				return &"jump_up_standing"
 			return &"jump_up"
 		if vertical_speed < -1.0:
-			return &"jump_down"
+			return &"jump_loop"
 		var equipped_jump := StringName(
 			(equipped_weapon_handling_profile.get("locomotion_slots", {}) as Dictionary).get("jump", "")
 		)
@@ -166,8 +166,8 @@ func _apply_saved_animation_frame_pose(delta: float) -> void:
 	# clip. Sample the Gunsmith correction keys from that same upper-body source,
 	# not from the walk/run clip that owns only the legs.
 	if (
-		posture == &"STANDING"
-		and weapon_ready_weight >= 0.50
+		_presentation_posture == &"STANDING"
+		and _presentation_ready_weight >= 0.50
 		and movement_state not in [&"DIVING", &"ROLLING", &"AIRBORNE", &"LANDING"]
 	):
 		var ready_pose_clip := _standing_ready_frame_pose_clip()
@@ -204,6 +204,29 @@ func _apply_saved_animation_frame_pose(delta: float) -> void:
 		candidates,
 		pose_time
 	)
+	var dynamic_hold: Variant = equipped_weapon_handling_profile.get(
+		"dynamic_hold",
+		{}
+	)
+	var fire_saved_joint_rotations_enabled := (
+		bool(
+			(dynamic_hold as Dictionary).get(
+				"fire_saved_joint_rotations_enabled",
+				true
+			)
+		)
+		if dynamic_hold is Dictionary
+		else true
+	)
+	if _clean_fire_recovery_weight > 0.0 and not fire_saved_joint_rotations_enabled:
+		# The imported recovery take is the sole torso/head/shoulder owner while
+		# selected. Fade the saved joint corrections back in with the committed
+		# recovery exit instead of adding every correction on one frame.
+		_active_frame_pose = _active_frame_pose.duplicate(true)
+		_active_frame_pose["joint_rotations"] = _scaled_frame_joint_rotations(
+			_active_frame_pose.get("joint_rotations", {}),
+			1.0 - _clean_fire_recovery_weight
+		)
 	_standing_master_pose_frame_suppressed = false
 	if (
 		_standing_master_pose_active()
@@ -233,25 +256,40 @@ func _standing_master_pose_profile() -> Dictionary:
 
 func _standing_master_pose_active() -> bool:
 	return (
-		posture == &"STANDING"
+		_presentation_posture == &"STANDING"
 		and bool(_standing_master_pose_profile().get("enabled", false))
 	)
+
+
+func _scaled_frame_joint_rotations(raw_rotations: Variant, weight: float) -> Dictionary:
+	if not raw_rotations is Dictionary:
+		return {}
+	var normalized_weight := clampf(weight, 0.0, 1.0)
+	if normalized_weight <= 0.001:
+		return {}
+	var result: Dictionary = (raw_rotations as Dictionary).duplicate(true)
+	for joint_name: Variant in result.keys():
+		var raw_value: Variant = result[joint_name]
+		if raw_value is Dictionary:
+			var scaled: Dictionary = (raw_value as Dictionary).duplicate(true)
+			for axis in [&"x", &"y", &"z"]:
+				if scaled.has(axis):
+					scaled[axis] = float(scaled[axis]) * normalized_weight
+			result[joint_name] = scaled
+		elif raw_value is Vector3:
+			result[joint_name] = (raw_value as Vector3) * normalized_weight
+	return result
 
 
 func _fire_uses_aim_idle(event_state: StringName = &"") -> bool:
 	if posture == &"PRONE":
 		return false
-	var configured := bool(
-		equipped_weapon_handling_profile.get(
-			(
-				"crouched_fire_uses_aim_idle"
-				if posture == &"CROUCHED"
-				else "standing_fire_uses_aim_idle"
-			),
-			false
-		)
+	var profile_key := (
+		"crouched_fire_uses_aim_idle"
+		if posture == &"CROUCHED"
+		else "standing_fire_uses_aim_idle"
 	)
-	if configured:
+	if bool(equipped_weapon_handling_profile.get(profile_key, false)):
 		return true
 	if event_state == &"":
 		event_state = animation_profile.resolve_animation_event(
@@ -259,9 +297,7 @@ func _fire_uses_aim_idle(event_state: StringName = &"") -> bool:
 			posture,
 			equipped_weapon_family
 		)
-	if event_state != &"":
-		return event_state == &"aim_idle"
-	return false
+	return event_state == &"aim_idle"
 
 
 func _standing_reload_pose_active() -> bool:

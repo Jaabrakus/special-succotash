@@ -7,6 +7,7 @@ const AutoReloadPolicy := preload("res://scripts/weapons/weapon_auto_reload_poli
 ## scene asks for a reload; this coordinator owns completion and cancellation.
 
 signal pending_changed(pending: bool)
+signal reload_ammo_committed(request_generation: int)
 
 var player: Node
 var weapon_controller: Node
@@ -15,6 +16,9 @@ var generation: int = 0
 var animation_driver: Node
 var completion_callback: Callable
 var cancellation_callback: Callable
+var commit_callback: Callable
+var ammo_commit_attempted: bool = false
+var ammo_committed: bool = false
 var auto_reload_waiting_for_safe_state: bool = false
 
 
@@ -23,6 +27,7 @@ func _ready() -> void:
 
 
 func configure(player_node: Node, controller: Node) -> void:
+	_disconnect_driver_signals()
 	if weapon_controller != null and weapon_controller.has_method("set_reload_locked"):
 		weapon_controller.call("set_reload_locked", false)
 	if player != null and player.has_signal("mobility_action_started"):
@@ -77,7 +82,7 @@ func _request_auto_reload() -> void:
 	):
 		_set_auto_reload_waiting(false)
 		return
-	if not _player_allows_reload():
+	if not _player_allows_reload_start():
 		_set_auto_reload_waiting(true)
 		return
 	_set_auto_reload_waiting(false)
@@ -85,36 +90,43 @@ func _request_auto_reload() -> void:
 
 
 func _physics_process(_delta: float) -> void:
-	if pending and not _player_allows_reload():
-		# Mobility takes ownership before the next rendered pose. Waiting for the
-		# animation driver's process tick leaves one reload frame free to drag the
-		# rifle toward the magazine hand after jump/dive has already started.
-		if animation_driver != null and animation_driver.has_method("cancel_reload_action"):
-			animation_driver.call("cancel_reload_action")
-		return
-	if not auto_reload_waiting_for_safe_state or not _player_allows_reload():
+	if not auto_reload_waiting_for_safe_state or not _player_allows_reload_start():
 		return
 	_set_auto_reload_waiting(false)
 	call_deferred("_request_auto_reload")
 
 
-func _on_mobility_action_started(_state_name: StringName) -> void:
-	if not pending:
-		return
-	if animation_driver != null and animation_driver.has_method("cancel_reload_action"):
-		animation_driver.call("cancel_reload_action")
+func _on_mobility_action_started(state_name: StringName) -> void:
+	# Reload is an upper-body timeline. Movement never cancels it.
+	pass
 
 
-func _on_mobility_action_requested(_state_name: StringName) -> void:
-	if not pending:
-		return
-	if animation_driver != null and animation_driver.has_method("cancel_reload_action"):
-		animation_driver.call("cancel_reload_action")
+func _on_mobility_action_requested(state_name: StringName) -> void:
+	# Reload is an upper-body timeline. Movement never cancels it.
+	pass
 
 
 func request_reload() -> bool:
-	if player == null or pending or not _player_allows_reload():
+	if player == null or pending or not _player_allows_reload_start():
 		return false
+	if player.has_method("play_socom_action") and player.get_node_or_null("Mannequin") == null:
+		var played := bool(player.call("play_socom_action", &"reload"))
+		if not played:
+			return false
+		_set_pending(true)
+		generation += 1
+		var request_generation := generation
+		_begin_reload_transaction()
+		var fallback_duration := 2.2
+		get_tree().create_timer(fallback_duration * 0.76).timeout.connect(func():
+			_commit_reload_ammo(request_generation)
+		)
+		get_tree().create_timer(2.2).timeout.connect(func():
+			if pending and generation == request_generation:
+				_commit_reload_ammo(request_generation)
+				_set_pending(false)
+		)
+		return true
 	var mannequin := player.get_node_or_null("Mannequin")
 	var driver: Node = mannequin.get("production_animation") as Node if mannequin != null else null
 	var plan: Dictionary = {}
@@ -134,24 +146,53 @@ func request_reload() -> bool:
 	_set_pending(true)
 	generation += 1
 	var request_generation := generation
+	_begin_reload_transaction()
 	_disconnect_driver_signals()
 	animation_driver = driver
 	completion_callback = _on_animation_completed.bind(request_generation)
 	cancellation_callback = _on_animation_cancelled.bind(request_generation)
 	driver.action_completed.connect(completion_callback, CONNECT_ONE_SHOT)
 	driver.action_cancelled.connect(cancellation_callback, CONNECT_ONE_SHOT)
+	if driver.has_signal("reload_commit_cue"):
+		commit_callback = _on_reload_commit_cue.bind(request_generation)
+		driver.connect("reload_commit_cue", commit_callback, CONNECT_ONE_SHOT)
 	return true
 
 
-func _player_allows_reload() -> bool:
+func cancel_for_fire() -> bool:
+	if (
+		not pending
+		or weapon_controller == null
+		or not weapon_controller.has_method("get_ammo_snapshot")
+	):
+		return false
+	var ammo: Dictionary = weapon_controller.call("get_ammo_snapshot")
+	if int(ammo.get("rounds_in_magazine", 0)) <= 0:
+		return false
+	if animation_driver != null and animation_driver.has_method("cancel_reload_action"):
+		var cancelled := bool(animation_driver.call("cancel_reload_action"))
+		return cancelled and not pending
+	# In the legacy fallback path, advance the generation so its timers cannot
+	# commit ammunition after the fire interruption.
+	generation += 1
+	_disconnect_driver_signals()
+	_set_pending(false)
+	return true
+
+
+func _player_allows_reload_continuation() -> bool:
+	return true
+
+
+func _player_allows_reload_start() -> bool:
+	if not _player_allows_reload_continuation():
+		return false
 	var movement_state := &""
 	if player.has_method("get_motion_state_name"):
 		movement_state = StringName(player.call("get_motion_state_name"))
-	if movement_state in [&"AIRBORNE", &"LANDING", &"DIVING", &"ROLLING"]:
+	if movement_state in [&"AIRBORNE", &"LANDING"]:
 		return false
-	if player is CharacterBody3D and not (player as CharacterBody3D).is_on_floor():
-		return false
-	return true
+	return not (player is CharacterBody3D) or (player as CharacterBody3D).is_on_floor()
 
 
 func _set_auto_reload_waiting(value: bool) -> void:
@@ -162,9 +203,10 @@ func _set_auto_reload_waiting(value: bool) -> void:
 func _on_animation_completed(clip_name: StringName, request_generation: int) -> void:
 	if request_generation != generation or "reload" not in String(clip_name).to_lower():
 		return
+	# Older drivers have no magazine-in cue. Completion remains a safe fallback,
+	# but a cue-aware driver has already committed exactly once.
+	_commit_reload_ammo(request_generation)
 	_disconnect_driver_signals()
-	if weapon_controller != null and weapon_controller.has_method("request_reload"):
-		weapon_controller.call("request_reload")
 	_set_pending(false)
 
 
@@ -172,10 +214,36 @@ func _on_animation_cancelled(clip_name: StringName, request_generation: int) -> 
 	if request_generation == generation and "reload" in String(clip_name).to_lower():
 		_disconnect_driver_signals()
 		_set_pending(false)
-		# An empty magazine still needs its approved automatic reload after an
-		# airborne or mobility interruption. Retry now; unsafe movement states
-		# queue the request until the operator is grounded.
+		# Empty-magazine reloads cannot be cancelled by fire. This deferred check
+		# remains as a safe fallback for explicit external cancellations.
 		call_deferred("_request_auto_reload")
+
+
+func _on_reload_commit_cue(clip_name: StringName, request_generation: int) -> void:
+	if request_generation != generation or "reload" not in String(clip_name).to_lower():
+		return
+	_commit_reload_ammo(request_generation)
+
+
+func _begin_reload_transaction() -> void:
+	ammo_commit_attempted = false
+	ammo_committed = false
+
+
+func _commit_reload_ammo(request_generation: int) -> bool:
+	if (
+		request_generation != generation
+		or not pending
+		or ammo_commit_attempted
+	):
+		return ammo_committed
+	ammo_commit_attempted = true
+	if weapon_controller == null or not weapon_controller.has_method("request_reload"):
+		return false
+	ammo_committed = bool(weapon_controller.call("request_reload"))
+	if ammo_committed:
+		reload_ammo_committed.emit(request_generation)
+	return ammo_committed
 
 
 func _disconnect_driver_signals() -> void:
@@ -193,9 +261,15 @@ func _disconnect_driver_signals() -> void:
 			and animation_driver.action_cancelled.is_connected(cancellation_callback)
 		):
 			animation_driver.action_cancelled.disconnect(cancellation_callback)
+		if (
+			commit_callback.is_valid()
+			and animation_driver.is_connected("reload_commit_cue", commit_callback)
+		):
+			animation_driver.disconnect("reload_commit_cue", commit_callback)
 	animation_driver = null
 	completion_callback = Callable()
 	cancellation_callback = Callable()
+	commit_callback = Callable()
 
 
 func _set_pending(value: bool) -> void:

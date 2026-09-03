@@ -14,6 +14,7 @@ const WEAPON_CONTRACT := preload("res://scripts/weapons/weapon_rig_contract.gd")
 const BACKPACK_VISUAL := preload("res://scripts/player/operator_backpack_visual.gd")
 const ANIMATION_CACHE := preload("res://scripts/player/operator_animation_library_cache.gd")
 const SKELETON_CONTRACT := preload("res://scripts/player/operator_skeleton_contract.gd")
+const NATIVE_RIG_ADAPTER := preload("res://scripts/player/operator_native_rig_adapter.gd")
 const WEAPON_LOADOUT_PATH := "res://config/weapons/operator_loadout.json"
 const OPERATOR_GEAR_PATH := "res://config/operator_gear.json"
 
@@ -53,22 +54,28 @@ func build(
 	operator_scale = scale_value
 	grip_position = grip_pos
 	grip_rotation = grip_rot
-	model_root = TROOPER_SCENE.instantiate() as Node3D
-	model_root.name = "TrooperModel"
-	model_root.scale = Vector3.ONE * operator_scale
-	model_root.rotation.y = PI
-	owner.add_child(model_root)
+	if owner != null and owner.has_node("TrooperModel"):
+		model_root = owner.get_node("TrooperModel") as Node3D
+	else:
+		model_root = TROOPER_SCENE.instantiate() as Node3D
+		model_root.name = "TrooperModel"
+		model_root.scale = Vector3.ONE * operator_scale
+		model_root.rotation.y = PI
+		owner.add_child(model_root)
 	_apply_texture(model_root)
 	skeleton = _find_skeleton(model_root)
 	if skeleton == null:
 		push_error("Trooper rig has no Skeleton3D")
 		return get_runtime()
 	_ensure_65_bone_contract()
-	animation_player = AnimationPlayer.new()
-	animation_player.name = "AnimationPlayer"
-	skeleton.add_child(animation_player)
-	animation_player.owner = model_root
-	animation_player.root_node = animation_player.get_path_to(skeleton)
+	if skeleton.has_node("AnimationPlayer"):
+		animation_player = skeleton.get_node("AnimationPlayer") as AnimationPlayer
+	else:
+		animation_player = AnimationPlayer.new()
+		animation_player.name = "AnimationPlayer"
+		skeleton.add_child(animation_player)
+		animation_player.owner = model_root
+		animation_player.root_node = animation_player.get_path_to(skeleton)
 	_attach_weapon()
 	_attach_wearable_backpack()
 	_attach_reload_magazine_visual()
@@ -487,10 +494,16 @@ func apply_animation_hand_map(
 	# The top-level grip_offset is the single weapon master anchor. Legacy
 	# stance and clip maps may contain mount fields, but runtime must ignore them
 	# so animation changes cannot teleport or rotate the rifle.
-	_apply_mapped_socket(
-		"Socket_LeftHand",
-		hand_map.get("left_grip", hand_map.get("left_hand_target", {}))
-	)
+	# An authored weapon socket is a physical point on the rigid rifle. When the
+	# presentation contract solves the support palm to that point, a locomotion
+	# or stance hand map must not move the point under the solver. The old crouch
+	# map moved it from the foregrip to a magwell-era value, so IK reported success
+	# while the rendered palm was visibly below the handguard.
+	if not _preserves_authored_support_socket():
+		_apply_mapped_socket(
+			"Socket_LeftHand",
+			hand_map.get("left_grip", hand_map.get("left_hand_target", {}))
+		)
 	_apply_mapped_socket(
 		"Socket_RightHand",
 		hand_map.get("right_grip", hand_map.get("right_hand_target", {}))
@@ -564,6 +577,22 @@ func _restore_weapon_map_baseline() -> void:
 			"support_hand_pose",
 			equipped_weapon_config.get("support_hand_pose", {})
 		)
+
+
+func _preserves_authored_support_socket() -> bool:
+	if not bool(equipped_weapon_config.get("socket_contract_authored", false)):
+		return false
+	var handling: Variant = equipped_weapon_config.get("handling_profile", {})
+	if not handling is Dictionary:
+		return false
+	var dynamic_hold: Variant = (handling as Dictionary).get("dynamic_hold", {})
+	return (
+		dynamic_hold is Dictionary
+		and bool((dynamic_hold as Dictionary).get(
+			"support_hand_socket_ik_enabled",
+			false
+		))
+	)
 
 
 func _apply_mapped_socket(socket_name: String, value: Variant) -> void:
@@ -651,7 +680,10 @@ func _build_animation_library() -> void:
 		if source_player != null and not source_player.get_animation_list().is_empty():
 			var source_name := _select_source_animation_name(source_player)
 			if source_name != &"":
-				var retargeted := _retarget_animation(source_player.get_animation(source_name))
+				var retargeted := _retarget_animation(
+					source_player.get_animation(source_name),
+					_find_skeleton(temporary)
+				)
 				retargeted = _settle_idle_pose(clip_name, retargeted)
 				ROOT_SANITIZER.sanitize(retargeted, profile.is_looping(clip_name))
 				retargeted.loop_mode = Animation.LOOP_LINEAR if profile.is_looping(clip_name) else Animation.LOOP_NONE
@@ -736,7 +768,7 @@ func _build_right_arm_grenade_composite(
 
 
 func _settle_idle_pose(clip_name: StringName, animation: Animation) -> Animation:
-	if clip_name != &"idle_prone" or animation == null:
+	if clip_name not in [&"idle_prone", &"pistol_reload_hold_prone"] or animation == null:
 		return animation
 	# There is no dedicated non-firing prone idle asset yet. The terminal frame
 	# of the authored prone-stop take is a stable, supported rifle pose. Freeze
@@ -767,7 +799,11 @@ func _settle_idle_pose(clip_name: StringName, animation: Animation) -> Animation
 		if value != null:
 			settled.track_insert_key(track, 0.0, value)
 	settled.length = 1.0
-	settled.loop_mode = Animation.LOOP_LINEAR
+	settled.loop_mode = (
+		Animation.LOOP_NONE
+		if clip_name == &"pistol_reload_hold_prone"
+		else Animation.LOOP_LINEAR
+	)
 	return settled
 
 
@@ -903,10 +939,24 @@ func _swap_left_right(path: String) -> String:
 	return path.replace("Left", "__MIRROR_SIDE__").replace("Right", "Left").replace("__MIRROR_SIDE__", "Right")
 
 
-func _retarget_animation(source: Animation) -> Animation:
-	var retargeted := source.duplicate() as Animation
+func _retarget_animation(
+	source: Animation,
+	source_skeleton: Skeleton3D = null
+) -> Animation:
 	var root_node := animation_player.get_node(animation_player.root_node)
 	var skeleton_path := root_node.get_path_to(skeleton)
+	# Native AGLS actions use Unreal bone names and different local rest bases.
+	# A name-only Mixamo rewrite deletes those tracks (or twists the shoulders),
+	# so transfer their sampled rest deltas at the asset boundary. Keep the
+	# established lightweight path byte-for-byte for Mixamo sources.
+	if NATIVE_RIG_ADAPTER.is_native_agls_skeleton(source_skeleton):
+		return NATIVE_RIG_ADAPTER.adapt_animation_rest_aware(
+			source,
+			source_skeleton,
+			skeleton,
+			skeleton_path
+		)
+	var retargeted := source.duplicate() as Animation
 	for track in range(retargeted.get_track_count() - 1, -1, -1):
 		var source_path := str(retargeted.track_get_path(track))
 		var raw_bone := source_path.split(":")[-1]

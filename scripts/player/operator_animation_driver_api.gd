@@ -35,8 +35,6 @@ func set_visual_inputs(
 	aim_pitch_rad = aim_pitch
 	requested_weapon_ready_weight = clampf(ready_weight, 0.0, 1.0)
 	firing = is_firing
-	if fire_upper_body_latch != null:
-		fire_upper_body_latch.set_trigger_held(firing)
 	obstruction_amount = clampf(obstruction, 0.0, 1.0)
 	movement_state = state_name
 	vertical_speed = vertical_velocity
@@ -83,7 +81,6 @@ func _update_weapon_ready(delta: float, reload_active: bool = false) -> void:
 			fire_upper_body_latch.set_grace_remaining(
 				_fire_ready_hold_remaining
 			)
-		fire_upper_body_latch.set_trigger_held(firing)
 		fire_upper_body_latch.advance(delta, reload_active)
 		_fire_ready_hold_remaining = (
 			fire_upper_body_latch.grace_remaining_seconds
@@ -123,7 +120,7 @@ func clear_fire_ready_aim() -> void:
 func _fire_upper_body_selected() -> bool:
 	if fire_upper_body_latch != null:
 		return fire_upper_body_latch.is_selected()
-	return firing or _fire_ready_hold_remaining > 0.0
+	return _fire_ready_hold_remaining > 0.0
 
 
 func set_pose_preview_paused(paused: bool) -> void:

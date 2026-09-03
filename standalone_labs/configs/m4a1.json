@@ -1,0 +1,250 @@
+{
+  "visual_rig_id": "m4a1_agls_v1",
+  "visual_rig_schema_version": 1,
+  "schema_version": 3,
+  "ammo_spec": {
+    "impact_damage": 2.3,
+    "piercing": 3.0,
+    "stun": 3.0,
+    "type": "5.56 x 45mm"
+  },
+  "arm_rig_pose": {
+    "left_elbow": {
+      "bend": 0.0,
+      "twist": 0.0
+    },
+    "left_shoulder": {
+      "pitch": 0.0,
+      "roll": 0.0,
+      "yaw": 0.0
+    },
+    "left_wrist": {
+      "pitch": 0.0,
+      "roll": 0.0,
+      "yaw": 0.0
+    }
+  },
+  "ballistics": {
+    "base_spread_deg": 0.429,
+    "bloom_per_shot_deg": 1.0,
+    "bloom_recovery_speed": 17.5,
+    "damage": 37.0,
+    "effective_range_m": 600.0,
+    "fire_rate_rpm": 429.0,
+    "full_gait_spread_deg": 1.543,
+    "headshot_multiplier": 3.5,
+    "is_silenced": false,
+    "magazine_capacity": 30.0,
+    "max_range_m": 1000.0,
+    "max_recoil_bloom_deg": 2.6,
+    "moving_spread_deg": 1.029,
+    "muzzle_velocity_mps": 921.0,
+    "reserve_ammo": 90.0
+  },
+  "burst_size": 3,
+  "camo_skin": "Factory Classic (Wood & Steel)",
+  "catalog_source": "reCOM zweapon.rdr",
+  "catalog_weapon_id": "m4a1",
+  "category": "Assault Rifles",
+  "coordinate_space": {
+    "grip_offset": "weapon_root_local_meters",
+    "weapon_sockets": "weapon_pivot_local_meters"
+  },
+  "default_fire_mode": "semi",
+  "display_name": "M4A1",
+  "encumbrance": 1,
+  "fire_modes": [
+    "semi",
+    "auto"
+  ],
+  "grip_offset": {
+    "pos_x": 0.0,
+    "pos_y": 0.0,
+    "pos_z": 0.0,
+    "rot_x": 0.0,
+    "rot_y": 0.0,
+    "rot_z": 0.0
+  },
+  "handling_profile": {
+    "animation_slots": {
+      "fire_crouched": "crouch_fire",
+      "fire_prone": "prone_fire",
+      "fire_standing": "combat_fire",
+      "idle_crouched": "idle_crouch_m4a1",
+      "idle_prone": "idle_prone_m4a1",
+      "idle_standing": "aim_idle_m4a1",
+      "reload_crouched": "reload_m4a1",
+      "reload_prone": "reload_m4a1",
+      "reload_standing": "reload_m4a1"
+    },
+    "dynamic_hold": {
+      "animation_carry_limit_m": 0.035,
+      "animation_carry_weight": 1.0,
+      "animation_drives_ready_hands": false,
+      "procedural_ready_hand_weight": 1.0,
+      "procedural_ready_spine_weight": 1.0,
+      "authored_animation_owns_weapon_mount": false,
+      "hand_socket_ik_enabled": false,
+      "native_presentation_enabled": true,
+      "native_support_hand_ik_enabled": true,
+      "native_support_hand_weight": 1.0,
+      "ready_locomotion_inheritance": 0.0,
+      "reload_return_blend_seconds": 0.18,
+      "right_hand_owns_weapon": true
+    },
+    "authored_aim_sweep": {
+      "enabled": true,
+      "center_pitch_degrees": -2.0,
+      "source_min_pitch_degrees": -90.0,
+      "source_max_pitch_degrees": 90.0,
+      "invert_source_pitch": true,
+      "posture_clips": {
+        "STANDING": "aim_sweep_standing_m4a1",
+        "CROUCHED": "aim_sweep_crouched_m4a1",
+        "PRONE": "aim_sweep_prone_m4a1"
+      }
+    },
+    "family": "TWO_HAND_RIFLE",
+    "locomotion_family": "RIFLE",
+    "mapping_version": 1,
+    "ready_aim": {
+      "fire_hold_seconds": 1.2,
+      "fire_terminal_pose_hold_seconds": 0.12
+    },
+    "reload_duration_seconds": 1.75,
+    "reload_visuals": {
+      "reload_standing": {
+        "events": {
+          "magazine_in": 75.0,
+          "magazine_out": 20.0,
+          "new_magazine_ready": 51.0,
+          "old_magazine_away": 40.0,
+          "support_regrip": 91.0
+        },
+        "magazine_hand_offset": {
+          "position": {
+            "x": 0.0,
+            "y": -0.075,
+            "z": 0.018
+          },
+          "rotation_degrees": {
+            "x": 8.0,
+            "y": 0.0,
+            "z": 90.0
+          }
+        }
+      }
+    },
+    "support_hand_required": true
+  },
+  "model_fbx": "res://assets/external/agls_intake/imported/weapons/m4a1/m4a1.scn",
+  "model_rotation_degrees": {
+    "x": -1.806423,
+    "y": -5.350261,
+    "z": -2.345536
+  },
+  "normalized_scale": 1.0,
+  "operator_mount": {
+    "attachment_mode": "trigger_hand_socket",
+    "bone_name": "mixamorig_RightHand",
+    "position": {
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    },
+    "rotation_degrees": {
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    }
+  },
+  "recom_assets": {
+    "icon_texture": "m4carbine_icon.tif",
+    "model_name": "m4Acarbine",
+    "reload_sound": "SND_M4_A1_RELOAD"
+  },
+  "reticle": {
+    "base_gap_px": 5.1,
+    "max_gap_px": 41.6,
+    "maximum_shot_kick_px": 60.0,
+    "response_speed": 26.2,
+    "shot_kick_px": 20.0,
+    "shot_kick_return": 40.0
+  },
+  "scope_attachment": "None",
+  "silencer_attachment": "None",
+  "socket_contract_authored": true,
+  "socom_original_id": 54,
+  "socom_recom_data": {
+    "ammo_spec": {
+      "impact_damage": 2.3,
+      "piercing": 3.0,
+      "stun": 3.0,
+      "type": "5.56 x 45mm"
+    },
+    "encumbrance": 1.0,
+    "original_name": "M16A2"
+  },
+  "weapon_id": "m4a1",
+  "weapon_sockets": {
+    "barrel_base_socket": {
+      "x": 0.0,
+      "y": 0.0950660482,
+      "z": 0.376185417
+    },
+    "buttstock_socket": {
+      "x": 0.0,
+      "y": 0.0936723873,
+      "z": -0.188480571
+    },
+    "ejection_port": {
+      "x": 0.025,
+      "y": 0.1008046943,
+      "z": 0.1406847507
+    },
+    "left_hand_ik_target": {
+      "x": 0.0,
+      "y": 0.1008046943,
+      "z": 0.3156847507
+    },
+    "muzzle_socket": {
+      "x": 0.0,
+      "y": 0.0950661153,
+      "z": 0.619568706
+    },
+    "optic_rail": {
+      "x": 0.0,
+      "y": 0.119063318,
+      "z": 0.037895631
+    },
+    "right_hand_grip_target": {
+      "x": 0.0,
+      "y": 0.0458046943,
+      "z": 0.0656847507
+    }
+  },
+  "weapon_hand_markers_role": "diagnostic_only",
+  "weapon_contact_graph": {
+    "schema_version": 1,
+    "enabled": true,
+    "space": "animated_target_local_offsets_meters",
+    "targets": {
+      "right_shoulder": {
+        "position_offset_m": {"x": 0.0, "y": 0.0, "z": 0.0},
+        "rotation_offset_degrees": {"x": 0.0, "y": 0.0, "z": 0.0}
+      },
+      "trigger_hand": {
+        "position_offset_m": {"x": 0.0, "y": 0.0, "z": 0.0},
+        "rotation_offset_degrees": {"x": 0.0, "y": 0.0, "z": 0.0}
+      },
+      "support_hand": {
+        "position_offset_m": {"x": 0.0, "y": 0.0, "z": 0.0},
+        "rotation_offset_degrees": {"x": 0.0, "y": 0.0, "z": 0.0}
+      },
+      "spine_aim": {
+        "position_offset_m": {"x": 0.0, "y": 0.0, "z": 0.0},
+        "rotation_offset_degrees": {"x": 0.0, "y": 0.0, "z": 0.0}
+      }
+    }
+  }
+}

@@ -1,0 +1,29 @@
+[gd_scene format=3 uid="uid://b58w8bwxx0tx3"]
+
+[ext_resource type="PackedScene" uid="uid://c8710d46ndh1" path="res://assets/weapons/modular_pack/SubMachineGun_1.fbx" id="1_ok4jy"]
+
+[node name="MP5" type="Node3D" unique_id=790042243]
+
+[node name="WeaponMesh" parent="." unique_id=1840435648 instance=ExtResource("1_ok4jy")]
+transform = Transform3D(-1.4249912e-08, 0, 0.326, 0, 0.326, 0, -0.326, 0, -1.4249912e-08, 0, 0, 0)
+
+[node name="Socket_RightHand" type="Marker3D" parent="WeaponMesh" unique_id=1871182724]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.21735835, 0.0064195134, -0.13640004)
+
+[node name="Socket_LeftHand" type="Marker3D" parent="WeaponMesh" unique_id=1778120009]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.5326476, 0.62808615, 0.030999884)
+
+[node name="Socket_Muzzle" type="Marker3D" parent="WeaponMesh" unique_id=1077605766]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.0552797, 0.6736559, 0.3100001)
+
+[node name="Socket_BarrelBase" type="Marker3D" parent="WeaponMesh" unique_id=1286119240]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.81521356, 0.7948327, -0.052699964)
+
+[node name="Socket_Buttstock" type="Marker3D" parent="WeaponMesh" unique_id=2096374019]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.2004964, 0.7105473, -0.31000006)
+
+[node name="Socket_Ejection" type="Marker3D" parent="WeaponMesh" unique_id=943357615]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.85550606, 0.5657842, -0.08639997)
+
+[node name="Socket_Optic" type="Marker3D" parent="WeaponMesh" unique_id=1505077044]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.33789396, 0.82896733, -0.11639999)

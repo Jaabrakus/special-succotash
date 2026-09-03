@@ -7,6 +7,9 @@ extends RefCounted
 const RecomCatalogAdapter := preload(
 	"res://scripts/labs/gunsmith/gunsmith_recom_catalog_adapter.gd"
 )
+const WeaponContactGraphContract := preload(
+	"res://scripts/weapons/weapon_contact_graph_contract.gd"
+)
 
 
 static func build(lab: Node, parent: VBoxContainer) -> void:
@@ -39,7 +42,10 @@ static func build(lab: Node, parent: VBoxContainer) -> void:
 		lab._sync_markers()
 	)
 
-	_add_section(parent, "4. Barrel and Effects Sockets")
+	_add_section(parent, "4. Shared Shoulder / Hand / Spine Targets")
+	_build_contact_graph(lab, parent)
+
+	_add_section(parent, "5. Barrel and Effects Sockets")
 	_add_socket_xyz(lab, parent, "bb", "Barrel Base", func(): return lab.barrel_base_local_pos, -1.60, 1.60, func(value: Vector3):
 		lab.barrel_base_local_pos = value
 		lab._sync_markers()
@@ -96,6 +102,22 @@ static func refresh(lab: Node) -> void:
 		"op_y": lab.optic_local_pos.y,
 		"op_z": lab.optic_local_pos.z,
 	}
+	var contact_position: Vector3 = WeaponContactGraphContract.target_position_offset(
+		lab.weapon_contact_graph_profile,
+		lab.selected_weapon_contact_target
+	)
+	var contact_rotation: Vector3 = WeaponContactGraphContract.target_rotation_offset_degrees(
+		lab.weapon_contact_graph_profile,
+		lab.selected_weapon_contact_target
+	)
+	values.merge({
+		"cg_pos_x": contact_position.x,
+		"cg_pos_y": contact_position.y,
+		"cg_pos_z": contact_position.z,
+		"cg_rot_x": contact_rotation.x,
+		"cg_rot_y": contact_rotation.y,
+		"cg_rot_z": contact_rotation.z,
+	})
 	for control_name: String in values:
 		lab._update_slider_value(control_name, float(values[control_name]))
 
@@ -155,6 +177,63 @@ static func _add_model_alignment(lab: Node, parent: VBoxContainer) -> void:
 	lab._add_slider(parent, "rot_yaw", "Model Yaw", -180.0, 180.0, lab.grip_offset_rot.y, func(value: float): lab.grip_offset_rot.y = value; lab._sync_weapon_transform(); lab._refresh_rotation_dials())
 	lab._add_slider(parent, "rot_roll", "Model Roll", -180.0, 180.0, lab.grip_offset_rot.z, func(value: float): lab.grip_offset_rot.z = value; lab._sync_weapon_transform(); lab._refresh_rotation_dials())
 	lab._add_slider(parent, "scale_mult", "Model Scale", 0.5, 2.0, lab.user_scale_multiplier, func(value: float): lab.user_scale_multiplier = value; lab._sync_weapon_transform())
+
+
+static func _build_contact_graph(lab: Node, parent: VBoxContainer) -> void:
+	var note := Label.new()
+	note.text = "Reference-style TargetPivot. Drag the colored targets in 3D or edit their position/rotation offsets here. SOCOM remains the camera and shot owner."
+	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	note.add_theme_font_size_override("font_size", 10)
+	parent.add_child(note)
+
+	var enabled := CheckButton.new()
+	enabled.name = "WeaponContactGraphEnabled"
+	enabled.text = "Use contact graph in gameplay presentation"
+	enabled.button_pressed = bool(lab.weapon_contact_graph_profile.get("enabled", true))
+	enabled.toggled.connect(func(value: bool):
+		lab.weapon_contact_graph_profile["enabled"] = value
+		lab._sync_weapon_contact_graph()
+	)
+	parent.add_child(enabled)
+
+	var picker := OptionButton.new()
+	picker.name = "WeaponContactTargetPicker"
+	for target_id in WeaponContactGraphContract.TARGET_IDS:
+		picker.add_item(String(target_id).replace("_", " ").capitalize())
+		picker.set_item_metadata(picker.item_count - 1, target_id)
+		if target_id == lab.selected_weapon_contact_target:
+			picker.select(picker.item_count - 1)
+	picker.item_selected.connect(func(index: int):
+		lab._set_weapon_contact_target(String(picker.get_item_metadata(index)))
+		refresh(lab)
+	)
+	parent.add_child(picker)
+
+	for axis in 3:
+		var component_axis: int = axis
+		var axis_name: String = ["X", "Y", "Z"][axis]
+		lab._add_slider(
+			parent,
+			"cg_pos_%s" % axis_name.to_lower(),
+			"Position Offset %s (m)" % axis_name,
+			-0.35,
+			0.35,
+			0.0,
+			func(value: float): lab._set_weapon_contact_component("position", component_axis, value)
+		)
+	for axis in 3:
+		var component_axis: int = axis
+		var axis_name: String = ["X", "Y", "Z"][axis]
+		lab._add_slider(
+			parent,
+			"cg_rot_%s" % axis_name.to_lower(),
+			"Rotation Offset %s (deg)" % axis_name,
+			-90.0,
+			90.0,
+			0.0,
+			func(value: float): lab._set_weapon_contact_component("rotation", component_axis, value)
+		)
+	refresh(lab)
 
 
 static func _add_socket_xyz(

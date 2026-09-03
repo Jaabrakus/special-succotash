@@ -1,0 +1,77 @@
+{
+  "glb_scene": {
+    "animation_count": 0,
+    "byte_length": 415704,
+    "image_count": 0,
+    "material_count": 5,
+    "mesh_count": 1,
+    "nodes": [
+      null,
+      "root",
+      "trigger",
+      "magazine",
+      "bullets",
+      "charging_handle",
+      "muzzle",
+      "sights",
+      "stock",
+      "barrel"
+    ],
+    "skin_count": 1,
+    "texture_count": 0
+  },
+  "interop_contract": "socom141-agls-player-presentation-v1",
+  "materials": [
+    {
+      "asset": "/Game/AdvancedLocomotionV4/Props/Materials/C8/C8_Material_Inst_5.C8_Material_Inst_5",
+      "slot": "Magazine_Steel_30_mat"
+    },
+    {
+      "asset": "/Game/AdvancedLocomotionV4/Props/Materials/C8/C8_Material_Inst_3.C8_Material_Inst_3",
+      "slot": "Body_AR_mat"
+    },
+    {
+      "asset": "/Game/AdvancedLocomotionV4/Props/Materials/C8/C8_Material_Inst_5.C8_Material_Inst_5",
+      "slot": "Front_Sights_mat"
+    },
+    {
+      "asset": "/Game/AdvancedLocomotionV4/Props/Materials/C8/C8_Material_Inst_1.C8_Material_Inst_1",
+      "slot": "Body_Parts_AR_mat"
+    },
+    {
+      "asset": "/Game/AdvancedLocomotionV4/Props/Materials/C8/C8_Material_Inst_3.C8_Material_Inst_3",
+      "slot": "Barrel_14_5_mat"
+    },
+    {
+      "asset": "/Game/AdvancedLocomotionV4/Props/Materials/C8/C8_Material_Inst_2.C8_Material_Inst_2",
+      "slot": "Pistol_Grip_A2_mat"
+    },
+    {
+      "asset": "/Game/AdvancedLocomotionV4/Props/Materials/C8/C8_Material_Inst_2.C8_Material_Inst_2",
+      "slot": "Handguard_A2_Carbine_mat"
+    },
+    {
+      "asset": "/Game/AdvancedLocomotionV4/Props/Materials/C8/C8_Material_Inst_2.C8_Material_Inst_2",
+      "slot": "Stock_A2_Classic_mat"
+    },
+    {
+      "asset": "/Game/AdvancedLocomotionV4/Props/Materials/C8/C8_Material_Inst_4.C8_Material_Inst_4",
+      "slot": "Buffer_Tube_mat"
+    },
+    {
+      "asset": "/Game/AdvancedLocomotionV4/Props/Materials/C8/C8_Material_Inst_5.C8_Material_Inst_5",
+      "slot": "Sight_M145_mat"
+    }
+  ],
+  "output_bytes": 415704,
+  "output_glb": "/Users/kiwimango/Documents/SOCOM-141/assets/external/agls_intake/imported/weapons/c8/c8.glb",
+  "presentation_only": true,
+  "schema_version": 1,
+  "skeleton": "/Game/AdvancedLocomotionV4/Props/Meshes/Rifle/C8_Skeleton.C8_Skeleton",
+  "sockets": [],
+  "source_asset": "/Game/AdvancedLocomotionV4/Props/Meshes/Rifle/C8",
+  "source_class": "SkeletalMesh",
+  "source_engine": "Unreal Engine 5.8",
+  "source_project": "AGLS v1.9.2",
+  "weapon_gameplay_logic_included": false
+}

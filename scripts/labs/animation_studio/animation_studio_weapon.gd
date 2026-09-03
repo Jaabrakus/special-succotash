@@ -17,6 +17,7 @@ func _skin_name(skin: SkinType) -> String:
         SkinType.MIXAMO_MANNEQUIN: return "Mixamo Beta Skin"
         SkinType.PS1_NIGHT_VISION_SEAL: return "PS1 Night Vision SEAL"
         SkinType.COUNTER_STRIKE_URBAN: return "Counter-Strike Urban (Shared SOCOM Rig)"
+        SkinType.SWAT_OPERATOR: return "SWAT Operator (Modern High-Poly PBR)"
     return "Unknown"
 
 func _cycle_weapon() -> void:
@@ -950,24 +951,9 @@ func _create_weapon_mesh(wep: WeaponType) -> Node3D:
             left_handguard_pos = Vector3(0.0, 0.05, 0.32)
             var ak_pivot := Node3D.new()
             ak_pivot.name = "AK47_Pivot"
-            
-            var ak_inst := AK47_FBX_SCENE.instantiate() as Node3D
-            # Scale from FBX units (29.2 units long) to real rifle length (0.88m)
-            ak_inst.scale = Vector3.ONE * 0.030
-            # Offset so the pistol grip / trigger is right at (0,0,0)
-            ak_inst.position = Vector3(0.0, 0.02, -0.05)
-            ak_inst.rotation_degrees = Vector3(0, 180, 0)
-            
-            # Apply texture
-            var ak_mat := StandardMaterial3D.new()
-            ak_mat.albedo_texture = AK47_TEXTURE
-            for child in ak_inst.get_children():
-                if child is MeshInstance3D:
-                    child.material_override = ak_mat
-                for grandchild in child.get_children():
-                    if grandchild is MeshInstance3D:
-                        grandchild.material_override = ak_mat
-            ak_pivot.add_child(ak_inst)
+
+            var stick_inst := UNIVERSAL_WEAPON_STICK_SCENE.instantiate() as Node3D
+            ak_pivot.add_child(stick_inst)
             root.add_child(ak_pivot)
 
     return root

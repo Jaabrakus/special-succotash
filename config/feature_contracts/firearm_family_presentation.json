@@ -1,0 +1,120 @@
+{
+  "schema_version": 1,
+  "feature_id": "firearm_family_presentation",
+  "player_intent": "Every real pistol, assault rifle, and submachine gun equips at human scale and remains visibly connected to its trigger and support hands with the same stable ready and fire-recovery quality as the Mark 23.",
+  "acceptance_rule": "Through res://main.tscn, each in-scope firearm resolves exactly one published model-specific visual rig or its existing authored weapon rig before mesh, animation-family, and hand-contact consumers run. Pistols resolve TWO_HAND_PISTOL, rifles and SMGs resolve their rifle family, every resolved mesh has human-scale geometry and seven physical sockets, the right hand remains the sole weapon-root owner, and only the left support hand solves to the weapon. In ordinary Ready Aim and accepted-shot recovery, every pistol's projected optic-up axis remains within 12 degrees of operator up, both palms remain within 1 cm of their physical contacts, and the bore remains within 1 degree of camera-owned aim. Accepted standing and crouched shots retain the existing posture-matched 1.2-second FIRE_RECOVERY without a separate fire OneShot. Designator, air_to_ground_missile, and exploding_fuel are excluded because their catalog records are not handheld firearms.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://gun_calibration_lab_2.tscn",
+  "ownership": {
+    "saved_family_visual_calibration": "GunsLab2VisualRigRepository",
+    "single_presentation_resolution_boundary": "SocomWeaponRigContract",
+    "weapon_root_transform": "TriggerHandBoneAttachment3D",
+    "support_hand_contact": "SocomOperatorWeaponPose",
+    "movement_and_collision": "CharacterBody3D",
+    "aim_intent": "SOCOMCameraReticleChain",
+    "shot_and_damage": "AuthoritativeServerWeapon"
+  },
+  "nodes": [
+    {
+      "id": "canonical_trigger_hand_weapon_attachment",
+      "type": "BoneAttachment3D",
+      "role": "Keeps exactly one rigid weapon root attached to the live operator trigger hand while model-specific sockets remain presentation data.",
+      "owner": "SocomOperatorAssetRuntime",
+      "source_script": "res://scripts/player/operator_asset_runtime.gd",
+      "code_symbols": [
+        "weapon_attachment = BoneAttachment3D.new()",
+        "weapon_attachment.bone_name = \"mixamorig_RightHand\""
+      ]
+    },
+    {
+      "id": "bounded_support_hand_solver",
+      "type": "Node",
+      "role": "Closes only the support palm onto the published physical foregrip without moving the weapon, trigger shoulder, torso, or gameplay aim.",
+      "owner": "SocomOperatorWeaponPose",
+      "source_script": "res://scripts/player/operator_animation_driver_runtime.gd",
+      "code_symbols": [
+        "weapon_pose_solver = WeaponPoseSolver.new()",
+        "weapon_pose_solver.configure_dynamic_hold("
+      ]
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://config/weapon_family_visual_assignments.json",
+      "writer": "res://tools/publish_firearm_family_visual_rigs.gd",
+      "readers": [
+        "res://scripts/labs/gunsmith2/weapon_visual_rig_resolver.gd",
+        "res://scripts/weapons/weapon_rig_contract.gd",
+        "res://scripts/labs/gunsmith/gunsmith_recom_catalog_adapter.gd",
+        "res://scripts/labs/gunsmith/gunsmith_weapon_preview_loader.gd"
+      ]
+    },
+    {
+      "path": "res://config/weapon_visual_rigs/family_pistol_2_v2.json",
+      "writer": "res://tools/publish_firearm_family_visual_rigs.gd",
+      "readers": [
+        "res://scripts/labs/gunsmith2/weapon_visual_rig_resolver.gd",
+        "res://scripts/player/operator_asset_runtime.gd",
+        "res://scripts/labs/weapon_rig_preview_loader.gd",
+        "res://scripts/labs/gunsmith/gunsmith_recom_catalog_adapter.gd",
+        "res://scripts/labs/gunsmith/gunsmith_weapon_preview_loader.gd"
+      ]
+    }
+  ],
+  "must_not_change": [
+    "CharacterBody3D movement, posture, collision, and movement-tech authority",
+    "SOCOM camera and reticle aim-intent authority",
+    "server shot validation, muzzle authority, ballistics, damage, ammunition, and networking",
+    "the existing 1.2-second accepted-shot recovery and no-fire-OneShot behavior",
+    "right trigger-hand attachment as the sole weapon-root transform owner",
+    "reload timing and fire-interrupt semantics",
+    "existing authored Mark 23, AK-47, M4A1, AssaultRifle_1, M16A2, and M40A1 geometry"
+  ],
+  "proof_scripts": [
+    "res://tools/firearm_family_presentation_regression.gd",
+    "res://tools/firearm_family_live_contact_regression.gd",
+    "res://tools/firearm_family_visual_proof.gd",
+    "res://tools/all_weapon_fire_recovery_regression.gd",
+    "res://tools/guns_lab_2_runtime_regression.gd",
+    "res://tools/feature_contract_regression.gd"
+  ],
+  "visual_check": "Launch res://main.tscn and cycle the pistol, assault-rifle, and SMG catalog in standing ready, crouched ready, standing recovery, and crouched recovery. Each real gun must be human-sized, remain rigidly owned by the trigger hand, keep the left palm on its physical support contact, point its bore toward the camera-owned reticle, retain square shoulders, and never select an AGLS pose strip or recoil clip as the base fire state.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Keep the proven family animation and 1.2-second FIRE_RECOVERY owners, but replace legacy scale-one meshes and generic sockets with immutable per-model visual rigs resolved once for runtime and editor consumers. The first published pistol rigs are replaced by revision-2 rigs because canonical rendered evidence measured an approximately 90-degree axial roll even though bore and palm metrics passed; revision 2 adds the certified 90-degree grip-axis correction and a direct rendered roll guard. Direct AGLS pose strips and recoil are rejected here because measured retargeting introduces large hand and shoulder displacement; AGLS aim sweep and recoil 02 remain separate additive experiments.",
+    "current": {
+      "system": "Complete family animation routing paired with sparse catalog geometry, generic in-memory socket fallbacks, and pistol rigs lacking an optic-up axial-roll check",
+      "correctness": 1,
+      "ownership_clarity": 4,
+      "runtime_parity": 2,
+      "editor_usability": 2,
+      "performance": 5,
+      "regression_coverage": 1,
+      "evidence_paths": [
+        "res://scripts/weapons/weapon_animation_profile.gd",
+        "res://scripts/weapons/weapon_rig_contract.gd",
+        "res://tools/all_weapon_fire_recovery_regression.gd"
+      ]
+    },
+    "candidate": {
+      "system": "Published per-model family visual rigs, including revision-2 upright pistol grips, resolved by the shared weapon contract and guarded by canonical rendered contact, aim, and axial-roll evidence",
+      "correctness": 5,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 5,
+      "performance": 4,
+      "regression_coverage": 5,
+      "evidence_paths": [
+        "res://config/weapon_family_visual_assignments.json",
+        "res://scripts/labs/gunsmith2/weapon_visual_rig_contract.gd",
+        "res://scripts/labs/gunsmith2/weapon_visual_rig_resolver.gd",
+        "res://scripts/labs/gunsmith/gunsmith_recom_catalog_adapter.gd",
+        "res://scripts/labs/gunsmith/gunsmith_weapon_preview_loader.gd",
+        "res://scripts/weapons/weapon_rig_contract.gd",
+        "res://tools/firearm_family_presentation_regression.gd",
+        "res://tools/firearm_family_live_contact_regression.gd",
+        "res://tools/firearm_family_visual_proof.gd"
+      ]
+    }
+  }
+}

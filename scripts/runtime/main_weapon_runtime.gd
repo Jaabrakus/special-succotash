@@ -30,9 +30,14 @@ func build_weapon_controller() -> void:
 	weapon_controller = WeaponController.new()
 	weapon_controller.name = "WeaponController"
 	host.add_child(weapon_controller)
-	weapon_controller.configure(player, camera_rig)
+	var active_player: CharacterBody3D = host.get("player") as CharacterBody3D
+	var active_camera = host.get("camera_rig")
+	weapon_controller.configure(active_player, active_camera)
 	weapon_controller.authoritative_shot.connect(on_authoritative_shot)
 	weapon_controller.ammo_changed.connect(on_ammo_changed)
+	weapon_controller.reload_fire_interrupt_requested.connect(
+		on_reload_fire_interrupt_requested
+	)
 
 
 func build_reload_coordinator() -> void:
@@ -52,6 +57,11 @@ func request_reload() -> bool:
 
 func on_ammo_changed(_magazine: int, _reserve: int) -> void:
 	_update_status()
+
+
+func on_reload_fire_interrupt_requested() -> void:
+	if reload_coordinator != null:
+		reload_coordinator.cancel_for_fire()
 
 
 func on_authoritative_shot(result: Dictionary) -> void:

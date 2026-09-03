@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "enabled": true,
+  "collision_mask": 1,
+  "ray_start_height_m": 0.42,
+  "ray_depth_m": 0.72,
+  "maximum_step_up_m": 0.28,
+  "maximum_step_down_m": 0.18,
+  "maximum_slope_deg": 48.0,
+  "target_response_mps": 2.8,
+  "weight_response_per_second": 14.0,
+  "maximum_joint_delta_deg": 60.0
+}

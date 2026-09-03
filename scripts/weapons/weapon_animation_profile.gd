@@ -66,12 +66,12 @@ const PISTOL_SLOTS := {
 	"idle_standing": "pistol_idle",
 	"idle_crouched": "pistol_idle_kneeling",
 	"idle_prone": "idle_prone",
-	"fire_standing": "",
-	"fire_crouched": "",
-	"fire_prone": "",
-	"reload_standing": "",
-	"reload_crouched": "",
-	"reload_prone": "",
+	"fire_standing": "pistol_fire",
+	"fire_crouched": "pistol_fire",
+	"fire_prone": "pistol_fire",
+	"reload_standing": "pistol_reload",
+	"reload_crouched": "pistol_reload",
+	"reload_prone": "pistol_reload_hold_prone",
 }
 
 const RIFLE_LOCOMOTION := {
@@ -120,7 +120,13 @@ const PISTOL_LOCOMOTION := {
 
 
 static func infer_family(weapon_name: String, category: String) -> String:
+	var category_text := category.to_lower()
 	var searchable := (weapon_name + " " + category).to_lower()
+	# Category is authoritative when a catalog name contains an ammunition token.
+	# In particular, 9mm_sub is a submachine gun, not a pistol whose name happens
+	# to include 9mm.
+	if "submachine" in category_text or "smg" in category_text:
+		return FAMILY_TWO_HAND_RIFLE
 	if "pistol" in searchable or "revolver" in searchable or "9mm" in searchable:
 		return FAMILY_TWO_HAND_PISTOL
 	if "sniper" in searchable or "shotgun" in searchable:
@@ -135,6 +141,7 @@ static func build_default(family: String, available_clips: Dictionary = {}) -> D
 	var slots := source.duplicate(true)
 	var locomotion_source: Dictionary = PISTOL_LOCOMOTION if family in [FAMILY_ONE_HAND, FAMILY_TWO_HAND_PISTOL] else RIFLE_LOCOMOTION
 	var locomotion_slots := locomotion_source.duplicate(true)
+	var uses_shared_fire_recovery := family in FAMILIES
 	if not available_clips.is_empty():
 		for slot_name in SLOT_ORDER:
 			var clip_name := String(slots.get(slot_name, ""))
@@ -149,6 +156,11 @@ static func build_default(family: String, available_clips: Dictionary = {}) -> D
 		"family": family,
 		"support_hand_required": family != FAMILY_ONE_HAND,
 		"locomotion_family": "PISTOL" if family in [FAMILY_ONE_HAND, FAMILY_TWO_HAND_PISTOL] else "RIFLE",
+		# Every weapon family keeps its posture-matched ready pose selected for the
+		# bounded FIRE_RECOVERY interval. Recoil, muzzle flash, and ballistics remain
+		# accepted-shot effects; a separate authored fire OneShot is not selected.
+		"standing_fire_uses_aim_idle": uses_shared_fire_recovery,
+		"crouched_fire_uses_aim_idle": uses_shared_fire_recovery,
 		"animation_slots": slots,
 		"locomotion_slots": locomotion_slots,
 	}
@@ -179,6 +191,11 @@ static func normalized_profile(
 		"locomotion_family",
 		"PISTOL" if safe_family in [FAMILY_ONE_HAND, FAMILY_TWO_HAND_PISTOL] else "RIFLE"
 	))
+	# Stable accepted-shot recovery is a family policy, not an asset calibration.
+	# Ignore legacy per-weapon false values that can restore a malformed fire take
+	# after an otherwise valid model/socket profile is equipped.
+	normalized["standing_fire_uses_aim_idle"] = true
+	normalized["crouched_fire_uses_aim_idle"] = true
 	return normalized
 
 

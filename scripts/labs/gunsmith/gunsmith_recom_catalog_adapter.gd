@@ -6,6 +6,10 @@ extends RefCounted
 ## meshes, sockets, hand poses, and authored gameplay tuning.
 
 const WeaponCatalog := preload("res://scripts/weapons/socom_weapon_catalog.gd")
+const AglsWeaponAssets := preload("res://scripts/weapons/agls_weapon_asset_registry.gd")
+const VisualRigResolver := preload(
+	"res://scripts/labs/gunsmith2/weapon_visual_rig_resolver.gd"
+)
 const CONFIG_DIRECTORY := "res://config/weapons/"
 const MODULAR_DIRECTORY := "res://assets/weapons/modular_pack/"
 const FIREARM_CATEGORIES: Array[String] = [
@@ -57,7 +61,19 @@ static func resolve(weapon_id: String) -> Dictionary:
 	if record.is_empty() or not FIREARM_CATEGORIES.has(String(record.get("category", ""))):
 		return {}
 	var visual_file := _visual_file_for(record)
-	var model_path := _model_path_for(visual_file)
+	var fallback_model_path := _model_path_for(visual_file)
+	var authored_profile := _read_json(
+		CONFIG_DIRECTORY + String(record.get("weapon_id", weapon_id)).to_lower() + ".json"
+	)
+	var presentation_profile := (
+		authored_profile.duplicate(true)
+		if not authored_profile.is_empty()
+		else record.duplicate(true)
+	)
+	presentation_profile["weapon_id"] = String(record.get("weapon_id", weapon_id))
+	if String(presentation_profile.get("model_fbx", "")).is_empty():
+		presentation_profile["model_fbx"] = fallback_model_path
+	var model_path := AglsWeaponAssets.preferred_model_path(presentation_profile)
 	return {
 		"catalog_id": String(record.get("weapon_id", weapon_id)),
 		"display_name": String(record.get("display_name", weapon_id)),
@@ -66,20 +82,79 @@ static func resolve(weapon_id: String) -> Dictionary:
 		"visual_file": visual_file,
 		"visual_profile_id": visual_file.to_lower(),
 		"model_fbx": model_path,
-		"uses_family_placeholder": visual_file != "ak-47",
+		"uses_family_placeholder": model_path == fallback_model_path and visual_file != "ak-47",
 	}
 
 
 static func load_editable_profile(weapon_id: String) -> Dictionary:
 	var resolved := resolve(weapon_id)
 	if resolved.is_empty():
-		return _read_json(CONFIG_DIRECTORY + weapon_id.to_lower() + ".json")
+		return VisualRigResolver.resolve_for_presentation(
+			_read_json(CONFIG_DIRECTORY + weapon_id.to_lower() + ".json")
+		)
 	var authored_path := CONFIG_DIRECTORY + String(resolved.catalog_id).to_lower() + ".json"
-	if FileAccess.file_exists(authored_path):
-		return _read_json(authored_path)
+	var authored_profile := _read_json(authored_path)
 	var visual_path := CONFIG_DIRECTORY + String(resolved.visual_profile_id) + ".json"
-	var profile := _read_json(visual_path)
-	return _apply_catalog_baseline(profile, resolved)
+	var visual_profile := _read_json(visual_path)
+	var selection := select_editable_profile_source(authored_profile, visual_profile)
+	var selected_profile: Dictionary = selection.get("profile", {})
+	if bool(selection.get("apply_catalog_baseline", false)):
+		selected_profile = _apply_catalog_baseline(selected_profile, resolved)
+	# A raw catalog entry remains editable in Gunsmith, but it is not treated as
+	# an approved runtime rig. This prevents a generic fallback rotation from
+	# masquerading as a valid calibration for a different imported model. Resolve
+	# its published per-model rig before exposing any values to the lab so the
+	# editable scale, mount, and sockets match canonical gameplay.
+	return VisualRigResolver.resolve_for_presentation(selected_profile)
+
+
+static func select_editable_profile_source(
+	authored_profile: Dictionary,
+	pooled_visual_profile: Dictionary
+) -> Dictionary:
+	# A direct immutable assignment is authoritative even when its legacy weapon
+	# profile is otherwise sparse. This ordering mirrors canonical runtime.
+	if not String(authored_profile.get("visual_rig_id", "")).strip_edges().is_empty():
+		return {
+			"source": "direct_assignment",
+			"profile": authored_profile.duplicate(true),
+			"apply_catalog_baseline": false,
+		}
+	if _has_complete_visual_calibration(authored_profile):
+		return {
+			"source": "authored_profile",
+			"profile": authored_profile.duplicate(true),
+			"apply_catalog_baseline": false,
+		}
+	if _has_complete_visual_calibration(pooled_visual_profile):
+		return {
+			"source": "pooled_profile",
+			"profile": pooled_visual_profile.duplicate(true),
+			"apply_catalog_baseline": true,
+		}
+	return {
+		"source": "sparse_profile",
+		"profile": authored_profile.duplicate(true),
+		"apply_catalog_baseline": true,
+	}
+
+
+static func _has_complete_visual_calibration(profile: Dictionary) -> bool:
+	if profile.is_empty():
+		return false
+	var mount: Variant = profile.get("operator_mount", {})
+	var model_rotation: Variant = profile.get("model_rotation_degrees", {})
+	var sockets: Variant = profile.get("weapon_sockets", {})
+	return (
+		bool(profile.get("socket_contract_authored", false))
+		and profile.has("normalized_scale")
+		and mount is Dictionary and not (mount as Dictionary).is_empty()
+		and model_rotation is Dictionary and not (model_rotation as Dictionary).is_empty()
+		and sockets is Dictionary
+		and (sockets as Dictionary).has("right_hand_grip_target")
+		and (sockets as Dictionary).has("left_hand_ik_target")
+		and (sockets as Dictionary).has("muzzle_socket")
+	)
 
 
 static func decorate_saved_profile(profile: Dictionary, weapon_id: String) -> Dictionary:

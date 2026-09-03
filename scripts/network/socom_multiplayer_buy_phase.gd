@@ -82,7 +82,7 @@ func _server_finish_round(winner_team: int, reason: String) -> void:
 	if multiplayer.is_server() and winner_team in [0, 1]:
 		for raw_id: Variant in operators.keys():
 			var peer_id := int(raw_id)
-			var operator := operators[raw_id] as SocomNetworkOperator
+			var operator: Variant = operators[raw_id]
 			if operator == null:
 				continue
 			var award := (

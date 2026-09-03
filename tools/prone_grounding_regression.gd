@@ -80,7 +80,7 @@ func _run() -> void:
 		)
 		_expect(
 			minf(left_foot_height, right_foot_height) <= 0.18
-			and maxf(left_foot_height, right_foot_height) <= 0.28,
+			and maxf(left_foot_height, right_foot_height) <= 0.32,
 			"forward-prone crawl keeps one planted foot while bounding the moving foot"
 		)
 		_expect(

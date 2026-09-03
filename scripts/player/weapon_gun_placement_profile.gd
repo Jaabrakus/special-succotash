@@ -32,7 +32,7 @@ static func parse(raw_profile: Variant) -> Dictionary:
 	}
 	if not raw_profile is Dictionary:
 		return result
-	result["runtime_enabled"] = bool(raw_profile.get("runtime_enabled", true))
+	result["runtime_enabled"] = bool(raw_profile.get("runtime_enabled", false))
 	var raw_stances: Variant = raw_profile.get("by_stance", {})
 	if not raw_stances is Dictionary:
 		return result

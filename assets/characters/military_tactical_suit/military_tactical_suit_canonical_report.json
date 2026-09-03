@@ -1,0 +1,194 @@
+{
+  "armature": "CanonicalOperatorRig",
+  "armature_rotation_degrees": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "armature_scale": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "bone_count": 65,
+  "canonical_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Shooter Pack/rifle aiming idle.fbx",
+  "deformation_probes_m": {
+    "LeftArm": 0.247536,
+    "LeftFoot": 0.101396,
+    "LeftForeArm": 0.151469,
+    "LeftHand": 0.057647,
+    "LeftLeg": 0.191611,
+    "LeftUpLeg": 0.343092,
+    "RightArm": 0.246848,
+    "RightFoot": 0.093767,
+    "RightForeArm": 0.150279,
+    "RightHand": 0.054076,
+    "RightLeg": 0.194595,
+    "RightUpLeg": 0.341231
+  },
+  "mesh_count": 14,
+  "output_blend": "/Users/kiwimango/socom-141-camera-lab/tools/blender/workbenches/military_tactical_suit_canonical.blend",
+  "output_bounds_m": {
+    "maximum": [
+      0.861847,
+      0.226098,
+      1.900294
+    ],
+    "minimum": [
+      -0.861847,
+      -0.226098,
+      0.0
+    ]
+  },
+  "output_glb": "/Users/kiwimango/socom-141-camera-lab/assets/characters/military_tactical_suit/military_tactical_suit_canonical.glb",
+  "source_bounds_m": {
+    "maximum": [
+      0.861847,
+      0.226098,
+      1.900294
+    ],
+    "minimum": [
+      -0.861847,
+      -0.226098,
+      0.0
+    ]
+  },
+  "status": "pass",
+  "weighted_centroid_audit": {
+    "LeftArm": {
+      "distance_m": 0.039732,
+      "weighted_vertices": 463
+    },
+    "LeftFoot": {
+      "distance_m": 0.089447,
+      "weighted_vertices": 192
+    },
+    "LeftForeArm": {
+      "distance_m": 0.044344,
+      "weighted_vertices": 1474
+    },
+    "LeftHand": {
+      "distance_m": 0.041057,
+      "weighted_vertices": 300
+    },
+    "LeftLeg": {
+      "distance_m": 0.106888,
+      "weighted_vertices": 1718
+    },
+    "LeftUpLeg": {
+      "distance_m": 0.082924,
+      "weighted_vertices": 425
+    },
+    "RightArm": {
+      "distance_m": 0.038123,
+      "weighted_vertices": 508
+    },
+    "RightFoot": {
+      "distance_m": 0.102186,
+      "weighted_vertices": 148
+    },
+    "RightForeArm": {
+      "distance_m": 0.053135,
+      "weighted_vertices": 1509
+    },
+    "RightHand": {
+      "distance_m": 0.032218,
+      "weighted_vertices": 228
+    },
+    "RightLeg": {
+      "distance_m": 0.071767,
+      "weighted_vertices": 1715
+    },
+    "RightUpLeg": {
+      "distance_m": 0.081712,
+      "weighted_vertices": 1096
+    }
+  },
+  "weights": {
+    "Object_101_0": {
+      "groups": 4,
+      "unmapped_weight": 0.0,
+      "vertices": 2850,
+      "vertices_without_source_weight": 0
+    },
+    "Object_103_0": {
+      "groups": 4,
+      "unmapped_weight": 0.0,
+      "vertices": 1497,
+      "vertices_without_source_weight": 0
+    },
+    "Object_105_0": {
+      "groups": 7,
+      "unmapped_weight": 0.0,
+      "vertices": 1090,
+      "vertices_without_source_weight": 0
+    },
+    "Object_107_0": {
+      "groups": 13,
+      "unmapped_weight": 0.0,
+      "vertices": 1159,
+      "vertices_without_source_weight": 0
+    },
+    "Object_109_0": {
+      "groups": 4,
+      "unmapped_weight": 0.0,
+      "vertices": 722,
+      "vertices_without_source_weight": 0
+    },
+    "Object_111_0": {
+      "groups": 1,
+      "unmapped_weight": 0.0,
+      "vertices": 4083,
+      "vertices_without_source_weight": 0
+    },
+    "Object_113_0": {
+      "groups": 5,
+      "unmapped_weight": 0.0,
+      "vertices": 940,
+      "vertices_without_source_weight": 0
+    },
+    "Object_115_0": {
+      "groups": 37,
+      "unmapped_weight": 0.0,
+      "vertices": 1350,
+      "vertices_without_source_weight": 0
+    },
+    "Object_117_0": {
+      "groups": 4,
+      "unmapped_weight": 0.0,
+      "vertices": 2846,
+      "vertices_without_source_weight": 0
+    },
+    "Object_119_0": {
+      "groups": 1,
+      "unmapped_weight": 0.0,
+      "vertices": 700,
+      "vertices_without_source_weight": 0
+    },
+    "Object_121_0": {
+      "groups": 1,
+      "unmapped_weight": 0.0,
+      "vertices": 628,
+      "vertices_without_source_weight": 0
+    },
+    "Object_123_0": {
+      "groups": 8,
+      "unmapped_weight": 0.0,
+      "vertices": 528,
+      "vertices_without_source_weight": 0
+    },
+    "Object_97_0": {
+      "groups": 1,
+      "unmapped_weight": 0.0,
+      "vertices": 1371,
+      "vertices_without_source_weight": 0
+    },
+    "Object_99_0": {
+      "groups": 5,
+      "unmapped_weight": 0.0,
+      "vertices": 945,
+      "vertices_without_source_weight": 0
+    }
+  },
+  "workbench": "/Users/kiwimango/socom-141-camera-lab/tools/blender/workbenches/military_tactical_suit_textured_source.blend"
+}

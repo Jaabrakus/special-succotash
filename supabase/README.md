@@ -19,8 +19,20 @@ The server schema can record each participant's measured RTT, jitter, and packet
 loss for diagnostics. The shared 130 ms remote-player presentation buffer remains
 owned by the existing multiplayer code and is not controlled by Supabase.
 
-Never commit a service-role key. The game client should use a publishable key plus the signed-in player's JWT; RLS remains authoritative.
+Never commit a service-role key. Public server discovery uses only the browser-safe
+publishable key plus SELECT-only RLS. Player profiles, tickets, moderation, and
+all other private player data still require the signed-in player's JWT.
 
-The public client endpoint and publishable key live in `res://config/supabase.json`. That file must never contain a secret key or service-role key.
+The exported client endpoint and publishable key live in
+`res://config/supabase_public.json`. Local development may override them with
+the ignored `res://config/supabase.json`. Neither file may contain a secret or
+service-role key; dedicated servers read `SOCOM_SUPABASE_SERVER_KEY` from their
+process environment.
 
 Apply locally with `supabase db reset`, or to a linked project with `supabase db push`, after reviewing the migration for the target environment.
+
+The public launcher is not live until all ordered migrations have been pushed,
+at least one healthy `service_regions` row exists, and a dedicated server is
+publishing a reachable `wss://` address in `match_servers`. Anonymous Auth is
+optional for server discovery but must be enabled for automatic guest profiles,
+leaderboards, parties, and future ticket-based matchmaking.

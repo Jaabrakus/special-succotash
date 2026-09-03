@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "feature_id": "server_directory_presence",
+  "player_intent": "A player can choose a live server using accurate capacity, mode, map, tournament stage, and free-arena information.",
+  "acceptance_rule": "Dedicated-server registration and every heartbeat publish sanitized current_players, mode_key, map_key, session_stage, and free_arenas values derived from the canonical authoritative session; a clean close request stops heartbeats, marks the listing offline, then quits.",
+  "canonical_scene": "res://multiplayer_slice.tscn",
+  "ownership": {
+    "directory_publication": "SocomServerBackend",
+    "authoritative_presence_facts": "SocomMultiplayerDirectoryPresence",
+    "tournament_presence_facts": "SocomMultiplayerTournamentRuntime"
+  },
+  "nodes": [
+    {
+      "id": "directory_heartbeat_timer",
+      "type": "Timer",
+      "role": "Publishes one bounded snapshot of canonical server presence at the existing heartbeat interval.",
+      "owner": "SocomServerBackend",
+      "source_script": "res://scripts/server/socom_server_backend.gd",
+      "code_symbols": [
+        "heartbeat_timer = Timer.new()",
+        "heartbeat_timer.timeout.connect(_send_heartbeat)",
+        "set_directory_snapshot(provided)"
+      ]
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://supabase/migrations/20260902001000_add_server_directory_presence.sql",
+      "writer": "res://scripts/server/socom_server_backend.gd",
+      "readers": [
+        "res://scripts/network/socom_service_directory.gd",
+        "res://scripts/network/socom_multiplayer_directory_presence.gd",
+        "res://scripts/network/socom_multiplayer_tournament_runtime.gd"
+      ]
+    }
+  ],
+  "must_not_change": [
+    "lobby membership and pair-selection authority",
+    "tournament bracket and arena assignment authority",
+    "server shot, damage, ammunition, and ballistics authority",
+    "camera, movement, animation, and weapon presentation",
+    "client server-directory selection and user interface"
+  ],
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Merge bounded live presence into the existing service-role heartbeat. Keep the canonical session as the facts provider and keep SocomServerBackend as the only database writer.",
+    "current": {
+      "system": "Static zero-player registration with health-only heartbeats",
+      "correctness": 2,
+      "ownership_clarity": 4,
+      "runtime_parity": 2,
+      "editor_usability": 1,
+      "performance": 4,
+      "regression_coverage": 3,
+      "evidence_paths": [
+        "res://scripts/server/socom_server_backend.gd",
+        "res://scripts/network/socom_multiplayer_session.gd",
+        "res://tools/backend_operations_regression.gd"
+      ]
+    },
+    "candidate": {
+      "system": "Canonical-session presence provider with one sanitized registration and heartbeat payload",
+      "correctness": 5,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 2,
+      "performance": 5,
+      "regression_coverage": 5,
+      "evidence_paths": [
+        "res://scripts/server/socom_server_backend.gd",
+        "res://scripts/network/socom_multiplayer_directory_presence.gd",
+        "res://scripts/network/socom_multiplayer_tournament_runtime.gd",
+        "res://supabase/migrations/20260902001000_add_server_directory_presence.sql",
+        "res://tools/backend_operations_regression.gd"
+      ]
+    }
+  },
+  "proof_scripts": [
+    "res://tools/backend_operations_regression.gd",
+    "res://tools/feature_contract_regression.gd",
+    "res://tools/multiplayer_slice_architecture_regression.gd"
+  ],
+  "visual_check": "Run a dedicated server, admit and disconnect players, and confirm its match_servers row changes current_players while mode_key, map_key, session_stage, and free_arenas match the active canonical tournament state; close it normally and confirm the row becomes offline without waiting for TTL expiry."
+}

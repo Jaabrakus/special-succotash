@@ -105,6 +105,8 @@ static func capture(source) -> Dictionary:
 		),
 		"right_hand_owns_ready_weapon": source.right_hand_owns_ready_weapon,
 		"animation_drives_ready_hands": source.animation_drives_ready_hands,
+		"hand_socket_ik_enabled": source.hand_socket_ik_enabled,
+		"support_hand_socket_ik_enabled": source.support_hand_socket_ik_enabled,
 		"support_socket_clamped": source.support_socket_clamped,
 		"animation_carry_weight": source.animation_carry_weight,
 		"animation_carry_limit_m": source.animation_carry_limit_m,

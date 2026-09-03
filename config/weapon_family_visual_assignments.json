@@ -1,0 +1,133 @@
+{
+  "description": "Published model-specific presentation inherited only by sparse pistol, assault-rifle, and SMG profiles.",
+  "excluded_weapon_ids": [
+    "designator",
+    "air_to_ground_missile",
+    "exploding_fuel"
+  ],
+  "model_assignments": {
+    "res://assets/weapons/modular_pack/AssaultRifle2_1.fbx": {
+      "categories": [
+        "Assault Rifles"
+      ],
+      "visual_rig_id": "family_rifle_552_v1"
+    },
+    "res://assets/weapons/modular_pack/AssaultRifle2_3.fbx": {
+      "categories": [
+        "Assault Rifles"
+      ],
+      "visual_rig_id": "family_rifle_aks74_v1"
+    },
+    "res://assets/weapons/modular_pack/AssaultRifle2_4.fbx": {
+      "categories": [
+        "Assault Rifles"
+      ],
+      "visual_rig_id": "family_rifle_m14_v1"
+    },
+    "res://assets/weapons/modular_pack/AssaultRifle_2.fbx": {
+      "categories": [
+        "Assault Rifles"
+      ],
+      "visual_rig_id": "family_rifle_2_v1"
+    },
+    "res://assets/weapons/modular_pack/AssaultRifle_3.fbx": {
+      "categories": [
+        "Assault Rifles"
+      ],
+      "visual_rig_id": "family_rifle_3_v1"
+    },
+    "res://assets/weapons/modular_pack/AssaultRifle_4.fbx": {
+      "categories": [
+        "Assault Rifles"
+      ],
+      "visual_rig_id": "family_rifle_4_v1"
+    },
+    "res://assets/weapons/modular_pack/AssaultRifle_5.fbx": {
+      "categories": [
+        "Assault Rifles"
+      ],
+      "visual_rig_id": "family_rifle_5_v1"
+    },
+    "res://assets/weapons/modular_pack/Bullpup_1.fbx": {
+      "categories": [
+        "Assault Rifles"
+      ],
+      "visual_rig_id": "family_bullpup_1_v1"
+    },
+    "res://assets/weapons/modular_pack/Pistol_1.fbx": {
+      "categories": [
+        "Pistols"
+      ],
+      "visual_rig_id": "family_pistol_1_v2"
+    },
+    "res://assets/weapons/modular_pack/Pistol_2.fbx": {
+      "categories": [
+        "Pistols"
+      ],
+      "visual_rig_id": "family_pistol_2_v2"
+    },
+    "res://assets/weapons/modular_pack/Pistol_3.fbx": {
+      "categories": [
+        "Pistols"
+      ],
+      "visual_rig_id": "family_pistol_3_v2"
+    },
+    "res://assets/weapons/modular_pack/Pistol_4.fbx": {
+      "categories": [
+        "Pistols"
+      ],
+      "visual_rig_id": "family_pistol_4_v2"
+    },
+    "res://assets/weapons/modular_pack/Pistol_5.fbx": {
+      "categories": [
+        "Pistols"
+      ],
+      "visual_rig_id": "family_pistol_5_v2"
+    },
+    "res://assets/weapons/modular_pack/Pistol_6.fbx": {
+      "categories": [
+        "Pistols"
+      ],
+      "visual_rig_id": "family_pistol_6_v2"
+    },
+    "res://assets/weapons/modular_pack/Shotgun_1.fbx": {
+      "categories": [
+        "Assault Rifles"
+      ],
+      "visual_rig_id": "family_shotgun_1_v1"
+    },
+    "res://assets/weapons/modular_pack/SniperRifle_1.fbx": {
+      "categories": [
+        "Assault Rifles"
+      ],
+      "visual_rig_id": "family_sniper_1_v2"
+    },
+    "res://assets/weapons/modular_pack/SubmachineGun_1.fbx": {
+      "categories": [
+        "Submachine Guns",
+        "Assault Rifles"
+      ],
+      "visual_rig_id": "family_smg_1_v1"
+    },
+    "res://assets/weapons/modular_pack/SubmachineGun_2.fbx": {
+      "categories": [
+        "Submachine Guns"
+      ],
+      "visual_rig_id": "family_smg_2_v1"
+    },
+    "res://assets/weapons/modular_pack/SubmachineGun_3.fbx": {
+      "categories": [
+        "Submachine Guns"
+      ],
+      "visual_rig_id": "family_smg_3_v1"
+    },
+    "res://assets/weapons/modular_pack/SubmachineGun_4.fbx": {
+      "categories": [
+        "Submachine Guns"
+      ],
+      "visual_rig_id": "family_smg_4_v1"
+    }
+  },
+  "owner": "GunsLab2VisualRigResolver",
+  "schema_version": 1
+}

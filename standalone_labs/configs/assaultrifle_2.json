@@ -1,0 +1,97 @@
+{
+  "arm_rig_pose": {
+    "left_elbow": {
+      "bend": 0.0,
+      "twist": 0.0
+    },
+    "left_shoulder": {
+      "pitch": 0.0,
+      "roll": 0.0,
+      "yaw": 0.0
+    },
+    "left_wrist": {
+      "pitch": 0.0,
+      "roll": 0.0,
+      "yaw": 0.0
+    }
+  },
+  "ballistics": {
+    "base_spread_deg": 0.429,
+    "bloom_per_shot_deg": 1.0,
+    "bloom_recovery_speed": 17.5,
+    "damage": 37,
+    "fire_rate_rpm": 600,
+    "is_silenced": false,
+    "headshot_multiplier": 3.5,
+    "muzzle_velocity_mps": 948.0,
+    "moving_spread_deg": 1.029,
+    "full_gait_spread_deg": 1.543,
+    "max_recoil_bloom_deg": 2.6,
+    "magazine_capacity": 30,
+    "reserve_ammo": 90,
+    "effective_range_m": 600.0,
+    "max_range_m": 1200.0
+  },
+  "camo_skin": "Factory Classic (Wood & Steel)",
+  "category": "Assault Rifles",
+  "display_name": "AssaultRifle_2",
+  "grip_offset": {
+    "pos_x": 0.0,
+    "pos_y": 0.0,
+    "pos_z": 0.0,
+    "rot_x": 0.0,
+    "rot_y": 0.0,
+    "rot_z": 0.0
+  },
+  "model_fbx": "res://assets/weapons/modular_pack/AssaultRifle_2.fbx",
+  "normalized_scale": 1.0,
+  "scope_attachment": "None",
+  "silencer_attachment": "None",
+  "weapon_id": "assaultrifle_2",
+  "weapon_sockets": {
+    "ejection_port": {
+      "x": 0.0500000007450581,
+      "y": 0.0299999993294477,
+      "z": 0.0599999986588955
+    },
+    "left_hand_ik_target": {
+      "x": 0.200000002980232,
+      "y": -0.0299999993294477,
+      "z": 0.0
+    },
+    "muzzle_socket": {
+      "x": 0.699999988079071,
+      "y": 0.0199999995529652,
+      "z": 0.0
+    },
+    "optic_rail": {
+      "x": 0.0500000007450581,
+      "y": 0.0799999982118607,
+      "z": 0.0
+    }
+  },
+  "reticle": {
+    "shot_kick_px": 20.0,
+    "shot_kick_return": 40.0,
+    "maximum_shot_kick_px": 60.0,
+    "base_gap_px": 5.1,
+    "max_gap_px": 41.6,
+    "response_speed": 26.2
+  },
+  "fire_modes": [
+    "semi",
+    "burst"
+  ],
+  "socom_recom_data": {
+    "original_name": "M16A2",
+    "encumbrance": 1,
+    "ammo_spec": {
+      "type": "5.56 x 45mm",
+      "impact_damage": 2.3,
+      "stun": 3.0,
+      "piercing": 3.0
+    }
+  },
+  "default_fire_mode": "semi",
+  "burst_size": 3
+}

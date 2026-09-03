@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "rig_id": "socom_canonical_mixamo_65",
+  "source_bone_count": 65,
+  "runtime_bone_count": 65,
+  "scene_path": "res://scenes/player/canonical_socom_operator_rig.tscn",
+  "scene_is_authored_wrapper": true,
+  "visual_model_node_path": "VisualModel",
+  "authored_ik_control_node_path": "IKControlGraph",
+  "ik_control_scene_path": "res://scenes/player/socom_ik_control_graph.tscn",
+  "presentation_pose_mode": "authored_ik_graph",
+  "animation_map_path": "res://config/agls_operator_animation_map.json",
+  "strict_authored_pose": false,
+  "debug_skeleton_visible": false,
+  "runtime_node_name": "CanonicalSocomOperatorRig",
+  "scale_mode": "legacy_trooper",
+  "material_profile": "canonical_trooper",
+  "model_rotation_degrees": {"x": 0.0, "y": 180.0, "z": 0.0},
+  "authority": {
+    "character_body": "SOCOM-141",
+    "camera": "SOCOM-141",
+    "aim": "SOCOM-141",
+    "weapons": "SOCOM-141",
+    "hurtboxes": "SOCOM-141",
+    "animation_pose": "SOCOM_CANONICAL_WITH_RETARGETED_AGLS_ACTIONS"
+  }
+}

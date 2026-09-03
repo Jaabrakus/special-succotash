@@ -100,6 +100,15 @@ static func _register_interactive_dots(lab: Node) -> void:
 		lab.interactive_dots.append({"id": "right_elbow_pole", "mesh": lab.right_elbow_pole_marker, "label": "🟣 Right Elbow IK Pole", "color": Color(1.0, 0.25, 0.9)})
 	if lab.left_elbow_pole_marker:
 		lab.interactive_dots.append({"id": "left_elbow_pole", "mesh": lab.left_elbow_pole_marker, "label": "🟣 Left Elbow IK Pole", "color": Color(0.75, 0.35, 1.0)})
+	for target_id in lab.weapon_contact_targets:
+		var target_mesh: MeshInstance3D = lab.weapon_contact_targets[target_id]
+		if target_mesh != null:
+			lab.interactive_dots.append({
+				"id": "contact_graph:%s" % target_id,
+				"mesh": target_mesh,
+				"label": "Contact Graph: %s" % String(target_id).replace("_", " ").capitalize(),
+				"color": target_mesh.material_override.albedo_color if target_mesh.material_override is StandardMaterial3D else Color.WHITE,
+			})
 	if lab.hand_gizmo_center:
 		lab.interactive_dots.append({"id": "left_ik", "mesh": lab.hand_gizmo_center, "label": "🔵 Hand Rig (Free 3D Translate)", "color": Color(0.0, 0.95, 1.0)})
 	if lab.gizmo_arrow_x and lab.gizmo_arrow_x.get_child_count() > 1:
@@ -269,6 +278,9 @@ static func _highlight_dot(lab: Node,dot_id: String) -> void:
 				mat.albedo_color = Color.WHITE if is_target else (item["color"] as Color)
 
 static func _apply_dot_world_drag(lab: Node,dot_id: String, world_pos: Vector3) -> void:
+	if dot_id.begins_with("contact_graph:"):
+		lab._drag_weapon_contact_target(dot_id.trim_prefix("contact_graph:"), world_pos)
+		return
 	if dot_id.begins_with("hurtbox:"):
 		var region_key := StringName(dot_id.trim_prefix("hurtbox:"))
 		var area: Area3D = lab._hurtbox_region_area(region_key)

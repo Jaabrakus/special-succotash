@@ -66,7 +66,7 @@ func _build_camera_tools() -> void:
     camera_visualizer.name = "CameraBoomVisualizer"
     camera_visualizer.camera_rig = camera_rig
     camera_visualizer.player = player
-    camera_visualizer.mannequin = player.get_node("Mannequin")
+    camera_visualizer.mannequin = player.get_node_or_null("Mannequin") if player != null else null
     camera_visualizer.visible_in_workbench = debug_hud_visible
     host.add_child(camera_visualizer)
 

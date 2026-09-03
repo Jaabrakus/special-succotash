@@ -23,6 +23,10 @@ const BONE_CANDIDATES := {
 const GUN_PLACEMENT_FACE_UP_M := 0.09
 const GUN_PLACEMENT_FACE_FORWARD_M := 0.13
 const GUN_PLACEMENT_FRAME_BONE := &"mixamorig_Spine2"
+# A rigid weapon may settle a few degrees inside an authored palm, but larger
+# corrections visibly rotate the pistol grip out of that hand. Weapon-specific
+# calibration must absorb anything beyond this presentation allowance.
+const MAX_RIGID_GRIP_ALIGNMENT_DEG := 6.0
 const ArmKinematics := preload("res://scripts/player/operator_arm_kinematics.gd")
 const PoseDiagnostics := preload(
 	"res://scripts/player/operator_weapon_pose_diagnostics.gd"
@@ -161,6 +165,9 @@ var weapon_presentation_owner: SocomOperatorWeaponPresentationOwner
 var weapon_solver_owned: bool = false
 var right_hand_owns_ready_weapon: bool = false
 var animation_drives_ready_hands: bool = false
+var hand_socket_ik_enabled: bool = true
+var support_hand_socket_ik_enabled: bool = false
+var support_hand_ik_blend_seconds: float = 0.35
 var ownership_return_start := Transform3D.IDENTITY
 var ownership_return_elapsed: float = 0.18
 var action_weapon_follow_active: bool = false

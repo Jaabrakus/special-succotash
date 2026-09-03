@@ -4,7 +4,7 @@ This is a separate playable web vertical slice. It does not replace or modify th
 
 The first slice contains:
 
-- the canonical PS1 operator;
+- the imported S.W.A.T. operator GLB;
 - a third-person camera based on the current SOCOM camera measurements;
 - standing, crouched, prone, jumping, and responsive strafing movement;
 - the current assault-rifle ammo, damage, fire-rate, spread, bloom, reticle, reload, and auto-reload values;
@@ -28,3 +28,7 @@ npm run build
 ```
 
 All source for this experiment stays inside this directory. The Godot project remains the reference until a side-by-side review approves further porting.
+
+## Character attribution
+
+The preview character is **S.W.A.T. Operator** by Mateusz Woliński (`jeandiz`), sourced from Sketchfab and licensed under CC BY 4.0. The attribution and source URL are also embedded in the GLB metadata.

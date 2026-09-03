@@ -2,17 +2,37 @@
 set -euo pipefail
 
 project_dir="${0:A:h:h}"
-godot_bin="${GODOT_BIN:-/Users/kiwimango/Downloads/Godot.app/Contents/MacOS/Godot}"
+godot_bin="${GODOT_BIN:-}"
+if [[ -z "$godot_bin" ]]; then
+  for candidate in \
+    /Users/kiwimango/Applications/Godot-4.7.1.app/Contents/MacOS/Godot \
+    /Applications/Godot-4.7.1.app/Contents/MacOS/Godot \
+    /Users/kiwimango/Downloads/Godot.app/Contents/MacOS/Godot; do
+    if [[ -x "$candidate" ]]; then
+      godot_bin="$candidate"
+      break
+    fi
+  done
+fi
+if [[ -z "$godot_bin" || ! -x "$godot_bin" ]]; then
+  print -u2 "FAIL: set GODOT_BIN to an executable Godot 4 binary"
+  exit 2
+fi
 report_dir="${TMPDIR:-/private/tmp}/socom-multiplayer-lifecycle"
 probe_port=$((24141 + ($$ % 1000)))
 peer_count="${SOCOM_PROBE_PEERS:-2}"
 cycle_count="${SOCOM_PROBE_CYCLES:-2}"
+transport="${SOCOM_PROBE_TRANSPORT:-enet}"
 lite_clients="${SOCOM_PROBE_LITE_CLIENTS:-0}"
 combat_shots="${SOCOM_PROBE_COMBAT_SHOTS:-0}"
 controlled_hits="${SOCOM_PROBE_CONTROLLED_HITS:-0}"
 reconnect_probe="${SOCOM_PROBE_RECONNECT:-0}"
-if (( peer_count < 2 || peer_count > 16 )); then
-  print -u2 "FAIL: SOCOM_PROBE_PEERS must be between 2 and 16"
+if (( peer_count < 2 || peer_count > 32 )); then
+  print -u2 "FAIL: SOCOM_PROBE_PEERS must be between 2 and 32"
+  exit 2
+fi
+if [[ "$transport" != "enet" && "$transport" != "websocket" ]]; then
+  print -u2 "FAIL: SOCOM_PROBE_TRANSPORT must be enet or websocket"
   exit 2
 fi
 if (( cycle_count < 1 || cycle_count > 20 )); then
@@ -57,6 +77,7 @@ mkdir -p "$report_dir"
   --log-file "$host_log" \
   --path "$project_dir" \
   --script res://tools/multiplayer_lifecycle_probe.gd -- \
+  "--mp-transport=$transport" \
   --role host --port "$probe_port" --expected-peers "$peer_count" \
   --cycles "$cycle_count" --combat-shots "$combat_shots" \
   "${probe_hit_args[@]}" "${host_reconnect_args[@]}" >/dev/null 2>&1 &
@@ -91,6 +112,9 @@ if [[ "$ready" != "1" ]]; then
   tail -80 "$host_log" 2>/dev/null || true
   exit 1
 fi
+# The host marker confirms create_server() succeeded. Give the WebSocket
+# listener one fixed settling interval before the first separate process dials.
+sleep 1
 
 client_index=1
 while (( client_index < peer_count )); do
@@ -108,6 +132,7 @@ while (( client_index < peer_count )); do
     --log-file "$client_log" \
     --path "$project_dir" \
     --script res://tools/multiplayer_lifecycle_probe.gd -- \
+    "--mp-transport=$transport" \
     --role client --port "$probe_port" --expected-peers "$peer_count" \
     --client-index "$client_index" --cycles "$cycle_count" \
     --combat-shots "$combat_shots" \
@@ -115,6 +140,9 @@ while (( client_index < peer_count )); do
 		"${client_args[@]}" >/dev/null 2>&1 &
   client_pids+=("$!")
   (( client_index += 1 ))
+  # Avoid presenting the WebSocket listener with a synchronized process-start
+  # burst when exercising the 32-peer ceiling on one development machine.
+  sleep 0.1
 done
 
 client_failed=0
@@ -149,6 +177,6 @@ if (( client_failed != 0 )); then
 fi
 
 metric_line="$(rg 'MULTIPLAYER_LIFECYCLE_METRIC' "$host_log" | tail -1)"
-print "MULTIPLAYER_LIFECYCLE_PROBE PASS peers=$peer_count cycles=$cycle_count lite_clients=$lite_clients combat_shots=$combat_shots controlled_hits=$controlled_hits reconnect=$reconnect_probe"
+print "MULTIPLAYER_LIFECYCLE_PROBE PASS transport=$transport peers=$peer_count cycles=$cycle_count lite_clients=$lite_clients combat_shots=$combat_shots controlled_hits=$controlled_hits reconnect=$reconnect_probe"
 print "$metric_line"
 print "Reports: $report_dir"

@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "default_port": 14141,
+  "dedicated_transport": "websocket",
+  "browser_transport": "websocket",
+  "browser_server_url": "",
+  "server_map_document": "res://config/maps/painterly_coastal_village_2v2.json",
+  "require_secure_browser_socket": true,
+  "max_players": 32,
+  "arena_instances": 8,
+  "players_per_arena": 4
+}

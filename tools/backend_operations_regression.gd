@@ -4,10 +4,20 @@ const ServiceDirectory := preload("res://scripts/network/socom_service_directory
 const ServerBackend := preload("res://scripts/server/socom_server_backend.gd")
 const SessionCompatibility := preload("res://scripts/network/socom_session_compatibility.gd")
 const OPERATIONS_MIGRATION := "res://supabase/migrations/20260824002000_create_multiplayer_operations.sql"
+const DIRECTORY_PRESENCE_MIGRATION := "res://supabase/migrations/20260902001000_add_server_directory_presence.sql"
 const SERVER_BACKEND_PATH := "res://scripts/server/socom_server_backend.gd"
+const DIRECTORY_PRESENCE_PATH := "res://scripts/network/socom_multiplayer_directory_presence.gd"
+const SESSION_PATH := "res://scripts/network/socom_multiplayer_session.gd"
 
 var failures: Array[String] = []
 var requests: Array[Dictionary] = []
+var directory_fixture := {
+	"current_players": 24,
+	"mode_key": "gunfight_2v2",
+	"map_key": "morro_do_sol_2v2",
+	"session_stage": "lobby",
+	"free_arenas": 8,
+}
 
 
 func _initialize() -> void:
@@ -67,10 +77,48 @@ func _run() -> void:
 		and not _authenticated_grant_contains(migration, "security_audit_log"),
 		"clients cannot read evidence or the security audit log"
 	)
+	var directory_migration := FileAccess.get_file_as_string(DIRECTORY_PRESENCE_MIGRATION)
+	for required_field in ["mode_key", "map_key", "session_stage", "free_arenas"]:
+		_expect(required_field in directory_migration, "server directory schema includes bounded " + required_field)
+	_expect(
+		"free_arenas between 0 and 8" in directory_migration
+		and "current_players" in directory_migration,
+		"server directory presence keeps arena and occupancy bounds"
+	)
 
 	var server_source := FileAccess.get_file_as_string(SERVER_BACKEND_PATH)
 	_expect("SOCOM_SUPABASE_SERVER_KEY" in server_source, "privileged server credential comes from process environment")
 	_expect("service_role" not in server_source and "sb_secret_" not in server_source, "server source contains no embedded privileged credential")
+	_expect(
+		"PUBLIC_CONFIG_PATH" in server_source
+		and "res://config/supabase_public.json" in server_source,
+		"exported dedicated server can load the public project URL without bundling a secret"
+	)
+	var opaque_headers := ServerBackend.request_headers("regression-server-secret")
+	var legacy_headers := ServerBackend.request_headers("eyJheader.payload.signature")
+	_expect(
+		_header_starts_with(opaque_headers, "apikey: ")
+		and not _header_starts_with(opaque_headers, "Authorization: Bearer "),
+		"opaque Supabase server keys use the apikey header and are not treated as JWTs"
+	)
+	_expect(
+		_header_starts_with(legacy_headers, "apikey: ")
+		and _header_starts_with(legacy_headers, "Authorization: Bearer "),
+		"legacy JWT server credentials retain bearer compatibility"
+	)
+	_expect(
+		"NOTIFICATION_WM_CLOSE_REQUEST" in server_source
+		and "await mark_offline()" in server_source
+		and "auto_accept_quit = false" in server_source,
+		"clean dedicated-server shutdown marks the directory row offline before quitting"
+	)
+	var presence_source := FileAccess.get_file_as_string(DIRECTORY_PRESENCE_PATH)
+	var session_source := FileAccess.get_file_as_string(SESSION_PATH)
+	_expect(
+		"lobby.players.size()" in presence_source
+		and "set_directory_snapshot_provider" in session_source,
+		"canonical server session supplies admitted occupancy to the directory publisher"
+	)
 
 	OS.set_environment("SOCOM_SUPABASE_SERVER_KEY", "regression-server-secret")
 	OS.set_environment("SOCOM_SERVER_PUBLIC_ADDRESS", "203.0.113.141")
@@ -81,13 +129,54 @@ func _run() -> void:
 	root.add_child(backend)
 	backend.project_url = "https://example.supabase.co"
 	backend.server_key = "regression-server-secret"
-	var registration: Dictionary = await backend.register_dedicated_server(14141)
+	backend.set_directory_snapshot_provider(Callable(self, "_directory_fixture_snapshot"))
+	var registration: Dictionary = await backend.register_dedicated_server(14141, 32)
 	_expect(bool(registration.get("ok", false)), "dedicated server registers through the privileged backend boundary")
 	var registration_body: Dictionary = requests[0].get("body", {}) if not requests.is_empty() else {}
 	_expect(
 		String(registration_body.get("game_build", "")) == SessionCompatibility.local_build()
 		and int(registration_body.get("protocol_version", 0)) == SessionCompatibility.PROTOCOL_VERSION,
 		"server discovery publishes the same build and protocol required by admission"
+	)
+	_expect(
+		int(registration_body.get("capacity", 0)) == 32
+		and int(registration_body.get("current_players", -1)) == 24
+		and String(registration_body.get("mode_key", "")) == "gunfight_2v2"
+		and String(registration_body.get("map_key", "")) == "morro_do_sol_2v2"
+		and String(registration_body.get("session_stage", "")) == "lobby"
+		and int(registration_body.get("free_arenas", -1)) == 8,
+		"registration publishes authoritative bounded server-browser presence"
+	)
+	directory_fixture = {
+		"current_players": 16,
+		"mode_key": "gunfight_2v2",
+		"map_key": "morro_do_sol_2v2",
+		"session_stage": "quarterfinals",
+		"free_arenas": 4,
+	}
+	requests.clear()
+	await backend.call("_send_heartbeat")
+	var heartbeat_body: Dictionary = requests[0].get("body", {}) if not requests.is_empty() else {}
+	_expect(
+		int(heartbeat_body.get("current_players", -1)) == 16
+		and String(heartbeat_body.get("session_stage", "")) == "quarterfinals"
+		and int(heartbeat_body.get("free_arenas", -1)) == 4,
+		"heartbeat refreshes occupancy and tournament context from the canonical provider"
+	)
+	var bounded := ServerBackend.sanitize_directory_snapshot({
+		"current_players": 99,
+		"mode_key": "../../foreign-mode",
+		"map_key": "?!",
+		"session_stage": "arbitrary_client_text",
+		"free_arenas": 99,
+	}, 32)
+	_expect(
+		int(bounded.get("current_players", -1)) == 32
+		and String(bounded.get("mode_key", "")) == "demolition"
+		and String(bounded.get("map_key", "")) == "unknown"
+		and String(bounded.get("session_stage", "")) == "lobby"
+		and int(bounded.get("free_arenas", -1)) == 8,
+		"directory publisher clamps numbers and rejects unrecognized metadata keys"
 	)
 	var drain: Dictionary = await backend.begin_drain()
 	_expect(bool(drain.get("ok", false)) and _saw_draining_request(), "graceful drain removes the server from new-player selection")
@@ -128,6 +217,10 @@ func _fake_server_request(path: String, method: HTTPClient.Method, body: Variant
 	return {"ok": true, "status": 204, "data": {}}
 
 
+func _directory_fixture_snapshot() -> Dictionary:
+	return directory_fixture.duplicate(true)
+
+
 func _saw_draining_request() -> bool:
 	for request: Dictionary in requests:
 		var body: Dictionary = request.get("body", {}) if request.get("body", {}) is Dictionary else {}
@@ -139,6 +232,13 @@ func _saw_draining_request() -> bool:
 func _authenticated_grant_contains(source: String, table_name: String) -> bool:
 	for statement in source.split(";"):
 		if "grant " in statement.to_lower() and "authenticated" in statement.to_lower() and table_name in statement:
+			return true
+	return false
+
+
+func _header_starts_with(headers: PackedStringArray, prefix: String) -> bool:
+	for header in headers:
+		if header.begins_with(prefix):
 			return true
 	return false
 

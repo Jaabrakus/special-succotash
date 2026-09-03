@@ -1,0 +1,38 @@
+[gd_scene load_steps=5 format=3]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_stick"]
+albedo_color = Color(0.18, 0.22, 0.24, 1)
+metallic = 0.35
+roughness = 0.55
+
+[sub_resource type="BoxMesh" id="BoxMesh_bore"]
+material = SubResource("StandardMaterial3D_stick")
+size = Vector3(0.025, 0.025, 0.81)
+
+[sub_resource type="BoxMesh" id="BoxMesh_stock"]
+material = SubResource("StandardMaterial3D_stick")
+size = Vector3(0.08, 0.1, 0.24)
+
+[sub_resource type="BoxMesh" id="BoxMesh_grip"]
+material = SubResource("StandardMaterial3D_stick")
+size = Vector3(0.045, 0.13, 0.055)
+
+[node name="UniversalWeaponStick" type="Node3D"]
+metadata/_edit_group_ = true
+
+[node name="BoreStick" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.11, 0.105)
+mesh = SubResource("BoxMesh_bore")
+
+[node name="ShoulderStock" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.08, -0.18)
+mesh = SubResource("BoxMesh_stock")
+
+[node name="TriggerGrip" type="MeshInstance3D" parent="."]
+position = Vector3(0, -0.055, 0)
+rotation = Vector3(-0.2, 0, 0)
+mesh = SubResource("BoxMesh_grip")
+
+[node name="SupportGrip" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.045, 0.34)
+mesh = SubResource("BoxMesh_grip")

@@ -1,0 +1,524 @@
+[gd_scene format=3 uid="uid://dunv22byoql3v"]
+
+[ext_resource type="Script" uid="uid://b8f87usaocy3a" path="res://scripts/labs/gun_pose_lineup_editor.gd" id="1_script"]
+[ext_resource type="PackedScene" uid="uid://dlud50bj8poeu" path="res://scenes/player/canonical_socom_operator_rig.tscn" id="2_rig"]
+[ext_resource type="PackedScene" uid="uid://575f4tyx7xg0" path="res://standalone_labs/weapons/m16a2.tscn" id="3_weapon"]
+
+[sub_resource type="Environment" id="Environment_lineup"]
+background_mode = 1
+background_color = Color(0.055, 0.065, 0.075, 1)
+ambient_light_source = 3
+ambient_light_color = Color(0.72, 0.78, 0.86, 1)
+ambient_light_energy = 0.8
+
+[sub_resource type="StandardMaterial3D" id="FloorMaterial"]
+albedo_color = Color(0.13, 0.15, 0.18, 1)
+roughness = 0.82
+
+[sub_resource type="BoxMesh" id="FloorMesh"]
+material = SubResource("FloorMaterial")
+size = Vector3(32, 0.05, 5)
+
+[sub_resource type="StandardMaterial3D" id="LineMaterial"]
+shading_mode = 0
+albedo_color = Color(0.12, 0.8, 0.62, 1)
+
+[sub_resource type="BoxMesh" id="LineMesh"]
+material = SubResource("LineMaterial")
+size = Vector3(30, 0.012, 0.018)
+
+[sub_resource type="Animation" id="Animation_tq5ge"]
+resource_name = "mixamo_com"
+length = 2.1
+loop_mode = 1
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_yykl5"]
+_data = {
+&"idle_rifle": SubResource("Animation_tq5ge")
+}
+
+[sub_resource type="Animation" id="Animation_yykl5"]
+resource_name = "mixamo_com"
+length = 3.1
+loop_mode = 1
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_i0noq"]
+_data = {
+&"aim_idle": SubResource("Animation_yykl5")
+}
+
+[sub_resource type="Animation" id="Animation_u38kl"]
+resource_name = "mixamo_com"
+length = 3.1
+loop_mode = 1
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_tb2ev"]
+_data = {
+&"aim_idle": SubResource("Animation_u38kl")
+}
+
+[sub_resource type="Animation" id="Animation_i0noq"]
+resource_name = "mixamo_com"
+length = 1.1666666666666667
+loop_mode = 1
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_wg62f"]
+_data = {
+&"combat_fire": SubResource("Animation_i0noq")
+}
+
+[sub_resource type="Animation" id="Animation_ql1qn"]
+resource_name = "mixamo_com"
+length = 0.5
+loop_mode = 1
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_w0xwj"]
+_data = {
+&"run_forward": SubResource("Animation_ql1qn")
+}
+
+[sub_resource type="Animation" id="Animation_tb2ev"]
+resource_name = "mixamo_com"
+length = 0.5
+loop_mode = 1
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_pwwoq"]
+_data = {
+&"run_left": SubResource("Animation_tb2ev")
+}
+
+[sub_resource type="Animation" id="Animation_53fw0"]
+resource_name = "mixamo_com"
+length = 0.5
+loop_mode = 1
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_4pgc7"]
+_data = {
+&"run_right": SubResource("Animation_53fw0")
+}
+
+[sub_resource type="Animation" id="Animation_wg62f"]
+resource_name = "mixamo_com"
+loop_mode = 1
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_388c3"]
+_data = {
+&"crouch_forward": SubResource("Animation_wg62f")
+}
+
+[sub_resource type="Animation" id="Animation_5qjn8"]
+resource_name = "mixamo_com"
+length = 2.3333333333333335
+loop_mode = 1
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_qdtc8"]
+_data = {
+&"prone_forward": SubResource("Animation_5qjn8")
+}
+
+[sub_resource type="Animation" id="Animation_w0xwj"]
+resource_name = "mixamo_com"
+length = 3.3
+loop_mode = 1
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_1dw1t"]
+_data = {
+&"reload": SubResource("Animation_w0xwj")
+}
+
+[node name="SOCOMGunPoseLineupLab" type="Node3D" unique_id=318026487]
+script = ExtResource("1_script")
+
+[node name="EditorEnvironment" type="WorldEnvironment" parent="." unique_id=1407814807]
+environment = SubResource("Environment_lineup")
+
+[node name="KeyLight" type="DirectionalLight3D" parent="." unique_id=1077733279]
+transform = Transform3D(0.8480481, 0.3938068, -0.35458517, 0, 0.66913056, 0.74314487, 0.52991927, -0.63022256, 0.5674549, 0, 0, 0)
+light_energy = 1.35
+shadow_enabled = true
+
+[node name="FillLight" type="DirectionalLight3D" parent="." unique_id=1016065271]
+transform = Transform3D(-0.81915206, -0.24240388, 0.5198368, 0, 0.90630776, 0.42261827, -0.57357645, 0.34618863, -0.74240386, 0, 0, 0)
+light_color = Color(0.45, 0.65, 1, 1)
+light_energy = 0.55
+
+[node name="RuntimeReviewCamera" type="Camera3D" parent="." unique_id=1564387176]
+transform = Transform3D(-1, 0, 0, 0, 0.987441, 0.15799, 0, 0.15799, -0.987441, 0, 3.68583, -16.7865)
+current = true
+fov = 48.0
+
+[node name="Floor" type="MeshInstance3D" parent="." unique_id=987666796]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.035, 0)
+mesh = SubResource("FloorMesh")
+
+[node name="HorizontalLineGuide" type="MeshInstance3D" parent="." unique_id=362273008]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.001, 0.8)
+mesh = SubResource("LineMesh")
+
+[node name="RuntimeHUD" type="CanvasLayer" parent="." unique_id=1765587567]
+layer = 20
+
+[node name="Header" type="PanelContainer" parent="RuntimeHUD" unique_id=26840463]
+offset_left = 16.0
+offset_top = 14.0
+offset_right = 630.0
+offset_bottom = 92.0
+
+[node name="Margin" type="MarginContainer" parent="RuntimeHUD/Header" unique_id=153648345]
+layout_mode = 2
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 10
+
+[node name="Text" type="VBoxContainer" parent="RuntimeHUD/Header/Margin" unique_id=1937392124]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="RuntimeHUD/Header/Margin/Text" unique_id=1601416415]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.45, 1, 0.76, 1)
+theme_override_font_sizes/font_size = 18
+text = "GUN POSE LINEUP — ALL STATES LIVE"
+
+[node name="Controls" type="Label" parent="RuntimeHUD/Header/Margin/Text" unique_id=1276817847]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.72, 0.78, 0.86, 1)
+theme_override_font_sizes/font_size = 12
+text = "MIDDLE / RIGHT-DRAG orbit • SHIFT+DRAG pan • WHEEL zoom (1m - 35m) • 0-9 focus character • SPACE overview • P toggle IK • T targets • F2 Studio • F1 Home"
+
+[node name="PoseLineup" type="Node3D" parent="." unique_id=1255634062]
+
+[node name="00_IdleRifle" type="Node3D" parent="PoseLineup" unique_id=777826100]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12.6, 0, 0)
+metadata/context = "idle_rifle"
+metadata/clip_key = "idle_rifle"
+
+[node name="OperatorRig" parent="PoseLineup/00_IdleRifle" unique_id=1940920334 instance=ExtResource("2_rig")]
+
+[node name="RHUpperArmWeaponTarget" parent="PoseLineup/00_IdleRifle/OperatorRig/IKControlGraph/TargetPivot" index="0"]
+transform = Transform3D(0.08947041, -0.42068556, 0.9027839, -0.21807803, -0.8926991, -0.39437357, 0.97182155, -0.16159256, -0.17161243, -0.1350956, 0.46044958, -0.17732315)
+
+[node name="RHWeaponTarget" parent="PoseLineup/00_IdleRifle/OperatorRig/IKControlGraph/TargetPivot" index="1"]
+transform = Transform3D(-0.17912132, 0.06736334, 0.98151803, 0.9377673, 0.3133747, 0.1496296, -0.29750338, 0.94723743, -0.11930321, -0.30130196, 0.16252983, 0.082044534)
+
+[node name="LHWeaponContactTarget" parent="PoseLineup/00_IdleRifle/OperatorRig/IKControlGraph/TargetPivot" index="2"]
+transform = Transform3D(0.9998857, 1.2550991e-05, 0.015125332, 1.3642423e-12, 0.99999976, -0.00082979933, -0.015125339, 0.0008297044, 0.99988544, -0.3019452, 0.17832386, 0.5368901)
+
+[node name="SpineTargetWeaponAim" parent="PoseLineup/00_IdleRifle/OperatorRig/IKControlGraph/TargetPivot" index="3"]
+transform = Transform3D(0.8386705, 0, -0.544639, 0, 0.9999999, 0, 0.544639, 0, 0.83867043, -18.45075, 0.32832932, -11.978647)
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="PoseLineup/00_IdleRifle" unique_id=801102260]
+root_node = NodePath("../OperatorRig")
+callback_mode_process = 2
+libraries/ = SubResource("AnimationLibrary_yykl5")
+
+[node name="EditorWeapon" parent="PoseLineup/00_IdleRifle" unique_id=1145359486 instance=ExtResource("3_weapon")]
+transform = Transform3D(-0.9998857, -1.2551064e-05, -0.01512542, 1.364242e-12, 0.99999964, -0.0008297992, 0.015125425, -0.0008297043, -0.9998853, 0.30130196, 1.3665298, -0.08204456)
+
+[node name="PoseLabel" type="Label3D" parent="PoseLineup/00_IdleRifle" unique_id=1053254025]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.12, 0)
+billboard = 1
+text = "IDLE RIFLE"
+font_size = 28
+outline_size = 8
+
+[node name="01_AimIdle" type="Node3D" parent="PoseLineup" unique_id=1968639059]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.8, 0, 0)
+metadata/context = "aim_idle"
+metadata/clip_key = "aim_idle"
+
+[node name="OperatorRig" parent="PoseLineup/01_AimIdle" unique_id=1843574877 instance=ExtResource("2_rig")]
+
+[node name="RHUpperArmWeaponTarget" parent="PoseLineup/01_AimIdle/OperatorRig/IKControlGraph/TargetPivot" index="0"]
+transform = Transform3D(0.41654322, -0.5892413, 0.6923052, 0.4989334, -0.48841637, -0.7159016, 0.7599721, 0.6436181, 0.09054564, -0.1113925, 0.49212062, -0.19771138)
+
+[node name="RHWeaponTarget" parent="PoseLineup/01_AimIdle/OperatorRig/IKControlGraph/TargetPivot" index="1"]
+transform = Transform3D(-0.1763627, 0.05906207, 0.98255163, 0.9428784, 0.29674464, 0.15140393, -0.28262478, 0.95312876, -0.10802304, -0.14104271, 0.51504695, 0.21026066)
+
+[node name="LHWeaponContactTarget" parent="PoseLineup/01_AimIdle/OperatorRig/IKControlGraph/TargetPivot" index="2"]
+transform = Transform3D(0.9999746, 0.00013287681, 0.007125557, 7.275959e-12, 0.9998263, -0.01864468, -0.0071267965, 0.018644206, 0.9998009, -0.1453228, 0.52273655, 0.66529566)
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="PoseLineup/01_AimIdle" unique_id=302508148]
+root_node = NodePath("../OperatorRig")
+callback_mode_process = 2
+libraries/ = SubResource("AnimationLibrary_i0noq")
+
+[node name="EditorWeapon" parent="PoseLineup/01_AimIdle" unique_id=1234728354 instance=ExtResource("3_weapon")]
+transform = Transform3D(-0.9999746, -0.00013287844, -0.0071256445, 7.2759585e-12, 0.9998262, -0.018644677, 0.007126883, -0.018644204, -0.9998008, 0.14104271, 1.7190468, -0.21026064)
+
+[node name="PoseLabel" type="Label3D" parent="PoseLineup/01_AimIdle" unique_id=626007479]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.12, 0)
+billboard = 1
+text = "AIM IDLE"
+font_size = 28
+outline_size = 8
+
+[node name="02_CombatReady" type="Node3D" parent="PoseLineup" unique_id=373577793]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.0, 0, 0)
+metadata/context = "combat_ready"
+metadata/clip_key = "aim_idle"
+
+[node name="OperatorRig" parent="PoseLineup/02_CombatReady" unique_id=648604719 instance=ExtResource("2_rig")]
+
+[node name="RHUpperArmWeaponTarget" parent="PoseLineup/02_CombatReady/OperatorRig/IKControlGraph/TargetPivot" index="0"]
+transform = Transform3D(0.41654322, -0.5892413, 0.6923052, 0.4989334, -0.48841637, -0.7159016, 0.7599721, 0.6436181, 0.09054564, -0.1113925, 0.49212062, -0.19771138)
+
+[node name="RHWeaponTarget" parent="PoseLineup/02_CombatReady/OperatorRig/IKControlGraph/TargetPivot" index="1"]
+transform = Transform3D(-0.1763627, 0.05906207, 0.98255163, 0.9428784, 0.29674464, 0.15140393, -0.28262478, 0.95312876, -0.10802304, -0.14104271, 0.51504695, 0.21026066)
+
+[node name="LHWeaponContactTarget" parent="PoseLineup/02_CombatReady/OperatorRig/IKControlGraph/TargetPivot" index="2"]
+transform = Transform3D(0.9999746, 0.00013287681, 0.007125557, 7.275959e-12, 0.9998263, -0.01864468, -0.0071267965, 0.018644206, 0.9998009, -0.1453228, 0.52273655, 0.66529566)
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="PoseLineup/02_CombatReady" unique_id=2086431189]
+root_node = NodePath("../OperatorRig")
+callback_mode_process = 2
+libraries/ = SubResource("AnimationLibrary_tb2ev")
+
+[node name="EditorWeapon" parent="PoseLineup/02_CombatReady" unique_id=2015093766 instance=ExtResource("3_weapon")]
+transform = Transform3D(-0.9999746, -0.00013287844, -0.0071256445, 7.2759585e-12, 0.9998262, -0.018644677, 0.007126883, -0.018644204, -0.9998008, 0.14104271, 1.7190468, -0.21026064)
+
+[node name="PoseLabel" type="Label3D" parent="PoseLineup/02_CombatReady" unique_id=140375990]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.12, 0)
+billboard = 1
+text = "COMBAT READY"
+font_size = 28
+outline_size = 8
+
+[node name="03_CombatFire" type="Node3D" parent="PoseLineup" unique_id=510282512]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.2, 0, 0)
+metadata/context = "combat_fire"
+metadata/clip_key = "combat_fire"
+
+[node name="OperatorRig" parent="PoseLineup/03_CombatFire" unique_id=1893203735 instance=ExtResource("2_rig")]
+
+[node name="RHUpperArmWeaponTarget" parent="PoseLineup/03_CombatFire/OperatorRig/IKControlGraph/TargetPivot" index="0"]
+transform = Transform3D(0.41654322, -0.5892413, 0.6923052, 0.4989334, -0.48841637, -0.7159016, 0.7599721, 0.6436181, 0.09054564, -0.11139226, 0.49212062, -0.19771138)
+
+[node name="RHWeaponTarget" parent="PoseLineup/03_CombatFire/OperatorRig/IKControlGraph/TargetPivot" index="1"]
+transform = Transform3D(-0.1763627, 0.05906207, 0.98255163, 0.9428784, 0.29674464, 0.15140393, -0.28262478, 0.95312876, -0.10802304, -0.14104271, 0.51504695, 0.21026066)
+
+[node name="LHWeaponContactTarget" parent="PoseLineup/03_CombatFire/OperatorRig/IKControlGraph/TargetPivot" index="2"]
+transform = Transform3D(0.9999746, 0.00013287681, 0.007125557, 7.275959e-12, 0.9998263, -0.01864468, -0.0071267965, 0.018644206, 0.9998009, -0.1453228, 0.52273655, 0.66529566)
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="PoseLineup/03_CombatFire" unique_id=628967547]
+root_node = NodePath("../OperatorRig")
+callback_mode_process = 2
+libraries/ = SubResource("AnimationLibrary_wg62f")
+
+[node name="EditorWeapon" parent="PoseLineup/03_CombatFire" unique_id=686473434 instance=ExtResource("3_weapon")]
+transform = Transform3D(-0.9999746, -0.00013287844, -0.0071256445, 7.2759585e-12, 0.9998262, -0.018644677, 0.007126883, -0.018644204, -0.9998008, 0.14104271, 1.7190468, -0.21026064)
+
+[node name="PoseLabel" type="Label3D" parent="PoseLineup/03_CombatFire" unique_id=1025313741]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.12, 0)
+billboard = 1
+modulate = Color(1, 0.38, 0.26, 1)
+text = "FIRE + TARGETPIVOT"
+font_size = 25
+outline_size = 8
+
+[node name="04_RunForward" type="Node3D" parent="PoseLineup" unique_id=1859608367]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.4, 0, 0)
+metadata/context = "run_forward"
+metadata/clip_key = "run_forward"
+
+[node name="OperatorRig" parent="PoseLineup/04_RunForward" unique_id=1606203857 instance=ExtResource("2_rig")]
+
+[node name="RHUpperArmWeaponTarget" parent="PoseLineup/04_RunForward/OperatorRig/IKControlGraph/TargetPivot" index="0"]
+transform = Transform3D(0.03883576, -0.37346542, 0.92683077, -0.48662177, -0.81718135, -0.30889195, 0.8727493, -0.43901995, -0.21347226, -0.18491691, 0.42596567, -0.09531497)
+
+[node name="RHWeaponTarget" parent="PoseLineup/04_RunForward/OperatorRig/IKControlGraph/TargetPivot" index="1"]
+transform = Transform3D(-0.17951936, 0.06859, 0.9813604, 0.9375621, 0.3140215, 0.14955953, -0.29790995, 0.9469352, -0.12068031, -0.41143024, 0.19636106, 0.058112513)
+
+[node name="LHWeaponContactTarget" parent="PoseLineup/04_RunForward/OperatorRig/IKControlGraph/TargetPivot" index="2"]
+transform = Transform3D(0.9997873, 5.2079933e-05, 0.020626923, 5.4569695e-12, 0.99999696, -0.0025248448, -0.02062699, 0.0025243077, 0.9997842, -0.40957025, 0.2113843, 0.5129809)
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="PoseLineup/04_RunForward" unique_id=1245702927]
+root_node = NodePath("../OperatorRig")
+callback_mode_process = 2
+libraries/ = SubResource("AnimationLibrary_w0xwj")
+
+[node name="EditorWeapon" parent="PoseLineup/04_RunForward" unique_id=2039872246 instance=ExtResource("3_weapon")]
+transform = Transform3D(-0.9997873, -5.2080155e-05, -0.02062701, 5.4569686e-12, 0.99999684, -0.0025248446, 0.020627076, -0.0025243075, -0.99978405, 0.41143024, 1.4003611, -0.05811254)
+
+[node name="PoseLabel" type="Label3D" parent="PoseLineup/04_RunForward" unique_id=730046847]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.12, 0)
+billboard = 1
+text = "RUN FORWARD"
+font_size = 28
+outline_size = 8
+
+[node name="05_RunLeft" type="Node3D" parent="PoseLineup" unique_id=1426265313]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.4, 0, 0)
+metadata/context = "run_left"
+metadata/clip_key = "run_left"
+
+[node name="OperatorRig" parent="PoseLineup/05_RunLeft" unique_id=1745919704 instance=ExtResource("2_rig")]
+
+[node name="RHUpperArmWeaponTarget" parent="PoseLineup/05_RunLeft/OperatorRig/IKControlGraph/TargetPivot" index="0"]
+transform = Transform3D(-0.61569905, -0.5054902, 0.6044786, 0.2604967, -0.85456425, -0.44929016, 0.7436775, -0.119162835, 0.6578329, -0.18651432, 0.47225308, -0.059625316)
+
+[node name="RHWeaponTarget" parent="PoseLineup/05_RunLeft/OperatorRig/IKControlGraph/TargetPivot" index="1"]
+transform = Transform3D(-0.17777109, 0.063035205, 0.9820509, 0.9375197, 0.31415477, 0.1495453, -0.2990894, 0.94727695, -0.11494439, -0.36441457, 0.18724239, 0.21441373)
+
+[node name="LHWeaponContactTarget" parent="PoseLineup/05_RunLeft/OperatorRig/IKControlGraph/TargetPivot" index="2"]
+transform = Transform3D(0.9998305, 3.837878e-05, 0.018414935, 0, 0.999998, -0.0020841076, -0.018414976, 0.0020837542, 0.99982846, -0.36356103, 0.20246601, 0.6692784)
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="PoseLineup/05_RunLeft" unique_id=1622539424]
+root_node = NodePath("../OperatorRig")
+callback_mode_process = 2
+libraries/ = SubResource("AnimationLibrary_pwwoq")
+
+[node name="EditorWeapon" parent="PoseLineup/05_RunLeft" unique_id=1829303143 instance=ExtResource("3_weapon")]
+transform = Transform3D(-0.9998305, -3.8378963e-05, -0.018415023, 0, 0.99999785, -0.0020841074, 0.018415062, -0.002083754, -0.99982834, 0.36441457, 1.3912424, -0.21441373)
+
+[node name="PoseLabel" type="Label3D" parent="PoseLineup/05_RunLeft" unique_id=1952687577]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.12, 0)
+billboard = 1
+text = "RUN LEFT"
+font_size = 28
+outline_size = 8
+
+[node name="06_RunRight" type="Node3D" parent="PoseLineup" unique_id=580097178]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.2, 0, 0)
+metadata/context = "run_right"
+metadata/clip_key = "run_right"
+
+[node name="OperatorRig" parent="PoseLineup/06_RunRight" unique_id=1595471823 instance=ExtResource("2_rig")]
+
+[node name="RHUpperArmWeaponTarget" parent="PoseLineup/06_RunRight/OperatorRig/IKControlGraph/TargetPivot" index="0"]
+transform = Transform3D(-0.6885745, -0.52188075, 0.5034935, 0.25593978, -0.8245317, -0.50462127, 0.67849845, -0.21860532, 0.7013215, -0.19741845, 0.50055945, -0.108498946)
+
+[node name="RHWeaponTarget" parent="PoseLineup/06_RunRight/OperatorRig/IKControlGraph/TargetPivot" index="1"]
+transform = Transform3D(-0.17977281, 0.06957264, 0.9812448, 0.93840307, 0.31136096, 0.14984755, -0.29509604, 0.9477416, -0.12126141, -0.41181207, 0.21954954, 0.1304225)
+
+[node name="LHWeaponContactTarget" parent="PoseLineup/06_RunRight/OperatorRig/IKControlGraph/TargetPivot" index="2"]
+transform = Transform3D(0.9997853, 7.6684984e-05, 0.020721082, 3.6379792e-12, 0.99999326, -0.003700795, -0.020721225, 0.0037, 0.9997786, -0.40990877, 0.23403788, 0.58530796)
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="PoseLineup/06_RunRight" unique_id=1762874091]
+root_node = NodePath("../OperatorRig")
+callback_mode_process = 2
+libraries/ = SubResource("AnimationLibrary_4pgc7")
+
+[node name="EditorWeapon" parent="PoseLineup/06_RunRight" unique_id=1552730901 instance=ExtResource("3_weapon")]
+transform = Transform3D(-0.9997853, -7.6685305e-05, -0.02072117, 3.637979e-12, 0.99999315, -0.0037007944, 0.02072131, -0.0036999995, -0.9997785, 0.41181207, 1.4235495, -0.13042252)
+
+[node name="PoseLabel" type="Label3D" parent="PoseLineup/06_RunRight" unique_id=1066546854]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.12, 0)
+billboard = 1
+text = "RUN RIGHT"
+font_size = 28
+outline_size = 8
+
+[node name="07_CrouchMove" type="Node3D" parent="PoseLineup" unique_id=206181874]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.0, 0, 0)
+metadata/context = "crouch_move"
+metadata/clip_key = "crouch_forward"
+
+[node name="OperatorRig" parent="PoseLineup/07_CrouchMove" unique_id=2147113592 instance=ExtResource("2_rig")]
+
+[node name="RHUpperArmWeaponTarget" parent="PoseLineup/07_CrouchMove/OperatorRig/IKControlGraph/TargetPivot" index="0"]
+transform = Transform3D(0.14195228, -0.38696992, 0.9111003, 0.05192341, -0.9162431, -0.39724404, 0.98851085, 0.10369713, -0.109969996, -0.19431925, 0.17888677, -0.08961011)
+
+[node name="RHWeaponTarget" parent="PoseLineup/07_CrouchMove/OperatorRig/IKControlGraph/TargetPivot" index="1"]
+transform = Transform3D(-0.17777272, 0.06309682, 0.9820466, 0.9379358, 0.31284234, 0.14968741, -0.297781, 0.94770706, -0.114795595, -0.22721863, -0.0052633286, 0.22392464)
+
+[node name="LHWeaponContactTarget" parent="PoseLineup/07_CrouchMove/OperatorRig/IKControlGraph/TargetPivot" index="2"]
+transform = Transform3D(0.9999341, -8.786669e-05, 0.01148839, -3.6379792e-12, 0.9999709, 0.00764808, -0.011488728, -0.0076475753, 0.9999049, -0.22951794, 0.014385819, 0.67861456)
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="PoseLineup/07_CrouchMove" unique_id=378265695]
+root_node = NodePath("../OperatorRig")
+callback_mode_process = 2
+libraries/ = SubResource("AnimationLibrary_388c3")
+
+[node name="EditorWeapon" parent="PoseLineup/07_CrouchMove" unique_id=317556088 instance=ExtResource("3_weapon")]
+transform = Transform3D(-0.9999341, 8.786736e-05, -0.011488478, -3.637979e-12, 0.9999708, 0.007648079, 0.011488815, 0.0076475744, -0.99990475, 0.22721863, 1.1987367, -0.22392462)
+
+[node name="PoseLabel" type="Label3D" parent="PoseLineup/07_CrouchMove" unique_id=1335142971]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.12, 0)
+billboard = 1
+text = "CROUCH MOVE"
+font_size = 28
+outline_size = 8
+
+[node name="08_ProneMove" type="Node3D" parent="PoseLineup" unique_id=1196189818]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.8, 0, 0)
+metadata/context = "prone_move"
+metadata/clip_key = "prone_forward"
+
+[node name="OperatorRig" parent="PoseLineup/08_ProneMove" unique_id=141021835 instance=ExtResource("2_rig")]
+
+[node name="RHUpperArmWeaponTarget" parent="PoseLineup/08_ProneMove/OperatorRig/IKControlGraph/TargetPivot" index="0"]
+transform = Transform3D(0.04388031, 0.2003636, 0.9787385, 0.5603962, -0.8159752, 0.14191876, 0.8270616, 0.54225385, -0.14808823, -0.21725321, -0.5930203, 0.08403915)
+
+[node name="RHWeaponTarget" parent="PoseLineup/08_ProneMove/OperatorRig/IKControlGraph/TargetPivot" index="1"]
+transform = Transform3D(-0.17613724, 0.05736465, 0.9826927, 0.92993116, 0.33707303, 0.14700365, -0.32280642, 0.9397294, -0.112716295, -0.1477046, -0.6467753, 0.49218017)
+
+[node name="LHWeaponContactTarget" parent="PoseLineup/08_ProneMove/OperatorRig/IKControlGraph/TargetPivot" index="2"]
+transform = Transform3D(0.99997133, -0.00030742443, 0.00756501, 0, 0.9991754, 0.040604167, -0.0075712544, -0.040603004, 0.9991468, -0.15179205, -0.6121516, 0.94596297)
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="PoseLineup/08_ProneMove" unique_id=2104212093]
+root_node = NodePath("../OperatorRig")
+callback_mode_process = 2
+libraries/ = SubResource("AnimationLibrary_qdtc8")
+
+[node name="EditorWeapon" parent="PoseLineup/08_ProneMove" unique_id=296321960 instance=ExtResource("3_weapon")]
+transform = Transform3D(-0.99997133, 0.00030742798, -0.0075650974, 0, 0.9991753, 0.040604163, 0.007571341, 0.040603, -0.9991467, 0.1477046, 0.55722475, -0.4921801)
+
+[node name="PoseLabel" type="Label3D" parent="PoseLineup/08_ProneMove" unique_id=463693082]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.12, 0)
+billboard = 1
+text = "PRONE MOVE"
+font_size = 28
+outline_size = 8
+
+[node name="09_Reload" type="Node3D" parent="PoseLineup" unique_id=318400038]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12.6, 0, 0)
+metadata/context = "reload"
+metadata/clip_key = "reload"
+
+[node name="OperatorRig" parent="PoseLineup/09_Reload" unique_id=699432576 instance=ExtResource("2_rig")]
+
+[node name="RHUpperArmWeaponTarget" parent="PoseLineup/09_Reload/OperatorRig/IKControlGraph/TargetPivot" index="0"]
+transform = Transform3D(0.38763708, -0.5871294, 0.71064514, 0.5133637, -0.50280935, -0.69544274, 0.765634, 0.6343988, 0.106503375, -0.11834955, 0.49626577, -0.19230223)
+
+[node name="RHWeaponTarget" parent="PoseLineup/09_Reload/OperatorRig/IKControlGraph/TargetPivot" index="1"]
+transform = Transform3D(-0.1763493, 0.059041735, 0.9825553, 0.94312143, 0.2959277, 0.15148938, -0.2818212, 0.95338404, -0.10787016, -0.14504337, 0.528743, 0.19788319)
+
+[node name="LHWeaponContactTarget" parent="PoseLineup/09_Reload/OperatorRig/IKControlGraph/TargetPivot" index="2"]
+transform = Transform3D(0.9999732, 0.00014153773, 0.007322989, 0, 0.9998134, -0.019324256, -0.007324357, 0.019323738, 0.9997866, -0.14923334, 0.5361234, 0.6529242)
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="PoseLineup/09_Reload" unique_id=1316122075]
+root_node = NodePath("../OperatorRig")
+callback_mode_process = 2
+libraries/ = SubResource("AnimationLibrary_1dw1t")
+
+[node name="EditorWeapon" parent="PoseLineup/09_Reload" unique_id=831645239 instance=ExtResource("3_weapon")]
+transform = Transform3D(-0.9999732, -0.00014153942, -0.0073230765, 0, 0.99981326, -0.019324254, 0.0073244437, -0.019323736, -0.9997865, 0.14504337, 1.7327429, -0.19788317)
+
+[node name="PoseLabel" type="Label3D" parent="PoseLineup/09_Reload" unique_id=797439837]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.12, 0)
+billboard = 1
+text = "RELOAD (LOOPED)"
+font_size = 28
+outline_size = 8
+
+[editable path="PoseLineup/00_IdleRifle/OperatorRig"]
+[editable path="PoseLineup/00_IdleRifle/OperatorRig/IKControlGraph"]
+[editable path="PoseLineup/01_AimIdle/OperatorRig"]
+[editable path="PoseLineup/01_AimIdle/OperatorRig/IKControlGraph"]
+[editable path="PoseLineup/02_CombatReady/OperatorRig"]
+[editable path="PoseLineup/02_CombatReady/OperatorRig/IKControlGraph"]
+[editable path="PoseLineup/03_CombatFire/OperatorRig"]
+[editable path="PoseLineup/03_CombatFire/OperatorRig/IKControlGraph"]
+[editable path="PoseLineup/04_RunForward/OperatorRig"]
+[editable path="PoseLineup/04_RunForward/OperatorRig/IKControlGraph"]
+[editable path="PoseLineup/05_RunLeft/OperatorRig"]
+[editable path="PoseLineup/05_RunLeft/OperatorRig/IKControlGraph"]
+[editable path="PoseLineup/06_RunRight/OperatorRig"]
+[editable path="PoseLineup/06_RunRight/OperatorRig/IKControlGraph"]
+[editable path="PoseLineup/07_CrouchMove/OperatorRig"]
+[editable path="PoseLineup/07_CrouchMove/OperatorRig/IKControlGraph"]
+[editable path="PoseLineup/08_ProneMove/OperatorRig"]
+[editable path="PoseLineup/08_ProneMove/OperatorRig/IKControlGraph"]
+[editable path="PoseLineup/09_Reload/OperatorRig"]
+[editable path="PoseLineup/09_Reload/OperatorRig/IKControlGraph"]

@@ -10,6 +10,9 @@ var available_modes: Array[String] = ["auto", "semi"]
 var current_mode: String = "auto"
 var burst_size: int = 3
 var _burst_rounds_remaining: int = 0
+## A completed burst must be released before a new press can begin another one.
+## This prevents clicks made during a burst from becoming a queued next burst.
+var _burst_release_required: bool = false
 
 
 func configure(
@@ -64,7 +67,14 @@ func should_attempt_shot(
 		"semi":
 			return trigger_pressed
 		"burst":
-			if trigger_pressed and _burst_rounds_remaining == 0:
+			if not trigger_held:
+				_burst_release_required = false
+				return false
+			if _burst_rounds_remaining > 0:
+				return true
+			if _burst_release_required:
+				return false
+			if trigger_pressed:
 				_burst_rounds_remaining = mini(burst_size, rounds_available)
 			return _burst_rounds_remaining > 0
 		"auto":
@@ -78,6 +88,8 @@ func notify_shot_result(result: Dictionary) -> void:
 		return
 	if bool(result.get("fired", false)):
 		_burst_rounds_remaining -= 1
+		if _burst_rounds_remaining == 0:
+			_burst_release_required = true
 		return
 	# A result without a reason is the normal cadence cooldown. Keep the burst
 	# queued so the next frame can fire the remaining rounds.
@@ -87,6 +99,7 @@ func notify_shot_result(result: Dictionary) -> void:
 
 func cancel_pending_burst() -> void:
 	_burst_rounds_remaining = 0
+	_burst_release_required = false
 
 
 func has_pending_burst() -> bool:

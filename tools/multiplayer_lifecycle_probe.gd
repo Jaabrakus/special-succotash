@@ -4,6 +4,7 @@ const MultiplayerScene := preload("res://multiplayer_slice.tscn")
 const ControlledDamageProbe := preload("res://tools/multiplayer_controlled_damage_probe.gd")
 const RECONNECT_LIVE_ROUND_SETTLE_SECONDS := 1.0
 const RECONNECT_SPECTATOR_OBSERVE_SECONDS := 0.5
+const LARGE_LOBBY_ADMISSION_TIMEOUT_SECONDS := 45.0
 
 var role := ""
 var port := 24141
@@ -26,7 +27,7 @@ func _initialize() -> void:
 		elif args[index] == "--port" and index + 1 < args.size():
 			port = int(args[index + 1])
 		elif args[index] == "--expected-peers" and index + 1 < args.size():
-			expected_peers = clampi(int(args[index + 1]), 2, 16)
+			expected_peers = clampi(int(args[index + 1]), 2, 32)
 		elif args[index] == "--client-index" and index + 1 < args.size():
 			client_index = maxi(1, int(args[index + 1]))
 		elif args[index] == "--cycles" and index + 1 < args.size():
@@ -60,7 +61,7 @@ func _run() -> void:
 
 func _run_host() -> void:
 	if slice.call("host_match", port) != OK:
-		_fail("host could not bind UDP port %d" % port)
+		_fail("host could not bind multiplayer port %d" % port)
 		return
 	slice.round_rules["rounds_to_win"] = 1
 	slice.round_rules["maximum_rounds"] = 1
@@ -69,7 +70,10 @@ func _run_host() -> void:
 		slice.round_rules["win_by_elimination"] = false
 	slice.call("_server_set_lobby_team", 1, 0)
 	print("MULTIPLAYER_LIFECYCLE HOST_READY port=%d" % port)
-	if not await _wait_until(func() -> bool: return slice.lobby.players.size() == expected_peers, 20.0):
+	if not await _wait_until(
+		func() -> bool: return slice.lobby.players.size() == expected_peers,
+		_admission_timeout(20.0)
+	):
 		_fail("host received %d of %d expected peers" % [slice.lobby.players.size(), expected_peers])
 		return
 	slice.call("_server_set_lobby_ready", 1, true)
@@ -81,7 +85,7 @@ func _run_host() -> void:
 					and slice.round_active
 					and slice.operators.size() == expected_peers
 				),
-			20.0
+			_admission_timeout(20.0)
 		):
 			_fail("cycle %d did not start with %d authoritative peers" % [cycle, expected_peers])
 			return
@@ -194,7 +198,7 @@ func _run_client() -> void:
 		func() -> bool:
 			var peer_id: int = slice.multiplayer.get_unique_id()
 			return peer_id > 1 and slice.lobby.players.has(peer_id),
-		10.0
+		_admission_timeout(10.0)
 	):
 		_fail("client did not receive its lobby identity")
 		return
@@ -210,7 +214,7 @@ func _run_client() -> void:
 					and slice.round_active
 					and slice.operators.size() == expected_peers
 				),
-			20.0
+			_admission_timeout(20.0)
 		):
 			_fail("client %d did not enter cycle %d with %d peers" % [client_index, cycle, expected_peers])
 			return
@@ -267,6 +271,12 @@ func _local_lobby_ready(peer_id: int) -> bool:
 	var raw_key: Variant = peer_id if slice.lobby.players.has(peer_id) else str(peer_id)
 	var player_state: Variant = slice.lobby.players.get(raw_key, {})
 	return bool((player_state as Dictionary).get("ready", false)) if player_state is Dictionary else false
+
+
+func _admission_timeout(default_seconds: float) -> float:
+	if expected_peers > 16:
+		return maxf(default_seconds, LARGE_LOBBY_ADMISSION_TIMEOUT_SECONDS)
+	return default_seconds
 
 
 func _reconnect_as_spectator(previous_peer_id: int) -> Dictionary:

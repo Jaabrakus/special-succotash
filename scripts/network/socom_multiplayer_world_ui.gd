@@ -2,7 +2,7 @@ extends "res://scripts/network/socom_multiplayer_objectives.gd"
 
 const BuyMenuScript := preload("res://scripts/ui/socom_buy_menu.gd")
 
-var buy_menu: SocomBuyMenu
+var buy_menu = null
 var _buy_menu_layer: CanvasLayer
 var _buy_menu_mouse_was_captured: bool = true
 var _buy_menu_window_remaining: float = 0.0
@@ -12,6 +12,9 @@ func _disconnect_existing_peer() -> void:
 	if multiplayer.multiplayer_peer != null:
 		multiplayer.multiplayer_peer.close()
 	multiplayer.multiplayer_peer = OfflineMultiplayerPeer.new()
+	network_peer = multiplayer.multiplayer_peer
+	active_network_transport = "offline"
+	active_network_endpoint = ""
 	_clear_operators()
 	lobby.reset()
 	session_active = false
@@ -27,6 +30,26 @@ func _disconnect_existing_peer() -> void:
 
 func _build_environment() -> void:
 	active_map_document = MapDocument.load_active()
+	var args := OS.get_cmdline_user_args()
+	if args.has("--dedicated-server"):
+		var deployment_map_path := String(multiplayer_deployment_profile.get(
+			"server_map_document",
+			""
+		))
+		for argument: String in args:
+			if argument.begins_with("--mp-map="):
+				deployment_map_path = argument.trim_prefix("--mp-map=").strip_edges()
+		if (
+			deployment_map_path.begins_with("res://config/maps/")
+			and deployment_map_path.ends_with(".json")
+		):
+			var deployment_map := MapDocument.load_path(deployment_map_path)
+			if not deployment_map.is_empty():
+				active_map_document = deployment_map
+			else:
+				push_warning("Dedicated map could not be loaded: %s" % deployment_map_path)
+		elif not deployment_map_path.is_empty():
+			push_warning("Dedicated map path is outside res://config/maps: %s" % deployment_map_path)
 	if not active_map_document.is_empty() and bool(active_map_document.get("enabled", true)):
 		_apply_multiplayer_map(active_map_document)
 		return
@@ -108,14 +131,14 @@ func _add_objective_beacon(parent: Node3D, position: Vector3, color: Color, text
 
 func _update_bomb_visual() -> void:
 	for raw_peer_id: Variant in operators:
-		var operator := operators.get(raw_peer_id) as SocomNetworkOperator
+		var operator: Variant = operators.get(raw_peer_id)
 		if operator != null:
 			operator.set_bomb_carrier(int(raw_peer_id) == bomb_carrier_peer_id)
 	if bomb_visual == null or not is_instance_valid(bomb_visual):
 		return
 	if bomb_carrier_peer_id != 0:
 		bomb_visual.visible = false
-		var carrier := operators.get(bomb_carrier_peer_id) as SocomNetworkOperator
+		var carrier: Variant = operators.get(bomb_carrier_peer_id)
 		if carrier != null:
 			bomb_visual.call("set_bomb_state", &"CARRIED", 0.0)
 			return
@@ -183,7 +206,20 @@ func _build_ui() -> void:
 	multiplayer_hud.join_requested.connect(func(address: String): join_match(address, DEFAULT_PORT))
 	multiplayer_hud.leave_requested.connect(_leave_to_main_menu)
 	multiplayer_hud.team_requested.connect(_choose_lobby_team)
+	multiplayer_hud.pair_requested.connect(_choose_lobby_pair)
 	multiplayer_hud.ready_requested.connect(_toggle_lobby_ready)
+	multiplayer_hud.sudden_death_vote_requested.connect(_submit_sudden_death_vote_selection)
+	var browser_server_url := String(multiplayer_deployment_profile.get(
+		"browser_server_url",
+		""
+	))
+	var query_server_url := DeploymentProfile.browser_query_server_url()
+	if not query_server_url.is_empty():
+		browser_server_url = query_server_url
+	multiplayer_hud.configure_connection_mode(
+		OS.has_feature("web"),
+		browser_server_url
+	)
 	menu_panel = multiplayer_hud.menu_panel
 	address_edit = multiplayer_hud.address_edit
 	status_label = multiplayer_hud.status_label
@@ -442,7 +478,9 @@ func _apply_command_line_mode() -> void:
 			port = int(argument.trim_prefix("--mp-port="))
 		elif argument.begins_with("--mp-join="):
 			join_address = argument.trim_prefix("--mp-join=")
-	if args.has("--mp-host"):
+	if args.has("--dedicated-server"):
+		host_dedicated_server(port)
+	elif args.has("--mp-host"):
 		host_match(port)
 	elif not join_address.is_empty():
 		join_match(join_address, port)

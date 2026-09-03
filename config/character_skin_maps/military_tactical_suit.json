@@ -1,0 +1,38 @@
+{
+  "schema_version": 2,
+  "source_skin": "military_tactical_suit",
+  "target_rig": "ps1_operator_65",
+  "retarget_profile_path": "res://config/character_retarget_profiles/military_tactical_suit_v1.json",
+  "notes": "Production uses the offline T-pose derivative with rebuilt inverse binds. The two weighted toe bases map for boot roll; finger chains and non-deforming end markers stay unmapped.",
+  "calibration": {
+    "arm_articulation_mode": "retargeted",
+    "right_leg_articulation_mode": "retargeted",
+    "right_foot_rest_heading_offset_degrees": 63.24,
+    "auto_t_pose_arms": false,
+    "rotation_offsets_degrees": {}
+  },
+  "mappings": {
+    "mixamorig_Head": "mixamorig:Head_06",
+    "mixamorig_Hips": "mixamorig:Hips_01",
+    "mixamorig_LeftArm": "mixamorig:LeftArm_033",
+    "mixamorig_LeftFoot": "mixamorig:LeftFoot_065",
+    "mixamorig_LeftForeArm": "mixamorig:LeftForeArm_034",
+    "mixamorig_LeftHand": "mixamorig:LeftHand_035",
+    "mixamorig_LeftLeg": "mixamorig:LeftLeg_064",
+    "mixamorig_LeftShoulder": "mixamorig:LeftShoulder_032",
+    "mixamorig_LeftToeBase": "mixamorig:LeftToeBase_066",
+    "mixamorig_LeftUpLeg": "mixamorig:LeftUpLeg_063",
+    "mixamorig_Neck": "mixamorig:Neck_05",
+    "mixamorig_RightArm": "mixamorig:RightArm_09",
+    "mixamorig_RightFoot": "mixamorig:RightFoot_059",
+    "mixamorig_RightForeArm": "mixamorig:RightForeArm_010",
+    "mixamorig_RightHand": "mixamorig:RightHand_011",
+    "mixamorig_RightLeg": "mixamorig:RightLeg_058",
+    "mixamorig_RightShoulder": "mixamorig:RightShoulder_08",
+    "mixamorig_RightToeBase": "mixamorig:RightToeBase_060",
+    "mixamorig_RightUpLeg": "mixamorig:RightUpLeg_057",
+    "mixamorig_Spine": "mixamorig:Spine_02",
+    "mixamorig_Spine1": "mixamorig:Spine1_03",
+    "mixamorig_Spine2": "mixamorig:Spine2_04"
+  }
+}

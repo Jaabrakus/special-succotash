@@ -33,21 +33,35 @@ func _run() -> void:
 	_expect(absf(float(driver.get("aim_yaw_rad")) - expected_relative_yaw) <= 0.001, "torso yaw comes from the shared target")
 	_expect(absf(float(driver.get("aim_pitch_rad")) - body_angles.y) <= 0.001, "torso pitch comes from the shared target")
 	var pose: Dictionary = driver.call("get_animation_debug_state").get("weapon_pose", {})
-	_expect(Vector3(pose.get("aim_target", Vector3.ZERO)).distance_to(shared_target) <= 0.01, "rifle and arms consume the shared target")
+	_expect(Vector3(pose.get("aim_target", Vector3.ZERO)).distance_to(shared_target) <= 0.01, "rifle presentation consumes the shared target")
 	_expect(Vector2(rig.get("reticle_screen_normalized")).distance_to(Vector2(0.5, 0.5)) <= 0.0001, "reticle stays centered")
 
 	var mannequin := player.get_node_or_null("Mannequin")
 	var muzzle: Vector3 = mannequin.call("get_active_muzzle_position")
 	var optic_marker := mannequin.call("get_active_optic_marker") as Marker3D
 	var optic_before_fire := optic_marker.global_position if optic_marker != null else Vector3.ZERO
-	var expected_direction := (shared_target - muzzle).normalized()
 	var intent: Dictionary = rig.call("build_local_aim_intent")
-	_expect(Vector3(intent.get("direction", Vector3.ZERO)).angle_to(expected_direction) <= 0.0001, "network aim intent uses muzzle to shared target")
+	var reported_origin := Vector3(intent.get("reported_muzzle_origin", Vector3.INF))
+	var expected_reported_origin := player.global_position + Vector3.UP * 1.35
+	var reported_direction := Vector3(intent.get("direction", Vector3.ZERO))
+	var reported_target := (
+		reported_origin
+		+ reported_direction * float(intent.get("convergence_distance", 0.0))
+	)
+	_expect(
+		reported_origin.distance_to(expected_reported_origin) <= 0.001,
+		"network aim intent reports the stable standing origin"
+	)
+	_expect(
+		reported_target.distance_to(shared_target) <= 0.01,
+		"stable network aim intent converges on the shared target"
+	)
 	var shot: Dictionary = weapon.call("request_fire")
 	_expect(bool(shot.get("fired", false)), "authoritative weapon accepts the shot")
 	_expect(Vector3(shot.get("origin", Vector3.INF)).distance_to(muzzle) <= 0.002, "authoritative shot starts at the visible muzzle")
 	await _steps(2)
 	var fire_pose: Dictionary = driver.call("get_animation_debug_state").get("weapon_pose", {})
+	var pose_solver = driver.get("weapon_pose_solver")
 	var optic_fire_delta := (
 		optic_marker.global_position.distance_to(optic_before_fire)
 		if optic_marker != null
@@ -64,11 +78,15 @@ func _run() -> void:
 	_expect(
 		not bool(fire_pose.get("gun_placement_line_active", true))
 		and not bool(fire_pose.get("rail_to_blue_line_event_active", true))
-		and bool(fire_pose.get("animation_drives_ready_hands", false)),
-		"accepted fire keeps the rifle animation-owned without live blue-line relocation"
+		and not bool(fire_pose.get("hand_socket_ik_enabled", true)),
+		"accepted fire keeps hand IK detached without live blue-line relocation"
 	)
-	_expect(float(fire_pose.get("trigger_hand_error_m", 1.0)) <= 0.01, "fire keeps the trigger hand attached to the saved rifle socket")
-	_expect(float(fire_pose.get("support_hand_error_m", 1.0)) <= 0.01, "fire keeps the support hand attached to the saved rifle socket")
+	_expect(
+		pose_solver != null
+		and not bool(pose_solver.get("right_hand_ik").is_running())
+		and not bool(pose_solver.get("left_hand_ik").is_running()),
+		"fire leaves both hand solvers stopped"
+	)
 	_expect(float(fire_pose.get("weapon_aim_error_deg", 180.0)) <= 0.10, "fire keeps the rendered rail on the live aim line")
 	if OS.get_cmdline_user_args().has("--capture-shared-aim"):
 		RenderingServer.force_draw()
@@ -87,8 +105,11 @@ func _run() -> void:
 		if optic_marker != null
 		else INF
 	)
-	_expect(float(held_pose.get("trigger_hand_error_m", 1.0)) <= 0.01, "held fire keeps the trigger hand attached")
-	_expect(float(held_pose.get("support_hand_error_m", 1.0)) <= 0.01, "held fire keeps the support hand attached")
+	_expect(
+		not bool(pose_solver.get("right_hand_ik").is_running())
+		and not bool(pose_solver.get("left_hand_ik").is_running()),
+		"held fire leaves both hand solvers stopped"
+	)
 	_expect(float(held_pose.get("weapon_aim_error_deg", 180.0)) <= 0.10, "held fire keeps the rail aligned")
 	_expect(
 		not bool(held_pose.get("rail_to_blue_line_event_active", true)),

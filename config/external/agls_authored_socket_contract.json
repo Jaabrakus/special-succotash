@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "source_engine": "Unreal Engine",
+  "source_project": "/Users/kiwimango/AGLS v1.9.2 UE5.7/AGLS.uproject",
+  "source_skeleton": "/Game/AdvancedLocomotionV4/CharacterAssets/MannequinSkeleton/ALS_Mannequin_Skeleton.ALS_Mannequin_Skeleton",
+  "source_evidence": "/Users/kiwimango/Library/Logs/Unreal Engine/AGLSEditor/AGLS.log:1829",
+  "application_policy": "SOURCE_ONLY_UNTIL_REST_BASIS_CONVERSION_PASSES",
+  "sockets": {
+    "hand_RifleSocket": {
+      "bone": "hand_r",
+      "location_cm": [-12.250119, 4.157447, 0.068264],
+      "rotation_degrees_pitch_yaw_roll": [22.460810, 75.541260, 14.757058],
+      "rotation_quaternion_xyzw": [0.018729, -0.229827, 0.576028, 0.784232],
+      "scale": [1.0, 1.0, 1.0],
+      "role": "equipped rifle hand attachment"
+    },
+    "Rifle_Attachment": {
+      "bone": "spine_03",
+      "location_cm": [1.300418, -12.307979, 6.152206],
+      "rotation_degrees_pitch_yaw_roll": [0.0, 0.0, 0.0],
+      "rotation_quaternion_xyzw": [0.0, 0.0, 0.0, 1.0],
+      "scale": [1.0, 1.0, 1.0],
+      "role": "unequipped rifle body attachment"
+    },
+    "Rifle_Attachment_Backpack": {
+      "bone": "spine_03",
+      "location_cm": [-0.981117, -17.536510, 24.239220],
+      "rotation_degrees_pitch_yaw_roll": [-3.229518, 0.562272, -159.746429],
+      "rotation_quaternion_xyzw": [0.983994, 0.009783, -0.026877, 0.175891],
+      "scale": [1.0, 1.0, 1.0],
+      "role": "backpack rifle attachment"
+    }
+  },
+  "conversion_contract": {
+    "unreal_units_per_meter": 100.0,
+    "unreal_axes": "left-handed X-forward Y-right Z-up",
+    "godot_axes": "right-handed -Z-forward X-right Y-up",
+    "requires_source_and_destination_bone_rest_frames": true,
+    "maximum_live_offset_meters": 0.50,
+    "maximum_scale_error": 0.001,
+    "reject_missing_destination_bone": true,
+    "reject_unverified_transform": true
+  }
+}

@@ -4,9 +4,10 @@
     "crouch_right": "crouch_forward_right"
   },
   "clips": {
-    "aim_idle": "res://assets/animations/mixamo/Shooter Pack/rifle aiming idle.fbx",
+    "aim_idle": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/idle aiming.fbx",
+    "aim_idle_crouch": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/idle crouching aiming.fbx",
     "climb": "res://assets/animations/mixamo/Climbing.fbx",
-    "combat_fire": "res://assets/animations/mixamo/Shooter Pack/rifle aiming idle.fbx",
+    "combat_fire": "res://assets/animations/mixamo/Shooter Pack/firing rifle.fbx",
     "crouch_back_left": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/walk crouching backward left.fbx",
     "crouch_back_right": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/walk crouching backward right.fbx",
     "crouch_backward": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/walk crouching backward.fbx",
@@ -33,8 +34,11 @@
     "jump_forward_action": "res://assets/animations/mixamo/Shooter Pack/jump forward.fbx",
     "jump_loop": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/jump loop.fbx",
     "jump_up": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/jump up.fbx",
+    "jump_up_standing": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/jump up.fbx",
     "pistol_idle": "res://assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol idle.fbx",
     "pistol_idle_kneeling": "res://assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol kneeling idle.fbx",
+    "pistol_reload": "res://assets/external/agls_intake/imported/weapon_reload/ALSP2_Reload_Pistol.scn",
+    "pistol_reload_hold_prone": "res://assets/animations/mixamo/Prone Forward Stop.fbx",
     "pistol_jump": "res://assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol jump.fbx",
     "pistol_jump_alt": "res://assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol jump (2).fbx",
     "pistol_kneel_to_stand": "res://assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol kneel to stand.fbx",
@@ -62,6 +66,7 @@
     "prone_turn_left": "res://assets/animations/mixamo/Prone Left Turn.fbx",
     "prone_turn_right": "res://assets/animations/mixamo/Prone Left Turn.fbx",
     "reload": "res://assets/animations/mixamo/Reloading.fbx",
+    "reload_ak47": "res://assets/external/agls_intake/imported/weapon_reload/ALSP2_Reloading_Rifle_AK47.scn",
     "roll": "res://assets/animations/mixamo/Run To Rolling.fbx",
     "run_back_left": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/sprint backward left.fbx",
     "run_back_right": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/sprint backward right.fbx",
@@ -136,28 +141,36 @@
       "idle_rifle"
     ]
   },
-  "description": "Standing gameplay uses the authored eight-direction sprint family. Crouch, prone, and dive remain posture-specific; crouched ready/fire borrows the standing aim upper body.",
+  "description": "Standing gameplay uses the authored eight-direction sprint family. Accepted-shot recovery uses posture-matched standing or crouched rifle-ready arms while the authored base keeps the head, torso frame, hips, and legs.",
   "event_routes": {
     "FIRE_ACCEPTED": {
-      "default_state": "combat_fire",
+      "default_state": "aim_idle",
       "effects": [
         "ENTER_READY_AIM"
       ],
       "family_states": {
-        "TWO_HAND_RIFLE": {
-          "default_state": "combat_fire",
+        "TWO_HAND_PISTOL": {
+          "default_state": "pistol_idle",
           "posture_states": {
-            "CROUCHED": "crouch_fire",
+            "CROUCHED": "pistol_idle_kneeling",
+            "PRONE": "idle_prone",
+            "STANDING": "pistol_idle"
+          }
+        },
+        "TWO_HAND_RIFLE": {
+          "default_state": "aim_idle",
+          "posture_states": {
+            "CROUCHED": "aim_idle_crouch",
             "PRONE": "prone_fire",
-            "STANDING": "combat_fire"
+            "STANDING": "aim_idle"
           }
         }
       },
       "interrupt_policy": "RESTART",
       "posture_states": {
-        "CROUCHED": "crouch_fire",
+        "CROUCHED": "aim_idle_crouch",
         "PRONE": "prone_fire",
-        "STANDING": "combat_fire"
+        "STANDING": "aim_idle"
       },
       "priority": 60,
       "return_policy": "CURRENT_BASE"
@@ -311,6 +324,12 @@
       "blend_out_seconds": 0.14,
       "layer": "UPPER_BODY",
       "return_state": "idle_rifle"
+    },
+    "aim_idle_crouch": {
+      "blend_in_seconds": 0.1,
+      "blend_out_seconds": 0.14,
+      "layer": "UPPER_BODY",
+      "return_state": "idle_crouch"
     },
     "climb": {
       "blend_in_seconds": 0.12,
@@ -494,6 +513,18 @@
       "layer": "FULL_BODY",
       "return_state": "pistol_idle_kneeling"
     },
+    "pistol_reload": {
+      "blend_in_seconds": 0.08,
+      "blend_out_seconds": 0.16,
+      "layer": "UPPER_BODY",
+      "return_state": "CURRENT_BASE"
+    },
+    "pistol_reload_hold_prone": {
+      "blend_in_seconds": 0.08,
+      "blend_out_seconds": 0.16,
+      "layer": "FULL_BODY",
+      "return_state": "CURRENT_BASE"
+    },
     "pistol_jump": {
       "blend_in_seconds": 0.12,
       "blend_out_seconds": 0.14,
@@ -649,6 +680,12 @@
       "blend_out_seconds": 0.14,
       "layer": "FULL_BODY",
       "return_state": "idle_prone"
+    },
+    "reload_ak47": {
+      "blend_in_seconds": 0.08,
+      "blend_out_seconds": 0.16,
+      "layer": "UPPER_BODY",
+      "return_state": "CURRENT_BASE"
     },
     "reload": {
       "blend_in_seconds": 0.08,

@@ -3,6 +3,7 @@ extends TacticalGrenadeBase
 
 const BlastVisual := preload("res://scripts/tactical/frag_blast_visual.gd")
 const RuntimeAudio := preload("res://scripts/audio/lab_leak_audio_engine.gd")
+const PenetrationScript := preload("res://scripts/combat/socom_bullet_penetration.gd")
 
 signal blast_damage_requested(origin: Vector3, radius: float, maximum_damage: float)
 
@@ -82,9 +83,11 @@ func _apply_blast_gameplay() -> void:
 		var receiver := (receiver_hit as Dictionary).receiver as Node
 		var sample_position := Vector3((receiver_hit as Dictionary).sample_position)
 		var distance := float((receiver_hit as Dictionary).distance)
-		if not _has_blast_line_of_sight(sample_position, receiver):
+		var los_check := _has_blast_line_of_sight(sample_position, receiver)
+		if not bool(los_check.get("has_los", false)):
 			continue
-		var damage := maximum_damage * damage_falloff(distance, blast_radius)
+		var pen_loss: float = float(los_check.get("penetration_loss", 1.0))
+		var damage := maximum_damage * damage_falloff(distance, blast_radius) * pen_loss
 		if damage <= 0.0:
 			continue
 		_apply_damage_to_receiver(receiver, damage)
@@ -120,19 +123,32 @@ func _blast_sample_position(collider: Node3D) -> Vector3:
 	return collider.global_position
 
 
-func _has_blast_line_of_sight(sample_position: Vector3, receiver: Node) -> bool:
+func _has_blast_line_of_sight(sample_position: Vector3, receiver: Node) -> Dictionary:
 	var ray_origin := global_position + Vector3.UP * 0.10
 	if ray_origin.distance_to(sample_position) <= 0.12:
-		return true
+		return {"has_los": true, "penetration_loss": 1.0}
 	var ray := PhysicsRayQueryParameters3D.create(ray_origin, sample_position)
 	ray.collide_with_areas = true
 	ray.collide_with_bodies = true
 	ray.exclude = [get_rid()]
 	var hit := get_world_3d().direct_space_state.intersect_ray(ray)
 	if hit.is_empty():
-		return true
+		return {"has_los": true, "penetration_loss": 1.0}
 	var blocker := hit.get("collider") as Node
-	return blocker == receiver or _damage_receiver_for(blocker) == receiver
+	if blocker == receiver or _damage_receiver_for(blocker) == receiver:
+		return {"has_los": true, "penetration_loss": 1.0}
+
+	# Check for thin penetrable cover (Wood, Drywall, Glass)
+	var mat := PenetrationScript.identify_material(blocker)
+	if mat in [
+		PenetrationScript.MaterialType.WOOD,
+		PenetrationScript.MaterialType.DRYWALL,
+		PenetrationScript.MaterialType.GLASS,
+		PenetrationScript.MaterialType.PLASTIC
+	]:
+		return {"has_los": true, "penetration_loss": 0.50}
+
+	return {"has_los": false, "penetration_loss": 0.0}
 
 
 func _apply_damage_to_receiver(receiver: Node, damage: float) -> void:

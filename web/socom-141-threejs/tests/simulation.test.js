@@ -5,11 +5,18 @@ import { GRENADE, WEAPON } from "../src/gameplay-config.js";
 import {
   blastDamage,
   bloomAfterShot,
+  canonicalBoneName,
   grenadeSpeed,
   recoverBloom,
   resolveAxis,
   spreadDegrees,
 } from "../src/simulation.js";
+
+test("normalizes FBX and GLB Mixamo bone names to the same animation key", () => {
+  assert.equal(canonicalBoneName("mixamorigHips"), "hips");
+  assert.equal(canonicalBoneName("mixamorig:Hips_64"), "hips");
+  assert.equal(canonicalBoneName("mixamorig:RightHand_47"), "righthand");
+});
 
 test("rifle bloom uses the tuned standing and crouched limits", () => {
   assert.equal(bloomAfterShot(1.3, false, WEAPON), 1.45);

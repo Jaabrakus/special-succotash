@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "feature_id": "ballistic_reference_reticle",
+  "player_intent": "Use a clean open SOCOM-style reference arc with symmetric left and right lead bars and one lower bullet-drop reference stem, without a center dot or grey bloom circle.",
+  "acceptance_rule": "The combat reticle draws one open-top lower arc, two symmetric horizontal lead references, and one lower vertical drop reference. It draws no center dot and no separate translucent spread circle. The invisible camera reticle's authoritative screen point never moves. Movement may lengthen only the lateral references and weapon spread may expand the chartreuse reference arc itself. The markings are presentation references: they do not redirect hitscan shots, promise a headshot, synthesize target velocity, or add projectile gravity.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://gun_calibration_lab.tscn",
+  "ownership": {
+    "reticle_geometry_and_feedback": "SocomDynamicReticle",
+    "aim_intent": "SOCOMCameraReticleChain",
+    "shot_damage_and_dispersion": "AuthoritativeServerWeapon"
+  },
+  "nodes": [
+    {
+      "id": "canonical_dynamic_reticle",
+      "type": "Control",
+      "role": "Consumes the saved per-weapon reticle profile and draws the lead/drop reference geometry around the canonical camera aim point.",
+      "owner": "SocomDynamicReticle",
+      "source_script": "res://scripts/ui/socom_dynamic_reticle.gd",
+      "code_symbols": [
+        "get_authoritative_center()",
+        "get_combat_reference_geometry()"
+      ]
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://config/weapons/assaultrifle_1.json",
+      "writer": "res://scripts/labs/gunsmith/gunsmith_persistence_controller.gd",
+      "readers": [
+        "res://scripts/weapons/weapon_rig_contract.gd",
+        "res://scripts/weapons/socom_weapon_controller.gd",
+        "res://scripts/runtime/main_gameplay_hud.gd",
+        "res://scripts/ui/socom_dynamic_reticle.gd"
+      ]
+    }
+  ],
+  "must_not_change": [
+    "SOCOM camera and reticle aim authority",
+    "server shot direction, spread, hit classification, damage, and networking authority",
+    "CharacterBody3D movement and collision authority",
+    "weapon fire cadence and accepted-shot ownership"
+  ],
+  "proof_scripts": [
+    "res://tools/ballistic_reference_reticle_regression.gd",
+    "res://tools/reticle_render_integration.gd",
+    "res://tools/feature_contract_regression.gd",
+    "res://tools/public_training_range_regression.gd"
+  ],
+  "visual_check": "Run res://main.tscn and inspect /private/tmp/socom-ballistic-reference-reticle.png from the focused regression. At 16:9 and 4:3, confirm there is no center dot or grey bloom circle, the lower arc remains open at the top, side bars are level and symmetric, and the lower stem remains centered. Fire and move: the presentation shape may briefly bounce or lengthen, but the underlying camera and shot aim point must not move.",
+  "system_delta": {
+    "decision": "REPLACE",
+    "reason": "Replace the center dot, grey bloom circle, and four interchangeable cardinal ticks with semantically distinct lead and drop references while retaining the canonical reticle owner, target colors, hit marker, and cosmetic recoil feedback.",
+    "current": {
+      "system": "Center dot plus four identical cardinal ticks",
+      "correctness": 3,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 3,
+      "performance": 5,
+      "regression_coverage": 3,
+      "evidence_paths": [
+        "res://scripts/ui/socom_dynamic_reticle.gd",
+        "res://tools/reticle_render_integration.gd"
+      ]
+    },
+    "candidate": {
+      "system": "Dot-free open lead/drop reference geometry with no separate bloom circle",
+      "correctness": 5,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 4,
+      "performance": 5,
+      "regression_coverage": 5,
+      "evidence_paths": [
+        "res://scripts/ui/socom_dynamic_reticle.gd",
+        "res://scripts/weapons/weapon_rig_contract.gd",
+        "res://config/weapons/assaultrifle_1.json",
+        "res://tools/reticle_render_integration.gd"
+      ]
+    }
+  }
+}

@@ -1,0 +1,162 @@
+{
+  "schema_version": 1,
+  "contract_id": "socom141-agls-player-presentation-v1",
+  "purpose": "Keep the Godot and Unreal builds aligned while preserving one gameplay authority per system.",
+  "invariants": {
+    "single_camera_aim_owner": true,
+    "single_weapon_authority": true,
+    "animation_is_presentation_only": true,
+    "root_motion_is_visual_only": true,
+    "reticle_bounce_never_redirects_shots": true,
+    "fire_animation_requires_accepted_shot": true,
+    "reload_animation_requires_accepted_reload": true,
+    "no_separate_ads_command": true,
+    "primary_fire_also_enters_weapon_ready": true
+  },
+  "domains": {
+    "camera_and_mouse_string_aim": {
+      "design_owner": "SOCOM141",
+      "godot_owner": "res://scripts/camera/socom_camera.gd",
+      "unreal_owner": "/Script/SOCOM141Core.SOCOM141AimComponent",
+      "consumers": ["animation_aim_offsets", "reticle", "ballistics"]
+    },
+    "reticle_and_composure_feedback": {
+      "design_owner": "SOCOM141",
+      "godot_owner": "res://scripts/ui/socom_dynamic_reticle.gd",
+      "unreal_owner": "/Script/AGLSTacticalCore.AGLSTacticalWeaponComponent",
+      "rule": "Visual kick and bloom consume accepted-shot state but never choose shot direction."
+    },
+    "weapon_fire_and_ammunition": {
+      "design_owner": "SOCOM141",
+      "godot_owner": "res://scripts/weapons/socom_weapon_controller.gd",
+      "unreal_owner": "/Script/AGLSTacticalCore.AGLSTacticalWeaponComponent",
+      "rule": "Only the engine-local weapon authority may accept fire, spend ammunition, or begin reload."
+    },
+    "ballistics_hitboxes_and_damage": {
+      "design_owner": "SOCOM141",
+      "godot_owner": "res://scripts/weapons/weapon_ballistics.gd",
+      "godot_hurtbox_owner": "res://scripts/combat/socom_animated_hurtbox_rig.gd",
+      "unreal_owner": "/Script/AGLSTacticalCore.AGLSTacticalWeaponComponent",
+      "rule": "Animation bones are attachment targets, never damage authority."
+    },
+    "authoritative_movement": {
+      "design_owner": "ENGINE_LOCAL",
+      "godot_owner": "res://scripts/player/player_controller.gd",
+      "unreal_owner": "Native AGLS Character and CharacterMovement components",
+      "rule": "Animation and imported root motion never move the authoritative collision body."
+    },
+    "character_animation": {
+      "design_owner": "AGLS_PRESENTATION",
+      "godot_owner": "res://scripts/player/operator_animation_driver.gd",
+      "godot_map": "res://config/agls_operator_animation_map.json",
+      "unreal_owner": "Native AGLS AnimBP plus SOCOM presentation bridge",
+      "rule": "Consume gameplay state and render it; never authorize gameplay."
+    },
+    "weapon_meshes_and_sockets": {
+      "design_owner": "AGLS_PRESENTATION",
+      "godot_owner": "res://scripts/weapons/weapon_rig_contract.gd",
+      "unreal_owner": "Native AGLS weapon assets and sockets",
+      "rule": "Mesh identity and sockets may vary without changing SOCOM shot authority."
+    }
+  },
+  "inputs": {
+    "PRIMARY_FIRE": {
+      "mouse_keyboard": "LEFT_MOUSE",
+      "gamepad": "RIGHT_TRIGGER",
+      "behavior": "If a firearm is equipped, enter ready presentation and request fire on the same press."
+    },
+    "STANCE": {
+      "mouse_keyboard": "RIGHT_MOUSE",
+      "behavior": "Cycle or hold the engine-local stance command; never aim or zoom."
+    },
+    "RELOAD": {
+      "mouse_keyboard": "R",
+      "behavior": "Request reload from the engine-local weapon authority."
+    }
+  },
+  "semantic_events": {
+    "WEAPON_EQUIPPED": {
+      "producer": "equipment_authority",
+      "animation_effect": "READY_OR_RELAXED_WEAPON_FAMILY"
+    },
+    "FIRE_ACCEPTED": {
+      "producer": "weapon_authority",
+      "animation_effect": "POSTURE_FIRE_ONESHOT",
+      "reticle_effect": "SHOT_KICK_AND_BLOOM"
+    },
+    "RELOAD_STARTED": {
+      "producer": "weapon_authority",
+      "animation_effect": "POSTURE_RELOAD_ONESHOT"
+    },
+    "RELOAD_COMMITTED": {
+      "producer": "weapon_authority",
+      "animation_effect": "RETURN_TO_CURRENT_BASE"
+    },
+    "POSTURE_CHANGED": {
+      "producer": "movement_authority",
+      "values": ["STANDING", "CROUCHED", "PRONE"]
+    }
+  },
+  "presentation_states": {
+    "RELAXED_RIFLE": {
+      "postures": ["STANDING", "CROUCHED", "PRONE"],
+      "looping": true
+    },
+    "READY_AIM": {
+      "postures": ["STANDING", "CROUCHED", "PRONE"],
+      "looping": true,
+      "camera_effect": "NONE"
+    },
+    "FIRE_STANDING": {
+      "godot_slot": "combat_fire",
+      "required_source_family": "AGLS_RIFLE_RECOIL",
+      "layer": "UPPER_BODY",
+      "trigger": "FIRE_ACCEPTED"
+    },
+    "FIRE_CROUCHED": {
+      "godot_slot": "crouch_fire",
+      "required_source_family": "AGLS_RIFLE_RECOIL",
+      "layer": "UPPER_BODY",
+      "base_pose": "CROUCHED",
+      "trigger": "FIRE_ACCEPTED"
+    },
+    "FIRE_PRONE": {
+      "godot_slot": "prone_fire",
+      "required_source_family": "AGLS_RIFLE_RECOIL",
+      "layer": "UPPER_BODY_STABLE_PRONE",
+      "base_pose": "PRONE",
+      "trigger": "FIRE_ACCEPTED"
+    },
+    "RELOAD_STANDING": {
+      "godot_slot": "reload",
+      "required_source_family": "AGLS_RIFLE_RELOAD",
+      "layer": "UPPER_BODY",
+      "trigger": "RELOAD_STARTED"
+    },
+    "RELOAD_CROUCHED": {
+      "godot_slot": "crouch_reload",
+      "required_source_family": "AGLS_RIFLE_RELOAD",
+      "layer": "UPPER_BODY",
+      "base_pose": "CROUCHED",
+      "trigger": "RELOAD_STARTED"
+    },
+    "RELOAD_PRONE": {
+      "godot_slot": "prone_reload",
+      "required_source_family": "AGLS_RIFLE_RELOAD",
+      "layer": "UPPER_BODY_STABLE_PRONE",
+      "base_pose": "PRONE",
+      "trigger": "RELOAD_STARTED",
+      "note": "Use a posture-stable composite until a native AGLS prone-rifle reload clip is available."
+    }
+  },
+  "source_assets": {
+    "AGLS_RIFLE_RECOIL": {
+      "godot": "res://assets/external/agls_intake/imported/weapon_recoil/ALSv2_Rifle_Recoil_Offset_01.scn",
+      "unreal": "/Game/AdvancedLocomotionV4/CharacterAssets/Animations/Guns/Recoil/ALSv2_Rifle_Recoil_Offset_01"
+    },
+    "AGLS_RIFLE_RELOAD": {
+      "godot": "res://assets/external/agls_intake/imported/weapon_reload/ALSP2_Reloading_Rifle.scn",
+      "unreal": "/Game/AdvancedLocomotionV4/CharacterAssets/Animations/Guns/ReloadingRifle/ALSP2_Reloading_Rifle"
+    }
+  }
+}

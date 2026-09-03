@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "feature_id": "two_hand_pistol_family_presentation",
+  "player_intent": "Every real pistol appears at human scale, keeps both hands at authored pistol contacts, and fires from a stable human two-hand ready pose without a reload or malformed recoil pose taking over the shoulders.",
+  "acceptance_rule": "Equipping any pistol through res://main.tscn consumes its saved visual contract and TWO_HAND_PISTOL animation family. An accepted standing shot resolves to pistol_idle and an accepted crouched shot resolves to pistol_idle_kneeling. The existing FIRE_RECOVERY owner remains active for 1.2 seconds, while no separate fire AnimationTree OneShot is selected. Pistol reload remains a reload-only transaction and may use pistol_reload when compatible. Prone fire remains outside this bounded change. The current absolute AGLS pistol recoil stays catalogued but is not selected because canonical probes show approximately 0.22 to 0.23 meters of hand displacement from the stable pistol base.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://scenes/player/operator_player.tscn",
+  "ownership": {
+    "accepted_shot_recovery_presentation": "SocomOperatorFireUpperBodyLatch",
+    "pistol_family_route_data": "SocomOperatorAnimationProfile",
+    "saved_pistol_visual_contracts": "GunsmithWeaponProfileRepository",
+    "movement_and_collision": "CharacterBody3D",
+    "aim_intent": "SOCOMCameraReticleChain",
+    "shot_and_damage": "AuthoritativeServerWeapon"
+  },
+  "nodes": [
+    {
+      "id": "accepted_shot_recovery_latch",
+      "type": "Node",
+      "role": "Consumes the accepted-shot presentation event and owns the bounded 1.2-second recovery state without becoming a movement, weapon, or damage owner.",
+      "owner": "SocomOperatorFireUpperBodyLatch",
+      "source_script": "res://scripts/player/operator_animation_driver_runtime.gd",
+      "code_symbols": [
+        "FireUpperBodyLatch.new()",
+        "fire_upper_body_latch.name = \"FireUpperBodyLatch\""
+      ]
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://config/operator_animation_map.json",
+      "writer": "res://scripts/player/operator_animation_profile.gd",
+      "readers": [
+        "res://scripts/player/operator_animation_driver_presentation.gd",
+        "res://scripts/player/operator_locomotion_blend_tree.gd"
+      ]
+    },
+    {
+      "path": "res://config/weapons/mark_23.json",
+      "writer": "res://scripts/labs/gunsmith/gunsmith_persistence_controller.gd",
+      "readers": [
+        "res://scripts/weapons/weapon_rig_contract.gd",
+        "res://scripts/weapons/weapon_animation_profile.gd",
+        "res://scripts/player/operator_weapon_equipment_runtime.gd"
+      ]
+    }
+  ],
+  "must_not_change": [
+    "CharacterBody3D movement, posture, collision, and movement-tech authority",
+    "SOCOM camera and reticle aim-intent authority",
+    "server shot validation, ballistics, damage, ammunition, and networking authority",
+    "the existing 1.2-second accepted-shot recovery duration",
+    "reload transaction timing and cancellation semantics",
+    "prone presentation until it receives a dedicated rendered proof",
+    "right-hand weapon-root and saved socket ownership"
+  ],
+  "proof_scripts": [
+    "res://tools/mark_23_equipment_regression.gd",
+    "res://tools/all_weapon_fire_recovery_regression.gd",
+    "res://tools/pistol_fire_recovery_visual_check.gd",
+    "res://tools/feature_contract_regression.gd"
+  ],
+  "visual_check": "In res://main.tscn, equip a pistol, fire while standing, then fire while crouched. The right hand must remain at the trigger grip, the left hand at the two-hand support contact, the shoulders must remain square, and the event must hold pistol_idle or pistol_idle_kneeling for the existing recovery interval without showing pistol reload. Reload separately to prove the reload transaction still owns only reload.",
+  "system_delta": {
+    "decision": "REPLACE",
+    "reason": "Replace the invalid fire-to-reload route and reject the current absolute AGLS pistol recoil as a direct OneShot. Its hand displacement is too large for a human-looking transition. Keep the stable posture-matched pistol ready pose under the existing shared recovery owner while preserving gameplay, reload, sockets, camera, movement, and networking.",
+    "current": {
+      "system": "Accepted pistol fire routed to a two-second reload animation across the torso, shoulders, arms, and hands",
+      "correctness": 0,
+      "ownership_clarity": 2,
+      "runtime_parity": 1,
+      "editor_usability": 2,
+      "performance": 2,
+      "regression_coverage": 2,
+      "evidence_paths": [
+        "res://config/operator_animation_map.json",
+        "res://scripts/player/operator_animation_driver_presentation.gd",
+        "res://scripts/player/operator_locomotion_blend_tree.gd",
+        "res://tools/mark_23_equipment_regression.gd"
+      ]
+    },
+    "candidate": {
+      "system": "Posture-matched stable pistol ready selected by the shared 1.2-second accepted-shot recovery owner with no separate fire OneShot",
+      "correctness": 5,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 4,
+      "performance": 5,
+      "regression_coverage": 5,
+      "evidence_paths": [
+        "res://scripts/weapons/weapon_animation_profile.gd",
+        "res://scripts/player/operator_animation_profile.gd",
+        "res://scripts/player/operator_fire_upper_body_latch.gd",
+        "res://config/operator_animation_map.json",
+        "res://tools/mark_23_equipment_regression.gd",
+        "res://tools/all_weapon_fire_recovery_regression.gd"
+      ]
+    }
+  }
+}

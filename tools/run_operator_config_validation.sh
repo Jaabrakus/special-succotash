@@ -2,7 +2,7 @@
 set -euo pipefail
 
 project_dir="${0:A:h:h}"
-godot_bin="${GODOT_BIN:-/Users/kiwimango/Downloads/Godot.app/Contents/MacOS/Godot}"
+godot_bin="${GODOT_BIN:-/Users/kiwimango/Applications/Godot-4.7.1.app/Contents/MacOS/Godot}"
 log_path="${TMPDIR:-/private/tmp}/socom-operator-config-validation.log"
 
 "$godot_bin" \

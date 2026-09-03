@@ -345,6 +345,23 @@
       },
       "thumb_wrap": 0.7
     },
+    "aim_idle_crouch": {
+      "finger_curl": 1.0,
+      "left_grip": {
+        "x": -0.00334209203720093,
+        "y": 0.0764622688293457,
+        "z": 0.339702010154724
+      },
+      "palm_pitch_deg": -24.35,
+      "palm_roll_deg": 104.75,
+      "palm_yaw_deg": 0.75,
+      "right_grip": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "thumb_wrap": 0.7
+    },
     "combat_fire": {
       "finger_curl": 1.0,
       "left_grip": {
@@ -382,9 +399,9 @@
     "idle_crouch": {
       "finger_curl": 1.0,
       "left_grip": {
-        "x": -0.042856901884079,
-        "y": 0.12201988697052,
-        "z": 0.07
+        "x": -0.00334209203720093,
+        "y": 0.0764622688293457,
+        "z": 0.339702010154724
       },
       "palm_pitch_deg": -24.35,
       "palm_roll_deg": 104.75,
@@ -589,12 +606,16 @@
       "idle_crouched": "idle_crouch",
       "idle_prone": "idle_prone",
       "idle_standing": "aim_idle",
-      "reload_crouched": "reload",
+      "ready_crouched": "aim_idle_crouch",
+      "reload_crouched": "crouch_reload",
       "reload_prone": "prone_reload",
       "reload_standing": "reload"
     },
     "dynamic_hold": {
       "animation_drives_ready_hands": true,
+      "hand_socket_ik_enabled": false,
+      "support_hand_socket_ik_enabled": true,
+      "support_hand_ik_blend_seconds": 0.2,
       "animation_carry_limit_m": 0.035,
       "animation_carry_weight": 0.65,
       "buttstock_constraint": {
@@ -612,13 +633,16 @@
         }
       },
       "hand_owned_aim_correction_limit_deg": 32.0,
+      "fire_saved_joint_rotations_enabled": false,
+      "fire_spine_ccdik_enabled": false,
       "relaxed_idle_upper_body_weight": 0.0,
       "ready_locomotion_inheritance": 0.0,
       "reload_return_blend_seconds": 0.18,
       "right_hand_owns_weapon": true
     },
     "ready_aim": {
-      "fire_hold_seconds": 1.2
+      "fire_hold_seconds": 1.2,
+      "fire_terminal_pose_hold_seconds": 0.12
     },
     "standing_fire_uses_aim_idle": true,
     "crouched_fire_uses_aim_idle": true,
@@ -692,9 +716,12 @@
   },
   "reticle": {
     "base_gap_px": 5.1,
+    "drop_reference_length_px": 14.0,
+    "lead_reference_length_px": 14.0,
     "max_gap_px": 41.6,
     "maximum_movement_tick_extension_px": 16.0,
     "maximum_shot_kick_px": 60.0,
+    "reference_arc_padding_px": 5.0,
     "response_speed": 26.2,
     "shot_bounce_duration": 0.07,
     "shot_kick_px": 20.0,
@@ -708,9 +735,9 @@
     "CROUCHED": {
       "finger_curl": 1.0,
       "left_grip": {
-        "x": -0.042856901884079,
-        "y": 0.12201988697052,
-        "z": 0.07
+        "x": -0.00334209203720093,
+        "y": 0.0764622688293457,
+        "z": 0.339702010154724
       },
       "palm_pitch_deg": -24.35,
       "palm_roll_deg": 104.75,

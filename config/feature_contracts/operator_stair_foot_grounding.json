@@ -1,0 +1,121 @@
+{
+  "schema_version": 1,
+  "feature_id": "operator_stair_foot_grounding",
+  "player_intent": "Standing and crouched operators place each boot on the current stair tread without changing their weapon, shoulders, camera, or authoritative movement.",
+  "acceptance_rule": "Two ground rays may drive only the left and right upper-leg, knee, and foot bones during ordinary grounded standing or crouched movement; fire recovery, reload, prone, airborne, and mobility actions disable the pass, while CharacterBody transform and velocity and every upper-body bone remain unchanged.",
+  "canonical_scene": "res://main.tscn",
+  "ownership": {
+    "stair_foot_presentation": "SocomOperatorFootContactLock",
+    "leg_pose_write": "SocomOperatorFootGroundingModifier",
+    "movement_and_collision": "SocomTestPlayer",
+    "aim_intent": "SOCOMCameraReticleChain",
+    "shot_and_damage": "AuthoritativeServerWeapon"
+  },
+  "nodes": [
+    {
+      "id": "left_ground_ray",
+      "type": "RayCast3D",
+      "role": "Samples the current tread below the animated left boot.",
+      "owner": "SocomOperatorFootContactLock",
+      "source_script": "res://scripts/player/operator_foot_contact_lock.gd",
+      "code_symbols": ["RayCast3D.new()", "LeftFootGroundRay"]
+    },
+    {
+      "id": "right_ground_ray",
+      "type": "RayCast3D",
+      "role": "Samples the current tread below the animated right boot.",
+      "owner": "SocomOperatorFootContactLock",
+      "source_script": "res://scripts/player/operator_foot_contact_lock.gd",
+      "code_symbols": ["RayCast3D.new()", "RightFootGroundRay"]
+    },
+    {
+      "id": "leg_only_grounding_modifier",
+      "type": "SkeletonModifier3D",
+      "role": "Consumes both contact targets after animation and writes only six declared leg bones.",
+      "owner": "SocomOperatorFootGroundingModifier",
+      "source_script": "res://scripts/player/operator_foot_contact_lock.gd",
+      "code_symbols": ["GroundingModifier.new()", "OperatorFootGroundingModifier"]
+    },
+    {
+      "id": "left_foot_target",
+      "type": "Marker3D",
+      "role": "Exposes the resolved left-foot contact to the canonical pose graph.",
+      "owner": "SocomOperatorIKContract",
+      "source_script": "res://scripts/player/operator_ik_contract.gd",
+      "code_symbols": ["Marker3D.new()", "LeftFootIKTarget"]
+    },
+    {
+      "id": "right_foot_target",
+      "type": "Marker3D",
+      "role": "Exposes the resolved right-foot contact to the canonical pose graph.",
+      "owner": "SocomOperatorIKContract",
+      "source_script": "res://scripts/player/operator_ik_contract.gd",
+      "code_symbols": ["Marker3D.new()", "RightFootIKTarget"]
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://config/operator_foot_grounding.json",
+      "writer": "res://scripts/player/operator_foot_grounding_profile.gd",
+      "readers": [
+        "res://scripts/player/operator_foot_contact_lock.gd",
+        "res://scripts/player/operator_foot_grounding_modifier.gd",
+        "res://scripts/player/operator_animation_driver_runtime.gd"
+      ]
+    }
+  ],
+  "must_not_change": [
+    "CharacterBody3D transform, velocity, collision, and traversal authority",
+    "SOCOM camera, reticle, and aim intent",
+    "server shot, damage, ballistics, and networking authority",
+    "spine, shoulders, arms, hands, weapon sockets, fire recovery, and reload",
+    "Skeleton3D process priority, modifier callback mode, and global engine timing"
+  ],
+  "proof_scripts": [
+    "res://tools/operator_stair_foot_grounding_regression.gd",
+    "res://tools/operator_stair_foot_grounding_visual_check.gd",
+    "res://tools/weapon_hand_detach_regression.gd",
+    "res://tools/weapon_fire_regression.gd",
+    "res://tools/operator_pose_pipeline_regression.gd",
+    "res://tools/mobility_regression.gd"
+  ],
+  "visual_check": "Run res://main.tscn on stairs and confirm each boot reaches its tread while standing and crouched; both hands remain on the weapon, shoulders stay square during fire, and grounding disappears during fire recovery, reload, prone, jump, dive, and roll.",
+  "failure_lessons": [
+    "SkeletonIK3D.stop clears global overrides for the whole Skeleton3D, so a foot solver must not use the shared legacy socket helper after hand and shoulder presentation.",
+    "A foot solver must not raise Skeleton3D process priority, add CopyTransform hand modifiers, alter Engine.physics_ticks_per_second, level the CharacterBody root, or own camera motion.",
+    "RayCast3D contact sampling is safe only when the result remains presentation data and the CharacterBody remains the sole collision and movement writer."
+  ],
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Keep the canonical animation and posture owners, reject the reference movement/camera/root-leveling code, and merge only its ray-to-contact idea through a bounded six-leg-bone modifier.",
+    "current": {
+      "system": "Previous native foot attempt with self-running modifiers, shared skeleton priority mutation, and deprecated SkeletonIK3D global-override clearing",
+      "correctness": 1,
+      "ownership_clarity": 1,
+      "runtime_parity": 3,
+      "editor_usability": 2,
+      "performance": 2,
+      "regression_coverage": 2,
+      "evidence_paths": [
+        "res://scripts/player/operator_native_two_bone_ik.gd",
+        "res://scripts/player/operator_weapon_socket_ik.gd",
+        "res://scripts/player/operator_animation_driver_runtime.gd"
+      ]
+    },
+    "candidate": {
+      "system": "Two bounded ground rays with one explicitly gated leg-only final modifier and upper-body/body invariance telemetry",
+      "correctness": 4,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 4,
+      "performance": 4,
+      "regression_coverage": 5,
+      "evidence_paths": [
+        "res://scripts/player/operator_foot_contact_lock.gd",
+        "res://scripts/player/operator_foot_grounding_modifier.gd",
+        "res://config/operator_foot_grounding.json",
+        "res://tools/operator_stair_foot_grounding_regression.gd"
+      ]
+    }
+  }
+}

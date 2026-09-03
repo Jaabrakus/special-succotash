@@ -1,0 +1,139 @@
+{
+  "calibration": {
+    "method": "transformed_mesh_bounds_plus_family_contact_template",
+    "raw_bounds_position": {
+      "x": -1.79508006572723,
+      "y": -0.860740721225739,
+      "z": -0.159272700548172
+    },
+    "raw_bounds_size": {
+      "x": 4.04394912719727,
+      "y": 1.84732401371002,
+      "z": 0.318545520305634
+    },
+    "resolved_length_m": 0.790000021457672,
+    "target_length_m": 0.79
+  },
+  "certification": {
+    "maximum_palm_error_m": 0.01,
+    "published_by": "publish_firearm_family_visual_rigs",
+    "required_actions": [
+      "aim_idle",
+      "fire_recovery",
+      "reload"
+    ],
+    "required_stances": [
+      "STANDING",
+      "CROUCHED"
+    ]
+  },
+  "family": "TWO_HAND_RIFLE",
+  "revision": 1,
+  "schema_version": 1,
+  "source_model_fbx": "res://assets/weapons/modular_pack/SubmachineGun_2.fbx",
+  "status": "published",
+  "visual": {
+    "grip_offset": {
+      "pos_x": 0.0798392296,
+      "pos_y": -0.0417042524,
+      "pos_z": 0.0082135201,
+      "rot_x": 4.55,
+      "rot_y": 3.0,
+      "rot_z": 79.05
+    },
+    "handling_profile": {
+      "dynamic_hold": {
+        "animation_carry_limit_m": 0.025,
+        "animation_carry_weight": 0.4,
+        "animation_drives_ready_hands": true,
+        "buttstock_constraint": {
+          "enabled": false
+        },
+        "fire_saved_joint_rotations_enabled": false,
+        "fire_spine_ccdik_enabled": false,
+        "hand_owned_aim_correction_limit_deg": 32.0,
+        "hand_socket_ik_enabled": false,
+        "ready_locomotion_inheritance": 0.0,
+        "relaxed_idle_upper_body_weight": 0.0,
+        "reload_return_blend_seconds": 0.18,
+        "right_hand_owns_weapon": true,
+        "support_hand_ik_blend_seconds": 0.25,
+        "support_hand_socket_ik_enabled": true
+      },
+      "family": "TWO_HAND_RIFLE",
+      "locomotion_family": "RIFLE",
+      "ready_aim": {
+        "fire_hold_seconds": 1.2,
+        "fire_terminal_pose_hold_seconds": 0.12
+      },
+      "support_hand_required": true
+    },
+    "model_fbx": "res://assets/weapons/modular_pack/SubmachineGun_2.fbx",
+    "model_rotation_degrees": {
+      "x": 0.0,
+      "y": -90.0,
+      "z": 0.0
+    },
+    "normalized_scale": 0.195353595001212,
+    "operator_mount": {
+      "attachment_mode": "trigger_hand_socket",
+      "bone_name": "mixamorig_RightHand",
+      "position": {
+        "x": -0.02,
+        "y": 0.08,
+        "z": 0.05
+      },
+      "rotation_degrees": {
+        "x": -90.0,
+        "y": 180.0,
+        "z": 0.0
+      }
+    },
+    "support_hand_pose": {
+      "finger_curl": 1.0,
+      "palm_pitch_deg": -24.35,
+      "palm_roll_deg": 104.75,
+      "palm_yaw_deg": 0.75,
+      "thumb_wrap": 0.7
+    },
+    "user_scale_multiplier": 1.0,
+    "weapon_sockets": {
+      "barrel_base_socket": {
+        "x": -0.0000000149011611938477,
+        "y": 0.113338679075241,
+        "z": 0.2181246727705
+      },
+      "buttstock_socket": {
+        "x": -0.0000000149011611938477,
+        "y": 0.0664241015911102,
+        "z": -0.350675344467163
+      },
+      "ejection_port": {
+        "x": 0.0224024467170238,
+        "y": 0.113338679075241,
+        "z": 0.123010911047459
+      },
+      "left_hand_ik_target": {
+        "x": -0.0000000149011611938477,
+        "y": 0.0664241015911102,
+        "z": 0.228448837995529
+      },
+      "muzzle_socket": {
+        "x": -0.0000000149011611938477,
+        "y": 0.113338679075241,
+        "z": 0.439324676990509
+      },
+      "optic_rail": {
+        "x": -0.0000000149011611938477,
+        "y": 0.163862079381943,
+        "z": 0.052718959748745
+      },
+      "right_hand_grip_target": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      }
+    }
+  },
+  "visual_rig_id": "family_smg_2_v1"
+}

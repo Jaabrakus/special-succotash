@@ -3,18 +3,23 @@ extends Node
 
 const GrenadeProfile := preload("res://scripts/tactical/tactical_grenade_profile.gd")
 
-enum ThrowMode { OVERHAND, UNDERHAND }
+enum ThrowMode { OVERHAND, UNDERHAND, MEDIUM }
 
 @export var overhand_speed := 15.2
 @export var underhand_speed := 6.1
+@export var medium_speed := 10.8
 @export var overhand_lift := 0.28
 @export var underhand_lift := 0.06
+@export var medium_lift := 0.16
 @export var minimum_overhand_speed := 8.6
 @export var minimum_underhand_speed := 4.0
+@export var minimum_medium_speed := 6.5
 @export var minimum_overhand_lift := 0.12
 @export var minimum_underhand_lift := 0.025
+@export var minimum_medium_lift := 0.08
 @export var overhand_pitch_influence := 0.85
 @export var underhand_pitch_influence := 0.55
+@export var medium_pitch_influence := 0.70
 @export var minimum_launch_elevation_degrees := -8.0
 @export var maximum_launch_elevation_degrees := 68.0
 @export var full_throw_charge_seconds := 0.78
@@ -83,7 +88,8 @@ func calculate_launch_velocity(
 	forward: Vector3,
 	up: Vector3,
 	mode: ThrowMode,
-	charge: float = 1.0
+	charge: float = 1.0,
+	player_velocity: Vector3 = Vector3.ZERO
 ) -> Vector3:
 	var normalized_up := up.normalized()
 	var normalized_forward := forward.normalized()
@@ -91,25 +97,41 @@ func calculate_launch_velocity(
 	if flat_forward.length_squared() < 0.001:
 		flat_forward = Vector3.FORWARD
 	var human_charge := clampf(charge, 0.0, 1.0)
+	var base_launch_vec := Vector3.ZERO
 	if mode == ThrowMode.UNDERHAND:
 		var underhand_power := lerpf(minimum_underhand_speed, underhand_speed, human_charge)
 		var underhand_arc := lerpf(minimum_underhand_lift, underhand_lift, human_charge)
-		return _pitched_launch_direction(
+		base_launch_vec = _pitched_launch_direction(
 			flat_forward,
 			normalized_forward,
 			normalized_up,
 			underhand_arc,
 			underhand_pitch_influence
 		) * underhand_power
-	var overhand_power := lerpf(minimum_overhand_speed, overhand_speed, human_charge)
-	var overhand_arc := lerpf(minimum_overhand_lift, overhand_lift, human_charge)
-	return _pitched_launch_direction(
-		flat_forward,
-		normalized_forward,
-		normalized_up,
-		overhand_arc,
-		overhand_pitch_influence
-	) * overhand_power
+	elif mode == ThrowMode.MEDIUM:
+		var medium_power := lerpf(minimum_medium_speed, medium_speed, human_charge)
+		var medium_arc := lerpf(minimum_medium_lift, medium_lift, human_charge)
+		base_launch_vec = _pitched_launch_direction(
+			flat_forward,
+			normalized_forward,
+			normalized_up,
+			medium_arc,
+			medium_pitch_influence
+		) * medium_power
+	else:
+		var overhand_power := lerpf(minimum_overhand_speed, overhand_speed, human_charge)
+		var overhand_arc := lerpf(minimum_overhand_lift, overhand_lift, human_charge)
+		base_launch_vec = _pitched_launch_direction(
+			flat_forward,
+			normalized_forward,
+			normalized_up,
+			overhand_arc,
+			overhand_pitch_influence
+		) * overhand_power
+
+	# CS:GO Momentum Inheritance: Throw carries forward momentum (running adds speed, jumping adds height)
+	var momentum_carried := player_velocity * 1.25
+	return base_launch_vec + momentum_carried
 
 
 func _pitched_launch_direction(
@@ -139,7 +161,8 @@ func spawn_authoritative(
 	mode: ThrowMode,
 	parent: Node,
 	charge: float = 1.0,
-	hold_seconds: float = 0.0
+	hold_seconds: float = 0.0,
+	player_velocity: Vector3 = Vector3.ZERO
 ) -> TacticalGrenadeBase:
 	if multiplayer.has_multiplayer_peer() and not multiplayer.is_server():
 		return null
@@ -149,5 +172,5 @@ func spawn_authoritative(
 	parent.add_child(grenade, true)
 	grenade.global_position = origin
 	grenade.arm(remaining_fuse(grenade.fuse_seconds, hold_seconds))
-	grenade.launch(calculate_launch_velocity(forward, Vector3.UP, mode, charge))
+	grenade.launch(calculate_launch_velocity(forward, Vector3.UP, mode, charge, player_velocity))
 	return grenade

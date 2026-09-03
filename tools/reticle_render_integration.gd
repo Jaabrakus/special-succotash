@@ -1,5 +1,7 @@
 extends SceneTree
 
+const CAPTURE_PATH := "/private/tmp/socom-ballistic-reference-reticle.png"
+
 var failures: Array[String] = []
 
 func _initialize() -> void:
@@ -57,13 +59,13 @@ func _run() -> void:
     _expect(
         bounced_center.y < authoritative_center.y
         and float(dynamic_reticle.get("shot_bounce_amplitude")) > 0.0,
-        "center dot and outer ticks bounce upward when a shot fires"
+        "reference shape bounces upward after a shot"
     )
     _expect(
         (dynamic_reticle.call("get_authoritative_center") as Vector2).is_equal_approx(
             authoritative_center
         ),
-        "stable firing reticle remains on ballistic aim authority"
+        "cosmetic recoil leaves ballistic aim authority unchanged"
     )
     dynamic_reticle.set(
         "shot_bounce_age",
@@ -73,7 +75,7 @@ func _run() -> void:
         (dynamic_reticle.call("get_visual_center") as Vector2).is_equal_approx(
             authoritative_center
         ),
-        "center dot remains at the authoritative center after recoil"
+        "reference shape returns to the authoritative center after recoil"
     )
     dynamic_reticle.call(
         "update_reticle_state",
@@ -87,7 +89,30 @@ func _run() -> void:
     _expect(
         float(dynamic_reticle.get("current_movement")) > 0.95
         and float(dynamic_reticle.get("maximum_movement_tick_extension")) >= 16.0,
-        "full movement visibly lengthens the four aiming strings"
+        "full movement visibly lengthens the two lead references"
+    )
+    var reference_geometry: Dictionary = dynamic_reticle.call(
+        "get_combat_reference_geometry"
+    )
+    var arc_center: Vector2 = reference_geometry.arc_center
+    var left_inner: Vector2 = reference_geometry.left_inner
+    var left_outer: Vector2 = reference_geometry.left_outer
+    var right_inner: Vector2 = reference_geometry.right_inner
+    var right_outer: Vector2 = reference_geometry.right_outer
+    var drop_inner: Vector2 = reference_geometry.drop_inner
+    var drop_outer: Vector2 = reference_geometry.drop_outer
+    _expect(
+        left_outer.x < left_inner.x
+        and right_outer.x > right_inner.x
+        and is_equal_approx(left_outer.y, left_inner.y)
+        and is_equal_approx(right_outer.y, right_inner.y),
+        "combat reticle exposes symmetric horizontal lead references"
+    )
+    _expect(
+        is_equal_approx(drop_inner.x, arc_center.x)
+        and is_equal_approx(drop_outer.x, arc_center.x)
+        and drop_outer.y > drop_inner.y,
+        "combat reticle exposes one lower bullet-drop reference"
     )
     _expect(
         absf(rig.aim_yaw) > 0.0001 or absf(rig.aim_pitch) > 0.0001,
@@ -110,6 +135,14 @@ func _run() -> void:
         and absf(rig.aim_pitch - caught_aim.y) < 0.000001,
         "rendered camera has no timer-induced idle stutter"
     )
+    if OS.get_cmdline_user_args().has("--capture-reticle"):
+        var capture := root.get_viewport().get_texture().get_image()
+        _expect(
+            capture != null
+            and not capture.is_empty()
+            and capture.save_png(CAPTURE_PATH) == OK,
+            "canonical gameplay reticle capture saves"
+        )
 
     scene.queue_free()
     await process_frame

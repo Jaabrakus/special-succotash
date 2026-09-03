@@ -1,0 +1,1087 @@
+{
+  "actions": {
+    "aim_idle": {
+      "alias_of": null,
+      "frame_end": 94,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.83771,
+      "sample_dimensions_m": [
+        0.6369,
+        1.0039,
+        1.832
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Shooter Pack/rifle aiming idle.fbx"
+    },
+    "climb": {
+      "alias_of": null,
+      "frame_end": 116,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 2.228471,
+      "sample_dimensions_m": [
+        0.8149,
+        1.0802,
+        0.914
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Climbing.fbx"
+    },
+    "combat_fire": {
+      "alias_of": null,
+      "frame_end": 36,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.831865,
+      "sample_dimensions_m": [
+        0.6372,
+        1.0046,
+        1.8313
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Shooter Pack/firing rifle.fbx"
+    },
+    "crouch_back_left": {
+      "alias_of": null,
+      "frame_end": 31,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.537589,
+      "sample_dimensions_m": [
+        0.727,
+        0.9093,
+        1.5376
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Rifle 8-Way Locomotion Pack/walk crouching backward left.fbx"
+    },
+    "crouch_back_right": {
+      "alias_of": null,
+      "frame_end": 31,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.511565,
+      "sample_dimensions_m": [
+        0.8056,
+        0.9543,
+        1.4734
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Rifle 8-Way Locomotion Pack/walk crouching backward right.fbx"
+    },
+    "crouch_backward": {
+      "alias_of": null,
+      "frame_end": 31,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.587186,
+      "sample_dimensions_m": [
+        0.6299,
+        0.9187,
+        1.5852
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Rifle 8-Way Locomotion Pack/walk crouching backward.fbx"
+    },
+    "crouch_fire": {
+      "alias_of": null,
+      "frame_end": 24,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.281248,
+      "sample_dimensions_m": [
+        0.7704,
+        1.0501,
+        1.2807
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Crouch Rapid Fire.fbx"
+    },
+    "crouch_forward": {
+      "alias_of": null,
+      "frame_end": 31,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.530309,
+      "sample_dimensions_m": [
+        0.6657,
+        0.9413,
+        1.5303
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Rifle 8-Way Locomotion Pack/walk crouching forward.fbx"
+    },
+    "crouch_forward_left": {
+      "alias_of": null,
+      "frame_end": 31,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.519434,
+      "sample_dimensions_m": [
+        0.7956,
+        0.9667,
+        1.4886
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Rifle 8-Way Locomotion Pack/walk crouching forward left.fbx"
+    },
+    "crouch_forward_right": {
+      "alias_of": null,
+      "frame_end": 31,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.512212,
+      "sample_dimensions_m": [
+        0.7545,
+        0.8908,
+        1.5021
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Rifle 8-Way Locomotion Pack/walk crouching forward right.fbx"
+    },
+    "crouch_grenade_toss": {
+      "alias_of": null,
+      "frame_end": 97,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.831566,
+      "sample_dimensions_m": [
+        0.6372,
+        1.0041,
+        1.8316
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/toss grenade.fbx"
+    },
+    "crouch_left": {
+      "alias_of": null,
+      "frame_end": 31,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.547141,
+      "sample_dimensions_m": [
+        0.8158,
+        0.8548,
+        1.5311
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Rifle 8-Way Locomotion Pack/walk crouching left.fbx"
+    },
+    "crouch_right": {
+      "alias_of": null,
+      "frame_end": 31,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.532119,
+      "sample_dimensions_m": [
+        0.7772,
+        0.8567,
+        1.51
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Rifle 8-Way Locomotion Pack/walk crouching right.fbx"
+    },
+    "crouch_start": {
+      "alias_of": null,
+      "frame_end": 73,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.754118,
+      "sample_dimensions_m": [
+        0.7097,
+        0.7351,
+        1.7541
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Rifle Crouch Idle To Walk.fbx"
+    },
+    "crouch_stop": {
+      "alias_of": null,
+      "frame_end": 64,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.573079,
+      "sample_dimensions_m": [
+        0.878,
+        1.0498,
+        1.2502
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Crouch Stop Walking.fbx"
+    },
+    "crouch_to_prone": {
+      "alias_of": null,
+      "frame_end": 60,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 2.150794,
+      "sample_dimensions_m": [
+        1.0517,
+        2.1508,
+        0.6475
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Rifle Kneel To Prone.fbx"
+    },
+    "crouch_to_stand": {
+      "alias_of": null,
+      "frame_end": 34,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.831351,
+      "sample_dimensions_m": [
+        0.6374,
+        1.0043,
+        1.8314
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Crouch To Standing With Rifle.fbx"
+    },
+    "death_right": {
+      "alias_of": null,
+      "frame_end": 100,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.858124,
+      "sample_dimensions_m": [
+        1.7178,
+        1.125,
+        0.7264
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Pro Rifle Pack/death from right.fbx"
+    },
+    "dive_roll": {
+      "alias_of": null,
+      "frame_end": 63,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.831185,
+      "sample_dimensions_m": [
+        0.5945,
+        0.9819,
+        1.8312
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Running Dive Roll.fbx"
+    },
+    "grenade_throw": {
+      "alias_of": "crouch_grenade_toss",
+      "frame_end": 97,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.831566,
+      "sample_dimensions_m": [
+        0.6372,
+        1.0041,
+        1.8316
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/toss grenade.fbx"
+    },
+    "grenade_toss": {
+      "alias_of": "crouch_grenade_toss",
+      "frame_end": 97,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.831566,
+      "sample_dimensions_m": [
+        0.6372,
+        1.0041,
+        1.8316
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/toss grenade.fbx"
+    },
+    "idle_crouch": {
+      "alias_of": null,
+      "frame_end": 64,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.428081,
+      "sample_dimensions_m": [
+        0.7041,
+        1.1661,
+        1.4281
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Rifle 8-Way Locomotion Pack/idle crouching.fbx"
+    },
+    "idle_prone": {
+      "alias_of": null,
+      "frame_end": 42,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 2.144901,
+      "sample_dimensions_m": [
+        1.055,
+        2.1449,
+        0.6471
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Prone Forward Stop.fbx"
+    },
+    "idle_rifle": {
+      "alias_of": null,
+      "frame_end": 64,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.842031,
+      "sample_dimensions_m": [
+        0.6519,
+        0.9668,
+        1.842
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Lite Rifle Pack/idle.fbx"
+    },
+    "jump_backward_action": {
+      "alias_of": null,
+      "frame_end": 80,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 2.291575,
+      "sample_dimensions_m": [
+        2.2916,
+        0.9479,
+        0.6624
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Jump Away.fbx"
+    },
+    "jump_down": {
+      "alias_of": null,
+      "frame_end": 21,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.842026,
+      "sample_dimensions_m": [
+        0.6491,
+        0.9744,
+        1.842
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Rifle 8-Way Locomotion Pack/jump down.fbx"
+    },
+    "jump_forward_action": {
+      "alias_of": null,
+      "frame_end": 28,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.767231,
+      "sample_dimensions_m": [
+        0.6136,
+        1.157,
+        1.6488
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Shooter Pack/jump forward.fbx"
+    },
+    "jump_loop": {
+      "alias_of": null,
+      "frame_end": 31,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.554344,
+      "sample_dimensions_m": [
+        0.8998,
+        0.9379,
+        1.5543
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Rifle 8-Way Locomotion Pack/jump loop.fbx"
+    },
+    "jump_up": {
+      "alias_of": null,
+      "frame_end": 17,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.842033,
+      "sample_dimensions_m": [
+        0.8998,
+        0.9379,
+        1.5544
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Rifle 8-Way Locomotion Pack/jump up.fbx"
+    },
+    "pistol_idle": {
+      "alias_of": null,
+      "frame_end": 41,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.869409,
+      "sample_dimensions_m": [
+        0.6698,
+        1.0826,
+        1.8694
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol idle.fbx"
+    },
+    "pistol_idle_kneeling": {
+      "alias_of": null,
+      "frame_end": 115,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.549879,
+      "sample_dimensions_m": [
+        0.7256,
+        1.0932,
+        1.5499
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol kneeling idle.fbx"
+    },
+    "pistol_jump": {
+      "alias_of": null,
+      "frame_end": 61,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.869382,
+      "sample_dimensions_m": [
+        0.6698,
+        1.0826,
+        1.8694
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol jump.fbx"
+    },
+    "pistol_jump_alt": {
+      "alias_of": null,
+      "frame_end": 25,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.770253,
+      "sample_dimensions_m": [
+        0.5692,
+        1.0346,
+        1.7657
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol jump (2).fbx"
+    },
+    "pistol_kneel_to_stand": {
+      "alias_of": null,
+      "frame_end": 42,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.869381,
+      "sample_dimensions_m": [
+        0.6698,
+        1.0826,
+        1.8694
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol kneel to stand.fbx"
+    },
+    "pistol_run_back_left": {
+      "alias_of": null,
+      "frame_end": 16,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.791381,
+      "sample_dimensions_m": [
+        0.8663,
+        1.2214,
+        1.7225
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol run backward arc.fbx"
+    },
+    "pistol_run_back_right": {
+      "alias_of": null,
+      "frame_end": 16,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.729742,
+      "sample_dimensions_m": [
+        0.8135,
+        0.8812,
+        1.7243
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol run backward arc (2).fbx"
+    },
+    "pistol_run_backward": {
+      "alias_of": null,
+      "frame_end": 17,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.783322,
+      "sample_dimensions_m": [
+        0.5963,
+        0.9389,
+        1.7707
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol run backward.fbx"
+    },
+    "pistol_run_forward": {
+      "alias_of": null,
+      "frame_end": 16,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.81737,
+      "sample_dimensions_m": [
+        0.5691,
+        1.036,
+        1.768
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol run.fbx"
+    },
+    "pistol_run_forward_left": {
+      "alias_of": null,
+      "frame_end": 19,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.692017,
+      "sample_dimensions_m": [
+        1.0297,
+        0.894,
+        1.692
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol run arc.fbx"
+    },
+    "pistol_run_forward_right": {
+      "alias_of": null,
+      "frame_end": 20,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.791479,
+      "sample_dimensions_m": [
+        1.0266,
+        0.6693,
+        1.772
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol run arc (2).fbx"
+    },
+    "pistol_stand_to_kneel": {
+      "alias_of": null,
+      "frame_end": 31,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.869385,
+      "sample_dimensions_m": [
+        0.7256,
+        1.0932,
+        1.5499
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol stand to kneel.fbx"
+    },
+    "pistol_strafe_left": {
+      "alias_of": null,
+      "frame_end": 18,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.806487,
+      "sample_dimensions_m": [
+        0.6431,
+        0.9896,
+        1.8065
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol strafe.fbx"
+    },
+    "pistol_strafe_right": {
+      "alias_of": null,
+      "frame_end": 19,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.829491,
+      "sample_dimensions_m": [
+        0.6623,
+        1.0101,
+        1.8295
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol strafe (2).fbx"
+    },
+    "pistol_walk_back_left": {
+      "alias_of": null,
+      "frame_end": 19,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.772247,
+      "sample_dimensions_m": [
+        0.6187,
+        1.178,
+        1.7722
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol walk backward arc.fbx"
+    },
+    "pistol_walk_back_right": {
+      "alias_of": null,
+      "frame_end": 19,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.799244,
+      "sample_dimensions_m": [
+        0.6992,
+        1.0741,
+        1.7992
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol walk backward arc (2).fbx"
+    },
+    "pistol_walk_backward": {
+      "alias_of": null,
+      "frame_end": 32,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.848384,
+      "sample_dimensions_m": [
+        0.6725,
+        0.8519,
+        1.8148
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol walk backward.fbx"
+    },
+    "pistol_walk_forward": {
+      "alias_of": null,
+      "frame_end": 25,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.876591,
+      "sample_dimensions_m": [
+        0.6026,
+        0.9147,
+        1.8606
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol walk.fbx"
+    },
+    "pistol_walk_forward_left": {
+      "alias_of": null,
+      "frame_end": 23,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.846303,
+      "sample_dimensions_m": [
+        0.6928,
+        0.8916,
+        1.8463
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol walk arc.fbx"
+    },
+    "pistol_walk_forward_right": {
+      "alias_of": null,
+      "frame_end": 24,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.87604,
+      "sample_dimensions_m": [
+        0.9003,
+        0.7377,
+        1.8504
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol walk arc (2).fbx"
+    },
+    "prone_backward": {
+      "alias_of": null,
+      "frame_end": 58,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 2.132988,
+      "sample_dimensions_m": [
+        0.9812,
+        1.8571,
+        0.6992
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Moving Backward In Prone Position.fbx"
+    },
+    "prone_fire": {
+      "alias_of": null,
+      "frame_end": 14,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 2.15546,
+      "sample_dimensions_m": [
+        1.0558,
+        2.1504,
+        0.6476
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Prone Firing Rifle.fbx"
+    },
+    "prone_forward": {
+      "alias_of": null,
+      "frame_end": 71,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.900317,
+      "sample_dimensions_m": [
+        1.0074,
+        1.7981,
+        0.6588
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Prone Forward.fbx"
+    },
+    "prone_reload": {
+      "alias_of": null,
+      "frame_end": 193,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 2.150381,
+      "sample_dimensions_m": [
+        1.0112,
+        2.1504,
+        0.6476
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Prone Reloading.fbx"
+    },
+    "prone_stop_backward": {
+      "alias_of": null,
+      "frame_end": 38,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 2.158628,
+      "sample_dimensions_m": [
+        1.0517,
+        2.1508,
+        0.6476
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Prone Backwards Stop.fbx"
+    },
+    "prone_stop_forward": {
+      "alias_of": "idle_prone",
+      "frame_end": 42,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 2.144901,
+      "sample_dimensions_m": [
+        1.055,
+        2.1449,
+        0.6471
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Prone Forward Stop.fbx"
+    },
+    "prone_turn_left": {
+      "alias_of": null,
+      "frame_end": 32,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 2.150771,
+      "sample_dimensions_m": [
+        1.8614,
+        1.8249,
+        0.6476
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Prone Left Turn.fbx"
+    },
+    "prone_turn_right": {
+      "alias_of": "prone_turn_left",
+      "frame_end": 32,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 2.150771,
+      "sample_dimensions_m": [
+        1.8614,
+        1.8249,
+        0.6476
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Prone Left Turn.fbx"
+    },
+    "reload": {
+      "alias_of": null,
+      "frame_end": 100,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.831566,
+      "sample_dimensions_m": [
+        0.6371,
+        1.0041,
+        1.8316
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Reloading.fbx"
+    },
+    "roll": {
+      "alias_of": null,
+      "frame_end": 74,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.634262,
+      "sample_dimensions_m": [
+        0.7261,
+        1.3019,
+        1.6343
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Run To Rolling.fbx"
+    },
+    "run_back_left": {
+      "alias_of": null,
+      "frame_end": 16,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.831951,
+      "sample_dimensions_m": [
+        0.7723,
+        0.8697,
+        1.8319
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Rifle 8-Way Locomotion Pack/sprint backward left.fbx"
+    },
+    "run_back_right": {
+      "alias_of": null,
+      "frame_end": 16,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.793435,
+      "sample_dimensions_m": [
+        0.9094,
+        0.6512,
+        1.7872
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Rifle 8-Way Locomotion Pack/sprint backward right.fbx"
+    },
+    "run_backward": {
+      "alias_of": null,
+      "frame_end": 16,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.814083,
+      "sample_dimensions_m": [
+        0.8307,
+        0.8305,
+        1.8141
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Rifle 8-Way Locomotion Pack/sprint backward.fbx"
+    },
+    "run_forward": {
+      "alias_of": null,
+      "frame_end": 16,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.704676,
+      "sample_dimensions_m": [
+        0.8258,
+        0.7498,
+        1.6929
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Rifle 8-Way Locomotion Pack/sprint forward.fbx"
+    },
+    "run_forward_left": {
+      "alias_of": null,
+      "frame_end": 16,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.807148,
+      "sample_dimensions_m": [
+        0.8557,
+        0.6623,
+        1.7796
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Rifle 8-Way Locomotion Pack/sprint forward left.fbx"
+    },
+    "run_forward_right": {
+      "alias_of": null,
+      "frame_end": 16,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.778738,
+      "sample_dimensions_m": [
+        0.7949,
+        0.7256,
+        1.7329
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Rifle 8-Way Locomotion Pack/sprint forward right.fbx"
+    },
+    "run_left": {
+      "alias_of": null,
+      "frame_end": 16,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.728218,
+      "sample_dimensions_m": [
+        0.7499,
+        0.6949,
+        1.7282
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Rifle 8-Way Locomotion Pack/sprint left.fbx"
+    },
+    "run_right": {
+      "alias_of": null,
+      "frame_end": 16,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.744255,
+      "sample_dimensions_m": [
+        0.7005,
+        0.6575,
+        1.7443
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Rifle 8-Way Locomotion Pack/sprint right.fbx"
+    },
+    "run_to_stop": {
+      "alias_of": null,
+      "frame_end": 51,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.604198,
+      "sample_dimensions_m": [
+        0.7704,
+        1.0501,
+        1.2807
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Run To Stop.fbx"
+    },
+    "start_backward": {
+      "alias_of": null,
+      "frame_end": 62,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.831566,
+      "sample_dimensions_m": [
+        0.7061,
+        0.965,
+        1.8144
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Shooter Pack/start walking backwards.fbx"
+    },
+    "start_forward": {
+      "alias_of": null,
+      "frame_end": 45,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.832071,
+      "sample_dimensions_m": [
+        0.618,
+        0.9852,
+        1.8113
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Start Walking.fbx"
+    },
+    "stop_backward": {
+      "alias_of": null,
+      "frame_end": 42,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.831181,
+      "sample_dimensions_m": [
+        0.6372,
+        1.0044,
+        1.8312
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Shooter Pack/walk backwards stop.fbx"
+    },
+    "stop_forward": {
+      "alias_of": null,
+      "frame_end": 81,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.831039,
+      "sample_dimensions_m": [
+        0.6368,
+        1.0044,
+        1.831
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Shooter Pack/stop walking.fbx"
+    },
+    "turn_90_left": {
+      "alias_of": null,
+      "frame_end": 31,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.842026,
+      "sample_dimensions_m": [
+        0.9668,
+        0.6519,
+        1.842
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Rifle 8-Way Locomotion Pack/turn 90 left.fbx"
+    },
+    "turn_90_right": {
+      "alias_of": null,
+      "frame_end": 31,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.842027,
+      "sample_dimensions_m": [
+        0.9666,
+        0.6519,
+        1.842
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Rifle 8-Way Locomotion Pack/turn 90 right.fbx"
+    },
+    "walk_back_left": {
+      "alias_of": null,
+      "frame_end": 31,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.765885,
+      "sample_dimensions_m": [
+        0.6908,
+        0.8142,
+        1.7625
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Rifle 8-Way Locomotion Pack/walk backward left.fbx"
+    },
+    "walk_back_right": {
+      "alias_of": null,
+      "frame_end": 31,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.743636,
+      "sample_dimensions_m": [
+        0.7031,
+        0.899,
+        1.736
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Rifle 8-Way Locomotion Pack/walk backward right.fbx"
+    },
+    "walk_backward": {
+      "alias_of": null,
+      "frame_end": 31,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.74641,
+      "sample_dimensions_m": [
+        0.6102,
+        0.8349,
+        1.7447
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Rifle 8-Way Locomotion Pack/walk backward.fbx"
+    },
+    "walk_forward": {
+      "alias_of": null,
+      "frame_end": 31,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.721079,
+      "sample_dimensions_m": [
+        0.6233,
+        0.8796,
+        1.7134
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Rifle 8-Way Locomotion Pack/walk forward.fbx"
+    },
+    "walk_forward_left": {
+      "alias_of": null,
+      "frame_end": 31,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.728257,
+      "sample_dimensions_m": [
+        0.6652,
+        0.8439,
+        1.7213
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Rifle 8-Way Locomotion Pack/walk forward left.fbx"
+    },
+    "walk_forward_right": {
+      "alias_of": null,
+      "frame_end": 31,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.711363,
+      "sample_dimensions_m": [
+        0.6821,
+        0.8886,
+        1.7055
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Rifle 8-Way Locomotion Pack/walk forward right.fbx"
+    },
+    "walk_left": {
+      "alias_of": null,
+      "frame_end": 31,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.721192,
+      "sample_dimensions_m": [
+        0.6251,
+        0.8621,
+        1.7212
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Rifle 8-Way Locomotion Pack/walk left.fbx"
+    },
+    "walk_right": {
+      "alias_of": null,
+      "frame_end": 31,
+      "frame_start": 1,
+      "mapped_bones": 59,
+      "maximum_dimension_m": 1.730773,
+      "sample_dimensions_m": [
+        0.632,
+        0.8518,
+        1.7307
+      ],
+      "source_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Rifle 8-Way Locomotion Pack/walk right.fbx"
+    }
+  },
+  "baked_actions": 82,
+  "failures": [],
+  "operator_map": "/Users/kiwimango/socom-141-camera-lab/config/operator_animation_map.json",
+  "operator_map_sha256": "b6d6926e3558d6e4d495f683575b2bdd6768b1e0ecadabfb3ebbcf39c05de481",
+  "operator_map_sha256_after": "b6d6926e3558d6e4d495f683575b2bdd6768b1e0ecadabfb3ebbcf39c05de481",
+  "requested_slots": 82,
+  "schema_version": 1,
+  "source_overrides": {
+    "grenade_throw": {
+      "reason": "The configured Throw Grenade.fbx is a prone-only action; use the verified standing overhand toss for the standalone suit library.",
+      "resource_path": "res://assets/animations/mixamo/toss grenade.fbx"
+    }
+  },
+  "status": "pass",
+  "target_armature": "TacticalSuitCleanRig",
+  "target_bones": 69,
+  "unique_sources": 78
+}

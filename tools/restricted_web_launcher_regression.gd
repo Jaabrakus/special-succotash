@@ -1,7 +1,6 @@
 extends SceneTree
 
 const LAUNCHER_SCENE := preload("res://game_launcher.tscn")
-const MapDocument := preload("res://scripts/maps/socom_map_document.gd")
 
 var failures: Array[String] = []
 
@@ -11,9 +10,6 @@ func _initialize() -> void:
 
 
 func _run() -> void:
-	MapDocument.library_directory_override = "/private/tmp/socom_public_launcher_maps_%s" % Time.get_ticks_usec()
-	var first_saved := MapDocument.save_to_library(MapDocument.new_document("Crossfire Selection A"))
-	var second_saved := MapDocument.save_to_library(MapDocument.new_document("Crossfire Selection B"))
 	var launcher := LAUNCHER_SCENE.instantiate()
 	root.add_child(launcher)
 	for _frame in 3:
@@ -25,51 +21,51 @@ func _run() -> void:
 	)
 	_expect(
 		launcher.find_child("JoinGame", true, false) is Button,
-		"public player build exposes Join Game"
+		"public player build keeps direct Join Game as a fallback"
 	)
 	_expect(
-		launcher.find_child("HostGame", true, false) is Button,
-		"public player build exposes Host Game"
+		launcher.find_child("QuickMatch", true, false) is Button,
+		"public player build exposes live Quick Match discovery"
 	)
 	_expect(
-		launcher.find_child("MapEditor", true, false) is Button,
-		"public player build exposes Map Editor"
+		launcher.find_child("BrowseServers", true, false) is Button,
+		"public player build exposes the live server browser"
 	)
 	_expect(
-		launcher.find_child("TrainingRange", true, false) is Button,
-		"public player build exposes the clean Training Range"
+		launcher.find_child("ServerBrowserPanel", true, false) is VBoxContainer
+		and launcher.find_child("ServerList", true, false) is ItemList,
+		"server browser renders directory-owned server results"
+	)
+	_expect(
+		launcher.find_child("HostGame", true, false) == null
+		and launcher.find_child("CreateTournamentRoom", true, false) == null,
+		"browser client cannot become an authoritative host"
+	)
+	_expect(
+		launcher.find_child("MapEditor", true, false) == null,
+		"browser player package omits the developer Map Editor"
+	)
+	_expect(
+		launcher.find_child("TrainingRange", true, false) == null,
+		"browser player package omits local Training Range startup"
 	)
 	_expect(
 		launcher.find_child("PlayerSettingsButton", true, false) is Button,
 		"public player build exposes compact key-bind settings"
 	)
 	_expect(
-		launcher.find_child("HostMapSelector", true, false) is OptionButton,
-		"Host Game exposes the saved-map selector"
+		launcher.find_child("HostMapSelector", true, false) == null,
+		"server-owned map selection is absent from browser clients"
 	)
-	var map_selector := launcher.find_child("HostMapSelector", true, false) as OptionButton
+	var address := launcher.find_child("JoinGameAddress", true, false) as LineEdit
 	_expect(
-		map_selector != null
-		and map_selector.get_item_text(map_selector.selected) == "Crossfire Selection B",
-		"launcher keeps the active saved map selected"
-	)
-	var first_map_id := String(first_saved.get("map_id", ""))
-	var first_index := -1
-	var entries: Array = launcher.get("map_entries")
-	for index in entries.size():
-		if String((entries[index] as Dictionary).get("map_id", "")) == first_map_id:
-			first_index = index
-			break
-	if map_selector != null and first_index >= 0:
-		map_selector.select(first_index)
-		map_selector.item_selected.emit(first_index)
-	_expect(
-		first_index >= 0 and String(MapDocument.load_active().get("map_id", "")) == first_map_id,
-		"choosing a launcher map immediately makes it the Training Range map"
+		address != null and address.placeholder_text.begins_with("wss://"),
+		"browser join input communicates its secure WebSocket contract"
 	)
 	_expect(
-		bool(second_saved.get("ok", false)),
-		"launcher selection fixture saves more than one map"
+		launcher.get("status_label") != null
+		and String(launcher.get("status_label").text).contains("Quick Match"),
+		"browser launcher directs players to discovery before manual wss join"
 	)
 	_expect(
 		launcher.find_child("OpenCreatorStudio", true, false) == null

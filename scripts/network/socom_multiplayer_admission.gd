@@ -19,12 +19,21 @@ func _on_peer_connected(peer_id: int) -> void:
 func _admit_peer(peer_id: int) -> void:
 	if not multiplayer.is_server() or lobby.players.has(peer_id):
 		return
+	if lobby.players.size() >= MAX_PLAYERS:
+		peer_admission_attempts.erase(peer_id)
+		peer_admission_deadlines_ms.erase(peer_id)
+		receive_session_rejected.rpc_id(
+			peer_id,
+			"Connection rejected: this 32-player server is full."
+		)
+		_disconnect_rejected_peer.call_deferred(peer_id)
+		return
 	peer_admission_attempts.erase(peer_id)
 	peer_admission_deadlines_ms.erase(peer_id)
 	lobby.add_player(peer_id)
 	receive_server_map.rpc_id(peer_id, active_map_document)
 	for existing_id in operators:
-		var existing := operators[existing_id] as SocomNetworkOperator
+		var existing: Variant = operators[existing_id]
 		spawn_operator.rpc_id(
 			peer_id,
 			int(existing_id),

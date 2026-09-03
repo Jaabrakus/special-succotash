@@ -1,4 +1,11 @@
 {
+  "schema_version": 3,
+  "ammo_spec": {
+    "impact_damage": 2.3,
+    "piercing": 6.0,
+    "stun": 4.0,
+    "type": "7.62 x 39mm M1943"
+  },
   "arm_rig_pose": {
     "left_elbow": {
       "bend": 0.0,
@@ -33,41 +40,142 @@
     "max_range_m": 1000.0
   },
   "camo_skin": "Factory Classic (Wood & Steel)",
+  "catalog_source": "reCOM zweapon.rdr",
+  "catalog_weapon_id": "ak-47",
   "category": "Assault Rifles",
-  "display_name": "ak-47",
+  "coordinate_space": {
+    "grip_offset": "weapon_root_local_meters",
+    "weapon_sockets": "weapon_pivot_local_meters"
+  },
+  "display_name": "AK-47",
+  "encumbrance": 1,
   "grip_offset": {
     "pos_x": 0.0,
     "pos_y": 0.0,
     "pos_z": 0.0,
-    "rot_x": 0.0,
-    "rot_y": 0.0,
-    "rot_z": 0.0
+    "rot_x": -84.5158,
+    "rot_y": -87.42641,
+    "rot_z": -21.50843
   },
-  "model_fbx": "res://assets/weapons/ps1_ak47/source/ak-47.fbx",
+  "handling_profile": {
+    "animation_slots": {
+      "fire_crouched": "crouch_fire",
+      "fire_prone": "prone_fire",
+      "fire_standing": "combat_fire",
+      "idle_crouched": "idle_crouch",
+      "idle_prone": "idle_prone",
+      "idle_standing": "aim_idle",
+      "ready_crouched": "aim_idle_crouch",
+      "reload_crouched": "reload_ak47",
+      "reload_prone": "prone_reload",
+      "reload_standing": "reload_ak47"
+    },
+    "dynamic_hold": {
+      "animation_carry_limit_m": 0.025,
+      "animation_carry_weight": 0.4,
+      "animation_drives_ready_hands": true,
+      "authored_animation_owns_weapon_mount": false,
+      "buttstock_constraint": {
+        "downward_offset_m": 0.0,
+        "enabled": true,
+        "forward_offset_m": 0.0,
+        "inward_offset_m": 0.055,
+        "maximum_correction_m": 0.4,
+        "by_stance": {
+          "PRONE": {
+            "downward_offset_m": 0.12,
+            "forward_offset_m": -0.03,
+            "inward_offset_m": 0.055
+          }
+        }
+      },
+      "hand_socket_ik_enabled": false,
+      "support_hand_socket_ik_enabled": true,
+      "support_hand_ik_blend_seconds": 0.2,
+      "hand_owned_aim_correction_limit_deg": 32.0,
+      "fire_saved_joint_rotations_enabled": false,
+      "fire_spine_ccdik_enabled": false,
+      "relaxed_idle_upper_body_weight": 0.0,
+      "ready_locomotion_inheritance": 0.0,
+      "reload_return_blend_seconds": 0.18,
+      "right_hand_owns_weapon": true
+    },
+    "family": "TWO_HAND_RIFLE",
+    "locomotion_family": "RIFLE",
+    "mapping_version": 1,
+    "ready_aim": {
+      "fire_hold_seconds": 1.2,
+      "fire_terminal_pose_hold_seconds": 0.12
+    },
+    "reload_duration_seconds": 1.75,
+    "support_hand_required": true
+  },
+  "model_fbx": "res://assets/external/agls_intake/imported/weapons/ak47/ak47.glb",
+  "model_rotation_degrees": {
+    "x": 0.0,
+    "y": 0.0,
+    "z": 0.0
+  },
   "normalized_scale": 1.0,
+  "operator_mount": {
+    "attachment_mode": "trigger_hand_socket",
+    "bone_name": "mixamorig_RightHand",
+    "position": {
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    },
+    "rotation_degrees": {
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    }
+  },
+  "recom_assets": {
+    "icon_texture": "ak_47_icon.tif",
+    "model_name": "ak47",
+    "reload_sound": "SND_AK47_RELOAD"
+  },
   "scope_attachment": "None",
   "silencer_attachment": "None",
+  "socket_contract_authored": true,
+  "socom_original_id": 58,
   "weapon_id": "ak-47",
   "weapon_sockets": {
+    "barrel_base_socket": {
+      "x": 0.0,
+      "y": 0.08459,
+      "z": 0.301776
+    },
+    "buttstock_socket": {
+      "x": 0.0,
+      "y": 0.036564,
+      "z": -0.306726
+    },
     "ejection_port": {
-      "x": 0.0500000007450581,
-      "y": 0.0299999993294477,
-      "z": 0.0599999986588955
+      "x": 0.020296,
+      "y": 0.10264,
+      "z": 0.140029
     },
     "left_hand_ik_target": {
-      "x": 0.200000002980232,
-      "y": -0.0299999993294477,
-      "z": 0.0
+      "x": 0.045742,
+      "y": 0.058888,
+      "z": 0.247412
     },
     "muzzle_socket": {
-      "x": 0.699999988079071,
-      "y": 0.0199999995529652,
-      "z": 0.0
+      "x": 0.0,
+      "y": 0.089968,
+      "z": 0.622505
     },
     "optic_rail": {
-      "x": 0.0500000007450581,
-      "y": 0.0799999982118607,
-      "z": 0.0
+      "x": 0.0,
+      "y": 0.118641,
+      "z": 0.087364
+    },
+    "right_hand_grip_target": {
+      "x": 0.0,
+      "y": 0.049863,
+      "z": 0.058773
     }
   },
   "reticle": {
@@ -93,5 +201,29 @@
     }
   },
   "default_fire_mode": "semi",
-  "burst_size": 3
+  "burst_size": 3,
+  "weapon_hand_markers_role": "diagnostic_only",
+  "weapon_contact_graph": {
+    "schema_version": 1,
+    "enabled": true,
+    "space": "animated_target_local_offsets_meters",
+    "targets": {
+      "right_shoulder": {
+        "position_offset_m": {"x": 0.0, "y": 0.0, "z": 0.0},
+        "rotation_offset_degrees": {"x": 0.0, "y": 0.0, "z": 0.0}
+      },
+      "trigger_hand": {
+        "position_offset_m": {"x": 0.0, "y": 0.0, "z": 0.0},
+        "rotation_offset_degrees": {"x": 0.0, "y": 0.0, "z": 0.0}
+      },
+      "support_hand": {
+        "position_offset_m": {"x": 0.0, "y": 0.0, "z": 0.0},
+        "rotation_offset_degrees": {"x": 0.0, "y": 0.0, "z": 0.0}
+      },
+      "spine_aim": {
+        "position_offset_m": {"x": 0.0, "y": 0.0, "z": 0.0},
+        "rotation_offset_degrees": {"x": 0.0, "y": 0.0, "z": 0.0}
+      }
+    }
+  }
 }

@@ -36,7 +36,7 @@ func _advance_demolition_objective(delta: float) -> void:
 		for raw_id: Variant in objective_interact_held.keys():
 			if not bool(objective_interact_held.get(raw_id, false)):
 				continue
-			var candidate := operators.get(int(raw_id)) as SocomNetworkOperator
+			var candidate: Variant = operators.get(int(raw_id))
 			if candidate == null or not candidate.alive:
 				continue
 			if candidate.global_position.distance_to(bomb_world_position) <= 1.6:
@@ -47,12 +47,12 @@ func _advance_demolition_objective(delta: float) -> void:
 				_broadcast_objective_state()
 				break
 		return
-	var carrier := operators.get(bomb_carrier_peer_id) as SocomNetworkOperator
+	var carrier: Variant = operators.get(bomb_carrier_peer_id)
 	if carrier == null or not carrier.alive:
 		_drop_bomb_from_peer(bomb_carrier_peer_id)
 		return
 	bomb_world_position = carrier.global_position
-	var target_team := 1 - carrier.team_id
+	var target_team: int = 1 - int(carrier.team_id)
 	var near_target := false
 	for raw_target: Variant in bomb_site_positions.get(target_team, []):
 		if carrier.global_position.distance_to(Vector3(raw_target)) <= 1.8:
@@ -90,7 +90,7 @@ func _advance_bomb_defuse(delta: float) -> void:
 		var peer_id := int(raw_id)
 		if not bool(objective_interact_held.get(raw_id, false)):
 			continue
-		var candidate := operators.get(peer_id) as SocomNetworkOperator
+		var candidate: Variant = operators.get(peer_id)
 		if (
 			candidate != null
 			and candidate.alive
@@ -135,7 +135,7 @@ func _reset_demolition_objective() -> void:
 func _drop_bomb_from_peer(peer_id: int) -> void:
 	if bomb_carrier_peer_id != peer_id:
 		return
-	var carrier := operators.get(peer_id) as SocomNetworkOperator
+	var carrier: Variant = operators.get(peer_id)
 	if carrier != null:
 		bomb_world_position = carrier.global_position
 	bomb_carrier_peer_id = 0
@@ -221,7 +221,7 @@ func _spawn_for_team(team: int, member_index: int) -> Vector3:
 func _team_member_count(team: int) -> int:
 	var count := 0
 	for raw_id in operators:
-		var operator := operators[raw_id] as SocomNetworkOperator
+		var operator: Variant = operators[raw_id]
 		if operator != null and operator.team_id == team:
 			count += 1
 	return count

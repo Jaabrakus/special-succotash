@@ -1,5 +1,5 @@
 class_name SocomMultiplayerSlice
-extends "res://scripts/network/socom_multiplayer_world_ui.gd"
+extends "res://scripts/network/socom_multiplayer_tournament_runtime.gd"
 
 # RPC annotations must live on the concrete scene script. These thin
 # forwarders preserve the wire contract while feature layers own logic.
@@ -36,9 +36,19 @@ func receive_lobby_state(snapshot: Dictionary) -> void:
 func request_lobby_team(team: int) -> void:
 	super.request_lobby_team(team)
 
+
+@rpc("any_peer", "call_remote", "reliable")
+func request_lobby_pair(pair_id: int) -> void:
+	super.request_lobby_pair(pair_id)
+
+
 @rpc("any_peer", "call_remote", "reliable")
 func request_lobby_ready(ready: bool) -> void:
 	super.request_lobby_ready(ready)
+
+@rpc("any_peer", "call_remote", "reliable")
+func request_sudden_death_vote(candidate_peer_id: int) -> void:
+	super.request_sudden_death_vote(candidate_peer_id)
 
 @rpc("authority", "call_remote", "reliable")
 func receive_match_started(round_number: int, time_limit_seconds: float) -> void:
@@ -53,6 +63,10 @@ func receive_round_state(
 	active: bool
 ) -> void:
 	super.receive_round_state(time_remaining, alpha_rounds, bravo_rounds, current_round, active)
+
+@rpc("authority", "call_remote", "reliable")
+func receive_sudden_death_vote_state(state: Dictionary) -> void:
+	super.receive_sudden_death_vote_state(state)
 
 @rpc("authority", "call_remote", "reliable")
 func receive_return_to_lobby(message: String) -> void:
@@ -111,6 +125,21 @@ func receive_damage_feedback(
 @rpc("authority", "call_remote", "reliable")
 func receive_match_event(message: String) -> void:
 	super.receive_match_event(message)
+
+
+@rpc("authority", "call_remote", "reliable")
+func receive_tournament_assignment(peer_id: int, team: int, spawn: Vector3, arena_id: int) -> void:
+	super.receive_tournament_assignment(peer_id, team, spawn, arena_id)
+
+
+@rpc("authority", "call_remote", "reliable")
+func receive_tournament_arena_layout() -> void:
+	super.receive_tournament_arena_layout()
+
+
+@rpc("authority", "call_remote", "reliable")
+func receive_tournament_roster(arena_id: int, members: Array) -> void:
+	super.receive_tournament_roster(arena_id, members)
 
 @rpc("authority", "call_remote", "reliable")
 func receive_ammo_state(magazine_rounds: int, reserve_rounds: int) -> void:

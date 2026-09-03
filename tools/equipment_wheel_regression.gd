@@ -153,7 +153,6 @@ func _run() -> void:
 		and rifle.visible,
 		"primary quick-select restores the rendered rifle after grenade use"
 	)
-
 	main.queue_free()
 	await process_frame
 	if failures.is_empty():

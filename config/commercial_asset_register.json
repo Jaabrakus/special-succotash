@@ -125,6 +125,18 @@
       "license_or_contract": "CC0 1.0 Public Domain Dedication",
       "evidence": "assets/audio/grenades/PROVENANCE.md with source URLs and SHA-256 hashes",
       "required_action": "Retain provenance record with shipped source archive."
+    },
+    {
+      "id": "cc_by_military_tactical_suit",
+      "path": "res://assets/characters/military_tactical_suit",
+      "purpose": "production operator visual skin",
+      "included_in_customer_build": true,
+      "status": "approved_open_source",
+      "source": "Sketchfab Military tactical suit (LowPolyGameReady)",
+      "creator": "DanlyVostok",
+      "license_or_contract": "Creative Commons Attribution 4.0 International",
+      "evidence": "assets/characters/military_tactical_suit/PROVENANCE.md with source URL, embedded glTF metadata, and SHA-256 hash",
+      "required_action": "Retain the provenance file and include the creator attribution in shipped credits."
     }
   ]
 }

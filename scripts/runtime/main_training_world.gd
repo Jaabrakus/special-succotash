@@ -1,7 +1,7 @@
 class_name SocomMainTrainingWorld
 extends Node
 
-const PlayerScene := preload("res://scenes/player/operator_player.tscn")
+const PlayerScene := preload("res://scenes/player/native_ik_socom_player.tscn")
 const CameraRig := preload("res://scripts/camera/socom_camera.gd")
 const TargetDummy := preload("res://scripts/combat/lab_leak_target_dummy.gd")
 const MovingTargetDummy := preload("res://scripts/combat/socom_moving_training_dummy.gd")
@@ -72,6 +72,11 @@ func build_environment() -> void:
 	_profile_startup_step("map_document", profile_started)
 	var phase_started := Time.get_ticks_usec()
 	if not map_document.is_empty() and bool(map_document.get("enabled", true)):
+		if host.has_node("World"):
+			var world_node: Node = host.get_node("World")
+			if world_node is CanvasItem or world_node is Node3D:
+				world_node.visible = false
+				world_node.process_mode = Node.PROCESS_MODE_DISABLED
 		MapAmbience.build_into(host, map_document)
 		_profile_startup_step("map_ambience", phase_started)
 		phase_started = Time.get_ticks_usec()
@@ -81,21 +86,22 @@ func build_environment() -> void:
 		_build_objective_visuals()
 		_profile_startup_step("map_objectives", phase_started)
 		return
-	var world_env := WorldEnvironment.new()
-	var environment := Environment.new()
-	environment.background_mode = Environment.BG_COLOR
-	environment.background_color = Color(0.11, 0.13, 0.16)
-	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	environment.ambient_light_color = Color(0.72, 0.76, 0.82)
-	environment.ambient_light_energy = 0.75
-	world_env.environment = environment
-	host.add_child(world_env)
-	var sun := DirectionalLight3D.new()
-	sun.rotation_degrees = Vector3(-48, -35, 0)
-	sun.light_energy = 1.4
-	sun.shadow_enabled = true
-	host.add_child(sun)
-	_add_box("Floor", Vector3(24, 0.25, 28), Vector3(0, -0.125, -5), Color(0.30, 0.32, 0.35))
+	if not host.has_node("World"):
+		var world_env := WorldEnvironment.new()
+		var environment := Environment.new()
+		environment.background_mode = Environment.BG_COLOR
+		environment.background_color = Color(0.11, 0.13, 0.16)
+		environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+		environment.ambient_light_color = Color(0.72, 0.76, 0.82)
+		environment.ambient_light_energy = 0.75
+		world_env.environment = environment
+		host.add_child(world_env)
+		var sun := DirectionalLight3D.new()
+		sun.rotation_degrees = Vector3(-48, -35, 0)
+		sun.light_energy = 1.4
+		sun.shadow_enabled = true
+		host.add_child(sun)
+		_add_box("Floor", Vector3(24, 0.25, 28), Vector3(0, -0.125, -5), Color(0.30, 0.32, 0.35))
 	_add_box("RearWall", Vector3(8, 3.0, 0.35), Vector3(0, 1.5, 8.0), Color(0.45, 0.43, 0.39))
 	_add_box("LeftWall", Vector3(0.35, 3.0, 9), Vector3(-4.2, 1.5, -1.0), Color(0.38, 0.41, 0.44))
 	_add_box("LowCover", Vector3(5.0, 1.1, 0.6), Vector3(0, 0.55, -4.0), Color(0.37, 0.34, 0.31))
@@ -257,10 +263,16 @@ func set_target_range_active(enabled: bool) -> void:
 
 
 func build_player() -> void:
-	player = PlayerScene.instantiate() as CharacterBody3D
-	player.name = "Player"
-	player.position = MapDocument.player_spawn(map_document, Vector3(0, 0.05, 0.5))
-	host.add_child(player)
+	var spawned_player: CharacterBody3D = null
+	if host.has_node("Player") and host.get_node("Player") is CharacterBody3D:
+		spawned_player = host.get_node("Player") as CharacterBody3D
+	else:
+		spawned_player = PlayerScene.instantiate() as CharacterBody3D
+		spawned_player.name = "Player"
+		host.add_child(spawned_player)
+	spawned_player.position = MapDocument.player_spawn(map_document, Vector3(0, 0.05, 0.5))
+	host.set("player", spawned_player)
+	player = spawned_player
 	var profile := PlayerProfile.load_profile()
 	player.call("configure_max_health", float(profile.get("max_health", 100.0)))
 	host.set("grenade_limits", (profile.get("grenade_limits", {}) as Dictionary).duplicate(true))
@@ -335,29 +347,43 @@ func reset_test_camera() -> void:
 
 
 func build_camera() -> void:
-	camera_rig = CameraRig.new()
-	camera_rig.name = "IndependentCameraRig"
-	camera_rig.target = player
-	var mannequin = player.get_node("Mannequin")
-	camera_rig.head_marker = mannequin.head_marker
-	camera_rig.torso_marker = mannequin.torso_marker
-	camera_rig.pelvis_marker = mannequin.pelvis_marker
-	camera_rig.feet_marker = mannequin.feet_marker
-	host.add_child(camera_rig)
-	if bool(host.get("wall_test_active")):
-		camera_rig.yaw = deg_to_rad(-90.0) if OS.get_cmdline_user_args().has("--wall-follow-test") else deg_to_rad(20.0)
-		camera_rig.pitch = deg_to_rad(-6.0)
-	elif OS.get_cmdline_user_args().has("--side-orbit-test"):
-		camera_rig.yaw = deg_to_rad(90.0)
-		camera_rig.pitch = deg_to_rad(20.0) if OS.get_cmdline_user_args().has("--upward-aim-test") else deg_to_rad(-2.0)
-	elif OS.get_cmdline_user_args().has("--up-orbit-test"):
-		camera_rig.yaw = deg_to_rad(-20.0)
-		camera_rig.pitch = deg_to_rad(9.0)
+	var rig: Node3D = null
+	if host.has_node("CameraRig"):
+		rig = host.get_node("CameraRig") as Node3D
+	elif host.has_node("IndependentCameraRig"):
+		rig = host.get_node("IndependentCameraRig") as Node3D
 	else:
-		camera_rig.yaw = player.global_rotation.y
+		rig = CameraRig.new()
+		rig.name = "IndependentCameraRig"
+		host.add_child(rig)
+	rig.set("target", player)
+	var mannequin: Node = player.get_node_or_null("Mannequin") if player != null else null
+	if mannequin != null:
+		rig.set("head_marker", mannequin.get("head_marker"))
+		rig.set("torso_marker", mannequin.get("torso_marker"))
+		rig.set("pelvis_marker", mannequin.get("pelvis_marker"))
+		rig.set("feet_marker", mannequin.get("feet_marker"))
+	elif player != null:
+		rig.set("head_marker", player.get("head_marker"))
+		rig.set("torso_marker", player.get("torso_marker"))
+		rig.set("pelvis_marker", player.get("pelvis_marker"))
+		rig.set("feet_marker", player.get("feet_marker"))
+	host.set("camera_rig", rig)
+	camera_rig = rig
+	if bool(host.get("wall_test_active")):
+		rig.set("yaw", deg_to_rad(-90.0) if OS.get_cmdline_user_args().has("--wall-follow-test") else deg_to_rad(20.0))
+		rig.set("pitch", deg_to_rad(-6.0))
+	elif OS.get_cmdline_user_args().has("--side-orbit-test"):
+		rig.set("yaw", deg_to_rad(90.0))
+		rig.set("pitch", deg_to_rad(20.0) if OS.get_cmdline_user_args().has("--upward-aim-test") else deg_to_rad(-2.0))
+	elif OS.get_cmdline_user_args().has("--up-orbit-test"):
+		rig.set("yaw", deg_to_rad(-20.0))
+		rig.set("pitch", deg_to_rad(9.0))
+	else:
+		rig.set("yaw", player.global_rotation.y)
 	var acoustic: Node = host.get_node_or_null("/root/AcousticPropagation")
 	if acoustic != null and acoustic.has_method("set_listener"):
-		acoustic.call("set_listener", camera_rig)
+		acoustic.call("set_listener", rig)
 
 
 func _configure_acoustic_world(document: Dictionary) -> void:
@@ -370,6 +396,8 @@ func _set_bomb_backpack(visible: bool) -> void:
 	var mannequin: Node = player.get_node_or_null("Mannequin") if player != null else null
 	if mannequin != null and mannequin.has_method("set_bomb_backpack_visible"):
 		mannequin.call("set_bomb_backpack_visible", visible)
+	elif player != null and player.has_method("set_bomb_backpack_visible"):
+		player.call("set_bomb_backpack_visible", visible)
 
 
 func _add_box(box_name: String, size: Vector3, position: Vector3, color: Color) -> void:

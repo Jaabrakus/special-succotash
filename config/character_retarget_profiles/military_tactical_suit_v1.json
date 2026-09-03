@@ -1,0 +1,117 @@
+{
+  "schema_version": 1,
+  "profile_id": "military_tactical_suit_v1",
+  "character_id": "military_tactical_suit",
+  "version": 1,
+  "reference_rig": "ps1_operator_mixamo_65",
+  "source_asset": "res://assets/characters/military_tactical_suit/military_tactical_suit_tpose.glb",
+  "animation_library": "res://assets/characters/military_tactical_suit/military_tactical_suit_animation_library_v1_1.glb",
+  "anatomy": {
+    "left_arm": {
+      "shoulder": "mixamorig:LeftShoulder_032",
+      "upper_arm": "mixamorig:LeftArm_033",
+      "forearm": "mixamorig:LeftForeArm_034",
+      "hand": "mixamorig:LeftHand_035",
+      "index_knuckle": "mixamorig:LeftHandIndex1_040",
+      "middle_knuckle": "mixamorig:LeftHandMiddle1_044",
+      "pinky_knuckle": "mixamorig:LeftHandPinky1_052"
+    },
+    "right_arm": {
+      "shoulder": "mixamorig:RightShoulder_08",
+      "upper_arm": "mixamorig:RightArm_09",
+      "forearm": "mixamorig:RightForeArm_010",
+      "hand": "mixamorig:RightHand_011",
+      "index_knuckle": "mixamorig:RightHandIndex1_027",
+      "middle_knuckle": "mixamorig:RightHandMiddle1_016",
+      "pinky_knuckle": "mixamorig:RightHandPinky1_023"
+    },
+    "left_leg": {
+      "upper_leg": "mixamorig:LeftUpLeg_063",
+      "lower_leg": "mixamorig:LeftLeg_064",
+      "foot": "mixamorig:LeftFoot_065",
+      "toe": "mixamorig:LeftToeBase_066"
+    },
+    "right_leg": {
+      "upper_leg": "mixamorig:RightUpLeg_057",
+      "lower_leg": "mixamorig:RightLeg_058",
+      "foot": "mixamorig:RightFoot_059",
+      "toe": "mixamorig:RightToeBase_060"
+    }
+  },
+  "twist": {
+    "left": {
+      "forearm_share": 0.72,
+      "hand_share": 0.28,
+      "soft_limit_degrees": 75.0,
+      "hard_limit_degrees": 95.0
+    },
+    "right": {
+      "forearm_share": 0.72,
+      "hand_share": 0.28,
+      "soft_limit_degrees": 75.0,
+      "hard_limit_degrees": 95.0
+    }
+  },
+  "joint_limits_degrees": {
+    "left_elbow": {"minimum": 15.0, "maximum": 155.0},
+    "right_elbow": {"minimum": 15.0, "maximum": 155.0},
+    "left_wrist_twist": {"minimum": -75.0, "maximum": 75.0},
+    "right_wrist_twist": {"minimum": -75.0, "maximum": 75.0},
+    "left_ankle_pitch": {"minimum": -45.0, "maximum": 50.0},
+    "right_ankle_pitch": {"minimum": -45.0, "maximum": 50.0},
+    "left_foot_yaw": {"minimum": -20.0, "maximum": 20.0},
+    "right_foot_yaw": {"minimum": -20.0, "maximum": 20.0}
+  },
+  "quality_limits": {
+    "palm_forward_error_degrees": 5.0,
+    "palm_normal_error_degrees": 5.0,
+    "foot_forward_error_degrees": 5.0,
+    "sole_normal_error_degrees": 7.5,
+    "hand_socket_error_m": 0.02,
+    "foot_ground_error_m": 0.015
+  },
+  "latest_measurements": {
+    "method": "blender_anatomical_landmarks_v1",
+    "reference": "mixamo_rifle_aiming_idle_rest",
+    "left_palm": {
+      "forward_error_degrees": 32.234,
+      "normal_error_degrees": 38.29
+    },
+    "right_palm": {
+      "forward_error_degrees": 19.424,
+      "normal_error_degrees": 65.588
+    }
+  },
+  "latest_library_verification": {
+    "blender_version": "5.2.1 LTS",
+    "actions": 82,
+    "sampled_frames_per_action": 3,
+    "skin_bind_samples": 3936,
+    "maximum_centroid_to_bone_m": 0.068837,
+    "centroid_to_bone_limit_m": 0.08,
+    "run_forward_minimum_elbow_clearance_m": 0.24,
+    "run_forward_hand_target_error_m": 0.0,
+    "run_forward_rotation_drift_degrees": 0.0,
+    "status": "pass"
+  },
+  "latest_live_verification": {
+    "engine": "Godot 4.7.1",
+    "aim_right_palm_socket_error_m": 0.0006,
+    "aim_left_palm_socket_error_m": 0.0013,
+    "right_to_left_foot_heading_difference_degrees": 2.62,
+    "right_ankle_procedural_yaw_degrees": 0.0,
+    "right_heel_ground_error_m": 0.0001,
+    "left_heel_ground_error_m": 0.0016,
+    "status": "pass"
+  },
+  "preview_actions": [
+    "aim_idle",
+    "run_forward",
+    "crouch_forward",
+    "prone_forward",
+    "grenade_throw",
+    "reload",
+    "dive_roll",
+    "jump_forward_action"
+  ]
+}

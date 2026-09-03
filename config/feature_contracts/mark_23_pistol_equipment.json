@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "feature_id": "mark_23_pistol_equipment",
+  "player_intent": "The purchased Mark 23 appears as a human-scale two-hand pistol and remains in the pistol family through standing, movement, crouch, accepted-shot recovery, dive, and return.",
+  "acceptance_rule": "The canonical Mark 23 profile renders Pistol_2 at 0.20-0.25 meters, provides authored grip and bore sockets, resolves as TWO_HAND_PISTOL, uses pistol idle and locomotion clips, and routes standing and crouched FIRE_ACCEPTED to the pistol recoil layer for the existing 1.2-second recovery. Equipment replacement clears the previous weapon's fire, frame-socket, stock, and IK solver presentation state without changing locomotion, dive/roll, reload, camera/reticle aim, or authoritative shot and damage owners.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://scenes/player/operator_player.tscn",
+  "ownership": {
+    "weapon_equipment_presentation": "SocomOperatorWeaponEquipmentRuntime",
+    "saved_mark_23_visual_contract": "GunsmithWeaponProfileRepository",
+    "pistol_family_animation_routes": "SocomOperatorAnimationProfile",
+    "movement_and_collision": "CharacterBody3D",
+    "aim_intent": "SOCOMCameraReticleChain",
+    "shot_and_damage": "AuthoritativeServerWeapon"
+  },
+  "nodes": [
+    {
+      "id": "mark_23_attached_weapon",
+      "type": "Node3D",
+      "role": "Loads the calibrated Mark 23 mesh and creates its authored trigger, support-hand, barrel-base, muzzle, ejection, optic, and non-stock diagnostic sockets.",
+      "owner": "SocomOperatorWeaponEquipmentRuntime",
+      "source_script": "res://scripts/player/operator_asset_runtime.gd",
+      "code_symbols": [
+        "weapon_node = Node3D.new()",
+        "calibrated_weapon_pivot = Node3D.new()",
+        "_add_weapon_socket(calibrated_pivot, \"Socket_Muzzle\""
+      ]
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://config/weapons/mark_23.json",
+      "writer": "res://scripts/labs/gunsmith/gunsmith_persistence_controller.gd",
+      "readers": [
+        "res://scripts/weapons/weapon_rig_contract.gd",
+        "res://scripts/player/operator_asset_runtime.gd",
+        "res://scripts/player/operator_weapon_equipment_runtime.gd"
+      ]
+    },
+    {
+      "path": "res://config/operator_animation_map.json",
+      "writer": "res://scripts/player/operator_animation_profile.gd",
+      "readers": [
+        "res://scripts/player/operator_animation_profile.gd",
+        "res://scripts/player/operator_animation_driver_presentation.gd",
+        "res://scripts/player/operator_locomotion_blend_tree.gd"
+      ]
+    }
+  ],
+  "must_not_change": [
+    "CharacterBody3D movement, posture, collision, dive, and roll authority",
+    "SOCOM camera and reticle aim-intent authority",
+    "server muzzle validation, accepted shot, ballistics, damage, and networking authority",
+    "rifle visual profile, rifle family routes, and rifle fire recovery",
+    "reload completion and explicit fire-interrupt semantics"
+  ],
+  "proof_scripts": [
+    "res://tools/mark_23_equipment_regression.gd",
+    "res://tools/feature_contract_regression.gd"
+  ],
+  "visual_check": "Buy and equip MARK 23 in res://main.tscn. Confirm the visible firearm is pistol-sized, its right hand remains at the trigger grip, its left hand stays at the two-hand grip, and its barrel points along the reticle-facing weapon line. Stand, move, crouch, fire in both postures, dive, and return; the operator must remain in the pistol family with no rifle-sized mesh, rifle stock solve, overhead rifle pose, or rifle fire/Aim Idle route.",
+  "system_delta": {
+    "decision": "REPLACE",
+    "reason": "Replace the sparse catalog presentation and generated rifle-length sockets with a complete per-model Mark 23 calibration, explicit pistol event routes, and replacement-safe solver defaults. Merge those changes into the existing equipment, animation-profile, and visual-rig owners while preserving gameplay authority.",
+    "current": {
+      "system": "Sparse Mark 23 catalog profile normalized with generic rifle-scale mount, contacts, muzzle, and fallback fire route",
+      "correctness": 0,
+      "ownership_clarity": 2,
+      "runtime_parity": 1,
+      "editor_usability": 1,
+      "performance": 4,
+      "regression_coverage": 1,
+      "evidence_paths": [
+        "res://config/weapons/mark_23.json",
+        "res://scripts/weapons/weapon_rig_contract.gd",
+        "res://scripts/player/operator_weapon_equipment_runtime.gd",
+        "res://scripts/player/operator_animation_profile.gd"
+      ]
+    },
+    "candidate": {
+      "system": "Canonical per-model Mark 23 visual contract with explicit TWO_HAND_PISTOL routes and clean solver replacement",
+      "correctness": 5,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 4,
+      "performance": 4,
+      "regression_coverage": 5,
+      "evidence_paths": [
+        "res://config/weapons/mark_23.json",
+        "res://scripts/weapons/weapon_animation_profile.gd",
+        "res://scripts/player/operator_animation_profile.gd",
+        "res://scripts/player/operator_weapon_equipment_runtime.gd",
+        "res://scripts/player/operator_weapon_pose_api.gd",
+        "res://scripts/player/operator_weapon_stock_constraint.gd",
+        "res://tools/mark_23_equipment_regression.gd"
+      ]
+    }
+  }
+}

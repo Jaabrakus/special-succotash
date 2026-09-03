@@ -20,7 +20,8 @@ const DIRECTION_SUFFIXES: Array[StringName] = [
 
 const DEFAULT_CLIPS: Dictionary = {
 	&"idle_rifle": "res://assets/animations/mixamo/Lite Rifle Pack/idle.fbx",
-	&"aim_idle": "res://assets/animations/mixamo/Shooter Pack/rifle aiming idle.fbx",
+	&"aim_idle": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/idle aiming.fbx",
+	&"aim_idle_crouch": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/idle crouching aiming.fbx",
 	&"run_forward": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/run forward.fbx",
 	&"run_backward": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/run backward.fbx",
 	&"run_left": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/run left.fbx",
@@ -76,6 +77,9 @@ const DEFAULT_CLIPS: Dictionary = {
 	&"prone_stop_backward": "res://assets/animations/mixamo/Prone Backwards Stop.fbx",
 	&"pistol_idle": "res://assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol idle.fbx",
 	&"pistol_idle_kneeling": "res://assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol kneeling idle.fbx",
+	&"pistol_fire": "res://assets/external/agls_intake/imported/weapon_recoil/ALSv2_Pistol_2H_Recoil_Offset_01.scn",
+	&"pistol_reload": "res://assets/external/agls_intake/imported/weapon_reload/ALSP2_Reload_Pistol.scn",
+	&"pistol_reload_hold_prone": "res://assets/animations/mixamo/Prone Forward Stop.fbx",
 	&"pistol_walk_forward": "res://assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol walk.fbx",
 	&"pistol_walk_backward": "res://assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol walk backward.fbx",
 	&"pistol_strafe_left": "res://assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol strafe.fbx",
@@ -106,7 +110,7 @@ const DEFAULT_CLIPS: Dictionary = {
 }
 
 const LOOPING_CLIPS: Array[StringName] = [
-	&"idle_rifle", &"aim_idle",
+	&"idle_rifle", &"aim_idle", &"aim_idle_crouch",
 	&"run_forward", &"run_backward", &"run_left", &"run_right",
 	&"run_forward_left", &"run_forward_right", &"run_back_left", &"run_back_right",
 	&"walk_forward", &"walk_backward", &"walk_left", &"walk_right",
@@ -288,6 +292,7 @@ func load_project_map(path: String = MAP_PATH) -> void:
 		clip_paths,
 		config.get("event_routes", {}) as Dictionary
 	)
+	_ensure_builtin_weapon_family_routes()
 	_merge_numeric_section(locomotion, config.get("locomotion", {}))
 	_merge_numeric_section(transitions, config.get("transitions", {}))
 
@@ -411,6 +416,76 @@ func resolve_animation_event_presentation(
 		"posture": String(posture_name),
 		"weapon_family": String(weapon_family),
 	})
+
+
+func _ensure_builtin_weapon_family_routes() -> void:
+	# The shared authored map predates pistol purchases and therefore has only a
+	# rifle family branch. Do not let its generic rifle fallback replace the
+	# pistol pose when a sparse catalog weapon becomes equipped. Accepted pistol
+	# shots stay on the posture-matched stable ready pose while the independent
+	# recovery latch owns timing; reload routes remain reload-only. These routes
+	# are installed only when the saved map has no explicit pistol branch, so
+	# future Animation Studio authorship remains authoritative.
+	_install_family_route_if_missing(
+		"FIRE_ACCEPTED",
+		"TWO_HAND_PISTOL",
+		"pistol_idle",
+		{
+			"STANDING": "pistol_idle",
+			"CROUCHED": "pistol_idle_kneeling",
+			"PRONE": "idle_prone",
+		}
+	)
+	_install_family_route_if_missing(
+		"WEAPON_EQUIPPED",
+		"TWO_HAND_PISTOL",
+		"pistol_idle",
+		{
+			"STANDING": "pistol_idle",
+			"CROUCHED": "pistol_idle_kneeling",
+			"PRONE": "idle_prone",
+		}
+	)
+	_install_family_route_if_missing(
+		"RELOAD_STARTED",
+		"TWO_HAND_PISTOL",
+		"pistol_reload",
+		{
+			"STANDING": "pistol_reload",
+			"CROUCHED": "pistol_reload",
+			"PRONE": "pistol_reload_hold_prone",
+		}
+	)
+
+
+func _install_family_route_if_missing(
+	event_name: String,
+	family_name: String,
+	default_state: String,
+	posture_states: Dictionary
+) -> void:
+	var raw_route: Variant = event_routes.get(event_name, {})
+	if not raw_route is Dictionary or not clip_paths.has(StringName(default_state)):
+		return
+	var route := (raw_route as Dictionary).duplicate(true)
+	var family_states: Dictionary = (
+		(route.get("family_states", {}) as Dictionary).duplicate(true)
+		if route.get("family_states", {}) is Dictionary
+		else {}
+	)
+	if family_states.has(family_name):
+		return
+	var connected_postures: Dictionary = {}
+	for posture_name in posture_states:
+		var state_name := StringName(posture_states[posture_name])
+		if clip_paths.has(state_name):
+			connected_postures[String(posture_name)] = String(state_name)
+	family_states[family_name] = {
+		"default_state": default_state,
+		"posture_states": connected_postures,
+	}
+	route["family_states"] = family_states
+	event_routes[event_name] = route
 
 
 func transition_blend_seconds(

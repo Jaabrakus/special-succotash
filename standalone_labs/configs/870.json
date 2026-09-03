@@ -1,0 +1,51 @@
+{
+  "ammo_spec": {
+    "impact_damage": 0.0,
+    "piercing": 0.0,
+    "stun": 4.0,
+    "type": "12 Gauge"
+  },
+  "ballistics": {
+    "base_spread_deg": 0.429,
+    "bloom_per_shot_deg": 1.0,
+    "bloom_recovery_speed": 17.5,
+    "damage": 25.0,
+    "effective_range_m": 400.0,
+    "fire_rate_rpm": 120.0,
+    "full_gait_spread_deg": 1.543,
+    "headshot_multiplier": 3.5,
+    "is_silenced": false,
+    "magazine_capacity": 12.0,
+    "max_range_m": 350.0,
+    "max_recoil_bloom_deg": 2.6,
+    "moving_spread_deg": 1.029,
+    "muzzle_velocity_mps": 393.0,
+    "reserve_ammo": 36.0
+  },
+  "burst_size": 3,
+  "catalog_source": "reCOM zweapon.rdr",
+  "catalog_weapon_id": "870",
+  "category": "Shotguns",
+  "default_fire_mode": "semi",
+  "display_name": "870",
+  "encumbrance": 1,
+  "fire_modes": [
+    "semi"
+  ],
+  "model_fbx": "res://assets/weapons/modular_pack/Shotgun_2.fbx",
+  "recom_assets": {
+    "icon_texture": "remington870_icon.tif",
+    "model_name": "remington870",
+    "reload_sound": "SND_M4_A1_RELOAD"
+  },
+  "reticle": {
+    "base_gap_px": 5.1,
+    "max_gap_px": 41.6,
+    "maximum_shot_kick_px": 60.0,
+    "response_speed": 26.2,
+    "shot_kick_px": 20.0,
+    "shot_kick_return": 40.0
+  },
+  "socom_original_id": 84,
+  "weapon_id": "870"
+}

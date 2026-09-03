@@ -38,34 +38,53 @@ func _run() -> void:
 		and bool(player.get_meta("reload_action_pending", false)),
 		"reload owns both gameplay and presentation trigger state"
 	)
-	var ammo_before_blocked_fire := int(weapon.get("rounds_in_magazine"))
-	var blocked_fire: Dictionary = weapon.call("request_fire")
+	var ammo_before_interrupt := int(weapon.get("rounds_in_magazine"))
+	weapon.emit_signal("reload_fire_interrupt_requested")
 	_expect(
-		not bool(blocked_fire.get("fired", false))
-		and String(blocked_fire.get("reason", "")) == "RELOADING"
-		and int(weapon.get("rounds_in_magazine")) == ammo_before_blocked_fire,
-		"shooting cannot overlap the active reload"
+		not bool(main.get("reload_commit_pending"))
+		and not bool(weapon.get("reload_locked"))
+		and "reload" not in String(driver.get("requested_action")).to_lower(),
+		"fire click cancels the active partial-magazine reload"
 	)
+	var interrupted_fire: Dictionary = weapon.call("request_fire")
+	_expect(
+		bool(interrupted_fire.get("fired", false))
+		and int(weapon.get("rounds_in_magazine")) == ammo_before_interrupt - 1,
+		"the interrupting fire click shoots one remaining round"
+	)
+	var restarted := bool(main.call("_request_weapon_reload"))
+	_expect(restarted, "reload can restart after the interrupting shot")
+	var ammo_before_reload := int(weapon.get("rounds_in_magazine"))
 	var planned_duration := float(driver.get("requested_action_total_duration"))
 	for _frame in 12:
 		await process_frame
 	_expect(rendered_rifle.visible, "rifle remains visible during reload")
 	var started_at_msec := Time.get_ticks_msec()
 	var frames := 0
+	var commit_frame := -1
+	var committed_during_recovery := false
 	while bool(main.get("reload_commit_pending")) and frames < 600:
 		await process_frame
 		frames += 1
+		if commit_frame < 0 and int(weapon.get("rounds_in_magazine")) != ammo_before_reload:
+			commit_frame = frames
+			committed_during_recovery = (
+				bool(main.get("reload_commit_pending"))
+				and bool(weapon.get("reload_locked"))
+			)
 	var elapsed := float(Time.get_ticks_msec() - started_at_msec) / 1000.0
 	var magazine := int(weapon.get("rounds_in_magazine"))
 	var reserve := int(weapon.get("reserve_rounds"))
 	var capacity := int(weapon.get("magazine_capacity"))
-	var expected_magazine := mini(capacity, 25)
-	var expected_reserve := 25 - expected_magazine
+	var expected_total := ammo_before_reload + 20
+	var expected_magazine := mini(capacity, expected_total)
+	var expected_reserve := expected_total - expected_magazine
 	print(
-		"GAMEPLAY_RELOAD_COMPLETION_METRIC planned=%.3f elapsed=%.3f frames=%d ammo=%d/%d pending=%s" % [
+		"GAMEPLAY_RELOAD_COMPLETION_METRIC planned=%.3f elapsed=%.3f frames=%d commit_frame=%d ammo=%d/%d pending=%s" % [
 			planned_duration,
 			elapsed,
 			frames,
+			commit_frame,
 			magazine,
 			reserve,
 			str(bool(main.get("reload_commit_pending"))),
@@ -73,6 +92,11 @@ func _run() -> void:
 	)
 	_expect(not bool(main.get("reload_commit_pending")), "playable reload completes without test fast-forwarding")
 	_expect(not bool(weapon.get("reload_locked")), "reload completion returns trigger ownership")
+	_expect(commit_frame > 0, "playable reload commits ammunition at an authored timeline cue")
+	_expect(
+		committed_during_recovery,
+		"magazine-in commits ammunition while reload recovery still owns the trigger"
+	)
 	_expect(rendered_rifle.visible, "rifle remains visible after reload")
 	_expect(
 		rendered_rifle.global_position.distance_to(player.global_position) <= 2.5,

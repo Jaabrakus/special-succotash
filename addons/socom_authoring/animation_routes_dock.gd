@@ -6,6 +6,7 @@ extends VBoxContainer
 ## same profile, contracts, and resolver; edits remain drafts until explicit save.
 
 signal play_requested
+signal pose_lineup_requested
 signal document_transaction_requested(
 	action_name: String,
 	before_document: Dictionary,
@@ -210,6 +211,14 @@ func _build_interface() -> void:
 	boundary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	boundary.add_theme_color_override("font_color", Color(0.45, 0.9, 0.72))
 	add_child(boundary)
+	var pose_lineup_button := Button.new()
+	pose_lineup_button.text = "Open Gun Pose Lineup — Native 3D Editor"
+	pose_lineup_button.tooltip_text = (
+		"Opens every important rifle state side-by-side in Godot's real 3D editor "
+		+ "with the native Scene hierarchy, Inspector, TargetPivot nodes, and gizmos."
+	)
+	pose_lineup_button.pressed.connect(func() -> void: pose_lineup_requested.emit())
+	add_child(pose_lineup_button)
 	source_label = Label.new()
 	source_label.text = "SOURCE OF TRUTH\n%s" % profile_path
 	source_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

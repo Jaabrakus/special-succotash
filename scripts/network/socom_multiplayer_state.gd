@@ -29,13 +29,16 @@ const MapGameplay := preload("res://scripts/maps/socom_map_gameplay_contract.gd"
 const DemolitionBombScene := preload("res://scenes/objectives/demolition_bomb.tscn")
 const MultiplayerHUDScript := preload("res://scripts/network/socom_multiplayer_hud.gd")
 const MatchInvite := preload("res://scripts/network/socom_match_invite.gd")
+const DeploymentProfile := preload(
+	"res://scripts/network/socom_multiplayer_deployment_profile.gd"
+)
 const SessionCompatibility := preload("res://scripts/network/socom_session_compatibility.gd")
 const ServerBackendScript := preload("res://scripts/server/socom_server_backend.gd")
 const ExitMenuScript := preload("res://scripts/ui/socom_exit_menu.gd")
 const PlayerScript := preload("res://scripts/player/player_controller.gd")
 
 const DEFAULT_PORT := 14141
-const MAX_PLAYERS := 16
+const MAX_PLAYERS := 32
 const SNAPSHOT_INTERVAL := 1.0 / 20.0
 const SNAPSHOT_ENTITIES_PER_PACKET := 4
 const RESPAWN_SECONDS := 3.0
@@ -87,12 +90,15 @@ var spawn_points: Array[Vector3] = [
 	Vector3(7.0, 0.05, -13.0), Vector3(9.0, 0.05, -11.0),
 ]
 
-var network_peer: ENetMultiplayerPeer
+var network_peer: MultiplayerPeer
+var multiplayer_deployment_profile: Dictionary = {}
+var active_network_transport := "offline"
+var active_network_endpoint := ""
 var dedicated_server_mode := false
-var server_backend: SocomServerBackend
-var exit_menu: SocomExitMenu
-var local_camera: SocomCameraRig
-var local_operator: SocomNetworkOperator
+var server_backend = null
+var exit_menu = null
+var local_camera = null
+var local_operator = null
 var snapshot_accumulator: float = 0.0
 var local_fire_cooldown: float = 0.0
 var local_reload_pending: bool = false
@@ -142,7 +148,7 @@ var bravo_team_button: Button
 var ready_button: Button
 var lobby_status_label: Label
 var objective_status_label: Label
-var multiplayer_hud: SocomMultiplayerHUD
+var multiplayer_hud = null
 var local_magazine_ammo: int = 0
 var local_reserve_ammo: int = 0
 
@@ -207,6 +213,12 @@ func _objective_state_snapshot() -> Dictionary:
 
 func _on_operator_eliminated(victim_peer_id: int, attacker_peer_id: int) -> void:
 	pass
+
+
+## Tournament runtime overrides this. Standard modes retain their existing
+## global team-versus-team damage rule.
+func is_damage_allowed_between(_attacker_peer_id: int, _victim_peer_id: int) -> bool:
+	return true
 
 func _present_shot(
 	shooter_peer_id: int,
@@ -290,6 +302,9 @@ func _team_member_count(team: int) -> int:
 func _try_submit_local_shot() -> void:
 	pass
 
+func _submit_sudden_death_vote_selection(_candidate_peer_id: int) -> void:
+	pass
+
 func _update_bomb_visual() -> void:
 	pass
 
@@ -308,6 +323,9 @@ func receive_round_state(
 ) -> void:
 	pass
 
+func receive_sudden_death_vote_state(_state: Dictionary) -> void:
+	pass
+
 func receive_server_map(document: Dictionary) -> void:
 	pass
 
@@ -315,4 +333,7 @@ func spawn_operator(peer_id: int, team: int, spawn_position: Vector3) -> void:
 	pass
 
 func submit_movement(packet: Dictionary) -> void:
+	pass
+
+func request_sudden_death_vote(_candidate_peer_id: int) -> void:
 	pass

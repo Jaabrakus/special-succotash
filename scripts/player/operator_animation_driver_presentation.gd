@@ -63,6 +63,17 @@ func _apply_presentation_plan(plan: Dictionary) -> bool:
 
 func _play_presentation_action_timed(plan: Dictionary, target_duration_seconds: float) -> bool:
 	var clip_name := StringName(plan.get("state", ""))
+	if StringName(plan.get("event", "")) == &"RELOAD_STARTED":
+		# The router chooses the rifle-family action; the equipped visual contract
+		# chooses the actual weapon clip. Keeping this final lookup in the canonical
+		# consumer lets AK/M4 share gameplay reload authority while using different
+		# authored presentation takes.
+		var equipped_reload := _resolve_equipped_weapon_action(&"reload")
+		if equipped_reload != &"":
+			plan["family_route_state"] = String(clip_name)
+			clip_name = equipped_reload
+			plan["state"] = String(clip_name)
+			plan["clip_path"] = String(clip_paths.get(clip_name, ""))
 	if clip_name == &"" or animation_player == null:
 		return false
 	var animation := animation_player.get_animation(clip_name)
@@ -90,9 +101,8 @@ func _apply_fire_presentation(plan: Dictionary) -> bool:
 	if AnimationStateContract.ENTER_READY_AIM in presentation_effects:
 		_trigger_fire_ready_aim()
 	if _fire_uses_aim_idle(event_fire_clip):
-		# Standing and crouch import the complete Gunsmith Aim Idle baseline. Bloom and
-		# reticle kick remain as shot feedback; the fire take must not replace the
-		# authored torso, weapon transform, dimensions, or grip sockets.
+		# FIRE_RECOVERY owns the stable Aim Idle presentation for its bounded
+		# interval. Do not start a second combat_fire/crouch_fire one-shot here.
 		_fire_pose_clip = &""
 		_fire_pose_time = 0.0
 		_fire_pose_duration = 0.0

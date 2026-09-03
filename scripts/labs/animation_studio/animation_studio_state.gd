@@ -5,6 +5,7 @@ const MILITARY_TACTICAL_SCENE := preload("res://assets/characters/military_tacti
 const OPERATOR_SCENE := preload("res://assets/characters/operator3d/socom_141_operator_animated.glb")
 const MIXAMO_SKIN_SCENE := preload("res://assets/characters/operator3d/mixamo_beta_skin.glb")
 const PS1_NV_SCENE := preload("res://assets/characters/ps1_night_vision_operator/NVoperatorsoldier.glb")
+const SWAT_OPERATOR_SCENE := preload("res://assets/characters/swat_operator/swat_operator.glb")
 const COUNTER_STRIKE_URBAN_SCENE_PATH := (
     "res://counter-strike-urban/source/Counter Strike Urban.fbx"
 )
@@ -16,7 +17,9 @@ const COUNTER_STRIKE_URBAN_BACKPACK_TEXTURE_PATH := (
 )
 const PS1_GAS_MASK_OBJ := preload("res://assets/characters/ps1_gas_mask_soldier/sasman5.obj")
 const PS1_GAS_MASK_TEX := preload("res://assets/characters/ps1_gas_mask_soldier/trooper.png")
-const AK47_FBX_SCENE := preload("res://assets/weapons/ps1_ak47/source/ak-47.fbx")
+const UNIVERSAL_WEAPON_STICK_SCENE := preload(
+    "res://assets/weapons/placeholders/universal_weapon_stick.tscn"
+)
 const AK47_TEXTURE := preload("res://assets/weapons/ps1_ak47/textures/AK-47TextureMap.png")
 const ANIMATION_MAP_PATH := "res://config/operator_animation_map.json"
 const HIGHLIGHT_SHORTLIST_PATH := "res://config/highlighted_animation_candidates.json"
@@ -118,7 +121,8 @@ enum SkinType {
     SOCOM_OPERATOR,
     MIXAMO_MANNEQUIN,
     PS1_NIGHT_VISION_SEAL,
-    COUNTER_STRIKE_URBAN
+    COUNTER_STRIKE_URBAN,
+    SWAT_OPERATOR
 }
 
 enum WeaponType {

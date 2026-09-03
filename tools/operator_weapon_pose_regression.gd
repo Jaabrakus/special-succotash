@@ -35,6 +35,13 @@ func _run() -> void:
 	if player == null or rig == null or driver == null:
 		_finish()
 		return
+	var initial_debug_pose: Dictionary = driver.call(
+		"get_animation_debug_state"
+	).get("weapon_pose", {})
+	if bool(initial_debug_pose.get("authored_animation_owns_weapon_mount", false)):
+		await _check_authored_animation_mount(player, rig, driver)
+		_finish()
+		return
 
 	# This regression audits the reticle-driven Ready Aim solver. Normal
 	# gameplay intentionally starts at relaxed rifle carry and enters Ready Aim
@@ -115,7 +122,10 @@ func _run() -> void:
 	# Gunsmith line used to leave the rifle fixed in the player's root space.
 	# Sample one gait cycle and require a small, bounded visual carry instead of
 	# the stretched-arm/world-pinned result. Gameplay aim remains checked below.
-	rig.call("set_aim_angles", 0.0, 0.0, true)
+	# Audit gait carry on an unobstructed long sightline. The centered Training
+	# Range ray hits a wall only 2.85 m ahead; running toward that fixed point
+	# rotates the rifle sharply upward and is target tracking, not gait bob.
+	rig.call("set_aim_angles", 0.0, deg_to_rad(18.0), true)
 	await _steps(24)
 	var locomotion_start_position := player.global_position
 	var minimum_relative_weapon_y := INF
@@ -252,7 +262,24 @@ func _run() -> void:
 		var before_position := player.global_position
 		var before_velocity := player.velocity
 		var before_target: Vector3 = rig.get("weapon_aim_point")
-		await _steps(3)
+		# Isolate the presentation consumer from the live camera update. Waiting
+		# several scene frames here lets the camera legitimately reacquire a new
+		# world hit point and falsely attributes that movement to the arm solver.
+		driver.set_process(false)
+		solver.call(
+			"apply",
+			float(rig.get("aim_yaw")),
+			float(rig.get("aim_pitch")),
+			&"PRONE",
+			&"LOCOMOTION",
+			1.0,
+			0.0,
+			&"",
+			false,
+			before_target,
+			player,
+			1.0 / 60.0
+		)
 		_expect(
 			player.global_position.distance_to(before_position) < 0.001,
 			"visual arm solver never moves the authoritative player"
@@ -269,7 +296,6 @@ func _run() -> void:
 		# Force the visual solver into a close-cover pose without changing the
 		# gameplay target. This isolates the obstruction contract from whichever
 		# lab wall the centered camera ray currently selected.
-		driver.set_process(false)
 		solver.call(
 			"apply",
 			0.0,
@@ -831,6 +857,105 @@ func _check_crouched_reload_anatomy(driver: Node) -> void:
 	_expect(
 		reload_owner_was_stable and reload_support_released_before_regrip,
 		"reload has one right-hand owner and releases support-hand IK during the take"
+	)
+
+
+func _check_authored_animation_mount(
+	player: CharacterBody3D,
+	rig: Node,
+	driver: Node
+) -> void:
+	var asset_runtime = driver.get("asset_runtime")
+	var attachment := asset_runtime.weapon_attachment as BoneAttachment3D
+	var weapon := driver.get("weapon_node") as Node3D
+	var skeleton := driver.get("skeleton") as Skeleton3D
+	var pose: Dictionary = driver.call(
+		"get_animation_debug_state"
+	).get("weapon_pose", {})
+	_expect(
+		attachment != null and attachment.bone_name == &"ik_hand_gun",
+		"authored M4 uses the native AGLS gun mount bone"
+	)
+	_expect(
+		weapon != null and weapon.get_parent() == attachment,
+		"authored M4 has one animation-bone parent"
+	)
+	_expect(
+		weapon != null and weapon.transform.is_equal_approx(Transform3D.IDENTITY),
+		"authored M4 has no guessed hand-placement offset"
+	)
+	_expect(
+		StringName(pose.get("weapon_owner", &""))
+		== WeaponOwnershipContract.AUTHORED_ANIMATION_MOUNT,
+		"authored AGLS animation is the only visual weapon owner"
+	)
+	_expect(
+		StringName(pose.get("arm_owner", &""))
+		== WeaponOwnershipContract.ARMS_BASE_ANIMATION
+		and StringName(pose.get("support_hand_mode", &""))
+		== WeaponOwnershipContract.SUPPORT_ANIMATION_FREE,
+		"both arms and hands remain animation-owned"
+	)
+	_expect(
+		not bool(pose.get("hand_socket_ik_enabled", true))
+		and not bool(pose.get("weapon_solver_owned", true)),
+		"procedural hand IK and weapon placement remain disabled"
+	)
+	if skeleton != null and attachment != null:
+		var gun_index := skeleton.find_bone(&"ik_hand_gun")
+		var left_index := skeleton.find_bone(&"mixamorig_LeftHand")
+		var right_index := skeleton.find_bone(&"mixamorig_RightHand")
+		_expect(gun_index >= 0, "live AGLS skeleton preserves ik_hand_gun")
+		if gun_index >= 0:
+			skeleton.force_update_all_bone_transforms()
+			var gun_world := skeleton.global_transform * skeleton.get_bone_global_pose(
+				gun_index
+			)
+			_expect(
+				attachment.global_position.distance_to(gun_world.origin) <= 0.002,
+				"weapon attachment follows the animated AGLS gun bone"
+			)
+		if left_index >= 0 and right_index >= 0:
+			var hand_distance := skeleton.get_bone_global_pose(left_index).origin.distance_to(
+				skeleton.get_bone_global_pose(right_index).origin
+			)
+			_expect(
+				hand_distance >= 0.15 and hand_distance <= 0.45,
+				"authored AGLS two-hand rifle pose stays human-sized"
+			)
+	var mannequin := player.get_node_or_null("Mannequin")
+	var muzzle := mannequin.call("get_active_muzzle_marker") as Marker3D
+	var barrel := mannequin.call("get_active_barrel_base_marker") as Marker3D
+	_expect(
+		muzzle != null and barrel != null
+		and muzzle.global_position.distance_to(barrel.global_position) > 0.15,
+		"authored M4 keeps gameplay-facing barrel markers"
+	)
+	var player_position := player.global_position
+	var player_velocity := player.velocity
+	rig.call("set_aim_angles", deg_to_rad(24.0), deg_to_rad(-8.0), true)
+	driver.set("requested_weapon_ready_weight", 1.0)
+	driver.set("weapon_ready_weight", 1.0)
+	await _steps(12)
+	pose = driver.call("get_animation_debug_state").get("weapon_pose", {})
+	_expect(
+		StringName(pose.get("weapon_owner", &""))
+		== WeaponOwnershipContract.AUTHORED_ANIMATION_MOUNT
+		and not bool(pose.get("weapon_solver_owned", true)),
+		"camera aim cannot take weapon ownership from the AGLS animation"
+	)
+	_expect(
+		player.global_position.distance_to(player_position) <= 0.001
+		and player.velocity.distance_to(player_velocity) <= 0.001,
+		"authored weapon presentation never moves the CharacterBody"
+	)
+	_expect(bool(driver.call("notify_fired")), "authored M4 accepts the fire presentation event")
+	await _steps(3)
+	pose = driver.call("get_animation_debug_state").get("weapon_pose", {})
+	_expect(
+		StringName(pose.get("weapon_owner", &""))
+		== WeaponOwnershipContract.AUTHORED_ANIMATION_MOUNT,
+		"fire recoil keeps the AGLS animation mount owner"
 	)
 
 

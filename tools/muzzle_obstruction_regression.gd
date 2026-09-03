@@ -48,9 +48,9 @@ func _run() -> void:
 		return
 	var server_muzzle := muzzle_marker.global_position
 	var server_anchor: Vector3 = slice.call("_authoritative_shot_report_anchor", shooter)
-	var server_direction := server_muzzle.direction_to(server_muzzle + -shooter.global_basis.z * 20.0)
+	var server_direction: Vector3 = shooter.mannequin.get_active_barrel_direction()
 	if server_direction.length_squared() < 0.99:
-		server_direction = Vector3.FORWARD
+		server_direction = -shooter.global_basis.z
 	ballistics.base_spread_deg = 0.0
 	ballistics.moving_spread_deg = 0.0
 	ballistics.full_gait_spread_deg = 0.0
@@ -117,6 +117,8 @@ func _run() -> void:
 		shooter.mannequin.get_active_muzzle_marker() as Node3D
 	).global_position
 	_align_target_torso(target, clear_server_muzzle + server_direction * 8.0)
+	if slice.get("operator_state_history") != null:
+		slice.operator_state_history.clear()
 	var clear_packet := _aim_packet(2, server_anchor, server_direction)
 	slice.call("_server_process_shot", peer_id, clear_packet)
 	_expect(
@@ -159,7 +161,8 @@ func _align_target_torso(target: SocomNetworkOperator, target_point: Vector3) ->
 	var torso := target.hurtbox_rig.get_region_area(&"TORSO") as Area3D
 	if torso == null:
 		return
-	target.global_position += target_point - torso.global_position
+	var offset := target.global_position - torso.global_position
+	target.global_position = target_point + offset
 	target.force_update_transform()
 	target.hurtbox_rig.force_pose_update()
 

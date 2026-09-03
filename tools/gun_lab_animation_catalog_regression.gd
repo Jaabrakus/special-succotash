@@ -126,33 +126,38 @@ func _run() -> void:
 	lab.call("_fire_shot")
 	await process_frame
 	var attached_frame_editor = lab.get("animation_frame_editor")
-	var standing_fire_clip := StringName(
+	var retired_standing_fire_clip := StringName(
 		(lab.get("handling_profile") as Dictionary).get("animation_slots", {}).get(
 			"fire_standing",
 			""
 		)
 	)
+	var standing_recovery_clip := StringName(
+		(lab.call("_fire_event_presentation") as Dictionary).get("state", "")
+	)
 	_expect(
 		attached_frame_editor != null
 		and bool(attached_frame_editor.get("active"))
 		and bool(attached_frame_editor.get("playing"))
-		and StringName(attached_frame_editor.get("clip_name")) == standing_fire_clip,
-		"a Gunsmith shot attaches its mapped fire clip to the live frame editor"
+		and StringName(attached_frame_editor.get("clip_name")) == standing_recovery_clip
+		and standing_recovery_clip == &"aim_idle"
+		and standing_recovery_clip != retired_standing_fire_clip,
+		"a Gunsmith shot previews stable recovery aim instead of the retired fire reaction"
 	)
 	lab.call("_toggle_current_animation_frame_editor")
 	_expect(
 		bool(attached_frame_editor.get("active"))
 		and not bool(attached_frame_editor.get("playing"))
-		and StringName(attached_frame_editor.get("clip_name")) == standing_fire_clip,
-		"Edit Current pauses the attached fire clip instead of closing or guessing"
+		and StringName(attached_frame_editor.get("clip_name")) == standing_recovery_clip,
+		"Edit Current pauses the attached recovery pose instead of closing or guessing"
 	)
 	lab.call("_leave_animation_frame_editor")
 	lab.call("_finish_preview_to_idle")
 	lab.call("_toggle_current_animation_frame_editor")
 	_expect(
 		bool(attached_frame_editor.get("active"))
-		and StringName(attached_frame_editor.get("clip_name")) == standing_fire_clip,
-		"Edit Current reopens the explicit fire reaction after the preview returns to idle"
+		and StringName(attached_frame_editor.get("clip_name")) == standing_recovery_clip,
+		"Edit Current reopens the accepted-shot recovery pose after preview returns to idle"
 	)
 	lab.call("_leave_animation_frame_editor")
 	var viewport_center: Vector2 = lab.get_viewport().get_visible_rect().size * 0.5

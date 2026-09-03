@@ -1,8 +1,8 @@
 import * as THREE from "three";
 import { FBXLoader } from "three/addons/loaders/FBXLoader.js";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 
-import operatorUrl from "../../../assets/characters/ps1_gas_mask_soldier/trooper_rigged.fbx?url";
-import operatorTextureUrl from "../../../assets/characters/ps1_gas_mask_soldier/trooper.png?url";
+import operatorUrl from "../../../assets/characters/swat_operator/swat_operator.glb?url";
 import rifleUrl from "../../../assets/weapons/ps1_ak47/source/ak-47.fbx?url";
 import rifleTextureUrl from "../../../assets/weapons/ps1_ak47/textures/AK-47TextureMap.png?url";
 import idleUrl from "../../../assets/animations/mixamo/Rifle Aiming Idle.fbx?url";
@@ -14,6 +14,7 @@ import { CAMERA, GRENADE, MOVEMENT, WEAPON } from "./gameplay-config.js";
 import {
   blastDamage,
   bloomAfterShot,
+  canonicalBoneName,
   grenadeSpeed,
   moveToward,
   recoverBloom,
@@ -44,6 +45,7 @@ scene.fog = new THREE.FogExp2(0x313943, 0.018);
 
 const camera = new THREE.PerspectiveCamera(CAMERA.fov, 1, CAMERA.near, 260);
 const loader = new FBXLoader();
+const gltfLoader = new GLTFLoader();
 const textureLoader = new THREE.TextureLoader();
 const raycaster = new THREE.Raycaster();
 const clock = { previous: performance.now() };
@@ -232,13 +234,22 @@ function applyTexture(object, texture, pixelated = true) {
 
 function compatibleClip(source, object) {
   const clip = source.clone();
-  clip.tracks = clip.tracks.filter((track) => {
+  const animationNodes = new Map();
+  object.traverse((node) => {
+    const key = canonicalBoneName(node.name);
+    if (key && !animationNodes.has(key)) animationNodes.set(key, node);
+  });
+  clip.tracks = clip.tracks.flatMap((track) => {
     try {
       const binding = THREE.PropertyBinding.parseTrackName(track.name);
-      if (!THREE.PropertyBinding.findNode(object, binding.nodeName)) return false;
-      return !(binding.nodeName?.toLowerCase().includes("hips") && binding.propertyName === "position");
+      const targetNode = animationNodes.get(canonicalBoneName(binding.nodeName));
+      if (!targetNode) return [];
+      if (canonicalBoneName(binding.nodeName) === "hips" && binding.propertyName === "position") return [];
+      const retargetedTrack = track.clone();
+      retargetedTrack.name = `${targetNode.name}.${binding.propertyName}`;
+      return [retargetedTrack];
     } catch {
-      return false;
+      return [];
     }
   });
   clip.resetDuration();
@@ -247,9 +258,8 @@ function compatibleClip(source, object) {
 
 async function loadOperator() {
   try {
-    const [operator, operatorTexture, rifle, rifleTexture, idleSource, runSource, crouchSource, proneSource] = await Promise.all([
-      loader.loadAsync(operatorUrl),
-      textureLoader.loadAsync(operatorTextureUrl),
+    const [operatorGltf, rifle, rifleTexture, idleSource, runSource, crouchSource, proneSource] = await Promise.all([
+      gltfLoader.loadAsync(operatorUrl),
       loader.loadAsync(rifleUrl),
       textureLoader.loadAsync(rifleTextureUrl),
       loader.loadAsync(idleUrl),
@@ -258,7 +268,13 @@ async function loadOperator() {
       loader.loadAsync(proneUrl),
     ]);
 
-    applyTexture(operator, operatorTexture);
+    const operator = operatorGltf.scene;
+    operator.traverse((child) => {
+      if (!child.isMesh && !child.isSkinnedMesh) return;
+      child.castShadow = true;
+      child.receiveShadow = true;
+      child.frustumCulled = false;
+    });
     normalizeModel(operator, 1.78);
     operator.rotation.y = Math.PI;
     player.visual = operator;

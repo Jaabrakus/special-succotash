@@ -175,7 +175,7 @@ func step(delta: float) -> void:
         rig._sync_aim_to_orbit()
         initial_orbit_sync_pending = false
 
-    if Input.is_action_just_pressed("reset_camera"):
+    if InputMap.has_action("reset_camera") and Input.is_action_just_pressed("reset_camera"):
         aim_yaw = target.global_rotation.y
         aim_pitch = deg_to_rad(-2.0)
         yaw = aim_yaw

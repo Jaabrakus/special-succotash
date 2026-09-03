@@ -205,6 +205,15 @@ func respawn_at(spawn_position: Vector3) -> void:
 	set_bomb_carrier(false)
 
 
+func deactivate_for_round() -> void:
+	# The operator remains network-visible for spectating, but cannot move,
+	# collide, fire, or receive damage while its teammate fights sudden death.
+	snapshot_history.clear()
+	velocity = Vector3.ZERO
+	set_bomb_carrier(false)
+	_set_alive_and_health(false, 0.0)
+
+
 func set_bomb_carrier(active: bool) -> void:
 	carrying_demolition_bomb = active
 	if mannequin != null:

@@ -4,6 +4,8 @@ extends EditorPlugin
 const DockContent := preload("res://addons/socom_authoring/animation_routes_dock.gd")
 const RouteTransaction := preload("res://addons/socom_authoring/route_document_transaction.gd")
 const TOOL_MENU_TITLE := "SOCOM Routes"
+const POSE_LINEUP_MENU_TITLE := "SOCOM Gun Pose Lineup"
+const POSE_LINEUP_SCENE := "res://scenes/labs/gun_pose_lineup_lab.tscn"
 
 var dock: EditorDock
 var content: SocomAnimationRoutesDock
@@ -13,6 +15,7 @@ var scroll: ScrollContainer
 func _enter_tree() -> void:
 	content = DockContent.new()
 	content.play_requested.connect(_play_canonical_game)
+	content.pose_lineup_requested.connect(_open_pose_lineup)
 	content.document_transaction_requested.connect(_record_document_transaction)
 	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	dock = EditorDock.new()
@@ -31,6 +34,7 @@ func _enter_tree() -> void:
 	dock.add_child(scroll)
 	add_dock(dock)
 	add_tool_menu_item(TOOL_MENU_TITLE, _show_routes_dock)
+	add_tool_menu_item(POSE_LINEUP_MENU_TITLE, _open_pose_lineup)
 	dock.open()
 	dock.make_visible()
 	# Editor layout restoration happens after plugin registration. Focus again
@@ -41,6 +45,7 @@ func _enter_tree() -> void:
 
 func _exit_tree() -> void:
 	remove_tool_menu_item(TOOL_MENU_TITLE)
+	remove_tool_menu_item(POSE_LINEUP_MENU_TITLE)
 	if dock != null:
 		remove_dock(dock)
 		dock.queue_free()
@@ -58,6 +63,25 @@ func _show_routes_dock() -> void:
 		dock.open()
 		dock.make_visible()
 		print("SOCOM_AUTHORING_DOCK VISIBLE")
+
+
+func _open_pose_lineup() -> void:
+	EditorInterface.open_scene_from_path(POSE_LINEUP_SCENE)
+	EditorInterface.set_main_screen_editor("3D")
+	_focus_pose_lineup.call_deferred()
+
+
+func _focus_pose_lineup() -> void:
+	await get_tree().process_frame
+	await get_tree().process_frame
+	var edited_root := EditorInterface.get_edited_scene_root()
+	if edited_root == null:
+		return
+	var lineup := edited_root.get_node_or_null("PoseLineup")
+	if lineup != null:
+		EditorInterface.get_selection().clear()
+		EditorInterface.get_selection().add_node(lineup)
+	print("SOCOM_GUN_POSE_LINEUP OPEN scene=%s" % POSE_LINEUP_SCENE)
 
 
 func _focus_routes_after_layout() -> void:

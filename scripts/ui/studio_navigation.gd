@@ -16,6 +16,8 @@ var current_label: Label
 var suppress_next_scene_record: bool = false
 var persist_history: bool = true
 var mouse_mode_before_panel := Input.MOUSE_MODE_VISIBLE
+var registered_labs: Array[Dictionary] = []
+var lab_picker: OptionButton
 
 
 func _ready() -> void:
@@ -79,6 +81,7 @@ func get_debug_state() -> Dictionary:
 		"overlay_live": overlay != null and is_instance_valid(overlay),
 		"history_visible": history_panel != null and history_panel.visible,
 		"registered_scenes": scene_labels.duplicate(),
+		"registered_lab_count": registered_labs.size(),
 	}
 
 
@@ -143,6 +146,7 @@ func _jump_to_history(index: int) -> void:
 
 
 func _load_scene_labels() -> void:
+	registered_labs.clear()
 	if not FileAccess.file_exists(MANIFEST_PATH):
 		return
 	var file := FileAccess.open(MANIFEST_PATH, FileAccess.READ)
@@ -152,7 +156,16 @@ func _load_scene_labels() -> void:
 	for raw_lab in (parsed as Dictionary).get("labs", []):
 		if raw_lab is Dictionary:
 			var lab := raw_lab as Dictionary
-			scene_labels[String(lab.get("scene", ""))] = String(lab.get("label", "Lab"))
+			var scene_path := String(lab.get("scene", ""))
+			var label := String(lab.get("label", "Lab"))
+			scene_labels[scene_path] = label
+			if (
+				not scene_path.is_empty()
+				and String(lab.get("id", "")) not in [
+					"game_launcher", "multiplayer_slice",
+				]
+			):
+				registered_labs.append({"scene": scene_path, "label": label})
 
 
 func _load_history() -> void:
@@ -246,6 +259,17 @@ func _build_overlay() -> void:
 	hint.add_theme_font_size_override("font_size", 11)
 	hint.add_theme_color_override("font_color", Color("9aa4b5"))
 	column.add_child(hint)
+	lab_picker = OptionButton.new()
+	lab_picker.name = "RegisteredStudioLabPicker"
+	lab_picker.add_item("OPEN A STUDIO LAB…")
+	for lab in registered_labs:
+		lab_picker.add_item(String(lab.get("label", "Lab")))
+		lab_picker.set_item_metadata(
+			lab_picker.item_count - 1,
+			String(lab.get("scene", ""))
+		)
+	lab_picker.item_selected.connect(_open_registered_lab)
+	column.add_child(lab_picker)
 	column.add_child(HSeparator.new())
 
 	var scroll := ScrollContainer.new()
@@ -255,6 +279,14 @@ func _build_overlay() -> void:
 	history_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.add_child(history_list)
 	_refresh_overlay()
+
+
+func _open_registered_lab(index: int) -> void:
+	if index <= 0 or lab_picker == null:
+		return
+	var scene_path := String(lab_picker.get_item_metadata(index))
+	lab_picker.select(0)
+	open_scene(scene_path)
 
 
 func _refresh_overlay() -> void:

@@ -167,8 +167,11 @@ func _find_animation_player(node: Node) -> AnimationPlayer:
 func _request_save_everything() -> void:
 	GunsmithPersistenceController._request_save_everything(self)
 
-func _save_weapon_config() -> bool:
-	return GunsmithPersistenceController._save_weapon_config(self)
+func _save_weapon_config(equip_for_gameplay: bool = false) -> bool:
+	return GunsmithPersistenceController._save_weapon_config(self, equip_for_gameplay)
+
+func _save_and_equip_selected_weapon() -> void:
+	GunsmithPersistenceController._save_and_equip_selected_weapon(self)
 
 func _weapon_sockets_save_data() -> Dictionary:
 	return GunsmithPersistenceController._weapon_sockets_save_data(self)

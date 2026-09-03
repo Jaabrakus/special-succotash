@@ -1,0 +1,108 @@
+{
+  "schema_version": 1,
+  "feature_id": "native_ik_weapon_holding",
+  "player_intent": "The operator holds the equipped firearm naturally with both hands; the right hand grips the pistol grip, the left hand cups the foregrip without floating or clipping, and elbows bend anatomically during idle, movement, aiming, and firing.",
+  "acceptance_rule": "The canonical player loads the standard 68-bone humanoid skeleton with native TwoBoneIK3D support-hand solving to the weapon-local foregrip target and UpperChest elbow pole; trigger and foregrip contact errors remain within 0.5 cm, elbow angles remain within 30 to 160 degrees, and upper-body combat fire and reload one-shots blend over moving legs.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://scenes/player/native_ik_socom_player.tscn",
+  "ownership": {
+    "operator_presentation": "SocomNativeIKPlayerController",
+    "locomotion_and_collision": "CharacterBody3D",
+    "aim_intent": "SOCOMCameraReticleChain",
+    "shot_and_damage": "AuthoritativeServerWeapon"
+  },
+  "nodes": [
+    {
+      "id": "humanoid_skeleton",
+      "type": "Skeleton3D",
+      "role": "Owns the 68-bone humanoid skeleton and native modifier stack at 1.0 scale.",
+      "owner": "SocomNativeIKPlayerController",
+      "scene_path": "res://scenes/player/native_ik_reference_source.tscn",
+      "node_path": "Model/GeneralSkeleton"
+    },
+    {
+      "id": "support_hand_two_bone_ik",
+      "type": "TwoBoneIK3D",
+      "role": "Solves left upper arm, lower arm, and hand to the weapon's LHikTarget.",
+      "owner": "SocomNativeIKPlayerController",
+      "scene_path": "res://scenes/player/native_ik_reference_source.tscn",
+      "node_path": "Model/GeneralSkeleton/LHTwoBoneIK3D"
+    },
+    {
+      "id": "support_hand_rotation_copy",
+      "type": "CopyTransformModifier3D",
+      "role": "Aligns the left wrist rotation with the weapon's foregrip orientation.",
+      "owner": "SocomNativeIKPlayerController",
+      "scene_path": "res://scenes/player/native_ik_reference_source.tscn",
+      "node_path": "Model/GeneralSkeleton/LHCopyTransformModifier3D2"
+    },
+    {
+      "id": "upper_chest_elbow_pole",
+      "type": "BoneAttachment3D",
+      "role": "Maintains natural anatomical elbow outward bias as the torso rotates and breathes.",
+      "owner": "SocomNativeIKPlayerController",
+      "scene_path": "res://scenes/player/native_ik_reference_source.tscn",
+      "node_path": "BoneAttachment3D"
+    },
+    {
+      "id": "weapon_holder",
+      "type": "BoneAttachment3D",
+      "role": "Parents the equipped weapon root directly to the right hand palm.",
+      "owner": "SocomNativeIKPlayerController",
+      "scene_path": "res://scenes/player/native_ik_reference_source.tscn",
+      "node_path": "Model/GeneralSkeleton/RShoulderBoneAttachment3D2"
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://config/character_retarget_profiles/godot_new_ik_v1.json",
+      "writer": "res://config/character_retarget_profiles/godot_new_ik_v1.json",
+      "readers": [
+        "res://scripts/player/native_ik_socom_player_controller.gd"
+      ]
+    }
+  ],
+  "must_not_change": [
+    "CharacterBody3D movement and collision authority",
+    "SOCOM camera and reticle aim authority",
+    "server muzzle, shot, ballistics, damage, and networking authority"
+  ],
+  "proof_scripts": [
+    "res://tools/native_ik_socom_player_regression.gd",
+    "res://tools/native_ik_gold_standard_live_regression.gd",
+    "res://tools/feature_contract_regression.gd"
+  ],
+  "visual_check": "Boot res://main.tscn. Confirm the operator holds the rifle firmly with both hands at the chest; walk in all 8 directions and confirm the left hand stays locked to the foregrip and elbows stay natural without twisting.",
+  "system_delta": {
+    "decision": "REPLACE",
+    "reason": "Replace 4,200 lines of fragile procedural math and 62x scaled Mixamo skeleton with native Godot TwoBoneIK3D and 1.0-scale standard humanoid rig.",
+    "current": {
+      "system": "Procedural weapon pose placement and bone clamp stack",
+      "correctness": 1,
+      "ownership_clarity": 2,
+      "runtime_parity": 2,
+      "editor_usability": 1,
+      "performance": 2,
+      "regression_coverage": 2,
+      "evidence_paths": [
+        "res://scripts/player/operator_weapon_pose_placement.gd",
+        "res://scripts/player/operator_weapon_pose_kinematics.gd"
+      ]
+    },
+    "candidate": {
+      "system": "Native TwoBoneIK3D support hand solver on 68-bone standard humanoid skeleton",
+      "correctness": 5,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 5,
+      "performance": 5,
+      "regression_coverage": 5,
+      "evidence_paths": [
+        "res://scenes/player/native_ik_socom_player.tscn",
+        "res://scenes/player/native_ik_reference_source.tscn",
+        "res://scripts/player/native_ik_socom_player_controller.gd",
+        "res://tools/native_ik_socom_player_regression.gd"
+      ]
+    }
+  }
+}

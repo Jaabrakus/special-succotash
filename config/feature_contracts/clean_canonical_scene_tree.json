@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "feature_id": "clean_canonical_scene_tree",
+  "player_intent": "The player experiences a responsive, cinematic SOCOM tactical shooter where character movement, weapon recoil, camera aim, and tactical HUD operate with zero debug clutter and complete visual scene tree clarity.",
+  "acceptance_rule": "main.tscn exposes pre-authored World, Player (with CollisionShape3D, TraversalProbes, and Presentation/OperatorRig), CameraRig, and GameplayHUD instances. CharacterBody3D owns movement and collision, CameraRig owns aim intent, server weapon owns shot and damage, and all 22 integration gate test suites pass.",
+  "canonical_scene": "res://main.tscn",
+  "ownership": {
+    "movement_and_collision": "SocomTestPlayer",
+    "aim_intent": "SocomCameraAimResolver",
+    "weapon_authority": "SocomWeaponController",
+    "animation_presentation": "SocomOperatorAnimationDriver"
+  },
+  "nodes": [
+    {
+      "id": "player_movement_owner",
+      "type": "CharacterBody3D",
+      "role": "Sole owner of movement velocity, collision, and stance state.",
+      "owner": "SocomTestPlayer",
+      "scene_path": "res://scenes/player/operator_player.tscn",
+      "node_path": "."
+    },
+    {
+      "id": "player_presentation",
+      "type": "Node3D",
+      "role": "Presentation-only wrapper containing character model, skeleton, animation, and pose pipeline.",
+      "owner": "SocomOperatorAnimationDriver",
+      "scene_path": "res://scenes/player/operator_player.tscn",
+      "node_path": "Mannequin/ProductionAnimation"
+    },
+    {
+      "id": "gameplay_hud",
+      "type": "CanvasLayer",
+      "role": "Presents reticle, stance, health, ammo, and tactical compass without debug overlays.",
+      "owner": "SocomMainGameplayHud",
+      "scene_path": "res://scenes/ui/gameplay_hud.tscn",
+      "node_path": "."
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://config/operator_animation_map.json",
+      "writer": "res://config/operator_animation_map.json",
+      "readers": [
+        "res://scripts/player/operator_animation_profile.gd",
+        "res://scripts/player/operator_asset_runtime.gd"
+      ]
+    }
+  ],
+  "must_not_change": [
+    "CharacterBody3D movement and collision authority",
+    "SOCOM camera and reticle aim authority",
+    "server shot, ballistics, and damage authority",
+    "8-way locomotion calibration and gait boundaries",
+    "recoil bloom and composure recovery timing"
+  ],
+  "system_delta": {
+    "decision": "REPLACE",
+    "reason": "Replaces legacy procedural runtime script generation with standard, inspectable, and modular Godot node hierarchies in scenes/player/operator_player.tscn and scenes/ui/gameplay_hud.tscn.",
+    "current": {
+      "system": "Procedural script generation on launch",
+      "correctness": 3,
+      "ownership_clarity": 3,
+      "runtime_parity": 4,
+      "editor_usability": 2,
+      "performance": 3,
+      "regression_coverage": 4,
+      "evidence_paths": [
+        "res://scripts/main.gd",
+        "res://scripts/runtime/main_gameplay_hud.gd"
+      ]
+    },
+    "candidate": {
+      "system": "Node-authored Godot scene trees with Presentation sub-trees",
+      "correctness": 5,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 5,
+      "performance": 5,
+      "regression_coverage": 5,
+      "evidence_paths": [
+        "res://scenes/player/operator_player.tscn",
+        "res://scenes/ui/gameplay_hud.tscn",
+        "res://main.tscn"
+      ]
+    }
+  },
+  "proof_scripts": [
+    "res://tools/mobility_regression.gd",
+    "res://tools/operator_animation_regression.gd",
+    "res://tools/feature_contract_regression.gd"
+  ],
+  "visual_check": "Open main.tscn and operator_player.tscn in Godot editor, verify node hierarchy is inspectable, press F5 to play with clean tactical HUD and identical SOCOM feel."
+}

@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "feature_id": "painterly_coastal_village_2v2",
+  "player_intent": "Players fight compact 2v2 demolition rounds in a readable fictional Brazilian hillside neighborhood with expressive painted clouds, stacked masonry homes, high interiors, ramp streets, roof terraces, short tactical rotations, and a distant beach-and-ocean horizon outside the playable village.",
+  "acceptance_rule": "The launcher lists Morro do Sol as a separate map. Selecting it causes res://main.tscn to load exactly two Alpha spawns, two Bravo spawns, one bomb pickup, A and B plant sites, at least two entrances per site building, 4.1–4.8 meter primary interiors, at least six traversable ramps, ground/middle/roof elevation tiers, real compound collision, bounded hard cover, the painterly coastal sky, painterly building materials, and one collision-free distant coastal ambience card beyond the south boundary. Demolition has no respawns and does not modify player, camera, weapon, animation, damage, or networking owners.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://map_creation_lab.tscn",
+  "ownership": {
+    "map_data_and_library_selection": "SocomMapDocument",
+    "world_geometry_and_collision": "SocomMapRuntime",
+    "sky_lighting_and_fog": "SocomMapAmbienceEngine",
+    "demolition_markers_and_rules": "SocomMapGameplayContract"
+  },
+  "nodes": [
+    {
+      "id": "authored_village_root",
+      "type": "Node3D",
+      "role": "Contains every runtime village building, route, collision object, spawn, and demolition marker built from the saved map document.",
+      "owner": "SocomMapRuntime",
+      "source_script": "res://scripts/maps/socom_map_runtime.gd",
+      "code_symbols": ["root.name = \"AuthoredMap\"", "parent.add_child(root)"]
+    },
+    {
+      "id": "painterly_world_environment",
+      "type": "WorldEnvironment",
+      "role": "Renders the map-owned painted-cloud sky, warm sun, atmospheric fog, and restrained color treatment.",
+      "owner": "SocomMapAmbienceEngine",
+      "source_script": "res://scripts/maps/socom_map_ambience_engine.gd",
+      "code_symbols": ["var world := WorldEnvironment.new()", "world.name = \"MapWorldEnvironment\""]
+    },
+    {
+      "id": "distant_coastal_backdrop",
+      "type": "MeshInstance3D",
+      "role": "Displays the original beach, ocean, and hazy headlands beyond the downhill boundary without collision or gameplay authority.",
+      "owner": "SocomMapAmbienceEngine",
+      "source_script": "res://scripts/maps/socom_map_ambience_engine.gd",
+      "code_symbols": ["backdrop.name = \"DistantCoastalBackdrop\"", "backdrop.set_meta(\"map_ambience_only\", true)"]
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://config/maps/painterly_coastal_village_2v2.json",
+      "writer": "res://tools/generate_painterly_village_2v2.gd",
+      "readers": [
+        "res://scripts/maps/socom_map_document.gd",
+        "res://scripts/maps/socom_map_runtime.gd",
+        "res://scripts/maps/socom_map_ambience_engine.gd",
+        "res://scripts/maps/socom_map_gameplay_contract.gd"
+      ]
+    },
+    {
+      "path": "res://assets/shaders/painterly_coastal_sky.gdshader",
+      "writer": "res://scripts/maps/socom_map_ambience_engine.gd",
+      "readers": [
+        "res://scripts/maps/socom_map_ambience_engine.gd"
+      ]
+    },
+    {
+      "path": "res://assets/textures/environment/morro_do_sol_distant_coast_v1.png",
+      "writer": "res://tools/generate_painterly_village_2v2.gd",
+      "readers": [
+        "res://scripts/maps/socom_map_ambience_engine.gd"
+      ]
+    }
+  ],
+  "must_not_change": [
+    "CharacterBody3D movement, stance, and collision authority",
+    "SOCOM camera and reticle aim authority",
+    "server weapon, ballistics, damage, and networking authority",
+    "operator animation, IK, reload, and fire-recovery presentation",
+    "existing current_map.json and player-edited user library maps"
+  ],
+  "proof_scripts": [
+    "res://tools/painterly_village_2v2_regression.gd",
+    "res://tools/feature_contract_regression.gd"
+  ],
+  "visual_check": "Select Morro do Sol — 2v2 Demolition in the launcher, enter Training Range, and inspect an overhead view plus both spawn-to-site routes. Confirm painted clouds and atmospheric depth, readable warm/cool building separation, tall interiors, real doorway and window openings, six usable ramps, ground/middle/roof counterplay, no spawn-to-site unbroken sightline, two approaches into each raised plant building, short A-to-B rotation, and clean character/reticle visibility against every surface.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "The existing map document, runtime, ambience, and demolition contracts already provide the correct sole owners. Merge original translations of compact Gunfight elevation and lane blockers, Wingman building layers, Atrium center readability, and SOCOM village alleys into one bounded map document instead of copying a map or creating a second world or match system.",
+    "current": {
+      "system": "Default primitive training range with generic procedural sky and no purpose-built 2v2 demolition village",
+      "correctness": 2,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 4,
+      "performance": 5,
+      "regression_coverage": 3,
+      "evidence_paths": [
+        "res://config/maps/current_map.json",
+        "res://scripts/maps/socom_map_document.gd",
+        "res://scripts/maps/socom_map_runtime.gd",
+        "res://scripts/maps/socom_map_ambience_engine.gd"
+      ]
+    },
+    "candidate": {
+      "system": "Morro do Sol 2v2 map using the same canonical geometry, ambience, library, and demolition owners with painterly sky, material, and distant coast presentation extensions",
+      "correctness": 5,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 5,
+      "performance": 4,
+      "regression_coverage": 5,
+      "evidence_paths": [
+        "res://config/maps/painterly_coastal_village_2v2.json",
+        "res://assets/shaders/painterly_coastal_sky.gdshader",
+        "res://scripts/maps/socom_map_document.gd",
+        "res://scripts/maps/socom_map_runtime.gd",
+        "res://scripts/maps/socom_map_ambience_engine.gd",
+        "res://tools/painterly_village_2v2_regression.gd"
+      ]
+    }
+  }
+}

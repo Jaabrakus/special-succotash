@@ -1,0 +1,123 @@
+{
+  "schema_version": 1,
+  "feature_id": "accepted_shot_fire_recovery",
+  "player_intent": "Authored base locomotion owns the operator from spawn and after recovery. For 1.2 seconds after an accepted shot, every equipped weapon family keeps its posture-matched stationary ready frame above the waist while locomotion continues below it; rifle support-hand contact and torso-to-reticle aim remain stable.",
+  "acceptance_rule": "Before the first shot and after recovery, authored standing or crouched locomotion owns the complete body without a permanent Aim Idle replacement. Every declared weapon family resolves an accepted standing or crouched shot to its posture-matched stable ready state; TWO_HAND_PISTOL uses pistol_idle or pistol_idle_kneeling, while rifle and long-gun families use their matching aim-ready states. No accepted standing or crouched shot starts a separate fire AnimationTree OneShot. Only while the existing recovery/ready weight is active, a distinct Aim Frame mask copies Spine, Spine1, Spine2, Neck, and Head from that posture's stationary recovery take onto both idle and moving routes. A separate FIRE_RECOVERY limb mask remains restricted to shoulders, arms, forearms, hands, and fingers. Hips and legs always remain authored locomotion. A posture-specific neutral-hip correction at Spine prevents moving pelvis yaw and pitch from dragging the aim frame without changing CharacterBody3D or the animated hips and legs. During FIRE_RECOVERY, bounded torso-to-reticle aim preserves the authored square shoulder frame without saved joint rotation overrides, procedural clavicle correction, or procedural spine CCDIK. Full hand socket IK stays disabled. For rifles, a bounded left-arm-only support-hand solver closes the left palm and saved wrist basis onto the immutable physical foregrip before, during, and after crouched fire, but it cannot move the right trigger hand or claim the weapon root. Animation and stance maps cannot relocate that authored weapon socket. The configured recovery remains 1.2 seconds. Holding fire without another accepted shot cannot select or extend it. Muzzle flash, recoil, ballistics, and damage remain sourced from the accepted authoritative shot. Prone presentation is outside this bounded standing/crouched contract.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://scenes/player/operator_player.tscn",
+  "ownership": {
+    "fire_recovery_presentation": "SocomOperatorFireUpperBodyLatch",
+    "aim_frame_presentation": "SocomOperatorLocomotionBlendTree",
+    "locomotion_and_posture": "CharacterBody3D",
+    "aim_intent": "SOCOMCameraReticleChain",
+    "shot_damage_and_accepted_event": "AuthoritativeServerWeapon",
+    "support_hand_contact": "SocomOperatorWeaponPose"
+  },
+  "nodes": [
+    {
+      "id": "accepted_shot_recovery_latch",
+      "type": "Node",
+      "role": "Consumes accepted shots and selects the posture-matched recovery limb pose for only the bounded FIRE_RECOVERY interval while authored base locomotion owns spawn and return.",
+      "owner": "SocomOperatorFireUpperBodyLatch",
+      "source_script": "res://scripts/player/operator_animation_driver_runtime.gd",
+      "code_symbols": [
+        "FireUpperBodyLatch.new()",
+        "fire_upper_body_latch.name = \"FireUpperBodyLatch\""
+      ]
+    },
+    {
+      "id": "posture_matched_aim_frame",
+      "type": "AnimationNodeBlend2",
+      "role": "Uses the existing bounded ready weight to copy only Spine through Head from the posture-matched stationary recovery take onto idle, locomotion, and standing locomotion transitions; FIRE_RECOVERY limbs remain a separate arm-only layer.",
+      "owner": "SocomOperatorLocomotionBlendTree",
+      "source_script": "res://scripts/player/operator_locomotion_blend_tree.gd",
+      "code_symbols": [
+        "AIM_FRAME_BONES",
+        "standing_aim_frame",
+        "crouch_aim_frame"
+      ]
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://config/weapons/assaultrifle_1.json",
+      "writer": "res://scripts/labs/gunsmith/gunsmith_persistence_controller.gd",
+      "readers": [
+        "res://scripts/player/operator_asset_runtime.gd",
+        "res://scripts/player/operator_weapon_equipment_runtime.gd",
+        "res://scripts/player/operator_animation_driver_api.gd"
+      ]
+    },
+    {
+      "path": "res://config/operator_animation_map.json",
+      "writer": "res://scripts/player/operator_animation_profile.gd",
+      "readers": [
+        "res://scripts/player/operator_animation_profile.gd",
+        "res://scripts/player/operator_animation_driver_presentation.gd",
+        "res://scripts/player/operator_locomotion_blend_tree.gd"
+      ]
+    }
+  ],
+  "must_not_change": [
+    "CharacterBody3D movement, stance, and collision authority",
+    "SOCOM camera and reticle aim authority",
+    "server muzzle validation, shot, ballistics, damage, and networking authority",
+    "accepted-shot muzzle flash, tracer, audio, and reticle recoil consumers",
+    "authored base locomotion arm motion before the first shot and after recovery",
+    "head and neck transforms from the authored posture base outside the bounded recovery/ready interval",
+    "hip and leg transforms from authored standing and crouched locomotion at all times",
+    "right-hand attachment and weapon-root transform ownership"
+  ],
+  "proof_scripts": [
+    "res://tools/all_weapon_fire_recovery_regression.gd",
+    "res://tools/fire_recovery_movement_aim_parity_regression.gd",
+    "res://tools/operator_pose_pipeline_regression.gd",
+    "res://tools/operator_animation_regression.gd",
+    "res://tools/weapon_fire_regression.gd",
+    "res://tools/rendered_arm_animation_liveness_regression.gd",
+    "res://tools/weapon_hand_detach_regression.gd"
+  ],
+  "visual_check": "In res://main.tscn, equip at least one rifle, long gun, and two-hand pistol. Run forward from a fresh spawn and confirm the authored forward-run arms remain live. Fire once while stationary and then move during the 1.2-second recovery; repeat while crouched. Spine through Head, shoulders, hands, and torso-to-reticle aim must retain the corresponding family-ready recovery silhouette while only hips and legs change to locomotion. Rifle left-palm contact must remain on the foregrip; pistol hands must remain together on the grip. The right hand and weapon root must not move under support-hand correction. Recovery must then return to the same authored standing or crouched base.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Restore the exact pre-weapon-expansion ownership boundary: the authored right-hand attachment owns the weapon and trigger arm while only the bounded left support arm may solve to the foregrip. Reject the later per-frame rigid-gun alignment because canonical rendered evidence showed both hands regressing even when positional telemetry passed. Replace legacy regression gates that mistake continuous support contact for a fire-entry blend or demand a second weapon-transform owner; keep their barrel-angle output as calibration telemetry and retain all authoritative muzzle-to-sight checks. Keep the later square-shoulder recovery layers, shared family-normalization rule, 1.2-second latch, and bounded full-solver safety cap because they do not violate this ownership boundary.",
+    "current": {
+      "system": "Late all-weapon rigid-gun alignment that rotates and translates the animation-parented weapon each frame before solving the left support arm",
+      "correctness": 1,
+      "ownership_clarity": 2,
+      "runtime_parity": 5,
+      "editor_usability": 3,
+      "performance": 2,
+      "regression_coverage": 2,
+      "evidence_paths": [
+        "res://scripts/player/operator_weapon_pose_ready.gd",
+        "res://scripts/player/operator_weapon_pose_actions.gd",
+        "res://config/weapons/ak-47.json",
+        "res://tools/m4a1_agls_vertical_slice_regression.gd",
+        "res://tools/agls_ak47_canonical_live_regression.gd"
+      ]
+    },
+    "candidate": {
+      "system": "Exact pre-expansion right-hand attachment ownership with left-support-only IK, merged with the later square-shoulder recovery and shared 1.2-second family policy",
+      "correctness": 4,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 4,
+      "performance": 4,
+      "regression_coverage": 5,
+      "evidence_paths": [
+        "res://scripts/player/operator_weapon_pose_ready.gd",
+        "res://scripts/player/operator_weapon_pose_kinematics.gd",
+        "res://scripts/player/operator_animation_driver_runtime.gd",
+        "res://scripts/player/operator_posture_layer.gd",
+        "res://scripts/player/operator_fire_upper_body_latch.gd",
+        "res://config/weapons/assaultrifle_1.json",
+        "res://tools/weapon_hand_detach_regression.gd",
+        "res://tools/weapon_fire_regression.gd",
+        "res://tools/fire_recovery_movement_aim_parity_regression.gd",
+        "res://tools/operator_pose_pipeline_regression.gd",
+        "res://tools/operator_autorigpro_live_visual_check.gd"
+      ]
+    }
+  }
+}

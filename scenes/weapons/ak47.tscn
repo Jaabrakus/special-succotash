@@ -1,0 +1,29 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://assets/weapons/ps1_ak47/source/ak-47.fbx" id="1_qiwwx"]
+
+[node name="AK47" type="Node3D" unique_id=79173394]
+
+[node name="WeaponMesh" type="Node3D" parent="." unique_id=1539538240 instance=ExtResource("1_qiwwx")]
+transform = Transform3D(1.0427587, 0, 0, 0, 1.0427587, 0, 0, 0, 1.0427587, 0, 0, 0)
+
+[node name="Socket_RightHand" type="Marker3D" parent="WeaponMesh" unique_id=1396359218]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.00065208285, -0.205)
+
+[node name="Socket_LeftHand" type="Marker3D" parent="WeaponMesh" unique_id=1172075282]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.061844096, 0.082)
+
+[node name="Socket_Muzzle" type="Marker3D" parent="WeaponMesh" unique_id=1044775409]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.061844096, 0.41)
+
+[node name="Socket_BarrelBase" type="Marker3D" parent="WeaponMesh" unique_id=1793019355]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.061844096, -0.0615)
+
+[node name="Socket_Buttstock" type="Marker3D" parent="WeaponMesh" unique_id=1604654151]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.061844096, -0.41)
+
+[node name="Socket_Ejection" type="Marker3D" parent="WeaponMesh" unique_id=576411272]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0146996835, 0.10458069, -0.155)
+
+[node name="Socket_Optic" type="Marker3D" parent="WeaponMesh" unique_id=2132094050]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.12303611, -0.185)

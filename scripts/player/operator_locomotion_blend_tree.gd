@@ -18,9 +18,35 @@ const DIRECTION_POINTS: Dictionary = {
 const PRESENTATION_RELAXED_RIFLE := &"RELAXED_RIFLE"
 const PRESENTATION_READY_AIM := &"READY_AIM"
 
+const AIM_FRAME_BONES: Array[StringName] = [
+	&"mixamorig_Spine",
+	&"mixamorig_Spine1",
+	&"mixamorig_Spine2",
+	&"mixamorig_Neck",
+	&"mixamorig_Head",
+]
+
 const UPPER_BODY_BONES: Array[StringName] = [
 	&"mixamorig_Spine", &"mixamorig_Spine1", &"mixamorig_Spine2",
 	&"mixamorig_Neck", &"mixamorig_Head",
+	&"mixamorig_LeftShoulder", &"mixamorig_LeftArm", &"mixamorig_LeftForeArm", &"mixamorig_LeftHand",
+	&"mixamorig_RightShoulder", &"mixamorig_RightArm", &"mixamorig_RightForeArm", &"mixamorig_RightHand",
+	&"mixamorig_LeftHandThumb1", &"mixamorig_LeftHandThumb2", &"mixamorig_LeftHandThumb3",
+	&"mixamorig_LeftHandIndex1", &"mixamorig_LeftHandIndex2", &"mixamorig_LeftHandIndex3",
+	&"mixamorig_LeftHandMiddle1", &"mixamorig_LeftHandMiddle2", &"mixamorig_LeftHandMiddle3",
+	&"mixamorig_LeftHandRing1", &"mixamorig_LeftHandRing2", &"mixamorig_LeftHandRing3",
+	&"mixamorig_LeftHandPinky1", &"mixamorig_LeftHandPinky2", &"mixamorig_LeftHandPinky3",
+	&"mixamorig_RightHandThumb1", &"mixamorig_RightHandThumb2", &"mixamorig_RightHandThumb3",
+	&"mixamorig_RightHandIndex1", &"mixamorig_RightHandIndex2", &"mixamorig_RightHandIndex3",
+	&"mixamorig_RightHandMiddle1", &"mixamorig_RightHandMiddle2", &"mixamorig_RightHandMiddle3",
+	&"mixamorig_RightHandRing1", &"mixamorig_RightHandRing2", &"mixamorig_RightHandRing3",
+	&"mixamorig_RightHandPinky1", &"mixamorig_RightHandPinky2", &"mixamorig_RightHandPinky3",
+]
+
+# FIRE_RECOVERY limb ownership remains deliberately separate from AIM_FRAME.
+# The recovery animation owns only the clavicle-to-fingertip chains that
+# establish the two-handed rifle hold.
+const FIRE_RECOVERY_LIMB_BONES: Array[StringName] = [
 	&"mixamorig_LeftShoulder", &"mixamorig_LeftArm", &"mixamorig_LeftForeArm", &"mixamorig_LeftHand",
 	&"mixamorig_RightShoulder", &"mixamorig_RightArm", &"mixamorig_RightForeArm", &"mixamorig_RightHand",
 	&"mixamorig_LeftHandThumb1", &"mixamorig_LeftHandThumb2", &"mixamorig_LeftHandThumb3",
@@ -67,6 +93,7 @@ var rendered_direction := Vector2.UP
 var prone_travel_blend: float = 1.0
 var standing_transition_layer_nodes: Array[StringName] = []
 var standing_transition_ready_nodes: Array[StringName] = []
+var standing_transition_aim_frame_nodes: Array[StringName] = []
 var airborne_upper_body_layer_nodes: Array[StringName] = []
 var fire_transition: AnimationNodeTransition
 var fire_layer_node: AnimationNodeOneShot
@@ -75,9 +102,11 @@ var fire_layer_available: bool = false
 var fire_trigger_count: int = 0
 var active_fire_clip: StringName = &""
 var crouched_reload_clip: StringName = &""
+var crouched_reload_animation_node: AnimationNodeAnimation
 var crouched_reload_layer_available: bool = false
 var crouched_reload_trigger_count: int = 0
 var standing_reload_clip: StringName = &""
+var standing_reload_animation_node: AnimationNodeAnimation
 var standing_reload_layer_available: bool = false
 var standing_reload_trigger_count: int = 0
 var presentation_mode: StringName = PRESENTATION_RELAXED_RIFLE
@@ -100,7 +129,11 @@ func build(
 	_build_modern_route(root, available_clips)
 
 	var route_blend := AnimationNodeBlend2.new()
-	route_blend.sync = true
+	# Only one locomotion implementation owns presentation at a time. Advancing
+	# the zero-weight legacy graph doubles graph work and became visible after the
+	# modern square-shoulder layers grew. Freeze the inactive route; its playhead
+	# has no presentation meaning until the route is explicitly selected.
+	route_blend.sync = false
 	root.add_node(&"route_blend", route_blend, Vector2(980.0, 100.0))
 	root.connect_node(&"route_blend", 0, &"legacy_transition")
 	root.connect_node(&"route_blend", 1, &"modern_transition")
@@ -259,16 +292,32 @@ func update_locomotion(
 		upper_body_ready_blend
 	)
 	animation_tree.set(
+		"parameters/standing_aim_frame/blend_amount",
+		normalized_ready
+	)
+	animation_tree.set(
 		"parameters/standing_idle_upper_body/blend_amount",
 		idle_upper_body_blend
 	)
 	animation_tree.set(
+		"parameters/standing_idle_aim_frame/blend_amount",
+		normalized_ready
+	)
+	animation_tree.set(
 		"parameters/crouch_upper_body/blend_amount",
-		clampf(ready_weight, 0.0, 1.0)
+		normalized_ready
+	)
+	animation_tree.set(
+		"parameters/crouch_aim_frame/blend_amount",
+		normalized_ready
 	)
 	animation_tree.set(
 		"parameters/crouch_idle_upper_body/blend_amount",
-		clampf(ready_weight, 0.0, 1.0)
+		normalized_ready
+	)
+	animation_tree.set(
+		"parameters/crouch_idle_aim_frame/blend_amount",
+		normalized_ready
 	)
 	for layer_name in standing_transition_layer_nodes:
 		animation_tree.set(
@@ -283,17 +332,29 @@ func update_locomotion(
 	for ready_name in standing_transition_ready_nodes:
 		animation_tree.set(
 			"parameters/%s/blend_amount" % ready_name,
-			clampf(ready_weight, 0.0, 1.0)
+			normalized_ready
+		)
+	for aim_frame_name in standing_transition_aim_frame_nodes:
+		animation_tree.set(
+			"parameters/%s/blend_amount" % aim_frame_name,
+			normalized_ready
 		)
 	animation_tree.set("parameters/standing_time_scale/scale", playback_rate)
 	animation_tree.set("parameters/crouch_time_scale/scale", playback_rate)
 	animation_tree.set("parameters/prone_time_scale/scale", playback_rate)
-	animation_tree.set("parameters/standing_upper_ready_blend/blend_amount", clampf(ready_weight, 0.0, 1.0))
+	animation_tree.set("parameters/standing_upper_ready_blend/blend_amount", normalized_ready)
 
 
 func request_modern_state(state_name: StringName) -> bool:
 	if animation_tree == null or not modern_state_indices.has(state_name):
 		return false
+	# Continuous locomotion calls this every driver pass. A same-state request is
+	# not a new animation event and must not touch the active playhead.
+	if StringName(
+		animation_tree.get("parameters/modern_transition/current_state")
+	) == state_name:
+		current_state = state_name
+		return true
 	current_state = state_name
 	animation_tree.set("parameters/modern_transition/transition_request", state_name)
 	return true
@@ -367,9 +428,14 @@ func trigger_crouched_reload(clip_name: StringName) -> bool:
 	if (
 		animation_tree == null
 		or not crouched_reload_layer_available
-		or clip_name != crouched_reload_clip
+		or crouched_reload_animation_node == null
+		or clip_name == &""
 	):
 		return false
+	# This lower reload layer is also the prone entry route. It remains alive
+	# while the locomotion graph changes posture underneath it, so one accepted
+	# reload has one uninterrupted visual playhead across prone/crouch/stand.
+	crouched_reload_animation_node.animation = clip_name
 	animation_tree.set(
 		"parameters/crouched_reload_layer/request",
 		AnimationNodeOneShot.ONE_SHOT_REQUEST_FIRE
@@ -382,9 +448,11 @@ func trigger_standing_reload(clip_name: StringName) -> bool:
 	if (
 		animation_tree == null
 		or not standing_reload_layer_available
-		or clip_name != standing_reload_clip
+		or standing_reload_animation_node == null
+		or clip_name == &""
 	):
 		return false
+	standing_reload_animation_node.animation = clip_name
 	animation_tree.set(
 		"parameters/standing_reload_layer/request",
 		AnimationNodeOneShot.ONE_SHOT_REQUEST_FIRE
@@ -445,9 +513,10 @@ func _build_crouched_reload_layer(
 		return
 	if profile.state_layer(crouched_reload_clip) != "UPPER_BODY":
 		return
+	crouched_reload_animation_node = _animation_node(crouched_reload_clip)
 	root.add_node(
 		&"crouched_reload_animation",
-		_animation_node(crouched_reload_clip),
+		crouched_reload_animation_node,
 		Vector2(980.0, 470.0)
 	)
 	var reload_layer := AnimationNodeOneShot.new()
@@ -477,9 +546,10 @@ func _build_standing_reload_layer(
 		return
 	if profile.state_layer(standing_reload_clip) != "UPPER_BODY":
 		return
+	standing_reload_animation_node = _animation_node(standing_reload_clip)
 	root.add_node(
 		&"standing_reload_animation",
-		_animation_node(standing_reload_clip),
+		standing_reload_animation_node,
 		Vector2(980.0, 550.0)
 	)
 	var reload_layer := AnimationNodeOneShot.new()
@@ -625,58 +695,118 @@ func _build_modern_route(root: AnimationNodeBlendTree, available_clips: Dictiona
 	var equipped_idle := _fallback_clip(&"idle_rifle", available_clips)
 	var equipped_ready := _weapon_action_clip("idle_standing", &"aim_idle", available_clips)
 	var equipped_crouch_idle := _weapon_action_clip("idle_crouched", &"idle_crouch", available_clips)
+	var equipped_prone_idle := _fallback_clip(&"idle_prone", available_clips)
+	var equipped_crouch_ready := _weapon_action_clip(
+		"ready_crouched",
+		&"aim_idle_crouch",
+		available_clips
+	)
 	root.add_node(&"modern_idle_rifle", _animation_node(equipped_idle), Vector2(-640.0, -250.0))
 	root.add_node(&"modern_aim_idle", _animation_node(equipped_ready), Vector2(-640.0, -160.0))
 	root.add_node(&"modern_idle_crouch", _animation_node(equipped_crouch_idle), Vector2(-640.0, 360.0))
-	# Crouch keeps its authored hips and legs. Ready Aim replaces the same upper
-	# body bones used by standing so posture changes do not invent a second arm
-	# pose or force the hand solver to repair incompatible shoulder rotations.
-	root.add_node(&"crouch_upper_aim_idle", _animation_node(equipped_ready), Vector2(-300.0, 390.0))
+	root.add_node(&"modern_idle_prone", _animation_node(equipped_prone_idle), Vector2(-640.0, 560.0))
+	# Ready/recovery is intentionally split in two. AIM_FRAME gives both moving
+	# and stationary crouch the same Spine-to-Head silhouette, while the existing
+	# recovery layer contributes only the clavicle-to-hand rifle chain.
+	root.add_node(&"crouch_upper_aim_idle", _animation_node(equipped_crouch_ready), Vector2(-300.0, 390.0))
+	root.add_node(
+		&"crouch_aim_frame_source",
+		_animation_node(equipped_crouch_ready),
+		Vector2(-300.0, 430.0)
+	)
+	var crouch_aim_frame := AnimationNodeBlend2.new()
+	crouch_aim_frame.sync = true
+	crouch_aim_frame.filter_enabled = true
+	for bone_name: StringName in AIM_FRAME_BONES:
+		crouch_aim_frame.set_filter_path(NodePath(".:%s" % bone_name), true)
+	root.add_node(&"crouch_aim_frame", crouch_aim_frame, Vector2(120.0, 430.0))
+	root.connect_node(&"crouch_aim_frame", 0, &"crouch_time_scale")
+	root.connect_node(&"crouch_aim_frame", 1, &"crouch_aim_frame_source")
 	var crouch_upper_body := AnimationNodeBlend2.new()
 	crouch_upper_body.sync = true
 	crouch_upper_body.filter_enabled = true
-	for bone_name: StringName in UPPER_BODY_BONES:
+	for bone_name: StringName in FIRE_RECOVERY_LIMB_BONES:
 		crouch_upper_body.set_filter_path(NodePath(".:%s" % bone_name), true)
-	root.add_node(&"crouch_upper_body", crouch_upper_body, Vector2(300.0, 430.0))
-	root.connect_node(&"crouch_upper_body", 0, &"crouch_time_scale")
+	root.add_node(&"crouch_upper_body", crouch_upper_body, Vector2(400.0, 430.0))
+	root.connect_node(&"crouch_upper_body", 0, &"crouch_aim_frame")
 	root.connect_node(&"crouch_upper_body", 1, &"crouch_upper_aim_idle")
-	root.add_node(&"crouch_idle_aim_idle", _animation_node(equipped_ready), Vector2(-300.0, 345.0))
+	root.add_node(&"crouch_idle_aim_idle", _animation_node(equipped_crouch_ready), Vector2(-300.0, 345.0))
+	root.add_node(
+		&"crouch_idle_aim_frame_source",
+		_animation_node(equipped_crouch_ready),
+		Vector2(-300.0, 325.0)
+	)
+	var crouch_idle_aim_frame := AnimationNodeBlend2.new()
+	crouch_idle_aim_frame.sync = true
+	crouch_idle_aim_frame.filter_enabled = true
+	for bone_name: StringName in AIM_FRAME_BONES:
+		crouch_idle_aim_frame.set_filter_path(NodePath(".:%s" % bone_name), true)
+	root.add_node(&"crouch_idle_aim_frame", crouch_idle_aim_frame, Vector2(120.0, 345.0))
+	root.connect_node(&"crouch_idle_aim_frame", 0, &"modern_idle_crouch")
+	root.connect_node(&"crouch_idle_aim_frame", 1, &"crouch_idle_aim_frame_source")
 	var crouch_idle_upper_body := AnimationNodeBlend2.new()
 	crouch_idle_upper_body.sync = true
 	crouch_idle_upper_body.filter_enabled = true
-	for bone_name: StringName in UPPER_BODY_BONES:
+	for bone_name: StringName in FIRE_RECOVERY_LIMB_BONES:
 		crouch_idle_upper_body.set_filter_path(NodePath(".:%s" % bone_name), true)
-	root.add_node(&"crouch_idle_upper_body", crouch_idle_upper_body, Vector2(300.0, 360.0))
-	root.connect_node(&"crouch_idle_upper_body", 0, &"modern_idle_crouch")
+	root.add_node(&"crouch_idle_upper_body", crouch_idle_upper_body, Vector2(400.0, 360.0))
+	root.connect_node(&"crouch_idle_upper_body", 0, &"crouch_idle_aim_frame")
 	root.connect_node(&"crouch_idle_upper_body", 1, &"crouch_idle_aim_idle")
 	var standing_upper_ready_blend := AnimationNodeBlend2.new()
 	standing_upper_ready_blend.sync = true
 	root.add_node(&"standing_upper_ready_blend", standing_upper_ready_blend, Vector2(-40.0, 230.0))
 	root.add_node(&"standing_upper_idle_rifle", _animation_node(equipped_idle), Vector2(-640.0, 220.0))
 	root.add_node(&"standing_upper_aim_idle", _animation_node(equipped_ready), Vector2(-640.0, 300.0))
+	root.add_node(
+		&"standing_aim_frame_source",
+		_animation_node(equipped_ready),
+		Vector2(-300.0, 80.0)
+	)
 	root.connect_node(&"standing_upper_ready_blend", 0, &"standing_upper_idle_rifle")
 	root.connect_node(&"standing_upper_ready_blend", 1, &"standing_upper_aim_idle")
+
+	var standing_aim_frame := AnimationNodeBlend2.new()
+	standing_aim_frame.sync = true
+	standing_aim_frame.filter_enabled = true
+	for bone_name: StringName in AIM_FRAME_BONES:
+		standing_aim_frame.set_filter_path(NodePath(".:%s" % bone_name), true)
+	root.add_node(&"standing_aim_frame", standing_aim_frame, Vector2(120.0, 40.0))
+	root.connect_node(&"standing_aim_frame", 0, &"standing_time_scale")
+	root.connect_node(&"standing_aim_frame", 1, &"standing_aim_frame_source")
 
 	var standing_upper_body := AnimationNodeBlend2.new()
 	standing_upper_body.sync = true
 	standing_upper_body.filter_enabled = true
-	for bone_name: StringName in UPPER_BODY_BONES:
+	for bone_name: StringName in FIRE_RECOVERY_LIMB_BONES:
 		standing_upper_body.set_filter_path(NodePath(".:%s" % bone_name), true)
-	root.add_node(&"standing_upper_body", standing_upper_body, Vector2(300.0, 40.0))
-	root.connect_node(&"standing_upper_body", 0, &"standing_time_scale")
+	root.add_node(&"standing_upper_body", standing_upper_body, Vector2(400.0, 40.0))
+	root.connect_node(&"standing_upper_body", 0, &"standing_aim_frame")
 	root.connect_node(&"standing_upper_body", 1, &"standing_upper_ready_blend")
 
 	# Standing idle needs the same ownership split as standing locomotion. The
 	# weapon's authored standing-ready clip owns only the upper body while the
 	# standing base continues to own hips and legs.
+	root.add_node(&"standing_idle_base", _animation_node(equipped_idle), Vector2(-300.0, -90.0))
+	root.add_node(
+		&"standing_idle_aim_frame_source",
+		_animation_node(equipped_ready),
+		Vector2(-300.0, -130.0)
+	)
+	var standing_idle_aim_frame := AnimationNodeBlend2.new()
+	standing_idle_aim_frame.sync = true
+	standing_idle_aim_frame.filter_enabled = true
+	for bone_name: StringName in AIM_FRAME_BONES:
+		standing_idle_aim_frame.set_filter_path(NodePath(".:%s" % bone_name), true)
+	root.add_node(&"standing_idle_aim_frame", standing_idle_aim_frame, Vector2(120.0, -90.0))
+	root.connect_node(&"standing_idle_aim_frame", 0, &"standing_idle_base")
+	root.connect_node(&"standing_idle_aim_frame", 1, &"standing_idle_aim_frame_source")
 	var standing_idle_upper_body := AnimationNodeBlend2.new()
 	standing_idle_upper_body.sync = true
 	standing_idle_upper_body.filter_enabled = true
-	for bone_name: StringName in UPPER_BODY_BONES:
+	for bone_name: StringName in FIRE_RECOVERY_LIMB_BONES:
 		standing_idle_upper_body.set_filter_path(NodePath(".:%s" % bone_name), true)
-	root.add_node(&"standing_idle_base", _animation_node(equipped_idle), Vector2(-300.0, -90.0))
-	root.add_node(&"standing_idle_upper_body", standing_idle_upper_body, Vector2(300.0, -160.0))
-	root.connect_node(&"standing_idle_upper_body", 0, &"standing_idle_base")
+	root.add_node(&"standing_idle_upper_body", standing_idle_upper_body, Vector2(400.0, -160.0))
+	root.connect_node(&"standing_idle_upper_body", 0, &"standing_idle_aim_frame")
 	root.connect_node(&"standing_idle_upper_body", 1, &"modern_aim_idle")
 
 	var state_sources: Dictionary = {
@@ -684,11 +814,12 @@ func _build_modern_route(root: AnimationNodeBlendTree, available_clips: Dictiona
 		&"standing": &"standing_upper_body",
 		&"idle_crouch": &"crouch_idle_upper_body",
 		&"crouch": &"crouch_upper_body",
+		&"idle_prone": &"modern_idle_prone",
 		&"prone": &"prone_time_scale",
 	}
 	for raw_clip_name in available_clips.keys():
 		var clip_name := StringName(raw_clip_name)
-		if _is_directional_locomotion(clip_name) or clip_name in [&"idle_rifle", &"aim_idle", &"idle_crouch"]:
+		if _is_directional_locomotion(clip_name) or clip_name in [&"idle_rifle", &"aim_idle", &"aim_idle_crouch", &"idle_crouch"]:
 			continue
 		var node_name := StringName("modern_state_%s" % clip_name)
 		var source_name := node_name
@@ -704,7 +835,7 @@ func _build_modern_route(root: AnimationNodeBlendTree, available_clips: Dictiona
 			var transition_upper_body := AnimationNodeBlend2.new()
 			transition_upper_body.sync = true
 			transition_upper_body.filter_enabled = true
-			for bone_name: StringName in UPPER_BODY_BONES:
+			for bone_name: StringName in FIRE_RECOVERY_LIMB_BONES:
 				transition_upper_body.set_filter_path(NodePath(".:%s" % bone_name), true)
 			root.add_node(layer_name, transition_upper_body, Vector2(300.0, 540.0 + state_sources.size() * 42.0))
 			var transition_ready_name := StringName("%s_ready" % node_name)
@@ -717,7 +848,35 @@ func _build_modern_route(root: AnimationNodeBlendTree, available_clips: Dictiona
 			root.add_node(transition_aim_name, _animation_node(equipped_ready), Vector2(-260.0, 570.0 + state_sources.size() * 42.0))
 			root.connect_node(transition_ready_name, 0, transition_idle_name)
 			root.connect_node(transition_ready_name, 1, transition_aim_name)
-			root.connect_node(layer_name, 0, source_name)
+			var transition_base_source := source_name
+			if _is_standing_locomotion_transition(clip_name):
+				var aim_frame_name := StringName("%s_aim_frame" % node_name)
+				var aim_frame_source_name := StringName(
+					"%s_aim_frame_source" % node_name
+				)
+				var transition_aim_frame := AnimationNodeBlend2.new()
+				transition_aim_frame.sync = true
+				transition_aim_frame.filter_enabled = true
+				for bone_name: StringName in AIM_FRAME_BONES:
+					transition_aim_frame.set_filter_path(
+						NodePath(".:%s" % bone_name),
+						true
+					)
+				root.add_node(
+					aim_frame_name,
+					transition_aim_frame,
+					Vector2(210.0, 540.0 + state_sources.size() * 42.0)
+				)
+				root.add_node(
+					aim_frame_source_name,
+					_animation_node(equipped_ready),
+					Vector2(-80.0, 590.0 + state_sources.size() * 42.0)
+				)
+				root.connect_node(aim_frame_name, 0, source_name)
+				root.connect_node(aim_frame_name, 1, aim_frame_source_name)
+				standing_transition_aim_frame_nodes.append(aim_frame_name)
+				transition_base_source = aim_frame_name
+			root.connect_node(layer_name, 0, transition_base_source)
 			root.connect_node(layer_name, 1, transition_ready_name)
 			if _is_jump_mobility_clip(clip_name):
 				airborne_upper_body_layer_nodes.append(layer_name)
@@ -731,11 +890,24 @@ func _build_modern_route(root: AnimationNodeBlendTree, available_clips: Dictiona
 	modern_transition = AnimationNodeTransition.new()
 	modern_transition.input_count = state_sources.size()
 	modern_transition.xfade_time = 0.10
+	# A synced Transition evaluates every inactive input at weight zero. This route
+	# also contains every one-shot action, so syncing it would evaluate dozens of
+	# dormant branches each frame. Continuous bases retain their last playheads via
+	# reset=false below; directional gait points phase-match inside their cyclic
+	# BlendSpaces. Intentional actions alone restart at frame zero.
+	modern_transition.sync = false
 	root.add_node(&"modern_transition", modern_transition, Vector2(640.0, 150.0))
 	var state_index := 0
 	for raw_state_name in state_sources.keys():
 		var state_name := StringName(raw_state_name)
 		modern_transition.set_input_name(state_index, state_name)
+		modern_transition.set_input_reset(
+			state_index,
+			state_name not in [
+				&"idle", &"standing", &"idle_crouch", &"crouch",
+				&"idle_prone", &"prone",
+			]
+		)
 		root.connect_node(&"modern_transition", state_index, StringName(state_sources[state_name]))
 		modern_state_indices[state_name] = state_index
 		state_index += 1
@@ -743,7 +915,9 @@ func _build_modern_route(root: AnimationNodeBlendTree, available_clips: Dictiona
 
 func _direction_space(prefix: StringName, available_clips: Dictionary) -> AnimationNodeBlendSpace2D:
 	var space := AnimationNodeBlendSpace2D.new()
-	space.sync = true
+	# Godot 4.7's old `sync = true` means independent clocks, not matching gait
+	# phase. Cyclic Mutable normalizes every directional point to one foot cycle.
+	space.sync_mode = AnimationNodeBlendSpace2D.SYNC_MODE_CYCLIC_MUTABLE
 	space.min_space = Vector2(-1.0, -1.0)
 	space.max_space = Vector2(1.0, 1.0)
 	space.x_label = "Strafe"
@@ -787,7 +961,7 @@ func _weapon_action_clip(
 
 func _prone_direction_space(available_clips: Dictionary) -> AnimationNodeBlendSpace1D:
 	var space := AnimationNodeBlendSpace1D.new()
-	space.sync = true
+	space.sync_mode = AnimationNodeBlendSpace1D.SYNC_MODE_CYCLIC_MUTABLE
 	space.min_space = -1.0
 	space.max_space = 1.0
 	space.value_label = "Prone travel"

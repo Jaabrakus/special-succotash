@@ -4,7 +4,9 @@ const WRAPPER_PATH := "res://scripts/network/socom_multiplayer_slice.gd"
 const LAYER_PATHS := [
 	"res://scripts/network/socom_multiplayer_state.gd",
 	"res://scripts/network/socom_multiplayer_admission.gd",
+	"res://scripts/network/socom_multiplayer_directory_presence.gd",
 	"res://scripts/network/socom_multiplayer_session.gd",
+	"res://scripts/network/socom_multiplayer_lobby_pairing.gd",
 	"res://scripts/network/socom_multiplayer_replication.gd",
 	"res://scripts/network/socom_multiplayer_combat.gd",
 	"res://scripts/network/socom_multiplayer_rounds.gd",
@@ -18,6 +20,7 @@ const EXPECTED_RPC_METHODS := [
 	"receive_server_map",
 	"receive_lobby_state",
 	"request_lobby_team",
+	"request_lobby_pair",
 	"request_lobby_ready",
 	"receive_match_started",
 	"receive_round_state",
@@ -42,6 +45,9 @@ const EXPECTED_RPC_METHODS := [
 	"receive_purchase_result",
 	"receive_buy_phase",
 	"receive_cash_state",
+	"receive_tournament_assignment",
+	"receive_tournament_arena_layout",
+	"receive_tournament_roster",
 ]
 
 var failures := 0
@@ -82,8 +88,8 @@ func _init() -> void:
 		function_count += source.count("\nfunc ")
 		rpc_annotation_count += source.count("\n@rpc(")
 
-	_expect(function_count == 154, "all 154 authority functions remain in one layer")
-	_expect(rpc_annotation_count == 29, "all 29 RPC annotations remain present")
+	_expect(function_count == 163, "all 163 authority functions remain in one layer")
+	_expect(rpc_annotation_count == 30, "all 30 RPC annotations remain present in base layers")
 
 	var scene := load("res://multiplayer_slice.tscn") as PackedScene
 	var slice := scene.instantiate() if scene != null else null
@@ -102,7 +108,7 @@ func _init() -> void:
 		_expect(rpc_config_value is Dictionary, "runtime exposes a live RPC configuration")
 		if rpc_config_value is Dictionary:
 			var rpc_config := rpc_config_value as Dictionary
-			_expect(rpc_config.size() == EXPECTED_RPC_METHODS.size(), "runtime exposes exactly 29 RPC methods")
+			_expect(rpc_config.size() == EXPECTED_RPC_METHODS.size(), "runtime exposes exactly %d RPC methods" % EXPECTED_RPC_METHODS.size())
 			for method_name in EXPECTED_RPC_METHODS:
 				_expect(rpc_config.has(method_name), "runtime RPC remains registered: " + method_name)
 		slice.free()

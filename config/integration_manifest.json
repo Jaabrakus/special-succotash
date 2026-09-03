@@ -19,7 +19,7 @@
     },
     {
       "id": "camera_gameplay",
-      "label": "Camera + Playable Range",
+      "label": "Camera Lab + Playable Range",
       "scene": "res://main.tscn",
       "controller": "res://scripts/main.gd",
       "shared_contracts": [
@@ -54,6 +54,29 @@
       ]
     },
     {
+      "id": "new_ik_reference",
+      "label": "New IK Lab — Purchased Reference",
+      "scene": "res://scenes/labs/native_ik_player_lab.tscn",
+      "controller": "res://scripts/labs/native_ik_player_lab.gd",
+      "shared_contracts": [
+        "res://scenes/player/native_ik_reference_source.tscn",
+        "res://AnimationTree/Strafe_controller_with_tip.tres",
+        "res://config/character_retarget_profiles/godot_new_ik_v1.json"
+      ]
+    },
+    {
+      "id": "gun_pose_lineup",
+      "label": "Gun Pose Lineup — All States Live",
+      "scene": "res://scenes/labs/gun_pose_lineup_lab.tscn",
+      "controller": "res://scripts/labs/gun_pose_lineup_editor.gd",
+      "shared_contracts": [
+        "res://config/operator_animation_map.json",
+        "res://scenes/player/canonical_socom_operator_rig.tscn",
+        "res://scenes/player/socom_ik_control_graph.tscn",
+        "res://scenes/weapons/m16a2.tscn"
+      ]
+    },
+    {
       "id": "weapon",
       "label": "Weapon + Hand Gunsmith",
       "scene": "res://gun_calibration_lab.tscn",
@@ -64,6 +87,20 @@
         "res://scripts/weapons/weapon_rig_contract.gd",
         "res://scripts/weapons/operator_composure.gd",
         "res://scripts/player/weapon_ownership_contract.gd"
+      ]
+    },
+    {
+      "id": "weapon_visual_rig_v2",
+      "label": "Guns Lab 2.0 — Golden Visual Rigs",
+      "scene": "res://gun_calibration_lab_2.tscn",
+      "controller": "res://scripts/labs/gunsmith2/guns_lab_2.gd",
+      "shared_contracts": [
+		"res://scripts/weapons/weapon_rig_contract.gd",
+        "res://scripts/player/operator_asset_runtime.gd",
+        "res://scripts/player/operator_animation_driver_runtime.gd",
+        "res://config/feature_contracts/firearm_family_presentation.json",
+        "res://config/weapon_family_visual_assignments.json",
+        "res://config/weapon_visual_rigs"
       ]
     },
     {
@@ -212,6 +249,10 @@
       "res://tools/operator_weapon_pose_regression.gd",
       "res://tools/mobility_regression.gd",
       "res://tools/gun_lab_animation_catalog_regression.gd",
+      "res://tools/guns_lab_2_profile_regression.gd",
+      "res://tools/guns_lab_2_runtime_regression.gd",
+      "res://tools/firearm_family_presentation_regression.gd",
+      "res://tools/firearm_family_live_contact_regression.gd",
       "res://tools/keyboard_mapping_lab_regression.gd",
       "res://tools/map_creation_lab_regression.gd",
       "res://tools/weapon_rig_integration_regression.gd",
@@ -220,6 +261,13 @@
       "res://tools/prone_grounding_regression.gd",
       "res://tools/prone_weapon_floor_regression.gd",
       "res://tools/multiplayer_slice_regression.gd",
+      "res://tools/multiplayer_slice_architecture_regression.gd",
+      "res://tools/browser_multiarena_deployment_regression.gd",
+      "res://tools/tournament_session_regression.gd",
+      "res://tools/tournament_map_pods_regression.gd",
+      "res://tools/tournament_replication_scope_regression.gd",
+      "res://tools/stair_playability_regression.gd",
+      "res://tools/feature_contract_regression.gd",
       "res://tools/test_tactical_grenades.gd",
       "res://tools/test_sound_engine_lab.gd"
     ],
@@ -229,6 +277,7 @@
       "res://tools/input_device_ownership_regression.gd",
       "res://tools/reticle_render_integration.gd",
       "res://tools/weapon_fire_regression.gd",
+      "res://tools/run_tournament_websocket_32_peer_probe.sh",
       "res://tools/run_camera_regression.sh"
     ]
   }

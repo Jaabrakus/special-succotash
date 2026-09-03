@@ -2,10 +2,12 @@ class_name SocomWeaponBallistics
 extends Node
 
 const AnatomicalHitResolver := preload("res://scripts/combat/socom_anatomical_hit_resolver.gd")
+const BulletPenetration := preload("res://scripts/combat/socom_bullet_penetration.gd")
 
 ## SOCOM II Ballistics & Burst-Fire Accuracy Model
 ## Implements:
 ## - 2-Round Burst pinpoint accuracy (shots 1 & 2 have 0 extra dispersion)
+## - CS:GO Bullet Penetration through thin wood, drywall, and sheet metal
 ## - Continuous fire bloom escalation
 ## - Fast bloom recovery on trigger release (0.12s decay)
 ## - Stance bloom multipliers (Prone = 0.20x, Crouch = 0.60x, Stand = 1.0x)
@@ -13,12 +15,14 @@ const AnatomicalHitResolver := preload("res://scripts/combat/socom_anatomical_hi
 ## - Visual bullet tracers and impact effects
 
 signal shot_fired(origin: Vector3, end_point: Vector3, hit_target: bool)
+signal wallbang_penetrated(entry_pos: Vector3, exit_pos: Vector3, remaining_damage: float)
 
 @export var fire_rate_rpm: float = 600.0
 @export var damage_per_shot: float = 34.0
 @export var headshot_multiplier: float = 3.5
 @export var max_range: float = 120.0
 @export var muzzle_velocity_mps: float = 715.0
+@export var penetration_power: float = 1.5
 
 # Bloom & Dispersion Parameters (Degrees)
 @export var base_spread_deg: float = 0.28
@@ -182,22 +186,53 @@ func try_fire_direction(
     var final_dir := (ray_basis * (Vector3.FORWARD + spread_offset)).normalized()
     var ray_end := muzzle_pos + final_dir * max_range
 
-    # Resolve overlapping animated regions consistently with server authority.
-    var result := AnatomicalHitResolver.trace(
+    # CS:GO Dual-Raycast Penetration Solver
+    var pen_traces := BulletPenetration.trace_bullet(
         space_state,
         muzzle_pos,
-        ray_end,
+        final_dir,
+        max_range,
+        damage_per_shot,
+        penetration_power,
         exclude_rids
     )
 
     var hit_pos := ray_end
     var hit_target := false
     var hit_collider: Object = null
+    var hit_normal := Vector3.UP
+    var is_wallbang := false
 
-    if not result.is_empty():
+    if not pen_traces.is_empty():
+        var primary_impact: Dictionary = pen_traces[0]
+        hit_pos = primary_impact.get("entry_pos", ray_end)
+        hit_collider = primary_impact.get("collider", null)
+        hit_normal = primary_impact.get("normal", Vector3.UP)
+        hit_target = bool(primary_impact.get("is_target", false))
+
+        # If there are multiple hits (e.g. wall then player), signal wallbang
+        for i in range(pen_traces.size()):
+            var trace_item: Dictionary = pen_traces[i]
+            if bool(trace_item.get("is_wallbang", false)):
+                is_wallbang = true
+                wallbang_penetrated.emit(
+                    Vector3(trace_item.get("entry_pos", Vector3.ZERO)),
+                    Vector3(trace_item.get("exit_pos", Vector3.ZERO)),
+                    float(trace_item.get("damage", 0.0))
+                )
+
+    # High-precision anatomical fallback for direct point-blank targets
+    var result := AnatomicalHitResolver.trace(
+        space_state,
+        muzzle_pos,
+        hit_pos + final_dir * 0.05,
+        exclude_rids
+    )
+    if not result.is_empty() and (not is_wallbang or hit_collider == null):
         hit_pos = result.position
         hit_collider = result.collider
         hit_target = true
+        hit_normal = result.get("normal", hit_normal)
 
     shot_fired.emit(muzzle_pos, hit_pos, hit_target)
 
@@ -212,9 +247,11 @@ func try_fire_direction(
         "direction": final_dir,
         "spread_deg": total_current_spread_deg,
         "dispersion_multiplier": applied_dispersion_multiplier,
-        "normal": result.get("normal", Vector3.UP),
+        "normal": hit_normal,
         "continuous_count": continuous_shot_count,
         "muzzle_velocity_mps": muzzle_velocity_mps,
+        "penetrations": pen_traces,
+        "is_wallbang": is_wallbang,
         "tracer_travel_seconds": (
             hit_pos.distance_to(muzzle_pos) / maxf(muzzle_velocity_mps, 1.0)
         ),

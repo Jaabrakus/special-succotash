@@ -16,6 +16,7 @@ static func movement_to_packet(command) -> Dictionary:
 		"move": Vector2(command.move_axis).limit_length(1.0),
 		"aim_yaw": wrapf(float(command.aim_yaw), -PI, PI),
 		"jump": bool(command.jump_pressed),
+		"jump_held": bool(command.jump_held),
 		"dive": bool(command.dive_pressed),
 		"roll": bool(command.roll_pressed),
 		"prone": bool(command.prone_pressed),
@@ -31,6 +32,7 @@ static func packet_to_movement(packet: Dictionary):
 	command.move_axis = _bounded_vector2(packet.get("move", Vector2.ZERO))
 	command.aim_yaw = wrapf(float(packet.get("aim_yaw", 0.0)), -PI, PI)
 	command.jump_pressed = bool(packet.get("jump", false))
+	command.jump_held = bool(packet.get("jump_held", false))
 	command.dive_pressed = bool(packet.get("dive", false))
 	command.roll_pressed = bool(packet.get("roll", false))
 	command.prone_pressed = bool(packet.get("prone", false))

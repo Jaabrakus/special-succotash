@@ -235,7 +235,18 @@ func _run() -> void:
 	var breached_runtime := _find_map_node(runtime_root, "breached_wall")
 	_expect(breached_runtime != null and breached_runtime.find_children("CollisionShape3D", "CollisionShape3D", true, false).size() >= 4, "breached walls build a playable hole with compound collision")
 	var stairs_runtime := _find_map_node(runtime_root, "stairs")
-	_expect(stairs_runtime != null and stairs_runtime.find_children("CollisionShape3D", "CollisionShape3D", true, false).size() >= 3, "stairs build multiple traversable collision steps")
+	var stair_ramp := (
+		stairs_runtime.get_node_or_null("TraversalRamp/CollisionShape3D") as CollisionShape3D
+		if stairs_runtime != null
+		else null
+	)
+	_expect(
+		stairs_runtime != null
+		and stairs_runtime.find_children("Step*", "MeshInstance3D", true, false).size() >= 3
+		and stair_ramp != null
+		and stair_ramp.shape is ConvexPolygonShape3D,
+		"stairs keep visible treads over one smooth traversable collision ramp"
+	)
 	var bomb_pickup_runtime := _find_map_node(runtime_root, "bomb_pickup")
 	_expect(
 		bomb_pickup_runtime != null

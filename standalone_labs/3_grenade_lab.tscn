@@ -1,0 +1,54 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/labs/tactical_grenade_lab.gd" id="1_grenade_lab"]
+
+[sub_resource type="Environment" id="Environment_lab"]
+background_mode = 1
+background_color = Color(0.12, 0.14, 0.18, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.65, 0.7, 0.8, 1)
+
+[sub_resource type="WorldBoundaryShape3D" id="WorldBoundaryShape3D_floor"]
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_floor"]
+size = Vector2(40, 40)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_wall"]
+size = Vector3(0.5, 2, 4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_wall"]
+size = Vector3(0.5, 2, 4)
+
+[node name="TacticalGrenadeLab" type="Node3D"]
+script = ExtResource("1_grenade_lab")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_lab")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.707107, -0.5, 0.5, 0, 0.707107, 0.707107, -0.707107, -0.5, 0.5, 0, 10, 0)
+shadow_enabled = true
+
+[node name="ArenaFloor" type="StaticBody3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="ArenaFloor"]
+shape = SubResource("WorldBoundaryShape3D_floor")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="ArenaFloor"]
+mesh = SubResource("PlaneMesh_floor")
+
+[node name="ObstacleWall" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -5)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="ObstacleWall"]
+shape = SubResource("BoxShape3D_wall")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="ObstacleWall"]
+mesh = SubResource("BoxMesh_wall")
+
+[node name="ThrowOrigin" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.4, 0)
+
+[node name="PreviewCamera" type="Camera3D" parent="."]
+transform = Transform3D(0.829038, -0.218508, 0.514496, 0, 0.920505, 0.390731, -0.559193, -0.323929, 0.763134, 3.8, 2.4, 5.6)
+current = true

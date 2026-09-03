@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "feature_id": "gunsmith_weapon_authoring",
+  "player_intent": "The designer can move real 3D hand, elbow, weapon, muzzle, and reticle contacts and use the same authored weapon setup in play.",
+  "acceptance_rule": "Saving and equipping a weapon writes the shared weapon profile, canonical gameplay reads it, and no editor preview node owns camera, movement, shots, or damage.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://gun_calibration_lab.tscn",
+  "ownership": {
+    "weapon_profile_write": "GunsmithWeaponProfileRepository",
+    "gunsmith_3d_contact_editing": "GunsmithGizmoInteractionController",
+    "runtime_weapon_presentation": "SocomOperatorWeaponPresentationOwner",
+    "aim_intent": "SOCOMCameraReticleChain",
+    "shot_and_damage": "AuthoritativeServerWeapon"
+  },
+  "nodes": [
+    {
+      "id": "gunsmith_root",
+      "type": "Node3D",
+      "role": "Owns the original SOCOM Gunsmith scene and its preview-only children.",
+      "owner": "GunCalibrationLab",
+      "scene_path": "res://gun_calibration_lab.tscn",
+      "node_path": "."
+    },
+    {
+      "id": "trigger_hand_contact",
+      "type": "MeshInstance3D",
+      "role": "Editable trigger-hand contact attached to the weapon socket root.",
+      "owner": "GunsmithGizmoInteractionController",
+      "source_script": "res://scripts/labs/gunsmith/gunsmith_weapon_preview_loader.gd",
+      "code_symbols": ["right_grip_marker", "Socket_RightHand", "socket_root.add_child"]
+    },
+    {
+      "id": "support_hand_contact",
+      "type": "MeshInstance3D",
+      "role": "Editable support-palm target consumed by the hand presentation solver.",
+      "owner": "GunsmithGizmoInteractionController",
+      "source_script": "res://scripts/labs/gunsmith/gunsmith_weapon_preview_loader.gd",
+      "code_symbols": ["left_grip_marker", "Socket_LeftHand", "socket_root.add_child"]
+    },
+    {
+      "id": "left_elbow_pole",
+      "type": "MeshInstance3D",
+      "role": "Editable pole target controlling the support elbow bend plane.",
+      "owner": "GunsmithRigAuthoringController",
+      "source_script": "res://scripts/labs/gunsmith/gunsmith_rig_authoring_controller.gd",
+      "code_symbols": ["left_elbow_pole_marker", "LeftElbowIKPole", "add_child"]
+    },
+    {
+      "id": "right_elbow_pole",
+      "type": "MeshInstance3D",
+      "role": "Editable pole target controlling the trigger elbow bend plane.",
+      "owner": "GunsmithRigAuthoringController",
+      "source_script": "res://scripts/labs/gunsmith/gunsmith_rig_authoring_controller.gd",
+      "code_symbols": ["right_elbow_pole_marker", "RightElbowIKPole", "add_child"]
+    },
+    {
+      "id": "reticle_preview",
+      "type": "Control",
+      "role": "Displays the same weapon reticle data without becoming aim authority.",
+      "owner": "GunsmithStudioView",
+      "source_script": "res://scripts/labs/gunsmith/gunsmith_studio_view.gd",
+      "code_symbols": ["SharedWeaponReticlePreview", "dynamic_reticle"]
+    },
+    {
+      "id": "shared_target_pivot",
+      "type": "Marker3D",
+      "role": "Parents the editable shoulder, trigger-hand, support-hand, and spine presentation targets.",
+      "owner": "GunsmithContactGraphController",
+      "source_script": "res://scripts/labs/gunsmith/gunsmith_contact_graph_controller.gd",
+      "code_symbols": ["TargetPivot", "RHUpperArmWeaponTarget", "RHWeaponTarget", "LHWeaponContactTarget", "SpineTargetWeaponAim"]
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://config/weapons/m4a1.json",
+      "writer": "res://scripts/labs/gunsmith/gunsmith_weapon_profile_repository.gd",
+      "readers": [
+        "res://scripts/player/operator_asset_runtime.gd",
+        "res://scripts/weapons/weapon_rig_contract.gd",
+        "res://scripts/weapons/socom_weapon_controller.gd"
+      ]
+    }
+  ],
+  "must_not_change": [
+    "CharacterBody3D movement and collision authority",
+    "SOCOM camera and reticle aim authority",
+    "server shot, ballistics, damage, and network authority",
+    "base authored animation ownership"
+  ],
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Adopt the reference shared contact-target graph and native modifier ordering inside the original SOCOM Gunsmith, while retaining SOCOM camera, reticle, ballistics, hitboxes, persistence, and authority owners.",
+    "current": {
+      "system": "SOCOM original Gunsmith contacts and weapon runtime",
+      "correctness": 4,
+      "ownership_clarity": 4,
+      "runtime_parity": 4,
+      "editor_usability": 3,
+      "performance": 4,
+      "regression_coverage": 4,
+      "evidence_paths": [
+        "res://scripts/labs/gunsmith/gunsmith_gizmo_interaction_controller.gd",
+        "res://scripts/labs/gunsmith/gunsmith_persistence_controller.gd",
+        "res://scripts/player/operator_weapon_pose_kinematics.gd"
+      ]
+    },
+    "candidate": {
+      "system": "Godot 4.6 reference shared TargetPivot contact graph",
+      "correctness": 4,
+      "ownership_clarity": 5,
+      "runtime_parity": 3,
+      "editor_usability": 5,
+      "performance": 4,
+      "regression_coverage": 3,
+      "evidence_paths": [
+        "res://GODOT 4.6 - NEW IK AIM/Node/Player.tscn",
+        "res://GODOT 4.6 - NEW IK AIM/script/NewTPSCamera.gd",
+        "res://tools/reference_weapon_contact_graph_telemetry.gd"
+      ]
+    }
+  },
+  "proof_scripts": [
+    "res://tools/feature_contract_regression.gd",
+    "res://tools/weapon_contact_graph_integration_regression.gd",
+    "res://tools/test_gunsmith_persistence_regression.gd",
+    "res://tools/weapon_rig_integration_regression.gd"
+  ],
+  "visual_check": "Open the original Gunsmith, drag each colored contact in 3D, save and equip, then verify the same contacts with stable hands in canonical gameplay."
+}

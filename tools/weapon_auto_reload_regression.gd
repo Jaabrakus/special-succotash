@@ -7,6 +7,7 @@ class FakeDriver:
 	extends Node
 	signal action_completed(clip_name: StringName)
 	signal action_cancelled(clip_name: StringName)
+	signal reload_commit_cue(clip_name: StringName)
 	var play_count := 0
 
 	func weapon_reload_duration_seconds() -> float:
@@ -17,6 +18,10 @@ class FakeDriver:
 			return {"applied": false}
 		play_count += 1
 		return {"applied": true}
+
+	func cancel_reload_action() -> bool:
+		action_cancelled.emit(&"reload")
+		return true
 
 
 class FakePlayer:
@@ -89,8 +94,18 @@ func _run() -> void:
 	weapon.ammo_changed.emit(0, 6)
 	await process_frame
 	_expect(driver.play_count == 1, "repeated empty-ammo updates do not restart reload")
+	_expect(weapon.reload_commits == 0, "ammo remains unchanged before the magazine-in cue")
+	_expect(
+		not bool(coordinator.cancel_for_fire())
+		and bool(coordinator.pending)
+		and weapon.reload_locked,
+		"fire cannot cancel an empty-magazine reload"
+	)
+	driver.reload_commit_cue.emit(&"reload")
+	_expect(weapon.reload_commits == 1 and weapon.magazine == 6, "magazine-in cue commits ammunition once")
+	_expect(weapon.reload_locked, "magazine-in commit keeps fire locked through reload recovery")
 	driver.action_completed.emit(&"reload")
-	_expect(weapon.reload_commits == 1 and weapon.magazine == 6, "ammo transfers only when the reload animation completes")
+	_expect(weapon.reload_commits == 1 and weapon.magazine == 6, "reload completion does not duplicate the ammo commit")
 	_expect(not weapon.reload_locked, "completed reload returns trigger ownership once")
 	weapon.magazine = 0
 	weapon.reserve = 0
@@ -104,37 +119,96 @@ func _run() -> void:
 	weapon.ammo_changed.emit(0, 6)
 	await process_frame
 	await process_frame
-	_expect(not bool(coordinator.pending), "zero-ammo auto reload waits while airborne")
+	_expect(not bool(coordinator.pending), "new zero-ammo auto reload waits while already airborne")
 	_expect(not weapon.reload_locked, "queued airborne reload does not lock fire before animation starts")
-	_expect(
-		bool(coordinator.auto_reload_waiting_for_safe_state),
-		"airborne zero-ammo state keeps one grounded retry queued"
-	)
-	_expect(driver.play_count == 1, "airborne auto reload does not flicker the animation")
+	_expect(bool(coordinator.auto_reload_waiting_for_safe_state), "airborne start keeps one grounded retry queued")
+	_expect(driver.play_count == 1, "airborne start does not flicker the animation")
 	player.movement_state = &"STANDING"
 	await physics_frame
 	await process_frame
-	_expect(bool(coordinator.pending), "queued zero-ammo reload starts after landing")
-	_expect(driver.play_count == 2, "landing starts the queued reload exactly once")
+	_expect(bool(coordinator.pending), "queued reload starts after landing")
+	_expect(driver.play_count == 2, "landing starts the queued animation exactly once")
 	player.movement_state = &"AIRBORNE"
-	driver.action_cancelled.emit(&"reload")
+	await physics_frame
+	await process_frame
+	_expect(bool(coordinator.pending), "jump does not cancel an active reload")
+	_expect(driver.play_count == 2, "jump does not restart the active reload animation")
+	driver.reload_commit_cue.emit(&"reload")
+	_expect(weapon.reload_commits == 2 and weapon.magazine == 6, "jumping reload commits at magazine-in")
+	driver.action_completed.emit(&"reload")
+	_expect(weapon.reload_commits == 2 and weapon.magazine == 6, "jumping reload recovery does not duplicate commit")
+	weapon.magazine = 0
+	weapon.reserve = 6
+	player.movement_state = &"STANDING"
+	weapon.ammo_changed.emit(0, 6)
 	await process_frame
 	await process_frame
-	_expect(not bool(coordinator.pending), "jump interruption cancels the active reload commit")
-	_expect(not weapon.reload_locked, "cancelled reload releases trigger ownership")
+	_expect(bool(coordinator.pending), "grounded replacement reload starts")
+	_expect(driver.play_count == 3, "replacement reload starts exactly once")
+	player.movement_state = &"ROLLING"
+	await physics_frame
+	await process_frame
+	_expect(bool(coordinator.pending), "roll preserves the active reload commit")
+	_expect(weapon.reload_locked, "rolling reload keeps its transaction lock")
 	_expect(
-		bool(coordinator.auto_reload_waiting_for_safe_state),
-		"cancelled zero-ammo reload remains queued for landing"
+		driver.play_count == 3,
+		"roll does not cancel or restart the active reload animation"
 	)
 	player.movement_state = &"STANDING"
 	await physics_frame
 	await process_frame
-	_expect(bool(coordinator.pending), "cancelled zero-ammo reload restarts after landing")
-	_expect(driver.play_count == 3, "grounded retry starts one replacement animation")
+	_expect(bool(coordinator.pending), "reload remains continuous after roll ends")
+	_expect(driver.play_count == 3, "post-roll state uses the original reload playhead")
+	driver.reload_commit_cue.emit(&"reload")
 	driver.action_completed.emit(&"reload")
 	_expect(
-		weapon.reload_commits == 2 and weapon.magazine == 6,
-		"grounded replacement reload commits the reserved ammunition"
+		weapon.reload_commits == 3 and weapon.magazine == 6,
+		"movement-surviving reload commits the reserved ammunition"
+	)
+
+	weapon.magazine = 0
+	weapon.reserve = 6
+	player.movement_state = &"STANDING"
+	weapon.ammo_changed.emit(0, 6)
+	await process_frame
+	await process_frame
+	_expect(bool(coordinator.pending), "post-commit interruption case starts a reload")
+	driver.reload_commit_cue.emit(&"reload")
+	_expect(weapon.reload_commits == 4 and weapon.magazine == 6, "post-commit case loads ammunition at magazine-in")
+	player.movement_state = &"ROLLING"
+	await physics_frame
+	await process_frame
+	_expect(bool(coordinator.pending), "roll after magazine-in preserves reload recovery")
+	_expect(weapon.reload_locked, "post-commit movement keeps reload ownership")
+	_expect(weapon.magazine == 6, "movement does not remove committed ammunition")
+	driver.action_completed.emit(&"reload")
+	_expect(not bool(coordinator.pending), "authored completion ends movement-surviving reload")
+	_expect(not weapon.reload_locked, "authored completion releases trigger ownership")
+	_expect(
+		not bool(coordinator.auto_reload_waiting_for_safe_state),
+		"loaded weapon does not queue another automatic reload"
+	)
+
+	weapon.magazine = 3
+	weapon.reserve = 6
+	player.movement_state = &"STANDING"
+	_expect(bool(coordinator.request_reload()), "partial-magazine reload starts")
+	coordinator.call("_on_mobility_action_requested", &"DIVING")
+	coordinator.call("_on_mobility_action_started", &"ROLLING")
+	coordinator.call("_on_mobility_action_started", &"VAULTING")
+	_expect(
+		bool(coordinator.pending) and weapon.reload_locked,
+		"dive roll and vault cannot cancel the reload timeline"
+	)
+	_expect(
+		bool(coordinator.cancel_for_fire())
+		and not bool(coordinator.pending)
+		and not weapon.reload_locked,
+		"fire with remaining rounds is the explicit reload interrupt"
+	)
+	_expect(
+		weapon.magazine == 3 and weapon.reload_commits == 4,
+		"pre-commit fire interruption preserves the remaining magazine"
 	)
 
 	coordinator.queue_free()

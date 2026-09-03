@@ -8,6 +8,7 @@ extends Node
 var committed_posture: StringName = &"STANDING"
 var committed_locomotion_active: bool = false
 var presentation_posture: StringName = &"STANDING"
+var presentation_locomotion_active: bool = false
 var presentation_ready_weight: float = 0.0
 var barrier_active: bool = false
 var generation: int = 0
@@ -23,6 +24,7 @@ func prime(
 	committed_posture = posture
 	committed_locomotion_active = locomotion_active
 	presentation_posture = posture
+	presentation_locomotion_active = locomotion_active
 	presentation_ready_weight = clampf(ready_weight, 0.0, 1.0)
 	barrier_active = false
 	_release_pending = false
@@ -54,6 +56,7 @@ func resolve(
 	barrier_active = false
 	_release_pending = false
 	presentation_posture = posture
+	presentation_locomotion_active = locomotion_active
 	presentation_ready_weight = clampf(desired_ready_weight, 0.0, 1.0)
 	return _snapshot(released_hands)
 
@@ -63,6 +66,7 @@ func _snapshot(released_hands: bool) -> Dictionary:
 		"barrier_active": barrier_active,
 		"released_hands": released_hands,
 		"presentation_posture": presentation_posture,
+		"presentation_locomotion_active": presentation_locomotion_active,
 		"presentation_ready_weight": presentation_ready_weight,
 		"committed_posture": committed_posture,
 		"committed_locomotion_active": committed_locomotion_active,

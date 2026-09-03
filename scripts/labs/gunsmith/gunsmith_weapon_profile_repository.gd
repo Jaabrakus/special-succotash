@@ -20,19 +20,43 @@ static func load_profile(weapon_id: String) -> Dictionary:
 	return (parsed as Dictionary).duplicate(true) if parsed is Dictionary else {}
 
 
-static func save_and_equip(weapon_id: String, profile: Dictionary) -> Dictionary:
+## Saving a profile must not change what the player has equipped.  Gunsmith is
+## an authoring tool; equipping is a separate, explicit gameplay action.
+static func save_profile(weapon_id: String, profile: Dictionary) -> Dictionary:
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(CONFIG_DIRECTORY))
 	var path := profile_path(weapon_id)
 	var document := profile.duplicate(true)
-	_preserve_unknown_section_fields(document, load_profile(weapon_id), "reticle")
+	var existing := load_profile(weapon_id)
+	_preserve_unknown_top_level_fields(document, existing)
+	_preserve_unknown_section_fields(document, existing, "reticle")
 	var file := FileAccess.open(path, FileAccess.WRITE)
 	if file == null:
 		return {"ok": false, "error": "Weapon profile could not be opened for writing."}
 	file.store_string(JSON.stringify(document, "  "))
 	file.close()
+	return {"ok": true, "path": path, "profile": document}
+
+
+## The only path that changes the canonical playable loadout.
+static func equip_saved_profile(weapon_id: String) -> Dictionary:
+	var path := profile_path(weapon_id)
+	if not FileAccess.file_exists(path):
+		return {"ok": false, "error": "Save this weapon rig before equipping it."}
 	if not _save_operator_loadout(weapon_id.to_lower()):
 		return {"ok": false, "error": "Operator loadout could not be written."}
-	return {"ok": true, "path": path, "profile": document}
+	return {"ok": true, "path": path}
+
+
+## Compatibility entry point for older callers. New UI must call the two
+## operations separately so an ordinary save never changes gameplay loadout.
+static func save_and_equip(weapon_id: String, profile: Dictionary) -> Dictionary:
+	var saved := save_profile(weapon_id, profile)
+	if not bool(saved.get("ok", false)):
+		return saved
+	var equipped := equip_saved_profile(weapon_id)
+	if not bool(equipped.get("ok", false)):
+		return equipped
+	return saved
 
 
 static func profile_path(weapon_id: String) -> String:
@@ -53,15 +77,25 @@ static func _preserve_unknown_section_fields(
 			(next_section as Dictionary)[key] = previous_section[key]
 
 
+static func _preserve_unknown_top_level_fields(document: Dictionary, existing: Dictionary) -> void:
+	for key: Variant in existing:
+		if not document.has(key):
+			document[key] = existing[key]
+
+
 static func _save_operator_loadout(weapon_id: String) -> bool:
-	var loadout := {
-		"schema_version": 1,
-		"primary_weapon_id": weapon_id,
-		"rig_config": profile_path(weapon_id),
-	}
+	var loadout := build_operator_loadout(weapon_id)
 	var file := FileAccess.open(OPERATOR_LOADOUT_PATH, FileAccess.WRITE)
 	if file == null:
 		return false
 	file.store_string(JSON.stringify(loadout, "  "))
 	file.close()
 	return true
+
+
+static func build_operator_loadout(weapon_id: String) -> Dictionary:
+	return {
+		"schema_version": 1,
+		"primary_weapon_id": weapon_id.to_lower(),
+		"rig_config": profile_path(weapon_id),
+	}

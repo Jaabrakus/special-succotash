@@ -1,0 +1,99 @@
+[gd_scene load_steps=12 format=3]
+
+[ext_resource type="Script" path="res://standalone_labs/camera_lab_sandbox.gd" id="1_sandbox"]
+[ext_resource type="Script" path="res://scripts/camera/socom_camera.gd" id="2_camera_rig"]
+
+[sub_resource type="Environment" id="Environment_lab"]
+background_mode = 1
+background_color = Color(0.1, 0.12, 0.16, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.7, 0.75, 0.85, 1)
+
+[sub_resource type="WorldBoundaryShape3D" id="WorldBoundaryShape3D_floor"]
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_floor"]
+size = Vector2(60, 60)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_tall_wall"]
+size = Vector3(1, 4, 8)
+
+[sub_resource type="BoxMesh" id="BoxMesh_tall_wall"]
+size = Vector3(1, 4, 8)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_tunnel_roof"]
+size = Vector3(3, 0.4, 6)
+
+[sub_resource type="BoxMesh" id="BoxMesh_tunnel_roof"]
+size = Vector3(3, 0.4, 6)
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_mannequin"]
+radius = 0.35
+height = 1.75
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_mannequin"]
+radius = 0.35
+height = 1.75
+
+[node name="CameraLab" type="Node3D"]
+script = ExtResource("1_sandbox")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_lab")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866025, -0.25, 0.433013, 0, 0.866025, 0.5, -0.5, -0.433013, 0.75, 0, 10, 0)
+shadow_enabled = true
+
+[node name="Floor" type="StaticBody3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Floor"]
+shape = SubResource("WorldBoundaryShape3D_floor")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
+mesh = SubResource("PlaneMesh_floor")
+
+[node name="Obstacles" type="Node3D" parent="."]
+
+[node name="TallWall" type="StaticBody3D" parent="Obstacles"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 2, -2)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Obstacles/TallWall"]
+shape = SubResource("BoxShape3D_tall_wall")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Obstacles/TallWall"]
+mesh = SubResource("BoxMesh_tall_wall")
+
+[node name="TunnelRoof" type="StaticBody3D" parent="Obstacles"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.25, 2.8, -4)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Obstacles/TunnelRoof"]
+shape = SubResource("BoxShape3D_tunnel_roof")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Obstacles/TunnelRoof"]
+mesh = SubResource("BoxMesh_tunnel_roof")
+
+[node name="TargetMannequin" type="CharacterBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="TargetMannequin"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+shape = SubResource("CapsuleShape3D_mannequin")
+
+[node name="MannequinMesh" type="MeshInstance3D" parent="TargetMannequin"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+mesh = SubResource("CapsuleMesh_mannequin")
+
+[node name="HeadMarker" type="Marker3D" parent="TargetMannequin"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.7, 0)
+
+[node name="TorsoMarker" type="Marker3D" parent="TargetMannequin"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
+
+[node name="PelvisMarker" type="Marker3D" parent="TargetMannequin"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.85, 0)
+
+[node name="FeetMarker" type="Marker3D" parent="TargetMannequin"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
+
+[node name="SocomCameraRig" type="Node3D" parent="."]
+script = ExtResource("2_camera_rig")

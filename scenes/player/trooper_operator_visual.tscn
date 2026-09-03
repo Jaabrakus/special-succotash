@@ -1,0 +1,15 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" uid="uid://bvui7bwfs3vyx" path="res://assets/characters/ps1_gas_mask_soldier/trooper_rigged.fbx" id="1_fbx"]
+[ext_resource type="Texture2D" uid="uid://bg24xuxv5v87g" path="res://assets/characters/ps1_gas_mask_soldier/textures/trooper_texture.png" id="2_texture"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_trooper"]
+texture_filter = 0
+albedo_texture = ExtResource("2_texture")
+
+[node name="TrooperOperatorVisual" type="Node3D"]
+
+[node name="Model" parent="." instance=ExtResource("1_fbx")]
+
+[node name="armlower" parent="Model/Skeleton3D" index="0"]
+surface_material_override/0 = SubResource("StandardMaterial3D_trooper")

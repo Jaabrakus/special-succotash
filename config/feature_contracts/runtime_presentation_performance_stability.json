@@ -1,0 +1,133 @@
+{
+  "schema_version": 1,
+  "feature_id": "runtime_presentation_performance_stability",
+  "player_intent": "Long gameplay and repeated weapon comparison remain responsive without progressive animation cost, duplicate IK modifiers, stale animation caches, or debug-input error floods.",
+  "acceptance_rule": "The zero-weight legacy locomotion graph does not advance while the modern route owns presentation. Repeated AK/M4 swaps reuse exactly one combat-ready modifier. Public or restricted play may omit developer-only telemetry input without producing errors. The packaged operator library must match the current animation-map fingerprint before release. Canonical idle, movement, and fire frame times remain stable without recurring 20 ms hitches.",
+  "canonical_scene": "res://main.tscn",
+  "ownership": {
+    "animation_graph_evaluation": "SocomOperatorLocomotionBlendTree",
+    "combat_ready_modifier_lifetime": "SocomOperatorWeaponEquipmentRuntime",
+    "optional_debug_input": "SocomProgrammatic3DTelemetry",
+    "animation_cache_identity": "SocomOperatorAnimationLibraryCache"
+  },
+  "nodes": [
+    {
+      "id": "single_active_locomotion_route",
+      "type": "AnimationNodeBlend2",
+      "role": "Evaluates only the selected modern or legacy locomotion route instead of advancing a hidden zero-weight graph.",
+      "owner": "SocomOperatorLocomotionBlendTree",
+      "source_script": "res://scripts/player/operator_locomotion_blend_tree.gd",
+      "code_symbols": [
+        "route_blend.sync = false",
+        "root.add_node(&\"route_blend\""
+      ]
+    },
+    {
+      "id": "reused_combat_ready_modifier",
+      "type": "CCDIK3D",
+      "role": "Keeps one modifier attached to the operator skeleton and replaces only its weapon contact data on equipment changes.",
+      "owner": "SocomOperatorWeaponEquipmentRuntime",
+      "source_script": "res://scripts/player/operator_weapon_equipment_runtime.gd",
+      "code_symbols": [
+        "driver.combat_ready_ccdik.reconfigure(",
+        "driver.equipped_weapon_config.get(\"weapon_contact_graph\", {})"
+      ]
+    },
+        {
+            "id": "optional_telemetry_input_observer",
+      "type": "Node",
+      "role": "Observes the developer telemetry shortcut only when its optional InputMap action exists, preventing per-event error spam in public play.",
+      "owner": "SocomProgrammatic3DTelemetry",
+      "source_script": "res://scripts/runtime/programmatic_3d_telemetry.gd",
+      "code_symbols": [
+        "InputMap.has_action(\"toggle_3d_telemetry\")",
+                "event.is_action_pressed(\"toggle_3d_telemetry\")"
+            ]
+        },
+        {
+            "id": "packaged_animation_cache_publisher",
+            "type": "RefCounted",
+            "role": "Forces --build-animation-cache to process the canonical animation map and publish a fresh project cache instead of returning early after adopting a user cache.",
+            "owner": "SocomOperatorAnimationLibraryCache",
+            "source_script": "res://scripts/player/operator_animation_library_cache.gd",
+            "code_symbols": [
+                "if OS.get_cmdline_user_args().has(\"--build-animation-cache\"):",
+                "return {}",
+                "clip_names.append(String(raw_clip_name))",
+                "routes_by_name[String(raw_route_name)] = routes[raw_route_name]"
+            ]
+        }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://config/operator_animation_map.json",
+      "writer": "res://scripts/player/operator_animation_profile.gd",
+      "readers": [
+        "res://scripts/player/operator_animation_library_cache.gd",
+        "res://scripts/player/operator_asset_runtime.gd",
+        "res://scripts/player/operator_locomotion_blend_tree.gd"
+      ]
+    },
+    {
+      "path": "res://config/programmatic_3d_telemetry.json",
+      "writer": "res://scripts/runtime/programmatic_3d_telemetry.gd",
+      "readers": [
+        "res://scripts/runtime/programmatic_3d_telemetry.gd"
+      ]
+    }
+  ],
+  "must_not_change": [
+    "CharacterBody3D movement and collision authority",
+    "SOCOM camera and reticle aim authority",
+    "server shot, ballistics, damage, and network authority",
+    "selected animation route timing or visible playback semantics",
+    "developer telemetry recording behavior when F11 is registered"
+  ],
+  "system_delta": {
+    "decision": "REPLACE",
+        "reason": "Replace hidden duplicate graph evaluation, repeated modifier allocation, unguarded optional debug input, existence-only cache checks, process-order-dependent StringName hashes, and no-op packaged-cache builds with one active route, one reused modifier, a bounded input guard, deterministic cache fingerprint validation, and forced canonical cache publication in build mode.",
+    "current": {
+      "system": "Duplicate hidden animation evaluation with accumulating equipment modifiers, optional-input error spam, and a potentially stale packaged cache",
+      "correctness": 2,
+      "ownership_clarity": 2,
+      "runtime_parity": 3,
+      "editor_usability": 2,
+      "performance": 1,
+      "regression_coverage": 2,
+      "evidence_paths": [
+        "res://scripts/player/operator_locomotion_blend_tree.gd",
+        "res://scripts/player/operator_weapon_equipment_runtime.gd",
+        "res://scripts/runtime/programmatic_3d_telemetry.gd",
+        "res://assets/animations/cache/operator_animation_library.res"
+      ]
+    },
+    "candidate": {
+      "system": "Single-route animation evaluation with stable modifier lifetime, guarded optional telemetry input, and current fingerprinted animation cache",
+      "correctness": 5,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 4,
+      "performance": 4,
+      "regression_coverage": 5,
+      "evidence_paths": [
+        "res://scripts/player/operator_locomotion_blend_tree.gd",
+        "res://scripts/player/operator_weapon_equipment_runtime.gd",
+        "res://scripts/runtime/programmatic_3d_telemetry.gd",
+        "res://scripts/player/operator_animation_library_cache.gd",
+        "res://tools/operator_animation_cache_regression.gd",
+        "res://tools/operator_animation_regression.gd",
+        "res://tools/weapon_equipment_event_regression.gd",
+        "res://tools/startup_performance_regression.gd"
+      ]
+    }
+  },
+  "proof_scripts": [
+    "res://tools/operator_animation_regression.gd",
+    "res://tools/weapon_equipment_event_regression.gd",
+    "res://tools/programmatic_3d_telemetry_regression.gd",
+    "res://tools/operator_animation_cache_regression.gd",
+    "res://tools/startup_performance_regression.gd",
+    "res://tools/feature_contract_regression.gd"
+  ],
+  "visual_check": "Run res://main.tscn through idle, movement, accepted fire recovery, and repeated AK/M4 equipment swaps. Confirm stable frame pacing, exactly one CombatReadySpineCCDIK3D, no missing-input errors in public mode, and no visible change when the inactive legacy animation route is frozen."
+}

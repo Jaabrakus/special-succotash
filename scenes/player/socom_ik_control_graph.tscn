@@ -1,0 +1,60 @@
+[gd_scene load_steps=6 format=3]
+
+[sub_resource type="StandardMaterial3D" id="MaterialRightShoulder"]
+shading_mode = 0
+albedo_color = Color(1, 0.18, 0.18, 1)
+
+[sub_resource type="StandardMaterial3D" id="MaterialTriggerHand"]
+shading_mode = 0
+albedo_color = Color(0.2, 1, 0.3, 1)
+
+[sub_resource type="StandardMaterial3D" id="MaterialSupportHand"]
+shading_mode = 0
+albedo_color = Color(0.1, 0.75, 1, 1)
+
+[sub_resource type="StandardMaterial3D" id="MaterialSpineAim"]
+shading_mode = 0
+albedo_color = Color(1, 0.75, 0.15, 1)
+
+[sub_resource type="SphereMesh" id="TargetSphere"]
+radius = 0.035
+height = 0.07
+
+[node name="IKControlGraph" type="Node3D"]
+
+[node name="TargetPivot" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.9999999, 0, 0, 0, 0.9999999, 0, 1.204, 0)
+
+[node name="RHUpperArmWeaponTarget" type="Marker3D" parent="TargetPivot"]
+transform = Transform3D(0.1600019, -0.4424553, 0.8824008, 0.23056933, -0.8524405, -0.4692382, 0.9598095, 0.27853477, -0.034375425, -0.195, 0.33229816, 1.2869252)
+
+[node name="Handle" type="MeshInstance3D" parent="TargetPivot/RHUpperArmWeaponTarget"]
+material_override = SubResource("MaterialRightShoulder")
+mesh = SubResource("TargetSphere")
+
+[node name="RHWeaponTarget" type="Marker3D" parent="TargetPivot"]
+transform = Transform3D(-0.034893986, 0.0042795064, 0.9993797, 0.9850655, 0.16884746, 0.033669736, -0.16859928, 0.9856317, -0.010108178, -0.195, 0.46455896, 1.2879946)
+
+[node name="Handle" type="MeshInstance3D" parent="TargetPivot/RHWeaponTarget"]
+material_override = SubResource("MaterialTriggerHand")
+mesh = SubResource("TargetSphere")
+
+[node name="LHWeaponContactTarget" type="Marker3D" parent="TargetPivot"]
+transform = Transform3D(-0.5208458, -0.8466788, -0.10888437, 0.2770675, -0.28831467, 0.9165748, -0.8074368, 0.4472252, 0.3847535, 0.081, -0.063, 0.221)
+
+[node name="Handle" type="MeshInstance3D" parent="TargetPivot/LHWeaponContactTarget"]
+material_override = SubResource("MaterialSupportHand")
+mesh = SubResource("TargetSphere")
+
+[node name="SpineTargetWeaponAim" type="Marker3D" parent="TargetPivot"]
+transform = Transform3D(0.8386705, 0, -0.544639, 0, 0.9999999, 0, 0.544639, 0, 0.83867043, 0, 0.905, 0.12881571)
+
+[node name="Handle" type="MeshInstance3D" parent="TargetPivot/SpineTargetWeaponAim"]
+material_override = SubResource("MaterialSpineAim")
+mesh = SubResource("TargetSphere")
+
+[node name="LHPoleAnchor" type="Marker3D" parent="."]
+transform = Transform3D(0.8408291, -0.04751266, -0.53921145, -0.08954967, 0.9702046, -0.22513056, 0.5338421, 0.23758253, 0.8115216, 0.0029887268, 1.3281493, 0.005373068)
+
+[node name="LHPoleTarget" type="Marker3D" parent="LHPoleAnchor"]
+transform = Transform3D(1, -2.220446e-14, 1.4210855e-14, -2.3092639e-14, 0.9999999, 0, 0, 0, 0.9999999, 0.45, -0.339, 0)

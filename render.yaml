@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: socom-141-match-server
+    runtime: docker
+    plan: 1c-2g
+    region: virginia
+    dockerfilePath: ./deploy/server/Dockerfile
+    dockerContext: .
+    autoDeployTrigger: off
+    maxShutdownDelaySeconds: 30
+    envVars:
+      - key: SOCOM_SUPABASE_SERVER_KEY
+        sync: false
+      - key: SOCOM_RULESET_ID
+        value: 14100000-0000-4000-8000-000000000001
+      - key: SOCOM_SERVER_REGION
+        value: us-east
+      - key: SOCOM_SERVER_NAME
+        value: SOCOM-141 US East
+      - key: SOCOM_GAME_BUILD
+        value: 0.1.0

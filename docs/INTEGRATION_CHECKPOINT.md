@@ -4,6 +4,9 @@ This branch is the authoritative camera, movement, animation, and weapon integra
 
 ## Preserved contracts
 
+- AGLS integrations follow `docs/AGLS_INTEGRATION_BOUNDARY.md`; SOCOM-141 keeps
+  camera, aim, reticle, weapon, ballistics, hurtbox, damage, and network
+  authority.
 - `CharacterBody3D` owns movement and stance authority.
 - Mouse/right-stick input owns aim yaw and pitch immediately.
 - Camera collision may reframe the shot, but never rewrites aim intent.

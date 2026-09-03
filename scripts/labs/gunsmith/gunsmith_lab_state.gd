@@ -59,6 +59,12 @@ var selected_body_joint: StringName = &"left_upper_arm"
 var selected_joint_title: Label
 var selected_joint_help: Label
 
+var weapon_contact_target_pivot: Marker3D
+var weapon_contact_targets: Dictionary = {}
+var weapon_contact_base_transforms: Dictionary = {}
+var weapon_contact_graph_profile: Dictionary = WeaponContactGraphContract.default_profile()
+var selected_weapon_contact_target := "trigger_hand"
+
 enum GripStyle { CLASSIC_CRADLE, C_CLAMP_TACTICAL, MAGWELL_GRIP, VERTICAL_FOREGRIP, ANGLED_AFG }
 var current_grip_style: GripStyle = GripStyle.CLASSIC_CRADLE
 var palm_roll := 0.0
@@ -83,6 +89,7 @@ var current_weapon_mesh: Node3D
 var current_silencer_mesh: Node3D
 var current_scope_mesh: Node3D
 var save_rig_button: Button
+var equip_weapon_button: Button
 var play_latest_button: Button
 
 var hand_gizmo_world: Node3D

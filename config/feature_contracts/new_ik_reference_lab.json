@@ -1,0 +1,108 @@
+{
+  "schema_version": 1,
+  "feature_id": "new_ik_reference_lab",
+  "player_intent": "Inspect and tune the purchased New IK character, AnimationTree, weapon contacts, and native modifiers in one isolated Godot lab.",
+  "acceptance_rule": "The Studio selector opens a separate lab whose live player contains the purchased 68-bone skeleton, visible AnimationTree, block-gun contact rig, TargetPivot controls, and native IK modifier stack; accepted combat fire and standing reload run as upper-body OneShots while locomotion continues and combat fire preserves two-hand gun placement.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://scenes/player/native_ik_socom_player.tscn",
+  "ownership": {
+    "reference_lab_presentation": "SocomNativeIKPlayerController"
+  },
+  "nodes": [
+    {
+      "id": "reference_animation_tree",
+      "type": "AnimationTree",
+      "role": "Displays the purchased locomotion and turn-in-place blend graph.",
+      "owner": "SocomNativeIKPlayerController",
+      "scene_path": "res://scenes/player/native_ik_reference_source.tscn",
+      "node_path": "AnimationTree"
+    },
+    {
+      "id": "reference_target_pivot",
+      "type": "Node3D",
+      "role": "Stores the purchased spine, shoulder, and weapon target controls.",
+      "owner": "SocomNativeIKPlayerController",
+      "scene_path": "res://scenes/player/native_ik_reference_source.tscn",
+      "node_path": "TargetPivot"
+    },
+    {
+      "id": "reference_support_hand_ik",
+      "type": "TwoBoneIK3D",
+      "role": "Solves the support hand to the weapon-local contact target.",
+      "owner": "SocomNativeIKPlayerController",
+      "scene_path": "res://scenes/player/native_ik_reference_source.tscn",
+      "node_path": "Model/GeneralSkeleton/LHTwoBoneIK3D"
+    },
+    {
+      "id": "reference_upper_body_reload",
+      "type": "AnimationTree",
+      "role": "Contains the ReloadUpperBody OneShot that blends SOCOM reload over the purchased locomotion graph without replacing hips or legs.",
+      "owner": "SocomNativeIKPlayerController",
+      "scene_path": "res://scenes/player/native_ik_reference_source.tscn",
+      "node_path": "AnimationTree"
+    },
+    {
+      "id": "reference_upper_body_combat_fire",
+      "type": "AnimationTree",
+      "role": "Contains the CombatFireUpperBody OneShot that adds recoil before the purchased TargetPivot and hand-contact modifiers are applied.",
+      "owner": "SocomNativeIKPlayerController",
+      "scene_path": "res://scenes/player/native_ik_reference_source.tscn",
+      "node_path": "AnimationTree"
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://config/character_retarget_profiles/godot_new_ik_v1.json",
+      "writer": "res://config/character_retarget_profiles/godot_new_ik_v1.json",
+      "readers": [
+        "res://scripts/player/native_ik_socom_player_controller.gd"
+      ]
+    }
+  ],
+  "must_not_change": [
+    "canonical_player_movement",
+    "camera",
+    "reticle",
+    "shot_authority",
+    "ballistics",
+    "damage",
+    "networking"
+  ],
+  "proof_scripts": [
+    "res://tools/native_ik_socom_player_regression.gd",
+    "res://tools/native_ik_lab_visual_proof.gd",
+    "res://tools/studio_navigation_regression.gd"
+  ],
+  "visual_check": "Open native_ik_socom_player.tscn in the Godot editor and confirm that AnimationTree shows ReloadUpperBody over the purchased graph; GeneralSkeleton modifiers, Gun/LHikTarget, TargetPivot, RHUpperArmWeaponTarget, RHWeaponTarget, and SpineTargetWeaponAim remain visible; hold forward and press R to confirm the legs keep moving during reload.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Use the purchased editor-visible animation and IK presentation as an isolated reference while preserving all canonical SOCOM gameplay owners.",
+    "current": {
+      "system": "Runtime-generated canonical operator animation and IK presentation",
+      "correctness": 1,
+      "ownership_clarity": 3,
+      "runtime_parity": 3,
+      "editor_usability": 1,
+      "performance": 3,
+      "regression_coverage": 3,
+      "evidence_paths": [
+        "res://scripts/player/operator_locomotion_blend_tree.gd",
+        "res://scripts/player/operator_animation_driver_runtime.gd"
+      ]
+    },
+    "candidate": {
+      "system": "Purchased editor-visible AnimationTree and native IK reference lab",
+      "correctness": 5,
+      "ownership_clarity": 4,
+      "runtime_parity": 2,
+      "editor_usability": 5,
+      "performance": 4,
+      "regression_coverage": 3,
+      "evidence_paths": [
+        "res://scenes/player/native_ik_reference_source.tscn",
+        "res://AnimationTree/Strafe_controller_with_tip.tres",
+        "res://tools/native_ik_socom_player_regression.gd"
+      ]
+    }
+  }
+}

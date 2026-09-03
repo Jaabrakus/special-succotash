@@ -7,9 +7,12 @@ extends RefCounted
 
 const MapDocument := preload("res://scripts/maps/socom_map_document.gd")
 const WeaponContract := preload("res://scripts/weapons/weapon_rig_contract.gd")
+const VisualRigResolver := preload(
+	"res://scripts/labs/gunsmith2/weapon_visual_rig_resolver.gd"
+)
 const OperatorAnimationDriver := preload("res://scripts/player/operator_animation_driver.gd")
 const TROOPER_SCENE_PATH := (
-	"res://assets/characters/ps1_gas_mask_soldier/trooper_rigged.fbx"
+	"res://assets/characters/military_tactical_suit/military_tactical_suit_safe_scale.glb"
 )
 const ENVIRONMENT_TEXTURE_PATHS: Array[String] = [
 	"res://assets/textures/environment/original_materials/broadleaf_foliage_albedo_v1.png",
@@ -107,7 +110,9 @@ static func _collect_paths(scene_path: String, map_document: Dictionary) -> Arra
 		_add_path(unique, path)
 	for preset: Dictionary in MapDocument.SURFACE_PRESETS.values():
 		_add_path(unique, String(preset.get("texture_path", "")))
-	var equipped := WeaponContract.load_equipped_config()
+	var equipped := VisualRigResolver.resolve_for_presentation(
+		WeaponContract.load_equipped_config()
+	)
 	_add_path(unique, String(equipped.get("model_fbx", "")))
 	_collect_resource_strings(map_document, unique)
 	var result: Array[String] = []

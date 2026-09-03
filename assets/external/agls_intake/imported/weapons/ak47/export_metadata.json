@@ -1,0 +1,46 @@
+{
+  "glb_scene": {
+    "animation_count": 0,
+    "byte_length": 671336,
+    "image_count": 2,
+    "material_count": 1,
+    "mesh_count": 1,
+    "nodes": [
+      null,
+      "Root",
+      "body",
+      "bolt",
+      "bolt_end",
+      "magazine",
+      "bullet",
+      "bullet_end",
+      "bullets",
+      "bullets_end",
+      "magrelease",
+      "magrelease_end",
+      "selector",
+      "selector_end",
+      "muzzle"
+    ],
+    "skin_count": 1,
+    "texture_count": 2
+  },
+  "interop_contract": "socom141-agls-player-presentation-v1",
+  "materials": [
+    {
+      "asset": "/Game/AdvancedLocomotionV4/Props/Materials/Rifles/M_Rifle_VertexColor_AK47.M_Rifle_VertexColor_AK47",
+      "slot": "Rifle_Material"
+    }
+  ],
+  "output_bytes": 671336,
+  "output_glb": "/Users/kiwimango/Documents/SOCOM-141/assets/external/agls_intake/imported/weapons/ak47/ak47.glb",
+  "presentation_only": true,
+  "schema_version": 1,
+  "skeleton": "/Game/AdvancedLocomotionV4/Props/Meshes/Rifle/AK-47_Skeleton.AK-47_Skeleton",
+  "sockets": [],
+  "source_asset": "/Game/AdvancedLocomotionV4/Props/Meshes/Rifle/AK-47",
+  "source_class": "SkeletalMesh",
+  "source_engine": "Unreal Engine 5.8",
+  "source_project": "AGLS v1.9.2",
+  "weapon_gameplay_logic_included": false
+}

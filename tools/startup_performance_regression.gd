@@ -4,6 +4,12 @@ const TrainingScene := preload("res://main.tscn")
 const MapDocument := preload("res://scripts/maps/socom_map_document.gd")
 const Warmup := preload("res://scripts/runtime/playable_resource_warmup.gd")
 const Mannequin := preload("res://scripts/player/test_mannequin.gd")
+const AnimationProfile := preload(
+	"res://scripts/player/operator_animation_profile.gd"
+)
+const AnimationLibraryCache := preload(
+	"res://scripts/player/operator_animation_library_cache.gd"
+)
 
 var failures: Array[String] = []
 
@@ -27,11 +33,17 @@ func _run() -> void:
 		),
 		"warmup includes large authored map materials"
 	)
+	var animation_profile = AnimationProfile.new()
+	animation_profile.load_project_map()
+	var packaged_cache := load(AnimationLibraryCache.PACKAGED_PATH) as AnimationLibrary
+	var expected_fingerprint := AnimationLibraryCache.new().fingerprint_for(
+		animation_profile
+	)
 	_expect(
-		ResourceLoader.exists(
-			"res://assets/animations/cache/operator_animation_library.res"
-		),
-		"the playable build ships a processed operator animation cache"
+		packaged_cache != null
+		and String(packaged_cache.get_meta("socom_fingerprint", ""))
+			== expected_fingerprint,
+		"the playable build ships the current fingerprinted operator animation cache"
 	)
 	ProjectSettings.set_setting("socom/session/public_training", true)
 	var startup_started := Time.get_ticks_usec()

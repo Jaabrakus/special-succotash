@@ -431,6 +431,7 @@ func _test_jump(player: CharacterBody3D) -> void:
         if saw_landing and _state(player) == &"STANDING" and player.is_on_floor():
             break
     _expect(maximum_y - start_y > 0.55, "jump gains visible height")
+    _expect(maximum_y - start_y < 0.80, "jump stays within the tactical-hop height ceiling")
     _expect(saw_landing, "jump enters landing recovery")
     _expect(_state(player) == &"STANDING", "jump recovers to standing")
 

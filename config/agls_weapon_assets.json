@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "contract_id": "socom141-agls-weapon-presentation-v1",
+  "ownership": {
+    "mesh_material_audio_animation": "AGLS_PRESENTATION",
+    "camera_reticle_ammo_ballistics_hitboxes_damage": "SOCOM141_GAMEPLAY"
+  },
+  "import_root": "res://assets/external/agls_intake/imported/weapons",
+  "weapons": {
+    "m4a1": {
+      "unreal_asset": "/Game/AdvancedLocomotionV4/Props/Meshes/Rifle/M4A1.M4A1",
+      "godot_asset": "res://assets/external/agls_intake/imported/weapons/m4a1/m4a1.scn",
+      "socom_weapon_ids": ["m4a1"]
+    },
+    "ak47": {
+      "unreal_asset": "/Game/AdvancedLocomotionV4/Props/Meshes/Rifle/AK-47.AK-47",
+      "godot_asset": "res://assets/external/agls_intake/imported/weapons/ak47/ak47.glb",
+      "socom_weapon_ids": ["ak-47"]
+    },
+    "c8": {
+      "unreal_asset": "/Game/AdvancedLocomotionV4/Props/Meshes/Rifle/C8.C8",
+      "godot_asset": "res://assets/external/agls_intake/imported/weapons/c8/c8.fbx",
+      "socom_weapon_ids": []
+    },
+    "famas": {
+      "unreal_asset": "/Game/AdvancedLocomotionV4/Props/Meshes/Rifle/Famas.Famas",
+      "godot_asset": "res://assets/external/agls_intake/imported/weapons/famas/famas.fbx",
+      "socom_weapon_ids": []
+    },
+    "as50": {
+      "unreal_asset": "/Game/AdvancedLocomotionV4/Props/Meshes/Rifle/Accuracy-International-as-50.Accuracy-International-as-50",
+      "godot_asset": "res://assets/external/agls_intake/imported/weapons/as50/as50.fbx",
+      "socom_weapon_ids": []
+    },
+    "perun_x16": {
+      "unreal_asset": "/Game/AdvancedLocomotionV4/Props/Meshes/Rifle/perun-x16.perun-x16",
+      "godot_asset": "res://assets/external/agls_intake/imported/weapons/perun_x16/perun_x16.fbx",
+      "socom_weapon_ids": []
+    },
+    "beowulf_50": {
+      "unreal_asset": "/Game/AdvancedLocomotionV4/Props/Meshes/Rifle/aa-50-beowulf.aa-50-beowulf",
+      "godot_asset": "res://assets/external/agls_intake/imported/weapons/beowulf_50/beowulf_50.fbx",
+      "socom_weapon_ids": []
+    },
+    "mossberg_590": {
+      "unreal_asset": "/Game/AdvancedLocomotionV4/Props/Meshes/Rifle/Mossberg-590.Mossberg-590",
+      "godot_asset": "res://assets/external/agls_intake/imported/weapons/mossberg_590/mossberg_590.fbx",
+      "socom_weapon_ids": []
+    },
+    "m9": {
+      "unreal_asset": "/Game/AdvancedLocomotionV4/Props/Meshes/M9.M9",
+      "godot_asset": "res://assets/external/agls_intake/imported/weapons/m9/m9.fbx",
+      "socom_weapon_ids": ["m9"]
+    },
+    "p018": {
+      "unreal_asset": "/Game/AdvancedLocomotionV4/Props/Meshes/Pistol/p-018.p-018",
+      "godot_asset": "res://assets/external/agls_intake/imported/weapons/p018/p018.fbx",
+      "socom_weapon_ids": []
+    },
+    "desert_eagle": {
+      "unreal_asset": "/Game/AdvancedLocomotionV4/Props/Meshes/Pistol/Desert_Eagle.Desert_Eagle",
+      "godot_asset": "res://assets/external/agls_intake/imported/weapons/desert_eagle/desert_eagle.fbx",
+      "socom_weapon_ids": ["de__50"]
+    },
+    "sw39": {
+      "unreal_asset": "/Game/AdvancedLocomotionV4/Props/Meshes/Pistol/SW_39.SW_39",
+      "godot_asset": "res://assets/external/agls_intake/imported/weapons/sw39/sw39.fbx",
+      "socom_weapon_ids": []
+    }
+  }
+}

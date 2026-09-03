@@ -217,6 +217,60 @@ func report_round_winner(winning_team: int) -> Dictionary:
 	}
 
 
+## Records a completed concurrent arena match. This path is deliberately
+## separate from record_round_win(), which remains the sequential single-match
+## presentation helper used by older callers.
+func record_match_winner(
+	pair_a: int,
+	pair_b: int,
+	winner_pair: int,
+	score_a: int,
+	score_b: int
+) -> Dictionary:
+	if not active or winner_pair not in [pair_a, pair_b]:
+		return {"accepted": false, "reason": "INVALID_MATCH_RESULT"}
+
+	var found_index := -1
+	for index in active_bracket.size():
+		var matchup: Dictionary = active_bracket[index]
+		if (
+			not bool(matchup.get("is_completed", false))
+			and int(matchup.get("pair_a", -1)) == pair_a
+			and int(matchup.get("pair_b", -1)) == pair_b
+		):
+			found_index = index
+			break
+	if found_index < 0:
+		return {"accepted": false, "reason": "MATCHUP_NOT_ACTIVE"}
+
+	var completed: Dictionary = active_bracket[found_index]
+	completed["score_a"] = maxi(0, score_a)
+	completed["score_b"] = maxi(0, score_b)
+	completed["winner_pair"] = winner_pair
+	completed["is_completed"] = true
+	active_bracket[found_index] = completed
+	matchup_completed.emit(completed)
+
+	var stage_complete := true
+	for matchup: Dictionary in active_bracket:
+		if not bool(matchup.get("is_completed", false)):
+			stage_complete = false
+			break
+	if stage_complete:
+		_advance_to_next_stage()
+	return {
+		"accepted": true,
+		"stage_complete": stage_complete,
+		"tournament_complete": not active,
+		"champion_pair": champion_pair_id,
+		"current_stage": get_current_stage(),
+	}
+
+
+func get_active_matchups() -> Array[Dictionary]:
+	return active_bracket.duplicate(true)
+
+
 func get_bracket_snapshot() -> Dictionary:
 	return {
 		"active": active,

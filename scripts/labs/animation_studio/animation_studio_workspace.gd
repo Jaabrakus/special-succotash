@@ -308,6 +308,13 @@ func _create_body_layer_target(layer_key: String, title: String, minimum_size: V
 
 func _scan_all_mixamo_fbx() -> void:
     fbx_files = workshop_repository.scan_mixamo("res://assets/animations/mixamo")
+    fbx_files.merge(
+        workshop_repository.scan_imported_scenes(
+            "res://assets/external/agls_intake/imported",
+            "AGLS"
+        ),
+        true
+    )
     authored_animation_files = workshop_repository.scan_authored(AUTHORED_ANIMATION_DIR)
     authored_animation_files.merge(
         workshop_repository.scan_authored(APPLE_MOCAP_REVIEW_DIR),

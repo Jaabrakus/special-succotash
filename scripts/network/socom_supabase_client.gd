@@ -7,6 +7,7 @@ extends Node
 const MapDocument := preload("res://scripts/maps/socom_map_document.gd")
 const MapAssetLibrary := preload("res://scripts/maps/socom_map_asset_library.gd")
 const CONFIG_PATH := "res://config/supabase.json"
+const PUBLIC_CONFIG_PATH := "res://config/supabase_public.json"
 const SESSION_PATH := "user://supabase_guest_session.json"
 const CLOUD_LINKS_PATH := "user://community_map_links.json"
 const REQUEST_TIMEOUT_SECONDS := 20.0
@@ -73,6 +74,32 @@ func ensure_guest_session() -> Dictionary:
 	await _apply_unique_callsign()
 	_save_json_file(session_path, session)
 	return _identity_result()
+
+
+func get_player_profile() -> Dictionary:
+	if not is_configured():
+		return {"ok": false, "message": "Supabase service is not configured."}
+	var u_id := user_id()
+	if u_id.is_empty():
+		return {"ok": false, "message": "No active user session."}
+	var path := "/rest/v1/player_profiles?user_id=eq.%s&select=*" % u_id
+	var response: Dictionary = await _request_json(path, HTTPClient.METHOD_GET, {}, true)
+	if not bool(response.get("ok", false)):
+		return {"ok": false, "message": _response_message(response)}
+	var rows: Array = response.get("data", [])
+	if rows.is_empty():
+		return {"ok": true, "profile": {"elo_rating": 0, "rank_tier": "TIRO III", "tier_kills": 0, "tier_deaths": 0}}
+	return {"ok": true, "profile": rows[0]}
+
+
+func get_gunfight_leaderboard(limit: int = 50) -> Dictionary:
+	if not is_configured():
+		return {"ok": false, "message": "Supabase service is not configured.", "leaderboard": []}
+	var path := "/rest/v1/gunfight_leaderboard?select=*&limit=%d" % limit
+	var response: Dictionary = await _request_json(path, HTTPClient.METHOD_GET, {}, true)
+	if not bool(response.get("ok", false)):
+		return {"ok": false, "message": _response_message(response), "leaderboard": []}
+	return {"ok": true, "leaderboard": response.get("data", [])}
 
 
 func list_public_maps() -> Dictionary:
@@ -226,11 +253,8 @@ func _request_binary(
 	var request := HTTPRequest.new()
 	request.timeout = REQUEST_TIMEOUT_SECONDS
 	add_child(request)
-	var bearer := String(session.get("access_token", "")) if authenticated else publishable_key
-	var headers := PackedStringArray([
-		"apikey: %s" % publishable_key,
-		"Authorization: Bearer %s" % bearer,
-	])
+	var access_token := String(session.get("access_token", "")) if authenticated else ""
+	var headers := request_headers(publishable_key, access_token)
 	for header in extra_headers:
 		headers.append(header)
 	var start_error := request.request_raw(project_url + path, headers, method, body)
@@ -472,11 +496,8 @@ func _request_json(
 	var request := HTTPRequest.new()
 	request.timeout = REQUEST_TIMEOUT_SECONDS
 	add_child(request)
-	var headers := PackedStringArray([
-		"apikey: %s" % publishable_key,
-		"Authorization: Bearer %s" % (String(session.get("access_token", "")) if authenticated else publishable_key),
-		"Content-Type: application/json",
-	])
+	var access_token := String(session.get("access_token", "")) if authenticated else ""
+	var headers := request_headers(publishable_key, access_token, "application/json")
 	if not prefer.is_empty():
 		headers.append("Prefer: %s" % prefer)
 	var request_body := "" if body == null else JSON.stringify(body)
@@ -497,6 +518,24 @@ func _request_json(
 		"data": data,
 		"raw": response_body.left(1000),
 	}
+
+
+static func request_headers(
+	api_key: String,
+	access_token: String = "",
+	content_type: String = ""
+) -> PackedStringArray:
+	var headers := PackedStringArray(["apikey: %s" % api_key])
+	var bearer := access_token.strip_edges()
+	# New sb_publishable_ keys are opaque gateway keys, not JWT bearer tokens.
+	# An authenticated player token and a legacy anon JWT remain valid bearers.
+	if bearer.is_empty() and api_key.begins_with("eyJ") and api_key.count(".") == 2:
+		bearer = api_key
+	if not bearer.is_empty():
+		headers.append("Authorization: Bearer %s" % bearer)
+	if not content_type.is_empty():
+		headers.append("Content-Type: %s" % content_type)
+	return headers
 
 
 func _response_message(response: Dictionary) -> String:
@@ -529,6 +568,8 @@ func _clear_session() -> void:
 
 func _load_config() -> void:
 	var config := _load_json_file(CONFIG_PATH)
+	if config.is_empty():
+		config = _load_json_file(PUBLIC_CONFIG_PATH)
 	project_url = String(config.get("project_url", "")).trim_suffix("/")
 	publishable_key = String(config.get("publishable_key", ""))
 	storage_bucket = String(config.get("storage_bucket", "community-map-assets"))

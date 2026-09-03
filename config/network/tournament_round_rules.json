@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "round_time_limit_seconds": 40.0,
+  "max_regulation_rounds": 6,
+  "sudden_death_vote_seconds": 10.0,
+  "timeout_health_epsilon": 0.01,
+  "sudden_death_timeout_policy": "replay_until_elimination"
+}

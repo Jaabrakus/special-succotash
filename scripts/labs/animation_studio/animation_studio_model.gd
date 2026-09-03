@@ -26,6 +26,10 @@ func _load_skin(skin: SkinType) -> void:
         SkinType.PS1_NIGHT_VISION_SEAL:
             model_root = PS1_NV_SCENE.instantiate() as Node3D
 
+        SkinType.SWAT_OPERATOR:
+            model_root = SWAT_OPERATOR_SCENE.instantiate() as Node3D
+            model_root.scale = Vector3.ONE * 1.0
+
         SkinType.COUNTER_STRIKE_URBAN:
             var urban_scene := _load_optional_scene(COUNTER_STRIKE_URBAN_SCENE_PATH)
             if urban_scene == null:
@@ -38,10 +42,6 @@ func _load_skin(skin: SkinType) -> void:
                 _apply_trooper_texture(model_root)
             else:
                 model_root = urban_scene.instantiate() as Node3D
-            # The FBX hierarchy already carries its centimetre-to-metre scale.
-            # A small skin scale matches the PS1 operator's rendered height;
-            # multiplying by the raw skeleton unit ratio would apply that FBX
-            # conversion twice and put the camera inside the character.
                 model_root.scale = Vector3.ONE * 0.94
                 _apply_counter_strike_urban_textures(model_root)
     
@@ -57,6 +57,8 @@ func _load_skin(skin: SkinType) -> void:
 
     animation_player = _find_animation_player(model_root)
     skeleton = _find_skeleton(model_root)
+    if skeleton != null:
+        _normalize_skeleton_bones(skeleton)
 
     # If model has a skeleton but no AnimationPlayer (e.g. trooper_rigged.fbx),
     # create one so we can load and play Mixamo clips dynamically
@@ -293,3 +295,18 @@ func _build_segmented_meshes(src_mesh: ArrayMesh, skel: Skeleton3D, bone_map: Di
             m.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrs)
             result[key] = m
     return result
+
+
+func _normalize_skeleton_bones(skel: Skeleton3D) -> void:
+    if skel == null:
+        return
+    var regex := RegEx.new()
+    regex.compile("^(?:mixamorig[:_])?([A-Za-z0-9]+?)(?:_\\d+)?$")
+    for i in range(skel.get_bone_count()):
+        var b_name := skel.get_bone_name(i)
+        var match := regex.search(b_name)
+        if match:
+            var core_name := match.get_string(1)
+            skel.set_bone_name(i, "mixamorig_" + core_name)
+        elif b_name.begins_with("mixamorig:"):
+            skel.set_bone_name(i, b_name.replace("mixamorig:", "mixamorig_"))

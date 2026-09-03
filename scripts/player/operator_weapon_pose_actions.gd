@@ -261,8 +261,62 @@ func _place_socketed_weapon(
 			)
 		)
 	_apply_ownership_return(weapon_node.global_transform, delta)
+	_converge_placed_barrel_to_target()
 	if stock_constraint != null and stock_constraint.is_active():
 		stock_constraint.measure_contact_error()
+
+
+func _converge_placed_barrel_to_target() -> void:
+	if (
+		weapon_node == null
+		or muzzle_socket == null
+		or trigger_socket == null
+		or last_target_point == Vector3.ZERO
+		or muzzle_socket.global_position.distance_to(last_target_point) <= 0.10
+	):
+		return
+	# Placement and the stock constraint may raise the muzzle after the initial
+	# direction was sampled. Converge from the final muzzle to the same canonical
+	# reticle point while preserving the settled trigger-socket position. This is
+	# presentation-only; it never changes the camera target or authoritative shot.
+	var settled_trigger_position := trigger_socket.global_position
+	var world_scale := weapon_node.global_basis.get_scale()
+	var correction_budget := deg_to_rad(minf(
+		maximum_wrist_correction_deg,
+		MAX_RIGID_GRIP_ALIGNMENT_DEG
+	))
+	for _iteration in range(maxi(solve_iterations, 1)):
+		var barrel_origin := (
+			barrel_base_socket.global_position
+			if barrel_base_socket != null
+			else trigger_socket.global_position
+		)
+		var current_barrel := (
+			muzzle_socket.global_position - barrel_origin
+		).normalized()
+		var target_direction := muzzle_socket.global_position.direction_to(
+			last_target_point
+		)
+		if current_barrel.length_squared() <= 0.50 or target_direction.length_squared() <= 0.50:
+			break
+		var error_angle := current_barrel.angle_to(target_direction)
+		if error_angle <= deg_to_rad(0.01) or correction_budget <= 0.00001:
+			last_aim_direction = target_direction
+			break
+		var applied_angle := minf(error_angle, correction_budget)
+		var full_delta := Quaternion(current_barrel, target_direction).normalized()
+		var aim_delta := Quaternion.IDENTITY.slerp(
+			full_delta,
+			applied_angle / maxf(error_angle, 0.00001)
+		).normalized()
+		weapon_presentation_owner.set_world_basis((
+			Basis(aim_delta) * weapon_node.global_basis.orthonormalized()
+		).orthonormalized().scaled(world_scale))
+		weapon_presentation_owner.translate_world(
+			settled_trigger_position - trigger_socket.global_position
+		)
+		correction_budget -= applied_angle
+		last_aim_direction = target_direction
 
 
 func _place_hand_owned_weapon(

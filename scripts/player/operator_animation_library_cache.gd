@@ -5,7 +5,9 @@ extends RefCounted
 ## a fingerprinted packaged cache on cold startup. Asset retargeting remains in
 ## the asset runtime; cache lifetime and persistence live here.
 
-const CACHE_SCHEMA := 1
+# Schema 2 invalidates libraries that cached AGLS pistol actions after the old
+# Mixamo-only retarget removed every Unreal-named track.
+const CACHE_SCHEMA := 2
 const PACKAGED_PATH := "res://assets/animations/cache/operator_animation_library.res"
 const USER_PATH := "user://operator_animation_library.res"
 
@@ -14,6 +16,11 @@ static var shared_sources: Dictionary = {}
 
 
 func adopt(profile, animation_player: AnimationPlayer) -> Dictionary:
+	# A packaged-cache build must process the canonical source map and reach
+	# store(). Adopting an existing user cache here makes the command succeed
+	# without ever publishing the requested res:// artifact.
+	if OS.get_cmdline_user_args().has("--build-animation-cache"):
+		return {}
 	var fingerprint := fingerprint_for(profile)
 	var library: AnimationLibrary = shared_libraries.get(fingerprint)
 	if library == null:
@@ -58,11 +65,8 @@ func store(profile, library: AnimationLibrary, sources: Dictionary) -> void:
 	library.set_meta("socom_source_animation_names", sources.duplicate(true))
 	shared_libraries[fingerprint] = library
 	shared_sources[fingerprint] = sources.duplicate(true)
-	var save_path := (
-		PACKAGED_PATH
-		if OS.get_cmdline_user_args().has("--build-animation-cache")
-		else USER_PATH
-	)
+	var building_packaged := OS.get_cmdline_user_args().has("--build-animation-cache")
+	var save_path := PACKAGED_PATH if building_packaged else USER_PATH
 	# The editor keeps the process-level cache alive between operator spawns.
 	# Exported builds persist caches generated from user-authored animation maps.
 	if (
@@ -73,28 +77,42 @@ func store(profile, library: AnimationLibrary, sources: Dictionary) -> void:
 	var save_error := ResourceSaver.save(library, save_path)
 	if save_error != OK:
 		push_warning("Could not save operator animation cache: %s" % error_string(save_error))
+	elif building_packaged:
+		print("OPERATOR_ANIMATION_CACHE_BUILD fingerprint=%s animations=%d path=%s" % [
+			fingerprint,
+			library.get_animation_list().size(),
+			save_path,
+		])
 
 
 func fingerprint_for(profile) -> String:
 	var entries: Array[String] = ["schema:%d" % CACHE_SCHEMA]
-	var clip_names: Array = profile.clip_paths.keys()
+	# StringName ordering depends on the process' interning order. Canonicalize to
+	# ordinary strings before sorting so launcher, main.tscn, and regression
+	# processes produce the same fingerprint for identical animation data.
+	var clip_names: Array[String] = []
+	for raw_clip_name in profile.clip_paths.keys():
+		clip_names.append(String(raw_clip_name))
 	clip_names.sort()
-	for raw_clip_name in clip_names:
-		var clip_name := StringName(raw_clip_name)
+	for clip_name_text in clip_names:
+		var clip_name := StringName(clip_name_text)
 		entries.append("%s=%s:%s:%.4f" % [
-			String(clip_name),
+			clip_name_text,
 			String(profile.clip_paths[clip_name]),
 			str(profile.is_looping(clip_name)),
 			profile.pose_yaw_offset_degrees(clip_name),
 		])
 	for property_name in ["mirrored_clips", "leg_mirrored_clips", "clip_aliases"]:
 		var routes: Dictionary = profile.get(property_name) as Dictionary
-		var route_names: Array = routes.keys()
+		var routes_by_name: Dictionary = {}
+		for raw_route_name in routes.keys():
+			routes_by_name[String(raw_route_name)] = routes[raw_route_name]
+		var route_names: Array = routes_by_name.keys()
 		route_names.sort()
-		for raw_name in route_names:
+		for route_name in route_names:
 			entries.append("%s:%s=%s" % [
 				property_name,
-				String(raw_name),
-				String(routes[raw_name]),
+				String(route_name),
+				String(routes_by_name[route_name]),
 			])
 	return "|".join(entries).sha256_text()

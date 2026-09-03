@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "feature_id": "server_authoritative_sustained_fire",
+  "player_intent": "A legitimate shot fired while standing, crouching, running, falling, or reconciling over the network must reach the authoritative weapon once, without intermittent rejection caused only by client/server movement timing.",
+  "acceptance_rule": "The server validates each reported body anchor against the current shooter anchor or the closest anchor in the bounded 0.5-second server-owned operator history. The client-reported point never becomes the ballistics origin. Sequence, direction, cadence, ammunition, obstruction, hit, and damage checks remain server authoritative. Three repeated remote shots must be accepted across repeated ENet and WebSocket rounds, while a reported origin 50 metres from every current or recent server anchor remains rejected as REPORT_ANCHOR_OUT_OF_RANGE.",
+  "canonical_scene": "res://multiplayer_slice.tscn",
+  "ownership": {
+    "movement_and_collision": "CharacterBody3D",
+    "aim_intent": "SOCOMCameraReticleChain",
+    "shot_validation_ballistics_and_damage": "AuthoritativeServerWeapon",
+    "operator_position_history": "SocomMultiplayerReplication",
+    "animation_and_ik": "OperatorPresentationOnly"
+  },
+  "nodes": [
+    {
+      "id": "authoritative_multiplayer_combat_root",
+      "type": "Node3D",
+      "role": "Consumes sanitized shot intent, selects a bounded recent server-owned validation anchor, and fires only from the current authoritative muzzle.",
+      "owner": "AuthoritativeServerWeapon",
+      "scene_path": "res://multiplayer_slice.tscn",
+      "node_path": "."
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://config/weapons/assaultrifle_1.json",
+      "writer": "res://scripts/labs/gunsmith/gunsmith_persistence_controller.gd",
+      "readers": [
+        "res://scripts/network/socom_multiplayer_combat.gd",
+        "res://scripts/weapons/weapon_ballistics.gd"
+      ]
+    }
+  ],
+  "must_not_change": [
+    "CharacterBody3D movement, posture, and collision ownership",
+    "SOCOM camera and reticle aim-intent ownership",
+    "current authoritative server muzzle as the only ballistics trace origin",
+    "server-owned ammunition, cadence, obstruction, hit, damage, and sequence validation",
+    "animation, IK, weapon sockets, recoil, and fire-recovery presentation",
+    "lobby, matchmaking, tournament, and map-instance behavior"
+  ],
+  "proof_scripts": [
+    "res://tools/multiplayer_slice_regression.gd",
+    "res://tools/multiplayer_lifecycle_probe.gd",
+    "res://tools/muzzle_obstruction_regression.gd",
+    "res://tools/feature_contract_regression.gd"
+  ],
+  "visual_check": "Host and join a canonical multiplayer match. Fire repeated shots while stationary, crouched, moving, and airborne. Every accepted input produces one authoritative shot and ammunition decrement; no pose or recoil layer changes the server muzzle owner, and deliberately displaced origins remain rejected.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Keep the existing strict intent, sequence, muzzle-obstruction, cadence, ammunition, and damage authority, but merge bounded recent server-owned shooter history into only the report-anchor sanity check. The reproduced failure occurred at 1.518 metres during a legitimate fast fall; current-origin-only validation rejected it even though the trace origin was already server owned. The candidate removes that timing false negative without trusting a client transform or changing the shot origin.",
+    "current": {
+      "system": "Current-server-position-only report-anchor validation",
+      "correctness": 2,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 4,
+      "performance": 5,
+      "regression_coverage": 2,
+      "evidence_paths": [
+        "res://scripts/network/socom_multiplayer_combat.gd",
+        "res://scripts/network/socom_shot_authority.gd",
+        "res://tools/multiplayer_lifecycle_probe.gd"
+      ]
+    },
+    "candidate": {
+      "system": "Closest bounded recent server-owned shooter anchor for report validation, with current server muzzle retained for tracing",
+      "correctness": 5,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 4,
+      "performance": 4,
+      "regression_coverage": 5,
+      "evidence_paths": [
+        "res://scripts/network/socom_multiplayer_combat.gd",
+        "res://scripts/network/socom_multiplayer_replication.gd",
+        "res://tools/multiplayer_slice_regression.gd",
+        "res://tools/multiplayer_lifecycle_probe.gd"
+      ]
+    }
+  }
+}

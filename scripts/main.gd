@@ -12,6 +12,9 @@ const MainCameraDebugToolsScript := preload("res://scripts/runtime/main_camera_d
 const MainFrameRuntimeScript := preload("res://scripts/runtime/main_frame_runtime.gd")
 const MainWeaponRuntimeScript := preload("res://scripts/runtime/main_weapon_runtime.gd")
 const MainBuyMenuRuntimeScript := preload("res://scripts/runtime/main_buy_menu_runtime.gd")
+const Programmatic3DTelemetryScript := preload(
+    "res://scripts/runtime/programmatic_3d_telemetry.gd"
+)
 const PlayableResourceWarmup := preload("res://scripts/runtime/playable_resource_warmup.gd")
 const MapDocumentScript := preload("res://scripts/maps/socom_map_document.gd")
 
@@ -25,8 +28,8 @@ var calibration_texture: TextureRect
 var calibration_status: Label
 var calibration_opacity: float = 0.35
 var calibration_visible: bool = false
-var debug_hud_visible: bool = true
-var body_stack_visible: bool = true
+var debug_hud_visible: bool = false
+var body_stack_visible: bool = false
 var body_stack_overlay: Control
 var roof_test_active: bool = false
 var indoor_test_active: bool = false
@@ -39,7 +42,7 @@ var spectator_camera: Camera3D
 var workbench_panel: Control
 var workbench_status: Label
 var workbench_visible: bool = false
-var camera_visualizer_visible: bool = true
+var camera_visualizer_visible: bool = false
 var workbench_sliders: Dictionary = {}
 var workbench_defaults: Dictionary = {}
 var anim_studio_panel: PanelContainer
@@ -60,6 +63,7 @@ var camera_debug_tools: SocomMainCameraDebugTools
 var frame_runtime: SocomMainFrameRuntime
 var weapon_runtime: SocomMainWeaponRuntime
 var buy_menu_runtime: SocomMainBuyMenuRuntime
+var programmatic_3d_telemetry: Node
 var selected_grenade_type: int = 0
 var grenade_equipped: bool = false
 var grenade_switch_hold_seconds: float = 0.0
@@ -88,6 +92,7 @@ var player_status_label: Label
 var player_health_spinbox: SpinBox
 var grenade_limit_spinboxes: Dictionary = {}
 var public_training_mode: bool = false
+var player_build_tactical_hud_enabled: bool = true
 var exit_menu: SocomExitMenu
 var training_bomb_visuals: Array[Node3D] = []
 var training_bomb_site_positions: Array[Vector3] = []
@@ -123,7 +128,7 @@ func _ready() -> void:
     _attach_saved_playtest_bundle()
     _startup_profile_mark("saved_state")
     calibration_visible = not public_training_mode and OS.get_cmdline_user_args().has("--show-calibration")
-    debug_hud_visible = not public_training_mode and not OS.get_cmdline_user_args().has("--clean-hud")
+    debug_hud_visible = not public_training_mode and (OS.get_cmdline_user_args().has("--camera-lab-debug") or OS.get_cmdline_user_args().has("--show-debug-hud"))
     animation_studio_runtime = MainAnimationStudioScript.new()
     animation_studio_runtime.name = "MainAnimationStudio"
     add_child(animation_studio_runtime)
@@ -206,6 +211,10 @@ func _ready() -> void:
     if not public_training_mode:
         _build_camera_tools()
     _build_ui()
+    programmatic_3d_telemetry = Programmatic3DTelemetryScript.new()
+    programmatic_3d_telemetry.name = "Programmatic3DTelemetry"
+    add_child(programmatic_3d_telemetry)
+    programmatic_3d_telemetry.configure(self)
     _startup_profile_mark("ui_ready")
     PlayableResourceWarmup.release()
     if anim_studio_visible:
@@ -279,6 +288,7 @@ func _ensure_input_map() -> void:
     _add_key_action("toggle_body_stack", KEY_K)
     _add_key_action("toggle_target_range", KEY_F4)
     _add_key_action("toggle_trajectory_debug", KEY_F6)
+    _add_key_action("toggle_3d_telemetry", KEY_F11)
 
 func _add_key_action(action: StringName, keycode: Key) -> void:
     if not InputMap.has_action(action):
@@ -320,6 +330,7 @@ func _set_target_range_active(enabled: bool) -> void:
 
 func _build_player() -> void:
     training_world.build_player()
+    player = training_world.player
 
 
 func _set_roof_test_position(enabled: bool) -> void:
@@ -340,6 +351,7 @@ func _reset_test_camera() -> void:
 
 func _build_camera() -> void:
     training_world.build_camera()
+    camera_rig = training_world.camera_rig
 
 func _build_tactical_runtime() -> void:
     grenade_runtime = MainGrenadeRuntimeScript.new()

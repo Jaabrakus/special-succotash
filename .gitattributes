@@ -1,0 +1,8 @@
+# Preserve imported upstream reference sources verbatim without treating their
+# original whitespace style as a SOCOM-141 checkpoint failure.
+"/GODOT 4.6 - NEW IK AIM/**" -whitespace
+/Godot-4.0-Procedural-Animation-master/** -whitespace
+/Reactive-Smoke-in-Godot-4-master/** -whitespace
+
+# This contract uses Markdown hard line breaks intentionally.
+/docs/GAMEPLAY_INTENT_DICTIONARY.md -whitespace

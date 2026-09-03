@@ -4,6 +4,7 @@ extends RefCounted
 const MapDocument := preload("res://scripts/maps/socom_map_document.gd")
 const MapAssetLibrary := preload("res://scripts/maps/socom_map_asset_library.gd")
 const FogZoneController := preload("res://scripts/maps/socom_map_fog_zone_controller.gd")
+const SwimmingVolume := preload("res://scripts/traversal/socom_swimming_volume.gd")
 const DemolitionBombScene := preload("res://scenes/objectives/demolition_bomb.tscn")
 const SAFETY_WALL_THICKNESS := 0.60
 const SAFETY_WALL_MINIMUM_HEIGHT := 24.0
@@ -19,6 +20,7 @@ static var surface_texture_cache: Dictionary = {}
 static var surface_normal_cache: Dictionary = {}
 static var surface_roughness_cache: Dictionary = {}
 static var tree_material_cache: Dictionary = {}
+static var authored_texture_cache: Dictionary = {}
 static var fog_noise_texture: Texture2D
 
 
@@ -208,6 +210,8 @@ static func build_object(object: Dictionary, editor_preview: bool = false) -> No
 		return _build_ambience_zone(object, editor_preview)
 	if type_name == &"fog_zone":
 		return _build_fog_zone(object, editor_preview)
+	if type_name == &"water_volume":
+		return _build_water_volume(object, editor_preview)
 	if type_name in [&"doorway_wall", &"window_wall"]:
 		return _build_opening_wall(object, type_name == &"window_wall")
 	if type_name == &"breached_wall":
@@ -216,6 +220,14 @@ static func build_object(object: Dictionary, editor_preview: bool = false) -> No
 		return _build_stairs(object)
 	if type_name in [&"primitive_cylinder", &"primitive_sphere"]:
 		return _build_round_primitive(object, type_name == &"primitive_sphere")
+	if type_name == &"favela_building":
+		return _build_favela_building(object)
+	if type_name == &"wooden_crate":
+		return _build_wooden_crate(object)
+	if type_name == &"utility_pole":
+		return _build_utility_pole(object)
+	if type_name == &"cable_curve":
+		return _build_cable_curve(object, editor_preview)
 	if type_name in MapDocument.SOCOM_OBJECTIVE_TYPES:
 		return _build_objective_marker(object, editor_preview)
 	if type_name == &"curved_wall":
@@ -376,6 +388,52 @@ static func _build_fog_zone(object: Dictionary, editor_preview: bool) -> Node3D:
 	return area
 
 
+static func _build_water_volume(object: Dictionary, editor_preview: bool) -> Node3D:
+	var area := SwimmingVolume.new()
+	area.name = String(object.get("name", "Swimmable Water")).validate_node_name()
+	area.position = MapDocument.data_to_vector(object.get("position", {}))
+	area.rotation_degrees = MapDocument.data_to_vector(object.get("rotation_degrees", {}))
+	_set_object_meta(area, object)
+	var properties: Dictionary = object.get("properties", {})
+	var size := MapDocument.data_to_vector(
+		object.get("size", {}),
+		Vector3(12.0, 3.0, 12.0)
+	)
+	area.surface_offset_y = float(properties.get("surface_offset_y", size.y * 0.5))
+	var authored_source_id := String(properties.get("source_id", "")).strip_edges()
+	area.source_id = StringName(
+		authored_source_id
+		if not authored_source_id.is_empty()
+		else String(object.get("id", "map_water"))
+	)
+	area.collision_layer = 0
+	area.collision_mask = 1
+	var collision := CollisionShape3D.new()
+	collision.name = "CollisionShape3D"
+	var shape := BoxShape3D.new()
+	shape.size = size
+	collision.shape = shape
+	area.add_child(collision)
+
+	var water_visual := MeshInstance3D.new()
+	water_visual.name = "WaterSurface"
+	water_visual.position.y = area.surface_offset_y
+	var water_mesh := PlaneMesh.new()
+	water_mesh.size = Vector2(size.x, size.z)
+	water_visual.mesh = water_mesh
+	var material := StandardMaterial3D.new()
+	var color := MapDocument.data_to_color(object.get("color", {}), Color("257ca8"))
+	material.albedo_color = Color(color.r, color.g, color.b, 0.48 if editor_preview else 0.38)
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_PER_PIXEL
+	material.roughness = 0.18
+	water_visual.material_override = material
+	area.add_child(water_visual)
+	if editor_preview:
+		_add_translucent_box(area, size, color, 0.08)
+	return area
+
+
 static func _add_fog_sightline_layers(parent: Node3D, size: Vector3, color: Color, properties: Dictionary) -> void:
 	var strength := clampf(float(properties.get("occlusion_strength", 0.35)), 0.0, 0.95)
 	if strength <= 0.001:
@@ -473,6 +531,611 @@ static func _build_opening_wall(object: Dictionary, window_opening: bool) -> Nod
 	return root
 
 
+static func _build_favela_building(object: Dictionary) -> Node3D:
+	var root := Node3D.new()
+	root.name = String(object.get("name", "Favela Building Assembly")).validate_node_name()
+	root.position = MapDocument.data_to_vector(object.get("position", {}))
+	root.rotation_degrees = MapDocument.data_to_vector(object.get("rotation_degrees", {}))
+	_set_object_meta(root, object)
+	var size := MapDocument.data_to_vector(object.get("size", {}), Vector3(8.0, 4.4, 7.0))
+	var properties: Dictionary = object.get("properties", {})
+	var entries: Array = properties.get("entries", ["south"])
+	var windows: Array = properties.get("windows", ["north"])
+	var door_width := clampf(float(properties.get("door_width", 1.55)), 0.8, minf(size.x, size.z) - 0.8)
+	var door_height := clampf(float(properties.get("door_height", 2.35)), 1.8, size.y - 0.2)
+	var window_width := clampf(float(properties.get("window_width", 1.65)), 0.8, minf(size.x, size.z) - 0.8)
+	var window_height := clampf(float(properties.get("window_height", 1.25)), 0.7, size.y - 1.0)
+	var wall_thickness := 0.35
+	var base_color := MapDocument.data_to_color(object.get("color", {}), Color("d1b58c"))
+	var trim_color := MapDocument.data_to_color(properties.get("trim_color", {}), Color("e3d8bd"))
+	var roof_color := MapDocument.data_to_color(properties.get("roof_color", {}), Color("62564f"))
+	var damage_side := String(properties.get("damage_side", "south"))
+	var downspout_side := String(properties.get("downspout_side", "east"))
+	var masonry_texture_path := String(properties.get("masonry_texture_path", ""))
+	var wood_texture_path := String(properties.get("wood_texture_path", ""))
+	var wood_wall_sides: Array = properties.get("wood_wall_sides", [])
+	var building_id := String(object.get("id", "favela_building"))
+
+	var slab_object := _building_part_object(object, "slab", roof_color, "concrete")
+	_add_compound_box(root, "FloorSlab", Vector3(size.x, 0.35, size.z), Vector3(0.0, 0.175, 0.0), slab_object)
+	_add_compound_box(root, "RoofSlab", Vector3(size.x, 0.35, size.z), Vector3(0.0, size.y + 0.175, 0.0), slab_object)
+
+	for side_index in 4:
+		var side: String = ["north", "south", "east", "west"][side_index]
+		var wall_position := Vector3(0.0, size.y * 0.5, 0.0)
+		var wall_size := Vector3(size.x, size.y, wall_thickness)
+		var wall_yaw := 0.0
+		var exterior_sign := 1.0
+		if side == "north":
+			wall_position.z = -size.z * 0.5
+			exterior_sign = -1.0
+		elif side == "south":
+			wall_position.z = size.z * 0.5
+		elif side == "east":
+			wall_position.x = size.x * 0.5
+			wall_size.x = size.z
+			wall_yaw = 90.0
+		elif side == "west":
+			wall_position.x = -size.x * 0.5
+			wall_size.x = size.z
+			wall_yaw = 90.0
+			exterior_sign = -1.0
+		var wall_color := base_color.lightened(0.045 * float((side_index + building_id.length()) % 3))
+		if side_index == 2:
+			wall_color = wall_color.darkened(0.06)
+		var wall_object := _building_part_object(object, "%s_wall" % side, wall_color, "default")
+		var wall_texture_path := wood_texture_path if side in wood_wall_sides else masonry_texture_path
+		_apply_authored_surface_texture(
+			wall_object,
+			wall_texture_path,
+			0.46 if side in wood_wall_sides else 0.34,
+			0.08 if side in wood_wall_sides else 0.04,
+			Color("b4aa99") if side in wood_wall_sides else Color("d4cab8")
+		)
+		wall_object["position"] = MapDocument.vector_to_data(wall_position)
+		wall_object["rotation_degrees"] = MapDocument.vector_to_data(Vector3(0.0, wall_yaw, 0.0))
+		wall_object["size"] = MapDocument.vector_to_data(wall_size)
+		var wall_properties: Dictionary = wall_object.get("properties", {})
+		wall_properties["building_side"] = side
+		wall_object["properties"] = wall_properties
+		var wall_node: Node3D
+		if side in entries:
+			wall_properties["opening_width"] = door_width
+			wall_properties["opening_height"] = door_height
+			wall_object["properties"] = wall_properties
+			wall_node = _build_opening_wall(wall_object, false)
+			_add_door_architecture(wall_node, wall_size, door_width, door_height, exterior_sign, trim_color, roof_color, wall_object)
+		elif side in windows:
+			wall_properties["opening_width"] = window_width
+			wall_properties["opening_height"] = window_height
+			wall_object["properties"] = wall_properties
+			wall_node = _build_opening_wall(wall_object, true)
+			_add_window_architecture(wall_node, wall_size, window_width, window_height, exterior_sign, trim_color, roof_color, wall_object)
+		else:
+			wall_node = Node3D.new()
+			wall_node.name = "%sWall" % side.capitalize()
+			wall_node.position = wall_position
+			wall_node.rotation_degrees.y = wall_yaw
+			_set_object_meta(wall_node, wall_object)
+			_add_compound_box(wall_node, "WallMass", wall_size, Vector3.ZERO, wall_object)
+		root.add_child(wall_node)
+		if side == damage_side:
+			_add_exposed_brick_relief(wall_node, wall_size, exterior_sign, wall_object)
+		else:
+			_add_irregular_plaster_patch(wall_node, wall_size, exterior_sign, wall_color, side_index, wall_object)
+		_add_foundation_band(wall_node, wall_size, exterior_sign, roof_color, wall_object)
+		if side == downspout_side:
+			_add_downspout(wall_node, wall_size, exterior_sign, wall_object)
+			_add_electrical_service(wall_node, wall_size, exterior_sign, wall_object)
+
+	_add_corner_pilasters(root, size, trim_color.darkened(0.14), object)
+	_add_roof_cornice(root, size, roof_color, object)
+
+	var parapet_height := clampf(float(properties.get("parapet_height", 0.35)), 0.0, 0.8)
+	if parapet_height > 0.05:
+		var parapet_object := _building_part_object(object, "parapet", base_color.darkened(0.16), "default")
+		var parapet_y := size.y + 0.35 + parapet_height * 0.5
+		_add_compound_box(root, "NorthParapet", Vector3(size.x, parapet_height, 0.22), Vector3(0.0, parapet_y, -size.z * 0.5 + 0.11), parapet_object)
+		_add_compound_box(root, "SouthParapet", Vector3(size.x, parapet_height, 0.22), Vector3(0.0, parapet_y, size.z * 0.5 - 0.11), parapet_object)
+		_add_compound_box(root, "EastParapet", Vector3(0.22, parapet_height, size.z), Vector3(size.x * 0.5 - 0.11, parapet_y, 0.0), parapet_object)
+		_add_compound_box(root, "WestParapet", Vector3(0.22, parapet_height, size.z), Vector3(-size.x * 0.5 + 0.11, parapet_y, 0.0), parapet_object)
+	return root
+
+
+static func _building_part_object(source: Dictionary, suffix: String, color: Color, surface_kind: String) -> Dictionary:
+	var result := source.duplicate(true)
+	result["id"] = "%s_%s" % [String(source.get("id", "building")), suffix]
+	result["color"] = MapDocument.color_to_data(color)
+	var properties: Dictionary = (source.get("properties", {}) as Dictionary).duplicate(true)
+	properties["painterly_material"] = true
+	properties["painterly_material_v2"] = true
+	properties["surface_kind"] = surface_kind
+	properties["roughness"] = 1.0
+	properties["normal_strength"] = 0.035
+	properties.erase("texture_path")
+	result["properties"] = properties
+	return result
+
+
+static func _apply_authored_surface_texture(
+	object: Dictionary, texture_path: String, uv_scale: float,
+	tint_weight: float, texture_multiplier: Color
+) -> void:
+	if texture_path.is_empty():
+		return
+	var properties: Dictionary = (object.get("properties", {}) as Dictionary).duplicate(true)
+	properties["texture_path"] = texture_path
+	properties["surface_kind"] = "default"
+	properties["uv_scale"] = uv_scale
+	properties["texture_tint_weight"] = tint_weight
+	properties["texture_multiplier"] = MapDocument.color_to_data(texture_multiplier)
+	object["properties"] = properties
+
+
+static func _add_door_architecture(
+	wall: Node3D, wall_size: Vector3, opening_width: float, opening_height: float,
+	exterior_sign: float, trim_color: Color, awning_color: Color, source: Dictionary
+) -> void:
+	var trim_object := _building_part_object(source, "door_trim", trim_color, "default")
+	var face_z := exterior_sign * (wall_size.z * 0.5 + 0.055)
+	var center_y := -wall_size.y * 0.5 + opening_height * 0.5
+	_add_visual_box(wall, "LeftDoorJamb", Vector3(0.13, opening_height + 0.08, 0.10), Vector3(-opening_width * 0.5 - 0.065, center_y, face_z), Vector3.ZERO, trim_object)
+	_add_visual_box(wall, "RightDoorJamb", Vector3(0.13, opening_height + 0.08, 0.10), Vector3(opening_width * 0.5 + 0.065, center_y, face_z), Vector3.ZERO, trim_object)
+	_add_visual_box(wall, "DoorLintel", Vector3(opening_width + 0.26, 0.15, 0.10), Vector3(0.0, -wall_size.y * 0.5 + opening_height + 0.075, face_z), Vector3.ZERO, trim_object)
+	var door_hinge := Node3D.new()
+	door_hinge.name = "OpenDoorHinge"
+	door_hinge.position = Vector3(-opening_width * 0.5 + 0.05, center_y, 0.0)
+	door_hinge.rotation_degrees.y = 58.0 * exterior_sign
+	wall.add_child(door_hinge)
+	var door_object := _building_part_object(source, "door_leaf", awning_color.darkened(0.22), "default")
+	var source_properties: Dictionary = source.get("properties", {})
+	_apply_authored_surface_texture(
+		door_object, String(source_properties.get("wood_texture_path", "")), 0.48, 0.06, Color("a89b87")
+	)
+	_add_visual_box(
+		door_hinge, "OpenDoorLeaf",
+		Vector3(opening_width * 0.78, opening_height * 0.94, 0.085),
+		Vector3(opening_width * 0.39, 0.0, 0.0), Vector3.ZERO, door_object
+	)
+	_add_corrugated_awning(wall, wall_size, opening_width + 0.65, opening_height, exterior_sign, awning_color, source)
+	var properties: Dictionary = source.get("properties", {})
+	var sign_text := String(properties.get("sign_text", ""))
+	var building_side := String(properties.get("building_side", ""))
+	if not sign_text.is_empty() and building_side == String(properties.get("sign_side", "south")):
+		_add_facade_sign(wall, wall_size, opening_height, exterior_sign, sign_text, source)
+
+
+static func _add_facade_sign(
+	wall: Node3D, wall_size: Vector3, opening_height: float,
+	exterior_sign: float, sign_text: String, source: Dictionary
+) -> void:
+	var board_width := clampf(0.62 + float(sign_text.length()) * 0.23, 1.7, minf(wall_size.x * 0.62, 3.6))
+	var board_y := -wall_size.y * 0.5 + opening_height + 0.82
+	var board_z := exterior_sign * (wall_size.z * 0.5 + 0.085)
+	var board_object := _building_part_object(source, "facade_sign", Color("374847"), "default")
+	var properties: Dictionary = source.get("properties", {})
+	_apply_authored_surface_texture(
+		board_object, String(properties.get("wood_texture_path", "")), 0.55, 0.20, Color("827869")
+	)
+	_add_visual_box(
+		wall, "FacadeSignBoard", Vector3(board_width, 0.52, 0.13),
+		Vector3(0.0, board_y, board_z), Vector3.ZERO, board_object
+	)
+	var label := Label3D.new()
+	label.name = "FacadeSignText"
+	label.text = sign_text
+	label.font_size = 64
+	label.pixel_size = 0.0062
+	label.outline_size = 8
+	label.modulate = Color("f1dfae")
+	label.outline_modulate = Color("202b2b")
+	label.position = Vector3(0.0, board_y, board_z + exterior_sign * 0.075)
+	label.rotation_degrees.y = 180.0 if exterior_sign < 0.0 else 0.0
+	wall.add_child(label)
+
+
+static func _add_window_architecture(
+	wall: Node3D, wall_size: Vector3, opening_width: float, opening_height: float,
+	exterior_sign: float, trim_color: Color, shutter_color: Color, source: Dictionary
+) -> void:
+	var sill_height := maxf((wall_size.y - opening_height) * 0.48, 0.55)
+	var center_y := -wall_size.y * 0.5 + sill_height + opening_height * 0.5
+	var face_z := exterior_sign * (wall_size.z * 0.5 + 0.055)
+	var trim_object := _building_part_object(source, "window_trim", trim_color, "default")
+	_add_visual_box(wall, "LeftWindowJamb", Vector3(0.11, opening_height + 0.18, 0.09), Vector3(-opening_width * 0.5 - 0.055, center_y, face_z), Vector3.ZERO, trim_object)
+	_add_visual_box(wall, "RightWindowJamb", Vector3(0.11, opening_height + 0.18, 0.09), Vector3(opening_width * 0.5 + 0.055, center_y, face_z), Vector3.ZERO, trim_object)
+	_add_visual_box(wall, "WindowHeaderTrim", Vector3(opening_width + 0.22, 0.11, 0.09), Vector3(0.0, center_y + opening_height * 0.5 + 0.055, face_z), Vector3.ZERO, trim_object)
+	_add_visual_box(wall, "WindowSillTrim", Vector3(opening_width + 0.34, 0.13, 0.18), Vector3(0.0, center_y - opening_height * 0.5 - 0.05, face_z + exterior_sign * 0.04), Vector3.ZERO, trim_object)
+	var shutter_object := _building_part_object(source, "shutters", shutter_color.darkened(0.18), "default")
+	var source_properties: Dictionary = source.get("properties", {})
+	_apply_authored_surface_texture(
+		shutter_object, String(source_properties.get("wood_texture_path", "")), 0.52, 0.08, Color("a99d8a")
+	)
+	var shutter_width := minf(opening_width * 0.30, 0.52)
+	_add_visual_box(wall, "LeftShutter", Vector3(shutter_width, opening_height + 0.04, 0.08), Vector3(-opening_width * 0.5 - shutter_width * 0.58, center_y, face_z + exterior_sign * 0.03), Vector3(0.0, -10.0 * exterior_sign, 0.0), shutter_object)
+	_add_visual_box(wall, "RightShutter", Vector3(shutter_width, opening_height + 0.04, 0.08), Vector3(opening_width * 0.5 + shutter_width * 0.58, center_y, face_z + exterior_sign * 0.03), Vector3(0.0, 10.0 * exterior_sign, 0.0), shutter_object)
+	_add_window_sash_and_glass(wall, wall_size, opening_width, opening_height, center_y, exterior_sign, source)
+	var grille_object := _building_part_object(source, "window_grille", Color("384342"), "default")
+	for index in 3:
+		var grille_x := (float(index) - 1.0) * opening_width * 0.27
+		_add_visual_box(wall, "WindowGrilleVertical%d" % index, Vector3(0.035, opening_height * 0.88, 0.045), Vector3(grille_x, center_y, face_z + exterior_sign * 0.06), Vector3.ZERO, grille_object)
+	for index in 2:
+		var grille_y := center_y + (float(index) - 0.5) * opening_height * 0.38
+		_add_visual_box(wall, "WindowGrilleHorizontal%d" % index, Vector3(opening_width * 0.92, 0.035, 0.045), Vector3(0.0, grille_y, face_z + exterior_sign * 0.06), Vector3.ZERO, grille_object)
+
+
+static func _add_window_sash_and_glass(
+	wall: Node3D, wall_size: Vector3, opening_width: float, opening_height: float,
+	center_y: float, exterior_sign: float, source: Dictionary
+) -> void:
+	var sash_width := opening_width * 0.82
+	var sash_height := opening_height * 0.80
+	var glass_z := -exterior_sign * wall_size.z * 0.12
+	var glass := MeshInstance3D.new()
+	glass.name = "WindowGlass"
+	var glass_mesh := BoxMesh.new()
+	glass_mesh.size = Vector3(sash_width * 0.94, sash_height * 0.94, 0.018)
+	glass.mesh = glass_mesh
+	glass.position = Vector3(0.0, center_y, glass_z)
+	var glass_material := StandardMaterial3D.new()
+	glass_material.albedo_color = Color(0.25, 0.48, 0.53, 0.42)
+	glass_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	glass_material.roughness = 0.22
+	glass_material.metallic = 0.08
+	glass_material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	glass.material_override = glass_material
+	glass.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	wall.add_child(glass)
+
+	var source_properties: Dictionary = source.get("properties", {})
+	var sash_object := _building_part_object(source, "window_sash", Color("625244"), "default")
+	_apply_authored_surface_texture(
+		sash_object, String(source_properties.get("wood_texture_path", "")), 0.58, 0.05, Color("9f927f")
+	)
+	var sash_z := glass_z + exterior_sign * 0.025
+	var rail := 0.065
+	_add_visual_box(wall, "WindowSashLeft", Vector3(rail, sash_height, 0.055), Vector3(-sash_width * 0.5, center_y, sash_z), Vector3.ZERO, sash_object)
+	_add_visual_box(wall, "WindowSashRight", Vector3(rail, sash_height, 0.055), Vector3(sash_width * 0.5, center_y, sash_z), Vector3.ZERO, sash_object)
+	_add_visual_box(wall, "WindowSashTop", Vector3(sash_width, rail, 0.055), Vector3(0.0, center_y + sash_height * 0.5, sash_z), Vector3.ZERO, sash_object)
+	_add_visual_box(wall, "WindowSashBottom", Vector3(sash_width, rail, 0.055), Vector3(0.0, center_y - sash_height * 0.5, sash_z), Vector3.ZERO, sash_object)
+	_add_visual_box(wall, "WindowMullionVertical", Vector3(rail * 0.72, sash_height, 0.060), Vector3(0.0, center_y, sash_z + exterior_sign * 0.01), Vector3.ZERO, sash_object)
+	_add_visual_box(wall, "WindowMullionHorizontal", Vector3(sash_width, rail * 0.72, 0.060), Vector3(0.0, center_y, sash_z + exterior_sign * 0.01), Vector3.ZERO, sash_object)
+
+
+static func _add_corrugated_awning(
+	wall: Node3D, wall_size: Vector3, width: float, opening_height: float,
+	exterior_sign: float, color: Color, source: Dictionary
+) -> void:
+	var awning_root := Node3D.new()
+	awning_root.name = "CorrugatedDoorAwning"
+	awning_root.position = Vector3(
+		0.0,
+		-wall_size.y * 0.5 + opening_height + 0.34,
+		exterior_sign * (wall_size.z * 0.5 + 0.48)
+	)
+	awning_root.rotation_degrees.x = exterior_sign * 7.0
+	wall.add_child(awning_root)
+	var panel_object := _building_part_object(source, "corrugated_awning", color.darkened(0.08), "default")
+	var rib_count := 11
+	var rib_width := width / float(rib_count)
+	for index in rib_count:
+		var x := -width * 0.5 + rib_width * (float(index) + 0.5)
+		var ridge_y := 0.025 if index % 2 == 0 else -0.025
+		_add_visual_box(awning_root, "Corrugation%02d" % index, Vector3(rib_width * 1.04, 0.065, 0.95), Vector3(x, ridge_y, 0.0), Vector3.ZERO, panel_object)
+	for side in [-1.0, 1.0]:
+		_add_visual_box(awning_root, "AwningBrace%s" % ("L" if side < 0.0 else "R"), Vector3(0.07, 0.07, 0.88), Vector3(side * width * 0.40, -0.22, -0.05), Vector3(22.0 * exterior_sign, 0.0, 0.0), panel_object)
+
+
+static func _add_irregular_plaster_patch(
+	wall: Node3D, wall_size: Vector3, exterior_sign: float, wall_color: Color,
+	variant: int, source: Dictionary
+) -> void:
+	var patch_width := minf(wall_size.x * 0.22, 1.55)
+	var patch_height := minf(wall_size.y * 0.20, 0.95)
+	var patch_x := wall_size.x * (0.31 if variant % 2 == 0 else -0.31)
+	var patch_y := wall_size.y * (-0.16 if variant % 3 == 0 else 0.18)
+	var outline: Array[Vector2] = [
+		Vector2(-0.53, -0.19), Vector2(-0.31, -0.51), Vector2(0.12, -0.45),
+		Vector2(0.54, -0.20), Vector2(0.43, 0.29), Vector2(0.08, 0.52),
+		Vector2(-0.39, 0.37),
+	]
+	var surface_tool := SurfaceTool.new()
+	surface_tool.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var normal := Vector3(0.0, 0.0, exterior_sign)
+	var face_z := exterior_sign * (wall_size.z * 0.5 + 0.058)
+	for index in outline.size():
+		var first := outline[index]
+		var second := outline[(index + 1) % outline.size()]
+		for point: Vector2 in [Vector2.ZERO, first, second]:
+			surface_tool.set_normal(normal)
+			surface_tool.add_vertex(Vector3(
+				patch_x + point.x * patch_width,
+				patch_y + point.y * patch_height,
+				face_z
+			))
+	var patch := MeshInstance3D.new()
+	patch.name = "IrregularPlasterPatch"
+	patch.mesh = surface_tool.commit()
+	var patch_color := wall_color.darkened(0.14) if variant % 2 == 0 else wall_color.lightened(0.11)
+	patch.material_override = _material_for_object(_building_part_object(source, "plaster_patch", patch_color, "default"))
+	patch.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	wall.add_child(patch)
+
+
+static func _add_foundation_band(
+	wall: Node3D, wall_size: Vector3, exterior_sign: float,
+	color: Color, source: Dictionary
+) -> void:
+	var foundation_object := _building_part_object(source, "foundation", color.darkened(0.28), "default")
+	var face_z := exterior_sign * (wall_size.z * 0.5 + 0.075)
+	_add_visual_box(
+		wall, "RaisedFoundationCourse", Vector3(wall_size.x * 0.94, 0.30, 0.11),
+		Vector3(0.0, -wall_size.y * 0.5 + 0.15, face_z), Vector3.ZERO, foundation_object
+	)
+	for index in 3:
+		var seam_x := (float(index) - 1.0) * wall_size.x * 0.24
+		_add_visual_box(
+			wall, "FoundationJoint%d" % index, Vector3(0.025, 0.27, 0.018),
+			Vector3(seam_x, -wall_size.y * 0.5 + 0.15, face_z + exterior_sign * 0.06),
+			Vector3.ZERO, _building_part_object(source, "foundation_joint", color.darkened(0.42), "default")
+		)
+
+
+static func _add_electrical_service(wall: Node3D, wall_size: Vector3, exterior_sign: float, source: Dictionary) -> void:
+	var service_object := _building_part_object(source, "electrical_service", Color("4a5554"), "default")
+	var x := -wall_size.x * 0.32
+	var face_z := exterior_sign * (wall_size.z * 0.5 + 0.095)
+	_add_visual_box(
+		wall, "ElectricalMeterBox", Vector3(0.34, 0.46, 0.16),
+		Vector3(x, -wall_size.y * 0.05, face_z), Vector3.ZERO, service_object
+	)
+	var conduit := MeshInstance3D.new()
+	conduit.name = "ElectricalConduit"
+	var conduit_mesh := CylinderMesh.new()
+	conduit_mesh.top_radius = 0.028
+	conduit_mesh.bottom_radius = 0.028
+	conduit_mesh.height = wall_size.y * 0.48
+	conduit_mesh.radial_segments = 8
+	conduit.mesh = conduit_mesh
+	conduit.position = Vector3(x, -wall_size.y * 0.29, face_z)
+	conduit.material_override = _material_for_object(service_object)
+	wall.add_child(conduit)
+
+
+static func _add_corner_pilasters(root: Node3D, size: Vector3, color: Color, source: Dictionary) -> void:
+	var pilaster_object := _building_part_object(source, "corner_pilaster", color, "default")
+	for x_sign in [-1.0, 1.0]:
+		for z_sign in [-1.0, 1.0]:
+			_add_visual_box(
+				root, "CornerPilaster%s%s" % ["W" if x_sign < 0.0 else "E", "N" if z_sign < 0.0 else "S"],
+				Vector3(0.30, size.y + 0.12, 0.30),
+				Vector3(x_sign * size.x * 0.5, size.y * 0.5, z_sign * size.z * 0.5),
+				Vector3.ZERO, pilaster_object
+			)
+
+
+static func _add_roof_cornice(root: Node3D, size: Vector3, color: Color, source: Dictionary) -> void:
+	var cornice_object := _building_part_object(source, "roof_cornice", color.darkened(0.12), "default")
+	var cornice_y := size.y + 0.28
+	_add_visual_box(root, "NorthRoofCornice", Vector3(size.x + 0.34, 0.22, 0.26), Vector3(0.0, cornice_y, -size.z * 0.5), Vector3.ZERO, cornice_object)
+	_add_visual_box(root, "SouthRoofCornice", Vector3(size.x + 0.34, 0.22, 0.26), Vector3(0.0, cornice_y, size.z * 0.5), Vector3.ZERO, cornice_object)
+	_add_visual_box(root, "EastRoofCornice", Vector3(0.26, 0.22, size.z), Vector3(size.x * 0.5, cornice_y, 0.0), Vector3.ZERO, cornice_object)
+	_add_visual_box(root, "WestRoofCornice", Vector3(0.26, 0.22, size.z), Vector3(-size.x * 0.5, cornice_y, 0.0), Vector3.ZERO, cornice_object)
+
+
+static func _add_exposed_brick_relief(wall: Node3D, wall_size: Vector3, exterior_sign: float, source: Dictionary) -> void:
+	var mortar_object := _building_part_object(source, "damage_mortar", Color("6d635b"), "default")
+	var brick_object := _building_part_object(source, "exposed_brick", Color("87513d"), "default")
+	var face_z := exterior_sign * (wall_size.z * 0.5 + 0.045)
+	var patch_x := wall_size.x * 0.28
+	var patch_y := wall_size.y * 0.12
+	_add_visual_box(wall, "BrokenPlasterRecess", Vector3(1.28, 0.84, 0.055), Vector3(patch_x, patch_y, face_z), Vector3(0.0, 0.0, -4.0), mortar_object)
+	for index in 8:
+		var row := index / 3
+		var column := index % 3
+		var brick_x := patch_x - 0.43 + float(column) * 0.40 + (0.18 if row % 2 == 1 else 0.0)
+		var brick_y := patch_y - 0.27 + float(row) * 0.27
+		_add_visual_box(wall, "ExposedBrick%02d" % index, Vector3(0.34, 0.17, 0.075), Vector3(brick_x, brick_y, face_z + exterior_sign * 0.045), Vector3(0.0, 0.0, float((index % 3) - 1) * 2.5), brick_object)
+
+
+static func _add_downspout(wall: Node3D, wall_size: Vector3, exterior_sign: float, source: Dictionary) -> void:
+	var pipe_object := _building_part_object(source, "downspout", Color("3d4646"), "default")
+	var pipe := MeshInstance3D.new()
+	pipe.name = "Downspout"
+	var mesh := CylinderMesh.new()
+	mesh.top_radius = 0.045
+	mesh.bottom_radius = 0.052
+	mesh.height = wall_size.y * 0.88
+	mesh.radial_segments = 8
+	pipe.mesh = mesh
+	pipe.position = Vector3(wall_size.x * 0.43, -wall_size.y * 0.04, exterior_sign * (wall_size.z * 0.5 + 0.075))
+	pipe.material_override = _material_for_object(pipe_object)
+	wall.add_child(pipe)
+	_add_visual_box(wall, "RoofGutter", Vector3(wall_size.x * 0.94, 0.08, 0.09), Vector3(0.0, wall_size.y * 0.47, exterior_sign * (wall_size.z * 0.5 + 0.075)), Vector3.ZERO, pipe_object)
+
+
+static func _add_visual_box(parent: Node3D, name_value: String, size: Vector3, position: Vector3, rotation: Vector3, source: Dictionary) -> void:
+	var visual := MeshInstance3D.new()
+	visual.name = name_value
+	var mesh := BoxMesh.new()
+	mesh.size = size
+	visual.mesh = mesh
+	visual.position = position
+	visual.rotation_degrees = rotation
+	visual.material_override = _material_for_object(source)
+	visual.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+	parent.add_child(visual)
+
+
+static func _build_wooden_crate(object: Dictionary) -> Node3D:
+	var body := StaticBody3D.new()
+	body.name = String(object.get("name", "Climbable Timber Crate")).validate_node_name()
+	body.position = MapDocument.data_to_vector(object.get("position", {}))
+	body.rotation_degrees = MapDocument.data_to_vector(object.get("rotation_degrees", {}))
+	_set_object_meta(body, object)
+	var size := MapDocument.data_to_vector(object.get("size", {}), Vector3(1.4, 0.55, 1.4))
+	var properties: Dictionary = object.get("properties", {})
+	var texture_path := String(properties.get("texture_path", ""))
+
+	var panel_object := object.duplicate(true)
+	_apply_authored_surface_texture(panel_object, texture_path, float(properties.get("uv_scale", 0.62)), 0.04, Color("aaa08e"))
+	var panel := MeshInstance3D.new()
+	panel.name = "WoodPlankBody"
+	var panel_mesh := BoxMesh.new()
+	panel_mesh.size = size * Vector3(0.90, 0.82, 0.90)
+	panel.mesh = panel_mesh
+	panel.material_override = _material_for_object(panel_object)
+	body.add_child(panel)
+
+	var brace_object := _building_part_object(object, "crate_brace", Color("392b24"), "default")
+	_apply_authored_surface_texture(brace_object, texture_path, 0.48, 0.12, Color("817665"))
+	var post_size := Vector3(0.11, size.y * 0.96, 0.11)
+	for x_sign in [-1.0, 1.0]:
+		for z_sign in [-1.0, 1.0]:
+			_add_visual_box(
+				body, "CornerPost%s%s" % ["L" if x_sign < 0.0 else "R", "F" if z_sign < 0.0 else "B"],
+				post_size, Vector3(x_sign * size.x * 0.44, 0.0, z_sign * size.z * 0.44),
+				Vector3.ZERO, brace_object
+			)
+	for y_sign in [-1.0, 1.0]:
+		for z_sign in [-1.0, 1.0]:
+			_add_visual_box(
+				body, "FaceRail%s%s" % ["Top" if y_sign > 0.0 else "Bottom", "Front" if z_sign < 0.0 else "Back"],
+				Vector3(size.x * 0.86, 0.10, 0.09),
+				Vector3(0.0, y_sign * size.y * 0.39, z_sign * size.z * 0.455),
+				Vector3.ZERO, brace_object
+			)
+	var diagonal_length := Vector2(size.x * 0.72, size.y * 0.60).length()
+	var diagonal_angle := rad_to_deg(atan2(size.y * 0.60, size.x * 0.72))
+	for z_sign in [-1.0, 1.0]:
+		_add_visual_box(
+			body, "DiagonalBrace%s" % ("Front" if z_sign < 0.0 else "Back"),
+			Vector3(diagonal_length, 0.085, 0.075),
+			Vector3(0.0, 0.0, z_sign * size.z * 0.465),
+			Vector3(0.0, 0.0, diagonal_angle * z_sign), brace_object
+		)
+
+	var collision := CollisionShape3D.new()
+	collision.name = "CollisionShape3D"
+	var shape := BoxShape3D.new()
+	shape.size = size
+	collision.shape = shape
+	body.add_child(collision)
+	return body
+
+
+static func _build_utility_pole(object: Dictionary) -> Node3D:
+	var body := StaticBody3D.new()
+	body.name = String(object.get("name", "Utility Pole Assembly")).validate_node_name()
+	body.position = MapDocument.data_to_vector(object.get("position", {}))
+	body.rotation_degrees = MapDocument.data_to_vector(object.get("rotation_degrees", {}))
+	_set_object_meta(body, object)
+	var size := MapDocument.data_to_vector(object.get("size", {}), Vector3(0.24, 7.6, 0.24))
+	var properties: Dictionary = object.get("properties", {})
+	var pole_object := _building_part_object(object, "pole", MapDocument.data_to_color(object.get("color", {}), Color("4b362d")), "default")
+	var trunk := MeshInstance3D.new()
+	trunk.name = "TaperedTimberPole"
+	var trunk_mesh := CylinderMesh.new()
+	trunk_mesh.top_radius = size.x * 0.38
+	trunk_mesh.bottom_radius = size.x * 0.52
+	trunk_mesh.height = size.y
+	trunk_mesh.radial_segments = 10
+	trunk.mesh = trunk_mesh
+	trunk.material_override = _material_for_object(pole_object)
+	body.add_child(trunk)
+	var crossbar_width := clampf(float(properties.get("crossbar_width", 1.4)), 0.8, 2.4)
+	_add_visual_box(body, "Crossbar", Vector3(crossbar_width, 0.13, 0.16), Vector3(0.0, size.y * 0.43, 0.0), Vector3.ZERO, pole_object)
+	var insulator_object := _building_part_object(object, "insulator", Color("a9b8b2"), "default")
+	for index in 3:
+		var insulator := MeshInstance3D.new()
+		insulator.name = "Insulator%d" % index
+		var insulator_mesh := SphereMesh.new()
+		insulator_mesh.radius = 0.085
+		insulator_mesh.height = 0.17
+		insulator_mesh.radial_segments = 8
+		insulator_mesh.rings = 4
+		insulator.mesh = insulator_mesh
+		insulator.position = Vector3((float(index) - 1.0) * crossbar_width * 0.36, size.y * 0.43 + 0.14, 0.0)
+		insulator.material_override = _material_for_object(insulator_object)
+		body.add_child(insulator)
+	var collision := CollisionShape3D.new()
+	collision.name = "CollisionShape3D"
+	var shape := CylinderShape3D.new()
+	shape.radius = size.x * 0.52
+	shape.height = size.y
+	collision.shape = shape
+	body.add_child(collision)
+	return body
+
+
+static func _build_cable_curve(object: Dictionary, editor_preview: bool) -> Node3D:
+	var root := StaticBody3D.new()
+	root.name = String(object.get("name", "Overhead Cable Curve")).validate_node_name()
+	root.position = MapDocument.data_to_vector(object.get("position", {}))
+	root.rotation_degrees = MapDocument.data_to_vector(object.get("rotation_degrees", {}))
+	_set_object_meta(root, object)
+	var properties: Dictionary = object.get("properties", {})
+	var raw_points: Array = properties.get("points", [])
+	if raw_points.size() < 4:
+		return root
+	var points: Array[Vector3] = []
+	for point: Variant in raw_points:
+		points.append(MapDocument.data_to_vector(point))
+	if editor_preview:
+		var minimum := points[0]
+		var maximum := points[0]
+		for point: Vector3 in points:
+			minimum = minimum.min(point)
+			maximum = maximum.max(point)
+		var selection := CollisionShape3D.new()
+		selection.name = "EditorSelectionCollision"
+		var selection_shape := BoxShape3D.new()
+		selection_shape.size = Vector3(
+			maxf(maximum.x - minimum.x, 0.20),
+			maxf(maximum.y - minimum.y, 0.20),
+			maxf(maximum.z - minimum.z, 0.20)
+		)
+		selection.shape = selection_shape
+		selection.position = (minimum + maximum) * 0.5
+		root.add_child(selection)
+	var radius := clampf(float(properties.get("radius", 0.018)), 0.008, 0.05)
+	var segment_count := clampi(int(properties.get("segment_count", 12)), 6, 24)
+	var cable_object := _building_part_object(object, "cable", MapDocument.data_to_color(object.get("color", {}), Color("20262a")), "default")
+	var previous := points[0]
+	for index in segment_count:
+		var t := float(index + 1) / float(segment_count)
+		var inverse := 1.0 - t
+		var current := (
+			points[0] * inverse * inverse * inverse
+			+ points[1] * 3.0 * inverse * inverse * t
+			+ points[2] * 3.0 * inverse * t * t
+			+ points[3] * t * t * t
+		)
+		_add_cylinder_between(root, "CableSegment%02d" % index, previous, current, radius, cable_object)
+		previous = current
+	return root
+
+
+static func _add_cylinder_between(parent: Node3D, name_value: String, start: Vector3, finish: Vector3, radius: float, source: Dictionary) -> void:
+	var direction := finish - start
+	var length := direction.length()
+	if length <= 0.001:
+		return
+	var visual := MeshInstance3D.new()
+	visual.name = name_value
+	var mesh := CylinderMesh.new()
+	mesh.top_radius = radius
+	mesh.bottom_radius = radius
+	mesh.height = length
+	mesh.radial_segments = 6
+	visual.mesh = mesh
+	visual.position = (start + finish) * 0.5
+	visual.quaternion = Quaternion(Vector3.UP, direction.normalized())
+	visual.material_override = _material_for_object(source)
+	visual.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	parent.add_child(visual)
+
+
 static func _build_breached_wall(object: Dictionary) -> Node3D:
 	var root := Node3D.new()
 	root.name = String(object.get("name", "Breached Wall")).validate_node_name()
@@ -539,7 +1202,27 @@ static func _build_stairs(object: Dictionary) -> Node3D:
 		var step_size := Vector3(size.x, height, tread_depth)
 		var z := size.z * 0.5 - tread_depth * (float(index) + 0.5)
 		var y := -size.y * 0.5 + height * 0.5
-		_add_compound_box(root, "Step%02d" % index, step_size, Vector3(0.0, y, z), object)
+		_add_visual_box(
+			root,
+			"Step%02d" % index,
+			step_size,
+			Vector3(0.0, y, z),
+			Vector3.ZERO,
+			object
+		)
+	# The authored treads remain visual. One continuous convex surface owns
+	# gameplay collision, so CharacterBody3D can climb without a second movement
+	# solver and bullets/camera still query one deterministic map collider.
+	var traversal_ramp := StaticBody3D.new()
+	traversal_ramp.name = "TraversalRamp"
+	_set_object_meta(traversal_ramp, object)
+	var collision := CollisionShape3D.new()
+	collision.name = "CollisionShape3D"
+	var shape := ConvexPolygonShape3D.new()
+	shape.points = _wedge_points(size)
+	collision.shape = shape
+	traversal_ramp.add_child(collision)
+	root.add_child(traversal_ramp)
 	return root
 
 
@@ -1176,6 +1859,14 @@ static func _material_for_object(object: Dictionary) -> StandardMaterial3D:
 	var object_color := MapDocument.data_to_color(object.get("color", {}), Color("626973"))
 	material.albedo_color = object_color
 	var properties: Dictionary = object.get("properties", {})
+	var painterly_v2 := bool(properties.get("painterly_material_v2", false))
+	var painterly_material := bool(properties.get("painterly_material", false)) or painterly_v2
+	if painterly_material:
+		# Preserve broad painted color masses and a soft light boundary. This is a
+		# material presentation choice only; collision and tactical visibility use
+		# the same authored geometry as every other map.
+		material.diffuse_mode = BaseMaterial3D.DIFFUSE_LAMBERT_WRAP
+		material.specular_mode = BaseMaterial3D.SPECULAR_DISABLED
 	var surface_kind := String(properties.get("surface_kind", "default"))
 	var type_name := StringName(object.get("type", ""))
 	if not properties.has("surface_kind") and type_name in [
@@ -1188,23 +1879,31 @@ static func _material_for_object(object: Dictionary) -> StandardMaterial3D:
 	elif type_name == &"rocky_mountain" and surface_kind == "default":
 		surface_kind = "rock"
 	var preset: Dictionary = MapDocument.SURFACE_PRESETS.get(surface_kind, MapDocument.SURFACE_PRESETS["default"])
-	material.roughness = clampf(float(properties.get("roughness", preset.get("roughness", 0.9))), 0.0, 1.0)
+	material.roughness = 1.0 if painterly_v2 else clampf(float(properties.get("roughness", preset.get("roughness", 0.9))), 0.0, 1.0)
 	material.metallic = clampf(float(properties.get("metallic", preset.get("metallic", 0.0))), 0.0, 1.0)
 	var texture_path := String(properties.get("texture_path", ""))
 	if texture_path.is_empty():
 		texture_path = String(preset.get("texture_path", ""))
-	if not texture_path.is_empty() and ResourceLoader.exists(texture_path):
-		var texture := load(texture_path) as Texture2D
-		if texture != null:
-			material.albedo_texture = texture
-			# Authored albedo owns the surface color. A tiny object tint keeps the
-			# editor's paint control useful without bleaching the texture.
-			var texture_multiplier := Color("85827d") if surface_kind == "rock" else Color("a8a59f")
-			material.albedo_color = texture_multiplier.lerp(object_color, 0.08)
-			var uv_scale := maxf(float(properties.get("uv_scale", 1.0)), 0.01)
-			material.uv1_scale = Vector3(uv_scale, uv_scale, uv_scale)
-			material.uv1_triplanar = true
-			material.uv1_world_triplanar = true
+	var texture := _load_authored_texture(texture_path)
+	if texture != null:
+		material.albedo_texture = texture
+		# V2 keeps the generated albedo's damaged linework and color variation.
+		# A darker multiplier prevents sun and ACES exposure from bleaching it.
+		var default_texture_multiplier := (
+			Color("74716b") if painterly_v2
+			else Color("85827d") if surface_kind == "rock"
+			else Color("a8a59f")
+		)
+		var texture_multiplier := MapDocument.data_to_color(
+			properties.get("texture_multiplier", {}), default_texture_multiplier
+		)
+		var default_tint_weight := 0.26 if painterly_v2 else (0.42 if painterly_material else 0.08)
+		var tint_weight := clampf(float(properties.get("texture_tint_weight", default_tint_weight)), 0.0, 1.0)
+		material.albedo_color = texture_multiplier.lerp(object_color, tint_weight)
+		var uv_scale := maxf(float(properties.get("uv_scale", 1.0)), 0.01)
+		material.uv1_scale = Vector3(uv_scale, uv_scale, uv_scale)
+		material.uv1_triplanar = true
+		material.uv1_world_triplanar = true
 	else:
 		if surface_kind != "default" and MapDocument.SURFACE_PRESETS.has(surface_kind):
 			material.albedo_texture = _procedural_surface_texture(surface_kind)
@@ -1216,11 +1915,37 @@ static func _material_for_object(object: Dictionary) -> StandardMaterial3D:
 	if surface_kind != "default" and MapDocument.SURFACE_PRESETS.has(surface_kind):
 		material.normal_enabled = true
 		material.normal_texture = _procedural_surface_normal(surface_kind)
-		var default_normal_strength := 0.24 if material.albedo_texture != null else 0.55
+		var default_normal_strength := (
+			0.045 if painterly_v2
+			else 0.12 if painterly_material
+			else (0.24 if material.albedo_texture != null else 0.55)
+		)
 		material.normal_scale = clampf(float(properties.get("normal_strength", default_normal_strength)), 0.0, 2.0)
 		material.roughness_texture = _procedural_surface_roughness(surface_kind)
 		material.roughness_texture_channel = BaseMaterial3D.TEXTURE_CHANNEL_RED
 	return material
+
+
+static func _load_authored_texture(texture_path: String) -> Texture2D:
+	if texture_path.is_empty():
+		return null
+	if authored_texture_cache.has(texture_path):
+		return authored_texture_cache[texture_path] as Texture2D
+	var texture: Texture2D = null
+	if ResourceLoader.exists(texture_path):
+		texture = load(texture_path) as Texture2D
+	elif FileAccess.file_exists(texture_path):
+		# A newly generated project asset can be visible before Godot creates its
+		# import artifact. The raw-image fallback keeps first launch and script-mode
+		# visual checks identical; subsequent runs use ResourceLoader above.
+		var source_image := Image.new()
+		if source_image.load(ProjectSettings.globalize_path(texture_path)) == OK:
+			if not source_image.has_mipmaps():
+				source_image.generate_mipmaps()
+			texture = ImageTexture.create_from_image(source_image)
+	if texture != null:
+		authored_texture_cache[texture_path] = texture
+	return texture
 
 
 static func _tree_texture_material(cache_key: String, texture_path: String) -> StandardMaterial3D:

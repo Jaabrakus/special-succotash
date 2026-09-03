@@ -264,8 +264,8 @@ func process(delta: float) -> void:
         and process_frame == 60
     ):
         var intent: Dictionary = camera_rig.build_local_aim_intent()
-        var mannequin = player.get_node("Mannequin")
-        var muzzle: Vector3 = mannequin.get_active_muzzle_position()
+        var mannequin = player.get_node_or_null("Mannequin") if player != null else null
+        var muzzle: Vector3 = mannequin.get_active_muzzle_position() if mannequin != null and mannequin.has_method("get_active_muzzle_position") else (player.get_node("MuzzleMarker").global_position if player.has_node("MuzzleMarker") else player.global_position + Vector3(0.15, 1.25, -0.65))
         var exclude: Array[RID] = [player.get_rid()]
         var trace: Dictionary = ShotAuthority.validate_and_trace(
             host.get_world_3d(),
@@ -374,8 +374,8 @@ func process(delta: float) -> void:
         + "Camera state    %s\n" % ("ELEVATED / COMPRESSED" if d.collision_active else "PREFERRED SHOT")
     )
 
-    var mannequin: Node = player.get_node("Mannequin") as Node
-    if mannequin:
+    var mannequin: Node = player.get_node_or_null("Mannequin") if player != null else null
+    if mannequin != null and mannequin.has_method("get_aim_debug_data"):
         var a: Dictionary = mannequin.get_aim_debug_data()
         debug_label.text += (
             "\n\nBODY AIM\n"

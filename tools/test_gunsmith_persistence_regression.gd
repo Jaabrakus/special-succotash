@@ -211,11 +211,20 @@ func _test_studio_runtime_parity() -> bool:
 		return false
 	var d: Dictionary = JSON.parse_string(file.get_as_text())
 	var sockets: Dictionary = d.get("weapon_sockets", {})
-	
+	var barrel_base: Dictionary = sockets.get("barrel_base_socket", {})
 	var muzzle: Dictionary = sockets.get("muzzle_socket", {})
+	var barrel_base_pos := Vector3(
+		float(barrel_base.get("x", 0)),
+		float(barrel_base.get("y", 0)),
+		float(barrel_base.get("z", 0))
+	)
 	var muzzle_pos := Vector3(float(muzzle.get("x", 0)), float(muzzle.get("y", 0)), float(muzzle.get("z", 0)))
-	
-	if muzzle_pos.z > -0.5: # Muzzle should be along barrel forward/negative z
+	var model_rotation: Dictionary = d.get("model_rotation_degrees", {})
+	# Socket coordinates are weapon-model local. Imported FBX files do not share
+	# a universal forward axis, so local Z must not be used as the contract.
+	if muzzle_pos.distance_to(barrel_base_pos) < 0.02:
+		return false
+	if model_rotation.is_empty():
 		return false
 	return true
 

@@ -1,0 +1,47 @@
+[gd_scene format=3 uid="uid://d0jv1qq704ybq"]
+
+[ext_resource type="PackedScene" uid="uid://47jx4yrjxbfi" path="res://scenes/player/native_ik_reference_source.tscn" id="1_reference"]
+[ext_resource type="Script" uid="uid://bad8et5ryl284" path="res://scripts/player/modular_operator_controller.gd" id="2_controller"]
+
+[node name="ModularOperatorPlayer" unique_id=710122549 instance=ExtResource("1_reference")]
+script = ExtResource("2_controller")
+
+[node name="GeneralSkeleton" parent="Model" parent_id_path=PackedInt32Array(365254571) index="0" unique_id=437322761]
+bones/1/position = Vector3(0.011511899, 0.881965, -0.040007498)
+bones/1/rotation = Quaternion(0.03282498, -0.23394692, -0.014772086, 0.9715828)
+bones/2/rotation = Quaternion(0.014550185, -0.003588475, 0.00064207223, 0.9998876)
+bones/3/rotation = Quaternion(0.036397934, -0.007761243, 0.0018954235, 0.9993055)
+bones/4/rotation = Quaternion(0.036426444, -0.007735985, 0.0018997098, 0.99930465)
+bones/5/rotation = Quaternion(0.4272026, 0.5779379, 0.5033007, -0.47976473)
+bones/6/rotation = Quaternion(0.34370187, 0.8008469, -0.31749666, 0.373777)
+bones/7/rotation = Quaternion(0.5693263, -0.7525541, 0.19866045, 0.26469606)
+bones/8/rotation = Quaternion(-0.053974826, 0.2701051, 0.09694397, 0.95641625)
+bones/26/rotation = Quaternion(0.39130875, -0.62127954, -0.4636124, -0.49593633)
+bones/27/rotation = Quaternion(-0.39245003, 0.78320134, -0.44840696, -0.17751047)
+bones/28/rotation = Quaternion(0.66757077, 0.41810015, -0.5253489, 0.32179198)
+bones/29/rotation = Quaternion(-0.27254692, -0.5324227, 0.14907967, 0.7874131)
+bones/47/rotation = Quaternion(0.11049501, 0.020452995, 0.034024596, 0.9930836)
+bones/48/rotation = Quaternion(-0.09093306, 0.09043124, -0.05905322, 0.98998296)
+bones/49/rotation = Quaternion(0.06748703, 0.34007028, 0.93473816, -0.0778622)
+bones/50/rotation = Quaternion(-9.408906e-05, 0.96785504, -0.25150913, 0.0001479729)
+bones/52/rotation = Quaternion(0.022811595, 0.63600075, -0.7555781, 0.1551918)
+bones/53/rotation = Quaternion(1.7739381e-05, 0.9988955, 0.046987053, -4.5063025e-05)
+bones/55/rotation = Quaternion(0.03463662, -0.084239565, 0.9942565, 0.056196734)
+bones/56/rotation = Quaternion(-0.0002567021, 0.95477873, -0.2973163, 0.0008186186)
+bones/58/rotation = Quaternion(0.025760658, 0.608237, -0.79104394, -0.060279675)
+bones/59/rotation = Quaternion(1.8460209e-05, 0.9949261, 0.10060839, -2.2276168e-05)
+
+[node name="RShoulderBoneAttachment3D2" parent="Model/GeneralSkeleton" index="8" unique_id=792234128]
+transform = Transform3D(-0.028864093, 0.01476891, 0.9994742, 0.9925654, 0.11870083, 0.026910745, -0.11824107, 0.99282014, -0.018085085, -0.24413116, 1.3478429, 0.2029463)
+
+[node name="RHikTarget" parent="Model/GeneralSkeleton/RShoulderBoneAttachment3D2/WeaponHolder/Gun" parent_id_path=PackedInt32Array(995216558) index="2" unique_id=1903492708]
+transform = Transform3D(-0.44075358, -0.6505253, 0.6185068, 0.8531036, -0.51789564, 0.063221514, 0.2791952, 0.5555171, 0.78323096, -0.26654944, -0.11555183, -0.10225485)
+
+[node name="BoneAttachment3D" parent="." index="3" unique_id=724284998]
+transform = Transform3D(0.8498564, -0.14961721, -0.5053304, 0.013432951, 0.9646933, -0.26303312, 0.52684313, 0.21675232, 0.82186055, -0.026000232, 1.310986, 0.020041037)
+
+[node name="TargetPivot" parent="." index="4" unique_id=1369507739]
+transform = Transform3D(1, 0, 0, 0, 0.9999999, 0, 0, 0, 0.9999999, 0.82064265, 1.204, 0)
+
+[node name="SpineTargetWeaponAim" parent="TargetPivot" index="2" unique_id=633692008]
+transform = Transform3D(-0.11655787, -0.98180693, -0.14989921, 0.8268996, -0.012330573, -0.562214, 0.5501373, -0.18948223, 0.8132928, -0.9334642, 0.90499985, 0.12881571)

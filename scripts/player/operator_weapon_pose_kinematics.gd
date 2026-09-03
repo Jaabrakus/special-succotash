@@ -123,6 +123,33 @@ func _solve_socket_arm(
 	)
 
 
+func _update_support_contact_elbow_pole(wrist_world: Vector3) -> void:
+	if skeleton == null or left_elbow_pole == null:
+		return
+	var left_arm_index := int(bone_indices.get(&"mixamorig_LeftArm", -1))
+	var right_arm_index := int(bone_indices.get(&"mixamorig_RightArm", -1))
+	if left_arm_index < 0 or right_arm_index < 0:
+		return
+	var saved_poles: Dictionary = elbow_pole_offsets_by_posture.get(
+		last_posture,
+		{}
+	)
+	var saved_left: Vector3 = saved_poles.get("left", Vector3.ZERO)
+	# The support-only modifier starts from the authored arm every frame. Give
+	# the IK an anatomical elbow pole in that same frame instead of leaving its
+	# runtime marker at the operator origin; the latter can make the elbow cross
+	# the shoulder-wrist line and flip as the recovery clip blends.
+	left_elbow_pole.global_position = WeaponContactSolver.support_elbow_pole(
+		skeleton,
+		left_arm_index,
+		right_arm_index,
+		-1,
+		wrist_world,
+		0.0,
+		saved_left
+	)
+
+
 func _stop_socket_ik() -> void:
 	SocketIK.stop(right_hand_ik)
 	SocketIK.stop(left_hand_ik)

@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "feature_id": "hybrid_locomotion_new_actions",
+  "player_intent": "Movement looks and feels like the base SOCOM game while the newer crouch/prone reload and weapon-aim presentations remain available.",
+  "acceptance_rule": "The canonical operator map routes standing, crouched, prone, turn, roll, dive, and jump locomotion to the base clips; reload and weapon aim remain on the newer AGLS clips; animation root motion never moves the CharacterBody3D.",
+  "canonical_scene": "res://main.tscn",
+  "ownership": {
+    "movement_and_collision": "SocomTestPlayer",
+    "locomotion_animation_routes": "SocomOperatorAnimationProfile",
+    "reload_action_presentation": "SocomOperatorAnimationDriver",
+    "animation_root_motion": "VISUAL_ONLY"
+  },
+  "nodes": [
+    {
+      "id": "player_movement_owner",
+      "type": "CharacterBody3D",
+      "role": "Owns velocity, collision, stance movement, and move_and_slide.",
+      "owner": "SocomTestPlayer",
+      "source_script": "res://scripts/player/player_controller.gd",
+      "code_symbols": ["extends CharacterBody3D", "move_and_slide()"]
+    },
+    {
+      "id": "operator_animation_consumer",
+      "type": "Node3D",
+      "role": "Consumes movement state and action routes for visual presentation only.",
+      "owner": "SocomOperatorAnimationDriver",
+      "source_script": "res://scripts/player/operator_animation_driver_runtime.gd",
+      "code_symbols": ["animation_profile.load_project_map", "_request_clip"]
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://config/agls_operator_animation_map.json",
+      "writer": "res://config/agls_operator_animation_map.json",
+      "readers": [
+        "res://scripts/player/operator_animation_profile.gd",
+        "res://scripts/player/operator_asset_runtime.gd"
+      ]
+    }
+  ],
+  "must_not_change": [
+    "CharacterBody3D movement authority",
+    "camera and reticle aim authority",
+    "reload event routing",
+    "prone aim presentation",
+    "server shot and damage authority"
+  ],
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Base locomotion clips better preserve the established SOCOM movement silhouette, while the newer AGLS reload and aim clips cover missing crouched/prone weapon actions. Root motion remains visual-only.",
+    "current": {
+      "system": "Full AGLS locomotion and action presentation map",
+      "correctness": 3,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 4,
+      "performance": 4,
+      "regression_coverage": 4,
+      "evidence_paths": [
+        "res://config/agls_operator_animation_map.json",
+        "res://config/operator_rig.json",
+        "res://scripts/player/operator_asset_runtime.gd"
+      ]
+    },
+    "candidate": {
+      "system": "Base SOCOM locomotion plus newer AGLS reload and aim actions",
+      "correctness": 4,
+      "ownership_clarity": 5,
+      "runtime_parity": 3,
+      "editor_usability": 4,
+      "performance": 4,
+      "regression_coverage": 4,
+      "evidence_paths": [
+        "res://config/operator_animation_map.json",
+        "res://config/agls_operator_animation_map.json",
+        "res://tools/hybrid_locomotion_action_regression.gd"
+      ],
+      "open_evidence": "Focused hybrid routing passes. The legacy full operator suite still reports fire ownership, posture-specific M4 reload expectation, modern-locomotion mode, prone continuity, and support-hand presentation mismatches that require separate reconciliation."
+    }
+  },
+  "proof_scripts": [
+    "res://tools/hybrid_locomotion_action_regression.gd",
+    "res://tools/mobility_regression.gd",
+    "res://tools/operator_animation_regression.gd"
+  ],
+  "visual_check": "Run, strafe, crouch-walk, crawl, jump, dive, reload while standing/crouched/prone, and confirm the body never moves from animation root motion."
+}

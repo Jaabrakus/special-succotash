@@ -9,6 +9,9 @@ const LOADOUT_PATH := "res://config/weapons/operator_loadout.json"
 const CURRENT_SCHEMA_VERSION := 3
 const PlaytestStateCollector := preload("res://scripts/runtime/playtest_state_collector.gd")
 const WeaponAnimationProfile := preload("res://scripts/weapons/weapon_animation_profile.gd")
+const VisualRigResolver := preload(
+	"res://scripts/labs/gunsmith2/weapon_visual_rig_resolver.gd"
+)
 
 
 static func resolve_config_path(fallback_weapon_id: String = "") -> String:
@@ -52,7 +55,10 @@ static func load_config(config_path: String) -> Dictionary:
 
 
 static func normalize_config(raw: Dictionary, config_path: String = "") -> Dictionary:
-	var config := raw.duplicate(true)
+	# Resolve the published presentation once at the shared weapon-contract
+	# boundary. Runtime mesh attachment, animation family, socket IK, warmup and
+	# every editor consumer then receive the same dictionary.
+	var config := VisualRigResolver.resolve_for_presentation(raw)
 	config["_rig_config_path"] = config_path
 	config["_source_schema_version"] = int(config.get("schema_version", 0))
 	config["schema_version"] = CURRENT_SCHEMA_VERSION
@@ -117,6 +123,21 @@ static func normalize_config(raw: Dictionary, config_path: String = "") -> Dicti
 		inferred_family,
 		handling_profile
 	)
+	var dynamic_hold: Dictionary = (
+		(handling_profile.get("dynamic_hold", {}) as Dictionary).duplicate(true)
+		if handling_profile.get("dynamic_hold", {}) is Dictionary
+		else {}
+	)
+	# A two-hand profile that deliberately leaves the full hand solver disabled
+	# still needs the bounded left-palm pass. This fills only a missing policy;
+	# an explicit per-weapon false remains authoritative.
+	if (
+		inferred_family != WeaponAnimationProfile.FAMILY_ONE_HAND
+		and not dynamic_hold.has("support_hand_socket_ik_enabled")
+		and not bool(dynamic_hold.get("hand_socket_ik_enabled", true))
+	):
+		dynamic_hold["support_hand_socket_ik_enabled"] = true
+	handling_profile["dynamic_hold"] = dynamic_hold
 	var standing_master_pose: Dictionary = (
 		(handling_profile.get("standing_master_pose", {}) as Dictionary).duplicate(true)
 		if handling_profile.get("standing_master_pose", {}) is Dictionary
@@ -187,8 +208,9 @@ static func normalize_config(raw: Dictionary, config_path: String = "") -> Dicti
 	ballistics["headshot_multiplier"] = clampf(
 		float(ballistics.get("headshot_multiplier", 3.5)), 1.0, 10.0
 	)
-	ballistics["muzzle_velocity_mps"] = float(
-		ballistics.get("muzzle_velocity_mps", default_muzzle_velocity(config))
+	var raw_velocity := float(ballistics.get("muzzle_velocity_mps", 0.0))
+	ballistics["muzzle_velocity_mps"] = (
+		raw_velocity if raw_velocity > 0.0 else default_muzzle_velocity(config)
 	)
 	ballistics["base_spread_deg"] = float(ballistics.get("base_spread_deg", 0.4))
 	ballistics["moving_spread_deg"] = float(ballistics.get("moving_spread_deg", 0.95))
@@ -273,6 +295,15 @@ static func normalize_config(raw: Dictionary, config_path: String = "") -> Dicti
 	reticle["maximum_shot_kick_px"] = float(reticle.get("maximum_shot_kick_px", 0.0))
 	reticle["maximum_movement_tick_extension_px"] = float(
 		reticle.get("maximum_movement_tick_extension_px", 16.0)
+	)
+	reticle["reference_arc_padding_px"] = float(
+		reticle.get("reference_arc_padding_px", 5.0)
+	)
+	reticle["lead_reference_length_px"] = float(
+		reticle.get("lead_reference_length_px", 14.0)
+	)
+	reticle["drop_reference_length_px"] = float(
+		reticle.get("drop_reference_length_px", 14.0)
 	)
 	reticle["shot_bounce_duration"] = float(reticle.get("shot_bounce_duration", 0.070))
 	config["reticle"] = reticle

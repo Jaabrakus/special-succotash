@@ -602,15 +602,16 @@
       "idle_crouched": "idle_crouch",
       "idle_prone": "idle_prone",
       "idle_standing": "aim_idle",
-      "reload_crouched": "reload",
+      "reload_crouched": "crouch_reload",
       "reload_prone": "prone_reload",
       "reload_standing": "reload"
     },
-    "crouched_fire_uses_aim_idle": true,
+    "crouched_fire_uses_aim_idle": false,
     "dynamic_hold": {
       "animation_carry_limit_m": 0.035,
       "animation_carry_weight": 0.65,
       "animation_drives_ready_hands": true,
+      "hand_socket_ik_enabled": false,
       "buttstock_constraint": {
         "by_stance": {
           "PRONE": {
@@ -656,7 +657,8 @@
     },
     "mapping_version": 1.0,
     "ready_aim": {
-      "fire_hold_seconds": 1.2
+      "fire_hold_seconds": 1.2,
+      "fire_terminal_pose_hold_seconds": 0.12
     },
     "reload_duration_seconds": 1.75,
     "reload_visuals": {
@@ -682,7 +684,7 @@
         }
       }
     },
-    "standing_fire_uses_aim_idle": true,
+    "standing_fire_uses_aim_idle": false,
     "support_hand_required": true
   },
   "model_fbx": "res://assets/weapons/modular_pack/AssaultRifle_1.fbx",

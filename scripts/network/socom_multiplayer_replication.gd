@@ -1,11 +1,11 @@
-extends "res://scripts/network/socom_multiplayer_session.gd"
+extends "res://scripts/network/socom_multiplayer_lobby_pairing.gd"
 
 @rpc("any_peer", "call_remote", "unreliable_ordered")
 func submit_movement(packet: Dictionary) -> void:
 	if not multiplayer.is_server():
 		return
 	var sender := multiplayer.get_remote_sender_id()
-	if not operators.has(sender):
+	if not is_peer_gameplay_action_allowed(sender):
 		return
 	if not NetworkProtocol.movement_packet_is_sane(packet):
 		return
@@ -14,7 +14,7 @@ func submit_movement(packet: Dictionary) -> void:
 		return
 	last_command_tick[sender] = command_tick
 	latest_commands[sender] = packet
-	var operator := operators[sender] as SocomNetworkOperator
+	var operator: Variant = operators[sender]
 	operator.queue_movement_command(NetworkProtocol.packet_to_movement(packet))
 	if not logged_command_peers.has(sender):
 		logged_command_peers[sender] = true
@@ -77,24 +77,29 @@ func receive_time_sync_result(server_send_ms: float, measured_rtt_ms: float) -> 
 func submit_shot(packet: Dictionary) -> void:
 	if not multiplayer.is_server():
 		return
-	_queue_server_shot(
-		multiplayer.get_remote_sender_id(),
-		packet
-	)
+	var sender := multiplayer.get_remote_sender_id()
+	if is_peer_gameplay_action_allowed(sender):
+		_queue_server_shot(sender, packet)
 
 
 @rpc("any_peer", "call_remote", "reliable")
 func submit_reload() -> void:
 	if multiplayer.is_server():
 		var peer_id := multiplayer.get_remote_sender_id()
-		if operators.has(peer_id):
+		if is_peer_gameplay_action_allowed(peer_id):
 			pending_reload_requests[peer_id] = true
 
 
 @rpc("any_peer", "call_remote", "reliable")
 func submit_objective_interaction(held: bool) -> void:
 	if multiplayer.is_server():
-		objective_interact_held[multiplayer.get_remote_sender_id()] = held
+		var peer_id := multiplayer.get_remote_sender_id()
+		if is_peer_gameplay_action_allowed(peer_id):
+			objective_interact_held[peer_id] = held
+
+
+func is_peer_gameplay_action_allowed(peer_id: int) -> bool:
+	return operators.has(peer_id)
 
 
 @rpc("authority", "call_remote", "unreliable_ordered")
@@ -108,8 +113,8 @@ func receive_world_state(snapshot_packet: Dictionary, score_snapshot: Dictionary
 	var local_id := multiplayer.get_unique_id()
 
 	for raw_id in entities:
-		var peer_id := int(raw_id)
-		var operator := operators.get(peer_id) as SocomNetworkOperator
+		var peer_id: int = int(raw_id)
+		var operator: Variant = operators.get(peer_id)
 		if operator == null:
 			continue
 		var state: Dictionary = entities[raw_id]
@@ -210,7 +215,7 @@ func _server_spawn_operator(
 func _spawn_operator_local(peer_id: int, team: int, spawn_position: Vector3) -> void:
 	if operators.has(peer_id):
 		return
-	var operator := NetworkOperatorScript.new() as SocomNetworkOperator
+	var operator := NetworkOperatorScript.new()
 	var local_id := multiplayer.get_unique_id()
 	var is_local_owner := peer_id == local_id
 	var lightweight_probe_client := (
@@ -249,7 +254,7 @@ func _spawn_operator_local(peer_id: int, team: int, spawn_position: Vector3) -> 
 	_refresh_scoreboard()
 
 
-func _apply_competitive_movement_profile(operator: SocomNetworkOperator) -> void:
+func _apply_competitive_movement_profile(operator) -> void:
 	if operator == null:
 		return
 	var document := PlaytestStateCollector.bundled_state("movement")
@@ -288,7 +293,7 @@ func _apply_competitive_movement_profile(operator: SocomNetworkOperator) -> void
 
 
 func _remove_operator(peer_id: int) -> void:
-	var operator := operators.get(peer_id) as SocomNetworkOperator
+	var operator: Variant = operators.get(peer_id)
 	if operator != null:
 		operator.queue_free()
 	operators.erase(peer_id)
@@ -324,7 +329,7 @@ func _clear_operators() -> void:
 		local_camera = null
 
 
-func _attach_local_camera(operator: SocomNetworkOperator) -> void:
+func _attach_local_camera(operator) -> void:
 	if local_camera != null:
 		local_camera.queue_free()
 	local_camera = CameraRigScript.new() as SocomCameraRig
@@ -375,8 +380,8 @@ func _record_server_operator_history() -> void:
 	var now_ms := float(Time.get_ticks_msec())
 	var cutoff_ms := now_ms - OPERATOR_HISTORY_SECONDS * 1000.0
 	for raw_id in operators:
-		var peer_id := int(raw_id)
-		var operator := operators[raw_id] as SocomNetworkOperator
+		var peer_id: int = int(raw_id)
+		var operator: Variant = operators[raw_id]
 		if operator == null:
 			continue
 		var history: Array = operator_state_history.get(peer_id, [])
@@ -384,6 +389,7 @@ func _record_server_operator_history() -> void:
 			"time_ms": now_ms,
 			"position": operator.global_position,
 			"yaw": operator.global_rotation.y,
+			"posture": operator.get_posture_name(),
 		})
 		while history.size() > 2 and float(history[0].get("time_ms", 0.0)) < cutoff_ms:
 			history.pop_front()
@@ -441,13 +447,13 @@ func _begin_transport_rewind(shooter_peer_id: int) -> Array[Dictionary]:
 	var target_time_ms := float(Time.get_ticks_msec()) - compensation_seconds * 1000.0
 	var restore: Array[Dictionary] = []
 	for raw_id in operators:
-		var peer_id := int(raw_id)
+		var peer_id: int = int(raw_id)
 		if peer_id == shooter_peer_id:
 			continue
-		var operator := operators[raw_id] as SocomNetworkOperator
+		var operator: Variant = operators[raw_id]
 		if operator == null or not operator.alive:
 			continue
-		var sampled := _sample_operator_history(
+		var sampled: Dictionary = _sample_operator_history(
 			operator_state_history.get(peer_id, []),
 			target_time_ms
 		)
@@ -467,7 +473,7 @@ func _begin_transport_rewind(shooter_peer_id: int) -> Array[Dictionary]:
 
 func _restore_transport_rewind(restore: Array[Dictionary]) -> void:
 	for entry in restore:
-		var operator := entry.get("operator") as SocomNetworkOperator
+		var operator: Variant = entry.get("operator")
 		if operator == null or not is_instance_valid(operator):
 			continue
 		operator.global_transform = Transform3D(entry.get("transform", operator.global_transform))

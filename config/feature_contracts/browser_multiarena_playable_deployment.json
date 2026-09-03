@@ -1,0 +1,170 @@
+{
+  "schema_version": 1,
+  "feature_id": "browser_multiarena_playable_deployment",
+  "player_intent": "A browser player can enter the canonical game, join one authoritative server, be assigned to one of eight isolated 2v2 map instances, and traverse the authored stairs during a real match.",
+  "acceptance_rule": "The application boots into the launcher; a browser client exposes Quick Match, Browse Servers, and direct Join fallback but never Host, and accepts only secure WebSocket endpoints; an always-on unprivileged Linux container advertises Render's public wss:// endpoint through the existing Supabase heartbeat; the dedicated server admits at most 32 players, starts 16 duos across eight isolated arena maps, derives all four local starts from authored map markers, scopes state and damage to each arena, and uses one smooth map-owned stair collider that the existing CharacterBody3D can ascend and descend.",
+  "canonical_scene": "res://multiplayer_slice.tscn",
+  "editor_scene": "res://game_launcher.tscn",
+  "ownership": {
+    "browser_join_presentation": "SocomGameLauncher",
+    "network_transport_and_admission": "SocomMultiplayerSession",
+    "arena_assignment_and_world_offsets": "SocomMultiArenaCoordinator",
+    "authoritative_tournament_session": "SocomTournamentSession",
+    "map_geometry_and_stair_collision": "SocomMapRuntime",
+    "movement_and_collision": "SocomTestPlayer CharacterBody3D",
+    "shot_and_damage": "AuthoritativeServerWeapon"
+  },
+  "nodes": [
+    {
+      "id": "browser_join_action",
+      "type": "Button",
+      "role": "Enters the canonical multiplayer scene with a server-owned secure WebSocket address and no browser-host authority.",
+      "owner": "SocomGameLauncher",
+      "source_script": "res://scripts/ui/game_launcher.gd",
+      "code_symbols": [
+        "join_button.name = \"JoinGame\"",
+        "wss://your-server.example/game",
+        "get_tree().change_scene_to_file(scene_path)"
+      ]
+    },
+    {
+      "id": "websocket_multiplayer_peer",
+      "type": "WebSocketMultiplayerPeer",
+      "role": "Carries the existing MultiplayerAPI protocol between HTML5 clients and the authoritative dedicated server.",
+      "owner": "SocomMultiplayerSession",
+      "source_script": "res://scripts/network/socom_multiplayer_session.gd",
+      "code_symbols": [
+        "WebSocketMultiplayerPeer.new()",
+        "websocket_peer.create_server(port)",
+        "websocket_peer.create_client(url)"
+      ]
+    },
+    {
+      "id": "arena_map_pods",
+      "type": "Node3D",
+      "role": "Keeps arena zero on the canonical map root and constructs seven collision-identical isolated map instances at coordinator-owned offsets.",
+      "owner": "SocomMultiplayerTournamentRuntime",
+      "source_script": "res://scripts/network/socom_multiplayer_tournament_runtime.gd",
+      "code_symbols": [
+        "active_map_root.position = ArenaCoordinator.get_arena_world_offset(0)",
+        "pod.name = \"TournamentArenaPod_%d\" % arena_id",
+        "TournamentMapRuntime.build_into(pod, active_map_document)"
+      ]
+    },
+    {
+      "id": "smooth_stair_traversal_collider",
+      "type": "StaticBody3D",
+      "role": "Provides one continuous collision surface beneath the unchanged authored stair treads for the sole CharacterBody3D movement owner.",
+      "owner": "SocomMapRuntime",
+      "source_script": "res://scripts/maps/socom_map_runtime.gd",
+      "code_symbols": [
+        "traversal_ramp.name = \"TraversalRamp\"",
+        "var shape := ConvexPolygonShape3D.new()",
+        "shape.points = _wedge_points(size)"
+      ]
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://config/network/browser_multiarena_deployment.json",
+      "writer": "res://scripts/network/socom_multiplayer_deployment_profile.gd",
+      "readers": [
+        "res://scripts/ui/game_launcher.gd",
+        "res://scripts/network/socom_multiplayer_session.gd",
+        "res://scripts/network/socom_multiplayer_world_ui.gd"
+      ]
+    },
+    {
+      "path": "res://config/maps/painterly_coastal_village_2v2.json",
+      "writer": "res://scripts/maps/socom_map_document.gd",
+      "readers": [
+        "res://scripts/maps/socom_map_runtime.gd",
+        "res://scripts/network/socom_tournament_session.gd",
+        "res://scripts/network/socom_multiplayer_tournament_runtime.gd"
+      ]
+    },
+    {
+      "path": "res://render.yaml",
+      "writer": "res://deploy/server/start_server.sh",
+      "readers": [
+        "res://scripts/server/socom_server_backend.gd",
+        "res://scripts/network/socom_supabase_client.gd",
+        "res://tools/render_dedicated_server_deployment_regression.gd"
+      ]
+    },
+    {
+      "path": "res://supabase/migrations/20260902003000_seed_gunfight_ruleset.sql",
+      "writer": "res://scripts/server/socom_server_backend.gd",
+      "readers": [
+        "res://tools/render_dedicated_server_deployment_regression.gd"
+      ]
+    }
+  ],
+  "must_not_change": [
+    "CharacterBody3D movement, velocity, and collision authority",
+    "SOCOM camera and reticle aim authority",
+    "server shot, damage, ammunition, and ballistics authority",
+    "weapon hand contacts, square-shoulder fire pose, fire recovery, and reload presentation",
+    "ordinary native ENet listen-server behavior",
+    "authored visible stair tread geometry"
+  ],
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Merge a checksum-pinned, unprivileged Render WebSocket container and deterministic active ruleset into the existing authoritative session and Supabase heartbeat. Preserve the player controller, combat, camera, animation, map, and native ENet owners.",
+    "current": {
+      "system": "Verified local browser/multi-arena runtime without a repeatable public Linux host, active ruleset row, or secure endpoint registration",
+      "correctness": 2,
+      "ownership_clarity": 4,
+      "runtime_parity": 3,
+      "editor_usability": 3,
+      "performance": 3,
+      "regression_coverage": 4,
+      "evidence_paths": [
+        "res://tools/run_browser_multiarena_server.sh",
+        "res://scripts/server/socom_server_backend.gd",
+        "res://docs/MULTIPLAYER_BACKEND_RELEASE_GATE.md"
+      ]
+    },
+    "candidate": {
+      "system": "Canonical browser runtime plus a paid always-on Render WebSocket service that injects its secret, registers its public endpoint, and hosts the existing eight-arena authoritative session",
+      "correctness": 5,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 4,
+      "performance": 3,
+      "regression_coverage": 5,
+      "evidence_paths": [
+        "res://render.yaml",
+        "res://deploy/server/Dockerfile",
+        "res://deploy/server/start_server.sh",
+        "res://docs/RENDER_DEDICATED_SERVER_DEPLOYMENT.md",
+        "res://scripts/server/socom_server_backend.gd",
+        "res://supabase/migrations/20260902003000_seed_gunfight_ruleset.sql",
+        "res://config/network/browser_multiarena_deployment.json",
+        "res://scripts/network/socom_multiplayer_deployment_profile.gd",
+        "res://tools/render_dedicated_server_deployment_regression.gd",
+        "res://tools/browser_multiarena_deployment_regression.gd",
+        "res://tools/tournament_websocket_32_peer_probe.gd",
+        "res://tools/tournament_session_regression.gd",
+        "res://tools/tournament_map_pods_regression.gd",
+        "res://tools/stair_playability_regression.gd"
+      ]
+    }
+  },
+  "proof_scripts": [
+    "res://tools/render_dedicated_server_deployment_regression.gd",
+    "res://tools/browser_multiarena_deployment_regression.gd",
+    "res://tools/restricted_web_launcher_regression.gd",
+    "res://tools/matchmaking_launcher_regression.gd",
+    "res://tools/matchmaking_directory_client_regression.gd",
+    "res://tools/run_multiplayer_lifecycle_probe.sh",
+    "res://tools/run_tournament_websocket_32_peer_probe.sh",
+    "res://tools/tournament_websocket_32_peer_probe.gd",
+    "res://tools/tournament_session_regression.gd",
+    "res://tools/tournament_map_pods_regression.gd",
+    "res://tools/tournament_replication_scope_regression.gd",
+    "res://tools/stair_playability_regression.gd",
+    "res://tools/feature_contract_regression.gd"
+  ],
+  "visual_check": "Open the browser build, join the configured wss:// endpoint, green up as one duo, confirm only the assigned four-player arena is presented, then walk both directions over the map stairs while aim, fire, hand contacts, shoulders, and server-owned damage remain unchanged."
+}

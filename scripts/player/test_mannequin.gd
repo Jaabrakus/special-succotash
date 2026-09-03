@@ -90,9 +90,12 @@ func _ready() -> void:
     _build_rig()
     if skeleton_root:
         skeleton_root.visible = false
-    production_animation = OperatorAnimationDriver.new()
-    production_animation.name = "ProductionAnimation"
-    add_child(production_animation)
+    if has_node("ProductionAnimation"):
+        production_animation = get_node("ProductionAnimation") as SocomOperatorAnimationDriver
+    else:
+        production_animation = OperatorAnimationDriver.new()
+        production_animation.name = "ProductionAnimation"
+        add_child(production_animation)
     set_proxy_visuals_visible(false)
 
 func play_operator_action(clip_name: StringName, blend_seconds: float = 0.12) -> bool:

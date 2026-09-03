@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "feature_id": "modular_operator_player",
+  "player_intent": "The player moves with decoupled 8-way strafe locomotion and stance transitions while the upper body can inject Rifle, Pistol, or Unarmed weapon trees.",
+  "acceptance_rule": "The modular player instantiates with dedicated lower-body locomotion and injectable upper-body weapon modes, aiming through the 4-handle TargetPivot IK.",
+  "canonical_scene": "res://scenes/player/modular_operator_player.tscn",
+  "editor_scene": "res://scenes/labs/modular_player_lab.tscn",
+  "ownership": {
+    "movement": "ModularOperatorController",
+    "aim_intent": "TargetPivot"
+  },
+  "nodes": [
+    {
+      "id": "modular_player",
+      "type": "CharacterBody3D",
+      "role": "Owns 8-way strafing, stance transitions, and upper-body weapon tree injection.",
+      "owner": "ModularOperatorController",
+      "scene_path": "res://scenes/player/modular_operator_player.tscn",
+      "node_path": "."
+    },
+    {
+      "id": "target_pivot",
+      "type": "Marker3D",
+      "role": "4-handle native IK aiming root for upper-body orientation.",
+      "owner": "ModularOperatorController",
+      "scene_path": "res://scenes/player/modular_operator_player.tscn",
+      "node_path": "TargetPivot"
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://config/character_retarget_profiles/godot_new_ik_v1.json",
+      "writer": "res://config/character_retarget_profiles/godot_new_ik_v1.json",
+      "readers": [
+        "res://scripts/player/modular_operator_controller.gd"
+      ]
+    }
+  ],
+  "must_not_change": ["shot_authority", "reticle_camera_owner", "network_sync"],
+  "proof_scripts": ["res://tools/modular_operator_player_regression.gd"],
+  "visual_check": "In the modular player lab, the player strafes smoothly while switching between Rifle and Pistol upper-body stances.",
+  "system_delta": {
+    "decision": "REPLACE",
+    "reason": "Decouple lower-body locomotion and upper-body weapon stances into modular blend layers with native 4-handle TargetPivot aiming.",
+    "current": {
+      "system": "Coupled single-state full-body animation tree",
+      "correctness": 3,
+      "ownership_clarity": 3,
+      "runtime_parity": 3,
+      "editor_usability": 2,
+      "performance": 3,
+      "regression_coverage": 3,
+      "evidence_paths": [
+        "res://scripts/player/native_ik_socom_player_controller.gd"
+      ]
+    },
+    "candidate": {
+      "system": "Modular Operator Player with decoupled locomotion and injectable upper-body weapon trees",
+      "correctness": 5,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 5,
+      "performance": 5,
+      "regression_coverage": 5,
+      "evidence_paths": [
+        "res://scenes/player/modular_operator_player.tscn",
+        "res://scripts/player/modular_operator_controller.gd",
+        "res://scenes/labs/modular_player_lab.tscn",
+        "res://tools/modular_operator_player_regression.gd"
+      ]
+    }
+  }
+}

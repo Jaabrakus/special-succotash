@@ -1,0 +1,135 @@
+{
+  "schema_version": 1,
+  "feature_id": "matchmaking_front_door_shared_lobby",
+  "player_intent": "A player can use Quick Match or Browse Servers without typing an address, and a created tournament room is the same shared server-owned lobby seen by every connected player.",
+  "acceptance_rule": "Quick Match and Browse Servers consume public SELECT-only fresh server-directory rows, reject incompatible or insecure browser endpoints, and pass only the chosen address into the canonical multiplayer scene. Create Tournament Room enters that same scene as host. The launcher owns navigation only and contains no local lobby state; duo selection and Green Up remain server-validated and replicated through SocomLobbyState.",
+  "canonical_scene": "res://multiplayer_slice.tscn",
+  "editor_scene": "res://game_launcher.tscn",
+  "ownership": {
+    "launcher_navigation_and_server_list_presentation": "SocomGameLauncher",
+    "public_read_only_server_discovery": "SocomMatchmakingDirectoryClient",
+    "network_connection_and_lobby_state": "SocomMultiplayerSession",
+    "duo_assignment_validation": "SocomLobbyState",
+    "dedicated_server_presence_publication": "SocomServerBackend"
+  },
+  "nodes": [
+    {
+      "id": "quick_match_action",
+      "type": "Button",
+      "role": "Requests one compatible directory endpoint and navigates to the canonical multiplayer scene without opening a peer itself.",
+      "owner": "SocomGameLauncher",
+      "source_script": "res://scripts/ui/game_launcher.gd",
+      "code_symbols": [
+        "quick_match_button.name = \"QuickMatch\"",
+        "func _quick_match() -> void:",
+        "_join_directory_endpoint(result.get(\"endpoint\", {}))"
+      ]
+    },
+    {
+      "id": "live_server_browser",
+      "type": "ItemList",
+      "role": "Displays compatible live rows with server, mode, map, region, and authoritative occupancy before forwarding the selected endpoint.",
+      "owner": "SocomGameLauncher",
+      "source_script": "res://scripts/ui/game_launcher.gd",
+      "code_symbols": [
+        "server_list = ItemList.new()",
+        "server_list.name = \"ServerList\"",
+        "server_browser_join_button.name = \"JoinSelectedServer\""
+      ]
+    },
+    {
+      "id": "canonical_shared_match_lobby",
+      "type": "Node3D",
+      "role": "Owns the real network connection, authoritative lobby snapshots, duo requests, Green Up, tournament start, and visible match transition.",
+      "owner": "SocomMultiplayerSession",
+      "scene_path": "res://multiplayer_slice.tscn",
+      "node_path": "."
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://config/supabase_public.json",
+      "writer": "res://scripts/network/socom_supabase_client.gd",
+      "readers": [
+        "res://scripts/network/socom_matchmaking_directory_client.gd",
+        "res://scripts/ui/game_launcher.gd"
+      ]
+    },
+    {
+      "path": "res://supabase/migrations/20260902001000_add_server_directory_presence.sql",
+      "writer": "res://scripts/server/socom_server_backend.gd",
+      "readers": [
+        "res://scripts/network/socom_matchmaking_directory_client.gd",
+        "res://scripts/ui/game_launcher.gd"
+      ]
+    },
+    {
+      "path": "res://supabase/migrations/20260902002000_public_matchmaking_directory.sql",
+      "writer": "res://scripts/network/socom_matchmaking_directory_client.gd",
+      "readers": [
+        "res://scripts/network/socom_supabase_client.gd",
+        "res://scripts/ui/game_launcher.gd"
+      ]
+    },
+    {
+      "path": "res://config/network/browser_multiarena_deployment.json",
+      "writer": "res://scripts/network/socom_multiplayer_deployment_profile.gd",
+      "readers": [
+        "res://scripts/ui/game_launcher.gd",
+        "res://scripts/network/socom_multiplayer_session.gd"
+      ]
+    }
+  ],
+  "must_not_change": [
+    "CharacterBody3D movement, collision, and stair traversal ownership",
+    "SOCOM camera and reticle aim-intent ownership",
+    "server shot, damage, ammunition, and ballistics authority",
+    "weapon animation, fire recovery, reload, and hand-contact presentation",
+    "tournament arena isolation and winner-advancement rules",
+    "browser clients remaining unable to host"
+  ],
+  "proof_scripts": [
+    "res://tools/matchmaking_launcher_regression.gd",
+    "res://tools/matchmaking_directory_client_regression.gd",
+    "res://tools/lobby_pair_selection_regression.gd",
+    "res://tools/restricted_web_launcher_regression.gd",
+    "res://tools/multiplayer_slice_architecture_regression.gd",
+    "res://tools/feature_contract_regression.gd"
+  ],
+  "visual_check": "Open the launcher on native and Web builds. Confirm Quick Match and Browse Servers are visible, Browse shows only fresh compatible joinable rows with current occupancy, and Web shows only wss endpoints. Host or join two clients, choose different duos, Green Up, and confirm both clients display identical pair and ready state before the canonical match begins.",
+  "system_delta": {
+    "decision": "REPLACE",
+    "reason": "Replace the launcher-only mock room and manual-address-only front door with public read-only discovery and the existing canonical network lobby. This removes a second lobby owner and avoids blocking public server selection on player identity while preserving transport, tournament, combat, movement, camera, and presentation boundaries.",
+    "current": {
+      "system": "Launcher-local single-player room preview plus manually typed server address",
+      "correctness": 1,
+      "ownership_clarity": 1,
+      "runtime_parity": 1,
+      "editor_usability": 3,
+      "performance": 4,
+      "regression_coverage": 2,
+      "evidence_paths": [
+        "res://scripts/ui/game_launcher.gd",
+        "res://scripts/network/socom_lobby_state.gd",
+        "res://tools/test_game_boot_and_room_open.gd"
+      ]
+    },
+    "candidate": {
+      "system": "Quick Match and server browser feeding one canonical server-owned lobby with replicated duo and ready state",
+      "correctness": 5,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 4,
+      "performance": 5,
+      "regression_coverage": 5,
+      "evidence_paths": [
+        "res://scripts/ui/game_launcher.gd",
+        "res://scripts/network/socom_matchmaking_directory_client.gd",
+        "res://scripts/network/socom_multiplayer_lobby_pairing.gd",
+        "res://scripts/server/socom_server_backend.gd",
+        "res://tools/matchmaking_launcher_regression.gd",
+        "res://tools/lobby_pair_selection_regression.gd"
+      ]
+    }
+  }
+}

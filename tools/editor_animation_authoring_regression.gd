@@ -54,9 +54,16 @@ func _run() -> void:
 						)
 
 	var fire := repository.resolve("FIRE_ACCEPTED", "STANDING", "TWO_HAND_RIFLE", "run_forward")
-	_expect(String(fire.get("state", "")) == "combat_fire", "standing fire resolves to combat_fire")
+	_expect(String(fire.get("state", "")) == "aim_idle", "standing fire resolves to its stable recovery pose")
 	_expect(String(fire.get("layer", "")) == "UPPER_BODY", "standing fire remains an upper-body overlay")
 	_expect(String(fire.get("resolved_return_state", "")) == "run_forward", "fire returns to current movement")
+	var crouched_fire := repository.resolve(
+		"FIRE_ACCEPTED", "CROUCHED", "TWO_HAND_RIFLE", "crouch_forward"
+	)
+	_expect(
+		String(crouched_fire.get("state", "")) == "aim_idle_crouch",
+		"crouched fire resolves to its posture-matched stable recovery pose"
+	)
 	_expect(
 		(fire.get("effects", []) as Array).has("ENTER_READY_AIM")
 		and not (fire.get("effects", []) as Array).has("RAIL_TO_BLUE_LINE"),
@@ -98,10 +105,11 @@ func _run() -> void:
 	dock.configure_profile_path(temporary_profile)
 	dock.select_context("FIRE_ACCEPTED", "STANDING", "TWO_HAND_RIFLE", "run_forward")
 	var temporary_hash_before := FileAccess.get_sha256(temporary_profile)
+	var original_fire_blend_in := float(fire.get("blend_in_seconds", 0.0))
 	var proposal := dock.propose_rule(
 		"When a valid rifle shot happens, play this on torso and arms, "
 		+ "blend in 0.08, blend out 0.16, return to current movement",
-		"combat_fire"
+		"aim_idle"
 	)
 	_expect(bool(proposal.get("ok", false)), "natural-language fire rule builds a validated proposal")
 	_expect(not dock.repository.is_dirty(), "proposal review does not mutate the in-memory profile")
@@ -123,7 +131,13 @@ func _run() -> void:
 	var undone_fire: Dictionary = dock.repository.resolve(
 		"FIRE_ACCEPTED", "STANDING", "TWO_HAND_RIFLE", "run_forward"
 	)
-	_expect(is_equal_approx(float(undone_fire.get("blend_in_seconds", 0.0)), 0.04), "Godot undo restores the previous route")
+	_expect(
+		is_equal_approx(
+			float(undone_fire.get("blend_in_seconds", 0.0)),
+			original_fire_blend_in
+		),
+		"Godot undo restores the previous route"
+	)
 	_expect(not dock.repository.is_dirty(), "undo restores the saved document identity")
 	undo_redo.redo()
 	var redone_fire: Dictionary = dock.repository.resolve(
@@ -151,7 +165,7 @@ func _run() -> void:
 	_expect(_append_text(temporary_profile, "\n"), "conflict fixture changes the profile outside the dock")
 	var conflict_proposal := dock.propose_rule(
 		"When a valid rifle shot happens, play this on torso and arms, blend in 0.09",
-		"combat_fire"
+		"aim_idle"
 	)
 	_expect(bool(conflict_proposal.get("ok", false)), "second valid proposal is available for conflict test")
 	_expect(dock.approve_pending_proposal(), "second proposal becomes a draft")

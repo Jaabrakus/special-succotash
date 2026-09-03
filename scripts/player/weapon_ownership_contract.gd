@@ -15,6 +15,7 @@ const MOBILITY_RIGHT_HAND := MOBILITY_CHEST_CARRY
 const GRENADE_ACTION := &"GRENADE_ACTION"
 const RECOVERY_TO_READY := &"RECOVERY_TO_READY"
 const RELAXED_RIFLE_LOCOMOTION := &"RELAXED_RIFLE_LOCOMOTION"
+const AUTHORED_ANIMATION_MOUNT := &"AUTHORED_ANIMATION_MOUNT"
 # Compatibility name retained for older callers. The rifle is visible and
 # attached to the right hand; it is not actually holstered in this state.
 const HOLSTERED_ANIMATION := RELAXED_RIFLE_LOCOMOTION
@@ -208,6 +209,8 @@ static func uses_stable_chest_translation(owner: StringName) -> bool:
 
 
 static func arm_owner(owner: StringName) -> StringName:
+	if owner == AUTHORED_ANIMATION_MOUNT:
+		return ARMS_BASE_ANIMATION
 	if owner == MOBILITY_CHEST_CARRY:
 		return ARMS_WEAPON_SOCKETS
 	if action_owns_arms(owner):
@@ -218,6 +221,8 @@ static func arm_owner(owner: StringName) -> StringName:
 
 
 static func support_hand_owner(owner: StringName, reload_support_regrip: bool) -> StringName:
+	if owner == AUTHORED_ANIMATION_MOUNT:
+		return SUPPORT_ANIMATION_FREE
 	if owner == RELOAD_RIGHT_HAND and reload_support_regrip:
 		return SUPPORT_IK_TO_WEAPON
 	if owner == MOBILITY_CHEST_CARRY:

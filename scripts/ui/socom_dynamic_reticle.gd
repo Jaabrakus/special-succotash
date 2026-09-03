@@ -3,8 +3,7 @@ extends Control
 
 ## Authentic SOCOM II Tactical Dynamic Reticle
 ## Features:
-## - 4 Chartreuse/Yellow precision ticks with center dot
-## - Translucent circular bloom ring indicating exact weapon dispersion cone
+## - Open lower reference arc with lateral lead bars and a lower drop stem
 ## - Red Target Acquisition when hovering over enemies/targets
 ## - Yellow Ladder / Interact brackets when facing interactable cover
 ## - Stance & Movement bloom scaling (Prone = tight, Standing Sprint = wide)
@@ -18,13 +17,13 @@ enum ReticleMode {
 @export var default_color := Color(0.85, 0.95, 0.15, 0.92) # Classic SOCOM II Yellow/Chartreuse
 @export var target_color := Color(1.0, 0.15, 0.15, 0.95)   # Target Lock Red
 @export var interact_color := Color(0.95, 0.85, 0.2, 0.9)  # Ladder/Door Yellow
-@export var bloom_ring_color := Color(1.0, 1.0, 1.0, 0.14) # Translucent spread circle
 
 # Reticle Dimensions (Pixels - Authentic SOCOM II Scale)
-@export var center_dot_radius: float = 2.0
-@export var tick_length: float = 9.0
 @export var maximum_movement_tick_extension: float = 16.0
 @export var tick_thickness: float = 2.4
+@export var reference_arc_padding: float = 5.0
+@export var lead_reference_length: float = 14.0
+@export var drop_reference_length: float = 14.0
 @export var base_gap: float = 10.0
 @export var max_bloom_gap: float = 46.0
 @export var response_speed: float = 24.0
@@ -104,7 +103,7 @@ func notify_hit() -> void:
 
 func notify_shot(shot_index: int = 1, intensity: float = 1.0) -> void:
     # Resolve the bullet before this presentation impulse. The complete tick
-    # group and center dot pop upward, then return before the next trained
+    # reference silhouette pops upward, then returns before the next trained
     # cadence. This never drags the authoritative aim point or the shot that
     # already fired.
     shot_bounce_age = 0.0
@@ -141,6 +140,15 @@ func apply_profile(profile: Dictionary) -> void:
             maximum_movement_tick_extension
         )
     )
+    reference_arc_padding = float(
+        profile.get("reference_arc_padding_px", reference_arc_padding)
+    )
+    lead_reference_length = float(
+        profile.get("lead_reference_length_px", lead_reference_length)
+    )
+    drop_reference_length = float(
+        profile.get("drop_reference_length_px", drop_reference_length)
+    )
     shot_bounce_duration = float(profile.get("shot_bounce_duration", shot_bounce_duration))
     if profile.has("fire_interval_seconds"):
         _apply_fire_cadence(float(profile.get("fire_interval_seconds", 0.0)))
@@ -171,35 +179,31 @@ func _draw() -> void:
         _draw_interact_brackets(center, color)
         return
 
-    # 1. Center Precision Dot (with black outline)
-    draw_circle(visible_center, center_dot_radius + 1.0, shadow_color)
-    draw_circle(visible_center, center_dot_radius, color)
-
-    # 2. Translucent Spread / Bloom Circle (exact SOCOM II dispersion ring)
-    if current_gap > base_gap + 2.0:
-        draw_arc(center, current_gap + tick_length * 0.5, 0, TAU, 32, bloom_ring_color, 1.2, true)
-
-    # 3. Four Dynamic Ticks (Top, Bottom, Left, Right with Drop-Shadow Outline)
-    var g := current_gap + shot_gap_impulse
-    # Full movement stretches the four aiming strings as well as opening the
-    # gap. It is an immediate, readable warning that the real shot cone is wide.
-    var l := tick_length + maximum_movement_tick_extension * current_movement
+    # Open lower reference arc. The two side bars provide symmetric lead
+    # references and the lower stem provides a drop reference. They remain HUD
+    # presentation only; camera aim and authoritative shot direction stay on
+    # the fixed authoritative camera center.
+    var geometry := get_combat_reference_geometry()
+    var arc_center: Vector2 = geometry.arc_center
+    var arc_radius: float = geometry.arc_radius
+    var left_inner: Vector2 = geometry.left_inner
+    var left_outer: Vector2 = geometry.left_outer
+    var right_inner: Vector2 = geometry.right_inner
+    var right_outer: Vector2 = geometry.right_outer
+    var drop_inner: Vector2 = geometry.drop_inner
+    var drop_outer: Vector2 = geometry.drop_outer
     var t := tick_thickness
-
-    # Shadow/Border Pass
     var st := t + 2.0
-    draw_line(visible_center + Vector2(0, -g + 1.0), visible_center + Vector2(0, -g - l - 1.0), shadow_color, st)
-    draw_line(visible_center + Vector2(0, g - 1.0), visible_center + Vector2(0, g + l + 1.0), shadow_color, st)
-    draw_line(visible_center + Vector2(-g + 1.0, 0), visible_center + Vector2(-g - l - 1.0, 0), shadow_color, st)
-    draw_line(visible_center + Vector2(g - 1.0, 0), visible_center + Vector2(g + l + 1.0, 0), shadow_color, st)
+    draw_arc(arc_center, arc_radius, geometry.arc_start, geometry.arc_end, 24, shadow_color, st, true)
+    draw_line(left_inner, left_outer, shadow_color, st, true)
+    draw_line(right_inner, right_outer, shadow_color, st, true)
+    draw_line(drop_inner, drop_outer, shadow_color, st, true)
+    draw_arc(arc_center, arc_radius, geometry.arc_start, geometry.arc_end, 24, color, t, true)
+    draw_line(left_inner, left_outer, color, t, true)
+    draw_line(right_inner, right_outer, color, t, true)
+    draw_line(drop_inner, drop_outer, color, t, true)
 
-    # Foreground Color Pass
-    draw_line(visible_center + Vector2(0, -g), visible_center + Vector2(0, -g - l), color, t)
-    draw_line(visible_center + Vector2(0, g), visible_center + Vector2(0, g + l), color, t)
-    draw_line(visible_center + Vector2(-g, 0), visible_center + Vector2(-g - l, 0), color, t)
-    draw_line(visible_center + Vector2(g, 0), visible_center + Vector2(g + l, 0), color, t)
-
-    # 4. Hit Marker Flash (SOCOM Red X on hit)
+    # Hit Marker Flash (SOCOM Red X on hit)
     if hit_marker_timer > 0.0:
         var hm_color := Color(1.0, 0.15, 0.15, hit_marker_timer / 0.15)
         var hm_size := 8.0
@@ -221,6 +225,37 @@ func get_visual_center() -> Vector2:
         0.0,
         -shot_bounce_amplitude * _shot_bounce_weight()
     )
+
+func get_combat_reference_geometry() -> Dictionary:
+    var visual_center := get_visual_center()
+    var radius := maxf(
+        5.0,
+        current_gap + shot_gap_impulse + reference_arc_padding
+    )
+    # A slightly raised circle center lets the lower arc surround the invisible
+    # aim point while leaving its top open, matching the requested silhouette.
+    var arc_center := visual_center + Vector2(0.0, -radius * 0.30)
+    var arc_start := deg_to_rad(12.0)
+    var arc_end := deg_to_rad(168.0)
+    var right_inner := arc_center + Vector2(cos(arc_start), sin(arc_start)) * radius
+    var left_inner := arc_center + Vector2(cos(arc_end), sin(arc_end)) * radius
+    var lead_length := (
+        lead_reference_length
+        + maximum_movement_tick_extension * current_movement
+    )
+    var drop_inner := arc_center + Vector2(0.0, radius)
+    return {
+        "arc_center": arc_center,
+        "arc_radius": radius,
+        "arc_start": arc_start,
+        "arc_end": arc_end,
+        "left_inner": left_inner,
+        "left_outer": left_inner + Vector2(-lead_length, 0.0),
+        "right_inner": right_inner,
+        "right_outer": right_inner + Vector2(lead_length, 0.0),
+        "drop_inner": drop_inner,
+        "drop_outer": drop_inner + Vector2(0.0, drop_reference_length),
+    }
 
 func _draw_interact_brackets(center: Vector2, color: Color) -> void:
     # Classic ladder / context bracket box

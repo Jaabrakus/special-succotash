@@ -3,18 +3,13 @@ extends "res://scripts/player/operator_animation_driver_pose.gd"
 ## Action lifecycle: transitions, reload, grenade, visibility, and semantic routes.
 
 func _cancel_reload_for_mobility() -> void:
-	if (
-		not _reload_action_is_active()
-		or movement_state not in [&"DIVING", &"ROLLING", &"AIRBORNE", &"LANDING"]
-	):
-		return
-	_cancel_active_reload()
+	# Reload owns the upper body until completion or an explicit fire interrupt.
+	return
 
 
 func _cancel_reload_for_posture_change() -> void:
-	if posture == _previous_posture or not _reload_action_is_active():
-		return
-	_cancel_active_reload()
+	# Stance change preserves the active reload playhead on the upper body.
+	return
 
 
 func _reload_action_is_active() -> bool:
@@ -160,7 +155,7 @@ func _update_reload_visuals(delta: float) -> void:
 		))
 	)
 	_reload_visual_time = minf(
-		_reload_visual_time + delta,
+		_reload_visual_time + delta * requested_action_playback_speed,
 		animation.length if animation else 1.0
 	)
 	var timeline := WeaponReloadVisualTimeline.ensure_profile_timeline(
@@ -170,6 +165,12 @@ func _update_reload_visuals(delta: float) -> void:
 	)
 	var events: Dictionary = timeline.get("events", {})
 	var frame_index := clampi(int(round(_reload_visual_time * 30.0)), 0, frame_count)
+	if (
+		not _reload_commit_cue_emitted
+		and frame_index >= int(events.get(WeaponReloadVisualTimeline.EVENT_MAGAZINE_IN, frame_count))
+	):
+		_reload_commit_cue_emitted = true
+		reload_commit_cue.emit(requested_action)
 	var state := WeaponReloadVisualTimeline.state_at_frame(events, frame_index)
 	_reload_support_regrip = WeaponReloadVisualTimeline.support_hand_should_regrip(
 		events,
@@ -187,6 +188,7 @@ func _clear_reload_visuals() -> void:
 	_active_reload_visual_clip = &""
 	_reload_visual_time = 0.0
 	_reload_support_regrip = false
+	_reload_commit_cue_emitted = false
 	if asset_runtime != null:
 		asset_runtime.update_reload_magazine_visual({}, false)
 
@@ -236,9 +238,10 @@ func play_action(
 		_active_reload_visual_clip = clip_name
 		_reload_visual_time = 0.0
 		_reload_support_regrip = false
+		_reload_commit_cue_emitted = false
 	else:
 		_clear_reload_visuals()
-	if posture == &"CROUCHED" and "reload" in String(clip_name).to_lower():
+	if posture in [&"CROUCHED", &"PRONE"] and "reload" in String(clip_name).to_lower():
 		_requested_action_upper_body_layered = bool(
 			locomotion_graph != null
 			and locomotion_graph.trigger_crouched_reload(clip_name)

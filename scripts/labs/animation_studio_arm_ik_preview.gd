@@ -4,14 +4,17 @@ extends RefCounted
 const WEAPON_CONTACT_SOLVER := preload(
 	"res://scripts/player/operator_weapon_contact_solver.gd"
 )
+const NATIVE_TWO_BONE_IK := preload(
+	"res://scripts/player/operator_native_two_bone_ik.gd"
+)
 
 ## Editor-only two-arm preview for animation correction keys. Gameplay keeps
 ## its own authoritative visual solver; this helper only shows the saved hand
 ## contacts and elbow-pole shape inside Animation Studio.
 
 var bound_skeleton: Skeleton3D
-var left_ik: SkeletonIK3D
-var right_ik: SkeletonIK3D
+var left_ik
+var right_ik
 var left_shoulder_index := -1
 var right_shoulder_index := -1
 var left_elbow_index := -1
@@ -119,8 +122,15 @@ func solve(
 
 
 func _ensure_skeleton(next_skeleton: Skeleton3D) -> bool:
-	if bound_skeleton == next_skeleton and is_instance_valid(left_ik) and is_instance_valid(right_ik):
+	if (
+		bound_skeleton == next_skeleton
+		and left_ik != null
+		and right_ik != null
+		and is_instance_valid(left_ik.two_bone)
+		and is_instance_valid(right_ik.two_bone)
+	):
 		return true
+	stop()
 	bound_skeleton = next_skeleton
 	left_shoulder_index = _find_bone(["mixamorig_LeftArm", "mixamorig:LeftArm", "ArmUpper.L", "Bip01 L UpperArm"])
 	right_shoulder_index = _find_bone(["mixamorig_RightArm", "mixamorig:RightArm", "ArmUpper.R", "Bip01 R UpperArm"])
@@ -148,32 +158,85 @@ func _ensure_skeleton(next_skeleton: Skeleton3D) -> bool:
 		"Right",
 		right_hand_index
 	)
-	left_ik = _make_ik("AnimationStudioLeftHandIK", left_shoulder_index, left_hand_index)
-	right_ik = _make_ik("AnimationStudioRightHandIK", right_shoulder_index, right_hand_index)
+	left_ik = _make_ik(
+		"PresentationLeftHandTwoBoneIK",
+		left_shoulder_index,
+		left_elbow_index,
+		left_hand_index
+	)
+	right_ik = _make_ik(
+		"PresentationRightHandTwoBoneIK",
+		right_shoulder_index,
+		right_elbow_index,
+		right_hand_index
+	)
 	return left_ik != null and right_ik != null
 
 
-func _make_ik(node_name: String, root_index: int, tip_index: int) -> SkeletonIK3D:
-	var ik := SkeletonIK3D.new()
-	ik.name = node_name
-	ik.root_bone = bound_skeleton.get_bone_name(root_index)
-	ik.tip_bone = bound_skeleton.get_bone_name(tip_index)
-	ik.use_magnet = true
+func _make_ik(
+	node_name: String,
+	root_index: int,
+	middle_index: int,
+	tip_index: int
+):
+	var ik = NATIVE_TWO_BONE_IK.new()
+	ik.bind(
+		bound_skeleton,
+		node_name,
+		root_index,
+		middle_index,
+		tip_index
+	)
 	ik.override_tip_basis = true
 	ik.interpolation = 1.0
-	ik.max_iterations = 40
-	ik.min_distance = 0.00002
-	bound_skeleton.add_child(ik)
 	ik.stop()
 	return ik
 
 
-func _solve_arm(ik: SkeletonIK3D, target: Transform3D, elbow_world: Vector3) -> void:
-	ik.target = target
-	ik.magnet = bound_skeleton.global_transform.affine_inverse() * elbow_world
-	ik.stop()
+func _solve_arm(ik, target: Transform3D, elbow_world: Vector3) -> void:
+	ik.override_tip_basis = true
+	ik.interpolation = 1.0
+	ik.set_world_target(target, elbow_world)
 	ik.start(true)
 	bound_skeleton.force_update_all_bone_transforms()
+
+
+func get_debug_state() -> Dictionary:
+	return {
+		"solver": "TwoBoneIK3D",
+		"left_running": left_ik != null and left_ik.is_running(),
+		"right_running": right_ik != null and right_ik.is_running(),
+		"left_modifier": (
+			left_ik.two_bone.name
+			if left_ik != null and is_instance_valid(left_ik.two_bone)
+			else &""
+		),
+		"right_modifier": (
+			right_ik.two_bone.name
+			if right_ik != null and is_instance_valid(right_ik.two_bone)
+			else &""
+		),
+		"left_target": (
+			left_ik.internal_target.name
+			if left_ik != null and is_instance_valid(left_ik.internal_target)
+			else &""
+		),
+		"left_pole": (
+			left_ik.internal_pole.name
+			if left_ik != null and is_instance_valid(left_ik.internal_pole)
+			else &""
+		),
+		"right_target": (
+			right_ik.internal_target.name
+			if right_ik != null and is_instance_valid(right_ik.internal_target)
+			else &""
+		),
+		"right_pole": (
+			right_ik.internal_pole.name
+			if right_ik != null and is_instance_valid(right_ik.internal_pole)
+			else &""
+		),
+	}
 
 
 func _clamp_target_to_arm_reach(

@@ -4,6 +4,9 @@ const WeaponAnimationProfile := preload("res://scripts/weapons/weapon_animation_
 const RecomCatalogAdapter := preload(
 	"res://scripts/labs/gunsmith/gunsmith_recom_catalog_adapter.gd"
 )
+const VisualRigResolver := preload(
+	"res://scripts/labs/gunsmith2/weapon_visual_rig_resolver.gd"
+)
 const WEAPON_BASE_PATH := "res://assets/weapons/modular_pack/"
 
 static func load_weapon(lab: Node,file_name: String) -> void:
@@ -52,9 +55,23 @@ static func load_weapon(lab: Node,file_name: String) -> void:
 		lab.reload_magazine_proxy.queue_free()
 		lab.reload_magazine_proxy = null
 
-	var is_ak := visual_file == "ak-47"
 	var is_9mm := visual_file == "9mm_pistol"
-	var path: String = String(lab.selected_model_path)
+	# Load the same resolved editable profile that populates Gunsmith's socket
+	# controls. This prevents the mesh preview from using a raw catalog model
+	# while the controls and canonical runtime use its published visual rig.
+	var presentation_profile := RecomCatalogAdapter.load_editable_profile(lab.weapon_name)
+	if presentation_profile.is_empty():
+		presentation_profile = (
+			(catalog_selection.get("record", {}) as Dictionary).duplicate(true)
+			if not catalog_selection.is_empty()
+			else {"weapon_id": lab.weapon_name}
+		)
+		presentation_profile["model_fbx"] = String(lab.selected_model_path)
+	var presentation := VisualRigResolver.resolve_for_presentation(presentation_profile)
+	var path := String(presentation.get("model_fbx", ""))
+	if path.is_empty():
+		path = "res://assets/weapons/placeholders/universal_weapon_stick.tscn"
+	lab.selected_model_path = path
 
 	var scene := load(path) as PackedScene
 	if not scene:
@@ -62,6 +79,10 @@ static func load_weapon(lab: Node,file_name: String) -> void:
 		return
 
 	lab.current_weapon_mesh = scene.instantiate() as Node3D
+	lab.current_weapon_mesh.set_meta(
+		"source_model_fbx",
+		path
+	)
 	if lab.geometry_root == null and lab.weapon_pivot != null:
 		lab.geometry_root = Node3D.new()
 		lab.geometry_root.name = "GeometryRoot"
@@ -91,29 +112,21 @@ static func load_weapon(lab: Node,file_name: String) -> void:
 	elif lab.selected_category == "Shotguns":
 		target_len = 0.72
 
-	if true_raw_length > 0.01:
+	var published_scale := float(presentation.get("normalized_scale", 0.0))
+	if published_scale > 0.0:
+		lab.auto_normalized_scale = published_scale
+	elif true_raw_length > 0.01:
 		lab.auto_normalized_scale = (target_len / true_raw_length)
 	else:
 		lab.auto_normalized_scale = 0.13
 
-	if is_ak:
-		lab.auto_normalized_scale = 0.028
-		lab.current_weapon_mesh.rotation_degrees = Vector3(0, 180, 0)
-		lab.auto_grip_center_offset = Vector3(0.0, 0.01, -0.07)
-		var ak_mat := StandardMaterial3D.new()
-		ak_mat.albedo_texture = preload("res://assets/weapons/ps1_ak47/textures/AK-47TextureMap.png")
-		ak_mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
-		for c in lab.current_weapon_mesh.get_children():
-			if c is MeshInstance3D: (c as MeshInstance3D).material_override = ak_mat
-	elif is_9mm:
-		lab.auto_normalized_scale = 0.025
-		lab.current_weapon_mesh.rotation_degrees = Vector3(0, -90, 0)
-		lab.auto_grip_center_offset = Vector3(0.0, -0.01, -0.04)
-		lab._apply_9mm_textures(lab.current_weapon_mesh)
-	else:
-		lab.current_weapon_mesh.rotation_degrees = Vector3(0, -90, 0)
-		lab.auto_grip_center_offset = Vector3(0.0, -0.015, -target_len * 0.26)
-		lab._apply_camo_skin_to_weapon(lab.current_weapon_mesh, lab.selected_camo_idx)
+	var model_rotation: Dictionary = presentation.get("model_rotation_degrees", {})
+	lab.current_weapon_mesh.rotation_degrees = Vector3(
+		float(model_rotation.get("x", 0.0)),
+		float(model_rotation.get("y", 0.0)),
+		float(model_rotation.get("z", 0.0))
+	)
+	lab.auto_grip_center_offset = Vector3.ZERO
 
 	# Sockets directly attached to SocketRoot (in unscaled WeaponPivot meter-space)
 	if lab.left_grip_marker: lab.left_grip_marker.queue_free()
@@ -152,6 +165,7 @@ static func load_weapon(lab: Node,file_name: String) -> void:
 
 	lab._reset_gun_placement_line_profile()
 	lab._try_load_saved_profile(lab.weapon_name)
+	lab._setup_weapon_contact_graph()
 	lab._setup_reload_magazine_proxy()
 
 	if lab.selected_silencer != "None": lab._load_silencer(lab.selected_silencer)

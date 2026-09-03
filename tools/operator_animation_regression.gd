@@ -7,7 +7,7 @@ const HIGHLIGHTED_CLIPS_PATH := "res://config/highlighted_animation_candidates.j
 const FAVORITE_ROUTES_PATH := "res://config/operator_animation_favorite_routes.json"
 
 const REQUIRED_CLIPS: Array[StringName] = [
-    &"idle_rifle", &"aim_idle",
+    &"idle_rifle", &"aim_idle", &"aim_idle_crouch",
     &"run_forward", &"run_forward_left", &"run_left", &"run_back_left",
     &"run_backward", &"run_back_right", &"run_right", &"run_forward_right",
     &"walk_forward", &"walk_forward_left", &"walk_left", &"walk_back_left",
@@ -485,10 +485,10 @@ func _check_layered_recoil(driver) -> void:
     var weapon_pose: Dictionary = snapshot.get("weapon_pose", {})
     _expect(
         String(event_presentation.get("event", "")) == "FIRE_ACCEPTED"
-        and String(event_presentation.get("state", "")) == "combat_fire"
+        and String(event_presentation.get("state", "")) == "aim_idle"
         and "ENTER_READY_AIM" in (event_presentation.get("effects", []) as Array)
         and "RAIL_TO_BLUE_LINE" not in (event_presentation.get("effects", []) as Array),
-        "playable fire enters ready aim without a blue-line relocation effect"
+        "playable fire routes directly into the recovery-ready pose"
     )
     _expect(
         not bool(weapon_pose.get("rail_to_blue_line_event_active", true))
@@ -505,28 +505,30 @@ func _check_layered_recoil(driver) -> void:
         and is_zero_approx(float(snapshot.get("recoil_weight", 1.0))),
         "combat fire adds no separate procedural recoil layer"
     )
-    _expect(bool(snapshot.get("fire_layer_available", false)), "mapped weapon fire layer is available")
+    _expect(bool(snapshot.get("fire_layer_available", false)), "legacy fire layer remains loadable but unselected")
     _expect(
         int(snapshot.get("fire_trigger_count", 0)) == fire_count_before
+        and StringName(snapshot.get("active_fire_clip", &"")) == &""
         and bool(
             (snapshot.get("fire_upper_body_latch", {}) as Dictionary).get(
                 "selected",
                 false
             )
         ),
-        "standing fire selects persistent Aim Idle without restarting a one-shot"
+        "standing FIRE_RECOVERY selects ready aim without a combat_fire one-shot"
     )
     _expect(driver.notify_fired(), "a later accepted bullet refreshes the fire latch")
     var repeated_snapshot: Dictionary = driver.get_animation_debug_state()
     _expect(
         int(repeated_snapshot.get("fire_trigger_count", 0)) == fire_count_before
+        and StringName(repeated_snapshot.get("active_fire_clip", &"")) == &""
         and not bool(
             (repeated_snapshot.get("weapon_pose", {}) as Dictionary).get(
                 "rail_to_blue_line_event_active",
                 true
             )
         ),
-        "repeated standing fire refreshes ownership without a pose restart"
+        "each later accepted standing bullet refreshes only FIRE_RECOVERY"
     )
 
     driver.set_visual_inputs(
@@ -553,15 +555,25 @@ func _check_layered_recoil(driver) -> void:
     _advance(driver)
     crouch_snapshot = driver.get_animation_debug_state()
     var crouched_weapon_pose: Dictionary = crouch_snapshot.get("weapon_pose", {})
+    var crouched_event_presentation: Dictionary = crouch_snapshot.get(
+        "last_event_presentation",
+        {}
+    )
+    _expect(
+        String(crouched_event_presentation.get("event", "")) == "FIRE_ACCEPTED"
+        and String(crouched_event_presentation.get("state", "")) == "aim_idle_crouch",
+        "crouched FIRE_ACCEPTED routes to its posture-matched recovery pose"
+    )
     _expect(
         int(crouch_snapshot.get("fire_trigger_count", 0)) == fire_count_before
+        and StringName(crouch_snapshot.get("active_fire_clip", &"")) == &""
         and bool(
             (crouch_snapshot.get("fire_upper_body_latch", {}) as Dictionary).get(
                 "selected",
                 false
             )
         ),
-        "crouched fire keeps persistent Aim Idle upper-body ownership"
+        "crouched FIRE_RECOVERY selects ready aim without a crouch_fire one-shot"
     )
     _expect(
         not bool(crouched_weapon_pose.get("rail_to_blue_line_event_active", true))
@@ -628,14 +640,21 @@ func _check_standing_reload_layer(driver) -> void:
     )
     _set_motion(driver, Vector2(0.0, 1.0), 0.65, &"LOCOMOTION", 0.0, &"WALK", 2.0)
     _advance(driver)
-    _expect(driver.requested_action == &"reload", "standing reload continues while movement begins")
+    _expect("reload" in String(driver.requested_action).to_lower(), "standing reload continues while movement begins")
     _expect(driver.current_clip == &"run_forward", "sprint legs remain active during standing reload")
     _set_motion(driver, Vector2(0.0, 1.0), 0.65, &"AIRBORNE", 2.0, &"WALK", 2.0)
     _advance(driver)
     snapshot = driver.get_animation_debug_state()
-    _expect(driver.requested_action == &"", "jump safely interrupts standing reload")
-    _expect(not bool(snapshot.get("upper_body_reload_layer", true)), "jump releases reload ownership of the arms")
-    _expect(driver.current_clip == &"jump_up", "jump animation replaces the interrupted reload state")
+    _expect("reload" in String(driver.requested_action).to_lower(), "standing reload continues while jump begins")
+    _expect(bool(snapshot.get("upper_body_reload_layer", false)), "jump legs continue under the reload arms")
+    _expect(driver.current_clip == &"jump_up", "jump animation remains the lower-body state under reload")
+    _set_motion(driver, Vector2(0.0, 1.0), 0.65, &"DIVING", -1.0, &"FULL", 5.0)
+    _advance(driver)
+    _expect("reload" in String(driver.requested_action).to_lower(), "dive preserves the active reload playhead")
+    _set_motion(driver, Vector2(0.0, 1.0), 0.65, &"ROLLING", 0.0, &"FULL", 5.0)
+    _advance(driver)
+    _expect("reload" in String(driver.requested_action).to_lower(), "roll preserves the active reload playhead")
+    driver.cancel_reload_action()
 
 func _check_reload_posture_change_cleanup(driver) -> void:
     driver.set_visual_inputs(
@@ -655,7 +674,13 @@ func _check_reload_posture_change_cleanup(driver) -> void:
     _advance(driver)
     _expect(driver.play_semantic_action(&"reload", 0.12), "prone reload action is accepted")
     _advance(driver)
-    _expect(driver.requested_action == &"prone_reload", "prone reload owns the prone action pose")
+    _expect("reload" in String(driver.requested_action).to_lower(), "prone reload owns the prone action pose")
+    var prone_snapshot: Dictionary = driver.get_animation_debug_state()
+    _expect(
+        bool(prone_snapshot.get("upper_body_reload_layer", false)),
+        "prone reload begins on the persistent upper-body reload layer"
+    )
+    var reload_time_before_stance_change: float = driver._reload_visual_time
     driver.set_visual_inputs(
         Vector2.ZERO,
         &"STANDING",
@@ -672,12 +697,14 @@ func _check_reload_posture_change_cleanup(driver) -> void:
     )
     _advance(driver)
     var snapshot: Dictionary = driver.get_animation_debug_state()
-    _expect(driver.requested_action == &"", "standing up cancels the stale prone reload pose")
-    _expect(not bool(snapshot.get("upper_body_reload_layer", true)), "stance change releases reload ownership of the arms")
+    _expect("reload" in String(driver.requested_action).to_lower(), "standing up preserves the active reload playhead")
+    _expect(bool(snapshot.get("upper_body_reload_layer", false)), "stance change keeps reload on the upper body")
+    _expect(driver.current_clip != &"prone_reload", "standing posture remains the lower-body state under reload")
     _expect(
-        not bool((snapshot.get("weapon_pose", {}) as Dictionary).get("action_weapon_follow_active", true)),
-        "stance change releases reload ownership of the rifle"
+        driver._reload_visual_time > reload_time_before_stance_change,
+        "stance change advances the existing reload playhead instead of restarting it"
     )
+    driver.cancel_reload_action()
 
 func _check_mobility_states(driver) -> void:
     _set_motion(driver, Vector2(0.0, 1.0), 0.8, &"DIVING")
@@ -688,7 +715,7 @@ func _check_mobility_states(driver) -> void:
     _expect(driver.current_clip == &"roll", "roll state selects the roll motion")
     _set_motion(driver, Vector2.ZERO, 0.0, &"AIRBORNE", 2.0)
     _advance(driver)
-    _expect(driver.current_clip == &"jump_up", "positive airborne velocity selects jump-up")
+    _expect(driver.current_clip == &"jump_up_standing", "stationary positive velocity selects standing jump-up")
     _expect(
         WEAPON_OWNERSHIP.resolve(&"AIRBORNE", &"", 1.0, false)
         == WEAPON_OWNERSHIP.READY_SOLVER,
@@ -696,7 +723,7 @@ func _check_mobility_states(driver) -> void:
     )
     _set_motion(driver, Vector2.ZERO, 0.0, &"AIRBORNE", -2.0)
     _advance(driver)
-    _expect(driver.current_clip == &"jump_down", "negative airborne velocity selects jump-down")
+    _expect(driver.current_clip == &"jump_loop", "negative airborne velocity remains in the fall loop")
 
 func _check_modern_blend_graph(driver) -> void:
     driver.clear_fire_ready_aim()
@@ -718,6 +745,11 @@ func _check_modern_blend_graph(driver) -> void:
     _expect(float(slow.get("full_gait_weight", 0.0)) > 0.95, "partial standing input stays on the sprint family")
     _expect(float(fast.get("full_gait_weight", 0.0)) > 0.95, "full input reaches the tactical gait")
     _expect(
+        StringName(fast.get("presentation_mode", &"")) == &"RELAXED_RIFLE"
+        and float(fast.get("upper_body_ready_blend", 1.0)) <= 0.001,
+        "standing run starts on the authored forward-run arms before any shot"
+    )
+    _expect(
         float(fast.get("playback_rate", 0.0)) >= 0.63
         and float(fast.get("playback_rate", 2.0)) <= 1.17,
         "stride correction stays inside the calibrated playback range"
@@ -732,10 +764,44 @@ func _check_modern_blend_graph(driver) -> void:
         "full-speed locomotion uses the slower visual cadence without changing movement speed"
     )
     var blend_root := driver.animation_tree.tree_root as AnimationNodeBlendTree
+    var route_blend := blend_root.get_node(&"route_blend") as AnimationNodeBlend2
+    _expect(
+        route_blend != null and not route_blend.sync,
+        "inactive locomotion route remains frozen instead of evaluating at zero weight"
+    )
     var upper_body_blend := blend_root.get_node(&"standing_upper_body") as AnimationNodeBlend2
     var idle_upper_body_blend := blend_root.get_node(&"standing_idle_upper_body") as AnimationNodeBlend2
     var crouch_upper_body_blend := blend_root.get_node(&"crouch_upper_body") as AnimationNodeBlend2
     var crouch_idle_upper_body_blend := blend_root.get_node(&"crouch_idle_upper_body") as AnimationNodeBlend2
+    var aim_frame_names: Array[StringName] = [
+        &"standing_aim_frame",
+        &"standing_idle_aim_frame",
+        &"crouch_aim_frame",
+        &"crouch_idle_aim_frame",
+    ]
+    for aim_frame_name: StringName in aim_frame_names:
+        var aim_frame := blend_root.get_node(aim_frame_name) as AnimationNodeBlend2
+        _expect(
+            aim_frame != null and aim_frame.filter_enabled,
+            "%s exists as a filtered stationary-pose frame" % aim_frame_name
+        )
+        if aim_frame == null:
+            continue
+        _expect(
+            aim_frame.is_path_filtered(NodePath(".:mixamorig_Spine"))
+            and aim_frame.is_path_filtered(NodePath(".:mixamorig_Spine1"))
+            and aim_frame.is_path_filtered(NodePath(".:mixamorig_Spine2"))
+            and aim_frame.is_path_filtered(NodePath(".:mixamorig_Neck"))
+            and aim_frame.is_path_filtered(NodePath(".:mixamorig_Head"))
+            and not aim_frame.is_path_filtered(NodePath(".:mixamorig_Hips"))
+            and not aim_frame.is_path_filtered(NodePath(".:mixamorig_LeftShoulder"))
+            and not aim_frame.is_path_filtered(NodePath(".:mixamorig_RightShoulder"))
+            and not aim_frame.is_path_filtered(NodePath(".:mixamorig_LeftHand"))
+            and not aim_frame.is_path_filtered(NodePath(".:mixamorig_RightHand"))
+            and not aim_frame.is_path_filtered(NodePath(".:mixamorig_LeftLeg"))
+            and not aim_frame.is_path_filtered(NodePath(".:mixamorig_RightLeg")),
+            "%s owns only Spine-to-Head and leaves limbs/locomotion untouched" % aim_frame_name
+        )
     _set_motion(driver, Vector2.ZERO, 0.0, &"STANDING", 0.0, &"FULL", 0.0)
     _advance(driver)
     _expect(
@@ -754,19 +820,24 @@ func _check_modern_blend_graph(driver) -> void:
     )
     if upper_body_blend != null:
         for bone_name in [
-            "mixamorig_Spine", "mixamorig_Spine2", "mixamorig_Head",
-            "mixamorig_LeftArm", "mixamorig_RightArm",
+            "mixamorig_LeftShoulder", "mixamorig_LeftArm", "mixamorig_LeftForeArm",
+            "mixamorig_RightShoulder", "mixamorig_RightArm", "mixamorig_RightForeArm",
             "mixamorig_LeftHand", "mixamorig_RightHand",
         ]:
             _expect(
                 upper_body_blend.is_path_filtered(NodePath(".:%s" % bone_name)),
-                "rifle posture owns upper-body track %s" % bone_name
+                "standing recovery owns limb track %s" % bone_name
             )
         _expect(
-            not upper_body_blend.is_path_filtered(NodePath(".:mixamorig_Hips"))
+            not upper_body_blend.is_path_filtered(NodePath(".:mixamorig_Spine"))
+            and not upper_body_blend.is_path_filtered(NodePath(".:mixamorig_Spine1"))
+            and not upper_body_blend.is_path_filtered(NodePath(".:mixamorig_Spine2"))
+            and not upper_body_blend.is_path_filtered(NodePath(".:mixamorig_Neck"))
+            and not upper_body_blend.is_path_filtered(NodePath(".:mixamorig_Head"))
+            and not upper_body_blend.is_path_filtered(NodePath(".:mixamorig_Hips"))
             and not upper_body_blend.is_path_filtered(NodePath(".:mixamorig_LeftLeg"))
             and not upper_body_blend.is_path_filtered(NodePath(".:mixamorig_RightLeg")),
-            "directional locomotion retains hips and leg ownership"
+            "standing recovery leaves torso frame, head, hips, and legs outside its mask"
         )
     _expect(
         idle_upper_body_blend != null and idle_upper_body_blend.filter_enabled,
@@ -774,30 +845,36 @@ func _check_modern_blend_graph(driver) -> void:
     )
     if idle_upper_body_blend != null:
         _expect(
-            idle_upper_body_blend.is_path_filtered(NodePath(".:mixamorig_Spine"))
-            and idle_upper_body_blend.is_path_filtered(NodePath(".:mixamorig_LeftHand"))
+            idle_upper_body_blend.is_path_filtered(NodePath(".:mixamorig_LeftHand"))
             and idle_upper_body_blend.is_path_filtered(NodePath(".:mixamorig_RightHand"))
+            and not idle_upper_body_blend.is_path_filtered(NodePath(".:mixamorig_Spine"))
+            and not idle_upper_body_blend.is_path_filtered(NodePath(".:mixamorig_Neck"))
+            and not idle_upper_body_blend.is_path_filtered(NodePath(".:mixamorig_Head"))
             and not idle_upper_body_blend.is_path_filtered(NodePath(".:mixamorig_Hips"))
             and not idle_upper_body_blend.is_path_filtered(NodePath(".:mixamorig_LeftLeg"))
             and not idle_upper_body_blend.is_path_filtered(NodePath(".:mixamorig_RightLeg")),
-            "standing idle uses the authored standing torso while standing hips and legs remain authoritative"
+            "standing idle recovery changes only the two rifle limb chains"
         )
     _expect(
         crouch_upper_body_blend != null
         and crouch_upper_body_blend.filter_enabled
         and crouch_idle_upper_body_blend != null
         and crouch_idle_upper_body_blend.filter_enabled,
-        "crouch movement and idle share the square Aim Idle upper body"
+        "crouch movement and idle expose the posture-matched recovery limb layer"
     )
     if crouch_upper_body_blend != null:
         _expect(
-            crouch_upper_body_blend.is_path_filtered(NodePath(".:mixamorig_Spine"))
-            and crouch_upper_body_blend.is_path_filtered(NodePath(".:mixamorig_LeftHand"))
+            crouch_upper_body_blend.is_path_filtered(NodePath(".:mixamorig_LeftHand"))
             and crouch_upper_body_blend.is_path_filtered(NodePath(".:mixamorig_RightHand"))
+            and not crouch_upper_body_blend.is_path_filtered(NodePath(".:mixamorig_Spine"))
+            and not crouch_upper_body_blend.is_path_filtered(NodePath(".:mixamorig_Spine1"))
+            and not crouch_upper_body_blend.is_path_filtered(NodePath(".:mixamorig_Spine2"))
+            and not crouch_upper_body_blend.is_path_filtered(NodePath(".:mixamorig_Neck"))
+            and not crouch_upper_body_blend.is_path_filtered(NodePath(".:mixamorig_Head"))
             and not crouch_upper_body_blend.is_path_filtered(NodePath(".:mixamorig_Hips"))
             and not crouch_upper_body_blend.is_path_filtered(NodePath(".:mixamorig_LeftLeg"))
             and not crouch_upper_body_blend.is_path_filtered(NodePath(".:mixamorig_RightLeg")),
-            "crouch Aim Idle owns torso and arms while crouched legs remain authoritative"
+            "crouch recovery changes only its rifle limb chains and preserves the crouch frame"
         )
     for transition_clip in [
         &"start_forward", &"start_backward",
@@ -806,16 +883,30 @@ func _check_modern_blend_graph(driver) -> void:
     ]:
         var layer_name := StringName("modern_state_%s_upper_body" % transition_clip)
         var transition_layer := blend_root.get_node(layer_name) as AnimationNodeBlend2
+        var aim_frame_name := StringName("modern_state_%s_aim_frame" % transition_clip)
+        var transition_aim_frame := blend_root.get_node(aim_frame_name) as AnimationNodeBlend2
         _expect(
             transition_layer != null and transition_layer.filter_enabled,
             "%s keeps the upper/lower body split during its transition" % transition_clip
         )
+        _expect(
+            transition_aim_frame != null
+            and transition_aim_frame.filter_enabled
+            and transition_aim_frame.is_path_filtered(NodePath(".:mixamorig_Spine"))
+            and transition_aim_frame.is_path_filtered(NodePath(".:mixamorig_Head"))
+            and not transition_aim_frame.is_path_filtered(NodePath(".:mixamorig_Hips"))
+            and not transition_aim_frame.is_path_filtered(NodePath(".:mixamorig_LeftHand")),
+            "%s retains the stationary aim frame while its legs transition" % transition_clip
+        )
         if transition_layer != null:
             _expect(
-                transition_layer.is_path_filtered(NodePath(".:mixamorig_Spine"))
-                and transition_layer.is_path_filtered(NodePath(".:mixamorig_Head"))
+                transition_layer.is_path_filtered(NodePath(".:mixamorig_LeftHand"))
+                and transition_layer.is_path_filtered(NodePath(".:mixamorig_RightHand"))
+                and not transition_layer.is_path_filtered(NodePath(".:mixamorig_Spine"))
+                and not transition_layer.is_path_filtered(NodePath(".:mixamorig_Neck"))
+                and not transition_layer.is_path_filtered(NodePath(".:mixamorig_Head"))
                 and not transition_layer.is_path_filtered(NodePath(".:mixamorig_Hips")),
-                "%s gives legs transition authority while the torso stays reticle-ready" % transition_clip
+                "%s keeps its body transition while recovery owns only the rifle limbs" % transition_clip
             )
 
 func _check_instant_lateral_selection(driver) -> void:

@@ -1,0 +1,51 @@
+{
+  "ammo_spec": {
+    "impact_damage": 9.0,
+    "piercing": 7.0,
+    "stun": 4.0,
+    "type": ".50 Cal"
+  },
+  "ballistics": {
+    "base_spread_deg": 0.429,
+    "bloom_per_shot_deg": 1.0,
+    "bloom_recovery_speed": 17.5,
+    "damage": 110.0,
+    "effective_range_m": 1800.0,
+    "fire_rate_rpm": 86.0,
+    "full_gait_spread_deg": 1.543,
+    "headshot_multiplier": 3.5,
+    "is_silenced": false,
+    "magazine_capacity": 10.0,
+    "max_range_m": 2400.0,
+    "max_recoil_bloom_deg": 2.6,
+    "moving_spread_deg": 1.029,
+    "muzzle_velocity_mps": 853.0,
+    "reserve_ammo": 30.0
+  },
+  "burst_size": 3,
+  "catalog_source": "reCOM zweapon.rdr",
+  "catalog_weapon_id": "m87elr",
+  "category": "Sniper Rifles",
+  "default_fire_mode": "semi",
+  "display_name": "M87ELR",
+  "encumbrance": 1,
+  "fire_modes": [
+    "semi"
+  ],
+  "model_fbx": "res://assets/weapons/modular_pack/SniperRifle_2.fbx",
+  "recom_assets": {
+    "icon_texture": "mcmillanM87_icon.tif",
+    "model_name": "mcmillanM87",
+    "reload_sound": "SND_MODEL_700_REMINGTON_RELOAD"
+  },
+  "reticle": {
+    "base_gap_px": 5.1,
+    "max_gap_px": 41.6,
+    "maximum_shot_kick_px": 60.0,
+    "response_speed": 26.2,
+    "shot_kick_px": 20.0,
+    "shot_kick_return": 40.0
+  },
+  "socom_original_id": 103,
+  "weapon_id": "m87elr"
+}

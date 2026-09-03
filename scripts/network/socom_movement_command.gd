@@ -10,6 +10,7 @@ var move_axis := Vector2.ZERO
 var aim_yaw: float = 0.0
 var world_move_override := Vector3.ZERO
 var jump_pressed: bool = false
+var jump_held: bool = false
 var dive_pressed: bool = false
 var roll_pressed: bool = false
 var prone_pressed: bool = false
@@ -26,6 +27,7 @@ func duplicate_command():
 	copy.aim_yaw = aim_yaw
 	copy.world_move_override = world_move_override
 	copy.jump_pressed = jump_pressed
+	copy.jump_held = jump_held
 	copy.dive_pressed = dive_pressed
 	copy.roll_pressed = roll_pressed
 	copy.prone_pressed = prone_pressed

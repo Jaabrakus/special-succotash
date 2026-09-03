@@ -60,6 +60,7 @@ var last_applied_yaw: float = 0.0
 var last_applied_pitch: float = 0.0
 var last_angular_error_deg: float = 0.0
 var neutral_hip_rotation := Quaternion.IDENTITY
+var neutral_hip_rotations: Dictionary = {}
 var last_lower_body_yaw_deg: float = 0.0
 var last_lower_body_pitch_deg: float = 0.0
 var last_lower_body_roll_deg: float = 0.0
@@ -71,6 +72,7 @@ var last_peek_roll_deg: float = 0.0
 var last_chest_square_correction_deg: float = 0.0
 var last_shoulder_square_error_deg: float = 0.0
 var last_shoulder_level_error_cm: float = 0.0
+var last_shoulder_square_weight: float = 0.0
 var last_default_hip_roll_input_deg: float = 0.0
 var last_default_hip_roll_trim_deg: float = 0.0
 var last_default_hip_roll_output_deg: float = 0.0
@@ -86,6 +88,9 @@ const HEAD_LOOK_REUSE_EPSILON_RAD := 0.002
 func bind(target_skeleton: Skeleton3D, neutral_pose_hip_rotation := Quaternion.IDENTITY) -> void:
 	skeleton = target_skeleton
 	neutral_hip_rotation = neutral_pose_hip_rotation.normalized()
+	neutral_hip_rotations = {
+		&"STANDING": neutral_hip_rotation,
+	}
 	bone_indices.clear()
 	head_look_base_rotations.clear()
 	head_look_applied_rotations.clear()
@@ -94,6 +99,13 @@ func bind(target_skeleton: Skeleton3D, neutral_pose_hip_rotation := Quaternion.I
 	for logical_name: StringName in BONE_CANDIDATES:
 		bone_indices[logical_name] = _first_bone(BONE_CANDIDATES[logical_name])
 	procedural_profile.load_project_profile()
+
+
+func set_neutral_hip_rotation(
+	posture_name: StringName,
+	neutral_pose_hip_rotation: Quaternion
+) -> void:
+	neutral_hip_rotations[posture_name] = neutral_pose_hip_rotation.normalized()
 
 
 func set_procedural_rotation_degrees(
@@ -184,27 +196,34 @@ func apply(
 	neutral_hip_roll_trim_deg: float = 1.20,
 	force_square_shoulders: bool = false,
 	force_square_hips: bool = false,
-	force_square_idle_reference: bool = false
+	force_square_idle_reference: bool = false,
+	clean_recovery_weight: float = 0.0
 ) -> void:
 	if skeleton == null:
 		return
+	var post_layer_weight := 1.0 - clampf(clean_recovery_weight, 0.0, 1.0)
 	_apply_default_hip_leveling(
 		posture_name,
 		neutral_hip_roll_trim_deg,
-		force_square_hips
+		force_square_hips,
+		post_layer_weight
 	)
 	_apply_prone_axis_alignment(
 		prone_axis_weight,
 		prone_axis_max_correction,
 		prone_axis_target_pitch
 	)
-	_apply_procedural_profile(posture_name)
-	_apply_square_idle_reference(force_square_idle_reference)
+	_apply_procedural_profile(posture_name, post_layer_weight)
+	_apply_square_idle_reference(force_square_idle_reference, post_layer_weight)
 	var torso_yaw := clampf(aim_yaw, -chest_yaw_limit, chest_yaw_limit)
 	var torso_pitch := clampf(aim_pitch, -chest_pitch_limit, chest_pitch_limit)
 	var head_yaw := clampf(aim_yaw, -head_yaw_limit, head_yaw_limit)
 	var head_pitch := clampf(aim_pitch, -head_pitch_limit, head_pitch_limit)
 	var normalized_ready := clampf(ready_weight, 0.0, 1.0)
+	# A clean recovery suppresses persistent tuning/hip cleanup, but it must not
+	# suppress the bounded reticle-facing torso or the squared firing frame. Those
+	# are presentation consequences of the same accepted-shot ready weight.
+	var firing_frame_weight := maxf(post_layer_weight, normalized_ready)
 	# Close-cover obstruction is a firing-safety result, not an animation input.
 	# Keeping it out of posture prevents the blue-line/cover detector from raising
 	# or lowering the operator's torso and arms.
@@ -217,6 +236,7 @@ func apply(
 	last_applied_yaw = 0.0
 	last_applied_pitch = 0.0
 	var hip_correction := _upper_body_hip_correction(
+		posture_name,
 		lower_body_separation_weight,
 		gait_roll_retention
 	)
@@ -239,16 +259,19 @@ func apply(
 
 	# Arms inherit the complete reticle-facing spine transform. Shoulders only
 	# receive the small recoil impulse so they do not overshoot the aim direction.
-	var shoulder_pitch := recoil_pitch * 0.22
+	var shoulder_pitch := recoil_pitch * 0.22 * firing_frame_weight
 	_apply_bone_additive(&"left_shoulder", 0.0, shoulder_pitch)
 	_apply_bone_additive(&"right_shoulder", 0.0, shoulder_pitch)
 	_apply_full_body_peek(posture_name, peek_amount)
-	# Shoulder squaring is a shooting pose, not a locomotion correction. Leaving
-	# it active during sprint overwrites the authored lean and makes the head and
-	# arms appear detached from the gait.
-	if force_square_shoulders or normalized_ready >= 0.50:
-		_apply_square_shoulders(world_aim_target)
+	# Shoulder squaring is a shooting pose, not a locomotion correction. The clean
+	# authored ready/recovery frame already contains its accepted shoulder shape;
+	# stacking this procedural chest turn on it twists moving forearms.
+	var procedural_square_weight := firing_frame_weight * post_layer_weight
+	if procedural_square_weight > 0.001 and (force_square_shoulders or normalized_ready >= 0.50):
+		last_shoulder_square_weight = procedural_square_weight
+		_apply_square_shoulders(world_aim_target, procedural_square_weight)
 	else:
+		last_shoulder_square_weight = 0.0
 		last_shoulder_square_error_deg = 0.0
 		last_shoulder_level_error_cm = 0.0
 		last_chest_square_correction_deg = 0.0
@@ -347,6 +370,7 @@ func get_debug_state() -> Dictionary:
 		"chest_square_correction_deg": last_chest_square_correction_deg,
 		"shoulder_square_error_deg": last_shoulder_square_error_deg,
 		"shoulder_level_error_cm": last_shoulder_level_error_cm,
+		"shoulder_square_weight": last_shoulder_square_weight,
 		"default_hip_roll_input_deg": last_default_hip_roll_input_deg,
 		"default_hip_roll_trim_deg": last_default_hip_roll_trim_deg,
 		"default_hip_roll_output_deg": last_default_hip_roll_output_deg,
@@ -355,9 +379,10 @@ func get_debug_state() -> Dictionary:
 	}
 
 
-func _apply_square_idle_reference(enabled: bool) -> void:
+func _apply_square_idle_reference(enabled: bool, weight: float = 1.0) -> void:
 	last_square_idle_reference_bone_count = 0
-	if not enabled:
+	var normalized_weight := clampf(weight, 0.0, 1.0)
+	if not enabled or normalized_weight <= 0.001:
 		return
 	# Square describes the shoulder and pelvis frames, not the direction of each
 	# limb bone. Keep every authored leg rotation so knees and feet cannot swing
@@ -366,19 +391,27 @@ func _apply_square_idle_reference(enabled: bool) -> void:
 		var bone_index := int(bone_indices.get(logical_name, -1))
 		if bone_index < 0:
 			continue
-		skeleton.set_bone_pose_rotation(bone_index, Quaternion.IDENTITY)
+		var current := skeleton.get_bone_pose_rotation(bone_index).normalized()
+		skeleton.set_bone_pose_rotation(
+			bone_index,
+			current.slerp(Quaternion.IDENTITY, normalized_weight).normalized()
+		)
 		last_square_idle_reference_bone_count += 1
 
 
 func _apply_default_hip_leveling(
 	posture_name: StringName,
 	maximum_trim_deg: float,
-	force_square: bool = false
+	force_square: bool = false,
+	weight: float = 1.0
 ) -> void:
 	last_default_hip_roll_input_deg = 0.0
 	last_default_hip_roll_trim_deg = 0.0
 	last_default_hip_roll_output_deg = 0.0
 	if posture_name != &"STANDING":
+		return
+	var normalized_weight := clampf(weight, 0.0, 1.0)
+	if normalized_weight <= 0.001:
 		return
 	var hips_index := int(bone_indices.get(&"hips", -1))
 	if hips_index < 0:
@@ -393,26 +426,34 @@ func _apply_default_hip_leveling(
 		return
 	if absf(current_roll) <= 0.0001:
 		return
-	# A stationary idle has a single square reference, while motion keeps the
-	# authored tactical hip action. The older bounded trim remains available for
-	# non-idle previews that only need a small neutral correction.
-	var trim := (
-		absf(current_roll)
-		if force_square
-		else minf(absf(current_roll) * 0.80, deg_to_rad(maximum_trim_deg))
-	)
-	trim *= -signf(current_roll)
-	skeleton.set_bone_pose_rotation(
-		hips_index,
-		(current_rotation * Quaternion(Vector3.BACK, trim)).normalized()
-	)
-	last_default_hip_roll_trim_deg = rad_to_deg(trim)
-	last_default_hip_roll_output_deg = rad_to_deg(
-		skeleton.get_bone_pose_rotation(hips_index).get_euler().z
-	)
+	if force_square:
+		var e := current_rotation.get_euler()
+		var target_euler := Vector3(e.x, e.y, 0.0)
+		var target_rot := Quaternion.from_euler(target_euler).normalized()
+		var new_rot := current_rotation.slerp(target_rot, normalized_weight).normalized()
+		skeleton.set_bone_pose_rotation(hips_index, new_rot)
+		last_default_hip_roll_trim_deg = rad_to_deg(e.z) * normalized_weight
+		last_default_hip_roll_output_deg = rad_to_deg(
+			skeleton.get_bone_pose_rotation(hips_index).get_euler().z
+		)
+	else:
+		var trim := minf(absf(current_roll) * 0.80, deg_to_rad(maximum_trim_deg))
+		trim *= -signf(current_roll)
+		trim *= normalized_weight
+		skeleton.set_bone_pose_rotation(
+			hips_index,
+			(current_rotation * Quaternion(Vector3.BACK, trim)).normalized()
+		)
+		last_default_hip_roll_trim_deg = rad_to_deg(trim)
+		last_default_hip_roll_output_deg = rad_to_deg(
+			skeleton.get_bone_pose_rotation(hips_index).get_euler().z
+		)
 
 
-func _apply_square_shoulders(world_aim_target: Vector3) -> void:
+func _apply_square_shoulders(world_aim_target: Vector3, weight: float = 1.0) -> void:
+	var normalized_weight := clampf(weight, 0.0, 1.0)
+	if normalized_weight <= 0.001:
+		return
 	var left_shoulder := int(bone_indices.get(&"left_shoulder", -1))
 	var right_shoulder := int(bone_indices.get(&"right_shoulder", -1))
 	var left_arm := int(bone_indices.get(&"left_upper_arm", -1))
@@ -438,23 +479,17 @@ func _apply_square_shoulders(world_aim_target: Vector3) -> void:
 	var desired_right_local := (
 		skeleton.global_basis.inverse() * desired_right_world
 	).normalized()
-	_apply_square_chest(left_shoulder, right_shoulder, desired_right_local)
+	_apply_square_chest(left_shoulder, right_shoulder, desired_right_local, normalized_weight)
 	skeleton.force_update_all_bone_transforms()
 	left_arm_pose = skeleton.get_bone_global_pose(left_arm)
 	right_arm_pose = skeleton.get_bone_global_pose(right_arm)
-	shoulder_center_local = (left_arm_pose.origin + right_arm_pose.origin) * 0.5
 	var current_right_local := (right_arm_pose.origin - left_arm_pose.origin).normalized()
 	if desired_right_local.dot(current_right_local) < 0.0:
 		desired_right_local = -desired_right_local
-
-	var half_width := left_arm_pose.origin.distance_to(right_arm_pose.origin) * 0.5
-	var target_left := shoulder_center_local - desired_right_local * half_width
-	var target_right := shoulder_center_local + desired_right_local * half_width
-	_square_one_shoulder(left_shoulder, left_arm, target_left)
-	_square_one_shoulder(right_shoulder, right_arm, target_right)
-	skeleton.force_update_all_bone_transforms()
-	left_arm_pose = skeleton.get_bone_global_pose(left_arm)
-	right_arm_pose = skeleton.get_bone_global_pose(right_arm)
+	# Spine2 turns the complete clavicle frame toward the reticle. Do not rotate
+	# either clavicle independently: doing so may mathematically level the shoulder
+	# points while twisting a rifle arm nearly 180 degrees away from its authored
+	# hand contact.
 	var left_world := skeleton.global_transform * left_arm_pose.origin
 	var right_world := skeleton.global_transform * right_arm_pose.origin
 	var actual_right_world := right_world - left_world
@@ -474,7 +509,8 @@ func _apply_square_shoulders(world_aim_target: Vector3) -> void:
 func _apply_square_chest(
 	left_shoulder_index: int,
 	right_shoulder_index: int,
-	desired_right: Vector3
+	desired_right: Vector3,
+	weight: float = 1.0
 ) -> void:
 	var chest_index := int(bone_indices.get(&"spine2", -1))
 	if chest_index < 0:
@@ -491,7 +527,10 @@ func _apply_square_chest(
 	if current_right.dot(desired_right) < 0.0:
 		desired_right = -desired_right
 	var chest_correction := Quaternion(current_right, desired_right).normalized()
-	var correction_angle := minf(chest_correction.get_angle(), deg_to_rad(55.0))
+	var correction_angle := (
+		minf(chest_correction.get_angle(), deg_to_rad(55.0))
+		* clampf(weight, 0.0, 1.0)
+	)
 	if correction_angle <= 0.00001:
 		last_chest_square_correction_deg = 0.0
 		return
@@ -515,7 +554,12 @@ func _apply_skeleton_space_rotation(bone_index: int, correction: Quaternion) -> 
 	)
 
 
-func _square_one_shoulder(shoulder_index: int, arm_index: int, target_arm: Vector3) -> void:
+func _square_one_shoulder(
+	shoulder_index: int,
+	arm_index: int,
+	target_arm: Vector3,
+	weight: float = 1.0
+) -> void:
 	var shoulder_pose := skeleton.get_bone_global_pose(shoulder_index)
 	var arm_pose := skeleton.get_bone_global_pose(arm_index)
 	var current_direction := arm_pose.origin - shoulder_pose.origin
@@ -525,6 +569,10 @@ func _square_one_shoulder(shoulder_index: int, arm_index: int, target_arm: Vecto
 	current_direction = current_direction.normalized()
 	desired_direction = desired_direction.normalized()
 	var skeleton_space_correction := Quaternion(current_direction, desired_direction).normalized()
+	skeleton_space_correction = Quaternion.IDENTITY.slerp(
+		skeleton_space_correction,
+		clampf(weight, 0.0, 1.0)
+	).normalized()
 	var shoulder_global_rotation := shoulder_pose.basis.get_rotation_quaternion().normalized()
 	var local_correction := (
 		shoulder_global_rotation.inverse()
@@ -691,7 +739,11 @@ func _apply_global_bone_correction(bone_index: int, correction: Quaternion) -> v
 	)
 
 
-func _upper_body_hip_correction(weight: float, gait_roll_retention: float) -> Quaternion:
+func _upper_body_hip_correction(
+	posture_name: StringName,
+	weight: float,
+	gait_roll_retention: float
+) -> Quaternion:
 	var hips_index := int(bone_indices.get(&"hips", -1))
 	var spine_index := int(bone_indices.get(&"spine", -1))
 	if hips_index < 0 or spine_index < 0:
@@ -700,7 +752,11 @@ func _upper_body_hip_correction(weight: float, gait_roll_retention: float) -> Qu
 		last_lower_body_roll_deg = 0.0
 		return Quaternion.IDENTITY
 	var current_hip := skeleton.get_bone_pose_rotation(hips_index).normalized()
-	var hip_delta := (current_hip.inverse() * neutral_hip_rotation).normalized()
+	var posture_neutral: Quaternion = neutral_hip_rotations.get(
+		posture_name,
+		neutral_hip_rotation
+	)
+	var hip_delta := (current_hip.inverse() * posture_neutral).normalized()
 	# Cancel pelvis yaw/pitch completely while retaining a restrained fraction of
 	# lateral gait roll. This restores tactical weight without allowing the legs
 	# to pull the rifle-ready torso off its body axis.
@@ -743,7 +799,10 @@ func _apply_bone_additive(
 	skeleton.set_bone_pose_rotation(index, pre_rotation * base_rotation * additive)
 
 
-func _apply_procedural_profile(posture_name: StringName) -> void:
+func _apply_procedural_profile(posture_name: StringName, weight: float = 1.0) -> void:
+	var normalized_weight := clampf(weight, 0.0, 1.0)
+	if normalized_weight <= 0.001:
+		return
 	for bone_name: StringName in ProceduralPoseProfile.SUPPORTED_BONES:
 		var degrees := procedural_profile.get_rotation_degrees(posture_name, bone_name)
 		var frame_value: Variant = animation_frame_rotation_overrides.get(String(bone_name), null)
@@ -763,6 +822,7 @@ func _apply_procedural_profile(posture_name: StringName) -> void:
 			* Quaternion(Vector3.RIGHT, deg_to_rad(degrees.x))
 			* Quaternion(Vector3.FORWARD, deg_to_rad(degrees.z))
 		).normalized()
+		additive = Quaternion.IDENTITY.slerp(additive, normalized_weight).normalized()
 		var base_rotation := skeleton.get_bone_pose_rotation(index)
 		skeleton.set_bone_pose_rotation(
 			index,

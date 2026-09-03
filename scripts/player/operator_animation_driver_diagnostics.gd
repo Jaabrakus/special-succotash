@@ -17,6 +17,9 @@ func get_animation_debug_state() -> Dictionary:
 		"presentation_posture": _presentation_posture,
 		"presentation_ready_weight": _presentation_ready_weight,
 		"presentation_fire_selected": _presentation_fire_selected,
+		"clean_ready_pose_weight": _clean_fire_recovery_weight,
+		# Compatibility field retained for existing recovery-focused tools.
+		"clean_fire_recovery_weight": _clean_fire_recovery_weight,
 		"fire_ready_hold_remaining": _fire_ready_hold_remaining,
 		"locomotion_blend_seconds": locomotion_blend_seconds,
 		"direction_octant": _stable_direction_octant,
@@ -65,4 +68,6 @@ func get_animation_debug_state() -> Dictionary:
 		)
 	if pose_handoff != null:
 		snapshot["pose_handoff"] = pose_handoff.get_debug_state()
+	if combat_ready_ccdik != null:
+		snapshot["combat_ready_ccdik"] = combat_ready_ccdik.get_debug_state()
 	return snapshot

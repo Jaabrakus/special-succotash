@@ -95,6 +95,12 @@ func scan_mixamo(root_path: String) -> Dictionary:
 	return results
 
 
+func scan_imported_scenes(root_path: String, source_label: String = "AGLS") -> Dictionary:
+	var results: Dictionary = {}
+	_scan_imported_scenes_recursive(root_path, root_path, source_label, results)
+	return results
+
+
 func scan_authored(directory_path: String) -> Dictionary:
 	var results: Dictionary = {}
 	var directory := DirAccess.open(directory_path)
@@ -385,6 +391,35 @@ func _scan_mixamo_recursive(directory_path: String, results: Dictionary) -> void
 			elif "Shooter" in folder:
 				tag = "[Shooter] "
 			results[tag + file_name.get_basename().capitalize()] = directory_path + "/" + file_name
+		file_name = directory.get_next()
+	directory.list_dir_end()
+
+
+func _scan_imported_scenes_recursive(
+	root_path: String,
+	directory_path: String,
+	source_label: String,
+	results: Dictionary
+) -> void:
+	var directory := DirAccess.open(directory_path)
+	if directory == null:
+		return
+	directory.list_dir_begin()
+	var file_name := directory.get_next()
+	while not file_name.is_empty():
+		if directory.current_is_dir() and not file_name.begins_with("."):
+			_scan_imported_scenes_recursive(
+				root_path,
+				directory_path + "/" + file_name,
+				source_label,
+				results
+			)
+		elif file_name.ends_with(".scn") and not file_name.begins_with("."):
+			var family := directory_path.trim_prefix(root_path).trim_prefix("/")
+			var display_name := file_name.get_basename().replace("_", " ").capitalize()
+			results["[%s/%s] %s" % [source_label, family, display_name]] = (
+				directory_path + "/" + file_name
+			)
 		file_name = directory.get_next()
 	directory.list_dir_end()
 

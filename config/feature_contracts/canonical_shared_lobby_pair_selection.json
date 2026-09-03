@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "feature_id": "canonical_shared_lobby_pair_selection",
+  "player_intent": "A player in the canonical multiplayer lobby can choose one two-player duo and every connected player sees the same server-approved assignment.",
+  "acceptance_rule": "Ordinary lobbies reset to Alpha-versus-Bravo team mode and cannot start without both teams. Tournament HUDs emit only pair-id requests, hide irrelevant team controls, and group players by duo. The authoritative session accepts pair changes only during WAITING, rejects invalid or full pairs, clears the mover's ready flag after an actual move, and broadcasts the resulting SocomLobbyState snapshot.",
+  "canonical_scene": "res://multiplayer_slice.tscn",
+  "ownership": {
+    "lobby_pair_assignment": "SocomMultiplayerSession"
+  },
+  "nodes": [
+    {
+      "id": "canonical_multiplayer_session",
+      "type": "Node3D",
+      "role": "Hosts the authoritative lobby state and concrete pair-selection RPC through the canonical multiplayer inheritance chain.",
+      "owner": "SocomMultiplayerSession",
+      "scene_path": "res://multiplayer_slice.tscn",
+      "node_path": "."
+    },
+    {
+      "id": "lobby_pair_selector",
+      "type": "OptionButton",
+      "role": "Shows authoritative duo occupancy and emits the selected pair id as player intent without mutating lobby state.",
+      "owner": "SocomMultiplayerHUD",
+      "source_script": "res://scripts/network/socom_multiplayer_hud.gd",
+      "code_symbols": [
+        "pair_selector = OptionButton.new()",
+        "pair_selector.name = \"LobbyPairSelector\"",
+        "pair_selector.item_selected.connect(_on_pair_selected)"
+      ]
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://scripts/network/socom_lobby_state.gd",
+      "writer": "res://scripts/network/socom_multiplayer_lobby_pairing.gd",
+      "readers": [
+        "res://scripts/network/socom_multiplayer_hud.gd",
+        "res://scripts/network/socom_multiplayer_tournament_runtime.gd"
+      ]
+    }
+  ],
+  "must_not_change": [
+    "CharacterBody3D movement and collision ownership",
+    "SOCOM camera and reticle aim ownership",
+    "server shot, damage, ammunition, and ballistics authority",
+    "tournament arena assignment and winner advancement",
+    "launcher, Supabase, server backend, and deployment profiles"
+  ],
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Merge one server-validated pair request and one presentation-only selector into the existing lobby snapshot flow; preserve the established admission, tournament, combat, and transport owners.",
+    "current": {
+      "system": "Automatic pair allocation stored in SocomLobbyState with no canonical client request or lobby control",
+      "correctness": 3,
+      "ownership_clarity": 4,
+      "runtime_parity": 2,
+      "editor_usability": 1,
+      "performance": 5,
+      "regression_coverage": 2,
+      "evidence_paths": [
+        "res://scripts/network/socom_lobby_state.gd",
+        "res://scripts/network/socom_multiplayer_tournament_runtime.gd"
+      ]
+    },
+    "candidate": {
+      "system": "Canonical HUD request routed to a reliable RPC, validated by server-owned SocomLobbyState, and returned through the existing authoritative snapshot",
+      "correctness": 5,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 4,
+      "performance": 5,
+      "regression_coverage": 5,
+      "evidence_paths": [
+        "res://scripts/network/socom_multiplayer_hud.gd",
+        "res://scripts/network/socom_multiplayer_world_ui.gd",
+        "res://scripts/network/socom_multiplayer_lobby_pairing.gd",
+        "res://scripts/network/socom_multiplayer_slice.gd",
+        "res://tools/lobby_pair_selection_regression.gd"
+      ]
+    }
+  },
+  "proof_scripts": [
+    "res://tools/lobby_pair_selection_regression.gd",
+    "res://tools/multiplayer_inheritance_regression.gd",
+    "res://tools/multiplayer_slice_architecture_regression.gd",
+    "res://tools/feature_contract_regression.gd"
+  ],
+  "visual_check": "Run one ordinary host and confirm both Alpha and Bravo are required. Then run a tournament host and at least three clients: confirm only duo controls are shown, select an open duo, verify every lobby receives the same assignment, verify the move clears Green Up, and confirm a full duo rejects a third client."
+}

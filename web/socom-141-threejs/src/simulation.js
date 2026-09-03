@@ -3,6 +3,14 @@ export function moveToward(current, target, maximumDelta) {
   return Math.max(current - maximumDelta, target);
 }
 
+export function canonicalBoneName(name) {
+  return String(name || "")
+    .replace(/^mixamorig[:_]?/i, "")
+    .replace(/_\d+$/i, "")
+    .replace(/[^a-z0-9]/gi, "")
+    .toLowerCase();
+}
+
 export function recoverBloom(current, recoveryPerSecond, deltaSeconds) {
   return Math.max(0, current - recoveryPerSecond * Math.max(0, deltaSeconds));
 }

@@ -3,7 +3,7 @@ extends "res://scripts/network/socom_multiplayer_combat.gd"
 func _on_operator_eliminated(victim_peer_id: int, attacker_peer_id: int) -> void:
 	if not multiplayer.is_server():
 		return
-	var victim := operators.get(victim_peer_id) as SocomNetworkOperator
+	var victim: Variant = operators.get(victim_peer_id)
 	if String(mission_rules.get("primary_mode", "demolition")) == "demolition":
 		_drop_bomb_from_peer(victim_peer_id)
 		if (
@@ -41,8 +41,8 @@ func _end_round(winner_peer_id: int) -> void:
 	for raw_id in scores:
 		scores[raw_id] = 0
 	for raw_id in operators:
-		var peer_id := int(raw_id)
-		var operator := operators[raw_id] as SocomNetworkOperator
+		var peer_id: int = int(raw_id)
+		var operator: Variant = operators[raw_id]
 		operator.respawn_at(Vector3(assigned_spawns.get(peer_id, _spawn_for_peer(peer_id))))
 		_reset_ammo_for_peer(peer_id)
 	round_active = true
@@ -54,7 +54,7 @@ func _end_round(winner_peer_id: int) -> void:
 func _team_is_eliminated(team: int) -> bool:
 	var found_member := false
 	for raw_id: Variant in operators.keys():
-		var operator := operators[raw_id] as SocomNetworkOperator
+		var operator: Variant = operators[raw_id]
 		if operator == null or operator.team_id != team:
 			continue
 		found_member = true
@@ -115,8 +115,8 @@ func _server_start_next_round() -> void:
 	var team_members := {0: 0, 1: 0}
 	for raw_id: Variant in operators.keys():
 		var peer_id := int(raw_id)
-		var operator := operators[raw_id] as SocomNetworkOperator
-		var team := operator.team_id
+		var operator: Variant = operators[raw_id]
+		var team: int = int(operator.team_id)
 		var member_index := int(team_members.get(team, 0))
 		var spawn_position := _spawn_for_team(team, member_index)
 		team_members[team] = member_index + 1
@@ -181,7 +181,7 @@ func _respawn_after_delay(peer_id: int) -> void:
 	await get_tree().create_timer(RESPAWN_SECONDS).timeout
 	if not multiplayer.is_server():
 		return
-	var operator := operators.get(peer_id) as SocomNetworkOperator
+	var operator: Variant = operators.get(peer_id)
 	if operator:
 		operator.respawn_at(Vector3(assigned_spawns.get(peer_id, _spawn_for_peer(peer_id))))
 		_reset_ammo_for_peer(peer_id)

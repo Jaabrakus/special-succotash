@@ -4,6 +4,28 @@ extends RefCounted
 ## Converts authored clips and imported FBX takes for a live preview skeleton.
 ## Playback and UI state intentionally stay outside this service.
 
+const NATIVE_RIG_ADAPTER := preload(
+	"res://scripts/player/operator_native_rig_adapter.gd"
+)
+
+
+func bake_rest_aware_animation(
+	source: Animation,
+	source_skeleton: Skeleton3D,
+	target_skeleton: Skeleton3D,
+	skeleton_path: NodePath,
+	target_bone_map: Dictionary,
+	fps: float = 30.0
+) -> Animation:
+	return _bake_rest_aware_animation(
+		source,
+		source_skeleton,
+		target_skeleton,
+		skeleton_path,
+		target_bone_map,
+		fps
+	)
+
 
 func load_authored(
 	entry: Dictionary,
@@ -474,11 +496,7 @@ func _global_rest_origin(skeleton: Skeleton3D, normalized_bone: String) -> Vecto
 func _find_source_bone(skeleton: Skeleton3D, bone_name: String) -> int:
 	if skeleton == null or bone_name.is_empty():
 		return -1
-	var candidates := PackedStringArray([
-		bone_name,
-		bone_name.replace("mixamorig_", "mixamorig:"),
-		bone_name.replace("mixamorig:", "mixamorig_"),
-	])
+	var candidates := NATIVE_RIG_ADAPTER.source_bone_candidates(bone_name)
 	for candidate in candidates:
 		var index := skeleton.find_bone(candidate)
 		if index >= 0:

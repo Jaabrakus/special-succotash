@@ -2,9 +2,12 @@ class_name GunsmithWeaponLoader
 extends RefCounted
 
 const WEAPON_BASE_PATH := "res://assets/weapons/modular_pack/"
+const UNIVERSAL_WEAPON_STICK_PATH := (
+	"res://assets/weapons/placeholders/universal_weapon_stick.tscn"
+)
 
 
-static func get_weapon_file_path(file_name: String) -> String:
+static func get_source_weapon_file_path(file_name: String) -> String:
 	if file_name == "ak-47":
 		return "res://assets/weapons/ps1_ak47/source/ak-47.fbx"
 	if file_name == "9mm_pistol":
@@ -12,8 +15,12 @@ static func get_weapon_file_path(file_name: String) -> String:
 	return WEAPON_BASE_PATH + file_name + ".fbx"
 
 
-static func instantiate_weapon(file_name: String) -> Node3D:
-	var path := get_weapon_file_path(file_name)
+static func get_weapon_file_path(_file_name: String) -> String:
+	return UNIVERSAL_WEAPON_STICK_PATH
+
+
+static func instantiate_weapon(_file_name: String) -> Node3D:
+	var path := UNIVERSAL_WEAPON_STICK_PATH
 	if not ResourceLoader.exists(path):
 		return null
 	var scene := load(path) as PackedScene

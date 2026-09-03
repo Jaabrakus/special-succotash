@@ -1,0 +1,268 @@
+{
+  "armature": "CanonicalOperatorRig",
+  "armature_rotation_degrees": [
+    0.0,
+    0.0,
+    0.0
+  ],
+  "armature_scale": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "bone_count": 65,
+  "canonical_fbx": "/Users/kiwimango/socom-141-camera-lab/assets/animations/mixamo/Shooter Pack/rifle aiming idle.fbx",
+  "deformation_probes_m": {
+    "LeftArm": 0.247536,
+    "LeftFoot": 0.101396,
+    "LeftForeArm": 0.151469,
+    "LeftHand": 0.057647,
+    "LeftLeg": 0.191611,
+    "LeftUpLeg": 0.343093,
+    "RightArm": 0.246848,
+    "RightFoot": 0.093767,
+    "RightForeArm": 0.150279,
+    "RightHand": 0.054076,
+    "RightLeg": 0.194595,
+    "RightUpLeg": 0.341231
+  },
+  "mesh_count": 14,
+  "output_blend": "/Users/kiwimango/socom-141-camera-lab/tools/blender/workbenches/military_tactical_suit_universal.blend",
+  "output_bounds_m": {
+    "maximum": [
+      0.861847,
+      0.226098,
+      1.900294
+    ],
+    "minimum": [
+      -0.861847,
+      -0.226098,
+      0.0
+    ]
+  },
+  "output_glb": "/Users/kiwimango/socom-141-camera-lab/assets/characters/military_tactical_suit/military_tactical_suit_universal.glb",
+  "source_bounds_m": {
+    "maximum": [
+      0.861847,
+      0.226098,
+      1.900294
+    ],
+    "minimum": [
+      -0.861847,
+      -0.226098,
+      0.0
+    ]
+  },
+  "status": "pass",
+  "weight_proxy_fit": {
+    "maximum": [
+      0.861847,
+      0.226098,
+      1.900294
+    ],
+    "minimum": [
+      -0.861847,
+      -0.226098,
+      0.0
+    ],
+    "scale": [
+      0.954884,
+      1.410035,
+      1.050347
+    ]
+  },
+  "weight_proxy_glb": "/Users/kiwimango/socom-141-camera-lab/assets/characters/operator3d/mixamo_beta_skin.glb",
+  "weighted_centroid_audit": {
+    "LeftArm": {
+      "distance_m": 0.050156,
+      "weighted_vertices": 194
+    },
+    "LeftFoot": {
+      "distance_m": 0.101309,
+      "weighted_vertices": 101
+    },
+    "LeftForeArm": {
+      "distance_m": 0.042225,
+      "weighted_vertices": 1475
+    },
+    "LeftHand": {
+      "distance_m": 0.045596,
+      "weighted_vertices": 123
+    },
+    "LeftLeg": {
+      "distance_m": 0.099898,
+      "weighted_vertices": 1579
+    },
+    "LeftUpLeg": {
+      "distance_m": 0.08385,
+      "weighted_vertices": 815
+    },
+    "RightArm": {
+      "distance_m": 0.054616,
+      "weighted_vertices": 175
+    },
+    "RightFoot": {
+      "distance_m": 0.132564,
+      "weighted_vertices": 137
+    },
+    "RightForeArm": {
+      "distance_m": 0.048233,
+      "weighted_vertices": 1507
+    },
+    "RightHand": {
+      "distance_m": 0.043213,
+      "weighted_vertices": 229
+    },
+    "RightLeg": {
+      "distance_m": 0.068575,
+      "weighted_vertices": 1728
+    },
+    "RightUpLeg": {
+      "distance_m": 0.081604,
+      "weighted_vertices": 1282
+    }
+  },
+  "weights": {
+    "Object_101_0": {
+      "groups": 4,
+      "method": "canonical_surface_proxy",
+      "transfer_distance_max_m": 0.104482,
+      "transfer_distance_mean_m": 0.049724,
+      "transfer_distance_p95_m": 0.088369,
+      "unmapped_weight": 0.0,
+      "vertices": 2850,
+      "vertices_without_source_weight": 0
+    },
+    "Object_103_0": {
+      "groups": 4,
+      "method": "canonical_surface_proxy",
+      "transfer_distance_max_m": 0.169911,
+      "transfer_distance_mean_m": 0.068428,
+      "transfer_distance_p95_m": 0.135093,
+      "unmapped_weight": 0.0,
+      "vertices": 1497,
+      "vertices_without_source_weight": 0
+    },
+    "Object_105_0": {
+      "groups": 5,
+      "method": "canonical_surface_proxy",
+      "transfer_distance_max_m": 0.131661,
+      "transfer_distance_mean_m": 0.045844,
+      "transfer_distance_p95_m": 0.114857,
+      "unmapped_weight": 0.0,
+      "vertices": 1090,
+      "vertices_without_source_weight": 0
+    },
+    "Object_107_0": {
+      "groups": 15,
+      "method": "canonical_surface_proxy",
+      "transfer_distance_max_m": 0.131535,
+      "transfer_distance_mean_m": 0.031605,
+      "transfer_distance_p95_m": 0.085416,
+      "unmapped_weight": 0.0,
+      "vertices": 1159,
+      "vertices_without_source_weight": 0
+    },
+    "Object_109_0": {
+      "groups": 1,
+      "method": "canonical_surface_proxy",
+      "transfer_distance_max_m": 0.074119,
+      "transfer_distance_mean_m": 0.02269,
+      "transfer_distance_p95_m": 0.060206,
+      "unmapped_weight": 0.0,
+      "vertices": 722,
+      "vertices_without_source_weight": 0
+    },
+    "Object_111_0": {
+      "groups": 2,
+      "method": "canonical_surface_proxy",
+      "transfer_distance_max_m": 0.091717,
+      "transfer_distance_mean_m": 0.044394,
+      "transfer_distance_p95_m": 0.081951,
+      "unmapped_weight": 0.0,
+      "vertices": 4083,
+      "vertices_without_source_weight": 0
+    },
+    "Object_113_0": {
+      "groups": 5,
+      "method": "canonical_surface_proxy",
+      "transfer_distance_max_m": 0.150976,
+      "transfer_distance_mean_m": 0.045716,
+      "transfer_distance_p95_m": 0.125415,
+      "unmapped_weight": 0.0,
+      "vertices": 940,
+      "vertices_without_source_weight": 0
+    },
+    "Object_115_0": {
+      "groups": 17,
+      "method": "canonical_surface_proxy",
+      "transfer_distance_max_m": 0.100771,
+      "transfer_distance_mean_m": 0.040626,
+      "transfer_distance_p95_m": 0.084784,
+      "unmapped_weight": 0.0,
+      "vertices": 1350,
+      "vertices_without_source_weight": 0
+    },
+    "Object_117_0": {
+      "groups": 4,
+      "method": "canonical_surface_proxy",
+      "transfer_distance_max_m": 0.079784,
+      "transfer_distance_mean_m": 0.027211,
+      "transfer_distance_p95_m": 0.060079,
+      "unmapped_weight": 0.0,
+      "vertices": 2846,
+      "vertices_without_source_weight": 0
+    },
+    "Object_119_0": {
+      "groups": 3,
+      "method": "canonical_surface_proxy",
+      "transfer_distance_max_m": 0.072561,
+      "transfer_distance_mean_m": 0.017933,
+      "transfer_distance_p95_m": 0.061853,
+      "unmapped_weight": 0.0,
+      "vertices": 700,
+      "vertices_without_source_weight": 0
+    },
+    "Object_121_0": {
+      "groups": 3,
+      "method": "canonical_surface_proxy",
+      "transfer_distance_max_m": 0.083404,
+      "transfer_distance_mean_m": 0.026315,
+      "transfer_distance_p95_m": 0.060714,
+      "unmapped_weight": 0.0,
+      "vertices": 628,
+      "vertices_without_source_weight": 0
+    },
+    "Object_123_0": {
+      "groups": 5,
+      "method": "canonical_surface_proxy",
+      "transfer_distance_max_m": 0.193329,
+      "transfer_distance_mean_m": 0.074366,
+      "transfer_distance_p95_m": 0.154686,
+      "unmapped_weight": 0.0,
+      "vertices": 528,
+      "vertices_without_source_weight": 0
+    },
+    "Object_97_0": {
+      "groups": 1,
+      "method": "canonical_surface_proxy",
+      "transfer_distance_max_m": 0.068305,
+      "transfer_distance_mean_m": 0.028717,
+      "transfer_distance_p95_m": 0.055501,
+      "unmapped_weight": 0.0,
+      "vertices": 1371,
+      "vertices_without_source_weight": 0
+    },
+    "Object_99_0": {
+      "groups": 5,
+      "method": "canonical_surface_proxy",
+      "transfer_distance_max_m": 0.074174,
+      "transfer_distance_mean_m": 0.026353,
+      "transfer_distance_p95_m": 0.058943,
+      "unmapped_weight": 0.0,
+      "vertices": 945,
+      "vertices_without_source_weight": 0
+    }
+  },
+  "workbench": "/Users/kiwimango/socom-141-camera-lab/tools/blender/workbenches/military_tactical_suit_textured_source.blend"
+}

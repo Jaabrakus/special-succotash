@@ -1,0 +1,138 @@
+{
+  "schema_version": 1,
+  "feature_id": "morro_do_sol_v2_art_direction",
+  "player_intent": "Players fight the proven Morro do Sol 2v2 demolition layout inside a richer original hillside neighborhood whose foreground reads as constructed architecture, with supplied damaged-plaster and exposed-wood materials, complete glass-and-sash windows, climbable crate staging, supported ramps to both objective-side roofs, smaller occupied buildings stacked above them, monumental clouds, overhead utility lines, dense edge vegetation, and a distant coast.",
+  "acceptance_rule": "The launcher lists Morro do Sol V1 and V2 separately. V2 preserves every V1 object and every pre-existing V2 non-building transform; replaces the thirty-six disconnected building shell pieces with six base procedural assemblies at the original footprints plus two smaller occupied upper modules; consumes the supplied plaster and wood textures on canonical runtime meshes; constructs glass, sash, mullions, shutters, and bars at every authored window; retains two Alpha spawns, two Bravo spawns, one bomb, A/B sites, the six pre-existing ramps, tall interiors, and no respawns; adds exactly 18 collidable V2 roof-route objects comprising four ramps, two supported landings, four posts, six climb crates, and two upper modules; keeps exactly 51 collision-free tagged art objects and 138 saved objects total; and loads visibly through res://main.tscn.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://map_creation_lab.tscn",
+  "ownership": {
+    "map_data_and_library_selection": "SocomMapDocument",
+    "world_geometry_and_collision": "SocomMapRuntime",
+    "sky_lighting_coast_and_fog": "SocomMapAmbienceEngine",
+    "demolition_markers_and_rules": "SocomMapGameplayContract"
+  },
+  "nodes": [
+    {
+      "id": "v2_building_assemblies",
+      "type": "Node3D",
+      "role": "Builds six base structures and two smaller occupied upper modules with supplied plaster and exposed-wood materials, real door and window voids, glass, sash, mullions, shutters, bars, swinging door leaves, corrugated awnings, physical public-building signs, cornices, pilasters, raised foundations, irregular plaster meshes, exposed brick relief, gutters, downspouts, and electrical service details.",
+      "owner": "SocomMapRuntime",
+      "source_script": "res://scripts/maps/socom_map_runtime.gd",
+      "code_symbols": ["_build_favela_building", "_apply_authored_surface_texture", "_add_door_architecture", "_add_window_architecture", "_add_window_sash_and_glass", "_add_irregular_plaster_patch"]
+    },
+    {
+      "id": "v2_vertical_routes",
+      "type": "Node3D",
+      "role": "Builds mirrored Alpha and Bravo roof access from collidable timber crate pyramids, two-stage wedge ramps, supported intermediate landings, and smaller occupied upper modules whose ramp endpoints meet the existing terrace and roof heights.",
+      "owner": "SocomMapRuntime",
+      "source_script": "res://scripts/maps/socom_map_runtime.gd",
+      "code_symbols": ["_build_wooden_crate", "_build_wedge_ramp", "CollisionShape3D"]
+    },
+    {
+      "id": "v2_map_details",
+      "type": "Node3D",
+      "role": "Contains the saved V2 hills, vegetation, exposed framing, cylindrical utility poles, curved overhead cables, and exterior collapse as collision-free map objects.",
+      "owner": "SocomMapRuntime",
+      "source_script": "res://tools/generate_morro_do_sol_v2_2v2.gd",
+      "code_symbols": ["v2_detail", "collision_enabled", "_add_unfinished_skyline", "_add_utility_layer"]
+    },
+    {
+      "id": "v2_world_environment",
+      "type": "WorldEnvironment",
+      "role": "Renders the stronger blue sky, monumental painted clouds, warm sun, and coastal haze.",
+      "owner": "SocomMapAmbienceEngine",
+      "source_script": "res://scripts/maps/socom_map_ambience_engine.gd",
+      "code_symbols": ["PainterlyCoastalV2Sky", "painterly_coastal_v2", "MapWorldEnvironment"]
+    },
+    {
+      "id": "v2_distant_coast",
+      "type": "MeshInstance3D",
+      "role": "Displays the original V2 beach, ocean, green headlands, lower city, and giant cloud beyond the downhill wall without collision.",
+      "owner": "SocomMapAmbienceEngine",
+      "source_script": "res://scripts/maps/socom_map_ambience_engine.gd",
+      "code_symbols": ["DistantCoastalBackdrop", "map_ambience_only", "SHADOW_CASTING_SETTING_OFF"]
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://config/maps/morro_do_sol_v2_2v2.json",
+      "writer": "res://tools/generate_morro_do_sol_v2_2v2.gd",
+      "readers": [
+        "res://scripts/maps/socom_map_document.gd",
+        "res://scripts/maps/socom_map_runtime.gd",
+        "res://scripts/maps/socom_map_ambience_engine.gd",
+        "res://scripts/maps/socom_map_gameplay_contract.gd"
+      ]
+    },
+    {
+      "path": "res://assets/shaders/painterly_coastal_v2_sky.gdshader",
+      "writer": "res://scripts/maps/socom_map_ambience_engine.gd",
+      "readers": ["res://scripts/maps/socom_map_ambience_engine.gd"]
+    },
+    {
+      "path": "res://assets/textures/environment/morro_do_sol_v2_distant_coast.png",
+      "writer": "res://tools/generate_morro_do_sol_v2_2v2.gd",
+      "readers": ["res://scripts/maps/socom_map_ambience_engine.gd"]
+    },
+    {
+      "path": "res://assets/textures/environment/morro_do_sol_v2_exposed_wood.png",
+      "writer": "res://tools/generate_morro_do_sol_v2_2v2.gd",
+      "readers": ["res://scripts/maps/socom_map_runtime.gd"]
+    },
+    {
+      "path": "res://assets/textures/environment/morro_do_sol_v2_painted_plaster.png",
+      "writer": "res://tools/generate_morro_do_sol_v2_2v2.gd",
+      "readers": ["res://scripts/maps/socom_map_runtime.gd"]
+    }
+  ],
+  "must_not_change": [
+    "Morro do Sol V1 saved map and launcher entry",
+    "CharacterBody3D movement, stance, and collision authority",
+    "SOCOM camera and reticle aim authority",
+    "server weapon, ballistics, damage, and networking authority",
+    "operator animation, IK, reload, and fire-recovery presentation",
+    "Morro do Sol V1 map data and all pre-existing V2 non-building route, spawn, objective, ramp, platform, stair, and collision transforms"
+  ],
+  "proof_scripts": [
+    "res://tools/morro_do_sol_v2_2v2_regression.gd",
+    "res://tools/feature_contract_regression.gd"
+  ],
+  "visual_check": "Select Morro do Sol V2 — 2v2 Demolition and enter the canonical Training Range. Inspect the Alpha approach, defender skyline, all eight building facades and interiors, both two-stage roof routes, both crate pyramids, exterior south wall, and ocean-facing view. Confirm supplied plaster and wood are visible on the intended architecture; every window reads as glass, sash, mullions, shutters, and bars; ramps visibly meet their landings and roofs; supports reach the terrace; crates are constructed rather than plain cubes; and presentation-only details do not behave as cover, block aim corridors, hide the reticle, or alter pre-existing routes.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "New feedback clarified that constructed geometry and the supplied textures are both required, and that the roofline must become a real playable layer. Merge the retained compound architecture with authored plaster and wood materials, complete window assemblies, and a bounded mirrored vertical-route layer. This improves visual legibility and playability without changing V1 or any player, camera, weapon, animation, networking, objective, or pre-existing route owner.",
+    "current": {
+      "system": "Six compound V2 architectural assemblies with bounded details and coastal ambience, but without consumed plaster on the walls, complete glass-and-sash window assemblies, or playable roof access",
+      "correctness": 4,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 4,
+      "performance": 4,
+      "regression_coverage": 4,
+      "evidence_paths": [
+        "res://tools/generate_morro_do_sol_v2_2v2.gd",
+        "res://config/maps/morro_do_sol_v2_2v2.json",
+        "res://scripts/maps/socom_map_runtime.gd"
+      ]
+    },
+    "candidate": {
+      "system": "Morro do Sol V2 with eight compound architectural assemblies, supplied facade materials, complete windows, mirrored collidable roof routes, dedicated utility geometry, retained coastal ambience, and 51 bounded presentation objects",
+      "correctness": 5,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 5,
+      "performance": 4,
+      "regression_coverage": 5,
+      "evidence_paths": [
+        "res://config/maps/morro_do_sol_v2_2v2.json",
+        "res://tools/generate_morro_do_sol_v2_2v2.gd",
+        "res://scripts/maps/socom_map_runtime.gd",
+        "res://assets/textures/environment/morro_do_sol_v2_painted_plaster.png",
+        "res://assets/textures/environment/morro_do_sol_v2_exposed_wood.png",
+        "res://assets/shaders/painterly_coastal_v2_sky.gdshader",
+        "res://scripts/maps/socom_map_ambience_engine.gd",
+        "res://tools/morro_do_sol_v2_2v2_regression.gd"
+      ]
+    }
+  }
+}

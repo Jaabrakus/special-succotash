@@ -1,0 +1,103 @@
+{
+  "schema_version": 1,
+  "feature_id": "tournament_six_round_sudden_death_vote",
+  "player_intent": "A 2v2 tournament match has a visible six-round regulation limit, resolves timed rounds from authoritative team health, and turns a tied regulation score into a teammate-selected 1v1 sudden death instead of an arbitrary loss or endless draw loop.",
+  "acceptance_rule": "Each isolated arena plays no more than six regulation rounds and ends early only when its score is mathematically uncatchable; a timeout awards the round to the duo with greater combined server health, an exact health tie consumes a drawn regulation round, and a tied score after round six opens a ten-second vote in which each player can nominate only a member of their own duo. The selected representative from each duo is the only combat-eligible player in sudden death, split or absent votes use the pair captain as deterministic authority, a sudden-death timeout replays the same 1v1, and the first representative eliminated loses the match.",
+  "canonical_scene": "res://multiplayer_slice.tscn",
+  "editor_scene": "res://game_launcher.tscn",
+  "ownership": {
+    "round_score_phase_and_vote_resolution": "SocomArenaSubMatch",
+    "authoritative_health": "SocomNetworkOperator",
+    "vote_transport_and_deployment": "SocomMultiplayerTournamentRuntime",
+    "vote_presentation": "SocomMultiplayerHUD",
+    "shot_and_damage": "AuthoritativeServerWeapon"
+  },
+  "nodes": [
+    {
+      "id": "sudden_death_vote_panel",
+      "type": "PanelContainer",
+      "role": "Shows the local duo's two authenticated representative choices, vote counts, and remaining decision time.",
+      "owner": "SocomMultiplayerHUD",
+      "source_script": "res://scripts/network/socom_multiplayer_hud.gd",
+      "code_symbols": [
+        "sudden_death_vote_panel.name = \"SuddenDeathVotePanel\"",
+        "signal sudden_death_vote_requested(candidate_peer_id: int)",
+        "show_sudden_death_vote_state"
+      ]
+    },
+    {
+      "id": "authoritative_tournament_runtime",
+      "type": "Node3D",
+      "role": "Authenticates each vote, forwards server health to the arena rules owner, disables non-selected teammates, and scopes the result to the correct arena.",
+      "owner": "SocomMultiplayerTournamentRuntime",
+      "source_script": "res://scripts/network/socom_multiplayer_tournament_runtime.gd",
+      "code_symbols": [
+        "_tournament_health_by_peer",
+        "_server_submit_sudden_death_vote",
+        "match.is_peer_combat_eligible(peer_id)"
+      ]
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://config/network/tournament_round_rules.json",
+      "writer": "res://scripts/network/socom_tournament_round_rules.gd",
+      "readers": [
+        "res://scripts/network/socom_arena_sub_match.gd",
+        "res://scripts/network/socom_multiplayer_tournament_runtime.gd",
+        "res://scripts/network/socom_multiplayer_hud.gd"
+      ]
+    }
+  ],
+  "must_not_change": [
+    "CharacterBody3D movement, velocity, and collision authority",
+    "SOCOM camera and reticle aim authority",
+    "server shot, damage, ammunition, and ballistics authority",
+    "weapon hand contacts, square-shoulder fire pose, fire recovery, reload, and animation presentation",
+    "ordinary non-tournament demolition round rules",
+    "arena isolation, map geometry, bracket seeding, and matchmaking"
+  ],
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Merge the cap, health timeout rule, authenticated teammate vote, and representative eligibility into the existing arena/session/runtime chain; retain the existing server health, combat, bracket, map, input, and HUD ownership boundaries.",
+    "current": {
+      "system": "Forty-second first-to-three arena matches where equal survivor counts create unlimited replayed draws and there is no terminal tied-score or representative-selection phase",
+      "correctness": 2,
+      "ownership_clarity": 4,
+      "runtime_parity": 2,
+      "editor_usability": 1,
+      "performance": 5,
+      "regression_coverage": 3,
+      "evidence_paths": [
+        "res://scripts/network/socom_arena_sub_match.gd",
+        "res://scripts/network/socom_multiplayer_tournament_runtime.gd",
+        "res://tools/tournament_session_regression.gd"
+      ]
+    },
+    "candidate": {
+      "system": "Saved six-round regulation rules, authoritative combined-health timeout scoring, arena-scoped teammate vote UI/RPCs, and elimination-only selected-representative sudden death",
+      "correctness": 5,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 4,
+      "performance": 5,
+      "regression_coverage": 5,
+      "evidence_paths": [
+        "res://config/network/tournament_round_rules.json",
+        "res://scripts/network/socom_tournament_round_rules.gd",
+        "res://scripts/network/socom_arena_sub_match.gd",
+        "res://scripts/network/socom_multiplayer_tournament_runtime.gd",
+        "res://scripts/network/socom_multiplayer_hud.gd",
+        "res://tools/tournament_sudden_death_regression.gd"
+      ]
+    }
+  },
+  "proof_scripts": [
+    "res://tools/tournament_sudden_death_regression.gd",
+    "res://tools/tournament_session_regression.gd",
+    "res://tools/test_multi_arena_tournament.gd",
+    "res://tools/tournament_replication_scope_regression.gd",
+    "res://tools/feature_contract_regression.gd"
+  ],
+  "visual_check": "Launch a tournament arena, alternate regulation-round winners to reach 3-3 after six rounds, confirm both members of each duo see only their two named candidates and a ten-second vote, choose representatives, verify the two unselected teammates disappear from combat and cannot fire or receive damage, allow one sudden-death timeout to verify the same representatives replay, then eliminate one representative and confirm the opposing pair advances."
+}

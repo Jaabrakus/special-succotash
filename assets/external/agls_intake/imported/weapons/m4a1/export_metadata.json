@@ -1,0 +1,47 @@
+{
+  "glb_scene": {
+    "animation_count": 0,
+    "byte_length": 776720,
+    "image_count": 0,
+    "material_count": 2,
+    "mesh_count": 1,
+    "nodes": [
+      null,
+      "root",
+      "trigger",
+      "magazine",
+      "bullets",
+      "charging_handle",
+      "muzzle",
+      "sights",
+      "sight_type1",
+      "sight_type2",
+      "stock",
+      "barrel"
+    ],
+    "skin_count": 1,
+    "texture_count": 0
+  },
+  "interop_contract": "socom141-agls-player-presentation-v1",
+  "materials": [
+    {
+      "asset": "/Game/AdvancedLocomotionV4/Props/Materials/Rifles/M_Rifle_VertexColor_M4A4.M_Rifle_VertexColor_M4A4",
+      "slot": "M_Prop_M4A1"
+    },
+    {
+      "asset": "/Game/AdvancedLocomotionV4/Props/Materials/Rifles/M_Rifle_VertexColor_M4A4.M_Rifle_VertexColor_M4A4",
+      "slot": "Sight2_Mat"
+    }
+  ],
+  "output_bytes": 776720,
+  "output_glb": "/Users/kiwimango/Documents/SOCOM-141/assets/external/agls_intake/imported/weapons/m4a1/m4a1.glb",
+  "presentation_only": true,
+  "schema_version": 1,
+  "skeleton": "/Game/AdvancedLocomotionV4/Props/Meshes/Rifle/M4A1_Skeleton.M4A1_Skeleton",
+  "sockets": [],
+  "source_asset": "/Game/AdvancedLocomotionV4/Props/Meshes/Rifle/M4A1",
+  "source_class": "SkeletalMesh",
+  "source_engine": "Unreal Engine 5.8",
+  "source_project": "AGLS v1.9.2",
+  "weapon_gameplay_logic_included": false
+}

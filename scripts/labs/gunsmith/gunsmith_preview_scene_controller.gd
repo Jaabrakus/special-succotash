@@ -320,6 +320,8 @@ static func _set_weapon_ik_enabled(lab: Node,enabled: bool) -> void:
 static func _set_save_enabled(lab: Node,enabled: bool) -> void:
 	if lab.save_rig_button:
 		lab.save_rig_button.disabled = not enabled
+	if lab.equip_weapon_button:
+		lab.equip_weapon_button.disabled = not enabled
 	if lab.play_latest_button:
 		lab.play_latest_button.disabled = not enabled
 

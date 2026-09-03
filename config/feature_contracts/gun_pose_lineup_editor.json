@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "feature_id": "gun_pose_lineup_editor",
+  "player_intent": "Open the Gun Pose Lineup from the running game's Studio menu and see every important rifle presentation state at the same time; the same scene also keeps its native Godot hierarchy for detailed editing.",
+  "acceptance_rule": "The OPEN A STUDIO LAB menu contains Gun Pose Lineup — All States Live. Selecting it opens one horizontal line containing idle rifle, aim idle, combat ready, fire, forward run, left run, right run, crouch move, prone move, and reload with an active review camera. Each state continuously evaluates its mapped animation. Combat ready and fire expose the canonical TargetPivot graph; ordinary movement and reload keep body IK at zero.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://scenes/labs/gun_pose_lineup_lab.tscn",
+  "ownership": {
+    "editor_lineup": "SocomGunPoseLineupEditor",
+    "animation_routes": "SocomOperatorAnimationProfile",
+    "canonical_rig": "res://scenes/player/canonical_socom_operator_rig.tscn",
+    "studio_navigation": "StudioNavigation",
+    "gameplay": "UNCHANGED"
+  },
+  "nodes": [
+    {
+      "id": "pose_lineup",
+      "type": "Node3D",
+      "role": "Owns ten named side-by-side editor contexts, never a pose selector.",
+      "owner": "SocomGunPoseLineupEditor",
+      "scene_path": "res://scenes/labs/gun_pose_lineup_lab.tscn",
+      "node_path": "PoseLineup"
+    },
+    {
+      "id": "canonical_target_pivot_per_context",
+      "type": "Marker3D",
+      "role": "Provides native editor Scene-tree and Inspector access to the same saved TargetPivot hierarchy used by gameplay presentation.",
+      "owner": "SocomGunPoseLineupEditor",
+      "scene_path": "res://scenes/player/canonical_socom_operator_rig.tscn",
+      "node_path": "IKControlGraph/TargetPivot"
+    },
+    {
+      "id": "runtime_review_camera",
+      "type": "Camera3D",
+      "role": "Frames all ten presentation states inside the running Studio lab without consuming canonical camera or aim authority.",
+      "owner": "SocomGunPoseLineupEditor",
+      "scene_path": "res://scenes/labs/gun_pose_lineup_lab.tscn",
+      "node_path": "RuntimeReviewCamera"
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://config/weapons/m4a1.json",
+      "writer": "res://scripts/labs/gunsmith/gunsmith_persistence_controller.gd",
+      "readers": [
+        "res://scenes/labs/gun_pose_lineup_lab.tscn"
+      ]
+    }
+  ],
+  "must_not_change": [
+    "main.tscn",
+    "CharacterBody3D movement and collision authority",
+    "SOCOM camera and reticle authority",
+    "weapon ballistics, damage, and networking authority",
+    "runtime animation routing"
+  ],
+  "proof_scripts": [
+    "res://tools/gun_pose_lineup_editor_regression.gd",
+    "res://tools/studio_navigation_regression.gd"
+  ],
+  "visual_check": "In the running Studio, open OPEN A STUDIO LAB and select Gun Pose Lineup — All States Live. Confirm ten labeled operators form one line and animate together. In the native editor, expanding CombatReady/OperatorRig must reveal VisualModel/Skeleton3D plus IKControlGraph/TargetPivot and its four contact targets.",
+  "failure_lessons": [
+    "A dropdown hides cross-state regressions. A weapon-presentation workbench must render every critical state simultaneously.",
+    "Do not imitate the Godot editor inside the game. Use a real @tool scene so the native Scene tree, Inspector, gizmos, and Undo/Redo remain available.",
+    "Use the saved canonical operator rig as the preview source. Rebuilding a second skeleton or modifier hierarchy creates parity drift.",
+    "Ordinary locomotion and reload are animation-owned. Only combat-ready and accepted-fire previews may enable the TargetPivot body modifiers.",
+    "A saved SkeletonModifier3D node is only a placeholder in the editor when its custom script is not @tool. Editor/game parity requires the canonical arm-aim, weapon-hand attachment, and read-only contact-observer scripts to opt into editor execution.",
+    "A native editor tool is not discoverable from the running Studio until config/integration_manifest.json registers its scene. One shared scene can serve both surfaces when it uses a passive runtime review camera and does not claim canonical camera authority.",
+    "A ten-rig headless screenshot probe stalled before its first Metal frame while remaining below 140 MB. Keep the editor lab's proof structural and inspect the native 3D viewport directly; do not make a hanging offscreen render part of the integration gate."
+  ],
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Expose all critical weapon presentation states side-by-side in one active tool while reusing canonical operator rigs.",
+    "current": {
+      "system": "Single-pose animation studio dropdown preview",
+      "correctness": 3,
+      "ownership_clarity": 3,
+      "runtime_parity": 3,
+      "editor_usability": 2,
+      "performance": 4,
+      "regression_coverage": 3,
+      "evidence_paths": [
+        "res://scenes/labs/gun_pose_lineup_lab.tscn"
+      ]
+    },
+    "candidate": {
+      "system": "Ten-state simultaneous live lineup editor",
+      "correctness": 5,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 5,
+      "performance": 4,
+      "regression_coverage": 5,
+      "evidence_paths": [
+        "res://scenes/labs/gun_pose_lineup_lab.tscn",
+        "res://tools/gun_pose_lineup_editor_regression.gd"
+      ]
+    }
+  }
+}

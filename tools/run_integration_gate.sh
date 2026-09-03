@@ -2,7 +2,8 @@
 set -euo pipefail
 
 project_dir="${0:A:h:h}"
-godot_bin="${GODOT_BIN:-/Users/kiwimango/Downloads/Godot.app/Contents/MacOS/Godot}"
+godot_bin="${GODOT_BIN:-/Users/kiwimango/Applications/Godot-4.7.1.app/Contents/MacOS/Godot}"
+export GODOT_BIN="$godot_bin"
 mode="${1:-quick}"
 report_dir="${TMPDIR:-/private/tmp}/socom-integration-gate"
 canonical_branch="main"
@@ -40,7 +41,7 @@ print "Branch:  $current_branch"
   --path "$project_dir" \
   --editor \
   --quit
-if rg -q 'SCRIPT ERROR|Parse Error' "$report_dir/project-parse.log"; then
+if grep -E -q 'SCRIPT ERROR|Parse Error' "$report_dir/project-parse.log"; then
   print -u2 "FAIL: project parse reported a script error"
   exit 1
 fi
@@ -59,11 +60,11 @@ run_godot_check() {
     --path "$project_dir" \
     --script "$script_path" \
     "${script_args[@]}"
-  if rg -q 'SCRIPT ERROR|Parse Error|_CHECK FAIL|_REGRESSION FAIL' "$log_path"; then
+  if grep -E -q 'SCRIPT ERROR|Parse Error|_CHECK FAIL|_REGRESSION FAIL' "$log_path"; then
     print -u2 "FAIL: $label reported an error"
     exit 1
   fi
-  if ! rg -q "$pass_marker" "$log_path"; then
+  if ! grep -E -q "$pass_marker" "$log_path"; then
     print -u2 "FAIL: $label did not print its pass marker"
     exit 1
   fi
@@ -82,12 +83,18 @@ run_godot_check "animation-state-authoring" "res://tools/animation_state_authori
 run_godot_check "operator-pose-pipeline" "res://tools/operator_pose_pipeline_regression.gd" "OPERATOR_POSE_PIPELINE_REGRESSION PASS"
 run_godot_check "weapon-auto-reload" "res://tools/weapon_auto_reload_regression.gd" "WEAPON_AUTO_RELOAD_REGRESSION PASS"
 run_godot_check "weapon-fire" "res://tools/weapon_fire_regression.gd" "WEAPON_FIRE_REGRESSION PASS" -- --camera-regression-map
+run_godot_check "all-weapon-fire-recovery" "res://tools/all_weapon_fire_recovery_regression.gd" "ALL_WEAPON_FIRE_RECOVERY_REGRESSION PASS"
+run_godot_check "firearm-family-live-contact" "res://tools/firearm_family_live_contact_regression.gd" "FIREARM_FAMILY_LIVE_CONTACT_REGRESSION PASS"
 run_godot_check "gameplay-reload-completion" "res://tools/gameplay_reload_completion_regression.gd" "GAMEPLAY_RELOAD_COMPLETION_REGRESSION PASS"
+run_godot_check "feature-contracts" "res://tools/feature_contract_regression.gd" "\[FEATURE CONTRACT\] PASS:"
 "$project_dir/tools/run_operator_config_validation.sh"
 "$project_dir/tools/run_operator_animation_regression.sh"
 "$project_dir/tools/run_operator_weapon_pose_regression.sh"
 "$project_dir/tools/run_mobility_regression.sh"
 run_godot_check "gun-lab" "res://tools/gun_lab_animation_catalog_regression.gd" "GUN_LAB_ANIMATION_CATALOG_REGRESSION PASS"
+run_godot_check "guns-lab-2-profile" "res://tools/guns_lab_2_profile_regression.gd" "GUNS_LAB_2_PROFILE_REGRESSION PASS"
+run_godot_check "guns-lab-2-runtime" "res://tools/guns_lab_2_runtime_regression.gd" "GUNS_LAB_2_RUNTIME_REGRESSION PASS"
+run_godot_check "firearm-family-presentation" "res://tools/firearm_family_presentation_regression.gd" "FIREARM_FAMILY_PRESENTATION_REGRESSION PASS"
 run_godot_check "gunsmith-recom-catalog" "res://tools/gunsmith_recom_catalog_regression.gd" "GUNSMITH_RECOM_CATALOG_REGRESSION PASS"
 run_godot_check "buy-menu" "res://tools/buy_menu_regression.gd" "BUY_MENU_REGRESSION PASS"
 run_godot_check "weapon-rig-integration" "res://tools/weapon_rig_integration_regression.gd" "WEAPON_RIG_INTEGRATION_REGRESSION PASS"
@@ -96,6 +103,12 @@ run_godot_check "player-ammunition-ownership" "res://tools/player_health_weapon_
 run_godot_check "muzzle-obstruction-authority" "res://tools/muzzle_obstruction_regression.gd" "MUZZLE_OBSTRUCTION_REGRESSION PASS"
 run_godot_check "multiplayer-slice-architecture" "res://tools/multiplayer_slice_architecture_regression.gd" "MULTIPLAYER_SLICE_ARCHITECTURE_REGRESSION PASS"
 run_godot_check "multiplayer-demolition" "res://tools/multiplayer_slice_regression.gd" "MULTIPLAYER_SLICE_REGRESSION PASS"
+run_godot_check "multiplayer-inheritance" "res://tools/multiplayer_inheritance_regression.gd" "MULTIPLAYER_INHERITANCE_REGRESSION PASS"
+run_godot_check "browser-multiarena-deployment" "res://tools/browser_multiarena_deployment_regression.gd" "BROWSER_MULTI_ARENA_DEPLOYMENT_REGRESSION PASS"
+run_godot_check "tournament-session" "res://tools/tournament_session_regression.gd" "TOURNAMENT_SESSION_REGRESSION PASS"
+run_godot_check "tournament-map-pods" "res://tools/tournament_map_pods_regression.gd" "TOURNAMENT_MAP_PODS_REGRESSION PASS"
+run_godot_check "tournament-replication-scope" "res://tools/tournament_replication_scope_regression.gd" "TOURNAMENT_REPLICATION_SCOPE_REGRESSION PASS"
+run_godot_check "stair-playability" "res://tools/stair_playability_regression.gd" "STAIR_PLAYABILITY_REGRESSION PASS"
 run_godot_check "dynamic-hand-ownership" "res://tools/test_dynamic_hand_owned_weapon.gd" "DYNAMIC_HAND_OWNERSHIP_REGRESSION PASS"
 run_godot_check "dynamic-reload-handoff" "res://tools/test_dynamic_reload_handoff.gd" "DYNAMIC_RELOAD_HANDOFF_REGRESSION PASS"
 run_godot_check "weapon-presentation-owner" "res://tools/weapon_presentation_owner_regression.gd" "WEAPON_PRESENTATION_OWNER_REGRESSION PASS"
@@ -107,6 +120,7 @@ if [[ "$mode" == "full" ]]; then
 	"$project_dir/tools/release_protection_check.sh"
 	"$project_dir/tools/run_startup_performance_regression.sh"
 	"$project_dir/tools/run_multiplayer_lifecycle_probe.sh"
+	"$project_dir/tools/run_tournament_websocket_32_peer_probe.sh"
 	"$project_dir/tools/run_operator_locomotion_quality_regression.sh"
   "$project_dir/tools/run_operator_pose_tool_regression.sh"
   "$project_dir/tools/run_input_device_ownership_regression.sh"

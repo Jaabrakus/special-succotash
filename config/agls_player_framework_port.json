@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "target": "Rebuild the complete AGLS player animation and interaction framework in Godot while preserving the SOCOM-141 combat core.",
+  "rig": {
+    "owner": "AGLS",
+    "config": "res://config/operator_rig.json",
+    "animation_map": "res://config/agls_operator_animation_map.json",
+    "strict_authored_pose": true,
+    "disabled_legacy_corrections": [
+      "square_shoulders",
+      "procedural_arm_placement",
+      "procedural_hand_placement",
+      "procedural_weapon_pose",
+      "foot_contact_lock",
+      "saved_frame_pose_overrides"
+    ]
+  },
+  "protected_socom_owners": {
+    "camera_and_mouse_string_aim": "res://scripts/camera/socom_camera.gd",
+    "reticle_and_feedback": "res://scripts/ui/socom_dynamic_reticle.gd",
+    "weapon_input_and_ammunition": "res://scripts/weapons/socom_weapon_controller.gd",
+    "ballistics_and_dispersion": "res://scripts/weapons/weapon_ballistics.gd",
+    "hurtboxes_and_damage": "res://scripts/combat/socom_animated_hurtbox_rig.gd",
+    "shot_authority": "res://scripts/network/socom_shot_authority.gd",
+    "multiplayer_combat": "res://scripts/network/socom_multiplayer_combat.gd",
+    "authoritative_body": "res://scripts/player/player_controller.gd"
+  },
+  "state_policy": {
+    "animation_assets": "Import and play the native AGLS animation on the native AGLS skeleton.",
+    "unreal_state_logic": "Recreate Blueprint, AnimGraph, notify, trace, and physics behavior as tested Godot state modules.",
+    "root_motion": "Visual sampling only; a Godot gameplay motor owns collision and authoritative travel.",
+    "networking": "The server validates every state entry that changes gameplay position, inventory, or combat eligibility."
+  },
+  "approved_hybrid_animation_exceptions": {
+    "dive_roll": {
+      "source": "res://assets/animations/mixamo/Running Dive Roll.fbx",
+      "target_skeleton": "AGLS_NATIVE_69",
+      "ownership": "presentation_only",
+      "reason": "The existing SOCOM dive-prone silhouette and timing are preferred over the available AGLS forward jump-land-roll take.",
+      "gameplay_travel_owner": "res://scripts/player/player_controller.gd"
+    }
+  },
+  "modules": [
+    {"id": "ground_locomotion", "clips": 869, "stage": "live_first_pass", "godot_owner": "player_controller", "states": ["idle", "walk", "run", "turn"]},
+    {"id": "stance", "clips": 290, "stage": "live_first_pass", "godot_owner": "player_controller", "states": ["stand", "crouch", "prone", "crawl"]},
+    {"id": "jump_and_landing", "clips": 137, "stage": "live_first_pass", "godot_owner": "player_controller", "states": ["jump_start", "airborne", "fall", "land"]},
+    {"id": "roll_and_dive", "clips": 9, "stage": "live_first_pass", "godot_owner": "player_controller", "states": ["roll", "dive", "recover"]},
+    {"id": "mantle_and_vault", "clips": 6, "stage": "assets_ready_logic_pending", "godot_owner": "agls_traversal_motor", "states": ["probe", "vault", "mantle", "recover"]},
+    {"id": "free_climbing", "clips": 181, "stage": "animation_slot_first_pass", "godot_owner": "agls_climbing_motor", "states": ["acquire", "hang", "move", "corner", "jump", "release"]},
+    {"id": "ladder", "clips": 40, "stage": "assets_ready_logic_pending", "godot_owner": "agls_ladder_motor", "states": ["mount", "climb", "change_direction", "dismount"]},
+    {"id": "rope", "clips": 28, "stage": "assets_ready_logic_pending", "godot_owner": "agls_rope_motor", "states": ["equip", "grab", "swing", "jump", "release"]},
+    {"id": "zipline", "clips": 7, "stage": "assets_ready_logic_pending", "godot_owner": "agls_zipline_motor", "states": ["attach", "ride", "brake", "release"]},
+    {"id": "swimming", "clips": 15, "stage": "assets_ready_logic_pending", "godot_owner": "agls_swimming_motor", "states": ["enter", "surface", "swim", "dive", "exit"]},
+    {"id": "narrow_ledge", "clips": 10, "stage": "assets_ready_logic_pending", "godot_owner": "agls_ledge_motor", "states": ["enter", "shuffle", "turn", "exit"]},
+    {"id": "weapon_equip", "clips": 21, "stage": "assets_ready_logic_pending", "godot_owner": "socom_equipment_state", "states": ["equip", "unequip", "swap"]},
+    {"id": "weapon_reload", "clips": 15, "stage": "live_first_pass", "godot_owner": "socom_weapon_controller", "states": ["request", "animate", "commit", "cancel"]},
+    {"id": "weapon_recoil_presentation", "clips": 6, "stage": "assets_ready_composition_pending", "godot_owner": "agls_animation_state_router", "states": ["rifle_recoil", "pistol_recoil", "shotgun_recoil"]},
+    {"id": "weapon_pickup", "clips": 22, "stage": "assets_ready_logic_pending", "godot_owner": "socom_inventory_interaction", "states": ["probe", "reserve", "animate", "server_commit"]},
+    {"id": "grenade_presentation", "clips": 11, "stage": "live_first_pass", "godot_owner": "socom_grenade_controller", "states": ["ready", "throw", "release"]},
+    {"id": "wheel_and_valve", "clips": 9, "stage": "assets_ready_logic_pending", "godot_owner": "agls_world_interaction", "states": ["align", "operate", "complete", "cancel"]},
+    {"id": "workbench", "clips": 0, "stage": "prop_ready_logic_pending", "godot_owner": "socom_gunsmith_workbench", "asset": "res://assets/external/agls_intake/imported/interaction_workbench/SM_Workbench.glb", "states": ["enter", "inspect", "edit_loadout", "server_validate", "exit"]}
+  ]
+}

@@ -70,6 +70,10 @@ func _ready() -> void:
 		return
 	_build_animation_tree()
 	posture_layer.bind(skeleton, _neutral_pose_hip_rotation())
+	posture_layer.set_neutral_hip_rotation(
+		&"CROUCHED",
+		_neutral_pose_hip_rotation(&"aim_idle_crouch")
+	)
 	ik_contract = IKContract.new()
 	ik_contract.name = "OperatorIKContract"
 	pose_pipeline.attach_component(&"50_HandContact", ik_contract)
@@ -90,6 +94,13 @@ func _ready() -> void:
 	weapon_pose_solver.configure_gun_placement_line(
 		equipped_weapon_config.get("gun_placement_line", {})
 	)
+	combat_ready_ccdik = CombatReadyCcdik.new()
+	combat_ready_ccdik.name = "CombatReadyTargetPivot"
+	add_child(combat_ready_ccdik)
+	combat_ready_ccdik.bind(
+		skeleton,
+		equipped_weapon_config.get("weapon_contact_graph", {})
+	)
 	weapon_grip_contact = WeaponGripContact.new()
 	weapon_grip_contact.bind(skeleton, weapon_node)
 	audio_event_manager = AnimationAudioEvents.new()
@@ -105,8 +116,8 @@ func _process(delta: float) -> void:
 	if not _explicit_visual_inputs:
 		_pull_player_inputs()
 	var upper_body_action_override := (
-		movement_state in [&"DIVING", &"ROLLING", &"AIRBORNE", &"LANDING"]
-		or requested_action != &""
+		movement_state in [&"DIVING", &"ROLLING"]
+		or (requested_action != &"" and not _requested_action_upper_body_layered and not _requested_action_is_transition)
 	)
 	_update_locomotion_latch()
 	_update_weapon_ready(delta, upper_body_action_override)
@@ -133,10 +144,14 @@ func _process(delta: float) -> void:
 	_presentation_ready_weight = float(
 		handoff.get("presentation_ready_weight", presentation_ready_weight)
 	)
-	_presentation_fire_selected = (
-		_fire_upper_body_selected()
-		and not bool(handoff.get("barrier_active", false))
+	var presentation_locomotion_active := bool(
+		handoff.get("presentation_locomotion_active", _locomotion_active)
 	)
+	# FIRE_RECOVERY is an intentional bounded selection. Keep its selection alive
+	# through the handoff frame; clearing it here creates a one-frame shoulder pop.
+	# Ordinary Ready Aim later shares this same clean upper-body presentation so
+	# aiming before the first shot cannot select a different, malformed pose.
+	_presentation_fire_selected = _fire_upper_body_selected()
 	locomotion_graph.update_locomotion(
 		movement_direction,
 		movement_speed_normalized,
@@ -148,7 +163,42 @@ func _process(delta: float) -> void:
 	_consider_cosmetic_transition()
 	_update_requested_action(delta)
 	_update_reload_visuals(delta)
+	# The visually accepted recovery pose is also the canonical standing/crouched
+	# Ready Aim pose. This scalar suppresses only the stale saved/procedural upper-
+	# body corrections; it does not change the fire latch, recoil, shot timing,
+	# camera aim, movement, reload, or damage ownership.
+	var clean_ready_available := (
+		_presentation_posture in [&"STANDING", &"CROUCHED"]
+		and not mobility_owns_full_body
+		and requested_action == &""
+	)
+	var clean_ready_target := (
+		maxf(
+			1.0 if _presentation_fire_selected else 0.0,
+			_presentation_ready_weight
+		)
+		if clean_ready_available
+		else 0.0
+	)
+	if _presentation_fire_selected and clean_ready_available:
+		# Accepted fire owns the complete recovery frame immediately; blending this
+		# gate in would briefly expose the shoulder distortion it replaces.
+		_clean_fire_recovery_weight = 1.0
+	else:
+		_clean_fire_recovery_weight = PoseOwnershipContract.bounded_ready_weight(
+			_clean_fire_recovery_weight,
+			clean_ready_target,
+			ready_enter_response
+				if clean_ready_target > _clean_fire_recovery_weight
+				else ready_exit_response,
+			delta
+		)
+		if clean_ready_target <= 0.0 and _clean_fire_recovery_weight <= 0.001:
+			_clean_fire_recovery_weight = 0.0
 	if posture != _previous_posture:
+		# Reload is one accepted action with one upper-body OneShot and one
+		# playhead. The continuous lower-body route can change posture underneath
+		# it; never re-fire or replace that OneShot here.
 		_previous_posture = posture
 	if bool(handoff.get("released_hands", false)) and asset_runtime != null:
 		asset_runtime.apply_animation_hand_map(
@@ -167,83 +217,135 @@ func _process(delta: float) -> void:
 		and "grenade" in String(requested_action).to_lower()
 	)
 	var authored_standing_locomotion := (
-		posture == &"STANDING"
-		and (_locomotion_active or movement_speed_normalized > 0.05)
-		and not _presentation_fire_selected
+		_presentation_posture == &"STANDING"
+		and presentation_locomotion_active
 		and movement_state not in [&"DIVING", &"ROLLING", &"AIRBORNE", &"LANDING"]
 	)
+	var clean_ready_owns_upper_body := (
+		_clean_fire_recovery_weight > 0.001
+		and _presentation_posture in [&"STANDING", &"CROUCHED"]
+		and requested_action == &""
+	)
+	var authored_locomotion_owns_posture := (
+		authored_standing_locomotion
+		and not clean_ready_owns_upper_body
+	)
 	var square_idle_frame := (
-		posture == &"STANDING"
-		and not _locomotion_active
-		and movement_speed_normalized <= 0.05
+		_presentation_posture == &"STANDING"
+		and not presentation_locomotion_active
 		and not mobility_owns_full_body
 		and requested_action == &""
 	)
 	var posture_aim_yaw := (
-		0.0 if action_owns_upper_body_rotation or authored_standing_locomotion else aim_yaw_rad
+		0.0 if action_owns_upper_body_rotation or authored_locomotion_owns_posture else aim_yaw_rad
 	)
 	var posture_aim_pitch := (
-		0.0 if action_owns_upper_body_rotation or authored_standing_locomotion else aim_pitch_rad
+		0.0 if action_owns_upper_body_rotation or authored_locomotion_owns_posture else aim_pitch_rad
 	)
 	var posture_ready_weight := (
-		0.0 if authored_standing_locomotion else _presentation_ready_weight
+		0.0 if authored_locomotion_owns_posture else _presentation_ready_weight
 	)
 	# The camera/server may still report an obstructed muzzle, but presentation
 	# never reacts by raising or lowering the weapon toward the blue line.
 	var presentation_obstruction := 0.0
+	var dynamic_hold: Variant = equipped_weapon_handling_profile.get(
+		"dynamic_hold",
+		{}
+	)
+	var fire_spine_ccdik_enabled := (
+		bool((dynamic_hold as Dictionary).get("fire_spine_ccdik_enabled", false))
+		if dynamic_hold is Dictionary
+		else false
+	)
+	var combat_ready_ccdik_weight := (
+		posture_ready_weight * _clean_fire_recovery_weight
+		if fire_spine_ccdik_enabled
+		else 0.0
+	)
+	var clean_authored_fire_recovery_weight := (
+		_clean_fire_recovery_weight if not fire_spine_ccdik_enabled else 0.0
+	)
 	posture_layer.apply(
-		posture_aim_yaw,
-		posture_aim_pitch,
-		posture_ready_weight,
+		0.0 if combat_ready_ccdik_weight > 0.001 else posture_aim_yaw,
+		0.0 if combat_ready_ccdik_weight > 0.001 else posture_aim_pitch,
+		0.0 if combat_ready_ccdik_weight > 0.001 else posture_ready_weight,
 		presentation_obstruction,
 		0.0,
 		deg_to_rad(chest_yaw_limit_deg),
 		deg_to_rad(chest_pitch_limit_deg),
 		deg_to_rad(head_yaw_limit_deg),
 		deg_to_rad(head_pitch_limit_deg),
-		_lower_body_separation_weight(posture, _presentation_ready_weight),
+		_lower_body_separation_weight(_presentation_posture, _presentation_ready_weight),
 		upper_body_gait_roll_retention,
 		_prone_straighten_weight,
 		deg_to_rad(prone_axis_max_correction_deg),
 		deg_to_rad(prone_axis_target_pitch_deg),
-		posture,
+		_presentation_posture,
 		peek_amount,
 		visual_aim_target,
 		0.0 if authored_standing_locomotion else neutral_hip_roll_trim_deg,
-		(_presentation_fire_selected and posture != &"PRONE") or square_idle_frame,
-		false,
-		square_idle_frame
+		square_idle_frame,
+		square_idle_frame,
+		square_idle_frame,
+		clean_authored_fire_recovery_weight
 	)
-	weapon_pose_solver.apply(
-		aim_yaw_rad,
-		aim_pitch_rad,
-		_presentation_posture,
-		movement_state,
-		posture_ready_weight,
-		presentation_obstruction,
-		requested_action,
-		_reload_support_regrip,
-		visual_aim_target,
-		_get_player(),
-		delta,
-		_locomotion_active or movement_speed_normalized > 0.05,
-		peek_amount
-	)
-	_stabilize_locomotion_legs(delta)
+	# Clean-ready ownership rule: relaxed movement, mobility, and reload keep their
+	# authored upper body. Ready Aim and accepted-fire recovery share one stable
+	# upper-body gate so moving and stationary aim do not select different poses.
+	# Stair grounding is a separate leg-only final pass and is disabled for every
+	# accepted-fire recovery, reload, mobility action, airborne state, and prone.
+	if combat_ready_ccdik != null:
+		combat_ready_ccdik.apply(
+			aim_yaw_rad,
+			aim_pitch_rad,
+			combat_ready_ccdik_weight
+		)
+	if weapon_pose_solver != null:
+		weapon_pose_solver.apply(
+			aim_yaw_rad,
+			aim_pitch_rad,
+			_presentation_posture,
+			movement_state,
+			_presentation_ready_weight,
+			0.0,
+			requested_action,
+			_reload_support_regrip,
+			visual_aim_target,
+			_get_player(),
+			delta,
+			presentation_locomotion_active,
+			peek_amount
+		)
+	if weapon_grip_contact != null:
+		var owner_state: Dictionary = (
+			weapon_pose_solver.get_weapon_presentation_owner_state()
+			if weapon_pose_solver != null
+			else {}
+		)
+		var support_mode: StringName = StringName(
+			owner_state.get("support_hand_mode", &"IK_TO_WEAPON")
+		)
+		var weapon_vis: bool = bool(
+			owner_state.get("visible", weapon_node != null and weapon_node.visible)
+		)
+		var current_owner: StringName = StringName(
+			owner_state.get("owner", &"RELAXED_RIFLE_LOCOMOTION")
+		)
+		weapon_grip_contact.apply(current_owner, support_mode, weapon_vis)
 	if foot_contact_lock != null:
 		foot_contact_lock.apply(
 			movement_direction,
 			movement_speed_normalized,
-			posture,
+			_presentation_posture,
 			movement_state,
 			requested_action,
-			delta
-		)
-	if weapon_grip_contact != null:
-		weapon_grip_contact.apply(
-			weapon_pose_solver.weapon_owner,
-			weapon_pose_solver.support_hand_mode,
-			weapon_node != null and weapon_node.visible
+			delta,
+			(
+				firing
+				or _presentation_fire_selected
+				or _clean_fire_recovery_weight > 0.001
+				or requested_action != &""
+			)
 		)
 	_previous_firing = firing
 	_previous_movement_state = movement_state

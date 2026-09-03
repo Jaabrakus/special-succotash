@@ -160,10 +160,10 @@ func _initialize() -> void:
 		&"STANDING"
 	)
 	_expect(
-		String(saved_fire_presentation.get("state", "")) == "combat_fire"
+		String(saved_fire_presentation.get("state", "")) == "aim_idle"
 		and "ENTER_READY_AIM" in (saved_fire_presentation.get("effects", []) as Array)
 		and "RAIL_TO_BLUE_LINE" not in (saved_fire_presentation.get("effects", []) as Array),
-		"runtime resolves saved standing fire without relocating the rifle"
+		"runtime resolves saved standing fire to recovery aim without relocating the rifle"
 	)
 	var saved_reload_presentation := profile.resolve_animation_event_presentation(
 		&"RELOAD_STARTED",

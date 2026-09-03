@@ -1,0 +1,160 @@
+{
+  "schema_version": 1,
+  "feature_id": "ak_m4_canonical_rifle_presentation",
+  "player_intent": "Equipping either the AK-47 or M4A1 in the real game uses its measured AGLS model and sockets while retaining the accepted SOCOM two-hand aim, square-shoulder fire recovery, stable left-palm contact, and human reload presentation.",
+  "acceptance_rule": "AK-47 and M4A1 load through res://main.tscn with their exact AGLS model and seven authored sockets. The trigger hand remains the sole weapon-root owner, only the support hand may solve to the foregrip, accepted standing and crouched shots use the shared authored recovery for 1.2 seconds, and weapon swaps reconfigure one existing contact modifier instead of appending nodes. The verified AK reload may replace the generic standing/crouched reload; the rejected AGLS hold-pose strips and unsafe M4A4 reload may not enter canonical routing. Ballistics, reticle, camera, movement, and networking do not change.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://gun_calibration_lab_2.tscn",
+  "ownership": {
+    "authorized_weapon_handoff": "SocomOperatorWeaponEquipmentRuntime",
+    "weapon_model_and_socket_instantiation": "SocomOperatorAssetRuntime",
+    "weapon_root_transform": "TriggerHandBoneAttachment3D",
+    "support_hand_contact": "SocomOperatorWeaponPose",
+    "accepted_shot_and_damage": "AuthoritativeServerWeapon",
+    "aim_intent_and_reticle": "SOCOMCameraReticleChain"
+  },
+    "nodes": [
+        {
+            "id": "two_hand_rifle_family_profile",
+            "type": "RefCounted",
+            "role": "Acts as the shared asset class for two-hand rifles: weapon assets inherit stable standing/crouched FIRE_RECOVERY presentation while retaining only model, socket, ballistics, and verified reload overrides.",
+            "owner": "SocomWeaponAnimationProfile",
+            "source_script": "res://scripts/weapons/weapon_animation_profile.gd",
+            "code_symbols": [
+                "var uses_shared_fire_recovery := family in FAMILIES",
+                "\"standing_fire_uses_aim_idle\": uses_shared_fire_recovery",
+                "\"crouched_fire_uses_aim_idle\": uses_shared_fire_recovery"
+            ]
+        },
+        {
+      "id": "canonical_weapon_asset_runtime",
+      "type": "Node3D",
+      "role": "Instantiates the equipped AGLS weapon under the canonical operator and publishes its physical socket nodes to presentation consumers.",
+      "owner": "SocomOperatorAssetRuntime",
+      "source_script": "res://scripts/player/operator_animation_driver_runtime.gd",
+      "code_symbols": [
+        "asset_runtime = AssetRuntime.new()",
+        "var runtime: Dictionary = asset_runtime.build("
+      ]
+    },
+    {
+      "id": "authorized_equipment_presentation_consumer",
+      "type": "Node3D",
+      "role": "Consumes already-authorized AK/M4 profiles, rebuilds the shared animation graph, rebinds the weapon presentation owners, and reconfigures the existing contact modifier without granting gameplay equipment.",
+      "owner": "SocomOperatorWeaponEquipmentRuntime",
+      "source_script": "res://scripts/player/operator_weapon_equipment_runtime.gd",
+      "code_symbols": [
+        "driver.asset_runtime.equip_weapon(next_config)",
+        "driver.call(\"_build_animation_tree\")",
+        "driver.combat_ready_ccdik.reconfigure("
+      ]
+    },
+    {
+      "id": "weapon_specific_reload_route",
+      "type": "AnimationNodeOneShot",
+      "role": "Resolves the equipped weapon's verified reload slot at the canonical presentation consumer while leaving the shared reload transaction and timing owner unchanged.",
+      "owner": "SocomOperatorAnimationDriver",
+      "source_script": "res://scripts/player/operator_animation_driver_presentation.gd",
+      "code_symbols": [
+        "var equipped_reload := _resolve_equipped_weapon_action(&\"reload\")",
+        "clip_name = equipped_reload"
+      ]
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://config/weapons/ak-47.json",
+      "writer": "res://scripts/labs/gunsmith/gunsmith_weapon_profile_repository.gd",
+      "readers": [
+        "res://scripts/weapons/weapon_rig_contract.gd",
+        "res://scripts/player/operator_asset_runtime.gd",
+        "res://scripts/player/operator_weapon_equipment_runtime.gd"
+      ]
+    },
+    {
+      "path": "res://config/weapons/m4a1.json",
+      "writer": "res://scripts/labs/gunsmith/gunsmith_weapon_profile_repository.gd",
+      "readers": [
+        "res://scripts/weapons/weapon_rig_contract.gd",
+        "res://scripts/player/operator_asset_runtime.gd",
+        "res://scripts/player/operator_weapon_equipment_runtime.gd"
+      ]
+    },
+    {
+      "path": "res://config/weapon_visual_rigs/m4a1_agls_v1.json",
+      "writer": "res://scripts/labs/gunsmith2/weapon_visual_rig_repository.gd",
+      "readers": [
+        "res://scripts/labs/gunsmith2/weapon_visual_rig_resolver.gd",
+        "res://scripts/labs/gunsmith/gunsmith_weapon_preview_loader.gd"
+      ]
+    },
+    {
+      "path": "res://config/operator_animation_map.json",
+      "writer": "res://scripts/player/operator_animation_profile.gd",
+      "readers": [
+        "res://scripts/player/operator_asset_runtime.gd",
+        "res://scripts/player/operator_animation_driver_presentation.gd",
+        "res://scripts/player/operator_locomotion_blend_tree.gd"
+      ]
+    }
+  ],
+  "must_not_change": [
+    "CharacterBody3D movement, posture, and collision authority",
+    "SOCOM camera and reticle aim authority or accepted reticle geometry",
+    "server shot validation, muzzle, ballistics, damage, and networking authority",
+    "1.2-second accepted-shot recovery semantics",
+    "right trigger-hand attachment as sole weapon-root transform owner",
+    "unrelated weapon profiles and user-authored dirty worktree changes"
+  ],
+  "system_delta": {
+    "decision": "MERGE",
+        "reason": "Merge measured AGLS AK/M4 models, physical sockets, canonical equipment routing, the human AK reload, and published M4 profile parity into the accepted shared rifle presentation. Make TWO_HAND_RIFLE the single family default for stable standing/crouched FIRE_RECOVERY so assets do not duplicate that behavior. Replace repeated contact-modifier binding with in-place reconfiguration. Reject AGLS hold-pose strips and the M4A4 reload because rendered evidence shows unstable hand contacts and nonhuman torso/shoulder motion.",
+    "current": {
+      "system": "Mixed placeholder/stale rifle visuals with repeated contact-modifier allocation and incomplete canonical weapon-specific reload routing",
+      "correctness": 2,
+      "ownership_clarity": 2,
+      "runtime_parity": 2,
+      "editor_usability": 2,
+      "performance": 2,
+      "regression_coverage": 1,
+      "evidence_paths": [
+        "res://config/weapons/ak-47.json",
+        "res://config/weapons/m4a1.json",
+        "res://scripts/player/operator_weapon_equipment_runtime.gd"
+      ]
+    },
+    "candidate": {
+      "system": "Canonical measured AK/M4 presentation using one shared human rifle pose pipeline and bounded support-hand contact",
+      "correctness": 5,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 4,
+      "performance": 4,
+      "regression_coverage": 5,
+      "evidence_paths": [
+        "res://config/weapons/ak-47.json",
+        "res://config/weapons/m4a1.json",
+        "res://config/weapon_visual_rigs/m4a1_agls_v1.json",
+                "res://config/operator_animation_map.json",
+                "res://scripts/weapons/weapon_animation_profile.gd",
+                "res://scripts/player/operator_weapon_equipment_runtime.gd",
+        "res://tools/agls_ak47_asset_regression.gd",
+        "res://tools/m4a1_agls_vertical_slice_regression.gd",
+        "res://tools/weapon_equipment_event_regression.gd"
+      ]
+    }
+  },
+  "proof_scripts": [
+    "res://tools/agls_ak47_asset_regression.gd",
+    "res://tools/m4a1_agls_vertical_slice_regression.gd",
+    "res://tools/weapon_equipment_event_regression.gd",
+    "res://tools/fire_recovery_movement_aim_parity_regression.gd",
+    "res://tools/operator_pose_pipeline_regression.gd",
+    "res://tools/operator_animation_regression.gd",
+    "res://tools/gameplay_reload_completion_regression.gd",
+    "res://tools/ballistic_reference_reticle_regression.gd",
+    "res://tools/startup_performance_regression.gd",
+    "res://tools/feature_contract_regression.gd"
+  ],
+  "visual_check": "Launch res://main.tscn, equip AK-47 and then M4A1, and inspect standing and crouched idle, movement, one accepted shot plus its full 1.2-second recovery, and reload. Each exact weapon model must remain attached to the right trigger hand, its left palm must remain on the authored foregrip, shoulders must retain the authored recovery silhouette while the torso aims toward the reticle, and no equip cycle may add another contact modifier. The M4 must keep the generic human reload; the AK may use only its verified AGLS reload."
+}

@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "feature_id": "public_matchmaking_directory",
+  "player_intent": "Quick Match finds a healthy compatible SOCOM server without requiring the player to type its address.",
+  "acceptance_rule": "The browser-safe Supabase publishable key lists only operational or degraded regions and fresh online servers with capacity through SELECT-only anonymous RLS policies, converts each timestamptz heartbeat to last_heartbeat_unix, applies the canonical build and protocol selection policy, and returns one validated ws:// or wss:// endpoint without waiting for player identity.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://game_launcher.tscn",
+  "ownership": {
+    "public_read_only_service_directory_requests": "SocomMatchmakingDirectoryClient",
+    "region_and_server_selection_policy": "SocomServiceDirectory",
+    "publishable_key_and_rest_transport": "SocomSupabaseClient",
+    "network_connection": "SocomMultiplayerSession"
+  },
+  "nodes": [
+    {
+      "id": "matchmaking_directory_client",
+      "type": "RefCounted",
+      "role": "Uses the browser-safe Supabase publishable key and returns normalized public directory data without opening a network peer or owning identity.",
+      "owner": "SocomMatchmakingDirectoryClient",
+      "source_script": "res://scripts/network/socom_matchmaking_directory_client.gd",
+      "code_symbols": [
+        "class_name SocomMatchmakingDirectoryClient",
+        "func list_healthy_regions(",
+        "func list_healthy_servers(",
+        "func find_quick_match("
+      ]
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://config/supabase_public.json",
+      "writer": "res://scripts/network/socom_supabase_client.gd",
+      "readers": [
+        "res://scripts/network/socom_supabase_client.gd",
+        "res://scripts/network/socom_matchmaking_directory_client.gd"
+      ]
+    },
+    {
+      "path": "res://supabase/migrations/20260902001000_add_server_directory_presence.sql",
+      "writer": "res://scripts/server/socom_server_backend.gd",
+      "readers": [
+        "res://scripts/network/socom_supabase_client.gd",
+        "res://scripts/network/socom_matchmaking_directory_client.gd",
+        "res://scripts/network/socom_service_directory.gd"
+      ]
+    },
+    {
+      "path": "res://supabase/migrations/20260902002000_public_matchmaking_directory.sql",
+      "writer": "res://scripts/network/socom_matchmaking_directory_client.gd",
+      "readers": [
+        "res://scripts/network/socom_supabase_client.gd",
+        "res://scripts/network/socom_matchmaking_directory_client.gd"
+      ]
+    }
+  ],
+  "must_not_change": [
+    "launcher and lobby presentation",
+    "MultiplayerAPI transport and session authority",
+    "dedicated-server registration and heartbeat writes",
+    "server shot, damage, movement, camera, animation, and weapon ownership"
+  ],
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Merge public SELECT-only REST discovery and endpoint normalization with the existing pure selection policy. Live proof showed anonymous identity creation is disabled, and public server addresses do not require identity; preserve authentication for private player data and preserve the canonical session as the only connection owner.",
+    "current": {
+      "system": "Directory reads blocked behind guest authentication while anonymous sign-in is disabled in the deployed project",
+      "correctness": 1,
+      "ownership_clarity": 4,
+      "runtime_parity": 0,
+      "editor_usability": 1,
+      "performance": 4,
+      "regression_coverage": 3,
+      "evidence_paths": [
+        "res://scripts/network/socom_supabase_client.gd",
+        "res://scripts/network/socom_matchmaking_directory_client.gd",
+        "res://tools/live_matchmaking_directory_smoke.gd"
+      ]
+    },
+    "candidate": {
+      "system": "Public SELECT-only matchmaking directory that normalizes filtered rows and returns one validated WebSocket join contract without identity latency",
+      "correctness": 5,
+      "ownership_clarity": 5,
+      "runtime_parity": 4,
+      "editor_usability": 3,
+      "performance": 5,
+      "regression_coverage": 5,
+      "evidence_paths": [
+        "res://scripts/network/socom_matchmaking_directory_client.gd",
+        "res://tools/matchmaking_directory_client_regression.gd",
+        "res://scripts/network/socom_multiplayer_deployment_profile.gd"
+      ]
+    }
+  },
+  "proof_scripts": [
+    "res://tools/matchmaking_directory_client_regression.gd",
+    "res://tools/feature_contract_regression.gd"
+  ],
+  "visual_check": "Open a clean browser profile with no guest session, use Quick Match, and confirm the directory responds immediately and enters the selected wss:// server. Player identity may remain Local Guest when anonymous sign-in is disabled; no directory client opens a peer itself."
+}

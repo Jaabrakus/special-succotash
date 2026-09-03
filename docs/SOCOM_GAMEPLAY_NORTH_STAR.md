@@ -55,6 +55,11 @@ If a feature makes any of these answers less clear, revise the feature.
 
 ## Non-negotiable system rules
 
+The [SOCOM-141 and AGLS integration boundary](AGLS_INTEGRATION_BOUNDARY.md)
+defines which SOCOM systems remain authoritative when AGLS content is imported.
+Treat that ownership table and its acceptance checklist as part of these
+non-negotiable rules.
+
 ### One aim intent
 
 The camera aim resolver owns yaw, pitch, and the shared target. The weapon fires

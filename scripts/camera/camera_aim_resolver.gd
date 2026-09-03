@@ -144,8 +144,9 @@ func build_local_aim_intent() -> Dictionary:
     # placement and collision state remain entirely local.
     if rig.target == null:
         return {}
-    var mannequin = rig.target.get_node_or_null("Mannequin")
-    if mannequin == null or not mannequin.has_method("get_active_muzzle_position"):
+    var mannequin: Node = rig.target.get_node_or_null("Mannequin")
+    var presentation_node: Node = mannequin if mannequin != null else rig.target
+    if presentation_node == null or not presentation_node.has_method("get_active_muzzle_position"):
         return {}
     var posture_name := StringName(
         rig.target.call("get_posture_name")

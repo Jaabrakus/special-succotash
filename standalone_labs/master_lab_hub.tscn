@@ -1,0 +1,100 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://standalone_labs/master_lab_hub.gd" id="1_hub"]
+
+[node name="MasterLabHub" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_hub")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.0784314, 0.0941176, 0.137255, 1)
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 60
+theme_override_constants/margin_top = 40
+theme_override_constants/margin_right = 60
+theme_override_constants/margin_bottom = 40
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="Header" type="VBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Title" type="Label" parent="MarginContainer/VBoxContainer/Header"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.9, 0.7, 1)
+theme_override_font_sizes/font_size = 28
+text = "SOCOM-141 — MASTER CALIBRATION HUB"
+horizontal_alignment = 1
+
+[node name="Subtitle" type="Label" parent="MarginContainer/VBoxContainer/Header"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.75, 0.85, 1)
+theme_override_font_sizes/font_size = 14
+text = "Select a core system below to open and calibrate in standalone mode:"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="LabsList" type="VBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 14
+
+[node name="Btn_CameraLab" type="Button" parent="MarginContainer/VBoxContainer/LabsList"]
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "📷  1. SOCOM Camera Lab — Framing, Collision & Recoil Recovery"
+
+[node name="Btn_GunsLab" type="Button" parent="MarginContainer/VBoxContainer/LabsList"]
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "🔫  2. Weapon & Gunsmith Lab — Sockets, RPM, Bloom & Target Range"
+
+[node name="Btn_GrenadeLab" type="Button" parent="MarginContainer/VBoxContainer/LabsList"]
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "💣  3. Tactical Grenades Lab — Physics Arcs, Bounces & Screen Blindness"
+
+[node name="Btn_SoundLab" type="Button" parent="MarginContainer/VBoxContainer/LabsList"]
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "🔊  4. 3D Sound & Foley Lab — Acoustic Propagation & Foley Syncing"
+
+[node name="Btn_ReticleLab" type="Button" parent="MarginContainer/VBoxContainer/LabsList"]
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "🎯  5. Reticle & Composure Lab — Dynamic Spread & Stance Composure"
+
+[node name="Footer" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 0.55, 0.65, 1)
+theme_override_font_sizes/font_size = 13
+text = "All 5 systems are isolated and self-contained in standalone_labs/"
+horizontal_alignment = 1

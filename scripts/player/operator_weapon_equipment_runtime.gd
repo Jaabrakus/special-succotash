@@ -27,6 +27,7 @@ static func apply(driver, raw_config: Dictionary) -> bool:
 		if driver.ik_contract != null:
 			driver.ik_contract.rebind_weapon(previous_weapon)
 		return false
+	_reset_weapon_presentation_state(driver)
 	driver.equipped_weapon_config = next_config
 	driver.equipped_weapon_handling_profile = next_handling
 	driver.equipped_weapon_family = next_family
@@ -49,12 +50,21 @@ static func apply(driver, raw_config: Dictionary) -> bool:
 		driver.weapon_pose_solver.configure_gun_placement_line(
 			driver.equipped_weapon_config.get("gun_placement_line", {})
 		)
+	if driver.combat_ready_ccdik != null:
+		# Weapon swaps keep the same operator skeleton and modifier owner. Rebinding
+		# would append another dormant CCDIK3D on every equip and make long weapon-
+		# comparison sessions progressively slower; only its saved contact data changes.
+		driver.combat_ready_ccdik.reconfigure(
+			driver.equipped_weapon_config.get("weapon_contact_graph", {})
+		)
 	if driver.weapon_grip_contact != null:
 		driver.weapon_grip_contact.rebind_weapon(driver.weapon_node)
 	driver._last_event_presentation = driver.resolve_presentation_event(
 		&"WEAPON_EQUIPPED"
 	)
 	var ready_state := StringName(driver._last_event_presentation.get("state", ""))
+	var ready_slot := "idle_%s" % String(driver.posture).to_lower()
+	ready_state = driver.call("_equipped_action_clip", ready_slot, ready_state)
 	if ready_state != &"":
 		driver.call("_request_clip", ready_state, 0.10)
 	driver.call("_update_weapon_visibility")
@@ -63,3 +73,21 @@ static func apply(driver, raw_config: Dictionary) -> bool:
 		driver.equipped_weapon_family
 	)
 	return true
+
+
+static func _reset_weapon_presentation_state(driver) -> void:
+	# A weapon family swap starts from the new weapon's saved presentation data.
+	# Preserve locomotion, dive/roll and reload ownership, but discard the old
+	# weapon's bounded fire overlay, frame socket override and solver blend.
+	if driver.has_method("clear_fire_ready_aim"):
+		driver.call("clear_fire_ready_aim")
+	driver._fire_pose_clip = &""
+	driver._fire_pose_time = 0.0
+	driver._fire_pose_duration = 0.0
+	driver._presentation_fire_selected = false
+	driver._active_frame_pose = {}
+	if driver.posture_layer != null:
+		driver.posture_layer.set_animation_frame_rotation_overrides({})
+	if driver.weapon_pose_solver != null:
+		driver.weapon_pose_solver.clear_animation_frame_pose()
+		driver.weapon_pose_solver.release_visual_control()

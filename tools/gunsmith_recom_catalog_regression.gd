@@ -7,6 +7,9 @@ const Adapter := preload(
 const Persistence := preload(
 	"res://scripts/labs/gunsmith/gunsmith_persistence_controller.gd"
 )
+const Repository := preload(
+	"res://scripts/labs/gunsmith/gunsmith_weapon_profile_repository.gd"
+)
 
 
 func _initialize() -> void:
@@ -33,6 +36,23 @@ func _initialize() -> void:
 	assert(float(m16.get("ballistics", {}).get("fire_rate_rpm", 0.0)) == 600.0, "M16A2 RPM mismatch")
 	assert(m16.get("fire_modes") == ["semi", "burst"], "M16A2 fire modes mismatch")
 	assert(int(m16.get("burst_size", 0)) == 3, "M16A2 burst size mismatch")
+	assert(
+		Adapter._has_complete_visual_calibration(m16),
+		"M16A2 must carry a complete, per-model visual calibration"
+	)
+	assert(
+		not Adapter._has_complete_visual_calibration({
+			"weapon_id": "raw_catalog_entry",
+			"normalized_scale": 1.0,
+		}),
+		"A raw JSON catalog entry must never masquerade as an approved weapon rig"
+	)
+	var loadout := Repository.build_operator_loadout("m16a2")
+	assert(
+		String(loadout.get("primary_weapon_id", "")) == "m16a2"
+			and String(loadout.get("rig_config", "")).ends_with("m16a2.json"),
+		"Only the explicit equip action builds the canonical gameplay loadout"
+	)
 
 	var saved := Adapter.decorate_saved_profile({
 		"ballistics": {"damage": 99.0},

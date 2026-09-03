@@ -8,7 +8,9 @@ signal host_requested
 signal join_requested(address: String)
 signal leave_requested
 signal team_requested(team: int)
+signal pair_requested(pair_id: int)
 signal ready_requested
+signal sudden_death_vote_requested(candidate_peer_id: int)
 
 const LobbyState := preload("res://scripts/network/socom_lobby_state.gd")
 const MatchInvite := preload("res://scripts/network/socom_match_invite.gd")
@@ -28,14 +30,24 @@ var lobby_roster_label: RichTextLabel
 var lobby_map_label: Label
 var alpha_team_button: Button
 var bravo_team_button: Button
+var team_selector_row: HBoxContainer
+var pair_selector_row: HBoxContainer
+var pair_selector: OptionButton
 var ready_button: Button
 var lobby_status_label: Label
 var invite_panel: PanelContainer
 var invite_code_edit: LineEdit
 var invite_copy_button: Button
 var invite_help_label: Label
-var team_roster_hud: SocomTeamRosterHUD
-var loadout_card_hud: SocomLoadoutCardHUD
+var team_roster_hud = null
+var loadout_card_hud = null
+var connection_title: Label
+var connection_explanation: Label
+var host_button: Button
+var sudden_death_vote_panel: PanelContainer
+var sudden_death_vote_title: Label
+var sudden_death_vote_status: Label
+var sudden_death_vote_buttons: Array[Button] = []
 
 
 func _ready() -> void:
@@ -71,6 +83,71 @@ func show_host_invite(port: int) -> void:
 func clear_host_invite() -> void:
 	if invite_panel != null:
 		invite_panel.visible = false
+
+
+func show_sudden_death_vote_state(state: Dictionary) -> void:
+	if sudden_death_vote_panel == null:
+		return
+	var phase := String(state.get("phase", ""))
+	if phase == "SUDDEN_DEATH_VOTE":
+		sudden_death_vote_panel.visible = true
+		reticle.visible = false
+		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+		var seconds := maxi(0, ceili(float(state.get("remaining", 0.0))))
+		var local_vote_peer_id := int(state.get("local_vote_peer_id", -1))
+		sudden_death_vote_title.text = "SUDDEN DEATH — CHOOSE YOUR 1V1 FIGHTER"
+		sudden_death_vote_status.text = (
+			"Vote locked in • %d seconds remaining" % seconds
+			if local_vote_peer_id > 0
+			else "Your duo has %d seconds to vote" % seconds
+		)
+		var candidates: Array = state.get("candidates", [])
+		for index in sudden_death_vote_buttons.size():
+			var button := sudden_death_vote_buttons[index]
+			button.visible = index < candidates.size()
+			if index >= candidates.size():
+				continue
+			var candidate: Dictionary = candidates[index]
+			var candidate_peer_id := int(candidate.get("peer_id", -1))
+			button.set_meta("candidate_peer_id", candidate_peer_id)
+			button.text = "%s  •  %d VOTE%s%s" % [
+				String(candidate.get("display_name", "SEAL %d" % candidate_peer_id)),
+				int(candidate.get("votes", 0)),
+				"S" if int(candidate.get("votes", 0)) != 1 else "",
+				"  ✓ YOUR PICK" if candidate_peer_id == local_vote_peer_id else "",
+			]
+		return
+	sudden_death_vote_panel.visible = false
+	if phase == "SUDDEN_DEATH":
+		var representative_a := String(state.get("representative_a_name", "ALPHA"))
+		var representative_b := String(state.get("representative_b_name", "BRAVO"))
+		status_label.text = "SUDDEN DEATH  •  %s VS %s" % [representative_a, representative_b]
+		reticle.visible = bool(state.get("local_selected", false))
+		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	elif phase == "REGULATION":
+		reticle.visible = true
+		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+
+
+func configure_connection_mode(browser_client: bool, default_server_url: String = "") -> void:
+	if address_edit == null:
+		return
+	if browser_client:
+		connection_title.text = "2v2 TOURNAMENT CLIENT"
+		connection_explanation.text = (
+			"Join the authoritative tournament server. Each duo is assigned to one "
+			+ "of eight isolated map instances."
+		)
+		address_edit.placeholder_text = "wss://your-server.example/game"
+		address_edit.text = default_server_url
+		host_button.visible = false
+	else:
+		connection_title.text = "MULTIPLAYER MATCH"
+		connection_explanation.text = (
+			"Host one native window or join ENet / ws://.\n"
+			+ "WASD move • Mouse aim • Left click fire • Esc releases mouse"
+		)
+		host_button.visible = true
 
 
 func _copy_host_invite() -> void:
@@ -181,40 +258,87 @@ func refresh_lobby(
 	round_rules: Dictionary,
 	countdown_remaining: float
 ) -> void:
+	var pair_mode: bool = lobby.lobby_mode == LobbyState.LOBBY_MODE_GUNFIGHT_2V2
 	var alpha_lines: Array[String] = []
 	var bravo_lines: Array[String] = []
+	var pair_lines: Array[String] = []
 	var ids: Array = lobby.players.keys()
 	ids.sort()
 	for raw_id: Variant in ids:
 		var entry: Dictionary = lobby.players[raw_id]
 		var ready_mark := "[color=#70f59b]● READY[/color]" if bool(entry.get("ready", false)) else "[color=#7f8b9c]○ WAITING[/color]"
 		var local_mark := "  [color=#f2cf6a](YOU)[/color]" if int(raw_id) == local_peer_id else ""
-		var line := "%s  %s%s" % [ready_mark, String(entry.get("display_name", "PLAYER")), local_mark]
-		(alpha_lines if int(entry.get("team", 0)) == 0 else bravo_lines).append(line)
-	lobby_roster_label.text = (
-		"[table=2]"
-		+ "[cell][font_size=20][color=#6eb6ff]ALPHA[/color][/font_size]\n%s[/cell]" % ("\n".join(alpha_lines) if not alpha_lines.is_empty() else "—")
-		+ "[cell][font_size=20][color=#ff7d76]BRAVO[/color][/font_size]\n%s[/cell]" % ("\n".join(bravo_lines) if not bravo_lines.is_empty() else "—")
-		+ "[/table]"
-	)
+		var pair_number := int(entry.get("pair_id", -1)) + 1
+		var pair_mark := "[color=#f2cf6a]PAIR %02d[/color]" % pair_number
+		var line := "%s  %s  %s%s" % [
+			pair_mark,
+			ready_mark,
+			String(entry.get("display_name", "PLAYER")),
+			local_mark,
+		]
+		if pair_mode:
+			pair_lines.append(line)
+		else:
+			(alpha_lines if int(entry.get("team", 0)) == 0 else bravo_lines).append(line)
+	if pair_mode:
+		lobby_roster_label.text = (
+			"[font_size=20][color=#f2cf6a]TOURNAMENT DUOS[/color][/font_size]\n%s"
+			% ("\n".join(pair_lines) if not pair_lines.is_empty() else "—")
+		)
+	else:
+		lobby_roster_label.text = (
+			"[table=2]"
+			+ "[cell][font_size=20][color=#6eb6ff]ALPHA[/color][/font_size]\n%s[/cell]" % ("\n".join(alpha_lines) if not alpha_lines.is_empty() else "—")
+			+ "[cell][font_size=20][color=#ff7d76]BRAVO[/color][/font_size]\n%s[/cell]" % ("\n".join(bravo_lines) if not bravo_lines.is_empty() else "—")
+			+ "[/table]"
+		)
 	var local_entry: Dictionary = lobby.players.get(local_peer_id, {})
 	var local_ready := bool(local_entry.get("ready", false))
+	pair_selector_row.visible = pair_mode
+	team_selector_row.visible = not pair_mode
+	if pair_mode:
+		var local_pair_id := int(local_entry.get("pair_id", -1))
+		for index in pair_selector.item_count:
+			var pair_id := pair_selector.get_item_id(index)
+			var occupancy: int = lobby.get_pair_members(pair_id).size()
+			pair_selector.set_item_text(index, "PAIR %02d  •  %d/%d" % [
+				pair_id + 1,
+				occupancy,
+				LobbyState.PAIR_CAPACITY,
+			])
+			pair_selector.set_item_disabled(
+				index,
+				occupancy >= LobbyState.PAIR_CAPACITY and pair_id != local_pair_id
+			)
+		var selected_index := pair_selector.get_item_index(local_pair_id)
+		if selected_index >= 0:
+			pair_selector.select(selected_index)
+		pair_selector.disabled = local_entry.is_empty() or lobby.phase != LobbyState.PHASE_WAITING
 	ready_button.disabled = local_entry.is_empty() or lobby.phase == LobbyState.PHASE_PLAYING
 	ready_button.text = "● GREEN — READY" if local_ready else "○ NOT READY — GREEN UP"
 	ready_button.add_theme_color_override("font_color", Color("70f59b") if local_ready else Color("d8dde6"))
-	alpha_team_button.disabled = local_entry.is_empty() or lobby.phase != LobbyState.PHASE_WAITING
+	alpha_team_button.disabled = pair_mode or local_entry.is_empty() or lobby.phase != LobbyState.PHASE_WAITING
 	bravo_team_button.disabled = alpha_team_button.disabled
 	var map_name := String(map_document.get("name", "Fallback Arena"))
 	var minutes := float(round_rules.get("time_limit_seconds", 300)) / 60.0
-	lobby_map_label.text = "%s  •  DEMOLITION  •  %.1f MIN  •  FIRST TO %d" % [
-		map_name, minutes, int(round_rules.get("rounds_to_win", 4)),
-	]
+	lobby_map_label.text = (
+		"%s  •  GUNFIGHT 2V2  •  16-DUO BRACKET" % map_name
+		if pair_mode
+		else "%s  •  DEMOLITION  •  %.1f MIN  •  FIRST TO %d" % [
+			map_name, minutes, int(round_rules.get("rounds_to_win", 4)),
+		]
+	)
 	if lobby.phase == LobbyState.PHASE_PLAYING:
 		_set_lobby_message("Match in progress. You will enter when everyone returns to the lobby.", Color("f2cf6a"))
 	elif lobby.phase == LobbyState.PHASE_COUNTDOWN:
 		_set_lobby_message("ALL PLAYERS READY  •  MATCH STARTS IN %d" % ceili(countdown_remaining), Color("70f59b"))
 	elif lobby.players.size() < LobbyState.MINIMUM_PLAYERS:
 		_set_lobby_message("Waiting for at least two players.", Color("aeb9c9"))
+	elif pair_mode:
+		_set_lobby_message(
+			"Choose your duo, then Green Up. All 16 complete duos are required.",
+			Color("aeb9c9")
+		)
 	elif lobby.team_count(0) == 0 or lobby.team_count(1) == 0:
 		_set_lobby_message("Both Alpha and Bravo need at least one player.", Color("f2cf6a"))
 	else:
@@ -249,24 +373,27 @@ func _build_match_hud() -> void:
 	add_child(menu_panel)
 	var column := VBoxContainer.new()
 	menu_panel.add_child(column)
-	var title := Label.new()
-	title.text = "8v8 DIRECT-IP MATCH"
-	title.add_theme_font_size_override("font_size", 20)
-	column.add_child(title)
-	var explanation := Label.new()
-	explanation.text = "Host one window. Join it from a second window.\nWASD move • Mouse aim • Left click fire • Esc releases mouse"
-	column.add_child(explanation)
+	connection_title = Label.new()
+	connection_title.text = "MULTIPLAYER MATCH"
+	connection_title.add_theme_font_size_override("font_size", 20)
+	column.add_child(connection_title)
+	connection_explanation = Label.new()
+	connection_explanation.text = "Host one native window or join ENet / ws://.\nWASD move • Mouse aim • Left click fire • Esc releases mouse"
+	connection_explanation.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	column.add_child(connection_explanation)
 	address_edit = LineEdit.new()
 	address_edit.placeholder_text = "Invite code or server address"
 	address_edit.text = "127.0.0.1"
 	column.add_child(address_edit)
 	var row := HBoxContainer.new()
 	column.add_child(row)
-	var host_button := Button.new()
+	host_button = Button.new()
+	host_button.name = "HostGame"
 	host_button.text = "HOST MATCH"
 	host_button.pressed.connect(func(): host_requested.emit())
 	row.add_child(host_button)
 	var join_button := Button.new()
+	join_button.name = "JoinGame"
 	join_button.text = "JOIN MATCH"
 	join_button.pressed.connect(func(): join_requested.emit(address_edit.text))
 	row.add_child(join_button)
@@ -274,6 +401,46 @@ func _build_match_hud() -> void:
 	leave_button.text = "MAIN MENU"
 	leave_button.pressed.connect(func(): leave_requested.emit())
 	column.add_child(leave_button)
+	_build_sudden_death_vote_panel()
+
+
+func _build_sudden_death_vote_panel() -> void:
+	sudden_death_vote_panel = PanelContainer.new()
+	sudden_death_vote_panel.name = "SuddenDeathVotePanel"
+	sudden_death_vote_panel.set_anchors_preset(Control.PRESET_CENTER)
+	sudden_death_vote_panel.position = Vector2(-240.0, -125.0)
+	sudden_death_vote_panel.custom_minimum_size = Vector2(480.0, 250.0)
+	sudden_death_vote_panel.visible = false
+	add_child(sudden_death_vote_panel)
+	var margin := MarginContainer.new()
+	for side: StringName in [&"margin_left", &"margin_right", &"margin_top", &"margin_bottom"]:
+		margin.add_theme_constant_override(side, 24)
+	sudden_death_vote_panel.add_child(margin)
+	var column := VBoxContainer.new()
+	column.add_theme_constant_override("separation", 12)
+	margin.add_child(column)
+	sudden_death_vote_title = Label.new()
+	sudden_death_vote_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	sudden_death_vote_title.add_theme_font_size_override("font_size", 22)
+	sudden_death_vote_title.add_theme_color_override("font_color", Color("f2cf6a"))
+	column.add_child(sudden_death_vote_title)
+	sudden_death_vote_status = Label.new()
+	sudden_death_vote_status.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	sudden_death_vote_status.add_theme_color_override("font_color", Color("d8dde6"))
+	column.add_child(sudden_death_vote_status)
+	for index in 2:
+		var button := Button.new()
+		button.name = "SuddenDeathCandidate%d" % (index + 1)
+		button.custom_minimum_size.y = 58.0
+		button.pressed.connect(_on_sudden_death_candidate_pressed.bind(button))
+		column.add_child(button)
+		sudden_death_vote_buttons.append(button)
+
+
+func _on_sudden_death_candidate_pressed(button: Button) -> void:
+	var candidate_peer_id := int(button.get_meta("candidate_peer_id", -1))
+	if candidate_peer_id > 0:
+		sudden_death_vote_requested.emit(candidate_peer_id)
 
 
 func _build_lobby() -> void:
@@ -342,13 +509,29 @@ func _build_lobby() -> void:
 	lobby_roster_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	lobby_roster_label.add_theme_font_size_override("normal_font_size", 16)
 	column.add_child(lobby_roster_label)
-	var side_row := HBoxContainer.new()
-	side_row.add_theme_constant_override("separation", 10)
-	column.add_child(side_row)
+	pair_selector_row = HBoxContainer.new()
+	pair_selector_row.name = "LobbyPairSelectorRow"
+	pair_selector_row.add_theme_constant_override("separation", 10)
+	column.add_child(pair_selector_row)
+	var pair_label := Label.new()
+	pair_label.text = "YOUR DUO"
+	pair_label.add_theme_color_override("font_color", Color("f2cf6a"))
+	pair_selector_row.add_child(pair_label)
+	pair_selector = OptionButton.new()
+	pair_selector.name = "LobbyPairSelector"
+	pair_selector.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	for pair_id in LobbyState.MAX_PAIRS:
+		pair_selector.add_item("PAIR %02d" % (pair_id + 1), pair_id)
+	pair_selector.item_selected.connect(_on_pair_selected)
+	pair_selector_row.add_child(pair_selector)
+	team_selector_row = HBoxContainer.new()
+	team_selector_row.name = "LobbyTeamSelectorRow"
+	team_selector_row.add_theme_constant_override("separation", 10)
+	column.add_child(team_selector_row)
 	alpha_team_button = _team_button("ChooseAlphaTeamButton", "JOIN ALPHA", Color("6eb6ff"), 0)
 	bravo_team_button = _team_button("ChooseBravoTeamButton", "JOIN BRAVO", Color("ff7d76"), 1)
-	side_row.add_child(alpha_team_button)
-	side_row.add_child(bravo_team_button)
+	team_selector_row.add_child(alpha_team_button)
+	team_selector_row.add_child(bravo_team_button)
 	ready_button = Button.new()
 	ready_button.name = "GreenUpReadyButton"
 	ready_button.text = "○ NOT READY — GREEN UP"
@@ -389,6 +572,12 @@ func _team_button(node_name: String, text_value: String, color: Color, team: int
 	button.add_theme_color_override("font_color", color)
 	button.pressed.connect(func(): team_requested.emit(team))
 	return button
+
+
+func _on_pair_selected(index: int) -> void:
+	if index < 0 or index >= pair_selector.item_count:
+		return
+	pair_requested.emit(pair_selector.get_item_id(index))
 
 
 func _set_lobby_message(message: String, color: Color) -> void:

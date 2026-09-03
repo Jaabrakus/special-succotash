@@ -25,16 +25,17 @@ static func attach_to_hand(
 	fallback_mount_rotation: Vector3,
 	operator_inverse_scale: float = 1.0
 ) -> Dictionary:
-	var model_path := String(config.get("model_fbx", ""))
+	var presentation := GunsLab2VisualRigResolver.resolve_for_presentation(config)
+	var model_path := String(presentation.get("model_fbx", ""))
 	var model_scene := load(model_path) as PackedScene
 	if model_scene == null or attachment == null:
 		return {}
 
 	var weapon_root := Node3D.new()
-	weapon_root.name = "Attached_%s" % String(config.get("weapon_id", "Weapon"))
-	weapon_root.set_meta("weapon_id", StringName(config.get("weapon_id", "")))
-	weapon_root.set_meta("rig_config", String(config.get("_rig_config_path", "")))
-	var mount: Dictionary = config.get("operator_mount", {})
+	weapon_root.name = "Attached_%s" % String(presentation.get("weapon_id", "Weapon"))
+	weapon_root.set_meta("weapon_id", StringName(presentation.get("weapon_id", "")))
+	weapon_root.set_meta("rig_config", String(presentation.get("_rig_config_path", "")))
+	var mount: Dictionary = presentation.get("operator_mount", {})
 	weapon_root.position = vector3_from_map(
 		mount.get("position", {}), fallback_mount_position
 	) * operator_inverse_scale
@@ -45,7 +46,7 @@ static func attach_to_hand(
 
 	var calibrated_pivot := Node3D.new()
 	calibrated_pivot.name = "CalibratedWeaponPivot"
-	var grip: Dictionary = config.get("grip_offset", {})
+	var grip: Dictionary = presentation.get("grip_offset", {})
 	calibrated_pivot.position = Vector3(
 		float(grip.get("pos_x", 0.0)),
 		float(grip.get("pos_y", 0.0)),
@@ -60,14 +61,14 @@ static func attach_to_hand(
 
 	var weapon_model := model_scene.instantiate() as Node3D
 	weapon_model.name = "WeaponMesh"
-	var model_scale := float(config.get("normalized_scale", 1.0))
-	var legacy_contract := int(config.get("schema_version", 0)) < 3
+	var model_scale := float(presentation.get("normalized_scale", 1.0))
+	var legacy_contract := int(presentation.get("schema_version", 0)) < 3
 	if legacy_contract and "ps1_ak47" in model_path and is_equal_approx(model_scale, 1.0):
 		model_scale = 0.030
 		weapon_model.position = Vector3(0.0, 0.02, -0.05)
 	weapon_model.scale = Vector3.ONE * model_scale
 	weapon_model.rotation_degrees = vector3_from_map(
-		config.get("model_rotation_degrees", {}), _default_model_rotation(model_path)
+		presentation.get("model_rotation_degrees", {}), _default_model_rotation(model_path)
 	)
 	if "ps1_ak47" in model_path:
 		var material := StandardMaterial3D.new()
@@ -75,7 +76,7 @@ static func attach_to_hand(
 		material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
 		_apply_material(weapon_model, material)
 
-	var sockets: Dictionary = config.get("weapon_sockets", {})
+	var sockets: Dictionary = presentation.get("weapon_sockets", {})
 	var right_position := vector3_from_map(
 		sockets.get("right_hand_grip_target", {}), Vector3.ZERO
 	)
@@ -106,7 +107,7 @@ static func attach_to_hand(
 			"Socket_Optic",
 			vector3_from_map(sockets.get("optic_rail", {}), Vector3.ZERO)
 		),
-		"config": config,
+		"config": presentation,
 	}
 	calibrated_pivot.add_child(weapon_model)
 	weapon_root.add_child(calibrated_pivot)

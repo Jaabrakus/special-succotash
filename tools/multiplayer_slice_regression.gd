@@ -176,6 +176,84 @@ func _run() -> void:
 	_assert(slice != null, "multiplayer scene did not instantiate")
 	_assert(slice.has_method("host_match"), "host entry point missing")
 	_assert(slice.has_method("join_match"), "join entry point missing")
+	var moving_shooter = NetworkOperator.new()
+	moving_shooter.visual_runtime_enabled = false
+	slice.add_child(moving_shooter)
+	moving_shooter.configure_identity(500, 0)
+	moving_shooter.global_position = Vector3(0.0, -2.0, 0.0)
+	slice.operators[500] = moving_shooter
+	var history_time_ms := float(Time.get_ticks_msec())
+	slice.operator_state_history[500] = [{
+		"time_ms": history_time_ms,
+		"position": Vector3.ZERO,
+		"yaw": 0.0,
+		"posture": &"STANDING",
+	}]
+	var moving_report_packet := convergence_packet.duplicate(true)
+	moving_report_packet["reported_muzzle_origin"] = Vector3(0.0, 1.35, 0.0)
+	var current_moving_anchor: Vector3 = slice.call(
+		"_authoritative_shot_report_anchor",
+		moving_shooter
+	)
+	var recent_moving_anchor: Vector3 = slice.call(
+		"_closest_recent_shot_report_anchor",
+		500,
+		moving_shooter,
+		moving_report_packet
+	)
+	_assert(
+		current_moving_anchor.distance_to(
+			Vector3(moving_report_packet.reported_muzzle_origin)
+		) > 1.5,
+		"fast-motion fixture exceeds the current-position anchor tolerance"
+	)
+	_assert(
+		bool(ShotAuthority.validate_intent(
+			moving_report_packet,
+			recent_moving_anchor,
+			-1,
+			10
+		).get("accepted", false)),
+		"recent server-owned shooter history accepts a legitimate moving shot"
+	)
+	var spoofed_moving_packet := moving_report_packet.duplicate(true)
+	spoofed_moving_packet["reported_muzzle_origin"] = Vector3(50.0, 1.35, 0.0)
+	var spoof_validation_anchor: Vector3 = slice.call(
+		"_closest_recent_shot_report_anchor",
+		500,
+		moving_shooter,
+		spoofed_moving_packet
+	)
+	_assert(
+		String(ShotAuthority.validate_intent(
+			spoofed_moving_packet,
+			spoof_validation_anchor,
+			-1,
+			10
+		).get("reason", "")) == "REPORT_ANCHOR_OUT_OF_RANGE",
+		"recent-history tolerance still rejects a remotely spoofed shot origin"
+	)
+	slice.operator_state_history[500][0]["time_ms"] = (
+		history_time_ms - slice.OPERATOR_HISTORY_SECONDS * 1000.0 - 1.0
+	)
+	var stale_history_anchor: Vector3 = slice.call(
+		"_closest_recent_shot_report_anchor",
+		500,
+		moving_shooter,
+		moving_report_packet
+	)
+	_assert(
+		String(ShotAuthority.validate_intent(
+			moving_report_packet,
+			stale_history_anchor,
+			-1,
+			10
+		).get("reason", "")) == "REPORT_ANCHOR_OUT_OF_RANGE",
+		"shot-anchor history older than the server window cannot authorize a shot"
+	)
+	slice.operators.erase(500)
+	slice.operator_state_history.erase(500)
+	moving_shooter.queue_free()
 	var queued_operator = NetworkOperator.new()
 	queued_operator.visual_runtime_enabled = false
 	slice.add_child(queued_operator)

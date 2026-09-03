@@ -1,5 +1,15 @@
 extends "res://scripts/player/operator_weapon_pose_ready.gd"
 
+const DEFAULT_ANIMATION_CARRY_WEIGHT := 0.65
+const DEFAULT_ANIMATION_CARRY_LIMIT_M := 0.035
+const DEFAULT_OWNERSHIP_RETURN_SECONDS := 0.18
+const DEFAULT_MAXIMUM_WRIST_CORRECTION_DEG := 72.0
+const DEFAULT_RIGHT_HAND_OWNS_READY_WEAPON := false
+const DEFAULT_ANIMATION_DRIVES_READY_HANDS := false
+const DEFAULT_HAND_SOCKET_IK_ENABLED := true
+const DEFAULT_SUPPORT_HAND_SOCKET_IK_ENABLED := false
+const DEFAULT_SUPPORT_HAND_IK_BLEND_SECONDS := 0.35
+
 func bind(target_skeleton: Skeleton3D, attached_weapon: Node3D) -> void:
 	skeleton = target_skeleton
 	weapon_node = attached_weapon
@@ -162,34 +172,57 @@ func configure_joint_poles(raw_poles: Variant) -> void:
 
 
 func configure_dynamic_hold(raw_profile: Variant) -> void:
-	if not raw_profile is Dictionary:
-		return
-	var profile := raw_profile as Dictionary
+	# Equipment changes replace the complete presentation contract. Never use
+	# the previous weapon's live solver values as defaults: doing so made a
+	# pistol inherit rifle stock/hand ownership until the next scene rebuild.
+	var profile := raw_profile as Dictionary if raw_profile is Dictionary else {}
 	animation_carry_weight = clampf(
-		float(profile.get("animation_carry_weight", animation_carry_weight)),
+		float(profile.get("animation_carry_weight", DEFAULT_ANIMATION_CARRY_WEIGHT)),
 		0.0,
 		1.0
 	)
 	animation_carry_limit_m = clampf(
-		float(profile.get("animation_carry_limit_m", animation_carry_limit_m)),
+		float(profile.get("animation_carry_limit_m", DEFAULT_ANIMATION_CARRY_LIMIT_M)),
 		0.0,
 		0.08
 	)
 	ownership_return_seconds = clampf(
-		float(profile.get("reload_return_blend_seconds", ownership_return_seconds)),
+		float(profile.get("reload_return_blend_seconds", DEFAULT_OWNERSHIP_RETURN_SECONDS)),
 		0.05,
 		0.35
 	)
 	maximum_wrist_correction_deg = clampf(
-		float(profile.get("hand_owned_aim_correction_limit_deg", maximum_wrist_correction_deg)),
+		float(profile.get(
+			"hand_owned_aim_correction_limit_deg",
+			DEFAULT_MAXIMUM_WRIST_CORRECTION_DEG
+		)),
 		25.0,
 		180.0
 	)
 	right_hand_owns_ready_weapon = bool(
-		profile.get("right_hand_owns_weapon", right_hand_owns_ready_weapon)
+		profile.get("right_hand_owns_weapon", DEFAULT_RIGHT_HAND_OWNS_READY_WEAPON)
 	)
 	animation_drives_ready_hands = bool(
-		profile.get("animation_drives_ready_hands", animation_drives_ready_hands)
+		profile.get("animation_drives_ready_hands", DEFAULT_ANIMATION_DRIVES_READY_HANDS)
+	)
+	hand_socket_ik_enabled = bool(
+		profile.get("hand_socket_ik_enabled", DEFAULT_HAND_SOCKET_IK_ENABLED)
+	)
+	support_hand_socket_ik_enabled = bool(
+		profile.get(
+			"support_hand_socket_ik_enabled",
+			DEFAULT_SUPPORT_HAND_SOCKET_IK_ENABLED
+		)
+	)
+	support_hand_ik_blend_seconds = clampf(
+		float(
+			profile.get(
+				"support_hand_ik_blend_seconds",
+				DEFAULT_SUPPORT_HAND_IK_BLEND_SECONDS
+			)
+		),
+		0.20,
+		0.75
 	)
 	if stock_constraint != null:
 		stock_constraint.configure(profile.get("buttstock_constraint", {}))

@@ -27,5 +27,13 @@ config/supabase.json
 # source checkpoint unless commercial rights are documented first.
 counter-strike-urban/
 
+# Oversized local reference/source workspaces. Canonical runtime exports and
+# integration code remain tracked; these multi-gigabyte upstream/DCC trees do
+# not fit a normal GitHub push without a separately configured LFS archive.
+/Kisak-Strike-master/
+/assets/external/agls_intake/raw/
+/assets/external/agls_intake/blender/
+/assets/characters/operator_rig_v2/
+
 # Generated UID for a removed one-off diagnostic script.
 tools/tmp_head_rotation_diagnostic.gd.uid

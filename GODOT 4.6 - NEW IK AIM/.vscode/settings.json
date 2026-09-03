@@ -1,0 +1,9 @@
+{
+    "godotTools.editorPath.godot4": "N:\\Godot\\.editor_config\\TPS - NEW IK AIMING\\Godot_v4.6-stable_win64.exe",
+    "editor.tabSize": 4,
+    "editor.insertSpaces": false,
+    "files.eol": "\n",
+    "files.exclude": {
+        "**/*.gd.uid": true
+    }
+}

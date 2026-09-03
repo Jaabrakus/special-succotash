@@ -1,0 +1,96 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://standalone_labs/guns_lab_sandbox.gd" id="1_sandbox"]
+[ext_resource type="Script" path="res://standalone_labs/dummy_target.gd" id="2_target"]
+
+[sub_resource type="Environment" id="Environment_lab"]
+background_mode = 1
+background_color = Color(0.12, 0.14, 0.18, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.6, 0.65, 0.75, 1)
+
+[sub_resource type="WorldBoundaryShape3D" id="WorldBoundaryShape3D_floor"]
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_floor"]
+size = Vector2(50, 50)
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_target"]
+radius = 0.3
+height = 1.7
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_target"]
+radius = 0.3
+height = 1.7
+
+[node name="GunsLab" type="Node3D"]
+script = ExtResource("1_sandbox")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_lab")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.707107, -0.5, 0.5, 0, 0.707107, 0.707107, -0.707107, -0.5, 0.5, 0, 10, 0)
+shadow_enabled = true
+
+[node name="Floor" type="StaticBody3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Floor"]
+shape = SubResource("WorldBoundaryShape3D_floor")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
+mesh = SubResource("PlaneMesh_floor")
+
+[node name="WeaponMount" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.2, 1.3, -0.4)
+
+[node name="WorkbenchCamera" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.35, 0)
+current = true
+fov = 55.0
+
+[node name="Targets" type="Node3D" parent="."]
+
+[node name="Target_10m" type="StaticBody3D" parent="Targets"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -10)
+script = ExtResource("2_target")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Targets/Target_10m"]
+shape = SubResource("CapsuleShape3D_target")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Targets/Target_10m"]
+mesh = SubResource("CapsuleMesh_target")
+
+[node name="Label3D" type="Label3D" parent="Targets/Target_10m"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0)
+billboard = 1
+text = "Target 10m"
+
+[node name="Target_20m" type="StaticBody3D" parent="Targets"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -20)
+script = ExtResource("2_target")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Targets/Target_20m"]
+shape = SubResource("CapsuleShape3D_target")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Targets/Target_20m"]
+mesh = SubResource("CapsuleMesh_target")
+
+[node name="Label3D" type="Label3D" parent="Targets/Target_20m"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0)
+billboard = 1
+text = "Target 20m"
+
+[node name="Target_35m" type="StaticBody3D" parent="Targets"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -35)
+script = ExtResource("2_target")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Targets/Target_35m"]
+shape = SubResource("CapsuleShape3D_target")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Targets/Target_35m"]
+mesh = SubResource("CapsuleMesh_target")
+
+[node name="Label3D" type="Label3D" parent="Targets/Target_35m"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0)
+billboard = 1
+text = "Target 35m"

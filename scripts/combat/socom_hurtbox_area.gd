@@ -24,6 +24,10 @@ func set_hurtbox_enabled(enabled: bool) -> void:
 	collision_layer = HURTBOX_COLLISION_LAYER if enabled else 0
 
 
+func is_anatomical_hurtbox() -> bool:
+	return true
+
+
 func get_hit_region() -> StringName:
 	return hit_region
 

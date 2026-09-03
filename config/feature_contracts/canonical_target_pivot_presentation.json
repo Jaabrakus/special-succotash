@@ -1,0 +1,153 @@
+{
+  "schema_version": 1,
+  "feature_id": "canonical_target_pivot_presentation",
+  "player_intent": "Forward sprint and ordinary locomotion own both arms and hands. Accepted fire temporarily blends the authored combat-ready/fire upper body over moving legs, and reload remains an authored upper-body animation during movement and posture changes.",
+  "acceptance_rule": "Forward sprint, walk, crouch, prone, jump, and reload keep every TargetPivot body modifier at zero. Accepted fire and its short combat-ready hold raise the complete TargetPivot graph to full influence over the upper body while locomotion continues on the legs. When the hold ends, every body modifier returns to zero and forward sprint owns both arms again.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://scenes/player/canonical_socom_operator_rig.tscn",
+  "ownership": {
+    "operator_target_pivot_presentation": "SocomOperatorGodotIkAimRuntime",
+    "weapon_contact_authoring": "GunsmithContactGraphController",
+    "locomotion_and_collision": "SocomTestPlayer",
+    "aim_intent": "SOCOMCameraReticleChain",
+    "shot_and_damage": "AuthoritativeServerWeapon"
+  },
+  "nodes": [
+    {
+      "id": "canonical_render_skeleton",
+      "type": "Skeleton3D",
+      "role": "Owns the rendered skin and the saved post-animation modifier hierarchy in both editor and play.",
+      "owner": "SocomOperatorGodotIkAimRuntime",
+      "scene_path": "res://scenes/player/canonical_socom_operator_rig.tscn",
+      "node_path": "VisualModel/Model/GeneralSkeleton"
+    },
+    {
+      "id": "constrained_spine_ccd",
+      "type": "CCDIK3D",
+      "role": "Solves the five-joint aim chain with four explicit cone limitations copied from the purchased reference graph.",
+      "owner": "SocomOperatorGodotIkAimRuntime",
+      "scene_path": "res://scenes/player/canonical_socom_operator_rig.tscn",
+      "node_path": "VisualModel/Model/GeneralSkeleton/SpineCCDIK3D"
+    },
+    {
+      "id": "canonical_target_pivot",
+      "type": "Marker3D",
+      "role": "Rotates the body-local presentation contacts from canonical camera aim without becoming aim authority.",
+      "owner": "SocomOperatorGodotIkAimRuntime",
+      "scene_path": "res://scenes/player/socom_ik_control_graph.tscn",
+      "node_path": "TargetPivot"
+    },
+    {
+      "id": "right_shoulder_target",
+      "type": "Marker3D",
+      "role": "Stores the editor-visible right upper-arm presentation target.",
+      "owner": "SocomOperatorGodotIkAimRuntime",
+      "scene_path": "res://scenes/player/socom_ik_control_graph.tscn",
+      "node_path": "TargetPivot/RHUpperArmWeaponTarget"
+    },
+    {
+      "id": "trigger_hand_target",
+      "type": "Marker3D",
+      "role": "Stores the editor-visible right-hand weapon contact orientation.",
+      "owner": "SocomOperatorGodotIkAimRuntime",
+      "scene_path": "res://scenes/player/socom_ik_control_graph.tscn",
+      "node_path": "TargetPivot/RHWeaponTarget"
+    },
+    {
+      "id": "support_hand_target",
+      "type": "Marker3D",
+      "role": "Receives the saved support-hand offset from the equipped weapon Socket_LeftHand.",
+      "owner": "SocomOperatorGodotIkAimRuntime",
+      "scene_path": "res://scenes/player/socom_ik_control_graph.tscn",
+      "node_path": "TargetPivot/LHWeaponContactTarget"
+    },
+    {
+      "id": "spine_aim_target",
+      "type": "Marker3D",
+      "role": "Keeps the spine aim target body-local under TargetPivot instead of moving it to a distant reticle ray.",
+      "owner": "SocomOperatorGodotIkAimRuntime",
+      "scene_path": "res://scenes/player/socom_ik_control_graph.tscn",
+      "node_path": "TargetPivot/SpineTargetWeaponAim"
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://config/weapons/m4a1.json",
+      "writer": "res://scripts/labs/gunsmith/gunsmith_persistence_controller.gd",
+      "readers": [
+        "res://scripts/player/operator_animation_driver_runtime.gd",
+        "res://scripts/player/operator_weapon_equipment_runtime.gd",
+        "res://scripts/player/operator_godot_ik_aim_runtime.gd",
+        "res://scripts/runtime/weapon_reload_coordinator.gd"
+      ]
+    }
+  ],
+  "must_not_change": [
+    "CharacterBody3D movement and collision authority",
+    "SOCOM camera and reticle aim authority",
+    "server muzzle, shot, ballistics, damage, and networking authority",
+    "equipped weapon root ownership"
+  ],
+  "proof_scripts": [
+    "res://tools/authored_operator_rig_scene_regression.gd",
+    "res://tools/rendered_arm_animation_liveness_regression.gd",
+    "res://tools/runtime_skeleton_modifier_proof.gd",
+    "res://tools/held_weapon_transform_collision_regression.gd",
+    "res://tools/canonical_socom_ik_rig_regression.gd",
+    "res://tools/weapon_contact_graph_integration_regression.gd",
+    "res://tools/gameplay_reload_completion_regression.gd",
+    "res://tools/test_dynamic_reload_handoff.gd",
+    "res://tools/weapon_auto_reload_regression.gd"
+  ],
+  "visual_check": "Run res://main.tscn and confirm that the M4A1 is horizontal at the chest, both hands remain attached in combat-ready/fire while standing, running, crouched, prone, and airborne, calibration handles are hidden in play, and one reload animation continues on the torso while movement, jump, crouch, and prone control the lower body.",
+  "failure_lessons": [
+	"TargetPivot is a procedural combat pose, not an animation clip. The fire-ready latch is its only body-IK gate: full influence during accepted fire and the short ready hold, zero influence during ordinary movement and reload. The right-hand weapon mount remains active in both modes so the rifle follows whichever pose owner is active.",
+	"A modifier-weight and socket-distance assertion did not catch the visible frozen arms. Canonical regressions must measure final rendered upper-arm, forearm, and hand motion during forward sprint before any weapon-parent change is accepted.",
+	"The relaxed rifle-carry layer used idle_rifle as a filtered upper-body source and runtime set its weight to 1.0 whenever Ready Aim was off. That static overlay replaced the valid run_forward arm and hand tracks. Keep rifle_carry_weight at zero for ordinary locomotion; combat fire and reload use their own bounded upper-body layers.",
+	"A held weapon is presentation, not a physics body. Recursively disable imported CollisionObject3D layers/masks and CollisionShape3D nodes when the weapon model is realized; authoritative muzzle traces and server hit validation remain separate.",
+	"Godot does not preserve Blender constraint behavior as a runtime hand-contact system. Bake authored action motion with visual keying before export, then let the canonical post-animation modifier graph enforce dynamic trigger and support contacts.",
+	"Keep attachment, calibration, and mesh transforms on separate nodes. The held weapon root consumes the hand pose, CalibratedWeaponPivot stores the authored local grip correction, and WeaponMesh stores import normalization; animation tracks must not write those runtime weapon nodes.",
+	"Creating SkeletonModifier3D nodes only at runtime hides the real pose graph from the Godot editor. Save the rendered Skeleton3D, metre-space TargetPivot graph, modifier order, CCD joint limits, and support-arm IK in one canonical wrapper scene, then bind dynamic weapon objects to those authored nodes at runtime.",
+	"A CCDIK3D node without JointLimitation3D resources is not equivalent to the purchased New IK graph. Preserve the reference cone angles on joints 0 through 3 and leave only the endpoint joint unlimited.",
+	"Godot evaluates SkeletonModifier3D children in scene-tree order. The connected right-arm/hand aim must run before the weapon attachment, which must run before left-arm IK and final palm contact; otherwise modifier-time aim can be correct while the rendered gun consumes a stale hand basis.",
+	"A RightHand attachment proves ownership but not rifle orientation. Ready presentation must align the weapon's authored +Z bore axis with the shared canonical aim point while retaining the trigger socket at the right palm.",
+    "Do not copy absolute purchased GeneralSkeleton right-arm rotations directly onto the canonical Mixamo-rest skeleton. Keep the retargeted authored upper-body pose, mount the weapon after animation, and solve only the support hand against the resulting weapon socket.",
+    "SkeletonModifier3D contact is transient during its callback. Validate trigger/support contact from modifier-time telemetry and rendered captures; a post-frame bone sample can report the restored pre-modifier pose and is not proof of visible separation.",
+    "After every failed compile, assertion, boot, or visual check, report the exact state, owner, lesson, smallest correction, and rerun result before continuing."
+  ],
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Keep the canonical runtime while the failed BoneAttachment3D replacement is reverted. Merge no further weapon-parent change until the final rendered upper-arm, forearm, and hand liveness regression passes in main.tscn.",
+    "current": {
+      "system": "Canonical operator pose pipeline before saved TargetPivot contacts reached runtime",
+      "correctness": 2,
+      "ownership_clarity": 3,
+      "runtime_parity": 1,
+      "editor_usability": 2,
+      "performance": 4,
+      "regression_coverage": 2,
+      "evidence_paths": [
+        "res://scripts/player/operator_animation_driver_runtime.gd",
+        "res://scripts/labs/gunsmith/gunsmith_contact_graph_controller.gd"
+      ]
+    },
+    "candidate": {
+      "system": "Canonical operator with purchased-style shared TargetPivot contacts and native post-animation modifiers",
+      "correctness": 4,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 5,
+      "performance": 4,
+      "regression_coverage": 5,
+      "evidence_paths": [
+        "res://scenes/player/canonical_socom_operator_rig.tscn",
+        "res://scenes/player/socom_ik_control_graph.tscn",
+        "res://scripts/player/operator_godot_ik_aim_runtime.gd",
+        "res://scripts/player/operator_weapon_hand_attachment_modifier.gd",
+        "res://scripts/player/player_controller.gd",
+        "res://scripts/runtime/weapon_reload_coordinator.gd",
+        "res://tools/canonical_socom_ik_rig_regression.gd"
+      ]
+    }
+  }
+}

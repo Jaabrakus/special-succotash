@@ -2,7 +2,7 @@
 set -eu
 
 PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-GODOT_BIN="${GODOT_BIN:-/Users/kiwimango/Downloads/Godot.app/Contents/MacOS/Godot}"
+GODOT_BIN="${GODOT_BIN:-/Users/kiwimango/Applications/Godot-4.7.1.app/Contents/MacOS/Godot}"
 REPORT_DIR="${TMPDIR:-/tmp}/socom-operator-animation-regression"
 REPORT_PATH="$REPORT_DIR/operator-animation.log"
 mkdir -p "$REPORT_DIR"

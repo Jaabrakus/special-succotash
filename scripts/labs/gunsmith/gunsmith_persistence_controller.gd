@@ -9,12 +9,12 @@ const WEAPON_BASE_PATH := "res://assets/weapons/modular_pack/"
 
 static func _request_save_everything(lab: Node) -> void:
 	if lab.hud_status:
-		lab.hud_status.text = "Saving the selected weapon rig and equipping it…"
+		lab.hud_status.text = "Saving this weapon rig only…"
 		lab.hud_status.tooltip_text = lab.hud_status.text
-	lab._save_weapon_config()
+	lab._save_weapon_config(false)
 
 
-static func _save_weapon_config(lab: Node) -> bool:
+static func _save_weapon_config(lab: Node, equip_for_gameplay: bool = false) -> bool:
 	if not lab._validate_weapon_rig_before_save():
 		return false
 	var loaded_profile: Dictionary = lab._loaded_weapon_profile
@@ -100,6 +100,7 @@ static func _save_weapon_config(lab: Node) -> bool:
 		"animation_frame_pose_keys": saved_frame_pose_keys,
 		"handling_profile": saved_handling_profile,
 		"gun_placement_line": saved_placement_line,
+		"weapon_contact_graph": lab._weapon_contact_graph_save_data(),
 		"weapon_sockets": lab._weapon_sockets_save_data(),
 		"ballistics": {
 			"fire_rate_rpm": lab.fire_rate_rpm,
@@ -139,7 +140,7 @@ static func _save_weapon_config(lab: Node) -> bool:
 		lab.selected_catalog_weapon_id
 	)
 
-	var save_result: Dictionary = WeaponProfileRepository.save_and_equip(
+	var save_result: Dictionary = WeaponProfileRepository.save_profile(
 		lab.weapon_name.to_lower(),
 		config_data
 	)
@@ -148,17 +149,25 @@ static func _save_weapon_config(lab: Node) -> bool:
 		return false
 
 	lab._export_weapon_packed_scene(config_data)
-	var collector := lab.get_node_or_null("/root/PlaytestStateCollector")
-	if collector != null:
-		var bundle_result: Dictionary = collector.call("collect_saved_state")
-		if not bool(bundle_result.get("ok", false)):
-			lab._show_rig_error(
-				"Rig saved, but gameplay could not collect the latest lab state: %s"
-				% str(bundle_result.get("errors", []))
-			)
+	if equip_for_gameplay:
+		var equip_result: Dictionary = WeaponProfileRepository.equip_saved_profile(
+			lab.weapon_name.to_lower()
+		)
+		if not bool(equip_result.get("ok", false)):
+			lab._show_rig_error(String(equip_result.get("error", "Weapon equip failed.")))
 			return false
+		var collector := lab.get_node_or_null("/root/PlaytestStateCollector")
+		if collector != null:
+			var bundle_result: Dictionary = collector.call("collect_saved_state")
+			if not bool(bundle_result.get("ok", false)):
+				lab._show_rig_error(
+					"Weapon saved and equipped, but gameplay could not collect its state: %s"
+					% str(bundle_result.get("errors", []))
+				)
+				return false
 	if lab.hud_status:
-		lab.hud_status.text = "💾 SAVED & EQUIPPED! %s • muzzle (%.3f, %.3f, %.3f) saved exactly." % [
+		lab.hud_status.text = "%s %s • muzzle (%.3f, %.3f, %.3f) saved exactly." % [
+			"💾 SAVED & EQUIPPED!" if equip_for_gameplay else "💾 SAVED THIS WEAPON RIG.",
 			lab.weapon_display_name,
 			lab.muzzle_local_pos.x,
 			lab.muzzle_local_pos.y,
@@ -166,6 +175,13 @@ static func _save_weapon_config(lab: Node) -> bool:
 		]
 		lab.hud_status.add_theme_color_override("font_color", Color(0.2, 1.0, 0.4))
 	return true
+
+
+static func _save_and_equip_selected_weapon(lab: Node) -> void:
+	if lab.hud_status:
+		lab.hud_status.text = "Saving and equipping this weapon for gameplay…"
+		lab.hud_status.tooltip_text = lab.hud_status.text
+	lab._save_weapon_config(true)
 
 
 static func synchronize_ready_contact(
@@ -179,20 +195,23 @@ static func synchronize_ready_contact(
 		"y": support_socket.y,
 		"z": support_socket.z,
 	}
-	var standing: Dictionary = stance_hands.get("STANDING", {})
-	if not standing.is_empty():
-		standing["left_grip"] = support_data.duplicate(true)
-		stance_hands["STANDING"] = standing
-	var aim_idle: Dictionary = animation_hands.get("aim_idle", {})
-	if not aim_idle.is_empty():
-		aim_idle["left_grip"] = support_data.duplicate(true)
-		animation_hands["aim_idle"] = aim_idle
-	var aim_idle_frames: Dictionary = frame_pose_keys.get("aim_idle", {})
-	var first_frame: Dictionary = aim_idle_frames.get("0", {})
-	if not first_frame.is_empty():
-		first_frame["left_hand_target"] = support_data.duplicate(true)
-		aim_idle_frames["0"] = first_frame
-		frame_pose_keys["aim_idle"] = aim_idle_frames
+	for stance_key in ["STANDING", "CROUCHED"]:
+		var stance: Dictionary = stance_hands.get(stance_key, {})
+		if not stance.is_empty():
+			stance["left_grip"] = support_data.duplicate(true)
+			stance_hands[stance_key] = stance
+	for animation_key in ["aim_idle", "aim_idle_crouch", "idle_crouch"]:
+		var animation_hand_map: Dictionary = animation_hands.get(animation_key, {})
+		if not animation_hand_map.is_empty():
+			animation_hand_map["left_grip"] = support_data.duplicate(true)
+			animation_hands[animation_key] = animation_hand_map
+	for frame_key in ["aim_idle", "aim_idle_crouch"]:
+		var frame_map: Dictionary = frame_pose_keys.get(frame_key, {})
+		var first_frame: Dictionary = frame_map.get("0", {})
+		if not first_frame.is_empty():
+			first_frame["left_hand_target"] = support_data.duplicate(true)
+			frame_map["0"] = first_frame
+			frame_pose_keys[frame_key] = frame_map
 
 
 static func _weapon_sockets_save_data(lab: Node) -> Dictionary:
@@ -238,8 +257,8 @@ static func _bullet_velocity_vector(lab: Node) -> Vector3:
 
 static func _save_and_play_latest_playground(lab: Node) -> void:
 	# One canonical handoff: the live build never guesses which lab or scene is
-	# newest. Save the selected weapon contract, then enter main.tscn.
-	if not lab._save_weapon_config():
+	# newest. Explicitly equip this selected weapon, then enter main.tscn.
+	if not lab._save_weapon_config(true):
 		return
 	if lab.hud_status:
 		lab.hud_status.text = "✅ Rig saved. Opening the latest gameplay playground…"

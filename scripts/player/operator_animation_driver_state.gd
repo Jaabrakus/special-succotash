@@ -4,6 +4,7 @@ signal action_completed(clip_name: StringName)
 signal action_cancelled(clip_name: StringName)
 signal action_release_cue(clip_name: StringName)
 signal action_recovery_cue(clip_name: StringName)
+signal reload_commit_cue(clip_name: StringName)
 signal weapon_family_changed(weapon_id: StringName, family: StringName)
 
 ## Thin visual coordinator. CharacterBody owns movement; the camera owns aim.
@@ -39,6 +40,9 @@ const FireUpperBodyLatch := preload(
 )
 const PoseHandoff := preload(
 	"res://scripts/player/operator_pose_handoff.gd"
+)
+const CombatReadyCcdik := preload(
+	"res://scripts/player/operator_combat_ready_ccdik.gd"
 )
 
 @export_group("Runtime route")
@@ -83,6 +87,7 @@ var animation_frame_pose_runtime
 var pose_pipeline
 var fire_upper_body_latch
 var pose_handoff
+var combat_ready_ccdik: SocomOperatorCombatReadyCcdik
 
 # Public runtime references retained for labs, debug views and regressions.
 var model_root: Node3D
@@ -150,6 +155,7 @@ var _active_reload_visual_slot: String = ""
 var _active_reload_visual_clip: StringName = &""
 var _reload_visual_time: float = 0.0
 var _reload_support_regrip: bool = false
+var _reload_commit_cue_emitted: bool = false
 var _requested_action_upper_body_layered: bool = false
 var _requested_action_release_cue_emitted: bool = false
 var _requested_action_recovery_cue_emitted: bool = false
@@ -160,3 +166,4 @@ var _grenade_recovery_blend_seconds_cached: float = 0.12
 var _presentation_posture: StringName = &"STANDING"
 var _presentation_ready_weight: float = 0.0
 var _presentation_fire_selected: bool = false
+var _clean_fire_recovery_weight: float = 0.0
