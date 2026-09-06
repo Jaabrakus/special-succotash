@@ -27,6 +27,7 @@ func configure(main_host: Node) -> void:
 
 
 func build_weapon_controller() -> void:
+	AudioEngine.initialize(self)
 	weapon_controller = WeaponController.new()
 	weapon_controller.name = "WeaponController"
 	host.add_child(weapon_controller)
@@ -68,11 +69,21 @@ func on_authoritative_shot(result: Dictionary) -> void:
 	var origin := Vector3(result.get("origin", Vector3.ZERO))
 	var hit_position := Vector3(result.get("hit_pos", origin))
 	var hit_normal := Vector3(result.get("normal", Vector3.UP))
-	TracerSystem.spawn_muzzle_flash(host.get_tree(), origin)
-	TracerSystem.spawn_tracer(
-		host.get_tree(), origin, hit_position, Color(1.0, 0.88, 0.35),
-		float(result.get("muzzle_velocity_mps", 715.0))
+	var shot_direction := (
+		(hit_position - origin).normalized()
+		if hit_position.distance_squared_to(origin) > 0.01
+		else Vector3.FORWARD
 	)
+	# Ballistic/tracer origins stay the accepted shot snapshot. Only an opted-in
+	# local muzzle effect follows the weapon's presented pose before drawing.
+	TracerSystem.spawn_muzzle_flash(
+		host.get_tree(), origin, shot_direction, _presented_muzzle_effect_source()
+	)
+	for projectile: Dictionary in result.get("projectiles", [result]):
+		TracerSystem.spawn_tracer(
+			host.get_tree(), origin, Vector3(projectile.get("hit_pos", hit_position)),
+			Color(1.0, 0.88, 0.35), float(result.get("muzzle_velocity_mps", 715.0))
+		)
 	var mannequin = player.get_node_or_null("Mannequin") if player != null else null
 	if mannequin != null and mannequin.has_method("get_active_ejection_marker"):
 		var ejection := mannequin.get_active_ejection_marker() as Marker3D
@@ -100,23 +111,42 @@ func on_authoritative_shot(result: Dictionary) -> void:
 	# Let the acoustic engine resolve walls, portals, and reflections. Exclude
 	# the local operator collision shapes so the shooter's own body cannot make
 	# a clear muzzle-to-camera path sound blocked.
+	var sound_config: Dictionary = weapon_controller.get("equipped_weapon_config")
 	AudioEngine.play_gunshot(
-		host.get_tree(), false, origin, false, _local_acoustic_exclusions()
+		host.get_tree(), bool(sound_config.get("ballistics", {}).get("is_silenced", false)),
+		origin, false, _local_acoustic_exclusions(), String(sound_config.get("weapon_id", ""))
 	)
-	var damage_result: Variant = result.get("damage_result", {})
-	if damage_result is Dictionary and bool((damage_result as Dictionary).get("accepted", false)):
-		TracerSystem.spawn_body_hit_effect(
-			host.get_tree(), hit_position, hit_normal,
-			bool((damage_result as Dictionary).get("headshot", false))
-		)
-		AudioEngine.play_body_impact(
-			host.get_tree(), hit_position,
-			bool((damage_result as Dictionary).get("headshot", false))
-		)
-		if dynamic_reticle:
-			dynamic_reticle.notify_hit()
-	else:
-		TracerSystem.spawn_impact_effect(host.get_tree(), hit_position, hit_normal)
+	for projectile: Dictionary in result.get("projectiles", [result]):
+		var projectile_position := Vector3(projectile.get("hit_pos", hit_position))
+		var projectile_normal := Vector3(projectile.get("normal", hit_normal))
+		var damage_result: Variant = projectile.get("damage_result", {})
+		if damage_result is Dictionary and bool((damage_result as Dictionary).get("accepted", false)):
+			TracerSystem.spawn_body_hit_effect(
+				host.get_tree(), projectile_position, projectile_normal,
+				bool((damage_result as Dictionary).get("headshot", false))
+			)
+			AudioEngine.play_body_impact(
+				host.get_tree(), projectile_position,
+				bool((damage_result as Dictionary).get("headshot", false))
+			)
+			if dynamic_reticle:
+				dynamic_reticle.notify_hit()
+		else:
+			TracerSystem.spawn_impact_effect(host.get_tree(), projectile_position, projectile_normal)
+
+
+func _presented_muzzle_effect_source() -> Node3D:
+	if weapon_controller == null or player == null:
+		return null
+	var config: Dictionary = weapon_controller.get("equipped_weapon_config")
+	var handling: Dictionary = config.get("handling_profile", {})
+	var presentation: Dictionary = handling.get("presentation", {})
+	if not bool(presentation.get("muzzle_effect_follows_presented_muzzle", false)):
+		return null
+	var mannequin := player.get_node_or_null("Mannequin") as Node
+	if mannequin == null or not mannequin.has_method("get_active_muzzle_marker"):
+		return null
+	return mannequin.call("get_active_muzzle_marker") as Node3D
 
 
 func _local_acoustic_exclusions() -> Array:

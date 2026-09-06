@@ -1,5 +1,5 @@
 class_name SocomMultiplayerSlice
-extends "res://scripts/network/socom_multiplayer_tournament_runtime.gd"
+extends "res://scripts/network/socom_multiplayer_warmup.gd"
 
 # RPC annotations must live on the concrete scene script. These thin
 # forwarders preserve the wire contract while feature layers own logic.
@@ -93,8 +93,8 @@ func submit_shot(packet: Dictionary) -> void:
 	super.submit_shot(packet)
 
 @rpc("any_peer", "call_remote", "reliable")
-func submit_reload() -> void:
-	super.submit_reload()
+func submit_reload(start: bool = true) -> void:
+	super.submit_reload(start)
 
 @rpc("any_peer", "call_remote", "reliable")
 func submit_objective_interaction(held: bool) -> void:
@@ -128,6 +128,15 @@ func receive_match_event(message: String) -> void:
 
 
 @rpc("authority", "call_remote", "reliable")
+func receive_round_weapon(
+	weapon_id: String,
+	round_number: int,
+	affected_peer_ids: Array
+) -> void:
+	super.receive_round_weapon(weapon_id, round_number, affected_peer_ids)
+
+
+@rpc("authority", "call_remote", "reliable")
 func receive_tournament_assignment(peer_id: int, team: int, spawn: Vector3, arena_id: int) -> void:
 	super.receive_tournament_assignment(peer_id, team, spawn, arena_id)
 
@@ -148,3 +157,25 @@ func receive_ammo_state(magazine_rounds: int, reserve_rounds: int) -> void:
 @rpc("authority", "call_remote", "reliable")
 func receive_objective_state(state: Dictionary) -> void:
 	super.receive_objective_state(state)
+
+
+@rpc("authority", "call_remote", "reliable")
+func receive_pellet_impacts(shooter: int, origin: Vector3, impacts: Array[Dictionary]) -> void:
+	super.receive_pellet_impacts(shooter, origin, impacts)
+
+
+@rpc("any_peer", "call_remote", "reliable")
+func request_warmup_weapon(weapon_id: String) -> void:
+	super.request_warmup_weapon(weapon_id)
+
+@rpc("authority", "call_remote", "reliable")
+func receive_warmup_loadout(assignments: Dictionary, loadouts: Dictionary = {}) -> void:
+	super.receive_warmup_loadout(assignments, loadouts)
+
+@rpc("any_peer", "call_remote", "reliable")
+func request_warmup_slot(slot: String) -> void:
+	super.request_warmup_slot(slot)
+
+@rpc("authority", "call_remote", "reliable")
+func receive_warmup_end() -> void:
+	super.receive_warmup_end()

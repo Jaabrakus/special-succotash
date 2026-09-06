@@ -49,6 +49,18 @@ func _lower_body_separation_weight(
 	return smoothstep(0.12, 0.82, presentation_ready)
 
 
+func _authored_pistol_ready_locomotion() -> bool:
+	# The opted-in pistol's accepted upper-body pose stays on continuous gait.
+	# Full-body cosmetic starts/stops must not replace it with a rifle take.
+	var dynamic: Dictionary = equipped_weapon_handling_profile.get("dynamic_hold", {})
+	return (
+		equipped_weapon_family == &"TWO_HAND_PISTOL"
+		and bool(dynamic.get("authored_compressed_idle_enabled", false))
+		and posture in [&"STANDING", &"CROUCHED"]
+		and (weapon_ready_weight > 0.001 or _fire_upper_body_selected())
+	)
+
+
 func _select_visual_clip() -> StringName:
 	if movement_state == &"DIVING":
 		return &"dive_roll"
@@ -77,12 +89,22 @@ func _select_visual_clip() -> StringName:
 			if _prone_direction_suffix(movement_direction) == "backward"
 			else &"prone_forward"
 		)
+	var is_pistol_family: bool = (
+		equipped_weapon_family in [&"TWO_HAND_PISTOL", &"ONE_HAND"]
+		or String(equipped_weapon_handling_profile.get("locomotion_family", "")).to_upper() == "PISTOL"
+	)
 	if posture == &"CROUCHED":
 		if not _locomotion_active:
-			return _equipped_action_clip("idle_crouched", &"idle_crouch")
+			var crouch_fallback := &"pistol_idle_kneeling" if is_pistol_family else &"idle_crouch"
+			if is_pistol_family and weapon_ready_weight >= 0.5:
+				return _equipped_action_clip("ready_crouched", &"pistol_idle_kneeling")
+			return _equipped_action_clip("idle_crouched", crouch_fallback)
 		var crouch_clip := StringName("crouch_%s" % _direction_suffix(movement_direction))
 		return crouch_clip if available_clips.has(crouch_clip) else &"crouch_forward"
 	if not _locomotion_active:
+		if is_pistol_family:
+			var idle_clip := _equipped_action_clip("idle_standing", &"pistol_idle")
+			return _equipped_action_clip("ready_standing", idle_clip) if weapon_ready_weight >= 0.5 else idle_clip
 		return (
 			_equipped_action_clip("idle_standing", &"aim_idle")
 			if weapon_ready_weight >= 0.5
@@ -151,8 +173,7 @@ func _request_clip(clip_name: StringName, blend_seconds: float = -1.0) -> void:
 	if not use_modern_locomotion:
 		locomotion_graph.request_legacy_clip(clip_name, blend)
 		return
-	locomotion_graph.modern_transition.xfade_time = maxf(blend, 0.0)
-	if not locomotion_graph.request_modern_state(_modern_state_for_clip(clip_name)):
+	if not locomotion_graph.request_modern_state(_modern_state_for_clip(clip_name), maxf(blend, 0.0)):
 		locomotion_graph.set_modern_enabled(false)
 		locomotion_graph.request_legacy_clip(clip_name, blend)
 
@@ -173,6 +194,16 @@ func _apply_saved_animation_frame_pose(delta: float) -> void:
 		var ready_pose_clip := _standing_ready_frame_pose_clip()
 		if ready_pose_clip != &"":
 			pose_clip = ready_pose_clip
+	elif (
+		_presentation_posture == &"CROUCHED"
+		and _presentation_ready_weight >= 0.50
+		and equipped_weapon_family in [&"TWO_HAND_PISTOL", &"ONE_HAND"]
+		and movement_state not in [&"DIVING", &"ROLLING", &"AIRBORNE", &"LANDING"]
+	):
+		# A separate crouched ready source also owns its saved frame corrections;
+		# walking/crouched-idle clips remain the lower-body/base source only.
+		var ready_slot := "ready_crouched_moving" if _locomotion_active or _requested_action_is_transition else "ready_crouched"
+		pose_clip = _equipped_action_clip(ready_slot, _equipped_action_clip("ready_crouched", &"pistol_idle_kneeling"))
 	if _requested_action_upper_body_layered and _active_reload_visual_clip != &"":
 		pose_clip = _active_reload_visual_clip
 		pose_time = _reload_visual_time
@@ -297,7 +328,10 @@ func _fire_uses_aim_idle(event_state: StringName = &"") -> bool:
 			posture,
 			equipped_weapon_family
 		)
-	return event_state == &"aim_idle"
+	return (
+		event_state in [&"aim_idle", &"aim_idle_crouch", &"pistol_idle", &"pistol_idle_kneeling"]
+		or equipped_weapon_family in [&"TWO_HAND_PISTOL", &"ONE_HAND"]
+	)
 
 
 func _standing_reload_pose_active() -> bool:
@@ -317,6 +351,15 @@ func _standing_ready_frame_pose_clip() -> StringName:
 	var configured := StringName(
 		(animation_slots as Dictionary).get("idle_standing", "aim_idle")
 	)
+	var ready_configured := StringName(
+		(animation_slots as Dictionary).get("ready_standing", "")
+	)
+	if _locomotion_active or _requested_action_is_transition:
+		var moving_ready := StringName((animation_slots as Dictionary).get("ready_standing_moving", ""))
+		if moving_ready != &"" and available_clips.has(moving_ready):
+			ready_configured = moving_ready
+	if ready_configured != &"" and available_clips.has(ready_configured):
+		return ready_configured
 	if configured != &"" and available_clips.has(configured):
 		return configured
 	return &"aim_idle" if available_clips.has(&"aim_idle") else &""
@@ -336,7 +379,9 @@ func _modern_state_for_clip(clip_name: StringName) -> StringName:
 
 func _is_locomotion_clip(clip_name: StringName) -> bool:
 	var text := String(clip_name)
-	return text.begins_with("walk_") or text.begins_with("run_") or text.begins_with("crouch_") or text.begins_with("prone_") or text in ["idle_rifle", "aim_idle", "idle_crouch", "idle_prone"]
+	if text.begins_with("pistol_compressed_idle_") or text.begins_with("pistol_recovery_reference_"):
+		return true
+	return text.begins_with("walk_") or text.begins_with("run_") or text.begins_with("crouch_") or text.begins_with("prone_") or text in ["idle_rifle", "aim_idle", "idle_crouch", "idle_prone", "pistol_idle", "pistol_idle_kneeling"]
 
 
 func _direction_suffix(direction: Vector2) -> String:

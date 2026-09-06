@@ -79,7 +79,7 @@ func _ready() -> void:
 	_build_settings()
 	_refresh_map_selector()
 	if restricted_web_build:
-		status_label.text = "Host a browser 2v2 or paste a P2P room code."
+		status_label.text = "Train solo, join the 32-player tournament, or view the global leaderboard."
 	call_deferred("_initialize_guest_identity")
 
 
@@ -134,54 +134,69 @@ func _build_ui() -> void:
 	menu_column.add_theme_constant_override("separation", 8)
 	root_column.add_child(menu_column)
 
-	var quick_match_button := _add_primary_action(menu_column, "QUICK MATCH", _quick_match)
-	quick_match_button.name = "QuickMatch"
-	var browse_servers_button := _add_primary_action(menu_column, "BROWSE SERVERS", _open_server_browser)
-	browse_servers_button.name = "BrowseServers"
-	var host_game_button := _add_primary_action(
+	var quick_match_button := _add_primary_action(
 		menu_column,
-		"HOST PRIVATE MATCH",
-		_host_private_match
+		"JOIN 32-PLAYER TOURNAMENT" if restricted_web_build else "QUICK MATCH",
+		_quick_match
 	)
-	host_game_button.name = "HostGame"
+	quick_match_button.name = "QuickMatch"
 	if not restricted_web_build:
+		var browse_servers_button := _add_primary_action(
+			menu_column,
+			"BROWSE SERVERS",
+			_open_server_browser
+		)
+		browse_servers_button.name = "BrowseServers"
+		var host_game_button := _add_primary_action(
+			menu_column,
+			"HOST PRIVATE MATCH",
+			_host_private_match
+		)
+		host_game_button.name = "HostGame"
 		var create_room_button := _add_primary_action(
 			menu_column,
 			"CREATE 32P TOURNAMENT ROOM",
 			_open_tournament_room
 		)
 		create_room_button.name = "CreateTournamentRoom"
-		_add_primary_action(menu_column, "GLOBAL LEADERBOARD", _open_leaderboard)
-
-	var join_row := HBoxContainer.new()
-	join_row.add_theme_constant_override("separation", 8)
-	menu_column.add_child(join_row)
-	address_edit = LineEdit.new()
-	address_edit.name = "JoinGameAddress"
-	address_edit.placeholder_text = (
-		"P2P room code or wss:// official server"
-		if restricted_web_build
-		else "Invite code or server address"
+	var leaderboard_button := _add_primary_action(
+		menu_column,
+		"GLOBAL LEADERBOARD",
+		_open_leaderboard
 	)
-	address_edit.text = browser_server_url if restricted_web_build else "127.0.0.1"
-	address_edit.custom_minimum_size.y = 42.0
-	address_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	join_row.add_child(address_edit)
-	var join_button := Button.new()
-	join_button.name = "JoinGame"
-	join_button.text = "JOIN ROOM"
-	join_button.custom_minimum_size = Vector2(130.0, 42.0)
-	join_button.pressed.connect(_join_match)
-	join_row.add_child(join_button)
+	leaderboard_button.name = "GlobalLeaderboard"
+	var training_button := _add_primary_action(
+		menu_column,
+		"TRAINING GROUNDS" if restricted_web_build else "TRAINING RANGE",
+		_open_training_range
+	)
+	training_button.name = "TrainingRange"
+	training_button.tooltip_text = "Practice solo. Press B near spawn to choose a weapon. No server required."
 
 	if not restricted_web_build:
+		var join_row := HBoxContainer.new()
+		join_row.add_theme_constant_override("separation", 8)
+		menu_column.add_child(join_row)
+		address_edit = LineEdit.new()
+		address_edit.name = "JoinGameAddress"
+		address_edit.placeholder_text = "Invite code or server address"
+		address_edit.text = "127.0.0.1"
+		address_edit.custom_minimum_size.y = 42.0
+		address_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		join_row.add_child(address_edit)
+		var join_button := Button.new()
+		join_button.name = "JoinGame"
+		join_button.text = "JOIN ROOM"
+		join_button.custom_minimum_size = Vector2(130.0, 42.0)
+		join_button.pressed.connect(_join_match)
+		join_row.add_child(join_button)
+
 		map_selector = OptionButton.new()
 		map_selector.name = "HostMapSelector"
 		map_selector.custom_minimum_size.y = 40.0
 		map_selector.tooltip_text = "Choose which saved map this match will use."
 		map_selector.item_selected.connect(_on_map_selected)
 		menu_column.add_child(map_selector)
-		_add_primary_action(menu_column, "TRAINING RANGE", _open_training_range)
 		_add_primary_action(menu_column, "MAP EDITOR", _open_map_editor)
 		var studio_button := _add_primary_action(
 			menu_column,
@@ -305,6 +320,7 @@ func _build_ui() -> void:
 	leaderboard_panel.add_child(lb_actions_row)
 
 	leaderboard_refresh_btn = Button.new()
+	leaderboard_refresh_btn.name = "RefreshLeaderboard"
 	leaderboard_refresh_btn.text = "🔄 REFRESH LEADERBOARD"
 	leaderboard_refresh_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	leaderboard_refresh_btn.pressed.connect(_fetch_and_render_leaderboard)
@@ -317,7 +333,11 @@ func _build_ui() -> void:
 	lb_actions_row.add_child(leave_lb_btn)
 
 	status_label = Label.new()
-	status_label.text = "Direct-IP 32-Player Room • Praetorian Ladder • UDP 14141"
+	status_label.text = (
+		"32 PLAYERS  •  16 DUOS  •  8 SIMULTANEOUS 2v2 ARENAS"
+		if restricted_web_build
+		else "Direct-IP 32-Player Room • Praetorian Ladder • UDP 14141"
+	)
 	status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	status_label.add_theme_color_override("font_color", Color("7f8b9c"))
@@ -379,7 +399,9 @@ func _open_tournament_room() -> void:
 
 
 func _host_private_match() -> void:
-	if not restricted_web_build and not _select_host_map():
+	if restricted_web_build:
+		return
+	if not _select_host_map():
 		return
 	_configure_private_host_session()
 	_collect_and_open(MULTIPLAYER_SCENE)
@@ -390,13 +412,8 @@ func _configure_private_host_session() -> void:
 	# canonical multiplayer session still owns the peer, lobby, shots, damage,
 	# and disconnect lifecycle.
 	ProjectSettings.set_setting("socom/session/tournament_mode", false)
-	ProjectSettings.set_setting(
-		"socom/session/launch_mode",
-		"webrtc_host" if restricted_web_build else "host"
-	)
+	ProjectSettings.set_setting("socom/session/launch_mode", "host")
 	ProjectSettings.set_setting("socom/session/join_address", "")
-	ProjectSettings.set_setting("socom/session/webrtc_room_code", "")
-	ProjectSettings.set_setting("socom/session/webrtc_signaling_url", webrtc_signaling_url)
 
 
 func _ensure_matchmaking_directory():
@@ -408,16 +425,23 @@ func _ensure_matchmaking_directory():
 
 
 func _quick_match() -> void:
+	if restricted_web_build:
+		if not _configure_browser_tournament_session():
+			return
+		_collect_and_open(MULTIPLAYER_SCENE)
+		return
 	if directory_request_in_progress:
 		return
 	directory_request_in_progress = true
-	status_label.text = "Finding a healthy compatible server with room…"
+	status_label.text = "Finding an official 32-player tournament with room…"
 	var directory = _ensure_matchmaking_directory()
 	var result: Dictionary = await directory.find_quick_match(
 		"auto",
 		{},
 		-1.0,
-		restricted_web_build
+		restricted_web_build,
+		"gunfight_2v2",
+		32
 	)
 	directory_request_in_progress = false
 	if not bool(result.get("ok", false)):
@@ -428,6 +452,20 @@ func _quick_match() -> void:
 	var server: Dictionary = result.get("server", {})
 	status_label.text = "Joining %s…" % String(server.get("name", "match server"))
 	_join_directory_endpoint(result.get("endpoint", {}))
+
+
+func _configure_browser_tournament_session() -> bool:
+	if webrtc_signaling_url.is_empty():
+		status_label.text = "Tournament unavailable: WebRTC signaling is not configured."
+		return false
+	ProjectSettings.set_setting("socom/session/tournament_mode", true)
+	ProjectSettings.set_setting("socom/session/launch_mode", "webrtc_tournament")
+	ProjectSettings.set_setting("socom/session/join_address", "")
+	ProjectSettings.set_setting(
+		"socom/session/webrtc_signaling_url",
+		webrtc_signaling_url
+	)
+	return true
 
 
 func _open_server_browser() -> void:
@@ -593,20 +631,19 @@ func _fetch_and_render_leaderboard() -> void:
 
 	var service := get_node_or_null("/root/SupabaseClient")
 	var rows: Array = []
-	if service != null and bool(service.call("is_configured")):
-		var lb_res: Dictionary = await service.call("get_gunfight_leaderboard", 50)
-		if bool(lb_res.get("ok", false)):
-			rows = lb_res.get("leaderboard", [])
-
+	if service == null or not bool(service.call("is_configured")):
+		leaderboard_table_label.text = "[center][color=#ffad73]Global leaderboard unavailable: cloud service is not configured.[/color][/center]"
+		return
+	var lb_res: Dictionary = await service.call("get_gunfight_leaderboard", 50)
+	if not bool(lb_res.get("ok", false)):
+		leaderboard_table_label.text = "[center][color=#ffad73]Global leaderboard unavailable: %s[/color][/center]" % String(
+			lb_res.get("message", "the service did not return standings.")
+		)
+		return
+	rows = lb_res.get("leaderboard", [])
 	if rows.is_empty():
-		rows = [
-			{"handle": "Viper_001", "rank_tier": "IMPERATOR", "elo_rating": 1650, "current_tier_kd": 3.42, "win_rate_percentage": 78.5, "tournaments_won": 12},
-			{"handle": "Ghost_141", "rank_tier": "PRAETORIAN PREFECT I", "elo_rating": 1460, "current_tier_kd": 2.85, "win_rate_percentage": 72.0, "tournaments_won": 9},
-			{"handle": "Nomad_88", "rank_tier": "PRAETORIAN I", "elo_rating": 1180, "current_tier_kd": 2.10, "win_rate_percentage": 65.0, "tournaments_won": 6},
-			{"handle": "Kodiak_42", "rank_tier": "CENTURION II", "elo_rating": 740, "current_tier_kd": 1.65, "win_rate_percentage": 58.0, "tournaments_won": 3},
-			{"handle": "Raven_99", "rank_tier": "HASTATUS I", "elo_rating": 530, "current_tier_kd": 1.40, "win_rate_percentage": 52.0, "tournaments_won": 2},
-			{"handle": my_name, "rank_tier": my_rank, "elo_rating": my_elo, "current_tier_kd": float(my_kd_str), "win_rate_percentage": 50.0, "tournaments_won": my_tourneys},
-		]
+		leaderboard_table_label.text = "[center][color=#aeb9c9]No ranked tournament results yet.[/color][/center]"
+		return
 
 	var header := "[cell][b]# [/b][/cell][cell][b]OPERATOR[/b][/cell][cell][b]PRAETORIAN RANK[/b][/cell][cell][b]ELO[/b][/cell][cell][b]TIER K/D[/b][/cell][cell][b]WIN %[/b][/cell][cell][b]TOURNEYS[/b][/cell]"
 	var cells: Array[String] = [header]
@@ -649,8 +686,14 @@ func _open_animation_studio() -> void:
 
 
 func _open_training_range() -> void:
-	if not _select_host_map():
+	if not restricted_web_build and not _select_host_map():
 		return
+	# Training must not inherit a previous tournament/join intent. Its canonical
+	# runtime consumes the bundled map and weapon profiles without cloud access.
+	ProjectSettings.set_setting("socom/session/tournament_mode", false)
+	ProjectSettings.set_setting("socom/session/launch_mode", "")
+	ProjectSettings.set_setting("socom/session/join_address", "")
+	ProjectSettings.set_setting("socom/session/webrtc_room_code", "")
 	ProjectSettings.set_setting("socom/session/public_training", true)
 	_collect_and_open(TRAINING_RANGE_SCENE)
 
@@ -699,6 +742,8 @@ func _select_host_map() -> bool:
 
 
 func _join_match() -> void:
+	if restricted_web_build or address_edit == null:
+		return
 	var address := address_edit.text.strip_edges()
 	if address.is_empty():
 		status_label.text = "Enter an invite code or server address."
@@ -706,21 +751,15 @@ func _join_match() -> void:
 	# Direct addresses do not carry directory metadata. The authoritative server
 	# enables tournament presentation when it sends an arena layout.
 	ProjectSettings.set_setting("socom/session/tournament_mode", false)
-	if restricted_web_build and DeploymentProfile.is_webrtc_room_code(address):
-		ProjectSettings.set_setting("socom/session/launch_mode", "webrtc_join")
-		ProjectSettings.set_setting("socom/session/webrtc_room_code", address)
-		ProjectSettings.set_setting("socom/session/webrtc_signaling_url", webrtc_signaling_url)
-		ProjectSettings.set_setting("socom/session/join_address", "")
-	else:
-		ProjectSettings.set_setting("socom/session/launch_mode", "join")
-		ProjectSettings.set_setting("socom/session/join_address", address)
+	ProjectSettings.set_setting("socom/session/launch_mode", "join")
+	ProjectSettings.set_setting("socom/session/join_address", address)
 	_collect_and_open(MULTIPLAYER_SCENE)
 
 
 func _collect_and_open(scene_path: String) -> void:
 	if play_open_in_progress:
 		return
-	if restricted_web_build and scene_path == MULTIPLAYER_SCENE:
+	if restricted_web_build and scene_path in [MULTIPLAYER_SCENE, TRAINING_RANGE_SCENE]:
 		play_open_in_progress = true
 		get_tree().change_scene_to_file(scene_path)
 		return

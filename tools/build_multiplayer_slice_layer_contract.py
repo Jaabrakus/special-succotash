@@ -14,6 +14,7 @@ WRAPPER = MODULE_DIR / "socom_multiplayer_slice.gd"
 MARKER = "# BEGIN GENERATED MULTIPLAYER CROSS-LAYER CONTRACT"
 LAYER_ORDER = [
     MODULE_DIR / "socom_multiplayer_admission.gd",
+    MODULE_DIR / "socom_multiplayer_webrtc.gd",
     MODULE_DIR / "socom_multiplayer_session.gd",
     MODULE_DIR / "socom_multiplayer_replication.gd",
     MODULE_DIR / "socom_multiplayer_combat.gd",

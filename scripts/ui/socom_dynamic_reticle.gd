@@ -1,9 +1,9 @@
 class_name SocomDynamicReticle
 extends Control
 
-## Authentic SOCOM II Tactical Dynamic Reticle
+## SOCOM II reference-inspired dynamic reticle
 ## Features:
-## - Open lower reference arc with lateral lead bars and a lower drop stem
+## - Four cardinal ticks, pale center point, and faint central backing disc
 ## - Red Target Acquisition when hovering over enemies/targets
 ## - Yellow Ladder / Interact brackets when facing interactable cover
 ## - Stance & Movement bloom scaling (Prone = tight, Standing Sprint = wide)
@@ -19,6 +19,7 @@ enum ReticleMode {
 @export var interact_color := Color(0.95, 0.85, 0.2, 0.9)  # Ladder/Door Yellow
 
 # Reticle Dimensions (Pixels - Authentic SOCOM II Scale)
+# Kept for saved-profile compatibility; spread now opens all four ticks instead.
 @export var maximum_movement_tick_extension: float = 16.0
 @export var tick_thickness: float = 2.4
 @export var reference_arc_padding: float = 5.0
@@ -45,6 +46,8 @@ var shot_bounce_age: float = 99.0
 var shot_bounce_duration: float = 0.070
 var shot_bounce_amplitude: float = 0.0
 var functional_aim_climb_enabled: bool = false
+var camera_owned_aim: bool = false
+var cadence_driven_return: bool = true
 
 const CADENCE_BOUNCE_FRACTION: float = 0.52
 const CADENCE_RETURN_REMAINDER: float = 0.10
@@ -52,6 +55,8 @@ const MIN_BOUNCE_DURATION_SECONDS: float = 0.035
 const MAX_BOUNCE_DURATION_SECONDS: float = 0.120
 const MIN_KICK_RETURN_SPEED: float = 8.0
 const MAX_KICK_RETURN_SPEED: float = 40.0
+const CENTER_DISC_RADIUS: float = 24.0
+const CENTER_DOT_RADIUS: float = 1.3
 
 func _ready() -> void:
     mouse_filter = MOUSE_FILTER_IGNORE
@@ -109,7 +114,7 @@ func notify_shot(shot_index: int = 1, intensity: float = 1.0) -> void:
     shot_bounce_age = 0.0
     shot_bounce_amplitude = (
         0.0
-        if functional_aim_climb_enabled
+        if functional_aim_climb_enabled or camera_owned_aim
         else minf(
             maximum_shot_kick_pixels,
             shot_kick_pixels * clampf(intensity, 0.25, 2.0)
@@ -123,6 +128,8 @@ func notify_shot(shot_index: int = 1, intensity: float = 1.0) -> void:
     )
 
 func apply_profile(profile: Dictionary) -> void:
+    camera_owned_aim = bool(profile.get("camera_owned_aim", false))
+    cadence_driven_return = bool(profile.get("cadence_driven_return", true))
     functional_aim_climb_enabled = bool(
         profile.get("functional_aim_climb_enabled", false)
     )
@@ -163,15 +170,15 @@ func _apply_fire_cadence(fire_interval_seconds: float) -> void:
     )
     # Exponential return leaves ten percent of the radial impulse at the next
     # legal shot. RPM changes presentation cadence, never ballistic authority.
-    shot_kick_return = clampf(
-        -log(CADENCE_RETURN_REMAINDER) / interval,
-        MIN_KICK_RETURN_SPEED,
-        MAX_KICK_RETURN_SPEED
-    )
+    if cadence_driven_return:
+        shot_kick_return = clampf(
+            -log(CADENCE_RETURN_REMAINDER) / interval,
+            MIN_KICK_RETURN_SPEED,
+            MAX_KICK_RETURN_SPEED
+        )
 
 func _draw() -> void:
     var center := get_authoritative_center()
-    var visible_center := get_visual_center()
     var color := target_color if is_target_acquired else (interact_color if is_interact_target else default_color)
     var shadow_color := Color(0.0, 0.0, 0.0, 0.85)
 
@@ -179,29 +186,15 @@ func _draw() -> void:
         _draw_interact_brackets(center, color)
         return
 
-    # Open lower reference arc. The two side bars provide symmetric lead
-    # references and the lower stem provides a drop reference. They remain HUD
-    # presentation only; camera aim and authoritative shot direction stay on
-    # the fixed authoritative camera center.
+    # Fixed central reference backing; only the outer tick gap reflects spread.
+    # The center point stays on camera aim even during cosmetic shot bounce.
+    draw_circle(center, CENTER_DISC_RADIUS, Color(0.18, 0.20, 0.19, 0.18), true, -1.0, true)
+    draw_circle(center, CENTER_DOT_RADIUS, Color(color.r, color.g, color.b, 0.65), true, -1.0, true)
     var geometry := get_combat_reference_geometry()
-    var arc_center: Vector2 = geometry.arc_center
-    var arc_radius: float = geometry.arc_radius
-    var left_inner: Vector2 = geometry.left_inner
-    var left_outer: Vector2 = geometry.left_outer
-    var right_inner: Vector2 = geometry.right_inner
-    var right_outer: Vector2 = geometry.right_outer
-    var drop_inner: Vector2 = geometry.drop_inner
-    var drop_outer: Vector2 = geometry.drop_outer
     var t := tick_thickness
-    var st := t + 2.0
-    draw_arc(arc_center, arc_radius, geometry.arc_start, geometry.arc_end, 24, shadow_color, st, true)
-    draw_line(left_inner, left_outer, shadow_color, st, true)
-    draw_line(right_inner, right_outer, shadow_color, st, true)
-    draw_line(drop_inner, drop_outer, shadow_color, st, true)
-    draw_arc(arc_center, arc_radius, geometry.arc_start, geometry.arc_end, 24, color, t, true)
-    draw_line(left_inner, left_outer, color, t, true)
-    draw_line(right_inner, right_outer, color, t, true)
-    draw_line(drop_inner, drop_outer, color, t, true)
+    var ticks: PackedVector2Array = geometry.ticks
+    draw_multiline(ticks, Color(shadow_color, 0.45), t + 1.0, true)
+    draw_multiline(ticks, color, t, true)
 
     # Hit Marker Flash (SOCOM Red X on hit)
     if hit_marker_timer > 0.0:
@@ -232,29 +225,31 @@ func get_combat_reference_geometry() -> Dictionary:
         5.0,
         current_gap + shot_gap_impulse + reference_arc_padding
     )
-    # A slightly raised circle center lets the lower arc surround the invisible
-    # aim point while leaving its top open, matching the requested silhouette.
-    var arc_center := visual_center + Vector2(0.0, -radius * 0.30)
-    var arc_start := deg_to_rad(12.0)
-    var arc_end := deg_to_rad(168.0)
-    var right_inner := arc_center + Vector2(cos(arc_start), sin(arc_start)) * radius
-    var left_inner := arc_center + Vector2(cos(arc_end), sin(arc_end)) * radius
-    var lead_length := (
-        lead_reference_length
-        + maximum_movement_tick_extension * current_movement
-    )
-    var drop_inner := arc_center + Vector2(0.0, radius)
+    var left_inner := visual_center + Vector2.LEFT * radius
+    var right_inner := visual_center + Vector2.RIGHT * radius
+    var top_inner := visual_center + Vector2.UP * radius
+    var drop_inner := visual_center + Vector2.DOWN * radius
+    var left_outer := left_inner + Vector2.LEFT * lead_reference_length
+    var right_outer := right_inner + Vector2.RIGHT * lead_reference_length
+    var top_outer := top_inner + Vector2.UP * drop_reference_length
+    var drop_outer := drop_inner + Vector2.DOWN * drop_reference_length
     return {
-        "arc_center": arc_center,
-        "arc_radius": radius,
-        "arc_start": arc_start,
-        "arc_end": arc_end,
+        "center": visual_center,
+        "radius": radius,
+        "disc_center": get_authoritative_center(),
+        "disc_radius": CENTER_DISC_RADIUS,
         "left_inner": left_inner,
-        "left_outer": left_inner + Vector2(-lead_length, 0.0),
+        "left_outer": left_outer,
         "right_inner": right_inner,
-        "right_outer": right_inner + Vector2(lead_length, 0.0),
+        "right_outer": right_outer,
+        "top_inner": top_inner,
+        "top_outer": top_outer,
         "drop_inner": drop_inner,
-        "drop_outer": drop_inner + Vector2(0.0, drop_reference_length),
+        "drop_outer": drop_outer,
+        "ticks": PackedVector2Array([
+            left_inner, left_outer, right_inner, right_outer,
+            top_inner, top_outer, drop_inner, drop_outer,
+        ]),
     }
 
 func _draw_interact_brackets(center: Vector2, color: Color) -> void:

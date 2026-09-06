@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "feature_id": "locomotion_playback_cadence",
+  "player_intent": "Run, crouch movement, and prone movement animate at a calmer, less visually fatiguing cadence without slowing the player's movement.",
+  "acceptance_rule": "The saved canonical locomotion profile applies a 0.80 visual playback scale to standing, crouched, and prone AnimationTree time-scale nodes while CharacterBody3D movement-speed values remain unchanged.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://animation_library_lab.tscn",
+  "ownership": {
+    "locomotion_animation_playback_rate": "SocomOperatorAnimationProfile",
+    "locomotion_animation_time_scale_consumer": "SocomOperatorLocomotionBlendTree"
+  },
+  "nodes": [
+    {
+      "id": "canonical_locomotion_animation_tree",
+      "type": "AnimationTree",
+      "role": "Consumes the profile playback rate for standing, crouched, and prone visual cycles without writing the CharacterBody3D transform.",
+      "owner": "SocomOperatorLocomotionBlendTree",
+      "source_script": "res://scripts/player/operator_locomotion_blend_tree.gd",
+      "code_symbols": [
+        "AnimationTree.new()",
+        "parameters/standing_time_scale/scale",
+        "parameters/crouch_time_scale/scale",
+        "parameters/prone_time_scale/scale"
+      ]
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://config/operator_animation_map.json",
+      "writer": "res://addons/socom_authoring/animation_route_repository.gd",
+      "readers": [
+        "res://scripts/player/operator_animation_profile.gd",
+        "res://scripts/player/operator_locomotion_blend_tree.gd",
+        "res://scripts/player/operator_animation_driver_runtime.gd"
+      ]
+    },
+    {
+      "path": "res://config/agls_operator_animation_map.json",
+      "writer": "res://scripts/labs/animation_studio/animation_studio_weapon.gd",
+      "readers": [
+        "res://scripts/player/operator_animation_profile.gd",
+        "res://scripts/player/operator_asset_runtime.gd",
+        "res://tools/hybrid_locomotion_action_regression.gd"
+      ]
+    }
+  ],
+  "must_not_change": [
+    "CharacterBody3D movement speed, velocity, collision, stance, and root-motion policy",
+    "fire, reload, grenade, transition, and damage timing",
+    "SOCOM camera and reticle aim authority",
+    "weapon contacts, IK, square-shoulder posture, and animation route selection",
+    "multiplayer replication and tournament authority"
+  ],
+  "proof_scripts": [
+    "res://tools/locomotion_playback_cadence_regression.gd",
+    "res://tools/operator_animation_regression.gd",
+    "res://tools/hybrid_locomotion_action_regression.gd",
+    "res://tools/feature_contract_regression.gd"
+  ],
+  "visual_check": "Run forward and strafe, then crouch-walk and crawl in res://main.tscn. Confirm the foot and body cycles are visibly slower, the player still covers the same distance per second, and no foot sliding, animation restart, weapon-contact, fire, or reload regression is visible.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "The existing profile already separates visual playback cadence from authoritative movement. Lower its bounded presentation scale instead of changing movement velocity, clip assets, or AnimationTree ownership.",
+    "current": {
+      "system": "Canonical locomotion profile with a 0.88 visual playback scale",
+      "correctness": 3,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 4,
+      "performance": 5,
+      "regression_coverage": 4,
+      "evidence_paths": [
+        "res://config/operator_animation_map.json",
+        "res://config/agls_operator_animation_map.json",
+        "res://scripts/player/operator_animation_profile.gd",
+        "res://scripts/player/operator_locomotion_blend_tree.gd"
+      ]
+    },
+    "candidate": {
+      "system": "Same canonical locomotion graph with a 0.80 presentation-only playback scale",
+      "correctness": 5,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 4,
+      "performance": 5,
+      "regression_coverage": 5,
+      "evidence_paths": [
+        "res://config/operator_animation_map.json",
+        "res://config/agls_operator_animation_map.json",
+        "res://scripts/player/operator_animation_profile.gd",
+        "res://scripts/player/operator_locomotion_blend_tree.gd",
+        "res://tools/locomotion_playback_cadence_regression.gd"
+      ]
+    }
+  }
+}

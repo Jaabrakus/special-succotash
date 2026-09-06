@@ -64,9 +64,30 @@ func _trigger_fire_ready_aim() -> void:
 		)
 	else:
 		_fire_ready_hold_remaining = maxf(hold_seconds, 0.0)
-	# Let the normal bounded ready response raise the weapon. A one-frame jump to
-	# full ownership makes the socket IK replace the current arm chain before the
-	# stance/fire animation has blended, which visibly folds the elbows.
+	# Two-hand pistols must enter the already-established square recovery frame on
+	# the accepted shot. Blending the crouched diagonal locomotion arms through a
+	# partial ready mask sweeps the pistol across the face for one or two frames.
+	# The pistol-only trigger-palm modifier now keeps both elbows inside the human
+	# guardrail, so this clean-frame handoff no longer invokes the old full solver.
+	if equipped_weapon_family == &"TWO_HAND_PISTOL" and not _uses_authored_compressed_idle():
+		weapon_ready_weight = 1.0
+	# Rifles keep the normal bounded ready response. A generic one-frame jump to
+	# full socket ownership can replace their current arm chain before the stance
+	# animation has blended and visibly fold the elbows.
+
+
+func _uses_authored_compressed_idle() -> bool:
+	# This saved opt-in concerns the stationary presentation pair only. Moving,
+	# prone and action-owned poses retain their existing entry policy.
+	var dynamic: Dictionary = equipped_weapon_handling_profile.get("dynamic_hold", {})
+	return (
+		equipped_weapon_family == &"TWO_HAND_PISTOL"
+		and bool(dynamic.get("authored_compressed_idle_enabled", false))
+		and posture in [&"STANDING", &"CROUCHED"]
+		and not _locomotion_active
+		and movement_state not in [&"DIVING", &"ROLLING", &"AIRBORNE", &"LANDING"]
+		and requested_action == &""
+	)
 
 
 func _update_weapon_ready(delta: float, reload_active: bool = false) -> void:
@@ -99,6 +120,9 @@ func _update_weapon_ready(delta: float, reload_active: bool = false) -> void:
 		if ready_target > weapon_ready_weight
 		else ready_exit_response
 	)
+	if ready_target > weapon_ready_weight and _uses_authored_compressed_idle():
+		var ready_profile: Dictionary = equipped_weapon_handling_profile.get("ready_aim", {})
+		response = clampf(float(ready_profile.get("compressed_enter_response", ready_enter_response)), 1.0, ready_enter_response)
 	weapon_ready_weight = PoseOwnershipContract.bounded_ready_weight(
 		weapon_ready_weight,
 		ready_target,

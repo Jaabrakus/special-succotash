@@ -120,6 +120,7 @@ static func load(lab: Node,w_id: String) -> void:
 			lab.bloom_per_shot_deg = float(fire_values.get("bloom_per_shot_deg", lab.bloom_per_shot_deg))
 			lab.max_recoil_bloom_deg = float(fire_values.get("max_recoil_bloom_deg", lab.max_recoil_bloom_deg))
 			lab.bloom_recovery_speed = float(fire_values.get("bloom_recovery_speed", lab.bloom_recovery_speed))
+			lab.bloom_recovery_delay_seconds = float(fire_values.get("bloom_recovery_delay_seconds", 0.30))
 			lab.functional_aim_climb_enabled = bool(fire_values.get("functional_aim_climb_enabled", lab.functional_aim_climb_enabled))
 			lab.aim_climb_pitch_per_shot_deg = float(fire_values.get("aim_climb_pitch_per_shot_deg", lab.aim_climb_pitch_per_shot_deg))
 			lab.aim_climb_yaw_per_shot_deg = float(fire_values.get("aim_climb_yaw_per_shot_deg", lab.aim_climb_yaw_per_shot_deg))
@@ -137,6 +138,11 @@ static func load(lab: Node,w_id: String) -> void:
 		var reticle: Variant = d.get("reticle", {})
 		if reticle is Dictionary:
 			var reticle_values := reticle as Dictionary
+			var vrc := SocomReticleClimbProfile.resolve(reticle_values)
+			lab.reticle_vrc_enabled = vrc.enabled
+			lab.reticle_vrc_delay = vrc.delay
+			lab.reticle_vrc_return_speed = vrc.return_speed
+			lab.reticle_cadence_driven_return = bool(reticle_values.get("cadence_driven_return", true))
 			lab.reticle_base_gap_px = float(reticle_values.get("base_gap_px", lab.reticle_base_gap_px))
 			lab.reticle_max_gap_px = float(reticle_values.get("max_gap_px", lab.reticle_max_gap_px))
 			lab.reticle_response_speed = float(reticle_values.get("response_speed", lab.reticle_response_speed))
@@ -203,6 +209,7 @@ static func reset_fire_defaults(lab: Node) -> void:
 	lab.opening_burst_motion_multiplier = 0.35
 	lab.bloom_per_shot_deg = 0.32
 	lab.bloom_recovery_speed = 10.0
+	lab.bloom_recovery_delay_seconds = 0.30
 	lab.max_recoil_bloom_deg = 2.4
 	lab.functional_aim_climb_enabled = false
 	lab.aim_climb_pitch_per_shot_deg = 0.35
@@ -222,6 +229,10 @@ static func reset_fire_defaults(lab: Node) -> void:
 	lab.reticle_response_speed = 24.0
 	lab.reticle_shot_kick_px = 10.5
 	lab.reticle_shot_kick_return = 18.0
+	lab.reticle_cadence_driven_return = true
+	lab.reticle_vrc_enabled = true
+	lab.reticle_vrc_delay = 0.18
+	lab.reticle_vrc_return_speed = 180.0
 	lab.reticle_maximum_shot_kick_px = 12.5
 	lab.reticle_maximum_movement_tick_extension_px = 16.0
 	lab.composure = OperatorComposureScript.new()
@@ -265,6 +276,10 @@ static func refresh_fire_controls(lab: Node) -> void:
 	lab._update_slider_value("reticle_kick", lab.reticle_shot_kick_px)
 	lab._update_slider_value("reticle_return", lab.reticle_shot_kick_return)
 	lab._update_slider_value("reticle_kick_limit", lab.reticle_maximum_shot_kick_px)
+	lab._update_slider_value("vrc_delay", lab.reticle_vrc_delay)
+	lab._update_slider_value("vrc_return", lab.reticle_vrc_return_speed)
+	if lab.reticle_vrc_toggle != null:
+		lab.reticle_vrc_toggle.set_pressed_no_signal(lab.reticle_vrc_enabled)
 	lab._update_slider_value("reticle_movement_length", lab.reticle_maximum_movement_tick_extension_px)
 	lab._update_slider_value("composure_shot_stress", lab.composure.shot_stress)
 	lab._update_slider_value("composure_movement_stress", lab.composure.movement_stress)

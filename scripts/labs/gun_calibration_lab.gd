@@ -294,6 +294,10 @@ func _add_slider(parent: Control, key: String, label_text: String, min_val: floa
 
 func _current_reticle_profile() -> Dictionary:
 	return {
+		"vrc_enabled": reticle_vrc_enabled,
+		"vrc_recovery_delay_seconds": reticle_vrc_delay,
+		"vrc_return_speed_px_per_second": reticle_vrc_return_speed,
+		"cadence_driven_return": reticle_cadence_driven_return,
 		"base_gap_px": reticle_base_gap_px,
 		"max_gap_px": reticle_max_gap_px,
 		"response_speed": reticle_response_speed,

@@ -25,16 +25,22 @@ static func load_profile(weapon_id: String) -> Dictionary:
 static func save_profile(weapon_id: String, profile: Dictionary) -> Dictionary:
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(CONFIG_DIRECTORY))
 	var path := profile_path(weapon_id)
-	var document := profile.duplicate(true)
 	var existing := load_profile(weapon_id)
-	_preserve_unknown_top_level_fields(document, existing)
-	_preserve_unknown_section_fields(document, existing, "reticle")
+	var document := prepare_profile_for_save(profile, existing)
 	var file := FileAccess.open(path, FileAccess.WRITE)
 	if file == null:
 		return {"ok": false, "error": "Weapon profile could not be opened for writing."}
 	file.store_string(JSON.stringify(document, "  "))
 	file.close()
 	return {"ok": true, "path": path, "profile": document}
+
+
+static func prepare_profile_for_save(profile: Dictionary, existing: Dictionary) -> Dictionary:
+	var document := profile.duplicate(true)
+	_preserve_unknown_top_level_fields(document, existing)
+	for section in ["reticle", "ballistics"]:
+		_preserve_unknown_section_fields(document, existing, section)
+	return document
 
 
 ## The only path that changes the canonical playable loadout.

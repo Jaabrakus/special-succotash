@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "feature_id": "core_weapon_roster",
+  "player_intent": "Show twelve approved weapons including the restored Desert Eagle under original codenames and hide the remaining weapons without deleting their data.",
+  "acceptance_rule": "Menu and tournament pool contain exactly the same twelve IDs including de__50; canonical HUD names agree; hidden IDs fail normal selection validation while source records remain intact.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://gun_calibration_lab.tscn",
+  "ownership": {"public_roster_metadata": "SocomWeaponCatalog"},
+  "nodes": [
+    {"id": "armory", "type": "Control", "role": "Existing menu consumes filtered catalog eligibility", "owner": "SocomWeaponCatalog", "source_script": "res://scripts/economy/socom_economy_rules.gd", "code_symbols": ["get_weapons_by_category(category).filter(is_armory_weapon)"]},
+    {"id": "round_selection", "type": "Node", "role": "Existing authoritative round assignment consumes the same catalog eligibility", "owner": "SocomWeaponCatalog", "source_script": "res://scripts/network/socom_round_weapon_rules.gd", "code_symbols": ["competitive_eligible", "WeaponCatalog.get_all_weapons()"]},
+    {"id": "weapon_profile", "type": "Node", "role": "Existing weapon contract resolves public names without changing internal IDs", "owner": "SocomWeaponCatalog", "source_script": "res://scripts/weapons/weapon_rig_contract.gd", "code_symbols": ["WeaponCatalog.display_name(weapon_id"]}
+  ],
+  "data_contracts": [
+    {"path": "res://config/weapon_roster_extensions.json", "writer": "res://config/weapon_roster_extensions.json", "readers": ["res://scripts/weapons/socom_weapon_catalog.gd", "res://scripts/weapons/weapon_rig_contract.gd"]}
+  ],
+  "must_not_change": ["internal_weapon_ids", "archived_catalog", "ballistics", "audio", "animations", "weapon_assets", "loadout_slot_rules", "shot_authority"],
+  "proof_scripts": ["res://tools/core_weapon_roster_regression.gd", "res://tools/armory_loadout_selection_regression.gd"],
+  "visual_check": "Canonical equipment picker shows codenames and only the twelve approved weapons; Desert Eagle is Sentinel .50 under Pistols.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "One saved public roster feeds existing armory and competitive flags, while all archived records and developer profiles remain available.",
+    "current": {"system": "Broad catalog with technical names", "correctness": 3, "ownership_clarity": 5, "runtime_parity": 4, "editor_usability": 3, "performance": 5, "regression_coverage": 3, "evidence_paths": ["res://docs/CORE_WEAPON_ROSTER.md"]},
+    "candidate": {"system": "Shared curated roster and codenames", "correctness": 5, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 5, "regression_coverage": 5, "evidence_paths": ["res://scripts/weapons/socom_weapon_catalog.gd", "res://tools/core_weapon_roster_regression.gd"]}
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "method": "transient_preserving_spectral_cleanup",
+  "noise_lead_seconds": 0.025,
+  "onset_search_seconds": 0.14,
+  "onset_noise_ratio": 3.0,
+  "onset_peak_ratio": 0.12,
+  "maximum_noise_to_peak_ratio": 0.03,
+  "keep_lead_seconds": 0.006,
+  "protect_attack_seconds": 0.1,
+  "blend_seconds": 0.05,
+  "noise_reduction_max_db": 4.0,
+  "late_tail_reduction_db": 3.0,
+  "late_tail_start_seconds": 0.2,
+  "late_tail_end_seconds": 0.45,
+  "fft_size": 512,
+  "hop_size": 128,
+  "edge_fade_seconds": 0.002
+}

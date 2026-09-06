@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "feature_id": "ak_m4_canonical_rifle_presentation",
-  "player_intent": "Equipping either the AK-47 or M4A1 in the real game uses its measured AGLS model and sockets while retaining the accepted SOCOM two-hand aim, square-shoulder fire recovery, stable left-palm contact, and human reload presentation.",
-  "acceptance_rule": "AK-47 and M4A1 load through res://main.tscn with their exact AGLS model and seven authored sockets. The trigger hand remains the sole weapon-root owner, only the support hand may solve to the foregrip, accepted standing and crouched shots use the shared authored recovery for 1.2 seconds, and weapon swaps reconfigure one existing contact modifier instead of appending nodes. The verified AK reload may replace the generic standing/crouched reload; the rejected AGLS hold-pose strips and unsafe M4A4 reload may not enter canonical routing. Ballistics, reticle, camera, movement, and networking do not change.",
+  "player_intent": "Equipping either the AK-47 or M4A1 in the real game uses its measured AGLS model and sockets while retaining the accepted SOCOM two-hand aim, square-shoulder fire recovery, stable left-palm contact, authored prone firing pose, and human reload presentation.",
+  "acceptance_rule": "AK-47 and M4A1 load through res://main.tscn with their exact AGLS model and seven authored sockets. The trigger hand remains the sole weapon-root owner, only the support hand may solve to the foregrip, accepted standing and crouched shots use the shared authored recovery for 1.2 seconds, and weapon swaps reconfigure one existing contact modifier instead of appending nodes. The AK-47 saved profile remains authoritative in prone: hand_socket_ik_enabled is false, support_hand_socket_ik_enabled is true, right_hand_owns_weapon is true, relaxed prone resolves to RELAXED_RIFLE_LOCOMOTION, and relaxed-prone plus prone-fire samples keep right-hand IK stopped and the weapon on its authored trigger-hand mount. The verified AK reload may replace the generic standing/crouched reload; the rejected AGLS hold-pose strips and unsafe M4A4 reload may not enter canonical routing. Ballistics, reticle, camera, movement, and networking do not change.",
   "canonical_scene": "res://main.tscn",
   "editor_scene": "res://gun_calibration_lab_2.tscn",
   "ownership": {
@@ -10,6 +10,7 @@
     "weapon_model_and_socket_instantiation": "SocomOperatorAssetRuntime",
     "weapon_root_transform": "TriggerHandBoneAttachment3D",
     "support_hand_contact": "SocomOperatorWeaponPose",
+    "prone_profile_authority": "SocomOperatorWeaponPose",
     "accepted_shot_and_damage": "AuthoritativeServerWeapon",
     "aim_intent_and_reticle": "SOCOMCameraReticleChain"
   },
@@ -108,9 +109,9 @@
   ],
   "system_delta": {
     "decision": "MERGE",
-        "reason": "Merge measured AGLS AK/M4 models, physical sockets, canonical equipment routing, the human AK reload, and published M4 profile parity into the accepted shared rifle presentation. Make TWO_HAND_RIFLE the single family default for stable standing/crouched FIRE_RECOVERY so assets do not duplicate that behavior. Replace repeated contact-modifier binding with in-place reconfiguration. Reject AGLS hold-pose strips and the M4A4 reload because rendered evidence shows unstable hand contacts and nonhuman torso/shoulder motion.",
+        "reason": "Merge measured AGLS AK/M4 models, physical sockets, canonical equipment routing, the human AK reload, and published M4 profile parity into the accepted shared rifle presentation. Keep TWO_HAND_RIFLE as the single family default for stable standing/crouched FIRE_RECOVERY. Replace the unconditional prone READY_SOLVER/full-arm override with the saved AK support-only profile so the authored prone trigger arm and hand-owned weapon mount remain intact. Replace repeated contact-modifier binding with in-place reconfiguration. Reject AGLS hold-pose strips and the M4A4 reload because rendered evidence shows unstable hand contacts and nonhuman torso/shoulder motion.",
     "current": {
-      "system": "Mixed placeholder/stale rifle visuals with repeated contact-modifier allocation and incomplete canonical weapon-specific reload routing",
+      "system": "Measured rifle presentation with an unconditional prone READY_SOLVER override that can ignore the AK-47 support-only profile",
       "correctness": 2,
       "ownership_clarity": 2,
       "runtime_parity": 2,
@@ -120,11 +121,13 @@
       "evidence_paths": [
         "res://config/weapons/ak-47.json",
         "res://config/weapons/m4a1.json",
-        "res://scripts/player/operator_weapon_equipment_runtime.gd"
+        "res://scripts/player/operator_weapon_equipment_runtime.gd",
+        "res://scripts/player/weapon_ownership_contract.gd",
+        "res://scripts/player/operator_weapon_pose_ready.gd"
       ]
     },
     "candidate": {
-      "system": "Canonical measured AK/M4 presentation using one shared human rifle pose pipeline and bounded support-hand contact",
+      "system": "Canonical measured AK/M4 presentation using one shared human rifle pose pipeline, bounded support-hand contact, and saved-profile authority in prone",
       "correctness": 5,
       "ownership_clarity": 5,
       "runtime_parity": 5,
@@ -138,7 +141,10 @@
                 "res://config/operator_animation_map.json",
                 "res://scripts/weapons/weapon_animation_profile.gd",
                 "res://scripts/player/operator_weapon_equipment_runtime.gd",
+        "res://scripts/player/weapon_ownership_contract.gd",
+        "res://scripts/player/operator_weapon_pose_ready.gd",
         "res://tools/agls_ak47_asset_regression.gd",
+        "res://tools/ak47_prone_profile_authority_regression.gd",
         "res://tools/m4a1_agls_vertical_slice_regression.gd",
         "res://tools/weapon_equipment_event_regression.gd"
       ]
@@ -146,6 +152,7 @@
   },
   "proof_scripts": [
     "res://tools/agls_ak47_asset_regression.gd",
+    "res://tools/ak47_prone_profile_authority_regression.gd",
     "res://tools/m4a1_agls_vertical_slice_regression.gd",
     "res://tools/weapon_equipment_event_regression.gd",
     "res://tools/fire_recovery_movement_aim_parity_regression.gd",
@@ -156,5 +163,5 @@
     "res://tools/startup_performance_regression.gd",
     "res://tools/feature_contract_regression.gd"
   ],
-  "visual_check": "Launch res://main.tscn, equip AK-47 and then M4A1, and inspect standing and crouched idle, movement, one accepted shot plus its full 1.2-second recovery, and reload. Each exact weapon model must remain attached to the right trigger hand, its left palm must remain on the authored foregrip, shoulders must retain the authored recovery silhouette while the torso aims toward the reticle, and no equip cycle may add another contact modifier. The M4 must keep the generic human reload; the AK may use only its verified AGLS reload."
+  "visual_check": "Launch res://main.tscn, equip AK-47 and then M4A1, and inspect standing, crouched, and prone idle, movement, one accepted shot plus its full 1.2-second recovery, and reload. Each exact weapon model must remain attached to the right trigger hand, its left palm must remain on the authored foregrip, shoulders must retain the authored recovery silhouette while the torso aims toward the reticle, and no equip cycle may add another contact modifier. In AK-47 prone idle and fire, confirm the authored trigger arm does not invert or rise above the head and only the support arm closes onto the handguard. The M4 must keep the generic human reload; the AK may use only its verified AGLS reload."
 }

@@ -67,7 +67,7 @@ func _init() -> void:
 	var weapon_runtime_source := _read("res://scripts/runtime/main_weapon_runtime.gd")
 	var training_world_source := _read("res://scripts/runtime/main_training_world.gd")
 	var multiplayer_audio_source := _read(
-		"res://scripts/network/socom_multiplayer_rounds.gd"
+		"res://scripts/network/socom_shot_presentation.gd"
 	)
 	if "AcousticWeaponDirect" not in engine_source:
 		push_error("Direct weapon shots do not use the shared acoustic reflection bus")
@@ -98,8 +98,8 @@ func _init() -> void:
 		quit(1)
 		return
 	if (
-		"AudioEngine.play_gunshot" not in multiplayer_audio_source
-		or "AudioEngine.play_body_impact" not in multiplayer_audio_source
+		"Audio.play_gunshot" not in multiplayer_audio_source
+		or "Audio.play_body_impact" not in multiplayer_audio_source
 	):
 		push_error("Replicated multiplayer shots bypass acoustic propagation")
 		quit(1)

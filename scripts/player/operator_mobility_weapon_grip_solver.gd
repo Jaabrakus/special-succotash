@@ -126,9 +126,10 @@ static func solve(
 		weapon.global_position += trigger_residual
 		trigger_target.global_position = trigger_socket.global_position
 		# Reproject after each IK result because the foregrip contact is allowed to
-		# slide along the weapon. Two bounded passes remove the crouched-dive wrist
-		# residual without rotating or translating the rifle away from the trigger.
-		for _support_pass in range(2):
+		# slide along the weapon. A bounded convergence loop handles the crouched-
+		# entry dive without rotating or translating the rifle away from the trigger;
+		# it exits immediately once the palm is within one millimetre.
+		for _support_pass in range(4):
 			support_target.global_position = _reachable_support_contact(
 				skeleton,
 				bone_indices,
@@ -141,6 +142,13 @@ static func solve(
 				left_elbow_pole, &"mixamorig_LeftHand", left_palm_anchor
 			)
 			skeleton.force_update_all_bone_transforms()
+			var solved_support_palm := WeaponContactSolver.palm_contact_world(
+				skeleton,
+				int(bone_indices.get(&"mixamorig_LeftHand", -1)),
+				left_palm_anchor
+			)
+			if support_target.global_position.distance_to(solved_support_palm) <= 0.001:
+				break
 	return {
 		"applied": true,
 		"trigger_error_m": trigger_socket.global_position.distance_to(

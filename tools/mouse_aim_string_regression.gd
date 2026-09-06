@@ -38,6 +38,30 @@ func _run() -> void:
     )
     camera.set_weapon_aim_instability(0.0)
 
+    _expect(camera.mouse_aim_string_enabled, "aim string starts active without a key press")
+    camera._apply_mouse_aim_string_input(Vector2(60.0, 20.0))
+    var before_toggle := Vector4(camera.aim_yaw, camera.aim_pitch, camera.mouse_intent_yaw, camera.mouse_intent_pitch)
+    var before_offset: Vector2 = camera.mouse_aim_model.blue_offset_pixels
+    var toggle := InputEventKey.new()
+    toggle.keycode = KEY_M
+    toggle.pressed = true
+    camera._unhandled_input(toggle)
+    _expect(camera.mouse_aim_string_enabled and camera.mouse_string_debug_visible, "M shows guide without disabling aim")
+    camera._unhandled_input(toggle)
+    _expect(camera.mouse_aim_string_enabled and not camera.mouse_string_debug_visible, "M hides guide without disabling aim")
+    _expect(before_toggle == Vector4(camera.aim_yaw, camera.aim_pitch, camera.mouse_intent_yaw, camera.mouse_intent_pitch) and before_offset == camera.mouse_aim_model.blue_offset_pixels, "M preserves aim destination and accumulated mouse string")
+    toggle.echo = true
+    camera._unhandled_input(toggle)
+    _expect(not camera.mouse_string_debug_visible, "held-key repeats do not toggle visibility")
+    toggle.echo = false
+    toggle.keycode = KEY_N
+    camera._unhandled_input(toggle)
+    _expect(not camera.mouse_string_debug_visible and camera.mouse_aim_string_enabled, "N no longer changes guide or mouse aim")
+    camera._update_mouse_aim_string(1.0 / 60.0)
+    _expect(absf(camera.aim_yaw - before_toggle.x) > 0.00001, "hidden string continues driving aim")
+    camera.set_aim_angles(0.0, 0.0, true)
+    camera.set_mouse_aim_string_enabled(true)
+
     camera._apply_mouse_aim_string_input(Vector2(5.0, 0.0))
     camera._update_mouse_aim_string(1.0 / 60.0)
     _expect(

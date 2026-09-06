@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "feature_id": "fire_recoil_presentation",
+  "player_intent": "A small contact-preserving right-elbow recoil pulse on accepted shots.",
+  "acceptance_rule": "Pulse stays bounded, returns to zero, and hands retain physical socket contact.",
+  "canonical_scene": "res://main.tscn",
+  "ownership": {"arm_presentation": "Operator weapon-pose socket solver"},
+  "nodes": [{"id": "weapon_pose", "type": "Node3D", "role": "Existing arm presentation owner", "owner": "Operator weapon-pose socket solver", "source_script": "res://scripts/player/operator_animation_driver_runtime.gd", "code_symbols": ["WeaponPoseSolver.new()"]}],
+  "data_contracts": [{"path": "res://config/fire_recoil_presentation.json", "writer": "res://scripts/player/operator_fire_recoil_pulse.gd", "readers": ["res://scripts/player/operator_fire_recoil_pulse.gd"]}],
+  "must_not_change": ["movement", "camera", "shot_authority", "reload", "fire_recovery_duration"],
+  "proof_scripts": ["res://tools/fire_recoil_pulse_regression.gd", "res://tools/fire_recoil_live_regression.gd", "res://tools/firearm_family_live_contact_regression.gd"],
+  "visual_check": "Compare ready, peak pulse and return from rear and side; shoulders remain square and palms remain attached.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Keep stable recovery and existing bone owner; add a bounded elbow swivel with fixed shoulder/wrist endpoints. Reject pole-based recoil because it can snap the arm plane.",
+    "current": {"system": "Stable recovery without pulse", "correctness": 2, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 3, "performance": 5, "regression_coverage": 3, "evidence_paths": ["res://scripts/player/operator_animation_driver_presentation.gd"]},
+    "candidate": {"system": "Contact-preserving elbow pulse", "correctness": 4, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 3, "performance": 5, "regression_coverage": 4, "evidence_paths": ["res://scripts/player/operator_weapon_pose_kinematics.gd", "res://tools/fire_recoil_pulse_regression.gd"]}
+  }
+}

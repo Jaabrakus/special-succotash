@@ -206,7 +206,9 @@ static func preview_animation_slot(
 	lab._apply_animation_hand_map(clip_name)
 	lab.animation_preview_token += 1
 	var token: int = lab.animation_preview_token
-	var is_idle := slot_name.begins_with("idle_")
+	var is_persistent_pose := (
+		slot_name.begins_with("idle_") or slot_name.begins_with("ready_")
+	)
 	lab.active_reload_visual_slot = slot_name if slot_name.begins_with("reload_") else ""
 	lab._apply_weapon_ownership_policy(
 		WeaponOwnershipContract.preview_policy(slot_name, clip_name),
@@ -218,7 +220,7 @@ static func preview_animation_slot(
 			String(WeaponAnimationProfile.SLOT_LABELS.get(slot_name, slot_name)),
 			clip_name,
 		]
-	if is_idle:
+	if is_persistent_pose:
 		return
 	var animation: Animation = lab.animation_player.get_animation(clip_name)
 	var duration := maxf(animation.length if animation else 1.0, 0.10)

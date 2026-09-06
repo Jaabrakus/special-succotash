@@ -7,7 +7,6 @@ extends "res://scripts/network/socom_multiplayer_world_ui.gd"
 const TournamentSession := preload("res://scripts/network/socom_tournament_session.gd")
 const ArenaCoordinator := preload("res://scripts/network/socom_multi_arena_coordinator.gd")
 const TournamentMapRuntime := preload("res://scripts/maps/socom_map_runtime.gd")
-const TournamentEventOutbox := preload("res://scripts/server/socom_tournament_event_outbox.gd")
 
 const TOURNAMENT_SETTING := "socom/session/tournament_mode"
 const TOURNAMENT_FLAG := "--tournament-32"
@@ -48,6 +47,12 @@ func host_dedicated_server(port: int = DEFAULT_PORT) -> Error:
 	if result == OK and tournament_mode_enabled:
 		lobby.set_lobby_mode(LobbyStateScript.LOBBY_MODE_GUNFIGHT_2V2)
 	return result
+
+
+func _configure_webrtc_host_lobby(tournament: bool) -> void:
+	if tournament:
+		tournament_mode_enabled = true
+		lobby.set_lobby_mode(LobbyStateScript.LOBBY_MODE_GUNFIGHT_2V2)
 
 
 func _dedicated_server_advertised_capacity() -> int:
@@ -112,20 +117,17 @@ func _advance_lobby_countdown(delta: float) -> void:
 	if not tournament_mode_enabled:
 		super._advance_lobby_countdown(delta)
 		return
-	if lobby.phase != LobbyStateScript.PHASE_COUNTDOWN:
-		return
-	if lobby.get_combat_ready_pairs().size() != TournamentSession.REQUIRED_PAIR_COUNT:
+	var decision := LobbyCountdownPolicy.advance(lobby.phase == LobbyStateScript.PHASE_COUNTDOWN,
+		lobby.get_combat_ready_pairs().size() == TournamentSession.REQUIRED_PAIR_COUNT, lobby_countdown_remaining, lobby_countdown_broadcast_second, delta)
+	if decision.cancel:
 		_cancel_lobby_countdown()
+	else:
+		lobby_countdown_remaining = decision.remaining
+		lobby_countdown_broadcast_second = decision.shown
+	if decision.broadcast:
 		_broadcast_lobby()
-		return
-	lobby_countdown_remaining = maxf(0.0, lobby_countdown_remaining - delta)
-	var shown_second := ceili(lobby_countdown_remaining)
-	if shown_second != lobby_countdown_broadcast_second:
-		lobby_countdown_broadcast_second = shown_second
-		_broadcast_lobby()
-	if lobby_countdown_remaining <= 0.0:
+	if decision.start:
 		_server_begin_match()
-
 
 func _server_begin_match() -> void:
 	if not tournament_mode_enabled:
@@ -161,6 +163,7 @@ func _server_begin_match() -> void:
 	round_time_remaining = SocomArenaSubMatch.ROUND_TIME_LIMIT_SECONDS
 	last_round_clock_second = -1
 	round_resolution_pending = false
+	_server_begin_round_weapon_session()
 	_deploy_active_tournament_arenas(true)
 	session_active = true
 	round_active = true
@@ -254,55 +257,27 @@ func _broadcast_shot_effect(
 		_send_tournament_shot_effect(recipient_id, shooter_peer_id, origin, impact, hit, message)
 
 
-func _tournament_peer_ids(arena_id: int) -> Array[int]:
-	var peers: Array[int] = []
-	if tournament_session == null or arena_id < 0:
-		return peers
-	var match = tournament_session.coordinator.arena_sub_matches[arena_id]
-	for raw_peer_id in match.pair_a_peers + match.pair_b_peers:
-		var peer_id := int(raw_peer_id)
-		if peer_id > 0:
-			peers.append(peer_id)
-	return peers
+func _broadcast_pellet_impacts(shooter: int, origin: Vector3, impacts: Array[Dictionary]) -> void:
+	if not tournament_mode_enabled or tournament_session == null:
+		super._broadcast_pellet_impacts(shooter, origin, impacts)
+		return
+	for recipient in _tournament_peer_ids(tournament_session.arena_for_peer(shooter)):
+		if recipient != multiplayer.get_unique_id():
+			receive_pellet_impacts.rpc_id(recipient, shooter, origin, impacts)
 
+
+func _tournament_peer_ids(arena_id: int) -> Array[int]:
+	return ArenaRuntimePlan.peers(tournament_session, arena_id)
 
 func _tournament_snapshot_for_arena(arena_id: int) -> Dictionary:
-	var snapshot := {}
-	for peer_id in _tournament_peer_ids(arena_id):
-		var operator: Variant = operators.get(peer_id)
-		if operator == null:
-			continue
-		snapshot[peer_id] = {
-			"position": operator.global_position,
-			"yaw": operator.rotation.y,
-			"velocity": operator.velocity,
-			"posture": operator.posture,
-			"health": operator.current_health,
-			"alive": operator.alive,
-		}
-	return snapshot
+	return SnapshotEncoder.capture(operators, _tournament_peer_ids(arena_id))
 
-
-func _send_tournament_snapshot(
-	recipient_id: int,
-	snapshot: Dictionary,
-	timestamp_ms: int,
-	tick: int
-) -> void:
-	var chunks := NetworkProtocol.chunk_snapshot_entities(snapshot, SNAPSHOT_ENTITIES_PER_PACKET)
-	for chunk_index in chunks.size():
-		var packet := {
-			"timestamp_ms": timestamp_ms,
-			"tick": tick,
-			"chunk_index": chunk_index,
-			"chunk_count": chunks.size(),
-			"entities": chunks[chunk_index],
-		}
+func _send_tournament_snapshot(recipient_id: int, snapshot: Dictionary, timestamp_ms: int, tick: int) -> void:
+	for packet in SnapshotEncoder.packets(snapshot, timestamp_ms, tick, SNAPSHOT_ENTITIES_PER_PACKET):
 		if recipient_id == multiplayer.get_unique_id():
 			receive_world_state(packet, {})
 		else:
 			receive_world_state.rpc_id(recipient_id, packet, {})
-
 
 func _send_tournament_shot_effect(
 	recipient_id: int,
@@ -472,6 +447,7 @@ func _handle_tournament_outcome(outcome: Dictionary) -> void:
 	if bool(outcome.get("vote_complete", false)):
 		_deploy_tournament_arena(arena_id, false)
 		_synchronize_tournament_client_rosters()
+		_server_publish_tournament_round_weapon(arena_id)
 		_broadcast_tournament_arena_state(arena_id)
 		_broadcast_tournament_vote_state(arena_id)
 		_set_status("ARENA %d SUDDEN DEATH  •  1V1 LIVE" % (arena_id + 1))
@@ -503,13 +479,17 @@ func _handle_tournament_outcome(outcome: Dictionary) -> void:
 
 
 func _start_tournament_outbox() -> void:
-	if not multiplayer.is_server():
+	if OS.has_feature("web") or not dedicated_server_mode or not multiplayer.is_server():
+		return
+	var outbox_script := load("res://scripts/server/socom_tournament_event_outbox.gd") as Script
+	if outbox_script == null:
+		push_error("Dedicated tournament outbox is missing")
 		return
 	tournament_match_id = "tournament_%d_%d" % [
 		int(Time.get_unix_time_from_system()),
 		int(get_instance_id()),
 	]
-	tournament_outbox = TournamentEventOutbox.new()
+	tournament_outbox = outbox_script.new()
 	if not tournament_outbox.start_session(tournament_match_id):
 		push_warning("TOURNAMENT_OUTBOX_START_FAILED")
 		tournament_outbox = null
@@ -577,7 +557,8 @@ func _advance_tournament_outbox(delta: float) -> void:
 
 func _flush_tournament_outbox() -> void:
 	if (
-		tournament_outbox == null
+		not dedicated_server_mode
+		or tournament_outbox == null
 		or tournament_outbox_delivery_active
 		or server_backend == null
 		or not multiplayer.is_server()
@@ -604,6 +585,7 @@ func _restart_tournament_arena_after_intermission(arena_id: int) -> void:
 		return
 	_deploy_tournament_arena(arena_id, false)
 	_synchronize_tournament_client_rosters()
+	_server_publish_tournament_round_weapon(arena_id)
 	_broadcast_tournament_arena_state(arena_id)
 
 
@@ -614,16 +596,18 @@ func _deploy_active_tournament_arenas(initial_spawn: bool) -> void:
 		_deploy_tournament_arena(arena_id, initial_spawn)
 	_synchronize_tournament_client_rosters()
 	for arena_id in tournament_session.coordinator.active_arena_count:
+		_server_publish_tournament_round_weapon(arena_id)
 		_broadcast_tournament_vote_state(arena_id)
 
 
 func _deploy_tournament_arena(arena_id: int, initial_spawn: bool) -> void:
 	if tournament_session == null or arena_id < 0:
 		return
-	var match = tournament_session.coordinator.arena_sub_matches[arena_id]
-	for peer_id in match.pair_a_peers + match.pair_b_peers:
-		var team: int = int(tournament_session.team_for_peer(peer_id))
-		var spawn: Vector3 = Vector3(tournament_session.spawn_for_peer(peer_id))
+	_server_prepare_tournament_round_weapon(arena_id)
+	for entry: Dictionary in ArenaRuntimePlan.deployment(tournament_session, arena_id):
+		var peer_id := int(entry.peer_id)
+		var team := int(entry.team)
+		var spawn := Vector3(entry.spawn)
 		assigned_spawns[peer_id] = spawn
 		if initial_spawn:
 			_server_spawn_operator(peer_id, team, spawn)
@@ -635,11 +619,30 @@ func _deploy_tournament_arena(arena_id: int, initial_spawn: bool) -> void:
 		if operator == null:
 			continue
 		operator.configure_identity(peer_id, team)
-		if match.is_peer_combat_eligible(peer_id):
+		if bool(entry.combat_eligible):
 			operator.respawn_at(spawn)
 			_reset_ammo_for_peer(peer_id)
 		else:
 			operator.deactivate_for_round()
+
+
+func _server_prepare_tournament_round_weapon(arena_id: int) -> void:
+	if tournament_session == null or arena_id < 0:
+		return
+	var match = tournament_session.coordinator.arena_sub_matches[arena_id]
+	var peer_ids := _sorted_peer_ids(match.pair_a_peers + match.pair_b_peers)
+	var scope_key := "tournament:%d:%d" % [match.pair_a, match.pair_b]
+	var round_key := "%s:%s:%d" % [scope_key, match.phase, match.current_round]
+	_server_prepare_shared_round_weapon(scope_key, round_key, peer_ids)
+
+
+func _server_publish_tournament_round_weapon(arena_id: int) -> void:
+	if tournament_session == null or arena_id < 0:
+		return
+	var match = tournament_session.coordinator.arena_sub_matches[arena_id]
+	var peer_ids := _sorted_peer_ids(match.pair_a_peers + match.pair_b_peers)
+	_server_apply_round_weapon_runtime(peer_ids)
+	_server_publish_round_weapon(peer_ids, match.current_round)
 
 
 func _synchronize_tournament_client_rosters() -> void:
@@ -673,15 +676,7 @@ func _synchronize_tournament_client_rosters() -> void:
 
 
 func _tournament_roster_for_arena(arena_id: int) -> Array:
-	var roster: Array = []
-	for peer_id in _tournament_peer_ids(arena_id):
-		roster.append({
-			"peer_id": peer_id,
-			"team": int(tournament_session.team_for_peer(peer_id)),
-			"spawn": Vector3(tournament_session.spawn_for_peer(peer_id)),
-		})
-	return roster
-
+	return ArenaRuntimePlan.roster(tournament_session, arena_id)
 
 func receive_tournament_assignment(peer_id: int, team: int, spawn: Vector3, arena_id: int) -> void:
 	# The compatibility RPC is authority-only and call-remote, so this moves only

@@ -11,7 +11,8 @@
     "bloom_recovery_speed": 17.5,
     "damage": 37.0,
     "effective_range_m": 1200.0,
-    "fire_rate_rpm": 600.0,
+    "fire_rate_rpm": 600,
+    "reload_duration_seconds": 5.5,
     "full_gait_spread_deg": 1.543,
     "headshot_multiplier": 3.5,
     "is_silenced": false,
@@ -40,12 +41,13 @@
     "reload_sound": "SND_MARK_43_RELOAD"
   },
   "reticle": {
+    "cadence_driven_return": false,
     "base_gap_px": 5.1,
     "max_gap_px": 41.6,
-    "maximum_shot_kick_px": 60.0,
+    "maximum_shot_kick_px": 50.0,
     "response_speed": 26.2,
-    "shot_kick_px": 20.0,
-    "shot_kick_return": 40.0
+    "shot_kick_px": 13.0,
+    "shot_kick_return": 60.0
   },
   "socom_original_id": 93,
   "weapon_id": "mark_46_mod_0"

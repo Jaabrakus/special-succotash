@@ -22,6 +22,23 @@ const MouseAimModelScript := preload("res://scripts/camera/mouse_aim_model.gd")
 const MouseCursorGuideScript := preload("res://scripts/camera/mouse_cursor_guide.gd")
 const MouseAimStringGuideScript := preload("res://scripts/camera/mouse_aim_string_guide.gd")
 const VIRTUAL_WALL_OBSERVER_LAYER := 19
+const ReticleClimbProfile := preload("res://scripts/camera/reticle_climb_profile.gd")
+var vrc_profile: Dictionary = {}
+var vrc_weapon_id := ""
+var vrc_height_px := 0.0
+var vrc_age := 99.0
+
+func configure_reticle_climb(reticle: Dictionary, weapon_id: String) -> void:
+    var next := ReticleClimbProfile.resolve(reticle)
+    if next == vrc_profile and weapon_id == vrc_weapon_id:
+        return
+    vrc_profile = next
+    vrc_weapon_id = weapon_id
+    vrc_height_px = 0.0
+    vrc_age = 99.0
+
+func reticle_climb_enabled() -> bool:
+    return bool(vrc_profile.get("enabled", false))
 
 const CameraState = CameraStateControllerScript.CameraState
 
@@ -263,8 +280,7 @@ func _unhandled_input(event: InputEvent) -> void:
     elif event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
         Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
     elif event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_M:
-        set_mouse_aim_string_enabled(not mouse_aim_string_enabled)
-    elif event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_N:
+        # Visibility is independent of aim behavior; never reset the aim model.
         mouse_string_debug_visible = not mouse_string_debug_visible
     elif orbit_input_enabled and aim_input_controller.is_controller_look_event(event, profile):
         aim_input_controller.activate_controller(Vector2(aim_yaw, aim_pitch))
@@ -310,6 +326,10 @@ func configure_functional_aim_climb(values: Dictionary) -> void:
 
 
 func notify_functional_aim_climb(shot_index: int = 1) -> void:
+    if reticle_climb_enabled():
+        vrc_height_px = minf(float(vrc_profile.cap), vrc_height_px + float(vrc_profile.rise))
+        vrc_age = 0.0
+        return
     if not functional_aim_climb_enabled:
         return
     functional_recoil_pitch_rad = minf(
@@ -328,6 +348,13 @@ func notify_functional_aim_climb(shot_index: int = 1) -> void:
 
 
 func _advance_functional_aim_climb(delta: float) -> void:
+    if reticle_climb_enabled():
+        var previous_age := vrc_age
+        vrc_age += maxf(delta, 0.0)
+        var delay := maxf(float(vrc_profile.delay), float(vrc_profile.interval) * 1.05)
+        var recovery_delta := maxf(0.0, vrc_age - delay) - maxf(0.0, previous_age - delay)
+        vrc_height_px = move_toward(vrc_height_px, 0.0, float(vrc_profile.return_speed) * recovery_delta)
+        return
     if not functional_aim_climb_enabled:
         return
     functional_recoil_age_seconds += maxf(delta, 0.0)
@@ -347,6 +374,8 @@ func _advance_functional_aim_climb(delta: float) -> void:
 
 
 func get_functional_recoil_screen_offset_normalized() -> Vector2:
+    if reticle_climb_enabled():
+        return Vector2(0.0, -vrc_height_px / float(vrc_profile.reference_height))
     if not functional_aim_climb_enabled or camera == null:
         return Vector2.ZERO
     var viewport_size := get_viewport().get_visible_rect().size

@@ -1,0 +1,153 @@
+{
+  "calibration": {
+    "method": "transformed_mesh_bounds_plus_family_contact_template",
+    "raw_bounds_position": {
+      "x": -0.339643687009811,
+      "y": -0.426101922988892,
+      "z": -0.164360672235489
+    },
+    "raw_bounds_size": {
+      "x": 1.84495210647583,
+      "y": 1.29312837123871,
+      "z": 0.328721165657043
+    },
+    "resolved_length_m": 0.209999993443489,
+    "target_length_m": 0.21
+  },
+  "certification": {
+    "maximum_palm_error_m": 0.01,
+    "published_by": "publish_firearm_family_visual_rigs",
+    "required_actions": [
+      "aim_idle",
+      "fire_recovery",
+      "reload"
+    ],
+    "required_stances": [
+      "STANDING",
+      "CROUCHED"
+    ]
+  },
+  "family": "TWO_HAND_PISTOL",
+  "revision": 3,
+  "schema_version": 1,
+  "source_model_fbx": "res://assets/weapons/modular_pack/Pistol_3.fbx",
+  "status": "published",
+  "visual": {
+    "grip_offset": {
+      "pos_x": 0.0,
+      "pos_y": 0.0,
+      "pos_z": 0.0,
+      "rot_x": 0.0,
+      "rot_y": 0.0,
+      "rot_z": 90.0
+    },
+    "handling_profile": {
+      "animation_slots": {
+        "idle_standing": "pistol_compressed_idle_standing",
+        "idle_crouched": "pistol_compressed_idle_crouched",
+        "ready_standing": "pistol_recovery_reference_standing",
+        "ready_crouched": "pistol_recovery_reference_crouched",
+        "idle_standing_moving": "pistol_idle",
+        "ready_standing_moving": "pistol_idle",
+        "ready_crouched_moving": "pistol_idle_kneeling"
+      },
+      "dynamic_hold": {
+        "animation_carry_limit_m": 0.025,
+        "animation_carry_weight": 0.4,
+        "animation_drives_ready_hands": true,
+        "authored_compressed_idle_enabled": true,
+        "procedural_ready_hand_weight": 0.35,
+        "procedural_ready_spine_weight": 1.0,
+        "buttstock_constraint": {
+          "enabled": false
+        },
+        "fire_saved_joint_rotations_enabled": false,
+        "fire_spine_ccdik_enabled": false,
+        "hand_owned_aim_correction_limit_deg": 32.0,
+        "hand_socket_ik_enabled": false,
+        "ready_locomotion_inheritance": 0.0,
+        "relaxed_idle_upper_body_weight": 0.0,
+        "reload_return_blend_seconds": 0.18,
+        "right_hand_owns_weapon": true,
+        "support_hand_ik_blend_seconds": 0.25,
+        "support_hand_socket_ik_enabled": true
+      },
+      "family": "TWO_HAND_PISTOL",
+      "locomotion_family": "PISTOL",
+      "ready_aim": {
+        "compressed_enter_response": 8.0,
+        "locomotion_blend_seconds": 0.24,
+        "fire_hold_seconds": 1.2,
+        "fire_terminal_pose_hold_seconds": 0.12
+      },
+      "support_hand_required": true
+    },
+    "model_fbx": "res://assets/weapons/modular_pack/Pistol_3.fbx",
+    "model_rotation_degrees": {
+      "x": 0.0,
+      "y": -90.0,
+      "z": 0.0
+    },
+    "normalized_scale": 0.113824092919754,
+    "operator_mount": {
+      "attachment_mode": "trigger_hand_socket",
+      "bone_name": "mixamorig_RightHand",
+      "position": {
+        "x": -0.02,
+        "y": 0.08,
+        "z": 0.05
+      },
+      "rotation_degrees": {
+        "x": -90.0,
+        "y": 180.0,
+        "z": 0.0
+      }
+    },
+    "support_hand_pose": {
+      "finger_curl": 0.82,
+      "palm_pitch_deg": 0.0,
+      "palm_roll_deg": 0.0,
+      "palm_yaw_deg": 0.0,
+      "thumb_wrap": 0.72
+    },
+    "user_scale_multiplier": 1.0,
+    "weapon_sockets": {
+      "barrel_base_socket": {
+        "x": 0.00000000745058059692383,
+        "y": 0.0515879616141319,
+        "z": 0.0213403608649969
+      },
+      "buttstock_socket": {
+        "x": 0.00000000745058059692383,
+        "y": -0.0299999993294477,
+        "z": -0.0386596359312534
+      },
+      "ejection_port": {
+        "x": 0.0140311531722546,
+        "y": 0.0585879608988762,
+        "z": 0.0890969857573509
+      },
+      "left_hand_ik_target": {
+        "x": -0.0350000001490116,
+        "y": -0.0149999996647239,
+        "z": 0.0149999996647239
+      },
+      "muzzle_socket": {
+        "x": 0.00000000745058059692383,
+        "y": 0.0515879616141319,
+        "z": 0.171340361237526
+      },
+      "optic_rail": {
+        "x": 0.00000000745058059692383,
+        "y": 0.0769770219922066,
+        "z": 0.0719629526138306
+      },
+      "right_hand_grip_target": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      }
+    }
+  },
+  "visual_rig_id": "family_pistol_3_v3"
+}

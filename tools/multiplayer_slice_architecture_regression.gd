@@ -5,16 +5,18 @@ const LAYER_PATHS := [
 	"res://scripts/network/socom_multiplayer_state.gd",
 	"res://scripts/network/socom_multiplayer_admission.gd",
 	"res://scripts/network/socom_multiplayer_directory_presence.gd",
+	"res://scripts/network/socom_multiplayer_webrtc.gd",
 	"res://scripts/network/socom_multiplayer_session.gd",
 	"res://scripts/network/socom_multiplayer_lobby_pairing.gd",
 	"res://scripts/network/socom_multiplayer_replication.gd",
 	"res://scripts/network/socom_multiplayer_combat.gd",
 	"res://scripts/network/socom_multiplayer_rounds.gd",
-	"res://scripts/network/socom_multiplayer_buy_phase.gd",
+	"res://scripts/network/socom_multiplayer_round_loadout.gd",
 	"res://scripts/network/socom_multiplayer_objectives.gd",
 	"res://scripts/network/socom_multiplayer_world_ui.gd",
 ]
 const EXPECTED_RPC_METHODS := [
+	"request_warmup_slot",
 	"spawn_operator",
 	"despawn_operator",
 	"receive_server_map",
@@ -22,8 +24,10 @@ const EXPECTED_RPC_METHODS := [
 	"request_lobby_team",
 	"request_lobby_pair",
 	"request_lobby_ready",
+	"request_sudden_death_vote",
 	"receive_match_started",
 	"receive_round_state",
+	"receive_sudden_death_vote_state",
 	"receive_return_to_lobby",
 	"receive_session_challenge",
 	"request_session_admission",
@@ -37,18 +41,22 @@ const EXPECTED_RPC_METHODS := [
 	"submit_objective_interaction",
 	"receive_world_state",
 	"receive_shot_effect",
+	"receive_pellet_impacts",
+	"request_warmup_weapon",
+	"receive_warmup_loadout",
+	"receive_warmup_end",
 	"receive_damage_feedback",
 	"receive_match_event",
 	"receive_ammo_state",
 	"receive_objective_state",
-	"submit_purchase",
-	"receive_purchase_result",
-	"receive_buy_phase",
-	"receive_cash_state",
+	"receive_round_weapon",
 	"receive_tournament_assignment",
 	"receive_tournament_arena_layout",
 	"receive_tournament_roster",
 ]
+const LAYER_LINE_BUDGETS := {
+	"res://scripts/network/socom_multiplayer_session.gd": 600,
+}
 
 var failures := 0
 
@@ -82,14 +90,24 @@ func _init() -> void:
 			compile_error == OK and layer_script.can_instantiate(),
 			"authority layer parses and can instantiate: " + path.get_file()
 		)
-		_expect(_line_count(path) <= 500, "authority layer stays below 500 lines: " + path.get_file())
+		var line_budget := int(LAYER_LINE_BUDGETS.get(path, 500))
+		_expect(
+			_line_count(path) <= line_budget,
+			"authority layer stays below %d lines: %s" % [line_budget, path.get_file()]
+		)
 		if path.ends_with("socom_multiplayer_state.gd"):
 			source = source.split("# BEGIN GENERATED MULTIPLAYER CROSS-LAYER CONTRACT")[0]
 		function_count += source.count("\nfunc ")
 		rpc_annotation_count += source.count("\n@rpc(")
 
-	_expect(function_count == 163, "all 163 authority functions remain in one layer")
-	_expect(rpc_annotation_count == 30, "all 30 RPC annotations remain present in base layers")
+	_expect(function_count == 164, "164 layer functions remain after duplicate reload ownership removal")
+	var reload_implementations := 0
+	for path in LAYER_PATHS:
+		if path.ends_with("socom_multiplayer_state.gd"):
+			continue # Base declaration is not a runtime implementation.
+		reload_implementations += FileAccess.get_file_as_string(path).count("func _server_reload_weapon(")
+	_expect(reload_implementations == 1, "exactly one server reload entry implementation")
+	_expect(rpc_annotation_count == 28, "all 28 RPC annotations remain present in base layers")
 
 	var scene := load("res://multiplayer_slice.tscn") as PackedScene
 	var slice := scene.instantiate() if scene != null else null

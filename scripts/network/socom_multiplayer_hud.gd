@@ -4,6 +4,7 @@ extends CanvasLayer
 ## Presentation-only multiplayer HUD. Network simulation and authority remain
 ## in SocomMultiplayerSlice; this node owns controls, labels, and formatting.
 
+signal warmup_requested
 signal host_requested
 signal join_requested(address: String)
 signal leave_requested
@@ -21,7 +22,7 @@ var menu_panel: PanelContainer
 var address_edit: LineEdit
 var status_label: Label
 var score_label: Label
-var reticle: Label
+var reticle: SocomDynamicReticle
 var player_state_label: Label
 var match_clock_label: Label
 var objective_status_label: Label
@@ -33,6 +34,7 @@ var bravo_team_button: Button
 var team_selector_row: HBoxContainer
 var pair_selector_row: HBoxContainer
 var pair_selector: OptionButton
+var warmup_button: Button
 var ready_button: Button
 var lobby_status_label: Label
 var invite_panel: PanelContainer
@@ -44,6 +46,7 @@ var loadout_card_hud = null
 var connection_title: Label
 var connection_explanation: Label
 var host_button: Button
+var join_button: Button
 var sudden_death_vote_panel: PanelContainer
 var sudden_death_vote_title: Label
 var sudden_death_vote_status: Label
@@ -144,14 +147,15 @@ func configure_connection_mode(browser_client: bool, default_server_url: String 
 	if address_edit == null:
 		return
 	if browser_client:
-		connection_title.text = "BROWSER PRIVATE 2v2"
+		connection_title.text = "32-PLAYER TOURNAMENT"
 		connection_explanation.text = (
-			"Host a WebRTC room or paste a P2P room code. The host browser owns "
-			+ "the authoritative match."
+			"The official tournament connection ended. Return to the main menu "
+			+ "to rejoin through Quick Match."
 		)
-		address_edit.placeholder_text = "P2P room code or wss:// official server"
 		address_edit.text = default_server_url
-		host_button.visible = true
+		address_edit.visible = false
+		host_button.visible = false
+		join_button.visible = false
 	else:
 		connection_title.text = "MULTIPLAYER MATCH"
 		connection_explanation.text = (
@@ -159,6 +163,7 @@ func configure_connection_mode(browser_client: bool, default_server_url: String 
 			+ "WASD move • Mouse aim • Left click fire • Esc releases mouse"
 		)
 		host_button.visible = true
+		join_button.visible = true
 
 
 func _copy_host_invite() -> void:
@@ -370,12 +375,8 @@ func _build_match_hud() -> void:
 	loadout_card_hud = LoadoutCardHUD.new()
 	loadout_card_hud.name = "SocomLoadoutCardHUD"
 	add_child(loadout_card_hud)
-	reticle = Label.new()
-	reticle.text = "+"
-	reticle.add_theme_font_size_override("font_size", 28)
-	reticle.set_anchors_preset(Control.PRESET_CENTER)
-	reticle.position = Vector2(-8.0, -18.0)
-	reticle.modulate = Color(1.0, 0.92, 0.20)
+	reticle = preload("res://scripts/ui/socom_dynamic_reticle.gd").new()
+	reticle.name = "SharedWeaponReticle"
 	reticle.visible = false
 	add_child(reticle)
 	menu_panel = PanelContainer.new()
@@ -403,7 +404,7 @@ func _build_match_hud() -> void:
 	host_button.text = "HOST MATCH"
 	host_button.pressed.connect(func(): host_requested.emit())
 	row.add_child(host_button)
-	var join_button := Button.new()
+	join_button = Button.new()
 	join_button.name = "JoinGame"
 	join_button.text = "JOIN MATCH"
 	join_button.pressed.connect(func(): join_requested.emit(address_edit.text))
@@ -549,6 +550,13 @@ func _build_lobby() -> void:
 	ready_button.custom_minimum_size.y = 54
 	ready_button.pressed.connect(func(): ready_requested.emit())
 	column.add_child(ready_button)
+	warmup_button = Button.new()
+	warmup_button.name = "EnterWarmupButton"
+	warmup_button.text = "TRAINING GROUNDS • TRY WEAPONS TOGETHER"
+	warmup_button.visible = false
+	warmup_button.custom_minimum_size.y = 44
+	warmup_button.pressed.connect(func(): warmup_requested.emit())
+	column.add_child(warmup_button)
 	lobby_status_label = Label.new()
 	lobby_status_label.name = "LobbyReadyStatus"
 	lobby_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER

@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "feature_id": "relic_depot_and_nvg_operator",
+  "player_intent": "Play a worn tropical freight depot using the supplied props and ORIGINAL character in black, green, blue or white; the NVG replacement was rejected.",
+  "acceptance_rule": "Map library selects Relic Depot and main.tscn consumes that document; all props load, spawns and flank route are clear; original visible character and 65-bone runtime rig remain, with four cloth colors and the canonical equipped weapon.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://map_creation_lab.tscn",
+  "ownership": {"map_geometry": "SocomMapRuntime", "character_asset_binding": "SocomOperatorAssetRuntime", "active_world_selection": "SocomMainTrainingWorld"},
+  "nodes": [
+    {"id": "map", "type": "Node3D", "role": "Builds the shared saved map in editor and game", "owner": "SocomMapRuntime", "source_script": "res://scripts/maps/socom_map_runtime.gd", "code_symbols": ["root.name = \"AuthoredMap\"", "build_object(object, editor_preview)"]},
+    {"id": "player", "type": "CharacterBody3D", "role": "Unchanged sole movement and collision owner", "owner": "SocomPlayerController", "scene_path": "res://scenes/player/operator_player.tscn", "node_path": "."},
+    {"id": "appearance", "type": "MeshInstance3D", "role": "Cloth-color material on the original body, excluding attachments", "owner": "SocomOperatorTeamAppearance", "source_script": "res://scripts/player/operator_team_appearance.gd", "code_symbols": ["palette_color(name: String)", "mesh.set_surface_override_material(surface, material)", "ancestor is BoneAttachment3D"]}
+  ],
+  "data_contracts": [
+    {"path": "res://config/maps/relic_depot.json", "writer": "res://scripts/labs/map_creation_lab.gd", "readers": ["res://scripts/maps/socom_map_document.gd", "res://scripts/maps/socom_map_runtime.gd"]},
+    {"path": "res://config/operator_team_appearance.json", "writer": "res://docs/RELIC_DEPOT_INTEGRATION.md", "readers": ["res://scripts/player/operator_asset_runtime.gd", "res://scripts/player/operator_team_appearance.gd"]}
+  ],
+  "must_not_change": ["Player motion and collision controller", "SOCOM camera and reticle aim owner", "Server shot and damage authority", "Canonical skeleton rests and animation library", "Existing equipped weapon meshes and attachments", "Original downloaded files", "Published builds and servers"],
+  "proof_scripts": ["res://tools/relic_depot_regression.gd", "res://tools/blue_green_operator_regression.gd", "res://tools/map_creation_lab_regression.gd", "res://tools/operator_palette_regression.gd"],
+  "visual_check": "Render the ORIGINAL character in black, green, blue and white. Canonical map and walking/crouch remain on the original rig. No NVG replacement or bundled guns are active.",
+  "verification_status": "Four-color rendered palette regression PASS, including white brightness and team reset; blue/green regression and parse PASS. Feature contract gate PASS (65 contracts). Broader quick gate previously blocked by non-main branch. See docs/RELIC_DEPOT_INTEGRATION.md.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "KEEP original body at user's request; reject the NVG candidate, merge four cloth colors through the existing appearance owner and retain the shared depot map. First white render appeared gray; merge shared white-only cloth brightness through the existing shader mask, preserving brightness 1 for all other colors and team identity. Focused test verifies team reset. Per-delta scores are recorded in docs/RELIC_DEPOT_INTEGRATION.md.",
+    "current": {"system": "Imported staging packs and original visible player", "correctness": 1, "ownership_clarity": 5, "runtime_parity": 1, "editor_usability": 2, "performance": 4, "regression_coverage": 2, "evidence_paths": ["res://scripts/maps/socom_map_asset_library.gd", "res://scenes/player/operator_player.tscn", "res://tools/build_relic_depot_assets.gd"]},
+    "candidate": {"system": "Shared Relic Depot map and ORIGINAL player with cloth palette", "correctness": 4, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 4, "regression_coverage": 4, "evidence_paths": ["res://config/maps/relic_depot.json", "res://scripts/player/operator_team_appearance.gd", "res://tools/relic_depot_regression.gd", "res://docs/RELIC_DEPOT_INTEGRATION.md"]}
+  }
+}

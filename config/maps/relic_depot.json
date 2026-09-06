@@ -1,0 +1,3932 @@
+{
+  "schema_version": 1,
+  "enabled": true,
+  "map_id": "relic_depot",
+  "name": "Relic Depot",
+  "grid_size": 0.5,
+  "environment": {
+    "ambient_color": {
+      "a": 1.0,
+      "b": 0.874509811401367,
+      "g": 0.847058832645416,
+      "r": 0.7843137383461
+    },
+    "ambient_energy": 0.75,
+    "exposure": 1,
+    "fog_color": {
+      "a": 1.0,
+      "b": 0.666666686534882,
+      "g": 0.721568644046783,
+      "r": 0.725490212440491
+    },
+    "fog_density": 0.0025,
+    "fog_enabled": true,
+    "ground_color": {
+      "a": 1.0,
+      "b": 0.333333343267441,
+      "g": 0.400000005960464,
+      "r": 0.43529412150383
+    },
+    "preset": "painterly_coastal",
+    "sky_horizon": {
+      "a": 1.0,
+      "b": 0.607843160629272,
+      "g": 0.760784327983856,
+      "r": 0.901960790157318
+    },
+    "sky_top": {
+      "a": 1.0,
+      "b": 0.623529434204102,
+      "g": 0.43529412150383,
+      "r": 0.184313729405403
+    },
+    "soundscape": "outdoor_tactical",
+    "sun_color": {
+      "a": 1.0,
+      "b": 0.603921592235565,
+      "g": 0.82745099067688,
+      "r": 1.0
+    },
+    "sun_energy": 1.2,
+    "sun_rotation": {
+      "x": -38,
+      "y": -40,
+      "z": 0
+    }
+  },
+  "objects": [
+    {
+      "id": "relic_000",
+      "name": "Depot island / packed earth",
+      "type": "ground",
+      "position": {
+        "x": 0,
+        "y": -0.2,
+        "z": 0
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "size": {
+        "x": 76,
+        "y": 0.4,
+        "z": 64
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "surface_kind": "dirt",
+        "uv_scale": 0.3
+      }
+    },
+    {
+      "id": "relic_001",
+      "name": "Weathered freight apron",
+      "type": "ground",
+      "position": {
+        "x": -6,
+        "y": 0.04,
+        "z": 0
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "size": {
+        "x": 43,
+        "y": 0.08,
+        "z": 49
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "surface_kind": "concrete",
+        "uv_scale": 0.25
+      }
+    },
+    {
+      "id": "relic_002",
+      "name": "Depot entry",
+      "type": "player_spawn",
+      "position": {
+        "x": 0,
+        "y": 0.12,
+        "z": 25
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "size": {
+        "x": 0.8,
+        "y": 1.8,
+        "z": 0.8
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {}
+    },
+    {
+      "id": "relic_003",
+      "name": "Alpha spawn 1",
+      "type": "team_alpha_spawn",
+      "position": {
+        "x": -6,
+        "y": 0.12,
+        "z": 25
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1.8,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {}
+    },
+    {
+      "id": "relic_004",
+      "name": "Alpha spawn 2",
+      "type": "team_alpha_spawn",
+      "position": {
+        "x": -2,
+        "y": 0.12,
+        "z": 25
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1.8,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {}
+    },
+    {
+      "id": "relic_005",
+      "name": "Alpha spawn 3",
+      "type": "team_alpha_spawn",
+      "position": {
+        "x": 2,
+        "y": 0.12,
+        "z": 25
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1.8,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {}
+    },
+    {
+      "id": "relic_006",
+      "name": "Alpha spawn 4",
+      "type": "team_alpha_spawn",
+      "position": {
+        "x": 6,
+        "y": 0.12,
+        "z": 25
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1.8,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {}
+    },
+    {
+      "id": "relic_007",
+      "name": "Bravo spawn 1",
+      "type": "team_bravo_spawn",
+      "position": {
+        "x": -6,
+        "y": 0.12,
+        "z": -25
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 180,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1.8,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {}
+    },
+    {
+      "id": "relic_008",
+      "name": "Bravo spawn 2",
+      "type": "team_bravo_spawn",
+      "position": {
+        "x": -2,
+        "y": 0.12,
+        "z": -25
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 180,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1.8,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {}
+    },
+    {
+      "id": "relic_009",
+      "name": "Bravo spawn 3",
+      "type": "team_bravo_spawn",
+      "position": {
+        "x": 2,
+        "y": 0.12,
+        "z": -25
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 180,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1.8,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {}
+    },
+    {
+      "id": "relic_010",
+      "name": "Bravo spawn 4",
+      "type": "team_bravo_spawn",
+      "position": {
+        "x": 6,
+        "y": 0.12,
+        "z": -25
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 180,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1.8,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {}
+    },
+    {
+      "id": "relic_011",
+      "name": "Abandoned shipment",
+      "type": "bomb_pickup",
+      "position": {
+        "x": 1,
+        "y": 0.45,
+        "z": 1
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "size": {
+        "x": 0.8,
+        "y": 0.8,
+        "z": 0.8
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {}
+    },
+    {
+      "id": "relic_012",
+      "name": "South freight relay",
+      "type": "alpha_bomb_site",
+      "position": {
+        "x": -10,
+        "y": 0.13,
+        "z": 21
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "size": {
+        "x": 4,
+        "y": 0.2,
+        "z": 4
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {}
+    },
+    {
+      "id": "relic_013",
+      "name": "North freight relay",
+      "type": "bravo_bomb_site",
+      "position": {
+        "x": 10,
+        "y": 0.13,
+        "z": -21
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "size": {
+        "x": 4,
+        "y": 0.2,
+        "z": 4
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {}
+    },
+    {
+      "id": "relic_014",
+      "name": "Shuttered depot warehouse",
+      "type": "imported_asset",
+      "position": {
+        "x": -23,
+        "y": 0.08,
+        "z": 0
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 90,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/psx_old_warehouse.glb",
+        "collision_mode": "box",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_015",
+      "name": "Container 4",
+      "type": "imported_asset",
+      "position": {
+        "x": -8,
+        "y": 0.08,
+        "z": 13
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/container_4.glb",
+        "collision_mode": "box",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_016",
+      "name": "Container 5",
+      "type": "imported_asset",
+      "position": {
+        "x": 5,
+        "y": 0.08,
+        "z": 13
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 90,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/container_5.glb",
+        "collision_mode": "box",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_017",
+      "name": "Container 6",
+      "type": "imported_asset",
+      "position": {
+        "x": -7,
+        "y": 0.08,
+        "z": -12
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 90,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/container_6.glb",
+        "collision_mode": "box",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_018",
+      "name": "Container 7",
+      "type": "imported_asset",
+      "position": {
+        "x": 6,
+        "y": 0.08,
+        "z": -13
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/container_7.glb",
+        "collision_mode": "box",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_019",
+      "name": "Container 5",
+      "type": "imported_asset",
+      "position": {
+        "x": 0,
+        "y": 0.08,
+        "z": 3
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 15,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/container_5.glb",
+        "collision_mode": "box",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_020",
+      "name": "Container 6",
+      "type": "imported_asset",
+      "position": {
+        "x": 4,
+        "y": 0.08,
+        "z": -4
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 90,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/container_6.glb",
+        "collision_mode": "box",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_021",
+      "name": "Container 4",
+      "type": "imported_asset",
+      "position": {
+        "x": -12,
+        "y": 0.08,
+        "z": 1
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/container_4.glb",
+        "collision_mode": "box",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_022",
+      "name": "Container 7",
+      "type": "imported_asset",
+      "position": {
+        "x": 13,
+        "y": 0.08,
+        "z": 4
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 90,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/container_7.glb",
+        "collision_mode": "box",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_023",
+      "name": "Stacked freight landmark",
+      "type": "imported_asset",
+      "position": {
+        "x": -8,
+        "y": 2.17642,
+        "z": 13
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/container_6.glb",
+        "collision_mode": "box",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_024",
+      "name": "Dumpster",
+      "type": "imported_asset",
+      "position": {
+        "x": -14,
+        "y": 0.08,
+        "z": -6
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 90,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/dumpster.glb",
+        "collision_mode": "box",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_025",
+      "name": "Generator Unit",
+      "type": "imported_asset",
+      "position": {
+        "x": -14,
+        "y": 0.08,
+        "z": 7
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/generator_unit.glb",
+        "collision_mode": "box",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_026",
+      "name": "Concrete Pipe Pile",
+      "type": "imported_asset",
+      "position": {
+        "x": 12,
+        "y": 0.08,
+        "z": -9
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 90,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/concrete_pipe_pile.glb",
+        "collision_mode": "box",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_027",
+      "name": "Crate Wood",
+      "type": "imported_asset",
+      "position": {
+        "x": 1,
+        "y": 0.08,
+        "z": 18
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/crate_wood.glb",
+        "collision_mode": "box",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_028",
+      "name": "Crate Metal",
+      "type": "imported_asset",
+      "position": {
+        "x": -10,
+        "y": 0.08,
+        "z": -18
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 15,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/crate_metal.glb",
+        "collision_mode": "box",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_029",
+      "name": "Crate Wood",
+      "type": "imported_asset",
+      "position": {
+        "x": 8,
+        "y": 0.08,
+        "z": -19
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": -15,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/crate_wood.glb",
+        "collision_mode": "box",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_030",
+      "name": "Crate Metal",
+      "type": "imported_asset",
+      "position": {
+        "x": 8,
+        "y": 0.08,
+        "z": 18
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/crate_metal.glb",
+        "collision_mode": "box",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_031",
+      "name": "Barrel Oil",
+      "type": "imported_asset",
+      "position": {
+        "x": -13,
+        "y": 0.08,
+        "z": 10
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/barrel_oil.glb",
+        "collision_mode": "box",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_032",
+      "name": "Barrel Oil",
+      "type": "imported_asset",
+      "position": {
+        "x": -12,
+        "y": 0.08,
+        "z": 10
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/barrel_oil.glb",
+        "collision_mode": "box",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_033",
+      "name": "Barrel Oil",
+      "type": "imported_asset",
+      "position": {
+        "x": 11,
+        "y": 0.08,
+        "z": -14
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/barrel_oil.glb",
+        "collision_mode": "box",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_034",
+      "name": "Barrel Oil",
+      "type": "imported_asset",
+      "position": {
+        "x": 12,
+        "y": 0.08,
+        "z": -14
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/barrel_oil.glb",
+        "collision_mode": "box",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_035",
+      "name": "Tires",
+      "type": "imported_asset",
+      "position": {
+        "x": -14,
+        "y": 0.08,
+        "z": -9
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/tires.glb",
+        "collision_mode": "box",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_036",
+      "name": "Pallet",
+      "type": "imported_asset",
+      "position": {
+        "x": -12,
+        "y": 0.08,
+        "z": -7
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 30,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/pallet.glb",
+        "collision_mode": "box",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_037",
+      "name": "Pallet",
+      "type": "imported_asset",
+      "position": {
+        "x": -11,
+        "y": 0.08,
+        "z": -8
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 10,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/pallet.glb",
+        "collision_mode": "box",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_038",
+      "name": "Big Rock",
+      "type": "imported_asset",
+      "position": {
+        "x": 22,
+        "y": 0,
+        "z": 20
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/big_rock.glb",
+        "collision_mode": "detailed_mesh",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_039",
+      "name": "Mediun Rock",
+      "type": "imported_asset",
+      "position": {
+        "x": 27,
+        "y": 0,
+        "z": 12
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 39,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/mediun_rock.glb",
+        "collision_mode": "detailed_mesh",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_040",
+      "name": "Mediun Rock 2",
+      "type": "imported_asset",
+      "position": {
+        "x": 23,
+        "y": 0,
+        "z": 3
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 78,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/mediun_rock_2.glb",
+        "collision_mode": "detailed_mesh",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_041",
+      "name": "Big Rock",
+      "type": "imported_asset",
+      "position": {
+        "x": 29,
+        "y": 0,
+        "z": -5
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 117,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/big_rock.glb",
+        "collision_mode": "detailed_mesh",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_042",
+      "name": "Mediun Rock",
+      "type": "imported_asset",
+      "position": {
+        "x": 23,
+        "y": 0,
+        "z": -15
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 156,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/mediun_rock.glb",
+        "collision_mode": "detailed_mesh",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_043",
+      "name": "Mediun Rock 2",
+      "type": "imported_asset",
+      "position": {
+        "x": 29,
+        "y": 0,
+        "z": -24
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 195,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/mediun_rock_2.glb",
+        "collision_mode": "detailed_mesh",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_044",
+      "name": "Big Rock",
+      "type": "imported_asset",
+      "position": {
+        "x": 33,
+        "y": 0,
+        "z": 25
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 234,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/big_rock.glb",
+        "collision_mode": "detailed_mesh",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_045",
+      "name": "Mediun Rock",
+      "type": "imported_asset",
+      "position": {
+        "x": 34,
+        "y": 0,
+        "z": 3
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 273,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/mediun_rock.glb",
+        "collision_mode": "detailed_mesh",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_046",
+      "name": "Mediun Rock 2",
+      "type": "imported_asset",
+      "position": {
+        "x": -34,
+        "y": 0,
+        "z": 22
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 312,
+        "z": 0
+      },
+      "size": {
+        "x": 1.1,
+        "y": 1.1,
+        "z": 1.1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/mediun_rock_2.glb",
+        "collision_mode": "detailed_mesh",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_047",
+      "name": "Big Rock",
+      "type": "imported_asset",
+      "position": {
+        "x": -34,
+        "y": 0,
+        "z": -23
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 351,
+        "z": 0
+      },
+      "size": {
+        "x": 1.1,
+        "y": 1.1,
+        "z": 1.1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/big_rock.glb",
+        "collision_mode": "detailed_mesh",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_048",
+      "name": "Palm Tree",
+      "type": "imported_asset",
+      "position": {
+        "x": 20,
+        "y": 0,
+        "z": 24
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/palm_tree.glb",
+        "collision_mode": "detailed_mesh",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_049",
+      "name": "Bush",
+      "type": "imported_asset",
+      "position": {
+        "x": 21.3,
+        "y": 0,
+        "z": 24.9
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/bush.glb",
+        "collision_mode": "none",
+        "collision_enabled": false
+      }
+    },
+    {
+      "id": "relic_050",
+      "name": "Grass",
+      "type": "imported_asset",
+      "position": {
+        "x": 19,
+        "y": 0,
+        "z": 23.2
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/grass.glb",
+        "collision_mode": "none",
+        "collision_enabled": false
+      }
+    },
+    {
+      "id": "relic_051",
+      "name": "Palm Tree 001",
+      "type": "imported_asset",
+      "position": {
+        "x": 29,
+        "y": 0,
+        "z": 20
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 53,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/palm_tree_001.glb",
+        "collision_mode": "detailed_mesh",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_052",
+      "name": "Bush",
+      "type": "imported_asset",
+      "position": {
+        "x": 30.3,
+        "y": 0,
+        "z": 20.9
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 19,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/bush.glb",
+        "collision_mode": "none",
+        "collision_enabled": false
+      }
+    },
+    {
+      "id": "relic_053",
+      "name": "Grass",
+      "type": "imported_asset",
+      "position": {
+        "x": 28,
+        "y": 0,
+        "z": 19.2
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 23,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/grass.glb",
+        "collision_mode": "none",
+        "collision_enabled": false
+      }
+    },
+    {
+      "id": "relic_054",
+      "name": "Palm Tree 002",
+      "type": "imported_asset",
+      "position": {
+        "x": 31,
+        "y": 0,
+        "z": 10
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 106,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/palm_tree_002.glb",
+        "collision_mode": "detailed_mesh",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_055",
+      "name": "Bush",
+      "type": "imported_asset",
+      "position": {
+        "x": 32.3,
+        "y": 0,
+        "z": 10.9
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 38,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/bush.glb",
+        "collision_mode": "none",
+        "collision_enabled": false
+      }
+    },
+    {
+      "id": "relic_056",
+      "name": "Grass",
+      "type": "imported_asset",
+      "position": {
+        "x": 30,
+        "y": 0,
+        "z": 9.2
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 46,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/grass.glb",
+        "collision_mode": "none",
+        "collision_enabled": false
+      }
+    },
+    {
+      "id": "relic_057",
+      "name": "Palm Tree",
+      "type": "imported_asset",
+      "position": {
+        "x": 22,
+        "y": 0,
+        "z": 10
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 159,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/palm_tree.glb",
+        "collision_mode": "detailed_mesh",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_058",
+      "name": "Bush",
+      "type": "imported_asset",
+      "position": {
+        "x": 23.3,
+        "y": 0,
+        "z": 10.9
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 57,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/bush.glb",
+        "collision_mode": "none",
+        "collision_enabled": false
+      }
+    },
+    {
+      "id": "relic_059",
+      "name": "Grass",
+      "type": "imported_asset",
+      "position": {
+        "x": 21,
+        "y": 0,
+        "z": 9.2
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 69,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/grass.glb",
+        "collision_mode": "none",
+        "collision_enabled": false
+      }
+    },
+    {
+      "id": "relic_060",
+      "name": "Palm Tree 001",
+      "type": "imported_asset",
+      "position": {
+        "x": 30,
+        "y": 0,
+        "z": 0
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 212,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/palm_tree_001.glb",
+        "collision_mode": "detailed_mesh",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_061",
+      "name": "Bush",
+      "type": "imported_asset",
+      "position": {
+        "x": 31.3,
+        "y": 0,
+        "z": 0.9
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 76,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/bush.glb",
+        "collision_mode": "none",
+        "collision_enabled": false
+      }
+    },
+    {
+      "id": "relic_062",
+      "name": "Grass",
+      "type": "imported_asset",
+      "position": {
+        "x": 29,
+        "y": 0,
+        "z": -0.8
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 92,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/grass.glb",
+        "collision_mode": "none",
+        "collision_enabled": false
+      }
+    },
+    {
+      "id": "relic_063",
+      "name": "Palm Tree 002",
+      "type": "imported_asset",
+      "position": {
+        "x": 22,
+        "y": 0,
+        "z": -6
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 265,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/palm_tree_002.glb",
+        "collision_mode": "detailed_mesh",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_064",
+      "name": "Bush",
+      "type": "imported_asset",
+      "position": {
+        "x": 23.3,
+        "y": 0,
+        "z": -5.1
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 95,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/bush.glb",
+        "collision_mode": "none",
+        "collision_enabled": false
+      }
+    },
+    {
+      "id": "relic_065",
+      "name": "Grass",
+      "type": "imported_asset",
+      "position": {
+        "x": 21,
+        "y": 0,
+        "z": -6.8
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 115,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/grass.glb",
+        "collision_mode": "none",
+        "collision_enabled": false
+      }
+    },
+    {
+      "id": "relic_066",
+      "name": "Palm Tree",
+      "type": "imported_asset",
+      "position": {
+        "x": 32,
+        "y": 0,
+        "z": -13
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 318,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/palm_tree.glb",
+        "collision_mode": "detailed_mesh",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_067",
+      "name": "Bush",
+      "type": "imported_asset",
+      "position": {
+        "x": 33.3,
+        "y": 0,
+        "z": -12.1
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 114,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/bush.glb",
+        "collision_mode": "none",
+        "collision_enabled": false
+      }
+    },
+    {
+      "id": "relic_068",
+      "name": "Grass",
+      "type": "imported_asset",
+      "position": {
+        "x": 31,
+        "y": 0,
+        "z": -13.8
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 138,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/grass.glb",
+        "collision_mode": "none",
+        "collision_enabled": false
+      }
+    },
+    {
+      "id": "relic_069",
+      "name": "Palm Tree 001",
+      "type": "imported_asset",
+      "position": {
+        "x": 24,
+        "y": 0,
+        "z": -23
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 371,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/palm_tree_001.glb",
+        "collision_mode": "detailed_mesh",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_070",
+      "name": "Bush",
+      "type": "imported_asset",
+      "position": {
+        "x": 25.3,
+        "y": 0,
+        "z": -22.1
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 133,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/bush.glb",
+        "collision_mode": "none",
+        "collision_enabled": false
+      }
+    },
+    {
+      "id": "relic_071",
+      "name": "Grass",
+      "type": "imported_asset",
+      "position": {
+        "x": 23,
+        "y": 0,
+        "z": -23.8
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 161,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/grass.glb",
+        "collision_mode": "none",
+        "collision_enabled": false
+      }
+    },
+    {
+      "id": "relic_072",
+      "name": "Palm Tree 002",
+      "type": "imported_asset",
+      "position": {
+        "x": 34,
+        "y": 0,
+        "z": -27
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 424,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/palm_tree_002.glb",
+        "collision_mode": "detailed_mesh",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_073",
+      "name": "Bush",
+      "type": "imported_asset",
+      "position": {
+        "x": 35.3,
+        "y": 0,
+        "z": -26.1
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 152,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/bush.glb",
+        "collision_mode": "none",
+        "collision_enabled": false
+      }
+    },
+    {
+      "id": "relic_074",
+      "name": "Grass",
+      "type": "imported_asset",
+      "position": {
+        "x": 33,
+        "y": 0,
+        "z": -27.8
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 184,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/grass.glb",
+        "collision_mode": "none",
+        "collision_enabled": false
+      }
+    },
+    {
+      "id": "relic_075",
+      "name": "Palm Tree",
+      "type": "imported_asset",
+      "position": {
+        "x": -33,
+        "y": 0,
+        "z": 24
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 477,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/palm_tree.glb",
+        "collision_mode": "detailed_mesh",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_076",
+      "name": "Bush",
+      "type": "imported_asset",
+      "position": {
+        "x": -31.7,
+        "y": 0,
+        "z": 24.9
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 171,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/bush.glb",
+        "collision_mode": "none",
+        "collision_enabled": false
+      }
+    },
+    {
+      "id": "relic_077",
+      "name": "Grass",
+      "type": "imported_asset",
+      "position": {
+        "x": -34,
+        "y": 0,
+        "z": 23.2
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 207,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/grass.glb",
+        "collision_mode": "none",
+        "collision_enabled": false
+      }
+    },
+    {
+      "id": "relic_078",
+      "name": "Palm Tree 001",
+      "type": "imported_asset",
+      "position": {
+        "x": -34,
+        "y": 0,
+        "z": 15
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 530,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/palm_tree_001.glb",
+        "collision_mode": "detailed_mesh",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_079",
+      "name": "Bush",
+      "type": "imported_asset",
+      "position": {
+        "x": -32.7,
+        "y": 0,
+        "z": 15.9
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 190,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/bush.glb",
+        "collision_mode": "none",
+        "collision_enabled": false
+      }
+    },
+    {
+      "id": "relic_080",
+      "name": "Grass",
+      "type": "imported_asset",
+      "position": {
+        "x": -35,
+        "y": 0,
+        "z": 14.2
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 230,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/grass.glb",
+        "collision_mode": "none",
+        "collision_enabled": false
+      }
+    },
+    {
+      "id": "relic_081",
+      "name": "Palm Tree 002",
+      "type": "imported_asset",
+      "position": {
+        "x": -34,
+        "y": 0,
+        "z": -15
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 583,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/palm_tree_002.glb",
+        "collision_mode": "detailed_mesh",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_082",
+      "name": "Bush",
+      "type": "imported_asset",
+      "position": {
+        "x": -32.7,
+        "y": 0,
+        "z": -14.1
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 209,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/bush.glb",
+        "collision_mode": "none",
+        "collision_enabled": false
+      }
+    },
+    {
+      "id": "relic_083",
+      "name": "Grass",
+      "type": "imported_asset",
+      "position": {
+        "x": -35,
+        "y": 0,
+        "z": -15.8
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 253,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/grass.glb",
+        "collision_mode": "none",
+        "collision_enabled": false
+      }
+    },
+    {
+      "id": "relic_084",
+      "name": "Palm Tree",
+      "type": "imported_asset",
+      "position": {
+        "x": -32,
+        "y": 0,
+        "z": -26
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 636,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/palm_tree.glb",
+        "collision_mode": "detailed_mesh",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_085",
+      "name": "Bush",
+      "type": "imported_asset",
+      "position": {
+        "x": -30.7,
+        "y": 0,
+        "z": -25.1
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 228,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/bush.glb",
+        "collision_mode": "none",
+        "collision_enabled": false
+      }
+    },
+    {
+      "id": "relic_086",
+      "name": "Grass",
+      "type": "imported_asset",
+      "position": {
+        "x": -33,
+        "y": 0,
+        "z": -26.8
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 276,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/grass.glb",
+        "collision_mode": "none",
+        "collision_enabled": false
+      }
+    },
+    {
+      "id": "relic_087",
+      "name": "Palm Tree 001",
+      "type": "imported_asset",
+      "position": {
+        "x": -16,
+        "y": 0,
+        "z": 29
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 689,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/palm_tree_001.glb",
+        "collision_mode": "detailed_mesh",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_088",
+      "name": "Bush",
+      "type": "imported_asset",
+      "position": {
+        "x": -14.7,
+        "y": 0,
+        "z": 29.9
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 247,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/bush.glb",
+        "collision_mode": "none",
+        "collision_enabled": false
+      }
+    },
+    {
+      "id": "relic_089",
+      "name": "Grass",
+      "type": "imported_asset",
+      "position": {
+        "x": -17,
+        "y": 0,
+        "z": 28.2
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 299,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/grass.glb",
+        "collision_mode": "none",
+        "collision_enabled": false
+      }
+    },
+    {
+      "id": "relic_090",
+      "name": "Palm Tree 002",
+      "type": "imported_asset",
+      "position": {
+        "x": 14,
+        "y": 0,
+        "z": 29
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 742,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/palm_tree_002.glb",
+        "collision_mode": "detailed_mesh",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_091",
+      "name": "Bush",
+      "type": "imported_asset",
+      "position": {
+        "x": 15.3,
+        "y": 0,
+        "z": 29.9
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 266,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/bush.glb",
+        "collision_mode": "none",
+        "collision_enabled": false
+      }
+    },
+    {
+      "id": "relic_092",
+      "name": "Grass",
+      "type": "imported_asset",
+      "position": {
+        "x": 13,
+        "y": 0,
+        "z": 28.2
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 322,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/grass.glb",
+        "collision_mode": "none",
+        "collision_enabled": false
+      }
+    },
+    {
+      "id": "relic_093",
+      "name": "Palm Tree",
+      "type": "imported_asset",
+      "position": {
+        "x": -14,
+        "y": 0,
+        "z": -29
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 795,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/palm_tree.glb",
+        "collision_mode": "detailed_mesh",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_094",
+      "name": "Bush",
+      "type": "imported_asset",
+      "position": {
+        "x": -12.7,
+        "y": 0,
+        "z": -28.1
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 285,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/bush.glb",
+        "collision_mode": "none",
+        "collision_enabled": false
+      }
+    },
+    {
+      "id": "relic_095",
+      "name": "Grass",
+      "type": "imported_asset",
+      "position": {
+        "x": -15,
+        "y": 0,
+        "z": -29.8
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 345,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/grass.glb",
+        "collision_mode": "none",
+        "collision_enabled": false
+      }
+    },
+    {
+      "id": "relic_096",
+      "name": "Palm Tree 001",
+      "type": "imported_asset",
+      "position": {
+        "x": 15,
+        "y": 0,
+        "z": -29
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 848,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/palm_tree_001.glb",
+        "collision_mode": "detailed_mesh",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_097",
+      "name": "Bush",
+      "type": "imported_asset",
+      "position": {
+        "x": 16.3,
+        "y": 0,
+        "z": -28.1
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 304,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/bush.glb",
+        "collision_mode": "none",
+        "collision_enabled": false
+      }
+    },
+    {
+      "id": "relic_098",
+      "name": "Grass",
+      "type": "imported_asset",
+      "position": {
+        "x": 14,
+        "y": 0,
+        "z": -29.8
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 368,
+        "z": 0
+      },
+      "size": {
+        "x": 1,
+        "y": 1,
+        "z": 1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/grass.glb",
+        "collision_mode": "none",
+        "collision_enabled": false
+      }
+    },
+    {
+      "id": "relic_099",
+      "name": "Big Rock",
+      "type": "imported_asset",
+      "position": {
+        "x": 37,
+        "y": 0,
+        "z": -29
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "size": {
+        "x": 2.1,
+        "y": 2.1,
+        "z": 2.1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/big_rock.glb",
+        "collision_mode": "detailed_mesh",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_100",
+      "name": "Big Rock",
+      "type": "imported_asset",
+      "position": {
+        "x": -38,
+        "y": 0,
+        "z": -29
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "size": {
+        "x": 1.8,
+        "y": 1.8,
+        "z": 1.8
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/big_rock.glb",
+        "collision_mode": "detailed_mesh",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_101",
+      "name": "Big Rock",
+      "type": "imported_asset",
+      "position": {
+        "x": 37,
+        "y": 0,
+        "z": -19
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 37,
+        "z": 0
+      },
+      "size": {
+        "x": 2.1,
+        "y": 2.1,
+        "z": 2.1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/big_rock.glb",
+        "collision_mode": "detailed_mesh",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_102",
+      "name": "Big Rock",
+      "type": "imported_asset",
+      "position": {
+        "x": -38,
+        "y": 0,
+        "z": -19
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 53,
+        "z": 0
+      },
+      "size": {
+        "x": 1.8,
+        "y": 1.8,
+        "z": 1.8
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/big_rock.glb",
+        "collision_mode": "detailed_mesh",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_103",
+      "name": "Big Rock",
+      "type": "imported_asset",
+      "position": {
+        "x": 37,
+        "y": 0,
+        "z": -9
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 74,
+        "z": 0
+      },
+      "size": {
+        "x": 2.1,
+        "y": 2.1,
+        "z": 2.1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/big_rock.glb",
+        "collision_mode": "detailed_mesh",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_104",
+      "name": "Big Rock",
+      "type": "imported_asset",
+      "position": {
+        "x": -38,
+        "y": 0,
+        "z": -9
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 106,
+        "z": 0
+      },
+      "size": {
+        "x": 1.8,
+        "y": 1.8,
+        "z": 1.8
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/big_rock.glb",
+        "collision_mode": "detailed_mesh",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_105",
+      "name": "Big Rock",
+      "type": "imported_asset",
+      "position": {
+        "x": 37,
+        "y": 0,
+        "z": 1
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 111,
+        "z": 0
+      },
+      "size": {
+        "x": 2.1,
+        "y": 2.1,
+        "z": 2.1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/big_rock.glb",
+        "collision_mode": "detailed_mesh",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_106",
+      "name": "Big Rock",
+      "type": "imported_asset",
+      "position": {
+        "x": -38,
+        "y": 0,
+        "z": 1
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 159,
+        "z": 0
+      },
+      "size": {
+        "x": 1.8,
+        "y": 1.8,
+        "z": 1.8
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/big_rock.glb",
+        "collision_mode": "detailed_mesh",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_107",
+      "name": "Big Rock",
+      "type": "imported_asset",
+      "position": {
+        "x": 37,
+        "y": 0,
+        "z": 11
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 148,
+        "z": 0
+      },
+      "size": {
+        "x": 2.1,
+        "y": 2.1,
+        "z": 2.1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/big_rock.glb",
+        "collision_mode": "detailed_mesh",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_108",
+      "name": "Big Rock",
+      "type": "imported_asset",
+      "position": {
+        "x": -38,
+        "y": 0,
+        "z": 11
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 212,
+        "z": 0
+      },
+      "size": {
+        "x": 1.8,
+        "y": 1.8,
+        "z": 1.8
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/big_rock.glb",
+        "collision_mode": "detailed_mesh",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_109",
+      "name": "Big Rock",
+      "type": "imported_asset",
+      "position": {
+        "x": 37,
+        "y": 0,
+        "z": 21
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 185,
+        "z": 0
+      },
+      "size": {
+        "x": 2.1,
+        "y": 2.1,
+        "z": 2.1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/big_rock.glb",
+        "collision_mode": "detailed_mesh",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_110",
+      "name": "Big Rock",
+      "type": "imported_asset",
+      "position": {
+        "x": -38,
+        "y": 0,
+        "z": 21
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 265,
+        "z": 0
+      },
+      "size": {
+        "x": 1.8,
+        "y": 1.8,
+        "z": 1.8
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/big_rock.glb",
+        "collision_mode": "detailed_mesh",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_111",
+      "name": "Big Rock",
+      "type": "imported_asset",
+      "position": {
+        "x": 37,
+        "y": 0,
+        "z": 29
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 222,
+        "z": 0
+      },
+      "size": {
+        "x": 2.1,
+        "y": 2.1,
+        "z": 2.1
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/big_rock.glb",
+        "collision_mode": "detailed_mesh",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_112",
+      "name": "Big Rock",
+      "type": "imported_asset",
+      "position": {
+        "x": -38,
+        "y": 0,
+        "z": 29
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 318,
+        "z": 0
+      },
+      "size": {
+        "x": 1.8,
+        "y": 1.8,
+        "z": 1.8
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/big_rock.glb",
+        "collision_mode": "detailed_mesh",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_113",
+      "name": "Mediun Rock 2",
+      "type": "imported_asset",
+      "position": {
+        "x": -25,
+        "y": 0,
+        "z": -32
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": -175,
+        "z": 0
+      },
+      "size": {
+        "x": 2,
+        "y": 2,
+        "z": 2
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/mediun_rock_2.glb",
+        "collision_mode": "detailed_mesh",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_114",
+      "name": "Mediun Rock 2",
+      "type": "imported_asset",
+      "position": {
+        "x": -15,
+        "y": 0,
+        "z": -32
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": -105,
+        "z": 0
+      },
+      "size": {
+        "x": 2,
+        "y": 2,
+        "z": 2
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/mediun_rock_2.glb",
+        "collision_mode": "detailed_mesh",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_115",
+      "name": "Mediun Rock 2",
+      "type": "imported_asset",
+      "position": {
+        "x": -5,
+        "y": 0,
+        "z": -32
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": -35,
+        "z": 0
+      },
+      "size": {
+        "x": 2,
+        "y": 2,
+        "z": 2
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/mediun_rock_2.glb",
+        "collision_mode": "detailed_mesh",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_116",
+      "name": "Mediun Rock 2",
+      "type": "imported_asset",
+      "position": {
+        "x": 5,
+        "y": 0,
+        "z": -32
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 35,
+        "z": 0
+      },
+      "size": {
+        "x": 2,
+        "y": 2,
+        "z": 2
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/mediun_rock_2.glb",
+        "collision_mode": "detailed_mesh",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_117",
+      "name": "Mediun Rock 2",
+      "type": "imported_asset",
+      "position": {
+        "x": 15,
+        "y": 0,
+        "z": -32
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 105,
+        "z": 0
+      },
+      "size": {
+        "x": 2,
+        "y": 2,
+        "z": 2
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/mediun_rock_2.glb",
+        "collision_mode": "detailed_mesh",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_118",
+      "name": "Mediun Rock 2",
+      "type": "imported_asset",
+      "position": {
+        "x": 25,
+        "y": 0,
+        "z": -32
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 175,
+        "z": 0
+      },
+      "size": {
+        "x": 2,
+        "y": 2,
+        "z": 2
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/mediun_rock_2.glb",
+        "collision_mode": "detailed_mesh",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_119",
+      "name": "Mediun Rock 2",
+      "type": "imported_asset",
+      "position": {
+        "x": -25,
+        "y": 0,
+        "z": 32
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": -175,
+        "z": 0
+      },
+      "size": {
+        "x": 2,
+        "y": 2,
+        "z": 2
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/mediun_rock_2.glb",
+        "collision_mode": "detailed_mesh",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_120",
+      "name": "Mediun Rock 2",
+      "type": "imported_asset",
+      "position": {
+        "x": -15,
+        "y": 0,
+        "z": 32
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": -105,
+        "z": 0
+      },
+      "size": {
+        "x": 2,
+        "y": 2,
+        "z": 2
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/mediun_rock_2.glb",
+        "collision_mode": "detailed_mesh",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_121",
+      "name": "Mediun Rock 2",
+      "type": "imported_asset",
+      "position": {
+        "x": -5,
+        "y": 0,
+        "z": 32
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": -35,
+        "z": 0
+      },
+      "size": {
+        "x": 2,
+        "y": 2,
+        "z": 2
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/mediun_rock_2.glb",
+        "collision_mode": "detailed_mesh",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_122",
+      "name": "Mediun Rock 2",
+      "type": "imported_asset",
+      "position": {
+        "x": 5,
+        "y": 0,
+        "z": 32
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 35,
+        "z": 0
+      },
+      "size": {
+        "x": 2,
+        "y": 2,
+        "z": 2
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/mediun_rock_2.glb",
+        "collision_mode": "detailed_mesh",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_123",
+      "name": "Mediun Rock 2",
+      "type": "imported_asset",
+      "position": {
+        "x": 15,
+        "y": 0,
+        "z": 32
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 105,
+        "z": 0
+      },
+      "size": {
+        "x": 2,
+        "y": 2,
+        "z": 2
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/mediun_rock_2.glb",
+        "collision_mode": "detailed_mesh",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_124",
+      "name": "Mediun Rock 2",
+      "type": "imported_asset",
+      "position": {
+        "x": 25,
+        "y": 0,
+        "z": 32
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 175,
+        "z": 0
+      },
+      "size": {
+        "x": 2,
+        "y": 2,
+        "z": 2
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "asset_path": "res://assets/environment/relic_depot/mediun_rock_2.glb",
+        "collision_mode": "detailed_mesh",
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "relic_125",
+      "name": "Yard patrol practice target",
+      "type": "moving_training_dummy",
+      "position": {
+        "x": 10,
+        "y": 0.1,
+        "z": -2
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "size": {
+        "x": 0.8,
+        "y": 1.8,
+        "z": 0.8
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "patrol_distance": 5,
+        "patrol_speed": 1.2
+      }
+    }
+  ],
+  "gameplay": {
+    "primary_mode": "demolition",
+    "supported_modes": [
+      "demolition",
+      "team_deathmatch"
+    ],
+    "team_size": 4,
+    "round_time_seconds": 180,
+    "rounds_to_win": 4,
+    "maximum_rounds": 7,
+    "plant_time_seconds": 5,
+    "defuse_time_seconds": 5,
+    "bomb_fuse_seconds": 35,
+    "elimination_wins_round": true,
+    "bomb_detonation_wins_round": true,
+    "respawns_enabled": false,
+    "round_timeout_result": "draw"
+  }
+}

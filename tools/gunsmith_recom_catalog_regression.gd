@@ -14,7 +14,14 @@ const Repository := preload(
 
 func _initialize() -> void:
 	var all_items := WeaponCatalog.get_all_weapons()
-	assert(all_items.size() == 60, "Complete reCOM catalog must retain all 60 items")
+	var baseline: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(WeaponCatalog.CATALOG_PATH))
+	var registry: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(WeaponCatalog.EXTENSIONS_PATH))
+	assert(baseline.weapons.size() == 60, "Original reCOM catalog must retain all 60 items")
+	for original: Dictionary in baseline.weapons:
+		var expected := original.duplicate(true)
+		expected.merge(registry.get("metadata_overrides", {}).get(String(original.weapon_id), {}), true)
+		assert(WeaponCatalog.get_weapon(String(original.weapon_id)) == expected, "Only explicit metadata may differ from archived reCOM record")
+	assert(all_items.size() == 63, "Expected preserved catalog plus three prototype shotguns")
 	var categories := Adapter.gunsmith_categories()
 	var firearm_count := 0
 	for category: String in categories:
@@ -26,7 +33,7 @@ func _initialize() -> void:
 				FileAccess.file_exists(String(resolved.model_fbx)),
 				"Gunsmith fallback mesh is missing: %s" % resolved.model_fbx
 			)
-	assert(firearm_count == 34, "Expected 34 firearm records, got %d" % firearm_count)
+	assert(firearm_count == 37, "Expected 37 firearm records, got %d" % firearm_count)
 	assert(not WeaponCatalog.get_weapon("m67").is_empty(), "Equipment catalog lost M67")
 	assert(Adapter.resolve("m67").is_empty(), "Grenades must not enter the firearm rig editor")
 

@@ -20,25 +20,28 @@ func _run() -> void:
 		"restricted Web mode is active"
 	)
 	_expect(
-		launcher.find_child("JoinGame", true, false) is Button,
-		"public player build keeps direct Join Game as a fallback"
+		launcher.find_child("JoinGame", true, false) == null
+		and launcher.find_child("JoinGameAddress", true, false) == null,
+		"browser tournament build has no manual room or address join path"
+	)
+	var quick_match := launcher.find_child("QuickMatch", true, false) as Button
+	_expect(
+		quick_match != null and quick_match.text == "JOIN 32-PLAYER TOURNAMENT",
+		"browser front door exposes the public 32-player tournament"
 	)
 	_expect(
-		launcher.find_child("QuickMatch", true, false) is Button,
-		"public player build exposes live Quick Match discovery"
-	)
-	_expect(
-		launcher.find_child("BrowseServers", true, false) is Button,
-		"public player build exposes the live server browser"
+		launcher.find_child("GlobalLeaderboard", true, false) is Button,
+		"browser front door exposes the global leaderboard"
 	)
 	_expect(
 		launcher.find_child("ServerBrowserPanel", true, false) is VBoxContainer
 		and launcher.find_child("ServerList", true, false) is ItemList,
-		"server browser renders directory-owned server results"
+		"directory presentation remains available to the launcher owner"
 	)
 	_expect(
-		launcher.find_child("HostGame", true, false) is Button,
-		"browser client exposes player-hosted WebRTC private matches"
+		launcher.find_child("BrowseServers", true, false) == null
+		and launcher.find_child("HostGame", true, false) == null,
+		"browser front door exposes neither standalone servers nor private 2v2 hosting"
 	)
 	_expect(
 		launcher.find_child("CreateTournamentRoom", true, false) == null,
@@ -49,8 +52,9 @@ func _run() -> void:
 		"browser player package omits the developer Map Editor"
 	)
 	_expect(
-		launcher.find_child("TrainingRange", true, false) == null,
-		"browser player package omits local Training Range startup"
+		launcher.find_child("TrainingRange", true, false) is Button
+		and (launcher.find_child("TrainingRange", true, false) as Button).text == "TRAINING GROUNDS",
+		"browser player package offers solo Training Grounds"
 	)
 	_expect(
 		launcher.find_child("PlayerSettingsButton", true, false) is Button,
@@ -60,21 +64,16 @@ func _run() -> void:
 		launcher.find_child("HostMapSelector", true, false) == null,
 		"server-owned map selection is absent from browser clients"
 	)
-	var address := launcher.find_child("JoinGameAddress", true, false) as LineEdit
-	_expect(
-		address != null and address.placeholder_text.begins_with("P2P room code"),
-		"browser join input communicates its WebRTC room-code contract"
-	)
 	_expect(
 		launcher.get("status_label") != null
-		and String(launcher.get("status_label").text).contains("Host a browser 2v2"),
-		"browser launcher directs players to private WebRTC hosting"
+		and String(launcher.get("status_label").text).contains("32-player tournament"),
+		"browser launcher explains the tournament and leaderboard product"
 	)
 	_expect(
 		launcher.find_child("OpenCreatorStudio", true, false) == null
 		and launcher.find_child("TrainingPlayground", true, false) == null
 		and launcher.find_child("Quit", true, false) == null,
-		"training, creator studio, and desktop-only controls are absent"
+		"duplicate training, creator studio, and desktop-only controls are absent"
 	)
 	_expect(
 		launcher.find_child("PublicPlayerSettings", true, false) != null,

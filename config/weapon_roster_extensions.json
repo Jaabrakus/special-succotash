@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "description": "Canonical profile additions and explicit catalog metadata corrections. Original reCOM data remains archived; no second ballistic table.",
+  "profile_ids": [
+    "m3_12_gauge",
+    "ta_12_gauge",
+    "12_gauge_pump"
+  ],
+  "public_roster": {
+    "mark_23": "Sentinel .45",
+    "de__50": "Sentinel .50",
+    "m9": "Sentry 9",
+    "m4a1": "Vanguard 5.56",
+    "m16a2": "Ranger 5.56",
+    "ak-47": "Bastion 7.62",
+    "aks-74": "Bastion 5.45",
+    "hk5": "Specter 9",
+    "m14": "Warden 7.62",
+    "m40a1": "Watchman",
+    "870": "Breach-12",
+    "m60e3": "Bulwark"
+  },
+  "developer_display_names": { "assaultrifle_1": "Vanguard Trainer" },
+  "metadata_overrides": {
+    "m40a1": { "category": "Sniper Rifles" },
+    "designator": { "armory_eligible": false, "competitive_eligible": false, "armory_exclusion_reason": "Targeting device, not a firearm" },
+    "mk_3-a2": { "armory_eligible": false, "competitive_eligible": false, "armory_exclusion_reason": "Explosive, not a shotgun" },
+    "air_to_ground_missile": { "armory_eligible": false, "competitive_eligible": false, "armory_exclusion_reason": "Missile effect record, not a handheld firearm" },
+    "exploding_fuel": { "armory_eligible": false, "competitive_eligible": false, "armory_exclusion_reason": "Explosion effect record, not a firearm" }
+  }
+}

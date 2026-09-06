@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "feature_id": "mixed_weapon_roster",
+  "player_intent": "Retain existing weapons and add clearly labeled SOCOM II prototype profiles in the shared schema.",
+  "acceptance_rule": "Three prototype shotguns resolve through training and Gunsmith to the same canonical profiles, preserve source metadata, and remain outside random tournament selection.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://gun_calibration_lab.tscn",
+  "ownership": {
+    "catalog": "SocomWeaponCatalog",
+    "profile_storage": "GunsmithWeaponProfileRepository",
+    "shot_damage": "AuthoritativeServerWeapon"
+  },
+  "nodes": [
+    {
+      "id": "canonical_runtime",
+      "type": "Node3D",
+      "role": "Consumes saved weapon profiles through the existing controller",
+      "owner": "SocomMain",
+      "scene_path": "res://main.tscn",
+      "node_path": "."
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://config/weapons/m3_12_gauge.json",
+      "writer": "res://scripts/labs/gunsmith/gunsmith_weapon_profile_repository.gd",
+      "readers": [
+        "res://scripts/weapons/socom_weapon_catalog.gd",
+        "res://scripts/weapons/weapon_rig_contract.gd"
+      ]
+    },
+    {
+      "path": "res://config/weapons/ta_12_gauge.json",
+      "writer": "res://scripts/labs/gunsmith/gunsmith_weapon_profile_repository.gd",
+      "readers": [
+        "res://scripts/weapons/socom_weapon_catalog.gd",
+        "res://scripts/weapons/weapon_rig_contract.gd"
+      ]
+    },
+    {
+      "path": "res://config/weapons/12_gauge_pump.json",
+      "writer": "res://scripts/labs/gunsmith/gunsmith_weapon_profile_repository.gd",
+      "readers": [
+        "res://scripts/weapons/socom_weapon_catalog.gd",
+        "res://scripts/weapons/weapon_rig_contract.gd"
+      ]
+    }
+  ],
+  "must_not_change": [
+    "Existing weapon JSONs and reCOM catalog",
+    "Movement and camera",
+    "Shot/damage authority",
+    "Live audio and exported browser build",
+    "Existing random competitive pool"
+  ],
+  "proof_scripts": [
+    "res://tools/mixed_weapon_roster_regression.gd",
+    "res://tools/gunsmith_recom_catalog_regression.gd",
+    "res://tools/shotgun_projectile_regression.gd"
+  ],
+  "visual_check": "Review prototype names in training and Gunsmith; existing calibrated shotgun meshes are placeholders, not reference-accurate new models.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Append explicit canonical profiles to the same catalog without replacing original records or creating another ballistic owner.",
+    "current": {
+      "system": "reCOM-only registry with hardcoded save provenance",
+      "correctness": 2,
+      "ownership_clarity": 5,
+      "runtime_parity": 4,
+      "editor_usability": 3,
+      "performance": 5,
+      "regression_coverage": 3,
+      "evidence_paths": [
+        "res://scripts/weapons/socom_weapon_catalog.gd",
+        "res://scripts/labs/gunsmith/gunsmith_recom_catalog_adapter.gd",
+        "res://tools/mixed_weapon_roster_regression.gd"
+      ]
+    },
+    "candidate": {
+      "system": "Explicit profile-ID registry, preserved provenance, prototype pool exclusion",
+      "correctness": 3,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 4,
+      "performance": 5,
+      "regression_coverage": 4,
+      "evidence_paths": [
+        "res://scripts/weapons/socom_weapon_catalog.gd",
+        "res://scripts/labs/gunsmith/gunsmith_recom_catalog_adapter.gd",
+        "res://tools/mixed_weapon_roster_regression.gd"
+      ]
+    }
+  }
+}

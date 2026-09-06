@@ -1,6 +1,8 @@
 class_name SocomMainGameplayHud
 extends Node
 
+const HudBuilder := preload("res://scripts/runtime/main_gameplay_hud_builder.gd")
+
 const BodyStackOverlay := preload("res://scripts/ui/operator_body_stack_overlay.gd")
 const PoseTuner := preload("res://scripts/ui/operator_pose_tuner.gd")
 const DynamicReticle := preload("res://scripts/ui/socom_dynamic_reticle.gd")
@@ -125,193 +127,10 @@ func _grenade_type_name() -> String:
 	return String(host.call("_grenade_type_name"))
 
 func _build_ui() -> void:
-	var layer: CanvasLayer = null
-	if host.has_node("GameplayHUD") and host.get_node("GameplayHUD") is CanvasLayer:
-		layer = host.get_node("GameplayHUD") as CanvasLayer
-	else:
-		layer = CanvasLayer.new()
-		layer.name = "GameplayHUD"
-		layer.layer = 10
-		add_child(layer)
-
-	if not public_training_mode:
-		debug_label = Label.new()
-		debug_label.position = Vector2(18, 18)
-		debug_label.visible = debug_hud_visible
-		debug_label.add_theme_font_size_override("font_size", 16)
-		layer.add_child(debug_label)
-
-		body_stack_overlay = BodyStackOverlay.new()
-		body_stack_overlay.name = "OperatorBodyStackOverlay"
-		var debug_mannequin = player.get_node_or_null("Mannequin")
-		body_stack_overlay.configure(
-			debug_mannequin.production_animation if debug_mannequin else null,
-			camera_rig.camera,
-			player
-		)
-		body_stack_overlay.visible = debug_hud_visible and body_stack_visible
-		layer.add_child(body_stack_overlay)
-
-	crosshair = Label.new()
-	crosshair.text = "+"
-	crosshair.add_theme_font_size_override("font_size", 24)
-	crosshair.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	crosshair.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	crosshair.size = RETICLE_BOX_SIZE
-	crosshair.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	crosshair.visible = false
-	layer.add_child(crosshair)
-	crosshair.position = (
-		get_viewport().get_visible_rect().size * 0.5
-		- crosshair.size * 0.5
-	)
-
-	dynamic_reticle = DynamicReticle.new()
-	dynamic_reticle.name = "SocomDynamicReticle"
-	dynamic_reticle.visible = true
-	if weapon_controller != null:
-		dynamic_reticle.apply_profile(weapon_controller.reticle_profile)
-	layer.add_child(dynamic_reticle)
-
-	if player_build_tactical_hud_enabled:
-		tactical_compass = TacticalCompass.new()
-		tactical_compass.name = "SocomTacticalCompass"
-		layer.add_child(tactical_compass)
-		_configure_tactical_compass_sites()
-
-		night_vision_overlay = NightVisionOverlay.new()
-		night_vision_overlay.name = "SocomNightVisionOverlay"
-		add_child(night_vision_overlay)
-
-	_build_player_status_ui(layer)
-
-	_build_grenade_charge_ui(layer)
-
-	equipment_wheel = EquipmentWheel.new()
-	equipment_wheel.name = "SocomEquipmentWheel"
-	layer.add_child(equipment_wheel)
-
-	if player_build_tactical_hud_enabled:
-		sitrep_hud_overlay = SitrepHudOverlay.new()
-		sitrep_hud_overlay.name = "SocomSitrepHudOverlay"
-		layer.add_child(sitrep_hud_overlay)
-
-		radio_command_wheel = RadioCommandWheel.new()
-		radio_command_wheel.name = "SocomRadioCommandWheel"
-		layer.add_child(radio_command_wheel)
-
-		voice_chat_controller = VoiceChatController.new()
-		voice_chat_controller.name = "SocomVoiceChatController"
-		add_child(voice_chat_controller)
-
-		voice_status_label = Label.new()
-		voice_status_label.name = "VoiceStatusHUD"
-		voice_status_label.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
-		voice_status_label.offset_left = -260.0
-		voice_status_label.offset_right = -20.0
-		voice_status_label.offset_top = -60.0
-		voice_status_label.offset_bottom = -20.0
-		voice_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-		voice_status_label.add_theme_font_size_override("font_size", 14)
-		voice_status_label.add_theme_color_override("font_color", Color("3fc486"))
-		voice_status_label.visible = false
-		layer.add_child(voice_status_label)
-
-		team_roster_hud = TeamRosterHUD.new()
-		team_roster_hud.name = "SocomTeamRosterHUD"
-		layer.add_child(team_roster_hud)
-
-		loadout_card_hud = LoadoutCardHUD.new()
-		loadout_card_hud.name = "SocomLoadoutCardHUD"
-		layer.add_child(loadout_card_hud)
-
-		killfeed_overlay = KillfeedOverlay.new()
-		killfeed_overlay.name = "SocomKillfeedOverlay"
-		layer.add_child(killfeed_overlay)
-
-		damage_indicator = DamageIndicatorOverlay.new()
-		damage_indicator.name = "SocomDamageIndicatorOverlay"
-		layer.add_child(damage_indicator)
-
-		stance_indicator = StanceIndicator.new()
-		stance_indicator.name = "SocomStanceIndicator"
-		layer.add_child(stance_indicator)
-
-	if not public_training_mode:
-		_build_calibration_overlay(layer)
-		_build_camera_workbench(layer)
-		_build_animation_studio(layer)
-		pose_tuner_panel = PoseTuner.new()
-		pose_tuner_panel.name = "OperatorPoseTuner"
-		layer.add_child(pose_tuner_panel)
-		pose_tuner_panel.configure(_get_animation_driver(), player)
-	controls_guide = ControlsGuide.new()
-	controls_guide.name = "SocomControlsGuide"
-	controls_guide.public_player_copy = public_training_mode
-	add_child(controls_guide)
-	exit_menu = ExitMenu.new()
-	exit_menu.name = "InGameExitMenu"
-	exit_menu.return_to_launcher_requested.connect(func():
-		ProjectSettings.set_setting("socom/session/public_training", false)
-		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-		get_tree().change_scene_to_file("res://game_launcher.tscn")
-	)
-	exit_menu.launch_studio_requested.connect(func():
-		ProjectSettings.set_setting("socom/session/public_training", false)
-		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-		var navigation := get_node_or_null("/root/StudioNavigation")
-		if navigation != null:
-			navigation.call("activate")
-			navigation.call("open_home")
-		else:
-			get_tree().change_scene_to_file("res://game_launcher.tscn")
-	)
-	add_child(exit_menu)
-	if public_training_mode:
-		_build_public_training_navigation(layer)
-
+	HudBuilder._build_ui(self)
 
 func _build_public_training_navigation(layer: CanvasLayer) -> void:
-	var title := Label.new()
-	title.name = "PublicTrainingRangeTitle"
-	title.text = "TRAINING RANGE"
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 18)
-	title.add_theme_color_override("font_color", Color("8bc5ae"))
-	title.set_anchors_preset(Control.PRESET_CENTER_TOP)
-	title.offset_left = -130.0
-	title.offset_right = 130.0
-	title.offset_top = 16.0
-	title.offset_bottom = 48.0
-	layer.add_child(title)
-	var menu_button := Button.new()
-	menu_button.name = "TrainingRangeMainMenuButton"
-	menu_button.text = "MAIN MENU"
-	menu_button.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-	menu_button.offset_left = -142.0
-	menu_button.offset_right = -18.0
-	menu_button.offset_top = 16.0
-	menu_button.offset_bottom = 58.0
-	menu_button.pressed.connect(func():
-		ProjectSettings.set_setting("socom/session/public_training", false)
-		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-		get_tree().change_scene_to_file("res://game_launcher.tscn")
-	)
-	layer.add_child(menu_button)
-	training_bomb_status_label = Label.new()
-	training_bomb_status_label.name = "TrainingBombStatus"
-	training_bomb_status_label.text = ""
-	training_bomb_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	training_bomb_status_label.add_theme_font_size_override("font_size", 22)
-	training_bomb_status_label.add_theme_color_override("font_color", Color("f4d34f"))
-	training_bomb_status_label.set_anchors_preset(Control.PRESET_CENTER_TOP)
-	training_bomb_status_label.offset_left = -180.0
-	training_bomb_status_label.offset_right = 180.0
-	training_bomb_status_label.offset_top = 58.0
-	training_bomb_status_label.offset_bottom = 94.0
-	training_bomb_status_label.visible = false
-	layer.add_child(training_bomb_status_label)
-
+	HudBuilder._build_public_training_navigation(self, layer)
 
 func _build_player_status_ui(layer: CanvasLayer) -> void:
 	var panel := PanelContainer.new()
@@ -622,10 +441,6 @@ func _toggle_public_night_vision() -> void:
 	if night_vision_overlay == null:
 		return
 	night_vision_overlay.toggle_nvg()
-	# N belongs to NVG in the player build. The mouse-string model can keep
-	# driving aim, but its calibration line and blue debug dot stay hidden.
-	if camera_rig != null:
-		camera_rig.mouse_string_debug_visible = false
 
 
 func _set_radio_wheel_open(open: bool) -> void:

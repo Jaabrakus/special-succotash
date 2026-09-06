@@ -95,8 +95,13 @@ func get_player_profile() -> Dictionary:
 func get_gunfight_leaderboard(limit: int = 50) -> Dictionary:
 	if not is_configured():
 		return {"ok": false, "message": "Supabase service is not configured.", "leaderboard": []}
-	var path := "/rest/v1/gunfight_leaderboard?select=*&limit=%d" % limit
-	var response: Dictionary = await _request_json(path, HTTPClient.METHOD_GET, {}, true)
+	var path := "/rest/v1/rpc/get_public_gunfight_leaderboard"
+	var response: Dictionary = await _request_json(
+		path,
+		HTTPClient.METHOD_POST,
+		{"p_limit": clampi(limit, 1, 100)},
+		false
+	)
 	if not bool(response.get("ok", false)):
 		return {"ok": false, "message": _response_message(response), "leaderboard": []}
 	return {"ok": true, "leaderboard": response.get("data", [])}

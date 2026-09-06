@@ -114,6 +114,7 @@ static func _save_weapon_config(lab: Node, equip_for_gameplay: bool = false) -> 
 			"bloom_per_shot_deg": lab.bloom_per_shot_deg,
 			"max_recoil_bloom_deg": lab.max_recoil_bloom_deg,
 			"bloom_recovery_speed": lab.bloom_recovery_speed,
+			"bloom_recovery_delay_seconds": lab.bloom_recovery_delay_seconds,
 			"functional_aim_climb_enabled": lab.functional_aim_climb_enabled,
 			"aim_climb_pitch_per_shot_deg": lab.aim_climb_pitch_per_shot_deg,
 			"aim_climb_yaw_per_shot_deg": lab.aim_climb_yaw_per_shot_deg,
@@ -148,6 +149,9 @@ static func _save_weapon_config(lab: Node, equip_for_gameplay: bool = false) -> 
 		lab._show_rig_error(String(save_result.get("error", "Weapon profile save failed.")) + " Save blocked.")
 		return false
 
+	# Export the same merged document the repository actually saved, including
+	# fields not represented by the current form (pellets, reload duration).
+	config_data = save_result.get("profile", config_data)
 	lab._export_weapon_packed_scene(config_data)
 	if equip_for_gameplay:
 		var equip_result: Dictionary = WeaponProfileRepository.equip_saved_profile(

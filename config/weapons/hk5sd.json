@@ -40,12 +40,13 @@
     "reload_sound": "SND_MP5_SIL_RELOAD"
   },
   "reticle": {
+    "cadence_driven_return": false,
     "base_gap_px": 5.1,
     "max_gap_px": 41.6,
-    "maximum_shot_kick_px": 60.0,
+    "maximum_shot_kick_px": 20.0,
     "response_speed": 26.2,
-    "shot_kick_px": 20.0,
-    "shot_kick_return": 40.0
+    "shot_kick_px": 11.0,
+    "shot_kick_return": 50.0
   },
   "socom_original_id": 33,
   "weapon_id": "hk5sd"

@@ -258,8 +258,7 @@ func _run() -> void:
 	queued_operator.visual_runtime_enabled = false
 	slice.add_child(queued_operator)
 	slice.operators[501] = queued_operator
-	slice.last_enqueued_shot_sequence[501] = -1
-	slice.pending_shot_packets[501] = []
+	slice.combat_commands.reset_peer(501)
 	_assert(
 		bool(slice.call("_queue_server_shot", 501, {"sequence": 1})),
 		"server accepts the first sequenced client shot into its cadence queue"
@@ -275,8 +274,7 @@ func _run() -> void:
 		"server shot queue is bounded against packet floods"
 	)
 	slice.operators.erase(501)
-	slice.pending_shot_packets.erase(501)
-	slice.last_enqueued_shot_sequence.erase(501)
+	slice.combat_commands.remove_peer(501)
 	queued_operator.queue_free()
 	_assert(slice.spawn_points.size() == 16, "8v8 spawn contract missing")
 	_assert(slice.call("_spawn_for_team", 0, 0).z > 0.0, "team 0 spawn side is invalid")

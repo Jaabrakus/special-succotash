@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "feature_id": "browser_training_grounds",
+  "player_intent": "Browser players can practice solo and select weapons without waiting for 32 tournament players or a signaling service.",
+  "acceptance_rule": "Training Grounds opens main.tscn in public training mode, clears stale network launch intent, provides the existing B loadout menu and shootable targets, and returns to the browser launcher. The restricted export contains main.tscn but no development labs.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://game_launcher.tscn",
+  "ownership": {"navigation": "SocomGameLauncher", "training_gameplay": "CanonicalMainRuntime"},
+  "nodes": [{"id": "browser_training_button", "type": "Button", "role": "Opens canonical solo training without multiplayer admission.", "owner": "SocomGameLauncher", "source_script": "res://scripts/ui/game_launcher.gd", "code_symbols": ["training_button.name = \"TrainingRange\"", "_open_training_range", "_collect_and_open(TRAINING_RANGE_SCENE)"]}],
+  "data_contracts": [{"path": "res://export_presets.cfg", "writer": "res://tools/export_restricted_web.sh", "readers": ["res://tools/export_restricted_web.sh"]}],
+  "must_not_change": ["camera aim", "player movement", "weapon balance and poses", "server shot and damage authority", "tournament rules", "export secret and development-source exclusions"],
+  "proof_scripts": ["res://tools/browser_training_entry_regression.gd", "res://tools/restricted_web_launcher_regression.gd", "res://tools/public_training_range_regression.gd", "res://tools/feature_contract_regression.gd"],
+  "visual_check": "Open the restricted Web build, click Training Grounds, check the player/reticle/dummies, press B near spawn to choose weapons, and return to the launcher. Do not count a desktop-only preview as browser verification.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Reuse existing public training rather than adding a second gameplay implementation; add browser navigation and explicit scene packaging.",
+    "current": {"system": "Native-only training action excluded from browser navigation", "correctness": 1, "ownership_clarity": 5, "runtime_parity": 2, "editor_usability": 4, "performance": 5, "regression_coverage": 2, "evidence_paths": ["res://scripts/ui/game_launcher.gd", "res://export_presets.cfg"]},
+    "candidate": {"system": "Shared public training in both native and browser launchers", "correctness": 5, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 5, "regression_coverage": 5, "evidence_paths": ["res://scripts/ui/game_launcher.gd", "res://tools/browser_training_entry_regression.gd", "res://tools/public_training_range_regression.gd"]}
+  }
+}

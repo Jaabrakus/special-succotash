@@ -271,6 +271,10 @@ func _ensure_input_map() -> void:
     # Keep developer-only controls outside the player-facing mapping profile.
     _add_key_action("toggle_controls_guide", KEY_F3)
     if public_training_mode:
+        # Training reuses B as a context-owned free-loadout menu. The gameplay
+        # HUD resolves this action before the ordinary fire-mode action, so the
+        # tournament/player mapping remains unchanged.
+        _add_key_action("training_buy_menu", KEY_B)
         return
     _add_key_action("toggle_calibration", KEY_F7)
     _add_key_action("calibration_opacity_down", KEY_BRACKETLEFT)
@@ -321,7 +325,8 @@ func _build_environment() -> void:
 
 
 func _update_training_bomb_pickup(delta: float) -> void:
-    training_world.update_bomb(delta)
+    if training_world != null:
+        training_world.update_bomb(delta)
 
 
 func _set_target_range_active(enabled: bool) -> void:
@@ -398,7 +403,8 @@ func _return_to_primary_weapon() -> bool:
 
 
 func _update_grenade_switch_input(delta: float) -> void:
-    grenade_runtime.update_switch_input(delta)
+    if grenade_runtime != null:
+        grenade_runtime.update_switch_input(delta)
 
 
 func _build_weapon_controller() -> void:

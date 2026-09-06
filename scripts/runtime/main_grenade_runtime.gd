@@ -1,6 +1,10 @@
 class_name SocomMainGrenadeRuntime
 extends Node
 
+const EquipmentSelection := preload("res://scripts/runtime/main_equipment_selection.gd")
+const HeldVisual := preload("res://scripts/runtime/main_held_grenade_visual.gd")
+const GRENADE_VISUAL_SCENES = HeldVisual.GRENADE_VISUAL_SCENES
+
 const ScreenEffects := preload("res://scripts/tactical/tactical_screen_effects.gd")
 const GrenadeThrower := preload("res://scripts/tactical/tactical_grenade_thrower.gd")
 const SmokeGrenade := preload("res://scripts/tactical/smoke_grenade.gd")
@@ -8,18 +12,6 @@ const Flashbang := preload("res://scripts/tactical/flashbang_grenade.gd")
 const FragGrenade := preload("res://scripts/tactical/frag_grenade.gd")
 const Trajectory := preload("res://scripts/runtime/main_grenade_trajectory.gd")
 const GrenadeProfile := preload("res://scripts/tactical/tactical_grenade_profile.gd")
-const GRENADE_VISUAL_SCENES: Array[PackedScene] = [
-	preload("res://assets/models/grenades/frag_west_cc0.glb"),
-	preload("res://assets/models/grenades/flashbang_west_cc0.glb"),
-	preload("res://assets/models/grenades/smoke_west_cc0.glb"),
-]
-
-const SWITCH_HOLD_THRESHOLD := 0.25
-const HELD_GRENADE_VISUAL_SCALE := 0.55
-const ACTIVE_RIFLE_READY_REFRESH_SECONDS := 0.35
-const EQUIPMENT_SLOT_IDS: Array[StringName] = [
-	&"primary", &"secondary", &"frag", &"flash", &"smoke", &"mission",
-]
 
 var host
 var trajectory: SocomMainGrenadeTrajectory
@@ -305,184 +297,43 @@ func bone_world_position(bone_name: StringName) -> Vector3:
 
 
 func equip_or_cycle() -> bool:
-	var start_index := selected_type if not equipped else selected_type + 1
-	for offset in 3:
-		var candidate := (start_index + offset) % 3
-		var key: String = ["frag", "flash", "smoke"][candidate]
-		if int(inventory.get(key, 0)) <= 0:
-			continue
-		if not equipped:
-			_capture_rifle_ready_state()
-		selected_type = candidate
-		equipped = true
-		active_rifle_ready_latched = false
-		_update_held_grenade_visual()
-		_set_held_grenade_visible(true)
-		# The grenade loadout owns the hands until the player returns to the rifle.
-		# Do not reveal the hand-mounted rifle between throws; that transform still
-		# contains the completed throw pose and makes the rifle float above the hand.
-		_set_rifle_visible(false)
-		_set_weapon_input(false)
-		_update_status()
-		return true
-	return_to_rifle()
-	return false
-
+	return EquipmentSelection.equip_or_cycle(self)
 
 func equip_last_grenade() -> bool:
-	if equip_grenade_type(selected_type):
-		return true
-	for candidate in 3:
-		if equip_grenade_type(candidate):
-			return true
-	return_to_rifle()
-	return false
-
+	return EquipmentSelection.equip_last_grenade(self)
 
 func equip_grenade_type(type_index: int) -> bool:
-	var candidate := clampi(type_index, 0, 2)
-	var key: String = ["frag", "flash", "smoke"][candidate]
-	if int(inventory.get(key, 0)) <= 0:
-		return false
-	if not equipped:
-		_capture_rifle_ready_state()
-	selected_type = candidate
-	equipped = true
-	active_rifle_ready_latched = false
-	_update_held_grenade_visual()
-	_set_held_grenade_visible(true)
-	_set_rifle_visible(false)
-	_set_weapon_input(false)
-	_update_status()
-	return true
-
+	return EquipmentSelection.equip_grenade_type(self, type_index)
 
 func return_to_rifle(cancel_pending_throw: bool = true) -> void:
-	_close_equipment_wheel_visual()
-	if cancel_pending_throw:
-		throw_generation += 1
-		throw_in_progress = false
-		throw_released = false
-		throw_succeeded = false
-		_set_movement_locked(false)
-		_cancel_operator_action()
-	equipped = false
-	active_rifle_ready_latched = rifle_ready_before_grenade
-	aim_active = false
-	hold_seconds = 0.0
-	pending_launch_state.clear()
-	_set_held_grenade_visible(false)
-	if arc_preview != null:
-		arc_preview.visible = false
-	if charge_panel != null:
-		charge_panel.visible = false
-	_set_weapon_input(true)
-	_set_rifle_visible(true)
-	_restore_captured_rifle_ready_state()
-	_update_status()
-
+	EquipmentSelection.return_to_rifle(self, cancel_pending_throw)
 
 func equip_primary_quick() -> bool:
-	if throw_in_progress:
-		return false
-	return_to_rifle()
-	return true
+	return EquipmentSelection.equip_primary_quick(self)
 
+func equip_firearm_slot(slot: String) -> bool:
+	return EquipmentSelection.equip_firearm_slot(self, slot)
 
 func open_equipment_wheel() -> bool:
-	if aim_active or throw_in_progress or equipment_wheel == null:
-		return false
-	wheel_selected_index = selected_type + 2 if equipped else 0
-	if not _equipment_slot_enabled(wheel_selected_index):
-		wheel_selected_index = _next_enabled_equipment_slot(wheel_selected_index, 1)
-	equipment_wheel_open = true
-	_set_weapon_input(false)
-	if camera_rig != null:
-		camera_rig.orbit_input_enabled = false
-	equipment_wheel.call(
-		"show_wheel",
-		_equipment_wheel_entries(),
-		wheel_selected_index
-	)
-	return true
-
+	return EquipmentSelection.open_equipment_wheel(self)
 
 func cycle_equipment_wheel(step: int) -> bool:
-	if not equipment_wheel_open or step == 0:
-		return false
-	wheel_selected_index = _next_enabled_equipment_slot(
-		wheel_selected_index,
-		1 if step > 0 else -1
-	)
-	equipment_wheel.call(
-		"update_wheel",
-		_equipment_wheel_entries(),
-		wheel_selected_index
-	)
-	return true
-
+	return EquipmentSelection.cycle_equipment_wheel(self, step)
 
 func confirm_equipment_wheel() -> bool:
-	if not equipment_wheel_open:
-		return false
-	var selected_id := StringName(&"primary")
-	if equipment_wheel != null and equipment_wheel.get("selected_index") != null:
-		var entries_var: Variant = equipment_wheel.get("entries")
-		if entries_var is Array:
-			var entries: Array = entries_var as Array
-			var s_idx: int = int(equipment_wheel.get("selected_index"))
-			if s_idx >= 0 and s_idx < entries.size():
-				selected_id = StringName(entries[s_idx].get("id", &"primary"))
-	else:
-		selected_id = EQUIPMENT_SLOT_IDS[clampi(wheel_selected_index, 0, EQUIPMENT_SLOT_IDS.size() - 1)]
-	_close_equipment_wheel_visual()
-	if selected_id == &"primary":
-		return_to_rifle()
-		return true
-	var grenade_index := [StringName(&"frag"), &"flash", &"smoke"].find(selected_id)
-	if grenade_index >= 0:
-		return equip_grenade_type(grenade_index)
-	_restore_input_for_current_equipment()
-	return false
-
+	return EquipmentSelection.confirm_equipment_wheel(self)
 
 func cancel_equipment_wheel() -> bool:
-	if not equipment_wheel_open:
-		return false
-	_close_equipment_wheel_visual()
-	_restore_input_for_current_equipment()
-	return true
-
+	return EquipmentSelection.cancel_equipment_wheel(self)
 
 func equipment_wheel_selection_id() -> StringName:
-	return EQUIPMENT_SLOT_IDS[clampi(wheel_selected_index, 0, EQUIPMENT_SLOT_IDS.size() - 1)]
-
+	return EquipmentSelection.equipment_wheel_selection_id(self)
 
 func handle_unhandled_input(event: InputEvent) -> bool:
-	if not equipment_wheel_open:
-		return false
-	if event.is_action_pressed("ui_cancel"):
-		return cancel_equipment_wheel()
-	if event is InputEventMouseButton and event.pressed:
-		if event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
-			return cycle_equipment_wheel(1)
-		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
-			return cycle_equipment_wheel(-1)
-		if event.button_index == MOUSE_BUTTON_RIGHT:
-			return cancel_equipment_wheel()
-	return false
-
+	return EquipmentSelection.handle_unhandled_input(self, event)
 
 func update_switch_input(delta: float) -> void:
-	if Input.mouse_mode != Input.MOUSE_MODE_CAPTURED or OS.get_cmdline_user_args().has("--automated-test"):
-		return
-	update_switch_state(
-		delta,
-		Input.is_action_pressed("equip_grenade"),
-		Input.is_action_just_pressed("equip_grenade"),
-		Input.is_action_just_released("equip_grenade")
-	)
-
+	EquipmentSelection.update_switch_input(self, delta)
 
 func update_switch_state(
 	delta: float,
@@ -490,104 +341,10 @@ func update_switch_state(
 	just_pressed: bool,
 	just_released: bool
 ) -> void:
-	if just_pressed:
-		switch_hold_seconds = 0.0
-		switch_hold_triggered = false
-	if pressed and not switch_hold_triggered:
-		switch_hold_seconds += maxf(delta, 0.0)
-		if switch_hold_seconds >= SWITCH_HOLD_THRESHOLD:
-			switch_hold_triggered = open_equipment_wheel()
-	if just_released:
-		if equipment_wheel_open:
-			confirm_equipment_wheel()
-		elif not switch_hold_triggered:
-			equip_last_grenade()
-		switch_hold_seconds = 0.0
-		switch_hold_triggered = false
-
-
-func _equipment_wheel_entries() -> Array[Dictionary]:
-	var rifle_name := "RIFLE"
-	if weapon_controller != null:
-		rifle_name = String(weapon_controller.get("equipped_weapon_display_name")).to_upper()
-	return [
-		{"id": &"primary", "label": rifle_name, "detail": "PRIMARY", "enabled": true},
-		{"id": &"secondary", "label": "EMPTY", "detail": "SECONDARY", "enabled": false},
-		{"id": &"frag", "label": "FRAG  x%d" % int(inventory.get("frag", 0)), "detail": "GRENADE", "enabled": int(inventory.get("frag", 0)) > 0},
-		{"id": &"flash", "label": "FLASH  x%d" % int(inventory.get("flash", 0)), "detail": "GRENADE", "enabled": int(inventory.get("flash", 0)) > 0},
-		{"id": &"smoke", "label": "SMOKE  x%d" % int(inventory.get("smoke", 0)), "detail": "GRENADE", "enabled": int(inventory.get("smoke", 0)) > 0},
-		{"id": &"mission", "label": "AUTO", "detail": "MISSION", "enabled": false},
-	]
-
-
-func _equipment_slot_enabled(slot_index: int) -> bool:
-	var entries := _equipment_wheel_entries()
-	return bool(entries[clampi(slot_index, 0, entries.size() - 1)].get("enabled", false))
-
-
-func _next_enabled_equipment_slot(from_index: int, direction: int) -> int:
-	var index := from_index
-	for _offset in EQUIPMENT_SLOT_IDS.size():
-		index = wrapi(index + direction, 0, EQUIPMENT_SLOT_IDS.size())
-		if _equipment_slot_enabled(index):
-			return index
-	return from_index
-
-
-func _close_equipment_wheel_visual() -> void:
-	equipment_wheel_open = false
-	if camera_rig != null:
-		camera_rig.orbit_input_enabled = true
-	if equipment_wheel != null:
-		equipment_wheel.call("hide_wheel")
-
-
-func _restore_input_for_current_equipment() -> void:
-	_set_weapon_input(not equipped)
-	_set_rifle_visible(not equipped)
-	_set_held_grenade_visible(equipped and selected_count() > 0)
-
-
-func _capture_rifle_ready_state() -> void:
-	var driver := _operator_animation_driver()
-	rifle_ready_before_grenade = (
-		active_rifle_ready_latched
-		or (
-			driver != null
-			and float(driver.get("_fire_ready_hold_remaining")) > 0.001
-		)
-	)
-
-
-func _restore_captured_rifle_ready_state() -> void:
-	active_rifle_ready_latched = rifle_ready_before_grenade
-	var driver := _operator_animation_driver()
-	if rifle_ready_before_grenade:
-		_raise_active_rifle_immediately()
-	elif driver != null:
-		driver.set("_fire_ready_hold_remaining", 0.0)
-
+	EquipmentSelection.update_switch_state(self, delta, pressed, just_pressed, just_released)
 
 func _maintain_active_rifle_ready_presentation() -> void:
-	if not active_rifle_ready_latched or equipped or equipment_wheel_open or throw_in_progress:
-		return
-	var driver := _operator_animation_driver()
-	if driver == null:
-		return
-	driver.set(
-		"_fire_ready_hold_remaining",
-		maxf(
-			float(driver.get("_fire_ready_hold_remaining")),
-			ACTIVE_RIFLE_READY_REFRESH_SECONDS
-		)
-	)
-
-
-func _raise_active_rifle_immediately() -> void:
-	var driver := _operator_animation_driver()
-	if driver != null and driver.has_method("_trigger_fire_ready_aim"):
-		driver.call("_trigger_fire_ready_aim")
-
+	EquipmentSelection._maintain_active_rifle_ready_presentation(self)
 
 func _operator_animation_driver() -> Node:
 	var mannequin := player.get_node_or_null("Mannequin") as Node if player != null else null
@@ -695,52 +452,13 @@ func _set_weapon_input(enabled: bool) -> void:
 
 
 func _build_held_grenade_visual() -> void:
-	if player == null:
-		return
-	var mannequin := player.get_node_or_null("Mannequin") as Node
-	var driver: Node = mannequin.get("production_animation") as Node if mannequin != null else null
-	var skeleton: Skeleton3D = driver.get("skeleton") as Skeleton3D if driver != null else null
-	if skeleton == null:
-		return
-	held_grenade_attachment = BoneAttachment3D.new()
-	held_grenade_attachment.name = "HeldGrenadeAttachment"
-	held_grenade_attachment.bone_name = "mixamorig_RightHand"
-	skeleton.add_child(held_grenade_attachment)
-	# The imported operator skeleton carries a 64x bone scale. BoneAttachment3D
-	# rewrites its own transform from the bone every frame, so its child must
-	# cancel that scale while retaining the hand's animated position and rotation.
-	var inherited_scale := held_grenade_attachment.global_basis.get_scale()
-	var inverse_bone_scale := Vector3(
-		1.0 / maxf(inherited_scale.x, 0.001),
-		1.0 / maxf(inherited_scale.y, 0.001),
-		1.0 / maxf(inherited_scale.z, 0.001)
-	)
-	held_grenade_mesh = Node3D.new()
-	held_grenade_mesh.name = "HeldGrenadeVisual"
-	held_grenade_mesh.scale = inverse_bone_scale
-	held_grenade_mesh.position = Vector3(0.0, 0.012, -0.006) * inverse_bone_scale
-	held_grenade_attachment.add_child(held_grenade_mesh)
-	_update_held_grenade_visual()
-	_set_held_grenade_visible(false)
-
+	HeldVisual._build_held_grenade_visual(self)
 
 func _update_held_grenade_visual() -> void:
-	if held_grenade_mesh == null:
-		return
-	for child in held_grenade_mesh.get_children():
-		child.queue_free()
-	var visual := GRENADE_VISUAL_SCENES[selected_type].instantiate() as Node3D
-	if visual == null:
-		return
-	visual.name = "TypeVisual"
-	visual.scale = Vector3.ONE * HELD_GRENADE_VISUAL_SCALE
-	held_grenade_mesh.add_child(visual)
-
+	HeldVisual._update_held_grenade_visual(self)
 
 func _set_held_grenade_visible(enabled: bool) -> void:
-	if held_grenade_mesh != null:
-		held_grenade_mesh.visible = enabled
-
+	HeldVisual._set_held_grenade_visible(self, enabled)
 
 func _update_status() -> void:
 	host.call("_update_player_status_ui")

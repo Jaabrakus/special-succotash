@@ -1,0 +1,106 @@
+{
+  "schema_version": 1,
+  "feature_id": "socom2_tan_operator",
+  "status": "superseded_by_original_blue_green_operators; tan asset retained",
+  "player_intent": "Retain the authored tan asset for later use; restore the original character for active blue/green teams.",
+  "acceptance_rule": "The tan asset retains its authored body/rest rig; active canonical scene, fallback and warmup use the original FBX instead.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://scenes/player/operator_player.tscn",
+  "ownership": {
+    "character_visual_asset": "SocomOperatorAssetRuntime",
+    "movement_and_collision": "SocomTestPlayer",
+    "animation_presentation": "SocomOperatorAnimationDriver"
+  },
+  "nodes": [
+    {
+      "id": "authoritative_player_body",
+      "type": "CharacterBody3D",
+      "role": "Remains the sole movement and collision owner around the changed presentation mesh.",
+      "owner": "SocomTestPlayer",
+      "scene_path": "res://scenes/player/operator_player.tscn",
+      "node_path": "."
+    },
+    {
+      "id": "canonical_operator_visual",
+      "type": "Node3D",
+      "role": "Instantiates the original PS1 body for active teams; tan variant retained as an inactive asset.",
+      "owner": "SocomOperatorAssetRuntime",
+      "scene_path": "res://scenes/player/operator_player.tscn",
+      "node_path": "Mannequin/ProductionAnimation/TrooperModel"
+    },
+    {
+      "id": "rear_armor_mesh",
+      "type": "MeshInstance3D",
+      "role": "Adds the horizontal rear armor and webbing silhouette from the reference.",
+      "owner": "SocomOperatorAssetRuntime",
+      "source_script": "res://tools/blender/build_socom2_tan_operator.py",
+      "code_symbols": ["RearArmorAndWebbing", "mixamorig:Spine2"]
+    },
+    {
+      "id": "hip_kit_mesh",
+      "type": "MeshInstance3D",
+      "role": "Adds the belt kit, radio pouch, and large left hip pouch from the reference.",
+      "owner": "SocomOperatorAssetRuntime",
+      "source_script": "res://tools/blender/build_socom2_tan_operator.py",
+      "code_symbols": ["BeltKitAndHipPouch", "mixamorig:Hips"]
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://assets/characters/socom2_tan_operator/socom2_tan_operator.glb",
+      "writer": "res://tools/blender/build_socom2_tan_operator.py",
+      "readers": [
+        "res://scenes/player/operator_player.tscn",
+        "res://scripts/player/operator_asset_runtime.gd",
+        "res://scripts/runtime/playable_resource_warmup.gd"
+      ]
+    }
+  ],
+  "must_not_change": [
+    "CharacterBody3D movement and collision authority",
+    "SOCOM camera and reticle aim authority",
+    "server weapon, shot, ballistics, and damage authority",
+    "native skeleton hierarchy, rest transforms, and animation mapping",
+    "right-hand and support-hand weapon contacts",
+    "network replication authority"
+  ],
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Merge the exact-body reusable PS1 skin foundation with reference-specific tan palette textures and bounded rear gear; the material-only study cannot reproduce the requested silhouette.",
+    "current": {
+      "system": "Uninstalled olive material-only PS1 study",
+      "correctness": 2,
+      "ownership_clarity": 5,
+      "runtime_parity": 0,
+      "editor_usability": 4,
+      "performance": 5,
+      "regression_coverage": 3,
+      "evidence_paths": [
+        "res://art_source/canonical_military_variant/report.json",
+        "res://tools/blender/build_canonical_military_variant.py"
+      ]
+    },
+    "candidate": {
+      "system": "Canonical tan PS1 operator with bone-bound rear gear modules",
+      "correctness": 4,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 5,
+      "performance": 4,
+      "regression_coverage": 5,
+      "evidence_paths": [
+        "res://tools/blender/build_socom2_tan_operator.py",
+        "res://art_source/socom2_tan_operator/report.json",
+        "res://scenes/player/operator_player.tscn",
+        "res://tools/socom2_tan_operator_regression.gd"
+      ]
+    }
+  },
+  "proof_scripts": [
+    "res://tools/socom2_tan_operator_regression.gd",
+    "res://tools/socom2_tan_operator_visual_check.gd",
+    "res://tools/player_scene_composition_regression.gd",
+    "res://tools/feature_contract_regression.gd"
+  ],
+  "visual_check": "Compare the generated gameplay-rear and three-quarter renders with the supplied reference, then inspect main.tscn during rifle idle, movement, crouch, reload, and prone for gear clearance."
+}

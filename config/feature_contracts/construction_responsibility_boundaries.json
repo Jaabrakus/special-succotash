@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "feature_id": "construction_responsibility_boundaries",
+  "player_intent": "Maintain unchanged play while separating five safe construction/equipment responsibilities from oversized coordinators.",
+  "acceptance_rule": "Five coordinators meet unchanged budgets, helpers have no frame callbacks, and focused map/retarget/equipment regressions pass. This does not certify the four deferred animation files.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://map_creation_lab.tscn",
+  "ownership": {
+    "map_dispatch": "SocomMapRuntime",
+    "equipment_state": "SocomMainGrenadeRuntime",
+    "hud_state": "SocomMainGameplayHud",
+    "proxy_registry": "SocomTestMannequin",
+    "retarget_lab": "SocomRetargetMappingLab"
+  },
+  "nodes": [
+    {
+      "id": "hud",
+      "type": "Node",
+      "role": "Canonical HUD retains state and input; construction is synchronous delegation.",
+      "owner": "SocomMainGameplayHud",
+      "source_script": "res://scripts/runtime/main_gameplay_hud.gd",
+      "code_symbols": [
+        "HudBuilder._build_ui(self)"
+      ]
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://config/contributor_examples/place_map_prop.json",
+      "writer": "res://scripts/maps/socom_map_command_service.gd",
+      "readers": [
+        "res://scripts/maps/socom_map_runtime.gd"
+      ]
+    }
+  ],
+  "must_not_change": [
+    "movement",
+    "aim",
+    "damage",
+    "animation_values",
+    "mode_rules",
+    "art_direction",
+    "exports"
+  ],
+  "proof_scripts": [
+    "res://tools/construction_boundary_regression.gd",
+    "res://tools/map_creation_lab_regression.gd",
+    "res://tools/retarget_mapping_lab_regression.gd",
+    "res://tools/equipment_wheel_regression.gd",
+    "res://tools/feature_contract_regression.gd"
+  ],
+  "visual_check": "Review rendered retarget lab and canonical gameplay; animation baseline fails movement-entry hand contact and is not certified by this extraction.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Extract bounded construction without another processing or gameplay owner; defer failing animation owner.",
+    "current": {
+      "system": "Five mixed construction/coordinator scripts",
+      "correctness": 4,
+      "ownership_clarity": 2,
+      "runtime_parity": 4,
+      "editor_usability": 3,
+      "performance": 4,
+      "regression_coverage": 3,
+      "evidence_paths": [
+        "res://docs/NINE_FILE_REFACTOR.md"
+      ]
+    },
+    "candidate": {
+      "system": "Synchronous construction/equipment helpers",
+      "correctness": 4,
+      "ownership_clarity": 4,
+      "runtime_parity": 4,
+      "editor_usability": 4,
+      "performance": 4,
+      "regression_coverage": 4,
+      "evidence_paths": [
+        "res://scripts/maps/socom_map_runtime.gd",
+        "res://scripts/labs/retarget_mapping_lab.gd",
+        "res://scripts/player/test_mannequin.gd",
+        "res://scripts/runtime/main_gameplay_hud.gd",
+        "res://scripts/runtime/main_grenade_runtime.gd"
+      ]
+    }
+  }
+}

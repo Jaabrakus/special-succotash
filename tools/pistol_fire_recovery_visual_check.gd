@@ -2,6 +2,8 @@ extends SceneTree
 
 const MARK_23_PATH := "res://config/weapons/mark_23.json"
 const CAPTURE_PREFIX := "/private/tmp/socom-mark23-fire-recovery"
+const AIM_YAW_RAD := deg_to_rad(18.0)
+const AIM_PITCH_RAD := deg_to_rad(8.0)
 
 var failures: Array[String] = []
 
@@ -87,12 +89,13 @@ func _capture_posture(
 		bool(player.call("_try_set_posture", posture_index)),
 		"player enters %s for visual proof" % posture_name
 	)
+	var aim_direction := _world_aim_direction(player, AIM_YAW_RAD, AIM_PITCH_RAD)
 	var aim_target := player.global_position + Vector3.UP * (
 		1.20 if posture_name == &"CROUCHED" else 1.48
-	) + Vector3.FORWARD * 25.0
+	) + aim_direction * 25.0
 	driver.call(
 		"set_visual_inputs",
-		Vector2.ZERO, posture_name, 0.0, 0.0, 0.0, false, 0.0,
+		Vector2.ZERO, posture_name, AIM_YAW_RAD, AIM_PITCH_RAD, 0.0, false, 0.0,
 		0.0, &"LOCOMOTION", 0.0, &"WALK", 0.0,
 		aim_target, Vector2.ZERO, 0.0, &"IDLE", 0.0
 	)
@@ -113,6 +116,7 @@ func _capture_posture(
 	var event: Dictionary = during.get("last_event_presentation", {})
 	var latch: Dictionary = during.get("fire_upper_body_latch", {})
 	var pose: Dictionary = during.get("weapon_pose", {})
+	var geometry := _measure_pistol_geometry(driver, aim_target)
 	_expect(
 		StringName(event.get("state", "")) == expected_state
 		and String(latch.get("owner_state", "")) == "FIRE_RECOVERY"
@@ -122,14 +126,23 @@ func _capture_posture(
 		"%s recovery holds %s without a fire OneShot"
 		% [posture_name, expected_state]
 	)
+	_expect(
+		float(geometry.get("bore_error_deg", INF)) <= 1.0
+		and absf(float(geometry.get("axial_roll_deg", INF))) <= 6.0,
+		"%s rendered bore follows the offset reticle and remains upright"
+		% posture_name
+	)
 	print(
 		(
 			"PISTOL_FIRE_RECOVERY_VISUAL_METRIC posture=%s trigger_error_m=%.4f "
-			+ "support_error_m=%.4f torso_error_deg=%.3f recovery_remaining=%.3f"
+			+ "support_error_m=%.4f bore_error_deg=%.3f axial_roll_deg=%.3f "
+			+ "torso_error_deg=%.3f recovery_remaining=%.3f"
 		) % [
 			String(posture_name),
 			float(pose.get("trigger_hand_error_m", INF)),
 			float(pose.get("support_hand_error_m", INF)),
+			float(geometry.get("bore_error_deg", INF)),
+			float(geometry.get("axial_roll_deg", INF)),
 			float(during.get("torso_to_aim_error_deg", INF)),
 			float(latch.get("grace_remaining_seconds", 0.0)),
 		]
@@ -169,6 +182,42 @@ func _await_ballistics_ready(controller: Node) -> void:
 			return
 		await process_frame
 		await physics_frame
+
+
+func _measure_pistol_geometry(driver: Node, aim_target: Vector3) -> Dictionary:
+	var solver = driver.get("weapon_pose_solver")
+	var skeleton := driver.get("skeleton") as Skeleton3D
+	if solver == null or skeleton == null:
+		return {"bore_error_deg": INF, "axial_roll_deg": INF}
+	var muzzle := solver.get("muzzle_socket") as Marker3D
+	var barrel_base := solver.get("barrel_base_socket") as Marker3D
+	var optic := solver.get("optic_socket") as Marker3D
+	if muzzle == null or barrel_base == null or optic == null:
+		return {"bore_error_deg": INF, "axial_roll_deg": INF}
+	var bore := (muzzle.global_position - barrel_base.global_position).normalized()
+	var expected := muzzle.global_position.direction_to(aim_target)
+	var actual_up := optic.global_position - barrel_base.global_position
+	actual_up -= bore * actual_up.dot(bore)
+	var expected_up := skeleton.global_basis.y.normalized()
+	expected_up -= bore * expected_up.dot(bore)
+	if actual_up.length_squared() < 0.0000000001 or expected_up.length_squared() < 0.0000000001:
+		return {"bore_error_deg": rad_to_deg(bore.angle_to(expected)), "axial_roll_deg": INF}
+	actual_up = actual_up.normalized()
+	expected_up = expected_up.normalized()
+	return {
+		"bore_error_deg": rad_to_deg(bore.angle_to(expected)),
+		"axial_roll_deg": rad_to_deg(atan2(
+			bore.dot(expected_up.cross(actual_up)),
+			expected_up.dot(actual_up)
+		)),
+	}
+
+
+func _world_aim_direction(player: CharacterBody3D, yaw: float, pitch: float) -> Vector3:
+	var yaw_basis := Basis(Vector3.UP, player.global_rotation.y + yaw)
+	var forward := yaw_basis * Vector3.FORWARD
+	var right := yaw_basis * Vector3.RIGHT
+	return (Basis(right, pitch) * forward).normalized()
 
 
 func _aim_review_camera(

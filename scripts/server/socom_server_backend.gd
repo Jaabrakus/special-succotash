@@ -44,6 +44,8 @@ var directory_snapshot := {
 
 
 func _ready() -> void:
+	if OS.has_feature("web"):
+		return # Browsers must never initialize a privileged backend credential.
 	var config := _load_config()
 	project_url = String(config.get("project_url", "")).trim_suffix("/")
 	server_key = OS.get_environment("SOCOM_SUPABASE_SERVER_KEY").strip_edges()
@@ -67,7 +69,7 @@ func _mark_offline_before_quit() -> void:
 
 
 func is_configured() -> bool:
-	return project_url.begins_with("https://") and not server_key.is_empty()
+	return not OS.has_feature("web") and project_url.begins_with("https://") and not server_key.is_empty()
 
 
 func set_directory_snapshot_provider(provider: Callable) -> void:

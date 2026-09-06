@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "enabled": true,
+  "reference_height_px": 1080.0,
+  "recovery_delay_seconds": 0.18,
+  "return_speed_px_per_second": 180.0,
+  "description": "Reticle aim climbs after accepted shots. Camera orientation stays fixed. Per-gun reticle kick and cap use 1080-high reference pixels."
+}

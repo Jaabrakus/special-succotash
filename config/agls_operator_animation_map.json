@@ -86,14 +86,24 @@
     "run_forward_left": "run_forward_right"
   },
   "clip_aliases": {
-    "crouch_left": "crouch_forward_left",
-    "crouch_right": "crouch_forward_right"
+    "crouch_left": "crouch_forward",
+    "crouch_right": "crouch_forward",
+    "pistol_run_forward_left": "pistol_run_forward",
+    "pistol_run_forward_right": "pistol_run_forward",
+    "pistol_walk_forward_left": "pistol_walk_forward",
+    "pistol_walk_forward_right": "pistol_walk_forward",
+    "run_left": "run_forward",
+    "run_right": "run_forward"
   },
   "pose_yaw_offsets_degrees": {
-    "crouch_left": 6.0,
-    "crouch_right": -6.0,
-    "run_left": 6.0,
-    "run_right": -6.0
+    "crouch_left": 18.0,
+    "crouch_right": -18.0,
+    "pistol_run_forward_left": 24.0,
+    "pistol_run_forward_right": -24.0,
+    "pistol_walk_forward_left": 18.0,
+    "pistol_walk_forward_right": -18.0,
+    "run_left": 24.0,
+    "run_right": -24.0
   },
   "state_rules": {
     "reload": {
@@ -199,6 +209,6 @@
     "speed_blend_end": 0.86,
     "speed_blend_response": 12.0,
     "speed_blend_start": 0.38,
-    "visual_playback_scale": 0.88
+    "visual_playback_scale": 0.8
   }
 }

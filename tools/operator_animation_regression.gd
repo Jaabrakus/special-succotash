@@ -137,34 +137,14 @@ func _check_forward_left_lower_body_mirror(driver) -> void:
         )
 
 func _check_lateral_locomotion_sources(driver) -> void:
-    # Pure lateral movement uses the approved authored left and right sprint
-    # takes. Only forward-left keeps the body-only symmetry treatment above.
-    _expect(
-        driver.animation_profile.leg_mirror_source(&"run_left") == &""
-        and driver.animation_profile.mirror_source(&"run_left") == &""
-        and driver.animation_profile.alias_source(&"run_left") == &"",
-        "run_left uses its authored sprint-left source"
-    )
-    _expect(
-        not String(driver.asset_runtime.get_source_animation_name(&"run_left")).begins_with("leg_mirrored:")
-        and not String(driver.asset_runtime.get_source_animation_name(&"run_left")).begins_with("mirrored:")
-        and not String(driver.asset_runtime.get_source_animation_name(&"run_left")).begins_with("alias:"),
-        "run_left reports a direct animation source"
-    )
-    _expect(
-        driver.animation_profile.alias_source(&"run_right") == &"",
-        "run_right uses its authored source"
-    )
-    _expect(
-        not String(driver.asset_runtime.get_source_animation_name(&"run_right")).begins_with("alias:"),
-        "run_right reports a direct animation source"
-    )
-
-    # The crouch pack still needs the approved diagonal fallback because its
-    # direct side takes do not preserve the rifle-ready silhouette.
+    # The original pure-side takes use unrelated body poses and foot phases.
+    # Both lateral points now share one forward cycle per posture; the only
+    # difference is a bounded hip yaw applied to the cloned animation.
     var expected_aliases := {
-        &"crouch_left": &"crouch_forward_left",
-        &"crouch_right": &"crouch_forward_right",
+        &"run_left": &"run_forward",
+        &"run_right": &"run_forward",
+        &"crouch_left": &"crouch_forward",
+        &"crouch_right": &"crouch_forward",
     }
     var library: AnimationLibrary = driver.animation_player.get_animation_library("")
     for lateral_clip: StringName in expected_aliases:
@@ -176,7 +156,7 @@ func _check_lateral_locomotion_sources(driver) -> void:
         _expect(
             driver.asset_runtime.get_source_animation_name(lateral_clip)
             == StringName("alias:%s" % diagonal_clip),
-            "%s reports the forward-diagonal source take" % lateral_clip
+            "%s reports the shared forward-cycle source take" % lateral_clip
         )
         _expect(
             _animations_match_with_hip_yaw_offset(
@@ -760,7 +740,7 @@ func _check_modern_blend_graph(driver) -> void:
         1.0
     )
     _expect(
-        full_speed_rate >= 0.90 and full_speed_rate <= 0.93,
+        full_speed_rate >= 0.82 and full_speed_rate <= 0.84,
         "full-speed locomotion uses the slower visual cadence without changing movement speed"
     )
     var blend_root := driver.animation_tree.tree_root as AnimationNodeBlendTree
@@ -933,16 +913,16 @@ func _check_instant_lateral_selection(driver) -> void:
     _expect(driver.current_clip == &"crouch_left", "crouched A selects the left animation point")
     _expect(
         driver.asset_runtime.get_source_animation_name(driver.current_clip)
-        == &"alias:crouch_forward_left",
-        "crouched A renders the forward-left crouch take"
+        == &"alias:crouch_forward",
+        "crouched A renders the shared forward crouch cycle"
     )
     _set_crouch_motion(driver, Vector2.RIGHT)
     _advance(driver)
     _expect(driver.current_clip == &"crouch_right", "crouched D selects the right animation point")
     _expect(
         driver.asset_runtime.get_source_animation_name(driver.current_clip)
-        == &"alias:crouch_forward_right",
-        "crouched D renders the forward-right crouch take"
+        == &"alias:crouch_forward",
+        "crouched D keeps the same forward crouch cycle"
     )
 
 func _set_crouch_motion(driver, direction: Vector2) -> void:
@@ -1046,6 +1026,13 @@ func _check_transition_state_machine(driver) -> void:
         Vector2.DOWN, 0.8, &"CROUCHED", 0.0, available, settings
     )
     machine.reset()
+    settings["crouched_enabled"] = true
+    machine.evaluate(Vector2.UP, 0.8, &"CROUCHED", 0.0, available, settings)
+    var explicit_legacy_crouch: Dictionary = machine.evaluate(
+        Vector2.DOWN, 0.8, &"CROUCHED", 0.0, available, settings
+    )
+    settings["crouched_enabled"] = false
+    machine.reset()
     machine.evaluate(Vector2.ZERO, 0.0, &"PRONE", 0.0, available, settings)
     machine.evaluate(Vector2(0.0, 1.0), 0.8, &"PRONE", 0.0, available, settings)
     var prone_forward_stop: Dictionary = machine.evaluate(
@@ -1071,9 +1058,10 @@ func _check_transition_state_machine(driver) -> void:
         "crouched aim turning never selects a standing planted-turn animation"
     )
     _expect(
-        crouched_reverse["clip"] == &"crouch_stop",
-        "crouched reversal stays on a crouched transition"
+        crouched_reverse["clip"] == &"",
+        "normal crouched reversal stays in the continuous gait without a stop action"
     )
+    _expect(explicit_legacy_crouch["clip"] == &"crouch_stop", "explicit legacy crouch transitions remain available")
     _expect(
         prone_forward_stop["clip"] == &"prone_stop_forward",
         "forward prone movement settles through the selected forward stop (got %s/%s)" % [

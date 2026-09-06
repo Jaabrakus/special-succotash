@@ -1,6 +1,8 @@
 class_name SocomTestMannequin
 extends Node3D
 
+const ProxyPrimitives := preload("res://scripts/player/operator_proxy_primitives.gd")
+
 const OperatorAnimationDriver := preload("res://scripts/player/operator_animation_driver.gd")
 const CameraMarkerFilter := preload("res://scripts/player/operator_camera_marker_filter.gd")
 
@@ -930,62 +932,27 @@ func set_proxy_visuals_visible(active: bool) -> void:
             visual.visible = active
 
 func _box_on(parent: Node3D, part_name: String, size: Vector3, position: Vector3, material: StandardMaterial3D) -> MeshInstance3D:
-    var part := MeshInstance3D.new()
-    part.name = part_name
-    var mesh := BoxMesh.new()
-    mesh.size = size
-    mesh.material = material
-    part.mesh = mesh
-    part.position = position
-    parent.add_child(part)
+    var part := ProxyPrimitives._box_on(parent, part_name, size, position, material)
     proxy_visuals.append(part)
     return part
 
 func _sphere_on(parent: Node3D, part_name: String, radius: float, position: Vector3, material: StandardMaterial3D) -> MeshInstance3D:
-    var part := MeshInstance3D.new()
-    part.name = part_name
-    var mesh := SphereMesh.new()
-    mesh.radius = radius
-    mesh.height = radius * 2.0
-    mesh.material = material
-    part.mesh = mesh
-    part.position = position
-    parent.add_child(part)
+    var part := ProxyPrimitives._sphere_on(parent, part_name, radius, position, material)
     proxy_visuals.append(part)
     return part
 
 func _cylinder_on(parent: Node3D, part_name: String, radius: float, height: float, position: Vector3, material: StandardMaterial3D) -> MeshInstance3D:
-    var part := MeshInstance3D.new()
-    part.name = part_name
-    var mesh := CylinderMesh.new()
-    mesh.top_radius = radius
-    mesh.bottom_radius = radius
-    mesh.height = height
-    mesh.material = material
-    part.mesh = mesh
-    part.position = position
-    parent.add_child(part)
+    var part := ProxyPrimitives._cylinder_on(parent, part_name, radius, height, position, material)
     proxy_visuals.append(part)
     return part
 
 func _capsule_on(parent: Node3D, part_name: String, radius: float, height: float, position: Vector3, material: StandardMaterial3D) -> MeshInstance3D:
-    var part := MeshInstance3D.new()
-    part.name = part_name
-    var mesh := CapsuleMesh.new()
-    mesh.radius = radius
-    mesh.height = height
-    mesh.material = material
-    part.mesh = mesh
-    part.position = position
-    parent.add_child(part)
+    var part := ProxyPrimitives._capsule_on(parent, part_name, radius, height, position, material)
     proxy_visuals.append(part)
     return part
 
 func _material(color: Color) -> StandardMaterial3D:
-    var material := StandardMaterial3D.new()
-    material.albedo_color = color
-    material.roughness = 0.8
-    return material
+    return ProxyPrimitives._material(color)
 
 func get_aim_debug_data() -> Dictionary:
     return {

@@ -16,8 +16,12 @@ const BallisticsScript := preload("res://scripts/weapons/weapon_ballistics.gd")
 const ComposureScript := preload("res://scripts/weapons/operator_composure.gd")
 const WeaponContract := preload("res://scripts/weapons/weapon_rig_contract.gd")
 const AutoReloadPolicy := preload("res://scripts/weapons/weapon_auto_reload_policy.gd")
-const TracerSystemScript := preload("res://scripts/weapons/lab_leak_tracer_system.gd")
-const AudioEngine := preload("res://scripts/audio/lab_leak_audio_engine.gd")
+const TransportFactory := preload("res://scripts/network/socom_transport_factory.gd")
+const LobbyCountdownPolicy := preload("res://scripts/network/socom_lobby_countdown_policy.gd")
+const SnapshotEncoder := preload("res://scripts/network/socom_snapshot_encoder.gd")
+const ArenaRuntimePlan := preload("res://scripts/network/socom_arena_runtime_plan.gd")
+const RoundPolicy := preload("res://scripts/network/socom_round_policy.gd")
+const ShotPresentation := preload("res://scripts/network/socom_shot_presentation.gd")
 const KeyboardMappingProfile := preload("res://scripts/input/socom_keyboard_mapping_profile.gd")
 const PlayerGameplayProfile := preload("res://scripts/player/player_gameplay_profile.gd")
 const PlaytestStateCollector := preload("res://scripts/runtime/playtest_state_collector.gd")
@@ -33,7 +37,6 @@ const DeploymentProfile := preload(
 	"res://scripts/network/socom_multiplayer_deployment_profile.gd"
 )
 const SessionCompatibility := preload("res://scripts/network/socom_session_compatibility.gd")
-const ServerBackendScript := preload("res://scripts/server/socom_server_backend.gd")
 const ExitMenuScript := preload("res://scripts/ui/socom_exit_menu.gd")
 const PlayerScript := preload("res://scripts/player/player_controller.gd")
 
@@ -60,9 +63,9 @@ var server_reserve_ammo: Dictionary = {}
 var latest_commands: Dictionary = {}
 var last_command_tick: Dictionary = {}
 var last_accepted_shot_sequence: Dictionary = {}
-var last_enqueued_shot_sequence: Dictionary = {}
-var pending_shot_packets: Dictionary = {}
-var pending_reload_requests: Dictionary = {}
+var combat_commands := preload("res://scripts/network/socom_combat_command_queue.gd").new()
+var shot_presentation: Node
+var reload_authority := preload("res://scripts/network/socom_reload_authority.gd").new()
 var last_rejected_shot_reason: Dictionary = {}
 var scores: Dictionary = {}
 var assigned_spawns: Dictionary = {}
@@ -137,7 +140,7 @@ var menu_panel: PanelContainer
 var address_edit: LineEdit
 var status_label: Label
 var score_label: Label
-var reticle: Label
+var reticle: SocomDynamicReticle
 var player_state_label: Label
 var match_clock_label: Label
 var lobby_panel: PanelContainer
@@ -151,6 +154,10 @@ var objective_status_label: Label
 var multiplayer_hud = null
 var local_magazine_ammo: int = 0
 var local_reserve_ammo: int = 0
+
+func is_lobby_warmup_active() -> bool:
+	return false
+
 
 # BEGIN GENERATED MULTIPLAYER CROSS-LAYER CONTRACT
 # Parsing contract only. Feature layers override every declaration.

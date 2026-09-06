@@ -1,6 +1,54 @@
 extends "res://scripts/network/socom_multiplayer_replication.gd"
 
+func _server_reload_weapon(peer_id: int) -> void:
+	if not multiplayer.is_server() or not is_peer_gameplay_action_allowed(peer_id) or reload_authority.is_active(peer_id):
+		return
+	var operator: Variant = operators.get(peer_id)
+	if operator == null or not operator.alive or (not round_active and not is_lobby_warmup_active()):
+		return
+	var config: Dictionary = _weapon_config_for_peer(peer_id)
+	var capacity := int(config.get("ballistics", {}).get("magazine_capacity", 30))
+	if int(server_magazine_ammo.get(peer_id, 0)) >= capacity or int(server_reserve_ammo.get(peer_id, 0)) <= 0:
+		return
+	# Earlier accepted fire requests retain order; start the clock after they drain.
+	if combat_commands.has_shots(peer_id):
+		combat_commands.defer_reload(peer_id)
+		return
+	var context := "%s:%d" % [String(config.get("weapon_id", "")), operator.get_instance_id()]
+	reload_authority.begin(peer_id, context, reload_authority.duration_seconds(config), Time.get_ticks_msec())
+
+
+func _advance_server_reloads() -> void:
+	if not multiplayer.is_server():
+		return
+	for raw_id in reload_authority.peer_ids():
+		var peer_id := int(raw_id)
+		var operator: Variant = operators.get(peer_id)
+		if not is_peer_gameplay_action_allowed(peer_id) or operator == null or not operator.alive or (not round_active and not is_lobby_warmup_active()):
+			reload_authority.cancel(peer_id)
+			continue
+		# Cheap clock check first: do not parse/normalize a weapon profile each tick.
+		if not reload_authority.is_due(peer_id, Time.get_ticks_msec()):
+			continue
+		var config: Dictionary = _weapon_config_for_peer(peer_id)
+		var context := "%s:%d" % [String(config.get("weapon_id", "")), operator.get_instance_id()]
+		if not reload_authority.consume_ready(peer_id, context, Time.get_ticks_msec()):
+			continue
+		var capacity := int(config.get("ballistics", {}).get("magazine_capacity", 30))
+		var magazine := int(server_magazine_ammo.get(peer_id, 0))
+		var reserve := int(server_reserve_ammo.get(peer_id, 0))
+		var transferred := mini(maxi(0, capacity - magazine), reserve)
+		server_magazine_ammo[peer_id] = magazine + transferred
+		server_reserve_ammo[peer_id] = reserve - transferred
+		_send_ammo_state(peer_id)
+
+
 func _try_submit_local_shot() -> void:
+	if local_reload_pending and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED and Input.is_action_just_pressed("fire"):
+		if local_operator != null and local_operator.mannequin != null:
+			var driver: Node = local_operator.mannequin.get("production_animation")
+			if driver != null:
+				driver.call("cancel_reload_action")
 	if (
 		local_camera == null
 		or local_operator == null
@@ -15,6 +63,8 @@ func _try_submit_local_shot() -> void:
 	if packet.is_empty():
 		return
 	if multiplayer.is_server():
+		reload_authority.cancel(multiplayer.get_unique_id())
+		combat_commands.cancel_reload(multiplayer.get_unique_id())
 		_server_process_shot(multiplayer.get_unique_id(), packet)
 	else:
 		submit_shot.rpc_id(1, packet)
@@ -23,35 +73,25 @@ func _try_submit_local_shot() -> void:
 func _queue_server_shot(peer_id: int, packet: Dictionary) -> bool:
 	if not multiplayer.is_server() or not operators.has(peer_id):
 		return false
-	if typeof(packet.get("sequence")) != TYPE_INT:
+	if not combat_commands.enqueue(peer_id, packet, MAX_QUEUED_SHOTS_PER_PEER):
 		return false
-	var sequence := int(packet.sequence)
-	if sequence <= int(last_enqueued_shot_sequence.get(peer_id, -1)):
-		return false
-	var queue: Array = pending_shot_packets.get(peer_id, [])
-	if queue.size() >= MAX_QUEUED_SHOTS_PER_PEER:
-		return false
-	queue.append(packet.duplicate(true))
-	pending_shot_packets[peer_id] = queue
-	last_enqueued_shot_sequence[peer_id] = sequence
+	reload_authority.cancel(peer_id)
 	return true
 
 
 func _advance_pending_server_shots() -> void:
-	for raw_id in pending_shot_packets:
-		var peer_id: int = int(raw_id)
-		var queue: Array = pending_shot_packets[raw_id]
-		if queue.is_empty():
-			if bool(pending_reload_requests.get(peer_id, false)):
-				pending_reload_requests[peer_id] = false
+	_advance_server_reloads()
+	for raw_id in combat_commands.peer_ids():
+		var peer_id := int(raw_id)
+		if not combat_commands.has_shots(peer_id):
+			if combat_commands.consume_reload(peer_id):
 				_server_reload_weapon(peer_id)
 			continue
 		var ballistics: Variant = server_ballistics.get(peer_id)
-		if ballistics == null or float(ballistics.fire_cooldown) > 0.0:
-			continue
-		var packet: Dictionary = queue.pop_front()
-		pending_shot_packets[raw_id] = queue
-		_server_process_shot(peer_id, packet)
+		var ready: bool = ballistics != null and float(ballistics.fire_cooldown) <= 0.0
+		var packet: Dictionary = combat_commands.pop_ready(peer_id, ready)
+		if not packet.is_empty():
+			_server_process_shot(peer_id, packet)
 
 
 func _server_process_shot(peer_id: int, packet: Dictionary) -> void:
@@ -62,7 +102,7 @@ func _server_process_shot(peer_id: int, packet: Dictionary) -> void:
 		or shooter == null
 		or ballistics == null
 		or not shooter.alive
-		or not round_active
+		or (not round_active and not is_lobby_warmup_active())
 	):
 		return
 	if int(server_magazine_ammo.get(peer_id, 0)) <= 0:
@@ -154,70 +194,78 @@ func _server_process_shot(peer_id: int, packet: Dictionary) -> void:
 	)
 	_send_ammo_state(peer_id)
 	composure.notify_shot()
-	var damage_message := "MISS"
-	var collider: Object = result.get("hit_collider")
-	var receiver: Variant = null
-	var damage_scale: float = 1.0
-	var hit_region: StringName = &""
-	if collider != null:
-		if collider.has_method("get_damage_receiver"):
-			receiver = collider.call("get_damage_receiver")
-		elif collider.has_method("take_bullet_damage_region"):
-			receiver = collider
-		if (
-			receiver != null
-			and receiver.team_id != shooter.team_id
-			and is_damage_allowed_between(peer_id, int(receiver.network_peer_id))
-		):
+	# Classify every pellet against the same rewound pose, then restore once.
+	var impacts: Array[Dictionary] = []
+	for projectile: Dictionary in result.get("projectiles", [result]):
+		var collider: Object = projectile.get("hit_collider")
+		var receiver: Variant = null
+		if collider != null:
+			if collider.has_method("get_damage_receiver"):
+				receiver = collider.call("get_damage_receiver")
+			elif collider.has_method("take_bullet_damage_region"):
+				receiver = collider
+		var scale := 1.0
+		var region: StringName = &"TORSO"
+		if receiver != null and _shot_can_damage_peer(peer_id, int(receiver.network_peer_id)):
 			if collider.has_method("classify_shot_path"):
 				var classification: Dictionary = collider.call(
-					"classify_shot_path",
-					muzzle,
-					Vector3(result.direction),
-					core_scale
-				)
-				damage_scale = (
-					1.0
-					if bool(classification.get("precision", true))
-					else clampf(
-						float(_weapon_config_for_peer(peer_id).get("composure", {}).get("graze_damage_scale", 0.38)),
-						0.0,
-						1.0
-					)
-				)
+					"classify_shot_path", muzzle, Vector3(projectile.direction), core_scale)
+				if not bool(classification.get("precision", true)):
+					scale = clampf(float(_weapon_config_for_peer(peer_id).get(
+						"composure", {}).get("graze_damage_scale", 0.38)), 0.0, 1.0)
 			if collider.has_method("get_hit_region"):
-				hit_region = StringName(collider.call("get_hit_region"))
-			else:
-				hit_region = &"TORSO"
+				region = StringName(collider.call("get_hit_region"))
+		else:
+			receiver = null
+		impacts.append({"projectile": projectile, "receiver": receiver,
+			"scale": scale, "region": region})
 	_restore_transport_rewind(rewind_restore)
-	if (
-		receiver != null
-		and receiver.team_id != shooter.team_id
-		and is_damage_allowed_between(peer_id, int(receiver.network_peer_id))
-	):
+	var visual_impacts: Array[Dictionary] = []
+	for impact: Dictionary in impacts:
+		var projectile: Dictionary = impact.projectile
+		var receiver: Variant = impact.receiver
+		var message := "MISS"
+		if is_instance_valid(receiver):
 			var damage_result: Dictionary = receiver.take_bullet_damage_region(
-				float(ballistics.damage_per_shot) * damage_scale,
-				hit_region,
-				Vector3(result.hit_pos),
-				Vector3(result.get("normal", Vector3.UP)),
-				muzzle,
-				peer_id,
-				float(ballistics.headshot_multiplier)
-			)
+				float(projectile.get("damage", ballistics.damage_per_shot)) * float(impact.scale),
+				StringName(impact.region), Vector3(projectile.hit_pos),
+				Vector3(projectile.get("normal", Vector3.UP)), muzzle, peer_id,
+				float(ballistics.headshot_multiplier))
 			if bool(damage_result.get("accepted", false)):
-				damage_message = "%s  %.0f DMG" % [
-					String(damage_result.get("hit_region", &"HIT")),
-					float(damage_result.get("damage", 0.0)),
-				]
+				message = "%s  %.0f DMG" % [String(damage_result.get("hit_region", &"HIT")),
+					float(damage_result.get("damage", 0.0))]
 				if bool(damage_result.get("headshot", false)):
-					_send_head_impact_feedback(
-						int(damage_result.get("victim_peer_id", 0)),
-						float(damage_result.get("damage", 0.0)),
-						bool(damage_result.get("eliminated", false))
-					)
-	var hit := collider != null
-	_present_shot(peer_id, muzzle, Vector3(result.hit_pos), hit, damage_message)
-	_broadcast_shot_effect(peer_id, muzzle, Vector3(result.hit_pos), hit, damage_message)
+					_send_head_impact_feedback(int(damage_result.get("victim_peer_id", 0)),
+						float(damage_result.get("damage", 0.0)), bool(damage_result.get("eliminated", false)))
+		visual_impacts.append({"position": projectile.hit_pos,
+			"hit": projectile.get("hit_collider") != null, "message": message})
+	var first: Dictionary = visual_impacts.pop_front()
+	_present_shot(peer_id, muzzle, Vector3(first.position), bool(first.hit), String(first.message))
+	_broadcast_shot_effect(peer_id, muzzle, Vector3(first.position), bool(first.hit), String(first.message))
+	if not visual_impacts.is_empty():
+		_present_pellet_impacts(peer_id, muzzle, visual_impacts)
+		_broadcast_pellet_impacts(peer_id, muzzle, visual_impacts)
+
+
+func _shot_can_damage_peer(attacker: int, victim: int) -> bool:
+	return operators.has(attacker) and operators.has(victim) and (
+		operators[attacker].team_id != operators[victim].team_id
+		and is_damage_allowed_between(attacker, victim))
+
+
+func _broadcast_pellet_impacts(shooter: int, origin: Vector3, impacts: Array[Dictionary]) -> void:
+	receive_pellet_impacts.rpc(shooter, origin, impacts)
+
+
+@rpc("authority", "call_remote", "reliable")
+func receive_pellet_impacts(shooter: int, origin: Vector3, impacts: Array[Dictionary]) -> void:
+	_present_pellet_impacts(shooter, origin, impacts)
+
+
+func _present_pellet_impacts(shooter: int, origin: Vector3, impacts: Array[Dictionary]) -> void:
+	if not dedicated_server_mode and shot_presentation != null:
+		shot_presentation.present_pellets(origin, impacts, _weapon_config_for_peer(shooter))
+
 
 
 func _broadcast_shot_effect(
@@ -326,32 +374,8 @@ func _advance_server_composure(delta: float) -> void:
 
 
 func _broadcast_authoritative_state() -> void:
-	var timestamp_ms := Time.get_ticks_msec()
-	var tick := Engine.get_physics_frames()
-	var snapshot: Dictionary = {}
 	var peer_ids: Array = operators.keys()
 	peer_ids.sort()
-	for raw_id in peer_ids:
-		var operator: Variant = operators[raw_id]
-		snapshot[raw_id] = {
-			"position": operator.global_position,
-			"yaw": operator.rotation.y,
-			"velocity": operator.velocity,
-			"posture": operator.posture,
-			"health": operator.current_health,
-			"alive": operator.alive,
-		}
-	var chunks := NetworkProtocol.chunk_snapshot_entities(
-		snapshot,
-		SNAPSHOT_ENTITIES_PER_PACKET
-	)
-	var chunk_count := chunks.size()
-	for chunk_index in chunk_count:
-		var packet := {
-			"timestamp_ms": timestamp_ms,
-			"tick": tick,
-			"chunk_index": chunk_index,
-			"chunk_count": chunk_count,
-			"entities": chunks[chunk_index],
-		}
-		receive_world_state.rpc(packet, scores if chunk_index == 0 else {})
+	var snapshot := SnapshotEncoder.capture(operators, peer_ids)
+	for packet in SnapshotEncoder.packets(snapshot, Time.get_ticks_msec(), Engine.get_physics_frames(), SNAPSHOT_ENTITIES_PER_PACKET):
+		receive_world_state.rpc(packet, scores if int(packet.chunk_index) == 0 else {})

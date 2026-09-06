@@ -1,5 +1,7 @@
 extends Node3D
 
+var fire_recoil := preload("res://scripts/player/operator_fire_recoil_pulse.gd").new()
+
 ## Post-animation, visual-only arm solver. The authoritative reticle and shot
 ## remain outside this layer; this node only makes the rendered operator reach
 ## a constrained rifle pose that follows the supplied aim intent.
@@ -27,12 +29,20 @@ const GUN_PLACEMENT_FRAME_BONE := &"mixamorig_Spine2"
 # corrections visibly rotate the pistol grip out of that hand. Weapon-specific
 # calibration must absorb anything beyond this presentation allowance.
 const MAX_RIGID_GRIP_ALIGNMENT_DEG := 6.0
+# A conventional two-hand pistol presentation keeps the dominant trigger palm
+# just to the right of the anatomical aim plane. The offset scales with the
+# live shoulder width so different operator sizes retain the same silhouette.
+const PISTOL_TRIGGER_CENTERLINE_RATIO := 0.08
+const PISTOL_CENTERLINE_MAX_SHIFT_M := 0.30
 const ArmKinematics := preload("res://scripts/player/operator_arm_kinematics.gd")
 const PoseDiagnostics := preload(
 	"res://scripts/player/operator_weapon_pose_diagnostics.gd"
 )
 const PoseGeometry := preload(
 	"res://scripts/player/operator_weapon_pose_geometry.gd"
+)
+const DiveWeaponPresentationProfile := preload(
+	"res://scripts/player/operator_dive_weapon_presentation_profile.gd"
 )
 const SocketIK := preload(
 	"res://scripts/player/operator_weapon_socket_ik.gd"
@@ -167,6 +177,10 @@ var right_hand_owns_ready_weapon: bool = false
 var animation_drives_ready_hands: bool = false
 var hand_socket_ik_enabled: bool = true
 var support_hand_socket_ik_enabled: bool = false
+var animation_owned_aim_alignment_enabled: bool = false
+var animation_owned_aim_alignment_active: bool = false
+var pistol_trigger_centerline_ik_active: bool = false
+var pistol_trigger_centerline_shift_m: float = 0.0
 var support_hand_ik_blend_seconds: float = 0.35
 var ownership_return_start := Transform3D.IDENTITY
 var ownership_return_elapsed: float = 0.18
@@ -224,5 +238,6 @@ var gun_placement_shoulder_alternation_m := 0.0
 var gun_placement_relative_yaw_rad: float = 0.0
 var stable_chest_anchor_world := Vector3.ZERO
 var stable_chest_anchor_active := false
+var dive_weapon_presentation: Dictionary = DiveWeaponPresentationProfile.load_profile()
 var last_unobstructed_render_direction := Vector3.ZERO
 var obstruction_direction_hold_active := false

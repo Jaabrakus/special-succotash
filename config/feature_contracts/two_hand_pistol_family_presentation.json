@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "feature_id": "two_hand_pistol_family_presentation",
-  "player_intent": "Every real pistol appears at human scale, keeps both hands at authored pistol contacts, and fires from a stable human two-hand ready pose without a reload or malformed recoil pose taking over the shoulders.",
-  "acceptance_rule": "Equipping any pistol through res://main.tscn consumes its saved visual contract and TWO_HAND_PISTOL animation family. An accepted standing shot resolves to pistol_idle and an accepted crouched shot resolves to pistol_idle_kneeling. The existing FIRE_RECOVERY owner remains active for 1.2 seconds, while no separate fire AnimationTree OneShot is selected. Pistol reload remains a reload-only transaction and may use pistol_reload when compatible. Prone fire remains outside this bounded change. The current absolute AGLS pistol recoil stays catalogued but is not selected because canonical probes show approximately 0.22 to 0.23 meters of hand displacement from the stable pistol base.",
+  "player_intent": "Every real pistol appears at human scale, keeps both hands at authored pistol contacts, and fires toward the reticle from a stable square-shouldered two-hand ready pose while directional movement stays centered beneath it.",
+  "acceptance_rule": "Equipping any pistol through res://main.tscn consumes its saved visual contract and TWO_HAND_PISTOL animation family. An accepted standing shot resolves to pistol_idle and an accepted crouched shot resolves to pistol_idle_kneeling. FIRE_RECOVERY remains active for 1.2 seconds without a separate fire OneShot. During idle, W+A, W+D, S+A, and S+D recovery, frames 1, 2, 4, 8, 12, and 18 must keep the physical bore within 1 degree of camera-owned reticle aim, optic-up roll within 6 degrees, both palms within 1 cm of their physical contacts, shoulders within 10 degrees of square and 4 cm of level, and elbows between 38 and 155 degrees. Forward visual input is positive Y. These angle budgets do not certify natural arm symmetry or entry continuity. The trigger socket and barrel base must stay within 20 percent of shoulder width of the aim plane, with left crossing limited to 10 percent. The pistol-only trigger-palm target, elbow guidance, and rigid root correction must converge to the authored pose as existing readiness fades; at terminal ready-to-zero and the following four frames, each static standing/crouched palm step must stay below 1 cm. The same saved mount must preserve world scale, physical trigger-to-support socket distance, and barrel-base-to-muzzle length across base, firing, and recovery. A unit palm basis must not apply the inverse-scaled BoneAttachment mount directly in world space. Continuous IK, generic two-arm rifle IK, new weapon owners, socket recalibration to mask errors, and gameplay authority changes remain forbidden.",
   "canonical_scene": "res://main.tscn",
   "editor_scene": "res://scenes/player/operator_player.tscn",
   "ownership": {
@@ -52,48 +52,66 @@
     "the existing 1.2-second accepted-shot recovery duration",
     "reload transaction timing and cancellation semantics",
     "prone presentation until it receives a dedicated rendered proof",
-    "right-hand weapon-root and saved socket ownership"
+    "saved pistol hand/socket calibration and the sole weapon presentation mutation boundary"
   ],
   "proof_scripts": [
     "res://tools/mark_23_equipment_regression.gd",
     "res://tools/all_weapon_fire_recovery_regression.gd",
     "res://tools/pistol_fire_recovery_visual_check.gd",
+    "res://tools/pistol_fire_direction_pose_regression.gd",
+    "res://tools/pistol_recovery_exit_regression.gd",
+    "res://tools/pistol_distinct_ready_slots_regression.gd",
     "res://tools/feature_contract_regression.gd"
   ],
-  "visual_check": "In res://main.tscn, equip a pistol, fire while standing, then fire while crouched. The right hand must remain at the trigger grip, the left hand at the two-hand support contact, the shoulders must remain square, and the event must hold pistol_idle or pistol_idle_kneeling for the existing recovery interval without showing pistol reload. Reload separately to prove the reload transaction still owns only reload.",
+  "visual_check": "In res://main.tscn, equip Mark 23 and F57. Fire while idle and on all forward/back diagonals in standing/crouched posture. Observe the real-size pistol, both palms, elbow symmetry, and entry motion; numerical bore/contact checks alone do not establish a natural pose. After the 1.2-second recovery, observe the complete readiness fade and its last frame: neither arm nor pistol size may pop when parenting returns to the authored mount. Reload separately to verify action ownership.",
+  "known_limitations": [
+    "The September 4 Blender high-ready candidate passes ten offset-aim Mark 23 stance/direction cases in memory, but is not assigned to the saved profile. LOW-only immutable-track preservation now passes all eight neutral/offset stance equip/return centering and physical contact checks. A newly covered neutral crouched fire case fails: 35.90 degrees required correction exceeds the saved 32-degree limit, leaving 3.69 degrees bore error. Do not promote the candidate pair or claim all-pistol success. See tools/pistol_low_ready_contact_regression.gd and docs/ANIMATION_AUDIT_20260904.md. The browser ZIP has not been rebuilt.",
+    "Immediate pistol ready-weight entry still causes measured pre-shot-to-fire pose jumps; this recovery-exit change does not redesign entry blending.",
+    "The existing authored standing firing pose has asymmetric elbows. At corrected full weapon size, Mark 23 standing support contact measured approximately 12 mm and fails the 10 mm acceptance budget; the previous inverse-64-size pistol concealed that error.",
+    "Full-family directional and rendered naturalness checks remain necessary before claiming all pistol animations are fixed."
+  ],
   "system_delta": {
-    "decision": "REPLACE",
-    "reason": "Replace the invalid fire-to-reload route and reject the current absolute AGLS pistol recoil as a direct OneShot. Its hand displacement is too large for a human-looking transition. Keep the stable posture-matched pistol ready pose under the existing shared recovery owner while preserving gameplay, reload, sockets, camera, movement, and networking.",
+    "decision": "MERGE",
+    "reason": "Merge continuous recovery-exit target/pole and root-correction weighting into the existing presentation owner. Restore the scaled bone-parent contribution when evaluating the authored local mount under WeaponSolverAnchor, preserving the pistol's physical dimensions instead of shrinking it 64-fold. Baseline static terminal palm steps were 24-30 cm; the corrected exit measures below 1 mm. Do not claim full animation quality from this improvement: proper scale exposes an approximately 12 mm standing support-contact error and entry/arm-shape problems remain. Keep the 1.2-second latch, source clips, accepted-shot entry behavior, movement, reload, aim and server authority unchanged. Reject compensating socket offsets, changing weapon dimensions, or adding another IK owner.",
     "current": {
-      "system": "Accepted pistol fire routed to a two-second reload animation across the torso, shoulders, arms, and hands",
-      "correctness": 0,
-      "ownership_clarity": 2,
-      "runtime_parity": 1,
-      "editor_usability": 2,
-      "performance": 2,
+      "system": "Existing centered firing pose with binary centerline correction through the readiness fade and inverse-scaled local mount evaluated using a unit world palm basis",
+      "correctness": 2,
+      "ownership_clarity": 4,
+      "runtime_parity": 5,
+      "editor_usability": 3,
+      "performance": 4,
       "regression_coverage": 2,
       "evidence_paths": [
         "res://config/operator_animation_map.json",
         "res://scripts/player/operator_animation_driver_presentation.gd",
         "res://scripts/player/operator_locomotion_blend_tree.gd",
-        "res://tools/mark_23_equipment_regression.gd"
+        "res://tools/mark_23_equipment_regression.gd",
+        "res://tools/firearm_family_live_contact_regression.gd",
+        "res://tools/pistol_fire_direction_pose_regression.gd",
+        "res://scripts/player/operator_weapon_pose_ready.gd",
+        "res://scripts/player/operator_weapon_pose_kinematics.gd",
+        "res://tools/pistol_recovery_exit_regression.gd"
       ]
     },
     "candidate": {
-      "system": "Posture-matched stable pistol ready selected by the shared 1.2-second accepted-shot recovery owner with no separate fire OneShot",
-      "correctness": 5,
+      "system": "Existing firing route with continuous target/pole/root fade and consistent authored world scale, terminal palm and socket-dimension proof, plus explicit remaining entry/contact/shape limitations",
+      "correctness": 3,
       "ownership_clarity": 5,
       "runtime_parity": 5,
-      "editor_usability": 4,
-      "performance": 5,
-      "regression_coverage": 5,
+      "editor_usability": 3,
+      "performance": 4,
+      "regression_coverage": 4,
       "evidence_paths": [
         "res://scripts/weapons/weapon_animation_profile.gd",
         "res://scripts/player/operator_animation_profile.gd",
         "res://scripts/player/operator_fire_upper_body_latch.gd",
         "res://config/operator_animation_map.json",
         "res://tools/mark_23_equipment_regression.gd",
-        "res://tools/all_weapon_fire_recovery_regression.gd"
+        "res://tools/all_weapon_fire_recovery_regression.gd",
+        "res://tools/pistol_fire_direction_pose_regression.gd",
+        "res://scripts/player/operator_weapon_pose_ready.gd",
+        "res://scripts/player/operator_weapon_pose_kinematics.gd",
+        "res://tools/pistol_recovery_exit_regression.gd"
       ]
     }
   }

@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "feature_id": "existing_weapon_reference_sounds",
+  "player_intent": "Matching existing guns play their reference recordings.",
+  "acceptance_rule": "All 33 actual selectable firearms have explicit cached audio assignments: 29 direct/game-label matches, two parent-rifle variants and two documented provisional family substitutions. Canonical and multiplayer emit one matching sound; legacy non-firearms are audited and unknown IDs preserve fallback.",
+  "canonical_scene": "res://main.tscn",
+  "ownership": {
+    "weapon_sound_selection": "LabLeakAudioEngine",
+    "spatial_playback": "AcousticPropagationEngine"
+  },
+  "nodes": [
+    {
+      "id": "pooled_audio",
+      "type": "AudioStreamPlayer",
+      "role": "Existing pooled fallback playback",
+      "owner": "LabLeakAudioEngine",
+      "source_script": "res://scripts/audio/lab_leak_audio_engine.gd",
+      "code_symbols": [
+        "AudioStreamPlayer.new()",
+        "PooledAudioVoice_"
+      ]
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://config/weapon_sound_bank.json",
+      "writer": "res://docs/WEAPON_AUDIO_COVERAGE.md",
+      "readers": [
+        "res://scripts/audio/lab_leak_audio_engine.gd"
+      ]
+    }
+  ],
+  "must_not_change": [
+    "damage",
+    "cadence",
+    "recoil",
+    "reticle",
+    "animation",
+    "movement",
+    "grenade audio",
+    "shot authority",
+    "published browser build"
+  ],
+  "proof_scripts": [
+    "res://tools/weapon_sound_bank_regression.gd",
+    "res://tools/feature_contract_regression.gd"
+  ],
+  "visual_check": "Listen to repeated shots in training and remote matches; recording ambience and mix quality remain to be reviewed.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Close five firearm gaps in the existing saved bank; classify two family substitutes honestly, retain source provenance, and make tests discover missing coverage from the selectable catalog.",
+    "current": {
+      "system": "28-entry cached weapon bank with fallback for five actual firearms",
+      "correctness": 3,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 3,
+      "performance": 5,
+      "regression_coverage": 3,
+      "evidence_paths": [
+        "res://scripts/audio/lab_leak_audio_engine.gd",
+        "res://docs/WEAPON_SOUND_BANK.md"
+      ]
+    },
+    "candidate": {
+      "system": "33-entry coverage-audited bank with explicit match confidence and two provisional substitutes",
+      "correctness": 4,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 4,
+      "performance": 5,
+      "regression_coverage": 5,
+      "evidence_paths": [
+        "res://config/weapon_sound_bank.json",
+        "res://tools/weapon_sound_bank_regression.gd",
+        "res://docs/WEAPON_AUDIO_COVERAGE.md"
+      ]
+    }
+  }
+}

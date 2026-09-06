@@ -1,0 +1,110 @@
+{
+  "schema_version": 1,
+  "feature_id": "directional_locomotion_phase_continuity",
+  "player_intent": "Changing direction while standing or crouched continues the current gait cycle instead of visibly restarting the animation from its first frame.",
+  "acceptance_rule": "Standing and crouched lateral points reuse their posture-matched forward gait source with bounded hip yaw, both BlendSpace2D nodes use Cyclic Mutable synchronization, and a forward-to-right switch advances normalized phase by more than 0.001 and less than 0.08 in one physics frame. Opposing A/D and W/S direction changes reach at least 0.99 logical and rendered target alignment within one second at 30, 60, and 120 Hz. Standing heading changes stay below 45 degrees per update; crouch crossfades through a shared center gait with coordinate steps below 0.5 and an advancing gait clock. See crouch_strafe_height_continuity for live action and actual-playhead coverage.",
+  "translation_card": {
+    "player_intent": "Reversing movement while standing or crouched turns the displayed gait toward the new input without restarting its cycle.",
+    "acceptance_rule": "All 24 opposing-direction stance and frame-rate cases converge within one second while gait phase continues.",
+    "system_owner": "SocomOperatorLocomotionBlendTree",
+    "must_not_change": "CharacterBody3D movement, SOCOM camera and reticle, server weapons and damage, weapon contacts, and animation action ownership.",
+    "focused_proof": "tools/directional_locomotion_phase_regression.gd fails all 24 opposing cases with normalized vector lerp and passes with heading interpolation; canonical rendered reversal and foot-contact quality still require the separate visual audit."
+  },
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://animation_library_lab.tscn",
+  "ownership": {
+    "directional_clip_and_yaw_data": "SocomOperatorAnimationProfile",
+    "normalized_gait_phase": "SocomOperatorLocomotionBlendTree",
+    "movement_and_collision": "SocomTestPlayer"
+  },
+  "nodes": [
+    {
+      "id": "directional_locomotion_graph",
+      "type": "AnimationTree",
+      "role": "Blends logical movement directions on one normalized gait clock while leaving authoritative movement unchanged.",
+      "owner": "SocomOperatorLocomotionBlendTree",
+      "source_script": "res://scripts/player/operator_locomotion_blend_tree.gd",
+      "code_symbols": [
+        "SYNC_MODE_CYCLIC_MUTABLE",
+        "shared_phase",
+        "parameters/crouch_space/blend_position"
+      ]
+    },
+    {
+      "id": "directional_animation_profile",
+      "type": "Resource",
+      "role": "Resolves left and right logical slots to one forward source take plus a bounded visual hip-yaw offset.",
+      "owner": "SocomOperatorAnimationProfile",
+      "source_script": "res://scripts/player/operator_animation_profile.gd",
+      "code_symbols": [
+        "DEFAULT_CLIP_ALIASES",
+        "DEFAULT_POSE_YAW_OFFSETS_DEGREES"
+      ]
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://config/operator_animation_map.json",
+      "writer": "res://addons/socom_authoring/animation_route_repository.gd",
+      "readers": [
+        "res://scripts/player/operator_animation_profile.gd",
+        "res://scripts/player/operator_locomotion_blend_tree.gd"
+      ]
+    },
+    {
+      "path": "res://config/agls_operator_animation_map.json",
+      "writer": "res://scripts/labs/animation_studio/animation_studio_weapon.gd",
+      "readers": [
+        "res://scripts/player/operator_animation_profile.gd",
+        "res://scripts/player/operator_asset_runtime.gd"
+      ]
+    }
+  ],
+  "must_not_change": [
+    "CharacterBody3D movement direction, velocity, speed, collision, and root transform",
+    "SOCOM camera, reticle, and aim-intent ownership",
+    "server weapon, shot, damage, reload, and multiplayer authority",
+    "upper-body weapon contacts, shoulder-square constraints, and action animation ownership",
+    "stair-grounding and planted-foot presentation ownership"
+  ],
+  "proof_scripts": [
+    "res://tools/directional_locomotion_phase_regression.gd",
+    "res://tools/operator_animation_regression.gd",
+    "res://tools/feature_contract_regression.gd"
+  ],
+  "visual_check": "In res://main.tscn, hold forward and switch directly to left or right while standing, then repeat crouched. Also reverse A to D, D to A, W to S, and S to W after each direction has settled. Confirm the gait turns with the new input without restarting. Planted-foot sliding and pose-pop quality remain a separate failing baseline gate and are not certified by this contract.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Keep cyclic synchronization, shared forward aliases and response rates. Standing uses shortest-angle easing. The later crouch-height pass uses unnormalized blend-coordinate easing through a forward center node; unlike the old normalized chord, it crosses zero without becoming stuck. The actual crouch playhead/action path is separately covered by crouch_strafe_height_continuity. General planted-foot quality is not certified here.",
+    "current": {
+      "system": "Canonical cyclic graph normalizes each direction lerp, trapping exact opposing vectors at their old direction",
+      "correctness": 2,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 4,
+      "performance": 5,
+      "regression_coverage": 2,
+      "evidence_paths": [
+        "res://config/operator_animation_map.json",
+        "res://scripts/player/operator_locomotion_blend_tree.gd",
+        "res://tools/operator_locomotion_quality_regression.gd"
+      ]
+    },
+    "candidate": {
+      "system": "The same graph eases direction headings with lerp_angle, preserves the shared gait clock, and tests all cardinal reversals across both stances and three frame rates",
+      "correctness": 4,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 4,
+      "performance": 5,
+      "regression_coverage": 4,
+      "evidence_paths": [
+        "res://config/operator_animation_map.json",
+        "res://config/agls_operator_animation_map.json",
+        "res://scripts/player/operator_animation_profile.gd",
+        "res://scripts/player/operator_locomotion_blend_tree.gd",
+        "res://tools/directional_locomotion_phase_regression.gd"
+      ]
+    }
+  }
+}

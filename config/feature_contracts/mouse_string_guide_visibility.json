@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "feature_id": "mouse_string_guide_visibility",
+  "player_intent": "Mouse aim string stays active; M only shows or hides its guide.",
+  "acceptance_rule": "M press toggles guide visibility without changing aim mode, angles, destination or offset; hidden aim continues updating and key repeats do not toggle.",
+  "canonical_scene": "res://main.tscn",
+  "ownership": {"input_and_aim": "SocomCameraRig", "guide_drawing": "SocomMouseAimStringGuide"},
+  "nodes": [{"id": "camera", "type": "Node3D", "role": "Canonical input and aim owner", "owner": "SocomCameraRig", "scene_path": "res://scenes/camera/socom_camera_rig.tscn", "node_path": "."}],
+  "data_contracts": [{"path": "res://scripts/camera/camera_profile.gd", "writer": "res://docs/MOUSE_STRING_GUIDE_VISIBILITY.md", "readers": ["res://scripts/camera/socom_camera.gd"]}],
+  "must_not_change": ["aim sensitivity/deadzone/smoothing", "VRC and bullet aim", "controller ownership", "movement", "animation", "network authority"],
+  "proof_scripts": ["res://tools/mouse_aim_string_regression.gd", "res://tools/input_device_ownership_regression.gd"],
+  "visual_check": "M shows/hides the blue string guide while identical mouse motion continues to steer aim in both states.",
+  "system_delta": {
+    "decision": "REPLACE",
+    "reason": "Replace M's mode-reset call with visibility-only state; preserve the existing always-active default mouse model.",
+    "current": {"system": "M toggles and resets the aim model", "correctness": 1, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 3, "performance": 5, "regression_coverage": 2, "evidence_paths": ["res://scripts/camera/camera_input_presenter.gd"]},
+    "candidate": {"system": "M toggles guide visibility only", "correctness": 5, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 5, "regression_coverage": 5, "evidence_paths": ["res://scripts/camera/socom_camera.gd", "res://tools/mouse_aim_string_regression.gd"]}
+  }
+}

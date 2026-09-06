@@ -250,41 +250,7 @@ func _measure_gunsmith_weapon_roll_error(
 	barrel_direction: Vector3,
 	desired_roll_degrees: float
 ) -> float:
-	if (
-		weapon_node == null
-		or skeleton == null
-		or optic_socket == null
-		or muzzle_socket == null
-	):
-		return 0.0
-	var direction := barrel_direction.normalized()
-	if direction.length_squared() < 0.50:
-		return 0.0
-	var barrel_origin := (
-		barrel_base_socket.global_position
-		if barrel_base_socket != null
-		else trigger_socket.global_position
-	)
-	# Optic-above-barrel is a model-independent weapon-up reference. Unlike a
-	# mesh axis, it survives FBX axis conversion and the saved grip transform.
-	var actual_up := optic_socket.global_position - barrel_origin
-	actual_up -= direction * actual_up.dot(direction)
-	var desired_up := skeleton.global_basis.y.normalized()
-	desired_up -= direction * desired_up.dot(direction)
-	if actual_up.length_squared() < 0.000001 or desired_up.length_squared() < 0.000001:
-		return 0.0
-	actual_up = actual_up.normalized()
-	desired_up = desired_up.normalized()
-	if not is_zero_approx(desired_roll_degrees):
-		desired_up = Quaternion(
-			direction,
-			deg_to_rad(desired_roll_degrees)
-		) * desired_up
-	return atan2(
-		direction.dot(actual_up.cross(desired_up)),
-		actual_up.dot(desired_up)
-	)
-
+	return AimAlignment._measure_gunsmith_weapon_roll_error(self, barrel_direction, desired_roll_degrees)
 
 func _capture_gunsmith_ready_baseline(posture: StringName) -> void:
 	if (
@@ -438,7 +404,12 @@ func _stable_chest_anchor(
 	posture: StringName,
 	movement_state: StringName
 ) -> Vector3:
-	return PoseGeometry.stable_chest_anchor(body, posture, movement_state)
+	return PoseGeometry.stable_chest_anchor(
+		body,
+		posture,
+		movement_state,
+		dive_weapon_presentation
+	)
 
 
 func _gun_placement_carry_reference_world() -> Vector3:

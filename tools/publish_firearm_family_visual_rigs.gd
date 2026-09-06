@@ -12,27 +12,27 @@ const ASSIGNMENTS_PATH := "res://config/weapon_family_visual_assignments.json"
 
 const MODEL_SPECS := {
 	"res://assets/weapons/modular_pack/Pistol_1.fbx": {
-		"id": "family_pistol_1_v2", "revision": 2, "archetype": "pistol",
+		"id": "family_pistol_1_v3", "revision": 3, "archetype": "pistol",
 		"target_length_m": 0.190, "categories": ["Pistols"],
 	},
 	"res://assets/weapons/modular_pack/Pistol_2.fbx": {
-		"id": "family_pistol_2_v2", "revision": 2, "archetype": "pistol",
+		"id": "family_pistol_2_v3", "revision": 3, "archetype": "pistol",
 		"target_length_m": 0.220, "categories": ["Pistols"],
 	},
 	"res://assets/weapons/modular_pack/Pistol_3.fbx": {
-		"id": "family_pistol_3_v2", "revision": 2, "archetype": "pistol",
+		"id": "family_pistol_3_v3", "revision": 3, "archetype": "pistol",
 		"target_length_m": 0.210, "categories": ["Pistols"],
 	},
 	"res://assets/weapons/modular_pack/Pistol_4.fbx": {
-		"id": "family_pistol_4_v2", "revision": 2, "archetype": "pistol",
+		"id": "family_pistol_4_v3", "revision": 3, "archetype": "pistol",
 		"target_length_m": 0.270, "categories": ["Pistols"],
 	},
 	"res://assets/weapons/modular_pack/Pistol_5.fbx": {
-		"id": "family_pistol_5_v2", "revision": 2, "archetype": "pistol",
+		"id": "family_pistol_5_v3", "revision": 3, "archetype": "pistol",
 		"target_length_m": 0.217, "categories": ["Pistols"],
 	},
 	"res://assets/weapons/modular_pack/Pistol_6.fbx": {
-		"id": "family_pistol_6_v2", "revision": 2, "archetype": "pistol",
+		"id": "family_pistol_6_v3", "revision": 3, "archetype": "pistol",
 		"target_length_m": 0.196, "categories": ["Pistols"],
 	},
 	"res://assets/weapons/modular_pack/SubmachineGun_1.fbx": {
@@ -54,11 +54,11 @@ const MODEL_SPECS := {
 	},
 	"res://assets/weapons/modular_pack/AssaultRifle2_1.fbx": {
 		"id": "family_rifle_552_v1", "archetype": "rifle",
-		"target_length_m": 0.730, "categories": ["Assault Rifles"],
+		"target_length_m": 0.730, "categories": ["Assault Rifles", "Machine Guns"],
 	},
 	"res://assets/weapons/modular_pack/AssaultRifle2_3.fbx": {
 		"id": "family_rifle_aks74_v1", "archetype": "rifle",
-		"target_length_m": 0.735, "categories": ["Assault Rifles"],
+		"target_length_m": 0.735, "categories": ["Assault Rifles", "Machine Guns"],
 	},
 	"res://assets/weapons/modular_pack/AssaultRifle2_4.fbx": {
 		"id": "family_rifle_m14_v1", "archetype": "rifle",
@@ -85,14 +85,40 @@ const MODEL_SPECS := {
 		"target_length_m": 0.720, "categories": ["Assault Rifles"],
 	},
 	"res://assets/weapons/modular_pack/Shotgun_1.fbx": {
-		"id": "family_shotgun_1_v1", "archetype": "shotgun",
-		"target_length_m": 0.950, "categories": ["Assault Rifles"],
+		"id": "family_shotgun_1_v2", "revision": 2, "archetype": "shotgun",
+		"target_length_m": 0.950, "categories": ["Assault Rifles", "Shotguns"],
+		"support_z_m": 0.220,
 	},
 	"res://assets/weapons/modular_pack/SniperRifle_1.fbx": {
 		"id": "family_sniper_1_v2", "revision": 2, "archetype": "sniper",
-		"target_length_m": 1.150, "categories": ["Assault Rifles"],
+		"target_length_m": 1.150, "categories": ["Assault Rifles", "Sniper Rifles"],
 		# The 1.15 m receiver makes the generic far-forward contact unreachable in
 		# crouch. This point remains on the handguard while keeping a natural elbow.
+		"support_z_m": 0.220,
+	},
+	"res://assets/weapons/modular_pack/AssaultRifle2_2.fbx": {
+		"id": "family_machinegun_2_v1", "archetype": "rifle",
+		"target_length_m": 1, "categories": ["Machine Guns"],
+		"support_z_m": 0.220,
+	},
+	"res://assets/weapons/modular_pack/Shotgun_2.fbx": {
+		"id": "family_shotgun_2_v1", "archetype": "shotgun",
+		"target_length_m": 1, "categories": ["Shotguns"],
+		"support_z_m": 0.220,
+	},
+	"res://assets/weapons/modular_pack/SniperRifle_2.fbx": {
+		"id": "family_sniper_2_v1", "archetype": "sniper",
+		"target_length_m": 1.15, "categories": ["Sniper Rifles"],
+		"support_z_m": 0.220,
+	},
+	"res://assets/weapons/modular_pack/SniperRifle_3.fbx": {
+		"id": "family_sniper_3_v1", "archetype": "sniper",
+		"target_length_m": 1.15, "categories": ["Sniper Rifles"],
+		"support_z_m": 0.220,
+	},
+	"res://assets/weapons/modular_pack/SniperRifle_4.fbx": {
+		"id": "family_sniper_4_v1", "archetype": "sniper",
+		"target_length_m": 1.1, "categories": ["Sniper Rifles"],
 		"support_z_m": 0.220,
 	},
 }
@@ -141,7 +167,7 @@ func _publish() -> void:
 	var assignment_document := {
 		"schema_version": 1,
 		"owner": "GunsLab2VisualRigResolver",
-		"description": "Published model-specific presentation inherited only by sparse pistol, assault-rifle, and SMG profiles.",
+		"description": "Published model-specific presentation inherited by sparse firearm profiles; authored weapon rigs retain priority.",
 		"excluded_weapon_ids": [
 			"designator", "air_to_ground_missile", "exploding_fuel",
 		],
@@ -297,7 +323,7 @@ func _support_hand_pose(archetype: String) -> Dictionary:
 
 
 func _handling_profile(family: String, archetype: String) -> Dictionary:
-	return {
+	var profile := {
 		"family": family,
 		"support_hand_required": true,
 		"locomotion_family": "PISTOL" if archetype == "pistol" else "RIFLE",
@@ -324,6 +350,28 @@ func _handling_profile(family: String, archetype: String) -> Dictionary:
 			"fire_terminal_pose_hold_seconds": 0.12,
 		},
 	}
+	if archetype == "pistol":
+		# Same approved stationary pair as Mark23, preserving existing moving
+		# sources and every model-specific contact. Publish a new rig revision.
+		profile["animation_slots"] = {
+			"idle_standing": "pistol_compressed_idle_standing",
+			"idle_crouched": "pistol_compressed_idle_crouched",
+			"ready_standing": "pistol_recovery_reference_standing",
+			"ready_crouched": "pistol_recovery_reference_crouched",
+			"idle_standing_moving": "pistol_idle",
+			"ready_standing_moving": "pistol_idle",
+			"ready_crouched_moving": "pistol_idle_kneeling",
+		}
+		profile["dynamic_hold"].merge({
+			"authored_compressed_idle_enabled": true,
+			"procedural_ready_hand_weight": 0.35,
+			"procedural_ready_spine_weight": 1.0,
+		}, true)
+		profile["ready_aim"].merge({
+			"compressed_enter_response": 8.0,
+			"locomotion_blend_seconds": 0.24,
+		}, true)
+	return profile
 
 
 func _combined_aabb(root_node: Node3D) -> AABB:

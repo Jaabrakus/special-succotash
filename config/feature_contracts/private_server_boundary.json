@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "feature_id": "private_server_boundary",
+  "player_intent": "Do not download privileged persistence implementation in the browser.",
+  "acceptance_rule": "Actual web PCK excludes backend and outbox scripts; native service construction still passes.",
+  "canonical_scene": "res://multiplayer_slice.tscn",
+  "ownership": {"private_service_loading": "Existing multiplayer session"},
+  "nodes": [{"id": "session", "type": "Node3D", "role": "Loads dedicated-only services", "owner": "Existing multiplayer session", "scene_path": "res://multiplayer_slice.tscn", "node_path": "."}],
+  "data_contracts": [{"path": "res://config/web_release_policy.json", "writer": "res://tools/export_restricted_web.sh", "readers": ["res://tools/web_release_audit.gd"]}],
+  "must_not_change": ["movement", "camera", "animation", "weapon_tuning", "network_wire_protocol"],
+  "proof_scripts": ["res://tools/private_server_boundary_regression.gd", "res://tools/web_release_audit.gd"],
+  "visual_check": "Browser launcher and training boot; no pose change intended. Full dedicated match parity remains outstanding.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Physically exclude private persistence code without removing player-host simulation or changing gameplay.",
+    "current": {"system": "Eager private service imports", "correctness": 2, "ownership_clarity": 3, "runtime_parity": 3, "editor_usability": 4, "performance": 4, "regression_coverage": 2, "evidence_paths": ["res://scripts/network/socom_multiplayer_state.gd", "res://export_presets.cfg"]},
+    "candidate": {"system": "Native-only private loading and audited exclusions", "correctness": 4, "ownership_clarity": 4, "runtime_parity": 4, "editor_usability": 4, "performance": 4, "regression_coverage": 4, "evidence_paths": ["res://scripts/network/socom_multiplayer_session.gd", "res://tools/private_server_boundary_regression.gd", "res://config/web_release_policy.json"]}
+  }
+}

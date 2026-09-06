@@ -1,7 +1,7 @@
 class_name SocomMainTrainingWorld
 extends Node
 
-const PlayerScene := preload("res://scenes/player/native_ik_socom_player.tscn")
+const PlayerScene := preload("res://scenes/player/operator_player.tscn")
 const CameraRig := preload("res://scripts/camera/socom_camera.gd")
 const TargetDummy := preload("res://scripts/combat/lab_leak_target_dummy.gd")
 const MovingTargetDummy := preload("res://scripts/combat/socom_moving_training_dummy.gd")
@@ -74,9 +74,10 @@ func build_environment() -> void:
 	if not map_document.is_empty() and bool(map_document.get("enabled", true)):
 		if host.has_node("World"):
 			var world_node: Node = host.get_node("World")
-			if world_node is CanvasItem or world_node is Node3D:
-				world_node.visible = false
-				world_node.process_mode = Node.PROCESS_MODE_DISABLED
+			# Visibility does not unregister WorldEnvironment or physics bodies.
+			# The authored map must be the sole environment/collision world.
+			host.remove_child(world_node)
+			world_node.queue_free()
 		MapAmbience.build_into(host, map_document)
 		_profile_startup_step("map_ambience", phase_started)
 		phase_started = Time.get_ticks_usec()

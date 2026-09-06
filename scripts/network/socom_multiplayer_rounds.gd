@@ -64,23 +64,15 @@ func _team_is_eliminated(team: int) -> bool:
 
 
 func _advance_round_clock(delta: float) -> void:
-	if not session_active or not round_active or round_resolution_pending:
-		return
-	if bomb_planted:
-		return
-	round_time_remaining = maxf(0.0, round_time_remaining - delta)
-	var shown_second := ceili(round_time_remaining)
-	if shown_second != last_round_clock_second:
-		last_round_clock_second = shown_second
+	var decision := RoundPolicy.advance_clock(round_time_remaining, last_round_clock_second, delta,
+		session_active and round_active and not round_resolution_pending and not bomb_planted,
+		String(round_rules.get("timeout_result", "draw")))
+	round_time_remaining = decision.remaining
+	last_round_clock_second = decision.shown
+	if decision.broadcast:
 		_broadcast_round_state()
-	if round_time_remaining <= 0.0:
-		var timeout_result := String(round_rules.get("timeout_result", "draw"))
-		var winner_team := -1
-		if timeout_result == "alpha":
-			winner_team = 0
-		elif timeout_result == "bravo":
-			winner_team = 1
-		_server_finish_round(winner_team, "TIME EXPIRED")
+	if decision.expired:
+		_server_finish_round(int(decision.winner), "TIME EXPIRED")
 
 
 func _server_finish_round(winner_team: int, reason: String) -> void:
@@ -98,12 +90,7 @@ func _server_finish_round(winner_team: int, reason: String) -> void:
 	await get_tree().create_timer(4.0).timeout
 	if not multiplayer.is_server():
 		return
-	var rounds_to_win := int(round_rules.get("rounds_to_win", 4))
-	var maximum_rounds := int(round_rules.get("maximum_rounds", 7))
-	var match_complete := (
-		(winner_team in [0, 1] and int(team_round_wins.get(winner_team, 0)) >= rounds_to_win)
-		or round_index >= maximum_rounds
-	)
+	var match_complete := RoundPolicy.match_complete(winner_team, team_round_wins, round_index, round_rules)
 	if match_complete:
 		_server_return_to_lobby(winner_team)
 	else:
@@ -187,41 +174,15 @@ func _respawn_after_delay(peer_id: int) -> void:
 		_reset_ammo_for_peer(peer_id)
 
 
-func _present_shot(
-	shooter_peer_id: int,
-	origin: Vector3,
-	impact: Vector3,
-	hit: bool,
-	message: String
-) -> void:
-	var weapon_config := _weapon_config_for_peer(shooter_peer_id)
-	TracerSystemScript.spawn_tracer(
-		get_tree(),
-		origin,
-		impact,
-		Color(1.0, 0.86, 0.30),
-		float(weapon_config.get("ballistics", {}).get("muzzle_velocity_mps", 715.0))
-	)
-	if not dedicated_server_mode:
-		AudioEngine.play_gunshot(
-			get_tree(),
-			bool(weapon_config.get("ballistics", {}).get("is_silenced", false)),
-			origin,
-			false,
-			_acoustic_exclusions_for_shooter(shooter_peer_id)
-		)
-	if hit:
-		if message != "MISS":
-			TracerSystemScript.spawn_body_hit_effect(
-				get_tree(), impact, Vector3.UP, message.begins_with("HEAD")
-			)
-			if not dedicated_server_mode:
-				AudioEngine.play_body_impact(
-					get_tree(), impact, message.begins_with("HEAD")
-				)
-		else:
-			TracerSystemScript.spawn_impact_effect(get_tree(), impact, Vector3.UP)
+func _present_shot(shooter_peer_id: int, origin: Vector3, impact: Vector3, hit: bool, message: String) -> void:
+	if not dedicated_server_mode and shot_presentation != null:
+		shot_presentation.present_shot(origin, impact, hit, message,
+			_weapon_config_for_peer(shooter_peer_id), _acoustic_exclusions_for_shooter(shooter_peer_id))
 	if shooter_peer_id == multiplayer.get_unique_id():
+		if local_camera != null and not dedicated_server_mode:
+			local_camera.notify_functional_aim_climb()
+		if reticle != null and not dedicated_server_mode:
+			reticle.notify_shot()
 		_set_status("SHOT  •  %s" % message)
 
 
@@ -260,12 +221,13 @@ func _apply_ballistics_profile(ballistics, weapon_config: Dictionary = {}) -> vo
 	ballistics.crouch_bloom_per_shot_deg = float(values.get("crouch_bloom_per_shot_deg", 1.35))
 	ballistics.crouch_max_recoil_bloom_deg = float(values.get("crouch_max_recoil_bloom_deg", 1.70))
 	ballistics.crouch_bloom_recovery_speed = float(values.get("crouch_bloom_recovery_speed", 18.0))
-	ballistics.fire_interval = 60.0 / maxf(60.0, ballistics.fire_rate_rpm)
+	ballistics.configure_projectiles(values)
+	ballistics.fire_interval = 60.0 / maxf(1.0, ballistics.fire_rate_rpm)
 
 
 func _configured_fire_interval() -> float:
 	var rpm := float(equipped_config.get("ballistics", {}).get("fire_rate_rpm", 600.0))
-	return 60.0 / maxf(60.0, rpm)
+	return 60.0 / maxf(1.0, rpm)
 
 
 func _request_local_reload() -> void:
@@ -273,6 +235,9 @@ func _request_local_reload() -> void:
 		local_operator == null
 		or local_operator.mannequin == null
 		or local_reload_pending
+		or not local_operator.alive
+		or local_reserve_ammo <= 0
+		or local_magazine_ammo >= int(equipped_config.get("ballistics", {}).get("magazine_capacity", 30))
 	):
 		return
 	var driver: Node = local_operator.mannequin.get("production_animation") as Node
@@ -285,20 +250,31 @@ func _request_local_reload() -> void:
 	):
 		return
 	local_reload_pending = true
+	# Clear the counterpart's previous one-shot subscription before replay.
+	if driver.action_completed.is_connected(_on_local_reload_animation_completed):
+		driver.action_completed.disconnect(_on_local_reload_animation_completed)
+	if driver.action_cancelled.is_connected(_on_local_reload_animation_cancelled):
+		driver.action_cancelled.disconnect(_on_local_reload_animation_cancelled)
 	driver.action_completed.connect(_on_local_reload_animation_completed, CONNECT_ONE_SHOT)
 	driver.action_cancelled.connect(_on_local_reload_animation_cancelled, CONNECT_ONE_SHOT)
+	if multiplayer.is_server():
+		_server_reload_weapon(multiplayer.get_unique_id())
+	else:
+		submit_reload.rpc_id(1, true)
 
 
 func _on_local_reload_animation_completed(clip_name: StringName) -> void:
 	if not local_reload_pending or "reload" not in String(clip_name).to_lower():
 		return
 	local_reload_pending = false
-	var peer_id := multiplayer.get_unique_id()
-	if multiplayer.is_server():
-		_server_reload_weapon(peer_id)
-	else:
-		submit_reload.rpc_id(1)
+	# Presentation finishing is not an ammunition grant. The server clock owns it.
 
 func _on_local_reload_animation_cancelled(clip_name: StringName) -> void:
 	if "reload" in String(clip_name).to_lower():
 		local_reload_pending = false
+		if multiplayer.is_server():
+			var peer_id := multiplayer.get_unique_id()
+			combat_commands.cancel_reload(peer_id)
+			reload_authority.cancel(peer_id)
+		else:
+			submit_reload.rpc_id(1, false)

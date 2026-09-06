@@ -166,7 +166,10 @@ static func decorate_saved_profile(profile: Dictionary, weapon_id: String) -> Di
 	profile["display_name"] = String(resolved.display_name)
 	profile["category"] = String(resolved.category)
 	profile["model_fbx"] = String(resolved.model_fbx)
-	profile["catalog_source"] = "reCOM zweapon.rdr"
+	profile["catalog_source"] = String(record.get("catalog_source", "reCOM zweapon.rdr"))
+	for metadata_field in ["provenance", "audio_reference", "competitive_eligible", "training_only", "presentation_status"]:
+		if record.has(metadata_field) and not profile.has(metadata_field):
+			profile[metadata_field] = record[metadata_field]
 	profile["catalog_weapon_id"] = String(resolved.catalog_id)
 	profile["socom_original_id"] = int(record.get("socom_original_id", 0))
 	profile["encumbrance"] = int(record.get("encumbrance", 0))

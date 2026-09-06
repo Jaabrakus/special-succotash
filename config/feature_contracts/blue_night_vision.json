@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "feature_id": "blue_night_vision",
+  "player_intent": "Blue night vision with readable shadow detail and light edge shading.",
+  "acceptance_rule": "Canonical toggle enables blue screen grading and existing IR light; shadows retain distinct brightness, highlights stay bounded, and toggling off disables both.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://game_launcher.tscn",
+  "ownership": {"night_vision": "SocomNightVisionOverlay"},
+  "nodes": [{
+    "id": "night_vision", "type": "CanvasLayer", "role": "Local screen grading beneath HUD",
+    "owner": "SocomNightVisionOverlay",
+    "source_script": "res://scripts/runtime/main_gameplay_hud_builder.gd",
+    "code_symbols": ["NightVisionOverlay.new()", "hud.add_child(hud.night_vision_overlay)"]
+  }, {
+    "id": "night_vision_toggle", "type": "Node", "role": "Existing local toggle owner",
+    "owner": "SocomMainGameplayHud",
+    "source_script": "res://scripts/runtime/main_gameplay_hud.gd",
+    "code_symbols": ["_toggle_public_night_vision"]
+  }],
+  "data_contracts": [{
+    "path": "res://config/night_vision.json",
+    "writer": "res://scripts/effects/socom_night_vision_overlay.gd",
+    "readers": ["res://scripts/effects/socom_night_vision_overlay.gd"]
+  }],
+  "must_not_change": ["camera transforms", "HUD layer", "movement", "weapons", "normal lighting", "network authority"],
+  "proof_scripts": ["res://tools/night_vision_regression.gd"],
+  "visual_check": "Rendered canonical scene, night vision off then on: blue shadows readable, no bright flat wash or black iris edges.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Replace clipping transfer curve and hardcoded green with bounded shared blue grading in the existing local owner.",
+    "current": {"system": "Clipped green gain and opaque edges", "correctness": 1, "ownership_clarity": 5, "runtime_parity": 4, "editor_usability": 2, "performance": 5, "regression_coverage": 1, "evidence_paths": ["res://docs/BLUE_NIGHT_VISION.md"]},
+    "candidate": {"system": "Blue grading with bounded shadow gain", "correctness": 4, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 5, "regression_coverage": 4, "evidence_paths": ["res://scripts/effects/socom_night_vision_overlay.gd", "res://tools/night_vision_regression.gd"]}
+  }
+}

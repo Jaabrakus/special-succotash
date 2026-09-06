@@ -1,6 +1,10 @@
 class_name LabLeakAudioEngine
 extends Node
 
+const WEAPON_SOUND_BANK_PATH := "res://config/weapon_sound_bank.json"
+static var _weapon_streams: Dictionary = {}
+static var _weapon_bank_loaded := false
+
 const FRAG_CORE_STREAM := preload(
 	"res://assets/audio/grenades/frag_core_grenade_training_cc0.mp3"
 )
@@ -65,27 +69,33 @@ static func play_gunshot(
 	is_silenced: bool = false,
 	world_position := Vector3(INF, INF, INF),
 	force_direct := false,
-	exclude: Array = []
+	exclude: Array = [],
+	weapon_id: String = ""
 ) -> void:
+	var stream := gunshot_stream(is_silenced, weapon_id)
 	var propagation := tree.root.get_node_or_null("AcousticPropagation")
 	if propagation != null and propagation.has_method("play_event") and world_position.is_finite():
+		var options := {
+			"volume_db": -2.0 if is_silenced else 2.0,
+			"pitch_scale": randf_range(0.97, 1.03),
+			"exclude": exclude,
+		}
+		# Absence means resolve physics LOS. False is an explicit blocked-path
+		# override in the acoustic contract, not the normal automatic mode.
+		if force_direct:
+			options["direct_clear"] = true
 		propagation.call(
 			"play_event",
-			_silenced_gunshot_stream if is_silenced else _gunshot_stream,
+			stream,
 			world_position,
 			&"weapon",
-			{
-				"volume_db": -2.0 if is_silenced else 2.0,
-				"pitch_scale": randf_range(0.97, 1.03),
-				"direct_clear": force_direct,
-				"exclude": exclude,
-			}
+			options
 		)
 		return
 	var player := _get_available_player(tree)
 	player.bus = &"Effects" if AudioServer.get_bus_index(&"Effects") >= 0 else &"Master"
-	player.stream = _silenced_gunshot_stream if is_silenced else _gunshot_stream
-	player.volume_db = 2.0
+	player.stream = stream
+	player.volume_db = -2.0 if is_silenced else 2.0
 	player.pitch_scale = randf_range(0.95, 1.05)
 	player.play()
 
@@ -153,9 +163,36 @@ static func play_grenade_detonation(
 		player.play()
 
 
-static func gunshot_stream(is_silenced := false) -> AudioStreamWAV:
+static func gunshot_stream(is_silenced := false, weapon_id: String = "") -> AudioStreamWAV:
 	_build_cached_streams()
+	if _weapon_streams.has(weapon_id):
+		return _weapon_streams[weapon_id] as AudioStreamWAV
 	return _silenced_gunshot_stream if is_silenced else _gunshot_stream
+
+
+static func _load_weapon_sound_bank() -> void:
+	if _weapon_bank_loaded:
+		return
+	_weapon_bank_loaded = true
+	if not FileAccess.file_exists(WEAPON_SOUND_BANK_PATH):
+		return
+	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(WEAPON_SOUND_BANK_PATH))
+	if not parsed is Dictionary or not bool(parsed.get("enabled", false)):
+		return
+	var entries: Dictionary = parsed.get("weapons", {})
+	var use_cleaned := bool(parsed.get("use_cleaned_streams", false))
+	for weapon_id: String in entries:
+		var entry: Dictionary = entries[weapon_id]
+		var path := String(entry.get("stream", ""))
+		var cleaned_path := String(entry.get("cleaned_stream", ""))
+		if use_cleaned and not cleaned_path.is_empty() and ResourceLoader.exists(cleaned_path, "AudioStreamWAV"):
+			path = cleaned_path
+		if not ResourceLoader.exists(path, "AudioStreamWAV"):
+			push_warning("Weapon sound unavailable; keeping fallback: %s" % weapon_id)
+			continue
+		var stream := load(path) as AudioStreamWAV
+		if stream != null and stream.get_length() > 0.0:
+			_weapon_streams[weapon_id] = stream
 
 
 static func body_impact_layers(
@@ -239,13 +276,17 @@ static func shutdown() -> void:
 	_body_impact_snap_stream = null
 	_helmet_impact_stream = null
 	_is_initialized = false
+	_weapon_streams.clear()
+	_weapon_bank_loaded = false
 
 
 static func _build_cached_streams() -> void:
+	# Warm the small shared bank once, not from disk on every accepted shot.
+	_load_weapon_sound_bank()
 	if _gunshot_stream != null:
 		return
-	# This is the same wide-band tactical shot approved in the Sound Lab. Keep
-	# one shared stream so the Lab preview and gameplay can never drift apart.
+	# Preserve the Sound Lab's wide-band reference as the unknown-gun fallback.
+	# Identified weapons use the shared imported bank above.
 	_gunshot_stream = _build_acoustic_reference_shot()
 	_silenced_gunshot_stream = _build_gunshot_stream(0.16)
 	_hit_confirm_stream = _build_hit_confirm_stream(720.0)

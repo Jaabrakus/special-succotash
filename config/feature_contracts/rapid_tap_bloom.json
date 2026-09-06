@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "feature_id": "rapid_tap_bloom",
+  "player_intent": "Rapid single-fire clicking must accumulate bloom rather than reset opening-shot accuracy.",
+  "acceptance_rule": "Accepted rapid taps retain shot history and gain capped spread from shot three; local/server recovery is identical; a quiet period then full recovery restores accuracy and closes the canonical reticle.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://gun_calibration_lab.tscn",
+  "ownership": {"shot_accuracy": "SocomWeaponBallistics"},
+  "nodes": [
+    {"id": "ballistics", "type": "Node", "role": "Existing authoritative shot owner retains cadence and recovery state", "owner": "SocomWeaponBallistics", "source_script": "res://scripts/weapons/weapon_ballistics.gd", "code_symbols": ["bloom_recovery_delay_seconds", "var recovery_delta", "continuous_shot_count = 0"]},
+    {"id": "gunsmith_control", "type": "Control", "role": "Existing fire panel edits shared weapon profile", "owner": "SocomWeaponBallistics", "source_script": "res://scripts/labs/gunsmith/gunsmith_fire_panel.gd", "code_symbols": ["Bloom Quiet Period (s)"]},
+    {"id": "hud_consumer", "type": "Control", "role": "Existing HUD displays actual ballistic bloom", "owner": "SocomWeaponBallistics", "source_script": "res://scripts/runtime/main_gameplay_hud.gd", "code_symbols": ["weapon_controller.get_reticle_spread_normalized()", "dynamic_reticle.update_reticle_state("]}
+  ],
+  "data_contracts": [
+    {"path": "res://config/weapons/assaultrifle_1.json", "writer": "res://scripts/labs/gunsmith/gunsmith_persistence_controller.gd", "readers": ["res://scripts/weapons/weapon_rig_contract.gd", "res://scripts/weapons/socom_weapon_controller.gd", "res://scripts/network/socom_multiplayer_rounds.gd"]}
+  ],
+  "must_not_change": ["damage", "fire_rate", "fire_mode_input", "movement", "camera_aim", "animations", "network_authority", "reticle_design"],
+  "proof_scripts": ["res://tools/rapid_tap_bloom_regression.gd", "res://tools/rapid_tap_bloom_live_regression.gd", "res://tools/weapon_stance_bloom_regression.gd", "res://tools/weapon_fire_mode_policy_regression.gd", "res://tools/operator_composure_regression.gd"],
+  "visual_check": "Canonical scene reticle opens after rapid taps and closes after quiet-period recovery; rest/rapid/recovered captures.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Replace release/cooldown reset with accepted-shot quiet-period recovery inside the same owner; profile and Gunsmith share the delay.",
+    "current": {"system": "Trigger-release accuracy reset", "correctness": 2, "ownership_clarity": 5, "runtime_parity": 4, "editor_usability": 3, "performance": 5, "regression_coverage": 2, "evidence_paths": ["res://docs/RAPID_TAP_BLOOM.md"]},
+    "candidate": {"system": "Shared shot-timed bloom recovery", "correctness": 4, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 5, "regression_coverage": 4, "evidence_paths": ["res://scripts/weapons/weapon_ballistics.gd", "res://tools/rapid_tap_bloom_regression.gd", "res://tools/rapid_tap_bloom_live_regression.gd"]}
+  }
+}

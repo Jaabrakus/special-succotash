@@ -13,10 +13,11 @@ func _run() -> void:
 	var source := FileAccess.get_file_as_string(
 		"res://scripts/ui/socom_dynamic_reticle.gd"
 	)
-	_expect(source.find("draw_circle(") < 0, "combat reticle draws no center dot")
+	_expect(source.find("draw_circle(center, CENTER_DOT_RADIUS") >= 0, "combat reticle draws a fixed center point")
 	_expect(
-		source.find("draw_arc(center, current_gap") < 0,
-		"combat reticle draws no separate grey bloom circle"
+		source.find("draw_circle(center, CENTER_DISC_RADIUS") >= 0
+		and source.find("draw_arc(") < 0,
+		"combat reticle has a faint disc instead of the old U-shaped arc"
 	)
 	var reticle := DynamicReticle.new()
 	root.add_child(reticle)
@@ -38,11 +39,30 @@ func _run() -> void:
 	reticle.update_reticle_state(0.75, false, aim_center, false, 1.0)
 	reticle._process(0.5)
 	var moving_geometry: Dictionary = reticle.get_combat_reference_geometry()
-	_check_geometry(reticle, moving_geometry, aim_center, 30.0)
+	_check_geometry(reticle, moving_geometry, aim_center, 14.0)
 	_expect(
-		float(moving_geometry.arc_radius) > float(geometry.arc_radius),
-		"spread expands the open reference arc"
+		float(moving_geometry.radius) > float(geometry.radius)
+		and is_equal_approx(float(moving_geometry.disc_radius), float(geometry.disc_radius)),
+		"spread opens ticks without inflating the central backing disc"
 	)
+	reticle.update_reticle_state(0.0, true, aim_center, false, 0.0)
+	reticle._process(0.5)
+	_expect(absf(float(reticle.get_combat_reference_geometry().radius) - float(geometry.radius)) < 0.01,
+		"ticks recover to the original gap")
+	_expect(reticle.is_target_acquired, "target acquisition feedback remains available")
+	reticle.notify_hit()
+	_expect(reticle.hit_marker_timer > 0.0, "hit confirmation remains available")
+	reticle.update_reticle_state(0.0, false, aim_center, true)
+	_expect(reticle.current_mode == DynamicReticle.ReticleMode.INTERACT, "interaction brackets remain available")
+	reticle.update_reticle_state(0.0, false, aim_center)
+	_expect(reticle.current_mode == DynamicReticle.ReticleMode.COMBAT, "combat returns after interaction")
+	reticle.size = Vector2(1440.0, 1080.0)
+	reticle.update_reticle_state(0.0, false)
+	_check_geometry(reticle, reticle.get_combat_reference_geometry(), Vector2(720.0, 540.0), 14.0)
+	reticle.apply_profile({"base_gap_px": 12.0, "max_gap_px": 55.0})
+	reticle.update_reticle_state(1.0, false, aim_center)
+	reticle._process(0.5)
+	_expect(absf(reticle.current_gap - 55.0) < 0.01, "weapon switch consumes the next saved profile")
 
 	reticle.maximum_shot_kick_pixels = 20.0
 	reticle.shot_kick_pixels = 12.0
@@ -60,11 +80,13 @@ func _run() -> void:
 	)
 	_expect(
 		is_equal_approx(
-			float(bounced_geometry.arc_center.x),
+			float(bounced_geometry.center.x),
 			reticle.get_visual_center().x
 		),
-		"open arc remains horizontally centered on its invisible aim point"
+		"ticks remain horizontally centered during cosmetic feedback"
 	)
+	_expect((bounced_geometry.disc_center as Vector2).is_equal_approx(authority_before_bounce),
+		"center point and backing remain fixed during cosmetic feedback")
 
 	reticle.queue_free()
 	await process_frame
@@ -82,7 +104,7 @@ func _check_geometry(
 	aim_center: Vector2,
 	expected_lead_length: float
 ) -> void:
-	var arc_center: Vector2 = geometry.arc_center
+	var arc_center: Vector2 = geometry.center
 	var left_inner: Vector2 = geometry.left_inner
 	var left_outer: Vector2 = geometry.left_outer
 	var right_inner: Vector2 = geometry.right_inner
@@ -95,7 +117,7 @@ func _check_geometry(
 	)
 	_expect(
 		is_equal_approx(arc_center.x - left_inner.x, right_inner.x - arc_center.x),
-		"open arc is symmetric around the center reference"
+		"ticks are symmetric around the center reference"
 	)
 	_expect(
 		is_equal_approx(left_outer.distance_to(left_inner), expected_lead_length)
@@ -111,9 +133,10 @@ func _check_geometry(
 		"drop reference is one centered lower vertical stem"
 	)
 	_expect(
-		float(geometry.arc_start) > 0.0
-		and float(geometry.arc_end) < PI,
-		"reference arc is open above the invisible aim center"
+		(geometry.ticks as PackedVector2Array).size() == 8
+		and (geometry.top_inner as Vector2).is_equal_approx(arc_center - Vector2(0.0, float(geometry.radius)))
+		and (geometry.top_outer as Vector2).is_equal_approx(arc_center * 2.0 - drop_outer),
+		"four cardinal ticks include a symmetric upper tick"
 	)
 
 

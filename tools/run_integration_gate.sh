@@ -80,6 +80,8 @@ run_godot_check "animation-sequence-service" "res://tools/animation_sequence_ser
 run_godot_check "apple-mocap-pipeline" "res://tools/apple_mocap_pipeline_regression.gd" "APPLE_MOCAP_PIPELINE_REGRESSION PASS"
 run_godot_check "pose-ownership-contract" "res://tools/pose_ownership_contract_regression.gd" "POSE_OWNERSHIP_CONTRACT_REGRESSION PASS"
 run_godot_check "animation-state-authoring" "res://tools/animation_state_authoring_regression.gd" "ANIMATION_STATE_AUTHORING_REGRESSION PASS"
+run_godot_check "locomotion-playback-cadence" "res://tools/locomotion_playback_cadence_regression.gd" "LOCOMOTION_PLAYBACK_CADENCE_REGRESSION PASS"
+run_godot_check "directional-locomotion-phase" "res://tools/directional_locomotion_phase_regression.gd" "DIRECTIONAL_LOCOMOTION_PHASE_REGRESSION PASS"
 run_godot_check "operator-pose-pipeline" "res://tools/operator_pose_pipeline_regression.gd" "OPERATOR_POSE_PIPELINE_REGRESSION PASS"
 run_godot_check "weapon-auto-reload" "res://tools/weapon_auto_reload_regression.gd" "WEAPON_AUTO_RELOAD_REGRESSION PASS"
 run_godot_check "weapon-fire" "res://tools/weapon_fire_regression.gd" "WEAPON_FIRE_REGRESSION PASS" -- --camera-regression-map
@@ -91,19 +93,22 @@ run_godot_check "feature-contracts" "res://tools/feature_contract_regression.gd"
 "$project_dir/tools/run_operator_animation_regression.sh"
 "$project_dir/tools/run_operator_weapon_pose_regression.sh"
 "$project_dir/tools/run_mobility_regression.sh"
+run_godot_check "dive-weapon-descent" "res://tools/dive_hand_attachment_regression.gd" "DIVE_HAND_ATTACHMENT_REGRESSION PASS"
 run_godot_check "gun-lab" "res://tools/gun_lab_animation_catalog_regression.gd" "GUN_LAB_ANIMATION_CATALOG_REGRESSION PASS"
 run_godot_check "guns-lab-2-profile" "res://tools/guns_lab_2_profile_regression.gd" "GUNS_LAB_2_PROFILE_REGRESSION PASS"
 run_godot_check "guns-lab-2-runtime" "res://tools/guns_lab_2_runtime_regression.gd" "GUNS_LAB_2_RUNTIME_REGRESSION PASS"
 run_godot_check "firearm-family-presentation" "res://tools/firearm_family_presentation_regression.gd" "FIREARM_FAMILY_PRESENTATION_REGRESSION PASS"
 run_godot_check "gunsmith-recom-catalog" "res://tools/gunsmith_recom_catalog_regression.gd" "GUNSMITH_RECOM_CATALOG_REGRESSION PASS"
-run_godot_check "buy-menu" "res://tools/buy_menu_regression.gd" "BUY_MENU_REGRESSION PASS"
+run_godot_check "round-random-weapon" "res://tools/round_random_weapon_regression.gd" "ROUND_RANDOM_WEAPON_REGRESSION PASS"
+run_godot_check "public-training-range" "res://tools/public_training_range_regression.gd" "PUBLIC_TRAINING_RANGE_REGRESSION PASS"
 run_godot_check "weapon-rig-integration" "res://tools/weapon_rig_integration_regression.gd" "WEAPON_RIG_INTEGRATION_REGRESSION PASS"
 run_godot_check "weapon-equipment-event" "res://tools/weapon_equipment_event_regression.gd" "WEAPON_EQUIPMENT_EVENT_REGRESSION PASS"
 run_godot_check "player-ammunition-ownership" "res://tools/player_health_weapon_ammo_regression.gd" "PLAYER_HEALTH_WEAPON_AMMO_REGRESSION PASS"
 run_godot_check "muzzle-obstruction-authority" "res://tools/muzzle_obstruction_regression.gd" "MUZZLE_OBSTRUCTION_REGRESSION PASS"
 run_godot_check "multiplayer-slice-architecture" "res://tools/multiplayer_slice_architecture_regression.gd" "MULTIPLAYER_SLICE_ARCHITECTURE_REGRESSION PASS"
 run_godot_check "player-hosted-private-match" "res://tools/player_hosted_private_match_regression.gd" "PLAYER_HOSTED_PRIVATE_MATCH_REGRESSION PASS"
-run_godot_check "browser-webrtc-private-match" "res://tools/browser_webrtc_private_match_regression.gd" "BROWSER_WEBRTC_PRIVATE_MATCH_REGRESSION PASS" -- --restricted-web-preview
+run_godot_check "browser-tournament-front-door" "res://tools/browser_tournament_front_door_regression.gd" "BROWSER_TOURNAMENT_FRONT_DOOR_REGRESSION PASS" -- --restricted-web-preview
+run_godot_check "browser-webrtc-tournament" "res://tools/browser_webrtc_private_match_regression.gd" "BROWSER_WEBRTC_TOURNAMENT_REGRESSION PASS" -- --restricted-web-preview
 print "Running webrtc-signaling"
 npm --prefix "$project_dir/deploy/signaling" test
 run_godot_check "multiplayer-demolition" "res://tools/multiplayer_slice_regression.gd" "MULTIPLAYER_SLICE_REGRESSION PASS"

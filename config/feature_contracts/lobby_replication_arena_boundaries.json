@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "feature_id": "lobby_replication_arena_boundaries",
+  "player_intent": "Maintainable lobby, replication and arena planning without changing gameplay.",
+  "acceptance_rule": "Standard and tournament countdowns share one decision policy; snapshot packaging and arena roster/deployment planning have independent consumers.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://game_launcher.tscn",
+  "ownership": {
+    "lobby_countdown": "SocomLobbyCountdownPolicy",
+    "snapshot_encoding": "SocomSnapshotEncoder",
+    "arena_planning": "SocomArenaRuntimePlan"
+  },
+  "nodes": [
+    {
+      "id": "match_coordinator",
+      "type": "Node3D",
+      "role": "Installs transport, applies round decisions and authoritative combat; sends authorized effects to presentation child.",
+      "owner": "SocomMultiplayerSlice",
+      "scene_path": "res://multiplayer_slice.tscn",
+      "node_path": "."
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://config/network/browser_multiarena_deployment.json",
+      "writer": "res://scripts/network/socom_multiplayer_deployment_profile.gd",
+      "readers": [
+        "res://scripts/network/socom_transport_factory.gd",
+        "res://scripts/network/socom_multiplayer_session.gd"
+      ]
+    }
+  ],
+  "must_not_change": [
+    "RPC protocol",
+    "camera",
+    "movement",
+    "damage",
+    "weapon profiles",
+    "reload deadlines",
+    "browser ZIP",
+    "deployment"
+  ],
+  "proof_scripts": [
+    "res://tools/lobby_replication_arena_regression.gd",
+    "res://tools/tournament_replication_scope_regression.gd",
+    "res://tools/tournament_session_regression.gd",
+    "res://tools/tournament_map_pods_regression.gd",
+    "res://tools/lobby_warmup_regression.gd",
+    "res://tools/multiplayer_slice_architecture_regression.gd"
+  ],
+  "visual_check": "No transform or presentation changes. Existing arena pod and spawn regressions verify preserved layout.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Move countdown decisions, snapshot encoding and arena plans out of the inherited coordinator.",
+    "current": {
+      "system": "Inherited coordinator with mixed responsibilities",
+      "correctness": 4,
+      "ownership_clarity": 2,
+      "runtime_parity": 4,
+      "editor_usability": 3,
+      "performance": 4,
+      "regression_coverage": 3,
+      "evidence_paths": [
+        "res://docs/LOBBY_REPLICATION_ARENA_BOUNDARIES.md"
+      ]
+    },
+    "candidate": {
+      "system": "Explicit lobby, snapshot and arena interfaces",
+      "correctness": 4,
+      "ownership_clarity": 4,
+      "runtime_parity": 4,
+      "editor_usability": 4,
+      "performance": 4,
+      "regression_coverage": 4,
+      "evidence_paths": [
+        "res://scripts/network/socom_lobby_countdown_policy.gd",
+        "res://scripts/network/socom_snapshot_encoder.gd",
+        "res://scripts/network/socom_arena_runtime_plan.gd",
+        "res://tools/lobby_replication_arena_regression.gd"
+      ]
+    }
+  }
+}

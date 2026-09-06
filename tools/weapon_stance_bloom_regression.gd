@@ -40,6 +40,10 @@ func _run() -> void:
 	var crouched_before := crouched.current_recoil_bloom
 	standing.release_trigger()
 	crouched.release_trigger()
+	standing._process(standing.bloom_recovery_delay_seconds)
+	crouched._process(crouched.bloom_recovery_delay_seconds)
+	_expect(is_equal_approx(standing.current_recoil_bloom, standing_before), "standing retains bloom during quiet period")
+	_expect(is_equal_approx(crouched.current_recoil_bloom, crouched_before), "crouch retains bloom during quiet period")
 	standing._process(0.05)
 	crouched._process(0.05)
 	var standing_recovery := standing_before - standing.current_recoil_bloom

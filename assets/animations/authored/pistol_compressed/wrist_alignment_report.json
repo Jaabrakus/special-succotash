@@ -1,0 +1,41 @@
+{
+	"assets": {
+		"pistol_compressed_idle_crouched": {
+			"protected_bone_delta_deg": 0.0,
+			"raw_bore_error_deg": 0.0000433168578412755,
+			"raw_roll_deg": -0.0000890968805308762,
+			"support_error_m": 0.0000416877410316374,
+			"trigger_error_m": 0.0,
+			"trigger_palm_shift_m": 0.000143045166623779,
+			"wrist_correction_deg": 29.5292710274179
+		},
+		"pistol_compressed_idle_standing": {
+			"protected_bone_delta_deg": 0.0395646811852521,
+			"raw_bore_error_deg": 0.0000121735821015213,
+			"raw_roll_deg": 0.0000182442804615929,
+			"support_error_m": 0.000010356468919781,
+			"trigger_error_m": 0.0,
+			"trigger_palm_shift_m": 0.000148634120705537,
+			"wrist_correction_deg": 24.0617011817282
+		},
+		"pistol_recovery_reference_crouched": {
+			"protected_bone_delta_deg": 0.0,
+			"raw_bore_error_deg": 0.0000436419864559224,
+			"raw_roll_deg": -0.0000538922955891001,
+			"support_error_m": 0.000680356693919748,
+			"trigger_error_m": 0.0,
+			"trigger_palm_shift_m": 0.000161379590281285,
+			"wrist_correction_deg": 29.5292710274179
+		},
+		"pistol_recovery_reference_standing": {
+			"protected_bone_delta_deg": 0.0,
+			"raw_bore_error_deg": 0.0000877250076564157,
+			"raw_roll_deg": 0.00000136349005194719,
+			"support_error_m": 0.000987679813988507,
+			"trigger_error_m": 0.0,
+			"trigger_palm_shift_m": 0.000372767477529123,
+			"wrist_correction_deg": 24.0618002194711
+		}
+	},
+	"method": "saved native animation + unchanged canonical raw palm mount"
+}

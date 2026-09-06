@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "feature_id": "hit_confirmation_no_body_flash",
+  "player_intent": "Keep the red hit X without highlighting the struck body.",
+  "acceptance_rule": "Bullet and explosion hits preserve normal target materials and health changes; the red X still activates.",
+  "canonical_scene": "res://main.tscn",
+  "ownership": {"target_material": "LabLeakTargetDummy", "hit_x": "SocomDynamicReticle"},
+  "nodes": [{"id": "target", "type": "CharacterBody3D", "role": "Training target damage and visual consumer", "owner": "LabLeakTargetDummy", "source_script": "res://scripts/runtime/main_training_world.gd", "code_symbols": ["TargetDummy.new()", "host.add_child(dummy)"]}],
+  "data_contracts": [{"path": "res://assets/characters/ps1_gas_mask_soldier/trooper.png", "writer": "res://docs/HIT_CONFIRMATION_NO_BODY_FLASH.md", "readers": ["res://scripts/combat/lab_leak_target_dummy.gd"]}],
+  "must_not_change": ["damage", "aim", "hit audio", "blood effects", "flinch and death", "network authority", "team materials"],
+  "proof_scripts": ["res://tools/hit_feedback_performance_regression.gd", "res://tools/body_hit_vfx_regression.gd"],
+  "visual_check": "Run hit_feedback_performance_regression with --render: red X over normally textured non-glowing target.",
+  "system_delta": {
+    "decision": "REPLACE",
+    "reason": "Remove redundant emissive body feedback; preserve existing independent HUD confirmation and damage path.",
+    "current": {"system": "Target emissive flash plus HUD hit confirmation", "correctness": 2, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 4, "regression_coverage": 3, "evidence_paths": ["res://scripts/combat/lab_leak_target_dummy.gd"]},
+    "candidate": {"system": "Stable target texture with existing HUD hit confirmation", "correctness": 5, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 5, "regression_coverage": 5, "evidence_paths": ["res://scripts/combat/lab_leak_target_dummy.gd", "res://tools/hit_feedback_performance_regression.gd"]}
+  }
+}

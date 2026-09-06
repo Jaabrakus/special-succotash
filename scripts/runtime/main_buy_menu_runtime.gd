@@ -1,8 +1,8 @@
 class_name SocomMainBuyMenuRuntime
 extends Node
 
-## Training-range driver for the buy menu. Free-issue sandbox: every catalog
-## firearm is available with no cash, window, or carry-weight enforcement.
+## Training-range driver for the two-slot equipment picker. Eligible firearms
+## are available with no cash, window, or carry-weight enforcement.
 ## B opens the menu while the operator stands in the equipment zone at the
 ## range spawn; everywhere else B keeps toggling fire mode. The menu itself
 ## is a dumb view — this runtime owns input gating and performs the equip
@@ -37,6 +37,7 @@ func configure(host_root) -> void:
 	buy_menu = BuyMenuScript.new()
 	buy_menu.name = "BuyMenu"
 	buy_menu.economy_enabled = false
+	buy_menu.allow_training_prototypes = true
 	_layer.add_child(buy_menu)
 	buy_menu.purchase_requested.connect(_handle_purchase)
 	buy_menu.close_requested.connect(close_menu)
@@ -49,17 +50,21 @@ func is_open() -> bool:
 	return buy_menu != null and buy_menu.is_open()
 
 
-## Returns true when the event was consumed. Called first from the gameplay
-## HUD's unhandled-input chain so the shared B binding stays context-sensitive.
+## The free-issue menu owns B only in public Training Mode and only inside the
+## equipment zone. Shared warm-up owns its own B context; live multiplayer
+## keeps B for fire mode and does not allow equipment selection.
 func handle_unhandled_input(event: InputEvent) -> bool:
-	if buy_menu == null:
+	if buy_menu == null or host == null or not bool(host.get("public_training_mode")):
 		return false
 	if is_open():
-		if event.is_action_pressed(&"open_buy_menu") and not event.is_action_pressed(&"ui_cancel"):
+		if (
+			event.is_action_pressed(&"training_buy_menu")
+			and not event.is_action_pressed(&"ui_cancel")
+		):
 			close_menu()
 			return true
 		return buy_menu.handle_unhandled_input(event)
-	if event.is_action_pressed(&"open_buy_menu") and _player_in_zone():
+	if event.is_action_pressed(&"training_buy_menu") and _player_in_zone():
 		open_menu()
 		return true
 	return false
@@ -101,32 +106,32 @@ func _player_in_zone() -> bool:
 func _refresh_menu_state() -> void:
 	if buy_menu == null:
 		return
+	if host.weapon_controller != null:
+		_loadout = host.weapon_controller.carried_loadout.duplicate()
 	buy_menu.update_state(0, _loadout, 0.0, true)
 
 
 func _handle_purchase(weapon_id: String) -> void:
+	_refresh_menu_state()
 	var context := {
 		"cash": 0,
 		"loadout": _loadout,
 		"phase_open": true,
 		"economy_enabled": false,
+		"allow_training_prototypes": true,
 	}
 	var verdict: Dictionary = Validator.validate(weapon_id, context)
 	if not bool(verdict.get("ok", false)):
-		push_warning("Buy menu rejected free issue of %s: %s" % [weapon_id, verdict.get("reason", "")])
+		push_warning("Armory rejected selection of %s: %s" % [weapon_id, verdict.get("reason", "")])
 		_refresh_menu_state()
 		return
-	var applied: Dictionary = Validator.apply_purchase(
-		weapon_id, _loadout, 0, false
-	)
-	_loadout = applied.get("loadout", _loadout)
 	var equipped := false
 	if host.weapon_controller != null:
 		equipped = host.weapon_controller.apply_authorized_weapon_pickup(
 			config_path_for(weapon_id)
 		)
 	if not equipped:
-		push_warning("Buy menu free issue failed to equip %s" % weapon_id)
+		push_warning("Armory selection failed to equip %s" % weapon_id)
 	_refresh_menu_state()
 	if is_open() and equipped:
 		close_menu()

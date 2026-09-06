@@ -9,7 +9,7 @@ const BulletPenetration := preload("res://scripts/combat/socom_bullet_penetratio
 ## - 2-Round Burst pinpoint accuracy (shots 1 & 2 have 0 extra dispersion)
 ## - CS:GO Bullet Penetration through thin wood, drywall, and sheet metal
 ## - Continuous fire bloom escalation
-## - Fast bloom recovery on trigger release (0.12s decay)
+## - Shot-timed bloom recovery; rapid trigger releases cannot reset accuracy
 ## - Stance bloom multipliers (Prone = 0.20x, Crouch = 0.60x, Stand = 1.0x)
 ## - Raycast hitscan with dispersion cone matching on-screen reticle
 ## - Visual bullet tracers and impact effects
@@ -20,9 +20,16 @@ signal wallbang_penetrated(entry_pos: Vector3, exit_pos: Vector3, remaining_dama
 @export var fire_rate_rpm: float = 600.0
 @export var damage_per_shot: float = 34.0
 @export var headshot_multiplier: float = 3.5
+@export var directional_torso_modifiers_enabled: bool = true
 @export var max_range: float = 120.0
 @export var muzzle_velocity_mps: float = 715.0
 @export var penetration_power: float = 1.5
+@export var pellet_count: int = 1
+@export var pellet_spread_deg: float = 0.0
+@export var pellet_damage: float = 12.0
+@export var damage_falloff_start_m: float = 0.0
+@export var damage_falloff_end_m: float = 0.0
+@export var minimum_damage_multiplier: float = 1.0
 
 # Bloom & Dispersion Parameters (Degrees)
 @export var base_spread_deg: float = 0.28
@@ -32,6 +39,7 @@ signal wallbang_penetrated(entry_pos: Vector3, exit_pos: Vector3, remaining_dama
 @export var max_recoil_bloom_deg: float = 2.4
 @export var bloom_per_shot_deg: float = 0.32
 @export var bloom_recovery_speed: float = 10.0 # Rapid decay on pause
+@export_range(0.05, 1.0, 0.01) var bloom_recovery_delay_seconds: float = 0.30
 @export_range(0.1, 1.0, 0.05) var crouch_spread_multiplier: float = 0.72
 @export var crouch_bloom_per_shot_deg: float = 1.35
 @export var crouch_max_recoil_bloom_deg: float = 1.70
@@ -50,22 +58,26 @@ var current_is_airborne: bool = false
 var seconds_since_last_shot: float = 99.0
 
 func _ready() -> void:
-    fire_interval = 60.0 / maxf(60.0, fire_rate_rpm)
+    fire_interval = 60.0 / maxf(1.0, fire_rate_rpm)
 
 func _process(delta: float) -> void:
     fire_cooldown = maxf(0.0, fire_cooldown - delta)
+    var previous_shot_age := seconds_since_last_shot
     seconds_since_last_shot += delta
     # A dedicated server receives shot events but no trigger-release event.
     # End a stale burst locally if another round does not arrive on cadence.
     if is_firing_held and seconds_since_last_shot >= fire_interval * 1.35:
         is_firing_held = false
-    if not is_firing_held:
-        # Rapid bloom recovery
+    # Accuracy belongs to accepted-shot cadence, not trigger transitions.
+    # Local releases and server shot-only events therefore recover identically.
+    var recovery_delay := maxf(bloom_recovery_delay_seconds, fire_interval * 1.5)
+    if seconds_since_last_shot >= recovery_delay:
+        var recovery_delta := maxf(0.0, seconds_since_last_shot - maxf(previous_shot_age, recovery_delay))
         current_recoil_bloom = maxf(
             0.0,
-            current_recoil_bloom - _recovery_speed_for(current_posture) * delta
+            current_recoil_bloom - _recovery_speed_for(current_posture) * recovery_delta
         )
-        if fire_cooldown <= 0.0:
+        if current_recoil_bloom <= 0.0 and fire_cooldown <= 0.0:
             continuous_shot_count = 0
     # The HUD reads total_current_spread_deg between shots. Refresh it after
     # recoil recovery so the visible bloom closes immediately instead of
@@ -174,16 +186,56 @@ func try_fire_direction(
     var random := RandomNumberGenerator.new()
     random.seed = deterministic_seed if deterministic_seed != 0 else continuous_shot_count
 
-    # Uniform disk dispersion inside cone
-    var random_angle := random.randf() * TAU
     var applied_dispersion_multiplier := clampf(dispersion_multiplier, 0.0, 2.0)
-    var random_radius := sqrt(random.randf()) * spread_rad * applied_dispersion_multiplier
-    var spread_offset := (
-        Vector3(cos(random_angle), sin(random_angle), 0.0) * random_radius
-    )
-
     var ray_basis := Basis.looking_at(forward_dir, Vector3.UP)
-    var final_dir := (ray_basis * (Vector3.FORWARD + spread_offset)).normalized()
+    var projectiles: Array[Dictionary] = []
+    var count := clampi(pellet_count, 1, 32)
+    for index in count:
+        var random_angle := random.randf() * TAU
+        # Composure cannot collapse buckshot into one rifle bullet.
+        var cone := spread_rad * applied_dispersion_multiplier
+        if count > 1:
+            cone += deg_to_rad(maxf(0.0, pellet_spread_deg))
+        var random_radius := sqrt(random.randf()) * (tan(cone) if count > 1 else cone)
+        var offset := Vector3(cos(random_angle), sin(random_angle), 0.0) * random_radius
+        var direction := (ray_basis * (Vector3.FORWARD + offset)).normalized()
+        var projectile := _trace_projectile(muzzle_pos, direction, space_state, exclude_rids)
+        projectile["damage"] = (pellet_damage if count > 1 else damage_per_shot) * damage_multiplier_at(muzzle_pos.distance_to(projectile.hit_pos))
+        projectiles.append(projectile)
+    var shot: Dictionary = projectiles[0].duplicate()
+    shot["projectiles"] = projectiles
+    shot["pellet_count"] = count
+    shot["spread_deg"] = total_current_spread_deg
+    shot["dispersion_multiplier"] = applied_dispersion_multiplier
+    shot["continuous_count"] = continuous_shot_count
+    shot_fired.emit(muzzle_pos, shot.hit_pos, bool(shot.get("hit_target", false)))
+    return shot
+
+
+func configure_projectiles(values: Dictionary) -> void:
+    # Shared by training and multiplayer; defaults reset on weapon switches.
+    bloom_recovery_delay_seconds = clampf(float(values.get("bloom_recovery_delay_seconds", 0.30)), 0.05, 1.0)
+    directional_torso_modifiers_enabled = bool(values.get("directional_torso_modifiers_enabled", true))
+    pellet_count = clampi(int(values.get("pellet_count", 1)), 1, 32)
+    pellet_spread_deg = clampf(float(values.get("pellet_spread_deg", 0.0)), 0.0, 20.0)
+    pellet_damage = maxf(0.0, float(values.get("pellet_damage", 12.0)))
+    max_range = clampf(float(values.get("max_range_m", 120.0)), 1.0, 10000.0)
+    damage_falloff_start_m = maxf(0.0, float(values.get("damage_falloff_start_m", 0.0)))
+    damage_falloff_end_m = maxf(damage_falloff_start_m, float(values.get("damage_falloff_end_m", 0.0)))
+    minimum_damage_multiplier = clampf(float(values.get("minimum_damage_multiplier", 1.0)), 0.0, 1.0)
+
+
+func damage_multiplier_at(distance_m: float) -> float:
+    if damage_falloff_end_m <= damage_falloff_start_m:
+        return 1.0
+    return lerpf(1.0, minimum_damage_multiplier, clampf(
+        (distance_m - damage_falloff_start_m) / (damage_falloff_end_m - damage_falloff_start_m), 0.0, 1.0))
+
+
+func _trace_projectile(
+    muzzle_pos: Vector3, final_dir: Vector3,
+    space_state: PhysicsDirectSpaceState3D, exclude_rids: Array[RID]
+) -> Dictionary:
     var ray_end := muzzle_pos + final_dir * max_range
 
     # CS:GO Dual-Raycast Penetration Solver
@@ -192,7 +244,7 @@ func try_fire_direction(
         muzzle_pos,
         final_dir,
         max_range,
-        damage_per_shot,
+        pellet_damage if pellet_count > 1 else damage_per_shot,
         penetration_power,
         exclude_rids
     )
@@ -234,8 +286,6 @@ func try_fire_direction(
         hit_target = true
         hit_normal = result.get("normal", hit_normal)
 
-    shot_fired.emit(muzzle_pos, hit_pos, hit_target)
-
     return {
         "fired": true,
         "hit_pos": hit_pos,
@@ -246,7 +296,7 @@ func try_fire_direction(
         "overlap_depth_m": float(result.get("overlap_depth_m", 0.0)),
         "direction": final_dir,
         "spread_deg": total_current_spread_deg,
-        "dispersion_multiplier": applied_dispersion_multiplier,
+        "hit_target": hit_target,
         "normal": hit_normal,
         "continuous_count": continuous_shot_count,
         "muzzle_velocity_mps": muzzle_velocity_mps,

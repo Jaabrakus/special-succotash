@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "enabled": true,
+  "avoid_consecutive_repeats": true,
+  "firearm_categories": [
+    "Pistols",
+    "Submachine Guns",
+    "Shotguns",
+    "Assault Rifles",
+    "Sniper Rifles",
+    "Machine Guns"
+  ],
+  "excluded_weapon_ids": [
+    "designator",
+    "air_to_ground_missile",
+    "exploding_fuel"
+  ]
+}

@@ -34,7 +34,8 @@
       "code_symbols": [
         "_tournament_health_by_peer",
         "_server_submit_sudden_death_vote",
-        "match.is_peer_combat_eligible(peer_id)"
+        "ArenaRuntimePlan.deployment(tournament_session, arena_id)",
+        "if bool(entry.combat_eligible):"
       ]
     }
   ],

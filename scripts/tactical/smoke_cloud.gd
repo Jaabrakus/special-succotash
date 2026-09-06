@@ -104,12 +104,7 @@ func _process(delta: float) -> void:
 
 func _build_particles() -> void:
 	_particles = GPUParticles3D.new()
-	var presentation := get_node_or_null("/root/PresentationSettings")
-	_particles.amount = (
-		int(presentation.call("scaled_effect_count", particle_amount, 56))
-		if presentation != null
-		else particle_amount
-	)
+	_particles.amount = particle_amount
 	_particles.lifetime = particle_lifetime
 	_particles.randomness = 0.72
 	_particles.visibility_aabb = AABB(Vector3(-7, -2, -7), Vector3(14, 8, 14))
@@ -123,28 +118,35 @@ func _build_particles() -> void:
 	process.scale_max = puff_size_max
 	_particles.process_material = process
 	var quad := QuadMesh.new()
-	quad.size = Vector2(1.7, 1.7)
+	quad.size = Vector2(2.2, 2.2)
 	var material := StandardMaterial3D.new()
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	material.albedo_color = Color(0.46, 0.49, 0.45, visual_opacity)
-	var alpha_gradient := Gradient.new()
-	alpha_gradient.offsets = PackedFloat32Array([0.0, 0.42, 0.78, 1.0])
-	alpha_gradient.colors = PackedColorArray([
-		Color(1.0, 1.0, 1.0, 0.96),
-		Color(1.0, 1.0, 1.0, 0.78),
-		Color(1.0, 1.0, 1.0, 0.24),
-		Color(1.0, 1.0, 1.0, 0.0),
-	])
-	var soft_puff_texture := GradientTexture2D.new()
-	soft_puff_texture.width = 96
-	soft_puff_texture.height = 96
-	soft_puff_texture.fill = GradientTexture2D.FILL_RADIAL
-	soft_puff_texture.fill_from = Vector2(0.5, 0.5)
-	soft_puff_texture.fill_to = Vector2(1.0, 0.5)
-	soft_puff_texture.gradient = alpha_gradient
-	material.albedo_texture = soft_puff_texture
-	material.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	material.vertex_color_use_as_albedo = true
+	material.albedo_color = Color(0.68, 0.70, 0.66, visual_opacity)
+	var smoke_tex: Texture2D = null
+	if ResourceLoader.exists("res://assets/textures/particles/smoke_01.png"):
+		smoke_tex = load("res://assets/textures/particles/smoke_01.png") as Texture2D
+	if smoke_tex != null:
+		material.albedo_texture = smoke_tex
+	else:
+		var alpha_gradient := Gradient.new()
+		alpha_gradient.offsets = PackedFloat32Array([0.0, 0.42, 0.78, 1.0])
+		alpha_gradient.colors = PackedColorArray([
+			Color(1.0, 1.0, 1.0, 0.96),
+			Color(1.0, 1.0, 1.0, 0.78),
+			Color(1.0, 1.0, 1.0, 0.24),
+			Color(1.0, 1.0, 1.0, 0.0),
+		])
+		var soft_puff_texture := GradientTexture2D.new()
+		soft_puff_texture.width = 96
+		soft_puff_texture.height = 96
+		soft_puff_texture.fill = GradientTexture2D.FILL_RADIAL
+		soft_puff_texture.fill_from = Vector2(0.5, 0.5)
+		soft_puff_texture.fill_to = Vector2(1.0, 0.5)
+		soft_puff_texture.gradient = alpha_gradient
+		material.albedo_texture = soft_puff_texture
+	material.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
 	quad.material = material
 	_particles.draw_pass_1 = quad
 	add_child(_particles)

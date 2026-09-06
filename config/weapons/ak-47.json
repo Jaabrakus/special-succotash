@@ -179,9 +179,10 @@
     }
   },
   "reticle": {
-    "shot_kick_px": 20.0,
-    "shot_kick_return": 40.0,
-    "maximum_shot_kick_px": 60.0,
+    "cadence_driven_return": false,
+    "shot_kick_px": 10.0,
+    "shot_kick_return": 26.0,
+    "maximum_shot_kick_px": 31.0,
     "base_gap_px": 5.1,
     "max_gap_px": 41.6,
     "response_speed": 26.2

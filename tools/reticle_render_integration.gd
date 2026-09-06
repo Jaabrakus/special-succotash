@@ -89,12 +89,12 @@ func _run() -> void:
     _expect(
         float(dynamic_reticle.get("current_movement")) > 0.95
         and float(dynamic_reticle.get("maximum_movement_tick_extension")) >= 16.0,
-        "full movement visibly lengthens the two lead references"
+        "canonical movement input reaches the shared reticle"
     )
     var reference_geometry: Dictionary = dynamic_reticle.call(
         "get_combat_reference_geometry"
     )
-    var arc_center: Vector2 = reference_geometry.arc_center
+    var arc_center: Vector2 = reference_geometry.center
     var left_inner: Vector2 = reference_geometry.left_inner
     var left_outer: Vector2 = reference_geometry.left_outer
     var right_inner: Vector2 = reference_geometry.right_inner
@@ -112,7 +112,13 @@ func _run() -> void:
         is_equal_approx(drop_inner.x, arc_center.x)
         and is_equal_approx(drop_outer.x, arc_center.x)
         and drop_outer.y > drop_inner.y,
-        "combat reticle exposes one lower bullet-drop reference"
+        "combat reticle exposes a centered lower tick"
+    )
+    _expect(
+        (reference_geometry.ticks as PackedVector2Array).size() == 8
+        and (reference_geometry.top_outer as Vector2).y < arc_center.y
+        and is_equal_approx(left_outer.distance_to(left_inner), float(dynamic_reticle.get("lead_reference_length"))),
+        "four cardinal ticks keep fixed lengths during movement"
     )
     _expect(
         absf(rig.aim_yaw) > 0.0001 or absf(rig.aim_pitch) > 0.0001,
@@ -136,6 +142,12 @@ func _run() -> void:
         "rendered camera has no timer-induced idle stutter"
     )
     if OS.get_cmdline_user_args().has("--capture-reticle"):
+        # Freeze only the presentation interpolation while sampling repeatable
+        # idle/open/recovered states in the canonical 3D scene.
+        dynamic_reticle.set_process(false)
+        dynamic_reticle.call("update_reticle_state", 0.0, false, authoritative_center)
+        dynamic_reticle.call("_process", 1.0)
+        await RenderingServer.frame_post_draw
         var capture := root.get_viewport().get_texture().get_image()
         _expect(
             capture != null
@@ -143,6 +155,18 @@ func _run() -> void:
             and capture.save_png(CAPTURE_PATH) == OK,
             "canonical gameplay reticle capture saves"
         )
+        dynamic_reticle.call("update_reticle_state", 0.8, false, authoritative_center, false, 1.0)
+        dynamic_reticle.call("_process", 0.5)
+        await RenderingServer.frame_post_draw
+        _expect(root.get_viewport().get_texture().get_image().save_png(
+            "/private/tmp/socom-ii-reticle-expanded.png") == OK,
+            "expanded reticle capture saves")
+        dynamic_reticle.call("update_reticle_state", 0.0, false, authoritative_center)
+        dynamic_reticle.call("_process", 0.5)
+        await RenderingServer.frame_post_draw
+        _expect(root.get_viewport().get_texture().get_image().save_png(
+            "/private/tmp/socom-ii-reticle-recovered.png") == OK,
+            "recovered reticle capture saves")
 
     scene.queue_free()
     await process_frame

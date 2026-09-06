@@ -1,0 +1,103 @@
+{
+  "schema_version": 1,
+  "feature_id": "dive_weapon_descent",
+  "player_intent": "A standing dive keeps the gun supported near the chest during the opening motion, then lowers it smoothly into the prone firing posture instead of striking the floor immediately.",
+  "acceptance_rule": "During a standing dive the stable chest weapon anchor retains at least 90 percent of its standing-to-prone height through the declared early phase, reaches prone by the end of the same 0.78-second CharacterBody3D action, keeps both hand contacts within their existing limits, and returns to the prone ready solver.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://animation_library_lab.tscn",
+  "ownership": {
+    "dive_movement_and_collision": "SocomTestPlayer",
+    "dive_weapon_translation": "SocomOperatorWeaponPoseSolver",
+    "dive_hand_contacts": "SocomOperatorMobilityWeaponGripSolver"
+  },
+  "nodes": [
+    {
+      "id": "dive_weapon_action_follow",
+      "type": "Node3D",
+      "role": "Consumes the saved phase curve as a presentation-only chest anchor during the committed dive.",
+      "owner": "SocomOperatorWeaponPoseSolver",
+      "source_script": "res://scripts/player/operator_weapon_pose_actions.gd",
+      "code_symbols": [
+        "stable_chest_anchor_world"
+      ]
+    },
+    {
+      "id": "dive_weapon_ownership_policy",
+      "type": "RefCounted",
+      "role": "Declares the single chest-carry presentation owner for committed mobility actions.",
+      "owner": "SocomWeaponOwnershipContract",
+      "source_script": "res://scripts/player/weapon_ownership_contract.gd",
+      "code_symbols": [
+        "MOBILITY_CHEST_CARRY"
+      ]
+    },
+    {
+      "id": "dive_hand_contact_solver",
+      "type": "RefCounted",
+      "role": "Keeps both palms connected to the rigid weapon after the chest anchor is resolved.",
+      "owner": "SocomOperatorMobilityWeaponGripSolver",
+      "source_script": "res://scripts/player/operator_mobility_weapon_grip_solver.gd",
+      "code_symbols": [
+        "SocomOperatorMobilityWeaponGripSolver"
+      ]
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://config/dive_weapon_presentation.json",
+      "writer": "res://scripts/player/operator_dive_weapon_presentation_profile.gd",
+      "readers": [
+        "res://scripts/player/operator_weapon_pose_geometry.gd",
+        "res://scripts/player/operator_weapon_pose_actions.gd",
+        "res://scripts/player/operator_weapon_pose_ready.gd"
+      ]
+    }
+  ],
+  "must_not_change": [
+    "CharacterBody3D dive duration, velocity, displacement, collision, and final posture",
+    "SOCOM camera, reticle, aim intent, and obstruction authority",
+    "server shot, damage, ammunition, and networking authority",
+    "fire recovery, reload, grenade, and ordinary locomotion animation ownership",
+    "existing trigger and support hand contact limits"
+  ],
+  "proof_scripts": [
+    "res://tools/dive_hand_attachment_regression.gd",
+    "res://tools/mobility_regression.gd",
+    "res://tools/feature_contract_regression.gd"
+  ],
+  "visual_check": "In res://main.tscn, run and press the dedicated dive control. Confirm the standing rifle remains chest-supported at the beginning, descends later into prone without a floor strike, both hands remain connected, and the player still covers the same distance in the same action time. Also test crouch-origin dive to confirm its proven contact-safe timing remains intact.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "The canonical stable-chest weapon owner already had a dive phase curve, but the action-follow code used the raw animated torso pivot and bypassed it. Route that existing owner through saved phase data and keep movement untouched.",
+    "current": {
+      "system": "Chest-owned dive weapon following the raw animated torso pivot",
+      "correctness": 2,
+      "ownership_clarity": 3,
+      "runtime_parity": 5,
+      "editor_usability": 2,
+      "performance": 5,
+      "regression_coverage": 3,
+      "evidence_paths": [
+        "res://scripts/player/operator_weapon_pose_actions.gd",
+        "res://scripts/player/operator_weapon_pose_geometry.gd",
+        "res://tools/dive_hand_attachment_regression.gd"
+      ]
+    },
+    "candidate": {
+      "system": "Saved posture-aware stable-chest descent with bounded palm convergence and explicit prone recovery ownership",
+      "correctness": 5,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 4,
+      "performance": 4,
+      "regression_coverage": 5,
+      "evidence_paths": [
+        "res://config/dive_weapon_presentation.json",
+        "res://scripts/player/operator_dive_weapon_presentation_profile.gd",
+        "res://scripts/player/operator_weapon_pose_actions.gd",
+        "res://scripts/player/operator_mobility_weapon_grip_solver.gd",
+        "res://tools/dive_hand_attachment_regression.gd"
+      ]
+    }
+  }
+}

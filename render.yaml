@@ -10,5 +10,5 @@ services:
     healthCheckPath: /healthz
     autoDeployTrigger: commit
     envVars:
-      - key: SOCOM_WEBRTC_MAX_PEERS
-        value: 4
+      - key: SOCOM_WEBRTC_MAX_TOURNAMENT_PEERS
+        value: 32

@@ -1,0 +1,81 @@
+{
+  "ballistics": {
+    "base_spread_deg": 0.429,
+    "bloom_per_shot_deg": 1,
+    "bloom_recovery_speed": 17.5,
+    "damage": 25,
+    "effective_range_m": 25,
+    "fire_rate_rpm": 120,
+    "reload_duration_seconds": 4,
+    "full_gait_spread_deg": 1.543,
+    "headshot_multiplier": 3.5,
+    "is_silenced": false,
+    "magazine_capacity": 12,
+    "max_range_m": 60,
+    "max_recoil_bloom_deg": 2.6,
+    "moving_spread_deg": 1.029,
+    "muzzle_velocity_mps": 393,
+    "reserve_ammo": 36,
+    "pellet_count": 8,
+    "pellet_spread_deg": 3,
+    "pellet_damage": 12,
+    "damage_falloff_start_m": 12,
+    "damage_falloff_end_m": 40,
+    "minimum_damage_multiplier": 0.2
+  },
+  "burst_size": 3,
+  "catalog_source": "SOCOM II video reference + SOCOM-141 provisional tuning",
+  "catalog_weapon_id": "ta_12_gauge",
+  "category": "Shotguns",
+  "default_fire_mode": "semi",
+  "display_name": "TA 12 Gauge / SPAS-12 [Prototype]",
+  "encumbrance": 2,
+  "fire_modes": [
+    "semi"
+  ],
+  "model_fbx": "res://assets/weapons/modular_pack/Shotgun_1.fbx",
+  "reticle": {
+    "cadence_driven_return": false,
+    "base_gap_px": 5.1,
+    "max_gap_px": 41.6,
+    "maximum_shot_kick_px": 70,
+    "response_speed": 26.2,
+    "shot_kick_px": 13,
+    "shot_kick_return": 65
+  },
+  "weapon_id": "ta_12_gauge",
+  "schema_version": 3,
+  "competitive_eligible": false,
+  "training_only": true,
+  "visual_rig_id": "family_shotgun_1_v2",
+  "presentation_status": "Calibrated family placeholder; not an accurate model of this weapon.",
+  "provenance": {
+    "schema_version": 1,
+    "reference_game": "SOCOM II",
+    "source_url": "https://www.youtube.com/watch?v=oI3NiRLeRhs",
+    "original_game_data_verified": false,
+    "field_sources": {
+      "weapon_id": "video_label",
+      "display_name": "video_label_with_prototype_suffix",
+      "ballistics.*": "gameplay_tuned_provisional",
+      "reticle.*": "inherited_socom141_870_tuning",
+      "fire_modes": "gameplay_tuned_provisional",
+      "default_fire_mode": "gameplay_tuned_provisional",
+      "visual_rig_id": "existing_calibrated_family_placeholder",
+      "encumbrance": "gameplay_tuned_provisional"
+    },
+    "notes": [
+      "No original SOCOM II zweapon data recovered.",
+      "No video timing measurements asserted in this batch.",
+      "Reload is the existing complete-reload mechanic, not a new per-shell reload.",
+      "All three use eight pellets; damage and spread require playtesting."
+    ]
+  },
+  "audio_reference": {
+    "sample_id": "ta_12_gauge",
+    "event": "fire",
+    "status": "extracted_candidate_needs_listening_review",
+    "runtime_enabled": false,
+    "source_url": "https://www.youtube.com/watch?v=oI3NiRLeRhs"
+  }
+}

@@ -40,12 +40,13 @@
     "reload_sound": "SND_M14_RELOAD"
   },
   "reticle": {
+    "cadence_driven_return": false,
     "base_gap_px": 5.1,
     "max_gap_px": 41.6,
     "maximum_shot_kick_px": 60.0,
     "response_speed": 26.2,
-    "shot_kick_px": 20.0,
-    "shot_kick_return": 40.0
+    "shot_kick_px": 12.0,
+    "shot_kick_return": 42.0
   },
   "socom_original_id": 60,
   "weapon_id": "m14"

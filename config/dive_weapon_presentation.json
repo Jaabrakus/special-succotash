@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "anchor_descent_start_phase": 0.22,
+  "anchor_descent_end_phase": 0.94,
+  "crouched_anchor_descent_start_phase": 0.0,
+  "crouched_anchor_descent_end_phase": 0.70,
+  "early_phase_limit": 0.30,
+  "maximum_early_descent_ratio": 0.10
+}

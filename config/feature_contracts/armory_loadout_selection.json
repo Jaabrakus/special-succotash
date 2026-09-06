@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "feature_id": "armory_loadout_selection",
+  "player_intent": "Choose one primary and one pistol without money or non-firearm entries; find M40A1 under Sniper Rifles.",
+  "acceptance_rule": "Actual canonical armory rows contain 33 eligible firearms, no prices, and M40A1 only under Sniper Rifles. Free selection replaces one of two slots. Shared validation rejects archived non-firearms. Warm-up replication works and live tournament selection stays locked.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://gun_calibration_lab.tscn",
+  "ownership": {"selection_policy": "SocomEconomyRules", "catalog_metadata": "SocomWeaponCatalog", "local_equip": "SocomWeaponController", "multiplayer_equip": "SocomMultiplayerWarmup"},
+  "nodes": [{"id": "canonical_armory", "type": "Control", "role": "Shows eligible firearms and emits requests to existing equipment owner", "owner": "SocomBuyMenu", "source_script": "res://scripts/runtime/main_buy_menu_runtime.gd", "code_symbols": ["BuyMenuScript.new()", "buy_menu.purchase_requested.connect(_handle_purchase)"]}],
+  "data_contracts": [
+    {"path": "res://config/weapon_roster_extensions.json", "writer": "res://config/weapon_roster_extensions.json", "readers": ["res://scripts/weapons/socom_weapon_catalog.gd", "res://scripts/economy/socom_economy_rules.gd", "res://scripts/network/socom_round_weapon_rules.gd"]},
+    {"path": "res://config/economy/buy_menu_config.json", "writer": "res://config/economy/buy_menu_config.json", "readers": ["res://scripts/economy/socom_economy_rules.gd", "res://scripts/economy/socom_purchase_validator.gd"]},
+    {"path": "res://config/weapons/m40a1.json", "writer": "res://scripts/labs/gunsmith/gunsmith_weapon_profile_repository.gd", "readers": ["res://scripts/ui/socom_buy_menu.gd", "res://scripts/weapons/weapon_rig_contract.gd"]}
+  ],
+  "must_not_change": ["archived reCOM data", "headshot/base damage, animation and audio", "throwables", "movement/camera/input bindings", "server authority and shared-random tournament mechanism"],
+  "proof_scripts": ["res://tools/armory_loadout_selection_regression.gd", "res://tools/gunsmith_recom_catalog_regression.gd", "res://tools/mixed_weapon_roster_regression.gd", "res://tools/vrc_armory_regression.gd", "res://tools/lobby_warmup_regression.gd", "res://tools/round_random_weapon_regression.gd"],
+  "visual_check": "Render actual canonical B-menu Sniper Rifles category with M40A1, EQUIP button, two-slot footer and no prices.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Use existing cached catalog and shared rules; preserve source records while correcting explicit metadata and removing shopping requirements without a new equipment authority.",
+    "current": {"system": "Category-only eligibility with legacy shopping labels and no non-firearm filter", "correctness": 2, "ownership_clarity": 4, "runtime_parity": 3, "editor_usability": 3, "performance": 5, "regression_coverage": 3, "evidence_paths": ["res://scripts/weapons/socom_weapon_catalog.gd", "res://scripts/economy/socom_purchase_validator.gd", "res://scripts/ui/socom_buy_menu.gd"]},
+    "candidate": {"system": "Explicit catalog metadata plus shared free two-slot selection policy", "correctness": 5, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 5, "regression_coverage": 5, "evidence_paths": ["res://config/weapon_roster_extensions.json", "res://scripts/economy/socom_economy_rules.gd", "res://tools/armory_loadout_selection_regression.gd", "res://tools/lobby_warmup_regression.gd"]}
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "feature_id": "shared_weapon_reticle",
+  "player_intent": "Distinct weapon kick and maximum bounce in solo and multiplayer.",
+  "acceptance_rule": "Complete nested stance parsing; 31 firearm standing kick triplets restored without changing ballistics; accepted local shot triggers shared dynamic reticle while remote shots do not; visual bounce does not move aim.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://game_launcher.tscn",
+  "ownership": {
+    "reticle_presentation": "SocomDynamicReticle",
+    "weapon_profile": "WeaponContract",
+    "accepted_shot": "AuthoritativeServerWeapon"
+  },
+  "nodes": [
+    {
+      "id": "shared_multiplayer_reticle",
+      "type": "Control",
+      "role": "Shows the saved weapon kick on confirmed local shots.",
+      "owner": "SocomDynamicReticle",
+      "source_script": "res://scripts/network/socom_multiplayer_hud.gd",
+      "code_symbols": [
+        "reticle.name = \"SharedWeaponReticle\""
+      ]
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://config/weapons/m4a1.json",
+      "writer": "res://scripts/weapons/weapon_rig_contract.gd",
+      "readers": [
+        "res://scripts/ui/socom_dynamic_reticle.gd",
+        "res://scripts/network/socom_multiplayer_world_ui.gd",
+        "res://scripts/weapons/socom_weapon_controller.gd"
+      ]
+    }
+  ],
+  "must_not_change": [
+    "RPC protocol",
+    "camera",
+    "movement",
+    "damage",
+    "weapon profiles",
+    "reload deadlines",
+    "browser ZIP",
+    "deployment"
+  ],
+  "proof_scripts": [
+    "res://tools/shared_weapon_reticle_regression.gd",
+    "res://tools/recom_stance_import_regression.py",
+    "res://tools/lobby_warmup_regression.gd"
+  ],
+  "visual_check": "Rendered ready/kick/recovered HUD captures; video/audio reference inaccessible, so no original-video parity or extracted audio claim.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Repair truncated stance parsing and reuse canonical visual reticle online.",
+    "current": {
+      "system": "Inherited coordinator with mixed responsibilities",
+      "correctness": 4,
+      "ownership_clarity": 2,
+      "runtime_parity": 4,
+      "editor_usability": 3,
+      "performance": 4,
+      "regression_coverage": 3,
+      "evidence_paths": [
+        "res://docs/ZWEAPON_RECOIL_AUDIT.md"
+      ]
+    },
+    "candidate": {
+      "system": "Explicit component interfaces",
+      "correctness": 4,
+      "ownership_clarity": 4,
+      "runtime_parity": 4,
+      "editor_usability": 4,
+      "performance": 4,
+      "regression_coverage": 4,
+      "evidence_paths": [
+        "res://docs/SHARED_WEAPON_RETICLE_IMPLEMENTATION.md",
+        "res://tools/shared_weapon_reticle_regression.gd"
+      ]
+    }
+  }
+}

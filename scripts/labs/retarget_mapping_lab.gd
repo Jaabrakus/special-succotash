@@ -1,6 +1,8 @@
 class_name SocomRetargetMappingLab
 extends Node3D
 
+const SkeletonInspection := preload("res://scripts/labs/retarget_skeleton_inspection.gd")
+
 ## Standalone visual authoring tool for explicit operator skin bone mappings.
 ## It never edits animation clips or the authoritative gameplay skeleton.
 
@@ -198,11 +200,11 @@ func _load_characters() -> void:
 	target_root = PS1_SCENE.instantiate() as Node3D
 	target_root.name = "PS1TargetRig"
 	add_child(target_root)
-	target_skeleton = _find_skeleton(target_root)
+	target_skeleton = SkeletonInspection._find_skeleton(target_root)
 	if target_skeleton != null:
 		SKELETON_CONTRACT.ensure_65_bones(target_skeleton)
-		_normalize_mixamo_names(target_skeleton)
-		_disable_animation_players(target_root)
+		SkeletonInspection._normalize_mixamo_names(target_skeleton)
+		SkeletonInspection._disable_animation_players(target_root)
 		target_skeleton.reset_bone_poses()
 		_apply_ps1_texture(target_root)
 		_scale_to_height(target_root, target_skeleton, DISPLAY_HEIGHT_M)
@@ -212,15 +214,15 @@ func _load_characters() -> void:
 	source_root = SUIT_SCENE.instantiate() as Node3D
 	source_root.name = "TacticalSuitSourceRig"
 	add_child(source_root)
-	source_skeleton = _find_skeleton(source_root)
+	source_skeleton = SkeletonInspection._find_skeleton(source_root)
 	if source_skeleton != null:
-		_disable_animation_players(source_root)
+		SkeletonInspection._disable_animation_players(source_root)
 		source_skeleton.reset_bone_poses()
 		_scale_to_height(source_root, source_skeleton, DISPLAY_HEIGHT_M)
 		source_root.position.x = -1.25
-		_set_named_visibility(source_root, "Mil_R5_HeadphonesT", false)
-		_set_named_visibility(source_root, "Object_110", false)
-		_set_named_visibility(source_root, "Object_111", false)
+		SkeletonInspection._set_named_visibility(source_root, "Mil_R5_HeadphonesT", false)
+		SkeletonInspection._set_named_visibility(source_root, "Object_110", false)
+		SkeletonInspection._set_named_visibility(source_root, "Object_111", false)
 
 
 func _scale_to_height(model_root: Node3D, skeleton: Skeleton3D, desired_height: float) -> void:
@@ -228,9 +230,9 @@ func _scale_to_height(model_root: Node3D, skeleton: Skeleton3D, desired_height: 
 		return
 	model_root.force_update_transform()
 	skeleton.force_update_transform()
-	var head := _find_bone_by_suffix(skeleton, "Head")
-	var left_foot := _find_bone_by_suffix(skeleton, "LeftFoot")
-	var right_foot := _find_bone_by_suffix(skeleton, "RightFoot")
+	var head := SkeletonInspection._find_bone_by_suffix(skeleton, "Head")
+	var left_foot := SkeletonInspection._find_bone_by_suffix(skeleton, "LeftFoot")
+	var right_foot := SkeletonInspection._find_bone_by_suffix(skeleton, "RightFoot")
 	if head < 0 or left_foot < 0 or right_foot < 0:
 		return
 	var head_world := skeleton.to_global(skeleton.get_bone_global_rest(head).origin)
@@ -730,10 +732,10 @@ func _calibration_report_text() -> String:
 
 func _palm_alignment_metrics(side: String) -> Dictionary:
 	var target_indices := {
-		"hand": _find_bone_by_suffix(target_skeleton, "%sHand" % side),
-		"index": _find_bone_by_suffix(target_skeleton, "%sHandIndex1" % side),
-		"middle": _find_bone_by_suffix(target_skeleton, "%sHandMiddle1" % side),
-		"pinky": _find_bone_by_suffix(target_skeleton, "%sHandPinky1" % side),
+		"hand": SkeletonInspection._find_bone_by_suffix(target_skeleton, "%sHand" % side),
+		"index": SkeletonInspection._find_bone_by_suffix(target_skeleton, "%sHandIndex1" % side),
+		"middle": SkeletonInspection._find_bone_by_suffix(target_skeleton, "%sHandMiddle1" % side),
+		"pinky": SkeletonInspection._find_bone_by_suffix(target_skeleton, "%sHandPinky1" % side),
 	}
 	var target_basis := _palm_basis(
 		target_skeleton,
@@ -799,9 +801,9 @@ func _palm_alignment_metrics(side: String) -> Dictionary:
 func _foot_alignment_metrics(side: String) -> Dictionary:
 	var target_basis := _foot_basis(
 		target_skeleton,
-		_find_bone_by_suffix(target_skeleton, "%sLeg" % side),
-		_find_bone_by_suffix(target_skeleton, "%sFoot" % side),
-		_find_bone_by_suffix(target_skeleton, "%sToeBase" % side)
+		SkeletonInspection._find_bone_by_suffix(target_skeleton, "%sLeg" % side),
+		SkeletonInspection._find_bone_by_suffix(target_skeleton, "%sFoot" % side),
+		SkeletonInspection._find_bone_by_suffix(target_skeleton, "%sToeBase" % side)
 	)
 	var source_chain = (calibration_profile.get("anatomy", {}) as Dictionary).get(
 		"%s_leg" % side.to_lower(),
@@ -909,9 +911,9 @@ func _bone_passes_filter(bone_name: String, side := "") -> bool:
 
 
 func _source_bone_is_mapped(bone_name: String) -> bool:
-	var normalized := _canonical_bone_name(bone_name)
+	var normalized := SkeletonInspection._canonical_bone_name(bone_name)
 	for source_variant in mapping.values():
-		if _canonical_bone_name(String(source_variant)) == normalized:
+		if SkeletonInspection._canonical_bone_name(String(source_variant)) == normalized:
 			return true
 	return false
 
@@ -976,61 +978,12 @@ func _update_camera() -> void:
 	camera.look_at(VIEW_CENTER, Vector3.UP)
 
 
-func _normalize_mixamo_names(skeleton: Skeleton3D) -> void:
-	for index in range(skeleton.get_bone_count()):
-		var name_string := String(skeleton.get_bone_name(index)).replace("mixamorig:", "mixamorig_")
-		skeleton.set_bone_name(index, name_string)
-
-
-func _find_bone_by_suffix(skeleton: Skeleton3D, suffix: String) -> int:
-	for index in range(skeleton.get_bone_count()):
-		var normalized := String(skeleton.get_bone_name(index)).replace(":", "_")
-		var suffix_start := normalized.rfind("_")
-		if suffix_start >= 0 and normalized.substr(suffix_start + 1).is_valid_int():
-			normalized = normalized.left(suffix_start)
-		if normalized.ends_with(suffix):
-			return index
-	return -1
-
-
 func _find_compatible_source_bone(requested_name: String) -> int:
 	var direct_index := source_skeleton.find_bone(requested_name)
 	if direct_index >= 0:
 		return direct_index
-	var requested_normalized := _canonical_bone_name(requested_name)
+	var requested_normalized := SkeletonInspection._canonical_bone_name(requested_name)
 	for index in range(source_skeleton.get_bone_count()):
-		if _canonical_bone_name(source_skeleton.get_bone_name(index)) == requested_normalized:
+		if SkeletonInspection._canonical_bone_name(source_skeleton.get_bone_name(index)) == requested_normalized:
 			return index
 	return -1
-
-
-func _canonical_bone_name(raw_name: String) -> String:
-	var normalized := raw_name.replace(":", "_")
-	var suffix_start := normalized.rfind("_")
-	if suffix_start >= 0 and normalized.substr(suffix_start + 1).is_valid_int():
-		normalized = normalized.left(suffix_start)
-	return normalized
-
-
-func _disable_animation_players(node: Node) -> void:
-	if node is AnimationPlayer:
-		(node as AnimationPlayer).process_mode = Node.PROCESS_MODE_DISABLED
-	for child in node.get_children():
-		_disable_animation_players(child)
-
-
-func _set_named_visibility(node: Node, target_name: String, visible: bool) -> void:
-	if node.name == target_name and node is Node3D:
-		(node as Node3D).visible = visible
-	for child in node.get_children():
-		_set_named_visibility(child, target_name, visible)
-
-
-func _find_skeleton(node: Node) -> Skeleton3D:
-	if node is Skeleton3D:
-		return node as Skeleton3D
-	for child in node.get_children():
-		var found := _find_skeleton(child)
-		if found != null:
-			return found
-	return null

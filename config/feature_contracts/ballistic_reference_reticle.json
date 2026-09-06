@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "feature_id": "ballistic_reference_reticle",
-  "player_intent": "Use a clean open SOCOM-style reference arc with symmetric left and right lead bars and one lower bullet-drop reference stem, without a center dot or grey bloom circle.",
-  "acceptance_rule": "The combat reticle draws one open-top lower arc, two symmetric horizontal lead references, and one lower vertical drop reference. It draws no center dot and no separate translucent spread circle. The invisible camera reticle's authoritative screen point never moves. Movement may lengthen only the lateral references and weapon spread may expand the chartreuse reference arc itself. The markings are presentation references: they do not redirect hitscan shots, promise a headshot, synthesize target velocity, or add projectile gravity.",
+  "player_intent": "Replace the U-shaped reticle with the SOCOM II video reference: four chartreuse cardinal ticks, a tiny center point, and a faint shaded central disc.",
+  "acceptance_rule": "The combat reticle draws four outward-facing cardinal ticks with symmetric gaps driven by the existing saved weapon spread profile. Movement does not independently lengthen the side ticks. A tiny point and fixed-size faint disc remain on authoritative camera aim while existing cosmetic shot feedback may move the ticks. Target colors, hit confirmation, and interaction brackets remain available. This is reference-inspired presentation, not a change to shot spread, gravity, damage, recoil mechanics, or weapon balance.",
   "canonical_scene": "res://main.tscn",
   "editor_scene": "res://gun_calibration_lab.tscn",
   "ownership": {
@@ -14,7 +14,7 @@
     {
       "id": "canonical_dynamic_reticle",
       "type": "Control",
-      "role": "Consumes the saved per-weapon reticle profile and draws the lead/drop reference geometry around the canonical camera aim point.",
+      "role": "Consumes the saved per-weapon reticle profile and draws four cardinal ticks with a central point and faint disc around the canonical camera aim point.",
       "owner": "SocomDynamicReticle",
       "source_script": "res://scripts/ui/socom_dynamic_reticle.gd",
       "code_symbols": [
@@ -47,25 +47,25 @@
     "res://tools/feature_contract_regression.gd",
     "res://tools/public_training_range_regression.gd"
   ],
-  "visual_check": "Run res://main.tscn and inspect /private/tmp/socom-ballistic-reference-reticle.png from the focused regression. At 16:9 and 4:3, confirm there is no center dot or grey bloom circle, the lower arc remains open at the top, side bars are level and symmetric, and the lower stem remains centered. Fire and move: the presentation shape may briefly bounce or lengthen, but the underlying camera and shot aim point must not move.",
+  "visual_check": "Run res://main.tscn through the rendered integration with --capture-reticle. Inspect /private/tmp/socom-ballistic-reference-reticle.png: four cardinal ticks, tiny center point, faint fixed disc, no U-shaped arc. Geometry tests cover 16:9 and 4:3, expansion and recovery, target/interact/hit feedback, and aim-center preservation. Compare against the user video at 0:00, 0:05, and 24:17; exact original-game timing is not claimed.",
   "system_delta": {
     "decision": "REPLACE",
-    "reason": "Replace the center dot, grey bloom circle, and four interchangeable cardinal ticks with semantically distinct lead and drop references while retaining the canonical reticle owner, target colors, hit marker, and cosmetic recoil feedback.",
+    "reason": "The user's new SOCOM II video reference supersedes the earlier U-shaped design request. Replace geometry only; preserve one runtime HUD owner, saved weapon profiles, target feedback, and shot/aim authority. See docs/SOCOM_II_RETICLE_REFERENCE_PASS.md for the pre-edit translation card and observations.",
     "current": {
-      "system": "Center dot plus four identical cardinal ticks",
-      "correctness": 3,
+      "system": "Dot-free U-shaped lead/drop reference",
+      "correctness": 2,
       "ownership_clarity": 5,
       "runtime_parity": 5,
-      "editor_usability": 3,
+      "editor_usability": 4,
       "performance": 5,
-      "regression_coverage": 3,
+      "regression_coverage": 4,
       "evidence_paths": [
         "res://scripts/ui/socom_dynamic_reticle.gd",
         "res://tools/reticle_render_integration.gd"
       ]
     },
     "candidate": {
-      "system": "Dot-free open lead/drop reference geometry with no separate bloom circle",
+      "system": "Four SOCOM II reference-inspired cardinal ticks with fixed center point and faint backing disc",
       "correctness": 5,
       "ownership_clarity": 5,
       "runtime_parity": 5,

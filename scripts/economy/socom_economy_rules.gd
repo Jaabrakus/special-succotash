@@ -1,9 +1,9 @@
 class_name SocomEconomyRules
 extends RefCounted
 
-## Server-and-client shared economy rules for the pre-round buy menu.
-## Owns pricing, cash limits, round awards, the buy window length, and the
-## carry-weight budget. Pure data logic: no scene, input, or network access.
+## Shared armory eligibility, slot and selection policy. Historical pricing
+## data remains available, but selection-only mode does not require money.
+## Pure data logic: no scene, input, or network access.
 
 const CONFIG_PATH := "res://config/economy/buy_menu_config.json"
 const PRICES_PATH := "res://config/economy/weapon_prices.json"
@@ -50,6 +50,14 @@ static func is_firearm_category(category: String) -> bool:
 	return firearm_categories().has(category)
 
 
+static func is_armory_weapon(record: Dictionary) -> bool:
+	return not record.is_empty() and bool(record.get("armory_eligible", true)) and is_firearm_category(String(record.get("category", "")))
+
+
+static func selection_only() -> bool:
+	return bool(get_config().get("selection_only", true))
+
+
 static func slot_for_category(category: String) -> String:
 	var secondary: Array = get_config().get("secondary_categories", ["Pistols"])
 	return "secondary" if secondary.has(category) else "primary"
@@ -91,4 +99,4 @@ static func weapon_record(weapon_id: String) -> Dictionary:
 
 
 static func weapons_for_category(category: String) -> Array:
-	return WeaponCatalog.get_weapons_by_category(category)
+	return WeaponCatalog.get_weapons_by_category(category).filter(is_armory_weapon)

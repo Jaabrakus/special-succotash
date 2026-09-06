@@ -1,0 +1,28 @@
+{
+	"retraction_m": 0.14,
+	"source": "canonical main.tscn accepted FIRE_RECOVERY",
+	"stances": {
+		"crouched": {
+			"lower_body_tracks_unchanged": true,
+			"native_bones": 65,
+			"palm_retraction_error_m": 0.00042003407725133,
+			"source_bore_error_deg": 0.18472029164824,
+			"source_clip": "pistol_idle_kneeling",
+			"support_error_m": 0.00050609273603186,
+			"trigger_error_m": 0.00042003407725133,
+			"upper_rotation_tracks": 54,
+			"wrist_rotation_delta_deg": 0.0
+		},
+		"standing": {
+			"lower_body_tracks_unchanged": true,
+			"native_bones": 65,
+			"palm_retraction_error_m": 0.000310036877635866,
+			"source_bore_error_deg": 0.154203873550482,
+			"source_clip": "pistol_idle",
+			"support_error_m": 0.00104361714329571,
+			"trigger_error_m": 0.000310036877635866,
+			"upper_rotation_tracks": 54,
+			"wrist_rotation_delta_deg": 0.0
+		}
+	}
+}

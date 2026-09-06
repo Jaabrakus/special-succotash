@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "feature_id": "contributor_map_asset_boundary",
+  "player_intent": "Contributors provide map geometry through the existing saved map contract without editing protected gameplay owners.",
+  "acceptance_rule": "Imported prop transforms, geometry, metadata, three collision modes and missing-asset preview behavior match before/after extraction; saved example commands reach the same builder as canonical play.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://map_creation_lab.tscn",
+  "ownership": {"imported_prop_construction": "SocomImportedMapAssetBuilder", "map_dispatch": "SocomMapRuntime", "asset_loading": "SocomMapAssetLibrary"},
+  "nodes": [{"id": "imported_prop", "type": "StaticBody3D", "role": "Builds imported visuals and requested static collision without player state", "owner": "SocomImportedMapAssetBuilder", "source_script": "res://scripts/maps/socom_imported_map_asset_builder.gd", "code_symbols": ["var body := StaticBody3D.new()", "content.name = \"ImportedContent\""]}],
+  "data_contracts": [{"path": "res://config/contributor_examples/place_map_prop.json", "writer": "res://config/contributor_examples/place_map_prop.json", "readers": ["res://tools/check_contributed_map_prop.gd", "res://scripts/maps/socom_map_command_service.gd", "res://scripts/maps/socom_map_runtime.gd", "res://scripts/maps/socom_imported_map_asset_builder.gd"]}],
+  "must_not_change": ["character_selection", "animation", "movement", "camera_aim", "shot_damage", "network_authority", "mode_rules", "active_map", "browser_export"],
+  "proof_scripts": ["res://tools/imported_map_asset_boundary_regression.gd", "res://tools/check_contributed_map_prop.gd", "res://tools/map_creation_lab_regression.gd", "res://tools/community_map_workflow_regression.gd", "res://tools/feature_contract_regression.gd"],
+  "visual_check": "Compare before/after rendered prop capture and exact node/mesh/collision fingerprints. Skins remain an authoring/review workflow, not a new live selector.",
+  "system_delta": {
+    "decision": "MERGE", "reason": "Extract a dedicated imported-prop component without duplicating map loading, gameplay policy or character owners.",
+    "current": {"system": "Imported asset construction embedded in 2112-line map runtime", "correctness": 4, "ownership_clarity": 2, "runtime_parity": 4, "editor_usability": 3, "performance": 4, "regression_coverage": 2, "evidence_paths": ["res://docs/CONTRIBUTOR_BOUNDARY_PASS.md", "res://scripts/maps/socom_map_runtime.gd"]},
+    "candidate": {"system": "Bounded imported prop builder and documented contributor lanes", "correctness": 4, "ownership_clarity": 4, "runtime_parity": 4, "editor_usability": 4, "performance": 4, "regression_coverage": 4, "evidence_paths": ["res://scripts/maps/socom_imported_map_asset_builder.gd", "res://CONTRIBUTING.md", "res://tools/imported_map_asset_boundary_regression.gd"]}
+  }
+}

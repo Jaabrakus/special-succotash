@@ -22,32 +22,36 @@ func _run() -> void:
 		"res://deploy/signaling/server.mjs"
 	)
 	_expect(
-		String(profile.get("browser_private_transport", ""))
+		String(profile.get("browser_tournament_transport", ""))
 		== DeploymentProfile.TRANSPORT_WEBRTC,
-		"saved browser private-match transport is WebRTC"
+		"saved browser tournament transport is WebRTC"
 	)
 	_expect(
 		String(profile.get("webrtc_signaling_url", "")).begins_with("wss://"),
 		"itch browser signaling uses a secure WebSocket URL"
 	)
 	_expect(
-		int(profile.get("webrtc_max_players", 0)) == 4,
-		"signaling admission caps one private match at four players"
+		int(profile.get("webrtc_max_players", 0)) == 32,
+		"signaling admission caps one tournament room at 32 players"
 	)
 	_expect(
 		blueprint.contains("name: socom-141-webrtc-signaling")
 		and blueprint.contains("runtime: node")
 		and blueprint.contains("plan: free")
-		and blueprint.contains("healthCheckPath: /healthz"),
-		"root Render Blueprint deploys only the lightweight free signaler"
+		and blueprint.contains("healthCheckPath: /healthz")
+		and blueprint.contains("SOCOM_WEBRTC_MAX_TOURNAMENT_PEERS")
+		and blueprint.contains("value: 32"),
+		"root Render Blueprint deploys the lightweight 32-player tournament signaler"
 	)
 	_expect(
-		signaling_source.contains("case \"offer\"")
+		signaling_source.contains("case \"join_tournament\"")
+		and signaling_source.contains("DEFAULT_MAX_TOURNAMENT_PEERS = 32")
+		and signaling_source.contains("case \"offer\"")
 		and signaling_source.contains("case \"answer\"")
 		and signaling_source.contains("case \"candidate\"")
 		and not signaling_source.contains("submit_movement")
 		and not signaling_source.contains("damage"),
-		"signaling service relays negotiation and owns no gameplay simulation"
+		"signaling allocates tournament peers and relays negotiation without owning gameplay"
 	)
 	_expect(
 		WebRTCSignalingClient.is_room_code("p2p-abcd23"),
@@ -73,27 +77,39 @@ func _run() -> void:
 		bool(launcher.get("restricted_web_build")),
 		"focused fixture is running the restricted itch launcher path"
 	)
-	var host_button := launcher.find_child("HostGame", true, false) as Button
+	var tournament_button := launcher.find_child("QuickMatch", true, false) as Button
 	_expect(
-		host_button != null and host_button.text == "HOST PRIVATE MATCH",
-		"itch launcher exposes the WebRTC host action"
+		tournament_button != null
+		and tournament_button.text == "JOIN 32-PLAYER TOURNAMENT"
+		and launcher.find_child("HostGame", true, false) == null
+		and launcher.find_child("JoinGameAddress", true, false) == null,
+		"itch launcher exposes automatic tournament join without a private host or code"
 	)
-	launcher.call("_configure_private_host_session")
+	var launcher_source := FileAccess.get_file_as_string("res://scripts/ui/game_launcher.gd")
 	_expect(
-		String(ProjectSettings.get_setting("socom/session/launch_mode", ""))
-		== "webrtc_host",
-		"browser host action enters the canonical session through shared launch state"
-	)
-	_expect(
-		String(ProjectSettings.get_setting(
+		bool(launcher.call("_configure_browser_tournament_session"))
+		and String(ProjectSettings.get_setting("socom/session/launch_mode", ""))
+		== "webrtc_tournament"
+		and bool(ProjectSettings.get_setting("socom/session/tournament_mode", false))
+		and String(ProjectSettings.get_setting(
 			"socom/session/webrtc_signaling_url",
 			""
 		)).begins_with("wss://"),
-		"browser host forwards the configured signaling service"
+		"browser action writes the complete canonical WebRTC tournament launch contract"
 	)
 	_expect(
-		not bool(ProjectSettings.get_setting("socom/session/tournament_mode", true)),
-		"private WebRTC hosting cannot enter the 32-player tournament path"
+		launcher_source.contains(
+			"ProjectSettings.set_setting(\"socom/session/launch_mode\", \"webrtc_tournament\")"
+		)
+		and launcher_source.contains(
+			"ProjectSettings.set_setting(\"socom/session/tournament_mode\", true)"
+		),
+		"browser tournament action enters the canonical bracket through shared launch state"
+	)
+	_expect(
+		launcher_source.contains("webrtc_signaling_url")
+		and launcher_source.contains("_collect_and_open(MULTIPLAYER_SCENE)"),
+		"browser tournament forwards the configured signaler into the canonical scene"
 	)
 
 	ProjectSettings.set_setting("socom/session/launch_mode", "")
@@ -104,16 +120,16 @@ func _run() -> void:
 	await process_frame
 
 	if failures.is_empty():
-		print("BROWSER_WEBRTC_PRIVATE_MATCH_REGRESSION PASS")
+		print("BROWSER_WEBRTC_TOURNAMENT_REGRESSION PASS")
 		quit(0)
 		return
 	for failure in failures:
-		push_error("BROWSER_WEBRTC_PRIVATE_MATCH_REGRESSION FAIL: " + failure)
+		push_error("BROWSER_WEBRTC_TOURNAMENT_REGRESSION FAIL: " + failure)
 	quit(1)
 
 
 func _expect(condition: bool, message: String) -> void:
 	if condition:
-		print("BROWSER_WEBRTC_PRIVATE_MATCH_CHECK PASS " + message)
+		print("BROWSER_WEBRTC_TOURNAMENT_CHECK PASS " + message)
 	else:
 		failures.append(message)

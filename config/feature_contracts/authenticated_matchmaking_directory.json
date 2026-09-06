@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "feature_id": "public_matchmaking_directory",
-  "player_intent": "Quick Match finds a healthy compatible SOCOM server without requiring the player to type its address.",
-  "acceptance_rule": "The browser-safe Supabase publishable key lists only operational or degraded regions and fresh online servers with capacity through SELECT-only anonymous RLS policies, converts each timestamptz heartbeat to last_heartbeat_unix, applies the canonical build and protocol selection policy, and returns one validated ws:// or wss:// endpoint without waiting for player identity.",
+  "player_intent": "Native development tools can find a healthy compatible SOCOM server without requiring the player to type its address, while the browser uses automatic WebRTC tournament signaling.",
+  "acceptance_rule": "The public Supabase publishable key lists only operational or degraded regions and fresh online servers with capacity through SELECT-only anonymous RLS policies, converts each timestamptz heartbeat to last_heartbeat_unix, applies the canonical build and protocol selection policy, and returns one validated ws:// or wss:// endpoint without waiting for player identity. The restricted browser front door does not expose this standalone server list.",
   "canonical_scene": "res://main.tscn",
   "editor_scene": "res://game_launcher.tscn",
   "ownership": {
@@ -95,5 +95,5 @@
     "res://tools/matchmaking_directory_client_regression.gd",
     "res://tools/feature_contract_regression.gd"
   ],
-  "visual_check": "Open a clean browser profile with no guest session, use Quick Match, and confirm the directory responds immediately and enters the selected wss:// server. Player identity may remain Local Guest when anonymous sign-in is disabled; no directory client opens a peer itself."
+  "visual_check": "Open the native launcher, use Browse Servers, and confirm the directory returns only fresh compatible endpoints. Open a clean restricted browser profile and confirm it instead exposes automatic 32-player WebRTC tournament join. No directory client opens a peer itself."
 }

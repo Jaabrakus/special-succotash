@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "feature_id": "shared_random_round_weapon",
+  "player_intent": "Every 2v2 round gives both teams the same surprise firearm while preserving each player's throwable loadout and leaving B available for fire-mode control.",
+  "acceptance_rule": "Before every ordinary or tournament arena round begins, the host selects exactly one valid handheld firearm, avoids an immediate repeat when another firearm exists, assigns that same weapon to every player in that match, applies its authoritative ballistics and ammunition, and reliably publishes its presentation to clients. No buy phase, purchase RPC, buy-menu B binding, grenade type, or throwable count participates in the assignment.",
+  "canonical_scene": "res://multiplayer_slice.tscn",
+  "editor_scene": "res://game_launcher.tscn",
+  "ownership": {
+    "shared_round_weapon_selection": "SocomRoundWeaponRules",
+    "authoritative_round_equipment_and_replication": "SocomMultiplayerRoundLoadout",
+    "shot_damage_and_ammunition": "AuthoritativeServerWeapon",
+    "throwable_loadout": "PlayerGameplayProfile"
+  },
+  "nodes": [
+    {
+      "id": "canonical_round_loadout_session",
+      "type": "Node3D",
+      "role": "Consumes the saved selection policy, applies one weapon to all players in the scoped match, and publishes the result through the canonical multiplayer scene.",
+      "owner": "SocomMultiplayerRoundLoadout",
+      "scene_path": "res://multiplayer_slice.tscn",
+      "node_path": "."
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://config/network/round_weapon_rules.json",
+      "writer": "res://scripts/network/socom_round_weapon_rules.gd",
+      "readers": [
+        "res://scripts/network/socom_multiplayer_round_loadout.gd",
+        "res://scripts/network/socom_multiplayer_tournament_runtime.gd",
+        "res://tools/round_random_weapon_regression.gd"
+      ]
+    }
+  ],
+  "must_not_change": [
+    "CharacterBody3D movement, velocity, and collision ownership",
+    "SOCOM camera and reticle aim-intent ownership",
+    "server-owned shot validation, damage, health, and hit resolution",
+    "throwable types, limits, counts, selection, and grenade presentation",
+    "weapon hand contacts, square-shoulder fire pose, reload, and 1.2-second fire recovery",
+    "WebRTC, ENet, lobby, arena isolation, bracket, and map ownership"
+  ],
+  "proof_scripts": [
+    "res://tools/round_random_weapon_regression.gd",
+    "res://tools/multiplayer_inheritance_regression.gd",
+    "res://tools/multiplayer_slice_architecture_regression.gd",
+    "res://tools/feature_contract_regression.gd"
+  ],
+  "visual_check": "Join one four-player arena inside the 32-player browser tournament and confirm all four assigned players see and fire the announced identical weapon. Finish two rounds and confirm the next firearm differs, magazines match its config, B changes fire mode rather than opening a store, and every player's frag, flash, and smoke loadout remains unchanged.",
+  "system_delta": {
+    "decision": "REPLACE",
+    "reason": "The requested Gunfight rule directly conflicts with a purchase window that lets players override the round weapon. Replace multiplayer cash, buy-window, and purchase ownership with one host-selected shared round loadout while retaining the existing server weapon, throwable, transport, tournament, and presentation owners.",
+    "current": {
+      "system": "Per-player cash and B buy menu capable of assigning different purchased weapons during the round",
+      "correctness": 1,
+      "ownership_clarity": 3,
+      "runtime_parity": 2,
+      "editor_usability": 3,
+      "performance": 3,
+      "regression_coverage": 4,
+      "evidence_paths": [
+        "res://scripts/ui/socom_buy_menu.gd",
+        "res://scripts/economy/socom_purchase_validator.gd",
+        "res://config/economy/buy_menu_config.json"
+      ]
+    },
+    "candidate": {
+      "system": "Host-selected firearm shared by every player in each ordinary match or isolated tournament arena round",
+      "correctness": 5,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 5,
+      "performance": 5,
+      "regression_coverage": 5,
+      "evidence_paths": [
+        "res://config/network/round_weapon_rules.json",
+        "res://scripts/network/socom_round_weapon_rules.gd",
+        "res://scripts/network/socom_multiplayer_round_loadout.gd",
+        "res://scripts/network/socom_multiplayer_tournament_runtime.gd",
+        "res://tools/round_random_weapon_regression.gd"
+      ]
+    }
+  }
+}

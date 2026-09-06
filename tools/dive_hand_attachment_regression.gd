@@ -1,6 +1,7 @@
 extends SceneTree
 
 const CAPTURE_DIR := "/private/tmp/socom-dive-hand-attachment"
+const PoseGeometry := preload("res://scripts/player/operator_weapon_pose_geometry.gd")
 
 var failures: Array[String] = []
 
@@ -45,6 +46,24 @@ func _run() -> void:
 	var dive_support_contact := float(
 		dive_debug.get("action_support_contact_error_m", 1.0)
 	)
+	var dive_phase := float(player.call("get_action_phase"))
+	var dive_anchor_world: Vector3 = dive_debug.get(
+		"stable_chest_anchor_world",
+		Vector3.ZERO
+	)
+	var dive_anchor_local := player.to_local(dive_anchor_world)
+	var dive_profile: Dictionary = dive_debug.get("dive_weapon_presentation", {})
+	var standing_descent_ratio := clampf(
+		(
+			PoseGeometry.STANDING_CHEST_ANCHOR_LOCAL.y
+			- dive_anchor_local.y
+		) / (
+			PoseGeometry.STANDING_CHEST_ANCHOR_LOCAL.y
+			- PoseGeometry.PRONE_CHEST_ANCHOR_LOCAL.y
+		),
+		0.0,
+		1.0
+	)
 	var support_shoulder: Vector3 = solver.call(
 		"_bone_world_position", &"mixamorig_LeftArm"
 	)
@@ -69,6 +88,22 @@ func _run() -> void:
 		support_reach,
 		support_hand.distance_to(support_target),
 	])
+	print("DIVE_DESCENT_METRIC phase=%.4f anchor_local_y=%.4f descent_ratio=%.4f start_phase=%.3f end_phase=%.3f" % [
+		dive_phase,
+		dive_anchor_local.y,
+		standing_descent_ratio,
+		float(dive_profile.get("anchor_descent_start_phase", -1.0)),
+		float(dive_profile.get("anchor_descent_end_phase", -1.0)),
+	])
+	_expect(
+		dive_phase <= float(dive_profile.get("early_phase_limit", 0.30)),
+		"standing dive descent is sampled during its declared early phase"
+	)
+	_expect(
+		standing_descent_ratio
+		<= float(dive_profile.get("maximum_early_descent_ratio", 0.10)),
+		"standing dive keeps at least 90 percent of gun height through the early phase"
+	)
 	_expect(
 		StringName(dive_debug.get("weapon_owner", &"")) == &"MOBILITY_CHEST_CARRY",
 		"dive gives the rendered rifle to the stable chest carry"
@@ -91,9 +126,12 @@ func _run() -> void:
 	await _process_steps(8)
 	var prone_debug: Dictionary = solver.call("get_debug_state")
 	var prone_contact := float(prone_debug.get("trigger_hand_error_m", 1.0))
-	print("PRONE_HAND_METRIC owner=%s contact_m=%.5f" % [
+	print("PRONE_HAND_METRIC owner=%s contact_m=%.5f follow=%s solver_owned=%s weight=%.5f" % [
 		String(prone_debug.get("weapon_owner", &"")),
 		prone_contact,
+		str(prone_debug.get("action_weapon_follow_active", false)),
+		str(prone_debug.get("weapon_solver_owned", false)),
+		float(prone_debug.get("weight", 0.0)),
 	])
 	_expect(
 		StringName(player.call("get_motion_state_name")) == &"PRONE",
@@ -149,7 +187,18 @@ func _run() -> void:
 			break
 	Input.action_release(&"move_forward")
 	await _physics_steps(24)
+	await _process_steps(8)
 	var crouched_prone_debug: Dictionary = solver.call("get_debug_state")
+	print("CROUCHED_PRONE_HAND_METRIC owner=%s trigger_m=%.5f follow=%s solver_owned=%s animation_parent=%s mount_error_m=%.5f weapon=%s hand=%s" % [
+		String(crouched_prone_debug.get("weapon_owner", &"")),
+		float(crouched_prone_debug.get("trigger_hand_error_m", 1.0)),
+		str(crouched_prone_debug.get("action_weapon_follow_active", false)),
+		str(crouched_prone_debug.get("weapon_solver_owned", false)),
+		str(crouched_prone_debug.get("weapon_parent_is_animation_mount", false)),
+		float(crouched_prone_debug.get("animation_mount_position_error_m", -1.0)),
+		str(crouched_prone_debug.get("weapon_world_position", Vector3.ZERO)),
+		str(crouched_prone_debug.get("trigger_hand_position", Vector3.ZERO)),
+	])
 	_expect(
 		StringName(player.call("get_motion_state_name")) == &"PRONE",
 		"quick crouched dive settles into prone"

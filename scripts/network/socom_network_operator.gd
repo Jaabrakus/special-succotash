@@ -6,6 +6,7 @@ extends SocomTestPlayer
 ## movement authority; animated Area3D shapes remain damage-only geometry.
 
 const MannequinScript := preload("res://scripts/player/test_mannequin.gd")
+const TeamAppearance := preload("res://scripts/player/operator_team_appearance.gd")
 const AnimatedHurtboxRigScript := preload("res://scripts/combat/socom_animated_hurtbox_rig.gd")
 
 signal eliminated(victim_peer_id: int, attacker_peer_id: int)
@@ -52,7 +53,7 @@ func configure_identity(peer_id: int, assigned_team: int) -> void:
 	network_peer_id = peer_id
 	team_id = assigned_team
 	display_name = "SEAL %d" % peer_id
-	team_visual_color = Color("579fe8") if team_id == 0 else Color("d65a4a")
+	team_visual_color = TeamAppearance.color_for(team_id)
 	if nameplate:
 		_refresh_nameplate()
 	call_deferred("_apply_team_visual")
@@ -338,49 +339,14 @@ func _refresh_nameplate() -> void:
 		if alive
 		else "%s  ELIMINATED" % display_name
 	)
-	nameplate.modulate = (
-		Color("69b8ff")
-		if team_id == 0
-		else Color("ff6d5c")
-	)
+	nameplate.modulate = TeamAppearance.color_for(team_id)
 
 
 func _apply_team_visual() -> void:
-	if mannequin == null or DisplayServer.get_name() == "headless":
+	if mannequin == null or mannequin.production_animation == null:
 		return
-	var tint := Color("7fb9ea") if team_id == 0 else Color("e88476")
-	for node: Node in mannequin.find_children("*", "MeshInstance3D", true, false):
-		var mesh_instance := node as MeshInstance3D
-		if mesh_instance == null or mesh_instance.mesh == null:
-			continue
-		var ancestor: Node = mesh_instance
-		var is_wearable := false
-		while ancestor != null and ancestor != mannequin:
-			if ancestor.has_meta("socom_wearable"):
-				is_wearable = true
-				break
-			ancestor = ancestor.get_parent()
-		if is_wearable:
-			continue
-		var lower_name := mesh_instance.name.to_lower()
-		if "weapon" in lower_name or "rifle" in lower_name or "magazine" in lower_name or "muzzle" in lower_name:
-			continue
-		for surface_index in mesh_instance.mesh.get_surface_count():
-			var source := mesh_instance.get_surface_override_material(surface_index)
-			if source == null:
-				source = mesh_instance.mesh.surface_get_material(surface_index)
-			var material: BaseMaterial3D
-			if source is BaseMaterial3D:
-				material = (source as BaseMaterial3D).duplicate() as BaseMaterial3D
-			else:
-				material = StandardMaterial3D.new()
-			material.albedo_color = Color(
-				material.albedo_color.r * tint.r,
-				material.albedo_color.g * tint.g,
-				material.albedo_color.b * tint.b,
-				material.albedo_color.a
-			)
-			mesh_instance.set_surface_override_material(surface_index, material)
+	var model := mannequin.production_animation.get_node_or_null("TrooperModel")
+	TeamAppearance.apply(model, team_id)
 
 
 func _bind_animated_hurtboxes() -> void:

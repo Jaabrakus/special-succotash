@@ -1,50 +1,57 @@
 {
   "arm_rig_pose": {
     "left_elbow": {
-      "bend": 0.0,
-      "twist": 0.0
+      "bend": 0,
+      "twist": 0
     },
     "left_shoulder": {
-      "pitch": 0.0,
-      "roll": 0.0,
-      "yaw": 0.0
+      "pitch": 0,
+      "roll": 0,
+      "yaw": 0
     },
     "left_wrist": {
-      "pitch": 0.0,
-      "roll": 0.0,
-      "yaw": 0.0
+      "pitch": 0,
+      "roll": 0,
+      "yaw": 0
     }
   },
   "ballistics": {
     "base_spread_deg": 0.429,
-    "bloom_per_shot_deg": 1.0,
+    "bloom_per_shot_deg": 1,
     "bloom_recovery_speed": 17.5,
     "damage": 22,
-    "fire_rate_rpm": 600,
+    "fire_rate_rpm": 120,
+    "reload_duration_seconds": 4,
     "is_silenced": false,
     "headshot_multiplier": 3.5,
-    "muzzle_velocity_mps": 393.0,
+    "muzzle_velocity_mps": 393,
     "moving_spread_deg": 1.029,
     "full_gait_spread_deg": 1.543,
     "max_recoil_bloom_deg": 2.6,
     "magazine_capacity": 12,
     "reserve_ammo": 36,
-    "effective_range_m": 10.0,
-    "max_range_m": 300.0
+    "effective_range_m": 10,
+    "max_range_m": 60,
+    "pellet_count": 8,
+    "pellet_spread_deg": 3,
+    "pellet_damage": 12,
+    "damage_falloff_start_m": 12,
+    "damage_falloff_end_m": 40,
+    "minimum_damage_multiplier": 0.2
   },
   "camo_skin": "Factory Classic (Wood & Steel)",
   "category": "Assault Rifles",
   "display_name": "Shotgun_1",
   "grip_offset": {
-    "pos_x": 0.0,
-    "pos_y": 0.0,
-    "pos_z": 0.0,
-    "rot_x": 0.0,
-    "rot_y": 0.0,
-    "rot_z": 0.0
+    "pos_x": 0,
+    "pos_y": 0,
+    "pos_z": 0,
+    "rot_x": 0,
+    "rot_y": 0,
+    "rot_z": 0
   },
   "model_fbx": "res://assets/weapons/modular_pack/Shotgun_1.fbx",
-  "normalized_scale": 1.0,
+  "normalized_scale": 1,
   "scope_attachment": "None",
   "silencer_attachment": "None",
   "weapon_id": "shotgun_1",
@@ -57,23 +64,23 @@
     "left_hand_ik_target": {
       "x": 0.200000002980232,
       "y": -0.0299999993294477,
-      "z": 0.0
+      "z": 0
     },
     "muzzle_socket": {
       "x": 0.699999988079071,
       "y": 0.0199999995529652,
-      "z": 0.0
+      "z": 0
     },
     "optic_rail": {
       "x": 0.0500000007450581,
       "y": 0.0799999982118607,
-      "z": 0.0
+      "z": 0
     }
   },
   "reticle": {
-    "shot_kick_px": 20.0,
-    "shot_kick_return": 40.0,
-    "maximum_shot_kick_px": 60.0,
+    "shot_kick_px": 20,
+    "shot_kick_return": 40,
+    "maximum_shot_kick_px": 60,
     "base_gap_px": 5.1,
     "max_gap_px": 41.6,
     "response_speed": 26.2
@@ -88,8 +95,8 @@
     "ammo_spec": {
       "type": "9x19P",
       "impact_damage": 1.4,
-      "stun": 1.0,
-      "piercing": 1.0
+      "stun": 1,
+      "piercing": 1
     }
   },
   "default_fire_mode": "semi",

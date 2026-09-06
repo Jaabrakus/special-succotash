@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "feature_id": "crouch_strafe_height_continuity",
+  "player_intent": "Keep crouch strafing at a consistent moving height without restarting the animation on direction changes.",
+  "acceptance_rule": "Canonical crouched input with transitions enabled selects no crouch start/stop actions. Actual BlendSpace phase continues. Moving direction changes remain below 8 cm hip and 6 cm head vertical range, including natural gait; exact static height and idle-to-moving height parity are not claimed.",
+  "canonical_scene": "res://main.tscn",
+  "ownership": {"cosmetic_action_selection": "SocomOperatorTransitionStateMachine", "direction_blend": "SocomOperatorLocomotionBlendTree"},
+  "nodes": [{"id": "crouch_graph", "type": "AnimationTree", "role": "Canonical moving crouch blend with a shared forward center cycle", "owner": "SocomOperatorLocomotionBlendTree", "source_script": "res://scripts/player/operator_locomotion_blend_tree.gd", "code_symbols": ["Vector2.ZERO, -1, &\"center\"", "parameters/crouch_space/blend_position"]}],
+  "data_contracts": [{"path": "res://config/operator_animation_map.json", "writer": "res://addons/socom_authoring/animation_route_repository.gd", "readers": ["res://scripts/player/operator_animation_profile.gd", "res://scripts/player/operator_transition_state_machine.gd", "res://scripts/player/operator_locomotion_blend_tree.gd"]}],
+  "must_not_change": ["movement/collision height and speed", "camera and reticle", "shot authority", "weapon poses", "standing and prone blending", "foot IK", "reload actions"],
+  "proof_scripts": ["res://tools/crouch_strafe_continuity_probe.gd", "res://tools/directional_locomotion_phase_regression.gd"],
+  "visual_check": "Run crouch_strafe_continuity_probe with --assert-continuity --render, and repeat with --pistol. Inspect early/middle/late lateral reversals from both camera angles.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Keep the shared gait clock, remove interfering cosmetic crouch actions, and blend A/D through the shared center take instead of unrelated directional poses. No bone-position correction or movement change.",
+    "current": {"system": "Cyclic crouch blend interrupted by start/stop actions and angular reversal detours", "correctness": 2, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 4, "regression_coverage": 2, "evidence_paths": ["res://scripts/player/operator_transition_state_machine.gd", "res://docs/CROUCH_STRAFE_CONTINUITY.md"]},
+    "candidate": {"system": "Uninterrupted crouch gait with center crossfade and actual-playhead height probe", "correctness": 4, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 4, "regression_coverage": 4, "evidence_paths": ["res://scripts/player/operator_locomotion_blend_tree.gd", "res://tools/crouch_strafe_continuity_probe.gd"]}
+  }
+}

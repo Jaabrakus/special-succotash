@@ -254,7 +254,7 @@ func _build_playtest_keyboard(parent: VBoxContainer) -> void:
 		&"interact", &"reset_camera",
 	], Color("426a80"))
 	_add_keycap_row(parent, [
-		&"equip_primary", &"toggle_nvg", &"toggle_scoreboard",
+		&"equip_primary", &"toggle_fire_mode", &"toggle_nvg", &"toggle_scoreboard",
 	], Color("426a80"))
 	_add_keycap_row(parent, [
 		&"radio_comms", &"push_to_talk",

@@ -1,0 +1,131 @@
+{
+  "schema_version": 1,
+  "feature_id": "browser_webrtc_tournament_front_door",
+  "player_intent": "The browser game is one-click 32-player WebRTC tournament play plus a real global leaderboard; 2v2 exists only inside the tournament's eight concurrent arenas.",
+  "acceptance_rule": "The restricted browser launcher shows JOIN 32-PLAYER TOURNAMENT, GLOBAL LEADERBOARD, and settings. It shows no private host, room code, manual address, or server-browser action. The signaling service automatically creates and fills tournament rooms up to 32 peers, peer 1 remains the authoritative match owner, the existing tournament runtime forms 16 duos across eight isolated 2v2 arenas, and the leaderboard reads a bounded anonymous-safe RPC without fabricated rows or user ids.",
+  "canonical_scene": "res://multiplayer_slice.tscn",
+  "editor_scene": "res://game_launcher.tscn",
+  "ownership": {
+    "browser_navigation": "SocomGameLauncher",
+    "webrtc_tournament_room_allocation": "SocomWebRTCSignalingService",
+    "network_peer_and_match_authority": "SocomMultiplayerSession peer 1",
+    "tournament_bracket_and_arena_isolation": "SocomTournamentSession",
+    "global_leaderboard_read": "SocomSupabaseClient",
+    "shot_and_damage": "AuthoritativeServerWeapon"
+  },
+  "nodes": [
+    {
+      "id": "browser_tournament_action",
+      "type": "Button",
+      "role": "Requests automatic WebRTC tournament matchmaking and enters the canonical multiplayer scene.",
+      "owner": "SocomGameLauncher",
+      "source_script": "res://scripts/ui/game_launcher.gd",
+      "code_symbols": [
+        "quick_match_button.name = \"QuickMatch\"",
+        "JOIN 32-PLAYER TOURNAMENT",
+        "\"webrtc_tournament\"",
+        "_collect_and_open(MULTIPLAYER_SCENE)"
+      ]
+    },
+    {
+      "id": "global_leaderboard_action",
+      "type": "Button",
+      "role": "Opens and refreshes real tournament standings from the bounded public leaderboard contract.",
+      "owner": "SocomGameLauncher",
+      "source_script": "res://scripts/ui/game_launcher.gd",
+      "code_symbols": [
+        "leaderboard_button.name = \"GlobalLeaderboard\"",
+        "leaderboard_refresh_btn.name = \"RefreshLeaderboard\"",
+        "func _fetch_and_render_leaderboard() -> void:"
+      ]
+    },
+    {
+      "id": "canonical_tournament_session",
+      "type": "Node3D",
+      "role": "Owns the connected lobby, 16 duos, eight arena assignments, bracket advancement, rounds, and authoritative combat decisions.",
+      "owner": "SocomMultiplayerSession peer 1",
+      "scene_path": "res://multiplayer_slice.tscn",
+      "node_path": "."
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://config/network/browser_multiarena_deployment.json",
+      "writer": "res://scripts/network/socom_multiplayer_deployment_profile.gd",
+      "readers": [
+        "res://scripts/ui/game_launcher.gd",
+        "res://scripts/network/socom_webrtc_signaling_client.gd",
+        "res://scripts/network/socom_multiplayer_session.gd"
+      ]
+    },
+    {
+      "path": "res://render.yaml",
+      "writer": "res://deploy/signaling/server.mjs",
+      "readers": [
+        "res://tools/browser_webrtc_private_match_regression.gd",
+        "res://tools/browser_tournament_front_door_regression.gd"
+      ]
+    },
+    {
+      "path": "res://supabase/migrations/20260902004000_public_gunfight_leaderboard.sql",
+      "writer": "res://scripts/network/socom_supabase_client.gd",
+      "readers": [
+        "res://scripts/ui/game_launcher.gd",
+        "res://tools/browser_tournament_front_door_regression.gd"
+      ]
+    }
+  ],
+  "must_not_change": [
+    "CharacterBody3D movement, collision, and stair traversal ownership",
+    "SOCOM camera and reticle aim-intent ownership",
+    "peer-1 shot, damage, ammunition, and ballistics authority",
+    "shared random round weapon and unchanged throwable rules",
+    "weapon animation, fire recovery, reload, and hand-contact presentation",
+    "tournament arena isolation, round limits, sudden death, and winner advancement",
+    "native ENet private-host development path"
+  ],
+  "proof_scripts": [
+    "res://tools/browser_tournament_front_door_regression.gd",
+    "res://tools/browser_webrtc_private_match_regression.gd",
+    "res://tools/restricted_web_launcher_regression.gd",
+    "res://tools/tournament_session_regression.gd",
+    "res://tools/test_multi_arena_tournament.gd",
+    "res://tools/feature_contract_regression.gd"
+  ],
+  "visual_check": "Open the restricted browser export. Confirm its game front door contains JOIN 32-PLAYER TOURNAMENT and GLOBAL LEADERBOARD but no private 2v2 host, room code, server list, or manual address. Join from multiple browser profiles, verify automatic TOUR room assignment and the 16-duo lobby, then open global standings and confirm the rows match the deployed database.",
+  "system_delta": {
+    "decision": "REPLACE",
+    "reason": "Replace the accidental four-peer private WebRTC room-code product with automatic 32-player WebRTC tournament matchmaking. Keep 2v2 only as an internal arena format and preserve peer 1 as the existing gameplay authority.",
+    "current": {
+      "system": "Four-peer browser WebRTC private-host flow with room codes",
+      "correctness": 1,
+      "ownership_clarity": 3,
+      "runtime_parity": 2,
+      "editor_usability": 2,
+      "performance": 4,
+      "regression_coverage": 4,
+      "evidence_paths": [
+        "res://scripts/network/socom_webrtc_signaling_client.gd",
+        "res://deploy/signaling/server.mjs",
+        "res://tools/browser_webrtc_private_match_regression.gd"
+      ]
+    },
+    "candidate": {
+      "system": "Automatic 32-player WebRTC room, server-relay peer topology, eight internal 2v2 arenas, shared bracket, and public global standings",
+      "correctness": 4,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 5,
+      "performance": 3,
+      "regression_coverage": 5,
+      "evidence_paths": [
+        "res://scripts/ui/game_launcher.gd",
+        "res://scripts/network/socom_webrtc_signaling_client.gd",
+        "res://scripts/network/socom_multiplayer_tournament_runtime.gd",
+        "res://deploy/signaling/server.mjs",
+        "res://scripts/network/socom_supabase_client.gd",
+        "res://tools/browser_tournament_front_door_regression.gd"
+      ]
+    }
+  }
+}

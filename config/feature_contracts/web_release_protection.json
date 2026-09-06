@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "feature_id": "web_release_protection",
+  "player_intent": "Distribute a playable browser build without internal review files or recognizable privileged secrets.",
+  "acceptance_rule": "Actual PCK audit and secret detector self-test pass; browser Training Grounds opens.",
+  "canonical_scene": "res://main.tscn",
+  "ownership": {"release_packaging": "tools/export_restricted_web.sh"},
+  "nodes": [{"id": "public_launcher", "type": "Control", "role": "Existing exported player entry point protected by the package gate", "owner": "Existing game launcher", "scene_path": "res://game_launcher.tscn", "node_path": "."}],
+  "data_contracts": [{"path": "res://config/web_release_policy.json", "writer": "res://tools/export_restricted_web.sh", "readers": ["res://tools/web_release_audit.gd"]}],
+  "must_not_change": ["movement", "camera", "weapon_authority", "animation", "third_party_licenses"],
+  "proof_scripts": ["res://tools/web_release_audit.gd", "res://tools/restricted_web_launcher_regression.gd"],
+  "visual_check": "Chrome boots the exported launcher and Training Grounds; package inspection is not DRM.",
+  "system_delta": {
+    "decision": "MERGE", "reason": "Add actual-package and credential checks to the existing release owner, retaining required client data and notices.",
+    "current": {"system": "Export log and tracked-path checks", "correctness": 2, "ownership_clarity": 5, "runtime_parity": 3, "editor_usability": 3, "performance": 5, "regression_coverage": 2, "evidence_paths": ["res://tools/release_protection_check.sh"]},
+    "candidate": {"system": "Actual PCK audit", "correctness": 4, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 5, "regression_coverage": 4, "evidence_paths": ["res://tools/web_release_audit.gd", "res://tools/export_restricted_web.sh"]}
+  }
+}

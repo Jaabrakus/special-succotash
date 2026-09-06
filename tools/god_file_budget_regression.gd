@@ -21,6 +21,7 @@ const TEMPORARY_CEILINGS := {
 	"res://scripts/runtime/operator_tuning_profile.gd": 500,
 	"res://scripts/network/socom_multiplayer_state.gd": 500,
 	"res://scripts/network/socom_multiplayer_admission.gd": 500,
+	"res://scripts/network/socom_multiplayer_webrtc.gd": 500,
 	"res://scripts/network/socom_multiplayer_session.gd": 500,
 	"res://scripts/network/socom_multiplayer_replication.gd": 500,
 	"res://scripts/network/socom_multiplayer_combat.gd": 500,

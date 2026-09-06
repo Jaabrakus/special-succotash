@@ -164,7 +164,8 @@ static func validate(
 	var model_path := String(visual.get("model_fbx", ""))
 	if model_path.is_empty():
 		errors.append("model_fbx is required")
-	elif not FileAccess.file_exists(model_path):
+	# Exported FBX sources are remapped to imported PackedScenes, not raw files.
+	elif not ResourceLoader.exists(model_path, "PackedScene"):
 		errors.append("model_fbx does not exist: %s" % model_path)
 	var normalized_scale_value: Variant = visual.get("normalized_scale", null)
 	if not _valid_finite_number(normalized_scale_value):

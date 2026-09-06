@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "feature_id": "shared_lobby_warmup",
+  "player_intent": "Try weapons and shoot other connected players before the tournament begins.",
+  "acceptance_rule": "B selects a host-validated weapon during lobby practice only; elimination respawns after two seconds without scores; live start clears practice operators and restores health, ammo and shared random weapon.",
+  "canonical_scene": "res://multiplayer_slice.tscn",
+  "editor_scene": "res://game_launcher.tscn",
+  "ownership": {
+    "practice_lifecycle": "SocomMultiplayerWarmup",
+    "movement": "CharacterBody3D",
+    "aim": "SocomCameraRig",
+    "shot_damage": "AuthoritativeServerWeapon",
+    "weapon_presentation": "GunsLab2VisualRigResolver"
+  },
+  "nodes": [
+    {
+      "id": "canonical_runtime",
+      "type": "Node3D",
+      "role": "Owns canonical player runtime and consumes saved contracts",
+      "owner": "SocomMultiplayerSlice",
+      "scene_path": "res://multiplayer_slice.tscn",
+      "node_path": "."
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://config/network/lobby_warmup.json",
+      "writer": "res://scripts/network/socom_multiplayer_warmup.gd",
+      "readers": [
+        "res://scripts/network/socom_multiplayer_warmup.gd"
+      ]
+    }
+  ],
+  "must_not_change": [
+    "Camera and reticle aim intent",
+    "CharacterBody3D movement and collision authority",
+    "Authored pistol, AK and M4 rigs and 1.2-second fire recovery",
+    "Tournament admission count, bracket, live shared random weapon and throwable inventory"
+  ],
+  "proof_scripts": [
+    "res://tools/lobby_warmup_regression.gd",
+    "res://tools/multiplayer_inheritance_regression.gd",
+    "res://tools/multiplayer_slice_architecture_regression.gd",
+    "res://tools/feature_contract_regression.gd"
+  ],
+  "visual_check": "Host and join the browser lobby, enter Training Grounds, press B, fire at the other player, respawn, and green up. Check standing/crouched long-gun hand contacts and fire recovery, then verify a fresh shared live loadout.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Extend the existing authoritative operators and weapon contract; no alternate movement, camera or damage owner. Practice is explicitly excluded from live score and shared random weapon rules.",
+    "current": {
+      "system": "Waiting-only lobby and one-ray sparse long-gun profiles",
+      "correctness": 1,
+      "ownership_clarity": 4,
+      "runtime_parity": 2,
+      "editor_usability": 4,
+      "performance": 5,
+      "regression_coverage": 2,
+      "evidence_paths": [
+        "res://docs/SHARED_WARMUP_WEAPON_FIX.md"
+      ]
+    },
+    "candidate": {
+      "system": "Shared lobby practice and bounded per-pellet server traces using published model-specific contact rigs",
+      "correctness": 4,
+      "ownership_clarity": 5,
+      "runtime_parity": 4,
+      "editor_usability": 4,
+      "performance": 4,
+      "regression_coverage": 4,
+      "evidence_paths": [
+        "res://scripts/network/socom_multiplayer_warmup.gd",
+        "res://scripts/weapons/weapon_ballistics.gd",
+        "res://tools/lobby_warmup_regression.gd",
+        "res://tools/shotgun_projectile_regression.gd"
+      ]
+    }
+  }
+}

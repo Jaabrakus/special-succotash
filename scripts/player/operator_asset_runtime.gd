@@ -4,8 +4,10 @@ extends RefCounted
 ## Owns model construction, weapon attachment and runtime Mixamo retargeting.
 ## Keeping asset plumbing out of the driver makes locomotion logic testable.
 
-const TROOPER_SCENE := preload("res://assets/characters/ps1_gas_mask_soldier/trooper_rigged.fbx")
-const TROOPER_TEXTURE := preload("res://assets/characters/ps1_gas_mask_soldier/trooper.png")
+const TROOPER_SCENE := preload(
+	"res://assets/characters/ps1_gas_mask_soldier/trooper_rigged.fbx"
+)
+const TeamAppearance := preload("res://scripts/player/operator_team_appearance.gd")
 const AK47_SCENE := preload("res://assets/weapons/ps1_ak47/source/ak-47.fbx")
 const AK47_TEXTURE := preload("res://assets/weapons/ps1_ak47/textures/AK-47TextureMap.png")
 const ROOT_SANITIZER := preload("res://scripts/player/operator_animation_root_sanitizer.gd")
@@ -62,8 +64,8 @@ func build(
 		model_root.scale = Vector3.ONE * operator_scale
 		model_root.rotation.y = PI
 		owner.add_child(model_root)
-	_apply_texture(model_root)
 	skeleton = _find_skeleton(model_root)
+	TeamAppearance.apply(model_root, 0, String(TeamAppearance.profile().get("solo_color", "")))
 	if skeleton == null:
 		push_error("Trooper rig has no Skeleton3D")
 		return get_runtime()
@@ -136,17 +138,6 @@ func get_source_animation_name(clip_name: StringName) -> StringName:
 
 func _ensure_65_bone_contract() -> void:
 	SKELETON_CONTRACT.ensure_65_bones(skeleton)
-
-
-func _apply_texture(node: Node) -> void:
-	if node is MeshInstance3D:
-		var material := StandardMaterial3D.new()
-		material.albedo_texture = TROOPER_TEXTURE
-		material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
-		material.roughness = 0.95
-		node.material_override = material
-	for child in node.get_children():
-		_apply_texture(child)
 
 
 func _attach_weapon() -> void:

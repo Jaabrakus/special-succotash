@@ -8,7 +8,7 @@ cd "$project_root"
 godot_bin=${GODOT_BIN:-}
 output_dir="$project_root/builds/web"
 export_log=/private/tmp/141-restricted-web-export.log
-itch_archive="$project_root/builds/SOCOM-141-browser.zip"
+itch_archive="$project_root/builds/SOCOM-141-browser-tournament.zip"
 
 if [ -z "$godot_bin" ]; then
 	for candidate in \
@@ -55,28 +55,36 @@ mkdir -p "$output_dir"
 	--path "$project_root" --export-release \
 	"141 Restricted Web" "$output_dir/index.html"
 
-if rg -q 'Storing File: res://(tools/|art_source/|reference/|assets/(animation_reference|art_direction)/|builds/|animation_library_lab\.tscn|apple_mocap_intake_lab\.tscn|composure_reticle_lab\.tscn|gun_calibration_lab\.tscn|keyboard_mapping_lab\.tscn|sound_engine_lab\.tscn|studio_hub\.tscn|tactical_grenade_lab\.tscn)' "$export_log"; then
+# Fail closed on the actual exported package before publishing an upload ZIP.
+"$godot_bin" --headless --log-file /private/tmp/141-web-release-audit.log \
+	--path "$project_root" --script res://tools/web_release_audit.gd -- "$output_dir/index.pck"
+
+if grep -E -q 'Storing File: res://(tools/|art_source/|reference/|assets/(animation_reference|art_direction)/|builds/|animation_library_lab\.tscn|apple_mocap_intake_lab\.tscn|composure_reticle_lab\.tscn|gun_calibration_lab\.tscn|keyboard_mapping_lab\.tscn|sound_engine_lab\.tscn|studio_hub\.tscn|tactical_grenade_lab\.tscn)' "$export_log"; then
 	printf 'Restricted Web export contains a forbidden development path. See %s\n' "$export_log" >&2
 	exit 1
 fi
 
-if rg 'Storing File: res://scripts/labs/' "$export_log" | rg -vq 'res://scripts/labs/(map_creation_lab|gunsmith2/weapon_visual_rig_(contract|resolver))\.gd'; then
+if grep -E 'Storing File: res://scripts/labs/' "$export_log" | grep -E -v 'res://scripts/labs/(map_creation_lab|gunsmith2/weapon_visual_rig_(contract|resolver))\.gd' | grep -q .; then
 	printf 'Restricted Web export contains a non-player lab controller. See %s\n' "$export_log" >&2
 	exit 1
 fi
 
 for required_export in \
 	'game_launcher.scn' \
+	'main.scn' \
 	'multiplayer_slice.scn' \
 	'res://config/supabase_public.json' \
 	'res://config/network/browser_multiarena_deployment.json' \
 	'res://config/maps/painterly_coastal_village_2v2.json' \
 	'res://scripts/network/socom_matchmaking_directory_client.gdc' \
 	'res://scripts/network/socom_multiplayer_lobby_pairing.gdc' \
+	'res://scripts/network/socom_multiplayer_webrtc.gdc' \
 	'res://scripts/network/socom_multiplayer_session.gdc' \
+	'res://scripts/network/socom_multiplayer_warmup.gdc' \
+	'res://config/network/lobby_warmup.json' \
 	'res://scripts/maps/socom_map_runtime.gdc'
 do
-	if ! rg -Fq "$required_export" "$export_log"; then
+	if ! grep -F -q "$required_export" "$export_log"; then
 		printf 'Restricted Web export is missing %s. See %s\n' "$required_export" "$export_log" >&2
 		exit 1
 	fi

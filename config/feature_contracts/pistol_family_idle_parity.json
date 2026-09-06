@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "feature_id": "pistol_family_idle_parity",
+  "player_intent": "Every pistol rests forward close to the chest like the accepted Mark23 instead of leaning left.",
+  "acceptance_rule": "All eight catalog pistols consume the authored stationary idle/recovery pair, return after the unchanged 1.2 second hold, keep physical contacts within 1 cm, and retain moving-source slots and model dimensions.",
+  "canonical_scene": "res://main.tscn",
+  "ownership": {"animation_presentation": "OperatorAnimationDriver", "saved_visual_resolution": "GunsLab2VisualRigResolver"},
+  "nodes": [{"id": "operator_animation", "type": "Node3D", "role": "Canonical animation and downstream pose coordinator", "owner": "OperatorAnimationDriver", "scene_path": "res://scenes/player/operator_player.tscn", "node_path": "Mannequin/ProductionAnimation"}],
+  "data_contracts": [{"path": "res://config/weapon_family_visual_assignments.json", "writer": "res://tools/publish_firearm_family_visual_rigs.gd", "readers": ["res://scripts/labs/gunsmith2/weapon_visual_rig_resolver.gd", "res://scripts/weapons/weapon_rig_contract.gd"]}],
+  "must_not_change": ["Mark23 saved profile", "weapon sockets and dimensions", "movement/collision", "camera/reticle", "shot and damage authority", "reload ownership", "moving pistol clip sources", "prone/dive", "audio"],
+  "proof_scripts": ["res://tools/pistol_family_idle_parity_regression.gd", "res://tools/firearm_family_live_contact_regression.gd"],
+  "visual_check": "Inspect M9 and Mark23 side/rear idle, firing and complete return in canonical main; compare the old M9 left-biased frame.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Promote the approved stationary policy into new immutable model-family rig revisions; preserve the existing canonical owners, moving sources, calibration and gameplay.",
+    "current": {"system": "Seven pistols inherit legacy stationary slots", "correctness": 1, "ownership_clarity": 5, "runtime_parity": 2, "editor_usability": 3, "performance": 5, "regression_coverage": 2, "evidence_paths": ["res://config/weapon_visual_rigs/family_pistol_5_v2.json", "res://config/weapons/mark_23.json", "res://scripts/weapons/weapon_animation_profile.gd"]},
+    "candidate": {"system": "Published pistol-family v3 stationary pose parity", "correctness": 4, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 5, "regression_coverage": 5, "evidence_paths": ["res://config/weapon_visual_rigs/family_pistol_5_v3.json", "res://tools/publish_firearm_family_visual_rigs.gd", "res://tools/pistol_family_idle_parity_regression.gd"]}
+  }
+}

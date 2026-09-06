@@ -9,11 +9,20 @@ const POOL_SIZE := 48
 const SHELL_POOL_SIZE := 24
 const BLOOD_PARTICLE_POOL_SIZE := 8
 const BLOOD_MARK_POOL_SIZE := 32
+const IMPACT_SMOKE_POOL_SIZE := 12
+const MUZZLE_SMOKE_POOL_SIZE := 12
+const BLOOD_SMOKE_POOL_SIZE := 12
 
 static var _is_initialized := false
 static var _tracer_pool: Array[MeshInstance3D] = []
 static var _tracer_index: int = 0
 static var _spark_emitter: CPUParticles3D
+static var _impact_smoke_pool: Array[CPUParticles3D] = []
+static var _impact_smoke_index: int = 0
+static var _muzzle_smoke_pool: Array[CPUParticles3D] = []
+static var _muzzle_smoke_index: int = 0
+static var _blood_smoke_pool: Array[CPUParticles3D] = []
+static var _blood_smoke_index: int = 0
 static var _muzzle_flash_light: OmniLight3D
 static var _muzzle_flash_star: MeshInstance3D
 static var _trajectory_debug_enabled := false
@@ -25,6 +34,8 @@ static var _blood_emitter_index: int = 0
 static var _blood_marks: Array[MeshInstance3D] = []
 static var _blood_mark_tweens: Array[Tween] = []
 static var _blood_mark_index: int = 0
+static var _presented_muzzle_effects: Array[Dictionary] = []
+static var _muzzle_flash_serial: int = 0
 
 static func initialize(parent: Node) -> void:
 	if _is_initialized and _spark_emitter and is_instance_valid(_spark_emitter):
@@ -39,6 +50,14 @@ static func initialize(parent: Node) -> void:
 	_blood_marks.clear()
 	_blood_mark_tweens.clear()
 	_blood_mark_index = 0
+	_impact_smoke_pool.clear()
+	_impact_smoke_index = 0
+	_muzzle_smoke_pool.clear()
+	_muzzle_smoke_index = 0
+	_blood_smoke_pool.clear()
+	_blood_smoke_index = 0
+	_presented_muzzle_effects.clear()
+	_disconnect_presented_muzzle_sync()
 
 	# 1. Pre-allocate 16 Reusable Tracer Mesh Instances
 	for i in range(POOL_SIZE):
@@ -162,6 +181,92 @@ static func initialize(parent: Node) -> void:
 	)
 	parent.add_child(_muzzle_flash_light)
 
+	# 4. Pre-allocate Impact Dust/Smoke and Muzzle Smoke Emitter Pools
+	var smoke_mat := StandardMaterial3D.new()
+	smoke_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	smoke_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	smoke_mat.vertex_color_use_as_albedo = true
+	smoke_mat.albedo_color = Color(0.78, 0.76, 0.72, 0.45)
+	if ResourceLoader.exists("res://assets/textures/particles/smoke_01.png"):
+		smoke_mat.albedo_texture = load("res://assets/textures/particles/smoke_01.png") as Texture2D
+	smoke_mat.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
+
+	var impact_quad := QuadMesh.new()
+	impact_quad.size = Vector2(0.25, 0.25)
+	impact_quad.material = smoke_mat
+
+	for i in range(IMPACT_SMOKE_POOL_SIZE):
+		var sm := CPUParticles3D.new()
+		sm.name = "PooledImpactSmoke_%d" % i
+		sm.emitting = false
+		sm.one_shot = true
+		sm.explosiveness = 0.90
+		sm.lifetime = 0.38
+		sm.amount = 5
+		sm.spread = 45.0
+		sm.initial_velocity_min = 0.8
+		sm.initial_velocity_max = 2.0
+		sm.gravity = Vector3(0.0, 0.35, 0.0)
+		sm.scale_amount_min = 0.6
+		sm.scale_amount_max = 1.3
+		sm.mesh = impact_quad
+		parent.add_child(sm)
+		_impact_smoke_pool.append(sm)
+
+	var muzzle_quad := QuadMesh.new()
+	muzzle_quad.size = Vector2(0.18, 0.18)
+	muzzle_quad.material = smoke_mat
+
+	for i in range(MUZZLE_SMOKE_POOL_SIZE):
+		var msm := CPUParticles3D.new()
+		msm.name = "PooledMuzzleSmoke_%d" % i
+		msm.emitting = false
+		msm.one_shot = true
+		msm.explosiveness = 0.85
+		msm.lifetime = 0.28
+		msm.amount = 3
+		msm.spread = 20.0
+		msm.initial_velocity_min = 1.0
+		msm.initial_velocity_max = 2.2
+		msm.gravity = Vector3(0.0, 0.2, 0.0)
+		msm.scale_amount_min = 0.5
+		msm.scale_amount_max = 1.1
+		msm.mesh = muzzle_quad
+		parent.add_child(msm)
+		_muzzle_smoke_pool.append(msm)
+
+	# 5. Pre-allocate Blood Smoke Emitter Pool for Player Collisions
+	var blood_smoke_mat := StandardMaterial3D.new()
+	blood_smoke_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	blood_smoke_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	blood_smoke_mat.vertex_color_use_as_albedo = true
+	blood_smoke_mat.albedo_color = Color(0.65, 0.025, 0.03, 0.82)
+	if ResourceLoader.exists("res://assets/textures/particles/smoke_01.png"):
+		blood_smoke_mat.albedo_texture = load("res://assets/textures/particles/smoke_01.png") as Texture2D
+	blood_smoke_mat.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
+
+	var blood_smoke_quad := QuadMesh.new()
+	blood_smoke_quad.size = Vector2(0.30, 0.30)
+	blood_smoke_quad.material = blood_smoke_mat
+
+	for i in range(BLOOD_SMOKE_POOL_SIZE):
+		var bsm := CPUParticles3D.new()
+		bsm.name = "PooledBloodSmoke_%d" % i
+		bsm.emitting = false
+		bsm.one_shot = true
+		bsm.explosiveness = 0.92
+		bsm.lifetime = 0.40
+		bsm.amount = 6
+		bsm.spread = 45.0
+		bsm.initial_velocity_min = 1.0
+		bsm.initial_velocity_max = 2.4
+		bsm.gravity = Vector3(0.0, -0.25, 0.0)
+		bsm.scale_amount_min = 0.6
+		bsm.scale_amount_max = 1.3
+		bsm.mesh = blood_smoke_quad
+		parent.add_child(bsm)
+		_blood_smoke_pool.append(bsm)
+
 	_is_initialized = true
 
 
@@ -170,15 +275,94 @@ static func tree_root_presentation(parent: Node) -> Node:
 		return null
 	return parent.get_tree().root.get_node_or_null("PresentationSettings")
 
-static func spawn_muzzle_flash(tree: SceneTree, muzzle_pos: Vector3) -> void:
+static func spawn_muzzle_flash(
+	tree: SceneTree,
+	muzzle_pos: Vector3,
+	forward_dir: Vector3 = Vector3.ZERO,
+	presented_muzzle: Node3D = null
+) -> void:
 	if not _is_initialized or not _muzzle_flash_light:
 		initialize(tree.current_scene)
+	_muzzle_flash_serial += 1
+	var msm: CPUParticles3D = null
+	if not _muzzle_smoke_pool.is_empty():
+		msm = _muzzle_smoke_pool[_muzzle_smoke_index]
+		_muzzle_smoke_index = (_muzzle_smoke_index + 1) % MUZZLE_SMOKE_POOL_SIZE
+		# Pool reuse must not leave an older shot writing this emitter.
+		for index in range(_presented_muzzle_effects.size() - 1, -1, -1):
+			if _presented_muzzle_effects[index].get("smoke") == msm:
+				_presented_muzzle_effects.remove_at(index)
+	if is_instance_valid(presented_muzzle) and presented_muzzle.is_inside_tree():
+		# Begin on the first rendered pose, not on the pre-animation shot snapshot.
+		# Weak references keep the world-owned pool safe when a weapon is removed.
+		_presented_muzzle_effects.append({
+			"source": weakref(presented_muzzle),
+			"smoke": msm,
+			"started_usec": -1,
+			"serial": _muzzle_flash_serial,
+		})
+		if not RenderingServer.frame_pre_draw.is_connected(_sync_presented_muzzle_effects):
+			RenderingServer.frame_pre_draw.connect(_sync_presented_muzzle_effects)
+		return
+	_start_muzzle_light(muzzle_pos)
+	if is_instance_valid(msm):
+		msm.global_position = muzzle_pos
+		var dir := (
+			forward_dir.normalized()
+			if forward_dir.length_squared() > 0.05
+			else Vector3.FORWARD
+		)
+		msm.direction = dir + Vector3(0.0, 0.12, 0.0)
+		msm.restart()
+	if _presented_muzzle_effects.is_empty():
+		_disconnect_presented_muzzle_sync()
 
+
+static func _start_muzzle_light(muzzle_pos: Vector3) -> void:
 	if _muzzle_flash_light and is_instance_valid(_muzzle_flash_light):
 		_muzzle_flash_light.global_position = muzzle_pos
 		_muzzle_flash_light.light_energy = 4.5
 		var t := _muzzle_flash_light.create_tween()
 		t.tween_property(_muzzle_flash_light, "light_energy", 0.0, 0.04)
+
+
+static func _sync_presented_muzzle_effects() -> void:
+	_update_presented_muzzle_effects(Time.get_ticks_usec())
+
+
+static func _update_presented_muzzle_effects(now_usec: int) -> void:
+	for index in range(_presented_muzzle_effects.size() - 1, -1, -1):
+		var entry := _presented_muzzle_effects[index]
+		var source := (entry["source"] as WeakRef).get_ref() as Node3D
+		var smoke_value: Variant = entry.get("smoke")
+		# Validate before casting: the world/pool can exit before the next draw.
+		if not is_instance_valid(source) or not source.is_inside_tree() or not is_instance_valid(smoke_value):
+			_presented_muzzle_effects.remove_at(index)
+			continue
+		var smoke := smoke_value as CPUParticles3D
+		var started_usec := int(entry["started_usec"])
+		if started_usec >= 0 and now_usec - started_usec >= int(smoke.lifetime * 1000000.0):
+			_presented_muzzle_effects.remove_at(index)
+			continue
+		smoke.global_position = source.global_position
+		smoke.direction = -source.global_basis.z.normalized() + Vector3(0.0, 0.12, 0.0)
+		# Already-emitted smoke stays in the world instead of dragging with the gun.
+		smoke.local_coords = false
+		var owns_light := int(entry["serial"]) == _muzzle_flash_serial
+		if started_usec < 0:
+			entry["started_usec"] = now_usec
+			smoke.restart()
+			if owns_light:
+				_start_muzzle_light(source.global_position)
+		elif owns_light and now_usec - started_usec < 40000 and is_instance_valid(_muzzle_flash_light):
+			_muzzle_flash_light.global_position = source.global_position
+	if _presented_muzzle_effects.is_empty():
+		_disconnect_presented_muzzle_sync()
+
+
+static func _disconnect_presented_muzzle_sync() -> void:
+	if RenderingServer.frame_pre_draw.is_connected(_sync_presented_muzzle_effects):
+		RenderingServer.frame_pre_draw.disconnect(_sync_presented_muzzle_effects)
 
 static func spawn_tracer(
 	tree: SceneTree,
@@ -243,13 +427,34 @@ static func spawn_trajectory_reference(
 		return
 	spawn_tracer(tree, start_pos, end_pos, color)
 
-static func spawn_impact_effect(tree: SceneTree, hit_pos: Vector3, hit_normal: Vector3) -> void:
+static func spawn_impact_effect(
+	tree: SceneTree,
+	hit_pos: Vector3,
+	hit_normal: Vector3,
+	is_player: bool = false
+) -> void:
+	if is_player:
+		spawn_body_hit_effect(tree, hit_pos, hit_normal, false)
+		return
 	if not _is_initialized or not _spark_emitter or not is_instance_valid(_spark_emitter):
 		initialize(tree.current_scene)
 
 	_spark_emitter.global_position = hit_pos
 	_spark_emitter.direction = hit_normal + Vector3(0, 0.4, 0)
 	_spark_emitter.restart()
+
+	if not _impact_smoke_pool.is_empty():
+		var smoke := _impact_smoke_pool[_impact_smoke_index]
+		_impact_smoke_index = (_impact_smoke_index + 1) % IMPACT_SMOKE_POOL_SIZE
+		if smoke and is_instance_valid(smoke):
+			var normal := (
+				hit_normal.normalized()
+				if hit_normal.length_squared() > 0.1
+				else Vector3.UP
+			)
+			smoke.global_position = hit_pos + normal * 0.03
+			smoke.direction = normal + Vector3(0.0, 0.20, 0.0)
+			smoke.restart()
 
 
 static func spawn_body_hit_effect(
@@ -270,6 +475,16 @@ static func spawn_body_hit_effect(
 	blood.direction = (normal + Vector3.UP * 0.16).normalized()
 	blood.amount = 14 if is_headshot else 9
 	blood.restart()
+
+	if not _blood_smoke_pool.is_empty():
+		var b_smoke := _blood_smoke_pool[_blood_smoke_index]
+		_blood_smoke_index = (_blood_smoke_index + 1) % _blood_smoke_pool.size()
+		if b_smoke and is_instance_valid(b_smoke) and b_smoke.is_inside_tree():
+			b_smoke.global_position = hit_pos + normal * 0.03
+			b_smoke.direction = normal * 0.75 + Vector3.UP * 0.25
+			b_smoke.amount = 10 if is_headshot else 6
+			b_smoke.scale_amount_max = 1.8 if is_headshot else 1.3
+			b_smoke.restart()
 
 	var index := _blood_mark_index
 	_blood_mark_index = (_blood_mark_index + 1) % BLOOD_MARK_POOL_SIZE

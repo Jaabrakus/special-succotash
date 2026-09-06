@@ -12,6 +12,16 @@ const WeaponContract := preload("res://scripts/weapons/weapon_rig_contract.gd")
 const FireModePolicy := preload("res://scripts/weapons/weapon_fire_mode_policy.gd")
 const Composure := preload("res://scripts/weapons/operator_composure.gd")
 const PlayerAmmunitionInventory := preload("res://scripts/player/player_ammunition_inventory.gd")
+const SlotRules := preload("res://scripts/economy/socom_economy_rules.gd")
+var carried_loadout: Dictionary = {"primary": "", "secondary": ""}
+
+func equip_carried_slot(slot: String) -> bool:
+	var id := String(carried_loadout.get(slot, ""))
+	if id.is_empty() or _reload_blocks_fire():
+		return false
+	if id == String(equipped_weapon_id):
+		return true
+	return apply_authorized_weapon_pickup("res://config/weapons/%s.json" % id)
 
 signal authoritative_shot(result: Dictionary)
 signal ammo_changed(rounds_in_magazine: int, reserve_rounds: int)
@@ -119,12 +129,16 @@ func _apply_weapon_config(config: Dictionary) -> bool:
 	var values: Dictionary = config.get("ballistics", {})
 	var saved_reticle: Variant = config.get("reticle", {})
 	if saved_reticle is Dictionary:
-		reticle_profile.merge((saved_reticle as Dictionary), true)
+		reticle_profile = (saved_reticle as Dictionary).duplicate(true)
 	reticle_profile["functional_aim_climb_enabled"] = bool(
 		values.get("functional_aim_climb_enabled", false)
 	)
 	if camera_rig != null and camera_rig.has_method("configure_functional_aim_climb"):
 		camera_rig.call("configure_functional_aim_climb", values)
+		reticle_profile["fire_interval_seconds"] = 60.0 / maxf(float(values.get("fire_rate_rpm", 650.0)), 1.0)
+		camera_rig.configure_reticle_climb(reticle_profile, String(equipped_weapon_id))
+		reticle_profile["camera_owned_aim"] = true
+		reticle_profile["functional_aim_climb_enabled"] = camera_rig.reticle_climb_enabled() or bool(values.get("functional_aim_climb_enabled", false))
 	var saved_composure: Variant = config.get("composure", {})
 	if saved_composure is Dictionary:
 		composure_profile = (saved_composure as Dictionary).duplicate(true)
@@ -159,7 +173,8 @@ func _apply_weapon_config(config: Dictionary) -> bool:
 		0,
 		9999
 	)
-	ballistics.fire_interval = 60.0 / maxf(60.0, ballistics.fire_rate_rpm)
+	ballistics.configure_projectiles(values)
+	ballistics.fire_interval = 60.0 / maxf(1.0, ballistics.fire_rate_rpm)
 	reticle_profile["fire_interval_seconds"] = ballistics.fire_interval
 	var raw_modes: Variant = config.get("fire_modes", values.get("fire_modes", []))
 	var configured_modes: Array = raw_modes if raw_modes is Array else []
@@ -170,6 +185,7 @@ func _apply_weapon_config(config: Dictionary) -> bool:
 	)
 	_sync_fire_mode_state()
 	fire_mode_changed.emit(current_fire_mode)
+	carried_loadout[SlotRules.slot_for_category(String(config.get("category", "")))] = String(equipped_weapon_id)
 	return true
 
 
@@ -441,39 +457,38 @@ func request_fire() -> Dictionary:
 	result["sequence"] = last_accepted_sequence
 	result["simulation_tick"] = int(payload.simulation_tick)
 	last_result = result
-	var hit_collider: Object = result.get("hit_collider")
-	if hit_collider != null and hit_collider.has_method("take_bullet_damage"):
-		var damage_classification := {
-			"precision": true,
-			"graze": false,
-			"normalized_radius": 0.0,
-			"precision_core_scale": shot_precision_core_scale,
-		}
-		if hit_collider.has_method("classify_shot_path"):
-			damage_classification = hit_collider.call(
-				"classify_shot_path",
-				muzzle,
-				Vector3(result.direction),
-				shot_precision_core_scale
-			)
-		var damage_scale := 1.0
-		if not bool(damage_classification.get("precision", true)):
-			damage_classification["graze"] = true
-			damage_scale = clampf(
-				float(composure_profile.get("graze_damage_scale", 0.38)),
-				0.0,
-				1.0
-			)
-		result["damage_classification"] = damage_classification
-		result["damage_scale"] = damage_scale
-		result["damage_result"] = hit_collider.call(
-			"take_bullet_damage",
-			float(ballistics.damage_per_shot) * damage_scale,
-			Vector3(result.hit_pos),
-			Vector3(result.get("normal", Vector3.UP)),
-			player.global_position,
-			float(ballistics.headshot_multiplier)
-		)
+	for projectile: Dictionary in result.get("projectiles", [result]):
+		var hit_collider: Object = projectile.get("hit_collider")
+		if hit_collider != null and hit_collider.has_method("take_bullet_damage"):
+			var damage_classification := {
+				"precision": true,
+				"graze": false,
+				"normalized_radius": 0.0,
+				"precision_core_scale": shot_precision_core_scale,
+			}
+			if hit_collider.has_method("classify_shot_path"):
+				damage_classification = hit_collider.call(
+					"classify_shot_path",
+					muzzle,
+					Vector3(projectile.direction),
+					shot_precision_core_scale
+				)
+			var damage_scale := 1.0
+			if not bool(damage_classification.get("precision", true)):
+				damage_classification["graze"] = true
+				damage_scale = clampf(
+					float(composure_profile.get("graze_damage_scale", 0.38)),
+					0.0,
+					1.0
+				)
+			projectile["damage_classification"] = damage_classification
+			projectile["damage_scale"] = damage_scale
+			projectile["damage_result"] = _apply_projectile_damage(
+				hit_collider, projectile, damage_scale, player.global_position)
+		if bool(projectile.get("damage_result", {}).get("accepted", false)):
+			result["damage_result"] = projectile["damage_result"]
+	if int(result.get("pellet_count", 1)) == 1:
+		result.merge(result.get("projectiles", [result])[0], true)
 	camera_rig.last_fired_direction = Vector3(result.direction)
 	camera_rig.last_fired_point = Vector3(result.hit_pos)
 	camera_rig.last_fired_tick = Engine.get_physics_frames()
@@ -482,6 +497,20 @@ func request_fire() -> Dictionary:
 		mannequin.call("notify_operator_fired")
 	authoritative_shot.emit(result)
 	return result
+
+
+func _apply_projectile_damage(
+	hit_collider: Object, projectile: Dictionary, damage_scale: float, shooter_origin: Vector3
+) -> Dictionary:
+	var damage := float(projectile.get("damage", ballistics.damage_per_shot)) * damage_scale
+	if hit_collider.has_method("take_profiled_bullet_damage"):
+		return hit_collider.call("take_profiled_bullet_damage", damage,
+			Vector3(projectile.hit_pos), Vector3(projectile.get("normal", Vector3.UP)),
+			shooter_origin, float(ballistics.headshot_multiplier),
+			bool(ballistics.directional_torso_modifiers_enabled))
+	return hit_collider.call("take_bullet_damage", damage,
+		Vector3(projectile.hit_pos), Vector3(projectile.get("normal", Vector3.UP)),
+		shooter_origin, float(ballistics.headshot_multiplier))
 
 
 func request_reload() -> bool:

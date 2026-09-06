@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "exposure_gain": 3.0,
+  "luminance_gamma": 0.65,
+  "ambient_lift": 0.025,
+  "phosphor_rgb": [0.45, 0.72, 1.0],
+  "vignette_alpha": 0.22
+}

@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "feature_id": "stance_hold_prone",
+  "player_intent": "The stance control supports tap-to-crouch and hold-to-prone behavior while standing or crouched, and holding the stance button while prone returns directly to standing.",
+  "acceptance_rule": "A quick stance release toggles standing and crouched; holding for 0.20 seconds enters prone, or starts the existing committed dive when the player is moving at the required speed; holding for 0.20 seconds while prone transitions directly to standing (or crouch under low ceilings); tapping while prone returns through crouch; CharacterBody3D remains the sole posture, collider, and clearance owner.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://keyboard_mapping_lab.tscn",
+  "ownership": {
+    "stance_and_dive_state": "SocomTestPlayer",
+    "stance_input_mapping": "SocomKeyboardMappingProfile",
+    "dive_weapon_presentation": "SocomOperatorWeaponPoseSolver"
+  },
+  "nodes": [
+    {
+      "id": "canonical_player_body",
+      "type": "CharacterBody3D",
+      "role": "Consumes stance hold and release state and remains the sole posture, collider, committed-dive, and clearance owner.",
+      "owner": "SocomTestPlayer",
+      "source_script": "res://scripts/player/player_controller.gd",
+      "code_symbols": [
+        "stance_hold_threshold",
+        "_can_stance_hold_dive",
+        "_try_set_posture"
+      ]
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://config/input/keyboard_mapping.json",
+      "writer": "res://scripts/labs/keyboard_mapping_lab.gd",
+      "readers": [
+        "res://scripts/input/socom_keyboard_mapping_profile.gd",
+        "res://scripts/player/player_controller.gd"
+      ]
+    }
+  ],
+  "must_not_change": [
+    "CharacterBody3D movement speed, dive duration, displacement, collision, and clearance authority",
+    "dedicated dive input behavior",
+    "delayed chest-supported dive weapon descent and both hand contacts",
+    "SOCOM camera, reticle, server shot, damage, reload, and multiplayer authority",
+    "directional locomotion and animation playback cadence"
+  ],
+  "proof_scripts": [
+    "res://tools/mobility_regression.gd",
+    "res://tools/dive_hand_attachment_regression.gd",
+    "res://tools/multiplayer_slice_regression.gd",
+    "res://tools/feature_contract_regression.gd"
+  ],
+  "visual_check": "In res://main.tscn, tap X/C to crouch, hold X/C to enter prone, tap twice through crouch to return to standing, and perform a running hold or dedicated dive. Confirm the old stance controls are restored and the rifle remains supported in both hands instead of striking the floor.",
+  "system_delta": {
+    "decision": "REPLACE",
+    "reason": "The requested double-tap and prone-hold gesture changed an already working stance convention. Restore the established hold recognizer while retaining the independently owned dive-rifle presentation fix.",
+    "current": {
+      "system": "Double-tap dive/prone plus prone-hold stand recognizer",
+      "correctness": 2,
+      "ownership_clarity": 4,
+      "runtime_parity": 5,
+      "editor_usability": 3,
+      "performance": 5,
+      "regression_coverage": 5,
+      "evidence_paths": [
+        "res://scripts/player/player_controller.gd",
+        "res://config/feature_contracts/stance_hold_prone.json",
+        "res://tools/mobility_regression.gd"
+      ]
+    },
+    "candidate": {
+      "system": "Established tap crouch and hold prone/dive recognizer with the separate rifle-support presentation retained",
+      "correctness": 5,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 4,
+      "performance": 5,
+      "regression_coverage": 5,
+      "evidence_paths": [
+        "res://scripts/player/player_controller.gd",
+        "res://scripts/player/operator_weapon_pose_actions.gd",
+        "res://config/dive_weapon_presentation.json",
+        "res://tools/mobility_regression.gd",
+        "res://tools/dive_hand_attachment_regression.gd"
+      ]
+    }
+  }
+}

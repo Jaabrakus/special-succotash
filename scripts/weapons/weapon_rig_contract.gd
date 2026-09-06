@@ -7,6 +7,7 @@ extends RefCounted
 
 const LOADOUT_PATH := "res://config/weapons/operator_loadout.json"
 const CURRENT_SCHEMA_VERSION := 3
+const WeaponCatalog := preload("res://scripts/weapons/socom_weapon_catalog.gd")
 const PlaytestStateCollector := preload("res://scripts/runtime/playtest_state_collector.gd")
 const WeaponAnimationProfile := preload("res://scripts/weapons/weapon_animation_profile.gd")
 const VisualRigResolver := preload(
@@ -64,6 +65,7 @@ static func normalize_config(raw: Dictionary, config_path: String = "") -> Dicti
 	config["schema_version"] = CURRENT_SCHEMA_VERSION
 	var weapon_id := String(config.get("weapon_id", config_path.get_file().get_basename()))
 	config["weapon_id"] = weapon_id
+	config["display_name"] = WeaponCatalog.display_name(weapon_id, String(config.get("display_name", weapon_id)))
 	config["socket_contract_authored"] = bool(config.get("socket_contract_authored", false))
 
 	if not config.get("operator_mount", {}) is Dictionary or (config.get("operator_mount", {}) as Dictionary).is_empty():
@@ -137,6 +139,16 @@ static func normalize_config(raw: Dictionary, config_path: String = "") -> Dicti
 		and not bool(dynamic_hold.get("hand_socket_ik_enabled", true))
 	):
 		dynamic_hold["support_hand_socket_ik_enabled"] = true
+	# Two-hand pistols deliberately keep the full rifle arm solver disabled. Their
+	# calibrated trigger-hand mount is rebuilt on the sole presentation anchor
+	# while aiming so the physical bore can follow camera/reticle aim exactly.
+	# An explicit saved value remains authoritative for future exceptional rigs.
+	dynamic_hold["animation_owned_aim_alignment_enabled"] = bool(
+		dynamic_hold.get(
+			"animation_owned_aim_alignment_enabled",
+			inferred_family == WeaponAnimationProfile.FAMILY_TWO_HAND_PISTOL
+		)
+	)
 	handling_profile["dynamic_hold"] = dynamic_hold
 	var standing_master_pose: Dictionary = (
 		(handling_profile.get("standing_master_pose", {}) as Dictionary).duplicate(true)
@@ -208,6 +220,9 @@ static func normalize_config(raw: Dictionary, config_path: String = "") -> Dicti
 	ballistics["headshot_multiplier"] = clampf(
 		float(ballistics.get("headshot_multiplier", 3.5)), 1.0, 10.0
 	)
+	ballistics["directional_torso_modifiers_enabled"] = bool(
+		ballistics.get("directional_torso_modifiers_enabled", true)
+	)
 	var raw_velocity := float(ballistics.get("muzzle_velocity_mps", 0.0))
 	ballistics["muzzle_velocity_mps"] = (
 		raw_velocity if raw_velocity > 0.0 else default_muzzle_velocity(config)
@@ -221,6 +236,9 @@ static func normalize_config(raw: Dictionary, config_path: String = "") -> Dicti
 	ballistics["bloom_per_shot_deg"] = float(ballistics.get("bloom_per_shot_deg", 1.2))
 	ballistics["max_recoil_bloom_deg"] = float(ballistics.get("max_recoil_bloom_deg", 2.4))
 	ballistics["bloom_recovery_speed"] = float(ballistics.get("bloom_recovery_speed", 14.0))
+	ballistics["bloom_recovery_delay_seconds"] = clampf(
+		float(ballistics.get("bloom_recovery_delay_seconds", 0.30)), 0.05, 1.0
+	)
 	ballistics["functional_aim_climb_enabled"] = bool(
 		ballistics.get("functional_aim_climb_enabled", false)
 	)

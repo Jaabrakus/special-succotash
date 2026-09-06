@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "feature_id": "matchmaking_front_door_shared_lobby",
-  "player_intent": "A player can use Quick Match or Browse Servers without typing an address, and a created tournament room is the same shared server-owned lobby seen by every connected player.",
-  "acceptance_rule": "Quick Match and Browse Servers consume public SELECT-only fresh server-directory rows, reject incompatible or insecure browser endpoints, and pass only the chosen address into the canonical multiplayer scene. Create Tournament Room enters that same scene as host. The launcher owns navigation only and contains no local lobby state; duo selection and Green Up remain server-validated and replicated through SocomLobbyState.",
+  "player_intent": "A browser player clicks one tournament action without typing an address, while native development builds retain server browsing and private-host tools.",
+  "acceptance_rule": "Browser Quick Match enters automatic WebRTC tournament signaling and the canonical multiplayer scene without exposing Browse Servers, private host, or manual join. Native Quick Match and Browse Servers retain public SELECT-only directory discovery. The launcher owns navigation only and contains no local lobby state; duo selection and Green Up remain peer-1 validated and replicated through SocomLobbyState.",
   "canonical_scene": "res://multiplayer_slice.tscn",
   "editor_scene": "res://game_launcher.tscn",
   "ownership": {
@@ -96,7 +96,7 @@
     "res://tools/multiplayer_slice_architecture_regression.gd",
     "res://tools/feature_contract_regression.gd"
   ],
-  "visual_check": "Open the launcher on native and Web builds. Confirm Quick Match and Browse Servers are visible, Browse shows only fresh compatible joinable rows with current occupancy, and Web shows only wss endpoints. Host or join two clients, choose different duos, Green Up, and confirm both clients display identical pair and ready state before the canonical match begins.",
+  "visual_check": "Open the native and Web launchers. Confirm Web shows JOIN 32-PLAYER TOURNAMENT and GLOBAL LEADERBOARD without private host, Browse Servers, or manual address controls. Confirm native Browse Servers still shows only fresh compatible rows. Join Web tournament clients, choose different duos, Green Up, and confirm all clients display identical pair and ready state before the canonical match begins.",
   "system_delta": {
     "decision": "REPLACE",
     "reason": "Replace the launcher-only mock room and manual-address-only front door with public read-only discovery and the existing canonical network lobby. This removes a second lobby owner and avoids blocking public server selection on player identity while preserving transport, tournament, combat, movement, camera, and presentation boundaries.",

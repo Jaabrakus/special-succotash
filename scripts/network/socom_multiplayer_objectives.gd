@@ -1,4 +1,4 @@
-extends "res://scripts/network/socom_multiplayer_buy_phase.gd"
+extends "res://scripts/network/socom_multiplayer_round_loadout.gd"
 
 func _set_local_objective_interaction(held: bool) -> void:
 	var peer_id := multiplayer.get_unique_id()
@@ -172,23 +172,8 @@ func _objective_state_snapshot() -> Dictionary:
 	}
 
 
-func _server_reload_weapon(peer_id: int) -> void:
-	if not multiplayer.is_server() or not operators.has(peer_id):
-		return
-	var capacity := int(equipped_config.get("ballistics", {}).get("magazine_capacity", 30))
-	var magazine := int(server_magazine_ammo.get(peer_id, capacity))
-	var reserve := int(server_reserve_ammo.get(peer_id, 0))
-	var transferred := mini(maxi(0, capacity - magazine), reserve)
-	server_magazine_ammo[peer_id] = magazine + transferred
-	server_reserve_ammo[peer_id] = reserve - transferred
-	_send_ammo_state(peer_id)
 
 
-func _reset_ammo_for_peer(peer_id: int) -> void:
-	var values: Dictionary = equipped_config.get("ballistics", {})
-	server_magazine_ammo[peer_id] = int(values.get("magazine_capacity", 30))
-	server_reserve_ammo[peer_id] = int(values.get("reserve_ammo", 90))
-	_send_ammo_state(peer_id)
 
 
 func _send_ammo_state(peer_id: int) -> void:

@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "feature_id": "sniper_plain_torso_damage",
+  "player_intent": "Sniper torso hits do plain damage without training-target brace/flank reductions.",
+  "acceptance_rule": "Five sniper profiles have equal front/side/rear torso damage; headshots, limbs, pelvis, grazing, range, other guns, and server torso rules stay unchanged.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://gun_calibration_lab.tscn",
+  "ownership": {"shot_damage": "AuthoritativeServerWeapon"},
+  "nodes": [{
+    "id": "canonical_weapon", "type": "Node",
+    "role": "Loads the saved profile and forwards damage policy with accepted projectiles",
+    "owner": "SocomWeaponController",
+    "source_script": "res://scripts/runtime/main_weapon_runtime.gd",
+    "code_symbols": ["weapon_controller = WeaponController.new()", "host.add_child(weapon_controller)"]
+  }],
+  "data_contracts": [{
+    "path": "res://config/weapons/m40a1.json",
+    "writer": "res://scripts/labs/gunsmith/gunsmith_weapon_profile_repository.gd",
+    "readers": ["res://scripts/weapons/weapon_rig_contract.gd", "res://scripts/weapons/socom_weapon_controller.gd", "res://scripts/network/socom_multiplayer_rounds.gd"]
+  }],
+  "must_not_change": ["base_damage", "headshot_multiplier", "limb_and_pelvis_damage", "distance_falloff", "grazing", "camera_aim", "movement", "animation", "network_authority", "throwables"],
+  "proof_scripts": ["res://tools/sniper_torso_damage_regression.gd", "res://tools/player_health_weapon_ammo_regression.gd", "res://tools/run_hurtbox_regression.gd", "res://tools/shotgun_projectile_regression.gd", "res://tools/feature_contract_regression.gd"],
+  "visual_check": "Equip each sniper in canonical training: torso damage no longer displays BRACED or FLANK. Named hurtbox dispatch, health, and visible Label3D text are checked by the focused canonical-runtime probe; no animation or geometry changes.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Extend the existing saved weapon contract and damage receiver; preserve legacy receiver signatures and multiplayer's existing plain torso damage.",
+    "current": {"system": "Unconditional directional training torso damage", "correctness": 2, "ownership_clarity": 4, "runtime_parity": 2, "editor_usability": 3, "performance": 5, "regression_coverage": 2, "evidence_paths": ["res://scripts/combat/lab_leak_target_dummy.gd", "res://scripts/network/socom_network_operator.gd", "res://docs/SNIPER_TORSO_DAMAGE.md"]},
+    "candidate": {"system": "Saved per-weapon direction policy with compatibility dispatch", "correctness": 5, "ownership_clarity": 4, "runtime_parity": 4, "editor_usability": 4, "performance": 5, "regression_coverage": 5, "evidence_paths": ["res://scripts/weapons/weapon_ballistics.gd", "res://scripts/combat/socom_hurtbox_area.gd", "res://tools/sniper_torso_damage_regression.gd"]}
+  }
+}

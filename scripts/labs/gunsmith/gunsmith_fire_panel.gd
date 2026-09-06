@@ -116,6 +116,7 @@ static func _build_ballistics_controls(lab, fire_vbox: VBoxContainer) -> void:
 	lab._add_slider(fire_vbox, "bloom", "Bloom Per Shot", 0.0, 5.0, lab.bloom_per_shot_deg, func(v: float): lab.bloom_per_shot_deg = v)
 	lab._add_slider(fire_vbox, "max_bloom", "Maximum Bloom", 0.25, 8.0, lab.max_recoil_bloom_deg, func(v: float): lab.max_recoil_bloom_deg = v)
 	lab._add_slider(fire_vbox, "rec", "Bloom Recovery", 2.0, 30.0, lab.bloom_recovery_speed, func(v: float): lab.bloom_recovery_speed = v)
+	lab._add_slider(fire_vbox, "rec_delay", "Bloom Quiet Period (s)", 0.05, 1.0, lab.bloom_recovery_delay_seconds, func(v: float): lab.bloom_recovery_delay_seconds = v)
 
 	var aim_title := Label.new()
 	aim_title.text = "FUNCTIONAL AIM CLIMB — AFFECTS FOLLOW-UP SHOTS"
@@ -149,13 +150,22 @@ static func _build_ballistics_controls(lab, fire_vbox: VBoxContainer) -> void:
 	fire_vbox.add_child(HSeparator.new())
 	var reticle_title := Label.new()
 	reticle_title.text = "RETICLE RESPONSE"
+	var vrc_toggle := CheckButton.new()
+	lab.reticle_vrc_toggle = vrc_toggle
+	vrc_toggle.tooltip_text = "Save then Play to test camera-owned aim climb in the canonical game. The isolated 2D preview shows legacy bounce only."
+	vrc_toggle.text = "Reticle climb steers shots (camera stays still)"
+	vrc_toggle.button_pressed = lab.reticle_vrc_enabled
+	vrc_toggle.toggled.connect(func(value: bool): lab.reticle_vrc_enabled = value; lab._apply_reticle_preview_profile())
+	fire_vbox.add_child(vrc_toggle)
+	lab._add_slider(fire_vbox, "vrc_delay", "VRC Recovery Delay (seconds)", 0.0, 2.0, lab.reticle_vrc_delay, func(v: float): lab.reticle_vrc_delay = v; lab._apply_reticle_preview_profile())
+	lab._add_slider(fire_vbox, "vrc_return", "VRC Return (px/second at 1080p)", 1.0, 1000.0, lab.reticle_vrc_return_speed, func(v: float): lab.reticle_vrc_return_speed = v; lab._apply_reticle_preview_profile())
 	fire_vbox.add_child(reticle_title)
 	lab._add_slider(fire_vbox, "reticle_base", "Resting Gap (px)", 4.0, 28.0, lab.reticle_base_gap_px, func(v: float): lab.reticle_base_gap_px = v; lab._apply_reticle_preview_profile())
 	lab._add_slider(fire_vbox, "reticle_max", "Maximum Gap (px)", 18.0, 90.0, lab.reticle_max_gap_px, func(v: float): lab.reticle_max_gap_px = v; lab._apply_reticle_preview_profile())
 	lab._add_slider(fire_vbox, "reticle_response", "Bloom Response", 4.0, 40.0, lab.reticle_response_speed, func(v: float): lab.reticle_response_speed = v; lab._apply_reticle_preview_profile())
-	lab._add_slider(fire_vbox, "reticle_kick", "Shot Kick (px)", 0.0, 20.0, lab.reticle_shot_kick_px, func(v: float): lab.reticle_shot_kick_px = v; lab._apply_reticle_preview_profile())
-	lab._add_slider(fire_vbox, "reticle_return", "Kick Recovery", 3.0, 40.0, lab.reticle_shot_kick_return, func(v: float): lab.reticle_shot_kick_return = v; lab._apply_reticle_preview_profile())
-	lab._add_slider(fire_vbox, "reticle_kick_limit", "Kick Limit (px)", 0.0, 36.0, lab.reticle_maximum_shot_kick_px, func(v: float): lab.reticle_maximum_shot_kick_px = v; lab._apply_reticle_preview_profile())
+	lab._add_slider(fire_vbox, "reticle_kick", "Shot Kick (px)", 0.0, 80.0, lab.reticle_shot_kick_px, func(v: float): lab.reticle_shot_kick_px = v; lab._apply_reticle_preview_profile())
+	lab._add_slider(fire_vbox, "reticle_return", "Kick Recovery", 3.0, 120.0, lab.reticle_shot_kick_return, func(v: float): lab.reticle_shot_kick_return = v; lab._apply_reticle_preview_profile())
+	lab._add_slider(fire_vbox, "reticle_kick_limit", "Kick Limit (px)", 0.0, 120.0, lab.reticle_maximum_shot_kick_px, func(v: float): lab.reticle_maximum_shot_kick_px = v; lab._apply_reticle_preview_profile())
 	lab._add_slider(fire_vbox, "reticle_movement_length", "Full-Movement Line Length (px)", 0.0, 36.0, lab.reticle_maximum_movement_tick_extension_px, func(v: float): lab.reticle_maximum_movement_tick_extension_px = v; lab._apply_reticle_preview_profile())
 
 

@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "feature_id": "pistol_carry_contact_and_pose_boundaries",
+  "player_intent": "Keep both palms on the pistol through movement entry and split remaining oversized presentation coordinators without changing gameplay.",
+  "acceptance_rule": "All nine original coordinators satisfy unchanged budgets; physical pistol contacts stay within 1 cm and the support target remains current after movement frames; established aim/idle/reload/locomotion gates pass.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://gun_calibration_lab.tscn",
+  "ownership": {
+    "weapon_mutation": "SocomOperatorWeaponPresentationOwner",
+    "pose_state": "existing operator_weapon_pose_solver node",
+    "locomotion_state": "SocomOperatorLocomotionBlendTree"
+  },
+  "nodes": [
+    {
+      "id": "authored_hand_follow",
+      "type": "Node3D",
+      "role": "Existing pose node finalizes the authored pistol mount before support IK.",
+      "owner": "SocomOperatorWeaponPresentationOwner",
+      "source_script": "res://scripts/player/operator_weapon_authored_pose.gd",
+      "code_symbols": [
+        "_set_weapon_solver_owned(pose.animation_owned_aim_alignment_enabled)",
+        "PistolCarryReach.fit(pose)"
+      ]
+    },
+    {
+      "id": "modern_graph",
+      "type": "AnimationTree",
+      "role": "Existing locomotion coordinator builds the same graph via a synchronous helper.",
+      "owner": "SocomOperatorLocomotionBlendTree",
+      "source_script": "res://scripts/player/operator_locomotion_blend_tree.gd",
+      "code_symbols": [
+        "ModernRouteBuilder.build(self, root, available_clips)"
+      ]
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://config/weapons/mark_23.json",
+      "writer": "res://scripts/labs/gunsmith/gunsmith_weapon_profile_repository.gd",
+      "readers": [
+        "res://scripts/player/operator_weapon_pose_api.gd",
+        "res://scripts/player/operator_weapon_authored_pose.gd"
+      ]
+    }
+  ],
+  "must_not_change": [
+    "body_movement",
+    "camera_aim",
+    "shots_damage",
+    "network_authority",
+    "reload_timing",
+    "bone_lengths",
+    "art_direction",
+    "browser_export"
+  ],
+  "proof_scripts": [
+    "res://tools/pistol_movement_contact_probe.gd",
+    "res://tools/pistol_standing_movement_placement_regression.gd",
+    "res://tools/pistol_compressed_idle_regression.gd",
+    "res://tools/directional_locomotion_phase_regression.gd",
+    "res://tools/construction_boundary_regression.gd",
+    "res://tools/god_file_budget_regression.gd"
+  ],
+  "visual_check": "Side/rear rendered standing/crouched entry, moving, firing and return; carry fit must retain ordinary bent-arm silhouette, no scaling/stretching.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Correct stale support target caused by late attachment update; bound unreachable idle support demand using existing arm IK, then extract unchanged pose/graph calculations.",
+    "current": {
+      "system": "Late hand-parent resampling and unreachable crouched-left blend",
+      "correctness": 2,
+      "ownership_clarity": 4,
+      "runtime_parity": 5,
+      "editor_usability": 4,
+      "performance": 4,
+      "regression_coverage": 3,
+      "evidence_paths": [
+        "res://docs/PISTOL_MOVEMENT_CONTACT_RETRY.md"
+      ]
+    },
+    "candidate": {
+      "system": "Finalized hand-follow anchor with bounded carry reach and synchronous helpers",
+      "correctness": 4,
+      "ownership_clarity": 4,
+      "runtime_parity": 5,
+      "editor_usability": 4,
+      "performance": 4,
+      "regression_coverage": 4,
+      "evidence_paths": [
+        "res://scripts/player/operator_pistol_carry_reach.gd",
+        "res://scripts/player/operator_weapon_authored_pose.gd",
+        "res://tools/pistol_movement_contact_probe.gd"
+      ]
+    }
+  }
+}

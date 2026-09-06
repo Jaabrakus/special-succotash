@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "model": "res://assets/characters/ps1_gas_mask_soldier/trooper_rigged.fbx",
+  "solo_color": "black",
+  "palette": {"black": "34383d", "green": "6daf58", "blue": "579fe8", "white": "f2f2ed"},
+  "palette_brightness": {"white": 4.0},
+  "teams": {"0": "579fe8", "1": "6daf58"},
+  "description": "Original character model and rig, cloth recolor only. Solo uses black; opposing teams retain blue and green. solo_color may be black, green, blue or white. No replacement character mesh."
+}

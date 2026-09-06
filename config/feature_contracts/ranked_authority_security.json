@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "feature_id": "ranked_authority_security",
+  "player_intent": "Only trusted dedicated servers can publish persistent competitive results; players may edit names but not rankings.",
+  "acceptance_rule": "Migration narrows profile columns and protects result tables; browser and non-dedicated delivery are fenced. Live database role tests are required before production claims.",
+  "canonical_scene": "res://multiplayer_slice.tscn",
+  "ownership": {"ranked_storage": "PostgreSQL grants and RLS", "result_delivery": "SocomServerBackend"},
+  "nodes": [{"id": "multiplayer_root", "type": "Node3D", "role": "Existing tournament outbox consumer requires dedicated hosting", "owner": "SocomServerBackend", "scene_path": "res://multiplayer_slice.tscn", "node_path": "."}],
+  "data_contracts": [{"path": "res://supabase/migrations/20260906010000_lock_ranked_result_authority.sql", "writer": "res://scripts/server/socom_server_backend.gd", "readers": ["res://tools/ranked_authority_security_regression.gd"]}],
+  "must_not_change": ["movement", "camera", "weapon_timing", "animation", "network_wire_protocol"],
+  "proof_scripts": ["res://tools/ranked_authority_security_regression.gd", "res://tools/tournament_event_delivery_regression.gd"],
+  "visual_check": "No presentation changes; live SQL verification required separately.",
+  "system_delta": {
+    "decision": "MERGE", "reason": "Close table-wide profile write and result-table privilege gaps while retaining trusted RPC and existing gameplay owners.",
+    "current": {"system": "Broad profile ACL and partial result fences", "correctness": 2, "ownership_clarity": 4, "runtime_parity": 3, "editor_usability": 3, "performance": 5, "regression_coverage": 2, "evidence_paths": ["res://supabase/migrations/20260821001000_create_authoritative_game_services.sql", "res://supabase/migrations/20260830010000_add_tournament_event_outbox.sql"]},
+    "candidate": {"system": "Column grants and trusted result ingress", "correctness": 4, "ownership_clarity": 5, "runtime_parity": 4, "editor_usability": 4, "performance": 5, "regression_coverage": 3, "evidence_paths": ["res://supabase/migrations/20260906010000_lock_ranked_result_authority.sql", "res://scripts/server/socom_server_backend.gd"]}
+  }
+}

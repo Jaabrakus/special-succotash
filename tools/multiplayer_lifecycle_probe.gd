@@ -380,14 +380,14 @@ func _probe_ammo_diagnostic(starting_ammo: Dictionary) -> String:
 	for raw_id in starting_ammo:
 		var peer_id := int(raw_id)
 		var initial: Dictionary = starting_ammo[raw_id]
-		var queue: Array = slice.pending_shot_packets.get(peer_id, [])
+		var queue: Array = slice.combat_commands.snapshot(peer_id)
 		entries.append("%d:%d->%d accepted=%d enqueued=%d queued=%d reject=%s" % [
 			peer_id,
 			int(initial.magazine) + int(initial.reserve),
 			int(slice.server_magazine_ammo.get(peer_id, -1))
 				+ int(slice.server_reserve_ammo.get(peer_id, -1)),
 			int(slice.last_accepted_shot_sequence.get(peer_id, -1)),
-			int(slice.last_enqueued_shot_sequence.get(peer_id, -1)),
+			slice.combat_commands.last_sequence(peer_id),
 			queue.size(),
 			String(slice.last_rejected_shot_reason.get(peer_id, "")),
 		])

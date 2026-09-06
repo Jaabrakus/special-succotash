@@ -1,6 +1,8 @@
 class_name SocomOperatorLocomotionBlendTree
 extends RefCounted
 
+const ModernRouteBuilder := preload("res://scripts/player/operator_locomotion_route_builder.gd")
+
 ## Builds and drives the modern normalized-time locomotion graph while keeping
 ## a complete legacy clip transition route available for instant fallback.
 
@@ -196,12 +198,21 @@ func update_locomotion(
 	if pure_lateral:
 		smoothed_direction = Vector2(signf(target_direction.x), 0.0)
 	else:
-		smoothed_direction = smoothed_direction.lerp(target_direction, direction_alpha)
-	if smoothed_direction.length_squared() > 0.001:
-		smoothed_direction = smoothed_direction.normalized()
-	rendered_direction = rendered_direction.lerp(target_direction, rendered_direction_alpha)
-	if rendered_direction.length_squared() > 0.001:
-		rendered_direction = rendered_direction.normalized()
+		smoothed_direction = Vector2.from_angle(lerp_angle(
+			smoothed_direction.angle(), target_direction.angle(), direction_alpha
+		))
+	# Interpolate headings, not normalized vector chords: with opposite inputs,
+	# lerp(...).normalized() returns the old direction forever at normal frame
+	# deltas. Angular easing keeps the cyclic gait alive through a full reversal.
+	if posture == &"CROUCHED":
+		# This is a blend coordinate, not a heading to normalize. The center
+		# point below shares the lateral gait, so A/D cross-fades through the
+		# same take instead of detouring through taller backward/diagonal poses.
+		rendered_direction = rendered_direction.lerp(target_direction, rendered_direction_alpha)
+	else:
+		rendered_direction = Vector2.from_angle(lerp_angle(
+			rendered_direction.angle(), target_direction.angle(), rendered_direction_alpha
+		))
 	# Prone already has authored ground-contact timing and a dedicated forward /
 	# backward blend. Keep its original direction response so a standing strafe
 	# presentation fix cannot shift the crawl phase or lift knees off the floor.
@@ -345,19 +356,104 @@ func update_locomotion(
 	animation_tree.set("parameters/standing_upper_ready_blend/blend_amount", normalized_ready)
 
 
-func request_modern_state(state_name: StringName) -> bool:
+func request_modern_state(state_name: StringName, blend_seconds: float = -1.0) -> bool:
 	if animation_tree == null or not modern_state_indices.has(state_name):
 		return false
+	var actual_state := StringName(
+		animation_tree.get("parameters/modern_transition/current_state")
+	)
+	var dynamic_hold: Dictionary = weapon_handling_profile.get("dynamic_hold", {})
+	var preserve_ready_handoff: bool = (
+		modern_enabled
+		and weapon_handling_profile.get("family", "") == "TWO_HAND_PISTOL"
+		and bool(dynamic_hold.get("authored_compressed_idle_enabled", false))
+		and upper_body_ready_blend > 0.001
+		and _same_stationary_locomotion_pair(actual_state, state_name)
+	)
+	if preserve_ready_handoff:
+		var previous_index := int(animation_tree.get("parameters/modern_transition/prev_index"))
+		var previous_state := (
+			StringName(modern_transition.get_input_name(previous_index))
+			if previous_index >= 0 and previous_index < modern_transition.input_count
+			else &""
+		)
+		if (
+			_same_stationary_locomotion_pair(actual_state, previous_state)
+			and float(animation_tree.get("parameters/modern_transition/prev_xfading")) > 0.0
+		):
+			# Finish the current same-stance pose cross-fade before reversing it.
+			# The driver repeats current input every frame, so there is no stale
+			# queue or second clock. Actions and posture changes never enter here.
+			current_state = actual_state
+			return true
+		if actual_state != state_name:
+			var ready_aim: Dictionary = weapon_handling_profile.get("ready_aim", {})
+			var requested_blend := blend_seconds if blend_seconds >= 0.0 else modern_transition.xfade_time
+			modern_transition.xfade_time = maxf(
+				requested_blend,
+				maxf(float(ready_aim.get("locomotion_blend_seconds", 0.0)), 0.0)
+			)
+	elif blend_seconds >= 0.0:
+		# Preserve the existing duration policy for every other route/profile.
+		modern_transition.xfade_time = maxf(blend_seconds, 0.0)
 	# Continuous locomotion calls this every driver pass. A same-state request is
 	# not a new animation event and must not touch the active playhead.
-	if StringName(
-		animation_tree.get("parameters/modern_transition/current_state")
-	) == state_name:
+	if actual_state == state_name:
 		current_state = state_name
 		return true
 	current_state = state_name
 	animation_tree.set("parameters/modern_transition/transition_request", state_name)
 	return true
+
+
+func _same_stationary_locomotion_pair(first: StringName, second: StringName) -> bool:
+	return (
+		(first in [&"idle", &"standing"] and second in [&"idle", &"standing"])
+		or (first in [&"idle_crouch", &"crouch"] and second in [&"idle_crouch", &"crouch"])
+	)
+
+
+func authored_stationary_pose_weight(delta: float) -> float:
+	if (
+		not modern_enabled
+		or animation_tree == null
+		or modern_transition == null
+		or weapon_handling_profile.get("family", "") != "TWO_HAND_PISTOL"
+	):
+		return 0.0
+	var dynamic_hold: Dictionary = weapon_handling_profile.get("dynamic_hold", {})
+	if not bool(dynamic_hold.get("authored_compressed_idle_enabled", false)):
+		return 0.0
+	# Read the pose already evaluated this frame, before the driver queues a new
+	# state or changes xfade_time. AnimationTree runs at idle priority 0; the pose
+	# coordinator runs at 100 with this same unscaled frame delta.
+	var current_index := int(animation_tree.get("parameters/modern_transition/current_index"))
+	if current_index < 0 or current_index >= modern_transition.input_count:
+		return 0.0
+	var current_native := float(
+		modern_transition.get_input_name(current_index) in [&"idle", &"idle_crouch"]
+	)
+	var previous_index := int(animation_tree.get("parameters/modern_transition/prev_index"))
+	if (
+		previous_index < 0
+		or previous_index >= modern_transition.input_count
+		or modern_transition.xfade_time <= 0.0
+	):
+		return current_native
+	# Godot 4.7.1 exposes these runtime parameters in release builds as well.
+	# Transition blends using the old remainder, then subtracts abs(delta). Add
+	# that delta back to recover the actual pose weight, not next frame's weight.
+	# Do not use current_delta: child locomotion TimeScale nodes can scale it.
+	var remaining := float(animation_tree.get("parameters/modern_transition/prev_xfading"))
+	var previous_weight := clampf(
+		(remaining + absf(delta)) / modern_transition.xfade_time, 0.0, 1.0
+	)
+	if modern_transition.xfade_curve != null:
+		previous_weight = clampf(modern_transition.xfade_curve.sample(previous_weight), 0.0, 1.0)
+	var previous_native := float(
+		modern_transition.get_input_name(previous_index) in [&"idle", &"idle_crouch"]
+	)
+	return lerpf(current_native, previous_native, previous_weight)
 
 
 func request_legacy_clip(clip_name: StringName, blend_seconds: float) -> bool:
@@ -667,250 +763,7 @@ func _build_legacy_route(root: AnimationNodeBlendTree, available_clips: Dictiona
 
 
 func _build_modern_route(root: AnimationNodeBlendTree, available_clips: Dictionary) -> void:
-	var walk_space := _direction_space(&"walk", available_clips)
-	var full_space := _direction_space(&"run", available_clips)
-	var crouch_space := _direction_space(&"crouch", available_clips)
-	var prone_space := _prone_direction_space(available_clips)
-	root.add_node(&"walk_space", walk_space, Vector2(-640.0, -50.0))
-	root.add_node(&"full_space", full_space, Vector2(-640.0, 150.0))
-	root.add_node(&"crouch_space", crouch_space, Vector2(-640.0, 430.0))
-	root.add_node(&"prone_space", prone_space, Vector2(-640.0, 610.0))
-
-	var speed_blend := AnimationNodeBlend2.new()
-	speed_blend.sync = true
-	root.add_node(&"standing_speed_blend", speed_blend, Vector2(-300.0, 40.0))
-	root.connect_node(&"standing_speed_blend", 0, &"walk_space")
-	root.connect_node(&"standing_speed_blend", 1, &"full_space")
-	var standing_scale := AnimationNodeTimeScale.new()
-	root.add_node(&"standing_time_scale", standing_scale, Vector2(-40.0, 40.0))
-	root.connect_node(&"standing_time_scale", 0, &"standing_speed_blend")
-
-	var crouch_scale := AnimationNodeTimeScale.new()
-	root.add_node(&"crouch_time_scale", crouch_scale, Vector2(-40.0, 430.0))
-	root.connect_node(&"crouch_time_scale", 0, &"crouch_space")
-	var prone_scale := AnimationNodeTimeScale.new()
-	root.add_node(&"prone_time_scale", prone_scale, Vector2(-40.0, 610.0))
-	root.connect_node(&"prone_time_scale", 0, &"prone_space")
-
-	var equipped_idle := _fallback_clip(&"idle_rifle", available_clips)
-	var equipped_ready := _weapon_action_clip("idle_standing", &"aim_idle", available_clips)
-	var equipped_crouch_idle := _weapon_action_clip("idle_crouched", &"idle_crouch", available_clips)
-	var equipped_prone_idle := _fallback_clip(&"idle_prone", available_clips)
-	var equipped_crouch_ready := _weapon_action_clip(
-		"ready_crouched",
-		&"aim_idle_crouch",
-		available_clips
-	)
-	root.add_node(&"modern_idle_rifle", _animation_node(equipped_idle), Vector2(-640.0, -250.0))
-	root.add_node(&"modern_aim_idle", _animation_node(equipped_ready), Vector2(-640.0, -160.0))
-	root.add_node(&"modern_idle_crouch", _animation_node(equipped_crouch_idle), Vector2(-640.0, 360.0))
-	root.add_node(&"modern_idle_prone", _animation_node(equipped_prone_idle), Vector2(-640.0, 560.0))
-	# Ready/recovery is intentionally split in two. AIM_FRAME gives both moving
-	# and stationary crouch the same Spine-to-Head silhouette, while the existing
-	# recovery layer contributes only the clavicle-to-hand rifle chain.
-	root.add_node(&"crouch_upper_aim_idle", _animation_node(equipped_crouch_ready), Vector2(-300.0, 390.0))
-	root.add_node(
-		&"crouch_aim_frame_source",
-		_animation_node(equipped_crouch_ready),
-		Vector2(-300.0, 430.0)
-	)
-	var crouch_aim_frame := AnimationNodeBlend2.new()
-	crouch_aim_frame.sync = true
-	crouch_aim_frame.filter_enabled = true
-	for bone_name: StringName in AIM_FRAME_BONES:
-		crouch_aim_frame.set_filter_path(NodePath(".:%s" % bone_name), true)
-	root.add_node(&"crouch_aim_frame", crouch_aim_frame, Vector2(120.0, 430.0))
-	root.connect_node(&"crouch_aim_frame", 0, &"crouch_time_scale")
-	root.connect_node(&"crouch_aim_frame", 1, &"crouch_aim_frame_source")
-	var crouch_upper_body := AnimationNodeBlend2.new()
-	crouch_upper_body.sync = true
-	crouch_upper_body.filter_enabled = true
-	for bone_name: StringName in FIRE_RECOVERY_LIMB_BONES:
-		crouch_upper_body.set_filter_path(NodePath(".:%s" % bone_name), true)
-	root.add_node(&"crouch_upper_body", crouch_upper_body, Vector2(400.0, 430.0))
-	root.connect_node(&"crouch_upper_body", 0, &"crouch_aim_frame")
-	root.connect_node(&"crouch_upper_body", 1, &"crouch_upper_aim_idle")
-	root.add_node(&"crouch_idle_aim_idle", _animation_node(equipped_crouch_ready), Vector2(-300.0, 345.0))
-	root.add_node(
-		&"crouch_idle_aim_frame_source",
-		_animation_node(equipped_crouch_ready),
-		Vector2(-300.0, 325.0)
-	)
-	var crouch_idle_aim_frame := AnimationNodeBlend2.new()
-	crouch_idle_aim_frame.sync = true
-	crouch_idle_aim_frame.filter_enabled = true
-	for bone_name: StringName in AIM_FRAME_BONES:
-		crouch_idle_aim_frame.set_filter_path(NodePath(".:%s" % bone_name), true)
-	root.add_node(&"crouch_idle_aim_frame", crouch_idle_aim_frame, Vector2(120.0, 345.0))
-	root.connect_node(&"crouch_idle_aim_frame", 0, &"modern_idle_crouch")
-	root.connect_node(&"crouch_idle_aim_frame", 1, &"crouch_idle_aim_frame_source")
-	var crouch_idle_upper_body := AnimationNodeBlend2.new()
-	crouch_idle_upper_body.sync = true
-	crouch_idle_upper_body.filter_enabled = true
-	for bone_name: StringName in FIRE_RECOVERY_LIMB_BONES:
-		crouch_idle_upper_body.set_filter_path(NodePath(".:%s" % bone_name), true)
-	root.add_node(&"crouch_idle_upper_body", crouch_idle_upper_body, Vector2(400.0, 360.0))
-	root.connect_node(&"crouch_idle_upper_body", 0, &"crouch_idle_aim_frame")
-	root.connect_node(&"crouch_idle_upper_body", 1, &"crouch_idle_aim_idle")
-	var standing_upper_ready_blend := AnimationNodeBlend2.new()
-	standing_upper_ready_blend.sync = true
-	root.add_node(&"standing_upper_ready_blend", standing_upper_ready_blend, Vector2(-40.0, 230.0))
-	root.add_node(&"standing_upper_idle_rifle", _animation_node(equipped_idle), Vector2(-640.0, 220.0))
-	root.add_node(&"standing_upper_aim_idle", _animation_node(equipped_ready), Vector2(-640.0, 300.0))
-	root.add_node(
-		&"standing_aim_frame_source",
-		_animation_node(equipped_ready),
-		Vector2(-300.0, 80.0)
-	)
-	root.connect_node(&"standing_upper_ready_blend", 0, &"standing_upper_idle_rifle")
-	root.connect_node(&"standing_upper_ready_blend", 1, &"standing_upper_aim_idle")
-
-	var standing_aim_frame := AnimationNodeBlend2.new()
-	standing_aim_frame.sync = true
-	standing_aim_frame.filter_enabled = true
-	for bone_name: StringName in AIM_FRAME_BONES:
-		standing_aim_frame.set_filter_path(NodePath(".:%s" % bone_name), true)
-	root.add_node(&"standing_aim_frame", standing_aim_frame, Vector2(120.0, 40.0))
-	root.connect_node(&"standing_aim_frame", 0, &"standing_time_scale")
-	root.connect_node(&"standing_aim_frame", 1, &"standing_aim_frame_source")
-
-	var standing_upper_body := AnimationNodeBlend2.new()
-	standing_upper_body.sync = true
-	standing_upper_body.filter_enabled = true
-	for bone_name: StringName in FIRE_RECOVERY_LIMB_BONES:
-		standing_upper_body.set_filter_path(NodePath(".:%s" % bone_name), true)
-	root.add_node(&"standing_upper_body", standing_upper_body, Vector2(400.0, 40.0))
-	root.connect_node(&"standing_upper_body", 0, &"standing_aim_frame")
-	root.connect_node(&"standing_upper_body", 1, &"standing_upper_ready_blend")
-
-	# Standing idle needs the same ownership split as standing locomotion. The
-	# weapon's authored standing-ready clip owns only the upper body while the
-	# standing base continues to own hips and legs.
-	root.add_node(&"standing_idle_base", _animation_node(equipped_idle), Vector2(-300.0, -90.0))
-	root.add_node(
-		&"standing_idle_aim_frame_source",
-		_animation_node(equipped_ready),
-		Vector2(-300.0, -130.0)
-	)
-	var standing_idle_aim_frame := AnimationNodeBlend2.new()
-	standing_idle_aim_frame.sync = true
-	standing_idle_aim_frame.filter_enabled = true
-	for bone_name: StringName in AIM_FRAME_BONES:
-		standing_idle_aim_frame.set_filter_path(NodePath(".:%s" % bone_name), true)
-	root.add_node(&"standing_idle_aim_frame", standing_idle_aim_frame, Vector2(120.0, -90.0))
-	root.connect_node(&"standing_idle_aim_frame", 0, &"standing_idle_base")
-	root.connect_node(&"standing_idle_aim_frame", 1, &"standing_idle_aim_frame_source")
-	var standing_idle_upper_body := AnimationNodeBlend2.new()
-	standing_idle_upper_body.sync = true
-	standing_idle_upper_body.filter_enabled = true
-	for bone_name: StringName in FIRE_RECOVERY_LIMB_BONES:
-		standing_idle_upper_body.set_filter_path(NodePath(".:%s" % bone_name), true)
-	root.add_node(&"standing_idle_upper_body", standing_idle_upper_body, Vector2(400.0, -160.0))
-	root.connect_node(&"standing_idle_upper_body", 0, &"standing_idle_aim_frame")
-	root.connect_node(&"standing_idle_upper_body", 1, &"modern_aim_idle")
-
-	var state_sources: Dictionary = {
-		&"idle": &"standing_idle_upper_body",
-		&"standing": &"standing_upper_body",
-		&"idle_crouch": &"crouch_idle_upper_body",
-		&"crouch": &"crouch_upper_body",
-		&"idle_prone": &"modern_idle_prone",
-		&"prone": &"prone_time_scale",
-	}
-	for raw_clip_name in available_clips.keys():
-		var clip_name := StringName(raw_clip_name)
-		if _is_directional_locomotion(clip_name) or clip_name in [&"idle_rifle", &"aim_idle", &"aim_idle_crouch", &"idle_crouch"]:
-			continue
-		var node_name := StringName("modern_state_%s" % clip_name)
-		var source_name := node_name
-		root.add_node(node_name, _animation_node(clip_name), Vector2(40.0, 540.0 + state_sources.size() * 42.0))
-		if _uses_action_time_scale(clip_name):
-			var scale_name := StringName("%s_time_scale" % node_name)
-			root.add_node(scale_name, AnimationNodeTimeScale.new(), Vector2(180.0, 540.0 + state_sources.size() * 42.0))
-			root.connect_node(scale_name, 0, node_name)
-			source_name = scale_name
-			modern_clip_time_scale_paths[clip_name] = StringName("parameters/%s/scale" % scale_name)
-		if _uses_upper_body_ready_layer(clip_name):
-			var layer_name := StringName("%s_upper_body" % node_name)
-			var transition_upper_body := AnimationNodeBlend2.new()
-			transition_upper_body.sync = true
-			transition_upper_body.filter_enabled = true
-			for bone_name: StringName in FIRE_RECOVERY_LIMB_BONES:
-				transition_upper_body.set_filter_path(NodePath(".:%s" % bone_name), true)
-			root.add_node(layer_name, transition_upper_body, Vector2(300.0, 540.0 + state_sources.size() * 42.0))
-			var transition_ready_name := StringName("%s_ready" % node_name)
-			var transition_ready := AnimationNodeBlend2.new()
-			transition_ready.sync = true
-			var transition_idle_name := StringName("%s_idle_rifle" % node_name)
-			var transition_aim_name := StringName("%s_aim_idle" % node_name)
-			root.add_node(transition_ready_name, transition_ready, Vector2(40.0, 560.0 + state_sources.size() * 42.0))
-			root.add_node(transition_idle_name, _animation_node(_fallback_clip(&"idle_rifle", available_clips)), Vector2(-260.0, 550.0 + state_sources.size() * 42.0))
-			root.add_node(transition_aim_name, _animation_node(equipped_ready), Vector2(-260.0, 570.0 + state_sources.size() * 42.0))
-			root.connect_node(transition_ready_name, 0, transition_idle_name)
-			root.connect_node(transition_ready_name, 1, transition_aim_name)
-			var transition_base_source := source_name
-			if _is_standing_locomotion_transition(clip_name):
-				var aim_frame_name := StringName("%s_aim_frame" % node_name)
-				var aim_frame_source_name := StringName(
-					"%s_aim_frame_source" % node_name
-				)
-				var transition_aim_frame := AnimationNodeBlend2.new()
-				transition_aim_frame.sync = true
-				transition_aim_frame.filter_enabled = true
-				for bone_name: StringName in AIM_FRAME_BONES:
-					transition_aim_frame.set_filter_path(
-						NodePath(".:%s" % bone_name),
-						true
-					)
-				root.add_node(
-					aim_frame_name,
-					transition_aim_frame,
-					Vector2(210.0, 540.0 + state_sources.size() * 42.0)
-				)
-				root.add_node(
-					aim_frame_source_name,
-					_animation_node(equipped_ready),
-					Vector2(-80.0, 590.0 + state_sources.size() * 42.0)
-				)
-				root.connect_node(aim_frame_name, 0, source_name)
-				root.connect_node(aim_frame_name, 1, aim_frame_source_name)
-				standing_transition_aim_frame_nodes.append(aim_frame_name)
-				transition_base_source = aim_frame_name
-			root.connect_node(layer_name, 0, transition_base_source)
-			root.connect_node(layer_name, 1, transition_ready_name)
-			if _is_jump_mobility_clip(clip_name):
-				airborne_upper_body_layer_nodes.append(layer_name)
-			else:
-				standing_transition_layer_nodes.append(layer_name)
-			standing_transition_ready_nodes.append(transition_ready_name)
-			state_sources[clip_name] = layer_name
-		else:
-			state_sources[clip_name] = source_name
-
-	modern_transition = AnimationNodeTransition.new()
-	modern_transition.input_count = state_sources.size()
-	modern_transition.xfade_time = 0.10
-	# A synced Transition evaluates every inactive input at weight zero. This route
-	# also contains every one-shot action, so syncing it would evaluate dozens of
-	# dormant branches each frame. Continuous bases retain their last playheads via
-	# reset=false below; directional gait points phase-match inside their cyclic
-	# BlendSpaces. Intentional actions alone restart at frame zero.
-	modern_transition.sync = false
-	root.add_node(&"modern_transition", modern_transition, Vector2(640.0, 150.0))
-	var state_index := 0
-	for raw_state_name in state_sources.keys():
-		var state_name := StringName(raw_state_name)
-		modern_transition.set_input_name(state_index, state_name)
-		modern_transition.set_input_reset(
-			state_index,
-			state_name not in [
-				&"idle", &"standing", &"idle_crouch", &"crouch",
-				&"idle_prone", &"prone",
-			]
-		)
-		root.connect_node(&"modern_transition", state_index, StringName(state_sources[state_name]))
-		modern_state_indices[state_name] = state_index
-		state_index += 1
+	ModernRouteBuilder.build(self, root, available_clips)
 
 
 func _direction_space(prefix: StringName, available_clips: Dictionary) -> AnimationNodeBlendSpace2D:
@@ -922,6 +775,10 @@ func _direction_space(prefix: StringName, available_clips: Dictionary) -> Animat
 	space.max_space = Vector2(1.0, 1.0)
 	space.x_label = "Strafe"
 	space.y_label = "Forward"
+	if prefix == &"crouch":
+		var center_clip := _weapon_locomotion_clip("crouch_forward", &"crouch_forward", available_clips)
+		if available_clips.has(center_clip):
+			space.add_blend_point(_animation_node(center_clip), Vector2.ZERO, -1, &"center")
 	for suffix: StringName in DIRECTION_POINTS:
 		var logical_name := StringName("%s_%s" % [prefix, suffix])
 		var clip_name := _weapon_locomotion_clip(String(logical_name), logical_name, available_clips)

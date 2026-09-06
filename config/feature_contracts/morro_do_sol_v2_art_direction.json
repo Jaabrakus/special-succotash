@@ -17,7 +17,7 @@
       "type": "Node3D",
       "role": "Builds six base structures and two smaller occupied upper modules with supplied plaster and exposed-wood materials, real door and window voids, glass, sash, mullions, shutters, bars, swinging door leaves, corrugated awnings, physical public-building signs, cornices, pilasters, raised foundations, irregular plaster meshes, exposed brick relief, gutters, downspouts, and electrical service details.",
       "owner": "SocomMapRuntime",
-      "source_script": "res://scripts/maps/socom_map_runtime.gd",
+      "source_script": "res://scripts/maps/socom_map_facade_builder.gd",
       "code_symbols": ["_build_favela_building", "_apply_authored_surface_texture", "_add_door_architecture", "_add_window_architecture", "_add_window_sash_and_glass", "_add_irregular_plaster_patch"]
     },
     {

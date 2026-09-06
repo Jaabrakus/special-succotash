@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "feature_id": "transient_preserving_weapon_audio",
+  "player_intent": "Reduce baked recording ambience without replacing the approved gunshot attack.",
+  "acceptance_rule": "29 separate derivatives serve all33 mapped firearms. Imported attacks remain bit-identical, sources remain unchanged, no clipping or level normalization, and canonical/multiplayer use the selected cached bank.",
+  "canonical_scene": "res://main.tscn",
+  "ownership": {
+    "weapon_sound_selection": "LabLeakAudioEngine",
+    "spatial_playback": "AcousticPropagationEngine"
+  },
+  "nodes": [
+    {
+      "id": "pooled_audio",
+      "type": "AudioStreamPlayer",
+      "role": "Existing cached fallback audio pool; acoustic propagation remains normal playback owner",
+      "owner": "LabLeakAudioEngine",
+      "source_script": "res://scripts/audio/lab_leak_audio_engine.gd",
+      "code_symbols": [
+        "AudioStreamPlayer.new()",
+        "PooledAudioVoice_"
+      ]
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://config/weapon_audio_cleanup.json",
+      "writer": "res://docs/WEAPON_AUDIO_CLEANUP.md",
+      "readers": [
+        "res://tools/clean_weapon_audio.py"
+      ]
+    },
+    {
+      "path": "res://config/weapon_sound_bank.json",
+      "writer": "res://docs/WEAPON_AUDIO_CLEANUP.md",
+      "readers": [
+        "res://scripts/audio/lab_leak_audio_engine.gd"
+      ]
+    }
+  ],
+  "must_not_change": [
+    "original extracted WAVs",
+    "weapon mappings",
+    "shot authority",
+    "movement",
+    "camera",
+    "recoil",
+    "animation",
+    "grenade audio",
+    "published browser build"
+  ],
+  "proof_scripts": [
+    "res://tools/weapon_audio_cleanup_regression.gd",
+    "res://tools/weapon_sound_bank_regression.gd",
+    "res://tools/acoustic_recorded_weapon_route_probe.gd"
+  ],
+  "visual_check": "Listen to original-then-cleaned Mark23/AK/HK5SD audition pairs and test spatial shots. PCM/runtime checks do not prove subjective preference or lossless restoration of source recording.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Use reversible offline transient-preserving DSP and PCM imports; reject speech-focused neural denoisers because they are not gunshot-preserving enhancement models. Runtime still selects a cached stream.",
+    "current": {
+      "system": "Approved recording cuts with baked tails, extra lead-in and QOA import",
+      "correctness": 3,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 3,
+      "performance": 5,
+      "regression_coverage": 3,
+      "evidence_paths": [
+        "res://config/weapon_sound_bank.json",
+        "res://assets/audio/weapons/socom2_reference/mark_23_fire.wav.import"
+      ]
+    },
+    "candidate": {
+      "system": "Reversible DSP derivatives preserving integer attack PCM, imported without additional lossy encoding",
+      "correctness": 4,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 4,
+      "performance": 5,
+      "regression_coverage": 5,
+      "evidence_paths": [
+        "res://tools/clean_weapon_audio.py",
+        "res://config/weapon_audio_cleanup.json",
+        "res://tools/weapon_audio_cleanup_regression.gd",
+        "res://docs/WEAPON_AUDIO_CLEANUP.md"
+      ]
+    }
+  }
+}

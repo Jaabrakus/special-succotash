@@ -105,7 +105,9 @@ func _run() -> void:
 		"auto",
 		{"us-east": 35.0, "eu-west": 92.0},
 		NOW_UNIX,
-		true
+		true,
+		"gunfight_2v2",
+		32
 	)
 	var secure_server: Dictionary = secure_quick_match.get("server", {})
 	var secure_endpoint: Dictionary = secure_quick_match.get("endpoint", {})
@@ -118,7 +120,7 @@ func _run() -> void:
 		and String(secure_endpoint.get("mode_key", "")) == "gunfight_2v2"
 		and String(secure_endpoint.get("map_key", "")) == "painterly-coastal-village"
 		and bool(secure_endpoint.get("secure", false)),
-		"browser Quick Match rejects ws-only and incompatible rows and returns a joinable wss endpoint"
+		"browser tournament matchmaking rejects ws-only, incompatible, wrong-mode, and undersized rows"
 	)
 
 	var native_quick_match: Dictionary = await directory.find_quick_match(

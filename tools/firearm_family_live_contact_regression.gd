@@ -9,6 +9,9 @@ const INCLUDED_CATEGORIES := {
 	"Pistols": true,
 	"Assault Rifles": true,
 	"Submachine Guns": true,
+	"Shotguns": true,
+	"Sniper Rifles": true,
+	"Machine Guns": true,
 }
 const EXCLUDED_WEAPON_IDS := {
 	"designator": true,
@@ -39,7 +42,7 @@ func _initialize() -> void:
 func _run() -> void:
 	_collect_weapon_paths()
 	_expect(
-		weapon_paths.size() >= 30,
+		weapon_paths.size() >= (8 if "--pistols-only" in OS.get_cmdline_user_args() else (9 if "--long-guns-only" in OS.get_cmdline_user_args() else 30)),
 		"all saved pistol, assault-rifle, and SMG profiles are discovered"
 	)
 	var packed := load("res://main.tscn") as PackedScene
@@ -48,6 +51,18 @@ func _run() -> void:
 		_finish()
 		return
 	var scene := packed.instantiate()
+	# Diagnostic A/B only: substitute the old model before runtime initialization.
+	# No saved scene, animation profile, or gameplay tuning is modified.
+	if "--comparison-tan" in OS.get_cmdline_user_args():
+		var old_model := scene.get_node("Player/Mannequin/ProductionAnimation/TrooperModel") as Node3D
+		var parent := old_model.get_parent()
+		var saved_transform := old_model.transform
+		parent.remove_child(old_model)
+		old_model.free()
+		var comparison := load("res://assets/characters/socom2_tan_operator/socom2_tan_operator.glb").instantiate() as Node3D
+		comparison.name = "TrooperModel"
+		comparison.transform = saved_transform
+		parent.add_child(comparison)
 	root.add_child(scene)
 	await _frames(60)
 	var player := scene.get_node_or_null("Player") as CharacterBody3D
@@ -102,10 +117,14 @@ func _collect_weapon_paths() -> void:
 			continue
 		var path := "%s/%s" % [WEAPON_DIRECTORY, file_name]
 		var raw := _read_dictionary(path)
+		if "--pistols-only" in OS.get_cmdline_user_args() and String(raw.get("category", "")) != "Pistols":
+			continue
 		if (
 			raw.is_empty()
 			or not INCLUDED_CATEGORIES.has(String(raw.get("category", "")))
 		):
+			continue
+		if "--long-guns-only" in OS.get_cmdline_user_args() and String(raw.get("category", "")) not in ["Shotguns", "Sniper Rifles", "Machine Guns"]:
 			continue
 		var weapon_id := String(raw.get("weapon_id", file_name.get_basename()))
 		if EXCLUDED_WEAPON_IDS.has(weapon_id):
@@ -132,6 +151,7 @@ func _check_live_case(
 	var actual_family := StringName(
 		(config.get("handling_profile", {}) as Dictionary).get("family", "")
 	)
+	var is_pistol := actual_family == WeaponAnimationProfile.FAMILY_TWO_HAND_PISTOL
 	_expect(
 		actual_family == expected_family,
 		"%s resolves to independently expected family %s"
@@ -141,17 +161,18 @@ func _check_live_case(
 	_expect(equipped, "%s equips through the canonical authorized handoff" % label)
 	if not equipped:
 		return
-	var aim_target := (
-		player.global_position
-		+ Vector3.UP * aim_height_m
-		+ Vector3.FORWARD * 25.0
+	var aim_yaw_rad := deg_to_rad(18.0) if is_pistol else 0.0
+	var aim_pitch_rad := deg_to_rad(8.0) if is_pistol else 0.0
+	var aim_direction := _world_aim_direction(
+		player, aim_yaw_rad, aim_pitch_rad
 	)
+	var aim_target := player.global_position + Vector3.UP * aim_height_m + aim_direction * 25.0
 	driver.call(
 		"set_visual_inputs",
 		Vector2.ZERO,
 		posture_name,
-		0.0,
-		0.0,
+		aim_yaw_rad,
+		aim_pitch_rad,
 		1.0,
 		false,
 		0.0,
@@ -187,7 +208,8 @@ func _check_live_case(
 		ready_pose,
 		label,
 		"ordinary Ready Aim",
-		expected_family == WeaponAnimationProfile.FAMILY_TWO_HAND_PISTOL
+		is_pistol,
+		aim_target
 	)
 	await _await_ballistics_ready(controller, label)
 	var before: Dictionary = driver.call("get_animation_debug_state")
@@ -239,7 +261,8 @@ func _check_live_case(
 		pose,
 		label,
 		"FIRE_RECOVERY",
-		expected_family == WeaponAnimationProfile.FAMILY_TWO_HAND_PISTOL
+		is_pistol,
+		aim_target
 	)
 	driver.call("clear_fire_ready_aim")
 	await _frames(2)
@@ -250,12 +273,18 @@ func _expect_ready_ownership_and_contact(
 	pose: Dictionary,
 	label: String,
 	state_label: String,
-	is_pistol: bool
+	is_pistol: bool,
+	aim_target: Vector3
 ) -> void:
+	var uses_pistol_aim_anchor := (
+		bool(pose.get("weapon_solver_owned", false))
+		and not bool(pose.get("weapon_parent_is_animation_mount", true))
+		and not bool(pose.get("right_hand_ik_running", true))
+	)
 	_expect(
 		bool(pose.get("socket_contract_active", false))
 		and bool(pose.get("right_hand_owns_ready_weapon", false))
-		and not bool(pose.get("weapon_solver_owned", true))
+		and (uses_pistol_aim_anchor if is_pistol else not bool(pose.get("weapon_solver_owned", true)))
 		and StringName(pose.get("weapon_owner", &"")) == &"READY_SOLVER"
 		and bool(pose.get("support_hand_socket_ik_enabled", false))
 		and not bool(pose.get("hand_socket_ik_enabled", true))
@@ -265,7 +294,11 @@ func _expect_ready_ownership_and_contact(
 	)
 	var trigger_error_m := float(pose.get("trigger_hand_error_m", INF))
 	var support_error_m := float(pose.get("support_hand_error_m", INF))
-	var aim_error_deg := float(pose.get("weapon_aim_error_deg", INF))
+	var aim_error_deg := (
+		_rendered_bore_error_degrees(driver, aim_target)
+		if is_pistol
+		else float(pose.get("weapon_aim_error_deg", INF))
+	)
 	_expect(
 		is_finite(trigger_error_m)
 		and trigger_error_m <= MAX_HAND_CONTACT_ERROR_M,
@@ -294,6 +327,28 @@ func _expect_ready_ownership_and_contact(
 		)
 
 
+func _rendered_bore_error_degrees(driver: Node, aim_target: Vector3) -> float:
+	var solver = driver.get("weapon_pose_solver")
+	if solver == null:
+		return INF
+	var muzzle := solver.get("muzzle_socket") as Marker3D
+	var barrel_base := solver.get("barrel_base_socket") as Marker3D
+	if muzzle == null or barrel_base == null:
+		return INF
+	var bore := (muzzle.global_position - barrel_base.global_position).normalized()
+	var expected := muzzle.global_position.direction_to(aim_target)
+	if bore.length_squared() < 0.5 or expected.length_squared() < 0.5:
+		return INF
+	return rad_to_deg(bore.angle_to(expected))
+
+
+func _world_aim_direction(player: CharacterBody3D, yaw: float, pitch: float) -> Vector3:
+	var yaw_basis := Basis(Vector3.UP, player.global_rotation.y + yaw)
+	var forward := yaw_basis * Vector3.FORWARD
+	var right := yaw_basis * Vector3.RIGHT
+	return (Basis(right, pitch) * forward).normalized()
+
+
 func _pistol_axial_roll_degrees(driver: Node) -> float:
 	var solver = driver.get("weapon_pose_solver")
 	var skeleton := driver.get("skeleton") as Skeleton3D
@@ -312,9 +367,12 @@ func _pistol_axial_roll_degrees(driver: Node) -> float:
 	actual_up -= bore * actual_up.dot(bore)
 	var expected_up := skeleton.global_basis.y.normalized()
 	expected_up -= bore * expected_up.dot(bore)
+	# Saved socket space is scaled with the imported weapon. A valid pistol optic
+	# offset can therefore be sub-millimetre in world space; reject only a truly
+	# degenerate direction, then normalize it before evaluating axial roll.
 	if (
-		actual_up.length_squared() < 0.000001
-		or expected_up.length_squared() < 0.000001
+		actual_up.length_squared() < 0.0000000001
+		or expected_up.length_squared() < 0.0000000001
 	):
 		return INF
 	actual_up = actual_up.normalized()

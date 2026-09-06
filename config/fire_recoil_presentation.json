@@ -1,0 +1,6 @@
+{
+  "attack_seconds": 0.035,
+  "return_seconds": 0.18,
+  "right_elbow_swivel_degrees": 5.0,
+  "prone_scale": 0.35
+}

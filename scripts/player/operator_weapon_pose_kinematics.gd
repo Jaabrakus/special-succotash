@@ -1,5 +1,7 @@
 extends "res://scripts/player/operator_weapon_pose_state.gd"
 
+const AimAlignment := preload("res://scripts/player/operator_weapon_aim_alignment.gd")
+
 func _animation_frame_weapon_correction_transform() -> Transform3D:
 	if animation_frame_pose.is_empty():
 		return Transform3D.IDENTITY
@@ -150,6 +152,12 @@ func _update_support_contact_elbow_pole(wrist_world: Vector3) -> void:
 	)
 
 
+func _solve_pistol_trigger_hand_centerline(
+	aim_direction: Vector3,
+	ready_weight: float = 1.0
+) -> void:
+	AimAlignment._solve_pistol_trigger_hand_centerline(self, aim_direction, ready_weight)
+
 func _stop_socket_ik() -> void:
 	SocketIK.stop(right_hand_ik)
 	SocketIK.stop(left_hand_ik)
@@ -224,8 +232,19 @@ func _release_support_hand_grip_lock() -> void:
 		left_hand_ik.override_tip_basis = false
 
 
-func _weapon_transform_on_trigger_hand(hand_world: Transform3D) -> Transform3D:
+func _weapon_transform_on_trigger_hand(
+	hand_world: Transform3D,
+	preserve_authored_bone_scale: bool = false
+) -> Transform3D:
 	var target_transform := hand_world * weapon_hand_mount_transform
+	if preserve_authored_bone_scale:
+		# The saved mount cancels the scaled BoneAttachment3D. Palm transforms
+		# intentionally use an orthonormal basis, so restore that parent scale
+		# when evaluating the same mount beneath the world-space solver anchor.
+		var hand_index := int(bone_indices.get(&"mixamorig_RightHand", -1))
+		if hand_index >= 0:
+			var authored_hand := skeleton.global_transform * skeleton.get_bone_global_pose(hand_index)
+			target_transform.basis = target_transform.basis.scaled(authored_hand.basis.get_scale())
 	weapon_presentation_owner.set_world_transform(target_transform)
 	if trigger_socket != null:
 		weapon_presentation_owner.translate_world(
@@ -271,19 +290,7 @@ func _apply_ownership_return(target_transform: Transform3D, delta: float) -> voi
 
 
 func _update_socket_weapon_error() -> void:
-	if muzzle_socket == null or (barrel_base_socket == null and trigger_socket == null):
-		return
-	var barrel_origin: Vector3 = (
-		barrel_base_socket.global_position
-		if barrel_base_socket != null
-		else trigger_socket.global_position
-	)
-	var barrel_direction := (muzzle_socket.global_position - barrel_origin).normalized()
-	if barrel_direction.length_squared() < 0.50:
-		return
-	weapon_aim_error_deg = rad_to_deg(barrel_direction.angle_to(last_aim_direction))
-	wrist_correction_deg = 0.0
-
+	AimAlignment._update_socket_weapon_error(self)
 
 func _build_targets() -> void:
 	trigger_hand_target = _marker("TriggerHandIKTarget")
@@ -345,45 +352,29 @@ func _blend_rotated_basis(source: Basis, delta: Quaternion, weight: float) -> Ba
 	return ArmKinematics.blend_rotated_basis(source, delta, weight)
 
 
-func _align_weapon_to_aim(aim_direction: Vector3) -> void:
-	if weapon_node == null:
-		weapon_aim_error_deg = 0.0
-		wrist_correction_deg = 0.0
-		return
-	var hand_index := int(bone_indices.get(&"mixamorig_RightHand", -1))
-	if hand_index < 0:
-		return
-	skeleton.force_update_all_bone_transforms()
-	var hand_pose := skeleton.get_bone_global_pose(hand_index)
-	# BoneAttachment3D follows the hand pose. Computing the barrel direction
-	# from that invariant local relationship avoids a one-frame attachment lag.
-	var weapon_forward_in_hand := (
-		weapon_node.basis * weapon_forward_local
-	).normalized()
-	var current_local := (hand_pose.basis * weapon_forward_in_hand).normalized()
-	var inverse_skeleton_basis := skeleton.global_basis.inverse()
-	var aim_local := (inverse_skeleton_basis * aim_direction).normalized()
-	if current_local.length_squared() < 0.50 or aim_local.length_squared() < 0.50:
-		return
-	var required_angle := current_local.angle_to(aim_local)
-	wrist_correction_deg = rad_to_deg(required_angle)
-	# The shoulder and elbow solve position first; the wrist then aligns the
-	# attached rifle. Clamp only the visual wrist contribution. Any residual is
-	# reported as torso-assist demand instead of allowing an impossible joint.
-	var applied_angle := minf(required_angle, deg_to_rad(maximum_wrist_correction_deg))
-	var correction_weight := (
-		0.0 if required_angle <= 0.00001 else applied_angle / required_angle
-	)
-	var full_delta := Quaternion(current_local, aim_local)
-	var delta := Quaternion.IDENTITY.slerp(full_delta, correction_weight)
-	hand_pose.basis = _blend_rotated_basis(hand_pose.basis, delta, current_weight)
-	skeleton.set_bone_global_pose_override(hand_index, hand_pose, 1.0, true)
-	skeleton.force_update_all_bone_transforms()
-	var solved_local := (hand_pose.basis * weapon_forward_in_hand).normalized()
-	weapon_aim_error_deg = rad_to_deg(solved_local.angle_to(aim_local))
-	if weapon_aim_error_deg > 1.0:
-		torso_assist_requested = true
+func _align_weapon_to_aim(
+	aim_direction: Vector3,
+	alignment_weight: float = -1.0,
+	align_hand_owned_weapon_root: bool = false
+) -> void:
+	AimAlignment._align_weapon_to_aim(self, aim_direction, alignment_weight, align_hand_owned_weapon_root)
 
+func _align_hand_owned_weapon_root_to_aim(
+	aim_direction: Vector3,
+	ready_weight: float = 1.0
+) -> void:
+	AimAlignment._align_hand_owned_weapon_root_to_aim(self, aim_direction, ready_weight)
+
+func _weapon_optic_up_world(barrel_origin: Vector3, barrel_direction: Vector3) -> Vector3:
+	return AimAlignment._weapon_optic_up_world(self, barrel_origin, barrel_direction)
+
+func _aim_frame_alignment_delta(
+	current_forward: Vector3,
+	target_forward: Vector3,
+	current_up: Vector3,
+	target_up: Vector3
+) -> Quaternion:
+	return AimAlignment._aim_frame_alignment_delta(self, current_forward, target_forward, current_up, target_up)
 
 func _resolve_bone_index(canonical_name: StringName) -> int:
 	if skeleton == null:

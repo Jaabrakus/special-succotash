@@ -1,0 +1,210 @@
+[gd_scene load_steps=23 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/environment/tactical_courtyard_kit/plaster_wall_3m.glb" id="1_wall"]
+[ext_resource type="PackedScene" path="res://assets/environment/tactical_courtyard_kit/plaster_doorway_3m.glb" id="2_door"]
+[ext_resource type="PackedScene" path="res://assets/environment/tactical_courtyard_kit/concrete_stairs_6step.glb" id="3_stairs"]
+[ext_resource type="PackedScene" path="res://assets/environment/tactical_courtyard_kit/wood_supply_crate_1m.glb" id="4_crate"]
+[ext_resource type="PackedScene" path="res://assets/environment/tactical_courtyard_kit/corrugated_cover_2m.glb" id="5_cover"]
+
+[sub_resource type="BoxShape3D" id="GroundShape"]
+size = Vector3(9.4, 0.32, 7)
+
+[sub_resource type="BoxShape3D" id="WallShape"]
+size = Vector3(3, 3, 0.3)
+
+[sub_resource type="BoxShape3D" id="DoorPierShape"]
+size = Vector3(0.975, 3, 0.39)
+
+[sub_resource type="BoxShape3D" id="LintelShape"]
+size = Vector3(1.05, 0.835, 0.4)
+
+[sub_resource type="BoxShape3D" id="Step1"]
+size = Vector3(1.5, 0.18, 0.32)
+
+[sub_resource type="BoxShape3D" id="Step2"]
+size = Vector3(1.5, 0.36, 0.32)
+
+[sub_resource type="BoxShape3D" id="Step3"]
+size = Vector3(1.5, 0.54, 0.32)
+
+[sub_resource type="BoxShape3D" id="Step4"]
+size = Vector3(1.5, 0.72, 0.32)
+
+[sub_resource type="BoxShape3D" id="Step5"]
+size = Vector3(1.5, 0.9, 0.32)
+
+[sub_resource type="BoxShape3D" id="Step6"]
+size = Vector3(1.5, 1.08, 0.32)
+
+[sub_resource type="BoxShape3D" id="Landing"]
+size = Vector3(1.5, 1.08, 0.24)
+
+[sub_resource type="BoxShape3D" id="CrateShape"]
+size = Vector3(1, 1, 0.98)
+
+[sub_resource type="BoxShape3D" id="CoverShape"]
+size = Vector3(2.2, 1.5, 0.18)
+
+[sub_resource type="ConvexPolygonShape3D" id="StairCheek"]
+points = PackedVector3Array(-0.065, 0, 0.96, 0.065, 0, 0.96, 0.065, 0, -1.2, -0.065, 0, -1.2, -0.065, 0.22, 0.96, 0.065, 0.22, 0.96, 0.065, 1.17, -1.2, -0.065, 1.17, -1.2)
+
+[sub_resource type="BoxShape3D" id="CoverFootShape"]
+size = Vector3(0.22, 0.15, 0.63)
+
+[sub_resource type="StandardMaterial3D" id="GroundMaterial"]
+albedo_color = Color(0.48, 0.40, 0.29, 1)
+roughness = 1.0
+
+[sub_resource type="BoxMesh" id="GroundMesh"]
+material = SubResource("GroundMaterial")
+size = Vector3(9.4, 0.32, 7)
+
+[node name="TacticalCourtyardKit" type="StaticBody3D"]
+collision_layer = 1
+collision_mask = 0
+metadata/asset_author = "Original SOCOM-141 procedural Blender kit"
+metadata/asset_scope = "Reusable static prop showcase; place through the canonical map owner."
+metadata/stair_riser_m = 0.18
+metadata/stair_tread_m = 0.32
+
+[node name="Visuals" type="Node3D" parent="."]
+
+[node name="Ground" type="MeshInstance3D" parent="Visuals"]
+position = Vector3(0, -0.16, 0)
+mesh = SubResource("GroundMesh")
+
+[node name="BackWallLeft" parent="Visuals" instance=ExtResource("1_wall")]
+position = Vector3(-3, 0, -3)
+
+[node name="Doorway" parent="Visuals" instance=ExtResource("2_door")]
+position = Vector3(0, 0, -3)
+
+[node name="BackWallRight" parent="Visuals" instance=ExtResource("1_wall")]
+position = Vector3(3, 0, -3)
+
+[node name="SideWallBack" parent="Visuals" instance=ExtResource("1_wall")]
+position = Vector3(-4.5, 0, -1.5)
+rotation = Vector3(0, 1.5707963, 0)
+
+[node name="SideWallFront" parent="Visuals" instance=ExtResource("1_wall")]
+position = Vector3(-4.5, 0, 1.5)
+rotation = Vector3(0, 1.5707963, 0)
+
+[node name="Stairs" parent="Visuals" instance=ExtResource("3_stairs")]
+position = Vector3(3, 0, -1.5)
+
+[node name="CrateLower" parent="Visuals" instance=ExtResource("4_crate")]
+position = Vector3(-2.9, 0, -0.7)
+rotation = Vector3(0, -0.05, 0)
+
+[node name="CrateUpper" parent="Visuals" instance=ExtResource("4_crate")]
+position = Vector3(-2.85, 1, -0.7)
+rotation = Vector3(0, 0.04, 0)
+
+[node name="CrateSide" parent="Visuals" instance=ExtResource("4_crate")]
+position = Vector3(-1.9, 0, -0.5)
+rotation = Vector3(0, 0.14, 0)
+
+[node name="CorrugatedCover" parent="Visuals" instance=ExtResource("5_cover")]
+position = Vector3(1.4, 0, 0.7)
+rotation = Vector3(0, -0.12, 0)
+
+[node name="GroundCollision" type="CollisionShape3D" parent="."]
+position = Vector3(0, -0.16, 0)
+shape = SubResource("GroundShape")
+
+[node name="BackWallLeftCollision" type="CollisionShape3D" parent="."]
+position = Vector3(-3, 1.5, -3)
+shape = SubResource("WallShape")
+
+[node name="BackWallRightCollision" type="CollisionShape3D" parent="."]
+position = Vector3(3, 1.5, -3)
+shape = SubResource("WallShape")
+
+[node name="SideWallBackCollision" type="CollisionShape3D" parent="."]
+position = Vector3(-4.5, 1.5, -1.5)
+rotation = Vector3(0, 1.5707963, 0)
+shape = SubResource("WallShape")
+
+[node name="SideWallFrontCollision" type="CollisionShape3D" parent="."]
+position = Vector3(-4.5, 1.5, 1.5)
+rotation = Vector3(0, 1.5707963, 0)
+shape = SubResource("WallShape")
+
+[node name="DoorLeftPierCollision" type="CollisionShape3D" parent="."]
+position = Vector3(-1.0125, 1.5, -3)
+shape = SubResource("DoorPierShape")
+
+[node name="DoorRightPierCollision" type="CollisionShape3D" parent="."]
+position = Vector3(1.0125, 1.5, -3)
+shape = SubResource("DoorPierShape")
+
+[node name="DoorLintelCollision" type="CollisionShape3D" parent="."]
+position = Vector3(0, 2.5825, -3)
+shape = SubResource("LintelShape")
+
+[node name="Step1Collision" type="CollisionShape3D" parent="."]
+position = Vector3(3, 0.09, -0.7)
+shape = SubResource("Step1")
+
+[node name="Step2Collision" type="CollisionShape3D" parent="."]
+position = Vector3(3, 0.18, -1.02)
+shape = SubResource("Step2")
+
+[node name="Step3Collision" type="CollisionShape3D" parent="."]
+position = Vector3(3, 0.27, -1.34)
+shape = SubResource("Step3")
+
+[node name="Step4Collision" type="CollisionShape3D" parent="."]
+position = Vector3(3, 0.36, -1.66)
+shape = SubResource("Step4")
+
+[node name="Step5Collision" type="CollisionShape3D" parent="."]
+position = Vector3(3, 0.45, -1.98)
+shape = SubResource("Step5")
+
+[node name="Step6Collision" type="CollisionShape3D" parent="."]
+position = Vector3(3, 0.54, -2.3)
+shape = SubResource("Step6")
+
+[node name="LandingCollision" type="CollisionShape3D" parent="."]
+position = Vector3(3, 0.54, -2.58)
+shape = SubResource("Landing")
+
+[node name="StairCheekLeftCollision" type="CollisionShape3D" parent="."]
+position = Vector3(2.175, 0, -1.5)
+shape = SubResource("StairCheek")
+
+[node name="StairCheekRightCollision" type="CollisionShape3D" parent="."]
+position = Vector3(3.825, 0, -1.5)
+shape = SubResource("StairCheek")
+
+[node name="CrateLowerCollision" type="CollisionShape3D" parent="."]
+position = Vector3(-2.9, 0.5, -0.7)
+rotation = Vector3(0, -0.05, 0)
+shape = SubResource("CrateShape")
+
+[node name="CrateUpperCollision" type="CollisionShape3D" parent="."]
+position = Vector3(-2.85, 1.5, -0.7)
+rotation = Vector3(0, 0.04, 0)
+shape = SubResource("CrateShape")
+
+[node name="CrateSideCollision" type="CollisionShape3D" parent="."]
+position = Vector3(-1.9, 0.5, -0.5)
+rotation = Vector3(0, 0.14, 0)
+shape = SubResource("CrateShape")
+
+[node name="CorrugatedCoverCollision" type="CollisionShape3D" parent="."]
+position = Vector3(1.4, 0.75, 0.7)
+rotation = Vector3(0, -0.12, 0)
+shape = SubResource("CoverShape")
+
+[node name="CoverFootLeftCollision" type="CollisionShape3D" parent="."]
+position = Vector3(0.476688, 0.075, 0.588668)
+rotation = Vector3(0, -0.12, 0)
+shape = SubResource("CoverFootShape")
+
+[node name="CoverFootRightCollision" type="CollisionShape3D" parent="."]
+position = Vector3(2.323312, 0.075, 0.811332)
+rotation = Vector3(0, -0.12, 0)
+shape = SubResource("CoverFootShape")

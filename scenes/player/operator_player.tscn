@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://scripts/player/player_controller.gd" id="1_player"]
 [ext_resource type="Script" path="res://scripts/player/test_mannequin.gd" id="2_mannequin"]
 [ext_resource type="Script" path="res://scripts/player/operator_animation_driver.gd" id="3_driver"]
-[ext_resource type="PackedScene" uid="uid://bvui7bwfs3vyx" path="res://assets/characters/ps1_gas_mask_soldier/trooper_rigged.fbx" id="4_trooper"]
+[ext_resource type="PackedScene" path="res://assets/characters/ps1_gas_mask_soldier/trooper_rigged.fbx" id="4_trooper"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_operator"]
 radius = 0.38

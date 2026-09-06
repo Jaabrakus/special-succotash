@@ -2,16 +2,16 @@
   "schema_version": 1,
   "default_port": 14141,
   "dedicated_transport": "websocket",
-  "browser_transport": "websocket",
+  "browser_transport": "webrtc",
   "browser_server_url": "",
-  "browser_private_transport": "webrtc",
+  "browser_tournament_transport": "webrtc",
   "webrtc_signaling_url": "wss://socom-141-webrtc-signaling.onrender.com/signal",
   "webrtc_ice_servers": [
     {
       "urls": ["stun:stun.l.google.com:19302"]
     }
   ],
-  "webrtc_max_players": 4,
+  "webrtc_max_players": 32,
   "server_map_document": "res://config/maps/painterly_coastal_village_2v2.json",
   "require_secure_browser_socket": true,
   "max_players": 32,

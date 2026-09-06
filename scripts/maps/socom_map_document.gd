@@ -8,6 +8,7 @@ const USER_ACTIVE_MAP_PATH := "user://maps/active_map.json"
 const SCHEMA_VERSION := 1
 static var library_directory_override := ""
 const BUNDLED_LIBRARY_MAPS := [
+	"res://config/maps/relic_depot.json",
 	"res://config/maps/painterly_coastal_village_2v2.json",
 	"res://config/maps/morro_do_sol_v2_2v2.json",
 ]

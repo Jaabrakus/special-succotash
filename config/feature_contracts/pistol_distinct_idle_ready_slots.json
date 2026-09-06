@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "feature_id": "pistol_distinct_idle_ready_slots",
+  "player_intent": "An equipped pistol can use a centered low/chest idle separately from its forward firing pose, hold the firing pose for the existing 1.2 seconds, and return to idle.",
+  "acceptance_rule": "The canonical graph and ready-frame sampling consume optional ready_standing and ready_crouched independently from idle slots. Absent standing-ready preserves the configured idle fallback. Gunsmith previews the same ready slots persistently through READY_SOLVER. An accepted shot selects recovery without a fire OneShot and returns to the idle slot after its existing grace period. This contract proves routing, not the visual quality of any assigned clip.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://gun_calibration_lab.tscn",
+  "ownership": {
+    "animation_slot_contract": "SocomWeaponAnimationProfile",
+    "animation_graph": "SocomOperatorLocomotionBlendTree",
+    "recovery_selection": "SocomOperatorFireUpperBodyLatch"
+  },
+  "nodes": [{
+    "id": "canonical_animation_tree",
+    "type": "AnimationTree",
+    "role": "Blends authored idle and ready clips using existing readiness.",
+    "owner": "SocomOperatorLocomotionBlendTree",
+    "source_script": "res://scripts/player/operator_locomotion_blend_tree.gd",
+    "code_symbols": ["animation_tree = AnimationTree.new()", "animation_tree.name = \"OperatorAnimationTree\""]
+  }],
+  "data_contracts": [{
+    "path": "res://config/weapons/mark_23.json",
+    "writer": "res://scripts/labs/gunsmith/gunsmith_persistence_controller.gd",
+    "readers": ["res://scripts/weapons/weapon_animation_profile.gd", "res://scripts/player/operator_animation_driver_pose.gd", "res://scripts/player/operator_locomotion_blend_tree.gd"]
+  }],
+  "must_not_change": ["movement and collision", "camera and reticle", "accepted shot and damage authority", "1.2 second recovery timer", "reload and mobility ownership", "weapon sockets"],
+  "proof_scripts": ["res://tools/pistol_distinct_ready_slots_regression.gd", "res://tools/feature_contract_regression.gd"],
+  "visual_check": "Assign independently verified low and forward poses in Gunsmith, Play into main.tscn, equip, fire once, and watch the entire return. Do not claim authored candidate integration merely because this routing gate passes.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Separate data slots in existing owners; preserve old defaults until replacement assets pass physical contact and rendered checks. Runtime and editor now consume the same distinction. No new pose writer or timer.",
+    "current": {
+      "system": "Standing idle and ready share idle_standing; ready preview is not a recognized persistent semantic slot.",
+      "correctness": 3, "ownership_clarity": 5, "runtime_parity": 3, "editor_usability": 2, "performance": 5, "regression_coverage": 2,
+      "evidence_paths": ["res://scripts/player/operator_locomotion_blend_tree.gd", "res://scripts/weapons/weapon_animation_profile.gd"]
+    },
+    "candidate": {
+      "system": "Optional standing/crouched ready slots with tested idle fallbacks and persistent shared-policy editor previews.",
+      "correctness": 5, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 5, "performance": 5, "regression_coverage": 5,
+      "evidence_paths": ["res://tools/pistol_distinct_ready_slots_regression.gd", "res://scripts/player/weapon_ownership_contract.gd", "res://scripts/labs/gunsmith/gunsmith_event_preview_controller.gd", "res://scripts/player/operator_animation_driver_pose.gd"]
+    }
+  }
+}

@@ -15,6 +15,11 @@ var failures: Array[String] = []
 func _initialize() -> void:
 	var profile := DeploymentProfile.load_profile()
 	_expect(int(profile.get("max_players", 0)) == 32, "deployment admits 32 players")
+	_expect(
+		String(profile.get("browser_transport", "")) == DeploymentProfile.TRANSPORT_WEBRTC
+		and String(profile.get("browser_tournament_transport", "")) == DeploymentProfile.TRANSPORT_WEBRTC,
+		"browser tournament uses WebRTC for its canonical transport"
+	)
 	_expect(int(profile.get("arena_instances", 0)) == 8, "deployment owns eight arena instances")
 	_expect(int(profile.get("players_per_arena", 0)) == 4, "each arena owns one 2v2 match")
 	_expect(

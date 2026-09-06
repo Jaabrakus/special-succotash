@@ -22,9 +22,6 @@ var health_label: Label3D
 var hurtbox_rig: Node3D
 var soldier_meshes: Array[MeshInstance3D] = []
 var normal_material: StandardMaterial3D
-var hit_flash_material: StandardMaterial3D
-var critical_flash_material: StandardMaterial3D
-var hit_flash_remaining: float = 0.0
 
 func _ready() -> void:
 	# The CharacterBody is only a stable gameplay owner. Damage queries hit the
@@ -44,8 +41,6 @@ func _build_soldier() -> void:
 	normal_material = StandardMaterial3D.new()
 	normal_material.albedo_texture = TROOPER_TEXTURE
 	normal_material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
-	hit_flash_material = _build_flash_material(Color(1.0, 1.0, 0.4))
-	critical_flash_material = _build_flash_material(Color(1.0, 0.2, 0.2))
 	_collect_soldier_meshes(model_root)
 	_set_soldier_material(normal_material)
 
@@ -71,13 +66,6 @@ func _set_soldier_material(material: Material) -> void:
 		if is_instance_valid(mesh):
 			mesh.material_override = material
 
-
-func _build_flash_material(emission_color: Color) -> StandardMaterial3D:
-	var material := StandardMaterial3D.new()
-	material.albedo_color = Color.WHITE
-	material.emission_enabled = true
-	material.emission = emission_color
-	return material
 
 func _build_hitboxes() -> void:
 	var skeleton := _find_skeleton(model_root)
@@ -148,16 +136,10 @@ func get_hurtbox_rig() -> Node3D:
 func get_cached_hit_feedback_ids() -> Dictionary:
 	return {
 		"normal": normal_material.get_instance_id() if normal_material else 0,
-		"hit": hit_flash_material.get_instance_id() if hit_flash_material else 0,
-		"critical": critical_flash_material.get_instance_id() if critical_flash_material else 0,
 		"meshes": soldier_meshes.size(),
 	}
 
 func _process(delta: float) -> void:
-	if hit_flash_remaining > 0.0:
-		hit_flash_remaining = maxf(0.0, hit_flash_remaining - delta)
-		if hit_flash_remaining <= 0.0:
-			_set_soldier_material(normal_material)
 	if flinch_rotation.length_squared() > 0.0001:
 		flinch_rotation = flinch_rotation.lerp(Vector3.ZERO, delta * 14.0)
 		if model_root:
@@ -191,13 +173,27 @@ func take_bullet_damage(
 	)
 
 
+func take_profiled_bullet_damage_region(
+	base_damage: float,
+	hit_region: StringName,
+	hit_position: Vector3,
+	hit_normal: Vector3,
+	shooter_origin: Vector3,
+	headshot_multiplier: float,
+	directional_torso_modifiers_enabled: bool
+) -> Dictionary:
+	return take_bullet_damage_region(base_damage, hit_region, hit_position,
+		hit_normal, shooter_origin, headshot_multiplier, directional_torso_modifiers_enabled)
+
+
 func take_bullet_damage_region(
 	base_damage: float,
 	hit_region: StringName,
 	hit_position: Vector3,
 	_hit_normal: Vector3,
 	shooter_origin: Vector3 = Vector3.ZERO,
-	headshot_multiplier: float = 3.5
+	headshot_multiplier: float = 3.5,
+	directional_torso_modifiers_enabled: bool = true
 ) -> Dictionary:
 	if not is_alive:
 		return {"accepted": false, "hit_region": hit_region}
@@ -226,8 +222,8 @@ func take_bullet_damage_region(
 		# Limbs (Arms & Legs): 13.5 dmg -> EXACT 7-8 SHOTS TO KILL
 		zone_mult = 0.38
 		hit_type = "ARM_LIMB" if is_arm else "LEG_LIMB"
-	else:
-		# Torso: Front vs Side/Rear
+	elif directional_torso_modifiers_enabled:
+		# Sniper profiles leave torso damage at 1.0 from every direction.
 		var forward_vec := -global_transform.basis.z.normalized()
 		var incoming_dir := (shooter_origin - global_position).normalized() if shooter_origin != Vector3.ZERO else forward_vec
 		var angle_dot := forward_vec.dot(incoming_dir)
@@ -277,7 +273,7 @@ func take_bullet_damage_region(
 				health_label.text = "HOSTILE  %.0f HP (-%.0f)" % [current_health, actual_damage]
 				health_label.modulate = Color(1.0, 1.0, 1.0)
 
-	_flash_soldier(is_headshot or hit_type == "FLANK_REAR")
+	# Hit confirmation belongs to the HUD; impacts do not recolor the body.
 
 	if current_health <= 0.0:
 		_die(hit_type)
@@ -306,7 +302,6 @@ func take_explosion_damage(
 	if health_label:
 		health_label.text = "💥 FRAG -%.0f (%.0f HP)" % [damage, current_health]
 		health_label.modulate = Color(1.0, 0.48, 0.16)
-	_flash_soldier(true)
 	if current_health <= 0.0:
 		_die("EXPLOSION")
 	return {
@@ -315,15 +310,6 @@ func take_explosion_damage(
 		"remaining_health": current_health,
 		"eliminated": not is_alive,
 	}
-
-func _flash_soldier(is_critical: bool) -> void:
-	# Materials are compiled and cached when the dummy is built. A hit only
-	# swaps an existing resource reference and resets a numeric timer, avoiding
-	# per-impact shaders, timers, closures, and garbage collection.
-	_set_soldier_material(
-		critical_flash_material if is_critical else hit_flash_material
-	)
-	hit_flash_remaining = 0.08
 
 func _die(hit_type: String) -> void:
 	is_alive = false

@@ -57,7 +57,9 @@ func find_quick_match(
 	preferred_region: String = "auto",
 	measured_latency_ms: Dictionary = {},
 	now_unix: float = -1.0,
-	require_secure: bool = false
+	require_secure: bool = false,
+	required_mode_key: String = "",
+	minimum_capacity: int = 0
 ) -> Dictionary:
 	var access := _directory_access()
 	if not bool(access.get("ok", false)):
@@ -89,6 +91,13 @@ func find_quick_match(
 		if raw_server is not Dictionary:
 			continue
 		var server := raw_server as Dictionary
+		if (
+			not required_mode_key.is_empty()
+			and String(server.get("mode_key", "")) != required_mode_key
+		):
+			continue
+		if int(server.get("capacity", 0)) < maxi(0, minimum_capacity):
+			continue
 		var endpoint := join_endpoint(server, secure_socket_required)
 		if not bool(endpoint.get("ok", false)):
 			continue

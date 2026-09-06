@@ -1,11 +1,10 @@
 extends "res://scripts/network/socom_multiplayer_objectives.gd"
 
-const BuyMenuScript := preload("res://scripts/ui/socom_buy_menu.gd")
 
-var buy_menu = null
-var _buy_menu_layer: CanvasLayer
-var _buy_menu_mouse_was_captured: bool = true
-var _buy_menu_window_remaining: float = 0.0
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("ui_cancel") and not dedicated_server_mode:
+		exit_menu.toggle(session_active)
+		get_viewport().set_input_as_handled()
 
 
 func _disconnect_existing_peer() -> void:
@@ -24,9 +23,6 @@ func _disconnect_existing_peer() -> void:
 	session_active = false
 	round_active = false
 	round_resolution_pending = false
-	buy_phase_active = false
-	local_buy_phase_open = false
-	_close_buy_menu()
 	lobby_countdown_remaining = 0.0
 	_reset_demolition_objective()
 	if multiplayer_hud != null: multiplayer_hud.clear_host_invite()
@@ -245,7 +241,6 @@ func _build_ui() -> void:
 	exit_menu.return_to_launcher_requested.connect(_leave_to_main_menu)
 	exit_menu.launch_studio_requested.connect(_leave_to_studio)
 	add_child(exit_menu)
-	_build_buy_menu()
 	_refresh_scoreboard()
 
 
@@ -269,95 +264,6 @@ func _request_join_from_hud(address: String) -> void:
 	_refresh_player_state()
 	_refresh_match_clock()
 	_refresh_objective_status()
-
-
-func _build_buy_menu() -> void:
-	if dedicated_server_mode:
-		return
-	_buy_menu_layer = CanvasLayer.new()
-	_buy_menu_layer.layer = 150
-	_buy_menu_layer.name = "BuyMenuLayer"
-	add_child(_buy_menu_layer)
-	buy_menu = BuyMenuScript.new()
-	buy_menu.name = "BuyMenu"
-	buy_menu.economy_enabled = true
-	_buy_menu_layer.add_child(buy_menu)
-	buy_menu.purchase_requested.connect(_on_buy_menu_purchase_requested)
-	buy_menu.close_requested.connect(_close_buy_menu)
-	buy_menu_driver = self
-
-
-func on_buy_phase(open: bool, seconds_remaining: float) -> void:
-	_buy_menu_window_remaining = seconds_remaining
-	if buy_menu == null:
-		return
-	if open and session_active and local_operator != null:
-		_open_buy_menu()
-	elif not open:
-		_close_buy_menu()
-
-
-func on_purchase_result(_ok: bool, _reason: String) -> void:
-	_refresh_buy_menu_state()
-
-
-func _open_buy_menu() -> void:
-	if buy_menu == null or buy_menu.is_open():
-		return
-	_buy_menu_mouse_was_captured = Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
-	_refresh_buy_menu_state()
-	buy_menu.open_menu()
-	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-
-
-func _close_buy_menu() -> void:
-	if buy_menu == null or not buy_menu.is_open():
-		return
-	buy_menu.close_menu()
-	Input.mouse_mode = (
-		Input.MOUSE_MODE_CAPTURED
-		if _buy_menu_mouse_was_captured
-		else Input.MOUSE_MODE_VISIBLE
-	)
-
-
-func _refresh_buy_menu_state() -> void:
-	if buy_menu == null:
-		return
-	buy_menu.update_state(
-		local_cash,
-		local_loadout,
-		_buy_menu_window_remaining,
-		local_buy_phase_open
-	)
-
-
-func _on_buy_menu_purchase_requested(weapon_id: String) -> void:
-	client_request_purchase(weapon_id)
-	_refresh_buy_menu_state()
-
-
-func _unhandled_input(event: InputEvent) -> void:
-	# Session owns the escape/exit-menu branch; only swallow events the buy
-	# menu actually consumes so that contract stays intact.
-	if buy_menu != null and session_active:
-		if buy_menu.is_open():
-			if event.is_action_pressed(&"open_buy_menu"):
-				_close_buy_menu()
-				get_viewport().set_input_as_handled()
-				return
-			if buy_menu.handle_unhandled_input(event):
-				get_viewport().set_input_as_handled()
-				return
-		elif (
-			event.is_action_pressed(&"open_buy_menu")
-			and local_buy_phase_open
-			and local_operator != null
-		):
-			_open_buy_menu()
-			get_viewport().set_input_as_handled()
-			return
-	super._unhandled_input(event)
 
 
 func _leave_to_main_menu() -> void:
@@ -455,6 +361,15 @@ func _refresh_objective_status() -> void:
 func _refresh_player_state() -> void:
 	if multiplayer_hud == null:
 		return
+	if reticle != null:
+		var profile: Dictionary = equipped_config.get("reticle", {}).duplicate(true)
+		profile["fire_interval_seconds"] = _configured_fire_interval()
+		if local_camera != null:
+			profile["camera_owned_aim"] = true
+			local_camera.configure_reticle_climb(profile, String(equipped_config.get("weapon_id", "")))
+			profile["functional_aim_climb_enabled"] = local_camera.reticle_climb_enabled()
+			reticle.screen_center_override = local_camera.reticle_screen_normalized * get_viewport().get_visible_rect().size
+		reticle.apply_profile(profile)
 	var current_health := float(local_operator.current_health) if local_operator != null else 0.0
 	var maximum_health := float(local_operator.max_health) if local_operator != null else float(
 		PlayerGameplayProfile.load_profile().get("max_health", 100.0)
@@ -530,5 +445,7 @@ func _apply_command_line_mode() -> void:
 			host_webrtc_match(webrtc_signaling_url)
 		elif launch_mode == "webrtc_join":
 			join_webrtc_match(webrtc_room_code, webrtc_signaling_url)
+		elif launch_mode == "webrtc_tournament":
+			join_webrtc_tournament(webrtc_signaling_url)
 		elif launch_mode == "dedicated":
 			host_dedicated_server(port)

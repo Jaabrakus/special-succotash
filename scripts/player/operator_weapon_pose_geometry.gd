@@ -25,7 +25,8 @@ static func vector_from_data(raw: Variant) -> Vector3:
 static func stable_chest_anchor(
 	body: Node3D,
 	posture: StringName,
-	movement_state: StringName
+	movement_state: StringName,
+	dive_presentation: Dictionary = {}
 ) -> Vector3:
 	var local_anchor := STANDING_CHEST_ANCHOR_LOCAL
 	if posture == &"CROUCHED":
@@ -43,9 +44,30 @@ static func stable_chest_anchor(
 			if posture == &"CROUCHED"
 			else STANDING_CHEST_ANCHOR_LOCAL
 		)
+		var crouched_entry := posture == &"CROUCHED"
+		var descent_start_phase := clampf(
+			float(dive_presentation.get(
+				"crouched_anchor_descent_start_phase"
+					if crouched_entry
+					else "anchor_descent_start_phase",
+				0.0 if crouched_entry else 0.22
+			)),
+			0.0,
+			0.80
+		)
+		var descent_end_phase := clampf(
+			float(dive_presentation.get(
+				"crouched_anchor_descent_end_phase"
+					if crouched_entry
+					else "anchor_descent_end_phase",
+				0.70 if crouched_entry else 0.94
+			)),
+			descent_start_phase + 0.10,
+			1.0
+		)
 		local_anchor = dive_start_anchor.lerp(
 			PRONE_CHEST_ANCHOR_LOCAL,
-			smoothstep(0.0, 0.70, dive_phase)
+			smoothstep(descent_start_phase, descent_end_phase, dive_phase)
 		)
 	elif movement_state == &"ROLLING":
 		var roll_phase := (

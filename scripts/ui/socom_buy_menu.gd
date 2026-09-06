@@ -1,17 +1,17 @@
 class_name SocomBuyMenu
 extends Control
 
-## Pre-round buy menu over the reCOM weapon catalog. Dumb view only: it
-## renders pushed state, emits purchase/close requests, and never equips
-## weapons or mutates economy state itself. The host driver owns input
-## gating and routes validated purchases to the weapon controller or the
-## server authority.
+## Two-slot loadout picker. This view never equips weapons itself; the host
+## driver routes requests to the existing weapon controller/server authority.
+## Legacy class/signal names remain stable for existing integrations.
 
 signal purchase_requested(weapon_id: String)
 signal close_requested
 
 const Economy := preload("res://scripts/economy/socom_economy_rules.gd")
 const Validator := preload("res://scripts/economy/socom_purchase_validator.gd")
+const WeaponContract := preload("res://scripts/weapons/weapon_rig_contract.gd")
+const ClimbProfile := preload("res://scripts/camera/reticle_climb_profile.gd")
 
 const PALETTE_TITLE := Color("8bc5ae")
 const PALETTE_GOLD := Color("f2cf6a")
@@ -22,7 +22,8 @@ const PALETTE_READY := Color("70f59b")
 const PALETTE_DENY := Color("ff7d76")
 const PALETTE_PANEL := Color(0.015, 0.022, 0.028, 0.92)
 
-var economy_enabled := true
+var economy_enabled := false
+var allow_training_prototypes := false
 var phase_open := true
 
 var _overlay: Control
@@ -35,6 +36,7 @@ var _cash_label: Label
 var _weight_label: Label
 var _countdown_label: Label
 var _status_label: Label
+var _slots_label: Label
 
 var _cash: int = 0
 var _loadout: Dictionary = {"primary": "", "secondary": ""}
@@ -142,6 +144,10 @@ func _build_ui() -> void:
 	subtitle.add_theme_color_override("font_color", PALETTE_DIM)
 	column.add_child(subtitle)
 	_subtitle_label = subtitle
+	_slots_label = Label.new()
+	_slots_label.name = "CarriedWeaponSlots"
+	_slots_label.add_theme_font_size_override("font_size", 14)
+	column.add_child(_slots_label)
 
 	var body := HBoxContainer.new()
 	body.add_theme_constant_override("separation", 18)
@@ -236,7 +242,7 @@ func _build_detail_column() -> Control:
 	column.add_child(_status_label)
 
 	var confirm := Button.new()
-	confirm.text = "CONFIRM PURCHASE"
+	confirm.text = "EQUIP WEAPON"
 	confirm.custom_minimum_size.y = 48.0
 	confirm.add_theme_font_size_override("font_size", 16)
 	confirm.pressed.connect(_submit_selected)
@@ -319,9 +325,8 @@ func _category_has_weapon(category: String, weapon_id: String) -> bool:
 func _build_weapon_row(record: Dictionary) -> Control:
 	var weapon_id := String(record.get("weapon_id", ""))
 	var verdict := Validator.validate(weapon_id, _validation_context())
-	var slot := String(verdict.get("slot", ""))
-
 	var button := Button.new()
+	button.set_meta("weapon_id", weapon_id)
 	button.text = _row_label(record, verdict)
 	button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	button.custom_minimum_size.y = 42.0
@@ -335,7 +340,7 @@ func _build_weapon_row(record: Dictionary) -> Control:
 	)
 	if weapon_id == _selected_weapon_id:
 		button.add_theme_color_override("font_color", PALETTE_GOLD)
-	# The row press both selects and purchases (CS-style buy click). Selection
+	# The row press both selects and equips. Selection
 	# alone happens through keyboard navigation into the detail panel.
 	return button
 
@@ -343,12 +348,8 @@ func _build_weapon_row(record: Dictionary) -> Control:
 func _row_label(record: Dictionary, verdict: Dictionary) -> String:
 	var weapon_id := String(record.get("weapon_id", ""))
 	var name := String(record.get("display_name", weapon_id))
-	var price := Economy.price_for(weapon_id)
-	var weight := Economy.carry_weight_for(weapon_id)
 	var slot_tag := "SIDEARM" if String(verdict.get("slot", "")) == "secondary" else "PRIMARY"
-	if not economy_enabled:
-		return "%s   [%s]" % [name, slot_tag]
-	return "%s   %s  •  W%d  •  $%d" % [name, slot_tag, weight, price]
+	return "%s   [%s]" % [name, slot_tag]
 
 
 func _refresh_detail() -> void:
@@ -357,6 +358,9 @@ func _refresh_detail() -> void:
 	var record := Economy.weapon_record(_selected_weapon_id)
 	if record.is_empty():
 		return
+	var saved := WeaponContract.load_config("res://config/weapons/%s.json" % _selected_weapon_id)
+	if not saved.is_empty():
+		record = saved
 	_detail_title.text = String(record.get("display_name", _selected_weapon_id))
 
 	var ballistics: Dictionary = record.get("ballistics", {})
@@ -383,7 +387,12 @@ func _refresh_detail() -> void:
 		lines.append(
 			"[color=#c8a66b]AMMO[/color]  %s" % String(ammo.get("type", ""))
 		)
-	lines.append("[color=#c8a66b]ENCUMBRANCE (SOCOM)[/color]  %d" % int(record.get("encumbrance", 0)))
+	lines.append("[color=#c8a66b]ENCUMBRANCE[/color]  %d" % int(record.get("encumbrance", 0)))
+	var vrc_values: Dictionary = record.get("reticle", {}).duplicate(true)
+	vrc_values["fire_interval_seconds"] = 60.0 / maxf(1.0, float(ballistics.get("fire_rate_rpm", 650.0)))
+	var vrc := ClimbProfile.resolve(vrc_values)
+	lines.append("[color=#c8a66b]RETICLE CLIMB[/color]  %.0f / shot   MAX %.0f px" % [vrc.rise, vrc.cap])
+	lines.append("[color=#c8a66b]RECOVERY[/color]  %.2fs delay   %.0f px/s (1080p)" % [maxf(vrc.delay, vrc.interval * 1.05), vrc.return_speed])
 	if bool(ballistics.get("is_silenced", false)):
 		lines.append("[color=#70f59b]SUPPRESSED[/color]")
 	_detail_body.clear()
@@ -393,11 +402,7 @@ func _refresh_detail() -> void:
 	var verdict := Validator.validate(_selected_weapon_id, _validation_context())
 	if bool(verdict.get("ok", false)):
 		_status_label.add_theme_color_override("font_color", PALETTE_READY)
-		_status_label.text = (
-			"READY TO ISSUE"
-			if not economy_enabled
-			else "PURCHASE  •  $%d" % int(verdict.get("cost", 0))
-		)
+		_status_label.text = "READY TO EQUIP"
 	else:
 		_status_label.add_theme_color_override("font_color", PALETTE_DENY)
 		_status_label.text = String(verdict.get("reason", "UNAVAILABLE"))
@@ -406,24 +411,16 @@ func _refresh_detail() -> void:
 func _refresh_footer() -> void:
 	if _cash_label == null:
 		return
-	if _subtitle_label != null:
-		_subtitle_label.text = (
-			"FREE ISSUE  •  TRAINING SANDBOX"
-			if not economy_enabled
-			else "Buy window open  •  purchases are validated by the server"
-		)
-	if economy_enabled:
-		_cash_label.text = "CASH  $%d" % _cash
-		_weight_label.text = "CARRY  %d / %d" % [
-			Validator.loadout_carry_weight(_loadout),
-			Economy.carry_weight_cap(),
+	if _slots_label != null:
+		_slots_label.text = "PRIMARY: %s    |    PISTOL: %s" % [
+			SocomWeaponCatalog.display_name(String(_loadout.get("primary", "")), "None"),
+			SocomWeaponCatalog.display_name(String(_loadout.get("secondary", "")), "None")
 		]
-		var seconds := ceili(_window_seconds_remaining)
-		_countdown_label.text = "BUY TIME  %ds" % maxi(0, seconds)
-	else:
-		_cash_label.text = ""
-		_weight_label.text = "ALL WEAPONS AVAILABLE"
-		_countdown_label.text = ""
+	if _subtitle_label != null:
+		_subtitle_label.text = "CHOOSE YOUR LOADOUT  •  SELECT A WEAPON TO EQUIP"
+	_cash_label.text = ""
+	_weight_label.text = "1 PRIMARY + 1 PISTOL  •  1 / 2 TO SWITCH"
+	_countdown_label.text = "LOADOUT LOCKED" if economy_enabled and not phase_open else ""
 
 
 func _validation_context() -> Dictionary:
@@ -432,6 +429,7 @@ func _validation_context() -> Dictionary:
 		"loadout": _loadout,
 		"phase_open": phase_open,
 		"economy_enabled": economy_enabled,
+		"allow_training_prototypes": allow_training_prototypes,
 	}
 
 

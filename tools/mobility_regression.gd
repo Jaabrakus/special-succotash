@@ -56,6 +56,11 @@ func _run() -> void:
     await _tap(&"crouch")
     _expect(_state(player) == &"STANDING", "stance controls return to standing")
 
+    await _hold(&"crouch", 24)
+    _expect(_state(player) == &"PRONE", "re-entering prone via hold stance")
+    await _hold(&"crouch", 24)
+    _expect(_state(player) == &"STANDING", "holding stance while prone returns directly to standing")
+
     await _test_stance_clearance(scene, player)
 
     await _test_jump(player)

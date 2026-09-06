@@ -5,7 +5,8 @@ import { WebSocket, WebSocketServer } from "ws";
 
 const PROTOCOL_VERSION = 1;
 const DEFAULT_PORT = 10000;
-const DEFAULT_MAX_ROOM_PEERS = 4;
+const DEFAULT_MAX_PRIVATE_PEERS = 4;
+const DEFAULT_MAX_TOURNAMENT_PEERS = 32;
 const MAX_MESSAGE_BYTES = 256 * 1024;
 const RATE_WINDOW_MS = 10_000;
 const RATE_LIMIT_MESSAGES = 180;
@@ -37,8 +38,8 @@ function error(socket, code, message) {
   send(socket, { type: "error", code, message, protocol: PROTOCOL_VERSION });
 }
 
-function nextPeerId(room, maxRoomPeers) {
-  for (let peerId = 2; peerId <= maxRoomPeers; peerId += 1) {
+function nextPeerId(room) {
+  for (let peerId = 2; peerId <= room.maxPeers; peerId += 1) {
     if (!room.peers.has(peerId)) return peerId;
   }
   return 0;
@@ -46,9 +47,20 @@ function nextPeerId(room, maxRoomPeers) {
 
 export function createSignalingService(options = {}) {
   const port = Number(options.port ?? process.env.PORT ?? DEFAULT_PORT);
-  const maxRoomPeers = Math.max(
+  const maxPrivatePeers = Math.max(
     2,
-    Math.min(4, Number(options.maxRoomPeers ?? process.env.SOCOM_WEBRTC_MAX_PEERS ?? DEFAULT_MAX_ROOM_PEERS)),
+    Math.min(4, Number(options.maxPrivatePeers ?? options.maxRoomPeers ?? DEFAULT_MAX_PRIVATE_PEERS)),
+  );
+  const maxTournamentPeers = Math.max(
+    4,
+    Math.min(
+      32,
+      Number(
+        options.maxTournamentPeers
+        ?? process.env.SOCOM_WEBRTC_MAX_TOURNAMENT_PEERS
+        ?? DEFAULT_MAX_TOURNAMENT_PEERS
+      ),
+    ),
   );
   const rooms = new Map();
   const clients = new Map();
@@ -62,6 +74,7 @@ export function createSignalingService(options = {}) {
         protocol: PROTOCOL_VERSION,
         rooms: rooms.size,
         clients: clients.size,
+        tournament_capacity: maxTournamentPeers,
       }));
       return;
     }
@@ -116,7 +129,12 @@ export function createSignalingService(options = {}) {
       return;
     }
     const roomCode = createRoomCode(rooms);
-    const room = { host: socket, peers: new Map([[1, socket]]) };
+    const room = {
+      host: socket,
+      kind: "private",
+      maxPeers: maxPrivatePeers,
+      peers: new Map([[1, socket]]),
+    };
     rooms.set(roomCode, room);
     clients.set(socket, { ...state, roomCode, peerId: 1 });
     send(socket, {
@@ -124,7 +142,8 @@ export function createSignalingService(options = {}) {
       room: roomCode,
       peer_id: 1,
       host: true,
-      max_peers: maxRoomPeers,
+      max_peers: room.maxPeers,
+      tournament: false,
       protocol: PROTOCOL_VERSION,
     });
   }
@@ -141,7 +160,7 @@ export function createSignalingService(options = {}) {
       error(socket, "room_not_found", "That P2P room does not exist.");
       return;
     }
-    const peerId = nextPeerId(room, maxRoomPeers);
+    const peerId = nextPeerId(room);
     if (peerId === 0) {
       error(socket, "room_full", "That private 2v2 room is full.");
       return;
@@ -153,7 +172,8 @@ export function createSignalingService(options = {}) {
       room: roomCode,
       peer_id: peerId,
       host: false,
-      max_peers: maxRoomPeers,
+      max_peers: room.maxPeers,
+      tournament: room.kind === "tournament",
       protocol: PROTOCOL_VERSION,
     });
     send(room.host, {
@@ -161,6 +181,48 @@ export function createSignalingService(options = {}) {
       peer_id: peerId,
       protocol: PROTOCOL_VERSION,
     });
+  }
+
+  function joinTournament(socket) {
+    const state = clients.get(socket);
+    if (state.roomCode) {
+      error(socket, "already_joined", "Leave the current room before joining a tournament.");
+      return;
+    }
+    let roomCode = "";
+    let room = null;
+    for (const [candidateCode, candidateRoom] of rooms) {
+      if (
+        candidateRoom.kind === "tournament"
+        && candidateRoom.peers.size < candidateRoom.maxPeers
+      ) {
+        roomCode = candidateCode;
+        room = candidateRoom;
+        break;
+      }
+    }
+    if (room === null) {
+      roomCode = createRoomCode(rooms).replace("P2P-", "TOUR-");
+      room = {
+        host: socket,
+        kind: "tournament",
+        maxPeers: maxTournamentPeers,
+        peers: new Map([[1, socket]]),
+      };
+      rooms.set(roomCode, room);
+      clients.set(socket, { ...state, roomCode, peerId: 1 });
+      send(socket, {
+        type: "room",
+        room: roomCode,
+        peer_id: 1,
+        host: true,
+        max_peers: room.maxPeers,
+        tournament: true,
+        protocol: PROTOCOL_VERSION,
+      });
+      return;
+    }
+    joinRoom(socket, roomCode);
   }
 
   function relay(socket, message) {
@@ -222,6 +284,7 @@ export function createSignalingService(options = {}) {
     switch (message.type) {
       case "create": createRoom(socket); break;
       case "join": joinRoom(socket, message.room); break;
+      case "join_tournament": joinTournament(socket); break;
       case "offer":
       case "answer":
       case "candidate": relay(socket, message); break;

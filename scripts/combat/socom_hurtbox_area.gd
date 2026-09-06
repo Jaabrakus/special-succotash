@@ -171,6 +171,22 @@ func _default_precision_result(precision_core_scale: float) -> Dictionary:
 	}
 
 
+func take_profiled_bullet_damage(
+	base_damage: float,
+	hit_position: Vector3,
+	hit_normal: Vector3,
+	shooter_origin: Vector3,
+	headshot_multiplier: float,
+	directional_torso_modifiers_enabled: bool
+) -> Dictionary:
+	if is_instance_valid(damage_receiver) and damage_receiver.has_method("take_profiled_bullet_damage_region"):
+		return damage_receiver.call("take_profiled_bullet_damage_region", base_damage,
+			hit_region, hit_position, hit_normal, shooter_origin, headshot_multiplier,
+			directional_torso_modifiers_enabled)
+	# Legacy receivers keep their original signature and health authority.
+	return take_bullet_damage(base_damage, hit_position, hit_normal, shooter_origin, headshot_multiplier)
+
+
 func take_bullet_damage(
 	base_damage: float,
 	hit_position: Vector3,

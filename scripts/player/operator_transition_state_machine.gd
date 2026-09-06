@@ -39,6 +39,11 @@ func evaluate(
 	if posture == &"STANDING" and not bool(settings.get("standing_enabled", true)):
 		_store(normalized_direction, speed_normalized, moving, normalized_intent, intent_active)
 		return result
+	# Continuous crouch locomotion owns direction changes. A separate start/stop
+	# take changes the pelvis height and restarts an action outside the gait clock.
+	if posture == &"CROUCHED" and not bool(settings.get("crouched_enabled", false)):
+		_store(normalized_direction, speed_normalized, moving, normalized_intent, intent_active)
+		return result
 
 	if intent_active and not previous_intent_active:
 		var start_clip := &"" if posture == &"PRONE" else (

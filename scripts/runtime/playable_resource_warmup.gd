@@ -12,7 +12,7 @@ const VisualRigResolver := preload(
 )
 const OperatorAnimationDriver := preload("res://scripts/player/operator_animation_driver.gd")
 const TROOPER_SCENE_PATH := (
-	"res://assets/characters/military_tactical_suit/military_tactical_suit_safe_scale.glb"
+	"res://assets/characters/ps1_gas_mask_soldier/trooper_rigged.fbx"
 )
 const ENVIRONMENT_TEXTURE_PATHS: Array[String] = [
 	"res://assets/textures/environment/original_materials/broadleaf_foliage_albedo_v1.png",

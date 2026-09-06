@@ -338,8 +338,7 @@ func _refresh_text() -> void:
 		"[color=#c0a4ee]T[/color] Roof camera test position",
 		"[color=#c0a4ee]I[/color] Interior camera test position",
 		"[color=#c0a4ee]B[/color] Wall camera test position",
-		"[color=#c0a4ee]M[/color] Toggle mouse aim-string mode",
-		"[color=#c0a4ee]N[/color] Toggle mouse aim-string debug drawing",
+		"[color=#c0a4ee]M[/color] Show/hide mouse aim-string guide (aim stays active)",
 		"[color=#c0a4ee]Left / Right Bracket[/color] Calibration overlay opacity",
 	]
 

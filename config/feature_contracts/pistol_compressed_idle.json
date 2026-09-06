@@ -1,0 +1,197 @@
+{
+  "schema_version": 1,
+  "feature_id": "pistol_compressed_idle",
+  "player_intent": "Mark 23 idle keeps the accepted forward, square-shouldered firing shape with both hands closer to the chest. An accepted shot extends the same shape, holds for the existing 1.2 seconds, then returns smoothly to compressed idle.",
+  "acceptance_rule": "Standing and crouched canonical Mark 23 use distinct native compressed-idle and recovery-reference clips. Idle hands are centered and at least 5 cm closer to the chest than ready; physical hand contacts remain within 1 cm through entry and return; no extra fire OneShot or recovery timer is introduced. At fixed 60 Hz, ready-to-move, moving-recovery-to-stop and rapid-reversal firing boundaries must remain within 3.5 cm and 6 degrees per frame, with both contacts within 1 cm. Ordinary relaxed locomotion is diagnostic only. Opted-in local muzzle light and smoke follow the presented muzzle after pose evaluation; tracer endpoints and accepted shot data remain unchanged. All required focused checks and rendered review must pass before claiming visual completion.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://gun_calibration_lab.tscn",
+  "ownership": {
+    "shared_weapon_animation_slots": "SocomWeaponAnimationProfile",
+    "authored_pose_blending": "SocomOperatorLocomotionBlendTree",
+    "post_animation_posture": "SocomOperatorPostureLayer, invoked only by SocomOperatorAnimationDriver",
+    "accepted_fire_recovery_selection": "SocomOperatorFireUpperBodyLatch",
+    "local_muzzle_effect_presentation": "LabLeakTracerSystem"
+  },
+  "nodes": [
+    {
+      "id": "canonical_animation_driver",
+      "type": "Node3D",
+      "role": "Owns the existing ordered animation pipeline and invokes the existing RefCounted posture layer; the authored idle opt-in adds no skeleton writer.",
+      "owner": "SocomOperatorAnimationDriver",
+      "scene_path": "res://scenes/player/operator_player.tscn",
+      "node_path": "Mannequin/ProductionAnimation"
+    },
+    {
+      "id": "canonical_animation_tree",
+      "type": "AnimationTree",
+      "role": "Blends saved stationary idle/ready pairs using existing readiness. Optional nonstationary slots retain original moving/action sources. The opted-in ready same-stance idle/movement handoff uses the existing transition's exact source contribution and saved 0.24-second minimum, finishing its current crossfade before a reverse request without adding a timer, queue or graph node. Reload, mobility, stance changes, relaxed movement and other profiles bypass the fence.",
+      "owner": "SocomOperatorLocomotionBlendTree",
+      "source_script": "res://scripts/player/operator_locomotion_blend_tree.gd",
+      "code_symbols": ["animation_tree = AnimationTree.new()", "animation_tree.name = \"OperatorAnimationTree\"", "func authored_stationary_pose_weight", "func request_modern_state"]
+    },
+    {
+      "id": "existing_fire_recovery_latch",
+      "type": "Node",
+      "role": "Retains the accepted-shot FIRE_RECOVERY selection and existing 1.2 second grace period independently from presentation blending.",
+      "owner": "SocomOperatorFireUpperBodyLatch",
+      "source_script": "res://scripts/player/operator_animation_driver_runtime.gd",
+      "code_symbols": ["fire_upper_body_latch = FireUpperBodyLatch.new()", "fire_upper_body_latch.name = \"FireUpperBodyLatch\""]
+    },
+    {
+      "id": "pooled_local_muzzle_light",
+      "type": "OmniLight3D",
+      "role": "The existing pooled light optionally follows the presented muzzle for its 40 ms flash, without parenting gameplay objects or modifying the shot origin.",
+      "owner": "LabLeakTracerSystem",
+      "source_script": "res://scripts/weapons/lab_leak_tracer_system.gd",
+      "code_symbols": ["_muzzle_flash_light = OmniLight3D.new()", "_muzzle_flash_light.name = \"PooledMuzzleLight\"", "RenderingServer.frame_pre_draw.connect(_sync_presented_muzzle_effects)"]
+    },
+    {
+      "id": "pooled_local_muzzle_smoke",
+      "type": "CPUParticles3D",
+      "role": "Existing bounded smoke pool starts opted-in emission at the presented muzzle. Emitted particles stay world-space; weak source references and validity-before-cast cleanup protect weapon and scene removal.",
+      "owner": "LabLeakTracerSystem",
+      "source_script": "res://scripts/weapons/lab_leak_tracer_system.gd",
+      "code_symbols": ["var msm := CPUParticles3D.new()", "msm.name = \"PooledMuzzleSmoke_%d\" % i", "smoke.local_coords = false", "_disconnect_presented_muzzle_sync()"]
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://config/weapons/mark_23.json",
+      "writer": "res://scripts/labs/gunsmith/gunsmith_persistence_controller.gd",
+      "readers": ["res://scripts/weapons/weapon_animation_profile.gd", "res://scripts/player/operator_animation_driver_api.gd", "res://scripts/player/operator_animation_driver_runtime.gd", "res://scripts/player/operator_locomotion_blend_tree.gd", "res://scripts/runtime/main_weapon_runtime.gd"]
+    },
+    {
+      "path": "res://config/operator_animation_map.json",
+      "writer": "res://scripts/labs/animation_studio/animation_studio_weapon.gd",
+      "readers": ["res://scripts/player/operator_animation_profile.gd", "res://scripts/player/operator_asset_runtime.gd"]
+    },
+    {
+      "path": "res://assets/animations/authored/pistol_compressed/pistol_compressed_idle_standing.tres",
+      "writer": "res://tools/bake_pistol_compressed_idle.gd",
+      "readers": ["res://scripts/player/operator_asset_runtime.gd"]
+    },
+    {
+      "path": "res://assets/animations/authored/pistol_compressed/pistol_compressed_idle_crouched.tres",
+      "writer": "res://tools/bake_pistol_compressed_idle.gd",
+      "readers": ["res://scripts/player/operator_asset_runtime.gd"]
+    },
+    {
+      "path": "res://assets/animations/authored/pistol_compressed/pistol_recovery_reference_standing.tres",
+      "writer": "res://tools/bake_pistol_compressed_idle.gd",
+      "readers": ["res://scripts/player/operator_asset_runtime.gd"]
+    },
+    {
+      "path": "res://assets/animations/authored/pistol_compressed/pistol_recovery_reference_crouched.tres",
+      "writer": "res://tools/bake_pistol_compressed_idle.gd",
+      "readers": ["res://scripts/player/operator_asset_runtime.gd"]
+    }
+  ],
+  "must_not_change": [
+    "CharacterBody3D player_controller movement, collision, posture decisions and world transform",
+    "SOCOM camera/reticle aim-intent ownership and camera offsets",
+    "authoritative server weapon shot validation, origin, direction, cadence, ballistics and damage",
+    "SocomOperatorFireUpperBodyLatch accepted-shot selection and 1.2 second recovery duration",
+    "existing reload transaction, ammo commit and action ownership",
+    "weapon mesh dimensions, saved grip offsets, muzzle/trigger/support sockets and attachment ownership",
+    "the user's currently accepted crouch-moving pistol placement; no further gameplay tuning in this verification pass",
+    "existing locomotion phase, lower-body animation tracks, prone, dive, roll and airborne owners",
+    "other weapon profiles and their default muzzle-effect behavior",
+    "network authority, replication, tracer endpoints, casing emission and gunshot audio origin"
+  ],
+  "proof_scripts": [
+    "res://tools/pistol_compressed_idle_regression.gd",
+    "res://tools/pistol_presented_muzzle_effect_regression.gd",
+    "res://tools/pistol_compressed_movement_source_regression.gd",
+    "res://tools/pistol_stationary_blend_weight_regression.gd",
+    "res://tools/pistol_compressed_movement_visual_probe.gd",
+    "res://tools/pistol_distinct_ready_slots_regression.gd",
+    "res://tools/feature_contract_regression.gd"
+  ],
+  "proof_invocations": [
+    {
+      "script": "res://tools/pistol_stationary_blend_weight_regression.gd",
+      "engine_args": ["--headless"],
+      "status": "PASS: 215 actual transition-weight samples, ready handoff/opt-out checks and 20 synthetic hip-reference samples; maximum hip basis error 0.00000016."
+    },
+    {
+      "script": "res://tools/pistol_compressed_movement_visual_probe.gd",
+      "engine_args": ["--headless", "--fixed-fps", "60"],
+      "user_args": ["--enforce"],
+      "status": "PASS firing boundaries only, both stances, forward; relaxed phases remain diagnostic."
+    },
+    {
+      "script": "res://tools/pistol_compressed_movement_visual_probe.gd",
+      "engine_args": ["--headless", "--fixed-fps", "60"],
+      "user_args": ["--enforce", "--backward"],
+      "status": "PASS firing boundaries only, both stances, backward; relaxed phases remain diagnostic."
+    },
+    {
+      "script": "res://tools/pistol_compressed_movement_visual_probe.gd",
+      "engine_args": ["--headless", "--fixed-fps", "60"],
+      "user_args": ["--enforce", "--rapid-reversals"],
+      "status": "PASS firing boundaries and rapid reversals, both stances, forward-start sequence."
+    },
+    {
+      "script": "res://tools/pistol_compressed_movement_visual_probe.gd",
+      "engine_args": ["--headless", "--fixed-fps", "60"],
+      "user_args": ["--enforce", "--rapid-reversals", "--backward"],
+      "status": "FAIL: standing backward-start rapid reversal reaches 0.0501146466 m versus the unchanged 0.035 m limit. Angular and contact limits pass; crouched rapid reversal passes."
+    },
+    {
+      "script": "res://tools/pistol_compressed_movement_visual_probe.gd",
+      "engine_args": ["--fixed-fps", "60"],
+      "user_args": ["--capture", "--enforce"],
+      "status": "INCOMPLETE: the display-backed probe stalled after its first relaxed phase and only that probe process was stopped. No rendered movement PASS is claimed. A run without --enforce is diagnostic only, not movement acceptance."
+    }
+  ],
+  "visual_check": "Canonical stationary rendered review PASS on 2026-09-05: four neutral/offset standing/crouched cases and two reloads; inspected idle, first-shot entry, held pose and complete return with connected grips and forward pistol. First-shot presented-muzzle VFX review previously passed. Final movement rendered review is INCOMPLETE: the probe stopped after its first relaxed phase, with no movement PASS claim. Backward-start standing rapid reversal retains a known positional failure. The user likes the current crouch-moving pistol placement; preserve it. Do not claim complete movement appearance from source routing, unit math or passing normal firing boundaries.",
+  "verification_status": "INCOMPLETE / NOT PROMOTED. Stationary canonical GUI PASS 4 cases and 2 reloads; exact blend/hip-reference math, source-routing, normal forward/backward firing boundaries and forward-start rapid reversals PASS. Backward-start standing rapid reversal still fails its unchanged positional bound. The browser ZIP is the stale earlier 08:40 artifact and was NOT rebuilt during this resumed pass. No public deployment or promotion; do not interrupt the user's live canonical game. Broad integration remains blocked by the main-branch guard; preserve the dirty branch. See docs/PISTOL_COMPRESSED_IDLE_FIX.md for evidence and limits.",
+  "known_failures": [
+    {
+      "state": "STANDING ready_rapid_reversals, backward-start sequence",
+      "measured_step_m": 0.0501146465539932,
+      "allowed_step_m": 0.035,
+      "angle_deg": 2.29541655172431,
+      "contact_error_m": 0.00110338279046118,
+      "evidence_file": "/private/tmp/pistol-boundary-backward-enforced-v5-headless.json",
+      "comparison": "Reconstructed legacy slots with the authored opt-in disabled reach 0.114342115819454 m in the same stress sequence. This replaces only the in-memory handling profile and graph; current runtime and solver remain unchanged, so it is NOT a whole-repository historical baseline.",
+      "comparison_evidence_file": "/private/tmp/pistol-legacy-backward-rapid-headless.json",
+      "interpretation": "The residual failure concerns body/gait displacement; the accepted shoulder-angle and hand-contact limits pass. Existing lower-body tracks and movement authority remain untouched. This comparison does not excuse the failed acceptance rule or establish complete historical parity."
+    }
+  ],
+  "failure_lessons": [
+    "Standing and crouched ready slots also feed moving and action overlays. A stationary-only authored pose requires explicit saved nonstationary sources at those existing graph nodes; a driver stationary guard alone is insufficient.",
+    "A Dictionary can retain a freed pooled Node after scene exit: validate its raw Variant with is_instance_valid before an as Node cast.",
+    "Expiry tests must use the render updater's monotonic timestamp explicitly; do not mix SceneTree simulation timers with Time.get_ticks_usec deadlines.",
+    "Opted-out profiles create no emitter-follow entries or recurring render callback; only accepted-shot profile lookup/branch bookkeeping remains. Never claim literally zero CPU cost.",
+    "Logical animation state changes before AnimationNodeTransition finishes its crossfade. Read its actual current/previous contribution, accounting for the post-evaluation fade decrement; do not toggle baked-correction suppression from movement input alone.",
+    "REJECTED and removed: adding crouch-start/stop torso/limb overlay nodes could not remove the full-body cosmetic clip's pelvis-height restart. Final routing skips only those two cosmetic actions for opted-in Mark23 readiness/recovery, retaining continuous crouch base clips and clocks.",
+    "The ready base handoff fence finishes the existing same-stance fade before reversing; it adds no queue or timer, never changes movement authority, and never delays reload, posture changes or other actions. Its 0.24-second presentation blend is unrelated to the unchanged 1.2-second fire latch.",
+    "Blend the target neutral hip reference between the legacy neutral and cached fully-native hip, then apply ordinary separation strength. Scaling the whole correction by one minus native contribution leaks mixed moving-hip rotation into the upper body. Rebind clears the native reference cache.",
+    "Source/filter tests and normal transitions can pass while rapid reversal still fails. Run --fixed-fps 60 with --enforce and both direction/rapid variants; retain failed thresholds and distinguish diagnostic-only relaxed locomotion from firing acceptance."
+  ],
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Merge native stationary assets and presented-muzzle tracking into existing owners. Read exact AnimationTree contribution and blend native/legacy hip references in the existing posture owner. Reject and remove crouch overlay nodes; skip only Mark23 ready crouch-start/stop cosmetics and finish existing same-stance ready fades before reversal. No new graph nodes, clocks, movement or shot authority. Candidate scores remain provisional: backward rapid stress fails, movement rendered review is pending, and the browser package is stale. MERGE records the bounded design decision, not completion or promotion.",
+    "current": {
+      "system": "Old Mark23 idle/ready endpoints share a raised, laterally offset source while readiness toggles procedural corrections; muzzle effects capture the pre-pose position.",
+      "correctness": 2,
+      "ownership_clarity": 5,
+      "runtime_parity": 3,
+      "editor_usability": 3,
+      "performance": 5,
+      "regression_coverage": 2,
+      "evidence_paths": ["res://docs/PISTOL_COMPRESSED_IDLE_FIX.md", "res://scripts/player/operator_animation_driver_api.gd", "res://scripts/player/operator_animation_driver_runtime.gd", "res://scripts/runtime/main_weapon_runtime.gd"]
+    },
+    "candidate": {
+      "system": "Mark23 native compressed-idle/recovery pairs, exact source contribution, blended native hip target, ready-only cosmetic routing/handoff fence, and optional pooled presented-muzzle effects; ordinary firing transitions pass but backward rapid body displacement remains over limit.",
+      "correctness": 4,
+      "ownership_clarity": 5,
+      "runtime_parity": 4,
+      "editor_usability": 4,
+      "performance": 5,
+      "regression_coverage": 5,
+      "evidence_paths": ["res://config/weapons/mark_23.json", "res://config/operator_animation_map.json", "res://tools/bake_pistol_compressed_idle.gd", "res://scripts/player/operator_animation_driver_runtime.gd", "res://scripts/player/operator_animation_driver_actions.gd", "res://scripts/player/operator_locomotion_blend_tree.gd", "res://scripts/player/operator_posture_layer.gd", "res://scripts/weapons/lab_leak_tracer_system.gd", "res://tools/pistol_compressed_idle_regression.gd", "res://tools/pistol_presented_muzzle_effect_regression.gd", "res://tools/pistol_distinct_ready_slots_regression.gd", "res://tools/pistol_stationary_blend_weight_regression.gd", "res://tools/pistol_compressed_movement_visual_probe.gd", "res://docs/PISTOL_COMPRESSED_IDLE_FIX.md"]
+    }
+  }
+}

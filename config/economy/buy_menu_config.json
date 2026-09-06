@@ -1,5 +1,6 @@
 {
   "schema_version": 1,
+  "selection_only": true,
   "starting_cash": 800,
   "maximum_cash": 16000,
   "buy_window_seconds": 15.0,

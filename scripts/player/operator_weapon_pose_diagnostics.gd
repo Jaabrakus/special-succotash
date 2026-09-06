@@ -20,6 +20,7 @@ static func capture(source) -> Dictionary:
 		source.last_posture
 	)
 	return {
+		"fire_recoil_weight": source.fire_recoil.weight(),
 		"active": source.current_weight > 0.001,
 		"weight": source.current_weight,
 		"desired_weight": source.desired_weight,
@@ -87,6 +88,8 @@ static func capture(source) -> Dictionary:
 		"action_weapon_follow_active": source.action_weapon_follow_active,
 		"action_weapon_chest_owned": source.action_weapon_chest_owned,
 		"action_weapon_swing_deg": source.action_weapon_swing_deg,
+		"stable_chest_anchor_world": source.stable_chest_anchor_world,
+		"dive_weapon_presentation": source.dive_weapon_presentation.duplicate(true),
 		"action_trigger_contact_error_m": source.action_trigger_contact_error_m,
 		"action_support_contact_error_m": source.action_support_contact_error_m,
 		"support_hand_mode": source.support_hand_mode,
@@ -107,6 +110,21 @@ static func capture(source) -> Dictionary:
 		"animation_drives_ready_hands": source.animation_drives_ready_hands,
 		"hand_socket_ik_enabled": source.hand_socket_ik_enabled,
 		"support_hand_socket_ik_enabled": source.support_hand_socket_ik_enabled,
+		"animation_owned_aim_alignment_enabled": (
+			source.animation_owned_aim_alignment_enabled
+		),
+		"animation_owned_aim_alignment_active": (
+			source.animation_owned_aim_alignment_active
+		),
+		"pistol_trigger_centerline_ik_active": (
+			source.pistol_trigger_centerline_ik_active
+		),
+		"pistol_trigger_centerline_shift_m": (
+			source.pistol_trigger_centerline_shift_m
+		),
+		"right_hand_ik_running": (
+			source.right_hand_ik != null and source.right_hand_ik.is_running()
+		),
 		"support_socket_clamped": source.support_socket_clamped,
 		"animation_carry_weight": source.animation_carry_weight,
 		"animation_carry_limit_m": source.animation_carry_limit_m,

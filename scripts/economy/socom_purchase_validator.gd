@@ -1,10 +1,9 @@
 class_name SocomPurchaseValidator
 extends RefCounted
 
-## Pure purchase decision logic for the buy menu. The caller supplies the
-## context (cash, current loadout, phase state); this class never mutates it.
-## Both the server authority and the training-range sandbox resolve through
-## the same rules so presentation can predict the authoritative outcome.
+## Pure loadout-selection decision logic. The caller supplies current slots
+## and phase state; this class never mutates them. Legacy names and optional
+## economy context remain compatible, but selection-only mode has no cost.
 
 const Economy := preload("res://scripts/economy/socom_economy_rules.gd")
 
@@ -30,7 +29,7 @@ static func validate(weapon_id: String, context: Dictionary) -> Dictionary:
 	}
 	var clean_id := weapon_id.to_lower().strip_edges()
 	var record := Economy.weapon_record(clean_id)
-	if record.is_empty() or not Economy.is_firearm_category(String(record.get("category", ""))):
+	if not Economy.is_armory_weapon(record):
 		result["reason"] = "UNKNOWN WEAPON"
 		return result
 	var category := String(record.get("category", ""))
@@ -43,17 +42,21 @@ static func validate(weapon_id: String, context: Dictionary) -> Dictionary:
 		return result
 
 	var economy_enabled := bool(context.get("economy_enabled", true))
-	var cost := Economy.price_for(clean_id)
+	var training_only := bool(record.get("training_only", false))
+	if training_only and (economy_enabled or not bool(context.get("allow_training_prototypes", false))):
+		result["reason"] = "TRAINING ONLY"
+		return result
+	var cost := 0 if Economy.selection_only() else Economy.price_for(clean_id)
 	result["cost"] = cost
-	if cost <= 0:
+	if not Economy.selection_only() and cost <= 0 and not (training_only and not economy_enabled):
 		result["reason"] = "NOT FOR SALE"
 		return result
 
 	if economy_enabled:
 		if not bool(context.get("phase_open", false)):
-			result["reason"] = "BUY WINDOW CLOSED"
+			result["reason"] = "LOADOUT LOCKED"
 			return result
-		if cost > int(context.get("cash", 0)):
+		if not Economy.selection_only() and cost > int(context.get("cash", 0)):
 			result["reason"] = "INSUFFICIENT FUNDS"
 			return result
 
@@ -64,7 +67,7 @@ static func validate(weapon_id: String, context: Dictionary) -> Dictionary:
 		+ Economy.carry_weight_for(clean_id)
 	)
 	result["carry_weight_after"] = carry_after
-	if economy_enabled and carry_after > Economy.carry_weight_cap():
+	if economy_enabled and not Economy.selection_only() and carry_after > Economy.carry_weight_cap():
 		result["reason"] = "OVER CARRY WEIGHT"
 		return result
 
@@ -72,12 +75,12 @@ static func validate(weapon_id: String, context: Dictionary) -> Dictionary:
 	return result
 
 
-## Applies a validated purchase to a loadout copy and returns the cash left.
+## Applies a validated selection to a loadout copy; selection-only preserves cash.
 static func apply_purchase(weapon_id: String, loadout: Dictionary, cash: int, economy_enabled: bool) -> Dictionary:
 	var next_loadout := loadout.duplicate(true)
 	var record := Economy.weapon_record(weapon_id)
 	next_loadout[Economy.slot_for_category(String(record.get("category", "")))] = weapon_id.to_lower()
 	var next_cash := cash
-	if economy_enabled:
+	if economy_enabled and not Economy.selection_only():
 		next_cash = maxi(0, cash - Economy.price_for(weapon_id))
 	return {"loadout": next_loadout, "cash": next_cash}

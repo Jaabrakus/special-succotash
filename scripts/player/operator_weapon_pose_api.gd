@@ -8,6 +8,7 @@ const DEFAULT_RIGHT_HAND_OWNS_READY_WEAPON := false
 const DEFAULT_ANIMATION_DRIVES_READY_HANDS := false
 const DEFAULT_HAND_SOCKET_IK_ENABLED := true
 const DEFAULT_SUPPORT_HAND_SOCKET_IK_ENABLED := false
+const DEFAULT_ANIMATION_OWNED_AIM_ALIGNMENT_ENABLED := false
 const DEFAULT_SUPPORT_HAND_IK_BLEND_SECONDS := 0.35
 
 func bind(target_skeleton: Skeleton3D, attached_weapon: Node3D) -> void:
@@ -214,6 +215,13 @@ func configure_dynamic_hold(raw_profile: Variant) -> void:
 			DEFAULT_SUPPORT_HAND_SOCKET_IK_ENABLED
 		)
 	)
+	animation_owned_aim_alignment_enabled = bool(
+		profile.get(
+			"animation_owned_aim_alignment_enabled",
+			DEFAULT_ANIMATION_OWNED_AIM_ALIGNMENT_ENABLED
+		)
+	)
+	animation_owned_aim_alignment_active = false
 	support_hand_ik_blend_seconds = clampf(
 		float(
 			profile.get(

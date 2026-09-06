@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "feature_id": "multiplayer_component_boundaries",
+  "player_intent": "Maintainable multiplayer without changing movement, weapon balance or match rules.",
+  "acceptance_rule": "Connection candidates, round decisions, queued combat intents and shot effects have explicit independent components consumed by the canonical match coordinator.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://game_launcher.tscn",
+  "ownership": {
+    "transport_candidates": "SocomTransportFactory",
+    "round_decisions": "SocomRoundPolicy",
+    "combat_intent_queue": "SocomCombatCommandQueue",
+    "shot_effects": "SocomShotPresentation"
+  },
+  "nodes": [
+    {
+      "id": "match_coordinator",
+      "type": "Node3D",
+      "role": "Installs transport, applies round decisions and authoritative combat; sends authorized effects to presentation child.",
+      "owner": "SocomMultiplayerSlice",
+      "scene_path": "res://multiplayer_slice.tscn",
+      "node_path": "."
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://config/network/browser_multiarena_deployment.json",
+      "writer": "res://scripts/network/socom_multiplayer_deployment_profile.gd",
+      "readers": [
+        "res://scripts/network/socom_transport_factory.gd",
+        "res://scripts/network/socom_multiplayer_session.gd"
+      ]
+    }
+  ],
+  "must_not_change": [
+    "RPC protocol",
+    "camera",
+    "movement",
+    "damage",
+    "weapon profiles",
+    "reload deadlines",
+    "browser ZIP",
+    "deployment"
+  ],
+  "proof_scripts": [
+    "res://tools/shot_presentation_component_regression.gd",
+    "res://tools/multiplayer_components_regression.gd",
+    "res://tools/multiplayer_slice_architecture_regression.gd",
+    "res://tools/server_reload_rpc_regression.gd",
+    "res://tools/dedicated_reload_regression.gd",
+    "res://tools/lobby_warmup_regression.gd",
+    "res://tools/acoustic_propagation_regression.gd"
+  ],
+  "visual_check": "Shot presentation relocation preserves effects and shared acoustic helpers; no pose, animation or camera edits.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Extract four independent responsibilities while retaining RPC compatibility and single authority owners.",
+    "current": {
+      "system": "Inherited coordinator with mixed responsibilities",
+      "correctness": 4,
+      "ownership_clarity": 2,
+      "runtime_parity": 4,
+      "editor_usability": 3,
+      "performance": 4,
+      "regression_coverage": 3,
+      "evidence_paths": [
+        "res://docs/MULTIPLAYER_COMPONENT_BOUNDARIES.md"
+      ]
+    },
+    "candidate": {
+      "system": "Explicit component interfaces",
+      "correctness": 4,
+      "ownership_clarity": 4,
+      "runtime_parity": 4,
+      "editor_usability": 4,
+      "performance": 4,
+      "regression_coverage": 4,
+      "evidence_paths": [
+        "res://scripts/network/socom_combat_command_queue.gd",
+        "res://tools/multiplayer_components_regression.gd"
+      ]
+    }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "command": "place_object",
+  "id": "contributor_crate",
+  "type": "imported_asset",
+  "name": "Contributor Crate",
+  "position": {"x": 2.0, "y": 0.0, "z": -3.0},
+  "rotation_degrees": {"x": 0.0, "y": 35.0, "z": 0.0},
+  "size": {"x": 1.5, "y": 2.0, "z": 0.75},
+  "properties": {
+    "asset_path": "res://assets/environment/tactical_courtyard_kit/wood_supply_crate_1m.glb",
+    "collision_mode": "box"
+  }
+}

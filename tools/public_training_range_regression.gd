@@ -34,6 +34,42 @@ func _run() -> void:
 	_expect(training.find_child("SocomControlsGuide", true, false) != null, "Training Range keeps player key-bind settings")
 	_expect(training.get("weapon_controller") != null, "Training Range uses the canonical weapon controller")
 	_expect(training.get("tactical_grenade_thrower") != null, "Training Range uses the canonical grenade system")
+	_expect(InputMap.has_action(&"training_buy_menu"), "Training Range registers its context-owned buy action")
+	var training_buy_bindings := InputMap.action_get_events(&"training_buy_menu")
+	var training_buy_uses_b := false
+	for event: InputEvent in training_buy_bindings:
+		if event is InputEventKey and int((event as InputEventKey).physical_keycode) == KEY_B:
+			training_buy_uses_b = true
+			break
+	_expect(
+		training_buy_uses_b,
+		"Training Range binds its free-loadout menu to B"
+	)
+	var buy_runtime = training.get("buy_menu_runtime")
+	_expect(buy_runtime != null, "Training Range creates one free-loadout menu owner")
+	if buy_runtime != null:
+		var buy_event := InputEventAction.new()
+		buy_event.action = &"training_buy_menu"
+		buy_event.pressed = true
+		_expect(
+			bool(buy_runtime.handle_unhandled_input(buy_event)),
+			"B is consumed by the Training Range equipment zone"
+		)
+		await process_frame
+		_expect(bool(buy_runtime.is_open()), "B opens the Training Range free-loadout menu")
+		_expect(
+			bool(buy_runtime.handle_unhandled_input(buy_event)),
+			"a second B press is consumed by the open Training Range menu"
+		)
+		await process_frame
+		_expect(not bool(buy_runtime.is_open()), "a second B press closes the Training Range menu")
+		buy_runtime.open_menu()
+		buy_runtime.buy_menu.call("_submit", "mark_23")
+		await process_frame
+		_expect(
+			String(training.get("weapon_controller").get("equipped_weapon_id")) == "mark_23",
+			"a Training menu selection equips through the canonical weapon controller"
+		)
 	_expect((training.get("target_dummies") as Array).size() >= 3, "Training Range supplies shootable respawning dummies")
 	var bomb_visuals: Array = training.get("training_bomb_visuals")
 	_expect(not bomb_visuals.is_empty(), "Training Range exposes the authored demolition bomb")

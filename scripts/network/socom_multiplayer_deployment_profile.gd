@@ -18,14 +18,15 @@ static func load_profile(path: String = PROFILE_PATH) -> Dictionary:
 		"schema_version": 1,
 		"default_port": 14141,
 		"dedicated_transport": TRANSPORT_WEBSOCKET,
-		"browser_transport": TRANSPORT_WEBSOCKET,
+		"browser_transport": TRANSPORT_WEBRTC,
 		"browser_server_url": "",
-		"browser_private_transport": TRANSPORT_WEBRTC,
+		"browser_private_transport": "",
+		"browser_tournament_transport": TRANSPORT_WEBRTC,
 		"webrtc_signaling_url": "wss://socom-141-webrtc-signaling.onrender.com/signal",
 		"webrtc_ice_servers": [
 			{"urls": ["stun:stun.l.google.com:19302"]},
 		],
-		"webrtc_max_players": 4,
+		"webrtc_max_players": 32,
 		"server_map_document": "res://config/maps/painterly_coastal_village_2v2.json",
 		"require_secure_browser_socket": true,
 		"max_players": 32,
@@ -42,12 +43,13 @@ static func load_profile(path: String = PROFILE_PATH) -> Dictionary:
 	profile["max_players"] = clampi(int(profile.get("max_players", 32)), 1, 32)
 	profile["arena_instances"] = clampi(int(profile.get("arena_instances", 8)), 1, 8)
 	profile["players_per_arena"] = clampi(int(profile.get("players_per_arena", 4)), 2, 4)
-	profile["webrtc_max_players"] = clampi(int(profile.get("webrtc_max_players", 4)), 2, 4)
+	profile["webrtc_max_players"] = clampi(int(profile.get("webrtc_max_players", 32)), 4, 32)
 	profile["dedicated_transport"] = _normalized_transport(
 		String(profile.get("dedicated_transport", TRANSPORT_WEBSOCKET))
 	)
-	profile["browser_transport"] = TRANSPORT_WEBSOCKET
-	profile["browser_private_transport"] = TRANSPORT_WEBRTC
+	profile["browser_transport"] = TRANSPORT_WEBRTC
+	profile["browser_private_transport"] = ""
+	profile["browser_tournament_transport"] = TRANSPORT_WEBRTC
 	profile["browser_server_url"] = String(
 		profile.get("browser_server_url", "")
 	).strip_edges()

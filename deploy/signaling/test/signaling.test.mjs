@@ -132,3 +132,52 @@ test("rejects unknown room codes", async () => {
     await service.close();
   }
 });
+
+test("automatically fills 32-player tournament rooms with a server relay topology", async () => {
+  const service = createSignalingService({ port: 0, maxTournamentPeers: 4 });
+  const address = await service.listen();
+  const url = `ws://127.0.0.1:${address.port}/signal`;
+  const sockets = [];
+  try {
+    const host = await openSocket(url);
+    sockets.push(host);
+    const hostRoomMessage = nextMessage(host, "room");
+    host.send(JSON.stringify({ type: "join_tournament", protocol: 1 }));
+    const hostRoom = await hostRoomMessage;
+    assert.match(hostRoom.room, /^TOUR-[23456789ABCDEFGHJKLMNPQRSTUVWXYZ]{6}$/);
+    assert.equal(hostRoom.peer_id, 1);
+    assert.equal(hostRoom.host, true);
+    assert.equal(hostRoom.tournament, true);
+    assert.equal(hostRoom.max_peers, 4);
+
+    for (const expectedPeerId of [2, 3, 4]) {
+      const client = await openSocket(url);
+      sockets.push(client);
+      const clientRoomMessage = nextMessage(client, "room");
+      const peerJoinedMessage = nextMessage(host, "peer_joined");
+      client.send(JSON.stringify({ type: "join_tournament", protocol: 1 }));
+      const [clientRoom, peerJoined] = await Promise.all([
+        clientRoomMessage,
+        peerJoinedMessage,
+      ]);
+      assert.equal(clientRoom.room, hostRoom.room);
+      assert.equal(clientRoom.peer_id, expectedPeerId);
+      assert.equal(clientRoom.host, false);
+      assert.equal(clientRoom.tournament, true);
+      assert.equal(peerJoined.peer_id, expectedPeerId);
+    }
+
+    const nextTournamentHost = await openSocket(url);
+    sockets.push(nextTournamentHost);
+    const nextTournamentMessage = nextMessage(nextTournamentHost, "room");
+    nextTournamentHost.send(JSON.stringify({ type: "join_tournament", protocol: 1 }));
+    const nextTournament = await nextTournamentMessage;
+    assert.notEqual(nextTournament.room, hostRoom.room);
+    assert.equal(nextTournament.peer_id, 1);
+    assert.equal(nextTournament.host, true);
+    assert.equal(nextTournament.tournament, true);
+  } finally {
+    for (const socket of sockets) socket.close();
+    await service.close();
+  }
+});

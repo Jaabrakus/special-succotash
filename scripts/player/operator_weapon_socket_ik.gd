@@ -38,7 +38,8 @@ static func solve(
 	tip_bone_name: StringName,
 	palm_anchor: Vector3,
 	use_palm_contact: bool,
-	weight: float
+	weight: float,
+	correction_passes: int = 8
 ) -> void:
 	if ik == null or target == null or pole == null:
 		return
@@ -56,7 +57,7 @@ static func solve(
 	)
 	var internal_position := wrist_target.origin
 	var hand_index := int(bone_indices.get(tip_bone_name, -1))
-	for _correction in range(8):
+	for _correction in range(clampi(correction_passes, 1, 8)):
 		ik.target = Transform3D(wrist_target.basis, internal_position)
 		ik.stop()
 		ik.start(true)

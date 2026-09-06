@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "feature_id": "training_buy_menu",
+  "player_intent": "Training Mode keeps a fast B-key free-loadout menu without restoring purchases or buy phases to multiplayer.",
+  "acceptance_rule": "In res://main.tscn with Public Training active, B opens and closes the free-loadout menu while the player is inside the equipment zone. Outside Public Training the training action is absent, the local menu does not consume input, and multiplayer B remains fire-mode control.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://game_launcher.tscn",
+  "ownership": {
+    "training_loadout_input_and_equip": "SocomMainBuyMenuRuntime"
+  },
+  "nodes": [
+    {
+      "id": "training_buy_menu_layer",
+      "type": "CanvasLayer",
+      "role": "Owns the Training-only free-loadout presentation and consumes its context-specific B action before the gameplay HUD can toggle fire mode.",
+      "owner": "SocomMainBuyMenuRuntime",
+      "source_script": "res://scripts/runtime/main_buy_menu_runtime.gd",
+      "code_symbols": [
+        "CanvasLayer.new()",
+        "BuyMenuScript.new()",
+        "event.is_action_pressed(&\"training_buy_menu\")",
+        "host.get(\"public_training_mode\")"
+      ]
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://config/economy/buy_menu_config.json",
+      "writer": "res://config/economy/buy_menu_config.json",
+      "readers": [
+        "res://scripts/economy/socom_economy_rules.gd",
+        "res://scripts/ui/socom_buy_menu.gd",
+        "res://scripts/runtime/main_buy_menu_runtime.gd"
+      ]
+    }
+  ],
+  "must_not_change": [
+    "multiplayer random round weapon assignment and absence of purchase RPCs",
+    "B fire-mode control outside the Training equipment-zone context",
+    "CharacterBody3D movement and collision authority",
+    "server shot, damage, ammunition, and networking authority",
+    "camera, reticle, animation, IK, and weapon-contact ownership"
+  ],
+  "proof_scripts": [
+    "res://tools/public_training_range_regression.gd",
+    "res://tools/round_random_weapon_regression.gd",
+    "res://tools/feature_contract_regression.gd"
+  ],
+  "visual_check": "Launch Training Range, remain near its spawn equipment zone, press B, select a free firearm, and confirm the menu closes with the selected weapon equipped. Press B twice to confirm deterministic open and close. Join a tournament and confirm B changes fire mode without opening a store.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "The local Training free-issue menu and authorized pickup path already exist. Restore only their context-gated input while leaving the removed multiplayer economy and purchase path removed.",
+    "current": {
+      "system": "Retained Training menu with an inert input adapter",
+      "correctness": 1,
+      "ownership_clarity": 4,
+      "runtime_parity": 1,
+      "editor_usability": 2,
+      "performance": 5,
+      "regression_coverage": 3,
+      "evidence_paths": [
+        "res://scripts/runtime/main_buy_menu_runtime.gd",
+        "res://scripts/input/socom_keyboard_mapping_profile.gd",
+        "res://tools/public_training_range_regression.gd"
+      ]
+    },
+    "candidate": {
+      "system": "Training-only B input routed through the existing free-loadout owner",
+      "correctness": 5,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 4,
+      "performance": 5,
+      "regression_coverage": 5,
+      "evidence_paths": [
+        "res://scripts/main.gd",
+        "res://scripts/runtime/main_buy_menu_runtime.gd",
+        "res://tools/public_training_range_regression.gd",
+        "res://tools/round_random_weapon_regression.gd"
+      ]
+    }
+  }
+}

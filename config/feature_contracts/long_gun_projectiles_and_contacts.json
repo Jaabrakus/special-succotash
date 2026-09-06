@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "feature_id": "long_gun_projectiles_and_contacts",
+  "player_intent": "Shotguns fire spread pellets; Breach-12 deals 13 base damage per pellet (104 for eight before modifiers). Shotguns, snipers and machine guns use the existing clean ready/fire hand contacts.",
+  "acceptance_rule": "Both authoritative consumers process eight shotgun projectiles per single-shell acceptance, deterministic dispersion remains at rest, range falloff is saved, profile-specific shotgun/sniper cadence and long-gun reload duration reach canonical and multiplayer consumers, and all additional model categories pass standing and crouched contact tests.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://game_launcher.tscn",
+  "ownership": {
+    "practice_lifecycle": "SocomMultiplayerWarmup",
+    "movement": "CharacterBody3D",
+    "aim": "SocomCameraRig",
+    "shot_damage": "AuthoritativeServerWeapon",
+    "weapon_presentation": "GunsLab2VisualRigResolver"
+  },
+  "nodes": [
+    {
+      "id": "canonical_runtime",
+      "type": "Node3D",
+      "role": "Owns canonical player runtime and consumes saved contracts",
+      "owner": "SocomMain",
+      "scene_path": "res://main.tscn",
+      "node_path": "."
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://config/weapons/870.json",
+      "writer": "res://scripts/weapons/weapon_rig_contract.gd",
+      "readers": [
+        "res://scripts/player/operator_animation_driver_actions.gd",
+        "res://scripts/weapons/socom_weapon_controller.gd",
+        "res://scripts/network/socom_multiplayer_rounds.gd"
+      ]
+    },
+    {
+      "path": "res://config/weapon_family_visual_assignments.json",
+      "writer": "res://tools/publish_firearm_family_visual_rigs.gd",
+      "readers": [
+        "res://scripts/labs/gunsmith2/weapon_visual_rig_resolver.gd"
+      ]
+    }
+  ],
+  "must_not_change": [
+    "Camera and reticle aim intent",
+    "CharacterBody3D movement and collision authority",
+    "Authored pistol, AK and M4 rigs and 1.2-second fire recovery",
+    "Tournament admission count, bracket, live shared random weapon and throwable inventory"
+  ],
+  "proof_scripts": [
+    "res://tools/long_gun_timing_regression.gd",
+    "res://tools/browser_training_entry_regression.gd",
+    "res://tools/shotgun_projectile_regression.gd",
+    "res://tools/firearm_family_live_contact_regression.gd",
+    "res://tools/lobby_warmup_regression.gd",
+    "res://tools/feature_contract_regression.gd"
+  ],
+  "visual_check": "Host and join the browser lobby, enter Training Grounds, press B, fire at the other player, respawn, and green up. Check standing/crouched long-gun hand contacts and fire recovery, then verify a fresh shared live loadout.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Extend the existing authoritative operators and weapon contract; no alternate movement, camera or damage owner. Practice is explicitly excluded from live score and shared random weapon rules.",
+    "current": {
+      "system": "Waiting-only lobby and one-ray sparse long-gun profiles",
+      "correctness": 1,
+      "ownership_clarity": 4,
+      "runtime_parity": 2,
+      "editor_usability": 4,
+      "performance": 5,
+      "regression_coverage": 2,
+      "evidence_paths": [
+        "res://docs/SHARED_WARMUP_WEAPON_FIX.md"
+      ]
+    },
+    "candidate": {
+      "system": "Shared lobby practice and bounded per-pellet server traces using published model-specific contact rigs",
+      "correctness": 4,
+      "ownership_clarity": 5,
+      "runtime_parity": 4,
+      "editor_usability": 4,
+      "performance": 4,
+      "regression_coverage": 4,
+      "evidence_paths": [
+        "res://scripts/network/socom_multiplayer_warmup.gd",
+        "res://scripts/weapons/weapon_ballistics.gd",
+        "res://tools/lobby_warmup_regression.gd",
+        "res://tools/shotgun_projectile_regression.gd"
+      ]
+    }
+  }
+}

@@ -28,6 +28,33 @@ def parse_field(pattern, text, default=""):
     return default
 
 
+def balanced_block(text, name):
+    """Return a complete nested RDR block, respecting quoted parentheses."""
+    match = re.search(r'\b' + re.escape(name) + r'\s*\(', text)
+    if not match:
+        return ""
+    start = match.end()
+    depth, quoted, escaped = 1, False, False
+    for index in range(start, len(text)):
+        char = text[index]
+        if escaped:
+            escaped = False
+            continue
+        if quoted and char == "\\":
+            escaped = True
+            continue
+        if char == '"':
+            quoted = not quoted
+        elif not quoted:
+            if char == "(":
+                depth += 1
+            elif char == ")":
+                depth -= 1
+                if depth == 0:
+                    return text[start:index]
+    raise ValueError("Unclosed RDR block: " + name)
+
+
 def parse_float(pattern, text, default=0.0):
     val = parse_field(pattern, text, "")
     if not val:
@@ -146,8 +173,7 @@ def parse_weapons(ammo_dict):
         maximum_range = parse_float(r'Maximum_Range\s*\(\s*([\d\.]+)\s*\)', body, 400.0)
 
         # Stand stance modifiers
-        stand_match = re.search(r'STANCE_STAND\s*\((.*?)\)', body, re.DOTALL)
-        stand_body = stand_match.group(1) if stand_match else body
+        stand_body = balanced_block(body, "STANCE_STAND") or body
 
         target_min = parse_float(r'TargetMin\s*\(\s*([\d\.]+)\s*\)', stand_body, 15.0)
         target_max = parse_float(r'TargetMax\s*\(\s*([\d\.]+)\s*\)', stand_body, 65.0)
@@ -227,6 +253,7 @@ def parse_weapons(ammo_dict):
                 "is_silenced": "sd" in nl or "silenced" in nl
             },
             "reticle": {
+                "cadence_driven_return": False,
                 "shot_kick_px": reticle_knock,
                 "shot_kick_return": reticle_knock_return,
                 "maximum_shot_kick_px": reticle_knock_max,

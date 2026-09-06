@@ -51,7 +51,7 @@ func _init() -> void:
 	)
 	_expect(
 		is_equal_approx(float(merged_profile.locomotion.get("full_nominal_speed_mps", 0.0)), 6.25)
-		and is_equal_approx(float(merged_profile.locomotion.get("visual_playback_scale", 0.0)), 0.88),
+		and is_equal_approx(float(merged_profile.locomotion.get("visual_playback_scale", 0.0)), 0.80),
 		"hybrid runtime preserves base locomotion playback calibration"
 	)
 	_expect(

@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "feature_id": "original_blue_green_operators",
+  "player_intent": "Original operator rig in blue and green for opposing teams.",
+  "acceptance_rule": "Original operator rig in blue and green for opposing teams. Focused tests and rendered checks must pass.",
+  "canonical_scene": "res://main.tscn",
+  "ownership": {
+    "feature": "SocomOperatorAssetRuntime"
+  },
+  "nodes": [
+    {
+      "id": "runtime_consumer",
+      "type": "Node3D",
+      "role": "Canonical runtime consumer",
+      "owner": "SocomMain",
+      "scene_path": "res://main.tscn",
+      "node_path": "."
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://config/operator_team_appearance.json",
+      "writer": "res://docs/VRC_ARMORY_TEAM_PASS.md",
+      "readers": [
+        "res://scripts/player/operator_asset_runtime.gd"
+      ]
+    }
+  ],
+  "must_not_change": [
+    "Damage and spread tuning",
+    "Movement/collision owner",
+    "Animation and skeleton",
+    "Live tournament random loadout",
+    "Published browser build"
+  ],
+  "proof_scripts": [
+    "res://tools/blue_green_operator_regression.gd",
+    "res://tools/firearm_family_live_contact_regression.gd"
+  ],
+  "visual_check": "Inspect /private/tmp/vrc-armory.png and /private/tmp/blue-green-operators.png; verify aim climb in play.",
+  "verification_status": "Appearance/render checks pass. Broad contact gate fails on seven standing pistol variants with both original and prior tan models; see docs/VRC_ARMORY_TEAM_PASS.md. Complete animation readiness is not claimed.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Extend existing owners; supersede cosmetic-only recoil and replace active tan appearance without deleting assets.",
+    "current": {
+      "system": "Previous bounded owner before requested change",
+      "correctness": 2,
+      "ownership_clarity": 5,
+      "runtime_parity": 3,
+      "editor_usability": 3,
+      "performance": 4,
+      "regression_coverage": 3,
+      "evidence_paths": [
+        "res://scripts/player/operator_asset_runtime.gd"
+      ]
+    },
+    "candidate": {
+      "system": "Same owners extended through shared saved contract",
+      "correctness": 4,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 4,
+      "performance": 4,
+      "regression_coverage": 4,
+      "evidence_paths": [
+        "res://scripts/player/operator_asset_runtime.gd",
+        "res://tools/blue_green_operator_regression.gd",
+        "res://tools/firearm_family_live_contact_regression.gd"
+      ]
+    }
+  }
+}

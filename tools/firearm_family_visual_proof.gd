@@ -7,7 +7,7 @@ extends SceneTree
 ## weapon configuration. Four side-review frames are saved for every weapon,
 ## plus rear shoulder frames for selected geometry representatives.
 
-const OUTPUT_DIR := "/private/tmp/socom-firearm-family-visual-proof"
+var OUTPUT_DIR := "/private/tmp/socom-firearm-family-visual-proof"
 const VIEW_SIZE := Vector2i(960, 600)
 const CELL_SIZE := Vector2i(480, 300)
 const MAX_SHOULDER_YAW_DEG := 6.0
@@ -20,7 +20,7 @@ const STATES := [
 	"crouched_ready",
 	"crouched_recovery",
 ]
-const REAR_CASES := [
+var REAR_CASES := [
 	"mark_23",
 	"de__50",
 	"ak-47",
@@ -28,7 +28,7 @@ const REAR_CASES := [
 	"bullpup_1",
 	"hk5",
 ]
-const CASES := [
+var CASES := [
 	# Pistols: every catalog profile and all six modular pistol meshes.
 	{"id": "226", "group": "pistols"},
 	{"id": "9mm_pistol", "group": "pistols"},
@@ -74,6 +74,10 @@ var proof_label: Label
 
 
 func _initialize() -> void:
+	if "--long-guns-only" in OS.get_cmdline_user_args():
+		OUTPUT_DIR = "/private/tmp/socom-long-gun-visual-proof"
+		CASES = [{"id":"870","group":"long_guns"},{"id":"mk_3-a2","group":"long_guns"},{"id":"m60e3","group":"long_guns"},{"id":"m63a","group":"long_guns"},{"id":"mark_46_mod_0","group":"long_guns"},{"id":"m82a1a","group":"long_guns"},{"id":"m87elr","group":"long_guns"},{"id":"sr-25","group":"long_guns"},{"id":"sr-25_sd","group":"long_guns"}]
+		REAR_CASES = ["870", "m82a1a", "m60e3"]
 	_run.call_deferred()
 
 
@@ -501,12 +505,14 @@ func _signed_roll_degrees(
 
 
 func _write_contact_sheets() -> void:
-	for group in ["pistols", "rifles", "smgs"]:
+	for group in ["pistols", "rifles", "smgs", "long_guns"]:
 		var group_cases: Array[Dictionary] = []
 		for case_value in CASES:
 			var weapon_case := case_value as Dictionary
 			if String(weapon_case.get("group", "")) == group:
 				group_cases.append(weapon_case)
+		if group_cases.is_empty():
+			continue
 		var sheet := Image.create_empty(
 			CELL_SIZE.x * STATES.size(),
 			CELL_SIZE.y * group_cases.size(),

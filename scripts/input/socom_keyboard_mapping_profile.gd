@@ -4,15 +4,14 @@ extends RefCounted
 const CONFIG_PATH := "res://config/input/keyboard_mapping.json"
 const USER_CONFIG_PATH := "user://keyboard_mapping.json"
 const REMOVED_LEGACY_ACTIONS: Array[StringName] = [
-	&"prone", &"roll", &"throw_grenade", &"cycle_grenade",
+	&"prone", &"roll", &"throw_grenade", &"cycle_grenade", &"open_buy_menu",
 ]
 
 const ACTION_ORDER: Array[StringName] = [
 	&"move_forward", &"move_back", &"move_left", &"move_right",
 	&"jump", &"crouch", &"dive",
 	&"peek_left", &"peek_right", &"fire", &"reload_weapon", &"interact",
-	&"toggle_fire_mode", &"equip_primary", &"equip_grenade", &"reset_camera", &"toggle_nvg",
-	&"open_buy_menu",
+	&"toggle_fire_mode", &"equip_primary", &"equip_secondary", &"equip_grenade", &"reset_camera", &"toggle_nvg",
 	&"radio_comms", &"push_to_talk", &"toggle_scoreboard",
 ]
 
@@ -31,10 +30,10 @@ const ACTION_LABELS := {
 	&"interact": "Interact / Plant Bomb",
 	&"toggle_fire_mode": "Toggle Fire Mode (Semi / Burst / Auto)",
 	&"equip_primary": "Quick Equip Primary",
+	&"equip_secondary": "Quick Equip Pistol",
 	&"equip_grenade": "Equipment & Weapon Wheel (Hold G / Tap)",
 	&"reset_camera": "Reset Camera",
 	&"toggle_nvg": "Toggle Night Vision (NVG)",
-	&"open_buy_menu": "Armory / Buy Menu (B during buy window or at the range spawn)",
 	&"radio_comms": "Tactical Radio Comms Wheel",
 	&"push_to_talk": "Microphone Voice Push-To-Talk",
 	&"toggle_scoreboard": "Match Scorecard / SITREP",
@@ -58,10 +57,10 @@ const DEFAULT_BINDINGS := {
 	&"interact": [{"type": "key", "physical_keycode": KEY_F}],
 	&"toggle_fire_mode": [{"type": "key", "physical_keycode": KEY_B}],
 	&"equip_primary": [{"type": "key", "physical_keycode": KEY_1}],
+	&"equip_secondary": [{"type": "key", "physical_keycode": KEY_2}],
 	&"equip_grenade": [{"type": "key", "physical_keycode": KEY_G}],
 	&"reset_camera": [{"type": "key", "physical_keycode": KEY_HOME}],
 	&"toggle_nvg": [{"type": "key", "physical_keycode": KEY_N}],
-	&"open_buy_menu": [{"type": "key", "physical_keycode": KEY_B}],
 	&"radio_comms": [{"type": "key", "physical_keycode": KEY_V}],
 	&"push_to_talk": [{"type": "key", "physical_keycode": KEY_T}],
 	&"toggle_scoreboard": [{"type": "key", "physical_keycode": KEY_TAB}],

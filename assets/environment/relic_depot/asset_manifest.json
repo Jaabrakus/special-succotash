@@ -1,0 +1,291 @@
+{
+	"barrel_oil": {
+		"path": "res://assets/environment/relic_depot/barrel_oil.glb",
+		"pivot": "bottom_center",
+		"scale_applied": 0.9,
+		"size_m": [
+			0.645749759674072,
+			0.9,
+			0.645750081539154
+		],
+		"source_group": "BarrelOil",
+		"source_pack": "psx_industrial_pack"
+	},
+	"big_rock": {
+		"path": "res://assets/environment/relic_depot/big_rock.glb",
+		"pivot": "bottom_center",
+		"scale_applied": 0.710543087050121,
+		"size_m": [
+			1.19823855646942,
+			2.7,
+			1.5583557237715
+		],
+		"source_group": "big rock",
+		"source_pack": "rocks_-_psx_low_poly"
+	},
+	"bush": {
+		"path": "res://assets/environment/relic_depot/bush.glb",
+		"pivot": "bottom_center",
+		"scale_applied": 0.27160482954609,
+		"size_m": [
+			1.22222173295741,
+			1.1,
+			1.22222186246868
+		],
+		"source_group": "bush",
+		"source_pack": "psx_tropical_pack_v1"
+	},
+	"character": {
+		"mapping": {
+			"ArmLower.L_2": "LeftForeArm",
+			"ArmLower.R_4": "RightForeArm",
+			"ArmUpper.L_3": "LeftArm",
+			"ArmUpper.R_5": "RightArm",
+			"Fingers.L_17": "LeftHandIndex1",
+			"Fingers.R_27": "RightHandIndex1",
+			"Foot.L_13": "LeftFoot",
+			"Foot.R_23": "RightFoot",
+			"FootToe.L_12": "LeftToeBase",
+			"FootToe.R_22": "RightToeBase",
+			"Footctrl.L_14": "LeftFoot",
+			"Footctrl.R_24": "RightFoot",
+			"GLTF_created_0_rootJoint": "Hips",
+			"Hand.L.001_20": "LeftHand",
+			"Hand.R.001_30": "RightHand",
+			"HandWrist.L_21": "LeftHand",
+			"HandWrist.R_31": "RightHand",
+			"LegShin.L_7": "LeftLeg",
+			"LegShin.R_9": "RightLeg",
+			"LegThigh.L_8": "LeftUpLeg",
+			"LegThigh.R_10": "RightUpLeg",
+			"Neck_1": "Neck",
+			"Spinelower_11": "Hips",
+			"Spineupper_6": "Spine1",
+			"ThumbBase.L_19": "LeftHandThumb1",
+			"ThumbBase.R_29": "RightHandThumb1",
+			"ThumgEnd.L_18": "LeftHandThumb2",
+			"ThumgEnd.R_28": "RightHandThumb2",
+			"head_0": "Head"
+		},
+		"no_weapon_meshes": true,
+		"rest_scale": 0.00676994447109204,
+		"source_meshes": 7,
+		"target_native_bones": 41
+	},
+	"concrete_pipe_pile": {
+		"path": "res://assets/environment/relic_depot/concrete_pipe_pile.glb",
+		"pivot": "bottom_center",
+		"scale_applied": 0.816848676050363,
+		"size_m": [
+			1.5409954473747,
+			1.3,
+			1.65003431004158
+		],
+		"source_group": "ConcretePipePile",
+		"source_pack": "psx_industrial_pack"
+	},
+	"container_4": {
+		"path": "res://assets/environment/relic_depot/container_4.glb",
+		"pivot": "bottom_center",
+		"scale_applied": 0.442727510628603,
+		"size_m": [
+			6.06,
+			2.0964155208956,
+			1.62550581281118
+		],
+		"source_group": "Object_4",
+		"source_pack": "psx_shipping_containers_2"
+	},
+	"container_5": {
+		"path": "res://assets/environment/relic_depot/container_5.glb",
+		"pivot": "bottom_center",
+		"scale_applied": 0.442727510628603,
+		"size_m": [
+			6.06,
+			2.0964155208956,
+			1.62550581281118
+		],
+		"source_group": "Object_5",
+		"source_pack": "psx_shipping_containers_2"
+	},
+	"container_6": {
+		"path": "res://assets/environment/relic_depot/container_6.glb",
+		"pivot": "bottom_center",
+		"scale_applied": 0.442727510628603,
+		"size_m": [
+			6.06,
+			2.0964155208956,
+			1.62550581281118
+		],
+		"source_group": "Object_6",
+		"source_pack": "psx_shipping_containers_2"
+	},
+	"container_7": {
+		"path": "res://assets/environment/relic_depot/container_7.glb",
+		"pivot": "bottom_center",
+		"scale_applied": 0.442727510628603,
+		"size_m": [
+			6.06,
+			2.0964155208956,
+			1.62550581281118
+		],
+		"source_group": "Object_7",
+		"source_pack": "psx_shipping_containers_2"
+	},
+	"crate_metal": {
+		"path": "res://assets/environment/relic_depot/crate_metal.glb",
+		"pivot": "bottom_center",
+		"scale_applied": 1.09999973773963,
+		"size_m": [
+			1.09999973773963,
+			1.1,
+			1.1
+		],
+		"source_group": "CrateMetal",
+		"source_pack": "psx_industrial_pack"
+	},
+	"crate_wood": {
+		"path": "res://assets/environment/relic_depot/crate_wood.glb",
+		"pivot": "bottom_center",
+		"scale_applied": 1.66666626930246,
+		"size_m": [
+			0.999998807907389,
+			1.0,
+			1.0
+		],
+		"source_group": "CrateWood",
+		"source_pack": "psx_industrial_pack"
+	},
+	"dumpster": {
+		"path": "res://assets/environment/relic_depot/dumpster.glb",
+		"pivot": "bottom_center",
+		"scale_applied": 0.962011539009422,
+		"size_m": [
+			1.9433995311361,
+			1.4,
+			0.817710060455576
+		],
+		"source_group": "Dumpster",
+		"source_pack": "psx_industrial_pack"
+	},
+	"generator_unit": {
+		"path": "res://assets/environment/relic_depot/generator_unit.glb",
+		"pivot": "bottom_center",
+		"scale_applied": 1.21428552817328,
+		"size_m": [
+			2.42857105634656,
+			1.7,
+			1.33571439944966
+		],
+		"source_group": "GeneratorUnit",
+		"source_pack": "psx_industrial_pack"
+	},
+	"grass": {
+		"path": "res://assets/environment/relic_depot/grass.glb",
+		"pivot": "bottom_center",
+		"scale_applied": 0.571428435189416,
+		"size_m": [
+			0.400000340597889,
+			0.4,
+			0.400000340597889
+		],
+		"source_group": "grass",
+		"source_pack": "psx_tropical_pack_v1"
+	},
+	"mediun_rock": {
+		"path": "res://assets/environment/relic_depot/mediun_rock.glb",
+		"pivot": "bottom_center",
+		"scale_applied": 0.723630130920288,
+		"size_m": [
+			1.67555885478045,
+			1.5,
+			1.57682517898512
+		],
+		"source_group": "mediun rock",
+		"source_pack": "rocks_-_psx_low_poly"
+	},
+	"mediun_rock_2": {
+		"path": "res://assets/environment/relic_depot/mediun_rock_2.glb",
+		"pivot": "bottom_center",
+		"scale_applied": 1.47379359854373,
+		"size_m": [
+			2.89836626949365,
+			1.8,
+			2.41482026192434
+		],
+		"source_group": "mediun rock 2",
+		"source_pack": "rocks_-_psx_low_poly"
+	},
+	"pallet": {
+		"path": "res://assets/environment/relic_depot/pallet.glb",
+		"pivot": "bottom_center",
+		"scale_applied": 1.2799980163605,
+		"size_m": [
+			1.21599909210346,
+			0.16,
+			1.59999782562593
+		],
+		"source_group": "Pallet",
+		"source_pack": "psx_industrial_pack"
+	},
+	"palm_tree": {
+		"path": "res://assets/environment/relic_depot/palm_tree.glb",
+		"pivot": "bottom_center",
+		"scale_applied": 0.5630762084654,
+		"size_m": [
+			6.37841133803469,
+			8.0,
+			6.31114136162204
+		],
+		"source_group": "palm_tree",
+		"source_pack": "psx_tropical_pack_v1"
+	},
+	"palm_tree_001": {
+		"path": "res://assets/environment/relic_depot/palm_tree_001.glb",
+		"pivot": "bottom_center",
+		"scale_applied": 0.550429435074087,
+		"size_m": [
+			6.25896896107452,
+			7.5,
+			6.17814594997287
+		],
+		"source_group": "palm_tree_001",
+		"source_pack": "psx_tropical_pack_v1"
+	},
+	"palm_tree_002": {
+		"path": "res://assets/environment/relic_depot/palm_tree_002.glb",
+		"pivot": "bottom_center",
+		"scale_applied": 0.615424982389098,
+		"size_m": [
+			6.97085752976729,
+			8.5,
+			6.95782097380108
+		],
+		"source_group": "palm_tree_002",
+		"source_pack": "psx_tropical_pack_v1"
+	},
+	"psx_old_warehouse": {
+		"path": "res://assets/environment/relic_depot/psx_old_warehouse.glb",
+		"pivot": "bottom_center",
+		"scale_applied": 2.84795528824536,
+		"size_m": [
+			18.0,
+			6.671655671808,
+			13.654963982533
+		],
+		"source_group": "PSX Old Warehouse",
+		"source_pack": "psx_old_warehouse"
+	},
+	"tires": {
+		"path": "res://assets/environment/relic_depot/tires.glb",
+		"pivot": "bottom_center",
+		"scale_applied": 1.05955659006745,
+		"size_m": [
+			1.680467325425,
+			0.85,
+			1.68769422050191
+		],
+		"source_group": "Tires",
+		"source_pack": "psx_industrial_pack"
+	}
+}

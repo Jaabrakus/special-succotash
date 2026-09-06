@@ -96,6 +96,8 @@ func notify_fired() -> bool:
 func _apply_fire_presentation(plan: Dictionary) -> bool:
 	if skeleton == null or locomotion_graph == null:
 		return false
+	if weapon_pose_solver != null:
+		weapon_pose_solver.fire_recoil.trigger()
 	var event_fire_clip := StringName(plan.get("state", ""))
 	var presentation_effects: Array = plan.get("effects", [])
 	if AnimationStateContract.ENTER_READY_AIM in presentation_effects:

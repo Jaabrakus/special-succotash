@@ -41,6 +41,10 @@ func _find_portal_route(
 ) -> Dictionary:
 	if source_zone.is_empty() or listener_zone.is_empty():
 		return {}
+	# A blocked ray within one zone has not crossed a doorway. Without an
+	# authored alternate zone path, retain conservative wall transmission.
+	if source_zone == listener_zone:
+		return {}
 	var frontier: Array[Dictionary] = [{
 		"zone": source_zone,
 		"points": [source_position],

@@ -81,6 +81,7 @@ var animation_frame_rotation_overrides: Dictionary = {}
 var head_look_base_rotations: Dictionary = {}
 var head_look_applied_rotations: Dictionary = {}
 var last_square_idle_reference_bone_count: int = 0
+var authored_stationary_hip_references: Dictionary = {}
 
 const HEAD_LOOK_REUSE_EPSILON_RAD := 0.002
 
@@ -92,6 +93,7 @@ func bind(target_skeleton: Skeleton3D, neutral_pose_hip_rotation := Quaternion.I
 		&"STANDING": neutral_hip_rotation,
 	}
 	bone_indices.clear()
+	authored_stationary_hip_references.clear()
 	head_look_base_rotations.clear()
 	head_look_applied_rotations.clear()
 	if skeleton == null:
@@ -197,11 +199,17 @@ func apply(
 	force_square_shoulders: bool = false,
 	force_square_hips: bool = false,
 	force_square_idle_reference: bool = false,
-	clean_recovery_weight: float = 0.0
+	clean_recovery_weight: float = 0.0,
+	allow_clean_recovery_shoulder_square: bool = false,
+	authored_posture_weight: float = 0.0
 ) -> void:
 	if skeleton == null:
 		return
 	var post_layer_weight := 1.0 - clampf(clean_recovery_weight, 0.0, 1.0)
+	# Native stationary pistol poses already contain these two corrections.
+	# Fade only their duplicate procedural contribution with the actual source
+	# blend; retain the normal pass for legacy moving clips and other weapons.
+	var unbaked_posture_weight := 1.0 - clampf(authored_posture_weight, 0.0, 1.0)
 	_apply_default_hip_leveling(
 		posture_name,
 		neutral_hip_roll_trim_deg,
@@ -238,7 +246,8 @@ func apply(
 	var hip_correction := _upper_body_hip_correction(
 		posture_name,
 		lower_body_separation_weight,
-		gait_roll_retention
+		gait_roll_retention,
+		authored_posture_weight
 	)
 	for bone_name: StringName in TORSO_YAW_WEIGHTS:
 		var yaw_amount := torso_yaw * float(TORSO_YAW_WEIGHTS[bone_name]) * torso_ready_scale
@@ -263,13 +272,20 @@ func apply(
 	_apply_bone_additive(&"left_shoulder", 0.0, shoulder_pitch)
 	_apply_bone_additive(&"right_shoulder", 0.0, shoulder_pitch)
 	_apply_full_body_peek(posture_name, peek_amount)
-	# Shoulder squaring is a shooting pose, not a locomotion correction. The clean
-	# authored ready/recovery frame already contains its accepted shoulder shape;
-	# stacking this procedural chest turn on it twists moving forearms.
-	var procedural_square_weight := firing_frame_weight * post_layer_weight
+	# Rifle clean recovery already contains its accepted shoulder shape. The
+	# imported pistol ready clips do not: direct rendered measurements show a
+	# rolled/arched shoulder bar. Let that family reuse this single chest-frame
+	# writer without re-enabling persistent hip/procedural corrections.
+	var clean_square_weight := (
+		1.0 if allow_clean_recovery_shoulder_square else post_layer_weight
+	)
+	var procedural_square_weight := firing_frame_weight * clean_square_weight * unbaked_posture_weight
 	if procedural_square_weight > 0.001 and (force_square_shoulders or normalized_ready >= 0.50):
 		last_shoulder_square_weight = procedural_square_weight
-		_apply_square_shoulders(world_aim_target, procedural_square_weight)
+		_apply_square_shoulders(
+			world_aim_target, procedural_square_weight,
+			allow_clean_recovery_shoulder_square
+		)
 	else:
 		last_shoulder_square_weight = 0.0
 		last_shoulder_square_error_deg = 0.0
@@ -450,7 +466,11 @@ func _apply_default_hip_leveling(
 		)
 
 
-func _apply_square_shoulders(world_aim_target: Vector3, weight: float = 1.0) -> void:
+func _apply_square_shoulders(
+	world_aim_target: Vector3,
+	weight: float = 1.0,
+	align_visible_shoulder_ends: bool = false
+) -> void:
 	var normalized_weight := clampf(weight, 0.0, 1.0)
 	if normalized_weight <= 0.001:
 		return
@@ -479,7 +499,15 @@ func _apply_square_shoulders(world_aim_target: Vector3, weight: float = 1.0) -> 
 	var desired_right_local := (
 		skeleton.global_basis.inverse() * desired_right_world
 	).normalized()
-	_apply_square_chest(left_shoulder, right_shoulder, desired_right_local, normalized_weight)
+	# Pistol square posture is measured at the visible upper-arm origins. The
+	# inner clavicle roots can be level while the authored clavicles slope, so
+	# aligning that different segment leaves the visible shoulder bar tilted.
+	# Rotate the same single chest owner; never rotate individual clavicles.
+	_apply_square_chest(
+		left_arm if align_visible_shoulder_ends else left_shoulder,
+		right_arm if align_visible_shoulder_ends else right_shoulder,
+		desired_right_local, normalized_weight
+	)
 	skeleton.force_update_all_bone_transforms()
 	left_arm_pose = skeleton.get_bone_global_pose(left_arm)
 	right_arm_pose = skeleton.get_bone_global_pose(right_arm)
@@ -742,7 +770,8 @@ func _apply_global_bone_correction(bone_index: int, correction: Quaternion) -> v
 func _upper_body_hip_correction(
 	posture_name: StringName,
 	weight: float,
-	gait_roll_retention: float
+	gait_roll_retention: float,
+	authored_posture_weight: float = 0.0
 ) -> Quaternion:
 	var hips_index := int(bone_indices.get(&"hips", -1))
 	var spine_index := int(bone_indices.get(&"spine", -1))
@@ -756,6 +785,15 @@ func _upper_body_hip_correction(
 		posture_name,
 		neutral_hip_rotation
 	)
+	var native_weight := clampf(authored_posture_weight, 0.0, 1.0)
+	if native_weight >= 0.999:
+		authored_stationary_hip_references[posture_name] = current_hip
+	if native_weight > 0.0:
+		# The native spine already compensates its own hip frame. Blend that
+		# reference with the legacy moving neutral, not the correction's strength:
+		# scaling strength would leak moving-hip rotation into the native half.
+		var native_hip: Quaternion = authored_stationary_hip_references.get(posture_name, current_hip)
+		posture_neutral = posture_neutral.slerp(native_hip, native_weight).normalized()
 	var hip_delta := (current_hip.inverse() * posture_neutral).normalized()
 	# Cancel pelvis yaw/pitch completely while retaining a restrained fraction of
 	# lateral gait roll. This restores tactical weight without allowing the legs

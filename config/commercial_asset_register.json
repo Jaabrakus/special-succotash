@@ -7,6 +7,30 @@
   },
   "packages": [
     {
+      "id": "relic_depot_supplied_props",
+      "path": "res://assets/environment/relic_depot",
+      "purpose": "Relic Depot development map scenery",
+      "included_in_customer_build": true,
+      "status": "terms_review_required",
+      "source": "Five user-supplied Sketchfab packs; individual URLs in CREDITS.md",
+      "creator": "Tomitos; PROJEKTSANSSTUDIOS; Drops; Arrangemonk; Shazly",
+      "license_or_contract": "Embedded CC-BY-4.0 metadata retained",
+      "evidence": "assets/environment/relic_depot/CREDITS.md; art_source/sketchfab_intake_20260906/inventory.json",
+      "required_action": "Carry attribution into shipped credits and review photo-texture/trademark provenance before commercial release."
+    },
+    {
+      "id": "relic_nvg_operator_body",
+      "path": "res://assets/characters/relic_nvg_operator",
+      "purpose": "Rejected character experiment, archived and excluded from active player",
+      "included_in_customer_build": false,
+      "status": "terms_review_required",
+      "source": "https://sketchfab.com/3d-models/ps1low-poly-night-vision-special-forces-soldier-afb42573fa5f4fd2af09c9929d9ccd93",
+      "creator": "Jellypack; project-authored offline joint fitting",
+      "license_or_contract": "CC-BY-4.0 for supplied body; existing skeleton/animation clearance unchanged",
+      "evidence": "assets/characters/relic_nvg_operator/CREDITS.md; archived source license.txt",
+      "required_action": "Retain Jellypack credit and separately resolve existing native rig/animation rights before commercial release."
+    },
+    {
       "id": "production_operator_ps1_gas_mask",
       "path": "res://assets/characters/ps1_gas_mask_soldier",
       "purpose": "current canonical development operator",
@@ -17,6 +41,18 @@
       "license_or_contract": "missing",
       "evidence": "missing",
       "required_action": "Replace with original production operator or attach written commercial rights evidence."
+    },
+    {
+      "id": "canonical_socom2_tan_operator",
+      "path": "res://assets/characters/socom2_tan_operator",
+      "purpose": "canonical tan field operator visual derived from the PS1 development operator",
+      "included_in_customer_build": true,
+      "status": "blocked_unverified",
+      "source": "derived from res://assets/characters/ps1_gas_mask_soldier",
+      "creator": "project-authored gear and recolor over an unverified source body",
+      "license_or_contract": "inherits missing source-body rights evidence",
+      "evidence": "art_source/socom2_tan_operator/report.json and tools/blender/build_socom2_tan_operator.py",
+      "required_action": "Verify the source body rights or rebuild the base body as original project-owned art before any customer distribution."
     },
     {
       "id": "mixamo_animation_library",

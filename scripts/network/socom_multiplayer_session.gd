@@ -1,10 +1,4 @@
-extends "res://scripts/network/socom_multiplayer_directory_presence.gd"
-
-const WebRTCSignalingClientScript := preload(
-	"res://scripts/network/socom_webrtc_signaling_client.gd"
-)
-
-var webrtc_signaling_client = null
+extends "res://scripts/network/socom_multiplayer_webrtc.gd"
 
 func _ready() -> void:
 	process_physics_priority = 100
@@ -13,8 +7,9 @@ func _ready() -> void:
 	_build_environment()
 	equipped_config = WeaponContract.load_equipped_config()
 	_build_ui()
-	TracerSystemScript.initialize(self)
-	AudioEngine.initialize(self)
+	shot_presentation = ShotPresentation.new()
+	shot_presentation.name = "ShotPresentation"
+	add_child(shot_presentation)
 	_connect_multiplayer_signals()
 	_apply_command_line_mode()
 
@@ -26,7 +21,7 @@ func _physics_process(delta: float) -> void:
 		_advance_lobby_countdown(delta)
 		_advance_demolition_objective(delta)
 		_advance_round_clock(delta)
-	if not session_active:
+	if not session_active and not is_lobby_warmup_active():
 		return
 	local_fire_cooldown = maxf(0.0, local_fire_cooldown - delta)
 	var local_id := multiplayer.get_unique_id()
@@ -52,13 +47,15 @@ func _physics_process(delta: float) -> void:
 
 
 func _process(_delta: float) -> void:
+	if reticle != null and local_camera != null:
+		reticle.screen_center_override = local_camera.reticle_screen_normalized * get_viewport().get_visible_rect().size
 	if session_active and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		if Input.is_action_just_pressed("interact"):
 			_set_local_objective_interaction(true)
 		elif Input.is_action_just_released("interact"):
 			_set_local_objective_interaction(false)
 	if (
-		session_active
+		(session_active or is_lobby_warmup_active())
 		and local_operator != null
 		and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
 		and Input.is_action_just_pressed("reload_weapon")
@@ -92,12 +89,6 @@ func _process(_delta: float) -> void:
 	pending_snapshots.clear()
 
 
-func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("ui_cancel") and not dedicated_server_mode:
-		exit_menu.toggle(session_active)
-		get_viewport().set_input_as_handled()
-
-
 func host_match(port: int = DEFAULT_PORT) -> Error:
 	_disconnect_existing_peer()
 	var error := _create_server_transport(port, false)
@@ -123,95 +114,13 @@ func host_match(port: int = DEFAULT_PORT) -> Error:
 	return OK
 
 
-func host_webrtc_match(signaling_url: String) -> Error:
-	_disconnect_existing_peer()
-	return _start_webrtc_signaling(signaling_url, "", true)
-
-
-func join_webrtc_match(room_code: String, signaling_url: String) -> Error:
-	_disconnect_existing_peer()
-	if not DeploymentProfile.is_webrtc_room_code(room_code):
-		_set_status("JOIN FAILED: Enter a valid P2P room code.")
-		return ERR_INVALID_PARAMETER
-	return _start_webrtc_signaling(signaling_url, room_code, false)
-
-
-func _start_webrtc_signaling(
-	signaling_url: String,
-	room_code: String,
-	hosting: bool
-) -> Error:
-	if signaling_url.strip_edges().is_empty():
-		_set_status("WEBRTC FAILED: signaling service URL is not configured")
-		return ERR_UNCONFIGURED
-	webrtc_signaling_client = WebRTCSignalingClientScript.new()
-	webrtc_signaling_client.name = "WebRTCSignalingClient"
-	webrtc_signaling_client.multiplayer_peer_ready.connect(
-		_on_webrtc_multiplayer_peer_ready
-	)
-	webrtc_signaling_client.failed.connect(_on_webrtc_signaling_failed)
-	webrtc_signaling_client.signaling_lost.connect(_on_webrtc_signaling_lost)
-	add_child(webrtc_signaling_client)
-	var ice_servers := DeploymentProfile.webrtc_ice_servers(
-		multiplayer_deployment_profile
-	)
-	var error: Error = (
-		webrtc_signaling_client.start_host(signaling_url, ice_servers)
-		if hosting
-		else webrtc_signaling_client.start_client(signaling_url, room_code, ice_servers)
-	)
-	if error != OK:
-		webrtc_signaling_client.queue_free()
-		webrtc_signaling_client = null
-		_set_status("WEBRTC FAILED: %s" % error_string(error))
-		return error
-	active_network_transport = "webrtc_signaling"
-	active_network_endpoint = signaling_url
-	_set_status(
-		"CREATING PRIVATE WEBRTC ROOM…"
-		if hosting
-		else "JOINING WEBRTC ROOM %s…" % room_code.to_upper()
-	)
-	return OK
-
-
-func _on_webrtc_multiplayer_peer_ready(
-	peer: WebRTCMultiplayerPeer,
-	room_code: String,
-	hosting: bool
-) -> void:
-	network_peer = peer
-	multiplayer.multiplayer_peer = network_peer
-	active_network_transport = DeploymentProfile.TRANSPORT_WEBRTC
-	active_network_endpoint = room_code
-	if not hosting:
-		_set_status("NEGOTIATING WEBRTC ROOM %s…" % room_code)
-		return
-	lobby.reset()
-	lobby.add_player(MultiplayerPeer.TARGET_PEER_SERVER, "HOST")
-	session_active = false
-	round_active = false
-	menu_panel.visible = false
-	_show_lobby(true)
-	multiplayer_hud.show_webrtc_room(room_code)
-	_set_status("HOSTING WEBRTC %s  •  choose a side and green up" % room_code)
-	_broadcast_lobby()
-	print("MP_SLICE HOST_READY transport=webrtc room=%s peer=1" % room_code)
-
-
-func _on_webrtc_signaling_failed(message: String) -> void:
-	_set_status("WEBRTC FAILED: %s" % message)
-	if multiplayer.multiplayer_peer == null or active_network_transport == "webrtc_signaling":
-		menu_panel.visible = true
-
-
-func _on_webrtc_signaling_lost(message: String) -> void:
-	push_warning(message)
-	if active_network_transport == DeploymentProfile.TRANSPORT_WEBRTC:
-		_set_status("WEBRTC ACTIVE  •  signaling unavailable; no new players can join")
-
-
 func host_dedicated_server(port: int = DEFAULT_PORT) -> Error:
+	# Private services are deliberately absent from the browser package.
+	if OS.has_feature("web"):
+		return ERR_UNAVAILABLE
+	var backend_script := load("res://scripts/server/socom_server_backend.gd") as Script
+	if backend_script == null:
+		return ERR_UNAVAILABLE
 	_disconnect_existing_peer()
 	dedicated_server_mode = true
 	var error := _create_server_transport(port, true)
@@ -227,7 +136,7 @@ func host_dedicated_server(port: int = DEFAULT_PORT) -> Error:
 	_set_status("DEDICATED %s SERVER :%d" % [
 		active_network_transport.to_upper(), port,
 	])
-	server_backend = ServerBackendScript.new() as SocomServerBackend
+	server_backend = backend_script.new()
 	server_backend.name = "ServerBackend"
 	server_backend.set_directory_snapshot_provider(Callable(self, "_server_directory_snapshot"))
 	add_child(server_backend)
@@ -263,88 +172,47 @@ func _dedicated_server_advertised_capacity() -> int:
 
 func join_match(address: String, port: int = DEFAULT_PORT) -> Error:
 	_disconnect_existing_peer()
-	var requested_transport := DeploymentProfile.requested_client_transport(
-		address,
-		OS.get_cmdline_user_args(),
-		OS.has_feature("web")
-	)
+	var requested_transport := DeploymentProfile.requested_client_transport(address, OS.get_cmdline_user_args(), OS.has_feature("web"))
 	if requested_transport == DeploymentProfile.TRANSPORT_WEBSOCKET:
 		return _join_websocket_match(address, port)
-	var enet_peer := ENetMultiplayerPeer.new()
-	var target: Dictionary = MatchInvite.parse(address, port)
-	if not bool(target.get("ok", false)):
-		_set_status("JOIN FAILED: %s" % String(target.get("message", "Invalid invite code.")))
-		return ERR_INVALID_PARAMETER
-	var clean_address := String(target.get("address", "127.0.0.1"))
-	port = int(target.get("port", port))
-	var error := enet_peer.create_client(clean_address, port)
+	var candidate := TransportFactory.connect_enet(address, port)
+	var error: Error = candidate.error
 	if error != OK:
-		_set_status("JOIN FAILED: %s" % error_string(error))
+		_set_status("JOIN FAILED: %s" % String(candidate.message))
 		return error
-	network_peer = enet_peer
+	network_peer = candidate.peer
 	multiplayer.multiplayer_peer = network_peer
-	active_network_transport = DeploymentProfile.TRANSPORT_ENET
-	active_network_endpoint = "%s:%d" % [clean_address, port]
-	_set_status("CONNECTING TO %s:%d" % [clean_address, port])
+	active_network_transport = candidate.transport
+	active_network_endpoint = candidate.endpoint
+	_set_status("CONNECTING TO %s" % active_network_endpoint)
 	return OK
 
 
 func _create_server_transport(port: int, dedicated: bool) -> Error:
-	var requested_transport := DeploymentProfile.requested_server_transport(
-		OS.get_cmdline_user_args(),
-		dedicated,
-		multiplayer_deployment_profile
-	)
-	if requested_transport == DeploymentProfile.TRANSPORT_WEBSOCKET:
-		var websocket_peer := WebSocketMultiplayerPeer.new()
-		var websocket_error := websocket_peer.create_server(port)
-		if websocket_error != OK:
-			return websocket_error
-		network_peer = websocket_peer
-		active_network_transport = DeploymentProfile.TRANSPORT_WEBSOCKET
-		active_network_endpoint = "ws://0.0.0.0:%d" % port
-		return OK
-	var enet_peer := ENetMultiplayerPeer.new()
-	var enet_error := enet_peer.create_server(port, MAX_PLAYERS)
-	if enet_error != OK:
-		return enet_error
-	network_peer = enet_peer
-	active_network_transport = DeploymentProfile.TRANSPORT_ENET
-	active_network_endpoint = "0.0.0.0:%d" % port
+	var transport := DeploymentProfile.requested_server_transport(OS.get_cmdline_user_args(), dedicated, multiplayer_deployment_profile)
+	var candidate := TransportFactory.host(transport, port, MAX_PLAYERS)
+	var error: Error = candidate.error
+	if error != OK:
+		return error
+	network_peer = candidate.peer
+	active_network_transport = candidate.transport
+	active_network_endpoint = candidate.endpoint
 	return OK
 
 
 func _join_websocket_match(address: String, port: int) -> Error:
-	var require_secure := (
-		OS.has_feature("web")
-		and bool(multiplayer_deployment_profile.get(
-			"require_secure_browser_socket",
-			true
-		))
-	)
-	var endpoint := DeploymentProfile.websocket_endpoint(
-		address,
-		port,
-		require_secure
-	)
-	if not bool(endpoint.get("ok", false)):
-		_set_status("JOIN FAILED: %s" % String(endpoint.get(
-			"message",
-			"Invalid WebSocket server address."
-		)))
-		return ERR_INVALID_PARAMETER
-	var websocket_peer := WebSocketMultiplayerPeer.new()
-	var url := String(endpoint.get("url", ""))
-	var error := websocket_peer.create_client(url)
+	var secure := OS.has_feature("web") and bool(multiplayer_deployment_profile.get("require_secure_browser_socket", true))
+	var candidate := TransportFactory.connect_websocket(address, port, secure)
+	var error: Error = candidate.error
 	if error != OK:
-		_set_status("JOIN FAILED: %s" % error_string(error))
+		_set_status("JOIN FAILED: %s" % String(candidate.message))
 		return error
-	network_peer = websocket_peer
+	network_peer = candidate.peer
 	multiplayer.multiplayer_peer = network_peer
-	active_network_transport = DeploymentProfile.TRANSPORT_WEBSOCKET
-	active_network_endpoint = url
-	_set_status("CONNECTING TO %s" % url)
-	print("MP_SLICE CLIENT_CONNECTING transport=websocket endpoint=%s" % url)
+	active_network_transport = candidate.transport
+	active_network_endpoint = candidate.endpoint
+	_set_status("CONNECTING TO %s" % active_network_endpoint)
+	print("MP_SLICE CLIENT_CONNECTING transport=websocket endpoint=%s" % active_network_endpoint)
 	return OK
 
 func _connect_multiplayer_signals() -> void:
@@ -461,20 +329,17 @@ func _cancel_lobby_countdown() -> void:
 
 
 func _advance_lobby_countdown(delta: float) -> void:
-	if lobby.phase != LobbyStateScript.PHASE_COUNTDOWN:
-		return
-	if not lobby.all_players_ready():
+	var decision := LobbyCountdownPolicy.advance(lobby.phase == LobbyStateScript.PHASE_COUNTDOWN,
+		lobby.all_players_ready(), lobby_countdown_remaining, lobby_countdown_broadcast_second, delta)
+	if decision.cancel:
 		_cancel_lobby_countdown()
+	else:
+		lobby_countdown_remaining = decision.remaining
+		lobby_countdown_broadcast_second = decision.shown
+	if decision.broadcast:
 		_broadcast_lobby()
-		return
-	lobby_countdown_remaining = maxf(0.0, lobby_countdown_remaining - delta)
-	var shown_second := ceili(lobby_countdown_remaining)
-	if shown_second != lobby_countdown_broadcast_second:
-		lobby_countdown_broadcast_second = shown_second
-		_broadcast_lobby()
-	if lobby_countdown_remaining <= 0.0:
+	if decision.start:
 		_server_begin_match()
-
 
 func _server_begin_match() -> void:
 	if not multiplayer.is_server() or lobby.phase != LobbyStateScript.PHASE_COUNTDOWN:
@@ -513,6 +378,7 @@ func _server_begin_match() -> void:
 
 func _broadcast_lobby() -> void:
 	var snapshot := lobby.snapshot(lobby_countdown_remaining)
+	snapshot["warmup"] = is_lobby_warmup_active()
 	receive_lobby_state(snapshot)
 	if multiplayer.multiplayer_peer != null and multiplayer.is_server():
 		receive_lobby_state.rpc(snapshot)

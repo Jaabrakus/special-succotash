@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "feature_id": "weapon_acoustic_routing",
+  "player_intent": "Gunfire responds correctly to open space, walls, and authored doorways.",
+  "acceptance_rule": "All 33 mapped firearms use direct playback for clear LOS; same-zone walls use blocked transmission; real open doors use positive-hop portal routes; closing doors restores blocked transmission; explicit force-direct and exclusions remain supported.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://sound_engine_lab.tscn",
+  "ownership": {"acoustic_route_and_playback": "AcousticPropagationEngine"},
+  "nodes": [{
+    "id": "acoustic_voices",
+    "type": "AudioStreamPlayer3D",
+    "role": "Pooled spatial playback of direct, portal, or material-blocked events",
+    "owner": "AcousticPropagationEngine",
+    "source_script": "res://scripts/audio/acoustic_propagation_engine.gd",
+    "code_symbols": ["AudioStreamPlayer3D.new()", "AcousticVoice%02d", "_queue_route"]
+  }],
+  "data_contracts": [{
+    "path": "res://config/acoustic_propagation.json",
+    "writer": "res://scripts/labs/sound_engine_lab.gd",
+    "readers": ["res://scripts/audio/acoustic_propagation_engine.gd", "res://scripts/audio/acoustic_propagation_profile.gd"]
+  }],
+  "must_not_change": ["camera", "movement", "animation", "weapon_damage", "shot_authority", "network_replication", "sound_bank_identity", "reverb_values", "voice_limits"],
+  "proof_scripts": ["res://tools/acoustic_recorded_weapon_route_probe.gd", "res://tools/acoustic_propagation_regression.gd", "res://tools/grenade_acoustic_audio_regression.gd", "res://tools/weapon_sound_bank_regression.gd"],
+  "visual_check": "Run the real physics/audio route probe and inspect direct, blocked, and doorway playback; final listening preference is not proven by route assertions.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Correct producer override semantics and reject zero-hop pseudo-portals within the current acoustic owner; do not add a second sound system or change mix presets.",
+    "current": {
+      "system": "Normal gunshots force non-direct routing and the solver mistakes same-zone obstruction for a zero-hop portal",
+      "correctness": 1, "ownership_clarity": 5, "runtime_parity": 3, "editor_usability": 4, "performance": 5, "regression_coverage": 2,
+      "evidence_paths": ["res://scripts/audio/lab_leak_audio_engine.gd", "res://scripts/audio/acoustic_propagation_solver.gd", "res://docs/WEAPON_ACOUSTIC_ROUTING.md"]
+    },
+    "candidate": {
+      "system": "Physics-owned direct path with real positive-hop portal routing and blocked same-zone fallback",
+      "correctness": 4, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 5, "regression_coverage": 5,
+      "evidence_paths": ["res://scripts/audio/lab_leak_audio_engine.gd", "res://scripts/audio/acoustic_propagation_solver.gd", "res://tools/acoustic_recorded_weapon_route_probe.gd"]
+    }
+  }
+}

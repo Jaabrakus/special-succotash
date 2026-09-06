@@ -1,7 +1,13 @@
 {
   "clip_aliases": {
-    "crouch_left": "crouch_forward_left",
-    "crouch_right": "crouch_forward_right"
+    "crouch_left": "crouch_forward",
+    "crouch_right": "crouch_forward",
+    "pistol_run_forward_left": "pistol_run_forward",
+    "pistol_run_forward_right": "pistol_run_forward",
+    "pistol_walk_forward_left": "pistol_walk_forward",
+    "pistol_walk_forward_right": "pistol_walk_forward",
+    "run_left": "run_forward",
+    "run_right": "run_forward"
   },
   "clips": {
     "aim_idle": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/idle aiming.fbx",
@@ -36,6 +42,10 @@
     "jump_up": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/jump up.fbx",
     "jump_up_standing": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/jump up.fbx",
     "pistol_idle": "res://assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol idle.fbx",
+    "pistol_compressed_idle_standing": "res://assets/animations/authored/pistol_compressed/pistol_compressed_idle_standing.tres",
+    "pistol_compressed_idle_crouched": "res://assets/animations/authored/pistol_compressed/pistol_compressed_idle_crouched.tres",
+    "pistol_recovery_reference_standing": "res://assets/animations/authored/pistol_compressed/pistol_recovery_reference_standing.tres",
+    "pistol_recovery_reference_crouched": "res://assets/animations/authored/pistol_compressed/pistol_recovery_reference_crouched.tres",
     "pistol_idle_kneeling": "res://assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol kneeling idle.fbx",
     "pistol_reload": "res://assets/external/agls_intake/imported/weapon_reload/ALSP2_Reload_Pistol.scn",
     "pistol_reload_hold_prone": "res://assets/animations/mixamo/Prone Forward Stop.fbx",
@@ -235,7 +245,7 @@
     "lateral_snap_threshold": 0.92,
     "maximum_playback_rate": 1.32,
     "minimum_playback_rate": 0.72,
-    "visual_playback_scale": 0.88,
+    "visual_playback_scale": 0.8,
     "phase_offsets": {
       "run_back_left": 0.0,
       "run_back_right": 0.0,
@@ -269,10 +279,14 @@
     "walk_left": "walk_right"
   },
   "pose_yaw_offsets_degrees": {
-    "crouch_left": 6.0,
-    "crouch_right": -6.0,
-    "run_left": 6.0,
-    "run_right": -6.0
+    "crouch_left": 18.0,
+    "crouch_right": -18.0,
+    "pistol_run_forward_left": 24.0,
+    "pistol_run_forward_right": -24.0,
+    "pistol_walk_forward_left": 18.0,
+    "pistol_walk_forward_right": -18.0,
+    "run_left": 24.0,
+    "run_right": -24.0
   },
   "semantic_actions": {
     "climb": {
@@ -841,6 +855,7 @@
   "transitions": {
     "enabled": true,
     "standing_enabled": false,
+    "crouched_enabled": false,
     "planted_turn_degrees": 34.0,
     "planted_turn_seconds": 0.3,
     "reversal_dot_threshold": -0.55,

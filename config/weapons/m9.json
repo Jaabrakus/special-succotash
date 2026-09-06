@@ -39,12 +39,13 @@
     "reload_sound": "SND_M9_HANDGUN_RELOAD"
   },
   "reticle": {
+    "cadence_driven_return": false,
     "base_gap_px": 5.1,
     "max_gap_px": 41.6,
-    "maximum_shot_kick_px": 60.0,
+    "maximum_shot_kick_px": 110.0,
     "response_speed": 26.2,
     "shot_kick_px": 20.0,
-    "shot_kick_return": 40.0
+    "shot_kick_return": 75.0
   },
   "socom_original_id": 5,
   "weapon_id": "m9"

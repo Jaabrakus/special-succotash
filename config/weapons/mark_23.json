@@ -86,19 +86,24 @@
       "fire_crouched": "pistol_fire",
       "fire_prone": "pistol_fire",
       "fire_standing": "pistol_fire",
-      "idle_crouched": "pistol_idle_kneeling",
+      "idle_crouched": "pistol_compressed_idle_crouched",
       "idle_prone": "idle_prone",
-      "idle_standing": "pistol_idle",
-      "ready_crouched": "pistol_idle_kneeling",
+      "idle_standing": "pistol_compressed_idle_standing",
+      "idle_standing_moving": "pistol_idle",
+      "ready_crouched": "pistol_recovery_reference_crouched",
+      "ready_crouched_moving": "pistol_idle_kneeling",
+      "ready_standing": "pistol_recovery_reference_standing",
+      "ready_standing_moving": "pistol_idle",
       "reload_crouched": "",
       "reload_prone": "",
       "reload_standing": ""
     },
-    "crouched_fire_uses_aim_idle": false,
+    "crouched_fire_uses_aim_idle": true,
     "dynamic_hold": {
       "animation_carry_limit_m": 0.025,
       "animation_carry_weight": 0.4,
       "animation_drives_ready_hands": true,
+      "authored_compressed_idle_enabled": true,
       "buttstock_constraint": {
         "enabled": false
       },
@@ -138,11 +143,16 @@
       "walk_right": "pistol_strafe_right"
     },
     "mapping_version": 1,
+    "presentation": {
+      "muzzle_effect_follows_presented_muzzle": true
+    },
     "ready_aim": {
+      "compressed_enter_response": 8.0,
+      "locomotion_blend_seconds": 0.24,
       "fire_hold_seconds": 1.2,
       "fire_terminal_pose_hold_seconds": 0.12
     },
-    "standing_fire_uses_aim_idle": false,
+    "standing_fire_uses_aim_idle": true,
     "standing_master_pose": {
       "enabled": false
     },
@@ -175,12 +185,13 @@
     "reload_sound": "SND_MARK_23_RELOAD"
   },
   "reticle": {
+    "cadence_driven_return": false,
     "base_gap_px": 5.1,
     "max_gap_px": 41.6,
-    "maximum_shot_kick_px": 60.0,
+    "maximum_shot_kick_px": 40.0,
     "response_speed": 26.2,
     "shot_kick_px": 20.0,
-    "shot_kick_return": 40.0
+    "shot_kick_return": 60.0
   },
   "schema_version": 3,
   "socom_original_id": 2,

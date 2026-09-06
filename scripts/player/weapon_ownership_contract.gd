@@ -150,7 +150,7 @@ static func preview_policy(slot_name: String, clip_name: StringName = &"") -> Di
 		return _policy_for_owner(MOBILITY_CHEST_CARRY, false, posture)
 	if semantic_name.begins_with("reload_"):
 		return _policy_for_owner(RELOAD_RIGHT_HAND, false, posture)
-	if semantic_name.begins_with("fire_"):
+	if semantic_name.begins_with("fire_") or semantic_name.begins_with("ready_"):
 		return _policy_for_owner(READY_SOLVER, false, posture)
 	if semantic_name.begins_with("idle_"):
 		if action_name.is_empty() or _contains_any(action_name, ["aim", "ready"]):

@@ -1,0 +1,10 @@
+{
+  "forbidden_globs": [
+    "scripts/server/socom_server_backend.*", "scripts/server/socom_tournament_event_outbox.*",
+    "*.blend", "*.blend[0-9]", "*.psd", "*.kra", "*.xcf", "*.spp", "*.pem", "*.key", "*.p12", "*.pfx", "*.keystore", "*.env", "*.env.*",
+    "art_source/*", "reference/*", "tools/*", "supabase/*", "server_secrets/*", "private/*", "*.git/*",
+    "config/supabase.json", "config/feature_contracts/*", "config/contracts/*", "config/contributor_examples/*", "config/commercial_asset_register.json", "config/animation_casting_board.json", "config/highlighted_animation_candidates.json", "config/web_release_policy.json"
+  ],
+  "required_files": ["config/supabase_public.json", "config/fire_recoil_presentation.json", "scripts/player/operator_fire_recoil_pulse.gdc"],
+  "note": "Packaging guard, not DRM. Runtime assets and compiled client scripts remain extractable. Never ship privileged credentials."
+}

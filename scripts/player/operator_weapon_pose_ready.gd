@@ -1,5 +1,7 @@
 extends "res://scripts/player/operator_weapon_pose_placement.gd"
 
+const AuthoredPose := preload("res://scripts/player/operator_weapon_authored_pose.gd")
+
 func apply(
 	aim_yaw: float,
 	aim_pitch: float,
@@ -13,10 +15,22 @@ func apply(
 	body: Node3D,
 	delta: float,
 	locomotion_active_hint: bool = false,
-	peek_amount: float = 0.0
+	peek_amount: float = 0.0,
+	accepted_shot_aim_weight: float = -1.0
+) -> void:
+	_apply_base_pose(aim_yaw, aim_pitch, posture, movement_state, ready_weight, obstruction_amount, requested_action, reload_support_regrip, world_aim_target, body, delta, locomotion_active_hint, peek_amount, accepted_shot_aim_weight)
+	if ready_weight > 0.001 and requested_action == &"" and movement_state not in [&"DIVING", &"ROLLING", &"AIRBORNE", &"LANDING"]:
+		fire_recoil.apply_elbow(self, posture)
+
+func _apply_base_pose(
+	aim_yaw: float, aim_pitch: float, posture: StringName, movement_state: StringName,
+	ready_weight: float, obstruction_amount: float, requested_action: StringName,
+	reload_support_regrip: bool, world_aim_target: Vector3, body: Node3D, delta: float,
+	locomotion_active_hint: bool, peek_amount: float, accepted_shot_aim_weight: float
 ) -> void:
 	if skeleton == null or body == null:
 		return
+	fire_recoil.advance(delta)
 	var rail_event_was_active := rail_to_blue_line_event_remaining > 0.0
 	rail_to_blue_line_event_remaining = maxf(
 		rail_to_blue_line_event_remaining - maxf(delta, 0.0),
@@ -41,6 +55,9 @@ func apply(
 	last_reload_support_regrip = reload_support_regrip
 	last_ready_weight = ready_weight
 	last_peek_amount = clampf(peek_amount, -1.0, 1.0)
+	animation_owned_aim_alignment_active = false
+	pistol_trigger_centerline_ik_active = false
+	pistol_trigger_centerline_shift_m = 0.0
 	# Keep the presentation target current even while the rifle is at low ready.
 	# Fire can enter ready aim on this frame; a stale target would make the visual
 	# rail solve toward the previous camera direction before the next update.
@@ -86,119 +103,13 @@ func apply(
 		reload_support_regrip
 	)
 	if action_owns_arms:
-		_release_trigger_hand_grip_lock()
-		_release_support_hand_grip_lock()
-		if reload_action_active:
-			_attach_reload_weapon_to_right_hand()
-		elif WeaponOwnershipContract.weapon_uses_action_follow(weapon_owner):
-			_update_action_weapon_follow(
-				delta,
-				WeaponOwnershipContract.uses_stable_chest_translation(weapon_owner)
-			)
-			if weapon_owner == WeaponOwnershipContract.MOBILITY_CHEST_CARRY:
-				# The full-body take moves the torso and legs. The rifle stays inside a
-				# stable chest carry, then both animated arms follow its saved sockets.
-				var mobility_grip := MobilityWeaponGripSolver.solve(
-					skeleton, weapon_node, trigger_socket, support_socket,
-					right_hand_ik, left_hand_ik, trigger_hand_target,
-					support_hand_target, right_elbow_pole, left_elbow_pole,
-					body, bone_indices, right_palm_anchor_local,
-					left_palm_anchor_local, mobility_hand_contact_limit_m,
-					minimum_forward_reach_ratio, minimum_elbow_angle_deg,
-					maximum_elbow_angle_deg
-				)
-				trigger_hand_grip_locked = bool(mobility_grip.get("applied", false))
-				support_hand_grip_locked = trigger_hand_grip_locked
-				action_trigger_contact_error_m = float(
-					mobility_grip.get("trigger_error_m", INF)
-				)
-				action_support_contact_error_m = float(
-					mobility_grip.get("support_error_m", INF)
-				)
-		if reload_action_active and right_hand_ik and right_hand_ik.is_running():
-			right_hand_ik.stop()
-		if reload_action_active and reload_support_regrip and support_socket != null:
-			_solve_reload_support_arm_guardrail(
-				posture,
-				world_aim_target,
-				body,
-				support_socket.global_position
-			)
-		elif reload_action_active:
-			_solve_reload_support_arm_guardrail(posture, world_aim_target, body)
-		elif weapon_owner != WeaponOwnershipContract.MOBILITY_CHEST_CARRY:
-			_stop_socket_ik()
-		right_elbow_angle_deg = _current_elbow_angle(&"right")
-		left_elbow_angle_deg = _current_elbow_angle(&"left")
-		current_weight = 0.0
-		desired_weight = 0.0
+		AuthoredPose.apply_action(self, reload_action_active, reload_support_regrip, posture, world_aim_target, body, delta)
 		return
-	if not hand_socket_ik_enabled:
-		# The authored pose and right-hand attachment keep sole ownership of the
-		# weapon, spine, and trigger arm. A separate bounded support-only pass may
-		# close the left palm onto the physical foregrip without moving those owners.
-		_release_trigger_hand_grip_lock()
-		SocketIK.stop(right_hand_ik)
-		_set_weapon_solver_owned(false)
-		desired_weight = (
-			1.0
-			if support_hand_socket_ik_enabled
-			and support_hand_mode == &"IK_TO_WEAPON"
-			and support_socket != null
-			and left_hand_ik != null
-			else 0.0
-		)
-		current_weight = move_toward(
-			current_weight,
-			desired_weight,
-			clampf(delta, 0.0, 0.05) / support_hand_ik_blend_seconds
-		)
-		if current_weight > 0.001:
-			support_hand_target.global_position = support_socket.global_position
-			var raw_support_pose: Variant = weapon_node.get_meta(
-				"support_hand_pose",
-				{}
-			)
-			var support_pose: Dictionary = (
-				raw_support_pose
-				if raw_support_pose is Dictionary
-				else {}
-			)
-			var support_rotation_degrees := Vector3(
-				float(support_pose.get("palm_pitch_deg", 0.0)),
-				float(support_pose.get("palm_yaw_deg", 0.0)),
-				float(support_pose.get("palm_roll_deg", 0.0))
-			)
-			support_hand_target.global_basis = (
-				support_socket.global_basis.orthonormalized()
-				* Basis.from_euler(
-					support_rotation_degrees * (PI / 180.0),
-					EULER_ORDER_YXZ
-				)
-			).orthonormalized()
-			_update_support_contact_elbow_pole(support_socket.global_position)
-			# The saved Gunsmith contact owns only this wrist basis. The same bounded
-			# modifier closes the palm and rotates the hand onto the handguard without
-			# changing the rifle, trigger arm, shoulder, or torso.
-			support_hand_grip_locked = true
-			left_hand_ik.override_tip_basis = true
-			_solve_socket_arm(
-				left_hand_ik,
-				support_hand_target,
-				left_elbow_pole,
-				&"mixamorig_LeftHand"
-			)
-			skeleton.force_update_all_bone_transforms()
-			support_hand_error_m = support_socket.global_position.distance_to(
-				WeaponContactSolver.palm_contact_world(
-					skeleton,
-					int(bone_indices.get(&"mixamorig_LeftHand", -1)),
-					left_palm_anchor_local
-				)
-			)
-		else:
-			SocketIK.stop(left_hand_ik)
-			_release_support_hand_grip_lock()
+	if (
+		not hand_socket_ik_enabled
+		and weapon_owner != WeaponOwnershipContract.RECOVERY_TO_READY
+	):
+		AuthoredPose.apply_hand_follow(self, aim_yaw, aim_pitch, ready_weight, sampled_trigger_palm_position, world_aim_target, body, delta, accepted_shot_aim_weight)
 		return
 	# Recovery must enter the canonical socket solver even when the player is not
 	# holding Ready Aim. Otherwise a dive can remain forever in action ownership
@@ -209,10 +120,13 @@ func apply(
 		else clampf(ready_weight, 0.0, 1.0)
 	)
 	var response := enter_response if desired_weight > current_weight else exit_response
+	var response_delta := maxf(delta, 1.0 / 60.0) if (
+		weapon_owner == WeaponOwnershipContract.RECOVERY_TO_READY
+	) else delta
 	current_weight = lerpf(
 		current_weight,
 		desired_weight,
-		1.0 - exp(-response * delta)
+		1.0 - exp(-response * response_delta)
 	)
 	if current_weight <= 0.001:
 		_release_trigger_hand_grip_lock()

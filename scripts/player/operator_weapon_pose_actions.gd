@@ -93,7 +93,11 @@ func _update_action_weapon_follow(delta: float, chest_owned: bool = false) -> vo
 		if weapon_solver_anchor != null and weapon_node.get_parent() != weapon_solver_anchor:
 			weapon_presentation_owner.use_solver_parent(true)
 		action_weapon_follow_start = weapon_node.global_transform
-		action_weapon_chest_start_origin = _gun_placement_torso_pivot_world()
+		action_weapon_chest_start_origin = (
+			stable_chest_anchor_world
+			if chest_owned and stable_chest_anchor_active
+			else _gun_placement_torso_pivot_world()
+		)
 		var start_barrel := (
 			(muzzle_socket.global_position - barrel_base_socket.global_position).normalized()
 			if muzzle_socket != null and barrel_base_socket != null
@@ -113,12 +117,18 @@ func _update_action_weapon_follow(delta: float, chest_owned: bool = false) -> vo
 	var desired_transform: Transform3D
 	if chest_owned:
 		# Do not derive rifle rotation or translation from the dive wrist. Preserve
-		# the entry basis and carry offset while the stable chest anchor moves from
-		# standing to prone. The hands are solved to the weapon after this pass.
+		# the entry basis and carry offset while the saved stable-chest curve eases
+		# from standing/crouched height to prone. The hands solve to the weapon after
+		# this pass; CharacterBody3D dive motion remains untouched.
 		action_weapon_swing_deg = 0.0
 		desired_transform = action_weapon_follow_start
 		desired_transform.origin += (
-			_gun_placement_torso_pivot_world() - action_weapon_chest_start_origin
+			(
+				stable_chest_anchor_world
+				if stable_chest_anchor_active
+				else _gun_placement_torso_pivot_world()
+			)
+			- action_weapon_chest_start_origin
 		)
 	else:
 		action_weapon_swing_deg = 0.0

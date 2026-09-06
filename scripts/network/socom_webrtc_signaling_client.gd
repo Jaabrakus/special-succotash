@@ -8,7 +8,8 @@ extends Node
 signal multiplayer_peer_ready(
 	peer: WebRTCMultiplayerPeer,
 	room_code: String,
-	hosting: bool
+	hosting: bool,
+	tournament: bool
 )
 signal room_created(room_code: String)
 signal failed(message: String)
@@ -22,6 +23,7 @@ enum Mode {
 	NONE,
 	HOST,
 	CLIENT,
+	TOURNAMENT,
 }
 
 var socket := WebSocketPeer.new()
@@ -46,6 +48,10 @@ func start_client(url: String, requested_room_code: String, configured_ice_serve
 	if not is_room_code(normalized_room):
 		return ERR_INVALID_PARAMETER
 	return _start(url, normalized_room, Mode.CLIENT, configured_ice_servers)
+
+
+func start_tournament(url: String, configured_ice_servers: Array) -> Error:
+	return _start(url, "", Mode.TOURNAMENT, configured_ice_servers)
 
 
 func stop() -> void:
@@ -92,7 +98,11 @@ func _process(_delta: float) -> void:
 	if state == WebSocketPeer.STATE_OPEN and not handshake_sent:
 		handshake_sent = true
 		_send({
-			"type": "create" if mode == Mode.HOST else "join",
+			"type": (
+				"create"
+				if mode == Mode.HOST
+				else "join_tournament" if mode == Mode.TOURNAMENT else "join"
+			),
 			"protocol": PROTOCOL_VERSION,
 			"room": room_code,
 		})
@@ -136,7 +146,11 @@ func _handle_packet(packet: PackedByteArray) -> void:
 		"candidate":
 			_apply_remote_candidate(message)
 		"host_left":
-			failed.emit("The private-match host left the room.")
+			failed.emit(
+				"The tournament host left; return to Quick Match."
+				if mode == Mode.TOURNAMENT
+				else "The private-match host left the room."
+			)
 		"error":
 			failed.emit(String(message.get("message", "WebRTC signaling failed.")))
 		"pong":
@@ -149,12 +163,13 @@ func _configure_multiplayer_peer(message: Dictionary) -> void:
 	room_code = normalize_room_code(String(message.get("room", "")))
 	var peer_id := int(message.get("peer_id", 0))
 	var hosting := bool(message.get("host", false))
+	var tournament := bool(message.get("tournament", false))
 	var error := rtc_peer.create_server() if hosting else rtc_peer.create_client(peer_id)
 	if error != OK:
 		failed.emit("Could not initialize WebRTC multiplayer: %s" % error_string(error))
 		return
 	multiplayer_ready = true
-	multiplayer_peer_ready.emit(rtc_peer, room_code, hosting)
+	multiplayer_peer_ready.emit(rtc_peer, room_code, hosting, tournament)
 	if hosting:
 		room_created.emit(room_code)
 	else:

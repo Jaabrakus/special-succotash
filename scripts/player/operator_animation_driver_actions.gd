@@ -50,6 +50,8 @@ func _consider_cosmetic_transition() -> void:
 		movement_response_mode
 	)
 	var prone_stop_allowed: bool = posture == &"PRONE" and StringName(request["reason"]) == &"stop"
+	if _authored_pistol_ready_locomotion() and StringName(request["clip"]) in [&"crouch_start", &"crouch_stop"]:
+		return
 	var allowed: bool = (
 		movement_state in [&"STANDING", &"CROUCHED", &"PRONE", &"LOCOMOTION"]
 		and (posture != &"PRONE" or prone_stop_allowed)
@@ -290,8 +292,11 @@ func play_semantic_action_timed(
 
 
 func weapon_reload_duration_seconds() -> float:
+	# Gameplay timing must survive presentation-only visual rig inheritance.
+	var values: Dictionary = equipped_weapon_config.get("ballistics", {})
 	return clampf(
-		float(equipped_weapon_handling_profile.get("reload_duration_seconds", 1.75)),
+		float(values.get("reload_duration_seconds",
+			equipped_weapon_handling_profile.get("reload_duration_seconds", 1.75))),
 		0.25,
 		10.0
 	)

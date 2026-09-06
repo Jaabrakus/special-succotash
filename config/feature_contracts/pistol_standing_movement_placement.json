@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "feature_id": "pistol_standing_movement_placement",
+  "player_intent": "Standing Mark 23 movement uses the accepted crouch-moving upper-body pistol placement, before and after firing.",
+  "acceptance_rule": "NOT IMPLEMENTED: rejected candidates must not remain enabled. Future standing upper-body reuse must retain standing hips/legs and physical hand contacts within 1 cm throughout movement entry and firing, with rendered review. The diagnostic currently fails on existing entry contact errors as well as rejected candidates; this feature is not complete.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://gun_calibration_lab.tscn",
+  "ownership": {"animation_presentation": "SocomOperatorLocomotionBlendTree"},
+  "nodes": [{"id": "animation_tree", "type": "AnimationTree", "role": "Existing filtered movement graph remains unchanged after rejected candidate rollback.", "owner": "SocomOperatorLocomotionBlendTree", "source_script": "res://scripts/player/operator_locomotion_blend_tree.gd", "code_symbols": ["animation_tree = AnimationTree.new()", "standing_upper_body"]}],
+  "data_contracts": [{"path": "res://config/weapons/mark_23.json", "writer": "res://scripts/labs/gunsmith/gunsmith_persistence_controller.gd", "readers": ["res://scripts/player/operator_locomotion_blend_tree.gd", "res://scripts/player/operator_animation_driver_pose.gd"]}],
+  "must_not_change": ["movement and collision", "standing hips and legs", "camera and reticle", "shot authority and recovery duration", "reload", "crouch movement", "stationary idle", "other weapon profiles"],
+  "proof_scripts": ["res://tools/pistol_compressed_movement_source_regression.gd", "res://tools/pistol_compressed_idle_regression.gd", "res://tools/pistol_standing_movement_placement_regression.gd"],
+  "visual_check": "Rejected: side/rear forward/lateral rendered captures showed the candidate carry but entry contacts failed. No candidate remains enabled. See docs/PISTOL_STANDING_MOVEMENT_PLACEMENT_AUDIT.md.",
+  "system_delta": {
+    "decision": "REJECT",
+    "reason": "Both the kneeling-ready substitution and actual crouch-gait upper-body sampler worsened movement-entry contact errors. Full grip strength did not fix this. All turn-local gameplay changes were removed; preserve prior user work and the accepted crouch movement.",
+    "current": {"system": "Separate standing and crouched moving pistol sources gated by readiness", "correctness": 2, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 3, "performance": 5, "regression_coverage": 3, "evidence_paths": ["res://scripts/player/operator_locomotion_blend_tree.gd", "res://config/weapons/mark_23.json"]},
+    "candidate": {"system": "Rejected crouch-gait upper-body sampler, no longer installed", "correctness": 1, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 2, "performance": 4, "regression_coverage": 4, "evidence_paths": ["res://tools/pistol_standing_movement_placement_regression.gd", "res://docs/PISTOL_STANDING_MOVEMENT_PLACEMENT_AUDIT.md"]}
+  }
+}

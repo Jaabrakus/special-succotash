@@ -83,16 +83,20 @@ func submit_shot(packet: Dictionary) -> void:
 
 
 @rpc("any_peer", "call_remote", "reliable")
-func submit_reload() -> void:
+func submit_reload(start: bool = true) -> void:
 	if multiplayer.is_server():
 		var peer_id := multiplayer.get_remote_sender_id()
 		if is_peer_gameplay_action_allowed(peer_id):
-			pending_reload_requests[peer_id] = true
+			if start:
+				_server_reload_weapon(peer_id)
+			else:
+				combat_commands.cancel_reload(peer_id)
+				reload_authority.cancel(peer_id)
 
 
 @rpc("any_peer", "call_remote", "reliable")
 func submit_objective_interaction(held: bool) -> void:
-	if multiplayer.is_server():
+	if multiplayer.is_server() and not is_lobby_warmup_active():
 		var peer_id := multiplayer.get_remote_sender_id()
 		if is_peer_gameplay_action_allowed(peer_id):
 			objective_interact_held[peer_id] = held
@@ -205,9 +209,7 @@ func _server_spawn_operator(
 	server_composure[peer_id] = composure
 	_reset_ammo_for_peer(peer_id)
 	last_accepted_shot_sequence[peer_id] = -1
-	last_enqueued_shot_sequence[peer_id] = -1
-	pending_shot_packets[peer_id] = []
-	pending_reload_requests[peer_id] = false
+	combat_commands.reset_peer(peer_id)
 	last_rejected_shot_reason[peer_id] = ""
 	scores[peer_id] = 0
 
@@ -293,15 +295,14 @@ func _apply_competitive_movement_profile(operator) -> void:
 
 
 func _remove_operator(peer_id: int) -> void:
+	reload_authority.cancel(peer_id)
 	var operator: Variant = operators.get(peer_id)
 	if operator != null:
 		operator.queue_free()
 	operators.erase(peer_id)
 	latest_commands.erase(peer_id)
 	last_accepted_shot_sequence.erase(peer_id)
-	last_enqueued_shot_sequence.erase(peer_id)
-	pending_shot_packets.erase(peer_id)
-	pending_reload_requests.erase(peer_id)
+	combat_commands.remove_peer(peer_id)
 	last_rejected_shot_reason.erase(peer_id)
 	last_command_tick.erase(peer_id)
 	operator_state_history.erase(peer_id)

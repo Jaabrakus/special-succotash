@@ -610,6 +610,9 @@ func _handle_posture_command(command, delta: float, desired_dir: Vector3) -> voi
 			stance_held_triggered = true
 			if _can_stance_hold_dive(desired_dir):
 				_begin_dive(desired_dir)
+			elif posture == MotionState.PRONE:
+				if not _try_set_posture(MotionState.STANDING):
+					_try_set_posture(MotionState.CROUCHED)
 			else:
 				_try_set_posture(MotionState.PRONE)
 

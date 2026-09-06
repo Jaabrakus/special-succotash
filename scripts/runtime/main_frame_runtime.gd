@@ -125,6 +125,8 @@ func process(delta: float) -> void:
     ):
         _return_to_primary_weapon()
     _update_grenade_switch_input(delta)
+    if Input.is_action_just_pressed("equip_secondary") and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+        host.grenade_runtime.equip_firearm_slot("secondary")
     if grenade_equipped and Input.is_action_just_pressed("jump"):
         _cancel_grenade_for_jump()
     if (

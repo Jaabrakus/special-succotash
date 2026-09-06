@@ -22,6 +22,8 @@ const SLOT_ORDER: Array[String] = [
 	"idle_standing",
 	"idle_crouched",
 	"idle_prone",
+	"ready_standing",
+	"ready_crouched",
 	"fire_standing",
 	"fire_crouched",
 	"fire_prone",
@@ -31,9 +33,11 @@ const SLOT_ORDER: Array[String] = [
 ]
 
 const SLOT_LABELS := {
-	"idle_standing": "Idle / ready",
+	"idle_standing": "Standing idle",
 	"idle_crouched": "Crouched idle",
 	"idle_prone": "Prone idle",
+	"ready_standing": "Standing ready / recovery",
+	"ready_crouched": "Crouched ready / recovery",
 	"fire_standing": "Standing fire",
 	"fire_crouched": "Crouched fire",
 	"fire_prone": "Prone fire",
@@ -54,6 +58,8 @@ const RIFLE_SLOTS := {
 	"idle_standing": "aim_idle",
 	"idle_crouched": "idle_crouch",
 	"idle_prone": "idle_prone",
+	"ready_standing": "aim_idle",
+	"ready_crouched": "aim_idle_crouch",
 	"fire_standing": "combat_fire",
 	"fire_crouched": "crouch_fire",
 	"fire_prone": "prone_fire",
@@ -66,6 +72,8 @@ const PISTOL_SLOTS := {
 	"idle_standing": "pistol_idle",
 	"idle_crouched": "pistol_idle_kneeling",
 	"idle_prone": "idle_prone",
+	"ready_standing": "pistol_idle",
+	"ready_crouched": "pistol_idle_kneeling",
 	"fire_standing": "pistol_fire",
 	"fire_crouched": "pistol_fire",
 	"fire_prone": "pistol_fire",
@@ -183,6 +191,14 @@ static func normalized_profile(
 		if saved_section is Dictionary:
 			merged.merge((saved_section as Dictionary).duplicate(true), true)
 		normalized[section_name] = merged
+	# The standing ready slot is optional in existing saved profiles. Preserve
+	# their former idle-as-ready route, including a weapon-specific idle override.
+	# Crouched ready retains its established family fallback when not authored.
+	var raw_saved_slots: Variant = saved_profile.get("animation_slots", {})
+	var saved_slots: Dictionary = raw_saved_slots if raw_saved_slots is Dictionary else {}
+	if String(saved_slots.get("ready_standing", "")).is_empty():
+		var animation_slots: Dictionary = normalized["animation_slots"]
+		animation_slots["ready_standing"] = animation_slots.get("idle_standing", "")
 	normalized["family"] = safe_family
 	normalized["support_hand_required"] = (
 		bool(saved_profile.get("support_hand_required", safe_family != FAMILY_ONE_HAND))

@@ -107,12 +107,16 @@ func _ready() -> void:
 	audio_event_manager.name = "AudioAnimationEvents"
 	pose_pipeline.attach_component(&"70_PresentationEvents", audio_event_manager)
 	audio_event_manager.bind(animation_player, skeleton)
-	_request_clip(&"idle_rifle")
+	_request_clip(_select_visual_clip())
 
 
 func _process(delta: float) -> void:
 	if animation_tree == null:
 		return
+	# Read the pose that the tree actually evaluated, before this pass requests
+	# another route or changes its crossfade duration. Input state is not blend
+	# completion: the departing source can still own most of the upper body.
+	var authored_stationary_weight: float = locomotion_graph.authored_stationary_pose_weight(delta)
 	if not _explicit_visual_inputs:
 		_pull_player_inputs()
 	var upper_body_action_override := (
@@ -180,7 +184,24 @@ func _process(delta: float) -> void:
 		if clean_ready_available
 		else 0.0
 	)
-	if _presentation_fire_selected and clean_ready_available:
+	var authored_idle_baseline := (
+		clean_ready_available
+		and not presentation_locomotion_active
+		and _uses_authored_compressed_idle()
+	)
+	# Relaxed cleanup retains its established handoff. Only ready/recovery uses
+	# pelvis separation and the extra square pass that need source weighting.
+	var authored_posture_weight := (
+		(authored_stationary_weight if _presentation_ready_weight > 0.001 else float(authored_idle_baseline))
+		if clean_ready_available else 0.0
+	)
+	clean_ready_target = maxf(clean_ready_target, authored_posture_weight)
+	if authored_posture_weight >= 0.999:
+		# Both saved endpoints already contain the accepted shoulder/head frame.
+		# Keep old idle corrections suppressed through the complete return instead
+		# of fading them back on after the fire latch expires.
+		_clean_fire_recovery_weight = 1.0
+	elif _presentation_fire_selected and clean_ready_available:
 		# Accepted fire owns the complete recovery frame immediately; blending this
 		# gate in would briefly expose the shoulder distortion it replaces.
 		_clean_fire_recovery_weight = 1.0
@@ -265,6 +286,10 @@ func _process(delta: float) -> void:
 	var clean_authored_fire_recovery_weight := (
 		_clean_fire_recovery_weight if not fire_spine_ccdik_enabled else 0.0
 	)
+	var pistol_clean_ready_square := (
+		equipped_weapon_family == &"TWO_HAND_PISTOL"
+		and clean_ready_owns_upper_body
+	)
 	posture_layer.apply(
 		0.0 if combat_ready_ccdik_weight > 0.001 else posture_aim_yaw,
 		0.0 if combat_ready_ccdik_weight > 0.001 else posture_aim_pitch,
@@ -287,7 +312,9 @@ func _process(delta: float) -> void:
 		square_idle_frame,
 		square_idle_frame,
 		square_idle_frame,
-		clean_authored_fire_recovery_weight
+		clean_authored_fire_recovery_weight,
+		pistol_clean_ready_square,
+		authored_posture_weight
 	)
 	# Clean-ready ownership rule: relaxed movement, mobility, and reload keep their
 	# authored upper body. Ready Aim and accepted-fire recovery share one stable
@@ -314,7 +341,8 @@ func _process(delta: float) -> void:
 			_get_player(),
 			delta,
 			presentation_locomotion_active,
-			peek_amount
+			peek_amount,
+			1.0 if authored_idle_baseline and _presentation_fire_selected else -1.0
 		)
 	if weapon_grip_contact != null:
 		var owner_state: Dictionary = (
@@ -343,7 +371,8 @@ func _process(delta: float) -> void:
 			(
 				firing
 				or _presentation_fire_selected
-				or _clean_fire_recovery_weight > 0.001
+				or (_clean_fire_recovery_weight > 0.001 and not authored_idle_baseline)
+				or (authored_idle_baseline and _presentation_ready_weight > 0.001)
 				or requested_action != &""
 			)
 		)
@@ -404,6 +433,7 @@ func _cancel_cosmetic_transition_for_gameplay() -> void:
 	)
 	if (
 		stop_cancelled_by_intent
+		or (_authored_pistol_ready_locomotion() and requested_action in [&"crouch_start", &"crouch_stop"])
 		or
 		(posture == &"PRONE" and not prone_transition)
 		or (posture == &"CROUCHED" and standing_only_transition)

@@ -121,6 +121,8 @@ const LOOPING_CLIPS: Array[StringName] = [
 	&"jump_loop",
 	&"climb",
 	&"pistol_idle", &"pistol_idle_kneeling",
+	&"pistol_compressed_idle_standing", &"pistol_compressed_idle_crouched",
+	&"pistol_recovery_reference_standing", &"pistol_recovery_reference_crouched",
 	&"pistol_walk_forward", &"pistol_walk_backward",
 	&"pistol_strafe_left", &"pistol_strafe_right",
 	&"pistol_walk_forward_left", &"pistol_walk_forward_right",
@@ -144,15 +146,25 @@ const DEFAULT_LEG_MIRRORED_CLIPS: Dictionary = {
 }
 
 const DEFAULT_CLIP_ALIASES: Dictionary = {
-	&"crouch_left": &"crouch_forward_left",
-	&"crouch_right": &"crouch_forward_right",
+	&"crouch_left": &"crouch_forward",
+	&"crouch_right": &"crouch_forward",
+	&"pistol_walk_forward_left": &"pistol_walk_forward",
+	&"pistol_walk_forward_right": &"pistol_walk_forward",
+	&"pistol_run_forward_left": &"pistol_run_forward",
+	&"pistol_run_forward_right": &"pistol_run_forward",
+	&"run_left": &"run_forward",
+	&"run_right": &"run_forward",
 }
 
 const DEFAULT_POSE_YAW_OFFSETS_DEGREES: Dictionary = {
-	&"run_left": 6.0,
-	&"run_right": -6.0,
-	&"crouch_left": 6.0,
-	&"crouch_right": -6.0,
+	&"run_left": 24.0,
+	&"run_right": -24.0,
+	&"crouch_left": 18.0,
+	&"crouch_right": -18.0,
+	&"pistol_walk_forward_left": 18.0,
+	&"pistol_walk_forward_right": -18.0,
+	&"pistol_run_forward_left": 24.0,
+	&"pistol_run_forward_right": -24.0,
 }
 
 const DEFAULT_SEMANTIC_ACTIONS: Dictionary = {
@@ -230,7 +242,7 @@ var locomotion: Dictionary = {
 	"speed_blend_end": 0.86,
 	"minimum_playback_rate": 0.72,
 	"maximum_playback_rate": 1.32,
-	"visual_playback_scale": 1.0,
+	"visual_playback_scale": 0.80,
 	"direction_response": 16.0,
 	"rendered_direction_response": 8.0,
 	"direction_turn_playback_floor": 0.72,
@@ -241,6 +253,7 @@ var locomotion: Dictionary = {
 var transitions: Dictionary = {
 	"enabled": true,
 	"standing_enabled": true,
+	"crouched_enabled": false,
 	"start_seconds": 0.18,
 	"stop_seconds": 0.20,
 	"reversal_seconds": 0.22,
