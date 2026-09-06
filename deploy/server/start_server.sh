@@ -45,11 +45,13 @@ esac
 
 export SOCOM_SERVER_PUBLIC_ADDRESS="$public_address"
 export SOCOM_SERVER_PORT="$server_port"
+export SOCOM_INTERNAL_PORT=17777
+export SOCOM_SERVER_BIND_ADDRESS=127.0.0.1
 
 echo "Starting SOCOM-141 dedicated server on port $server_port"
 echo "Advertising secure WebSocket endpoint $public_address"
 
-exec /opt/godot/godot \
+exec node /srv/socom/deploy/server/http_gateway.mjs /opt/godot/godot \
   --headless \
   --audio-driver Dummy \
   --rendering-method gl_compatibility \
@@ -59,4 +61,4 @@ exec /opt/godot/godot \
   --dedicated-server \
   --tournament-32 \
   --mp-transport=websocket \
-  "--mp-port=$server_port"
+  "--mp-port=$SOCOM_INTERNAL_PORT"

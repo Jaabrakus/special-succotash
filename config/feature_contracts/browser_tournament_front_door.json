@@ -1,13 +1,12 @@
 {
   "schema_version": 1,
-  "feature_id": "browser_webrtc_tournament_front_door",
-  "player_intent": "The browser game is one-click 32-player WebRTC tournament play plus a real global leaderboard; 2v2 exists only inside the tournament's eight concurrent arenas.",
-  "acceptance_rule": "The restricted browser launcher shows JOIN 32-PLAYER TOURNAMENT, GLOBAL LEADERBOARD, and settings. It shows no private host, room code, manual address, or server-browser action. The signaling service automatically creates and fills tournament rooms up to 32 peers, peer 1 remains the authoritative match owner, the existing tournament runtime forms 16 duos across eight isolated 2v2 arenas, and the leaderboard reads a bounded anonymous-safe RPC without fabricated rows or user ids.",
+  "feature_id": "browser_dedicated_tournament_front_door",
+  "player_intent": "One-click join to the dedicated 32-player tournament, plus solo training and global leaderboard.",
+  "acceptance_rule": "Browser joins the configured secure dedicated endpoint, never player-hosts as fallback, and preserves tournament and leaderboard UI.",
   "canonical_scene": "res://multiplayer_slice.tscn",
   "editor_scene": "res://game_launcher.tscn",
   "ownership": {
     "browser_navigation": "SocomGameLauncher",
-    "webrtc_tournament_room_allocation": "SocomWebRTCSignalingService",
     "network_peer_and_match_authority": "SocomMultiplayerSession peer 1",
     "tournament_bracket_and_arena_isolation": "SocomTournamentSession",
     "global_leaderboard_read": "SocomSupabaseClient",
@@ -17,13 +16,13 @@
     {
       "id": "browser_tournament_action",
       "type": "Button",
-      "role": "Requests automatic WebRTC tournament matchmaking and enters the canonical multiplayer scene.",
+      "role": "Joins dedicated tournament through canonical multiplayer scene.",
       "owner": "SocomGameLauncher",
       "source_script": "res://scripts/ui/game_launcher.gd",
       "code_symbols": [
         "quick_match_button.name = \"QuickMatch\"",
         "JOIN 32-PLAYER TOURNAMENT",
-        "\"webrtc_tournament\"",
+        "\"socom/session/launch_mode\", \"join\"",
         "_collect_and_open(MULTIPLAYER_SCENE)"
       ]
     },
@@ -94,10 +93,10 @@
   ],
   "visual_check": "Open the restricted browser export. Confirm its game front door contains JOIN 32-PLAYER TOURNAMENT and GLOBAL LEADERBOARD but no private 2v2 host, room code, server list, or manual address. Join from multiple browser profiles, verify automatic TOUR room assignment and the 16-duo lobby, then open global standings and confirm the rows match the deployed database.",
   "system_delta": {
-    "decision": "REPLACE",
-    "reason": "Replace the accidental four-peer private WebRTC room-code product with automatic 32-player WebRTC tournament matchmaking. Keep 2v2 only as an internal arena format and preserve peer 1 as the existing gameplay authority.",
+    "decision": "MERGE",
+    "reason": "Use deployed dedicated authority instead of browser-host tournament routing; gameplay owners unchanged.",
     "current": {
-      "system": "Four-peer browser WebRTC private-host flow with room codes",
+      "system": "Previous browser WebRTC tournament route",
       "correctness": 1,
       "ownership_clarity": 3,
       "runtime_parity": 2,
@@ -111,7 +110,7 @@
       ]
     },
     "candidate": {
-      "system": "Automatic 32-player WebRTC room, server-relay peer topology, eight internal 2v2 arenas, shared bracket, and public global standings",
+      "system": "Configured secure dedicated tournament route",
       "correctness": 4,
       "ownership_clarity": 5,
       "runtime_parity": 5,

@@ -49,6 +49,8 @@ static func initialize(parent: Node) -> void:
 
 	for i in range(VOICE_COUNT):
 		var asp := AudioStreamPlayer.new()
+		if OS.has_feature("web"):
+			asp.playback_type = AudioServer.PLAYBACK_TYPE_STREAM
 		asp.name = "PooledAudioVoice_%d" % i
 		asp.bus = &"Effects" if AudioServer.get_bus_index(&"Effects") >= 0 else &"Master"
 		asp.volume_db = 0.0

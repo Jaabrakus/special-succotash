@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "feature_id": "render_http_gateway",
+  "player_intent": "Connect to the dedicated server without HTTP probe errors.",
+  "acceptance_rule": "HTTP readiness and actual Godot packet roundtrip pass; a stopped backend returns 503.",
+  "canonical_scene": "res://main.tscn",
+  "ownership": {"deployment_http": "http_gateway.mjs", "multiplayer_authority": "SocomMultiplayerSession"},
+  "nodes": [{"id":"session", "type":"Node3D", "role":"Existing match owner consumes forwarded connections", "scene_path":"res://multiplayer_slice.tscn", "node_path":".", "owner":"SocomMultiplayerSession"}],
+  "data_contracts": [{"path":"res://deploy/server/render.dedicated.yaml", "writer":"res://deploy/server/start_server.sh", "readers":["res://deploy/server/http_gateway.mjs", "res://scripts/network/socom_transport_factory.gd"]}],
+  "must_not_change": ["movement", "camera", "weapon_authority", "animation", "public_endpoint"],
+  "proof_scripts": ["res://tools/render_dedicated_server_deployment_regression.gd", "res://tools/http_gateway_regression.mjs", "res://tools/http_gateway_peer_regression.gd"],
+  "visual_check": "No visual changes; live Render health and browser join require deployment.",
+  "system_delta": {
+    "decision":"MERGE",
+    "reason":"Add HTTP handling outside the existing Godot gameplay owner; forward bytes without new authority.",
+    "current":{"system":"Raw public WebSocket listener", "correctness":2,"ownership_clarity":4,"runtime_parity":4,"editor_usability":3,"performance":4,"regression_coverage":2,"evidence_paths":["res://scripts/network/socom_transport_factory.gd"]},
+    "candidate":{"system":"HTTP gateway and loopback Godot listener", "correctness":4,"ownership_clarity":5,"runtime_parity":4,"editor_usability":3,"performance":4,"regression_coverage":4,"evidence_paths":["res://deploy/server/http_gateway.mjs","res://tools/http_gateway_regression.mjs"]}
+  }
+}

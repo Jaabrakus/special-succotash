@@ -47,6 +47,9 @@ func _ready() -> void:
 	_ensure_audio_buses()
 	for index in VOICE_COUNT:
 		var player := AudioStreamPlayer3D.new()
+		# Web sample playback does not support the acoustic bus/effect chain.
+		if OS.has_feature("web"):
+			player.playback_type = AudioServer.PLAYBACK_TYPE_STREAM
 		player.name = "AcousticVoice%02d" % index
 		player.max_distance = 320.0
 		player.attenuation_model = AudioStreamPlayer3D.ATTENUATION_LOGARITHMIC

@@ -27,6 +27,7 @@ var interpolation_delay_seconds: float = 0.130
 var is_proxy_replica: bool = false
 var authoritative_hurtboxes_enabled: bool = true
 var visual_runtime_enabled: bool = true
+var pending_position_correction := Vector3.ZERO
 
 
 func _ready() -> void:
@@ -47,6 +48,10 @@ func _physics_process(delta: float) -> void:
 		# CharacterBody physics step does not simulate movement commands for proxies.
 		return
 	super(delta)
+	if not pending_position_correction.is_zero_approx():
+		var correction := pending_position_correction * (1.0 - exp(-12.0 * delta))
+		move_and_collide(correction)
+		pending_position_correction -= correction
 
 
 func configure_identity(peer_id: int, assigned_team: int) -> void:
@@ -184,18 +189,24 @@ func set_authoritative_snapshot(
 	hard_snap: bool = false
 ) -> void:
 	if hard_snap or global_position.distance_to(position_value) > 1.25:
+		pending_position_correction = Vector3.ZERO
 		global_position = position_value
+		rotation.y = yaw_value
+		velocity = velocity_value
 	else:
-		global_position = global_position.lerp(position_value, 0.28)
-	rotation.y = lerp_angle(rotation.y, yaw_value, 0.40)
-	velocity = velocity_value
-	posture = clampi(posture_value, MotionState.STANDING, MotionState.PRONE)
-	motion_state = posture
-	_apply_posture_collider()
+		# Do not rewind locally predicted velocity/yaw on every delayed packet.
+		# The CharacterBody physics step consumes bounded positional corrections.
+		pending_position_correction = position_value - global_position
+	var server_posture := clampi(posture_value, MotionState.STANDING, MotionState.PRONE)
+	if hard_snap or posture != server_posture:
+		posture = server_posture
+		motion_state = posture
+		_apply_posture_collider()
 	_set_alive_and_health(alive_value, health_value)
 
 
 func respawn_at(spawn_position: Vector3) -> void:
+	pending_position_correction = Vector3.ZERO
 	snapshot_history.clear()
 	global_position = spawn_position
 	velocity = Vector3.ZERO
@@ -207,6 +218,7 @@ func respawn_at(spawn_position: Vector3) -> void:
 
 
 func deactivate_for_round() -> void:
+	pending_position_correction = Vector3.ZERO
 	# The operator remains network-visible for spectating, but cannot move,
 	# collide, fire, or receive damage while its teammate fights sudden death.
 	snapshot_history.clear()

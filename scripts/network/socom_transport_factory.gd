@@ -8,7 +8,10 @@ const Invite := preload("res://scripts/network/socom_match_invite.gd")
 static func host(transport: String, port: int, max_players: int) -> Dictionary:
 	if transport == Deployment.TRANSPORT_WEBSOCKET:
 		var peer := WebSocketMultiplayerPeer.new()
-		return _result(peer.create_server(port), peer, transport, "ws://0.0.0.0:%d" % port)
+		var bind_address := OS.get_environment("SOCOM_SERVER_BIND_ADDRESS")
+		if bind_address.is_empty():
+			bind_address = "*"
+		return _result(peer.create_server(port, bind_address), peer, transport, "ws://%s:%d" % [bind_address, port])
 	var peer := ENetMultiplayerPeer.new()
 	return _result(peer.create_server(port, max_players), peer, Deployment.TRANSPORT_ENET, "0.0.0.0:%d" % port)
 

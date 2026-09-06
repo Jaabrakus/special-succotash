@@ -95,6 +95,8 @@ assets/external/agls_intake/imported/*
 !assets/external/godot_new_ik/**
 !assets/models/
 !assets/models/**
+!assets/environment/
+!assets/environment/**
 !assets/shaders/
 !assets/shaders/**
 !assets/textures/
@@ -109,3 +111,4 @@ deploy/*
 !deploy/server/
 deploy/server/*
 !deploy/server/start_server.sh
+!deploy/server/http_gateway.mjs

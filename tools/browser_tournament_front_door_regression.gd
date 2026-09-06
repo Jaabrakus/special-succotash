@@ -45,12 +45,17 @@ func _run() -> void:
 		"res://scripts/ui/game_launcher.gd"
 	)
 	_expect(
-		launcher_source.contains("\"webrtc_tournament\"")
+		launcher_source.contains("\"socom/session/launch_mode\", \"join\"")
 		and launcher_source.contains(
 			"ProjectSettings.set_setting(\"socom/session/tournament_mode\", true)"
 		),
-		"browser tournament action enters automatic WebRTC tournament matchmaking"
+		"browser tournament action enters dedicated tournament join"
 	)
+	_expect(launcher._configure_browser_tournament_session(), "dedicated launch accepts configured secure endpoint")
+	_expect(String(ProjectSettings.get_setting("socom/session/join_address")) == "wss://socom-141-match-server.onrender.com", "join address is the deployed match server")
+	_expect(String(ProjectSettings.get_setting("socom/session/launch_mode")) == "join", "browser joins instead of hosting")
+	launcher.browser_server_url = ""
+	_expect(not launcher._configure_browser_tournament_session(), "missing dedicated endpoint fails closed")
 	_expect(
 		not launcher_source.contains("Viper_001")
 		and launcher_source.contains("No ranked tournament results yet."),

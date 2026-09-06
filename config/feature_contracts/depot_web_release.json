@@ -1,0 +1,16 @@
+{
+ "schema_version":1,
+ "feature_id":"depot_web_release",
+ "player_intent":"Play Relic Depot with audible browser shots.",
+ "acceptance_rule":"Depot is the saved default with assets in both packages; browser audio uses stream pools and measurable output.",
+ "canonical_scene":"res://main.tscn",
+ "ownership":{"map":"SocomMapDocument","audio":"AcousticPropagation and LabLeakAudioEngine existing voice pools"},
+ "nodes":[{"id":"launcher","type":"Control","role":"Selects saved deployment map for browser training","owner":"SocomGameLauncher","scene_path":"res://game_launcher.tscn","node_path":"."}],
+ "data_contracts":[{"path":"res://config/network/browser_multiarena_deployment.json","writer":"res://tools/select_relic_depot.gd","readers":["res://scripts/ui/game_launcher.gd","res://scripts/network/socom_multiplayer_world_ui.gd"]}],
+ "must_not_change":["damage_authority","weapon_timing","camera_aim","animation_assets"],
+ "proof_scripts":["res://tools/depot_web_release_regression.gd","res://tools/relic_depot_regression.gd","res://tools/web_release_audit.gd"],
+ "visual_check":"Browser training shows depot; online map follows server after manual redeploy. Audio probe must show nonzero output; Safari remains unverified.",
+ "system_delta":{"decision":"MERGE","reason":"Bundle existing map assets and use supported stream audio without replacing gameplay owners.",
+ "current":{"system":"Training map and browser sample audio","correctness":2,"ownership_clarity":4,"runtime_parity":2,"editor_usability":4,"performance":4,"regression_coverage":2,"evidence_paths":["res://scripts/audio/acoustic_propagation_engine.gd","res://export_presets.cfg"]},
+ "candidate":{"system":"Depot default and browser stream audio","correctness":4,"ownership_clarity":4,"runtime_parity":4,"editor_usability":4,"performance":3,"regression_coverage":4,"evidence_paths":["res://config/maps/relic_depot.json","res://tools/depot_web_release_regression.gd"]}}
+}

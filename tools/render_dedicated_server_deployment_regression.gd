@@ -17,6 +17,15 @@ func _initialize() -> void:
 	var start_script := FileAccess.get_file_as_string(START_SCRIPT_PATH)
 	var blueprint := FileAccess.get_file_as_string(RENDER_BLUEPRINT_PATH)
 	var migration := FileAccess.get_file_as_string(RULESET_MIGRATION_PATH)
+	var gateway := FileAccess.get_file_as_string("res://deploy/server/http_gateway.mjs")
+	_expect(dockerfile.contains("libfontconfig1 nodejs")
+		and dockerignore.contains("!deploy/server/http_gateway.mjs")
+		and start_script.contains("exec node /srv/socom/deploy/server/http_gateway.mjs")
+		and start_script.contains("SOCOM_SERVER_BIND_ADDRESS=127.0.0.1")
+		and start_script.contains("--mp-port=$SOCOM_INTERNAL_PORT")
+		and blueprint.contains("healthCheckPath: /healthz")
+		and gateway.contains("ready ? 200 : 503"),
+		"HTTP gateway owns public port and checks internal WebSocket readiness")
 
 	_expect(
 		dockerfile.contains("ARG GODOT_VERSION=4.7.1")

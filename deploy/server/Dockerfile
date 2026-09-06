@@ -7,7 +7,7 @@ ARG GODOT_LINUX_SHA256=c7ff14fd28472c8d4f193043de30278dcf7e5241a1dcf7566b02e27ad
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update \
-    && apt-get install --yes --no-install-recommends ca-certificates curl unzip libfontconfig1 \
+    && apt-get install --yes --no-install-recommends ca-certificates curl unzip libfontconfig1 nodejs \
     && curl --fail --location --show-error \
         "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-${GODOT_RELEASE}/Godot_v${GODOT_VERSION}-${GODOT_RELEASE}_linux.x86_64.zip" \
         --output /tmp/godot.zip \

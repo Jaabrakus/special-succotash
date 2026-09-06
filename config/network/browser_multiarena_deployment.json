@@ -2,9 +2,9 @@
   "schema_version": 1,
   "default_port": 14141,
   "dedicated_transport": "websocket",
-  "browser_transport": "webrtc",
-  "browser_server_url": "",
-  "browser_tournament_transport": "webrtc",
+  "browser_transport": "websocket",
+  "browser_server_url": "wss://socom-141-match-server.onrender.com",
+  "browser_tournament_transport": "websocket",
   "webrtc_signaling_url": "wss://socom-141-webrtc-signaling.onrender.com/signal",
   "webrtc_ice_servers": [
     {
@@ -12,7 +12,7 @@
     }
   ],
   "webrtc_max_players": 32,
-  "server_map_document": "res://config/maps/painterly_coastal_village_2v2.json",
+  "server_map_document": "res://config/maps/relic_depot.json",
   "require_secure_browser_socket": true,
   "max_players": 32,
   "arena_instances": 8,

@@ -25,7 +25,7 @@
       "code_symbols": [
         "quick_match_button.name = \"QuickMatch\"",
         "JOIN 32-PLAYER TOURNAMENT",
-        "\"webrtc_tournament\""
+        "\"socom/session/launch_mode\", \"join\""
       ]
     },
     {

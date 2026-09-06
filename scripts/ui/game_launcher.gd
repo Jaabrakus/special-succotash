@@ -455,16 +455,14 @@ func _quick_match() -> void:
 
 
 func _configure_browser_tournament_session() -> bool:
-	if webrtc_signaling_url.is_empty():
-		status_label.text = "Tournament unavailable: WebRTC signaling is not configured."
+	if not browser_server_url.begins_with("wss://"):
+		status_label.text = "Tournament unavailable: secure dedicated server is not configured."
 		return false
 	ProjectSettings.set_setting("socom/session/tournament_mode", true)
-	ProjectSettings.set_setting("socom/session/launch_mode", "webrtc_tournament")
-	ProjectSettings.set_setting("socom/session/join_address", "")
-	ProjectSettings.set_setting(
-		"socom/session/webrtc_signaling_url",
-		webrtc_signaling_url
-	)
+	ProjectSettings.set_setting("socom/session/launch_mode", "join")
+	ProjectSettings.set_setting("socom/session/join_address", browser_server_url)
+	ProjectSettings.set_setting("socom/session/webrtc_room_code", "")
+	ProjectSettings.set_setting("socom/session/webrtc_signaling_url", "")
 	return true
 
 
@@ -688,6 +686,10 @@ func _open_animation_studio() -> void:
 func _open_training_range() -> void:
 	if not restricted_web_build and not _select_host_map():
 		return
+	if restricted_web_build:
+		ProjectSettings.set_setting("socom/session/selected_map_document", MapDocument.load_path(
+			String(multiplayer_deployment_profile.get("server_map_document", MapDocument.ACTIVE_MAP_PATH))
+		))
 	# Training must not inherit a previous tournament/join intent. Its canonical
 	# runtime consumes the bundled map and weapon profiles without cloud access.
 	ProjectSettings.set_setting("socom/session/tournament_mode", false)
