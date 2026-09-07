@@ -11,17 +11,19 @@ func submit_movement(packet: Dictionary) -> void:
 	var sender := multiplayer.get_remote_sender_id()
 	if not is_peer_gameplay_action_allowed(sender):
 		return
-	if not NetworkProtocol.movement_packet_is_sane(packet):
-		return
-	var command_tick := int(packet.get("tick", -1))
-	if command_tick <= int(last_command_tick.get(sender, -1)):
-		return
-	if operators[sender].movement_command_queue.size() >= 120:
-		return
-	last_command_tick[sender] = command_tick
-	latest_commands[sender] = packet
 	var operator: Variant = operators[sender]
-	operator.queue_movement_command(NetworkProtocol.packet_to_movement(packet))
+	# Old-life retransmissions cannot act after respawn or round reset.
+	if typeof(packet.get("movement_epoch", 0)) != TYPE_INT or int(packet.get("movement_epoch", 0)) != operator.respawn_revision:
+		return
+	var recovered := movement_delivery.incoming(packet)
+	if recovered.is_empty(): return
+	for entry: Dictionary in recovered:
+		var command_tick := int(entry.tick)
+		if command_tick <= int(last_command_tick.get(sender, -1)): continue
+		if operator.movement_command_queue.size() >= int(movement_delivery.profile.maximum_queued_commands): break
+		last_command_tick[sender] = command_tick
+		latest_commands[sender] = entry
+		operator.queue_movement_command(NetworkProtocol.packet_to_movement(entry))
 	if not logged_command_peers.has(sender):
 		logged_command_peers[sender] = true
 		print("MP_SLICE COMMAND_ACCEPTED peer=%d" % sender)
@@ -112,10 +114,16 @@ func is_peer_gameplay_action_allowed(peer_id: int) -> bool:
 	return operators.has(peer_id)
 
 
+@rpc("authority", "call_remote", "unreliable")
+func receive_movement_state(packet: Dictionary) -> void:
+	if local_operator != null:
+		local_operator.queue_action_correction(packet)
+
+
 @rpc("authority", "call_remote", "unreliable_ordered")
 func receive_world_state(snapshot_packet: Dictionary, score_snapshot: Dictionary) -> void:
 	if not score_snapshot.is_empty():
-		scores = score_snapshot
+		scores.merge(score_snapshot, true)
 	var entities: Dictionary = snapshot_packet.get("entities", snapshot_packet)
 	var timestamp_seconds := _server_timestamp_to_local_seconds(
 		float(snapshot_packet.get("timestamp_ms", Time.get_ticks_msec()))
@@ -255,6 +263,7 @@ func _spawn_operator_local(peer_id: int, team: int, spawn_position: Vector3) -> 
 	operator.set_replica_mode(not is_local_owner and not multiplayer.is_server())
 	operator.set_local_input_enabled(is_local_owner)
 	operator.prediction_enabled = is_local_owner and not multiplayer.is_server()
+	operator.complete_prediction_enabled = operator.prediction_enabled and bool(operator.MovementState.profile.enabled)
 	operator.network_command_driven = not is_local_owner and multiplayer.is_server()
 	operator.configure_network_presentation(is_local_owner, multiplayer.is_server())
 	if multiplayer.is_server():
@@ -439,8 +448,19 @@ func _transport_compensation_seconds(peer_id: int) -> float:
 	) / 1000.0
 
 
-func _begin_transport_rewind(shooter_peer_id: int) -> Array[Dictionary]:
-	var compensation_seconds := _transport_compensation_seconds(shooter_peer_id)
+func _total_shot_compensation_seconds(peer_id: int) -> float:
+	var transport_seconds := _transport_compensation_seconds(peer_id)
+	# Compensate both measured network transport and the remote presentation
+	# buffer (130 ms) so hits register directly on visual aim.
+	return transport_seconds + remote_interpolation_delay_seconds
+
+
+func _begin_transport_rewind(shooter_peer_id: int, include_presentation_buffer: bool = false) -> Array[Dictionary]:
+	var compensation_seconds := (
+		_total_shot_compensation_seconds(shooter_peer_id)
+		if include_presentation_buffer
+		else _transport_compensation_seconds(shooter_peer_id)
+	)
 	if compensation_seconds <= 0.0001:
 		return []
 	var target_time_ms := float(Time.get_ticks_msec()) - compensation_seconds * 1000.0

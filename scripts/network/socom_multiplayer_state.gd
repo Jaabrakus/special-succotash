@@ -45,13 +45,13 @@ const PlayerScript := preload("res://scripts/player/player_controller.gd")
 
 const DEFAULT_PORT := 14141
 const MAX_PLAYERS := 32
-const SNAPSHOT_INTERVAL := 1.0 / 20.0
+const SNAPSHOT_INTERVAL := 1.0 / 60.0
 const SNAPSHOT_ENTITIES_PER_PACKET := 4
 const RESPAWN_SECONDS := 3.0
 const SCORE_LIMIT := 5
 const TIME_SYNC_INTERVAL_SECONDS := 1.0
 const MAX_TRANSPORT_COMPENSATION_MS := 80.0
-const OPERATOR_HISTORY_SECONDS := 0.50
+const OPERATOR_HISTORY_SECONDS := 1.00
 const MAX_QUEUED_SHOTS_PER_PEER := 8
 const SESSION_ADMISSION_TIMEOUT_SECONDS := 5.0
 
@@ -105,6 +105,7 @@ var server_backend = null
 var exit_menu = null
 var local_camera = null
 var local_weapon_presentation = null
+var movement_delivery := preload("res://scripts/network/socom_movement_delivery.gd").new()
 var local_operator = null
 var snapshot_accumulator: float = 0.0
 var local_fire_cooldown: float = 0.0
@@ -202,7 +203,6 @@ func _local_trigger_wants_shot(pressed: bool, held: bool, allowed: bool) -> bool
 func is_lobby_warmup_active() -> bool:
 	return false
 
-
 # BEGIN GENERATED MULTIPLAYER CROSS-LAYER CONTRACT
 # Parsing contract only. Feature layers override every declaration.
 func _advance_demolition_objective(delta: float) -> void:
@@ -220,7 +220,7 @@ func _advance_server_composure(delta: float) -> void:
 func _advance_time_sync(delta: float) -> void:
 	pass
 
-func _apply_ballistics_profile(ballistics, _weapon_config: Dictionary = {}) -> void:
+func _apply_ballistics_profile(ballistics, weapon_config: Dictionary = {}) -> void:
 	pass
 
 func _apply_command_line_mode() -> void:
@@ -247,9 +247,6 @@ func _clear_operators() -> void:
 func _configured_fire_interval() -> float:
 	return 0.0
 
-func _weapon_config_for_peer(_peer_id: int) -> Dictionary:
-	return equipped_config
-
 func _disconnect_existing_peer() -> void:
 	pass
 
@@ -265,20 +262,7 @@ func _objective_state_snapshot() -> Dictionary:
 func _on_operator_eliminated(victim_peer_id: int, attacker_peer_id: int) -> void:
 	pass
 
-
-## Tournament runtime overrides this. Standard modes retain their existing
-## global team-versus-team damage rule.
-func is_damage_allowed_between(_attacker_peer_id: int, _victim_peer_id: int) -> bool:
-	return true
-
-func _present_shot(
-	shooter_peer_id: int,
-	origin: Vector3,
-	impact: Vector3,
-	hit: bool,
-	message: String,
-	shot_sequence: int = -1
-) -> void:
+func _present_shot(shooter_peer_id: int, origin: Vector3, impact: Vector3, hit: bool, message: String, shot_sequence: int = -1) -> void:
 	pass
 
 func _queue_server_shot(peer_id: int, packet: Dictionary) -> bool:
@@ -306,9 +290,6 @@ func _remove_operator(peer_id: int) -> void:
 	pass
 
 func _request_local_reload() -> void:
-	pass
-
-func _reset_ammo_for_peer(peer_id: int) -> void:
 	pass
 
 func _reset_demolition_objective() -> void:
@@ -354,13 +335,13 @@ func _team_member_count(team: int) -> int:
 func _try_submit_local_shot() -> void:
 	pass
 
-func _submit_sudden_death_vote_selection(_candidate_peer_id: int) -> void:
-	pass
-
 func _update_bomb_visual() -> void:
 	pass
 
 func receive_match_event(message: String) -> void:
+	pass
+
+func receive_movement_state(packet: Dictionary) -> void:
 	pass
 
 func receive_objective_state(state: Dictionary) -> void:
@@ -375,9 +356,6 @@ func receive_round_state(
 ) -> void:
 	pass
 
-func receive_sudden_death_vote_state(_state: Dictionary) -> void:
-	pass
-
 func receive_server_map(document: Dictionary) -> void:
 	pass
 
@@ -387,5 +365,14 @@ func spawn_operator(peer_id: int, team: int, spawn_position: Vector3) -> void:
 func submit_movement(packet: Dictionary) -> void:
 	pass
 
-func request_sudden_death_vote(_candidate_peer_id: int) -> void:
+func _submit_sudden_death_vote_selection(_candidate_peer_id: int) -> void:
+	pass
+
+func _weapon_config_for_peer(_peer_id: int) -> Dictionary:
+	return equipped_config
+
+func is_damage_allowed_between(_attacker_peer_id: int, _victim_peer_id: int) -> bool:
+	return true
+
+func _reset_ammo_for_peer(_peer_id: int) -> void:
 	pass

@@ -240,8 +240,8 @@ func _physics_process(delta: float) -> void:
 		velocity = swimming_solution.get("velocity", velocity) as Vector3
 		horizontal_response_mode = &"SWIMMING"
 		_update_orientation(desired_dir, authoritative_aim_yaw, delta)
-		move_and_slide()
-		was_on_floor = is_on_floor()
+		_move_body_with_collision()
+		was_on_floor = _movement_floor_contact()
 		return
 
 	var actions_enabled := not (
@@ -291,9 +291,9 @@ func _physics_process(delta: float) -> void:
 		_advance_committed_action(delta)
 		if motion_state == MotionState.DIVING or motion_state == MotionState.ROLLING:
 			_update_orientation(action_direction, authoritative_aim_yaw, delta)
-			move_and_slide()
+			_move_body_with_collision()
 			_finish_committed_action_on_collision()
-			was_on_floor = is_on_floor()
+			was_on_floor = _movement_floor_contact()
 			return
 		# Completion consumes this tick's held movement below, with one collision move.
 
@@ -307,7 +307,7 @@ func _physics_process(delta: float) -> void:
 	# diagonal response up to sqrt(2) times stronger than cardinal response.
 	var horizontal_velocity := Vector2(velocity.x, velocity.z)
 	var horizontal_target := Vector2(desired_velocity.x, desired_velocity.z)
-	if posture == MotionState.CROUCHED and is_on_floor() and bool(jump_combo_intent.profile.get("instant_crouch_response", false)):
+	if posture == MotionState.CROUCHED and _movement_floor_contact() and bool(jump_combo_intent.profile.get("instant_crouch_response", false)):
 		horizontal_response_mode = &"INSTANT_CROUCH"
 		horizontal_velocity = horizontal_target
 	elif instant_strafe_response and absf(input.x) > 0.001:
@@ -326,19 +326,19 @@ func _physics_process(delta: float) -> void:
 	velocity.z = horizontal_velocity.y
 
 	if launched_jump_this_frame:
-		# Preserve the impulse assigned above. is_on_floor() remains true until
-		# move_and_slide(), so the normal grounded branch must not erase it.
+		# Preserve the impulse assigned above. _movement_floor_contact() remains true until
+		# _move_body_with_collision(), so the normal grounded branch must not erase it.
 		pass
-	elif not is_on_floor():
+	elif not _movement_floor_contact():
 		velocity.y -= gravity * delta
 	else:
 		velocity.y = -0.5
 
 	_update_orientation(desired_dir, authoritative_aim_yaw, delta)
 
-	move_and_slide()
+	_move_body_with_collision()
 	_update_air_and_landing_state(delta)
-	was_on_floor = is_on_floor()
+	was_on_floor = _movement_floor_contact()
 
 func _update_orientation(
 	desired_dir: Vector3,
@@ -580,14 +580,14 @@ func _try_begin_automatic_vault(desired_dir: Vector3) -> bool:
 		or automatic_vault_retry_remaining > 0.0
 		or posture != MotionState.STANDING
 		or motion_state != MotionState.STANDING
-		or not is_on_floor()
+		or not _movement_floor_contact()
 		or desired_dir.length() < full_gait_input_threshold
 		or Vector2(velocity.x, velocity.z).length() < automatic_vault_minimum_speed
 	):
 		return false
 	automatic_vault_probe_remaining = maxf(automatic_vault_probe_interval, 0.02)
 	if bool(get_meta("reload_action_pending", false)):
-		mobility_action_requested.emit(&"VAULTING")
+		_emit_mobility_requested(&"VAULTING")
 		return false
 	var collider := get_node_or_null("CollisionShape3D") as CollisionShape3D
 	if collider == null or not (collider.shape is CapsuleShape3D):
@@ -606,7 +606,7 @@ func _try_begin_automatic_vault(desired_dir: Vector3) -> bool:
 	action_elapsed = 0.0
 	action_duration = float(result.get("duration", 0.0))
 	action_direction = _safe_action_direction(desired_dir)
-	mobility_action_started.emit(&"VAULTING")
+	_emit_mobility_started(&"VAULTING")
 	return true
 
 
@@ -615,11 +615,11 @@ func _advance_automatic_vault(authoritative_aim_yaw: float, delta: float) -> voi
 	velocity = solution.get("velocity", Vector3.ZERO) as Vector3
 	horizontal_response_mode = &"VAULTING"
 	_update_orientation(action_direction, authoritative_aim_yaw, delta)
-	move_and_slide()
+	_move_body_with_collision()
 	if bool(solution.get("finished", false)):
 		motion_state = posture
 		velocity = Vector3(velocity.x, -0.5, velocity.z)
-	was_on_floor = is_on_floor()
+	was_on_floor = _movement_floor_contact()
 
 func _handle_posture_command(command, delta: float, desired_dir: Vector3) -> void:
 	if motion_state == MotionState.DIVING or motion_state == MotionState.ROLLING:
@@ -671,7 +671,7 @@ func _handle_posture_command(command, delta: float, desired_dir: Vector3) -> voi
 		stance_held_triggered = false
 
 func _can_stance_hold_dive(desired_dir: Vector3) -> bool:
-	if posture == MotionState.PRONE or not is_on_floor():
+	if posture == MotionState.PRONE or not _movement_floor_contact():
 		return false
 	return (
 		desired_dir.length() >= full_gait_input_threshold
@@ -685,7 +685,7 @@ func _begin_dive(desired_dir: Vector3) -> void:
 	action_elapsed = 0.0
 	action_duration = dive_duration
 	motion_state = MotionState.DIVING
-	mobility_action_started.emit(&"DIVING")
+	_emit_mobility_started(&"DIVING")
 	# Preserve the stance that began the committed dive. Forcing crouch to
 	# standing made the presentation anchor jump upward before falling to prone.
 	posture = dive_entry_posture
@@ -698,7 +698,7 @@ func _try_begin_mobility_action(
 	jump_started: bool,
 	command
 ) -> bool:
-	if not is_on_floor() or motion_state == MotionState.DIVING or motion_state == MotionState.ROLLING:
+	if not _movement_floor_contact() or motion_state == MotionState.DIVING or motion_state == MotionState.ROLLING:
 		return false
 
 	# Jump owns one action only. Travel input must never reinterpret Space as a
@@ -708,7 +708,7 @@ func _try_begin_mobility_action(
 			return false
 		velocity.y = jump_velocity
 		motion_state = MotionState.AIRBORNE
-		mobility_action_started.emit(&"AIRBORNE")
+		_emit_mobility_started(&"AIRBORNE")
 		return true
 
 	# Z is the independent dive-to-prone action.
@@ -729,7 +729,7 @@ func _try_begin_mobility_action(
 		action_elapsed = 0.0
 		action_duration = roll_duration
 		motion_state = MotionState.ROLLING
-		mobility_action_started.emit(&"ROLLING")
+		_emit_mobility_started(&"ROLLING")
 		posture = MotionState.CROUCHED
 		_apply_posture_collider()
 	return false
@@ -751,7 +751,7 @@ func _advance_committed_action(delta: float) -> void:
 	var speed_scale := lerpf(1.0, 0.32, phase)
 	velocity.x = action_direction.x * base_speed * speed_scale
 	velocity.z = action_direction.z * base_speed * speed_scale
-	if not is_on_floor():
+	if not _movement_floor_contact():
 		velocity.y -= gravity * delta
 	else:
 		velocity.y = -0.5
@@ -787,7 +787,7 @@ func _finish_committed_action_on_collision() -> void:
 			return
 
 func _update_air_and_landing_state(delta: float) -> void:
-	if not is_on_floor():
+	if not _movement_floor_contact():
 		motion_state = MotionState.AIRBORNE
 		return
 	if not was_on_floor and motion_state == MotionState.AIRBORNE:
@@ -905,7 +905,7 @@ func get_mobility_combo_clip() -> StringName:
 
 func _update_jump_combo(command, launched: bool, delta: float) -> void:
 	var chain_allowed: bool = String(mobility_combo_kind) in jump_combo_intent.profile.chain_from and not combo_exit_prone
-	var eligible: bool = not launched and (chain_allowed or (is_on_floor() and motion_state in [MotionState.STANDING, MotionState.CROUCHED]))
+	var eligible: bool = not launched and (chain_allowed or (_movement_floor_contact() and motion_state in [MotionState.STANDING, MotionState.CROUCHED]))
 	var choice: StringName = jump_combo_intent.step(command.direction_held_mask, eligible, delta)
 	if choice == &"" or (mobility_combo_kind != &"" and (not chain_allowed or String(choice) not in jump_combo_intent.profile.chain_to)):
 		return
@@ -929,15 +929,26 @@ func _begin_jump_combo(kind: StringName, direction: Vector3) -> void:
 	motion_state = MotionState.DIVING # Reuse existing full-body mobility ownership.
 	_apply_posture_collider()
 	# Grounded action: animation never adds a second movement/impulse owner.
-	mobility_action_started.emit(&"DIVING")
+	_emit_mobility_started(&"DIVING")
 
 func _advance_jump_combo(delta: float) -> void:
 	action_elapsed = minf(action_elapsed + delta, action_duration)
 	var rest_time := float(jump_combo_intent.profile.get("rest_seconds", 1.05))
+	var move_unlock := clampf(float(jump_combo_intent.profile.get("slide_move_unlock_seconds", action_duration)), 0.0, action_duration)
+	if mobility_combo_kind == &"slide" and not combo_exit_prone and _movement_floor_contact() and action_elapsed >= move_unlock and movement_input_strength > 0.1:
+		# Keep a fresh perpendicular first tap so its second tap can dive from crouch.
+		var first_bit := jump_combo_intent.first_bit
+		var armed := jump_combo_intent.armed
+		var tap_age := jump_combo_intent.tap_age
+		_finish_jump_combo()
+		jump_combo_intent.first_bit = first_bit
+		jump_combo_intent.armed = armed
+		jump_combo_intent.tap_age = tap_age
+		return
 	if mobility_combo_kind in [&"left", &"right"] and action_elapsed >= rest_time and not combo_recovering:
-		if is_on_floor() and movement_input_strength <= 0.1:
+		if _movement_floor_contact() and movement_input_strength <= 0.1:
 			combo_rest_input_released = true
-		if is_on_floor() and movement_input_strength > 0.1 and combo_rest_input_released:
+		if _movement_floor_contact() and movement_input_strength > 0.1 and combo_rest_input_released:
 			combo_recovering = true
 		else:
 			action_elapsed = rest_time # Held combo tap cannot also request get-up.
@@ -947,11 +958,11 @@ func _advance_jump_combo(delta: float) -> void:
 		deceleration = 0.0
 	velocity.x = action_direction.x * speed * deceleration
 	velocity.z = action_direction.z * speed * deceleration
-	velocity.y = velocity.y - gravity * delta if not is_on_floor() else -0.5
+	velocity.y = velocity.y - gravity * delta if not _movement_floor_contact() else -0.5
 	# Before the authored get-up starts, abandon it if standing would hit a roof.
-	if is_on_floor() and action_elapsed >= rest_time and combo_recovering and not _has_posture_clearance(MotionState.STANDING):
+	if _movement_floor_contact() and action_elapsed >= rest_time and combo_recovering and not _has_posture_clearance(MotionState.STANDING):
 		_finish_jump_combo()
-	elif is_on_floor() and action_elapsed >= action_duration:
+	elif _movement_floor_contact() and action_elapsed >= action_duration:
 		_finish_jump_combo()
 
 func _finish_jump_combo() -> void:
@@ -993,3 +1004,21 @@ func get_posture_name() -> StringName:
 	if posture == MotionState.CROUCHED:
 		return &"CROUCHED"
 	return &"STANDING"
+
+
+# Replay uses the acknowledged contact for the first step; the collision move refreshes it.
+var prediction_floor_override: int = -1
+var prediction_replaying: bool = false
+
+func _movement_floor_contact() -> bool:
+	return bool(prediction_floor_override) if prediction_floor_override >= 0 else is_on_floor()
+
+func _move_body_with_collision() -> void:
+	prediction_floor_override = -1
+	move_and_slide()
+
+func _emit_mobility_started(kind: StringName) -> void:
+	if not prediction_replaying: mobility_action_started.emit(kind)
+
+func _emit_mobility_requested(kind: StringName) -> void:
+	if not prediction_replaying: mobility_action_requested.emit(kind)

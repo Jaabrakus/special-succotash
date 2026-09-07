@@ -13,6 +13,10 @@ func _run() -> void:
 	player.set_physics_process(false)
 	player.set_local_input_enabled(false)
 	player.automatic_vault_enabled = false
+	if "--capture-only" in OS.get_cmdline_user_args():
+		await _capture_handoff()
+		_finish()
+		return
 	await _reset_player()
 	player._try_set_posture(player.MotionState.CROUCHED)
 	# Each is a first press: do not turn the response test into a double-tap action.
@@ -25,6 +29,7 @@ func _run() -> void:
 	for bit in [1, 8, 2, 4]:
 		await _reset_player()
 		await _sequence(bit)
+		print("HANDOFF_START bit=", bit, " kind=", player.mobility_combo_kind, " floor=", player.is_on_floor(), " health=", player.current_health)
 		if bit in [2, 4]:
 			for frame in 85: await _tick()
 			_check(not player.combo_recovering and player.mobility_combo_kind != &"", "Side rests until fresh movement")
@@ -33,6 +38,7 @@ func _run() -> void:
 			var origin := player.global_position
 			await _tick(1)
 			if player.mobility_combo_kind == &"":
+				print("HANDOFF_END bit=", bit, " frame=", frame, " posture=", player.posture, " velocity=", player.velocity, " elapsed=", player.action_elapsed)
 				completed = true
 				_check(player.global_position.z < origin.z - 0.001, "Completion tick moves immediately: %s" % bit)
 				if bit in [1, 8]:
@@ -45,6 +51,26 @@ func _run() -> void:
 		_check(completed, "Action completes with held movement: %s" % bit)
 	if capture:
 		await _capture_handoff()
+	await _reset_player()
+	await _sequence(1)
+	for frame in 30: await _tick(1)
+	_check(player.mobility_combo_kind == &"slide", "Held movement cannot cancel slide before unlock")
+	for frame in 20: await _tick(1)
+	_check(player.mobility_combo_kind == &"" and player.posture == player.MotionState.CROUCHED, "Held movement unlocks during slide recovery")
+	await _reset_player()
+	await _sequence(1)
+	for frame in 48: await _tick()
+	_check(player.mobility_combo_kind == &"slide", "No input preserves full slide")
+	await _tick(2)
+	_check(player.mobility_combo_kind == &"", "Fresh movement also exits at unlock")
+	await _tick()
+	await _tick(2)
+	_check(player.mobility_combo_kind == &"left", "Early crouch handoff preserves side double-tap edge")
+	await _reset_player()
+	await _sequence(1)
+	await _tick(0, false, true)
+	for frame in 50: await _tick(1)
+	_check(player.mobility_combo_kind == &"slide" and player.combo_exit_prone, "Prone request is not cancelled by early movement")
 	print("MOBILITY_MOVEMENT_HANDOFF ", "PASS" if failures.is_empty() else "FAIL", " ", failures)
 	_finish()
 
@@ -61,6 +87,6 @@ func _capture_handoff() -> void:
 		camera.current = true
 		camera.force_update_transform()
 		await process_frame
-		if frame in [92, 98, 104, 116]:
+		if frame in [36, 44, 50, 62, 92, 98, 104, 116]:
 			RenderingServer.force_draw()
 			root.get_texture().get_image().save_png(folder + "/%03d.png" % frame)

@@ -1,0 +1,6 @@
+{
+  "schema_version": 1,
+  "history_commands": 11,
+  "maximum_queued_commands": 120,
+  "maximum_extrapolation_seconds": 0.08
+}

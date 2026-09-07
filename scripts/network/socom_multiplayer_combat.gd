@@ -186,10 +186,9 @@ func _server_process_shot(peer_id: int, packet: Dictionary) -> void:
 	))
 	var core_scale: float = float(composure.get_precision_core_scale())
 	var seed: int = int(packet.get("sequence", 0)) * 73856093 ^ peer_id * 19349663
-	# Rewind only the measured packet transit. The fixed 130 ms remote render
-	# buffer is intentionally not rewound, so every player keeps the authored
-	# lead requirement while ordinary connection differences are reduced.
-	var rewind_restore: Array[Dictionary] = _begin_transport_rewind(peer_id)
+	# Full backwards reconciliation rewinds both measured packet transit and
+	# the remote 130 ms render buffer, matching the shooter's visual screen state.
+	var rewind_restore: Array[Dictionary] = _begin_transport_rewind(peer_id, true)
 	var result: Dictionary = ballistics.try_fire_direction(
 		muzzle,
 		authoritative_shot_direction,
@@ -397,4 +396,7 @@ func _broadcast_authoritative_state() -> void:
 	peer_ids.sort()
 	var snapshot := SnapshotEncoder.capture(operators, peer_ids)
 	for packet in SnapshotEncoder.packets(snapshot, Time.get_ticks_msec(), Engine.get_physics_frames(), SNAPSHOT_ENTITIES_PER_PACKET):
-		receive_world_state.rpc(packet, scores if int(packet.chunk_index) == 0 else {})
+		var packet_scores := {}
+		for peer_id in packet.entities:
+			if scores.has(peer_id): packet_scores[peer_id] = scores[peer_id]
+		receive_world_state.rpc(packet, packet_scores)

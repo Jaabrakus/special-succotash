@@ -1,5 +1,18 @@
 # Immediate mobility movement handoff
 
+## Follow-up translation card: interrupt slide recovery with movement
+
+User reports the 1.65-second slide still feels locked. Movement handoff alone
+only removed the terminal tick; it did not shorten that commitment. MERGE an
+explicit shared `slide_move_unlock_seconds = 0.75` gate: grounded slide + held
+movement after that point exits into ordinary crouch locomotion immediately.
+No input retains the authored finish; explicit prone exit retains its full action.
+Owner remains CharacterBody; camera/aim/weapon/damage remain unchanged. Input-edge
+recognition is preserved on this early exit so a perpendicular double tap can
+finish as a crouched side dive instead of being erased by the handoff.
+Proof: handoff regression checks before/at unlock, no-input, prone and double-tap
+continuity; loss-delivery regression executes the same commands on authority.
+
 Translation card before edit:
 - Player intent: almost seamless movement after an action; immediate crouch response.
 - Acceptance: on the physics tick that a committed action completes, consume the

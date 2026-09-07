@@ -35,7 +35,7 @@ func _physics_process(delta: float) -> void:
 			if multiplayer.is_server():
 				latest_commands[local_id] = packet
 			else:
-				submit_movement.rpc_id(1, packet)
+				submit_movement.rpc_id(1, movement_delivery.outgoing(packet, local_operator.received_respawn_revision))
 		_try_submit_local_shot()
 	else:
 		_local_trigger_wants_shot(false, false, false)
@@ -50,6 +50,12 @@ func _physics_process(delta: float) -> void:
 	if snapshot_accumulator >= SNAPSHOT_INTERVAL:
 		snapshot_accumulator = fmod(snapshot_accumulator, SNAPSHOT_INTERVAL)
 		_broadcast_authoritative_state()
+		for peer_id in operators:
+			if int(peer_id) == multiplayer.get_unique_id(): continue
+			var actor = operators[peer_id]
+			var packed: PackedByteArray = actor.MovementState.pack(actor.MovementState.capture(actor))
+			if not packed.is_empty():
+				rpc_id(int(peer_id), "receive_movement_state", {"tick": actor.consumed_input_tick, "epoch": actor.respawn_revision, "state": packed})
 
 
 func _sync_local_fire_trigger() -> void:

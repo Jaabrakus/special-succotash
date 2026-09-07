@@ -100,6 +100,10 @@ func submit_reload(start: bool = true) -> void:
 func submit_objective_interaction(held: bool) -> void:
 	super.submit_objective_interaction(held)
 
+@rpc("authority", "call_remote", "unreliable")
+func receive_movement_state(packet: Dictionary) -> void:
+	super.receive_movement_state(packet)
+
 @rpc("authority", "call_remote", "unreliable_ordered")
 func receive_world_state(snapshot_packet: Dictionary, score_snapshot: Dictionary) -> void:
 	super.receive_world_state(snapshot_packet, score_snapshot)

@@ -1,0 +1,1 @@
+{"schema_version": 1, "enabled": true, "history_ticks": 180, "position_tolerance_m": 0.015, "maximum_state_bytes": 1100, "maximum_decoded_bytes": 8192}

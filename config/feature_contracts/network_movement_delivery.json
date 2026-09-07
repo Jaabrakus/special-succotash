@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "feature_id": "network_movement_delivery",
+  "player_intent": "Current local movement actions survive short packet-loss bursts and remote animation time advances smoothly.",
+  "acceptance_rule": "540 commands including crouch and double taps arrive once in order through injected loss/jitter; authoritative state matches each input tick. History is bounded to 352 bytes; malformed histories fail closed and respawn clears outgoing history. Remote action clocks interpolate without inventing get-up.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://multiplayer_slice.tscn",
+  "ownership": {"delivery": "SocomMovementDelivery", "movement": "SocomTestPlayer", "remote_presentation": "SocomNetworkOperator"},
+  "nodes": [{"id": "session", "type": "Node3D", "owner": "multiplayer_session", "role": "Passes bounded recovered commands to existing CharacterBody", "source_script": "res://scripts/network/socom_multiplayer_replication.gd", "code_symbols": ["movement_delivery.incoming(packet)", "operator.queue_movement_command(NetworkProtocol.packet_to_movement(entry))"]}],
+  "data_contracts": [{"path": "res://config/network/movement_delivery.json", "writer": "res://docs/MULTIPLAYER_CURRENT_GAME_PARITY.md", "readers": ["res://scripts/network/socom_movement_delivery.gd"]}],
+  "must_not_change": ["Local camera/aim", "Movement speeds", "Weapon/damage/inventory authority", "Canonical animation assets"],
+  "proof_scripts": ["res://tools/network_movement_loss_regression.gd", "res://tools/network_prediction_regression.gd", "res://tools/multiplayer_lifecycle_probe.gd"],
+  "visual_check": "Remote slides/dives consume continuously interpolated time; local player retains immediate controls. Full current-game parity remains incomplete until equipment/grenade and full replay gaps are closed.",
+  "system_delta": {
+    "decision": "MERGE", "reason": "Transport redundancy recovers lost press edges without a second movement owner; proxy timing is presentation only.",
+    "current": {"system": "Single unreliable input and stepped action clock", "correctness": 2, "ownership_clarity": 5, "runtime_parity": 3, "editor_usability": 3, "performance": 4, "regression_coverage": 2, "evidence_paths": ["res://scripts/network/socom_multiplayer_replication.gd", "res://scripts/network/socom_network_operator.gd"]},
+    "candidate": {"system": "Bounded command history and interpolated action time", "correctness": 4, "ownership_clarity": 5, "runtime_parity": 4, "editor_usability": 4, "performance": 4, "regression_coverage": 4, "evidence_paths": ["res://scripts/network/socom_movement_delivery.gd", "res://tools/network_movement_loss_regression.gd"]}
+  }
+}

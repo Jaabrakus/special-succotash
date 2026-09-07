@@ -6,6 +6,7 @@ extends SocomTestPlayer
 ## movement authority; animated Area3D shapes remain damage-only geometry.
 
 const MannequinScript := preload("res://scripts/player/test_mannequin.gd")
+const MovementState := preload("res://scripts/network/socom_movement_state.gd")
 const TeamAppearance := preload("res://scripts/player/operator_team_appearance.gd")
 const AnimatedHurtboxRigScript := preload("res://scripts/combat/socom_animated_hurtbox_rig.gd")
 
@@ -30,6 +31,12 @@ var authoritative_hurtboxes_enabled: bool = true
 var visual_runtime_enabled: bool = true
 var pending_position_correction := Vector3.ZERO
 var prediction_enabled := false
+var complete_prediction_enabled := false
+var full_prediction_history: Dictionary = {}
+var pending_action_correction: Dictionary = {}
+var last_action_ack := -1
+var last_action_epoch := -1
+var action_replay_count := 0
 var network_command_driven := false
 var prediction_history := preload("res://scripts/network/socom_prediction_history.gd").new()
 var consumed_input_tick := -1
@@ -48,6 +55,8 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	if complete_prediction_enabled and not pending_action_correction.is_empty():
+		_reconcile_action_state()
 	if not alive:
 		velocity = Vector3.ZERO
 		return
@@ -65,6 +74,10 @@ func _physics_process(delta: float) -> void:
 		network_aim_angles = Vector2(last_movement_command.aim_yaw, last_movement_command.aim_pitch)
 		if prediction_enabled:
 			prediction_history.record(consumed_input_tick, global_position, posture)
+		if complete_prediction_enabled:
+			full_prediction_history[consumed_input_tick] = {"command": last_movement_command.duplicate_command(), "state": MovementState.capture(self)}
+			while full_prediction_history.size() > int(MovementState.profile.history_ticks):
+				full_prediction_history.erase(full_prediction_history.keys()[0])
 	if not pending_position_correction.is_zero_approx():
 		var correction := pending_position_correction * (1.0 - exp(-12.0 * delta))
 		var before := global_position
@@ -72,6 +85,62 @@ func _physics_process(delta: float) -> void:
 		var applied := global_position - before
 		prediction_history.applied(applied)
 		pending_position_correction -= applied
+
+
+func queue_action_correction(packet: Dictionary) -> void:
+	if not complete_prediction_enabled or is_proxy_replica:
+		return
+	if typeof(packet.get("tick")) != TYPE_INT or typeof(packet.get("epoch")) != TYPE_INT or not packet.get("state") is PackedByteArray:
+		return
+	if int(packet.epoch) < received_respawn_revision:
+		return
+	if not pending_action_correction.is_empty():
+		if int(packet.epoch) < int(pending_action_correction.epoch): return
+		if int(packet.epoch) == int(pending_action_correction.epoch) and int(packet.tick) <= int(pending_action_correction.tick): return
+	pending_action_correction = packet.duplicate(true)
+
+
+func _reconcile_action_state() -> void:
+	var packet := pending_action_correction
+	pending_action_correction = {}
+	var state := MovementState.unpack(packet.state)
+	if state.is_empty(): return
+	var fresh_life := int(packet.epoch) > last_action_epoch
+	if int(packet.epoch) < received_respawn_revision: return
+	if not alive and not fresh_life: return
+	if fresh_life:
+		full_prediction_history.clear()
+		prediction_history.clear()
+		movement_command_queue.clear()
+		last_action_ack = -1
+		received_respawn_revision = int(packet.epoch)
+		last_action_epoch = int(packet.epoch)
+	var tick := int(packet.tick)
+	if tick <= last_action_ack and not fresh_life: return
+	last_action_ack = tick
+	var past: Dictionary = full_prediction_history.get(tick, {})
+	var differs := fresh_life or past.is_empty() or not MovementState.agrees(past.state, state)
+	for key in full_prediction_history.keys():
+		if int(key) <= tick: full_prediction_history.erase(key)
+	if not differs: return
+	if past.is_empty(): full_prediction_history.clear()
+	var live_commands := movement_command_queue.duplicate()
+	movement_command_queue.clear()
+	pending_position_correction = Vector3.ZERO
+	MovementState.apply(self, state)
+	var ticks := full_prediction_history.keys()
+	ticks.sort()
+	prediction_replaying = true
+	var signals_blocked: bool = traversal.state_machine.is_blocking_signals()
+	traversal.state_machine.set_block_signals(true)
+	for replay_tick in ticks:
+		movement_command_queue.append(full_prediction_history[replay_tick].command.duplicate_command())
+		super._physics_process(1.0 / float(Engine.physics_ticks_per_second))
+		full_prediction_history[replay_tick].state = MovementState.capture(self)
+	traversal.state_machine.set_block_signals(signals_blocked)
+	prediction_replaying = false
+	movement_command_queue.assign(live_commands)
+	action_replay_count += 1
 
 
 func configure_identity(peer_id: int, assigned_team: int) -> void:
@@ -150,6 +219,7 @@ func update_proxy_interpolation(current_time_seconds: float) -> void:
 		posture = clampi(int(latest["posture"]), MotionState.STANDING, MotionState.PRONE)
 		motion_state = posture
 		_apply_snapshot_presentation(latest)
+		_advance_proxy_action_time(extrapolation)
 		_apply_posture_collider()
 		_set_alive_and_health(bool(latest["alive"]), float(latest["health"]))
 		return
@@ -198,6 +268,13 @@ func update_proxy_interpolation(current_time_seconds: float) -> void:
 	posture = clampi(chosen_posture, MotionState.STANDING, MotionState.PRONE)
 	motion_state = posture
 	_apply_snapshot_presentation(s1 if alpha >= 0.5 else s0)
+	var p_start: Dictionary = s0.get("presentation", {})
+	var p_end: Dictionary = s1.get("presentation", {})
+	if (int(p_start.get("motion_state", -1)) == int(p_end.get("motion_state", -2))
+		and String(p_start.get("combo_kind", "")) == String(p_end.get("combo_kind", ""))
+		and bool(p_start.get("combo_recovering", false)) == bool(p_end.get("combo_recovering", false))
+		and float(p_end.get("action_elapsed", 0.0)) >= float(p_start.get("action_elapsed", 0.0))):
+		action_elapsed = clampf(lerpf(float(p_start.get("action_elapsed", 0.0)), float(p_end.get("action_elapsed", 0.0)), alpha), 0.0, action_duration)
 	_apply_posture_collider()
 
 	var blended_health := lerpf(float(s0["health"]), float(s1["health"]), alpha)
@@ -223,6 +300,10 @@ func _apply_snapshot_presentation(entry: Dictionary) -> void:
 	var combo := StringName(state.get("combo_kind", ""))
 	mobility_combo_kind = combo if combo in [&"slide", &"left", &"right", &"back"] and motion_state == MotionState.DIVING else &""
 	combo_exit_prone = mobility_combo_kind == &"slide" and bool(state.get("combo_exit_prone", false))
+	combo_recovering = bool(state.get("combo_recovering", false))
+	roll_side = clampf(float(state.get("roll_side", 1.0)), -1.0, 1.0)
+	var direction: Vector3 = state.get("action_direction", Vector3.FORWARD)
+	if direction.is_finite(): action_direction = direction.normalized()
 	action_duration = clampf(float(state.get("action_duration", 0.0)), 0.0, 3.0)
 	action_elapsed = clampf(float(state.get("action_elapsed", 0.0)), 0.0, action_duration)
 	var angles: Vector2 = state.get("aim_angles", Vector2(rotation.y, 0.0))
@@ -231,6 +312,14 @@ func _apply_snapshot_presentation(entry: Dictionary) -> void:
 	desired_movement_direction = desired.limit_length(1.0) if desired.is_finite() else Vector3.ZERO
 	movement_input_strength = clampf(float(state.get("movement_strength", 0.0)), 0.0, 1.0)
 	peek_amount = clampf(float(state.get("peek", 0.0)), -1.0, 1.0)
+
+
+func _advance_proxy_action_time(seconds: float) -> void:
+	if motion_state not in [MotionState.DIVING, MotionState.ROLLING, MotionState.LANDING]: return
+	var limit := action_duration
+	if mobility_combo_kind in [&"left", &"right"] and not combo_recovering:
+		limit = minf(limit, float(jump_combo_intent.profile.rest_seconds))
+	action_elapsed = minf(action_elapsed + maxf(seconds, 0.0), limit)
 
 
 func set_authoritative_snapshot(
@@ -244,6 +333,14 @@ func set_authoritative_snapshot(
 	acknowledged_input_tick: int = -1,
 	server_respawn_revision: int = 0
 ) -> void:
+	if server_respawn_revision < received_respawn_revision:
+		return
+	if complete_prediction_enabled and not hard_snap:
+		# Health and movement packets may cross in flight. Neither may rewind a
+		# newer life, and health snapshots must not overwrite replayed movement.
+		received_respawn_revision = server_respawn_revision
+		_set_alive_and_health(alive_value, health_value)
+		return
 	if prediction_enabled and not hard_snap and server_respawn_revision == received_respawn_revision:
 		var acknowledgement := prediction_history.acknowledge(acknowledged_input_tick, position_value)
 		if not acknowledgement.is_empty():
@@ -291,6 +388,11 @@ func respawn_at(spawn_position: Vector3) -> void:
 	movement_command_queue.clear()
 	prediction_history.clear()
 	pending_position_correction = Vector3.ZERO
+	full_prediction_history.clear()
+	pending_action_correction.clear()
+	last_action_ack = -1
+	last_action_epoch = -1
+	prediction_floor_override = -1
 	snapshot_history.clear()
 	global_position = spawn_position
 	velocity = Vector3.ZERO

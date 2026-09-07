@@ -6,6 +6,7 @@ extends RefCounted
 ## ENet. Keeping this conversion in one place makes packet validation testable.
 
 const MovementCommand := preload("res://scripts/network/socom_movement_command.gd")
+const SNAPSHOT_ENTITY_BYTE_BUDGET := 1000 # Reserve room for RPC/envelope/score fields below ENet MTU.
 
 
 static func movement_to_packet(command) -> Dictionary:
@@ -52,6 +53,11 @@ static func movement_packet_is_sane(packet: Dictionary) -> bool:
 		return false
 	if typeof(packet.get("tick")) != TYPE_INT:
 		return false
+	if int(packet.tick) < 0: return false
+	for flag in ["jump", "jump_held", "dive", "roll", "prone", "crouch", "crouch_released"]:
+		if typeof(packet.get(flag, false)) != TYPE_BOOL: return false
+	var peek: Variant = packet.get("peek", 0.0)
+	if typeof(peek) not in [TYPE_FLOAT, TYPE_INT] or not is_finite(float(peek)) or absf(float(peek)) > 1.0: return false
 	if typeof(packet.get("move")) != TYPE_VECTOR2:
 		return false
 	var yaw_type := typeof(packet.get("aim_yaw"))
@@ -156,6 +162,11 @@ static func chunk_snapshot_entities(
 	var chunks: Array[Dictionary] = []
 	var current: Dictionary = {}
 	for raw_id in peer_ids:
+		var candidate := current.duplicate()
+		candidate[raw_id] = entities[raw_id]
+		if not current.is_empty() and var_to_bytes(candidate).size() > SNAPSHOT_ENTITY_BYTE_BUDGET:
+			chunks.append(current)
+			current = {}
 		current[raw_id] = entities[raw_id]
 		if current.size() >= limit:
 			chunks.append(current)

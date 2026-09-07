@@ -175,7 +175,7 @@ func _run_host() -> void:
 					not slice.session_active
 					and not slice.round_active
 					and slice.lobby.phase == "WAITING"
-					and slice.operators.is_empty()
+					and _lobby_operator_state_valid()
 				),
 			10.0
 		):
@@ -249,7 +249,7 @@ func _run_client() -> void:
 				return (
 					not slice.session_active
 					and not slice.round_active
-					and slice.operators.is_empty()
+					and _lobby_operator_state_valid()
 					and slice.lobby.phase == "WAITING"
 					and not _local_lobby_ready(peer_id)
 				),
@@ -271,6 +271,16 @@ func _local_lobby_ready(peer_id: int) -> bool:
 	var raw_key: Variant = peer_id if slice.lobby.players.has(peer_id) else str(peer_id)
 	var player_state: Variant = slice.lobby.players.get(raw_key, {})
 	return bool((player_state as Dictionary).get("ready", false)) if player_state is Dictionary else false
+
+
+func _lobby_operator_state_valid() -> bool:
+	if not slice.is_lobby_warmup_active(): return slice.operators.is_empty()
+	if slice.operators.size() != slice.lobby.players.size(): return false
+	for peer_id in slice.operators:
+		var actor = slice.operators[peer_id]
+		if not slice.lobby.players.has(peer_id) or not actor.alive or actor.current_health != actor.max_health:
+			return false
+	return true
 
 
 func _admission_timeout(default_seconds: float) -> float:

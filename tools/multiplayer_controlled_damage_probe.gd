@@ -5,7 +5,7 @@ extends RefCounted
 ## Keeps lane setup, client convergence shots, and health invariants out of the
 ## lifecycle/orchestration script so either test can evolve independently.
 
-const SHOTS_PER_TARGET := 3
+const SHOTS_PER_TARGET := 12 # Bounded attempts: round-selected guns do not all kill in three hits.
 const HEIGHT := 30.0
 const LANE_SPACING := 3.0
 const SHOOTER_Z := 1.75
@@ -71,6 +71,7 @@ func run_client(cycle: int, peer_id: int) -> Dictionary:
 	# and all client snapshots agree on the controlled lane.
 	await tree.create_timer(0.35).timeout
 	for shot_index in SHOTS_PER_TARGET:
+		if not target.alive: break
 		var report_anchor := _expected_position(peer_id) + Vector3.UP * 1.35
 		var target_point := (
 			_expected_position(int(target.network_peer_id)) + Vector3.UP * TARGET_HEIGHT
@@ -99,6 +100,7 @@ func fire_host(cycle: int) -> void:
 	if shooter == null or target == null or shooter.mannequin == null:
 		return
 	for shot_index in SHOTS_PER_TARGET:
+		if not target.alive: break
 		var muzzle: Vector3 = shooter.mannequin.get_active_muzzle_position()
 		var target_point: Vector3 = target.global_position + Vector3.UP * TARGET_HEIGHT
 		var torso_area: Area3D = (

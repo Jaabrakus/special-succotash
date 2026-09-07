@@ -13,17 +13,18 @@ local player's input.
 
 | Setting | Current value | Function |
 | --- | ---: | --- |
-| Server snapshot rate | 20 Hz | Sends one authoritative world state every 50 ms. |
+| Server snapshot rate | 60 Hz | Sends one authoritative world state every 16.7 ms (1.0 / 60.0). |
 | Remote interpolation delay | 130 ms | Gives the client multiple snapshots to blend between. |
 | Maximum extrapolation | 80 ms | Moves a remote player briefly along the last known velocity if a snapshot is late. |
-| Snapshot history | 1.5 seconds | Stores recent remote states for interpolation. |
+| Snapshot history | 1.0 seconds | Stores recent authoritative and remote states for interpolation and rewind. |
 | Strafe direction change | 16.7 ms | Direction changes on the next physics frame. |
 | Strafe opening burst | 2 frames at 1.18x | Makes the initial plant violent and readable. |
 | Strafe burst decay | 120 ms | Smoothly reduces speed from 7.67 m/s to the sustained 6.5 m/s. |
 | Reversal fatigue | Disabled | Every reversal gets the same burst and decay. |
 | Locomotion animation blend | 75 ms | Keeps the visual direction change sharp without moving the authoritative body. |
 | Simulated network latency | 0 ms | Remains disabled; packet delay must not stack with interpolation. |
-| Transport-only rewind | 0–80 ms one way | Reduces real connection differences without removing the 130 ms lead window. |
+| Transport-only rewind | 0–80 ms one way | Used for baseline transport-only assertions. |
+| Compensated combat rewind | Transport + 130 ms buffer | Unwinds remote presentation buffer during live hitscan raycasts to match shooter screen. |
 
 The current implementation is in:
 
@@ -41,7 +42,7 @@ remote render time = current time - 130 ms
 
 The client selects two server snapshots around that time and blends position,
 yaw, velocity, posture, health, and alive state. This hides ordinary packet
-jitter and prevents remote players from snapping between 20 Hz updates.
+jitter and provides fluid rendering between 60 Hz updates.
 
 If the newest snapshot is late, the client can extrapolate the last known
 velocity for no more than 80 ms. This is a small loss-recovery window. It is not
@@ -52,56 +53,47 @@ permission for the remote client to author movement.
 The interpolation delay alone does not define shot behavior. Shot validation
 defines it.
 
-141 currently has these rules:
+141 implements full **Compensated Timing** for live combat shot processing:
 
 1. The local client sends bounded aim intent.
 2. The server supplies the authoritative muzzle position.
-3. The server performs an immediate hitscan ray against its current world.
-4. The server measures round-trip time with opaque echo probes.
-5. The server rewinds remote targets only by the measured one-way packet
-   transit, capped at 80 ms.
-6. The server does not rewind the authored 130 ms presentation delay.
+3. The server rewinds remote targets by total shot compensation: the measured
+   one-way packet transit (capped at 80 ms) plus the 130 ms remote presentation
+   interpolation delay via `_total_shot_compensation_seconds()`.
+4. The server performs the hitscan ray against the rewound world state matching
+   the shooter's visual frame.
+5. The server restores current authoritative world state immediately after the query.
+6. Transport-only rewind (`include_presentation_buffer = false`) remains supported
+   for legacy transport regression assertions.
 
-Because the displayed remote target is approximately 130 ms in the past, a
-laterally moving target can already be ahead of the body shown on the shooter's
-screen when the server tests the ray. Transport-only rewind removes part of the
-connection-dependent difference but intentionally preserves this common lead.
+Because the server rewinds both network transit and presentation delay during
+live shot queries, players can aim directly at visible character models with zero
+artificial network lead, matching single-player local feel.
 
-A rough estimate is:
-
-```text
-network lead distance ~= target lateral speed * 0.130 s
-                         + uncompensated/capped transport variance
-```
-
-This is network lead. It is separate from physical projectile lead. The current
-authoritative shot is hitscan. Saved muzzle velocity controls tracer
-presentation and does not delay damage.
+This is distinct from physical projectile travel. The current authoritative shot
+is hitscan. Saved muzzle velocity controls tracer presentation and does not
+delay damage.
 
 ## Classic timing and compensated timing
 
-141 can support two explicit shot-timing policies.
+141 supports two shot-timing modes:
 
-### 141 competitive timing
+### Classic / transport-only mode
 
 - Keep the 130 ms remote interpolation delay.
-- Rewind targets only by measured packet transit, never by the authored buffer.
-- Require players to learn some network lead against moving targets.
-- Cap compensation and use regional matchmaking for high-latency connections.
+- Rewind targets only by measured packet transit, excluding the presentation buffer.
+- Used in regression tests (`tools/multiplayer_slice_regression.gd`).
 
-This is the behavior of the current multiplayer slice.
-
-### Compensated timing
+### Modern compensated timing (Default in live combat)
 
 - Keep the 130 ms interpolation delay for smooth movement.
-- Store authoritative target position and hurtbox history on the server.
-- Rewind targets to the time represented on the shooter's screen.
+- Store authoritative target position and hurtbox history on the server (1.0 s window).
+- Rewind targets by `_total_shot_compensation_seconds()` (transit + presentation delay) in `_server_process_shot()`.
 - Validate the hitscan shot against that historical server state.
 - Restore the current server state after the query.
 
-This lets a player aim at the target that was visibly presented without giving
-the client authority over hits or damage. It can also produce the familiar
-tradeoff where a player is hit shortly after reaching cover.
+This lets a player aim directly at the target that was visibly presented without
+giving the client authority over hits or damage.
 
 ## Historical context
 

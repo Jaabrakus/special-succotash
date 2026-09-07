@@ -11,6 +11,7 @@
   "input_mode": "grounded_double_tap",
   "diagonal_steering": true,
   "instant_crouch_response": true,
+  "slide_move_unlock_seconds": 0.75,
   "chain_from": ["slide", "back"],
   "chain_to": ["left", "right"],
   "crouch_allowed_kinds": ["left", "right", "back"],
