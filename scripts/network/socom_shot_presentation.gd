@@ -28,9 +28,10 @@ func present_report(origin: Vector3, weapon_config: Dictionary, acoustic_exclusi
 		origin, false, acoustic_exclusions, String(weapon_config.get("weapon_id", "")))
 
 func present_muzzle(mannequin: Node, weapon_config: Dictionary) -> void:
+	if mannequin == null: return
 	var marker: Marker3D = mannequin.get_active_muzzle_marker()
 	if marker == null: return
-	var follow := bool(weapon_config.get("handling_profile", {}).get("presentation", {}).get("muzzle_effect_follows_presented_muzzle", false))
+	var follow := bool(weapon_config.get("handling_profile", {}).get("presentation", {}).get("muzzle_effect_follows_presented_muzzle", true))
 	Tracers.spawn_muzzle_flash(get_tree(), marker.global_position, mannequin.get_active_barrel_direction(), marker if follow else null)
 	var ejection: Marker3D = mannequin.get_active_ejection_marker()
 	if ejection != null:

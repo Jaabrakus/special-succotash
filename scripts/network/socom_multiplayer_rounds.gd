@@ -190,7 +190,12 @@ func _present_shot(shooter_peer_id: int, origin: Vector3, impact: Vector3, hit: 
 		if not dedicated_server_mode and shot_presentation != null:
 			shot_presentation.present_muzzle(shooter.mannequin, _weapon_config_for_peer(shooter_peer_id))
 	if not dedicated_server_mode and shot_presentation != null:
-		shot_presentation.present_shot(origin, impact, hit, message,
+		var shot_origin := origin
+		if shooter != null and shooter.mannequin != null:
+			var active_muzzle: Marker3D = shooter.mannequin.get_active_muzzle_marker()
+			if active_muzzle != null:
+				shot_origin = active_muzzle.global_position
+		shot_presentation.present_shot(shot_origin, impact, hit, message,
 			_weapon_config_for_peer(shooter_peer_id), _acoustic_exclusions_for_shooter(shooter_peer_id), not already_predicted)
 	if shooter_peer_id == multiplayer.get_unique_id():
 		if not already_predicted and not dedicated_server_mode:

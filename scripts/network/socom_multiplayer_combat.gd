@@ -281,7 +281,13 @@ func receive_pellet_impacts(shooter: int, origin: Vector3, impacts: Array[Dictio
 
 func _present_pellet_impacts(shooter: int, origin: Vector3, impacts: Array[Dictionary]) -> void:
 	if not dedicated_server_mode and shot_presentation != null:
-		shot_presentation.present_pellets(origin, impacts, _weapon_config_for_peer(shooter))
+		var shot_origin := origin
+		var shooter_node: Variant = operators.get(shooter)
+		if shooter_node != null and shooter_node.mannequin != null:
+			var active_muzzle: Marker3D = shooter_node.mannequin.get_active_muzzle_marker()
+			if active_muzzle != null:
+				shot_origin = active_muzzle.global_position
+		shot_presentation.present_pellets(shot_origin, impacts, _weapon_config_for_peer(shooter))
 
 
 

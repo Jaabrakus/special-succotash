@@ -3,12 +3,14 @@ extends SceneTree
 class PresentationSpy extends Node:
 	var reports := 0
 	var impacts := 0
+	var last_origin := Vector3.ZERO
 	func present_muzzle(_mannequin: Node, _config: Dictionary) -> void:
 		pass
 	func present_report(_origin: Vector3, _config: Dictionary, _exclude: Array) -> void:
 		reports += 1
-	func present_shot(_origin: Vector3, _impact: Vector3, _hit: bool, _message: String,
+	func present_shot(origin: Vector3, _impact: Vector3, _hit: bool, _message: String,
 			_config: Dictionary, _exclude: Array, report: bool = true) -> void:
+		last_origin = origin
 		if report: reports += 1
 		impacts += 1
 
@@ -44,6 +46,8 @@ func _run() -> void:
 	assert(spy.impacts == 1, "Duplicate authoritative effect is idempotent")
 	game.receive_shot_effect(1, Vector3.ZERO, Vector3.FORWARD, false, "MISS", 45)
 	assert(latch.accepted_shot_count == before + 2 and spy.reports == 2, "Unpredicted accepted shot still presents")
+	var active_muzzle: Marker3D = game.local_operator.mannequin.get_active_muzzle_marker()
+	assert(active_muzzle != null and spy.last_origin.is_equal_approx(active_muzzle.global_position), "Visual shot origin anchors to active weapon muzzle")
 	game.free()
 	print("NETWORK_SHOT_FEEDBACK PASS immediate recoil/sound, exactly-once acknowledgement, server-only impacts/ammo/health")
 	quit()
