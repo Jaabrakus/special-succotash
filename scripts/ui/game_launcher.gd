@@ -107,7 +107,7 @@ func _build_ui() -> void:
 	margin.add_child(root_column)
 
 	var title := Label.new()
-	title.text = "141"
+	title.text = "DELTA COM"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_font_size_override("font_size", 36)
 	title.add_theme_color_override("font_color", Color("8bc5ae"))
@@ -553,7 +553,7 @@ func _format_server_row(server: Dictionary) -> String:
 		ruleset.get("map_name", server.get("map_name", "rotation"))
 	))
 	return "%s  •  %s / %s  •  %s  •  %d/%d" % [
-		String(server.get("name", "SOCOM SERVER")),
+		String(server.get("name", "DELTA COM SERVER")),
 		mode.replace("_", " ").to_upper(),
 		map_name,
 		String(server.get("region", "unknown")).to_upper(),

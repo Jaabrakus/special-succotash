@@ -66,7 +66,7 @@ func show_lobby(enabled: bool, session_active: bool) -> void:
 
 
 func set_status(message: String) -> void:
-	status_label.text = "SOCOM-141 MULTIPLAYER SLICE  •  %s" % message
+	status_label.text = "DELTA COM MULTIPLAYER SLICE  •  %s" % message
 
 
 func show_host_invite(port: int) -> void:
@@ -366,7 +366,7 @@ func refresh_lobby(
 
 
 func _build_match_hud() -> void:
-	status_label = _add_label(Vector2(20.0, 16.0), 17, Color.WHITE, "SOCOM-141 MULTIPLAYER SLICE")
+	status_label = _add_label(Vector2(20.0, 16.0), 17, Color.WHITE, "DELTA COM MULTIPLAYER SLICE")
 	score_label = _add_label(Vector2(20.0, 42.0), 16)
 	player_state_label = _add_label(Vector2(20.0, 66.0), 15, Color("a9f4c0"))
 	match_clock_label = _add_label(Vector2(20.0, 90.0), 18, Color("f2cf6a"))
@@ -477,7 +477,7 @@ func _build_lobby() -> void:
 	column.add_theme_constant_override("separation", 10)
 	margin.add_child(column)
 	var title := Label.new()
-	title.text = "SOCOM-141 MATCH LOBBY"
+	title.text = "DELTA COM MATCH LOBBY"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_font_size_override("font_size", 26)
 	title.add_theme_color_override("font_color", Color("8bc5ae"))

@@ -51,7 +51,7 @@ func _build_ui() -> void:
 	margin.add_child(vbox)
 
 	title_label = Label.new()
-	title_label.text = "★ 141 GUNFIGHT TOURNAMENT BRACKET ★"
+	title_label.text = "★ DELTA COM GUNFIGHT TOURNAMENT BRACKET ★"
 	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title_label.add_theme_font_size_override("font_size", 22)
 	title_label.add_theme_color_override("font_color", Color("8bc5ae"))

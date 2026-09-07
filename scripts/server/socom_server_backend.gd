@@ -92,7 +92,7 @@ func register_dedicated_server(port: int, advertised_capacity: int = 16) -> Dict
 	self.advertised_capacity = sanitize_advertised_capacity(advertised_capacity)
 	_refresh_directory_snapshot_from_provider()
 	var body := {
-		"name": _environment_or("SOCOM_SERVER_NAME", "SOCOM-141 Dedicated"),
+		"name": _environment_or("SOCOM_SERVER_NAME", "Delta Com Dedicated"),
 		"region": _environment_or("SOCOM_SERVER_REGION", "us-east"),
 		"public_address": public_address,
 		"public_port": port,
