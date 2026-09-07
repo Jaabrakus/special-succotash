@@ -1,0 +1,51 @@
+{
+  "result": "PASS",
+  "models_checked": 4,
+  "original_blend_hashes_unchanged": true,
+  "editable_v2_roots": 4,
+  "checks": [
+    "empty-scene GLB import",
+    "triangle-count parity",
+    "finite coordinates",
+    "positive triangle areas",
+    "material slots",
+    "UVs and embedded grip normal map",
+    "editable Blender roots",
+    "original file SHA-256 preservation"
+  ],
+  "items": [
+    {
+      "id": "p9s",
+      "result": "PASS",
+      "triangles": 11116,
+      "materials": 7,
+      "embedded_texture_nodes": 1
+    },
+    {
+      "id": "mark23",
+      "result": "PASS",
+      "triangles": 11416,
+      "materials": 7,
+      "embedded_texture_nodes": 1
+    },
+    {
+      "id": "beretta",
+      "result": "PASS",
+      "triangles": 17576,
+      "materials": 8,
+      "embedded_texture_nodes": 2
+    },
+    {
+      "id": "desert_eagle",
+      "result": "PASS",
+      "triangles": 14037,
+      "materials": 8,
+      "embedded_texture_nodes": 1
+    }
+  ],
+  "not_tested": [
+    "gameplay integration",
+    "mechanical function",
+    "full 3D photo equivalence"
+  ]
+}

@@ -20,6 +20,12 @@ const DIRECTION_POINTS: Dictionary = {
 const PRESENTATION_RELAXED_RIFLE := &"RELAXED_RIFLE"
 const PRESENTATION_READY_AIM := &"READY_AIM"
 
+# No pelvis/root translation, aim frame, shoulder or hand tracks are borrowed.
+const JUMP_LEG_BONES: Array[StringName] = [
+	&"mixamorig_LeftUpLeg", &"mixamorig_LeftLeg", &"mixamorig_LeftFoot", &"mixamorig_LeftToeBase",
+	&"mixamorig_RightUpLeg", &"mixamorig_RightLeg", &"mixamorig_RightFoot", &"mixamorig_RightToeBase",
+]
+
 const AIM_FRAME_BONES: Array[StringName] = [
 	&"mixamorig_Spine",
 	&"mixamorig_Spine1",
@@ -83,6 +89,7 @@ var modern_state_indices: Dictionary = {}
 var legacy_clip_indices: Dictionary = {}
 var modern_clip_time_scale_paths: Dictionary = {}
 var legacy_clip_time_scale_paths: Dictionary = {}
+var combo_seek_paths: Dictionary = {}
 var profile
 var weapon_handling_profile: Dictionary = {}
 var modern_enabled: bool = true
@@ -113,6 +120,18 @@ var standing_reload_layer_available: bool = false
 var standing_reload_trigger_count: int = 0
 var presentation_mode: StringName = PRESENTATION_RELAXED_RIFLE
 var upper_body_ready_blend: float = 0.0
+var locomotion_carry_weight: float = 0.0
+var evaluated_locomotion_carry_weight: float = 0.0
+var evaluated_carry_direction := Vector2.UP
+var evaluated_locomotion_source_weight: float = 0.0
+var jump_lower_body_clip: StringName = &""
+var jump_lower_body_active: bool = false
+var jump_lower_body_weight: float = 0.0
+var jump_lower_body_entry_count: int = 0
+var jump_frame_source: Animation
+var jump_frame_hips_index: int = -1
+var jump_frame_hip_chain: Array[Dictionary] = []
+var jump_frame_thighs: Array[Dictionary] = []
 
 
 func build(
@@ -139,11 +158,12 @@ func build(
 	root.add_node(&"route_blend", route_blend, Vector2(980.0, 100.0))
 	root.connect_node(&"route_blend", 0, &"legacy_transition")
 	root.connect_node(&"route_blend", 1, &"modern_transition")
-	_build_crouched_reload_layer(root, available_clips)
+	var locomotion_source := _build_jump_lower_body_layer(root, available_clips)
+	_build_crouched_reload_layer(root, available_clips, locomotion_source)
 	var action_source := (
 		&"crouched_reload_layer"
 		if crouched_reload_layer_available
-		else &"route_blend"
+		else locomotion_source
 	)
 	_build_standing_reload_layer(root, available_clips, action_source)
 	if standing_reload_layer_available:
@@ -161,6 +181,7 @@ func build(
 	animation_tree.anim_player = animation_tree.get_path_to(animation_player)
 	animation_tree.tree_root = root
 	animation_tree.active = true
+	_bind_jump_source_frame(owner.get("skeleton") as Skeleton3D, animation_player)
 	set_modern_enabled(use_modern)
 	request_modern_state(&"idle")
 	return animation_tree
@@ -170,6 +191,10 @@ func set_modern_enabled(enabled: bool) -> void:
 	modern_enabled = enabled
 	if animation_tree != null:
 		animation_tree.set("parameters/route_blend/blend_amount", 1.0 if enabled else 0.0)
+		if not enabled and jump_lower_body_clip != &"":
+			jump_lower_body_active = false
+			jump_lower_body_weight = 0.0
+			animation_tree.set("parameters/jump_lower_body/blend_amount", 0.0)
 
 
 func update_locomotion(
@@ -182,6 +207,16 @@ func update_locomotion(
 ) -> void:
 	if animation_tree == null:
 		return
+	# The tree evaluated these published inputs before the priority-100 pose
+	# pass. Preserve that frame for chest/weapon presentation before publishing
+	# next-frame movement values. This is not a second blend or animation clock.
+	evaluated_locomotion_carry_weight = locomotion_carry_weight
+	evaluated_carry_direction = rendered_direction
+	evaluated_locomotion_source_weight = evaluated_modern_state_weight([&"standing", &"crouch"], delta)
+	if jump_lower_body_clip != &"":
+		var fade := maxf(float(profile.jump_lower_body.get("blend_seconds", 0.06)), 0.001)
+		jump_lower_body_weight = move_toward(jump_lower_body_weight, float(jump_lower_body_active and modern_enabled), maxf(delta, 0.0) / fade)
+		animation_tree.set("parameters/jump_lower_body/blend_amount", jump_lower_body_weight)
 	var target_direction := direction.normalized() if direction.length_squared() > 0.001 else smoothed_direction
 	var lateral_threshold := float(profile.locomotion.get("lateral_snap_threshold", 0.92))
 	var pure_lateral := (
@@ -218,53 +253,7 @@ func update_locomotion(
 	# presentation fix cannot shift the crawl phase or lift knees off the floor.
 	if posture == &"PRONE":
 		rendered_direction = smoothed_direction
-	presentation_mode = (
-		PRESENTATION_READY_AIM
-		if ready_weight >= 0.50
-		else PRESENTATION_RELAXED_RIFLE
-	)
-	var normalized_ready := clampf(ready_weight, 0.0, 1.0)
-	var movement_amount := smoothstep(0.08, 0.55, speed_normalized)
-	var dynamic_hold: Variant = weapon_handling_profile.get("dynamic_hold", {})
-	var ready_locomotion_inheritance := 0.22
-	var relaxed_idle_upper_body_weight := 0.0
-	if dynamic_hold is Dictionary:
-		ready_locomotion_inheritance = clampf(
-			float(
-				(dynamic_hold as Dictionary).get(
-					"ready_locomotion_inheritance",
-					ready_locomotion_inheritance
-				)
-			),
-			0.0,
-			0.35
-		)
-		relaxed_idle_upper_body_weight = clampf(
-			float(
-				(dynamic_hold as Dictionary).get(
-					"relaxed_idle_upper_body_weight",
-					relaxed_idle_upper_body_weight
-				)
-			),
-			0.0,
-			1.0
-		)
-	# Aim Idle remains the dominant firing pose, but a moving player retains a
-	# small amount of the active rifle-walk torso and arm motion. The right-hand
-	# weapon mount therefore breathes with the body instead of looking pinned in
-	# space while the legs move underneath it.
-	upper_body_ready_blend = normalized_ready * (
-		1.0 - ready_locomotion_inheritance * movement_amount
-	)
-	# The relaxed standing pose is the complete Idle Rifle take. Aim Idle enters
-	# only when ready/fire owns the upper body; do not mix two unrelated arm poses
-	# into the neutral stance.
-	var idle_upper_body_blend := normalized_ready
-	if posture == &"STANDING" and speed_normalized <= 0.05:
-		idle_upper_body_blend = maxf(
-			idle_upper_body_blend,
-			relaxed_idle_upper_body_weight
-		)
+	_publish_ready_mask(posture, speed_normalized, ready_weight)
 	# Standing uses one continuous sprint matrix. Aim/fire only replaces the
 	# upper body; it must never change the lower-body gait back to Rifle Walk.
 	var standing_sprint_only := (
@@ -298,13 +287,98 @@ func update_locomotion(
 	prone_travel_blend = lerpf(prone_travel_blend, prone_target, direction_alpha)
 	animation_tree.set("parameters/prone_space/blend_position", prone_travel_blend)
 	animation_tree.set("parameters/standing_speed_blend/blend_amount", full_gait_weight)
+	for layer_name in standing_transition_layer_nodes:
+		animation_tree.set(
+			"parameters/%s/blend_amount" % layer_name,
+			1.0
+		)
+	for layer_name in airborne_upper_body_layer_nodes:
+		animation_tree.set(
+			"parameters/%s/blend_amount" % layer_name,
+			1.0
+		)
+	animation_tree.set("parameters/standing_time_scale/scale", playback_rate)
+	animation_tree.set("parameters/crouch_time_scale/scale", playback_rate)
+	animation_tree.set("parameters/prone_time_scale/scale", playback_rate)
+
+
+func publish_accepted_moving_pistol_ready(posture: StringName, speed_normalized: float) -> void:
+	# The accepted event supplies readiness only. Publish its already-defined
+	# upper-body weights before the next normal tree evaluation; never advance
+	# gait phase, blend direction, route, speed, or an animation clock here.
+	if animation_tree == null or not modern_enabled:
+		return
+	if weapon_handling_profile.get("family", "") != "TWO_HAND_PISTOL" or posture not in [&"STANDING", &"CROUCHED"]:
+		return
+	_publish_ready_mask(posture, speed_normalized, 1.0)
+
+
+func _publish_ready_mask(posture: StringName, speed_normalized: float, ready_weight: float) -> void:
+	presentation_mode = (
+		PRESENTATION_READY_AIM
+		if ready_weight >= 0.50
+		else PRESENTATION_RELAXED_RIFLE
+	)
+	var normalized_ready := clampf(ready_weight, 0.0, 1.0)
+	var movement_amount := smoothstep(0.08, 0.55, speed_normalized)
+	var dynamic_hold: Variant = weapon_handling_profile.get("dynamic_hold", {})
+	var ready_locomotion_inheritance := 0.22
+	var relaxed_idle_upper_body_weight := 0.0
+	var locomotion_ready_carry_weight := 0.0
+	if dynamic_hold is Dictionary:
+		locomotion_ready_carry_weight = clampf(
+			float(dynamic_hold.get("locomotion_ready_carry_weight", 0.0)), 0.0, 1.0
+		)
+		ready_locomotion_inheritance = clampf(
+			float(
+				(dynamic_hold as Dictionary).get(
+					"ready_locomotion_inheritance",
+					ready_locomotion_inheritance
+				)
+			),
+			0.0,
+			0.35
+		)
+		relaxed_idle_upper_body_weight = clampf(
+			float(
+				(dynamic_hold as Dictionary).get(
+					"relaxed_idle_upper_body_weight",
+					relaxed_idle_upper_body_weight
+				)
+			),
+			0.0,
+			1.0
+		)
+	# Aim Idle remains the dominant firing pose, but a moving player retains a
+	# small amount of the active rifle-walk torso and arm motion. The right-hand
+	# weapon mount therefore breathes with the body instead of looking pinned in
+	# space while the legs move underneath it.
+	# Movement-only carry reuses the accepted ready silhouette without setting
+	# readiness or accepting a shot. Other profiles default to the original path.
+	locomotion_carry_weight = (
+		locomotion_ready_carry_weight * movement_amount
+		if posture in [&"STANDING", &"CROUCHED"] else 0.0
+	)
+	var moving_pose_ready := maxf(normalized_ready, locomotion_carry_weight)
+	upper_body_ready_blend = moving_pose_ready * (
+		1.0 - ready_locomotion_inheritance * movement_amount
+	)
+	# The relaxed standing pose is the complete Idle Rifle take. Aim Idle enters
+	# only when ready/fire owns the upper body; do not mix two unrelated arm poses
+	# into the neutral stance.
+	var idle_upper_body_blend := normalized_ready
+	if posture == &"STANDING" and speed_normalized <= 0.05:
+		idle_upper_body_blend = maxf(
+			idle_upper_body_blend,
+			relaxed_idle_upper_body_weight
+		)
 	animation_tree.set(
 		"parameters/standing_upper_body/blend_amount",
 		upper_body_ready_blend
 	)
 	animation_tree.set(
 		"parameters/standing_aim_frame/blend_amount",
-		normalized_ready
+		moving_pose_ready
 	)
 	animation_tree.set(
 		"parameters/standing_idle_upper_body/blend_amount",
@@ -316,11 +390,11 @@ func update_locomotion(
 	)
 	animation_tree.set(
 		"parameters/crouch_upper_body/blend_amount",
-		normalized_ready
+		moving_pose_ready
 	)
 	animation_tree.set(
 		"parameters/crouch_aim_frame/blend_amount",
-		normalized_ready
+		moving_pose_ready
 	)
 	animation_tree.set(
 		"parameters/crouch_idle_upper_body/blend_amount",
@@ -330,16 +404,6 @@ func update_locomotion(
 		"parameters/crouch_idle_aim_frame/blend_amount",
 		normalized_ready
 	)
-	for layer_name in standing_transition_layer_nodes:
-		animation_tree.set(
-			"parameters/%s/blend_amount" % layer_name,
-			1.0
-		)
-	for layer_name in airborne_upper_body_layer_nodes:
-		animation_tree.set(
-			"parameters/%s/blend_amount" % layer_name,
-			1.0
-		)
 	for ready_name in standing_transition_ready_nodes:
 		animation_tree.set(
 			"parameters/%s/blend_amount" % ready_name,
@@ -350,15 +414,13 @@ func update_locomotion(
 			"parameters/%s/blend_amount" % aim_frame_name,
 			normalized_ready
 		)
-	animation_tree.set("parameters/standing_time_scale/scale", playback_rate)
-	animation_tree.set("parameters/crouch_time_scale/scale", playback_rate)
-	animation_tree.set("parameters/prone_time_scale/scale", playback_rate)
-	animation_tree.set("parameters/standing_upper_ready_blend/blend_amount", normalized_ready)
+	animation_tree.set("parameters/standing_upper_ready_blend/blend_amount", moving_pose_ready)
 
 
 func request_modern_state(state_name: StringName, blend_seconds: float = -1.0) -> bool:
 	if animation_tree == null or not modern_state_indices.has(state_name):
 		return false
+	_update_jump_lower_body_state(state_name)
 	var actual_state := StringName(
 		animation_tree.get("parameters/modern_transition/current_state")
 	)
@@ -406,6 +468,111 @@ func request_modern_state(state_name: StringName, blend_seconds: float = -1.0) -
 	return true
 
 
+func _build_jump_lower_body_layer(root: AnimationNodeBlendTree, available_clips: Dictionary) -> StringName:
+	var settings: Dictionary = profile.jump_lower_body
+	var selected := StringName(settings.get("clip", ""))
+	if not bool(settings.get("enabled", false)) or selected == &"" or not available_clips.has(selected):
+		return &"route_blend"
+	jump_lower_body_clip = selected
+	root.add_node(&"jump_lower_body_animation", _animation_node(selected), Vector2(980.0, -170.0))
+	root.add_node(&"jump_lower_body_seek", AnimationNodeTimeSeek.new(), Vector2(1140.0, -170.0))
+	root.connect_node(&"jump_lower_body_seek", 0, &"jump_lower_body_animation")
+	var legs := AnimationNodeBlend2.new()
+	legs.sync = false
+	legs.filter_enabled = true
+	for bone: StringName in JUMP_LEG_BONES:
+		legs.set_filter_path(NodePath(".:%s" % bone), true)
+	root.add_node(&"jump_lower_body", legs, Vector2(1230.0, 100.0))
+	root.connect_node(&"jump_lower_body", 0, &"route_blend")
+	root.connect_node(&"jump_lower_body", 1, &"jump_lower_body_seek")
+	return &"jump_lower_body"
+
+
+func _update_jump_lower_body_state(state_name: StringName) -> void:
+	if jump_lower_body_clip == &"" or not modern_enabled:
+		return
+	# A fall from a ledge is not a new jump. Only takeoff starts this presentation
+	# playhead; apex/fall (including pistol slots) continue it without a restart.
+	var takeoff := state_name in [&"jump_up", &"jump_up_standing"]
+	var airborne := takeoff or state_name in [&"jump_loop", &"pistol_jump", &"pistol_jump_alt"]
+	if takeoff and not jump_lower_body_active:
+		jump_lower_body_entry_count += 1
+		animation_tree.set("parameters/jump_lower_body_seek/seek_request", 0.0)
+		jump_lower_body_active = true
+	elif not airborne:
+		jump_lower_body_active = false
+
+
+func _bind_jump_source_frame(target: Skeleton3D, player: AnimationPlayer) -> void:
+	jump_frame_source = null
+	jump_frame_hips_index = -1
+	jump_frame_hip_chain.clear()
+	jump_frame_thighs.clear()
+	if target == null or jump_lower_body_clip == &"" or not bool(profile.jump_lower_body.get("match_source_parent_frame", false)):
+		return
+	if not player.has_animation(jump_lower_body_clip):
+		return
+	var source := player.get_animation(jump_lower_body_clip)
+	var rotation_tracks: Dictionary = {}
+	for track in source.get_track_count():
+		if source.track_get_type(track) != Animation.TYPE_ROTATION_3D:
+			continue
+		var path := source.track_get_path(track)
+		if path.get_subname_count() > 0:
+			rotation_tracks[StringName(path.get_subname(path.get_subname_count() - 1))] = track
+	jump_frame_hips_index = target.find_bone("mixamorig_Hips")
+	if jump_frame_hips_index < 0:
+		return
+	var parent := jump_frame_hips_index
+	while parent >= 0:
+		jump_frame_hip_chain.push_front({
+			"track": int(rotation_tracks.get(StringName(target.get_bone_name(parent)), -1)),
+			"rest": target.get_bone_rest(parent).basis.orthonormalized().get_rotation_quaternion().normalized(),
+		})
+		parent = target.get_bone_parent(parent)
+	for bone: StringName in [&"mixamorig_LeftUpLeg", &"mixamorig_RightUpLeg"]:
+		var index := target.find_bone(bone)
+		if index < 0 or target.get_bone_parent(index) != jump_frame_hips_index or not rotation_tracks.has(bone):
+			jump_frame_thighs.clear()
+			return
+		jump_frame_thighs.append({"index": index, "track": int(rotation_tracks[bone])})
+	jump_frame_source = source
+
+
+func get_evaluated_jump_source_frame() -> Vector2:
+	if animation_tree == null or jump_frame_source == null:
+		return Vector2.ZERO
+	return Vector2(
+		float(animation_tree.get("parameters/jump_lower_body/blend_amount")),
+		float(animation_tree.get("parameters/jump_lower_body_animation/current_position"))
+	)
+
+
+func apply_jump_source_frame(target: Skeleton3D, evaluated_frame := Vector2(-1.0, -1.0)) -> void:
+	# The graph evaluated these local leg tracks under its selected base hips.
+	# Rebase only their two roots into the imported source's parent frame, using
+	# this same evaluated playhead/weight captured before graph commands change.
+	# Apply after posture finalizes the parent hips. No second animation clock.
+	if not modern_enabled or animation_tree == null or target == null or jump_frame_source == null:
+		return
+	var frame := get_evaluated_jump_source_frame() if evaluated_frame.x < 0.0 else evaluated_frame
+	var amount := clampf(frame.x, 0.0, 1.0)
+	if amount <= 0.001 or not bool(profile.jump_lower_body.get("match_source_parent_frame", false)):
+		return
+	var time := frame.y
+	var source_hips := Quaternion.IDENTITY
+	for item: Dictionary in jump_frame_hip_chain:
+		var rotation: Quaternion = jump_frame_source.rotation_track_interpolate(int(item.track), time) if int(item.track) >= 0 else item.rest
+		source_hips = (source_hips * rotation).normalized()
+	var current_hips := target.get_bone_global_pose(jump_frame_hips_index).basis.orthonormalized().get_rotation_quaternion().normalized()
+	var parent_delta := (current_hips.inverse() * source_hips).normalized()
+	for item: Dictionary in jump_frame_thighs:
+		var index := int(item.index)
+		var desired := (parent_delta * jump_frame_source.rotation_track_interpolate(int(item.track), time)).normalized()
+		var current := target.get_bone_pose_rotation(index).normalized()
+		target.set_bone_pose_rotation(index, current.slerp(desired, amount).normalized())
+
+
 func _same_stationary_locomotion_pair(first: StringName, second: StringName) -> bool:
 	return (
 		(first in [&"idle", &"standing"] and second in [&"idle", &"standing"])
@@ -424,6 +591,12 @@ func authored_stationary_pose_weight(delta: float) -> float:
 	var dynamic_hold: Dictionary = weapon_handling_profile.get("dynamic_hold", {})
 	if not bool(dynamic_hold.get("authored_compressed_idle_enabled", false)):
 		return 0.0
+	return evaluated_modern_state_weight([&"idle", &"idle_crouch"], delta)
+
+
+func evaluated_modern_state_weight(states: Array[StringName], delta: float) -> float:
+	if not modern_enabled or animation_tree == null or modern_transition == null:
+		return 0.0
 	# Read the pose already evaluated this frame, before the driver queues a new
 	# state or changes xfade_time. AnimationTree runs at idle priority 0; the pose
 	# coordinator runs at 100 with this same unscaled frame delta.
@@ -431,7 +604,7 @@ func authored_stationary_pose_weight(delta: float) -> float:
 	if current_index < 0 or current_index >= modern_transition.input_count:
 		return 0.0
 	var current_native := float(
-		modern_transition.get_input_name(current_index) in [&"idle", &"idle_crouch"]
+		modern_transition.get_input_name(current_index) in states
 	)
 	var previous_index := int(animation_tree.get("parameters/modern_transition/prev_index"))
 	if (
@@ -451,7 +624,7 @@ func authored_stationary_pose_weight(delta: float) -> float:
 	if modern_transition.xfade_curve != null:
 		previous_weight = clampf(modern_transition.xfade_curve.sample(previous_weight), 0.0, 1.0)
 	var previous_native := float(
-		modern_transition.get_input_name(previous_index) in [&"idle", &"idle_crouch"]
+		modern_transition.get_input_name(previous_index) in states
 	)
 	return lerpf(current_native, previous_native, previous_weight)
 
@@ -593,12 +766,14 @@ func get_debug_state() -> Dictionary:
 		"standing_reload_trigger_count": standing_reload_trigger_count,
 		"presentation_mode": presentation_mode,
 		"upper_body_ready_blend": upper_body_ready_blend,
+		"locomotion_carry_weight": locomotion_carry_weight,
 	}
 
 
 func _build_crouched_reload_layer(
 	root: AnimationNodeBlendTree,
-	available_clips: Dictionary
+	available_clips: Dictionary,
+	base_source: StringName = &"route_blend"
 ) -> void:
 	crouched_reload_clip = _weapon_action_clip(
 		"reload_crouched",
@@ -623,7 +798,7 @@ func _build_crouched_reload_layer(
 	for bone_name: StringName in UPPER_BODY_BONES:
 		reload_layer.set_filter_path(NodePath(".:%s" % bone_name), true)
 	root.add_node(&"crouched_reload_layer", reload_layer, Vector2(1230.0, 330.0))
-	root.connect_node(&"crouched_reload_layer", 0, &"route_blend")
+	root.connect_node(&"crouched_reload_layer", 0, base_source)
 	root.connect_node(&"crouched_reload_layer", 1, &"crouched_reload_animation")
 	crouched_reload_layer_available = true
 
@@ -740,6 +915,8 @@ func _event_fire_clip(
 
 
 func _build_legacy_route(root: AnimationNodeBlendTree, available_clips: Dictionary) -> void:
+	var combo_profile: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://config/jump_direction_combos.json"))
+	var death_profile: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://config/operator_death.json"))
 	legacy_transition = AnimationNodeTransition.new()
 	legacy_transition.input_count = available_clips.size()
 	legacy_transition.xfade_time = 0.08
@@ -751,6 +928,12 @@ func _build_legacy_route(root: AnimationNodeBlendTree, available_clips: Dictiona
 		var source_name := node_name
 		legacy_transition.set_input_name(index, clip_name)
 		root.add_node(node_name, _animation_node(clip_name), Vector2(-900.0, -500.0 + index * 30.0))
+		if String(clip_name) in combo_profile.clips.values() or String(clip_name) in combo_profile.crouch_clips.values() or String(clip_name) in [death_profile.standing_clip, death_profile.crouched_clip, death_profile.prone_clip]:
+			var seek_name := StringName("%s_combo_seek" % node_name)
+			root.add_node(seek_name, AnimationNodeTimeSeek.new(), Vector2(-760.0, -500.0 + index * 30.0))
+			root.connect_node(seek_name, 0, source_name)
+			source_name = seek_name
+			combo_seek_paths[clip_name] = [StringName("parameters/%s/seek_request" % seek_name)]
 		if _uses_action_time_scale(clip_name):
 			var scale_name := StringName("%s_time_scale" % node_name)
 			root.add_node(scale_name, AnimationNodeTimeScale.new(), Vector2(-650.0, -500.0 + index * 30.0))
@@ -764,6 +947,11 @@ func _build_legacy_route(root: AnimationNodeBlendTree, available_clips: Dictiona
 
 func _build_modern_route(root: AnimationNodeBlendTree, available_clips: Dictionary) -> void:
 	ModernRouteBuilder.build(self, root, available_clips)
+
+func sync_jump_combo(clip_name: StringName, elapsed: float) -> void:
+	if combo_seek_paths.has(clip_name):
+		for path: StringName in combo_seek_paths[clip_name]:
+			animation_tree.set(path, maxf(elapsed, 0.0))
 
 
 func _direction_space(prefix: StringName, available_clips: Dictionary) -> AnimationNodeBlendSpace2D:

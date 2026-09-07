@@ -1,0 +1,40 @@
+{
+  "status": "AUTHORING_TEMPLATE_ONLY_NOT_RUNTIME_INTEGRATED",
+  "source": "assets/characters/ps1_gas_mask_soldier/trooper_rigged.fbx",
+  "export_path": "assets/characters/ps1_skin_template/ps1_skin_template_example.glb",
+  "source_data_before_sha256": "281692814e4197776c5f2f3e8718de8d729b9867ea3f2a74ab4faad7c7a3abe2",
+  "source_data_after_sha256": "281692814e4197776c5f2f3e8718de8d729b9867ea3f2a74ab4faad7c7a3abe2",
+  "base_unchanged": true,
+  "independent_working_copy": true,
+  "object_matrix_max_error": 9.313225746154785e-10,
+  "working_body_selectable": true,
+  "saved_unit_scale": 1.0,
+  "source_vertices": 371,
+  "source_triangles": 680,
+  "native_bones": 41,
+  "base_name": "BaseBody",
+  "gear": {
+    "Headgear": {
+      "triangles": 408,
+      "bone": "mixamorig:Head"
+    },
+    "ChestRig": {
+      "triangles": 660,
+      "bone": "mixamorig:Spine2"
+    }
+  },
+  "gear_triangles_total": 1068,
+  "gear_weights_normalized": true,
+  "native_export": true,
+  "source_texture_unchanged": true,
+  "exported_skin_count": 1,
+  "export_bytes": 304132,
+  "collections": [
+    "00_REFERENCE_LOCKED__never_export",
+    "10_WORKING__editable_body_native_rig",
+    "20_MODULE__Headgear__toggle_visibility",
+    "30_MODULE__ChestRig__toggle_visibility",
+    "90_REVIEW_ONLY__never_export"
+  ],
+  "limits": "Gear is a starting module example; all gameplay pose collisions and runtime skin selection remain unverified."
+}

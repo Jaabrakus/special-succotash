@@ -48,5 +48,7 @@
     "shot_kick_return": 60.0
   },
   "socom_original_id": 7,
+  "visual_rig_id": "family_pistol_4_v5",
+  "visual_rig_schema_version": 1,
   "weapon_id": "de__50"
 }

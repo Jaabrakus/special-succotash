@@ -1,0 +1,238 @@
+{
+  "calibration": {
+    "method": "visible_mesh_surface_rays_and_original_part_bone_landmarks",
+    "candidate_weapon_id": "9mm_sub",
+    "baseline_visual_rig_id": "family_smg_4_v1",
+    "coordinate_space": "weapon_pivot_local_meters",
+    "source_axes": "+X barrel / +Y up / +Z right",
+    "model_unit_conversion_already_baked": true,
+    "status": "offline_geometry_only_no_character_fit",
+    "preserved_provisional_fields": [
+      "handling_profile",
+      "operator_mount",
+      "grip_offset",
+      "support_hand_pose"
+    ],
+    "surface_witnesses": [
+      {
+        "socket": "right_hand_grip_target",
+        "mesh": "Main_Mesh",
+        "ray_from": [
+          -0.015,
+          0.102,
+          0.3
+        ],
+        "ray_direction": [
+          0,
+          0,
+          -1
+        ],
+        "reason": "Right side grip panel above the magazine and behind the trigger bone, not the trigger guard or magazine."
+      },
+      {
+        "socket": "left_hand_ik_target",
+        "mesh": "Main_Mesh",
+        "ray_from": [
+          0.12,
+          -0.2,
+          0
+        ],
+        "ray_direction": [
+          0,
+          1,
+          0
+        ],
+        "reason": "Underside of the molded forward handguard, behind barrel collar; not bare barrel."
+      },
+      {
+        "socket": "buttstock_socket",
+        "mesh": "Stock_Mesh",
+        "ray_from": [
+          -0.6,
+          0.095,
+          0
+        ],
+        "ray_direction": [
+          1,
+          0,
+          0
+        ],
+        "reason": "Rear surface of the extended folding buttplate at shoulder contact height."
+      },
+      {
+        "socket": "optic_rail",
+        "mesh": "Main_Mesh",
+        "ray_from": [
+          -0.01,
+          0.4,
+          0
+        ],
+        "ray_direction": [
+          0,
+          -1,
+          0
+        ],
+        "reason": "Top receiver between sights, behind cocking knob. Reference point only; no physical optic rail is modeled."
+      },
+      {
+        "socket": "ejection_port",
+        "mesh": "EjectionCover_Mesh",
+        "ray_from": [
+          0,
+          0.1817062,
+          0.3
+        ],
+        "ray_direction": [
+          0,
+          0,
+          -1
+        ],
+        "reason": "Right-side ejection cover center, using the original EjectionCover bone height."
+      }
+    ],
+    "bore_landmarks": {
+      "mesh": "Main_Mesh",
+      "muzzle_ring_x": 0.24973985,
+      "muzzle_ring_radius": 0.0074501,
+      "root_ring_x": 0.18957705,
+      "root_ring_radius": 0.0074501,
+      "description": "Centers of the paired eight-sided exposed barrel rings. The root matches the source Silencer bone head; hidden chamber internals are not modeled."
+    },
+    "optic_up": [
+      0,
+      1,
+      0
+    ],
+    "schema_blocker": "Existing visual-rig validator requires a 0.15 m bore pair; the actual modeled exposed barrel is 0.060163 m. Do not relocate the measured root to bypass validation.",
+    "pending": [
+      "Canonical character palms and shoulder fit in standing/crouch/prone",
+      "Idle, moving, firing/recovery and reload contact gates",
+      "Review retained mount/grip/support-hand rotations against actual character",
+      "Publication and explicit runtime assignment by root after pose gate"
+    ]
+  },
+  "certification": {
+    "maximum_palm_error_m": 0.01,
+    "published_by": "not_published",
+    "required_actions": [
+      "aim_idle",
+      "fire_recovery",
+      "reload"
+    ],
+    "required_stances": [
+      "STANDING",
+      "CROUCHED"
+    ],
+    "geometry_only": true,
+    "character_contact_verified": false
+  },
+  "family": "TWO_HAND_RIFLE",
+  "revision": 1,
+  "schema_version": 1,
+  "source_model_fbx": "res://assets/weapons/retro_1212/uzi_candidate.glb",
+  "status": "draft",
+  "visual": {
+    "grip_offset": {
+      "pos_x": 0.0798392296,
+      "pos_y": -0.0417042524,
+      "pos_z": 0.0082135201,
+      "rot_x": 4.55,
+      "rot_y": 3,
+      "rot_z": 79.05
+    },
+    "handling_profile": {
+      "dynamic_hold": {
+        "animation_carry_limit_m": 0.025,
+        "animation_carry_weight": 0.4,
+        "animation_drives_ready_hands": true,
+        "buttstock_constraint": {
+          "enabled": false
+        },
+        "fire_saved_joint_rotations_enabled": false,
+        "fire_spine_ccdik_enabled": false,
+        "hand_owned_aim_correction_limit_deg": 32,
+        "hand_socket_ik_enabled": false,
+        "ready_locomotion_inheritance": 0,
+        "relaxed_idle_upper_body_weight": 0,
+        "reload_return_blend_seconds": 0.18,
+        "right_hand_owns_weapon": true,
+        "support_hand_ik_blend_seconds": 0.25,
+        "support_hand_socket_ik_enabled": true
+      },
+      "family": "TWO_HAND_RIFLE",
+      "locomotion_family": "RIFLE",
+      "ready_aim": {
+        "fire_hold_seconds": 1.2,
+        "fire_terminal_pose_hold_seconds": 0.12
+      },
+      "support_hand_required": true
+    },
+    "model_fbx": "res://assets/weapons/retro_1212/uzi_candidate.glb",
+    "model_rotation_degrees": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "normalized_scale": 1,
+    "operator_mount": {
+      "attachment_mode": "trigger_hand_socket",
+      "bone_name": "mixamorig_RightHand",
+      "position": {
+        "x": -0.02,
+        "y": 0.08,
+        "z": 0.05
+      },
+      "rotation_degrees": {
+        "x": -90,
+        "y": 180,
+        "z": 0
+      }
+    },
+    "support_hand_pose": {
+      "finger_curl": 1,
+      "palm_pitch_deg": -24.35,
+      "palm_roll_deg": 104.75,
+      "palm_yaw_deg": 0.75,
+      "thumb_wrap": 0.7
+    },
+    "user_scale_multiplier": 1,
+    "weapon_sockets": {
+      "right_hand_grip_target": {
+        "x": -0.015,
+        "y": 0.102,
+        "z": 0.0159273
+      },
+      "left_hand_ik_target": {
+        "x": 0.12,
+        "y": 0.1370419,
+        "z": 0
+      },
+      "muzzle_socket": {
+        "x": 0.24973985,
+        "y": 0.1660831,
+        "z": 0
+      },
+      "barrel_base_socket": {
+        "x": 0.18957705,
+        "y": 0.1660831,
+        "z": 0
+      },
+      "buttstock_socket": {
+        "x": -0.3569365,
+        "y": 0.095,
+        "z": 0
+      },
+      "optic_rail": {
+        "x": -0.01,
+        "y": 0.1991911,
+        "z": 0
+      },
+      "ejection_port": {
+        "x": 0,
+        "y": 0.1817062,
+        "z": 0.0176181
+      }
+    }
+  },
+  "visual_rig_id": "retro1212_uzi_v1"
+}

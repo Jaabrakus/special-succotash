@@ -167,6 +167,13 @@ const DEFAULT_POSE_YAW_OFFSETS_DEGREES: Dictionary = {
 	&"pistol_run_forward_right": -24.0,
 }
 
+# Explicit weapon-selected forward-gait variants, not a larger global aim or
+# pose-tuning limit. The original lateral/pistol clips retain their25° cap.
+const FULL_LATERAL_GAIT_CLIPS: Array[StringName] = [
+	&"run_lateral_left", &"run_lateral_right",
+	&"crouch_lateral_left", &"crouch_lateral_right",
+]
+
 const DEFAULT_SEMANTIC_ACTIONS: Dictionary = {
 	"fire": {
 		"STANDING": "combat_fire",
@@ -232,6 +239,7 @@ var semantic_actions: Dictionary = DEFAULT_SEMANTIC_ACTIONS.duplicate(true)
 var connected_routes: Dictionary = DEFAULT_CONNECTED_ROUTES.duplicate(true)
 var state_rules: Dictionary = AnimationStateContract.normalized_rules(DEFAULT_CLIPS)
 var event_routes: Dictionary = {}
+var jump_lower_body: Dictionary = {}
 var locomotion: Dictionary = {
 	"walk_nominal_speed_mps": 2.15,
 	"full_nominal_speed_mps": 5.70,
@@ -274,6 +282,7 @@ func load_project_map(path: String = MAP_PATH) -> void:
 	connected_routes = DEFAULT_CONNECTED_ROUTES.duplicate(true)
 	state_rules = AnimationStateContract.normalized_rules(DEFAULT_CLIPS)
 	event_routes.clear()
+	jump_lower_body.clear()
 	warnings.clear()
 	var config := (
 		PlaytestStateCollector.bundled_state("animation_map")
@@ -306,12 +315,15 @@ func load_project_map(path: String = MAP_PATH) -> void:
 		config.get("event_routes", {}) as Dictionary
 	)
 	_ensure_builtin_weapon_family_routes()
+	var jump_section: Variant = config.get("jump_lower_body", {})
+	if jump_section is Dictionary:
+		jump_lower_body = (jump_section as Dictionary).duplicate(true)
 	_merge_numeric_section(locomotion, config.get("locomotion", {}))
 	_merge_numeric_section(transitions, config.get("transitions", {}))
 
 
 func is_looping(clip_name: StringName) -> bool:
-	return LOOPING_CLIPS.has(clip_name)
+	return LOOPING_CLIPS.has(clip_name) or FULL_LATERAL_GAIT_CLIPS.has(clip_name)
 
 
 func nominal_speed(posture: StringName, full_gait_weight: float) -> float:
@@ -582,7 +594,11 @@ func _apply_pose_yaw_offset_entries(data: Variant) -> void:
 		if not (value is float or value is int):
 			warnings.append("pose yaw offset is not numeric: %s" % target)
 			continue
-		pose_yaw_offsets_degrees[target] = clampf(float(value), -25.0, 25.0)
+		if not is_finite(float(value)):
+			warnings.append("pose yaw offset must be finite: %s" % target)
+			continue
+		var limit := 90.0 if FULL_LATERAL_GAIT_CLIPS.has(target) else 25.0
+		pose_yaw_offsets_degrees[target] = clampf(float(value), -limit, limit)
 
 
 func _apply_semantic_action_entries(data: Variant) -> void:

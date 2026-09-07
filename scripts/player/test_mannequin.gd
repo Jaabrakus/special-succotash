@@ -59,6 +59,9 @@ var gait_time: float = 0.0
 var gait_strength: float = 0.0
 var crouch_amount: float = 0.0
 var prone_amount: float = 0.0
+var combo_camera_kind: StringName = &""
+var combo_camera_last_time: float = -1.0
+var combo_camera_entry_height: float = 2.15
 var torso_yaw: float = 0.0
 var torso_pitch: float = 0.0
 var head_yaw: float = 0.0
@@ -333,6 +336,36 @@ func _update_camera_markers(
 ) -> void:
     if head_marker == null or torso_marker == null or pelvis_marker == null:
         return
+    var actor := get_parent()
+    if actor.get("mobility_combo_kind") != &"" and actor.has_method("get_mobility_combo_clip"):
+        var combo_profile: Dictionary = actor.jump_combo_intent.profile
+        var kind := String(actor.mobility_combo_kind)
+        var rest_time := float(combo_profile.get("rest_seconds", 1.05))
+        var time := float(actor.action_elapsed)
+        if combo_camera_kind != StringName(kind) or time < combo_camera_last_time:
+            # Start from the actual prior anchor, including crouch and chains.
+            combo_camera_entry_height = head_marker.position.y
+        combo_camera_kind = StringName(kind)
+        combo_camera_last_time = time
+        var entry_weight := smoothstep(0.10, rest_time, time)
+        var recovery_weight := smoothstep(rest_time, float(actor.action_duration), time)
+        var rest_height := float(combo_profile.get("camera_rest_head_m", {}).get(kind, 0.60))
+        var prone_exit: bool = actor.combo_exit_prone
+        var crouch_exit: bool = kind in combo_profile.get("crouch_finish_kinds", []) and not prone_exit
+        var head_height := lerpf(combo_camera_entry_height, rest_height, entry_weight)
+        head_height = lerpf(head_height, 0.52 if prone_exit else (1.58 if crouch_exit else 2.15), recovery_weight)
+        var alpha := 1.0 - exp(-camera_marker_follow_response * delta)
+        for pair in [[head_marker, 1.0], [torso_marker, 0.71], [pelvis_marker, 0.43]]:
+            var marker: Marker3D = pair[0]
+            var target := Vector3(0, head_height * float(pair[1]), 0)
+            marker.position = marker.position.lerp(target, alpha)
+        # Smooth position envelope, not the clip's head bob or generic prone dive.
+        # Pre-set the presentation stance blend for a continuous crouch handoff.
+        crouch_amount = recovery_weight if crouch_exit else 0.0
+        prone_amount = recovery_weight if prone_exit else 0.0
+        return
+    combo_camera_kind = &""
+    combo_camera_last_time = -1.0
     var standing_head := Vector3(0.0, 2.15, 0.0)
     var standing_torso := Vector3(0.0, 1.52, 0.0)
     var standing_pelvis := Vector3(0.0, 0.93, 0.0)

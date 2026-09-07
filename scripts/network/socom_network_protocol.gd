@@ -18,6 +18,7 @@ static func movement_to_packet(command) -> Dictionary:
 		"aim_pitch": clampf(float(command.aim_pitch), -PI * 0.49, PI * 0.49),
 		"jump": bool(command.jump_pressed),
 		"jump_held": bool(command.jump_held),
+		"direction_held": int(command.direction_held_mask) & 15,
 		"dive": bool(command.dive_pressed),
 		"roll": bool(command.roll_pressed),
 		"prone": bool(command.prone_pressed),
@@ -35,6 +36,7 @@ static func packet_to_movement(packet: Dictionary):
 	command.aim_pitch = clampf(float(packet.get("aim_pitch", 0.0)), -PI * 0.49, PI * 0.49)
 	command.jump_pressed = bool(packet.get("jump", false))
 	command.jump_held = bool(packet.get("jump_held", false))
+	command.direction_held_mask = int(packet.get("direction_held", 0)) & 15
 	command.dive_pressed = bool(packet.get("dive", false))
 	command.roll_pressed = bool(packet.get("roll", false))
 	command.prone_pressed = bool(packet.get("prone", false))
@@ -45,6 +47,9 @@ static func packet_to_movement(packet: Dictionary):
 
 
 static func movement_packet_is_sane(packet: Dictionary) -> bool:
+	var held: Variant = packet.get("direction_held", 0)
+	if typeof(held) != TYPE_INT or int(held) < 0 or int(held) > 15:
+		return false
 	if typeof(packet.get("tick")) != TYPE_INT:
 		return false
 	if typeof(packet.get("move")) != TYPE_VECTOR2:

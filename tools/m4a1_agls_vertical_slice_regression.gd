@@ -13,7 +13,14 @@ const GunsmithCatalog := preload(
 )
 
 const PROFILE_PATH := "res://config/weapons/m4a1.json"
-const VISUAL_RIG_PATH := "res://config/weapon_visual_rigs/m4a1_agls_v1.json"
+const VISUAL_RIG_PATH := "res://config/weapon_visual_rigs/m4a1_agls_v9.json"
+const PRE_POCKET_VISUAL_RIG_PATH := "res://config/weapon_visual_rigs/m4a1_agls_v8.json"
+const PRE_CHEST_FRAME_VISUAL_RIG_PATH := "res://config/weapon_visual_rigs/m4a1_agls_v7.json"
+const PRE_RELEASE_VISUAL_RIG_PATH := "res://config/weapon_visual_rigs/m4a1_agls_v6.json"
+const PRE_LATERAL_VISUAL_RIG_PATH := "res://config/weapon_visual_rigs/m4a1_agls_v5.json"
+const STOCK_VISUAL_RIG_PATH := "res://config/weapon_visual_rigs/m4a1_agls_v4.json"
+const CARRY_ONLY_VISUAL_RIG_PATH := "res://config/weapon_visual_rigs/m4a1_agls_v2.json"
+const PREVIOUS_VISUAL_RIG_PATH := "res://config/weapon_visual_rigs/m4a1_agls_v1.json"
 const MODEL_PATH := "res://assets/external/agls_intake/imported/weapons/m4a1/m4a1.scn"
 const EXPECTED_SLOTS := {
 	"fire_crouched": "crouch_fire",
@@ -66,17 +73,72 @@ func _check_saved_contract(
 	_expect(not raw_profile.is_empty(), "M4A1 profile is valid JSON")
 	_expect(not profile.is_empty(), "M4A1 canonical config normalizes")
 	_expect(
-		String(profile.get("visual_rig_id", "")) == "m4a1_agls_v1",
+		String(profile.get("visual_rig_id", "")) == "m4a1_agls_v9",
 		"M4A1 references its published AGLS visual rig"
 	)
 	var validation := VisualRigContract.validate(visual_document, true)
 	_expect(bool(validation.get("ok", false)), "M4A1 visual rig passes its contract")
 	_expect(
-		String(resolved.get("_visual_rig_id", "")) == "m4a1_agls_v1",
+		String(resolved.get("_visual_rig_id", "")) == "m4a1_agls_v9",
 		"presentation resolver applies the assigned M4A1 visual rig"
 	)
 
 	var visual: Dictionary = visual_document.get("visual", {})
+	var stock_visual: Dictionary = _read_json(STOCK_VISUAL_RIG_PATH).get("visual", {})
+	_expect(not stock_visual.is_empty(), "immutable M4A1 v4 stock-contact rig is retained")
+	var carry_visual := visual.duplicate(true)
+	var released_dynamic: Dictionary = carry_visual.get("handling_profile", {}).get("dynamic_hold", {})
+	_expect(released_dynamic.get("ready_shoulder_pocket", {}) == {"downward_m": 0.065, "right_wrist_roll_degrees": -15.0}, "M4A1 v9 publishes the measured non-right shoulder pocket and wrist calibration")
+	released_dynamic.erase("ready_shoulder_pocket")
+	_expect(carry_visual == _read_json(PRE_POCKET_VISUAL_RIG_PATH).get("visual", {}), "M4A1 v9 changes only the ready shoulder pocket versus immutable v8")
+	_expect(bool(released_dynamic.get("standing_idle_square_pelvis", false)), "M4A1 v7 opts into forward standing-idle pelvis")
+	var released_strafe: Dictionary = released_dynamic.get("strafe_carry", {})
+	_expect(String(released_strafe.get("right_stock_release_frame", "")) == "chest_forward", "M4A1 v8 releases forward from the turned chest, not along the barrel")
+	_expect(is_equal_approx(float(released_strafe.get("right_stock_release_m", 0.0)), 0.33), "M4A1 v8 provides measured front-torso reach clearance")
+	released_strafe.erase("right_stock_release_frame")
+	var pre_chest_visual: Dictionary = _read_json(PRE_CHEST_FRAME_VISUAL_RIG_PATH).get("visual", {})
+	released_strafe["right_stock_release_m"] = pre_chest_visual.get("handling_profile", {}).get("dynamic_hold", {}).get("strafe_carry", {}).get("right_stock_release_m", 0.0)
+	_expect(carry_visual == pre_chest_visual, "M4A1 v8 changes only right release frame and clearance versus immutable v7")
+	_expect(float(released_strafe.get("right_stock_release_m", 0.0)) > 0.0, "M4A1 v7 releases the stock on right strafe")
+	released_dynamic.erase("standing_idle_square_pelvis")
+	released_strafe.erase("right_stock_release_m")
+	_expect(carry_visual == _read_json(PRE_RELEASE_VISUAL_RIG_PATH).get("visual", {}), "M4A1 v7 changes only idle pelvis and right stock release versus immutable v6")
+	var carry_handling: Dictionary = carry_visual.get("handling_profile", {})
+	_expect(carry_handling.get("locomotion_slots", {}) == {"run_left": "run_lateral_left", "run_right": "run_lateral_right", "crouch_left": "crouch_lateral_left", "crouch_right": "crouch_lateral_right"}, "M4A1 v6 selects only the four scoped full-lateral leg routes")
+	carry_handling.erase("locomotion_slots")
+	_expect(carry_visual == _read_json(PRE_LATERAL_VISUAL_RIG_PATH).get("visual", {}), "M4A1 v6 changes only lateral leg slots versus immutable v5")
+	var visual_without_full_turn := carry_visual.duplicate(true)
+	var stock_strafe: Dictionary = stock_visual.get("handling_profile", {}).get("dynamic_hold", {}).get("strafe_carry", {})
+	var full_turn_strafe: Dictionary = visual_without_full_turn.get("handling_profile", {}).get("dynamic_hold", {}).get("strafe_carry", {})
+	_expect(is_equal_approx(float(stock_strafe.get("right_hip_follow_weight", -1.0)), 0.12), "immutable M4A1 v4 retains its original partial-turn setting")
+	_expect(is_equal_approx(float(full_turn_strafe.get("right_hip_follow_weight", -1.0)), 1.0), "M4A1 v6 opts into full rightward body turn")
+	full_turn_strafe["right_hip_follow_weight"] = stock_strafe.get("right_hip_follow_weight", -1.0)
+	_expect(visual_without_full_turn == stock_visual, "M4A1 carry fields change only rightward hip follow versus immutable v4")
+	var previous_document := _read_json(PREVIOUS_VISUAL_RIG_PATH)
+	_expect(not previous_document.is_empty(), "previous immutable M4A1 rig remains available")
+	_expect(not _read_json(CARRY_ONLY_VISUAL_RIG_PATH).is_empty(), "intermediate immutable M4A1 carry rig remains available")
+	var visual_without_carry := carry_visual.duplicate(true)
+	var new_dynamic: Dictionary = (visual_without_carry.get("handling_profile", {}) as Dictionary).get("dynamic_hold", {})
+	_expect(
+		is_equal_approx(float(new_dynamic.get("locomotion_ready_carry_weight", 0.0)), 1.0),
+		"published M4A1 v6 includes the carry opt-in"
+	)
+	_expect(
+		new_dynamic.get("strafe_carry", {}) == {"right_hip_follow_weight": 1.0, "left_elbow_flare_degrees": 12.0},
+		"published M4A1 v6 includes full rightward turn and unchanged leftward elbow flare"
+	)
+	new_dynamic.erase("locomotion_ready_carry_weight")
+	new_dynamic.erase("strafe_carry")
+	_expect(bool(new_dynamic.get("authored_shoulder_stock_enabled", false)), "M4A1 v6 preserves scoped authored stock contact")
+	new_dynamic.erase("authored_shoulder_stock_enabled")
+	# The repository extractor omits this optional value when the canonical
+	# profile relies on its documented 1.0 default. Compare its resolved value.
+	_expect(is_equal_approx(float(visual_without_carry.get("user_scale_multiplier", 1.0)), 1.0), "M4A1 v6 preserves unit user scale")
+	visual_without_carry["user_scale_multiplier"] = float(visual_without_carry.get("user_scale_multiplier", 1.0))
+	_expect(
+		visual_without_carry == previous_document.get("visual", {}),
+		"M4A1 visual changes only lateral slots, carry, asymmetric strafe and stock fields versus original v1"
+	)
 	for field_name in VisualRigContract.VISUAL_FIELDS:
 		if not raw_profile.has(field_name):
 			continue
@@ -130,6 +192,10 @@ func _check_saved_contract(
 	)
 
 	var dynamic_hold: Dictionary = handling.get("dynamic_hold", {})
+	_expect(
+		is_equal_approx(float(dynamic_hold.get("locomotion_ready_carry_weight", 0.0)), 1.0),
+		"resolver preserves published M4A1 carry opt-in"
+	)
 	_expect(
 		bool(dynamic_hold.get("animation_drives_ready_hands", false)),
 		"shared authored animation drives the ready hands"
@@ -210,10 +276,21 @@ func _check_live_equipment() -> void:
 		bool(controller.call("apply_authorized_weapon_pickup", PROFILE_PATH)),
 		"canonical authorized equipment handoff accepts M4A1 without loadout dependence"
 	)
+	var previous_rig_probe := "--previous-rig-probe" in OS.get_cmdline_user_args()
+	if previous_rig_probe:
+		# Diagnostic negative control only. Read the immutable previous rig into
+		# this process's existing presentation owner; never save or modify profiles.
+		var old_config := WeaponContract.load_config(PROFILE_PATH).duplicate(true)
+		old_config["visual_rig_id"] = "m4a1_agls_v1"
+		var old_visual: Dictionary = _read_json(PREVIOUS_VISUAL_RIG_PATH).get("visual", {})
+		for field in old_visual:
+			old_config[field] = old_visual[field]
+		_expect(bool(driver.call("notify_weapon_equipped", old_config)), "previous M4A1 rig diagnostic handoff")
 	await _frames(12)
 	var weapon := driver.get("weapon_node") as Node3D
 	var live_config: Dictionary = driver.get("equipped_weapon_config")
 	var live_handling: Dictionary = driver.get("equipped_weapon_handling_profile")
+	print("M4A1_AGLS_LIVE_ROUTES previous_rig=", previous_rig_probe, " ", JSON.stringify(live_handling.get("animation_slots", {})))
 	_expect(
 		weapon != null and String(weapon.get_meta("weapon_id", "")) == "m4a1",
 		"canonical runtime renders the equipped M4A1 identity"
@@ -222,11 +299,19 @@ func _check_live_equipment() -> void:
 		String(live_config.get("model_fbx", "")) == MODEL_PATH,
 		"canonical equipment consumer receives the exact AGLS M4A1 model"
 	)
+	# Normalization supplies the standing ready fallback at the canonical
+	# presentation boundary. Keep the raw published-route check above exact.
+	var expected_live_slots := EXPECTED_SLOTS.duplicate(true)
+	expected_live_slots["ready_standing"] = "aim_idle"
 	_expect(
-		(live_handling.get("animation_slots", {}) as Dictionary) == EXPECTED_SLOTS,
+		(live_handling.get("animation_slots", {}) as Dictionary) == expected_live_slots,
 		"canonical equipment consumer receives the shared M4A1 action routes"
 	)
 	var live_dynamic: Dictionary = live_handling.get("dynamic_hold", {})
+	_expect(
+		is_equal_approx(float(live_dynamic.get("locomotion_ready_carry_weight", 0.0)), 0.0 if previous_rig_probe else 1.0),
+		"canonical equipment consumer receives published M4A1 carry opt-in"
+	)
 	_expect(
 		not bool(live_dynamic.get("hand_socket_ik_enabled", true))
 		and bool(live_dynamic.get("support_hand_socket_ik_enabled", false)),

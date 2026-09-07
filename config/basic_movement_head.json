@@ -1,0 +1,5 @@
+{
+  "enabled": true,
+  "maximum_roll_correction_degrees": 35.0,
+  "right_dive_maximum_roll_degrees": 80.0
+}

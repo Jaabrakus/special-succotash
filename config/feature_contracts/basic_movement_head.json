@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "feature_id": "basic_movement_head",
+  "player_intent": "Keep the head straight during W/A/S/D, crouch idle/movement, and DD right dive.",
+  "acceptance_rule": "Standing/crouched travel and crouch idle remove head roll within 35 degrees; DD permits 80 degrees shared over neck/head. Preserve head facing, torso and arms. Standing idle, prone, other actions and death are excluded.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://animation_library_lab.tscn",
+  "ownership": {"head_pose": "SocomOperatorPostureLayer"},
+  "nodes": [{"id": "animation", "type": "Node3D", "owner": "SocomOperatorAnimationDriver", "role": "Calls the existing head owner only for basic travel", "source_script": "res://scripts/player/operator_animation_driver_runtime.gd", "code_symbols": ["posture_layer.apply_movement_head_level("]}],
+  "data_contracts": [{"path": "res://config/basic_movement_head.json", "writer": "res://docs/BASIC_MOVEMENT_HEAD.md", "readers": ["res://scripts/player/operator_posture_layer.gd"]}],
+  "must_not_change": ["Camera and aim intent", "Movement and networking", "Torso and arms", "Standing idle and non-DD action poses", "Death"],
+  "proof_scripts": ["res://tools/basic_movement_head_regression.gd"],
+  "visual_check": "Inspect head during actual W/A/S/D travel, crouch idle and DD side-rest; torso may lean but head is level. Standing idle and other dives remain unchanged.",
+  "system_delta": {
+    "decision": "MERGE", "reason": "Remove inherited lateral head tilt in existing head owner, gated to ordinary movement.",
+    "current": {"system": "Authored head bank retained", "correctness": 2, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 3, "performance": 5, "regression_coverage": 3, "evidence_paths": ["res://scripts/player/operator_posture_layer.gd"]},
+    "candidate": {"system": "Bounded movement-only head roll", "correctness": 4, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 5, "regression_coverage": 5, "evidence_paths": ["res://scripts/player/operator_posture_layer.gd", "res://tools/basic_movement_head_regression.gd"]}
+  }
+}

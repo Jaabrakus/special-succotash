@@ -1,0 +1,49 @@
+{
+  "status": "CANONICAL_RUNTIME_INTEGRATED",
+  "source": "assets/characters/ps1_gas_mask_soldier/trooper_rigged.fbx",
+  "source_texture": "assets/characters/ps1_gas_mask_soldier/trooper.png",
+  "blend_path": "art_source/socom2_tan_operator/socom2_tan_operator.blend",
+  "export_path": "assets/characters/socom2_tan_operator/socom2_tan_operator.glb",
+  "runtime_scene": "scenes/player/operator_player.tscn",
+  "runtime_consumer": "scripts/player/operator_asset_runtime.gd",
+  "source_data_before_sha256": "281692814e4197776c5f2f3e8718de8d729b9867ea3f2a74ab4faad7c7a3abe2",
+  "source_data_after_sha256": "281692814e4197776c5f2f3e8718de8d729b9867ea3f2a74ab4faad7c7a3abe2",
+  "base_unchanged": true,
+  "object_matrix_max_error": 9.313225746154785e-10,
+  "base_vertices": 371,
+  "base_triangles": 680,
+  "native_bones": 41,
+  "maximum_source_skin_influences": 5,
+  "gear": {
+    "Headgear": {
+      "triangles": 208,
+      "bone": "mixamorig:Head"
+    },
+    "RearArmorAndWebbing": {
+      "triangles": 748,
+      "bone": "mixamorig:Spine2"
+    },
+    "BeltKitAndHipPouch": {
+      "triangles": 220,
+      "bone": "mixamorig:Hips"
+    }
+  },
+  "gear_triangles_total": 1176,
+  "gear_weights_normalized": true,
+  "exported_skin_count": 1,
+  "export_bytes": 496732,
+  "reference_interpretation": [
+    "tan field uniform",
+    "low-profile tan field helmet",
+    "rear armor with horizontal webbing",
+    "rear utility pouches",
+    "large left hip field pouch",
+    "dark gloves and boots"
+  ],
+  "protected": [
+    "canonical base surface and UVs",
+    "native 41-bone hierarchy and rests",
+    "skin weights and five-influence capacity",
+    "hands and weapon contact regions"
+  ]
+}

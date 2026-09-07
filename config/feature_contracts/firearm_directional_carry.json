@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "feature_id": "firearm_directional_carry",
+  "player_intent": "Extend the accepted square-left and front-torso-right rifle shooting style to the firearm roster while retaining each model's contacts and separate pistol handling.",
+  "acceptance_rule": "Each explicit model opt-in must pass canonical equip, actual standing/crouch A/D, accepted-shot entry, direction reversal and stop contact/aim/anatomy checks, then native appearance review. Do not reopen the full roster while any required weapon remains unverified.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://gun_calibration_lab_2.tscn",
+  "ownership": {"weapon_presentation": "SocomOperatorWeaponPoseSolver", "saved_visual_contract": "GunsLab2VisualRigResolver", "movement": "CharacterBody3D", "aim": "SOCOM camera and reticle", "shots_and_damage": "server weapon"},
+  "nodes": [{"id": "weapon_pose", "type": "Node3D", "role": "Existing weapon pose owner consumes per-model directional presentation policy.", "owner": "SocomOperatorWeaponPoseSolver", "source_script": "res://scripts/player/operator_weapon_pose_state.gd", "code_symbols": ["extends Node3D", "authored_shoulder_stock_enabled"]}],
+  "data_contracts": [{"path":"res://config/weapon_visual_rigs/m16a2_directional_v1.json","writer":"res://scripts/labs/gunsmith2/weapon_visual_rig_repository.gd","readers":["res://scripts/labs/gunsmith2/weapon_visual_rig_resolver.gd","res://scripts/weapons/weapon_rig_contract.gd","res://scripts/player/operator_weapon_pose_api.gd"]},{"path":"res://config/weapon_visual_rigs/m40a1_directional_v3.json","writer":"res://scripts/labs/gunsmith2/weapon_visual_rig_repository.gd","readers":["res://scripts/labs/gunsmith2/weapon_visual_rig_resolver.gd","res://scripts/weapons/weapon_rig_contract.gd","res://scripts/player/operator_weapon_pose_api.gd"]}],
+  "must_not_change": ["per-weapon ballistics and sounds", "reload and fire cadence", "1.2 second recovery", "camera and CharacterBody movement", "server authority and networking", "tournament shared weapon rules", "primary plus pistol slots", "existing immutable rigs", "pistol family isolation"],
+  "proof_scripts": ["res://tools/firearm_family_transition_regression.gd","res://tools/rifle_evaluated_carry_timing_regression.gd","res://tools/rifle_right_carry_release_regression.gd","res://tools/rifle_shoulder_stock_regression.gd","res://tools/m4a1_agls_vertical_slice_regression.gd","res://tools/m16_directional_rig_regression.gd","res://tools/m16_contact_surface_probe.gd","res://tools/authored_stock_scope_regression.gd","res://tools/weapon_short_barrel_contract_regression.gd","res://tools/retro_1212_asset_regression.gd","res://tools/retro_1212_socket_review.gd","res://tools/retro_1212_canonical_regression.gd","res://tools/retro_1212_reload_regression.gd","res://tools/m40_directional_rig_regression.gd"],
+  "visual_check": "Inspect each new model's standing and crouched A/D firing and stop poses in canonical main; hands stay on their own grips, arms do not fold through torso, and the barrel remains on the reticle.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Per-model candidate rollout through the existing saved visual-rig boundary; acceptance remains conditional on focused physical and native proof, not the structural graph check.",
+    "current": {"system": "AK/M4-only directional carry", "correctness": 2, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 5, "performance": 4, "regression_coverage": 3, "evidence_paths": ["res://docs/WEAPON_FAMILY_COMPLETION_TRANSLATION.md", "res://tools/firearm_family_transition_regression.gd"]},
+    "candidate": {"system": "Explicit per-model directional visual rigs", "correctness": 4, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 5, "performance": 4, "regression_coverage": 5, "evidence_paths": ["res://config/weapon_visual_rigs/m16a2_directional_v1.json", "res://scripts/labs/gunsmith2/weapon_visual_rig_resolver.gd", "res://tools/firearm_family_transition_regression.gd"]}
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "schema_version": 1,
+  "model": "res://assets/characters/ps1_gas_mask_soldier/trooper_rigged.fbx",
+  "teams": {"0": "579fe8", "1": "6daf58"},
+  "description": "Original character rig only. Blue and green cloth colors distinguish opposing teams; weapon and equipment materials remain unchanged."
+}

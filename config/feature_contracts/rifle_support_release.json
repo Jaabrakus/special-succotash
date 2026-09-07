@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "feature_id": "rifle_support_release",
+  "player_intent": "The support wrist and elbow return smoothly to idle without a final snap after firing.",
+  "acceptance_rule": "AK/M4/M16 standing and crouched readiness-zero handoffs keep existing contact limits, with no more than five degrees wrist or elbow angle change and fifteen millimeters elbow movement relative to the player. Fully-ready poses and all saved rigs remain unchanged.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://gun_calibration_lab_2.tscn",
+  "ownership": {"weapon_presentation": "SocomOperatorWeaponPoseSolver", "contact_math": "SocomOperatorWeaponContactSolver"},
+  "nodes": [{"id": "weapon_pose", "type": "Node3D", "role": "Existing pose owner approaches the established idle support wrist and elbow convention with existing readiness.", "owner": "SocomOperatorWeaponPoseSolver", "source_script": "res://scripts/player/operator_weapon_pose_state.gd", "code_symbols": ["extends Node3D", "authored_shoulder_stock_enabled"]}],
+  "data_contracts": [{"path": "res://config/weapon_visual_rigs/m16a2_directional_v1.json", "writer": "res://scripts/labs/gunsmith2/weapon_visual_rig_repository.gd", "readers": ["res://scripts/labs/gunsmith2/weapon_visual_rig_resolver.gd", "res://scripts/player/operator_weapon_authored_pose.gd"]}],
+  "must_not_change": ["saved rigs and sockets", "fully-ready and full-D poses", "camera and movement", "shot and damage authority", "recovery duration", "reload and mobility owners", "root trigger-anchor finalization", "IK iteration budgets"],
+  "proof_scripts": ["res://tools/rifle_support_release_regression.gd", "res://tools/firearm_family_transition_regression.gd", "res://tools/m16_directional_rig_regression.gd"],
+  "visual_check": "Inspect late firing-recovery release from both sides; support wrist and elbow settle without a final pop while both palms stay joined to the gun.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Conditional continuity correction inside existing presentation strategies; use one shared saved support-basis convention without new timers or state owners.",
+    "current": {"system": "Different authored and fallback support endpoints", "correctness": 2, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 4, "regression_coverage": 3, "evidence_paths": ["res://scripts/player/operator_weapon_authored_stock_pose.gd", "res://scripts/player/operator_weapon_authored_pose.gd"]},
+    "candidate": {"system": "Readiness-weighted support endpoint continuity", "correctness": 4, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 4, "regression_coverage": 5, "evidence_paths": ["res://docs/RIFLE_SUPPORT_RELEASE_TRANSLATION.md", "res://tools/rifle_support_release_regression.gd"]}
+  }
+}

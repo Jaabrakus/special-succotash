@@ -1,0 +1,10 @@
+{
+	"canonical_scene": "res://main.tscn",
+	"capture_enabled": false,
+	"failures": [],
+	"note": "Measurements are comparative evidence, not a claim of visual parity. Gameplay and saved profiles are unchanged by this tool.",
+	"pass": true,
+	"samples": [],
+	"shoulder_lock_required": false,
+	"weapon": "ak-47"
+}

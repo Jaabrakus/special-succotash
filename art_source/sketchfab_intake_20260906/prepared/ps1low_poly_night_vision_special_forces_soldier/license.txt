@@ -1,0 +1,11 @@
+Model Information:
+* title:	PS1/Low Poly Night Vision Special Forces Soldier
+* source:	https://sketchfab.com/3d-models/ps1low-poly-night-vision-special-forces-soldier-afb42573fa5f4fd2af09c9929d9ccd93
+* author:	Jellypack (https://sketchfab.com/jellypack)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "PS1/Low Poly Night Vision Special Forces Soldier" (https://sketchfab.com/3d-models/ps1low-poly-night-vision-special-forces-soldier-afb42573fa5f4fd2af09c9929d9ccd93) by Jellypack (https://sketchfab.com/jellypack) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

@@ -1,0 +1,39 @@
+{
+  "status": "SAME_CANONICAL_MODEL_MATERIAL_REVIEW_NOT_INTEGRATED",
+  "source": "assets/characters/ps1_gas_mask_soldier/trooper_rigged.fbx",
+  "source_texture": "assets/characters/ps1_gas_mask_soldier/trooper.png",
+  "base_meshes": 1,
+  "base_vertices": 371,
+  "base_triangles": 680,
+  "native_bones": 41,
+  "geometry_uv_skin_rest_hash_before": "1d069565c9013173c10f00f7212d91eb6c74f7dc7147d6477225502c10cf5b7b",
+  "geometry_uv_skin_rest_hash_after": "1d069565c9013173c10f00f7212d91eb6c74f7dc7147d6477225502c10cf5b7b",
+  "base_geometry_unchanged": true,
+  "texture_pixels_unchanged": true,
+  "maximum_source_skin_influences": 5,
+  "added_geometry": 0,
+  "export_bytes": 178068,
+  "exported_color_factors": {
+    "Military_MutedOlive_Fatigue": [
+      0.85,
+      1,
+      0.38,
+      1
+    ],
+    "Military_CoyoteWebbing": [
+      1,
+      0.83,
+      0.59,
+      1
+    ],
+    "Military_OriginalMask_Gloves_Boots": [
+      1,
+      1,
+      1,
+      1
+    ]
+  },
+  "runtime_swap": false,
+  "previous_direction": "REJECT: separate field_operator model did not match user visual direction.",
+  "scope": "Material-only study of original canonical model, no newhuman primitives, gear blocks, pose or gameplay changes."
+}

@@ -18,7 +18,8 @@
       "owner": "SocomOperatorWeaponPresentationOwner",
       "source_script": "res://scripts/player/operator_weapon_authored_pose.gd",
       "code_symbols": [
-        "_set_weapon_solver_owned(pose.animation_owned_aim_alignment_enabled)",
+        "pose.animation_owned_aim_alignment_enabled or pose.authored_shoulder_stock_enabled",
+        "_set_weapon_solver_owned(finalize_trigger_anchor)",
         "PistolCarryReach.fit(pose)"
       ]
     },

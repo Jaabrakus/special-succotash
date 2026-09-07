@@ -1,0 +1,238 @@
+{
+  "calibration": {
+    "method": "visible_mesh_surface_rays_and_original_part_bone_landmarks",
+    "candidate_weapon_id": "870",
+    "baseline_visual_rig_id": "family_shotgun_2_v1",
+    "coordinate_space": "weapon_pivot_local_meters",
+    "source_axes": "+X barrel / +Y up / +Z right",
+    "model_unit_conversion_already_baked": true,
+    "status": "offline_geometry_only_no_character_fit",
+    "preserved_provisional_fields": [
+      "handling_profile",
+      "operator_mount",
+      "grip_offset",
+      "support_hand_pose"
+    ],
+    "surface_witnesses": [
+      {
+        "socket": "right_hand_grip_target",
+        "mesh": "Main_Mesh",
+        "ray_from": [
+          -0.04,
+          0.055,
+          0.3
+        ],
+        "ray_direction": [
+          0,
+          0,
+          -1
+        ],
+        "reason": "Right surface of the wooden stock wrist immediately behind trigger/receiver; no pistol grip is modeled."
+      },
+      {
+        "socket": "left_hand_ik_target",
+        "mesh": "Forearm_Mesh",
+        "ray_from": [
+          0.35,
+          -0.2,
+          0
+        ],
+        "ray_direction": [
+          0,
+          1,
+          0
+        ],
+        "reason": "Underside of the actual wood pump mesh, midway along its ribbed gripping surface."
+      },
+      {
+        "socket": "buttstock_socket",
+        "mesh": "Main_Mesh",
+        "ray_from": [
+          -0.6,
+          0.006,
+          0
+        ],
+        "ray_direction": [
+          1,
+          0,
+          0
+        ],
+        "reason": "Rear recoil-pad surface; contact follows the sloped butt face rather than using extreme AABB corner."
+      },
+      {
+        "socket": "optic_rail",
+        "mesh": "Main_Mesh",
+        "ray_from": [
+          0.06,
+          0.4,
+          0
+        ],
+        "ray_direction": [
+          0,
+          -1,
+          0
+        ],
+        "reason": "Top center of the receiver; sight-up reference, not an invented optic accessory."
+      },
+      {
+        "socket": "ejection_port",
+        "mesh": "LoadingPort_Mesh",
+        "ray_from": [
+          0.135,
+          0.089,
+          0.3
+        ],
+        "ray_direction": [
+          0,
+          0,
+          -1
+        ],
+        "reason": "Right-side loading/ejection opening cover, not the underside magazine loading port."
+      }
+    ],
+    "bore_landmarks": {
+      "mesh": "Main_Mesh",
+      "muzzle_ring_x": 0.644669,
+      "muzzle_ring_radius": 0.009159,
+      "root_ring_x": 0.1886877,
+      "root_ring_radius": 0.0128968,
+      "description": "Muzzle ring center and larger receiver-front barrel collar center, both at Y=0.0892346; distinct from lower magazine tube at Y≈0.060."
+    },
+    "optic_up": [
+      0,
+      1,
+      0
+    ],
+    "schema_blocker": null,
+    "pending": [
+      "Canonical character palms and shoulder fit in standing/crouch/prone",
+      "Idle, moving, firing/recovery and reload contact gates",
+      "Review retained mount/grip/support-hand rotations against actual character",
+      "Publication and explicit runtime assignment by root after pose gate"
+    ]
+  },
+  "certification": {
+    "maximum_palm_error_m": 0.01,
+    "published_by": "not_published",
+    "required_actions": [
+      "aim_idle",
+      "fire_recovery",
+      "reload"
+    ],
+    "required_stances": [
+      "STANDING",
+      "CROUCHED"
+    ],
+    "geometry_only": true,
+    "character_contact_verified": false
+  },
+  "family": "LONG_GUN",
+  "revision": 1,
+  "schema_version": 1,
+  "source_model_fbx": "res://assets/weapons/retro_1212/pump_candidate.glb",
+  "status": "draft",
+  "visual": {
+    "grip_offset": {
+      "pos_x": 0.0798392296,
+      "pos_y": -0.0417042524,
+      "pos_z": 0.0082135201,
+      "rot_x": 4.55,
+      "rot_y": 3,
+      "rot_z": 79.05
+    },
+    "handling_profile": {
+      "dynamic_hold": {
+        "animation_carry_limit_m": 0.025,
+        "animation_carry_weight": 0.4,
+        "animation_drives_ready_hands": true,
+        "buttstock_constraint": {
+          "enabled": false
+        },
+        "fire_saved_joint_rotations_enabled": false,
+        "fire_spine_ccdik_enabled": false,
+        "hand_owned_aim_correction_limit_deg": 32,
+        "hand_socket_ik_enabled": false,
+        "ready_locomotion_inheritance": 0,
+        "relaxed_idle_upper_body_weight": 0,
+        "reload_return_blend_seconds": 0.18,
+        "right_hand_owns_weapon": true,
+        "support_hand_ik_blend_seconds": 0.25,
+        "support_hand_socket_ik_enabled": true
+      },
+      "family": "LONG_GUN",
+      "locomotion_family": "RIFLE",
+      "ready_aim": {
+        "fire_hold_seconds": 1.2,
+        "fire_terminal_pose_hold_seconds": 0.12
+      },
+      "support_hand_required": true
+    },
+    "model_fbx": "res://assets/weapons/retro_1212/pump_candidate.glb",
+    "model_rotation_degrees": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "normalized_scale": 1,
+    "operator_mount": {
+      "attachment_mode": "trigger_hand_socket",
+      "bone_name": "mixamorig_RightHand",
+      "position": {
+        "x": -0.02,
+        "y": 0.08,
+        "z": 0.05
+      },
+      "rotation_degrees": {
+        "x": -90,
+        "y": 180,
+        "z": 0
+      }
+    },
+    "support_hand_pose": {
+      "finger_curl": 1,
+      "palm_pitch_deg": -24.35,
+      "palm_roll_deg": 104.75,
+      "palm_yaw_deg": 0.75,
+      "thumb_wrap": 0.7
+    },
+    "user_scale_multiplier": 1,
+    "weapon_sockets": {
+      "right_hand_grip_target": {
+        "x": -0.04,
+        "y": 0.055,
+        "z": 0.018136
+      },
+      "left_hand_ik_target": {
+        "x": 0.35,
+        "y": 0.0399482,
+        "z": 0
+      },
+      "muzzle_socket": {
+        "x": 0.644669,
+        "y": 0.0892346,
+        "z": 0
+      },
+      "barrel_base_socket": {
+        "x": 0.1886877,
+        "y": 0.0892346,
+        "z": 0
+      },
+      "buttstock_socket": {
+        "x": -0.2951829,
+        "y": 0.006,
+        "z": 0
+      },
+      "optic_rail": {
+        "x": 0.06,
+        "y": 0.1040098,
+        "z": 0
+      },
+      "ejection_port": {
+        "x": 0.135,
+        "y": 0.089,
+        "z": 0.0163113
+      }
+    }
+  },
+  "visual_rig_id": "retro1212_pump_v1"
+}

@@ -1,0 +1,74 @@
+{
+  "version": "RELIC_V3",
+  "material_only": true,
+  "approved_geometry_changed": false,
+  "game_files_changed": false,
+  "source_hashes": {
+    "photo_matched_pistols_v2.blend": "626d57c9243c1d31352791b6993359249b341cb29b7b61d1a80db6bd72e8e475",
+    "p9s_v2.glb": "ed13505bc09dd86da9402acfbc6e22f7db7d6909bc2ad3e38efbfb810552df15",
+    "mark23_v2.glb": "b3d95d8184ca8fba83300bee0f1e646587084b7a0b463341e65e880348ada780",
+    "beretta_v2.glb": "be37702ac2be6a4a6d8ed13e61d88e6214df78bcb51c2eff53c45aebb1419199",
+    "desert_eagle_v2.glb": "738b7d957f615fde28d212f416187db3046aab97c2ca808faa47aa39bd9d58d4"
+  },
+  "models": [
+    {
+      "id": "p9s",
+      "name": "P9S",
+      "triangles": 11116,
+      "geometry_signature": "b299c2b4c8b784e5ab9beaf035561ffacd2002a04431213d4b7978f1cefd69d9",
+      "geometry_unchanged_before_export": true,
+      "glb": "p9s_relic.glb",
+      "maps": {
+        "normal": "p9s_normal.png",
+        "color": "p9s_color.png",
+        "orm": "p9s_orm.png"
+      }
+    },
+    {
+      "id": "mark23",
+      "name": "Mark 23",
+      "triangles": 11416,
+      "geometry_signature": "a16b0ca4a221c2b32069e986d9a09bfca54949b764189c24f6f31760cc772535",
+      "geometry_unchanged_before_export": true,
+      "glb": "mark23_relic.glb",
+      "maps": {
+        "normal": "mark23_normal.png",
+        "color": "mark23_color.png",
+        "orm": "mark23_orm.png"
+      }
+    },
+    {
+      "id": "beretta",
+      "name": "Beretta 92FS / M9 family",
+      "triangles": 17576,
+      "geometry_signature": "d3a3031b7f53c7d5661c84d94818ca5d943700eec0f09eda331f180755525218",
+      "geometry_unchanged_before_export": true,
+      "glb": "beretta_relic.glb",
+      "maps": {
+        "normal": "beretta_normal.png",
+        "color": "beretta_color.png",
+        "orm": "beretta_orm.png"
+      }
+    },
+    {
+      "id": "desert_eagle",
+      "name": "Desert Eagle .50",
+      "triangles": 14037,
+      "geometry_signature": "ab93bb3513be074e468ffb6eb6b050970dbf8fd5dd720c7ced468a6d3b9f57db",
+      "geometry_unchanged_before_export": true,
+      "glb": "desert_eagle_relic.glb",
+      "maps": {
+        "normal": "desert_eagle_normal.png",
+        "color": "desert_eagle_color.png",
+        "orm": "desert_eagle_orm.png"
+      }
+    }
+  ],
+  "texture_size": 1024,
+  "maps_per_model": 3,
+  "limits": [
+    "Four approved photo-matched families only.",
+    "Standalone art; not integrated into gameplay.",
+    "Material aging is artistic, not a claim about actual corrosion behavior."
+  ]
+}

@@ -95,6 +95,7 @@ func _test_stance_clearance(scene: Node, player: CharacterBody3D) -> void:
     _expect(_state(player) == &"STANDING", "clearance recovery restores standing")
 
 func _test_analog_gait_selection(player: CharacterBody3D) -> void:
+    await _separate_direction_taps(player)
     Input.action_press(&"move_right", 0.4)
     await physics_frame
     _expect(
@@ -102,7 +103,7 @@ func _test_analog_gait_selection(player: CharacterBody3D) -> void:
         "partial stick selects walking without a mode button"
     )
     Input.action_release(&"move_right")
-    await _step_physics(2)
+    await _separate_direction_taps(player)
 
     Input.action_press(&"move_right", 1.0)
     await physics_frame
@@ -115,6 +116,7 @@ func _test_analog_gait_selection(player: CharacterBody3D) -> void:
     await _step_physics(2)
 
 func _test_direction_independent_acceleration(player: CharacterBody3D) -> void:
+    await _separate_direction_taps(player)
     player.velocity = Vector3.ZERO
     Input.action_press(&"move_right")
     await physics_frame
@@ -138,6 +140,7 @@ func _test_direction_independent_acceleration(player: CharacterBody3D) -> void:
     await _step_physics(2)
 
 func _test_fast_strafe_response(player: CharacterBody3D) -> void:
+    await _separate_direction_taps(player)
     player.velocity = Vector3.ZERO
     _expect(
         float(player.get("strafe_speed")) >= float(player.get("move_speed")),
@@ -155,6 +158,7 @@ func _test_fast_strafe_response(player: CharacterBody3D) -> void:
     await _step_physics(2)
 
 func _test_braking_and_reversal_response(player: CharacterBody3D) -> void:
+    await _separate_direction_taps(player)
     var top_speed := float(player.get("move_speed"))
     player.velocity = Vector3.RIGHT * top_speed
     var stop_start := player.global_position
@@ -189,6 +193,7 @@ func _test_braking_and_reversal_response(player: CharacterBody3D) -> void:
     await _step_physics(2)
 
 func _test_aim_relative_strafing(scene: Node, player: CharacterBody3D) -> void:
+    await _separate_direction_taps(player)
     player.global_position = Vector3(0.0, 0.05, 6.0)
     player.velocity = Vector3.ZERO
     await _step_physics(6)
@@ -627,6 +632,16 @@ func _hold(action: StringName, frame_count: int) -> void:
 func _step_physics(frame_count: int) -> void:
     for _frame in range(frame_count):
         await physics_frame
+
+func _separate_direction_taps(player: CharacterBody3D) -> void:
+    # These cases test single-press locomotion, not DD mobility. Keep the actual
+    # feature enabled and let the shared double-tap window expire between cases.
+    for action in [&"move_forward", &"move_back", &"move_left", &"move_right"]:
+        Input.action_release(action)
+    var profile: Dictionary = player.get("jump_combo_intent").profile
+    var frames := int(ceil(float(profile.double_tap_seconds) * Engine.physics_ticks_per_second)) + 3
+    await _step_physics(frames)
+    _expect(player.get("mobility_combo_kind") == &"", "Single-press fixture does not enter a double-tap combo")
 
 func _state(player: CharacterBody3D) -> StringName:
     return StringName(player.call("get_motion_state_name"))

@@ -1,0 +1,223 @@
+{
+  "schema_version": 1,
+  "feature_id": "generic_directional_weapon_candidates",
+  "player_intent": "Extend the proven directional carry semantics to generic long guns while keeping each model, family, physical contacts and gameplay data unchanged.",
+  "acceptance_rule": "Shared-baseline pass: run the existing canonical standing/crouched A/D/fire/reversal/stop matrix across all33 firearms, keeping pistol handling separate. Preserve each current model/grip and gameplay data, inspect failures natively, and retain previous assignments on failures or geometry deltas. No limits may be relaxed. This bounded carry rollout does not certify unmeasured prone/model replacements or reopen the roster.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://gun_calibration_lab_2.tscn",
+  "ownership": {
+    "saved_profiles": "GunsLab2VisualRigResolver and SocomWeaponRigContract",
+    "pose": "Existing SocomOperatorWeaponPoseSolver",
+    "locomotion_presentation": "SocomOperatorLocomotionBlendTree",
+    "movement": "CharacterBody3D",
+    "aim": "SOCOM camera/reticle",
+    "shots": "Authoritative server weapon"
+  },
+  "nodes": [
+    {
+      "id": "existing_weapon_pose",
+      "type": "Node3D",
+      "role": "Reads the equipped saved visual contract and invokes the existing authored-stock strategy.",
+      "owner": "SocomOperatorWeaponPoseSolver",
+      "source_script": "res://scripts/player/operator_animation_driver_runtime.gd",
+      "code_symbols": [
+        "weapon_pose_solver = WeaponPoseSolver.new()"
+      ]
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://config/weapon_visual_rigs/family_smg_3_directional_v1.json",
+      "writer": "res://scripts/labs/gunsmith2/weapon_visual_rig_repository.gd",
+      "readers": ["res://scripts/labs/gunsmith2/weapon_visual_rig_resolver.gd", "res://scripts/player/operator_weapon_pose_api.gd"]
+    },
+    {
+      "path": "res://config/weapon_visual_rigs/family_shotgun_2_directional_v1.json",
+      "writer": "res://scripts/labs/gunsmith2/weapon_visual_rig_repository.gd",
+      "readers": [
+        "res://scripts/labs/gunsmith2/weapon_visual_rig_resolver.gd",
+        "res://scripts/player/operator_weapon_pose_api.gd"
+      ]
+    },
+    {
+      "path": "res://config/weapon_visual_rigs/family_rifle_2_directional_v1.json",
+      "writer": "res://scripts/labs/gunsmith2/weapon_visual_rig_repository.gd",
+      "readers": [
+        "res://scripts/labs/gunsmith2/weapon_visual_rig_resolver.gd",
+        "res://scripts/player/operator_weapon_pose_api.gd"
+      ]
+    },
+    {
+      "path": "res://config/weapon_visual_rigs/family_rifle_4_directional_v1.json",
+      "writer": "res://scripts/labs/gunsmith2/weapon_visual_rig_repository.gd",
+      "readers": [
+        "res://scripts/labs/gunsmith2/weapon_visual_rig_resolver.gd",
+        "res://scripts/player/operator_weapon_pose_api.gd"
+      ]
+    },
+    {
+      "path": "res://config/weapon_visual_rigs/family_rifle_5_directional_v1.json",
+      "writer": "res://scripts/labs/gunsmith2/weapon_visual_rig_repository.gd",
+      "readers": [
+        "res://scripts/labs/gunsmith2/weapon_visual_rig_resolver.gd",
+        "res://scripts/player/operator_weapon_pose_api.gd"
+      ]
+    },
+    {
+      "path": "res://config/weapon_visual_rigs/family_rifle_552_directional_v1.json",
+      "writer": "res://scripts/labs/gunsmith2/weapon_visual_rig_repository.gd",
+      "readers": [
+        "res://scripts/labs/gunsmith2/weapon_visual_rig_resolver.gd",
+        "res://scripts/player/operator_weapon_pose_api.gd"
+      ]
+    },
+    {
+      "path": "res://config/weapon_visual_rigs/family_rifle_aks74_directional_v1.json",
+      "writer": "res://scripts/labs/gunsmith2/weapon_visual_rig_repository.gd",
+      "readers": [
+        "res://scripts/labs/gunsmith2/weapon_visual_rig_resolver.gd",
+        "res://scripts/player/operator_weapon_pose_api.gd"
+      ]
+    },
+    {
+      "path": "res://config/weapon_visual_rigs/family_rifle_m14_directional_v1.json",
+      "writer": "res://scripts/labs/gunsmith2/weapon_visual_rig_repository.gd",
+      "readers": [
+        "res://scripts/labs/gunsmith2/weapon_visual_rig_resolver.gd",
+        "res://scripts/player/operator_weapon_pose_api.gd"
+      ]
+    },
+    {
+      "path": "res://config/weapon_visual_rigs/family_machinegun_2_directional_v1.json",
+      "writer": "res://scripts/labs/gunsmith2/weapon_visual_rig_repository.gd",
+      "readers": [
+        "res://scripts/labs/gunsmith2/weapon_visual_rig_resolver.gd",
+        "res://scripts/player/operator_weapon_pose_api.gd"
+      ]
+    },
+    {
+      "path": "res://config/weapon_visual_rigs/family_smg_1_directional_v1.json",
+      "writer": "res://scripts/labs/gunsmith2/weapon_visual_rig_repository.gd",
+      "readers": [
+        "res://scripts/labs/gunsmith2/weapon_visual_rig_resolver.gd",
+        "res://scripts/player/operator_weapon_pose_api.gd"
+      ]
+    },
+    {
+      "path": "res://config/weapon_visual_rigs/family_smg_2_directional_v1.json",
+      "writer": "res://scripts/labs/gunsmith2/weapon_visual_rig_repository.gd",
+      "readers": [
+        "res://scripts/labs/gunsmith2/weapon_visual_rig_resolver.gd",
+        "res://scripts/player/operator_weapon_pose_api.gd"
+      ]
+    },
+    {
+      "path": "res://config/weapon_visual_rigs/family_smg_3_directional_v1.json",
+      "writer": "res://scripts/labs/gunsmith2/weapon_visual_rig_repository.gd",
+      "readers": [
+        "res://scripts/labs/gunsmith2/weapon_visual_rig_resolver.gd",
+        "res://scripts/player/operator_weapon_pose_api.gd"
+      ]
+    },
+    {
+      "path": "res://config/weapon_visual_rigs/family_smg_4_directional_v1.json",
+      "writer": "res://scripts/labs/gunsmith2/weapon_visual_rig_repository.gd",
+      "readers": [
+        "res://scripts/labs/gunsmith2/weapon_visual_rig_resolver.gd",
+        "res://scripts/player/operator_weapon_pose_api.gd"
+      ]
+    },
+    {
+      "path": "res://config/weapon_visual_rigs/family_sniper_1_directional_v1.json",
+      "writer": "res://scripts/labs/gunsmith2/weapon_visual_rig_repository.gd",
+      "readers": [
+        "res://scripts/labs/gunsmith2/weapon_visual_rig_resolver.gd",
+        "res://scripts/player/operator_weapon_pose_api.gd"
+      ]
+    },
+    {
+      "path": "res://config/weapon_visual_rigs/family_sniper_2_directional_v1.json",
+      "writer": "res://scripts/labs/gunsmith2/weapon_visual_rig_repository.gd",
+      "readers": [
+        "res://scripts/labs/gunsmith2/weapon_visual_rig_resolver.gd",
+        "res://scripts/player/operator_weapon_pose_api.gd"
+      ]
+    },
+    {
+      "path": "res://config/weapon_visual_rigs/family_sniper_3_directional_v1.json",
+      "writer": "res://scripts/labs/gunsmith2/weapon_visual_rig_repository.gd",
+      "readers": [
+        "res://scripts/labs/gunsmith2/weapon_visual_rig_resolver.gd",
+        "res://scripts/player/operator_weapon_pose_api.gd"
+      ]
+    },
+    {
+      "path": "res://config/weapon_visual_rigs/family_sniper_4_directional_v1.json",
+      "writer": "res://scripts/labs/gunsmith2/weapon_visual_rig_repository.gd",
+      "readers": [
+        "res://scripts/labs/gunsmith2/weapon_visual_rig_resolver.gd",
+        "res://scripts/player/operator_weapon_pose_api.gd"
+      ]
+    },
+    {
+      "path": "res://config/weapon_visual_rigs/family_shotgun_1_directional_v1.json",
+      "writer": "res://scripts/labs/gunsmith2/weapon_visual_rig_repository.gd",
+      "readers": [
+        "res://scripts/labs/gunsmith2/weapon_visual_rig_resolver.gd",
+        "res://scripts/player/operator_weapon_pose_api.gd"
+      ]
+    }
+  ],
+  "must_not_change": [
+    "Weapon models, scales, mounts, sockets and existing action/reload routes",
+    "Original immutable rigs and nonselected raw profiles",
+    "Legacy buttstock enabled=false and action/prone fallback behavior",
+    "Pistols and separately authored AK/M4/M16/M40 contracts",
+    "CharacterBody movement, camera/reticle, server shots, damage and timing",
+    "Roster, original names and unrelated dirty work"
+  ],
+  "proof_scripts": [
+    "res://tools/generic_directional_reload_regression.gd",
+    "res://tools/generic_contact_surface_probe.gd",
+    "res://tools/generic_directional_batch_regression.gd",
+    "res://tools/firearm_family_transition_regression.gd",
+    "res://tools/authored_stock_scope_regression.gd",
+    "res://tools/feature_contract_regression.gd"
+  ],
+  "visual_check": "Inspect early and settled A/D fire, direction reversal, full ready-stop release and terminal low-readiness handoff in canonical native captures for each model. Inspect independent reload/prone/action recovery before promotion.",
+  "translation_card": "res://docs/GENERIC_DIRECTIONAL_BATCH_TRANSLATION.md",
+  "candidate_registry": "res://config/weapon_directional_batch_candidates.json",
+  "known_limitations": [
+    "The shared-baseline sweep measured25passes and8failures across33firearms. Only870/F90 were newly assigned after a stable-current-source872-frame pass. Eight failed upgrades retain previous assignments; pistols remain separate. The broad sweep's runtime changed concurrently, so it is not latest-runtime certification of all guns.",
+    "Contact-template consistency is not a mesh-surface certificate. No candidate is release-approved from inventory/contract checks alone."
+  ],
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Merge isolated immutable candidate contracts and exact-data proof only; reject promotion of failing model geometry.",
+    "current": {
+      "system": "Generic hand-follow rigs without new directional carry",
+      "correctness": 2,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 5,
+      "performance": 4,
+      "regression_coverage": 3,
+      "evidence_paths": [
+        "res://docs/LONG_GUN_CONTACT_REUSE_AUDIT.md"
+      ]
+    },
+    "candidate": {
+      "system": "Model-specific immutable candidate carry policies; firsttrio reveals calibration failures and release remainsheld",
+      "correctness": 2,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 5,
+      "performance": 4,
+      "regression_coverage": 5,
+      "evidence_paths": [
+        "res://tools/generic_directional_batch_regression.gd",
+        "res://config/weapon_directional_batch_candidates.json"
+      ]
+    }
+  }
+}

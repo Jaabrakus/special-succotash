@@ -113,6 +113,12 @@ static func capture(source) -> Dictionary:
 		"animation_owned_aim_alignment_enabled": (
 			source.animation_owned_aim_alignment_enabled
 		),
+		"authored_shoulder_stock_enabled": source.authored_shoulder_stock_enabled,
+		"authored_shoulder_stock_active": source.authored_shoulder_stock_active,
+		"authored_stock_release_applied_m": source.authored_stock_release_applied_m,
+		"authored_stock_right_turn_weight": source.authored_stock_right_turn_weight,
+		"authored_stock_release_frame": source.strafe_right_stock_release_frame,
+		"authored_stock_release_direction_world": source.authored_stock_release_direction_world,
 		"animation_owned_aim_alignment_active": (
 			source.animation_owned_aim_alignment_active
 		),

@@ -1,0 +1,17 @@
+{
+  "reference_video": "https://www.youtube.com/watch?v=oI3NiRLeRhs",
+  "time": "00:05",
+  "label_seen": "9mm Pistol (P9S Silenced)",
+  "status": "STANDALONE_EXTERIOR_STUDY",
+  "triangles": 7932,
+  "mesh_objects": 225,
+  "materials": 7,
+  "scale": "arbitrary art units, silhouette ratios only",
+  "runtime_files_changed": false,
+  "limits": [
+    "Low-resolution HUD cannot reveal exact 3D depth or obscured surfaces.",
+    "Width and small details are artistic estimates.",
+    "Not the original SOCOM mesh.",
+    "Only the first weapon is modeled in this study."
+  ]
+}

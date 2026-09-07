@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "feature_id": "rifle_lateral_gait",
+  "player_intent": "AK/M4 lateral legs turn fully with A/D travel while the rifle keeps the camera-owned aim target.",
+  "acceptance_rule": "Only AK/M4 select the four looped lateral aliases. At matching phases they equal the forward source with a ninety-degree pelvis yaw; all other local tracks and cycle durations are unchanged. A/D changes preserve actual graph phase. Natural crouch hip twist and head bob are not misidentified as directional error.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://gun_calibration_lab_2.tscn",
+  "ownership": {
+    "animation_assets": "SocomOperatorAssetRuntime",
+    "animation_graph": "SocomOperatorLocomotionBlendTree",
+    "movement": "CharacterBody3D",
+    "aim": "SOCOM camera and reticle"
+  },
+  "nodes": [
+    {
+      "id": "canonical_operator",
+      "type": "Node3D",
+      "role": "Existing animation consumer selects saved weapon locomotion slots.",
+      "owner": "SocomOperatorAnimationDriver",
+      "scene_path": "res://scenes/player/operator_player.tscn",
+      "node_path": "Mannequin/ProductionAnimation"
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://config/operator_animation_map.json",
+      "writer": "res://scripts/labs/animation_workshop_repository.gd",
+      "readers": [
+        "res://scripts/player/operator_animation_profile.gd",
+        "res://scripts/player/operator_asset_runtime.gd"
+      ]
+    },
+    {
+      "path": "res://config/weapons/ak-47.json",
+      "writer": "res://scripts/labs/gunsmith/gunsmith_weapon_profile_repository.gd",
+      "readers": [
+        "res://scripts/weapons/weapon_rig_contract.gd",
+        "res://scripts/player/operator_locomotion_blend_tree.gd"
+      ]
+    },
+    {
+      "path": "res://config/weapon_visual_rigs/m4a1_agls_v9.json",
+      "writer": "res://scripts/labs/gunsmith2/weapon_visual_rig_repository.gd",
+      "readers": [
+        "res://scripts/labs/gunsmith2/weapon_visual_rig_resolver.gd",
+        "res://scripts/player/operator_locomotion_blend_tree.gd"
+      ]
+    }
+  ],
+  "must_not_change": [
+    "CharacterBody3D motion/collision",
+    "camera/reticle/shot/damage/networking",
+    "socket transforms and bone lengths",
+    "reload/prone/jump",
+    "other weapon routes",
+    "existing shared lateral clips"
+  ],
+  "proof_scripts": [
+    "res://tools/rifle_lateral_gait_regression.gd",
+    "res://tools/rifle_reference_visual_probe.gd",
+    "res://tools/jump_forward_legs_regression.gd"
+  ],
+  "visual_check": "Review actual A/D motion standing and crouched with AK/M4. Forward gait turns sideways continuously; A retains forward shoulders and D follows the intended body turn. Barrel stays reticle-facing. A folded arm still fails the separate contact/appearance gate even if leg math passes.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Existing ±24/18 degree aliases cannot produce full lateral legs. Four weapon-selected aliases reuse the same cached forward cycles without globally changing source poses or adding a frame-time transform owner.",
+    "current": {
+      "system": "Forward aliases with small lateral hip offsets",
+      "correctness": 2,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 4,
+      "performance": 5,
+      "regression_coverage": 2,
+      "evidence_paths": [
+        "res://docs/RIFLE_LATERAL_LEGS_TRANSLATION.md",
+        "res://scripts/player/operator_animation_profile.gd"
+      ]
+    },
+    "candidate": {
+      "system": "Scoped full lateral forward-gait aliases",
+      "correctness": 4,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 4,
+      "performance": 5,
+      "regression_coverage": 4,
+      "evidence_paths": [
+        "res://scripts/player/operator_asset_runtime.gd",
+        "res://tools/rifle_lateral_gait_regression.gd"
+      ]
+    }
+  }
+}

@@ -15,6 +15,7 @@ var network_peer_id: int = 0
 var team_id: int = 0
 var display_name: String = "OPERATOR"
 var alive: bool = true
+var round_deactivated: bool = false
 var mannequin: SocomTestMannequin
 var hurtbox_rig: SocomAnimatedHurtboxRig
 var nameplate: Label3D
@@ -215,7 +216,15 @@ func get_animation_aim_state() -> Dictionary:
 
 func _apply_snapshot_presentation(entry: Dictionary) -> void:
 	var state: Dictionary = entry.get("presentation", {})
+	round_deactivated = bool(state.get("round_deactivated", false))
+	if mannequin != null:
+		mannequin.visible = not round_deactivated
 	motion_state = clampi(int(state.get("motion_state", posture)), MotionState.STANDING, MotionState.VAULTING)
+	var combo := StringName(state.get("combo_kind", ""))
+	mobility_combo_kind = combo if combo in [&"slide", &"left", &"right", &"back"] and motion_state == MotionState.DIVING else &""
+	combo_exit_prone = mobility_combo_kind == &"slide" and bool(state.get("combo_exit_prone", false))
+	action_duration = clampf(float(state.get("action_duration", 0.0)), 0.0, 3.0)
+	action_elapsed = clampf(float(state.get("action_elapsed", 0.0)), 0.0, action_duration)
 	var angles: Vector2 = state.get("aim_angles", Vector2(rotation.y, 0.0))
 	if angles.is_finite(): network_aim_angles = angles
 	var desired: Vector3 = state.get("desired_movement", Vector3.ZERO)
@@ -257,6 +266,7 @@ func set_authoritative_snapshot(
 		received_respawn_revision = server_respawn_revision
 		prediction_history.clear()
 	if hard_snap or global_position.distance_to(position_value) > 1.25:
+		reset_jump_combos()
 		pending_position_correction = Vector3.ZERO
 		global_position = position_value
 		rotation.y = yaw_value
@@ -274,6 +284,8 @@ func set_authoritative_snapshot(
 
 
 func respawn_at(spawn_position: Vector3) -> void:
+	round_deactivated = false
+	reset_jump_combos()
 	respawn_revision += 1
 	consumed_input_tick = -1
 	movement_command_queue.clear()
@@ -290,6 +302,8 @@ func respawn_at(spawn_position: Vector3) -> void:
 
 
 func deactivate_for_round() -> void:
+	round_deactivated = true
+	reset_jump_combos()
 	pending_position_correction = Vector3.ZERO
 	# The operator remains network-visible for spectating, but cannot move,
 	# collide, fire, or receive damage while its teammate fights sudden death.
@@ -373,13 +387,20 @@ func take_explosion_damage(
 
 func _set_alive_and_health(value: bool, health_value: float) -> void:
 	alive = value
+	if alive:
+		round_deactivated = false
+	if not alive:
+		reset_jump_combos()
 	current_health = clampf(health_value, 0.0, max_health)
 	collision_layer = 1 if alive else 0
 	if mannequin:
-		mannequin.visible = alive
+		mannequin.visible = not round_deactivated
 	if hurtbox_rig:
 		hurtbox_rig.set_enabled(alive and authoritative_hurtboxes_enabled)
 	_refresh_nameplate()
+
+func is_dead_for_presentation() -> bool:
+	return not alive or current_health <= 0.0
 
 
 func _ensure_movement_collider() -> void:

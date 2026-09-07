@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "enabled": true,
+  "double_tap_seconds": 0.30,
+  "slide_speed": 6.5,
+  "dive_speed": 7.0,
+  "slide_duration": 1.65,
+  "dive_duration": 1.65,
+  "collider_height": 1.25,
+  "rest_seconds": 1.05,
+  "input_mode": "grounded_double_tap",
+  "diagonal_steering": true,
+  "instant_crouch_response": true,
+  "chain_from": ["slide", "back"],
+  "chain_to": ["left", "right"],
+  "crouch_allowed_kinds": ["left", "right", "back"],
+  "side_torso_roll_degrees": 70.0,
+  "torso_right_lean_degrees": 8.0,
+  "crouch_entry_seconds": 0.30,
+  "crouch_clips": {"left": "crouch_dive_left", "right": "crouch_dive_right", "back": "crouch_dive_back"},
+  "crouch_finish_kinds": ["slide", "back"],
+  "camera_rest_head_m": {"slide": 1.20, "left": 0.60, "right": 0.60, "back": 0.85},
+  "clips": {
+    "slide_prone": "jump_slide_prone",
+    "slide": "jump_slide_crouch",
+    "left": "jump_dive_left",
+    "right": "jump_dive_right",
+    "back": "jump_back_crouch"
+  }
+}

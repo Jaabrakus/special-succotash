@@ -18,6 +18,7 @@ var prone_pressed: bool = false
 var crouch_held: bool = false
 var crouch_released: bool = false
 var peek_axis: float = 0.0
+var direction_held_mask: int = 0 # W=1, A=2, D=4, S=8; raw intent, not a combo request.
 
 
 func duplicate_command():
@@ -36,4 +37,5 @@ func duplicate_command():
 	copy.crouch_held = crouch_held
 	copy.crouch_released = crouch_released
 	copy.peek_axis = peek_axis
+	copy.direction_held_mask = direction_held_mask
 	return copy

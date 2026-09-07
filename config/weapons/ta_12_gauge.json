@@ -47,7 +47,7 @@
   "schema_version": 3,
   "competitive_eligible": false,
   "training_only": true,
-  "visual_rig_id": "family_shotgun_1_v2",
+  "visual_rig_id": "family_shotgun_1_directional_v1",
   "presentation_status": "Calibrated family placeholder; not an accurate model of this weapon.",
   "provenance": {
     "schema_version": 1,

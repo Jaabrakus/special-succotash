@@ -35,6 +35,35 @@ func _neutral_pose_hip_rotation(clip_name: StringName = &"aim_idle") -> Quaterni
 	return Quaternion.IDENTITY
 
 
+func _rifle_movement_stability_weight() -> float:
+	if posture not in [&"STANDING", &"CROUCHED"] or requested_action != &"":
+		return 0.0
+	if movement_state in [&"DIVING", &"ROLLING", &"AIRBORNE", &"LANDING"]:
+		return 0.0
+	if not use_modern_locomotion or locomotion_graph == null:
+		return 0.0
+	var dynamic: Dictionary = equipped_weapon_handling_profile.get("dynamic_hold", {})
+	var strafe: Dictionary = dynamic.get("strafe_carry", {})
+	if float(strafe.get("right_hip_follow_weight", 0.0)) <= 0.0:
+		return 0.0
+	return _directional_carry_source_weight()
+
+
+func _standing_idle_pelvis_weight() -> float:
+	if _presentation_posture != &"STANDING" or requested_action != &"":
+		return 0.0
+	if movement_state in [&"DIVING", &"ROLLING", &"AIRBORNE", &"LANDING"]:
+		return 0.0
+	var dynamic: Dictionary = equipped_weapon_handling_profile.get("dynamic_hold", {})
+	if not bool(dynamic.get("standing_idle_square_pelvis", false)):
+		return 0.0
+	if use_modern_locomotion and locomotion_graph != null:
+		return 1.0 - locomotion_graph.evaluated_locomotion_source_weight
+	# Fade on the same measured speed used by the animation graph. No new
+	# movement latch, animation restart, or independent transition timer.
+	return 1.0 - smoothstep(0.0, 0.15, movement_speed_normalized)
+
+
 func _lower_body_separation_weight(
 	presentation_posture: StringName = posture,
 	presentation_ready: float = weapon_ready_weight
@@ -43,10 +72,18 @@ func _lower_body_separation_weight(
 		return 0.0
 	if movement_state in [&"DIVING", &"ROLLING", &"AIRBORNE", &"LANDING"]:
 		return 0.0
+	if requested_action != &"":
+		return smoothstep(0.12, 0.82, presentation_ready)
+	# A saved movement carry may separate the torso before any shot. The graph's
+	# movement blend is already smoothed; actual readiness and fire stay untouched.
+	var carry_weight: float = (
+		locomotion_graph.locomotion_carry_weight
+		if locomotion_graph != null and use_modern_locomotion else 0.0
+	)
 	# Relaxed locomotion is a complete authored pose. Once accepted-shot recovery
 	# enters Ready Aim, standing and crouched locomotion both separate the moving
 	# pelvis/legs from the posture-matched aim frame above Spine.
-	return smoothstep(0.12, 0.82, presentation_ready)
+	return maxf(maxf(smoothstep(0.12, 0.82, presentation_ready), carry_weight), _rifle_movement_stability_weight())
 
 
 func _authored_pistol_ready_locomotion() -> bool:
@@ -61,8 +98,58 @@ func _authored_pistol_ready_locomotion() -> bool:
 	)
 
 
+func _directional_carry_strafe() -> float:
+	if posture not in [&"STANDING", &"CROUCHED"] or requested_action != &"":
+		return 0.0
+	if movement_state in [&"DIVING", &"ROLLING", &"AIRBORNE", &"LANDING"]:
+		return 0.0
+	if not use_modern_locomotion or locomotion_graph == null:
+		return 0.0
+	return locomotion_graph.evaluated_carry_direction.x * _directional_carry_source_weight()
+
+
+func _directional_carry_source_weight() -> float:
+	if not use_modern_locomotion or locomotion_graph == null:
+		return 0.0
+	var dynamic: Dictionary = equipped_weapon_handling_profile.get("dynamic_hold", {})
+	var configured := clampf(float(dynamic.get("locomotion_ready_carry_weight", 0.0)), 0.0, 1.0)
+	# The existing tree crossfade, not zero physical speed, releases the rendered
+	# turned torso. Both weapon release and idle-pelvis correction share it.
+	return configured * locomotion_graph.evaluated_locomotion_source_weight
+
+
+func _right_strafe_hip_follow() -> float:
+	var dynamic: Dictionary = equipped_weapon_handling_profile.get("dynamic_hold", {})
+	var strafe: Dictionary = dynamic.get("strafe_carry", {})
+	return maxf(_directional_carry_strafe(), 0.0) * clampf(_presentation_ready_weight, 0.0, 1.0) * clampf(
+		float(strafe.get("right_hip_follow_weight", 0.0)), 0.0, 1.0
+	)
+
+
+func _left_strafe_shoulder_square_weight() -> float:
+	# The saved directional carry now stays square in every relaxed moving
+	# direction. D adds its directional target only during fire/recovery below.
+	return _rifle_movement_stability_weight()
+
+
+func _right_strafe_shoulder_yaw() -> float:
+	if _directional_carry_strafe() <= 0.0:
+		return 0.0
+	var dynamic: Dictionary = equipped_weapon_handling_profile.get("dynamic_hold", {})
+	var strafe: Dictionary = dynamic.get("strafe_carry", {})
+	var direction: Vector2 = locomotion_graph.evaluated_carry_direction.normalized()
+	return asin(clampf(direction.x, 0.0, 1.0)) * clampf(_presentation_ready_weight, 0.0, 1.0) * clampf(
+		float(strafe.get("right_hip_follow_weight", 0.0)), 0.0, 1.0
+	)
+
+
 func _select_visual_clip() -> StringName:
 	if movement_state == &"DIVING":
+		var player := _get_player()
+		if player != null and player.has_method("get_mobility_combo_clip"):
+			var combo_clip: StringName = player.call("get_mobility_combo_clip")
+			if combo_clip != &"" and available_clips.has(combo_clip):
+				return combo_clip
 		return &"dive_roll"
 	if movement_state == &"ROLLING":
 		return &"roll"
@@ -172,10 +259,17 @@ func _request_clip(clip_name: StringName, blend_seconds: float = -1.0) -> void:
 		)
 	if not use_modern_locomotion:
 		locomotion_graph.request_legacy_clip(clip_name, blend)
+		_sync_jump_combo_clip(clip_name)
 		return
 	if not locomotion_graph.request_modern_state(_modern_state_for_clip(clip_name), maxf(blend, 0.0)):
 		locomotion_graph.set_modern_enabled(false)
 		locomotion_graph.request_legacy_clip(clip_name, blend)
+	_sync_jump_combo_clip(clip_name)
+
+func _sync_jump_combo_clip(clip_name: StringName) -> void:
+	var player := _get_player()
+	if player != null and player.has_method("get_mobility_combo_clip") and player.call("get_mobility_combo_clip") == clip_name:
+		locomotion_graph.sync_jump_combo(clip_name, float(player.get("action_elapsed")))
 
 
 func _apply_saved_animation_frame_pose(delta: float) -> void:
@@ -366,12 +460,15 @@ func _standing_ready_frame_pose_clip() -> StringName:
 
 
 func _modern_state_for_clip(clip_name: StringName) -> StringName:
+	# Death is a full-body graph state, never a standing/crouched idle route.
+	if String(clip_name).begins_with("death_"):
+		return clip_name
 	if requested_action != &"" and not _requested_action_upper_body_layered:
+		return clip_name
+	if movement_state in [&"DIVING", &"ROLLING", &"AIRBORNE", &"LANDING"]:
 		return clip_name
 	if posture == &"CROUCHED":
 		return &"crouch" if _locomotion_active else &"idle_crouch"
-	if movement_state in [&"DIVING", &"ROLLING", &"AIRBORNE", &"LANDING"]:
-		return clip_name
 	if posture == &"PRONE":
 		return &"prone" if _locomotion_active else &"idle_prone"
 	return &"standing" if _locomotion_active else &"idle"

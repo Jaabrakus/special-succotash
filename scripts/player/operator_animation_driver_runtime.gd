@@ -2,6 +2,11 @@ extends "res://scripts/player/operator_animation_driver_diagnostics.gd"
 
 ## Runtime coordinator: builds the production graph and applies one visual pass.
 
+var death_profile: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://config/operator_death.json"))
+var death_presentation_active: bool = false
+var death_elapsed: float = 0.0
+var death_clip: StringName = &""
+
 func _ready() -> void:
 	process_priority = 100
 	pose_pipeline = PosePipeline.new()
@@ -113,6 +118,9 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	if animation_tree == null:
 		return
+	if _advance_death_presentation(delta):
+		return
+	var evaluated_jump_frame: Vector2 = locomotion_graph.get_evaluated_jump_source_frame()
 	# Read the pose that the tree actually evaluated, before this pass requests
 	# another route or changes its crossfade duration. Input state is not blend
 	# completion: the departing source can still own most of the upper body.
@@ -165,8 +173,17 @@ func _process(delta: float) -> void:
 		delta
 	)
 	_consider_cosmetic_transition()
+	# The tree has already evaluated this frame. Finishing the logical timer
+	# below must not make its last reload wrist pose masquerade as idle to IK.
+	var evaluated_reload_action: StringName = requested_action if _reload_action_is_active() else &""
+	var evaluated_reload_regrip := _reload_support_regrip
 	_update_requested_action(delta)
 	_update_reload_visuals(delta)
+	var weapon_presentation_action := requested_action
+	var weapon_presentation_regrip := _reload_support_regrip
+	if requested_action == &"" and evaluated_reload_action != &"":
+		weapon_presentation_action = evaluated_reload_action
+		weapon_presentation_regrip = evaluated_reload_regrip
 	# The visually accepted recovery pose is also the canonical standing/crouched
 	# Ready Aim pose. This scalar suppresses only the stale saved/procedural upper-
 	# body corrections; it does not change the fire latch, recoil, shot timing,
@@ -290,6 +307,8 @@ func _process(delta: float) -> void:
 		equipped_weapon_family == &"TWO_HAND_PISTOL"
 		and clean_ready_owns_upper_body
 	)
+	if weapon_pose_solver != null:
+		weapon_pose_solver.begin_posture_frame()
 	posture_layer.apply(
 		0.0 if combat_ready_ccdik_weight > 0.001 else posture_aim_yaw,
 		0.0 if combat_ready_ccdik_weight > 0.001 else posture_aim_pitch,
@@ -301,7 +320,7 @@ func _process(delta: float) -> void:
 		deg_to_rad(head_yaw_limit_deg),
 		deg_to_rad(head_pitch_limit_deg),
 		_lower_body_separation_weight(_presentation_posture, _presentation_ready_weight),
-		upper_body_gait_roll_retention,
+		lerpf(upper_body_gait_roll_retention, 0.0, _rifle_movement_stability_weight()),
 		_prone_straighten_weight,
 		deg_to_rad(prone_axis_max_correction_deg),
 		deg_to_rad(prone_axis_target_pitch_deg),
@@ -314,8 +333,20 @@ func _process(delta: float) -> void:
 		square_idle_frame,
 		clean_authored_fire_recovery_weight,
 		pistol_clean_ready_square,
-		authored_posture_weight
+		authored_posture_weight,
+		# The authored hip-facing baseline reduces the spinal turn needed below;
+		# the explicit directional shoulder target remains the final authority.
+		_right_strafe_hip_follow(),
+		_left_strafe_shoulder_square_weight(),
+		_right_strafe_shoulder_yaw(),
+		_rifle_movement_stability_weight(),
+		_rifle_movement_stability_weight(),
+		_standing_idle_pelvis_weight()
 	)
+	# Rebase the same graph-owned jump legs against the finalized pelvis frame.
+	# Posture may finish an airborne hip correction; consume that result before
+	# the independent upper-body weapon pass, without changing hips or physics.
+	locomotion_graph.apply_jump_source_frame(skeleton, evaluated_jump_frame)
 	# Clean-ready ownership rule: relaxed movement, mobility, and reload keep their
 	# authored upper body. Ready Aim and accepted-fire recovery share one stable
 	# upper-body gate so moving and stationary aim do not select different poses.
@@ -335,14 +366,16 @@ func _process(delta: float) -> void:
 			movement_state,
 			_presentation_ready_weight,
 			0.0,
-			requested_action,
-			_reload_support_regrip,
+			weapon_presentation_action,
+			weapon_presentation_regrip,
 			visual_aim_target,
 			_get_player(),
 			delta,
 			presentation_locomotion_active,
 			peek_amount,
-			1.0 if authored_idle_baseline and _presentation_fire_selected else -1.0
+			1.0 if (authored_idle_baseline or weapon_pose_solver.authored_shoulder_stock_enabled) and _presentation_fire_selected else -1.0,
+			_directional_carry_strafe(),
+			clampf(posture_layer.last_directional_shoulder_target_deg / 90.0, 0.0, 1.0) * posture_layer.last_shoulder_square_weight
 		)
 	if weapon_grip_contact != null:
 		var owner_state: Dictionary = (
@@ -360,6 +393,12 @@ func _process(delta: float) -> void:
 			owner_state.get("owner", &"RELAXED_RIFLE_LOCOMOTION")
 		)
 		weapon_grip_contact.apply(current_owner, support_mode, weapon_vis)
+	posture_layer.apply_movement_head_level(
+		(_locomotion_active or posture == &"CROUCHED") and posture in [&"STANDING", &"CROUCHED"]
+		and movement_state not in [&"DIVING", &"ROLLING", &"AIRBORNE", &"LANDING", &"VAULTING"]
+		and requested_action == &"",
+		movement_state == &"DIVING" and current_clip in [&"jump_dive_right", &"crouch_dive_right"]
+	)
 	if foot_contact_lock != null:
 		foot_contact_lock.apply(
 			movement_direction,
@@ -378,6 +417,44 @@ func _process(delta: float) -> void:
 		)
 	_previous_firing = firing
 	_previous_movement_state = movement_state
+
+func _advance_death_presentation(delta: float) -> bool:
+	var actor := _get_player()
+	var dead: bool = actor != null and actor.has_method("is_dead_for_presentation") and actor.call("is_dead_for_presentation")
+	if not dead:
+		death_presentation_active = false
+		death_elapsed = 0.0
+		return false
+	if not death_presentation_active:
+		death_presentation_active = true
+		var stance := StringName(actor.call("get_posture_name"))
+		death_clip = StringName(death_profile.crouched_clip if stance == &"CROUCHED" else death_profile.standing_clip)
+		death_elapsed = 0.0
+		if stance == &"PRONE":
+			death_clip = StringName(death_profile.prone_clip)
+			death_elapsed = float(death_profile.prone_start_seconds)
+		requested_action = &""
+		requested_action_remaining = 0.0
+		_requested_action_upper_body_layered = false
+		locomotion_graph.cancel_reload_layers()
+		clear_fire_ready_aim()
+		if weapon_pose_solver != null:
+			weapon_pose_solver._stop_socket_ik()
+			weapon_pose_solver._set_weapon_solver_owned(false)
+		# Retire the last living frame's persistent aim/hand overrides once;
+		# the same AnimationTree is the sole body-pose writer during death.
+		skeleton.clear_bones_global_pose_override()
+	if not available_clips.has(death_clip):
+		return true
+	var animation := animation_player.get_animation(death_clip)
+	death_elapsed = minf(death_elapsed + maxf(delta, 0.0), animation.length)
+	_request_clip(death_clip, float(death_profile.blend_seconds))
+	locomotion_graph.sync_jump_combo(death_clip, death_elapsed)
+	if combat_ready_ccdik != null:
+		combat_ready_ccdik.apply(0.0, 0.0, 0.0)
+	if foot_contact_lock != null:
+		foot_contact_lock.apply(Vector2.ZERO, 0.0, &"PRONE", &"DEAD", death_clip, delta, true)
+	return true
 
 
 func _stabilize_locomotion_legs(delta: float) -> void:

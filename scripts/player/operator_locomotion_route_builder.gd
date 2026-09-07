@@ -191,6 +191,12 @@ static func build(graph: RefCounted, root: AnimationNodeBlendTree, available_cli
 		var node_name := StringName("modern_state_%s" % clip_name)
 		var source_name := node_name
 		root.add_node(node_name, graph._animation_node(clip_name), Vector2(40.0, 540.0 + state_sources.size() * 42.0))
+		if graph.combo_seek_paths.has(clip_name):
+			var seek_name := StringName("%s_combo_seek" % node_name)
+			root.add_node(seek_name, AnimationNodeTimeSeek.new(), Vector2(140.0, 540.0 + state_sources.size() * 42.0))
+			root.connect_node(seek_name, 0, source_name)
+			source_name = seek_name
+			graph.combo_seek_paths[clip_name].append(StringName("parameters/%s/seek_request" % seek_name))
 		if graph._uses_action_time_scale(clip_name):
 			var scale_name := StringName("%s_time_scale" % node_name)
 			root.add_node(scale_name, AnimationNodeTimeScale.new(), Vector2(180.0, 540.0 + state_sources.size() * 42.0))

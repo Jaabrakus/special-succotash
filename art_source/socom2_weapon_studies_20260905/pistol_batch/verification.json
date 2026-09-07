@@ -1,0 +1,87 @@
+{
+  "result": "PASS",
+  "models_checked": 10,
+  "roster_entries": 43,
+  "checks": [
+    "empty-scene GLB re-import",
+    "one mesh per export",
+    "triangle-count parity",
+    "finite vertex coordinates",
+    "positive triangle areas",
+    "material assignments",
+    "positive three-axis extents",
+    "unique 43-entry roster"
+  ],
+  "items": [
+    {
+      "id": "9mm_pistol",
+      "result": "PASS",
+      "triangles": 7842,
+      "materials": 7,
+      "mesh_objects": 1
+    },
+    {
+      "id": "mark_23",
+      "result": "PASS",
+      "triangles": 5270,
+      "materials": 7,
+      "mesh_objects": 1
+    },
+    {
+      "id": "mark_23_sd",
+      "result": "PASS",
+      "triangles": 6410,
+      "materials": 7,
+      "mesh_objects": 1
+    },
+    {
+      "id": "226",
+      "result": "PASS",
+      "triangles": 5839,
+      "materials": 7,
+      "mesh_objects": 1
+    },
+    {
+      "id": "model_18",
+      "result": "PASS",
+      "triangles": 4386,
+      "materials": 6,
+      "mesh_objects": 1
+    },
+    {
+      "id": "f57",
+      "result": "PASS",
+      "triangles": 4636,
+      "materials": 6,
+      "mesh_objects": 1
+    },
+    {
+      "id": "m9",
+      "result": "PASS",
+      "triangles": 6476,
+      "materials": 7,
+      "mesh_objects": 1
+    },
+    {
+      "id": "de_50",
+      "result": "PASS",
+      "triangles": 5808,
+      "materials": 7,
+      "mesh_objects": 1
+    },
+    {
+      "id": "m11",
+      "result": "PASS",
+      "triangles": 5841,
+      "materials": 7,
+      "mesh_objects": 1
+    },
+    {
+      "id": "sp_10",
+      "result": "PASS",
+      "triangles": 5839,
+      "materials": 7,
+      "mesh_objects": 1
+    }
+  ]
+}

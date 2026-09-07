@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "feature_id": "rifle_right_carry_release",
+  "player_intent": "Full right body carry holds AK/M4 crosswise in front of the turned torso, without folding the arms, while fixed palms and physical bore remain attached to the rifle and reticle.",
+  "acceptance_rule": "Only AK/M4 opt into a shared-turn-weighted chest-forward stock release. Settled standing/crouch full-right input keeps both palms within 5 mm, bore within 0.5 degrees and elbows within the existing 42–150 degree limits. Rigid weapon bounds and contact points must be ahead of the physical chest plane, not pushed along the barrel. Left, idle, actions, air and other weapons receive zero release. Native direction/readiness transitions must remain humanly plausible.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://gun_calibration_lab_2.tscn",
+  "ownership": {"weapon_presentation": "SocomOperatorWeaponPoseSolver", "aim": "SOCOM camera and reticle", "movement": "CharacterBody3D"},
+  "nodes": [{"id": "existing_weapon_pose_solver", "type": "Node3D", "role": "The existing weapon owner rebuilds its authored mount, places one pivot and solves fixed palm contacts.", "owner": "SocomOperatorWeaponPoseSolver", "source_script": "res://scripts/player/operator_weapon_pose_state.gd", "code_symbols": ["extends Node3D", "strafe_right_stock_release_m", "authored_stock_release_applied_m"]}],
+  "data_contracts": [
+    {"path": "res://config/weapons/ak-47.json", "writer": "res://scripts/labs/gunsmith/gunsmith_weapon_profile_repository.gd", "readers": ["res://scripts/player/operator_weapon_pose_api.gd", "res://scripts/player/operator_weapon_authored_stock_pose.gd"]},
+    {"path": "res://config/weapon_visual_rigs/m4a1_agls_v9.json", "writer": "res://scripts/labs/gunsmith2/weapon_visual_rig_repository.gd", "readers": ["res://scripts/labs/gunsmith2/weapon_visual_rig_resolver.gd", "res://scripts/player/operator_weapon_pose_api.gd"]}
+  ],
+  "must_not_change": ["camera and reticle", "movement and collision", "shot timing/damage/network authority", "left stock contact", "local grip sockets and bone lengths", "reload/prone/air", "other weapons", "1.2-second fire recovery"],
+  "proof_scripts": ["res://tools/rifle_right_carry_release_regression.gd", "res://tools/rifle_full_right_reach_probe.gd", "res://tools/rifle_shoulder_stock_regression.gd", "res://tools/rifle_left_shoulder_physical_regression.gd", "res://tools/rifle_reference_visual_probe.gd"],
+  "visual_check": "Native rear and side AK/M4 standing/crouched A/D and direction transitions: full-right rifle can release from shoulder but fixed hands and reticle bore remain coherent; neither wrist folds or elbow enters the chest. Left stays shouldered.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "The requested crosswise carry belongs in front of the turned chest, not along the barrel. The saved chest-forward frame uses the torso's actual turn progress, preserving one weapon owner, fixed grip sockets and reticle target. Measured .33m release clears the torso and passes settled D geometry; AK positive-turn reversals pass. The broader transition gate still exposes M4's near-A and zero-release authored envelope, so this is not a claim of complete pose acceptance.",
+    "current": {"system": "Full-right fixed stock", "correctness": 1, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 4, "regression_coverage": 3, "evidence_paths": ["res://docs/AK_M4_FULL_RIGHT_REACH_DIAGNOSIS.md", "res://tools/rifle_full_right_reach_probe.gd"]},
+    "candidate": {"system": "Saved D-only forward carry release", "correctness": 4, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 4, "regression_coverage": 4, "evidence_paths": ["res://scripts/player/operator_weapon_authored_stock_pose.gd", "res://scripts/player/operator_weapon_pose_api.gd", "res://tools/rifle_right_carry_release_regression.gd"]}
+  }
+}

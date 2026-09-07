@@ -1,0 +1,182 @@
+{
+  "source_hashes_sha256": {
+    "fix_price_brutalist_low_poly_psx.glb": "ef985ce0a204b5ad11f77cdc57c980093b6f8f769fa613d1010be10ab075a963",
+    "ps1low_poly_night_vision_special_forces_soldier/license.txt": "2c564154fbf0e32492289057b072841e151bc646b882d19eeb660ee021e26309",
+    "ps1low_poly_night_vision_special_forces_soldier/scene.bin": "b853f8c5661e90a19738b7326da4bf84b8bb31cddb3313ebe5884a398d766c8a",
+    "ps1low_poly_night_vision_special_forces_soldier/scene.gltf": "48d4bfb037f78822afac4de16e5a62c00ec494bc7bc387e277a42e6094fa235b",
+    "ps1low_poly_night_vision_special_forces_soldier/textures/Grid_baseColor.png": "ebfe1403eed3aa38d90d7cad7bde69cb9f484f3ce7e90d4fe866dcb581d01b8e",
+    "ps1low_poly_night_vision_special_forces_soldier/textures/weapons_baseColor.png": "c945915760fd37d61e3b9a16181361e40b81ee87cff8e00eb5928ccf61f7a5a7",
+    "psx_houses.glb": "84ddc2f2a37b3ed0cb232411310bb02eb413b36b752e71817595d981d8a09c92",
+    "psx_industrial_pack.glb": "440729aa884b612226b26b866174b7445a587dce329992977f6547023d65e506",
+    "psx_old_warehouse.glb": "69e4333bf85b09c80e84a3a5169913901c256db5b18e4d29addfb9b66dad8e4f",
+    "psx_shipping_containers_2.glb": "102758ae4f33b25ab36a70c8a7a5a20c68c166eb0fe0ca1ce573f07699b876db",
+    "psx_tropical_pack_v1.glb": "ea2f6c32de6d56e6dc40f0362efeebaf2a201d8cbd01e8871188598cdd691c64",
+    "rocks_-_psx_low_poly.glb": "4839cf4960e5c887ef5d0a67542ba0fcb6f4c1a5b05e66576839bca8d0f440f4"
+  },
+  "source_files_unchanged": true,
+  "assets": [
+    {
+      "id": "fix_price_brutalist_low_poly_psx",
+      "source_file": "untitled folder/fix_price_brutalist_low_poly_psx.glb",
+      "provenance": {
+        "author": "bean(alwayshasbean) (https://sketchfab.com/alwayshasbean)",
+        "license": "CC-BY-NC-SA-4.0 (http://creativecommons.org/licenses/by-nc-sa/4.0/)",
+        "source": "https://sketchfab.com/3d-models/fix-price-brutalist-low-poly-psx-75404df5d5e34ead8c49f0bc91a5256e",
+        "title": "Fix Price brutalist low poly psx"
+      },
+      "meshes": 55,
+      "materials": 9,
+      "images": 9,
+      "skins": 0,
+      "animations": [],
+      "required_extensions": [],
+      "status": "held",
+      "reason": "CC BY-NC-SA: hold out of commercial production."
+    },
+    {
+      "id": "ps1low_poly_night_vision_special_forces_soldier",
+      "source_file": "untitled folder/ps1low_poly_night_vision_special_forces_soldier",
+      "provenance": {
+        "author": "Jellypack (https://sketchfab.com/jellypack)",
+        "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+        "source": "https://sketchfab.com/3d-models/ps1low-poly-night-vision-special-forces-soldier-afb42573fa5f4fd2af09c9929d9ccd93",
+        "title": "PS1/Low Poly Night Vision Special Forces Soldier"
+      },
+      "meshes": 7,
+      "materials": 2,
+      "images": 2,
+      "skins": 1,
+      "animations": [
+        "SMGwalk",
+        "SHOTGUNwalk",
+        "Default",
+        "SHOTGUNpose",
+        "SHOTGUNpose2",
+        "SHOTGUNpose3",
+        "SMGpose",
+        "SMGpose2",
+        "SMGpose3"
+      ],
+      "required_extensions": [],
+      "source_meshes": 9,
+      "removed_meshes": [
+        "SHOTGUN",
+        "SMG"
+      ],
+      "modification": "Character-only: weapon meshes removed; body, skeleton and animations retained.",
+      "status": "editable_copy_prepared",
+      "gltf": "art_source/sketchfab_intake_20260906/prepared/ps1low_poly_night_vision_special_forces_soldier/scene.gltf"
+    },
+    {
+      "id": "psx_houses",
+      "source_file": "untitled folder/psx_houses.glb",
+      "provenance": {
+        "author": "domi236 (https://sketchfab.com/domi236)",
+        "license": "SKETCHFAB Standard (https://sketchfab.com/licenses)",
+        "source": "https://sketchfab.com/3d-models/psx-houses-c535b11378194028b5410e4e60afdad5",
+        "title": "PSX Houses"
+      },
+      "meshes": 41,
+      "materials": 28,
+      "images": 13,
+      "skins": 0,
+      "animations": [],
+      "required_extensions": [
+        "KHR_materials_pbrSpecularGlossiness"
+      ],
+      "status": "held",
+      "reason": "Review exact Sketchfab Standard terms before production use."
+    },
+    {
+      "id": "psx_industrial_pack",
+      "source_file": "untitled folder/psx_industrial_pack.glb",
+      "provenance": {
+        "author": "Tomitos (https://sketchfab.com/Tomitos_)",
+        "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+        "source": "https://sketchfab.com/3d-models/psx-industrial-pack-12cb749961974f94a4063e67dafb2d76",
+        "title": "PSX Industrial Pack"
+      },
+      "meshes": 44,
+      "materials": 2,
+      "images": 2,
+      "skins": 0,
+      "animations": [],
+      "required_extensions": [],
+      "status": "editable_copy_prepared",
+      "gltf": "art_source/sketchfab_intake_20260906/prepared/psx_industrial_pack/scene.gltf"
+    },
+    {
+      "id": "psx_old_warehouse",
+      "source_file": "untitled folder/psx_old_warehouse.glb",
+      "provenance": {
+        "author": "Shazly (https://sketchfab.com/Shazly)",
+        "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+        "source": "https://sketchfab.com/3d-models/psx-old-warehouse-a0527ff3b315445d96f78e9792c86055",
+        "title": "PSX Old Warehouse"
+      },
+      "meshes": 1,
+      "materials": 1,
+      "images": 1,
+      "skins": 0,
+      "animations": [],
+      "required_extensions": [],
+      "status": "editable_copy_prepared",
+      "gltf": "art_source/sketchfab_intake_20260906/prepared/psx_old_warehouse/scene.gltf"
+    },
+    {
+      "id": "psx_shipping_containers_2",
+      "source_file": "untitled folder/psx_shipping_containers_2.glb",
+      "provenance": {
+        "author": "Arrangemonk (https://sketchfab.com/Arrangemonk9000)",
+        "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+        "source": "https://sketchfab.com/3d-models/psx-shipping-containers-2-c4a68cee7a184f15a553a9d53d66f94e",
+        "title": "psx shipping containers 2"
+      },
+      "meshes": 4,
+      "materials": 4,
+      "images": 2,
+      "skins": 0,
+      "animations": [],
+      "required_extensions": [],
+      "status": "editable_copy_prepared",
+      "gltf": "art_source/sketchfab_intake_20260906/prepared/psx_shipping_containers_2/scene.gltf"
+    },
+    {
+      "id": "psx_tropical_pack_v1",
+      "source_file": "untitled folder/psx_tropical_pack_v1.glb",
+      "provenance": {
+        "author": "PROJEKTSANSSTUDIOS (https://sketchfab.com/projektsansstudios)",
+        "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+        "source": "https://sketchfab.com/3d-models/psx-tropical-pack-v1-831f5ce303354977a6acb695571ac01b",
+        "title": "PSX Tropical Pack V1"
+      },
+      "meshes": 19,
+      "materials": 7,
+      "images": 7,
+      "skins": 0,
+      "animations": [],
+      "required_extensions": [],
+      "status": "editable_copy_prepared",
+      "gltf": "art_source/sketchfab_intake_20260906/prepared/psx_tropical_pack_v1/scene.gltf"
+    },
+    {
+      "id": "rocks_-_psx_low_poly",
+      "source_file": "untitled folder/rocks_-_psx_low_poly.glb",
+      "provenance": {
+        "author": "Drops (https://sketchfab.com/rafacandido2016)",
+        "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+        "source": "https://sketchfab.com/3d-models/rocks-psx-low-poly-4a9020e1803444c7aa79a6272a7d09b9",
+        "title": "Rocks - PSX Low Poly"
+      },
+      "meshes": 5,
+      "materials": 2,
+      "images": 2,
+      "skins": 0,
+      "animations": [],
+      "required_extensions": [],
+      "status": "editable_copy_prepared",
+      "gltf": "art_source/sketchfab_intake_20260906/prepared/rocks_-_psx_low_poly/scene.gltf"
+    }
+  ],
+  "scope": "Staging only. No game replacement, collision generation or rig retargeting."
+}

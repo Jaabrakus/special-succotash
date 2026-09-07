@@ -1,0 +1,285 @@
+{
+  "schema_version": 1,
+  "status": "unassigned_candidate",
+  "spec": {
+    "id": "uzi_candidate",
+    "candidate_weapon_ids": [
+      "9mm_sub"
+    ],
+    "folder": "SMG_01",
+    "armature": "SMG_01_Armature",
+    "source_to_meters": 0.01,
+    "meshes": [
+      "Main_Mesh",
+      "Magazine_Mesh",
+      "Stock_Mesh",
+      "Trigger_Mesh",
+      "Knob_Mesh",
+      "EjectionCover_Mesh"
+    ],
+    "excluded_reason": "Separate Silencer_Mesh omitted for the existing unsilenced 9mm_sub; alternative magazines omitted."
+  },
+  "source": "1212/RetroWeaponsPack/Guns/SMG_01/BlendFile/SMG_01.blend",
+  "source_sha256": "263ac4975de5339b573ee2d78a89ea06c879572017362555444d5c96893f86fe",
+  "model": "res://assets/weapons/retro_1212/uzi_candidate.glb",
+  "orientation": {
+    "source": "Blender world: +X barrel forward, +Z up, meters",
+    "export": "glTF/Godot: +X barrel forward, +Y up; (x,y,z)_Blender -> (x,z,-y)_glTF"
+  },
+  "source_meshes": [
+    {
+      "name": "Main_Mesh",
+      "triangles": 2293,
+      "vertices": 1279,
+      "parent": "SMG_01_Armature",
+      "parent_type": "OBJECT",
+      "parent_bone": "",
+      "materials": [
+        "Retro1212_SMG_01"
+      ],
+      "bounds_min_blender_m": [
+        -0.12735576927661896,
+        -0.02570231631398201,
+        0.04706570506095886
+      ],
+      "bounds_max_blender_m": [
+        0.2497398555278778,
+        0.02570229209959507,
+        0.221681609749794
+      ]
+    },
+    {
+      "name": "Magazine_Mesh",
+      "triangles": 188,
+      "vertices": 96,
+      "parent": "SMG_01_Armature",
+      "parent_type": "OBJECT",
+      "parent_bone": "",
+      "materials": [
+        "Retro1212_SMG_01"
+      ],
+      "bounds_min_blender_m": [
+        -0.02030372992157936,
+        -0.01041049137711525,
+        -9.53674295089968e-09
+      ],
+      "bounds_max_blender_m": [
+        0.01657675951719284,
+        0.01041046716272831,
+        0.17413221299648285
+      ]
+    },
+    {
+      "name": "Stock_Mesh",
+      "triangles": 184,
+      "vertices": 106,
+      "parent": "SMG_01_Armature",
+      "parent_type": "OBJECT",
+      "parent_bone": "",
+      "materials": [
+        "Retro1212_SMG_01"
+      ],
+      "bounds_min_blender_m": [
+        -0.35693642497062683,
+        -0.022112570703029633,
+        0.03891314938664436
+      ],
+      "bounds_max_blender_m": [
+        -0.1096501275897026,
+        0.011851353570818901,
+        0.18466609716415405
+      ]
+    },
+    {
+      "name": "Trigger_Mesh",
+      "triangles": 46,
+      "vertices": 26,
+      "parent": "SMG_01_Armature",
+      "parent_type": "OBJECT",
+      "parent_bone": "",
+      "materials": [
+        "Retro1212_SMG_01"
+      ],
+      "bounds_min_blender_m": [
+        0.034788891673088074,
+        -0.0038815601728856564,
+        0.11391088366508484
+      ],
+      "bounds_max_blender_m": [
+        0.052122000604867935,
+        0.0038815601728856564,
+        0.1440742015838623
+      ]
+    },
+    {
+      "name": "Knob_Mesh",
+      "triangles": 160,
+      "vertices": 87,
+      "parent": "SMG_01_Armature",
+      "parent_type": "OBJECT",
+      "parent_bone": "",
+      "materials": [
+        "Retro1212_SMG_01"
+      ],
+      "bounds_min_blender_m": [
+        0.05239761248230934,
+        -0.013835346326231956,
+        0.19901162385940552
+      ],
+      "bounds_max_blender_m": [
+        0.06990554928779602,
+        0.013835322111845016,
+        0.21633443236351013
+      ]
+    },
+    {
+      "name": "EjectionCover_Mesh",
+      "triangles": 36,
+      "vertices": 20,
+      "parent": "SMG_01_Armature",
+      "parent_type": "OBJECT",
+      "parent_bone": "",
+      "materials": [
+        "Retro1212_SMG_01"
+      ],
+      "bounds_min_blender_m": [
+        -0.020365577191114426,
+        -0.01964997686445713,
+        0.16990643739700317
+      ],
+      "bounds_max_blender_m": [
+        0.027890173718333244,
+        -0.01599971018731594,
+        0.1915401667356491
+      ]
+    }
+  ],
+  "source_bone_landmarks": [
+    {
+      "name": "Main",
+      "parent": null,
+      "head_blender_m": [
+        0.0,
+        0.0,
+        0.04557812958955765
+      ],
+      "tail_blender_m": [
+        0.0,
+        0.0,
+        0.13657814264297485
+      ]
+    },
+    {
+      "name": "Magazine",
+      "parent": "Main",
+      "head_blender_m": [
+        3.779161428241196e-09,
+        -5.248568801796694e-10,
+        0.0
+      ],
+      "tail_blender_m": [
+        9.55858170392787e-10,
+        -1.1616279493864567e-08,
+        0.08645713329315186
+      ]
+    },
+    {
+      "name": "Trigger",
+      "parent": "Main",
+      "head_blender_m": [
+        0.040974102914333344,
+        5.883430409525658e-10,
+        0.1440742015838623
+      ],
+      "tail_blender_m": [
+        0.040974102914333344,
+        5.883430409525658e-10,
+        0.11391088366508484
+      ]
+    },
+    {
+      "name": "Knob",
+      "parent": "Main",
+      "head_blender_m": [
+        0.06115159019827843,
+        -1.231606194807e-08,
+        0.1990116387605667
+      ],
+      "tail_blender_m": [
+        0.06115159019827843,
+        -1.231606194807e-08,
+        0.21633443236351013
+      ]
+    },
+    {
+      "name": "Stock",
+      "parent": "Main",
+      "head_blender_m": [
+        -0.11850294470787048,
+        -0.013259757310152054,
+        0.17428083717823029
+      ],
+      "tail_blender_m": [
+        -0.19402764737606049,
+        -0.013259757310152054,
+        0.17428083717823029
+      ]
+    },
+    {
+      "name": "Silencer",
+      "parent": "Main",
+      "head_blender_m": [
+        0.18957702815532684,
+        2.8235171978252538e-09,
+        0.16608306765556335
+      ],
+      "tail_blender_m": [
+        0.26746833324432373,
+        2.8235171978252538e-09,
+        0.16608306765556335
+      ]
+    },
+    {
+      "name": "EjectionCover",
+      "parent": "Main",
+      "head_blender_m": [
+        -0.020365577191114426,
+        -0.01737714558839798,
+        0.18170617520809174
+      ],
+      "tail_blender_m": [
+        0.0201193206012249,
+        -0.01737714558839798,
+        0.18170617520809174
+      ]
+    }
+  ],
+  "textures": [
+    "1212/RetroWeaponsPack/Guns/SMG_01/Textures/SMG_01_Albedo.png",
+    "1212/RetroWeaponsPack/Guns/AdditionalMeshes/Projectiles/Texture/Projectiles_Albedo.png"
+  ],
+  "glb_checks": {
+    "meshes": 6,
+    "mesh_names": [
+      "Circle",
+      "Cube.006",
+      "Cube.007",
+      "Cube.013",
+      "Cube.014",
+      "Cube.015"
+    ],
+    "triangles": 2907,
+    "nodes": 14,
+    "skins": 1,
+    "materials": 1,
+    "embedded_images": 1,
+    "samplers": [
+      {
+        "magFilter": 9728,
+        "minFilter": 9984
+      }
+    ],
+    "bytes": 279008,
+    "sha256": "136035c988e0f7e91dc8cea653969f4ca0f879ce43ade1c5220b6d11fea2896f"
+  }
+}

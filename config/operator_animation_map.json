@@ -1,5 +1,9 @@
 {
   "clip_aliases": {
+    "run_lateral_left": "run_forward",
+    "run_lateral_right": "run_forward",
+    "crouch_lateral_left": "crouch_forward",
+    "crouch_lateral_right": "crouch_forward",
     "crouch_left": "crouch_forward",
     "crouch_right": "crouch_forward",
     "pistol_run_forward_left": "pistol_run_forward",
@@ -10,6 +14,17 @@
     "run_right": "run_forward"
   },
   "clips": {
+    "crouch_dive_left": "res://assets/animations/authored/crouch_dive_left.tres",
+    "crouch_dive_right": "res://assets/animations/authored/crouch_dive_right.tres",
+    "crouch_dive_back": "res://assets/animations/authored/crouch_dive_back.tres",
+    "death_kneel_back": "res://assets/animations/mixamo/Rifle Kneel Hit To Back.fbx",
+    "jump_slide_prone": "res://assets/animations/authored/jump_slide_prone.tres",
+    "jump_slide_crouch": "res://assets/animations/authored/jump_slide_crouch.tres",
+    "jump_back_crouch": "res://assets/animations/authored/jump_back_crouch.tres",
+    "run_lateral_left": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/sprint forward.fbx",
+    "run_lateral_right": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/sprint forward.fbx",
+    "crouch_lateral_left": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/walk crouching forward.fbx",
+    "crouch_lateral_right": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/walk crouching forward.fbx",
     "aim_idle": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/idle aiming.fbx",
     "aim_idle_crouch": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/idle crouching aiming.fbx",
     "climb": "res://assets/animations/mixamo/Climbing.fbx",
@@ -38,6 +53,10 @@
     "jump_backward_action": "res://assets/animations/mixamo/Jump Away.fbx",
     "jump_down": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/jump down.fbx",
     "jump_forward_action": "res://assets/animations/mixamo/Shooter Pack/jump forward.fbx",
+    "jump_peak_slide_candidate": "res://assets/animations/authored/jump_peak_slide_candidate.tres",
+    "backward_dive_pose_candidate": "res://assets/animations/authored/backward_dive_pose_candidate.tres",
+    "jump_dive_left": "res://assets/animations/authored/jump_dive_left.tres",
+    "jump_dive_right": "res://assets/animations/authored/jump_dive_right.tres",
     "jump_loop": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/jump loop.fbx",
     "jump_up": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/jump up.fbx",
     "jump_up_standing": "res://assets/animations/mixamo/Rifle 8-Way Locomotion Pack/jump up.fbx",
@@ -236,6 +255,12 @@
     "crouch_forward_left": "crouch_forward_right",
     "run_forward_left": "run_forward_right"
   },
+  "jump_lower_body": {
+    "enabled": true,
+    "clip": "jump_forward_action",
+    "blend_seconds": 0.06,
+    "match_source_parent_frame": true
+  },
   "locomotion": {
     "crouch_nominal_speed_mps": 2.6,
     "direction_response": 16.0,
@@ -279,6 +304,10 @@
     "walk_left": "walk_right"
   },
   "pose_yaw_offsets_degrees": {
+    "run_lateral_left": 90.0,
+    "run_lateral_right": -90.0,
+    "crouch_lateral_left": 90.0,
+    "crouch_lateral_right": -90.0,
     "crouch_left": 18.0,
     "crouch_right": -18.0,
     "pistol_run_forward_left": 24.0,

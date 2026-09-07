@@ -1,0 +1,361 @@
+{
+  "schema_version": 1,
+  "scope": "Standalone nonfunctional exterior visual studies. No game integration.",
+  "video": "https://www.youtube.com/watch?v=oI3NiRLeRhs",
+  "roster_sources": [
+    "https://www.imfdb.org/wiki/SOCOM_II_U.S._Navy_SEALs",
+    "https://socom.fandom.com/wiki/552_Silenced"
+  ],
+  "count": 43,
+  "items": [
+    {
+      "id": "9mm_pistol",
+      "name": "9mm Pistol",
+      "category": "Pistols",
+      "status": "accepted_starting_preview",
+      "reference_status": "video_label_verified_00:05",
+      "asset_glb": "pistol_batch/9mm_pistol.glb",
+      "photo_match_candidate": {
+        "status": "built_for_visual_review",
+        "asset_glb": "photo_match_v2/p9s_v2.glb",
+        "blend": "photo_match_v2/photo_matched_pistols_v2.blend",
+        "note": "Standard photo-matched P9S; original suppressed version preserved."
+      }
+    },
+    {
+      "id": "mark_23",
+      "name": "Mark 23",
+      "category": "Pistols",
+      "status": "first_pass_preview_built",
+      "reference_status": "roster_crosscheck_pending_closeup",
+      "asset_glb": "pistol_batch/mark_23.glb",
+      "photo_match_candidate": {
+        "status": "built_for_visual_review",
+        "asset_glb": "photo_match_v2/mark23_v2.glb",
+        "blend": "photo_match_v2/photo_matched_pistols_v2.blend",
+        "note": "Source-photo contour revision; unseen depth estimated."
+      }
+    },
+    {
+      "id": "mark_23_sd",
+      "name": "Mark 23 SD",
+      "category": "Pistols",
+      "status": "first_pass_preview_built",
+      "reference_status": "video_label_seen_01:57",
+      "asset_glb": "pistol_batch/mark_23_sd.glb"
+    },
+    {
+      "id": "226",
+      "name": "226",
+      "category": "Pistols",
+      "status": "first_pass_preview_built",
+      "reference_status": "roster_crosscheck_pending_closeup",
+      "asset_glb": "pistol_batch/226.glb"
+    },
+    {
+      "id": "model_18",
+      "name": "Model 18",
+      "category": "Pistols",
+      "status": "first_pass_preview_built",
+      "reference_status": "roster_crosscheck_pending_closeup",
+      "asset_glb": "pistol_batch/model_18.glb"
+    },
+    {
+      "id": "f57",
+      "name": "F57",
+      "category": "Pistols",
+      "status": "first_pass_preview_built",
+      "reference_status": "video_label_and_inventory_icon_verified_05:09",
+      "asset_glb": "pistol_batch/f57.glb"
+    },
+    {
+      "id": "m9",
+      "name": "M9",
+      "category": "Pistols",
+      "status": "first_pass_preview_built",
+      "reference_status": "video_label_and_inventory_icon_verified_06:08",
+      "asset_glb": "pistol_batch/m9.glb",
+      "photo_match_candidate": {
+        "status": "built_for_visual_review",
+        "asset_glb": "photo_match_v2/beretta_v2.glb",
+        "blend": "photo_match_v2/photo_matched_pistols_v2.blend",
+        "note": "Related Beretta 92FS photo reference; not exact M9."
+      }
+    },
+    {
+      "id": "de_50",
+      "name": "DE .50",
+      "category": "Pistols",
+      "status": "first_pass_preview_built",
+      "reference_status": "roster_crosscheck_pending_closeup",
+      "asset_glb": "pistol_batch/de_50.glb",
+      "photo_match_candidate": {
+        "status": "built_for_visual_review",
+        "asset_glb": "photo_match_v2/desert_eagle_v2.glb",
+        "blend": "photo_match_v2/photo_matched_pistols_v2.blend",
+        "note": "Source-photo contour revision; unseen depth estimated."
+      }
+    },
+    {
+      "id": "m11",
+      "name": "M11",
+      "category": "Pistols",
+      "status": "provisional_preview_built",
+      "reference_status": "roster_crosscheck_pending_closeup",
+      "asset_glb": "pistol_batch/m11.glb",
+      "visual_note": "Provisional 226-family study; close HUD comparison still required."
+    },
+    {
+      "id": "sp_10",
+      "name": "SP-10",
+      "category": "Pistols",
+      "status": "provisional_preview_built",
+      "reference_status": "roster_crosscheck_pending_closeup",
+      "asset_glb": "pistol_batch/sp_10.glb",
+      "visual_note": "Provisional 226-family study; close HUD comparison still required."
+    },
+    {
+      "id": "hk5",
+      "name": "HK5",
+      "category": "Submachine guns",
+      "status": "queued",
+      "reference_status": "roster_crosscheck_pending_closeup"
+    },
+    {
+      "id": "hk5_sd",
+      "name": "HK5 SD",
+      "category": "Submachine guns",
+      "status": "queued",
+      "reference_status": "roster_crosscheck_pending_closeup"
+    },
+    {
+      "id": "hk5k",
+      "name": "HK5K",
+      "category": "Submachine guns",
+      "status": "queued",
+      "reference_status": "roster_crosscheck_pending_closeup"
+    },
+    {
+      "id": "9mm_sub",
+      "name": "9mm Sub",
+      "category": "Submachine guns",
+      "status": "queued",
+      "reference_status": "roster_crosscheck_pending_closeup"
+    },
+    {
+      "id": "f90",
+      "name": "F90",
+      "category": "Submachine guns",
+      "status": "queued",
+      "reference_status": "roster_crosscheck_pending_closeup"
+    },
+    {
+      "id": "m4a1",
+      "name": "M4A1",
+      "category": "Assault rifles",
+      "status": "queued",
+      "reference_status": "roster_crosscheck_pending_closeup"
+    },
+    {
+      "id": "m4a1_sd",
+      "name": "M4A1 SD",
+      "category": "Assault rifles",
+      "status": "queued",
+      "reference_status": "roster_crosscheck_pending_closeup"
+    },
+    {
+      "id": "m4a1_m203",
+      "name": "M4A1-M203",
+      "category": "Assault rifles",
+      "status": "queued",
+      "reference_status": "roster_crosscheck_pending_closeup"
+    },
+    {
+      "id": "m16a2",
+      "name": "M16A2",
+      "category": "Assault rifles",
+      "status": "queued",
+      "reference_status": "roster_crosscheck_pending_closeup"
+    },
+    {
+      "id": "m16a2_m203",
+      "name": "M16A2-M203",
+      "category": "Assault rifles",
+      "status": "queued",
+      "reference_status": "roster_crosscheck_pending_closeup"
+    },
+    {
+      "id": "ak_47",
+      "name": "AK-47",
+      "category": "Assault rifles",
+      "status": "queued",
+      "reference_status": "roster_crosscheck_pending_closeup"
+    },
+    {
+      "id": "aks_74",
+      "name": "AKS-74",
+      "category": "Assault rifles",
+      "status": "queued",
+      "reference_status": "roster_crosscheck_pending_closeup"
+    },
+    {
+      "id": "ak_105",
+      "name": "AK-105",
+      "category": "Assault rifles",
+      "status": "queued",
+      "reference_status": "roster_crosscheck_pending_closeup"
+    },
+    {
+      "id": "552",
+      "name": "552",
+      "category": "Assault rifles",
+      "status": "queued",
+      "reference_status": "roster_crosscheck_pending_closeup"
+    },
+    {
+      "id": "552_silenced",
+      "name": "552 Silenced",
+      "category": "Assault rifles",
+      "status": "queued",
+      "reference_status": "roster_crosscheck_pending_closeup"
+    },
+    {
+      "id": "m14",
+      "name": "M14",
+      "category": "Assault rifles",
+      "status": "queued",
+      "reference_status": "roster_crosscheck_pending_closeup"
+    },
+    {
+      "id": "stg_77",
+      "name": "STG 77",
+      "category": "Assault rifles",
+      "status": "queued",
+      "reference_status": "roster_crosscheck_pending_closeup"
+    },
+    {
+      "id": "iw_80_a2",
+      "name": "IW-80 A2",
+      "category": "Assault rifles",
+      "status": "queued",
+      "reference_status": "roster_crosscheck_pending_closeup"
+    },
+    {
+      "id": "ra_14",
+      "name": "RA-14",
+      "category": "Assault rifles",
+      "status": "queued",
+      "reference_status": "roster_crosscheck_pending_closeup"
+    },
+    {
+      "id": "oicw",
+      "name": "OICW",
+      "category": "Assault rifles",
+      "status": "queued",
+      "reference_status": "roster_crosscheck_pending_closeup"
+    },
+    {
+      "id": "12_gauge_pump",
+      "name": "12 Gauge Pump",
+      "category": "Shotguns",
+      "status": "queued",
+      "reference_status": "roster_crosscheck_pending_closeup"
+    },
+    {
+      "id": "ta_12_gauge",
+      "name": "TA 12 Gauge",
+      "category": "Shotguns",
+      "status": "queued",
+      "reference_status": "roster_crosscheck_pending_closeup"
+    },
+    {
+      "id": "m3_12_gauge",
+      "name": "M3 12 Gauge",
+      "category": "Shotguns",
+      "status": "queued",
+      "reference_status": "roster_crosscheck_pending_closeup"
+    },
+    {
+      "id": "m60e3",
+      "name": "M60E3",
+      "category": "Machine guns",
+      "status": "queued",
+      "reference_status": "roster_crosscheck_pending_closeup"
+    },
+    {
+      "id": "m63a",
+      "name": "M63A",
+      "category": "Machine guns",
+      "status": "queued",
+      "reference_status": "roster_crosscheck_pending_closeup"
+    },
+    {
+      "id": "m40a1",
+      "name": "M40A1",
+      "category": "Sniper rifles",
+      "status": "queued",
+      "reference_status": "roster_crosscheck_pending_closeup"
+    },
+    {
+      "id": "sr_25",
+      "name": "SR-25",
+      "category": "Sniper rifles",
+      "status": "queued",
+      "reference_status": "roster_crosscheck_pending_closeup"
+    },
+    {
+      "id": "sr_25_sd",
+      "name": "SR-25 SD",
+      "category": "Sniper rifles",
+      "status": "queued",
+      "reference_status": "roster_crosscheck_pending_closeup"
+    },
+    {
+      "id": "m82a1a",
+      "name": "M82A1A",
+      "category": "Sniper rifles",
+      "status": "queued",
+      "reference_status": "roster_crosscheck_pending_closeup"
+    },
+    {
+      "id": "m87elr",
+      "name": "M87ELR",
+      "category": "Sniper rifles",
+      "status": "queued",
+      "reference_status": "roster_crosscheck_pending_closeup"
+    },
+    {
+      "id": "sasr",
+      "name": "SASR",
+      "category": "Sniper rifles",
+      "status": "queued",
+      "reference_status": "roster_crosscheck_pending_closeup"
+    },
+    {
+      "id": "m79",
+      "name": "M79",
+      "category": "Grenade launchers",
+      "status": "queued",
+      "reference_status": "roster_crosscheck_pending_closeup"
+    },
+    {
+      "id": "mgl",
+      "name": "MGL",
+      "category": "Grenade launchers",
+      "status": "queued",
+      "reference_status": "roster_crosscheck_pending_closeup"
+    }
+  ],
+  "separate_followup": [
+    "AT4",
+    "RPG-7",
+    "PKM mounted",
+    "AGS-30 mounted",
+    "Designator",
+    "Grenades and equipment"
+  ],
+  "preview_count": 10,
+  "remaining_queued_count": 33,
+  "review_blend": "pistol_batch/socom2_pistols_review.blend",
+  "review_image": "pistol_batch/pistol_contact_sheet.png"
+}

@@ -177,6 +177,25 @@ func configure_dynamic_hold(raw_profile: Variant) -> void:
 	# the previous weapon's live solver values as defaults: doing so made a
 	# pistol inherit rifle stock/hand ownership until the next scene rebuild.
 	var profile := raw_profile as Dictionary if raw_profile is Dictionary else {}
+	# Saved opt-in only; switching to an unconfigured weapon clears the flare.
+	var strafe_carry: Variant = profile.get("strafe_carry", {})
+	var saved_flare := float(strafe_carry.get("left_elbow_flare_degrees", 0.0)) if strafe_carry is Dictionary else 0.0
+	strafe_left_elbow_flare_degrees = clampf(saved_flare, 0.0, 20.0) if is_finite(saved_flare) else 0.0
+	var saved_release := float(strafe_carry.get("right_stock_release_m", 0.0)) if strafe_carry is Dictionary else 0.0
+	strafe_right_stock_release_m = clampf(saved_release, 0.0, 0.40) if is_finite(saved_release) else 0.0
+	var saved_release_frame := StringName(strafe_carry.get("right_stock_release_frame", "aim_forward")) if strafe_carry is Dictionary else &"aim_forward"
+	strafe_right_stock_release_frame = &"chest_forward" if saved_release_frame == &"chest_forward" else &"aim_forward"
+	authored_stock_signed_strafe = 0.0
+	authored_stock_right_turn_weight = -1.0
+	authored_stock_release_applied_m = 0.0
+	authored_stock_release_direction_world = Vector3.ZERO
+	var ready_pocket: Dictionary = profile.get("ready_shoulder_pocket", {}) if profile.get("ready_shoulder_pocket", {}) is Dictionary else {}
+	var pocket_down := float(ready_pocket.get("downward_m", 0.0))
+	var pocket_roll := float(ready_pocket.get("right_wrist_roll_degrees", 0.0))
+	ready_shoulder_pocket_downward_m = clampf(pocket_down, 0.0, 0.07) if is_finite(pocket_down) else 0.0
+	ready_shoulder_pocket_right_wrist_roll_degrees = clampf(pocket_roll, -20.0, 20.0) if is_finite(pocket_roll) else 0.0
+	authored_shoulder_stock_enabled = bool(profile.get("authored_shoulder_stock_enabled", false))
+	authored_shoulder_stock_active = false
 	animation_carry_weight = clampf(
 		float(profile.get("animation_carry_weight", DEFAULT_ANIMATION_CARRY_WEIGHT)),
 		0.0,

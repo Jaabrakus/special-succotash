@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "feature_id": "jump_peak_slide_candidate",
+  "player_intent": "Put the anatomical right knee on the floor with the left leg forward; preserve the previous reclined pose as a backward-dive pose candidate.",
+  "acceptance_rule": "Right knee joint stays within 0.13m of floor through held pose; left foot ahead. Saved candidate plays in canonical graph, lowers character, releases, adds no body travel or binding. Preserved backward-dive pose is discoverable. Normal jump/dive unchanged.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://animation_library_lab.tscn",
+  "ownership": {"authored_clip_consumption": "SocomOperatorAssetRuntime", "playback": "SocomOperatorAnimationDriver"},
+  "nodes": [
+    {"id": "player", "type": "CharacterBody3D", "role": "Unchanged movement owner", "owner": "SocomPlayerController", "scene_path": "res://scenes/player/operator_player.tscn", "node_path": "."},
+    {"id": "animation", "type": "AnimationPlayer", "role": "Loads saved authored animation on the existing rig", "owner": "SocomOperatorAssetRuntime", "source_script": "res://scripts/player/operator_asset_runtime.gd", "code_symbols": ["if resource is Animation:", "animation_library.add_animation(clip_name, authored)"]}
+  ],
+  "data_contracts": [
+    {"path": "res://config/jump_peak_slide_recipe.json", "writer": "res://docs/JUMP_PEAK_SLIDE_EXPERIMENT.md", "readers": ["res://tools/build_jump_peak_slide.gd"]},
+    {"path": "res://assets/animations/authored/backward_dive_pose_candidate.tres", "writer": "res://docs/JUMP_PEAK_SLIDE_EXPERIMENT.md", "readers": ["res://scripts/player/operator_asset_runtime.gd", "res://scripts/labs/animation_studio/animation_studio_playback.gd"]},
+    {"path": "res://assets/animations/authored/jump_peak_slide_candidate.tres", "writer": "res://tools/build_jump_peak_slide.gd", "readers": ["res://scripts/player/operator_asset_runtime.gd", "res://scripts/labs/animation_studio/animation_studio_playback.gd"]},
+    {"path": "res://config/operator_animation_map.json", "writer": "res://scripts/labs/animation_workshop_repository.gd", "readers": ["res://scripts/player/operator_animation_profile.gd"]}
+  ],
+  "must_not_change": ["Normal jump and dive assignments", "CharacterBody3D movement/collision", "Camera/aim", "Server weapons/damage", "Original rig, character geometry and source animations", "Map selection"],
+  "proof_scripts": ["res://tools/jump_peak_slide_regression.gd"],
+  "visual_check": "Inspect source and candidate entry, low pose and recovery plus canonical moving render. This is a review animation, not a new slide gameplay state.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Previous upward knee pole left both knees elevated. Explicit offline right knee contact meets revised intent while preserving previous pose separately. No new runtime pose writer or gameplay binding.",
+    "current": {"system": "Preserved reclined feet-first candidate", "correctness": 2, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 5, "regression_coverage": 3, "evidence_paths": ["res://assets/animations/authored/backward_dive_pose_candidate.tres", "res://config/backward_dive_pose_recipe.json"]},
+    "candidate": {"system": "Right-knee-grounded authored slide candidate", "correctness": 4, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 5, "regression_coverage": 5, "evidence_paths": ["res://tools/build_jump_peak_slide.gd", "res://tools/jump_peak_slide_regression.gd", "res://scripts/player/operator_asset_runtime.gd"]}
+  }
+}

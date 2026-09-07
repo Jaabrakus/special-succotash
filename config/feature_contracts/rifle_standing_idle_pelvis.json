@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "feature_id": "rifle_standing_idle_pelvis",
+  "player_intent": "Straighten AK/M4 pelvis when standing idle, without straightening moving A/D legs.",
+  "acceptance_rule": "Canonical AK/M4 standing idle has less than 1 degree physical pelvis yaw error before firing and after stopping. Existing speed input fades the correction; actions, mobility, crouch/prone and other weapons keep the previous path.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://gun_calibration_lab_2.tscn",
+  "ownership": {
+    "pose": "SocomOperatorPostureLayer",
+    "movement": "CharacterBody3D",
+    "aim": "SOCOM camera/reticle"
+  },
+  "nodes": [
+    {
+      "id": "idle_pelvis_pose",
+      "type": "RefCounted",
+      "role": "Existing posture writer applies scoped yaw-only hip correction.",
+      "owner": "SocomOperatorPostureLayer",
+      "source_script": "res://scripts/player/operator_posture_layer.gd",
+      "code_symbols": [
+        "_apply_standing_idle_pelvis_square",
+        "standing_idle_pelvis_weight"
+      ]
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://config/weapons/ak-47.json",
+      "writer": "res://scripts/labs/gunsmith/gunsmith_weapon_profile_repository.gd",
+      "readers": [
+        "res://scripts/player/operator_animation_driver_pose.gd"
+      ]
+    },
+    {
+      "path": "res://config/weapons/m4a1.json",
+      "writer": "res://scripts/labs/gunsmith/gunsmith_weapon_profile_repository.gd",
+      "readers": [
+        "res://scripts/player/operator_animation_driver_pose.gd"
+      ]
+    },
+    {
+      "path": "res://config/weapon_visual_rigs/m4a1_agls_v9.json",
+      "writer": "res://scripts/labs/gunsmith2/weapon_visual_rig_repository.gd",
+      "readers": [
+        "res://scripts/labs/gunsmith2/weapon_visual_rig_resolver.gd",
+        "res://scripts/player/operator_animation_driver_pose.gd"
+      ]
+    }
+  ],
+  "must_not_change": [
+    "CharacterBody3D movement and collision",
+    "Camera/reticle aim",
+    "Shot/damage authority",
+    "Bone translations and natural head bob",
+    "Moving lateral legs, crouch/prone and action poses",
+    "Other weapons"
+  ],
+  "proof_scripts": [
+    "res://tools/rifle_idle_pelvis_regression.gd",
+    "res://tools/rifle_lateral_gait_regression.gd",
+    "res://tools/feature_contract_regression.gd",
+    "res://tools/rifle_idle_pelvis_math_regression.gd"
+  ],
+  "visual_check": "Observe idle before/after shots and A/D stops. Pelvis forward with natural waist shape and unchanged hand contacts; retain moving lateral legs.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Existing square-idle hip path trims roll only; canonical idle measured approximately55degrees unwanted yaw. Reuse the same posture owner with an explicit saved opt-in and existing speed fade.",
+    "current": {
+      "system": "Imported sideways rifle idle with roll-only leveling",
+      "correctness": 2,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 3,
+      "performance": 4,
+      "regression_coverage": 2,
+      "evidence_paths": [
+        "res://scripts/player/operator_posture_layer.gd"
+      ]
+    },
+    "candidate": {
+      "system": "Scoped yaw-only standing-idle pelvis correction",
+      "correctness": 4,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 4,
+      "performance": 4,
+      "regression_coverage": 4,
+      "evidence_paths": [
+        "res://scripts/player/operator_animation_driver_pose.gd",
+        "res://scripts/player/operator_posture_layer.gd",
+        "res://tools/rifle_idle_pelvis_regression.gd"
+      ]
+    }
+  }
+}

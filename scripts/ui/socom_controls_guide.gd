@@ -303,6 +303,15 @@ func _refresh_text() -> void:
 		var action_text := String(KeyboardProfile.ACTION_LABELS.get(action, String(action).capitalize()))
 		gameplay_lines.append("[color=#79d8f2]%-12s[/color]  %s" % [key_text, action_text])
 	gameplay_lines.append("[color=#79d8f2]Hold C / X[/color]  Continue stance input into prone")
+	var combo_profile: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://config/jump_direction_combos.json"))
+	if bool(combo_profile.get("enabled", false)):
+		gameplay_lines.append("[color=#79d8f2]Double-tap movement[/color]  Forward: slide; back: backward dive; left/right: side dive. No jump needed.")
+		gameplay_lines.append("[color=#79d8f2]While crouched[/color]  Double left/right/back to dive; forward slide requires standing")
+		if bool(combo_profile.get("diagonal_steering", false)):
+			gameplay_lines.append("[color=#79d8f2]Diagonal slide/dive[/color]  Hold a perpendicular direction, then double-tap the action direction")
+		gameplay_lines.append("[color=#79d8f2]Slide/back + double left/right[/color]  Chain into a side dive")
+		gameplay_lines.append("[color=#79d8f2]Side-rest[/color]  Release movement, then move again to get up")
+		gameplay_lines.append("[color=#79d8f2]During slide: %s or hold %s[/color]  Finish prone; otherwise slide/back finish crouched" % [KeyboardProfile.binding_text(&"dive"), KeyboardProfile.binding_text(&"crouch")])
 	gameplay_lines.append("[color=#79d8f2]Tap G[/color]  Equip the last-used available grenade")
 	gameplay_lines.append("[color=#79d8f2]Hold G + Wheel[/color]  Select rifle, Frag, Flash, or Smoke; release G to equip")
 	gameplay_lines.append("[color=#79d8f2]Right Mouse / Escape[/color]  Cancel the equipment wheel")

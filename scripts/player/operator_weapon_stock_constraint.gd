@@ -92,6 +92,15 @@ func is_active() -> bool:
 	return enabled and skeleton != null and stock_socket != null
 
 
+func can_place_authored_ready(posture: StringName) -> bool:
+	# Authored ready is a separately opted-in strategy in the existing weapon
+	# owner. Its geometry query must not activate legacy prone/action callers.
+	return (
+		posture in [&"STANDING", &"CROUCHED"]
+		and skeleton != null and stock_socket != null and pocket_marker != null
+	)
+
+
 func observe_reference(
 	posture: StringName,
 	stable_chest_anchor_world: Vector3,
@@ -121,9 +130,12 @@ func observe_reference(
 func correction_for(
 	aim_direction: Vector3,
 	posture: StringName = &"STANDING",
-	stable_chest_anchor_world: Vector3 = Vector3.INF
+	stable_chest_anchor_world: Vector3 = Vector3.INF,
+	pocket_adjustment_world: Vector3 = Vector3.ZERO,
+	authored_ready_request: bool = false
 ) -> Vector3:
-	if not is_active():
+	var allowed := can_place_authored_ready(posture) if authored_ready_request else is_active()
+	if not allowed:
 		last_contact_error_m = INF
 		last_correction_m = 0.0
 		return Vector3.ZERO
@@ -177,6 +189,8 @@ func correction_for(
 		- Vector3.UP * resolved_downward
 		+ forward * resolved_forward
 	)
+	if pocket_adjustment_world.is_finite():
+		pocket += pocket_adjustment_world
 	pocket_marker.global_position = pocket
 	var correction := pocket - stock_socket.global_position
 	last_contact_error_m = correction.length()
@@ -186,8 +200,8 @@ func correction_for(
 	return correction
 
 
-func measure_contact_error() -> float:
-	if not is_active() or pocket_marker == null:
+func measure_contact_error(authored_ready_request: bool = false) -> float:
+	if (not is_active() and not authored_ready_request) or pocket_marker == null or stock_socket == null:
 		return INF
 	last_contact_error_m = pocket_marker.global_position.distance_to(
 		stock_socket.global_position

@@ -330,6 +330,11 @@ func _set_presentation_trigger_held(active: bool) -> void:
 
 
 func request_fire() -> Dictionary:
+	if player != null and player.has_method("is_dead_for_presentation") and player.call("is_dead_for_presentation"):
+		if ballistics != null:
+			ballistics.release_trigger()
+		_set_presentation_trigger_held(false)
+		return {"fired": false, "reason": "DEAD"}
 	if _reload_blocks_fire():
 		if ballistics != null:
 			ballistics.release_trigger()

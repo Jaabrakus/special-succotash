@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "feature_id": "rifle_ready_shoulder_pocket",
+  "player_intent": "Keep both AK/M4 hands and elbows natural through left strafe, direction changes and stopping, with a high shouldered stock on A and unchanged crosswise carry on D.",
+  "acceptance_rule": "Actual standing/crouch A/D and stop transitions preserve 5 mm palm contact, 0.5 degree accepted-shot bore alignment and 42–150 degree elbow limits; saved pocket calibration remains within the shoulder region and is exactly absent at full D. Other weapon profiles default to zero.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://gun_calibration_lab_2.tscn",
+  "ownership": {"weapon_presentation": "SocomOperatorWeaponPoseSolver", "aim": "SOCOM camera and reticle", "movement": "CharacterBody3D"},
+  "nodes": [{"id": "existing_weapon_pose_solver", "type": "Node3D", "role": "The existing authored weapon owner applies a saved shoulder-pocket calibration and solves its unchanged fixed palms.", "owner": "SocomOperatorWeaponPoseSolver", "source_script": "res://scripts/player/operator_weapon_pose_state.gd", "code_symbols": ["extends Node3D", "ready_shoulder_pocket_downward_m"]}],
+  "data_contracts": [
+    {"path": "res://config/weapons/ak-47.json", "writer": "res://scripts/labs/gunsmith/gunsmith_weapon_profile_repository.gd", "readers": ["res://scripts/player/operator_weapon_pose_api.gd", "res://scripts/player/operator_weapon_authored_stock_pose.gd"]},
+    {"path": "res://config/weapon_visual_rigs/m4a1_agls_v9.json", "writer": "res://scripts/labs/gunsmith2/weapon_visual_rig_repository.gd", "readers": ["res://scripts/labs/gunsmith2/weapon_visual_rig_resolver.gd", "res://scripts/player/operator_weapon_pose_api.gd"]}
+  ],
+  "must_not_change": ["camera/reticle", "movement/collision", "shots/damage/networking", "fixed grip socket positions", "bone lengths and elbow limits", "full-D chest-forward 0.33m", "other weapons", "reload/prone/air", "1.2-second fire recovery"],
+  "proof_scripts": ["res://tools/rifle_right_carry_release_regression.gd", "res://tools/rifle_shoulder_stock_regression.gd", "res://tools/rifle_full_right_reach_probe.gd", "res://tools/rifle_reference_visual_probe.gd"],
+  "visual_check": "Native A/D front and side review must show shouldered A stock, natural wrists, no folded support arm on stop, and unchanged full-D rifle in front of the torso.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "A measured 0.065m shoulder-pocket calibration, -15 degree wrist roll, trigger-first entry pivot and existing bounded contact iterations pass 4536 actual AK/M4 rows across three gait phases, plus the strict stock gate. Camera/movement/shot owners and full-D remain unchanged. Native review and 32-player performance remain separate gates.",
+    "current": {"system": "Uncalibrated AK/M4 ready pocket", "correctness": 2, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 4, "regression_coverage": 4, "evidence_paths": ["res://docs/AK_M4_READY_ENVELOPE_TRANSLATION.md", "res://tools/rifle_full_right_reach_probe.gd"]},
+    "candidate": {"system": "Bounded saved non-right pocket calibration", "correctness": 4, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 4, "regression_coverage": 5, "evidence_paths": ["res://scripts/player/operator_weapon_authored_stock_pose.gd", "res://scripts/player/operator_weapon_stock_constraint.gd", "res://tools/rifle_right_carry_release_regression.gd", "res://docs/AK_M4_READY_ENVELOPE_TRANSLATION.md"]}
+  }
+}

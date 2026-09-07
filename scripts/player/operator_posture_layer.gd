@@ -55,6 +55,8 @@ const SQUARE_IDLE_REFERENCE_BONES: Array[StringName] = [
 ]
 
 var skeleton: Skeleton3D
+var movement_head_profile: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://config/basic_movement_head.json"))
+var last_movement_head_roll_deg: float = 0.0
 var bone_indices: Dictionary = {}
 var last_applied_yaw: float = 0.0
 var last_applied_pitch: float = 0.0
@@ -73,6 +75,8 @@ var last_chest_square_correction_deg: float = 0.0
 var last_shoulder_square_error_deg: float = 0.0
 var last_shoulder_level_error_cm: float = 0.0
 var last_shoulder_square_weight: float = 0.0
+var last_directional_shoulder_target_deg: float = 0.0
+var last_directional_shoulder_error_deg: float = 0.0
 var last_default_hip_roll_input_deg: float = 0.0
 var last_default_hip_roll_trim_deg: float = 0.0
 var last_default_hip_roll_output_deg: float = 0.0
@@ -201,7 +205,13 @@ func apply(
 	force_square_idle_reference: bool = false,
 	clean_recovery_weight: float = 0.0,
 	allow_clean_recovery_shoulder_square: bool = false,
-	authored_posture_weight: float = 0.0
+	authored_posture_weight: float = 0.0,
+	strafe_hip_yaw_retention: float = 0.0,
+	strafe_left_square_weight: float = 0.0,
+	strafe_right_shoulder_yaw: float = 0.0,
+	strafe_directional_activation: float = 1.0,
+	rifle_movement_isolation_weight: float = 0.0,
+	standing_idle_pelvis_weight: float = 0.0
 ) -> void:
 	if skeleton == null:
 		return
@@ -222,6 +232,8 @@ func apply(
 		prone_axis_target_pitch
 	)
 	_apply_procedural_profile(posture_name, post_layer_weight)
+	if posture_name == &"STANDING":
+		_apply_standing_idle_pelvis_square(standing_idle_pelvis_weight)
 	_apply_square_idle_reference(force_square_idle_reference, post_layer_weight)
 	var torso_yaw := clampf(aim_yaw, -chest_yaw_limit, chest_yaw_limit)
 	var torso_pitch := clampf(aim_pitch, -chest_pitch_limit, chest_pitch_limit)
@@ -243,12 +255,30 @@ func apply(
 
 	last_applied_yaw = 0.0
 	last_applied_pitch = 0.0
+	# A forward-facing idle pelvis no longer needs the old yawed aim_idle hip
+	# reference restored at Spine when a shot raises readiness. Fade that same
+	# correction out, rather than counter-twisting the chest against the waist.
+	var hip_separation := lower_body_separation_weight * (1.0 - clampf(standing_idle_pelvis_weight, 0.0, 1.0))
+	var neutral_carry_hip_correction := Quaternion.IDENTITY
+	if strafe_hip_yaw_retention > 0.0:
+		neutral_carry_hip_correction = _upper_body_hip_correction(
+			posture_name, hip_separation, gait_roll_retention,
+			authored_posture_weight, 0.0, rifle_movement_isolation_weight
+		)
 	var hip_correction := _upper_body_hip_correction(
 		posture_name,
-		lower_body_separation_weight,
+		hip_separation,
 		gait_roll_retention,
-		authored_posture_weight
+		authored_posture_weight,
+		strafe_hip_yaw_retention,
+		rifle_movement_isolation_weight
 	)
+	var head_carry_counter := Quaternion.IDENTITY
+	if strafe_hip_yaw_retention > 0.0:
+		head_carry_counter = _hip_retention_head_counter_rotation(
+			neutral_carry_hip_correction, hip_correction
+		)
+	var articulated_rifle_hip := rifle_movement_isolation_weight > 0.001
 	for bone_name: StringName in TORSO_YAW_WEIGHTS:
 		var yaw_amount := torso_yaw * float(TORSO_YAW_WEIGHTS[bone_name]) * torso_ready_scale
 		var pitch_amount := torso_pitch * float(TORSO_PITCH_WEIGHTS[bone_name]) * torso_ready_scale
@@ -258,13 +288,39 @@ func apply(
 			bone_name,
 			yaw_amount,
 			pitch_amount,
-			hip_correction if bone_name == &"spine" else Quaternion.IDENTITY
+			hip_correction if bone_name == &"spine" and not articulated_rifle_hip else Quaternion.IDENTITY
 		)
 		last_applied_yaw += yaw_amount
 		last_applied_pitch += pitch_amount
+	if articulated_rifle_hip:
+		_apply_articulated_hip_correction(hip_correction, rifle_movement_isolation_weight)
+	var directional_square_active := (
+		(strafe_left_square_weight > 0.001 or strafe_right_shoulder_yaw > 0.001)
+		and posture_name in [&"STANDING", &"CROUCHED"]
+	)
+	last_directional_shoulder_target_deg = 0.0
+	last_directional_shoulder_error_deg = 0.0
+	if directional_square_active:
+		var chest_index := int(bone_indices.get(&"spine2", -1))
+		if chest_index >= 0:
+			var before := skeleton.get_bone_global_pose(chest_index).basis.orthonormalized().get_rotation_quaternion().normalized()
+			var right_yaw := clampf(strafe_right_shoulder_yaw, 0.0, PI * 0.5)
+			last_shoulder_square_weight = maxf(
+				clampf(strafe_left_square_weight, 0.0, 1.0),
+				clampf(sin(right_yaw) * 4.0, 0.0, 1.0)
+			) * clampf(strafe_directional_activation, 0.0, 1.0)
+			_apply_square_shoulders(
+				world_aim_target, last_shoulder_square_weight, true, right_yaw, 90.0
+			)
+			last_directional_shoulder_target_deg = rad_to_deg(right_yaw)
+			last_directional_shoulder_error_deg = last_shoulder_square_error_deg
+			var after := skeleton.get_bone_global_pose(chest_index).basis.orthonormalized().get_rotation_quaternion().normalized()
+			head_carry_counter = (head_carry_counter * before * after.inverse()).normalized()
 	var residual_head_yaw := head_yaw - last_applied_yaw
 	var residual_head_pitch := head_pitch - last_applied_pitch
-	_apply_head_additive(residual_head_yaw, residual_head_pitch, head_ready_scale)
+	_apply_head_additive(
+		residual_head_yaw, residual_head_pitch, head_ready_scale, head_carry_counter
+	)
 
 	# Arms inherit the complete reticle-facing spine transform. Shoulders only
 	# receive the small recoil impulse so they do not overshoot the aim direction.
@@ -280,7 +336,11 @@ func apply(
 		1.0 if allow_clean_recovery_shoulder_square else post_layer_weight
 	)
 	var procedural_square_weight := firing_frame_weight * clean_square_weight * unbaked_posture_weight
-	if procedural_square_weight > 0.001 and (force_square_shoulders or normalized_ready >= 0.50):
+	if directional_square_active:
+		# This branch already squared the visible shoulder bar and included that
+		# exact chest delta in the single head pass. Do not square it a second time.
+		pass
+	elif procedural_square_weight > 0.001 and (force_square_shoulders or normalized_ready >= 0.50):
 		last_shoulder_square_weight = procedural_square_weight
 		_apply_square_shoulders(
 			world_aim_target, procedural_square_weight,
@@ -292,6 +352,44 @@ func apply(
 		last_shoulder_level_error_cm = 0.0
 		last_chest_square_correction_deg = 0.0
 	last_angular_error_deg = rad_to_deg(absf(aim_yaw - last_applied_yaw))
+
+
+func apply_movement_head_level(active: bool, right_dive: bool = false) -> void:
+	last_movement_head_roll_deg = 0.0
+	if (not active and not right_dive) or not bool(movement_head_profile.enabled) or skeleton == null:
+		return
+	var index := int(bone_indices.get(&"head", -1))
+	if index < 0:
+		return
+	var head := skeleton.get_bone_global_pose(index).basis.orthonormalized()
+	var deformation := skeleton.global_basis.orthonormalized() * head * skeleton.get_bone_global_rest(index).basis.orthonormalized().inverse()
+	var forward := (deformation * Vector3.FORWARD).normalized()
+	var up := (deformation * Vector3.UP).normalized()
+	var level_up := Vector3.UP - forward * forward.dot(Vector3.UP)
+	if level_up.length_squared() < 0.01:
+		return # No stable horizon when looking almost vertically.
+	var limit := deg_to_rad(float(movement_head_profile.right_dive_maximum_roll_degrees if right_dive else movement_head_profile.maximum_roll_correction_degrees))
+	var correction := clampf(up.signed_angle_to(level_up.normalized(), forward), -limit, limit)
+	var axis := skeleton.global_basis.orthonormalized().inverse() * forward
+	var desired := Basis(axis.normalized(), correction) * head
+	var neck := int(bone_indices.get(&"neck", -1))
+	if right_dive and neck >= 0:
+		# Share the larger side-rest counter-bank across neck and head.
+		var neck_parent := skeleton.get_bone_parent(neck)
+		var neck_parent_basis := skeleton.get_bone_global_pose(neck_parent).basis.orthonormalized() if neck_parent >= 0 else Basis.IDENTITY
+		var neck_desired := Basis(axis.normalized(), correction * 0.45) * skeleton.get_bone_global_pose(neck).basis.orthonormalized()
+		var neck_applied := (neck_parent_basis.inverse() * neck_desired).get_rotation_quaternion().normalized()
+		skeleton.set_bone_pose_rotation(neck, neck_applied)
+		if head_look_applied_rotations.has(neck):
+			head_look_applied_rotations[neck] = neck_applied
+	var parent := skeleton.get_bone_parent(index)
+	var parent_basis := skeleton.get_bone_global_pose(parent).basis.orthonormalized() if parent >= 0 else Basis.IDENTITY
+	var applied := (parent_basis.inverse() * desired).get_rotation_quaternion().normalized()
+	skeleton.set_bone_pose_rotation(index, applied)
+	# Keep the existing frozen-pose cache aware of this final head-only result.
+	if head_look_applied_rotations.has(index):
+		head_look_applied_rotations[index] = applied
+	last_movement_head_roll_deg = rad_to_deg(correction)
 
 
 func apply_head_look_at(
@@ -326,7 +424,61 @@ func apply_head_look_at(
 	return Vector2(yaw, pitch)
 
 
-func _apply_head_additive(yaw: float, pitch: float, weight: float) -> void:
+func _hip_retention_head_counter_rotation(reference: Quaternion, actual: Quaternion) -> Quaternion:
+	var spine_index := int(bone_indices.get(&"spine", -1))
+	if spine_index < 0:
+		return Quaternion.IDENTITY
+	var parent_index := skeleton.get_bone_parent(spine_index)
+	var parent_rotation := Quaternion.IDENTITY
+	if parent_index >= 0:
+		parent_rotation = skeleton.get_bone_global_pose(parent_index).basis.orthonormalized().get_rotation_quaternion().normalized()
+	# Both corrections are already expressed in Spine's local-pose frame. They
+	# are left-multiplied onto that pose, so only its evaluated parent converts
+	# their difference into skeleton space; rest must not be counted twice.
+	return (parent_rotation * reference * actual.inverse() * parent_rotation.inverse()).normalized()
+
+
+func _apply_articulated_hip_correction(local_correction: Quaternion, weight: float) -> void:
+	var spine_index := int(bone_indices.get(&"spine", -1))
+	if spine_index < 0:
+		return
+	var parent_index := skeleton.get_bone_parent(spine_index)
+	var parent_rotation := Quaternion.IDENTITY
+	if parent_index >= 0:
+		parent_rotation = skeleton.get_bone_global_pose(parent_index).basis.orthonormalized().get_rotation_quaternion().normalized()
+	var global_correction := (parent_rotation * local_correction * parent_rotation.inverse()).normalized()
+	var scope := clampf(weight, 0.0, 1.0)
+	var parts: Dictionary = {}
+	for logical_name: StringName in TORSO_YAW_WEIGHTS:
+		var index := int(bone_indices.get(logical_name, -1))
+		if index < 0:
+			continue
+		var fraction := float(TORSO_YAW_WEIGHTS[logical_name]) * scope
+		if logical_name == &"spine":
+			fraction += 1.0 - scope
+		parts[index] = float(parts.get(index, 0.0)) + fraction
+	var sum := 0.0
+	for fraction: float in parts.values():
+		sum += fraction
+	if sum <= 0.001:
+		return
+	# Fixed skeleton-space powers share one axis and sum to the original Q.
+	# Only the articulation changes; final chest rotation remains Q * original.
+	for index: int in parts:
+		_apply_skeleton_space_rotation(index, Quaternion.IDENTITY.slerp(
+			global_correction, float(parts[index]) / sum
+		).normalized())
+
+
+func _apply_head_additive(
+	yaw: float, pitch: float, weight: float,
+	skeleton_space_counter: Quaternion = Quaternion.IDENTITY
+) -> void:
+	var counter_weight_sum := 0.0
+	if not skeleton_space_counter.is_equal_approx(Quaternion.IDENTITY):
+		for bone_name: StringName in HEAD_RESIDUAL_WEIGHTS:
+			if int(bone_indices.get(bone_name, -1)) >= 0:
+				counter_weight_sum += float(HEAD_RESIDUAL_WEIGHTS[bone_name])
 	for bone_name: StringName in HEAD_RESIDUAL_WEIGHTS:
 		var index := int(bone_indices.get(bone_name, -1))
 		if index < 0:
@@ -349,6 +501,19 @@ func _apply_head_additive(yaw: float, pitch: float, weight: float) -> void:
 			* Quaternion(Vector3.RIGHT, pitch * bone_weight)
 		).normalized()
 		var applied := (base * additive).normalized()
+		if counter_weight_sum > 0.0:
+			# Counter only the extra carry turn, even with readiness zero. Split
+			# it over the existing neck/head chain, not one extreme neck twist.
+			var counter_part := Quaternion.IDENTITY.slerp(
+				skeleton_space_counter,
+				float(HEAD_RESIDUAL_WEIGHTS[bone_name]) / counter_weight_sum
+			).normalized()
+			var parent_index := skeleton.get_bone_parent(index)
+			var parent_rotation := Quaternion.IDENTITY
+			if parent_index >= 0:
+				parent_rotation = skeleton.get_bone_global_pose(parent_index).basis.orthonormalized().get_rotation_quaternion().normalized()
+			var local_counter := (parent_rotation.inverse() * counter_part * parent_rotation).normalized()
+			applied = (local_counter * applied).normalized()
 		skeleton.set_bone_pose_rotation(index, applied)
 		head_look_base_rotations[index] = base
 		head_look_applied_rotations[index] = applied
@@ -387,6 +552,8 @@ func get_debug_state() -> Dictionary:
 		"shoulder_square_error_deg": last_shoulder_square_error_deg,
 		"shoulder_level_error_cm": last_shoulder_level_error_cm,
 		"shoulder_square_weight": last_shoulder_square_weight,
+		"directional_shoulder_target_deg": last_directional_shoulder_target_deg,
+		"directional_shoulder_error_deg": last_directional_shoulder_error_deg,
 		"default_hip_roll_input_deg": last_default_hip_roll_input_deg,
 		"default_hip_roll_trim_deg": last_default_hip_roll_trim_deg,
 		"default_hip_roll_output_deg": last_default_hip_roll_output_deg,
@@ -413,6 +580,28 @@ func _apply_square_idle_reference(enabled: bool, weight: float = 1.0) -> void:
 			current.slerp(Quaternion.IDENTITY, normalized_weight).normalized()
 		)
 		last_square_idle_reference_bone_count += 1
+
+
+func _apply_standing_idle_pelvis_square(weight: float) -> void:
+	var amount := clampf(weight, 0.0, 1.0)
+	if amount <= 0.001:
+		return
+	var hips := int(bone_indices.get(&"hips", -1))
+	var left := int(bone_indices.get(&"left_upper_leg", -1))
+	var right := int(bone_indices.get(&"right_upper_leg", -1))
+	if min(hips, left, right) < 0:
+		return
+	var bar := skeleton.get_bone_global_pose(right).origin - skeleton.get_bone_global_pose(left).origin
+	bar.y = 0.0
+	if bar.length_squared() <= 0.000001:
+		return
+	var rest_bar := skeleton.get_bone_global_rest(right).origin - skeleton.get_bone_global_rest(left).origin
+	var desired := Vector3.RIGHT if rest_bar.x >= 0.0 else Vector3.LEFT
+	var yaw := bar.normalized().signed_angle_to(desired, Vector3.UP)
+	# Rotate only the existing visual hips owner about its own origin. Preserve
+	# authored pitch, roll and every bone translation; the ordinary torso/weapon
+	# pass below evaluates this current pose, rather than a stale previous frame.
+	_apply_skeleton_space_rotation(hips, Quaternion(Vector3.UP, yaw * amount))
 
 
 func _apply_default_hip_leveling(
@@ -469,7 +658,9 @@ func _apply_default_hip_leveling(
 func _apply_square_shoulders(
 	world_aim_target: Vector3,
 	weight: float = 1.0,
-	align_visible_shoulder_ends: bool = false
+	align_visible_shoulder_ends: bool = false,
+	rightward_yaw: float = 0.0,
+	maximum_correction_degrees: float = 55.0
 ) -> void:
 	var normalized_weight := clampf(weight, 0.0, 1.0)
 	if normalized_weight <= 0.001:
@@ -496,6 +687,17 @@ func _apply_square_shoulders(
 		return
 	aim_forward_world = aim_forward_world.normalized()
 	var desired_right_world := aim_forward_world.cross(Vector3.UP).normalized()
+	if rightward_yaw > 0.0:
+		# A bar alone has a 180-degree ambiguity. Establish the anatomical right
+		# direction against this rig's neutral shoulder line before turning it;
+		# never choose whichever of the two sideways facings is nearest afterward.
+		var rest_right_world := skeleton.global_basis * (
+			skeleton.get_bone_global_rest(right_arm).origin
+			- skeleton.get_bone_global_rest(left_arm).origin
+		)
+		if desired_right_world.dot(rest_right_world) < 0.0:
+			desired_right_world = -desired_right_world
+		desired_right_world = desired_right_world.rotated(Vector3.UP, -rightward_yaw)
 	var desired_right_local := (
 		skeleton.global_basis.inverse() * desired_right_world
 	).normalized()
@@ -506,7 +708,8 @@ func _apply_square_shoulders(
 	_apply_square_chest(
 		left_arm if align_visible_shoulder_ends else left_shoulder,
 		right_arm if align_visible_shoulder_ends else right_shoulder,
-		desired_right_local, normalized_weight
+		desired_right_local, normalized_weight, maximum_correction_degrees,
+		rightward_yaw > 0.0
 	)
 	skeleton.force_update_all_bone_transforms()
 	left_arm_pose = skeleton.get_bone_global_pose(left_arm)
@@ -527,7 +730,7 @@ func _apply_square_shoulders(
 		last_shoulder_square_error_deg = 0.0
 		return
 	actual_right_world = actual_right_world.normalized()
-	if actual_right_world.dot(desired_right_world) < 0.0:
+	if rightward_yaw <= 0.0 and actual_right_world.dot(desired_right_world) < 0.0:
 		actual_right_world = -actual_right_world
 	last_shoulder_square_error_deg = rad_to_deg(
 		acos(clampf(actual_right_world.dot(desired_right_world), -1.0, 1.0))
@@ -538,7 +741,9 @@ func _apply_square_chest(
 	left_shoulder_index: int,
 	right_shoulder_index: int,
 	desired_right: Vector3,
-	weight: float = 1.0
+	weight: float = 1.0,
+	maximum_correction_degrees: float = 55.0,
+	directed_target: bool = false
 ) -> void:
 	var chest_index := int(bone_indices.get(&"spine2", -1))
 	if chest_index < 0:
@@ -552,11 +757,11 @@ func _apply_square_chest(
 		return
 	current_right = current_right.normalized()
 	desired_right = desired_right.normalized()
-	if current_right.dot(desired_right) < 0.0:
+	if not directed_target and current_right.dot(desired_right) < 0.0:
 		desired_right = -desired_right
 	var chest_correction := Quaternion(current_right, desired_right).normalized()
 	var correction_angle := (
-		minf(chest_correction.get_angle(), deg_to_rad(55.0))
+		minf(chest_correction.get_angle(), deg_to_rad(clampf(maximum_correction_degrees, 0.0, 90.0)))
 		* clampf(weight, 0.0, 1.0)
 	)
 	if correction_angle <= 0.00001:
@@ -771,7 +976,9 @@ func _upper_body_hip_correction(
 	posture_name: StringName,
 	weight: float,
 	gait_roll_retention: float,
-	authored_posture_weight: float = 0.0
+	authored_posture_weight: float = 0.0,
+	strafe_hip_yaw_retention: float = 0.0,
+	exact_local_pose_weight: float = 0.0
 ) -> Quaternion:
 	var hips_index := int(bone_indices.get(&"hips", -1))
 	var spine_index := int(bone_indices.get(&"spine", -1))
@@ -799,6 +1006,12 @@ func _upper_body_hip_correction(
 	# lateral gait roll. This restores tactical weight without allowing the legs
 	# to pull the rifle-ready torso off its body axis.
 	var hip_delta_euler := hip_delta.get_euler()
+	# Right-strafe opt-in retains a little authored pelvis yaw, not its pitch or
+	# head bob. The same spine writer continues to own all torso correction.
+	var retained_yaw := clampf(strafe_hip_yaw_retention, 0.0, 1.0)
+	if retained_yaw > 0.0:
+		hip_delta_euler.y *= 1.0 - retained_yaw
+		hip_delta = Quaternion.from_euler(hip_delta_euler).normalized()
 	var yaw_pitch_correction := (
 		Quaternion(Vector3.UP, hip_delta_euler.y)
 		* Quaternion(Vector3.RIGHT, hip_delta_euler.x)
@@ -816,11 +1029,15 @@ func _upper_body_hip_correction(
 	last_lower_body_yaw_deg = rad_to_deg(applied_euler.y)
 	last_lower_body_pitch_deg = rad_to_deg(applied_euler.x)
 	last_lower_body_roll_deg = rad_to_deg(hip_delta_euler.z) * clampf(gait_roll_retention, 0.0, 1.0)
-	# Bone pose rotations are applied after each bone's rest transform. Conjugate
-	# the hip correction through the spine rest basis instead of applying a raw
-	# world-Y rotation to a locally oriented Mixamo spine.
+	# Retain the legacy rest-conjugated route for profiles that have not opted
+	# into exact moving-rifle isolation; their authored presentation is unchanged.
 	var spine_rest_rotation := skeleton.get_bone_rest(spine_index).basis.get_rotation_quaternion().normalized()
-	return (spine_rest_rotation.inverse() * applied * spine_rest_rotation).normalized()
+	var legacy := (spine_rest_rotation.inverse() * applied * spine_rest_rotation).normalized()
+	# Godot's evaluated pose rotation already includes rest. For the opted-in
+	# stable moving rifle frame, H * (H^-1 * N) * Spine cancels the moving parent
+	# exactly; conjugating through rest again leaks gait rotation into the head.
+	# Preserve the established route elsewhere and fade with the same carry gate.
+	return legacy.slerp(applied, clampf(exact_local_pose_weight, 0.0, 1.0)).normalized()
 
 
 func _apply_bone_additive(

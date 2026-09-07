@@ -1,0 +1,782 @@
+{
+  "schema_version": 1,
+  "visual_rig_id": "m40a1_directional_v3",
+  "revision": 3,
+  "status": "published",
+  "source_model_fbx": "res://assets/weapons/modular_pack/AssaultRifle_1.fbx",
+  "family": "TWO_HAND_RIFLE",
+  "visual": {
+    "model_fbx": "res://assets/weapons/modular_pack/AssaultRifle_1.fbx",
+    "normalized_scale": 0.190543572753643,
+    "user_scale_multiplier": 0.87,
+    "model_rotation_degrees": {
+      "x": 0,
+      "y": -90,
+      "z": 0
+    },
+    "operator_mount": {
+      "position": {
+        "x": -0.0199999995529652,
+        "y": 0.0799999982118607,
+        "z": 0.0500000007450581
+      },
+      "rotation_degrees": {
+        "x": -90,
+        "y": -179.999984741211,
+        "z": 0
+      }
+    },
+    "grip_offset": {
+      "pos_x": 0.0798392295837402,
+      "pos_y": -0.0417042523622513,
+      "pos_z": 0.00821352005004883,
+      "rot_x": 4.55000019073486,
+      "rot_y": 3,
+      "rot_z": 79.0499801635742
+    },
+    "weapon_sockets": {
+      "barrel_base_socket": {
+        "x": -0.00937926769256592,
+        "y": 0.108807682991028,
+        "z": -0.119999997317791
+      },
+      "buttstock_socket": {
+        "x": -0.00886692386120558,
+        "y": 0.0789746195077896,
+        "z": -0.29986783862114
+      },
+      "ejection_port": {
+        "x": 0.0352391004562378,
+        "y": 0.00197041034698486,
+        "z": 0.227410614490509
+      },
+      "left_hand_ik_target": {
+        "x": -0.00334209203720093,
+        "y": 0.0764622688293457,
+        "z": 0.26
+      },
+      "muzzle_socket": {
+        "x": 0.00924092531204224,
+        "y": 0.110959649085999,
+        "z": 0.509886622428894
+      },
+      "optic_rail": {
+        "x": -0.049259215593338,
+        "y": 0.174966096878052,
+        "z": 0.0648307204246521
+      },
+      "right_hand_grip_target": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      }
+    },
+    "support_hand_pose": {
+      "finger_curl": 1,
+      "palm_pitch_deg": -24.35,
+      "palm_roll_deg": 104.75,
+      "palm_yaw_deg": 0.75,
+      "thumb_wrap": 0.7
+    },
+    "elbow_poles": {
+      "by_stance": {
+        "CROUCHED": {
+          "left": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "right": {
+            "x": 0.0987921953201294,
+            "y": -0.17975127696991,
+            "z": -0.109185189008713
+          }
+        },
+        "PRONE": {
+          "left": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "right": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          }
+        },
+        "STANDING": {
+          "left": {
+            "x": 0.300000011920929,
+            "y": -0.18940544128418,
+            "z": -0.202089607715607
+          },
+          "right": {
+            "x": 0.245000004768372,
+            "y": -0.26656174659729,
+            "z": 0.0799999982118607
+          }
+        }
+      },
+      "left": {
+        "x": 0.300000011920929,
+        "y": -0.18940544128418,
+        "z": -0.202089607715607
+      },
+      "right": {
+        "x": 0.245000004768372,
+        "y": -0.26656174659729,
+        "z": 0.0799999982118607
+      }
+    },
+    "stances": {
+      "CROUCHED": {
+        "finger_curl": 1,
+        "left_grip": {
+          "x": -0.00334209203720093,
+          "y": 0.0764622688293457,
+          "z": 0.26
+        },
+        "palm_pitch_deg": -24.35,
+        "palm_roll_deg": 104.75,
+        "palm_yaw_deg": 0.75,
+        "right_grip": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "thumb_wrap": 0.7
+      },
+      "PRONE": {
+        "finger_curl": 1,
+        "left_grip": {
+          "x": -0.042856901884079,
+          "y": 0.12201988697052,
+          "z": 0.07
+        },
+        "palm_pitch_deg": -24.35,
+        "palm_roll_deg": 104.75,
+        "palm_yaw_deg": 0.75,
+        "right_grip": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "thumb_wrap": 0.7
+      },
+      "STANDING": {
+        "finger_curl": 1,
+        "left_grip": {
+          "x": -0.00334209203720093,
+          "y": 0.0764622688293457,
+          "z": 0.26
+        },
+        "palm_pitch_deg": -24.35,
+        "palm_roll_deg": 104.75,
+        "palm_yaw_deg": 0.75,
+        "right_grip": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "thumb_wrap": 0.7
+      }
+    },
+    "animation_hand_maps": {
+      "aim_idle": {
+        "finger_curl": 1,
+        "left_grip": {
+          "x": -0.00334209203720093,
+          "y": 0.0764622688293457,
+          "z": 0.26
+        },
+        "palm_pitch_deg": -24.35,
+        "palm_roll_deg": 104.75,
+        "palm_yaw_deg": 0.75,
+        "right_grip": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "thumb_wrap": 0.7
+      },
+      "combat_fire": {
+        "finger_curl": 1,
+        "left_grip": {
+          "x": -0.00334209203720093,
+          "y": 0.0764622688293457,
+          "z": 0.26
+        },
+        "palm_pitch_deg": -24.35,
+        "palm_roll_deg": 104.75,
+        "palm_yaw_deg": 0.75,
+        "right_grip": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "thumb_wrap": 0.7
+      },
+      "gunsmith_catalog_4031626968": {
+        "finger_curl": 1,
+        "left_grip": {
+          "x": -0.00334209203720093,
+          "y": 0.0764622688293457,
+          "z": 0.26
+        },
+        "palm_pitch_deg": -24.35,
+        "palm_roll_deg": 104.75,
+        "palm_yaw_deg": 0.75,
+        "right_grip": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "thumb_wrap": 0.7
+      },
+      "idle_crouch": {
+        "finger_curl": 1,
+        "left_grip": {
+          "x": -0.00334209203720093,
+          "y": 0.0764622688293457,
+          "z": 0.26
+        },
+        "palm_pitch_deg": -24.35,
+        "palm_roll_deg": 104.75,
+        "palm_yaw_deg": 0.75,
+        "right_grip": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "thumb_wrap": 0.7
+      },
+      "idle_prone": {
+        "finger_curl": 1,
+        "left_grip": {
+          "x": -0.042856901884079,
+          "y": 0.12201988697052,
+          "z": 0.07
+        },
+        "palm_pitch_deg": -24.35,
+        "palm_roll_deg": 104.75,
+        "palm_yaw_deg": 0.75,
+        "right_grip": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "thumb_wrap": 0.7
+      },
+      "res://assets/animations/mixamo/Climbing.fbx": {
+        "finger_curl": 1,
+        "left_grip": {
+          "x": -0.00334209203720093,
+          "y": 0.0764622688293457,
+          "z": 0.339702010154724
+        },
+        "palm_pitch_deg": -24.35,
+        "palm_roll_deg": 104.75,
+        "palm_yaw_deg": 0.75,
+        "right_grip": {
+          "x": 0,
+          "y": 0,
+          "z": 0
+        },
+        "thumb_wrap": 0.7
+      }
+    },
+    "animation_frame_pose_keys": {
+      "aim_idle": {
+        "0": {
+          "joint_rotations": {
+            "head": {
+              "x": -7.75,
+              "y": -12.75,
+              "z": 2.5
+            },
+            "left_shoulder": {
+              "x": 0.200000002980232,
+              "y": -0.100000001490116,
+              "z": -0.300001353025436
+            },
+            "left_upper_arm": {
+              "x": 1,
+              "y": -0.5,
+              "z": -1.5
+            },
+            "neck": {
+              "x": -4.26250076293945,
+              "y": -7.01249837875366,
+              "z": 1.37500035762787
+            },
+            "right_shoulder": {
+              "x": 7.96500015258789,
+              "y": -5.16499996185303,
+              "z": 0.200000002980232
+            },
+            "right_upper_arm": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "spine": {
+              "x": 10,
+              "y": -12,
+              "z": 1.7024998664856
+            },
+            "spine1": {
+              "x": 1.21250212192535,
+              "y": 2.64999961853027,
+              "z": 0.0100002288818359
+            },
+            "spine2": {
+              "x": 2.3125,
+              "y": -17,
+              "z": 8
+            }
+          },
+          "left_elbow_pole": {
+            "x": 0.300000011920929,
+            "y": -0.18940544128418,
+            "z": -0.202089607715607
+          },
+          "left_hand_target": {
+            "x": -0.00334209203720093,
+            "y": 0.0764622688293457,
+            "z": 0.26
+          },
+          "posture": "STANDING",
+          "right_elbow_pole": {
+            "x": 0.245000004768372,
+            "y": -0.26656174659729,
+            "z": 0.0799999982118607
+          },
+          "right_hand_target": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "weapon_hand_position_correction": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "weapon_hand_rotation_correction_deg": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          }
+        }
+      },
+      "combat_fire": {
+        "35": {
+          "joint_rotations": {
+            "head": {
+              "x": -12.25,
+              "y": -28.75,
+              "z": 2.5
+            },
+            "left_shoulder": {
+              "x": -2.99999952316284,
+              "y": 0.349999964237213,
+              "z": -0.300001353025436
+            },
+            "left_upper_arm": {
+              "x": -15,
+              "y": 1.75,
+              "z": -1.5
+            },
+            "neck": {
+              "x": -6.73750448226929,
+              "y": -15.8124895095825,
+              "z": 1.37500035762787
+            },
+            "right_shoulder": {
+              "x": 7.96500015258789,
+              "y": -5.16499996185303,
+              "z": 0.200000002980232
+            },
+            "right_upper_arm": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "spine": {
+              "x": 3.50625061988831,
+              "y": -12,
+              "z": 3.19999980926514
+            },
+            "spine1": {
+              "x": 11.6625061035156,
+              "y": -15.125,
+              "z": 6
+            },
+            "spine2": {
+              "x": -4.8125,
+              "y": -15.9375,
+              "z": 8
+            }
+          },
+          "left_elbow_pole": {
+            "x": 0.300000011920929,
+            "y": -0.18940544128418,
+            "z": -0.202089607715607
+          },
+          "left_hand_target": {
+            "x": -0.00334209203720093,
+            "y": 0.0764622688293457,
+            "z": 0.26
+          },
+          "posture": "STANDING",
+          "right_elbow_pole": {
+            "x": 0.245000004768372,
+            "y": -0.26656174659729,
+            "z": 0.0799999982118607
+          },
+          "right_hand_target": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "weapon_hand_position_correction": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "weapon_hand_rotation_correction_deg": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          }
+        }
+      },
+      "reload": {
+        "0": {
+          "joint_rotations": {
+            "head": {
+              "x": 5.5,
+              "y": -21,
+              "z": 2.5
+            },
+            "left_shoulder": {
+              "x": 0.200000002980232,
+              "y": -0.100000001490116,
+              "z": -0.300001353025436
+            },
+            "left_upper_arm": {
+              "x": 1,
+              "y": -0.5,
+              "z": -1.5
+            },
+            "neck": {
+              "x": 3.02499938011169,
+              "y": -11.5500001907349,
+              "z": 1.37500035762787
+            },
+            "right_shoulder": {
+              "x": 7.96500015258789,
+              "y": -5.16499996185303,
+              "z": 0.200000002980232
+            },
+            "right_upper_arm": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "spine": {
+              "x": 0,
+              "y": 0,
+              "z": 3.19999980926514
+            },
+            "spine1": {
+              "x": 0.550000131130219,
+              "y": -2.10000014305115,
+              "z": 6
+            },
+            "spine2": {
+              "x": 1.375,
+              "y": -5.25,
+              "z": 8
+            }
+          },
+          "left_elbow_pole": {
+            "x": 0.300000011920929,
+            "y": -0.18940544128418,
+            "z": -0.202089607715607
+          },
+          "left_hand_target": {
+            "x": 0.456383347511292,
+            "y": -0.200000002980232,
+            "z": 0.00979900360107422
+          },
+          "posture": "STANDING",
+          "right_elbow_pole": {
+            "x": 0.245000004768372,
+            "y": -0.26656174659729,
+            "z": 0.0799999982118607
+          },
+          "right_hand_target": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "weapon_hand_position_correction": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "weapon_hand_rotation_correction_deg": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          }
+        },
+        "99": {
+          "joint_rotations": {
+            "head": {
+              "x": 5.5,
+              "y": -21,
+              "z": 2.5
+            },
+            "left_shoulder": {
+              "x": 0.200000002980232,
+              "y": -0.100000001490116,
+              "z": -0.300001353025436
+            },
+            "left_upper_arm": {
+              "x": 1,
+              "y": -0.5,
+              "z": -1.5
+            },
+            "neck": {
+              "x": 3.02499938011169,
+              "y": -11.5500001907349,
+              "z": 1.37500035762787
+            },
+            "right_shoulder": {
+              "x": 7.96500015258789,
+              "y": -5.16499996185303,
+              "z": 0.200000002980232
+            },
+            "right_upper_arm": {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            "spine": {
+              "x": 0,
+              "y": 0,
+              "z": 3.19999980926514
+            },
+            "spine1": {
+              "x": 0.550000131130219,
+              "y": -2.10000014305115,
+              "z": 6
+            },
+            "spine2": {
+              "x": 1.375,
+              "y": -5.25,
+              "z": 8
+            }
+          },
+          "left_elbow_pole": {
+            "x": 0.300000011920929,
+            "y": -0.18940544128418,
+            "z": -0.202089607715607
+          },
+          "left_hand_target": {
+            "x": 0.00810074713081121,
+            "y": 0.0962740182876587,
+            "z": 0.293328106403351
+          },
+          "posture": "STANDING",
+          "right_elbow_pole": {
+            "x": 0.245000004768372,
+            "y": -0.26656174659729,
+            "z": 0.0799999982118607
+          },
+          "right_hand_target": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "weapon_hand_position_correction": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "weapon_hand_rotation_correction_deg": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          }
+        }
+      }
+    },
+    "handling_profile": {
+      "animation_slots": {
+        "fire_crouched": "crouch_fire",
+        "fire_prone": "prone_fire",
+        "fire_standing": "combat_fire",
+        "idle_crouched": "idle_crouch",
+        "idle_prone": "idle_prone",
+        "idle_standing": "aim_idle",
+        "reload_crouched": "crouch_reload",
+        "reload_prone": "prone_reload",
+        "reload_standing": "reload"
+      },
+      "crouched_fire_uses_aim_idle": false,
+      "dynamic_hold": {
+        "animation_carry_limit_m": 0.035,
+        "animation_carry_weight": 0.65,
+        "animation_drives_ready_hands": true,
+        "hand_socket_ik_enabled": false,
+        "buttstock_constraint": {
+          "by_stance": {
+            "PRONE": {
+              "downward_offset_m": 0.12,
+              "forward_offset_m": -0.03,
+              "inward_offset_m": 0.055
+            }
+          },
+          "downward_offset_m": -0.02,
+          "enabled": true,
+          "forward_offset_m": 0.015,
+          "inward_offset_m": 0.055,
+          "maximum_correction_m": 0.4
+        },
+        "hand_owned_aim_correction_limit_deg": 32,
+        "ready_locomotion_inheritance": 0,
+        "relaxed_idle_upper_body_weight": 0,
+        "reload_return_blend_seconds": 0.18,
+        "right_hand_owns_weapon": true,
+        "authored_shoulder_stock_enabled": true,
+        "locomotion_ready_carry_weight": 1,
+        "standing_idle_square_pelvis": true,
+        "fire_saved_joint_rotations_enabled": false,
+        "fire_spine_ccdik_enabled": false,
+        "ready_shoulder_pocket": {
+          "downward_m": 0.055,
+          "right_wrist_roll_degrees": -15
+        },
+        "strafe_carry": {
+          "right_hip_follow_weight": 1,
+          "left_elbow_flare_degrees": 12,
+          "right_stock_release_m": 0.33,
+          "right_stock_release_frame": "chest_forward"
+        }
+      },
+      "family": "TWO_HAND_RIFLE",
+      "locomotion_family": "RIFLE",
+      "locomotion_slots": {
+        "crouch_to_stand": "crouch_to_stand",
+        "jump": "jump_loop",
+        "run_back_left": "run_back_left",
+        "run_back_right": "run_back_right",
+        "run_backward": "run_backward",
+        "run_forward": "run_forward",
+        "run_forward_left": "run_forward_left",
+        "run_forward_right": "run_forward_right",
+        "run_left": "run_lateral_left",
+        "run_right": "run_lateral_right",
+        "stand_to_crouch": "crouch_start",
+        "walk_back_left": "walk_back_left",
+        "walk_back_right": "walk_back_right",
+        "walk_backward": "walk_backward",
+        "walk_forward": "walk_forward",
+        "walk_forward_left": "walk_forward_left",
+        "walk_forward_right": "walk_forward_right",
+        "walk_left": "walk_left",
+        "walk_right": "walk_right",
+        "crouch_left": "crouch_lateral_left",
+        "crouch_right": "crouch_lateral_right"
+      },
+      "mapping_version": 1,
+      "ready_aim": {
+        "fire_hold_seconds": 1.2,
+        "fire_terminal_pose_hold_seconds": 0.12
+      },
+      "reload_duration_seconds": 1.75,
+      "reload_visuals": {
+        "reload_standing": {
+          "events": {
+            "magazine_in": 75,
+            "magazine_out": 20,
+            "new_magazine_ready": 51,
+            "old_magazine_away": 40,
+            "support_regrip": 91
+          },
+          "magazine_hand_offset": {
+            "position": {
+              "x": 0,
+              "y": -0.075,
+              "z": 0.018
+            },
+            "rotation_degrees": {
+              "x": 8,
+              "y": 0,
+              "z": 90
+            }
+          }
+        }
+      },
+      "standing_fire_uses_aim_idle": false,
+      "support_hand_required": true
+    },
+    "gun_placement_line": {
+      "by_stance": {
+        "CROUCHED": {
+          "pitch_degrees": 0,
+          "position_offset_meters": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "roll_degrees": 0,
+          "yaw_degrees": 0
+        },
+        "PRONE": {
+          "pitch_degrees": 0,
+          "position_offset_meters": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "roll_degrees": 0,
+          "yaw_degrees": 0
+        },
+        "STANDING": {
+          "pitch_degrees": 0,
+          "position_offset_meters": {
+            "x": -0.162499964237213,
+            "y": -0.0974999964237213,
+            "z": 0.220000003576279
+          },
+          "roll_degrees": 15,
+          "yaw_degrees": 0
+        }
+      },
+      "direction_mode": "reticle_locked",
+      "runtime_enabled": false,
+      "space": "operator_local_weapon_placement"
+    },
+    "camo_skin": "Factory Classic (Wood & Steel)",
+    "scope_attachment": "None",
+    "silencer_attachment": "None"
+  },
+  "certification": {
+    "required_stances": [
+      "STANDING",
+      "CROUCHED",
+      "PRONE"
+    ],
+    "required_actions": [
+      "aim_idle",
+      "combat_fire",
+      "reload"
+    ],
+    "maximum_palm_error_m": 0.005,
+    "published_by": "guns_lab_2",
+    "review_status": "candidate_pending_physical_and_native_proof"
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "result": "PASS",
+  "models_checked": 4,
+  "approved_geometry_changed": false,
+  "approved_source_files_unchanged": true,
+  "checks": [
+    "identical triangle-coordinate signatures after export/import",
+    "triangle counts",
+    "finite geometry",
+    "positive triangle areas",
+    "source SHA-256 preservation",
+    "embedded base color, roughness/metallic and normal maps",
+    "1024 texture content and variance"
+  ],
+  "models": [
+    {
+      "id": "p9s",
+      "geometry_identical": "PASS",
+      "triangles": 11116,
+      "pbr_embedded": "PASS",
+      "embedded_images": 3,
+      "texture_content": "PASS"
+    },
+    {
+      "id": "mark23",
+      "geometry_identical": "PASS",
+      "triangles": 11416,
+      "pbr_embedded": "PASS",
+      "embedded_images": 3,
+      "texture_content": "PASS"
+    },
+    {
+      "id": "beretta",
+      "geometry_identical": "PASS",
+      "triangles": 17576,
+      "pbr_embedded": "PASS",
+      "embedded_images": 3,
+      "texture_content": "PASS"
+    },
+    {
+      "id": "desert_eagle",
+      "geometry_identical": "PASS",
+      "triangles": 14037,
+      "pbr_embedded": "PASS",
+      "embedded_images": 3,
+      "texture_content": "PASS"
+    }
+  ]
+}

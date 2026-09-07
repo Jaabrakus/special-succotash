@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "feature_id": "operator_death_presentation",
+  "player_intent": "At zero health, visibly fall once and hold the final pose until respawn.",
+  "acceptance_rule": "Nonlethal damage keeps living animation. Lethal server health shows a visible death clip, repeated dead snapshots do not restart it, movement and fire remain blocked, hurtboxes stay off, respawn restores living presentation. Round-deactivated reserves remain hidden.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://animation_library_lab.tscn",
+  "ownership": {"death_authority": "SocomNetworkOperator", "animation": "SocomOperatorAnimationDriver", "local_health": "SocomTestPlayer", "local_fire_admission": "SocomWeaponController"},
+  "nodes": [
+    {"id": "network_operator", "type": "CharacterBody3D", "owner": "SocomNetworkOperator", "role": "Retains authoritative elimination and corpse visibility", "source_script": "res://scripts/network/socom_network_operator.gd", "code_symbols": ["func _set_alive_and_health", "mannequin.visible = not round_deactivated", "hurtbox_rig.set_enabled(alive and authoritative_hurtboxes_enabled)"]},
+    {"id": "animation", "type": "Node3D", "owner": "SocomOperatorAnimationDriver", "role": "Selects death once, seeks and holds final pose without new bone owner", "source_script": "res://scripts/player/operator_animation_driver_runtime.gd", "code_symbols": ["func _advance_death_presentation", "death_elapsed = minf", "locomotion_graph.sync_jump_combo(death_clip, death_elapsed)"]}
+  ],
+  "data_contracts": [
+    {"path": "res://config/operator_death.json", "writer": "res://docs/DEATH_PRESENTATION.md", "readers": ["res://scripts/player/operator_animation_driver_runtime.gd", "res://scripts/player/operator_locomotion_blend_tree.gd"]},
+    {"path": "res://config/operator_animation_map.json", "writer": "res://scripts/labs/animation_workshop_repository.gd", "readers": ["res://scripts/player/operator_animation_profile.gd"]}
+  ],
+  "must_not_change": ["Server damage values and shot validation", "Elimination scoring and respawn timing", "Camera aim authority", "Double-tap combo input", "Rig and mesh"],
+  "proof_scripts": ["res://tools/operator_death_regression.gd"],
+  "visual_check": "Inspect grounded fall and held final pose after lethal health on canonical local and remote operators, then verify respawn. Corpse is not a new collision object or ragdoll.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Existing network death hides the mesh and local health has no animation consumer. Reuse existing graph and saved death sources, preserve server elimination, show corpses while hiding benched reserves.",
+    "current": {"system": "Hidden corpse with no death animation consumer", "correctness": 1, "ownership_clarity": 5, "runtime_parity": 1, "editor_usability": 2, "performance": 5, "regression_coverage": 1, "evidence_paths": ["res://scripts/network/socom_network_operator.gd"]},
+    "candidate": {"system": "Existing health owner and full-body death animation consumer", "correctness": 4, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 5, "regression_coverage": 4, "evidence_paths": ["res://scripts/player/operator_animation_driver_runtime.gd", "res://tools/operator_death_regression.gd"]}
+  }
+}

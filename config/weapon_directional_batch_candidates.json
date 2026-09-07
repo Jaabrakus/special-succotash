@@ -1,0 +1,200 @@
+{
+  "schema_version": 1,
+  "status": "candidate_unverified",
+  "translation_card": "res://docs/GENERIC_DIRECTIONAL_BATCH_TRANSLATION.md",
+  "candidate_seed": {
+    "ready_pocket_downward_m": 0.03,
+    "right_wrist_roll_degrees": -15,
+    "right_stock_release_m": 0.33
+  },
+  "weapons": {
+    "552": {
+      "calibration": {"ready_pocket_downward_m":0.06},
+      "base_rig": "family_rifle_552_v1",
+      "candidate_rig": "family_rifle_552_directional_v1",
+      "source_raw_sha256": "823877cd5c0c5d0220e411707dd7fefc1c4ffbe1b5e79682c5114c072c8b4cd9",
+      "gameplay_sha256": "ab4d0a1d674efbc93b7adef319e6f87e090ad2cd67534cd9c64f16acf8b13547",
+      "family": "TWO_HAND_RIFLE",
+      "model": "res://assets/weapons/modular_pack/AssaultRifle2_1.fbx"
+    },
+    "870": {
+      "calibration": {"ready_pocket_downward_m":0.05},
+      "base_rig": "family_shotgun_2_v1",
+      "candidate_rig": "family_shotgun_2_directional_v1",
+      "source_raw_sha256": "c7c2bf3b809c15cf764da519466efa34e8ec364737a1a0e55e03028aa682a5ff",
+      "gameplay_sha256": "4659d386ea0167e1612845d2e989e63572cfc4653e12b282aeb450dff5e698c1",
+      "family": "LONG_GUN",
+      "model": "res://assets/weapons/modular_pack/Shotgun_2.fbx"
+    },
+    "m16a2-m203": {
+      "calibration": {"support_contact": {"y": 0.0650723353028297, "z": 0.302988886833191}},
+      "surface_witness": "/private/tmp/generic-fore-end-exact-m16a2-m203-surface.json#rearward_0.04",
+      "base_rig": "family_rifle_2_v1",
+      "candidate_rig": "family_rifle_2_directional_v1",
+      "source_raw_sha256": "a7dc546fa8b6d695d332e4f3356a8db6c2dd3f6425f4606dc8fe0fd68cce8523",
+      "gameplay_sha256": "85164eba97e9ec25bf63b2305f14a848010f59d4a2d5e3943712c639afebdc27",
+      "family": "TWO_HAND_RIFLE",
+      "model": "res://assets/weapons/modular_pack/AssaultRifle_2.fbx"
+    },
+    "m4a1_sd": {
+      "calibration": {"support_contact": {"y": 0.0606072768568993, "z": 0.270989090204239}},
+      "surface_witness": "/private/tmp/generic-fore-end-exact-m4a1_sd-surface.json#rearward_0.08",
+      "base_rig": "family_rifle_4_v1",
+      "candidate_rig": "family_rifle_4_directional_v1",
+      "source_raw_sha256": "24d0444503d486cc09c2a478cefadc4aac58bd028cbe8257a283395c139e5a83",
+      "gameplay_sha256": "6955526716513b28d8265ef89b4d4a6d0342b70846875689d157702aca697f6b",
+      "family": "TWO_HAND_RIFLE",
+      "model": "res://assets/weapons/modular_pack/AssaultRifle_4.fbx"
+    },
+    "m4a1-m203": {
+      "calibration": {"support_contact": {"y": 0.0681710317730904, "z": 0.303441673517227}},
+      "surface_witness": "/private/tmp/generic-fore-end-exact-m4a1-m203-surface.json#rearward_0.04",
+      "base_rig": "family_rifle_5_v1",
+      "candidate_rig": "family_rifle_5_directional_v1",
+      "source_raw_sha256": "a47d585ca38ccf144941e9319190bb7e1f3aab843d00c9dd0f3f7951ca734b59",
+      "gameplay_sha256": "7b132f8a5c313b7a064ea2571909b59843c526cfc9fbfcf5258e4b402097dd6b",
+      "family": "TWO_HAND_RIFLE",
+      "model": "res://assets/weapons/modular_pack/AssaultRifle_5.fbx"
+    },
+    "aks-74": {
+      "calibration": {"ready_pocket_downward_m":0.07,"base_pocket":{"forward_offset_m":0.07}},
+      "base_rig": "family_rifle_aks74_v1",
+      "candidate_rig": "family_rifle_aks74_directional_v1",
+      "source_raw_sha256": "73ee49d7f0b64563002fcf2a2a872c5cf278bc9ab5d6d366a72fb2a6e9ac4fdc",
+      "gameplay_sha256": "98a687b75463e69f4724b35680a50767898e5f6c5b197eeac8d2050c71175f01",
+      "family": "TWO_HAND_RIFLE",
+      "model": "res://assets/weapons/modular_pack/AssaultRifle2_3.fbx"
+    },
+    "m14": {
+      "calibration": {"support_contact": {"y": 0.172453761100769, "z": 0.214800521731377}},
+      "surface_witness": "/private/tmp/generic-fore-end-exact-m14-surface.json#rearward_0.16",
+      "base_rig": "family_rifle_m14_v1",
+      "candidate_rig": "family_rifle_m14_directional_v1",
+      "source_raw_sha256": "6c533102474c91dbd91dc0f7f9f8bcc5c5fdee8ab0a035810e4eb0c48c31e69f",
+      "gameplay_sha256": "8e06bbf40a76e15f5461524709250b0f69a0872c62cd67e46f1f7a1e0f92b6c2",
+      "family": "TWO_HAND_RIFLE",
+      "model": "res://assets/weapons/modular_pack/AssaultRifle2_4.fbx"
+    },
+    "m60e3": {
+      "calibration": {"ready_pocket_downward_m":0.06},
+      "base_rig": "family_rifle_552_v1",
+      "candidate_rig": "family_rifle_552_directional_v1",
+      "source_raw_sha256": "3c9ecf73a10262cc877fc28364bf68562450b934112c410d19d50ea97b875b22",
+      "gameplay_sha256": "d2c7ae353fd8f7a520e2ec699db15b1818a1aa34bdf382c04f82e01707667938",
+      "family": "TWO_HAND_RIFLE",
+      "model": "res://assets/weapons/modular_pack/AssaultRifle2_1.fbx"
+    },
+    "m63a": {
+      "base_rig": "family_machinegun_2_v1",
+      "candidate_rig": "family_machinegun_2_directional_v1",
+      "source_raw_sha256": "2792d0d06fa3e5c6b2ffc9844a6013532557fa90669dcf5c4b754e4cbb82d8f5",
+      "gameplay_sha256": "ec971b9ff976b4c0e842636700571ed23ed444bc2c148826bef67f8f9588d864",
+      "family": "TWO_HAND_RIFLE",
+      "model": "res://assets/weapons/modular_pack/AssaultRifle2_2.fbx"
+    },
+    "mark_46_mod_0": {
+      "calibration": {"ready_pocket_downward_m":0.07,"base_pocket":{"forward_offset_m":0.07}},
+      "base_rig": "family_rifle_aks74_v1",
+      "candidate_rig": "family_rifle_aks74_directional_v1",
+      "source_raw_sha256": "34641c41685d32675b15d776368e107432168294bc00cd70e935344045db0c10",
+      "gameplay_sha256": "e74924f68e6c89f6d1ab84af51e0163ac1c393b70db57acb5d1d97bb9f0ee937",
+      "family": "TWO_HAND_RIFLE",
+      "model": "res://assets/weapons/modular_pack/AssaultRifle2_3.fbx"
+    },
+    "hk5": {
+      "calibration": {"ready_pocket_downward_m":0.07,"base_pocket":{"forward_offset_m":0.07}},
+      "base_rig": "family_smg_1_v1",
+      "candidate_rig": "family_smg_1_directional_v1",
+      "source_raw_sha256": "86d2814baf078fc52fea81b154a940b813b3909188496db94243d4635445a89d",
+      "gameplay_sha256": "be84b73b727c2f7a9b964cdf6b63f2355d326991968a1dc57cab895c22d930cc",
+      "family": "TWO_HAND_RIFLE",
+      "model": "res://assets/weapons/modular_pack/SubmachineGun_1.fbx"
+    },
+    "hk5sd": {
+      "base_rig": "family_smg_2_v1",
+      "candidate_rig": "family_smg_2_directional_v1",
+      "calibration": {"ready_pocket_downward_m": 0.0, "base_pocket": {"forward_offset_m": -0.01}},
+      "source_raw_sha256": "1df0f1ea4bf4be3a172ad58bb62fdffc9ed4e41411ca830e75cb2fb3a4df0774",
+      "gameplay_sha256": "7a7ae94fa6c340baadc667332ff2a9d13576065abbbc99102491968fe8bf325a",
+      "family": "TWO_HAND_RIFLE",
+      "model": "res://assets/weapons/modular_pack/SubmachineGun_2.fbx"
+    },
+    "f90": {
+      "calibration": {"ready_pocket_downward_m":0.055,"right_stock_release_m":0.4},
+      "base_rig": "family_smg_3_v1",
+      "candidate_rig": "family_smg_3_directional_v1",
+      "source_raw_sha256": "44c8d722e2f8893704ed3f6306fbd80b013298ab5796c79fd3a3c1e42b914fc5",
+      "gameplay_sha256": "a612a96fba25e19eb6d816fe3cc623d73748f4bcf078f68327d2d66a010ab026",
+      "family": "TWO_HAND_RIFLE",
+      "model": "res://assets/weapons/modular_pack/SubmachineGun_3.fbx"
+    },
+    "9mm_sub": {
+      "base_rig": "family_smg_4_v1",
+      "candidate_rig": "family_smg_4_directional_v1",
+      "source_raw_sha256": "d091a3e3e3e122a3bff0b084c676e4a0cccd80809e50c6ca5ccbaf914f4c3ea7",
+      "gameplay_sha256": "b49e5357022b7bc89d00afbb9d48d10bd916a28dc058542aea7c8e87c18bbca0",
+      "family": "TWO_HAND_RIFLE",
+      "model": "res://assets/weapons/modular_pack/SubmachineGun_4.fbx"
+    },
+    "m82a1a": {
+      "base_rig": "family_sniper_1_v2",
+      "candidate_rig": "family_sniper_1_directional_v1",
+      "source_raw_sha256": "9dabcaad44f2c03451321617f5e56fd51088b1642fd70d4985a65cdd81af8cf6",
+      "gameplay_sha256": "f9204907cdd2c05d29c925b08e80a991ce859983d9eeaf4a3ff912a46b4d381a",
+      "family": "LONG_GUN",
+      "model": "res://assets/weapons/modular_pack/SniperRifle_1.fbx"
+    },
+    "m87elr": {
+      "base_rig": "family_sniper_2_v1",
+      "candidate_rig": "family_sniper_2_directional_v1",
+      "source_raw_sha256": "2f3527db1575dedf7c65272bd6069f2a7c8b8dc5310d33467937fb0fb2e99489",
+      "gameplay_sha256": "4e4db535e2b0cdc536a4cf0e087494524df0f691c9b7918054decff3a1f0e543",
+      "family": "LONG_GUN",
+      "model": "res://assets/weapons/modular_pack/SniperRifle_2.fbx"
+    },
+    "sr-25_sd": {
+      "base_rig": "family_sniper_3_v1",
+      "candidate_rig": "family_sniper_3_directional_v1",
+      "source_raw_sha256": "ee684a17b973fd357aaf0347719754d32e9b117d69e780031f29cc7e2f7b0218",
+      "gameplay_sha256": "6b5e484289e6c95ad3c6dba0665d04024b186da93060957074e4943f2724ec89",
+      "family": "LONG_GUN",
+      "model": "res://assets/weapons/modular_pack/SniperRifle_3.fbx"
+    },
+    "sr-25": {
+      "base_rig": "family_sniper_4_v1",
+      "candidate_rig": "family_sniper_4_directional_v1",
+      "source_raw_sha256": "34b8395f1242709222f44ef3e2b7ecf21b6b77ae5f1189091e0f2acfc2b764ae",
+      "gameplay_sha256": "6a23a2de84b8bc249cb97bdde6c079416fa68861254e800c9db16fb428fd92cb",
+      "family": "LONG_GUN",
+      "model": "res://assets/weapons/modular_pack/SniperRifle_4.fbx"
+    },
+    "m3_12_gauge": {
+      "source_visual_rig_id": "family_shotgun_1_v2",
+      "base_rig": "family_shotgun_1_v2",
+      "candidate_rig": "family_shotgun_1_directional_v1",
+      "source_raw_sha256": "ca77ad3337b27b1264b6da602666a2391496a164330c4e9b11cbecac76853c6e",
+      "gameplay_sha256": "84a177e2791e24b8da6328f563a435621a233d0dc6cd940f1fdd86417a73cc57",
+      "family": "LONG_GUN",
+      "model": "res://assets/weapons/modular_pack/Shotgun_1.fbx"
+    },
+    "ta_12_gauge": {
+      "source_visual_rig_id": "family_shotgun_1_v2",
+      "base_rig": "family_shotgun_1_v2",
+      "candidate_rig": "family_shotgun_1_directional_v1",
+      "source_raw_sha256": "1ce8a0b11303a94a01f1f71de38a5eb3e201d4792508aa15b5a9607a037c914b",
+      "gameplay_sha256": "9a088430a4890ba2f70df6182de3c46fb14249a0c8fec0a3033476afe5f77011",
+      "family": "LONG_GUN",
+      "model": "res://assets/weapons/modular_pack/Shotgun_1.fbx"
+    },
+    "12_gauge_pump": {
+      "calibration": {"ready_pocket_downward_m":0.05},
+      "source_visual_rig_id": "family_shotgun_2_v1",
+      "base_rig": "family_shotgun_2_v1",
+      "candidate_rig": "family_shotgun_2_directional_v1",
+      "source_raw_sha256": "a4a4908a1a4c4f05037fc0b2bb72071e1db6c3bbab463036767520fa9b2e3396",
+      "gameplay_sha256": "4fde63e1e7dd972f6e5a6568ecb5ab446a871a7d74bb0fe1d68a176f89486071",
+      "family": "LONG_GUN",
+      "model": "res://assets/weapons/modular_pack/Shotgun_2.fbx"
+    }
+  }
+}

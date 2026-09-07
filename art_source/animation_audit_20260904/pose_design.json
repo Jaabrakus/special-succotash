@@ -1,0 +1,6 @@
+{
+  "hand_reach_forward_retract_m": 0.14,
+  "low_hand_forward_m": 0.14,
+  "low_hand_below_shoulders_m": 0.24,
+  "low_muzzle_pitch_down_degrees": 25.0
+}

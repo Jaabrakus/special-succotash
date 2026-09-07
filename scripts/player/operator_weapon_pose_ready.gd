@@ -2,6 +2,12 @@ extends "res://scripts/player/operator_weapon_pose_placement.gd"
 
 const AuthoredPose := preload("res://scripts/player/operator_weapon_authored_pose.gd")
 
+func begin_posture_frame() -> void:
+	# The same final-pose owner retires its own prior-frame elbow pins. The base
+	# solver still clears/rebuilds all of its overrides at its established stage.
+	fire_recoil.clear_previous_scoped_elbow_overrides()
+
+
 func apply(
 	aim_yaw: float,
 	aim_pitch: float,
@@ -16,11 +22,45 @@ func apply(
 	delta: float,
 	locomotion_active_hint: bool = false,
 	peek_amount: float = 0.0,
-	accepted_shot_aim_weight: float = -1.0
+	accepted_shot_aim_weight: float = -1.0,
+	signed_strafe_weight: float = 0.0,
+	right_stock_turn_weight: float = -1.0
 ) -> void:
+	# Presentation consumes the driver's smoothed direction; it owns no movement
+	# clock. Replacing this value every frame prevents direction/equip leakage.
+	authored_stock_signed_strafe = clampf(signed_strafe_weight, -1.0, 1.0) if (
+		locomotion_active_hint and is_finite(signed_strafe_weight)
+	) else 0.0
+	# This is the posture owner's final turn progress, already readiness weighted.
+	# Optional -1 preserves older callers; it must not create a second turn clock.
+	authored_stock_right_turn_weight = clampf(right_stock_turn_weight, 0.0, 1.0) if (
+		is_finite(right_stock_turn_weight) and right_stock_turn_weight >= 0.0
+	) else -1.0
+	authored_stock_release_applied_m = 0.0
+	authored_stock_release_direction_world = Vector3.ZERO
 	_apply_base_pose(aim_yaw, aim_pitch, posture, movement_state, ready_weight, obstruction_amount, requested_action, reload_support_regrip, world_aim_target, body, delta, locomotion_active_hint, peek_amount, accepted_shot_aim_weight)
-	if ready_weight > 0.001 and requested_action == &"" and movement_state not in [&"DIVING", &"ROLLING", &"AIRBORNE", &"LANDING"]:
-		fire_recoil.apply_elbow(self, posture)
+	fire_recoil.apply_elbow_angle(self, _elbow_presentation_angle(
+		posture, movement_state, ready_weight, requested_action,
+		locomotion_active_hint, signed_strafe_weight
+	), strafe_left_elbow_flare_degrees > 0.0)
+
+func _elbow_presentation_angle(
+	posture: StringName, movement_state: StringName, ready_weight: float,
+	requested_action: StringName, locomotion_active_hint: bool, signed_strafe_weight: float
+) -> float:
+	if requested_action != &"" or movement_state in [&"DIVING", &"ROLLING", &"AIRBORNE", &"LANDING"]:
+		return 0.0
+	var recoil_angle: float = fire_recoil.offset(posture) if ready_weight > 0.001 else 0.0
+	var carry_angle := 0.0
+	if (
+		posture in [&"STANDING", &"CROUCHED"]
+		and movement_state in [&"STANDING", &"CROUCHED", &"LOCOMOTION"]
+		and locomotion_active_hint and is_finite(signed_strafe_weight)
+	):
+		# The animation driver supplies a smoothed signed blend coordinate. No
+		# velocity read, readiness flag, or independent movement clock lives here.
+		carry_angle = deg_to_rad(strafe_left_elbow_flare_degrees) * clampf(-signed_strafe_weight, 0.0, 1.0)
+	return clampf(recoil_angle + carry_angle, 0.0, deg_to_rad(20.0))
 
 func _apply_base_pose(
 	aim_yaw: float, aim_pitch: float, posture: StringName, movement_state: StringName,
@@ -30,6 +70,16 @@ func _apply_base_pose(
 ) -> void:
 	if skeleton == null or body == null:
 		return
+	var jump_combo: bool = body.has_method("get_mobility_combo_clip") and body.call("get_mobility_combo_clip") != &""
+	if jump_combo:
+		# Presentation-only strategy: preserve the current ready/shooting form.
+		# Gameplay remains DIVING, including existing fire restrictions.
+		movement_state = &"JUMP_COMBO"
+		ready_weight = 1.0
+		accepted_shot_aim_weight = 1.0
+		locomotion_active_hint = false
+		authored_stock_signed_strafe = 0.0
+		authored_stock_right_turn_weight = 0.0
 	fire_recoil.advance(delta)
 	var rail_event_was_active := rail_to_blue_line_event_remaining > 0.0
 	rail_to_blue_line_event_remaining = maxf(
@@ -56,6 +106,7 @@ func _apply_base_pose(
 	last_ready_weight = ready_weight
 	last_peek_amount = clampf(peek_amount, -1.0, 1.0)
 	animation_owned_aim_alignment_active = false
+	authored_shoulder_stock_active = false
 	pistol_trigger_centerline_ik_active = false
 	pistol_trigger_centerline_shift_m = 0.0
 	# Keep the presentation target current even while the rifle is at low ready.
@@ -66,6 +117,8 @@ func _apply_base_pose(
 		if aim_target_marker != null:
 			aim_target_marker.global_position = world_aim_target
 	stable_chest_anchor_world = _stable_chest_anchor(body, posture, movement_state)
+	if jump_combo:
+		stable_chest_anchor_world = _bone_world_position(&"mixamorig_Spine2")
 	stable_chest_anchor_active = true
 	gun_placement_relative_yaw_rad = aim_yaw
 	gun_placement_apply_delta = clampf(delta, 0.0, 0.05)

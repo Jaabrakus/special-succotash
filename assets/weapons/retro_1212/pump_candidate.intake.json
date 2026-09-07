@@ -1,0 +1,272 @@
+{
+  "schema_version": 1,
+  "status": "unassigned_candidate",
+  "spec": {
+    "id": "pump_candidate",
+    "candidate_weapon_ids": [
+      "870",
+      "12_gauge_pump"
+    ],
+    "folder": "Shotgun_01",
+    "armature": "Shotgun_01_Armature",
+    "source_to_meters": 0.01,
+    "meshes": [
+      "Main_Mesh",
+      "Forearm_Mesh",
+      "Trigger_Mesh",
+      "MagazineLoadingPort_Mesh",
+      "LoadingPort_Mesh",
+      "BuckShot_Projectile_Mesh"
+    ],
+    "excluded_reason": "Only assembled shotgun parts and its authored chamber projectile; no FP arms or animation scenes."
+  },
+  "source": "1212/RetroWeaponsPack/Guns/Shotgun_01/BlendFile/Shotgun_01.blend",
+  "source_sha256": "8523da10e308450b653a090fe49d9ee0f14672f83e76c4b7baac45e83ad01749",
+  "model": "res://assets/weapons/retro_1212/pump_candidate.glb",
+  "orientation": {
+    "source": "Blender world: +X barrel forward, +Z up, meters",
+    "export": "glTF/Godot: +X barrel forward, +Y up; (x,y,z)_Blender -> (x,z,-y)_glTF"
+  },
+  "source_meshes": [
+    {
+      "name": "Main_Mesh",
+      "triangles": 1288,
+      "vertices": 671,
+      "parent": "Shotgun_01_Armature",
+      "parent_type": "OBJECT",
+      "parent_bone": "",
+      "materials": [
+        "Retro1212_Shotgun_01"
+      ],
+      "bounds_min_blender_m": [
+        -0.2977881133556366,
+        -0.018135998398065567,
+        -0.0632372796535492
+      ],
+      "bounds_max_blender_m": [
+        0.6446689963340759,
+        0.018135977908968925,
+        0.10517634451389313
+      ]
+    },
+    {
+      "name": "Forearm_Mesh",
+      "triangles": 260,
+      "vertices": 132,
+      "parent": "Shotgun_01_Armature",
+      "parent_type": "OBJECT",
+      "parent_bone": "",
+      "materials": [
+        "Retro1212_Shotgun_01"
+      ],
+      "bounds_min_blender_m": [
+        0.23930105566978455,
+        -0.022897686809301376,
+        0.03994814306497574
+      ],
+      "bounds_max_blender_m": [
+        0.45942336320877075,
+        0.022897686809301376,
+        0.0894230455160141
+      ]
+    },
+    {
+      "name": "Trigger_Mesh",
+      "triangles": 38,
+      "vertices": 22,
+      "parent": "Shotgun_01_Armature",
+      "parent_type": "OBJECT",
+      "parent_bone": "",
+      "materials": [
+        "Retro1212_Shotgun_01"
+      ],
+      "bounds_min_blender_m": [
+        0.009737147949635983,
+        -0.002714127767831087,
+        0.025711888447403908
+      ],
+      "bounds_max_blender_m": [
+        0.022906627506017685,
+        0.002714097499847412,
+        0.050891272723674774
+      ]
+    },
+    {
+      "name": "MagazineLoadingPort_Mesh",
+      "triangles": 54,
+      "vertices": 32,
+      "parent": "Shotgun_01_Armature",
+      "parent_type": "OBJECT",
+      "parent_bone": "",
+      "materials": [
+        "Retro1212_Shotgun_01"
+      ],
+      "bounds_min_blender_m": [
+        0.09671474248170853,
+        -0.00946420431137085,
+        0.047034528106451035
+      ],
+      "bounds_max_blender_m": [
+        0.1661447137594223,
+        0.009464174509048462,
+        0.055536288768053055
+      ]
+    },
+    {
+      "name": "LoadingPort_Mesh",
+      "triangles": 28,
+      "vertices": 22,
+      "parent": "Shotgun_01_Armature",
+      "parent_type": "OBJECT",
+      "parent_bone": "",
+      "materials": [
+        "Retro1212_Shotgun_01"
+      ],
+      "bounds_min_blender_m": [
+        0.09671474248170853,
+        -0.016374120488762856,
+        0.07774322479963303
+      ],
+      "bounds_max_blender_m": [
+        0.17450492084026337,
+        0.013476603664457798,
+        0.10072597861289978
+      ]
+    },
+    {
+      "name": "BuckShot_Projectile_Mesh",
+      "triangles": 44,
+      "vertices": 24,
+      "parent": "Shotgun_01_Armature",
+      "parent_type": "OBJECT",
+      "parent_bone": "",
+      "materials": [
+        "Retro1212_Projectiles"
+      ],
+      "bounds_min_blender_m": [
+        0.1195177435874939,
+        -0.008035946637392044,
+        0.05240665748715401
+      ],
+      "bounds_max_blender_m": [
+        0.16250620782375336,
+        0.008147520013153553,
+        0.06859011948108673
+      ]
+    }
+  ],
+  "source_bone_landmarks": [
+    {
+      "name": "Main",
+      "parent": null,
+      "head_blender_m": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "tail_blender_m": [
+        0.0,
+        0.0,
+        0.06370626389980316
+      ]
+    },
+    {
+      "name": "Trigger",
+      "parent": "Main",
+      "head_blender_m": [
+        0.016601599752902985,
+        -1.5745497350394544e-08,
+        0.050891272723674774
+      ],
+      "tail_blender_m": [
+        0.016601599752902985,
+        -1.5745497350394544e-08,
+        0.027772530913352966
+      ]
+    },
+    {
+      "name": "MagazineLoadingPort",
+      "parent": "Main",
+      "head_blender_m": [
+        0.09671607613563538,
+        -1.4864992792240628e-08,
+        0.052883345633745193
+      ],
+      "tail_blender_m": [
+        0.09671607613563538,
+        -1.5595485791664032e-08,
+        0.0695950910449028
+      ]
+    },
+    {
+      "name": "BulletInChamber",
+      "parent": "Main",
+      "head_blender_m": [
+        0.11981414258480072,
+        -1.6470618646735602e-08,
+        0.060554180294275284
+      ],
+      "tail_blender_m": [
+        0.16251444816589355,
+        -1.460256715546393e-08,
+        0.060554180294275284
+      ]
+    },
+    {
+      "name": "Forearm",
+      "parent": "Main",
+      "head_blender_m": [
+        0.23948104679584503,
+        -1.491678780496386e-08,
+        0.06007542461156845
+      ],
+      "tail_blender_m": [
+        0.45242854952812195,
+        -1.3048735425513769e-08,
+        0.06007542461156845
+      ]
+    },
+    {
+      "name": "LoadingPort",
+      "parent": "Main",
+      "head_blender_m": [
+        0.09671474248170853,
+        -0.009152478538453579,
+        0.08731938898563385
+      ],
+      "tail_blender_m": [
+        0.1733681857585907,
+        -0.009152469225227833,
+        0.08731938898563385
+      ]
+    }
+  ],
+  "textures": [
+    "1212/RetroWeaponsPack/Guns/Shotgun_01/Textures/Shotgun_01_Albedo.png",
+    "1212/RetroWeaponsPack/Guns/AdditionalMeshes/Projectiles/Texture/Projectiles_Albedo.png"
+  ],
+  "glb_checks": {
+    "meshes": 6,
+    "mesh_names": [
+      "Cube.001",
+      "Cube.002",
+      "Cube.003",
+      "Cube.004",
+      "Cube.005",
+      "Cube.009"
+    ],
+    "triangles": 1712,
+    "nodes": 13,
+    "skins": 1,
+    "materials": 2,
+    "embedded_images": 2,
+    "samplers": [
+      {
+        "magFilter": 9728,
+        "minFilter": 9984
+      }
+    ],
+    "bytes": 306960,
+    "sha256": "1cd2a714326ae6a1161aa88f3959adcf90b67795ce39379634e0c56b9877d79a"
+  }
+}

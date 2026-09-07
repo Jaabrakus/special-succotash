@@ -1,0 +1,51 @@
+{
+  "revision": "PHOTO_MATCH_V2",
+  "families_revised": 4,
+  "items": [
+    {
+      "id": "p9s",
+      "triangles": 11116,
+      "editable_components": 53,
+      "source": "https://live.amoskeagauction.com/lot-details/index/catalog/51/lot/27207/Heckler-Koch-Model-P9S-Semi-Auto-Pistol",
+      "asset": "p9s_v2.glb",
+      "limits": "Single side photo; depth and unseen side are artistic estimates."
+    },
+    {
+      "id": "mark23",
+      "triangles": 11416,
+      "editable_components": 51,
+      "source": "https://www.guns.com/firearms/handguns/semi-auto/heckler-%26-koch-mark-23-45-acp-semi-auto-12-rounds-5-9-barrel-2-6-lbs-used?p=66316",
+      "asset": "mark23_v2.glb",
+      "limits": "Single side photo; depth and unseen side are artistic estimates."
+    },
+    {
+      "id": "beretta",
+      "triangles": 17576,
+      "editable_components": 86,
+      "source": "https://www.berettadefense.com/products/92fs-bdt/",
+      "asset": "beretta_v2.glb",
+      "limits": "Single side photo; depth and unseen side are artistic estimates."
+    },
+    {
+      "id": "desert_eagle",
+      "triangles": 14037,
+      "editable_components": 69,
+      "source": "https://www.imfdb.org/index.php?title=Image%3ADesert-Eagle.jpeg",
+      "asset": "desert_eagle_v2.glb",
+      "limits": "Single side photo; depth and unseen side are artistic estimates."
+    }
+  ],
+  "scope": "STANDALONE ART ONLY",
+  "originals_preserved": {
+    "pistol_batch_blend": "c70ce0bbb69abdac7c50532314dc833888ae01bc33948eb393fd2f8bdcb548aa",
+    "p9s_blend": "748081b0aba5994a75678f84a97e5152920570bc1b8ce1e6b2ba77f39a1d642a"
+  },
+  "limitations": [
+    "Not a scan or recovered original mesh.",
+    "Depth and unseen side are artistic estimates.",
+    "Beretta source is 92FS, not exact M9.",
+    "Four photo-backed families only; other six batch entries unchanged.",
+    "Standard P9S compared with original can hidden on a read-only copy.",
+    "No runtime integration or mechanical design."
+  ]
+}

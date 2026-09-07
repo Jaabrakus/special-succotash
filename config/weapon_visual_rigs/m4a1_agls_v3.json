@@ -1,0 +1,188 @@
+{
+  "schema_version": 1,
+  "visual_rig_id": "m4a1_agls_v3",
+  "revision": 3,
+  "status": "published",
+  "source_model_fbx": "res://assets/external/agls_intake/imported/weapons/m4a1/m4a1.scn",
+  "family": "TWO_HAND_RIFLE",
+  "visual": {
+    "model_fbx": "res://assets/external/agls_intake/imported/weapons/m4a1/m4a1.scn",
+    "normalized_scale": 1.0,
+    "user_scale_multiplier": 1.0,
+    "model_rotation_degrees": {
+      "x": -1.806423,
+      "y": -5.350261,
+      "z": -2.345536
+    },
+    "operator_mount": {
+      "attachment_mode": "trigger_hand_socket",
+      "bone_name": "mixamorig_RightHand",
+      "position": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "rotation_degrees": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      }
+    },
+    "grip_offset": {
+      "pos_x": 0.0,
+      "pos_y": 0.0,
+      "pos_z": 0.0,
+      "rot_x": -84.5158,
+      "rot_y": -87.42641,
+      "rot_z": -21.50843
+    },
+    "weapon_sockets": {
+      "right_hand_grip_target": {
+        "x": 0.0,
+        "y": 0.0458046943,
+        "z": 0.0656847507
+      },
+      "left_hand_ik_target": {
+        "x": 0.0,
+        "y": 0.1008046943,
+        "z": 0.3156847507
+      },
+      "muzzle_socket": {
+        "x": 0.0,
+        "y": 0.0950661153,
+        "z": 0.619568706
+      },
+      "barrel_base_socket": {
+        "x": 0.0,
+        "y": 0.0950660482,
+        "z": 0.376185417
+      },
+      "buttstock_socket": {
+        "x": 0.0,
+        "y": 0.0936723873,
+        "z": -0.188480571
+      },
+      "optic_rail": {
+        "x": 0.0,
+        "y": 0.119063318,
+        "z": 0.037895631
+      },
+      "ejection_port": {
+        "x": 0.025,
+        "y": 0.1008046943,
+        "z": 0.1406847507
+      }
+    },
+    "handling_profile": {
+      "animation_slots": {
+        "fire_crouched": "crouch_fire",
+        "fire_prone": "prone_fire",
+        "fire_standing": "combat_fire",
+        "idle_crouched": "idle_crouch",
+        "idle_prone": "idle_prone",
+        "idle_standing": "aim_idle",
+        "ready_crouched": "aim_idle_crouch",
+        "reload_crouched": "crouch_reload",
+        "reload_prone": "prone_reload",
+        "reload_standing": "reload"
+      },
+      "dynamic_hold": {
+        "animation_carry_limit_m": 0.025,
+        "animation_carry_weight": 0.40,
+        "animation_drives_ready_hands": true,
+        "authored_animation_owns_weapon_mount": false,
+        "buttstock_constraint": {
+          "downward_offset_m": 0.0,
+          "enabled": true,
+          "forward_offset_m": 0.0,
+          "inward_offset_m": 0.055,
+          "maximum_correction_m": 0.4,
+          "by_stance": {
+            "PRONE": {
+              "downward_offset_m": 0.12,
+              "forward_offset_m": -0.03,
+              "inward_offset_m": 0.055
+            }
+          }
+        },
+        "hand_socket_ik_enabled": false,
+        "support_hand_socket_ik_enabled": true,
+        "support_hand_ik_blend_seconds": 0.2,
+        "hand_owned_aim_correction_limit_deg": 32.0,
+        "fire_saved_joint_rotations_enabled": false,
+        "fire_spine_ccdik_enabled": false,
+        "relaxed_idle_upper_body_weight": 0.0,
+        "ready_locomotion_inheritance": 0.0,
+        "locomotion_ready_carry_weight": 1.0,
+        "strafe_carry": {
+          "right_hip_follow_weight": 0.12,
+          "left_elbow_flare_degrees": 12.0
+        },
+        "reload_return_blend_seconds": 0.18,
+        "right_hand_owns_weapon": true
+      },
+      "authored_aim_sweep": {
+        "enabled": true,
+        "center_pitch_degrees": -2.0,
+        "source_min_pitch_degrees": -90.0,
+        "source_max_pitch_degrees": 90.0,
+        "invert_source_pitch": true,
+        "posture_clips": {
+          "STANDING": "aim_sweep_standing_m4a1",
+          "CROUCHED": "aim_sweep_crouched_m4a1",
+          "PRONE": "aim_sweep_prone_m4a1"
+        }
+      },
+      "family": "TWO_HAND_RIFLE",
+      "locomotion_family": "RIFLE",
+      "mapping_version": 1,
+      "ready_aim": {
+        "fire_hold_seconds": 1.2,
+        "fire_terminal_pose_hold_seconds": 0.12
+      },
+      "reload_duration_seconds": 1.75,
+      "reload_visuals": {
+        "reload_standing": {
+          "events": {
+            "magazine_in": 75.0,
+            "magazine_out": 20.0,
+            "new_magazine_ready": 51.0,
+            "old_magazine_away": 40.0,
+            "support_regrip": 91.0
+          },
+          "magazine_hand_offset": {
+            "position": {
+              "x": 0.0,
+              "y": -0.075,
+              "z": 0.018
+            },
+            "rotation_degrees": {
+              "x": 8.0,
+              "y": 0.0,
+              "z": 90.0
+            }
+          }
+        }
+      },
+      "support_hand_required": true
+    },
+    "camo_skin": "Factory Classic (Wood & Steel)",
+    "scope_attachment": "None",
+    "silencer_attachment": "None"
+  },
+  "weapon_hand_markers_role": "diagnostic_only",
+  "certification": {
+    "required_stances": [
+      "STANDING",
+      "CROUCHED",
+      "PRONE"
+    ],
+    "required_actions": [
+      "aim_idle",
+      "combat_fire",
+      "reload"
+    ],
+    "maximum_palm_error_m": 0.005,
+    "published_by": "guns_lab_2"
+  }
+}

@@ -6,6 +6,7 @@ const MobilityWeaponGripSolver := preload("res://scripts/player/operator_mobilit
 const SocketIK := preload("res://scripts/player/operator_weapon_socket_ik.gd")
 const WeaponContactSolver := preload("res://scripts/player/operator_weapon_contact_solver.gd")
 const PistolCarryReach := preload("res://scripts/player/operator_pistol_carry_reach.gd")
+const AuthoredStock := preload("res://scripts/player/operator_weapon_authored_stock_pose.gd")
 
 static func apply_action(pose: Node3D, reload_action_active: bool, reload_support_regrip: bool, posture: StringName, world_aim_target: Vector3, body: Node3D, delta: float) -> void:
 	pose._release_trigger_hand_grip_lock()
@@ -57,6 +58,8 @@ static func apply_action(pose: Node3D, reload_action_active: bool, reload_suppor
 	return
 
 static func apply_hand_follow(pose: Node3D, aim_yaw: float, aim_pitch: float, ready_weight: float, sampled_trigger_palm_position: Vector3, world_aim_target: Vector3, body: Node3D, delta: float, accepted_shot_aim_weight: float) -> void:
+	if AuthoredStock.apply(pose, aim_yaw, aim_pitch, ready_weight, world_aim_target, body, accepted_shot_aim_weight):
+		return
 	# The authored pose and right-hand attachment keep sole ownership of the
 	# spine and trigger arm. A separate bounded support-only pass may close the
 	# left palm onto the physical foregrip without moving those owners. Pistol
@@ -72,8 +75,11 @@ static func apply_hand_follow(pose: Node3D, aim_yaw: float, aim_pitch: float, re
 	# BoneAttachment notifications otherwise resample the moving right wrist
 	# after this pass, moving the socket away from the already-solved left hand.
 	# Idle still follows the authored right palm; only ready may align to aim.
-	pose._set_weapon_solver_owned(pose.animation_owned_aim_alignment_enabled)
-	if pose.animation_owned_aim_alignment_enabled and not use_animation_aim_anchor:
+	var finalize_trigger_anchor: bool = (
+		pose.animation_owned_aim_alignment_enabled or pose.authored_shoulder_stock_enabled
+	)
+	pose._set_weapon_solver_owned(finalize_trigger_anchor)
+	if finalize_trigger_anchor and not use_animation_aim_anchor:
 		pose._weapon_transform_on_trigger_hand(pose._right_hand_grip_world_transform(), true)
 	pose.desired_weight = (
 		1.0
@@ -149,23 +155,9 @@ static func apply_hand_follow(pose: Node3D, aim_yaw: float, aim_pitch: float, re
 			"support_hand_pose",
 			{}
 		)
-		var support_pose: Dictionary = (
-			raw_support_pose
-			if raw_support_pose is Dictionary
-			else {}
+		pose.support_hand_target.global_basis = WeaponContactSolver.support_contact_basis(
+			pose.support_socket.global_basis, raw_support_pose
 		)
-		var support_rotation_degrees := Vector3(
-			float(support_pose.get("palm_pitch_deg", 0.0)),
-			float(support_pose.get("palm_yaw_deg", 0.0)),
-			float(support_pose.get("palm_roll_deg", 0.0))
-		)
-		pose.support_hand_target.global_basis = (
-			pose.support_socket.global_basis.orthonormalized()
-			* Basis.from_euler(
-				support_rotation_degrees * (PI / 180.0),
-				EULER_ORDER_YXZ
-			)
-		).orthonormalized()
 		if pose.animation_owned_aim_alignment_enabled and not use_animation_aim_anchor:
 			PistolCarryReach.fit(pose)
 		pose._update_support_contact_elbow_pole(pose.support_socket.global_position)

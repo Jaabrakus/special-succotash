@@ -9,6 +9,7 @@
     "accepted_shot_recovery_presentation": "SocomOperatorFireUpperBodyLatch",
     "pistol_family_route_data": "SocomOperatorAnimationProfile",
     "saved_pistol_visual_contracts": "GunsmithWeaponProfileRepository",
+    "moving_accepted_ready_mask": "SocomOperatorLocomotionBlendTree",
     "movement_and_collision": "CharacterBody3D",
     "aim_intent": "SOCOMCameraReticleChain",
     "shot_and_damage": "AuthoritativeServerWeapon"
@@ -61,15 +62,37 @@
     "res://tools/pistol_fire_direction_pose_regression.gd",
     "res://tools/pistol_recovery_exit_regression.gd",
     "res://tools/pistol_distinct_ready_slots_regression.gd",
+    "res://tools/pistol_moving_entry_timing_regression.gd",
+    "res://tools/de50_support_rotation_probe.gd",
     "res://tools/feature_contract_regression.gd"
   ],
   "visual_check": "In res://main.tscn, equip Mark 23 and F57. Fire while idle and on all forward/back diagonals in standing/crouched posture. Observe the real-size pistol, both palms, elbow symmetry, and entry motion; numerical bore/contact checks alone do not establish a natural pose. After the 1.2-second recovery, observe the complete readiness fade and its last frame: neither arm nor pistol size may pop when parenting returns to the authored mount. Reload separately to verify action ownership.",
   "known_limitations": [
+    "The moving-pistol accepted-callback mask publication fixes measured canonical Mark 23 A and WA first-shot bore error without an extra tree evaluation or changing source playheads. The legacy frozen crouch-diagonal fixture at 5.45 m/s still fails its unchanged 155-degree elbow limit; true canonical crouch movement, first-shot frames, and full eight-pistol coverage must remain separate proofs. This bounded timing fix does not certify all directional arm shapes.",
     "The September 4 Blender high-ready candidate passes ten offset-aim Mark 23 stance/direction cases in memory, but is not assigned to the saved profile. LOW-only immutable-track preservation now passes all eight neutral/offset stance equip/return centering and physical contact checks. A newly covered neutral crouched fire case fails: 35.90 degrees required correction exceeds the saved 32-degree limit, leaving 3.69 degrees bore error. Do not promote the candidate pair or claim all-pistol success. See tools/pistol_low_ready_contact_regression.gd and docs/ANIMATION_AUDIT_20260904.md. The browser ZIP has not been rebuilt.",
     "Immediate pistol ready-weight entry still causes measured pre-shot-to-fire pose jumps; this recovery-exit change does not redesign entry blending.",
     "The existing authored standing firing pose has asymmetric elbows. At corrected full weapon size, Mark 23 standing support contact measured approximately 12 mm and fails the 10 mm acceptance budget; the previous inverse-64-size pistol concealed that error.",
     "Full-family directional and rendered naturalness checks remain necessary before claiming all pistol animations are fixed."
   ],
+  "moving_entry_publication": {
+    "translation_card": "res://docs/PISTOL_MOVING_FIRE_ENTRY_TRANSLATION.md",
+    "input": "Existing FIRE_ACCEPTED presentation event only",
+    "saved_contract": "handling_profile.family, dynamic_hold and ready_aim from the normalized weapon profile",
+    "producer": "res://scripts/player/operator_animation_driver_api.gd::_trigger_fire_ready_aim",
+    "single_parameter_owner": "res://scripts/player/operator_locomotion_blend_tree.gd::_publish_ready_mask",
+    "runtime_consumer": "The next normal AnimationTree evaluation, then existing posture and weapon presentation passes",
+    "protected_state": "No gait phase, source playhead, route, direction, speed, delta clock, socket, or extra accepted event mutation",
+    "rejected_candidate": "A second advance(0) tree evaluation consumed pending source changes and changed lower-body presentation; removed."
+  },
+  "de50_support_palm_fit": {
+    "translation_card": "res://docs/DE50_PALM_ROTATION_TRANSLATION.md",
+    "weapon_profile": "res://config/weapons/de__50.json",
+    "immutable_rig": "res://config/weapon_visual_rigs/family_pistol_4_v5.json",
+    "saved_field": "visual.support_hand_pose.palm_pitch_deg",
+    "value_degrees": 3.0,
+    "runtime_consumer": "Operator asset hand-map source to existing authored weapon support-palm solve",
+    "protected_fields": "Every socket position, gun dimension/mount, source animation, global policy and gameplay statistic remains unchanged."
+  },
   "system_delta": {
     "decision": "MERGE",
     "reason": "Merge continuous recovery-exit target/pole and root-correction weighting into the existing presentation owner. Restore the scaled bone-parent contribution when evaluating the authored local mount under WeaponSolverAnchor, preserving the pistol's physical dimensions instead of shrinking it 64-fold. Baseline static terminal palm steps were 24-30 cm; the corrected exit measures below 1 mm. Do not claim full animation quality from this improvement: proper scale exposes an approximately 12 mm standing support-contact error and entry/arm-shape problems remain. Keep the 1.2-second latch, source clips, accepted-shot entry behavior, movement, reload, aim and server authority unchanged. Reject compensating socket offsets, changing weapon dimensions, or adding another IK owner.",

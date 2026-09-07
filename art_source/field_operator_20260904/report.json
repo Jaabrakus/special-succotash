@@ -1,0 +1,23 @@
+{
+  "status": "ASSET_REVIEW_ONLY_NOT_GAMEPLAY_INTEGRATED",
+  "original_geometry": true,
+  "source_rig": "assets/characters/ps1_gas_mask_soldier/trooper_rigged.fbx",
+  "pose_source": "Original static review pose authored by author_ready_pose(), existing native rig only.",
+  "height_rest_m": 1.7888,
+  "units": "meters",
+  "blender_forward": "-Y",
+  "blender_up": "+Z",
+  "triangles_character": 7388,
+  "vertices_character": 3990,
+  "material_slots": 1,
+  "native_bones": 41,
+  "native_rest_unchanged": true,
+  "export_bytes": 1045184,
+  "limitations": [
+    "Native rig scale is wrapped to a 1.7888m operator, not a drop-in runtime replacement.",
+    "Aim-ready action is a review pose, not a claim that live pistol centering is fixed.",
+    "Closed-grip fingers are rigidly hand-weighted review geometry, not articulated fingers.",
+    "Support contact, all stance transitions and lower-body deformations require canonical validation.",
+    "Review prop is a separate nonfunctional original silhouette and must not replace authoritative weapon."
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "source_clip": "jump_forward_action",
+  "upper_body_clip": "aim_idle",
+  "peak_seconds": 0.24,
+  "peak_drift_seconds": 0.04,
+  "enter_seconds": 0.30,
+  "hold_end_seconds": 1.05,
+  "duration_seconds": 1.65,
+  "pelvis_lean_degrees": -10.0,
+  "torso_lean_degrees": 12.0,
+  "slide_hip_height_m": 0.24,
+  "left_foot_forward_m": 0.78,
+  "right_knee_forward_m": 0.28,
+  "right_knee_height_m": 0.065,
+  "sample_fps": 30,
+  "output": "res://assets/animations/authored/jump_peak_slide_candidate.tres",
+  "status": "Animation-only review candidate; no gameplay input or travel added."
+}

@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "feature_id": "jump_direction_combos",
+  "player_intent": "Grounded double taps without Space. Standing allows WW/AA/DD/SS; crouched allows AA/DD/SS but not WW. Dive torso keeps a forward rifle form with a slight character-right lean. Crouched SS stays low without a standing camera pop. Preserve side rest, chains, crouch/prone exits and fresh-movement get-up.",
+  "acceptance_rule": "Fresh matching direction edges within 0.30s; holding, mixed or expired taps do not trigger. Space alone remains jump. Only slide/back may chain into left/right. Held second tap cannot get up; release at rest then fresh movement resumes recovery. WW/SS finish CROUCHED, slide Z or hold-C finishes PRONE. Body owns collision and headroom. Both saved side poses have low boots. Recovery head marker and lens have no downward step over 0.015m/0.025m in the canonical flat-ground test. Server/proxy preserve state and prone-exit selection.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://animation_library_lab.tscn",
+  "ownership": {"movement_collision": "SocomTestPlayer", "input_recognition": "jump_direction_combo_intent", "animation": "SocomOperatorAnimationDriver", "network": "SocomNetworkProtocol", "camera_markers": "SocomTestMannequin"},
+  "nodes": [
+    {"id": "player", "type": "CharacterBody3D", "owner": "SocomTestPlayer", "role": "Consumes validated movement intent and owns combo motion/collider", "scene_path": "res://scenes/player/operator_player.tscn", "node_path": "."},
+    {"id": "animation", "type": "Node3D", "owner": "SocomOperatorAnimationDriver", "role": "Selects and seeks saved combo clip on both canonical animation routes", "scene_path": "res://scenes/player/operator_player.tscn", "node_path": "Mannequin/ProductionAnimation"},
+    {"id": "head_anchor", "type": "Marker3D", "owner": "SocomTestMannequin", "role": "Position-only animated head follow during lateral rest; never a camera rotation writer", "source_script": "res://scripts/player/test_mannequin.gd", "code_symbols": ["head_marker = Marker3D.new()", "marker.position = marker.position.lerp(target, alpha)"]}
+  ],
+  "data_contracts": [
+    {"path": "res://assets/animations/authored/crouch_dive_left.tres", "writer": "res://tools/build_jump_direction_dives.gd", "readers": ["res://scripts/player/operator_asset_runtime.gd"]},
+    {"path": "res://assets/animations/authored/crouch_dive_right.tres", "writer": "res://tools/build_jump_direction_dives.gd", "readers": ["res://scripts/player/operator_asset_runtime.gd"]},
+    {"path": "res://assets/animations/authored/crouch_dive_back.tres", "writer": "res://tools/build_jump_direction_dives.gd", "readers": ["res://scripts/player/operator_asset_runtime.gd"]},
+    {"path": "res://config/jump_direction_combos.json", "writer": "res://docs/JUMP_DIRECTION_COMBOS.md", "readers": ["res://scripts/player/jump_direction_combo_intent.gd", "res://scripts/player/player_controller.gd", "res://scripts/player/operator_locomotion_blend_tree.gd", "res://scripts/player/test_mannequin.gd"]},
+    {"path": "res://assets/animations/authored/jump_slide_crouch.tres", "writer": "res://tools/build_jump_direction_dives.gd", "readers": ["res://scripts/player/operator_asset_runtime.gd"]},
+    {"path": "res://assets/animations/authored/jump_back_crouch.tres", "writer": "res://tools/build_jump_direction_dives.gd", "readers": ["res://scripts/player/operator_asset_runtime.gd"]},
+    {"path": "res://assets/animations/authored/jump_slide_prone.tres", "writer": "res://tools/build_jump_direction_dives.gd", "readers": ["res://scripts/player/operator_asset_runtime.gd"]},
+    {"path": "res://config/operator_animation_map.json", "writer": "res://scripts/labs/animation_workshop_repository.gd", "readers": ["res://scripts/player/operator_animation_profile.gd"]},
+    {"path": "res://assets/animations/authored/jump_dive_left.tres", "writer": "res://tools/build_jump_direction_dives.gd", "readers": ["res://scripts/player/operator_asset_runtime.gd"]},
+    {"path": "res://assets/animations/authored/jump_dive_right.tres", "writer": "res://tools/build_jump_direction_dives.gd", "readers": ["res://scripts/player/operator_asset_runtime.gd"]},
+    {"path": "res://assets/animations/authored/jump_peak_slide_candidate.tres", "writer": "res://tools/build_jump_peak_slide.gd", "readers": ["res://scripts/player/operator_asset_runtime.gd"]}
+  ],
+  "must_not_change": ["Space-alone jump", "Existing Z and stance dive", "Camera/reticle aim authority", "Server weapons/damage and existing shooting restrictions", "Original rig/body and source FBX", "Normal locomotion", "Active map"],
+  "proof_scripts": ["res://tools/jump_direction_combo_regression.gd", "res://tools/jump_forward_legs_regression.gd", "res://tools/network_remote_animation_intent_regression.gd"],
+  "visual_check": "Inspect actual goalkeeper dive and mirrored counterpart, side idle hold and movement-triggered source get-up, upright head camera and ready-form gun. Verify modern/legacy held bone pose, not clip-name alone. No claim of Max Payne asset parity or slow motion.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Crouched actions were mapped to idle before full-body mobility, camera entry assumed standing and dive spine inherited the death curl. Merge crouched AA/DD/SS admission with no WW, low-entry saved clips, mobility-first graph routing, actual prior camera anchor and baked forward rifle chest with an 8-degree right lean. Preserve all original owners.",
+    "current": {"system": "Animation-only slide/back poses", "correctness": 1, "ownership_clarity": 5, "runtime_parity": 2, "editor_usability": 3, "performance": 5, "regression_coverage": 2, "evidence_paths": ["res://tools/jump_peak_slide_regression.gd", "res://docs/JUMP_PEAK_SLIDE_EXPERIMENT.md"]},
+    "candidate": {"system": "Canonical jump-direction combos", "correctness": 4, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 5, "regression_coverage": 5, "evidence_paths": ["res://scripts/player/player_controller.gd", "res://scripts/network/socom_network_protocol.gd", "res://tools/jump_direction_combo_regression.gd"]}
+  }
+}

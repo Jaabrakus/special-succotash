@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "feature_id": "mobility_movement_handoff",
+  "player_intent": "Immediate crouch response and no dead tick after completed mobility animations.",
+  "acceptance_rule": "Completion tick consumes held movement; grounded crouch starts, stops and reverses immediately at bounded stance speed. Side rest/get-up and authored durations remain unchanged.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://animation_library_lab.tscn",
+  "ownership": {"movement_collision": "SocomTestPlayer"},
+  "nodes": [{"id": "player", "type": "CharacterBody3D", "owner": "SocomTestPlayer", "role": "Resumes normal locomotion after committed actions and solves immediate crouch response", "source_script": "res://scripts/player/player_controller.gd", "code_symbols": ["_advance_committed_action(delta)", "INSTANT_CROUCH"]}],
+  "data_contracts": [{"path": "res://config/jump_direction_combos.json", "writer": "res://docs/MOBILITY_MOVEMENT_HANDOFF.md", "readers": ["res://scripts/player/jump_direction_combo_intent.gd", "res://scripts/player/player_controller.gd"]}],
+  "must_not_change": ["Camera/reticle", "Weapon/damage", "Action duration and ground rest", "Standing acceleration", "Prone response", "Movement packet format"],
+  "proof_scripts": ["res://tools/mobility_movement_handoff_regression.gd", "res://tools/jump_direction_combo_regression.gd", "res://tools/diagonal_mobility_regression.gd", "res://tools/network_prediction_regression.gd"],
+  "visual_check": "Slide/back exit into crouch travel without an extra frozen frame; existing visual blends remain intact.",
+  "system_delta": {
+    "decision": "MERGE", "reason": "Reuse normal velocity solver on the completion tick; remove crouch acceleration delay without shortening clips or adding a movement owner.",
+    "current": {"system": "Unconditional action return and crouch acceleration", "correctness": 2, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 3, "performance": 5, "regression_coverage": 2, "evidence_paths": ["res://scripts/player/player_controller.gd"]},
+    "candidate": {"system": "Same-tick handoff and grounded crouch response", "correctness": 5, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 5, "regression_coverage": 5, "evidence_paths": ["res://scripts/player/player_controller.gd", "res://tools/mobility_movement_handoff_regression.gd"]}
+  }
+}

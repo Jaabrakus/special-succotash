@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "source_clip": "jump_forward_action",
+  "upper_body_clip": "aim_idle",
+  "peak_seconds": 0.24,
+  "peak_drift_seconds": 0.04,
+  "enter_seconds": 0.30,
+  "hold_end_seconds": 1.05,
+  "duration_seconds": 1.65,
+  "pelvis_lean_degrees": -55.0,
+  "torso_lean_degrees": 0.0,
+  "slide_hip_height_m": 0.24,
+  "left_foot_forward_m": 0.62,
+  "right_foot_forward_m": 0.95,
+  "sample_fps": 30,
+  "output": "res://assets/animations/authored/backward_dive_pose_candidate.tres",
+  "status": "Snapshot of previous slide pose; pose candidate only, no backward-dive mechanics. Not rebuilt by the revised knee-down builder."
+}

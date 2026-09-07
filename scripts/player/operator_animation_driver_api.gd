@@ -71,6 +71,12 @@ func _trigger_fire_ready_aim() -> void:
 	# guardrail, so this clean-frame handoff no longer invokes the old full solver.
 	if equipped_weapon_family == &"TWO_HAND_PISTOL" and not _uses_authored_compressed_idle():
 		weapon_ready_weight = 1.0
+		if (
+			use_modern_locomotion and locomotion_graph != null and _locomotion_active
+			and posture in [&"STANDING", &"CROUCHED"] and requested_action == &""
+			and movement_state not in [&"DIVING", &"ROLLING", &"AIRBORNE", &"LANDING"]
+		):
+			locomotion_graph.publish_accepted_moving_pistol_ready(posture, movement_speed_normalized)
 	# Rifles keep the normal bounded ready response. A generic one-frame jump to
 	# full socket ownership can replace their current arm chain before the stance
 	# animation has blended and visibly fold the elbows.

@@ -1,4 +1,6 @@
 {
+  "visual_rig_id": "family_sniper_2_directional_v1",
+  "visual_rig_schema_version": 1,
   "ammo_spec": {
     "impact_damage": 9.0,
     "piercing": 7.0,

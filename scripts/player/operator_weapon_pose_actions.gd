@@ -57,22 +57,16 @@ func _set_weapon_solver_owned(enabled: bool) -> void:
 func _attach_reload_weapon_to_right_hand() -> void:
 	if weapon_node == null or weapon_presentation_owner == null:
 		return
-	# Reload animation owns the right arm, and the weapon is a direct child of
-	# that authored hand mount. Do not detach it into the world-space solver:
-	# doing so creates a second transform owner and makes the rifle drift, vanish,
-	# or rotate sideways when the clip and solver update in different frames.
+	# Reload animation owns the right arm. Finalize that current authored palm
+	# on the existing presentation anchor so later BoneAttachment notifications
+	# cannot resample away the palm correction. This is not a right-arm IK solve.
 	if action_weapon_follow_active:
 		_finish_action_weapon_follow()
-	weapon_presentation_owner.use_animation_parent(true)
+	weapon_presentation_owner.use_solver_parent(true)
 	weapon_solver_owned = false
 	action_weapon_chest_owned = false
+	_weapon_transform_on_trigger_hand(_right_hand_grip_world_transform(), true)
 	if trigger_socket != null:
-		# Finger/palm animation can move the authored palm contact relative to the
-		# hand bone. Correct position only; the BoneAttachment remains the sole
-		# rotation owner, so the rifle still follows the reload take naturally.
-		weapon_presentation_owner.translate_world(
-			_right_hand_grip_world_transform().origin - trigger_socket.global_position
-		)
 		action_trigger_contact_error_m = trigger_socket.global_position.distance_to(
 			_right_hand_grip_world_transform().origin
 		)

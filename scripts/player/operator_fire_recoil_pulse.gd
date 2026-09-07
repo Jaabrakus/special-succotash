@@ -2,12 +2,15 @@ extends RefCounted
 
 ## Visual envelope only. The existing socket solver remains the bone writer.
 const PROFILE := "res://config/fire_recoil_presentation.json"
+const MAX_SWIVEL_DEGREES := 20.0
 var attack := 0.035
 var release := 0.18
 var flare := 5.0
 var prone_scale := 0.35
 var age := 1.0
 var start_weight := 0.0
+var previous_scoped_skeleton: WeakRef
+var previous_scoped_bones: Array[int] = []
 
 func _init() -> void:
 	var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(PROFILE))
@@ -34,7 +37,29 @@ func offset(posture: StringName) -> float:
 	return deg_to_rad(flare) * weight() * (prone_scale if posture == &"PRONE" else 1.0)
 
 func apply_elbow(pose: Node3D, posture: StringName) -> void:
-	var angle := offset(posture)
+	apply_elbow_angle(pose, offset(posture))
+
+func clear_previous_scoped_elbow_overrides() -> void:
+	# The scoped carry pins endpoints only for its final rendered frame. Retire
+	# those pins before the next posture pass measures the fresh shoulder bar.
+	# Otherwise RightArm remains in last frame's skeleton-global position while
+	# only LeftArm follows the chest, leaving roughly half the square correction.
+	var skeleton: Skeleton3D = previous_scoped_skeleton.get_ref() as Skeleton3D if previous_scoped_skeleton != null else null
+	if is_instance_valid(skeleton):
+		for index in previous_scoped_bones:
+			skeleton.set_bone_global_pose_override(index, Transform3D.IDENTITY, 0.0, true)
+		if not previous_scoped_bones.is_empty():
+			skeleton.force_update_all_bone_transforms()
+	previous_scoped_skeleton = null
+	previous_scoped_bones.clear()
+
+
+func apply_elbow_angle(pose: Node3D, requested_angle: float, retire_before_posture: bool = false) -> void:
+	# One combined carry/recoil operation preserves the final shoulder/wrist
+	# endpoints. Callers must not stack this operation twice on the same pose.
+	if not is_finite(requested_angle):
+		return
+	var angle := clampf(requested_angle, 0.0, deg_to_rad(MAX_SWIVEL_DEGREES))
 	if angle < 0.00001 or pose.skeleton == null:
 		return
 	var skeleton: Skeleton3D = pose.skeleton
@@ -49,7 +74,10 @@ func apply_elbow(pose: Node3D, posture: StringName) -> void:
 	var upper := skeleton.get_bone_global_pose(arm)
 	var fore := skeleton.get_bone_global_pose(elbow)
 	var wrist := skeleton.get_bone_global_pose(hand)
-	var axis := (wrist.origin - upper.origin).normalized()
+	var endpoint_span := wrist.origin - upper.origin
+	if endpoint_span.length_squared() < 0.00000001:
+		return
+	var axis := endpoint_span.normalized()
 	var outward := upper.origin - skeleton.get_bone_global_pose(left).origin
 	if axis.cross(fore.origin - upper.origin).dot(outward) < 0.0:
 		angle = -angle
@@ -60,4 +88,7 @@ func apply_elbow(pose: Node3D, posture: StringName) -> void:
 	skeleton.set_bone_global_pose_override(arm, upper, 1.0, true)
 	skeleton.set_bone_global_pose_override(elbow, fore, 1.0, true)
 	skeleton.set_bone_global_pose_override(hand, wrist, 1.0, true)
+	if retire_before_posture:
+		previous_scoped_skeleton = weakref(skeleton)
+		previous_scoped_bones.assign([arm, elbow, hand])
 	skeleton.force_update_all_bone_transforms()

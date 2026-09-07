@@ -1,0 +1,17 @@
+{
+	"canonical_scene": "res://main.tscn",
+	"capture_enabled": false,
+	"failures": [],
+	"note": "Measurements are comparative evidence, not a claim of visual parity. Gameplay and saved profiles are unchanged by this tool.",
+	"pass": true,
+	"samples": [
+		{
+			"body_drift_m": 0.0,
+			"held_head_m": 1.20851725526154,
+			"right_knee_m": 0.0615192968398333,
+			"standing_head_m": 1.88042265363038
+		}
+	],
+	"shoulder_lock_required": false,
+	"weapon": "ak-47"
+}

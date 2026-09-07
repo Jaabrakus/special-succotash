@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "feature_id": "jump_forward_legs",
+  "player_intent": "Use forward-jump legs while retaining the equipped weapon upper body.",
+  "acceptance_rule": "Normal jump uses the saved forward clip on thigh-to-toe tracks only, once per airborne entry across takeoff/fall, then releases at landing. Source-parent rebasing keeps its actual leg orientation under the evaluated base hips without changing hips or upper-body transforms. Disabled or missing source leaves the old route intact.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://animation_library_lab.tscn",
+  "ownership": {"animation": "SocomOperatorLocomotionBlendTree", "movement": "CharacterBody3D"},
+  "nodes": [{"id": "jump_leg_layer", "type": "AnimationTree", "role": "Existing graph filters jump legs, snapshots the evaluated frame, then rebases thigh roots after final pelvis posture and before hand processing.", "owner": "SocomOperatorLocomotionBlendTree", "source_script": "res://scripts/player/operator_locomotion_blend_tree.gd", "code_symbols": ["JUMP_LEG_BONES", "jump_lower_body_seek", "_update_jump_lower_body_state", "get_evaluated_jump_source_frame", "apply_jump_source_frame"]}],
+  "data_contracts": [{"path": "res://config/operator_animation_map.json", "writer": "res://scripts/labs/animation_workshop_repository.gd", "readers": ["res://scripts/player/operator_animation_profile.gd", "res://scripts/player/operator_locomotion_blend_tree.gd"]}],
+  "must_not_change": ["CharacterBody3D movement and jump input", "hips/root motion", "upper-body weapon pose and fire/reload", "camera/reticle", "networking"],
+  "proof_scripts": ["res://tools/jump_forward_legs_regression.gd", "res://tools/jump_forward_legs_visual_probe.gd", "res://tools/jump_forward_frame_probe.gd"],
+  "visual_check": "Inspect stationary and forward jumps rear/side: forward-jump legs, unchanged weapon/arms, continuous takeoff-to-fall playhead and normal landing.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Reuse the verified imported forward-jump clip through the existing graph, without replacing physics-owned jump stages or upper-body action owners.",
+    "current": {"system": "Existing takeoff/fall clips", "correctness": 2, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 3, "performance": 5, "regression_coverage": 3, "evidence_paths": ["res://scripts/player/operator_animation_driver_pose.gd", "res://config/operator_animation_map.json"]},
+    "candidate": {"system": "Filtered continuous forward-jump leg source", "correctness": 4, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 3, "performance": 4, "regression_coverage": 4, "evidence_paths": ["res://scripts/player/operator_locomotion_blend_tree.gd", "res://tools/jump_forward_legs_regression.gd"]}
+  }
+}

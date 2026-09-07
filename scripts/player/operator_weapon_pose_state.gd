@@ -1,6 +1,17 @@
 extends Node3D
 
 var fire_recoil := preload("res://scripts/player/operator_fire_recoil_pulse.gd").new()
+var strafe_left_elbow_flare_degrees: float = 0.0
+var authored_shoulder_stock_enabled: bool = false
+var authored_shoulder_stock_active: bool = false
+var strafe_right_stock_release_m: float = 0.0
+var strafe_right_stock_release_frame: StringName = &"aim_forward"
+var authored_stock_signed_strafe: float = 0.0
+var authored_stock_right_turn_weight: float = -1.0
+var authored_stock_release_applied_m: float = 0.0
+var authored_stock_release_direction_world := Vector3.ZERO
+var ready_shoulder_pocket_downward_m: float = 0.0
+var ready_shoulder_pocket_right_wrist_roll_degrees: float = 0.0
 
 ## Post-animation, visual-only arm solver. The authoritative reticle and shot
 ## remain outside this layer; this node only makes the rendered operator reach

@@ -14,7 +14,11 @@ func _run() -> void:
 		await physics_frame
 	var player: CharacterBody3D = scene.get_node("Player")
 	var driver = player.get_node("Mannequin/ProductionAnimation")
-	var weapon_id := "mark_23" if "--pistol" in OS.get_cmdline_user_args() else "m4a1"
+	var weapon_id := _argument_value(
+		"--weapon=", "mark_23" if "--pistol" in OS.get_cmdline_user_args() else "m4a1"
+	)
+	var output_prefix := _argument_value("--output-prefix=", "/private/tmp/crouch-%s" % weapon_id)
+	print("CROUCH_PROBE weapon=", weapon_id, " output_prefix=", output_prefix)
 	scene.weapon_controller.apply_authorized_weapon_pickup("res://config/weapons/%s.json" % weapon_id)
 	var proof_camera: Camera3D
 	if "--render" in OS.get_cmdline_user_args():
@@ -27,6 +31,8 @@ func _run() -> void:
 	var skeleton: Skeleton3D = driver.skeleton
 	var hips := skeleton.find_bone("mixamorig_Hips")
 	var head := skeleton.find_bone("mixamorig_Head")
+	var idle_hip_height := (skeleton.global_transform * skeleton.get_bone_global_pose(hips).origin).y - player.global_position.y
+	var idle_head_height := (skeleton.global_transform * skeleton.get_bone_global_pose(head).origin).y - player.global_position.y
 	var segment := 0
 	var previous_phase := -1.0
 	var phase_travel := 0.0
@@ -62,10 +68,17 @@ func _run() -> void:
 				proof_camera.look_at(player.global_position + Vector3.UP * 0.8)
 				if segment in [1, 2] and frame in [0, 8, 30]:
 					await RenderingServer.frame_post_draw
-					root.get_texture().get_image().save_png("/private/tmp/crouch-%s-%d-%02d.png" % [weapon_id, segment, frame])
+					root.get_texture().get_image().save_png("%s-%d-%02d.png" % [output_prefix, segment, frame])
 			if frame in [0, 5, 15, 30, 59]:
 				print("CROUCH_SAMPLE ", action, " frame=", frame, " state=", driver.locomotion_graph.current_state, " action=", driver.requested_action, " hips=", h, " head=", top, " speed=", driver.movement_speed_normalized)
 		print("CROUCH_METRIC ", action, " hips_range=", max_hip-min_hip, " head_range=", max_head-min_head, " states=", states)
+		if segment == 0:
+			# Report idle-to-movement separately: the existing directional height
+			# assertion below intentionally covers settled movement, not this entry.
+			print("CROUCH_ENTRY_METRIC weapon=", weapon_id,
+				" hips_range=", maxf(max_hip, idle_hip_height) - minf(min_hip, idle_hip_height),
+				" head_range=", maxf(max_head, idle_head_height) - minf(min_head, idle_head_height),
+				" idle_hips=", idle_hip_height, " idle_head=", idle_head_height)
 		if segment > 0:
 			_check(max_hip-min_hip < 0.08 and max_head-min_head < 0.06, "direction changes remain within normal gait height variation")
 		segment += 1
@@ -80,3 +93,10 @@ func _run() -> void:
 func _check(ok: bool, message: String) -> void:
 	if not ok and not failures.has(message):
 		failures.append(message)
+
+func _argument_value(prefix: String, fallback: String) -> String:
+	for argument in OS.get_cmdline_user_args():
+		if argument.begins_with(prefix):
+			var value := argument.trim_prefix(prefix).strip_edges()
+			return fallback if value.is_empty() else value
+	return fallback

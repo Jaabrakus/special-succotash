@@ -1,5 +1,5 @@
 {
-  "visual_rig_id": "m4a1_agls_v1",
+  "visual_rig_id": "m4a1_agls_v9",
   "visual_rig_schema_version": 1,
   "schema_version": 3,
   "ammo_spec": {
@@ -83,6 +83,11 @@
       "animation_carry_weight": 0.40,
       "animation_drives_ready_hands": true,
       "authored_animation_owns_weapon_mount": false,
+      "authored_shoulder_stock_enabled": true,
+      "ready_shoulder_pocket": {
+        "downward_m": 0.065,
+        "right_wrist_roll_degrees": -15.0
+      },
       "buttstock_constraint": {
         "downward_offset_m": 0.0,
         "enabled": true,
@@ -105,6 +110,14 @@
       "fire_spine_ccdik_enabled": false,
       "relaxed_idle_upper_body_weight": 0.0,
       "ready_locomotion_inheritance": 0.0,
+      "locomotion_ready_carry_weight": 1.0,
+      "strafe_carry": {
+        "right_hip_follow_weight": 1.0,
+        "left_elbow_flare_degrees": 12.0,
+        "right_stock_release_m": 0.33,
+        "right_stock_release_frame": "chest_forward"
+      },
+      "standing_idle_square_pelvis": true,
       "reload_return_blend_seconds": 0.18,
       "right_hand_owns_weapon": true
     },
@@ -122,6 +135,12 @@
     },
     "family": "TWO_HAND_RIFLE",
     "locomotion_family": "RIFLE",
+    "locomotion_slots": {
+      "run_left": "run_lateral_left",
+      "run_right": "run_lateral_right",
+      "crouch_left": "crouch_lateral_left",
+      "crouch_right": "crouch_lateral_right"
+    },
     "mapping_version": 1,
     "ready_aim": {
       "fire_hold_seconds": 1.2,

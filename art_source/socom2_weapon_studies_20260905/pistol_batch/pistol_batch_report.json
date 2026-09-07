@@ -1,0 +1,107 @@
+{
+  "scope": "STANDALONE_EXTERIOR_VISUAL_STUDIES",
+  "roster_count": 43,
+  "pistol_count": 10,
+  "new_models": 9,
+  "unchanged_p9s_copy": 1,
+  "runtime_files_changed": false,
+  "items": [
+    {
+      "id": "9mm_pistol",
+      "name": "9mm Pistol / P9S",
+      "triangles": 7842,
+      "editable_components": 225,
+      "export_mesh_objects": 1,
+      "status": "ACCEPTED STARTING STUDY",
+      "glb": "pistol_batch/9mm_pistol.glb"
+    },
+    {
+      "id": "mark_23",
+      "name": "Mark 23",
+      "triangles": 5270,
+      "editable_components": 157,
+      "export_mesh_objects": 1,
+      "status": "STANDARD",
+      "glb": "pistol_batch/mark_23.glb"
+    },
+    {
+      "id": "mark_23_sd",
+      "name": "Mark 23 SD",
+      "triangles": 6410,
+      "editable_components": 160,
+      "export_mesh_objects": 1,
+      "status": "SUPPRESSED VARIANT",
+      "glb": "pistol_batch/mark_23_sd.glb"
+    },
+    {
+      "id": "226",
+      "name": "226",
+      "triangles": 5839,
+      "editable_components": 158,
+      "export_mesh_objects": 1,
+      "status": "FIRST-PASS STUDY",
+      "glb": "pistol_batch/226.glb"
+    },
+    {
+      "id": "model_18",
+      "name": "Model 18",
+      "triangles": 4386,
+      "editable_components": 147,
+      "export_mesh_objects": 1,
+      "status": "FIRST-PASS STUDY",
+      "glb": "pistol_batch/model_18.glb"
+    },
+    {
+      "id": "f57",
+      "name": "F57",
+      "triangles": 4636,
+      "editable_components": 153,
+      "export_mesh_objects": 1,
+      "status": "FIRST-PASS STUDY",
+      "glb": "pistol_batch/f57.glb"
+    },
+    {
+      "id": "m9",
+      "name": "M9",
+      "triangles": 6476,
+      "editable_components": 161,
+      "export_mesh_objects": 1,
+      "status": "FIRST-PASS STUDY",
+      "glb": "pistol_batch/m9.glb"
+    },
+    {
+      "id": "de_50",
+      "name": "DE .50",
+      "triangles": 5808,
+      "editable_components": 159,
+      "export_mesh_objects": 1,
+      "status": "FIRST-PASS STUDY",
+      "glb": "pistol_batch/de_50.glb"
+    },
+    {
+      "id": "m11",
+      "name": "M11",
+      "triangles": 5841,
+      "editable_components": 158,
+      "export_mesh_objects": 1,
+      "status": "PROVISIONAL / HUD CHECK PENDING",
+      "glb": "pistol_batch/m11.glb"
+    },
+    {
+      "id": "sp_10",
+      "name": "SP-10",
+      "triangles": 5839,
+      "editable_components": 158,
+      "export_mesh_objects": 1,
+      "status": "PROVISIONAL / HUD CHECK PENDING",
+      "glb": "pistol_batch/sp_10.glb"
+    }
+  ],
+  "limits": [
+    "Not recovered original SOCOM meshes.",
+    "M11 and SP-10 are provisional 226-family interpretations.",
+    "Hidden surfaces and depth are estimates.",
+    "No rig, animation, gameplay sockets or runtime integration.",
+    "Review meshes are not a finished optimized game-asset pack."
+  ]
+}

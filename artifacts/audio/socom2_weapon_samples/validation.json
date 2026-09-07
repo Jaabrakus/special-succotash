@@ -1,0 +1,327 @@
+{
+  "sample_count": 53,
+  "integrity": "PASS",
+  "runtime_changed": false,
+  "listening_review": "NOT RUN",
+  "in_game_mix": "NOT RUN",
+  "samples": [
+    {
+      "sample_id": "9mm_pistol",
+      "format_hash_range_and_clipping": "PASS",
+      "duration_seconds": 0.48,
+      "listening_review": "NOT RUN"
+    },
+    {
+      "sample_id": "mark_23",
+      "format_hash_range_and_clipping": "PASS",
+      "duration_seconds": 0.9,
+      "listening_review": "NOT RUN"
+    },
+    {
+      "sample_id": "mark_23sd",
+      "format_hash_range_and_clipping": "PASS",
+      "duration_seconds": 0.48,
+      "listening_review": "NOT RUN"
+    },
+    {
+      "sample_id": "226",
+      "format_hash_range_and_clipping": "PASS",
+      "duration_seconds": 0.9,
+      "listening_review": "NOT RUN"
+    },
+    {
+      "sample_id": "model_18",
+      "format_hash_range_and_clipping": "PASS",
+      "duration_seconds": 0.9,
+      "listening_review": "NOT RUN"
+    },
+    {
+      "sample_id": "f57",
+      "format_hash_range_and_clipping": "PASS",
+      "duration_seconds": 0.9,
+      "listening_review": "NOT RUN"
+    },
+    {
+      "sample_id": "m9",
+      "format_hash_range_and_clipping": "PASS",
+      "duration_seconds": 0.9,
+      "listening_review": "NOT RUN"
+    },
+    {
+      "sample_id": "de__50",
+      "format_hash_range_and_clipping": "PASS",
+      "duration_seconds": 0.9,
+      "listening_review": "NOT RUN"
+    },
+    {
+      "sample_id": "m11",
+      "format_hash_range_and_clipping": "PASS",
+      "duration_seconds": 0.9,
+      "listening_review": "NOT RUN"
+    },
+    {
+      "sample_id": "sp10",
+      "format_hash_range_and_clipping": "PASS",
+      "duration_seconds": 0.9,
+      "listening_review": "NOT RUN"
+    },
+    {
+      "sample_id": "m3_12_gauge",
+      "format_hash_range_and_clipping": "PASS",
+      "duration_seconds": 0.9,
+      "listening_review": "NOT RUN"
+    },
+    {
+      "sample_id": "ta_12_gauge",
+      "format_hash_range_and_clipping": "PASS",
+      "duration_seconds": 0.9,
+      "listening_review": "NOT RUN"
+    },
+    {
+      "sample_id": "12_gauge_pump",
+      "format_hash_range_and_clipping": "PASS",
+      "duration_seconds": 0.9,
+      "listening_review": "NOT RUN"
+    },
+    {
+      "sample_id": "hk5k",
+      "format_hash_range_and_clipping": "PASS",
+      "duration_seconds": 0.9,
+      "listening_review": "NOT RUN"
+    },
+    {
+      "sample_id": "hk5",
+      "format_hash_range_and_clipping": "PASS",
+      "duration_seconds": 0.9,
+      "listening_review": "NOT RUN"
+    },
+    {
+      "sample_id": "hk5sd",
+      "format_hash_range_and_clipping": "PASS",
+      "duration_seconds": 0.48,
+      "listening_review": "NOT RUN"
+    },
+    {
+      "sample_id": "9mm_sub",
+      "format_hash_range_and_clipping": "PASS",
+      "duration_seconds": 0.9,
+      "listening_review": "NOT RUN"
+    },
+    {
+      "sample_id": "f90",
+      "format_hash_range_and_clipping": "PASS",
+      "duration_seconds": 0.9,
+      "listening_review": "NOT RUN"
+    },
+    {
+      "sample_id": "552",
+      "format_hash_range_and_clipping": "PASS",
+      "duration_seconds": 0.9,
+      "listening_review": "NOT RUN"
+    },
+    {
+      "sample_id": "552_silenced",
+      "format_hash_range_and_clipping": "PASS",
+      "duration_seconds": 0.48,
+      "listening_review": "NOT RUN"
+    },
+    {
+      "sample_id": "m16a2",
+      "format_hash_range_and_clipping": "PASS",
+      "duration_seconds": 0.9,
+      "listening_review": "NOT RUN"
+    },
+    {
+      "sample_id": "ak-47",
+      "format_hash_range_and_clipping": "PASS",
+      "duration_seconds": 0.9,
+      "listening_review": "NOT RUN"
+    },
+    {
+      "sample_id": "aks-74",
+      "format_hash_range_and_clipping": "PASS",
+      "duration_seconds": 0.9,
+      "listening_review": "NOT RUN"
+    },
+    {
+      "sample_id": "m14",
+      "format_hash_range_and_clipping": "PASS",
+      "duration_seconds": 0.9,
+      "listening_review": "NOT RUN"
+    },
+    {
+      "sample_id": "m4a1",
+      "format_hash_range_and_clipping": "PASS",
+      "duration_seconds": 0.9,
+      "listening_review": "NOT RUN"
+    },
+    {
+      "sample_id": "m4a1_sd",
+      "format_hash_range_and_clipping": "PASS",
+      "duration_seconds": 0.48,
+      "listening_review": "NOT RUN"
+    },
+    {
+      "sample_id": "stg77",
+      "format_hash_range_and_clipping": "PASS",
+      "duration_seconds": 0.9,
+      "listening_review": "NOT RUN"
+    },
+    {
+      "sample_id": "ak105",
+      "format_hash_range_and_clipping": "PASS",
+      "duration_seconds": 0.9,
+      "listening_review": "NOT RUN"
+    },
+    {
+      "sample_id": "iw80_a2",
+      "format_hash_range_and_clipping": "PASS",
+      "duration_seconds": 0.9,
+      "listening_review": "NOT RUN"
+    },
+    {
+      "sample_id": "ra14",
+      "format_hash_range_and_clipping": "PASS",
+      "duration_seconds": 0.9,
+      "listening_review": "NOT RUN"
+    },
+    {
+      "sample_id": "oicw",
+      "format_hash_range_and_clipping": "PASS",
+      "duration_seconds": 0.9,
+      "listening_review": "NOT RUN"
+    },
+    {
+      "sample_id": "oicw_launcher",
+      "format_hash_range_and_clipping": "PASS",
+      "duration_seconds": 0.55,
+      "listening_review": "NOT RUN"
+    },
+    {
+      "sample_id": "m60e3",
+      "format_hash_range_and_clipping": "PASS",
+      "duration_seconds": 0.9,
+      "listening_review": "NOT RUN"
+    },
+    {
+      "sample_id": "m63a",
+      "format_hash_range_and_clipping": "PASS",
+      "duration_seconds": 0.9,
+      "listening_review": "NOT RUN"
+    },
+    {
+      "sample_id": "sasr",
+      "format_hash_range_and_clipping": "PASS",
+      "duration_seconds": 0.9,
+      "listening_review": "NOT RUN"
+    },
+    {
+      "sample_id": "m40a1",
+      "format_hash_range_and_clipping": "PASS",
+      "duration_seconds": 0.9,
+      "listening_review": "NOT RUN"
+    },
+    {
+      "sample_id": "sr-25",
+      "format_hash_range_and_clipping": "PASS",
+      "duration_seconds": 0.9,
+      "listening_review": "NOT RUN"
+    },
+    {
+      "sample_id": "sr-25_sd",
+      "format_hash_range_and_clipping": "PASS",
+      "duration_seconds": 0.48,
+      "listening_review": "NOT RUN"
+    },
+    {
+      "sample_id": "m82a1a",
+      "format_hash_range_and_clipping": "PASS",
+      "duration_seconds": 0.9,
+      "listening_review": "NOT RUN"
+    },
+    {
+      "sample_id": "m82a1a_socom1",
+      "format_hash_range_and_clipping": "PASS",
+      "duration_seconds": 0.9,
+      "listening_review": "NOT RUN"
+    },
+    {
+      "sample_id": "m87elr",
+      "format_hash_range_and_clipping": "PASS",
+      "duration_seconds": 0.9,
+      "listening_review": "NOT RUN"
+    },
+    {
+      "sample_id": "m79",
+      "format_hash_range_and_clipping": "PASS",
+      "duration_seconds": 0.55,
+      "listening_review": "NOT RUN"
+    },
+    {
+      "sample_id": "mgl",
+      "format_hash_range_and_clipping": "PASS",
+      "duration_seconds": 0.55,
+      "listening_review": "NOT RUN"
+    },
+    {
+      "sample_id": "pkm_turret",
+      "format_hash_range_and_clipping": "PASS",
+      "duration_seconds": 0.9,
+      "listening_review": "NOT RUN"
+    },
+    {
+      "sample_id": "ags30_turret",
+      "format_hash_range_and_clipping": "PASS",
+      "duration_seconds": 0.55,
+      "listening_review": "NOT RUN"
+    },
+    {
+      "sample_id": "m67_frag",
+      "format_hash_range_and_clipping": "PASS",
+      "duration_seconds": 2.7,
+      "listening_review": "NOT RUN"
+    },
+    {
+      "sample_id": "mk_3-a2",
+      "format_hash_range_and_clipping": "PASS",
+      "duration_seconds": 2.7,
+      "listening_review": "NOT RUN"
+    },
+    {
+      "sample_id": "flash",
+      "format_hash_range_and_clipping": "PASS",
+      "duration_seconds": 2.7,
+      "listening_review": "NOT RUN"
+    },
+    {
+      "sample_id": "smoke",
+      "format_hash_range_and_clipping": "PASS",
+      "duration_seconds": 4.0,
+      "listening_review": "NOT RUN"
+    },
+    {
+      "sample_id": "at4",
+      "format_hash_range_and_clipping": "PASS",
+      "duration_seconds": 0.55,
+      "listening_review": "NOT RUN"
+    },
+    {
+      "sample_id": "rpg7",
+      "format_hash_range_and_clipping": "PASS",
+      "duration_seconds": 0.55,
+      "listening_review": "NOT RUN"
+    },
+    {
+      "sample_id": "m4a1_m203_launcher",
+      "format_hash_range_and_clipping": "PASS",
+      "duration_seconds": 0.55,
+      "listening_review": "NOT RUN"
+    },
+    {
+      "sample_id": "m16a2_m203_launcher",
+      "format_hash_range_and_clipping": "PASS",
+      "duration_seconds": 0.55,
+      "listening_review": "NOT RUN"
+    }
+  ]
+}

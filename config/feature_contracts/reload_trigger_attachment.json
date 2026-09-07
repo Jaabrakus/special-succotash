@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "feature_id": "reload_trigger_attachment",
+  "player_intent": "Keep the reload weapon physically attached to the authored trigger hand without changing reload mechanics.",
+  "acceptance_rule": "Actual trigger contact stays within ten millimeters through reload, interrupt and completion in all three postures while existing ammunition, timing and action ownership remain intact.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://gun_calibration_lab_2.tscn",
+  "ownership": {"weapon_presentation": "SocomOperatorWeaponPoseSolver", "weapon_transform": "SocomOperatorWeaponPresentationOwner"},
+  "nodes": [{"id":"weapon_pose","type":"Node3D","role":"Existing authored reload presentation strategy uses the current anatomical trigger palm.","owner":"SocomOperatorWeaponPoseSolver","source_script":"res://scripts/player/operator_weapon_pose_actions.gd","code_symbols":["_attach_reload_weapon_to_right_hand","weapon_presentation_owner"]}],
+  "data_contracts": [{"path":"res://config/weapon_visual_rigs/m16a2_directional_v1.json","writer":"res://scripts/labs/gunsmith2/weapon_visual_rig_repository.gd","readers":["res://scripts/labs/gunsmith2/weapon_visual_rig_resolver.gd","res://scripts/player/operator_weapon_pose_actions.gd"]}],
+  "must_not_change": ["reload duration and ammunition commit", "authored right-arm animation", "support reload motion", "saved grips and models", "camera, movement and network authority", "ready/firing and release behavior"],
+  "proof_scripts": ["res://tools/reload_trigger_attachment_regression.gd", "res://tools/reload_evaluated_source_regression.gd", "res://tools/pistol_compressed_idle_regression.gd", "res://tools/rifle_support_release_regression.gd"],
+  "visual_check": "The trigger hand holds the visible weapon throughout reload and interruption while the support hand can manipulate the magazine.",
+  "system_delta": {
+    "decision":"MERGE",
+    "reason":"Conditionally finalize the existing authored reload mount at the single presentation boundary, avoiding deferred parent resampling without changing action timing.",
+    "current":{"system":"Animation-parented reload correction","correctness":2,"ownership_clarity":4,"runtime_parity":5,"editor_usability":4,"performance":5,"regression_coverage":3,"evidence_paths":["res://scripts/player/operator_weapon_pose_actions.gd"]},
+    "candidate":{"system":"Current-frame authored reload anchor","correctness":4,"ownership_clarity":5,"runtime_parity":5,"editor_usability":4,"performance":5,"regression_coverage":5,"evidence_paths":["res://docs/RELOAD_TRIGGER_ATTACHMENT_TRANSLATION.md","res://tools/reload_trigger_attachment_regression.gd"]}
+  }
+}

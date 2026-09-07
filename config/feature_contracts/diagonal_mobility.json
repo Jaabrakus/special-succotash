@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "feature_id": "diagonal_mobility",
+  "player_intent": "Hold a perpendicular movement key while double-tapping an action key to slide or dive diagonally.",
+  "acceptance_rule": "Eight diagonal combinations use normalized 45-degree travel, keep original speed, commit direction at activation and preserve aim. Crouched WW remains blocked. Server and proxy preserve heading, position and selected clip.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://animation_library_lab.tscn",
+  "ownership": {"movement_collision": "SocomTestPlayer", "direction_math": "jump_direction_combo_intent"},
+  "nodes": [{"id": "player", "type": "CharacterBody3D", "owner": "SocomTestPlayer", "role": "Commits normalized action direction from existing input mask", "source_script": "res://scripts/player/player_controller.gd", "code_symbols": ["jump_combo_intent.action_local_direction(choice, command.direction_held_mask)", "_begin_jump_combo(choice, combo_direction)"]}],
+  "data_contracts": [{"path": "res://config/jump_direction_combos.json", "writer": "res://docs/DIAGONAL_MOBILITY.md", "readers": ["res://scripts/player/jump_direction_combo_intent.gd", "res://scripts/ui/socom_controls_guide.gd"]}],
+  "must_not_change": ["Action speed/duration", "Camera/reticle aim", "Crouched WW restriction", "Weapon and damage", "Animation clips and head pose", "Normal movement"],
+  "proof_scripts": ["res://tools/diagonal_mobility_regression.gd", "res://tools/jump_direction_combo_regression.gd", "res://tools/network_prediction_regression.gd"],
+  "visual_check": "Observe actual diagonal travel with unchanged slide/dive animation and aim; no diagonal speed boost.",
+  "system_delta": {
+    "decision": "MERGE", "reason": "Direction mask already carries modifiers; existing movement owner only needs normalized perpendicular input at activation.",
+    "current": {"system": "Cardinal double-tap travel", "correctness": 2, "ownership_clarity": 5, "runtime_parity": 3, "editor_usability": 3, "performance": 5, "regression_coverage": 3, "evidence_paths": ["res://scripts/player/player_controller.gd"]},
+    "candidate": {"system": "Normalized held-modifier diagonal travel", "correctness": 5, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 5, "regression_coverage": 5, "evidence_paths": ["res://scripts/player/jump_direction_combo_intent.gd", "res://tools/diagonal_mobility_regression.gd"]}
+  }
+}

@@ -1,0 +1,144 @@
+{
+  "schema_version": 1,
+  "feature_id": "ak_m4_strafe_carry",
+  "player_intent": "AK/M4: natural head bob without sideways shoulder sway. A legs left and firing shoulders square forward. D legs/torso right; rifle held crosswise IN FRONT of the turned torso, not beside it, barrel stays at reticle and hands on unchanged grips. Straight standing-idle pelvis and distributed waist turn.",
+  "acceptance_rule": "Only AK/M4: continuous full-lateral gait and existing fire/readiness with unchanged 1.2-second recovery. Keep natural bob, barrel at reticle and both palm contacts. Stock high on A/forward; D intentionally has the saved torso-forward release. Straight stationary-standing pelvis; distributed spine turn must improve native appearance. Existing contact/bore/elbow bounds remain; broader A/idle firing transitions are not yet all passing.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://gun_calibration_lab_2.tscn",
+  "ownership": {
+    "pose": "SocomOperatorAnimationDriver and its existing locomotion graph",
+    "torso_correction": "SocomOperatorPostureLayer",
+    "weapon_root": "Existing weapon presentation owner: authored trigger attachment at rest, existing world presentation anchor during scoped ready/fire",
+    "movement": "CharacterBody3D",
+    "aim": "SOCOM camera/reticle",
+    "shot_and_damage": "Authoritative server weapon",
+    "head": "Existing SocomOperatorPostureLayer neck/head writer"
+  },
+  "nodes": [
+    {
+      "id": "canonical_animation_driver",
+      "type": "Node3D",
+      "role": "Consumes saved weapon presentation data through the existing animation graph.",
+      "owner": "SocomOperatorAnimationDriver",
+      "scene_path": "res://scenes/player/operator_player.tscn",
+      "node_path": "Mannequin/ProductionAnimation"
+    },
+    {
+      "id": "movement_carry_graph",
+      "type": "AnimationTree",
+      "role": "Uses movement-only carry weight on existing arms and aim-frame layers; no new aim or fire state.",
+      "owner": "SocomOperatorLocomotionBlendTree",
+      "source_script": "res://scripts/player/operator_locomotion_blend_tree.gd",
+      "code_symbols": [
+        "locomotion_carry_weight",
+        "var moving_pose_ready := maxf(normalized_ready, locomotion_carry_weight)"
+      ]
+    },
+    {
+      "id": "authored_stock_strategy",
+      "type": "RefCounted",
+      "role": "Scoped strategy invoked only by the existing weapon pose owner; no independent update or transform writer.",
+      "owner": "Existing operator weapon pose coordinator",
+      "source_script": "res://scripts/player/operator_weapon_authored_stock_pose.gd",
+      "code_symbols": [
+        "authored_shoulder_stock_enabled",
+        "stock_constraint.correction_for",
+        "_rotate_about_stock"
+      ]
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://config/weapon_visual_rigs/m4a1_agls_v9.json",
+      "writer": "res://scripts/labs/gunsmith2/weapon_visual_rig_repository.gd",
+      "readers": [
+        "res://scripts/labs/gunsmith2/weapon_visual_rig_resolver.gd",
+        "res://scripts/player/operator_locomotion_blend_tree.gd",
+        "res://scripts/player/operator_weapon_pose_api.gd"
+      ]
+    },
+    {
+      "path": "res://config/weapons/ak-47.json",
+      "writer": "res://scripts/labs/gunsmith/gunsmith_weapon_profile_repository.gd",
+      "readers": [
+        "res://scripts/weapons/weapon_rig_contract.gd",
+        "res://scripts/player/operator_locomotion_blend_tree.gd"
+      ]
+    },
+    {
+      "path": "res://config/weapons/m4a1.json",
+      "writer": "res://scripts/labs/gunsmith/gunsmith_weapon_profile_repository.gd",
+      "readers": [
+        "res://scripts/weapons/weapon_rig_contract.gd",
+        "res://scripts/player/operator_locomotion_blend_tree.gd"
+      ]
+    }
+  ],
+  "must_not_change": [
+    "CharacterBody3D movement/collision",
+    "camera/reticle aim",
+    "shot/damage/networking",
+    "saved hand sockets and canonical presentation-root owner",
+    "1.2-second fire recovery",
+    "reload/prone and other weapons",
+    "unrelated dirty work",
+    "Natural hip-driven head bob (latest user override)"
+  ],
+  "system_delta": {
+    "decision": "REJECT",
+    "reason": "The fixed-stock full-D candidate was rejected. User explicitly authorized releasing stock on D, so v7 adds only saved right release and standing-idle pelvis flag. Focused released-D, pelvis and spine math pass; broader firing-transition contact gates remain mixed. Do not treat this manifest or the structural gate as overall release approval. The newest clarification changes only the saved release frame to chest_forward in v8: D carry must be in front of the turned torso, not displaced along the barrel.",
+    "current": {
+      "system": "Full authored relaxed gait before firing; stable ready upper-body only after firing",
+      "correctness": 2,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 3,
+      "performance": 4,
+      "regression_coverage": 2,
+      "evidence_paths": [
+        "res://scripts/player/operator_locomotion_route_builder.gd",
+        "res://tools/rifle_reference_visual_probe.gd"
+      ]
+    },
+    "candidate": {
+      "system": "Scoped lateral gait, articulated torso and D-only stock release with forward idle pelvis; transition validation remains incomplete",
+      "correctness": 2,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 4,
+      "performance": 3,
+      "regression_coverage": 4,
+      "evidence_paths": [
+        "res://scripts/player/operator_locomotion_blend_tree.gd",
+        "res://scripts/player/operator_animation_driver_pose.gd",
+        "res://config/weapons/ak-47.json",
+        "res://config/weapons/m4a1.json",
+        "res://tools/rifle_strafe_carry_regression.gd",
+        "res://scripts/player/operator_weapon_authored_stock_pose.gd",
+        "res://tools/rifle_shoulder_stock_regression.gd",
+        "res://tools/strafe_head_orientation_regression.gd"
+      ]
+    }
+  },
+  "proof_scripts": [
+    "res://tools/rifle_strafe_carry_regression.gd",
+    "res://tools/directional_elbow_swivel_regression.gd",
+    "res://tools/rifle_reference_visual_probe.gd",
+    "res://tools/crouch_strafe_continuity_probe.gd",
+    "res://tools/fire_recovery_movement_aim_parity_regression.gd",
+    "res://tools/feature_contract_regression.gd",
+    "res://tools/rifle_shoulder_stock_regression.gd",
+    "res://tools/strafe_head_orientation_regression.gd",
+    "res://tools/m4a1_agls_vertical_slice_regression.gd",
+    "res://tools/rifle_upper_body_stability_regression.gd",
+    "res://tools/rifle_lateral_gait_regression.gd",
+    "res://tools/jump_forward_legs_regression.gd",
+    "res://tools/rifle_articulated_spine_regression.gd",
+    "res://tools/rifle_left_shoulder_physical_regression.gd",
+    "res://tools/rifle_idle_pelvis_regression.gd",
+    "res://tools/rifle_idle_pelvis_math_regression.gd",
+    "res://tools/rifle_right_carry_release_regression.gd",
+    "res://tools/rifle_right_carry_visual_probe.gd"
+  ],
+  "visual_check": "Canonical rear/side AK/M4: A legs left and shoulders forward, D body right and stock released in front of the turned torso with head/barrel toward reticle. Natural bob remains, no sideways shoulder wobble. Check standing-idle pelvis, articulated waist and hand contacts through fire entry/recovery/exit. Full-D geometric failure was resolved by user-authorized release; broader A/idle transition gaps remain under test."
+}

@@ -5,6 +5,9 @@ extends RefCounted
 ## Gameplay identity and authority fields never enter this document.
 
 const CURRENT_SCHEMA_VERSION := 1
+# The marker pair defines a direction, not a minimum physical barrel length.
+# Keep a numerical separation floor while accepting real short-barrel geometry.
+const MINIMUM_BORE_MARKER_SEPARATION_M := 0.00001
 const VISUAL_FIELDS: Array[String] = [
 	"model_fbx",
 	"normalized_scale",
@@ -222,7 +225,7 @@ static func validate(
 		if errors.is_empty():
 			var muzzle := _vector_from_map(sockets["muzzle_socket"])
 			var barrel_base := _vector_from_map(sockets["barrel_base_socket"])
-			if muzzle.distance_to(barrel_base) < 0.15:
+			if muzzle.distance_to(barrel_base) <= MINIMUM_BORE_MARKER_SEPARATION_M:
 				errors.append("muzzle and barrel base do not define a usable bore")
 			var trigger := _vector_from_map(sockets["right_hand_grip_target"])
 			var support := _vector_from_map(sockets["left_hand_ik_target"])

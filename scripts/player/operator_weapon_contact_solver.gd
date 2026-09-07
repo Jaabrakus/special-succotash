@@ -70,6 +70,21 @@ static func scaled_palm_anchor(
 	)
 
 
+static func support_contact_basis(socket_basis: Basis, raw_support_pose: Variant) -> Basis:
+	# Same saved Gunsmith convention for authored recovery and hand-follow idle.
+	# This is contact math only; the pose owner chooses its readiness blend.
+	var support_pose: Dictionary = raw_support_pose if raw_support_pose is Dictionary else {}
+	var rotation_degrees := Vector3(
+		float(support_pose.get("palm_pitch_deg", 0.0)),
+		float(support_pose.get("palm_yaw_deg", 0.0)),
+		float(support_pose.get("palm_roll_deg", 0.0))
+	)
+	return (
+		socket_basis.orthonormalized()
+		* Basis.from_euler(rotation_degrees * (PI / 180.0), EULER_ORDER_YXZ)
+	).orthonormalized()
+
+
 static func support_elbow_pole(
 	skeleton: Skeleton3D,
 	left_shoulder_index: int,
