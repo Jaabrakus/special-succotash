@@ -534,6 +534,7 @@ func _build_nameplate() -> void:
 	nameplate.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	nameplate.font_size = 20
 	nameplate.outline_size = 5
+	nameplate.visible = false
 	add_child(nameplate)
 	_refresh_nameplate()
 
@@ -541,12 +542,9 @@ func _build_nameplate() -> void:
 func _refresh_nameplate() -> void:
 	if nameplate == null:
 		return
-	nameplate.text = (
-		"%s  %.0f HP" % [display_name, current_health]
-		if alive
-		else "%s  ELIMINATED" % display_name
-	)
-	nameplate.modulate = TeamAppearance.color_for(team_id)
+	nameplate.visible = false
+	nameplate.text = ""
+
 
 
 func _apply_team_visual() -> void:
