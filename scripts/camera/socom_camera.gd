@@ -48,6 +48,8 @@ var torso_marker: Node3D
 var pelvis_marker: Node3D
 var feet_marker: Node3D
 var profile := CameraProfileScript.new()
+## Session UI can create a camera behind a lobby without requesting pointer lock.
+var capture_mouse_on_ready := true
 
 var aim_yaw: float = 0.0
 var aim_pitch: float = deg_to_rad(-2.0)
@@ -267,7 +269,8 @@ func _ready() -> void:
     mouse_intent_pitch = aim_pitch
     _build_mouse_cursor_guide()
     _build_mouse_aim_string_guide()
-    Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+    if capture_mouse_on_ready:
+        Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 func _unhandled_input(event: InputEvent) -> void:
     if orbit_input_enabled and event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:

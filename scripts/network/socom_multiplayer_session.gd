@@ -6,6 +6,7 @@ func _ready() -> void:
 	_ensure_input_map()
 	_build_environment()
 	equipped_config = WeaponContract.load_equipped_config()
+	_configure_local_fire_mode()
 	_build_ui()
 	shot_presentation = ShotPresentation.new()
 	shot_presentation.name = "ShotPresentation"
@@ -22,6 +23,8 @@ func _physics_process(delta: float) -> void:
 		_advance_demolition_objective(delta)
 		_advance_round_clock(delta)
 	if not session_active and not is_lobby_warmup_active():
+		_local_trigger_wants_shot(false, false, false)
+		_sync_local_fire_trigger()
 		return
 	local_fire_cooldown = maxf(0.0, local_fire_cooldown - delta)
 	var local_id := multiplayer.get_unique_id()
@@ -34,6 +37,9 @@ func _physics_process(delta: float) -> void:
 			else:
 				submit_movement.rpc_id(1, packet)
 		_try_submit_local_shot()
+	else:
+		_local_trigger_wants_shot(false, false, false)
+	_sync_local_fire_trigger()
 
 	if not multiplayer.is_server():
 		return
@@ -46,9 +52,25 @@ func _physics_process(delta: float) -> void:
 		_broadcast_authoritative_state()
 
 
+func _sync_local_fire_trigger() -> void:
+	# Update even after death/round end or mouse release so aim-ready cannot
+	# remain latched. This is visual input only; it cannot accept a shot.
+	if local_operator != null and local_operator.mannequin != null:
+		local_operator.mannequin.set_operator_fire_trigger_held(
+			(session_active or is_lobby_warmup_active())
+			and local_operator.alive
+			and local_operator.local_input_enabled
+			and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
+			and local_trigger_active
+		)
+
+
 func _process(_delta: float) -> void:
 	if reticle != null and local_camera != null:
 		reticle.screen_center_override = local_camera.reticle_screen_normalized * get_viewport().get_visible_rect().size
+		if is_instance_valid(local_weapon_presentation):
+			reticle.update_reticle_state(local_weapon_presentation.get_reticle_spread_normalized(),
+				false, reticle.screen_center_override, false, local_weapon_presentation.get_movement_ratio())
 	if session_active and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		if Input.is_action_just_pressed("interact"):
 			_set_local_objective_interaction(true)
@@ -84,7 +106,9 @@ func _process(_delta: float) -> void:
 				int(state.get("posture", 0)),
 				float(state.get("health", operator.current_health)),
 				bool(state.get("alive", true)),
-				false
+				false,
+				int(state.get("ack_input_tick", -1)),
+				int(state.get("respawn_revision", 0))
 			)
 	pending_snapshots.clear()
 

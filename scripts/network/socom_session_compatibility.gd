@@ -4,7 +4,7 @@ extends RefCounted
 ## Stable admission contract for the ENet session. A peer must match both the
 ## wire protocol and the complete game build before it can enter the lobby.
 
-const PROTOCOL_VERSION := 1
+const PROTOCOL_VERSION := 2
 const MAX_BUILD_LENGTH := 80
 
 

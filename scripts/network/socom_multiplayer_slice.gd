@@ -110,9 +110,10 @@ func receive_shot_effect(
 	origin: Vector3,
 	impact: Vector3,
 	hit: bool,
-	message: String
+	message: String,
+	shot_sequence: int = -1
 ) -> void:
-	super.receive_shot_effect(shooter_peer_id, origin, impact, hit, message)
+	super.receive_shot_effect(shooter_peer_id, origin, impact, hit, message, shot_sequence)
 
 @rpc("authority", "call_remote", "reliable")
 func receive_damage_feedback(

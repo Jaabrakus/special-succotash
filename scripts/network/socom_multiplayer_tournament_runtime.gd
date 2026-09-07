@@ -245,16 +245,17 @@ func _broadcast_shot_effect(
 	origin: Vector3,
 	impact: Vector3,
 	hit: bool,
-	message: String
+	message: String,
+	shot_sequence: int = -1
 ) -> void:
 	if not tournament_mode_enabled or tournament_session == null:
-		super._broadcast_shot_effect(shooter_peer_id, origin, impact, hit, message)
+		super._broadcast_shot_effect(shooter_peer_id, origin, impact, hit, message, shot_sequence)
 		return
 	var arena_id: int = tournament_session.arena_for_peer(shooter_peer_id)
 	if arena_id < 0:
 		return
 	for recipient_id in _tournament_peer_ids(arena_id):
-		_send_tournament_shot_effect(recipient_id, shooter_peer_id, origin, impact, hit, message)
+		_send_tournament_shot_effect(recipient_id, shooter_peer_id, origin, impact, hit, message, shot_sequence)
 
 
 func _broadcast_pellet_impacts(shooter: int, origin: Vector3, impacts: Array[Dictionary]) -> void:
@@ -285,12 +286,13 @@ func _send_tournament_shot_effect(
 	origin: Vector3,
 	impact: Vector3,
 	hit: bool,
-	message: String
+	message: String,
+	shot_sequence: int = -1
 ) -> void:
 	if recipient_id == multiplayer.get_unique_id():
-		receive_shot_effect(shooter_peer_id, origin, impact, hit, message)
+		receive_shot_effect(shooter_peer_id, origin, impact, hit, message, shot_sequence)
 	else:
-		receive_shot_effect.rpc_id(recipient_id, shooter_peer_id, origin, impact, hit, message)
+		receive_shot_effect.rpc_id(recipient_id, shooter_peer_id, origin, impact, hit, message, shot_sequence)
 
 
 func _broadcast_all_tournament_arena_states() -> void:

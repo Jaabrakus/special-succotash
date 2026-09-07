@@ -420,6 +420,7 @@ func _capture_local_movement_command():
 	var rig := get_tree().get_first_node_in_group("socom_camera_rig")
 	if rig != null:
 		command.aim_yaw = float(rig.get("aim_yaw"))
+		command.aim_pitch = float(rig.get("aim_pitch"))
 	if not local_input_enabled:
 		return command
 	var raw_move_axis := Input.get_vector(

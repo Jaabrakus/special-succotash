@@ -174,15 +174,29 @@ func _respawn_after_delay(peer_id: int) -> void:
 		_reset_ammo_for_peer(peer_id)
 
 
-func _present_shot(shooter_peer_id: int, origin: Vector3, impact: Vector3, hit: bool, message: String) -> void:
+func _present_shot(shooter_peer_id: int, origin: Vector3, impact: Vector3, hit: bool, message: String, shot_sequence: int = -1) -> void:
+	if shot_sequence >= 0:
+		if shot_sequence <= int(last_presented_shot_sequence.get(shooter_peer_id, -1)):
+			return
+		last_presented_shot_sequence[shooter_peer_id] = shot_sequence
+	# Consume the same accepted-shot event as the standalone WeaponController.
+	# This runs once per shot, not once per shotgun pellet. The server still owns
+	# acceptance/damage; the existing driver owns the recoil and recovery pose.
+	var shooter: Variant = operators.get(shooter_peer_id)
+	var already_predicted := shooter_peer_id == multiplayer.get_unique_id() and local_predicted_shots.has(shot_sequence)
+	if already_predicted: local_predicted_shots.erase(shot_sequence)
+	if not already_predicted and shooter != null and shooter.mannequin != null:
+		shooter.mannequin.notify_operator_fired()
+		if not dedicated_server_mode and shot_presentation != null:
+			shot_presentation.present_muzzle(shooter.mannequin, _weapon_config_for_peer(shooter_peer_id))
 	if not dedicated_server_mode and shot_presentation != null:
 		shot_presentation.present_shot(origin, impact, hit, message,
-			_weapon_config_for_peer(shooter_peer_id), _acoustic_exclusions_for_shooter(shooter_peer_id))
+			_weapon_config_for_peer(shooter_peer_id), _acoustic_exclusions_for_shooter(shooter_peer_id), not already_predicted)
 	if shooter_peer_id == multiplayer.get_unique_id():
-		if local_camera != null and not dedicated_server_mode:
-			local_camera.notify_functional_aim_climb()
-		if reticle != null and not dedicated_server_mode:
-			reticle.notify_shot()
+		if not already_predicted and not dedicated_server_mode:
+			_present_local_weapon_kick()
+		if hit and message != "MISS" and reticle != null:
+			reticle.notify_hit()
 		_set_status("SHOT  •  %s" % message)
 
 

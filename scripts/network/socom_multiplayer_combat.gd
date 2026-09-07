@@ -44,30 +44,48 @@ func _advance_server_reloads() -> void:
 
 
 func _try_submit_local_shot() -> void:
-	if local_reload_pending and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED and Input.is_action_just_pressed("fire"):
+	var input_allowed: bool = local_camera != null and local_operator != null \
+		and local_operator.alive and local_operator.local_input_enabled \
+		and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
+	if local_reload_pending and input_allowed and Input.is_action_just_pressed("fire"):
 		if local_operator != null and local_operator.mannequin != null:
 			var driver: Node = local_operator.mannequin.get("production_animation")
 			if driver != null:
 				driver.call("cancel_reload_action")
-	if (
-		local_camera == null
-		or local_operator == null
-		or Input.mouse_mode != Input.MOUSE_MODE_CAPTURED
-		or not Input.is_action_pressed("fire")
-		or local_fire_cooldown > 0.0
-		or local_reload_pending
-	):
+	if not _local_trigger_wants_shot(Input.is_action_just_pressed("fire"),
+			Input.is_action_pressed("fire"), input_allowed and not local_reload_pending):
 		return
-	local_fire_cooldown = _configured_fire_interval()
 	var packet: Dictionary = local_camera.build_local_aim_intent()
 	if packet.is_empty():
 		return
+	local_fire_cooldown = _configured_fire_interval()
+	# This advances trigger scheduling, not ammunition or hit authority.
+	local_fire_policy.notify_shot_result({"fired": true})
 	if multiplayer.is_server():
 		reload_authority.cancel(multiplayer.get_unique_id())
 		combat_commands.cancel_reload(multiplayer.get_unique_id())
 		_server_process_shot(multiplayer.get_unique_id(), packet)
 	else:
+		_predict_local_shot(int(packet.sequence))
 		submit_shot.rpc_id(1, packet)
+
+
+func _predict_local_shot(sequence: int) -> void:
+	var now := Time.get_ticks_msec()
+	for key: int in local_predicted_shots.keys():
+		if now - int(local_predicted_shots[key]) > 2000:
+			local_predicted_shots.erase(key)
+	if local_predicted_shots.has(sequence) or local_predicted_shots.size() >= 32:
+		return
+	local_predicted_shots[sequence] = now
+	# Presentation only: no collision query, damage, hit marker or ammo grant.
+	if local_operator != null and local_operator.mannequin != null:
+		local_operator.mannequin.notify_operator_fired()
+		var muzzle: Marker3D = local_operator.mannequin.get_active_muzzle_marker()
+		if shot_presentation != null and muzzle != null:
+			shot_presentation.present_report(muzzle.global_position, equipped_config, [local_operator.get_rid()])
+			shot_presentation.present_muzzle(local_operator.mannequin, equipped_config)
+	_present_local_weapon_kick()
 
 
 func _queue_server_shot(peer_id: int, packet: Dictionary) -> bool:
@@ -240,8 +258,8 @@ func _server_process_shot(peer_id: int, packet: Dictionary) -> void:
 		visual_impacts.append({"position": projectile.hit_pos,
 			"hit": projectile.get("hit_collider") != null, "message": message})
 	var first: Dictionary = visual_impacts.pop_front()
-	_present_shot(peer_id, muzzle, Vector3(first.position), bool(first.hit), String(first.message))
-	_broadcast_shot_effect(peer_id, muzzle, Vector3(first.position), bool(first.hit), String(first.message))
+	_present_shot(peer_id, muzzle, Vector3(first.position), bool(first.hit), String(first.message), int(packet.sequence))
+	_broadcast_shot_effect(peer_id, muzzle, Vector3(first.position), bool(first.hit), String(first.message), int(packet.sequence))
 	if not visual_impacts.is_empty():
 		_present_pellet_impacts(peer_id, muzzle, visual_impacts)
 		_broadcast_pellet_impacts(peer_id, muzzle, visual_impacts)
@@ -273,9 +291,10 @@ func _broadcast_shot_effect(
 	origin: Vector3,
 	impact: Vector3,
 	hit: bool,
-	message: String
+	message: String,
+	shot_sequence: int = -1
 ) -> void:
-	receive_shot_effect.rpc(shooter_peer_id, origin, impact, hit, message)
+	receive_shot_effect.rpc(shooter_peer_id, origin, impact, hit, message, shot_sequence)
 
 
 func _authoritative_shot_report_anchor(shooter) -> Vector3:

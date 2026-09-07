@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" path="res://assets/characters/ps1_gas_mask_soldier/trooper_rigged.fbx" id="4_trooper"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_operator"]
+resource_local_to_scene = true
 radius = 0.38
 height = 1.85
 

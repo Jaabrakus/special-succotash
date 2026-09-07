@@ -487,13 +487,20 @@ func _animate_upper_body(player: CharacterBody3D, delta: float) -> void:
 func _sync_production_animation(player: CharacterBody3D) -> void:
     if production_animation == null:
         return
-    var rig := get_tree().get_first_node_in_group("socom_camera_rig")
-    if rig == null:
-        return
-    var shared_target := Vector3(rig.get("weapon_aim_point"))
-    var shared_angles := Vector2(float(rig.get("aim_yaw")), float(rig.get("aim_pitch")))
-    if rig.has_method("get_shared_body_aim_yaw_pitch"):
-        shared_angles = rig.call("get_shared_body_aim_yaw_pitch")
+    var aim_state: Dictionary = player.call("get_animation_aim_state") if player.has_method("get_animation_aim_state") else {}
+    var shared_target := Vector3.ZERO
+    var shared_angles := Vector2.ZERO
+    if not aim_state.is_empty():
+        shared_target = aim_state.target
+        shared_angles = aim_state.angles
+    else:
+        var rig := get_tree().get_first_node_in_group("socom_camera_rig")
+        if rig == null:
+            return
+        shared_target = Vector3(rig.get("weapon_aim_point"))
+        shared_angles = Vector2(float(rig.get("aim_yaw")), float(rig.get("aim_pitch")))
+        if rig.has_method("get_shared_body_aim_yaw_pitch"):
+            shared_angles = rig.call("get_shared_body_aim_yaw_pitch")
     var relative_yaw := wrapf(shared_angles.x - player.global_rotation.y, -PI, PI)
     var local_velocity := player.global_basis.inverse() * player.velocity
     var visual_direction := Vector2(local_velocity.x, -local_velocity.z)

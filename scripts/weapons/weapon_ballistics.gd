@@ -160,24 +160,8 @@ func try_fire_direction(
     is_airborne: bool = false,
     dispersion_multiplier: float = 1.0
 ) -> Dictionary:
-    if fire_cooldown > 0.0:
+    if not record_shot_state(posture, movement_speed_norm, is_airborne):
         return { "fired": false }
-
-    fire_cooldown = fire_interval
-    continuous_shot_count += 1
-    is_firing_held = true
-    current_posture = posture
-    seconds_since_last_shot = 0.0
-
-    if continuous_shot_count > 2:
-        var bloom_cap := _maximum_bloom_for(posture)
-        if current_recoil_bloom < bloom_cap:
-            current_recoil_bloom = minf(
-                bloom_cap,
-                current_recoil_bloom + _bloom_per_shot_for(posture)
-            )
-
-    calculate_current_spread(posture, movement_speed_norm, is_airborne)
 
     var forward_dir := aim_direction.normalized()
     if forward_dir.length_squared() < 0.99:
@@ -210,6 +194,23 @@ func try_fire_direction(
     shot["continuous_count"] = continuous_shot_count
     shot_fired.emit(muzzle_pos, shot.hit_pos, bool(shot.get("hit_target", false)))
     return shot
+
+
+func record_shot_state(posture: StringName, movement_speed_norm: float, is_airborne: bool) -> bool:
+    # Shared recoil/bloom state only. No trace, damage, inventory or signal.
+    if fire_cooldown > 0.0:
+        return false
+    fire_cooldown = fire_interval
+    continuous_shot_count += 1
+    is_firing_held = true
+    current_posture = posture
+    seconds_since_last_shot = 0.0
+    if continuous_shot_count > 2:
+        var bloom_cap := _maximum_bloom_for(posture)
+        if current_recoil_bloom < bloom_cap:
+            current_recoil_bloom = minf(bloom_cap, current_recoil_bloom + _bloom_per_shot_for(posture))
+    calculate_current_spread(posture, movement_speed_norm, is_airborne)
+    return true
 
 
 func configure_projectiles(values: Dictionary) -> void:

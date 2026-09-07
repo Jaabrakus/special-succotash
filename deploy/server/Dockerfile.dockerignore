@@ -3,6 +3,9 @@
 !project.godot
 !game_launcher.tscn
 !multiplayer_slice.tscn
+!main.tscn
+!AnimationTree/
+!AnimationTree/**
 
 !scripts/
 scripts/*
@@ -91,6 +94,12 @@ assets/external/agls_intake/*
 assets/external/agls_intake/imported/*
 !assets/external/agls_intake/imported/weapon_reload/
 !assets/external/agls_intake/imported/weapon_reload/**
+!assets/external/agls_intake/imported/weapons/
+assets/external/agls_intake/imported/weapons/*
+!assets/external/agls_intake/imported/weapons/m4a1/
+!assets/external/agls_intake/imported/weapons/m4a1/**
+!assets/external/agls_intake/imported/weapons/ak47/
+!assets/external/agls_intake/imported/weapons/ak47/**
 !assets/external/godot_new_ik/
 !assets/external/godot_new_ik/**
 !assets/models/
@@ -103,6 +112,8 @@ assets/external/agls_intake/imported/*
 assets/textures/*
 !assets/textures/environment/
 !assets/textures/environment/**
+!assets/textures/particles/
+!assets/textures/particles/**
 !assets/weapons/
 !assets/weapons/**
 

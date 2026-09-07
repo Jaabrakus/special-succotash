@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "feature_id": "network_operator_animation_parity",
+  "player_intent": "Multiplayer characters use the canonical movement, local appearance, saved tuning, fire recoil and recovery presentation.",
+  "acceptance_rule": "Standing and crouched network actors animate their legs; each accepted shot triggers one canonical recoil and 1.2-second recovery; held/released fire reaches the shared driver. Real main.tscn and network actors match their movement, camera profile, animation timing, scale and local cloth color. The initial lobby snapshot releases camera mouse capture, and disabled gameplay input cannot submit fire.",
+  "canonical_scene": "res://main.tscn",
+  "ownership": {"character_presentation": "SocomOperatorAnimationDriver", "saved_operator_tuning": "SocomOperatorTuningProfile", "cloth_color": "SocomOperatorTeamAppearance"},
+  "nodes": [
+    {"id": "network_visual", "type": "Node3D", "role": "Uses the canonical mannequin and driver", "owner": "SocomOperatorAnimationDriver", "source_script": "res://scripts/network/socom_network_operator.gd", "code_symbols": ["MannequinScript.new()", "_ensure_operator_visual"]},
+    {"id": "accepted_shot_consumer", "type": "Node3D", "role": "Forwards server-accepted shots to existing presentation", "owner": "SocomOperatorAnimationDriver", "source_script": "res://scripts/network/socom_multiplayer_rounds.gd", "code_symbols": ["shooter.mannequin.notify_operator_fired()"]},
+    {"id": "camera_startup_input", "type": "Node3D", "role": "Keeps canonical aim but lets session UI suppress pointer lock behind a lobby", "owner": "SocomCameraRig", "source_script": "res://scripts/camera/socom_camera.gd", "code_symbols": ["capture_mouse_on_ready", "if capture_mouse_on_ready:"]}
+  ],
+  "data_contracts": [
+    {"path": "res://config/fire_recoil_presentation.json", "writer": "res://scripts/player/operator_fire_recoil_pulse.gd", "readers": ["res://scripts/player/operator_fire_recoil_pulse.gd"]},
+    {"path": "res://config/operator_movement_tuning.json", "writer": "res://scripts/runtime/operator_tuning_profile.gd", "readers": ["res://scripts/runtime/main_animation_studio.gd", "res://scripts/network/socom_multiplayer_replication.gd"]},
+    {"path": "res://config/operator_team_appearance.json", "writer": "res://scripts/player/operator_team_appearance.gd", "readers": ["res://scripts/player/operator_asset_runtime.gd", "res://scripts/network/socom_network_operator.gd"]}
+  ],
+  "must_not_change": ["movement authority", "shot and damage authority", "other players' team colors and team IDs", "recovery duration", "camera aim", "RPC wire format"],
+  "proof_scripts": ["res://tools/network_operator_animation_regression.gd", "res://tools/network_canonical_tuning_regression.gd"],
+  "visual_check": "Inspect network standing/crouched movement and accepted firing from rear and side; compare hands, shoulders and recovery with canonical solo play. Internet latency remains separate from presentation wiring.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Forward missing accepted-shot events and replace partial network tuning with the exact canonical tuning loader/applier. The owning player's cloth uses the solo-color profile while other actors preserve team colors. Do not add animation or movement owners.",
+    "current": {"system": "Network shot effects without character notification", "correctness": 2, "ownership_clarity": 5, "runtime_parity": 2, "editor_usability": 4, "performance": 5, "regression_coverage": 2, "evidence_paths": ["res://scripts/network/socom_multiplayer_rounds.gd", "res://scripts/weapons/socom_weapon_controller.gd"]},
+    "candidate": {"system": "Network events and tuning consumed by canonical owners", "correctness": 4, "ownership_clarity": 5, "runtime_parity": 4, "editor_usability": 4, "performance": 5, "regression_coverage": 4, "evidence_paths": ["res://scripts/network/socom_multiplayer_session.gd", "res://tools/network_operator_animation_regression.gd", "res://tools/network_canonical_tuning_regression.gd"]}
+  }
+}

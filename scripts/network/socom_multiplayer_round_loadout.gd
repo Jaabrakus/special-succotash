@@ -13,6 +13,7 @@ var previous_round_weapon_by_scope: Dictionary = {}
 var round_weapon_match_seed: int = 0
 var local_round_weapon_id := ""
 var local_round_weapon_number := 0
+var loaded_weapon_configs: Dictionary = {}
 
 
 func _server_begin_match() -> void:
@@ -88,7 +89,9 @@ func _weapon_config_for_peer(peer_id: int) -> Dictionary:
 	var weapon_id := String(server_equipped_weapon_id.get(peer_id, ""))
 	if weapon_id.is_empty():
 		return super._weapon_config_for_peer(peer_id)
-	var config := WeaponContract.load_config(WEAPON_CONFIG_DIRECTORY + weapon_id + ".json")
+	if not loaded_weapon_configs.has(weapon_id):
+		loaded_weapon_configs[weapon_id] = WeaponContract.load_config(WEAPON_CONFIG_DIRECTORY + weapon_id + ".json")
+	var config: Dictionary = loaded_weapon_configs[weapon_id]
 	return config if not config.is_empty() else super._weapon_config_for_peer(peer_id)
 
 
@@ -147,7 +150,9 @@ func receive_round_weapon(
 		server_equipped_weapon_id[int(raw_peer_id)] = weapon_id
 	if affected_peer_ids.has(multiplayer.get_unique_id()):
 		equipped_config = config
+		_configure_local_fire_mode()
 		local_reload_pending = false
+		_refresh_player_state()
 	for raw_peer_id: Variant in affected_peer_ids:
 		_apply_weapon_visual_to_peer(int(raw_peer_id), config)
 	_set_status(

@@ -28,6 +28,13 @@ var is_proxy_replica: bool = false
 var authoritative_hurtboxes_enabled: bool = true
 var visual_runtime_enabled: bool = true
 var pending_position_correction := Vector3.ZERO
+var prediction_enabled := false
+var network_command_driven := false
+var prediction_history := preload("res://scripts/network/socom_prediction_history.gd").new()
+var consumed_input_tick := -1
+var respawn_revision := 0
+var received_respawn_revision := 0
+var network_aim_angles := Vector2.ZERO
 
 
 func _ready() -> void:
@@ -47,16 +54,29 @@ func _physics_process(delta: float) -> void:
 		# Proxy replicas are driven smoothly by snapshot interpolation in _process.
 		# CharacterBody physics step does not simulate movement commands for proxies.
 		return
+	# A remote authority must not insert local/neutral commands between delayed
+	# client inputs. One received input gets one canonical simulation step.
+	if network_command_driven and movement_command_queue.is_empty():
+		return
 	super(delta)
+	if last_movement_command != null:
+		consumed_input_tick = int(last_movement_command.simulation_tick)
+		network_aim_angles = Vector2(last_movement_command.aim_yaw, last_movement_command.aim_pitch)
+		if prediction_enabled:
+			prediction_history.record(consumed_input_tick, global_position, posture)
 	if not pending_position_correction.is_zero_approx():
 		var correction := pending_position_correction * (1.0 - exp(-12.0 * delta))
+		var before := global_position
 		move_and_collide(correction)
-		pending_position_correction -= correction
+		var applied := global_position - before
+		prediction_history.applied(applied)
+		pending_position_correction -= applied
 
 
 func configure_identity(peer_id: int, assigned_team: int) -> void:
 	network_peer_id = peer_id
 	team_id = assigned_team
+	network_aim_angles = Vector2(rotation.y, 0.0)
 	display_name = "SEAL %d" % peer_id
 	team_visual_color = TeamAppearance.color_for(team_id)
 	if nameplate:
@@ -87,7 +107,8 @@ func push_network_snapshot(
 	posture_value: int,
 	health_value: float,
 	alive_value: bool,
-	timestamp_seconds: float
+	timestamp_seconds: float,
+	presentation: Dictionary = {}
 ) -> void:
 	var entry := {
 		"time": timestamp_seconds,
@@ -97,6 +118,7 @@ func push_network_snapshot(
 		"posture": posture_value,
 		"health": health_value,
 		"alive": alive_value,
+		"presentation": presentation.duplicate(true),
 	}
 	
 	# Insert in sorted order by timestamp
@@ -126,6 +148,7 @@ func update_proxy_interpolation(current_time_seconds: float) -> void:
 		velocity = Vector3(latest["velocity"])
 		posture = clampi(int(latest["posture"]), MotionState.STANDING, MotionState.PRONE)
 		motion_state = posture
+		_apply_snapshot_presentation(latest)
 		_apply_posture_collider()
 		_set_alive_and_health(bool(latest["alive"]), float(latest["health"]))
 		return
@@ -138,6 +161,7 @@ func update_proxy_interpolation(current_time_seconds: float) -> void:
 		velocity = Vector3(oldest["velocity"])
 		posture = clampi(int(oldest["posture"]), MotionState.STANDING, MotionState.PRONE)
 		motion_state = posture
+		_apply_snapshot_presentation(oldest)
 		_apply_posture_collider()
 		_set_alive_and_health(bool(oldest["alive"]), float(oldest["health"]))
 		return
@@ -172,11 +196,32 @@ func update_proxy_interpolation(current_time_seconds: float) -> void:
 	var chosen_posture := int(s1["posture"] if alpha >= 0.5 else s0["posture"])
 	posture = clampi(chosen_posture, MotionState.STANDING, MotionState.PRONE)
 	motion_state = posture
+	_apply_snapshot_presentation(s1 if alpha >= 0.5 else s0)
 	_apply_posture_collider()
 
 	var blended_health := lerpf(float(s0["health"]), float(s1["health"]), alpha)
 	var blended_alive := bool(s1["alive"]) if alpha >= 0.5 else bool(s0["alive"])
 	_set_alive_and_health(blended_alive, blended_health)
+
+
+func get_animation_aim_state() -> Dictionary:
+	if not network_command_driven and not is_proxy_replica:
+		return {} # The owning player keeps the real camera/reticle aim.
+	var direction := Vector3(-sin(network_aim_angles.x) * cos(network_aim_angles.y),
+		sin(network_aim_angles.y), -cos(network_aim_angles.x) * cos(network_aim_angles.y))
+	var height := 1.35 if posture == MotionState.STANDING else (0.95 if posture == MotionState.CROUCHED else 0.45)
+	return {"angles": network_aim_angles, "target": global_position + Vector3.UP * height + direction * 100.0}
+
+
+func _apply_snapshot_presentation(entry: Dictionary) -> void:
+	var state: Dictionary = entry.get("presentation", {})
+	motion_state = clampi(int(state.get("motion_state", posture)), MotionState.STANDING, MotionState.VAULTING)
+	var angles: Vector2 = state.get("aim_angles", Vector2(rotation.y, 0.0))
+	if angles.is_finite(): network_aim_angles = angles
+	var desired: Vector3 = state.get("desired_movement", Vector3.ZERO)
+	desired_movement_direction = desired.limit_length(1.0) if desired.is_finite() else Vector3.ZERO
+	movement_input_strength = clampf(float(state.get("movement_strength", 0.0)), 0.0, 1.0)
+	peek_amount = clampf(float(state.get("peek", 0.0)), -1.0, 1.0)
 
 
 func set_authoritative_snapshot(
@@ -186,8 +231,31 @@ func set_authoritative_snapshot(
 	posture_value: int,
 	health_value: float,
 	alive_value: bool,
-	hard_snap: bool = false
+	hard_snap: bool = false,
+	acknowledged_input_tick: int = -1,
+	server_respawn_revision: int = 0
 ) -> void:
+	if prediction_enabled and not hard_snap and server_respawn_revision == received_respawn_revision:
+		var acknowledgement := prediction_history.acknowledge(acknowledged_input_tick, position_value)
+		if not acknowledgement.is_empty():
+			var error: Vector3 = acknowledgement.error
+			if error.length() > 1.25:
+				# Preserve all movement newer than the acknowledged input.
+				global_position += error
+				prediction_history.applied(error)
+				pending_position_correction = Vector3.ZERO
+			else:
+				pending_position_correction = error
+			if posture == int(acknowledgement.posture) and posture != posture_value:
+				posture = clampi(posture_value, MotionState.STANDING, MotionState.PRONE)
+				motion_state = posture
+				_apply_posture_collider()
+		_set_alive_and_health(alive_value, health_value)
+		return
+	if server_respawn_revision != received_respawn_revision:
+		hard_snap = true
+		received_respawn_revision = server_respawn_revision
+		prediction_history.clear()
 	if hard_snap or global_position.distance_to(position_value) > 1.25:
 		pending_position_correction = Vector3.ZERO
 		global_position = position_value
@@ -206,6 +274,10 @@ func set_authoritative_snapshot(
 
 
 func respawn_at(spawn_position: Vector3) -> void:
+	respawn_revision += 1
+	consumed_input_tick = -1
+	movement_command_queue.clear()
+	prediction_history.clear()
 	pending_position_correction = Vector3.ZERO
 	snapshot_history.clear()
 	global_position = spawn_position
@@ -358,7 +430,10 @@ func _apply_team_visual() -> void:
 	if mannequin == null or mannequin.production_animation == null:
 		return
 	var model := mannequin.production_animation.get_node_or_null("TrooperModel")
-	TeamAppearance.apply(model, team_id)
+	# The owning player's view keeps the canonical solo appearance. Other
+	# operators retain team colors; team identity/gameplay are not changed.
+	var color_name := String(TeamAppearance.profile().get("solo_color", "")) if network_peer_id == multiplayer.get_unique_id() else ""
+	TeamAppearance.apply(model, team_id, color_name)
 
 
 func _bind_animated_hurtboxes() -> void:

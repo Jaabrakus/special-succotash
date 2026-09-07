@@ -13,6 +13,13 @@ class OperatorStub extends RefCounted:
 	var velocity := Vector3.ZERO
 	var posture := 0
 	var current_health := 100.0
+	var consumed_input_tick := -1
+	var respawn_revision := 0
+	var motion_state := 0
+	var network_aim_angles := Vector2.ZERO
+	var desired_movement_direction := Vector3.ZERO
+	var movement_input_strength := 0.0
+	var peek_amount := 0.0
 
 
 func _initialize() -> void:

@@ -16,6 +16,9 @@ const BallisticsScript := preload("res://scripts/weapons/weapon_ballistics.gd")
 const ComposureScript := preload("res://scripts/weapons/operator_composure.gd")
 const WeaponContract := preload("res://scripts/weapons/weapon_rig_contract.gd")
 const AutoReloadPolicy := preload("res://scripts/weapons/weapon_auto_reload_policy.gd")
+const FireModePolicy := preload("res://scripts/weapons/weapon_fire_mode_policy.gd")
+const CanonicalWeaponController := preload("res://scripts/weapons/socom_weapon_controller.gd")
+const WeaponSlotRules := preload("res://scripts/economy/socom_economy_rules.gd")
 const TransportFactory := preload("res://scripts/network/socom_transport_factory.gd")
 const LobbyCountdownPolicy := preload("res://scripts/network/socom_lobby_countdown_policy.gd")
 const SnapshotEncoder := preload("res://scripts/network/socom_snapshot_encoder.gd")
@@ -101,9 +104,14 @@ var dedicated_server_mode := false
 var server_backend = null
 var exit_menu = null
 var local_camera = null
+var local_weapon_presentation = null
 var local_operator = null
 var snapshot_accumulator: float = 0.0
 var local_fire_cooldown: float = 0.0
+var local_fire_policy := FireModePolicy.new()
+var local_trigger_active := false
+var local_predicted_shots: Dictionary = {}
+var last_presented_shot_sequence: Dictionary = {}
 var local_reload_pending: bool = false
 var equipped_config: Dictionary = {}
 var session_active: bool = false
@@ -154,6 +162,42 @@ var objective_status_label: Label
 var multiplayer_hud = null
 var local_magazine_ammo: int = 0
 var local_reserve_ammo: int = 0
+
+func _configure_local_fire_mode() -> void:
+	var values: Dictionary = equipped_config.get("ballistics", {})
+	var modes: Variant = equipped_config.get("fire_modes", values.get("fire_modes", []))
+	local_fire_policy.configure(modes if modes is Array else [],
+		String(equipped_config.get("default_fire_mode", "")),
+		int(equipped_config.get("burst_size", values.get("burst_size", 3))))
+	local_trigger_active = false
+	local_predicted_shots.clear()
+	if is_instance_valid(local_weapon_presentation):
+		local_weapon_presentation._apply_weapon_config(equipped_config)
+
+func _present_local_weapon_kick() -> void:
+	var shot_index := 1
+	var intensity := 1.0
+	if is_instance_valid(local_weapon_presentation) and local_operator != null:
+		var view = local_weapon_presentation
+		var bloom = view.ballistics
+		# The shared trigger gate has already scheduled this shot. This isolated
+		# visual state cannot call try_fire_direction or grant damage/ammo.
+		bloom.fire_cooldown = 0.0
+		bloom.record_shot_state(local_operator.get_posture_name(),
+			view.composure.get_shot_instability(view._movement_ratio, view._turning_ratio),
+			not local_operator.is_on_floor())
+		shot_index = int(bloom.continuous_shot_count)
+		view.composure.notify_shot(1.0, float(view.composure_profile.get("opening_stress_multiplier", 0.28)) if shot_index <= 2 else 1.0)
+		intensity = float(view.composure.get_shot_bounce_impulse()) * (1.0 + float(bloom.total_current_spread_deg) * 0.12)
+	if local_camera != null: local_camera.notify_functional_aim_climb(shot_index)
+	if reticle != null: reticle.notify_shot(shot_index, intensity)
+
+func _local_trigger_wants_shot(pressed: bool, held: bool, allowed: bool) -> bool:
+	if not allowed:
+		local_fire_policy.cancel_pending_burst()
+	local_trigger_active = local_fire_policy.should_attempt_shot(
+		pressed and allowed, held and allowed, local_magazine_ammo)
+	return local_trigger_active and local_fire_cooldown <= 0.0
 
 func is_lobby_warmup_active() -> bool:
 	return false
@@ -232,7 +276,8 @@ func _present_shot(
 	origin: Vector3,
 	impact: Vector3,
 	hit: bool,
-	message: String
+	message: String,
+	shot_sequence: int = -1
 ) -> void:
 	pass
 

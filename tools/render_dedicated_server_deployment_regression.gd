@@ -18,6 +18,11 @@ func _initialize() -> void:
 	var blueprint := FileAccess.get_file_as_string(RENDER_BLUEPRINT_PATH)
 	var migration := FileAccess.get_file_as_string(RULESET_MIGRATION_PATH)
 	var gateway := FileAccess.get_file_as_string("res://deploy/server/http_gateway.mjs")
+	_expect(dockerignore.contains("!main.tscn")
+		and dockerignore.contains("!AnimationTree/**")
+		and dockerignore.contains("!assets/external/agls_intake/imported/weapons/m4a1/**")
+		and dockerignore.contains("!assets/external/agls_intake/imported/weapons/ak47/**"),
+		"server carries canonical animation and AK/M4 model dependencies, not fallback-only weapons")
 	_expect(dockerfile.contains("libfontconfig1 nodejs")
 		and dockerignore.contains("!deploy/server/http_gateway.mjs")
 		and start_script.contains("exec node /srv/socom/deploy/server/http_gateway.mjs")

@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "feature_id": "network_map_transport_capacity",
+  "player_intent": "Online players receive the same map as the authoritative match instead of silently losing its admission payload.",
+  "acceptance_rule": "Both WebSocket endpoints use bounded shared capacities before connection. The normalized deployed Relic Depot map survives an actual loopback transport byte-for-byte.",
+  "canonical_scene": "res://main.tscn",
+  "ownership": {"transport_capacity": "SocomTransportFactory", "session_installation": "SocomMultiplayerSlice"},
+  "nodes": [{"id": "session", "type": "Node3D", "role": "Uses the transport factory for authoritative multiplayer connections", "owner": "SocomMultiplayerSlice", "source_script": "res://scripts/network/socom_multiplayer_session.gd", "code_symbols": ["TransportFactory.host", "TransportFactory.connect_websocket"]}],
+  "data_contracts": [{"path": "res://config/network/websocket_capacity.json", "writer": "res://scripts/network/socom_transport_factory.gd", "readers": ["res://scripts/network/socom_transport_factory.gd"]}],
+  "must_not_change": ["RPC wire format", "admission validation", "server shot and damage authority", "movement ownership", "map document content", "ENet transport"],
+  "proof_scripts": ["res://tools/network_map_transport_regression.gd"],
+  "visual_check": "Join the exported browser to a patched local host and verify map reception without admission send-buffer errors.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Observed map RPC failure is caused by a payload larger than default WebSocket capacity. Configure bounded shared capacity, retaining existing transport and session ownership.",
+    "current": {"system": "Engine-default WebSocket capacity", "correctness": 1, "ownership_clarity": 5, "runtime_parity": 1, "editor_usability": 2, "performance": 4, "regression_coverage": 1, "evidence_paths": ["res://scripts/network/socom_multiplayer_admission.gd", "res://scripts/network/socom_transport_factory.gd"]},
+    "candidate": {"system": "Shared bounded map-capable transport", "correctness": 4, "ownership_clarity": 5, "runtime_parity": 4, "editor_usability": 4, "performance": 4, "regression_coverage": 4, "evidence_paths": ["res://scripts/network/socom_transport_factory.gd", "res://tools/network_map_transport_regression.gd"]}
+  }
+}

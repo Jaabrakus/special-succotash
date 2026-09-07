@@ -2,6 +2,12 @@ extends "res://scripts/network/socom_multiplayer_objectives.gd"
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed(&"toggle_fire_mode") and not event.is_echo() \
+			and local_operator != null and local_operator.local_input_enabled \
+			and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+		local_fire_policy.cycle_mode()
+		_refresh_player_state()
+		get_viewport().set_input_as_handled()
 	if event.is_action_pressed("ui_cancel") and not dedicated_server_mode:
 		exit_menu.toggle(session_active)
 		get_viewport().set_input_as_handled()
@@ -378,7 +384,12 @@ func _refresh_player_state() -> void:
 		current_health,
 		maximum_health,
 		local_magazine_ammo,
-		local_reserve_ammo
+		local_reserve_ammo,
+		String(equipped_config.get("display_name", "NO WEAPON")),
+		WeaponSlotRules.slot_for_category(String(equipped_config.get("category", ""))),
+		local_fire_policy.current_mode,
+		local_fire_policy.available_modes,
+		local_fire_policy.burst_size
 	)
 func _ensure_input_map() -> void:
 	KeyboardMappingProfile.apply_project_mapping()

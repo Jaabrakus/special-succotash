@@ -15,6 +15,7 @@ static func movement_to_packet(command) -> Dictionary:
 		"tick": int(command.simulation_tick),
 		"move": Vector2(command.move_axis).limit_length(1.0),
 		"aim_yaw": wrapf(float(command.aim_yaw), -PI, PI),
+		"aim_pitch": clampf(float(command.aim_pitch), -PI * 0.49, PI * 0.49),
 		"jump": bool(command.jump_pressed),
 		"jump_held": bool(command.jump_held),
 		"dive": bool(command.dive_pressed),
@@ -31,6 +32,7 @@ static func packet_to_movement(packet: Dictionary):
 	command.simulation_tick = maxi(0, int(packet.get("tick", 0)))
 	command.move_axis = _bounded_vector2(packet.get("move", Vector2.ZERO))
 	command.aim_yaw = wrapf(float(packet.get("aim_yaw", 0.0)), -PI, PI)
+	command.aim_pitch = clampf(float(packet.get("aim_pitch", 0.0)), -PI * 0.49, PI * 0.49)
 	command.jump_pressed = bool(packet.get("jump", false))
 	command.jump_held = bool(packet.get("jump_held", false))
 	command.dive_pressed = bool(packet.get("dive", false))
@@ -52,7 +54,10 @@ static func movement_packet_is_sane(packet: Dictionary) -> bool:
 		return false
 	var axis: Vector2 = packet.get("move", Vector2.ZERO)
 	var yaw := float(packet.get("aim_yaw", 0.0))
-	return axis.is_finite() and axis.length() <= 1.05 and not is_nan(yaw) and not is_inf(yaw)
+	var pitch_value: Variant = packet.get("aim_pitch", 0.0)
+	if typeof(pitch_value) not in [TYPE_FLOAT, TYPE_INT]: return false
+	var pitch := float(pitch_value)
+	return axis.is_finite() and axis.length() <= 1.05 and is_finite(yaw) and is_finite(pitch)
 
 
 static func sanitize_aim_packet(packet: Dictionary) -> Dictionary:
@@ -116,6 +121,8 @@ static func sanitize_snapshot(packet: Dictionary) -> Dictionary:
 			"posture": clampi(int(data.get("posture", 0)), 0, 6),
 			"health": clampf(float(data.get("health", 100.0)), 0.0, 1000.0),
 			"alive": bool(data.get("alive", true)),
+			"ack_input_tick": int(data.get("ack_input_tick", -1)),
+			"respawn_revision": maxi(0, int(data.get("respawn_revision", 0))),
 			"timestamp_ms": float(data.get("timestamp_ms", packet.get("timestamp_ms", 0.0))),
 		}
 	return {

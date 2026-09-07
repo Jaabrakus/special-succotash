@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "feature_id": "network_weapon_name_parity",
+  "player_intent": "Online play displays the same weapon codenames as canonical solo play.",
+  "acceptance_rule": "Every public weapon displays its shared normalized name immediately after a round assignment or warm-up selection, including in the exported package. Explicit published visual rigs must resolve without fallback and each selected model must load as a PackedScene.",
+  "canonical_scene": "res://main.tscn",
+  "ownership": {"weapon_identity": "SocomWeaponCatalog", "multiplayer_hud": "SocomMultiplayerHUD"},
+  "nodes": [{"id": "network_hud", "type": "CanvasLayer", "role": "Formats the shared equipped weapon name without placeholders", "owner": "SocomMultiplayerHUD", "source_script": "res://scripts/network/socom_multiplayer_hud.gd", "code_symbols": ["func refresh_player_state(", "weapon_name,"]}],
+  "data_contracts": [{"path": "res://config/weapon_roster_extensions.json", "writer": "res://scripts/weapons/socom_weapon_catalog.gd", "readers": ["res://scripts/weapons/socom_weapon_catalog.gd", "res://scripts/weapons/weapon_rig_contract.gd"]}],
+  "must_not_change": ["weapon IDs", "ballistics", "weapon meshes", "authority", "public roster eligibility"],
+  "proof_scripts": ["res://tools/network_weapon_names_regression.gd"],
+  "visual_check": "The online weapon card shows Sentinel .45, Vanguard 5.56, Bastion 7.62 and the remaining public codenames rather than RIFLE.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "The network HUD discarded normalized weapon identity. The restricted export also omitted the dynamically assigned AGLS rifle scenes. Preserve catalog identity, forward names, and declare runtime scene dependencies instead of accepting fallback models.",
+    "current": {"system": "Hardcoded network RIFLE placeholder", "correctness": 1, "ownership_clarity": 3, "runtime_parity": 1, "editor_usability": 2, "performance": 5, "regression_coverage": 1, "evidence_paths": ["res://scripts/network/socom_multiplayer_hud.gd"]},
+    "candidate": {"system": "Shared normalized weapon name in both runtimes", "correctness": 5, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 5, "regression_coverage": 4, "evidence_paths": ["res://scripts/network/socom_multiplayer_world_ui.gd", "res://tools/network_weapon_names_regression.gd"]}
+  }
+}

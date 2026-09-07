@@ -14,6 +14,13 @@ static func capture(operators: Dictionary, peer_ids: Array) -> Dictionary:
 			"position": operator.global_position, "yaw": operator.rotation.y,
 			"velocity": operator.velocity, "posture": operator.posture,
 			"health": operator.current_health, "alive": operator.alive,
+			"ack_input_tick": operator.consumed_input_tick,
+			"respawn_revision": operator.respawn_revision,
+			"presentation": {"motion_state": operator.motion_state,
+				"aim_angles": operator.network_aim_angles,
+				"desired_movement": operator.desired_movement_direction,
+				"movement_strength": operator.movement_input_strength,
+				"peek": operator.peek_amount},
 		}
 	return snapshot
 

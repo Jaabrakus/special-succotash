@@ -1,0 +1,139 @@
+{
+  "schema_version": 1,
+  "feature_id": "network_gameplay_parity",
+  "player_intent": "Use main.tscn's actual character/camera scenes, weapon input rules, recoil and locomotion online.",
+  "acceptance_rule": "Canonical scene/tuning, all 12 public weapon modes and HUD state match; acknowledged past movement does not pull current movement backward; real errors still correct; remote aim/dive works without a camera; local recoil/sound happens once immediately while only server events confirm damage and impacts.",
+  "canonical_scene": "res://main.tscn",
+  "ownership": {
+    "character_motion": "SocomTestPlayer / SocomNetworkOperator",
+    "trigger_gate": "SocomWeaponFireModePolicy",
+    "shot_damage": "server weapon",
+    "animation": "SocomTestMannequin / SocomOperatorAnimationDriver"
+  },
+  "nodes": [
+    {
+      "id": "inherited_operator",
+      "type": "CharacterBody3D",
+      "owner": "SocomNetworkOperator",
+      "role": "Inherits the canonical player subtree with instance-local mutable collision shape",
+      "source_script": "res://scripts/network/socom_multiplayer_replication.gd",
+      "code_symbols": [
+        "CanonicalNetworkOperator.instantiate()",
+        "CanonicalCameraScene.instantiate()"
+      ]
+    },
+    {
+      "id": "trigger_gate",
+      "type": "Node3D",
+      "owner": "SocomWeaponFireModePolicy",
+      "role": "Schedules identical fire modes from the shared policy",
+      "source_script": "res://scripts/network/socom_multiplayer_state.gd",
+      "code_symbols": [
+        "local_fire_policy.should_attempt_shot",
+        "_configure_local_fire_mode"
+      ]
+    },
+    {
+      "id": "body_reconciliation",
+      "type": "CharacterBody3D",
+      "owner": "SocomNetworkOperator",
+      "role": "Applies server correction at the acknowledged input, preserving newer local movement",
+      "source_script": "res://scripts/network/socom_network_operator.gd",
+      "code_symbols": [
+        "prediction_history.acknowledge",
+        "consumed_input_tick",
+        "get_animation_aim_state"
+      ]
+    },
+    {
+      "id": "visual_weapon",
+      "type": "Node",
+      "owner": "SocomWeaponController",
+      "role": "Uses canonical composure/spread presentation with its firing input process disabled",
+      "source_script": "res://scripts/network/socom_multiplayer_replication.gd",
+      "code_symbols": [
+        "local_weapon_presentation.set_input_enabled(false)",
+        "local_weapon_presentation.set_process(false)"
+      ]
+    },
+    {
+      "id": "predicted_feedback",
+      "type": "Node3D",
+      "owner": "SocomShotPresentation",
+      "role": "Predicts only local recoil/sound and correlates the authoritative shot sequence",
+      "source_script": "res://scripts/network/socom_multiplayer_combat.gd",
+      "code_symbols": [
+        "_predict_local_shot",
+        "local_predicted_shots"
+      ]
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://config/operator_movement_tuning.json",
+      "writer": "res://scripts/runtime/operator_tuning_profile.gd",
+      "readers": [
+        "res://scripts/network/socom_multiplayer_replication.gd",
+        "res://scripts/runtime/main_animation_studio.gd"
+      ]
+    },
+    {
+      "path": "res://config/weapons/mark_23.json",
+      "writer": "res://scripts/labs/gunsmith/gunsmith_weapon_profile_repository.gd",
+      "readers": [
+        "res://scripts/weapons/weapon_rig_contract.gd",
+        "res://scripts/weapons/socom_weapon_controller.gd",
+        "res://scripts/network/socom_multiplayer_round_loadout.gd"
+      ]
+    }
+  ],
+  "must_not_change": [
+    "authored speeds and poses",
+    "camera/reticle aim authority",
+    "server-only damage and ammo",
+    "private database credentials",
+    "other worktrees and unrelated art changes"
+  ],
+  "proof_scripts": [
+    "res://tools/network_fire_mode_parity_regression.gd",
+    "res://tools/network_prediction_regression.gd",
+    "res://tools/network_remote_animation_intent_regression.gd",
+    "res://tools/network_shot_feedback_regression.gd",
+    "res://tools/network_canonical_tuning_regression.gd",
+    "res://tools/network_operator_animation_regression.gd",
+    "res://tools/render_dedicated_server_deployment_regression.gd"
+  ],
+  "visual_check": "Packaged browser: lobby to practice, choose pistol and rifle, fire, reload, move/crouch/strafe; inspect exported character and muzzle feedback. Real internet and 32-player load are distinct deployment proofs.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Reuse canonical scenes and weapon policies instead of duplicating presentation/motion setup. Add bounded acknowledgement and per-actor intent at the network boundary. Wire protocol 2 requires matching server/client; no downgrade or credentials exposure.",
+    "current": {
+      "system": "Duplicated multiplayer setup and delayed-position correction",
+      "correctness": 2,
+      "ownership_clarity": 4,
+      "runtime_parity": 2,
+      "editor_usability": 3,
+      "performance": 3,
+      "regression_coverage": 2,
+      "evidence_paths": [
+        "res://scripts/network/socom_multiplayer_replication.gd",
+        "res://scripts/network/socom_multiplayer_combat.gd"
+      ]
+    },
+    "candidate": {
+      "system": "Canonical scenes/policy plus authoritative network adapters",
+      "correctness": 4,
+      "ownership_clarity": 5,
+      "runtime_parity": 4,
+      "editor_usability": 4,
+      "performance": 4,
+      "regression_coverage": 5,
+      "evidence_paths": [
+        "res://scenes/player/network_operator.tscn",
+        "res://scripts/network/socom_prediction_history.gd",
+        "res://tools/network_fire_mode_parity_regression.gd",
+        "res://tools/network_prediction_regression.gd"
+      ]
+    }
+  }
+}

@@ -64,6 +64,10 @@ func receive_lobby_state(snapshot: Dictionary) -> void:
 	warmup_active = bool(snapshot.get("warmup", false))
 	if is_lobby_warmup_active() and local_operator != null:
 		local_operator.set_local_input_enabled(warmup_playing_local and not (warmup_armory != null and warmup_armory.visible))
+		# The camera captures on creation, which can happen before the first
+		# lobby snapshot. Keep menu input usable until the player enters practice.
+		if not warmup_playing_local:
+			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	multiplayer_hud.warmup_button.visible = is_lobby_warmup_active()
 	multiplayer_hud.warmup_button.disabled = not operators.has(multiplayer.get_unique_id())
 
@@ -206,8 +210,10 @@ func receive_warmup_loadout(assignments: Dictionary, loadouts: Dictionary = {}) 
 		_apply_weapon_visual_to_peer(peer_id, config)
 		if peer_id == multiplayer.get_unique_id():
 			equipped_config = config
+			_configure_local_fire_mode()
 			local_reload_pending = false
 			local_fire_cooldown = _configured_fire_interval()
+			_refresh_player_state()
 			_close_warmup_armory()
 
 

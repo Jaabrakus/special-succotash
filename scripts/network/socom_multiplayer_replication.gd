@@ -1,5 +1,9 @@
 extends "res://scripts/network/socom_multiplayer_lobby_pairing.gd"
 
+const CanonicalOperatorTuning := preload("res://scripts/runtime/operator_tuning_profile.gd")
+const CanonicalNetworkOperator := preload("res://scenes/player/network_operator.tscn")
+const CanonicalCameraScene := preload("res://scenes/camera/socom_camera_rig.tscn")
+
 @rpc("any_peer", "call_remote", "unreliable_ordered")
 func submit_movement(packet: Dictionary) -> void:
 	if not multiplayer.is_server():
@@ -11,6 +15,8 @@ func submit_movement(packet: Dictionary) -> void:
 		return
 	var command_tick := int(packet.get("tick", -1))
 	if command_tick <= int(last_command_tick.get(sender, -1)):
+		return
+	if operators[sender].movement_command_queue.size() >= 120:
 		return
 	last_command_tick[sender] = command_tick
 	latest_commands[sender] = packet
@@ -132,7 +138,8 @@ func receive_world_state(snapshot_packet: Dictionary, score_snapshot: Dictionary
 				int(state.get("posture", 0)),
 				float(state.get("health", operator.current_health)),
 				bool(state.get("alive", true)),
-				timestamp_seconds
+				timestamp_seconds,
+				state.get("presentation", {})
 			)
 
 	if not logged_first_snapshot:
@@ -147,9 +154,10 @@ func receive_shot_effect(
 	origin: Vector3,
 	impact: Vector3,
 	hit: bool,
-	message: String
+	message: String,
+	shot_sequence: int = -1
 ) -> void:
-	_present_shot(shooter_peer_id, origin, impact, hit, message)
+	_present_shot(shooter_peer_id, origin, impact, hit, message, shot_sequence)
 
 
 @rpc("authority", "call_remote", "reliable")
@@ -217,7 +225,7 @@ func _server_spawn_operator(
 func _spawn_operator_local(peer_id: int, team: int, spawn_position: Vector3) -> void:
 	if operators.has(peer_id):
 		return
-	var operator := NetworkOperatorScript.new()
+	var operator := CanonicalNetworkOperator.instantiate() as SocomNetworkOperator
 	var local_id := multiplayer.get_unique_id()
 	var is_local_owner := peer_id == local_id
 	var lightweight_probe_client := (
@@ -228,22 +236,26 @@ func _spawn_operator_local(peer_id: int, team: int, spawn_position: Vector3) -> 
 	# That still exercises the real client muzzle/weapon path without multiplying
 	# every remote operator's heavy animation stack across all probe processes.
 	operator.visual_runtime_enabled = not lightweight_probe_client or is_local_owner
+	if not operator.visual_runtime_enabled:
+		operator.get_node("Mannequin").free()
 	operator.name = "NetworkOperator_%d" % peer_id
 	operator.position = spawn_position
 	operator.rotation.y = PI if team == 0 else 0.0
 	operator.interpolation_delay_seconds = remote_interpolation_delay_seconds
-	_apply_competitive_movement_profile(operator)
 	operator.configure_max_health(
 		float(PlayerGameplayProfile.load_profile().get("max_health", 100.0)),
 		true
 	)
 	add_child(operator)
+	_apply_competitive_movement_profile(operator)
 	operator.configure_identity(peer_id, team)
 	operators[peer_id] = operator
 	operator_state_history[peer_id] = []
 	peer_transport_one_way_ms[peer_id] = 0.0
 	operator.set_replica_mode(not is_local_owner and not multiplayer.is_server())
 	operator.set_local_input_enabled(is_local_owner)
+	operator.prediction_enabled = is_local_owner and not multiplayer.is_server()
+	operator.network_command_driven = not is_local_owner and multiplayer.is_server()
 	operator.configure_network_presentation(is_local_owner, multiplayer.is_server())
 	if multiplayer.is_server():
 		operator.eliminated.connect(_on_operator_eliminated)
@@ -259,39 +271,14 @@ func _spawn_operator_local(peer_id: int, team: int, spawn_position: Vector3) -> 
 func _apply_competitive_movement_profile(operator) -> void:
 	if operator == null:
 		return
-	var document := PlaytestStateCollector.bundled_state("movement")
-	var movement: Dictionary = document.get("movement", {})
-	operator.move_speed = float(movement.get("move_speed", operator.move_speed))
-	operator.strafe_speed = float(movement.get("strafe_speed", operator.strafe_speed))
-	operator.instant_strafe_response = bool(
-		movement.get("instant_strafe_response", operator.instant_strafe_response)
+	# Exactly the loader/applier used by main.tscn. Apply after _ready so the
+	# existing animation driver receives scale, transition and action timing too.
+	var document := CanonicalOperatorTuning.load_document(
+		PlaytestStateCollector.bundled_state("movement"),
+		"res://config/operator_movement_tuning.json"
 	)
-	operator.strafe_burst_frames = clampi(
-		int(movement.get("strafe_burst_frames", operator.strafe_burst_frames)),
-		1,
-		4
-	)
-	operator.strafe_burst_multiplier = clampf(
-		float(movement.get("strafe_burst_multiplier", operator.strafe_burst_multiplier)),
-		1.0,
-		1.5
-	)
-	operator.strafe_burst_decay_seconds = clampf(
-		float(movement.get(
-			"strafe_burst_decay_seconds",
-			operator.strafe_burst_decay_seconds
-		)),
-		0.0,
-		0.40
-	)
-	operator.strafe_chain_window_seconds = clampf(
-		float(movement.get(
-			"strafe_chain_window_seconds",
-			operator.strafe_chain_window_seconds
-		)),
-		0.20,
-		1.50
-	)
+	var driver: Node = operator.mannequin.production_animation if operator.mannequin != null else null
+	CanonicalOperatorTuning.apply(document, operator, driver)
 
 
 func _remove_operator(peer_id: int) -> void:
@@ -302,6 +289,7 @@ func _remove_operator(peer_id: int) -> void:
 	operators.erase(peer_id)
 	latest_commands.erase(peer_id)
 	last_accepted_shot_sequence.erase(peer_id)
+	last_presented_shot_sequence.erase(peer_id)
 	combat_commands.remove_peer(peer_id)
 	last_rejected_shot_reason.erase(peer_id)
 	last_command_tick.erase(peer_id)
@@ -333,8 +321,11 @@ func _clear_operators() -> void:
 func _attach_local_camera(operator) -> void:
 	if local_camera != null:
 		local_camera.queue_free()
-	local_camera = CameraRigScript.new() as SocomCameraRig
+	local_camera = CanonicalCameraScene.instantiate() as SocomCameraRig
 	local_camera.name = "LocalSOCOMCamera"
+	# Browser pointer-lock requests complete asynchronously. Do not request one
+	# on camera creation behind a lobby, then try to undo it in the same frame.
+	local_camera.capture_mouse_on_ready = false
 	local_camera.target = operator
 	local_camera.head_marker = operator.mannequin.head_marker
 	local_camera.torso_marker = operator.mannequin.torso_marker
@@ -342,10 +333,17 @@ func _attach_local_camera(operator) -> void:
 	local_camera.feet_marker = operator.mannequin.feet_marker
 	local_camera.yaw = operator.global_rotation.y
 	add_child(local_camera)
+	local_weapon_presentation = CanonicalWeaponController.new()
+	local_weapon_presentation.name = "LocalWeaponPresentation"
+	local_camera.add_child(local_weapon_presentation)
+	local_weapon_presentation.configure(operator, local_camera)
+	local_weapon_presentation.set_input_enabled(false)
+	local_weapon_presentation.set_process(false)
+	local_weapon_presentation._apply_weapon_config(equipped_config)
 	var acoustic: Node = get_node_or_null("/root/AcousticPropagation")
 	if acoustic != null and acoustic.has_method("set_listener"):
 		acoustic.call("set_listener", local_camera)
-	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED if session_active else Input.MOUSE_MODE_VISIBLE
 
 
 func _advance_time_sync(delta: float) -> void:

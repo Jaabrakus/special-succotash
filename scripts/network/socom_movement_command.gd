@@ -8,6 +8,7 @@ extends RefCounted
 var simulation_tick: int = 0
 var move_axis := Vector2.ZERO
 var aim_yaw: float = 0.0
+var aim_pitch: float = 0.0
 var world_move_override := Vector3.ZERO
 var jump_pressed: bool = false
 var jump_held: bool = false
@@ -25,6 +26,7 @@ func duplicate_command():
 	copy.simulation_tick = simulation_tick
 	copy.move_axis = move_axis
 	copy.aim_yaw = aim_yaw
+	copy.aim_pitch = aim_pitch
 	copy.world_move_override = world_move_override
 	copy.jump_pressed = jump_pressed
 	copy.jump_held = jump_held
