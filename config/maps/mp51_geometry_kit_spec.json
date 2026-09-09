@@ -1,0 +1,9 @@
+{
+  "map_id": "mp51_geometry_kit",
+  "name": "MP51 — Original Geometry Study",
+  "library_path": "user://maps/mp51_geometry_kit.json",
+  "expected_world_chunks": 82,
+  "expected_assets": 98,
+  "collision_mode": "detailed_mesh",
+  "local_research_only": true
+}

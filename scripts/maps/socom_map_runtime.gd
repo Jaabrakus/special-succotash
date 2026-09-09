@@ -6,6 +6,7 @@ const FacadeBuilder := preload("res://scripts/maps/socom_map_facade_builder.gd")
 const Materials := preload("res://scripts/maps/socom_map_surface_materials.gd")
 const Geometry := preload("res://scripts/maps/socom_map_geometry.gd")
 const ImportedAssetBuilder := preload("res://scripts/maps/socom_imported_map_asset_builder.gd")
+const StairCollision := preload("res://scripts/maps/socom_stair_collision.gd")
 const FogZoneController := preload("res://scripts/maps/socom_map_fog_zone_controller.gd")
 const SwimmingVolume := preload("res://scripts/traversal/socom_swimming_volume.gd")
 const DemolitionBombScene := preload("res://scenes/objectives/demolition_bomb.tscn")
@@ -752,11 +753,12 @@ static func _build_stairs(object: Dictionary) -> Node3D:
 	# solver and bullets/camera still query one deterministic map collider.
 	var traversal_ramp := StaticBody3D.new()
 	traversal_ramp.name = "TraversalRamp"
+	traversal_ramp.add_to_group(StairCollision.GROUP)
 	Geometry._set_object_meta(traversal_ramp, object)
 	var collision := CollisionShape3D.new()
 	collision.name = "CollisionShape3D"
 	var shape := ConvexPolygonShape3D.new()
-	shape.points = _wedge_points(size)
+	shape.points = StairCollision.points(AABB(-size * 0.5, size))
 	collision.shape = shape
 	traversal_ramp.add_child(collision)
 	root.add_child(traversal_ramp)

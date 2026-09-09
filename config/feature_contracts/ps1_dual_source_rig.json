@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "feature_id": "ps1_dual_source_rig",
+  "player_intent": "One PS1 character supports Mixamo and retargeted AGLS animation with deforming fingers.",
+  "acceptance_rule": "Canonical player and fallback loader use the 65-bone authored asset; original body and wrist rests remain within 1mm and 0.1 degrees; all new finger segments have mesh weights; both source clips animate through the runtime adapter; canonical animation and movement pass. Weapon-pose failures must be compared against the untouched original rig and no new failures accepted.",
+  "canonical_scene": "res://main.tscn",
+  "ownership": {"character_asset": "SocomOperatorAssetRuntime", "animation_presentation": "SocomOperatorAnimationDriver"},
+  "nodes": [{"id": "character", "type": "Node3D", "role": "Shared authored rig and weighted character mesh", "owner": "SocomOperatorAssetRuntime", "scene_path": "res://scenes/player/operator_player.tscn", "node_path": "Mannequin/ProductionAnimation/TrooperModel"}],
+  "data_contracts": [{"path": "res://assets/characters/ps1_dual_source_rig/ps1_dual_source_rig.scn", "writer": "res://tools/ps1_dual_source_rig_regression.gd", "readers": ["res://scenes/player/operator_player.tscn", "res://scripts/player/operator_asset_runtime.gd", "res://scripts/player/operator_animation_library_cache.gd"]}],
+  "must_not_change": ["CharacterBody3D movement", "camera/reticle aim", "server shot/damage", "network state authority", "native body and wrist rests"],
+  "proof_scripts": ["res://tools/ps1_dual_source_rig_regression.gd", "res://tools/operator_animation_regression.gd", "res://tools/operator_weapon_pose_regression.gd"],
+  "visual_check": "Inspect native Mixamo gameplay with attached weapon and five AGLS reload samples, checking fingers, shoulders, torso and feet. Per-clip contact tuning remains separate from rig compatibility.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Retain the existing dual-source adapter and native joints; replace unweighted finger placeholders with authored spaced chains and glove geometry. Use the same asset in the canonical player and fallback loader; key cache by target asset hash.",
+    "current": {"system": "41-bone mesh with runtime finger placeholders", "correctness": 2, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 2, "performance": 5, "regression_coverage": 3, "evidence_paths": ["res://scripts/player/operator_skeleton_contract.gd", "res://assets/characters/ps1_gas_mask_soldier/trooper_rigged.fbx"]},
+    "candidate": {"system": "Authored 65-bone dual-source PS1 rig", "correctness": 4, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 4, "regression_coverage": 4, "evidence_paths": ["res://tools/blender/build_ps1_dual_source_rig.py", "res://tools/ps1_dual_source_rig_regression.gd", "res://scenes/player/operator_player.tscn", "res://scripts/player/operator_asset_runtime.gd"]}
+  }
+}

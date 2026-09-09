@@ -36,7 +36,7 @@
     "max_recoil_bloom_deg": 2.6,
     "moving_spread_deg": 1.029,
     "muzzle_velocity_mps": 393.0,
-    "reserve_ammo": 36.0
+    "reserve_ammo": 60.0
   },
   "burst_size": 3,
   "camo_skin": "Factory Classic (Wood & Steel)",

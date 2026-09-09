@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "feature_id": "source_jump_presentation",
+  "player_intent": "A stable jump without a second hip bounce or a torso snap when leaving pistol movement; takeoff/air/landing follow the actual body jump.",
+  "acceptance_rule": "Main and hybrid maps share phase windows; choose running or standing launch once, enter airborne at apex or immediately for a ledge fall, map landing to the existing recovery interval, exclude the verified terminal closure, retain physical hands within 1 cm without arm stretch in AK/M4/Mark23 jumps and accepted-shot recovery. During the full jump hold, keep the solved support-wrist grasp within 1 degree of its last grounded weapon-relative orientation; clear on re-equip. Never change CharacterBody trajectory or gameplay permissions.",
+  "canonical_scene": "res://main.tscn",
+  "ownership": {"animation": "SocomOperatorAnimationDriver"},
+  "nodes": [{"id": "operator", "type": "Node3D", "role": "Existing animation graph and final weapon contact presentation", "owner": "SocomOperatorAnimationDriver", "scene_path": "res://scenes/player/operator_player.tscn", "node_path": "Mannequin/ProductionAnimation"}],
+  "data_contracts": [{"path": "res://config/operator_animation_map.json", "writer": "res://scripts/labs/animation_workshop_repository.gd", "readers": ["res://scripts/player/operator_animation_profile.gd", "res://scripts/player/operator_animation_driver_pose.gd", "res://scripts/player/operator_locomotion_route_builder.gd"]}],
+  "must_not_change": ["CharacterBody movement/collision/landing permissions", "Camera/reticle aim", "Server shots/damage", "Network authority", "Standing ready/fire and ordinary pistol hybrid", "Dive/roll/reload/grenade"],
+  "proof_scripts": ["res://tools/source_jump_regression.gd", "res://tools/jump_continuity_probe.gd", "res://tools/source_jump_visual_probe.gd", "res://tools/source_rifle_ready_fire_regression.gd", "res://tools/pistol_hybrid_main_regression.gd"],
+  "visual_check": "Separate main-scene AK/M4/Mark23 jump fixtures, standing and running, early/mid/late/landing/recovery from rear and side; repeat with --fire-before-jump. Source timing is adapted to current physics, not claimed as recovered original game timing.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Measured duplicate source hip arc and 55-degree pistol handoff snap. Anchor only runtime jump copies, narrow phase windows and retain the legacy pistol frame correction through its evaluated blend; keep the body trajectory and original assets untouched.",
+    "current": {"system": "Compressed full source windows with duplicate hip travel and input-state pistol handoff", "correctness": 2, "ownership_clarity": 4, "runtime_parity": 5, "editor_usability": 4, "performance": 5, "regression_coverage": 3, "evidence_paths": ["res://scripts/player/operator_animation_driver_runtime.gd", "res://assets/animations/seal_gameplay/jump_up_standing.tres", "res://tools/jump_continuity_probe.gd"]},
+    "candidate": {"system": "Anchored phase windows and evaluated-pose handoff", "correctness": 4, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 5, "regression_coverage": 5, "evidence_paths": ["res://scripts/player/operator_asset_runtime.gd", "res://scripts/player/operator_animation_driver_runtime.gd", "res://tools/jump_continuity_probe.gd", "res://tools/source_jump_regression.gd"]}
+  }
+}

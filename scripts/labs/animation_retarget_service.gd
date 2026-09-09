@@ -50,6 +50,17 @@ func load_authored(
 	if target_player != null and target_skeleton != null:
 		var animation_root := target_player.get_node(target_player.root_node)
 		skeleton_path = animation_root.get_path_to(target_skeleton)
+	if source.get_meta("seal_reference", false):
+		# Already rest-baked for the native PS1 skeleton. Do not normalize its
+		# first crouch/death frame to standing height or guess a different rig map.
+		if target_skeleton == null or use_bone_map:
+			return false
+		for track in authored.get_track_count():
+			var bone := str(authored.track_get_path(track)).get_slice(":", 1)
+			if target_skeleton.find_bone(bone) < 0:
+				return false
+			authored.track_set_path(track, NodePath(str(skeleton_path) + ":" + bone))
+		return dynamic_library.add_animation(animation_key, authored) == OK
 	_retarget_tracks(
 		authored,
 		target_skeleton,

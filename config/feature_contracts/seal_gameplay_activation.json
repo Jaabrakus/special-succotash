@@ -1,0 +1,106 @@
+{
+  "schema_version": 1,
+  "feature_id": "seal_gameplay_activation",
+  "player_intent": "Use supported SEAL movement, aim, stance and grenade clips in canonical gameplay, including held Q/E leans, while retaining originals.",
+  "acceptance_rule": "SEAL candidate remains preserved. Canonical config/operator_animation_map.json now activates the SEAL movement/rifle map with legacy standing/crouched pistol upper-body fallback; see pistol_hybrid_main contract. Native left/right gaits remain distinct, original assets and pre_seal_main restore profile retained. No gameplay authority changed.",
+  "canonical_scene": "res://main.tscn",
+  "pistol_grip_reach_fit": "The driver passes its normalized TWO_HAND_PISTOL family to the existing SEAL strategy. Pistol rigid-weapon translation is capped at 80% of the shorter measured arm length; rifle remains capped at 0.12 m. Eight bounded alternating reach projections fit both existing wrist targets without socket edits or bone scaling. Bore is reconverged afterward. Canonical continuous strafe/shot/recovery/idle windows enforce 1 cm contact and 1 mm arm-length invariance. This replaces an insufficient 12 cm pistol cap, not the base animations or arm IK owner.",
+  "firing_family_correction": "The original importer incorrectly excluded fp/pfp as first-person. A separate provenance manifest now contains 25 source firing poses/movements; 4 native fast-strife resources complete lateral ready routes. The candidate adds these resources without overwriting the 63 prior mappings. Explicit family ready slots replace held-recoil substitutes; source_firing_locomotion selects full-body firing gaits and disables stationary moving-torso overlays. Source loop flags survive canonical loading. Native left and right clips remain distinct; no dedicated fp lateral clip is claimed.",
+  "weapon_roll_fit": "Candidate source_upright_weapon corrects roll around the barrel axis using existing barrel/trigger sockets and body up. One presentation owner retains the trigger pivot and aim direction; grip IK follows. It is a model-fit correction, not recovered original helper-bone attachment. Reload/grenade/dive action attachment and non-SEAL defaults are unchanged.",
+  "pelvis_policy": "The source-locomotion preset bypasses legacy pelvis/shoulder correction even on fallback transitions; source-specific weapon fitting remains gated on the actual SEAL clip path, not merely the preset.",
+  "locomotion_layer_policy": "Candidate preserve_source_locomotion removes automatic carry/idle overlays and gait-arm inheritance into explicit ready, gates transition upper bodies on readiness, and disables replacement jump legs. Original profile defaults remain unchanged. Gun-angle visual report still needs reproduction.",
+  "forward_dive_replacement": "Candidate selects prepared seal_dive2prone for dive_roll and jump_slide_prone. Source mobility now uses AUTHORED_ANIMATION_MOUNT in the existing presentation owner: current animated trigger palm, no legacy chest translation or arm IK. Original hand-mount angle is still used: exact SOCOM held attachment has NOT been recovered. Body inversion remains a rendered gate; logic/contact success alone cannot promote the preset.",
+  "source_locomotion_extension": "Seven additional pistol clips compose only missing typed tracks from compatible rifle cycles; native upper samples remain exact. Family slots select pistol run and crouch directions, launch and landing; in-air explicitly uses shared SEAL runningjump_in_air. The apex never replays launch. Unconverted cosmetic start/stop/turn takes are bypassed; existing graph transitions remain. No dedicated native diagonal takes were found, so cardinal clips blend at the shared gait phase. Source ownership follows the actual graph route rather than the old diagnostic diagonal label.",
+  "interactive_test": "tools/play_seal_candidate.gd remains an explicit pure-SEAL candidate override. Normal main.tscn reads operator_animation_map.json with hybrid enabled. seal_locomotion_visual_probe --main-profile disables the bundled override and exercises the saved main profile.",
+  "pistol_cleanup": "Main hybrid masks legacy pistol torso/arm poses above SEAL hips/legs. Shared family slots supply pistol ready/reload clips. Existing posture owner reconciles the pelvis frame; existing weapon owner aligns gun and trigger wrist together and fits support contact. Prone/dive retain source paths.",
+  "ownership": {
+    "clip_contract": "SocomOperatorAnimationProfile",
+    "runtime_animation": "SocomOperatorAnimationDriver",
+    "lean_pose": "SocomOperatorPostureLayer"
+  },
+  "nodes": [
+    {
+      "id": "operator",
+      "type": "Node3D",
+      "role": "Existing animation presentation owner",
+      "owner": "SocomOperatorAnimationDriver",
+      "scene_path": "res://scenes/player/operator_player.tscn",
+      "node_path": "Mannequin/ProductionAnimation"
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://assets/animations/seal_firing_reference/manifest.json",
+      "writer": "res://tools/import_seal_firing_poses.gd",
+      "readers": [
+        "res://tools/extend_seal_firing_candidate.gd",
+        "res://tools/seal_gameplay_data_regression.gd"
+      ]
+    },
+    {
+      "path": "res://config/animation_presets/seal_gameplay_candidate.json",
+      "writer": "res://tools/build_seal_gameplay_candidate.gd",
+      "readers": [
+        "res://tools/play_seal_candidate.gd",
+        "res://tools/seal_gameplay_candidate_regression.gd",
+        "res://scripts/player/operator_animation_profile.gd"
+      ]
+    },
+    {
+      "path": "res://assets/animations/seal_gameplay/manifest.json",
+      "writer": "res://tools/build_seal_gameplay_candidate.gd",
+      "readers": [
+        "res://tools/seal_gameplay_data_regression.gd"
+      ]
+    }
+  ],
+  "must_not_change": [
+    "Original animation assets and recoverable previous map",
+    "CharacterBody movement/collision",
+    "Camera/reticle aim",
+    "Shot/damage/network authority",
+    "Grenade release duration/fractions",
+    "Unmatched animation states"
+  ],
+  "proof_scripts": [
+    "res://tools/seal_locomotion_visual_probe.gd",
+    "res://tools/seal_dive_regression.gd",
+    "res://tools/play_seal_candidate.gd",
+    "res://tools/seal_combat_pose_regression.gd",
+    "res://tools/seal_gameplay_data_regression.gd",
+    "res://tools/seal_gameplay_candidate_regression.gd",
+    "res://tools/seal_gameplay_mobility_regression.gd",
+    "res://tools/seal_grenade_regression.gd"
+  ],
+  "visual_check": "Render main.tscn with seal_gameplay_canonical_probe.gd and seal_stance_visual_probe.gd. Inspect rifle/pistol standing, crouch, prone and both leans. Recorded pose samples are not a claim of full original-game fidelity. All unconverted states are explicit in the manifest.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Reuse existing map and posture owner; partial pistol tracks get explicit lower-body composition. Held lean must stop before decoded closure sample and bypass the subsequent shoulder-square correction. Keep unmatched actions as original fallbacks.",
+    "current": {
+      "system": "Optional library plus legacy pose corrections",
+      "correctness": 3,
+      "ownership_clarity": 5,
+      "runtime_parity": 2,
+      "editor_usability": 3,
+      "performance": 5,
+      "regression_coverage": 4,
+      "evidence_paths": [
+        "res://docs/SEAL_REFERENCE_IMPORT.md"
+      ]
+    },
+    "candidate": {
+      "system": "Validated SEAL map and held-lean presentation",
+      "correctness": 4,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 4,
+      "performance": 4,
+      "regression_coverage": 4,
+      "evidence_paths": [
+        "res://tools/seal_gameplay_data_regression.gd",
+        "res://scripts/player/operator_posture_layer.gd",
+        "res://docs/SEAL_GAMEPLAY_ACTIVATION.md"
+      ]
+    }
+  }
+}

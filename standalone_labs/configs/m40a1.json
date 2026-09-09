@@ -464,7 +464,7 @@
     "moving_spread_deg": 1.029,
     "muzzle_velocity_mps": 777.0,
     "opening_burst_motion_multiplier": 0.35,
-    "reserve_ammo": 25.0
+    "reserve_ammo": 125.0
   },
   "burst_size": 3,
   "camo_skin": "Factory Classic (Wood & Steel)",

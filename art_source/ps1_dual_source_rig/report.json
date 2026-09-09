@@ -1,0 +1,16 @@
+{
+  "bones": 65,
+  "triangles": 872,
+  "native_rest_preserved": true,
+  "removed_mitten_faces": 18,
+  "finger_motion_probes": {
+    "LeftMiddle": 0.08500951989328451,
+    "LeftRing": 0.07839537416174429,
+    "LeftPinky": 0.06682374874434037,
+    "RightMiddle": 0.09873596547764416,
+    "RightRing": 0.0911062939633515,
+    "RightPinky": 0.07775525200313312
+  },
+  "source_sha256": "16f84945fac4c76c3eac01b0245b0dd433c945e498246541d806a62ca525e5e9",
+  "source_unchanged": true
+}

@@ -3,6 +3,7 @@ extends Node
 
 const AnatomicalHitResolver := preload("res://scripts/combat/socom_anatomical_hit_resolver.gd")
 const BulletPenetration := preload("res://scripts/combat/socom_bullet_penetration.gd")
+const BloomEnvelope := preload("res://scripts/weapons/reticle_bloom_envelope.gd")
 
 ## SOCOM II Ballistics & Burst-Fire Accuracy Model
 ## Implements:
@@ -56,6 +57,19 @@ var current_posture: StringName = &"STANDING"
 var current_movement_speed_norm: float = 0.0
 var current_is_airborne: bool = false
 var seconds_since_last_shot: float = 99.0
+var bloom_profile: Dictionary = {}
+var bloom_gap_px: float = 8.0
+var visual_bloom_input: float = 0.0
+
+func configure_bloom_envelope(weapon_config: Dictionary) -> void:
+    bloom_profile = weapon_config.get("reticle", {}).duplicate(true)
+    bloom_profile["weapon_category"] = String(weapon_config.get("category", ""))
+    # Equip starts at the authored closed gap, never a previous gun's envelope.
+    bloom_gap_px = BloomEnvelope.gap_for(bloom_profile, 0.0)
+    visual_bloom_input = 0.0
+
+func get_bloom_tangent_limit() -> float:
+    return BloomEnvelope.tangent_limit(bloom_profile, bloom_gap_px) if not bloom_profile.is_empty() else INF
 
 func _ready() -> void:
     fire_interval = 60.0 / maxf(1.0, fire_rate_rpm)
@@ -87,6 +101,10 @@ func _process(delta: float) -> void:
         current_movement_speed_norm,
         current_is_airborne
     )
+    if not bloom_profile.is_empty():
+        bloom_gap_px = BloomEnvelope.advance_gap(bloom_gap_px,
+            BloomEnvelope.gap_for(bloom_profile, maxf(get_normalized_spread(), visual_bloom_input)),
+            bloom_profile, delta)
 
 func calculate_current_spread(
     posture: StringName,
@@ -96,6 +114,12 @@ func calculate_current_spread(
     current_posture = posture
     current_movement_speed_norm = clampf(movement_speed_norm, 0.0, 1.0)
     current_is_airborne = is_airborne
+    total_current_spread_deg = _spread_for(posture, movement_speed_norm, is_airborne,
+        continuous_shot_count, current_recoil_bloom)
+    return total_current_spread_deg
+
+func _spread_for(posture: StringName, movement_speed_norm: float, is_airborne: bool,
+    shot_count: int, firing_bloom: float) -> float:
     # 1. Base stance spread
     var stance_mult := 1.0
     match posture:
@@ -116,14 +140,40 @@ func calculate_current_spread(
     # A settled operator keeps the classic precise tap, while a full-speed
     # operator receives the complete movement cone immediately. This prevents
     # aim tapping during a sprint from bypassing the movement penalty.
-    if continuous_shot_count <= 2 and not is_airborne:
+    if shot_count <= 2 and not is_airborne:
         motion_spread *= lerpf(
             opening_burst_motion_multiplier,
             1.0,
-            current_movement_speed_norm
+            clampf(movement_speed_norm, 0.0, 1.0)
         )
-    total_current_spread_deg = (base_spread_deg * stance_mult) + (motion_spread * stance_mult) + current_recoil_bloom
-    return total_current_spread_deg
+    return (base_spread_deg * stance_mult) + (motion_spread * stance_mult) + firing_bloom
+
+func _bloom_after_shot(posture: StringName, shot_count: int) -> float:
+    var bloom := current_recoil_bloom
+    if shot_count > 2:
+        var bloom_cap := _maximum_bloom_for(posture)
+        if bloom < bloom_cap:
+            bloom = minf(bloom_cap, bloom + _bloom_per_shot_for(posture))
+    return bloom
+
+func cone_tangent_radius(spread_deg: float, dispersion_multiplier: float) -> float:
+    # Preserve distribution inside the original cone, but fit the ENTIRE
+    # pattern to the already-visible bloom, including buckshot's added angle.
+    var cone := deg_to_rad(spread_deg) * clampf(dispersion_multiplier, 0.0, 2.0)
+    if clampi(pellet_count, 1, 32) > 1:
+        cone += deg_to_rad(maxf(0.0, pellet_spread_deg))
+        cone = tan(cone)
+    return minf(cone, get_bloom_tangent_limit())
+
+func preview_next_shot_cone(posture: StringName, movement_amount: float,
+    is_airborne: bool, dispersion_multiplier: float) -> Dictionary:
+    # Read only: no RNG consumption, sequence increment, timer, ammo or damage.
+    # Include the bloom the upcoming accepted shot adds, not the previous shot.
+    var shot_count := continuous_shot_count + 1
+    var spread := _spread_for(posture, movement_amount, is_airborne, shot_count,
+        _bloom_after_shot(posture, shot_count))
+    return {"shot_index": shot_count, "spread_deg": spread,
+        "tangent_radius": cone_tangent_radius(spread, dispersion_multiplier)}
 
 func update_spread_state(
     posture: StringName,
@@ -166,7 +216,6 @@ func try_fire_direction(
     var forward_dir := aim_direction.normalized()
     if forward_dir.length_squared() < 0.99:
         return {"fired": false, "reason": "INVALID_DIRECTION"}
-    var spread_rad := deg_to_rad(total_current_spread_deg)
     var random := RandomNumberGenerator.new()
     random.seed = deterministic_seed if deterministic_seed != 0 else continuous_shot_count
 
@@ -174,13 +223,10 @@ func try_fire_direction(
     var ray_basis := Basis.looking_at(forward_dir, Vector3.UP)
     var projectiles: Array[Dictionary] = []
     var count := clampi(pellet_count, 1, 32)
+    var cone_radius := cone_tangent_radius(total_current_spread_deg, applied_dispersion_multiplier)
     for index in count:
         var random_angle := random.randf() * TAU
-        # Composure cannot collapse buckshot into one rifle bullet.
-        var cone := spread_rad * applied_dispersion_multiplier
-        if count > 1:
-            cone += deg_to_rad(maxf(0.0, pellet_spread_deg))
-        var random_radius := sqrt(random.randf()) * (tan(cone) if count > 1 else cone)
+        var random_radius := sqrt(random.randf()) * cone_radius
         var offset := Vector3(cos(random_angle), sin(random_angle), 0.0) * random_radius
         var direction := (ray_basis * (Vector3.FORWARD + offset)).normalized()
         var projectile := _trace_projectile(muzzle_pos, direction, space_state, exclude_rids)
@@ -191,6 +237,9 @@ func try_fire_direction(
     shot["pellet_count"] = count
     shot["spread_deg"] = total_current_spread_deg
     shot["dispersion_multiplier"] = applied_dispersion_multiplier
+    shot["cone_tangent_radius"] = cone_radius
+    shot["bloom_gap_px"] = bloom_gap_px
+    shot["bloom_tangent_limit"] = get_bloom_tangent_limit()
     shot["continuous_count"] = continuous_shot_count
     shot_fired.emit(muzzle_pos, shot.hit_pos, bool(shot.get("hit_target", false)))
     return shot
@@ -205,10 +254,7 @@ func record_shot_state(posture: StringName, movement_speed_norm: float, is_airbo
     is_firing_held = true
     current_posture = posture
     seconds_since_last_shot = 0.0
-    if continuous_shot_count > 2:
-        var bloom_cap := _maximum_bloom_for(posture)
-        if current_recoil_bloom < bloom_cap:
-            current_recoil_bloom = minf(bloom_cap, current_recoil_bloom + _bloom_per_shot_for(posture))
+    current_recoil_bloom = _bloom_after_shot(posture, continuous_shot_count)
     calculate_current_spread(posture, movement_speed_norm, is_airborne)
     return true
 

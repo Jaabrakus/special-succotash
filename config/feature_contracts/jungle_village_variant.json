@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "feature_id": "jungle_village_variant",
+  "player_intent": "Keep the original village layout and make a separately editable jungle vegetation variant.",
+  "acceptance_rule": "Original map objects remain identical; more than 100 ground-supported vegetation placements retain source alpha cutouts with no leaf-card collision or vegetation roots within 12m of preview spawns.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://map_creation_lab.tscn",
+  "ownership": {
+    "map_construction": "SocomMapRuntime"
+  },
+  "nodes": [
+    {
+      "id": "authored_map",
+      "type": "Node3D",
+      "role": "Construct saved variant for editor and canonical runtime",
+      "owner": "SocomMapRuntime",
+      "source_script": "res://scripts/maps/socom_map_runtime.gd",
+      "code_symbols": [
+        "root.name = \"AuthoredMap\"",
+        "static func build_into"
+      ]
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://config/maps/jungle_village_placement.json",
+      "writer": "res://tools/import_jungle_village.gd",
+      "readers": [
+        "res://tools/import_jungle_village.gd",
+        "res://tools/jungle_village_regression.gd"
+      ]
+    }
+  ],
+  "must_not_change": [
+    "original_village",
+    "default_map",
+    "camera",
+    "movement",
+    "weapon_authority",
+    "networking",
+    "animation"
+  ],
+  "proof_scripts": [
+    "res://tools/jungle_village_canonical_probe.gd",
+    "res://tools/jungle_village_regression.gd",
+    "res://tools/socom_geometry/jungle_test.cjs",
+    "res://tools/imported_map_asset_boundary_regression.gd"
+  ],
+  "visual_check": "Render original MP64 fern, banana, shrub and canopy geometry with cutout alpha, then overview and closer views of the actual MapRuntime-built Jungle Village. This is a decorative research variant, not multiplayer balance or original lighting parity.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Preserve map runtime owners; extend offline decoder for verified RGBA32 palette alpha and author a separate document through the existing GLB library.",
+    "current": {
+      "system": "Opaque-only geometry kit",
+      "correctness": 2,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 3,
+      "performance": 4,
+      "regression_coverage": 3,
+      "evidence_paths": [
+        "res://tools/socom_geometry/convert.cjs",
+        "res://config/maps/mp51_geometry_kit_spec.json"
+      ]
+    },
+    "candidate": {
+      "system": "Source-alpha vegetation and independent jungle variant",
+      "correctness": 4,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 4,
+      "performance": 3,
+      "regression_coverage": 4,
+      "evidence_paths": [
+        "res://tools/socom_geometry/textures.cjs",
+        "res://tools/import_jungle_village.gd",
+        "res://tools/jungle_village_regression.gd"
+      ]
+    }
+  }
+}

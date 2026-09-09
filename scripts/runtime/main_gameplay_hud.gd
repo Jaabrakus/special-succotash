@@ -325,6 +325,8 @@ func _update_crosshair(data: Dictionary) -> void:
 	var spread_normalized := 0.0
 	if weapon_controller != null:
 		spread_normalized = weapon_controller.get_reticle_spread_normalized()
+		dynamic_reticle.apply_profile(weapon_controller.reticle_profile)
+		dynamic_reticle.bind_bloom_envelope(weapon_controller)
 	var movement_normalized := 0.0
 	if weapon_controller != null:
 		movement_normalized = weapon_controller.get_movement_ratio()

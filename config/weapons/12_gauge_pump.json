@@ -15,7 +15,7 @@
     "max_recoil_bloom_deg": 2.6,
     "moving_spread_deg": 1.029,
     "muzzle_velocity_mps": 393,
-    "reserve_ammo": 24,
+    "reserve_ammo": 40,
     "pellet_count": 8,
     "pellet_spread_deg": 3,
     "pellet_damage": 12,
@@ -40,8 +40,30 @@
     "max_gap_px": 41.6,
     "maximum_shot_kick_px": 70,
     "response_speed": 26.2,
-    "shot_kick_px": 13,
-    "shot_kick_return": 65
+    "shot_kick_px": 8,
+    "shot_kick_return": 40,
+    "vrc_return_speed_px_per_second": 40,
+    "socom2_source_name": "870",
+    "socom2_stances": {
+      "STANDING": {
+        "shot_kick_px": 8,
+        "maximum_shot_kick_px": 70,
+        "shot_kick_return": 40,
+        "vrc_return_speed_px_per_second": 40
+      },
+      "CROUCHED": {
+        "shot_kick_px": 8,
+        "maximum_shot_kick_px": 70,
+        "shot_kick_return": 40,
+        "vrc_return_speed_px_per_second": 40
+      },
+      "PRONE": {
+        "shot_kick_px": 8,
+        "maximum_shot_kick_px": 70,
+        "shot_kick_return": 40,
+        "vrc_return_speed_px_per_second": 40
+      }
+    }
   },
   "weapon_id": "12_gauge_pump",
   "schema_version": 3,

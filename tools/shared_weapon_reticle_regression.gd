@@ -17,13 +17,14 @@ func _run() -> void:
 	var reticle = scene.reticle
 	check(reticle.shot_kick_pixels == 12.0 and reticle.maximum_shot_kick_pixels == 45.0, "M4 kick and cap")
 	check(reticle.shot_kick_return == 70.0, "authored return survives cadence setup")
+	check(reticle.source_family == "rifle", "multiplayer consumes canonical source family")
 	# Disable expensive/audio shot presentation; test the canonical event adapter.
 	scene.shot_presentation = null
 	var local_id: int = scene.multiplayer.get_unique_id()
 	scene._present_shot(local_id + 99, Vector3.ZERO, Vector3.ONE, false, "MISS")
 	check(reticle.shot_bounce_amplitude == 0.0, "remote shot cannot bounce local reticle")
 	scene._present_shot(local_id, Vector3.ZERO, Vector3.ONE, false, "MISS")
-	check(reticle.shot_bounce_amplitude == 12.0, "accepted local event bounces")
+	check(reticle.shot_bounce_amplitude == 0.0 and reticle.shot_gap_impulse == 0.0, "source local event adds no secondary HUD kick")
 	var center: Vector2 = reticle.get_authoritative_center()
 	reticle.notify_shot(1, 100.0)
 	check(reticle.shot_bounce_amplitude <= 45.0, "kick capped")

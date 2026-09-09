@@ -70,7 +70,10 @@ func _run() -> void:
 			total_motion += position_step
 			reload_parent_sample_count += 1
 			var pose: Dictionary = solver.call("get_debug_state")
-			if not bool(pose.get("weapon_parent_is_animation_mount", false)):
+			if (
+				StringName(pose.get("weapon_owner", &"")) != &"RELOAD_RIGHT_HAND"
+				or bool(pose.get("weapon_solver_owned", true))
+			):
 				reload_wrong_parent_count += 1
 			maximum_reload_trigger_error = maxf(
 				maximum_reload_trigger_error,
@@ -102,7 +105,7 @@ func _run() -> void:
 	_expect(saw_support_regrip, "reload reaches its saved two-hand regrip frame")
 	_expect(
 		reload_parent_sample_count > 30 and reload_wrong_parent_count == 0,
-		"every active reload frame keeps the rifle on the right-hand attachment"
+		"every active reload frame keeps right-hand reload ownership"
 	)
 	_expect(
 		maximum_reload_trigger_error <= 0.015,

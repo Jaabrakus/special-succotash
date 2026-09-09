@@ -29,7 +29,7 @@
     "bloom_recovery_speed": 17.5,
     "damage": 110.0,
     "effective_range_m": 1800.0,
-    "fire_rate_rpm": 29,
+    "fire_rate_rpm": 28.57142986894471,
     "reload_duration_seconds": 4.5,
     "full_gait_spread_deg": 1.543,
     "headshot_multiplier": 3.5,
@@ -40,7 +40,7 @@
     "max_recoil_bloom_deg": 2.6,
     "moving_spread_deg": 1.029,
     "muzzle_velocity_mps": 843.0,
-    "reserve_ammo": 30.0
+    "reserve_ammo": 50.0
   },
   "burst_size": 3,
   "camo_skin": "Factory Classic (Wood & Steel)",
@@ -72,10 +72,32 @@
     "cadence_driven_return": false,
     "base_gap_px": 5.1,
     "max_gap_px": 41.6,
-    "maximum_shot_kick_px": 50.0,
+    "maximum_shot_kick_px": 50,
     "response_speed": 26.2,
-    "shot_kick_px": 50.0,
-    "shot_kick_return": 40.0
+    "shot_kick_px": 50,
+    "shot_kick_return": 40,
+    "vrc_return_speed_px_per_second": 40,
+    "socom2_source_name": "M82A1A",
+    "socom2_stances": {
+      "STANDING": {
+        "shot_kick_px": 50,
+        "maximum_shot_kick_px": 50,
+        "shot_kick_return": 40,
+        "vrc_return_speed_px_per_second": 40
+      },
+      "CROUCHED": {
+        "shot_kick_px": 40,
+        "maximum_shot_kick_px": 50,
+        "shot_kick_return": 40,
+        "vrc_return_speed_px_per_second": 40
+      },
+      "PRONE": {
+        "shot_kick_px": 35,
+        "maximum_shot_kick_px": 50,
+        "shot_kick_return": 40,
+        "vrc_return_speed_px_per_second": 40
+      }
+    }
   },
   "scope_attachment": "None",
   "silencer_attachment": "None",

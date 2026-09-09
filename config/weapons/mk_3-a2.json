@@ -37,7 +37,7 @@
     "max_recoil_bloom_deg": 2.6,
     "moving_spread_deg": 1.029,
     "muzzle_velocity_mps": 393,
-    "reserve_ammo": 36,
+    "reserve_ammo": 60,
     "pellet_count": 8,
     "pellet_spread_deg": 3,
     "pellet_damage": 12,

@@ -101,6 +101,21 @@ func scan_imported_scenes(root_path: String, source_label: String = "AGLS") -> D
 	return results
 
 
+func scan_seal_reference() -> Dictionary:
+	var path := "res://assets/animations/seal_reference/manifest.json"
+	if not FileAccess.file_exists(path):
+		return {}
+	var manifest: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
+	if not manifest is Dictionary or int(manifest.get("version", 0)) != 1:
+		return {}
+	var results := {}
+	for entry: Dictionary in manifest.get("clips", []):
+		var clip_path := str(entry.get("path", ""))
+		if clip_path.begins_with("res://assets/animations/seal_reference/") and FileAccess.file_exists(clip_path):
+			results[str(entry.display)] = clip_path
+	return results
+
+
 func scan_authored(directory_path: String) -> Dictionary:
 	var results: Dictionary = {}
 	var directory := DirAccess.open(directory_path)
@@ -154,6 +169,10 @@ func build_entries(
 		})
 	for authored_name in authored_files.keys():
 		var authored_key := "authored_" + str(authored_name).to_snake_case()
+		if str(authored_files[authored_name]).begins_with("res://assets/animations/seal_reference/"):
+			# Human coverage badges contain brackets, which AnimationLibrary forbids
+			# in keys. File identity stays stable if a review badge changes later.
+			authored_key = "authored_seal_reference_" + str(authored_files[authored_name]).get_file().get_basename()
 		entries.append({
 			"name": StringName("dyn/" + authored_key),
 			"key": authored_key,

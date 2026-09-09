@@ -13,7 +13,7 @@
     "bloom_recovery_speed": 17.5,
     "damage": 37.0,
     "effective_range_m": 600.0,
-    "fire_rate_rpm": 400.0,
+    "fire_rate_rpm": 399.99998410542867,
     "full_gait_spread_deg": 1.543,
     "headshot_multiplier": 3.5,
     "is_silenced": false,
@@ -22,7 +22,7 @@
     "max_recoil_bloom_deg": 2.6,
     "moving_spread_deg": 1.029,
     "muzzle_velocity_mps": 725.0,
-    "reserve_ammo": 90.0
+    "reserve_ammo": 150.0
   },
   "burst_size": 3,
   "catalog_source": "reCOM zweapon.rdr",
@@ -45,10 +45,32 @@
     "cadence_driven_return": false,
     "base_gap_px": 5.1,
     "max_gap_px": 41.6,
-    "maximum_shot_kick_px": 60.0,
+    "maximum_shot_kick_px": 60,
     "response_speed": 26.2,
-    "shot_kick_px": 11.0,
-    "shot_kick_return": 50.0
+    "shot_kick_px": 11,
+    "shot_kick_return": 50,
+    "vrc_return_speed_px_per_second": 50,
+    "socom2_source_name": "552",
+    "socom2_stances": {
+      "STANDING": {
+        "shot_kick_px": 11,
+        "maximum_shot_kick_px": 60,
+        "shot_kick_return": 50,
+        "vrc_return_speed_px_per_second": 50
+      },
+      "CROUCHED": {
+        "shot_kick_px": 10,
+        "maximum_shot_kick_px": 60,
+        "shot_kick_return": 55,
+        "vrc_return_speed_px_per_second": 55
+      },
+      "PRONE": {
+        "shot_kick_px": 9,
+        "maximum_shot_kick_px": 60,
+        "shot_kick_return": 55,
+        "vrc_return_speed_px_per_second": 55
+      }
+    }
   },
   "socom_original_id": 57,
   "weapon_id": "552"

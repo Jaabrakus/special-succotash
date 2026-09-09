@@ -175,9 +175,16 @@ static func decorate_saved_profile(profile: Dictionary, weapon_id: String) -> Di
 	profile["encumbrance"] = int(record.get("encumbrance", 0))
 	profile["ammo_spec"] = (record.get("ammo_spec", {}) as Dictionary).duplicate(true)
 	profile["recom_assets"] = (record.get("recom_assets", {}) as Dictionary).duplicate(true)
-	profile["fire_modes"] = (record.get("fire_modes", ["semi"]) as Array).duplicate()
-	profile["default_fire_mode"] = String(record.get("default_fire_mode", profile.fire_modes[0]))
-	profile["burst_size"] = clampi(int(record.get("burst_size", 3)), 2, 3)
+	# Authored firing settings belong to the shared profile, not the archived
+	# catalog. Use the catalog only when seeding a new, incomplete profile.
+	if not profile.has("fire_modes"):
+		profile["fire_modes"] = (record.get("fire_modes", ["semi"]) as Array).duplicate()
+	if not profile.has("default_fire_mode"):
+		var modes: Array = profile["fire_modes"]
+		var preferred := String(record.get("default_fire_mode", "semi"))
+		profile["default_fire_mode"] = preferred if modes.has(preferred) else String(modes[0]) if not modes.is_empty() else "semi"
+	if not profile.has("burst_size"):
+		profile["burst_size"] = clampi(int(record.get("burst_size", 3)), 2, 3)
 	var catalog_ballistics: Dictionary = record.get("ballistics", {})
 	var saved_ballistics: Dictionary = profile.get("ballistics", {})
 	for field in ["effective_range_m", "max_range_m"]:

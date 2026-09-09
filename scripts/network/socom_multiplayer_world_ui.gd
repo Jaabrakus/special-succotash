@@ -1,5 +1,6 @@
 extends "res://scripts/network/socom_multiplayer_objectives.gd"
 
+const ReticleStanceProfile := preload("res://scripts/weapons/weapon_reticle_stance_profile.gd")
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed(&"toggle_fire_mode") and not event.is_echo() \
@@ -369,10 +370,13 @@ func _refresh_player_state() -> void:
 		return
 	if reticle != null:
 		var profile: Dictionary = equipped_config.get("reticle", {}).duplicate(true)
+		var posture := StringName(local_operator.get_posture_name()) if local_operator != null else &"STANDING"
+		profile = ReticleStanceProfile.resolve(profile, posture)
+		profile["weapon_category"] = String(equipped_config.get("category", ""))
 		profile["fire_interval_seconds"] = _configured_fire_interval()
 		if local_camera != null:
 			profile["camera_owned_aim"] = true
-			local_camera.configure_reticle_climb(profile, String(equipped_config.get("weapon_id", "")))
+			local_camera.configure_reticle_climb(profile, String(equipped_config.get("weapon_id", "")), true)
 			profile["functional_aim_climb_enabled"] = local_camera.reticle_climb_enabled()
 			reticle.screen_center_override = local_camera.reticle_screen_normalized * get_viewport().get_visible_rect().size
 		reticle.apply_profile(profile)

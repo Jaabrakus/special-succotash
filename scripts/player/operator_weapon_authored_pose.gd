@@ -12,7 +12,7 @@ static func apply_action(pose: Node3D, reload_action_active: bool, reload_suppor
 	pose._release_trigger_hand_grip_lock()
 	pose._release_support_hand_grip_lock()
 	if reload_action_active:
-		pose._attach_reload_weapon_to_right_hand()
+		pose._attach_reload_weapon_to_right_hand(posture, delta)
 	elif WeaponOwnershipContract.weapon_uses_action_follow(pose.weapon_owner):
 		pose._update_action_weapon_follow(
 			delta,
@@ -145,10 +145,20 @@ static func apply_hand_follow(pose: Node3D, aim_yaw: float, aim_pitch: float, re
 		# accepted shot already points at the reticle. Only this bounded rigid
 		# correction receives the optional shot weight; torso/arm blending and
 		# ownership still use the original readiness scalar.
+		var before_basis: Basis = pose.weapon_node.global_basis.orthonormalized()
+		var before_hand: Basis = pose._right_hand_grip_world_transform().basis
 		pose._align_hand_owned_weapon_root_to_aim(
 			animation_aim_direction,
 			accepted_shot_aim_weight if accepted_shot_aim_weight >= 0.0 else ready_weight
 		)
+		if pose.legacy_pistol_grip_active:
+			# The gun and trigger wrist undergo the same rigid aim correction.
+			# Preserve their relative grasp instead of bending the gun out of it.
+			pose.trigger_hand_target.global_transform = Transform3D(pose.weapon_node.global_basis.orthonormalized() * before_basis.inverse() * before_hand, pose.trigger_socket.global_position)
+			pose.right_elbow_pole.global_position = pose._bone_world_position(&"mixamorig_RightForeArm")
+			pose.trigger_hand_grip_locked = true
+			pose.right_hand_ik.override_tip_basis = true
+			SocketIK.solve(pose.skeleton, pose.bone_indices, pose.right_hand_ik, pose.trigger_hand_target, pose.right_elbow_pole, &"mixamorig_RightHand", pose.right_palm_anchor_local, true, 1.0, 8)
 	if pose.current_weight > 0.001:
 		pose.support_hand_target.global_position = pose.support_socket.global_position
 		var raw_support_pose: Variant = pose.weapon_node.get_meta(

@@ -70,6 +70,83 @@ var last_prone_axis_input_error_deg: float = 0.0
 var last_prone_axis_residual_error_deg: float = 0.0
 var last_prone_axis_correction_deg: float = 0.0
 var last_peek_amount: float = 0.0
+var authored_peek_clips: Dictionary = {}
+var authored_peek_family: StringName = &"TWO_HAND_RIFLE"
+var peek_travel_weight: float = 0.0
+var last_authored_peek_source := ""
+var preserve_authored_body := false
+var legacy_pistol_frame_weight := 0.0
+var legacy_pistol_reference_hips := Quaternion.IDENTITY
+
+var preserve_grounded_lean_legs := false
+
+func configure_authored_peek(profile: Dictionary) -> void:
+	preserve_grounded_lean_legs = bool(profile.get("preserve_grounded_legs", false))
+	authored_peek_clips.clear()
+	if not bool(profile.get("enabled", false)):
+		return
+	for family: String in profile.get("families", {}):
+		var postures: Dictionary = profile.families[family]
+		for posture: String in postures:
+			for side: String in ["left", "right"]:
+				var path := str(postures[posture].get(side, ""))
+				if not path.begins_with("res://assets/animations/seal_reference/"):
+					continue
+				var clip := load(path) as Animation
+				if clip != null:
+					# A held pose samples the final key, never the catalog loop back
+					# to neutral. Duplicate so Studio's source remains unchanged.
+					clip = clip.duplicate(true) as Animation
+					clip.loop_mode = Animation.LOOP_NONE
+					# Decoded transition streams include a terminal closure sample
+					# identical to frame zero. A held lean ends at the preceding key.
+					for track in clip.get_track_count():
+						if clip.track_get_type(track) != Animation.TYPE_ROTATION_3D or not "Spine" in str(clip.track_get_path(track)):
+							continue
+						var count := clip.track_get_key_count(track)
+						if count > 2:
+							var first: Quaternion = clip.track_get_key_value(track, 0)
+							var last: Quaternion = clip.track_get_key_value(track, count - 1)
+							var previous: Quaternion = clip.track_get_key_value(track, count - 2)
+							if first.angle_to(last) < 0.001 and first.angle_to(previous) > 0.01:
+								clip.length = clip.track_get_key_time(track, count - 2)
+								break
+					authored_peek_clips[family + "/" + posture + "/" + side] = clip
+
+func _apply_authored_peek(posture: StringName, amount: float) -> bool:
+	last_authored_peek_source = ""
+	var side := "left" if amount < 0.0 else "right"
+	var key := str(authored_peek_family) + "/" + str(posture) + "/" + side
+	var clip: Animation = authored_peek_clips.get(key)
+	if clip == null or skeleton == null:
+		return false
+	# The held SEAL pose includes arms and shoulders, not a procedural lean
+	# approximation. Weapon contact runs afterward against these authored arms.
+	var maximum_angle := 0.0
+	for track in clip.get_track_count():
+		if clip.track_get_type(track) != Animation.TYPE_ROTATION_3D:
+			continue
+		var bone := str(clip.track_get_path(track)).get_slice(":", 1)
+		var index := skeleton.find_bone(bone)
+		if index < 0:
+			continue
+		var initial := clip.rotation_track_interpolate(track, 0.0)
+		var sample := clip.rotation_track_interpolate(track, absf(amount) * clip.length)
+		var blend_weight := clampf(absf(amount), 0.0, 1.0)
+		if bone.ends_with("Hips") or "Leg" in bone or "Foot" in bone or "Toe" in bone:
+			if preserve_grounded_lean_legs and posture in [&"STANDING", &"CROUCHED"]:
+				continue
+			# Walking/crawling legs remain driven by canonical locomotion, not a
+			# held full-body lean endpoint. Stationary poses remain unchanged.
+			blend_weight *= 1.0 - clampf(peek_travel_weight, 0.0, 1.0)
+		var delta := (initial.inverse() * sample).normalized()
+		maximum_angle = maxf(maximum_angle, rad_to_deg(Quaternion.IDENTITY.angle_to(delta)))
+		skeleton.set_bone_pose_rotation(index, skeleton.get_bone_pose_rotation(index).slerp(
+			sample, blend_weight
+		).normalized())
+	last_peek_roll_deg = maximum_angle
+	last_authored_peek_source = str(clip.get_meta("source_name", ""))
+	return true
 var last_peek_roll_deg: float = 0.0
 var last_chest_square_correction_deg: float = 0.0
 var last_shoulder_square_error_deg: float = 0.0
@@ -220,6 +297,28 @@ func apply(
 	# Fade only their duplicate procedural contribution with the actual source
 	# blend; retain the normal pass for legacy moving clips and other weapons.
 	var unbaked_posture_weight := 1.0 - clampf(authored_posture_weight, 0.0, 1.0)
+	# Reference clips already author the pelvis/chest relationship. Legacy
+	# cleanup for unrelated takes must not flatten that source pose.
+	if preserve_authored_body:
+		post_layer_weight = 0.0
+		neutral_hip_roll_trim_deg = 0.0
+		force_square_hips = false
+		prone_axis_weight = 0.0
+		standing_idle_pelvis_weight = 0.0
+		force_square_idle_reference = false
+		lower_body_separation_weight = 0.0
+		strafe_hip_yaw_retention = 0.0
+		strafe_left_square_weight = 0.0
+		strafe_right_shoulder_yaw = 0.0
+		rifle_movement_isolation_weight = 0.0
+	# A masked legacy torso expects its own pelvis frame. Counter the source
+	# pelvis only at the spine; never rotate the SEAL hips or moving legs.
+	if legacy_pistol_frame_weight > 0.001:
+		var hips: int = bone_indices.get(&"hips", -1)
+		var spine: int = bone_indices.get(&"spine", -1)
+		if hips >= 0 and spine >= 0:
+			var correction := skeleton.get_bone_pose_rotation(hips).inverse() * legacy_pistol_reference_hips
+			skeleton.set_bone_pose_rotation(spine, Quaternion.IDENTITY.slerp(correction, legacy_pistol_frame_weight) * skeleton.get_bone_pose_rotation(spine))
 	_apply_default_hip_leveling(
 		posture_name,
 		neutral_hip_roll_trim_deg,
@@ -340,7 +439,7 @@ func apply(
 		# This branch already squared the visible shoulder bar and included that
 		# exact chest delta in the single head pass. Do not square it a second time.
 		pass
-	elif procedural_square_weight > 0.001 and (force_square_shoulders or normalized_ready >= 0.50):
+	elif not preserve_authored_body and last_authored_peek_source.is_empty() and procedural_square_weight > 0.001 and (force_square_shoulders or normalized_ready >= 0.50):
 		last_shoulder_square_weight = procedural_square_weight
 		_apply_square_shoulders(
 			world_aim_target, procedural_square_weight,
@@ -548,6 +647,8 @@ func get_debug_state() -> Dictionary:
 		"prone_axis_residual_error_deg": last_prone_axis_residual_error_deg,
 		"peek_amount": last_peek_amount,
 		"peek_roll_deg": last_peek_roll_deg,
+		"authored_peek_source": last_authored_peek_source,
+		"preserve_authored_body": preserve_authored_body,
 		"chest_square_correction_deg": last_chest_square_correction_deg,
 		"shoulder_square_error_deg": last_shoulder_square_error_deg,
 		"shoulder_level_error_cm": last_shoulder_level_error_cm,
@@ -828,6 +929,9 @@ func _apply_full_body_peek(posture_name: StringName, amount: float) -> void:
 	last_peek_amount = signed_amount
 	if absf(signed_amount) <= 0.0001:
 		last_peek_roll_deg = 0.0
+		last_authored_peek_source = ""
+		return
+	if _apply_authored_peek(posture_name, signed_amount):
 		return
 	var pose_amount := -signed_amount
 	var hip_roll_deg := 5.0

@@ -1,6 +1,8 @@
 class_name SocomMantleMotor
 extends RefCounted
 
+const StairCollision := preload("res://scripts/maps/socom_stair_collision.gd")
+
 ## AGLS-style ledge probe and collision-body motion for low vaults.
 ##
 ## The motor never writes a Node3D transform. It returns a velocity to the
@@ -22,6 +24,79 @@ var duration: float = 0.0
 var start_point := Vector3.ZERO
 var apex_point := Vector3.ZERO
 var landing_point := Vector3.ZERO
+var climb_profile: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://config/ledge_climb.json"))
+
+
+func probe_climb(body: CharacterBody3D, world_direction: Vector3, capsule_height: float, capsule_radius: float) -> Dictionary:
+	if not bool(climb_profile.get("enabled", false)) or body == null or not body.is_inside_tree():
+		return _rejection("Ledge climbing unavailable")
+	var direction := world_direction.slide(Vector3.UP).normalized()
+	if direction.length_squared() < 0.9:
+		return _rejection("Climbing needs movement toward the ledge")
+	var foot := body.global_position
+	var reach := float(climb_profile.raised_hand_reach_m)
+	var space := body.get_world_3d().direct_space_state
+	var excluded: Array[RID] = [body.get_rid()]
+	# Feet already include the current physical jump height. Never add the
+	# theoretical jump apex again, and never derive authority from posed bones.
+	var wall: Dictionary = {}
+	for fraction: float in [0.25, 0.5, 0.75, 0.95]:
+		var origin := foot + Vector3.UP * reach * fraction
+		wall = space.intersect_ray(_ray(origin, origin + direction * (capsule_radius + float(climb_profile.forward_reach_m)), body.collision_mask, excluded))
+		if not wall.is_empty():
+			break
+	if wall.is_empty() or not _climb_surface_allowed(wall.collider):
+		return _rejection("No climbable solid face")
+	var normal: Vector3 = wall.normal
+	if absf(normal.y) > 0.35 or normal.dot(direction) > -0.25:
+		return _rejection("Not a ledge face")
+	var sample: Vector3 = wall.position + direction * 0.06
+	var top := space.intersect_ray(_ray(Vector3(sample.x, foot.y + reach + 0.01, sample.z), Vector3(sample.x, foot.y + float(climb_profile.minimum_ledge_above_feet_m), sample.z), body.collision_mask, excluded))
+	if top.is_empty() or not _climb_surface_allowed(top.collider):
+		return _rejection("Top is out of raised-hand reach")
+	var top_point: Vector3 = top.position
+	if top_point.y - foot.y > reach or Vector3(top.normal).y < cos(body.floor_max_angle):
+		return _rejection("Top is too high or too steep")
+	var inset := capsule_radius + float(climb_profile.stand_inset_extra_m)
+	var target := top_point + direction * inset
+	var side := direction.cross(Vector3.UP)
+	# A center ray alone could accept a thin rail or the far side of a gap.
+	for offset: Vector3 in [Vector3.ZERO, side * capsule_radius * 0.85, -side * capsule_radius * 0.85, direction * capsule_radius * 0.85, -direction * capsule_radius * 0.85]:
+		var support := space.intersect_ray(_ray(target + offset + Vector3.UP * 0.05, target + offset - Vector3.UP * 0.08, body.collision_mask, excluded))
+		if support.is_empty() or not _climb_surface_allowed(support.collider) or Vector3(support.normal).y < cos(body.floor_max_angle):
+			return _rejection("Insufficient walkable top for the feet")
+	target.y += float(climb_profile.clearance_m)
+	var apex := Vector3(foot.x, target.y, foot.z)
+	# Sweep the actual standing body up then across. test_move is query-only;
+	# only the controller later writes velocity and calls move_and_slide.
+	for segment: Array in [[foot, apex], [apex, target]]:
+		var from: Vector3 = segment[0]
+		var to: Vector3 = segment[1]
+		var pose := body.global_transform
+		pose.origin = from
+		if body.test_move(pose, to - from):
+			return _rejection("Climb path or overhead space blocked")
+	if not _capsule_has_room(space, body, target, capsule_height, capsule_radius, excluded):
+		return _rejection("Standing space blocked")
+	return {"accepted": true, "action_type": &"climb", "anchor": top_point, "surface_normal": normal,
+		"start_point": foot, "apex_point": apex, "landing_point": target,
+		"duration": clampf((foot.distance_to(apex) + apex.distance_to(target)) / 3.0,
+			float(climb_profile.minimum_duration_seconds), float(climb_profile.maximum_duration_seconds))}
+
+
+func _climb_surface_allowed(collider: Object) -> bool:
+	if StairCollision.is_stair(collider): return false
+	# Dynamic bodies/players need moving-anchor support before they are safe.
+	if not collider is StaticBody3D or collider is AnimatableBody3D:
+		return false
+	var node := collider as Node
+	var tagged := false
+	while node != null:
+		if node.is_in_group(StringName(climb_profile.blocked_group)):
+			return false
+		tagged = tagged or node.is_in_group(StringName(climb_profile.allowed_group))
+		node = node.get_parent()
+	return tagged or not bool(climb_profile.require_climbable_group)
 
 
 func probe(
@@ -49,6 +124,8 @@ func probe(
 	))
 	if wall_hit.is_empty():
 		return _rejection("No obstacle in the movement direction")
+	if StairCollision.is_stair(wall_hit.get("collider")):
+		return _rejection("Stairs use ordinary locomotion, not vaulting")
 	var wall_normal: Vector3 = wall_hit.get("normal", Vector3.UP)
 	if wall_normal.y > 0.35 or wall_normal.dot(direction) > -0.25:
 		return _rejection("The forward surface is not a vault face")
@@ -125,17 +202,18 @@ func begin(context: Dictionary) -> bool:
 	start_point = context.get("start_point", Vector3.ZERO) as Vector3
 	apex_point = context.get("apex_point", start_point) as Vector3
 	landing_point = context.get("landing_point", apex_point) as Vector3
+	var climbing := StringName(context.get("action_type", &"vault")) == &"climb"
 	duration = clampf(
 		float(context.get("duration", minimum_duration)),
-		minimum_duration,
-		maximum_duration
+		float(climb_profile.minimum_duration_seconds) if climbing else minimum_duration,
+		float(climb_profile.maximum_duration_seconds) if climbing else maximum_duration
 	)
 	elapsed = 0.0
 	active = true
 	return true
 
 
-func solve(current_position: Vector3, delta: float) -> Dictionary:
+func solve(current_position: Vector3, delta: float, climbing: bool = false) -> Dictionary:
 	if not active:
 		return {"handled": false, "finished": false, "velocity": Vector3.ZERO}
 	var safe_delta := maxf(delta, 0.0001)
@@ -143,6 +221,11 @@ func solve(current_position: Vector3, delta: float) -> Dictionary:
 	elapsed = minf(elapsed + safe_delta, duration + 0.35)
 	var phase_after := clampf(elapsed / maxf(duration, 0.001), 0.0, 1.0)
 	var target := _quadratic_bezier(start_point, apex_point, landing_point, phase_after)
+	if climbing:
+		# Lift clear before moving inward; a diagonal curve cuts through the wall.
+		var lift_phase := clampf(phase_after / 0.65, 0.0, 1.0)
+		var over_phase := clampf((phase_after - 0.65) / 0.35, 0.0, 1.0)
+		target = start_point.lerp(apex_point, smoothstep(0.0, 1.0, lift_phase)) if phase_after < 0.65 else apex_point.lerp(landing_point, smoothstep(0.0, 1.0, over_phase))
 	var velocity := (target - current_position) / safe_delta
 	var arrived := phase_before >= 1.0 and current_position.distance_to(landing_point) <= 0.12
 	var timed_out := elapsed >= duration + 0.35

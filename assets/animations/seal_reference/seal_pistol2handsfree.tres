@@ -1,0 +1,104 @@
+[gd_resource type="Animation" format=3]
+
+[resource]
+resource_name = "seal_pistol2handsfree"
+length = 0.16666667
+tracks/0/type = "rotation_3d"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:mixamorig_Spine")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = PackedFloat32Array(0, 1, 0.17100455, -0.25716713, 0.039134447, 0.950311, 0.033333335, 1, 0.18269233, -0.21935403, 0.030394748, 0.95790577, 0.06666667, 1, 0.19309486, -0.18090197, 0.02715165, 0.963977, 0.1, 1, 0.20283195, -0.1438259, 0.0254572, 0.968259, 0.13333334, 1, 0.2130505, -0.10641629, 0.02466985, 0.97091526, 0.16666667, 1, 0.17100455, -0.25716713, 0.039134447, 0.950311)
+tracks/1/type = "rotation_3d"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:mixamorig_Spine2")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = PackedFloat32Array(0, 1, -0.034902938, -0.0039542965, -0.0004757768, 0.9993828, 0.033333335, 1, -0.034780778, -0.0071394118, -0.00011324708, 0.9993695, 0.06666667, 1, -0.03471917, -0.00965822, 0.00016183041, 0.9993504, 0.1, 1, -0.0345649, -0.012975279, 0.00041317657, 0.9993181, 0.13333334, 1, -0.03425668, -0.018116323, 0.00081999623, 0.9992486, 0.16666667, 1, -0.034902938, -0.0039542965, -0.0004757768, 0.9993828)
+tracks/2/type = "rotation_3d"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath(".:mixamorig_Neck")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = PackedFloat32Array(0, 1, 0.01482261, -0.018912304, 0.022820491, 0.99945086, 0.033333335, 1, 0.01818655, -0.031794555, 0.017923404, 0.9991682, 0.06666667, 1, 0.014500693, -0.044624258, 0.0038644902, 0.9988912, 0.1, 1, 0.010989318, -0.055721804, -0.0059604873, 0.9983681, 0.13333334, 1, 0.007172266, -0.06348338, -0.012608505, 0.9978775, 0.16666667, 1, 0.01482261, -0.018912304, 0.022820491, 0.99945086)
+tracks/3/type = "rotation_3d"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath(".:mixamorig_Head")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = PackedFloat32Array(0, 1, 0.062562816, -0.019133875, -0.017448489, 0.99770504, 0.033333335, 1, 0.06353439, -0.031053165, -0.0044285054, 0.9974866, 0.06666667, 1, 0.06361234, -0.04193995, 0.014771368, 0.9969836, 0.1, 1, 0.0603099, -0.051739737, 0.02292393, 0.9965743, 0.13333334, 1, 0.051308118, -0.058409963, 0.030767528, 0.9964984, 0.16666667, 1, 0.06256282, -0.019133875, -0.017448489, 0.99770504)
+tracks/4/type = "rotation_3d"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath(".:mixamorig_LeftShoulder")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/keys = PackedFloat32Array(0, 1, -0.5650013, -0.40092686, 0.57759655, -0.43175617, 0.033333335, 1, -0.56500137, -0.40092695, 0.5775966, -0.4317562, 0.06666667, 1, -0.56500137, -0.40092698, 0.5775966, -0.43175614, 0.1, 1, -0.56500137, -0.40092686, 0.57759655, -0.43175614, 0.13333334, 1, -0.56500137, -0.40092686, 0.5775966, -0.4317561, 0.16666667, 1, -0.5650013, -0.40092686, 0.57759655, -0.43175617)
+tracks/5/type = "rotation_3d"
+tracks/5/imported = false
+tracks/5/enabled = true
+tracks/5/path = NodePath(".:mixamorig_LeftArm")
+tracks/5/interp = 1
+tracks/5/loop_wrap = true
+tracks/5/keys = PackedFloat32Array(0, 1, 0.30100435, 0.058128953, 0.3472762, 0.8862374, 0.033333335, 1, 0.30343494, 0.1350408, 0.2942939, 0.8961486, 0.06666667, 1, 0.31379333, 0.18660715, 0.23887126, 0.8998067, 0.1, 1, 0.317171, 0.21643437, 0.18959993, 0.90366507, 0.13333334, 1, 0.307956, 0.23055154, 0.15310171, 0.91025764, 0.16666667, 1, 0.30100435, 0.058128953, 0.3472762, 0.8862374)
+tracks/6/type = "rotation_3d"
+tracks/6/imported = false
+tracks/6/enabled = true
+tracks/6/path = NodePath(".:mixamorig_LeftForeArm")
+tracks/6/interp = 1
+tracks/6/loop_wrap = true
+tracks/6/keys = PackedFloat32Array(0, 1, 0.024283439, 0.02465721, 0.68417805, 0.72849345, 0.033333335, 1, 0.022475075, 0.026057718, 0.7237358, 0.68921876, 0.06666667, 1, 0.021473607, 0.02677734, 0.744082, 0.66720605, 0.1, 1, 0.021240963, 0.026939219, 0.7486553, 0.6620712, 0.13333334, 1, 0.021061193, 0.027062975, 0.7521552, 0.6580932, 0.16666667, 1, 0.024283439, 0.02465721, 0.68417805, 0.72849345)
+tracks/7/type = "rotation_3d"
+tracks/7/imported = false
+tracks/7/enabled = true
+tracks/7/path = NodePath(".:mixamorig_LeftHand")
+tracks/7/interp = 1
+tracks/7/loop_wrap = true
+tracks/7/keys = PackedFloat32Array(0, 1, -0.0028104745, 0.12473495, -0.044893976, 0.9911699, 0.033333335, 1, 0.011302859, 0.22678235, -0.11373301, 0.967216, 0.06666667, 1, 0.018740594, 0.24373865, -0.10776461, 0.9636531, 0.1, 1, 0.008035304, 0.18129933, -0.06429291, 0.98129123, 0.13333334, 1, 0.0034963673, 0.11365194, -0.025114141, 0.993197, 0.16666667, 1, -0.0028104745, 0.12473495, -0.044893976, 0.9911699)
+tracks/8/type = "rotation_3d"
+tracks/8/imported = false
+tracks/8/enabled = true
+tracks/8/path = NodePath(".:mixamorig_RightShoulder")
+tracks/8/interp = 1
+tracks/8/loop_wrap = true
+tracks/8/keys = PackedFloat32Array(0, 1, 0.587627, -0.3739256, 0.58092606, 0.42118782, 0.033333335, 1, 0.5903629, -0.3653665, 0.59180355, 0.40956998, 0.06666667, 1, 0.5936834, -0.35049197, 0.6107076, 0.3895274, 0.1, 1, 0.5921782, -0.3409017, 0.62798923, 0.3724789, 0.13333334, 1, 0.58107275, -0.35152233, 0.63368213, 0.37045038, 0.16666667, 1, 0.587627, -0.3739256, 0.58092606, 0.42118782)
+tracks/9/type = "rotation_3d"
+tracks/9/imported = false
+tracks/9/enabled = true
+tracks/9/path = NodePath(".:mixamorig_RightArm")
+tracks/9/interp = 1
+tracks/9/loop_wrap = true
+tracks/9/keys = PackedFloat32Array(0, 1, 0.2347236, -0.19705936, -0.34170997, 0.8884294, 0.033333335, 1, 0.2146558, -0.2520843, -0.33912307, 0.88055205, 0.06666667, 1, 0.20502809, -0.33136022, -0.2712045, 0.8801206, 0.1, 1, 0.23838629, -0.3642499, -0.21121064, 0.875148, 0.13333334, 1, 0.34578037, -0.27552062, -0.20267932, 0.87375367, 0.16666667, 1, 0.2347236, -0.19705936, -0.34170997, 0.8884294)
+tracks/10/type = "rotation_3d"
+tracks/10/imported = false
+tracks/10/enabled = true
+tracks/10/path = NodePath(".:mixamorig_RightForeArm")
+tracks/10/interp = 1
+tracks/10/loop_wrap = true
+tracks/10/keys = PackedFloat32Array(0, 1, 0.02011886, -0.025849873, -0.72947353, 0.6832243, 0.033333335, 1, 0.021560144, -0.024843508, -0.7005503, 0.71284443, 0.06666667, 1, 0.023676531, -0.023234684, -0.65436304, 0.7554526, 0.1, 1, 0.028243724, -0.019128062, -0.5366569, 0.8431108, 0.13333334, 1, 0.03449639, -0.0113560185, -0.31445396, 0.94857776, 0.16666667, 1, 0.020118926, -0.025849873, -0.72947353, 0.6832243)
+tracks/11/type = "rotation_3d"
+tracks/11/imported = false
+tracks/11/enabled = true
+tracks/11/path = NodePath(".:mixamorig_RightHand")
+tracks/11/interp = 1
+tracks/11/loop_wrap = true
+tracks/11/keys = PackedFloat32Array(0, 1, 0.08510636, -0.22119272, 0.09372264, 0.9669782, 0.033333335, 1, 0.07430117, -0.18161401, 0.11802278, 0.9734302, 0.06666667, 1, 0.042343978, -0.052158713, 0.14955215, 0.9864688, 0.1, 1, -0.0067005567, 0.12081992, 0.16692442, 0.97851616, 0.13333334, 1, 0.036140617, -0.26614666, 0.21779014, 0.93831086, 0.16666667, 1, 0.08510632, -0.22119275, 0.09372268, 0.96697813)
+metadata/seal_reference = true
+metadata/source_name = "seal_pistol2handsfree"
+metadata/source_sha256 = "3ec51b13a1c8fdf1456374d31dc1e8f1d9ab865ae3f19a02f41dbb81af8f2452"
+metadata/source_settings = {
+"NoFire": [],
+"NoInterrupt": [],
+"NoPitchtwist": [],
+"anim_name": "seal_pistol2handsfree",
+"looped": 0.0,
+"max_velocity": -1.0,
+"playback": 0.55
+}
+metadata/source_static = false
+metadata/source_coverage = "upper"
+metadata/target_rig_sha256 = "c1ef12342140f66db26e74c85b4ca6bc82c2ce772b3d2f2406d647b49e093016"

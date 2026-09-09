@@ -38,6 +38,10 @@ func cancel_reload_action() -> bool:
 	return true
 
 func _consider_cosmetic_transition() -> void:
+	if bool(animation_profile.locomotion.get("preserve_source_locomotion", false)):
+		# Unconverted start/stop/turn takes must not interrupt source gait. The
+		# existing graph still crossfades movement and idle; physics is unchanged.
+		return
 	var request: Dictionary = transition_state_machine.evaluate(
 		movement_direction,
 		movement_speed_normalized,

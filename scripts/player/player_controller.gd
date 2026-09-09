@@ -8,6 +8,8 @@ const OperatorOrientationController := preload("res://scripts/player/operator_or
 const MovementCommand := preload("res://scripts/network/socom_movement_command.gd")
 const TraversalRuntime := preload("res://scripts/traversal/socom_traversal_runtime.gd")
 const JumpComboIntent := preload("res://scripts/player/jump_direction_combo_intent.gd")
+const LeanLatch := preload("res://scripts/player/player_lean_latch.gd")
+const StepProbe := preload("res://scripts/player/player_step_probe.gd")
 
 @export var move_speed: float = 6.5
 @export var strafe_speed: float = 6.5
@@ -89,6 +91,7 @@ var stance_hold_threshold: float = 0.20
 var jump_was_held: bool = false
 var jump_requested: bool = false
 var peek_amount: float = 0.0
+var lean_latch := LeanLatch.new()
 var _strafe_burst_frames_remaining: int = 0
 var _strafe_burst_decay_remaining: float = 0.0
 var _last_lateral_input_sign: int = 0
@@ -143,6 +146,12 @@ func is_dead_for_presentation() -> bool:
 	return current_health <= 0.0
 
 
+func is_fire_locked_by_mobility() -> bool:
+	# Slides and every dive variant share the committed DIVING state. The
+	# CharacterBody owns that state; weapon systems only consume this decision.
+	return motion_state == MotionState.DIVING or traversal.is_hanging() or traversal.is_on_ladder() or (traversal.is_mantling() and StringName(traversal.state_machine.context.get("action_type", &"")) == &"climb")
+
+
 func take_explosion_damage(
 	damage: float,
 	_explosion_origin: Vector3,
@@ -158,6 +167,8 @@ func take_explosion_damage(
 
 func _physics_process(delta: float) -> void:
 	if is_dead_for_presentation():
+		lean_latch.reset()
+		peek_amount = 0.0
 		reset_jump_combos()
 		movement_command_queue.clear()
 		jump_requested = false
@@ -172,7 +183,15 @@ func _physics_process(delta: float) -> void:
 	var input: Vector2 = command.move_axis
 	var automated_world_direction: Vector3 = command.world_move_override
 	var authoritative_aim_yaw: float = command.aim_yaw
-	var peek_target: float = clampf(command.peek_axis, -1.0, 1.0)
+	var peek_eligible: bool = (
+		motion_state in [MotionState.STANDING, MotionState.CROUCHED, MotionState.PRONE, MotionState.LANDING]
+		and not traversal.is_swimming() and not traversal.is_mantling()
+		and not command.jump_pressed and not jump_requested and not command.dive_pressed
+	)
+	var was_leaning: bool = lean_latch.is_active()
+	var peek_target: float = lean_latch.update(command, peek_eligible, delta)
+	if lean_latch.is_active() and not was_leaning:
+		reset_jump_combos()
 	if OS.get_cmdline_user_args().has("--peek-left-test"):
 		peek_target = -1.0
 	elif OS.get_cmdline_user_args().has("--peek-right-test"):
@@ -210,6 +229,10 @@ func _physics_process(delta: float) -> void:
 			automated_world_direction = Vector3.BACK
 	elif OS.get_cmdline_user_args().has("--automated-test"):
 		input = Vector2.ZERO
+	if lean_latch.is_active() and not lean_latch.previous_axis_active:
+		# Ignore stick noise while planted; taps otherwise enter the same solver.
+		input = Vector2.ZERO
+		automated_world_direction = Vector3.ZERO
 	# Travel follows raw aim authority, never the rendered camera transform.
 	# A wall post-solve can move the lens without bending WASD travel.
 	var aim_basis := Basis(Vector3.UP, authoritative_aim_yaw)
@@ -261,6 +284,32 @@ func _physics_process(delta: float) -> void:
 	)
 	var jump_started: bool = jump_requested or command.jump_pressed
 	jump_requested = false
+	if traversal.is_hanging() or traversal.is_on_ladder():
+		reset_jump_combos()
+		var ladder_input := traversal.ladder_jump_input(jump_started, command.jump_held, delta) if traversal.is_on_ladder() else {"detach": false, "slide": false}
+		if command.crouch_held or bool(ladder_input.detach):
+			traversal.leave_grip()
+			motion_state = MotionState.AIRBORNE
+			velocity = Vector3.ZERO
+			automatic_vault_retry_remaining = 0.75
+		elif jump_started and traversal.pull_up(self):
+			_advance_automatic_vault(authoritative_aim_yaw, delta)
+			return
+		else:
+			var grip_axis := 0.0 if traversal.is_on_ladder() and bool(traversal.state_machine.context.get("jump_tracking", false)) else -input.y
+			velocity = traversal.solve_grip(self, grip_axis, delta, bool(ladder_input.slide)).velocity
+			horizontal_response_mode = &"VAULTING"
+			_move_body_with_collision()
+			if not traversal.is_active():
+				motion_state = MotionState.AIRBORNE
+				automatic_vault_retry_remaining = 0.45
+			was_on_floor = _movement_floor_contact()
+			return
+	if actions_enabled and jump_started and posture == MotionState.STANDING and motion_state in [MotionState.STANDING, MotionState.LANDING, MotionState.AIRBORNE] and automatic_vault_retry_remaining <= 0.0 and not lean_latch.is_active() and traversal.try_enter_ladder(self, desired_dir):
+		reset_jump_combos()
+		motion_state = MotionState.VAULTING
+		velocity = Vector3.ZERO
+		return
 	# Reload is a filtered upper-body action. Jump remains an immediate
 	# CharacterBody3D movement decision and continues under the same reload
 	# playhead; it must not cancel reload or queue a delayed jump.
@@ -268,9 +317,16 @@ func _physics_process(delta: float) -> void:
 		reset_jump_combos()
 		_advance_automatic_vault(authoritative_aim_yaw, delta)
 		return
+	# Jump at a reachable ledge, or keep Jump held while approaching in air.
+	# A rejected probe falls through to the ordinary jump/gravity path.
+	if actions_enabled and not lean_latch.is_active() and mobility_combo_kind == &"" and (jump_started or (command.jump_held and motion_state == MotionState.AIRBORNE)) and _try_begin_automatic_vault(desired_dir, true):
+		reset_jump_combos()
+		_advance_automatic_vault(authoritative_aim_yaw, delta)
+		return
 	if (
 		actions_enabled
 		and not jump_started
+		and not lean_latch.is_active()
 		and mobility_combo_kind == &"" and not pending_jump_slide and not jump_combo_intent.armed
 		and _try_begin_automatic_vault(desired_dir)
 	):
@@ -285,7 +341,8 @@ func _physics_process(delta: float) -> void:
 			jump_started,
 			command
 		)
-		_update_jump_combo(command, launched_jump_this_frame, delta)
+		if not lean_latch.is_active():
+			_update_jump_combo(command, launched_jump_this_frame, delta)
 
 	if motion_state == MotionState.DIVING or motion_state == MotionState.ROLLING:
 		_advance_committed_action(delta)
@@ -303,11 +360,18 @@ func _physics_process(delta: float) -> void:
 		* competitive_strafe_scale
 	)
 	var desired_velocity := desired_dir * speed
+	if lean_latch.is_active():
+		# Absolute speed cap: diagonal travel and strafe boosts cannot amplify
+		# a peek step. Gravity and collision still use the normal body path.
+		desired_velocity = desired_dir * minf(speed, lean_latch.peek_speed())
 	# Accelerate as one horizontal vector. Advancing X and Z separately makes
 	# diagonal response up to sqrt(2) times stronger than cardinal response.
 	var horizontal_velocity := Vector2(velocity.x, velocity.z)
 	var horizontal_target := Vector2(desired_velocity.x, desired_velocity.z)
-	if posture == MotionState.CROUCHED and _movement_floor_contact() and bool(jump_combo_intent.profile.get("instant_crouch_response", false)):
+	if lean_latch.is_active():
+		horizontal_response_mode = &"LEAN_PEEK"
+		horizontal_velocity = horizontal_target
+	elif posture == MotionState.CROUCHED and _movement_floor_contact() and bool(jump_combo_intent.profile.get("instant_crouch_response", false)):
 		horizontal_response_mode = &"INSTANT_CROUCH"
 		horizontal_velocity = horizontal_target
 	elif instant_strafe_response and absf(input.x) > 0.001:
@@ -336,7 +400,7 @@ func _physics_process(delta: float) -> void:
 
 	_update_orientation(desired_dir, authoritative_aim_yaw, delta)
 
-	_move_body_with_collision()
+	_move_body_with_collision(delta)
 	_update_air_and_landing_state(delta)
 	was_on_floor = _movement_floor_contact()
 
@@ -434,6 +498,8 @@ func queue_movement_command(command) -> void:
 func set_local_input_enabled(enabled: bool) -> void:
 	local_input_enabled = enabled
 	if not enabled:
+		lean_latch.reset()
+		peek_amount = 0.0
 		jump_combo_intent.reset()
 		pending_jump_slide = false
 
@@ -468,6 +534,7 @@ func _capture_local_movement_command():
 	command.crouch_held = Input.is_action_pressed("crouch")
 	command.crouch_released = Input.is_action_just_released("crouch")
 	command.peek_axis = Input.get_axis("peek_left", "peek_right")
+	command.peek_held_mask = (1 if Input.is_action_pressed("peek_left") else 0) | (2 if Input.is_action_pressed("peek_right") else 0)
 	return command
 
 
@@ -573,16 +640,28 @@ func get_traversal_snapshot() -> Dictionary:
 	return traversal.snapshot()
 
 
-func _try_begin_automatic_vault(desired_dir: Vector3) -> bool:
+func get_traversal_presentation() -> Dictionary:
+	var context: Dictionary = traversal.state_machine.context
+	var slot := ""
+	if traversal.is_hanging(): slot = "hang"
+	elif traversal.is_on_ladder():
+		var sliding := bool(context.get("jump_tracking", false)) and float(context.get("jump_hold_seconds", 0.0)) >= float(traversal.mantle_motor.climb_profile.ladder_slide_hold_seconds)
+		slot = "ladder_slide" if sliding else ("ladder_move" if absf(velocity.y) > 0.05 else "ladder_idle")
+	elif traversal.is_mantling() and StringName(context.get("action_type", &"")) == &"climb": slot = "pull_up"
+	return {"slot": slot, "height": float(context.get("height", 0.0)),
+		"phase": clampf(traversal.mantle_motor.elapsed / maxf(traversal.mantle_motor.duration, 0.01), 0.0, 1.0)}
+
+
+func _try_begin_automatic_vault(desired_dir: Vector3, climbing: bool = false) -> bool:
 	if (
 		not automatic_vault_enabled
 		or automatic_vault_probe_remaining > 0.0
 		or automatic_vault_retry_remaining > 0.0
 		or posture != MotionState.STANDING
-		or motion_state != MotionState.STANDING
-		or not _movement_floor_contact()
+		or (motion_state not in [MotionState.STANDING, MotionState.LANDING, MotionState.AIRBORNE] if climbing else motion_state != MotionState.STANDING)
+		or (not climbing and not _movement_floor_contact())
 		or desired_dir.length() < full_gait_input_threshold
-		or Vector2(velocity.x, velocity.z).length() < automatic_vault_minimum_speed
+		or (not climbing and Vector2(velocity.x, velocity.z).length() < automatic_vault_minimum_speed)
 	):
 		return false
 	automatic_vault_probe_remaining = maxf(automatic_vault_probe_interval, 0.02)
@@ -597,7 +676,9 @@ func _try_begin_automatic_vault(desired_dir: Vector3) -> bool:
 		self,
 		desired_dir,
 		capsule.height,
-		capsule.radius
+		capsule.radius,
+		climbing,
+		climbing and motion_state == MotionState.AIRBORNE
 	)
 	if not bool(result.get("accepted", false)):
 		return false
@@ -611,6 +692,10 @@ func _try_begin_automatic_vault(desired_dir: Vector3) -> bool:
 
 
 func _advance_automatic_vault(authoritative_aim_yaw: float, delta: float) -> void:
+	if traversal.is_hanging():
+		velocity = traversal.solve_grip(self, 0.0, delta).velocity
+		_move_body_with_collision()
+		return
 	var solution := traversal.solve_mantle(global_position, delta)
 	velocity = solution.get("velocity", Vector3.ZERO) as Vector3
 	horizontal_response_mode = &"VAULTING"
@@ -1013,9 +1098,23 @@ var prediction_replaying: bool = false
 func _movement_floor_contact() -> bool:
 	return bool(prediction_floor_override) if prediction_floor_override >= 0 else is_on_floor()
 
-func _move_body_with_collision() -> void:
+func _move_body_with_collision(delta: float = 1.0 / 60.0) -> void:
+	var ordinary_grounded := bool(StepProbe.profile.enabled) and _movement_floor_contact() and velocity.y <= 0.0 and posture != MotionState.PRONE and motion_state in [MotionState.STANDING, MotionState.CROUCHED, MotionState.LANDING] and not traversal.is_active()
+	var original_snap := floor_snap_length
+	if ordinary_grounded:
+		var lift := StepProbe.lift(self, Vector3(velocity.x, 0, velocity.z) * delta)
+		if lift > 0.0: move_and_collide(Vector3.UP * lift)
+		floor_snap_length = maxf(original_snap, float(StepProbe.profile.maximum_step_down_m))
 	prediction_floor_override = -1
 	move_and_slide()
+	if ordinary_grounded: apply_floor_snap()
+	if ordinary_grounded and not is_on_floor():
+		var snap := StepProbe.edge_snap_distance(self)
+		if snap >= 0.0:
+			move_and_collide(Vector3.DOWN * snap)
+			# Existing replay contact contract also carries this verified tread contact.
+			prediction_floor_override = 1
+	floor_snap_length = original_snap
 
 func _emit_mobility_started(kind: StringName) -> void:
 	if not prediction_replaying: mobility_action_started.emit(kind)

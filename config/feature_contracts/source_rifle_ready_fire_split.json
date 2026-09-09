@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "feature_id": "source_rifle_ready_fire_split",
+  "player_intent": "An equipped standing rifle uses the extracted chest-level ready posture; accepted firing has a separate posture and recovers smoothly.",
+  "acceptance_rule": "Main rifle idle_standing and ready_standing select seal_stand_alert02, firing_standing selects seal_fp_stand, accepted-shot grace controls a bounded blend, and AK/M4 preserve physical contacts within 1 cm during equip, shot and recovery. Pistol and moving gaits remain unchanged.",
+  "canonical_scene": "res://main.tscn",
+  "ownership": {"animation": "SocomOperatorAnimationDriver"},
+  "nodes": [{"id": "operator", "type": "Node3D", "role": "Existing animation graph and accepted-shot presentation", "owner": "SocomOperatorAnimationDriver", "scene_path": "res://scenes/player/operator_player.tscn", "node_path": "Mannequin/ProductionAnimation"}],
+  "data_contracts": [{"path": "res://config/operator_animation_map.json", "writer": "res://scripts/labs/animation_workshop_repository.gd", "readers": ["res://scripts/player/operator_animation_profile.gd", "res://scripts/player/operator_locomotion_route_builder.gd"]}],
+  "must_not_change": ["CharacterBody movement/collision", "Camera and reticle aim", "Server shots/damage", "Pistol hybrid", "Moving gaits, crouch/prone, reload, lean and mobility"],
+  "proof_scripts": ["res://tools/source_rifle_ready_fire_regression.gd", "res://tools/ready_fire_visual_probe.gd", "res://tools/pistol_hybrid_main_regression.gd"],
+  "visual_check": "Render main AK/M4 standing equipped ready, shot entry, held fire and return to ready from rear/side. Source clips are retargeted; exact original game blending is not claimed.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Replace ready/fire alias with actual source ready mode, honor saved rifle standing carry because main requests readiness zero, and use the existing shot latch for firing selection.",
+    "current": {"system": "Ready aliases firing", "correctness": 2, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 5, "regression_coverage": 3, "evidence_paths": ["res://scripts/player/test_mannequin.gd", "res://tools/extend_seal_firing_candidate.gd"]},
+    "candidate": {"system": "Source standing ready/fire split", "correctness": 4, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 5, "regression_coverage": 4, "evidence_paths": ["res://scripts/player/operator_locomotion_route_builder.gd", "res://tools/source_rifle_ready_fire_regression.gd"]}
+  }
+}

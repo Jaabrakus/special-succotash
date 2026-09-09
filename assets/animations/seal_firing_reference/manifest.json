@@ -1,0 +1,168 @@
+{
+	"entries": {
+		"seal_fp_crouch": {
+			"coverage": "full",
+			"duration": 0.366666674613953,
+			"path": "res://assets/animations/seal_firing_reference/seal_fp_crouch.tres",
+			"sha256": "da19b466037f2f8398af663b81218cc163273c3c1cf427b4159e5e66d3c1b8e6"
+		},
+		"seal_fp_crouch_step": {
+			"coverage": "full",
+			"duration": 0.600000023841858,
+			"path": "res://assets/animations/seal_firing_reference/seal_fp_crouch_step.tres",
+			"sha256": "b1471e9334e36477ea429856d3a7814ed2510256184710cdd1b5936f48cd6af6"
+		},
+		"seal_fp_crouchwalk": {
+			"coverage": "full",
+			"duration": 0.933333337306976,
+			"path": "res://assets/animations/seal_firing_reference/seal_fp_crouchwalk.tres",
+			"sha256": "8221e412eb92797abbb0da8373a274ac8c09aeac8e907e987b1339db9cbfab25"
+		},
+		"seal_fp_crouchwalk_bw": {
+			"coverage": "full",
+			"duration": 1.13333332538605,
+			"path": "res://assets/animations/seal_firing_reference/seal_fp_crouchwalk_bw.tres",
+			"sha256": "8cb551e5b7340ea2de36d14aa799f8daeb7690eda6b80fa5e26522d7803f62a8"
+		},
+		"seal_fp_jog": {
+			"coverage": "full",
+			"duration": 0.666666686534882,
+			"path": "res://assets/animations/seal_firing_reference/seal_fp_jog.tres",
+			"sha256": "7f16eedd195cef9d797e45d3f1b4210827b5b124a6f5727834f59c09d67a5f28"
+		},
+		"seal_fp_prone": {
+			"coverage": "full",
+			"duration": 0.0333333350718021,
+			"path": "res://assets/animations/seal_firing_reference/seal_fp_prone.tres",
+			"sha256": "4164f3103b601349b396ff5add7de545e86c51fe6352940c7ae2060daf03dad3"
+		},
+		"seal_fp_run": {
+			"coverage": "full",
+			"duration": 0.600000023841858,
+			"path": "res://assets/animations/seal_firing_reference/seal_fp_run.tres",
+			"sha256": "15d43216df6a85b112e152ac470aba9f1d3153a357ffb42b1679c9a751e645a9"
+		},
+		"seal_fp_run_bw": {
+			"coverage": "full",
+			"duration": 0.600000023841858,
+			"path": "res://assets/animations/seal_firing_reference/seal_fp_run_bw.tres",
+			"sha256": "5a9c3128449a093efca7fc71b39960c5b1c7073b6afab947105aa6924c8b425f"
+		},
+		"seal_fp_stand": {
+			"coverage": "full",
+			"duration": 0.266666680574417,
+			"path": "res://assets/animations/seal_firing_reference/seal_fp_stand.tres",
+			"sha256": "5de394f9cde35c69c855e88263c4234c0f77596fa0854cd8ecac04abf1b236a4"
+		},
+		"seal_fp_step": {
+			"coverage": "full",
+			"duration": 0.699999988079071,
+			"path": "res://assets/animations/seal_firing_reference/seal_fp_step.tres",
+			"sha256": "cb10e49da06a80dea6f2e9fb6f823f0e01b2035ed5d04e940fec881271cf65dd"
+		},
+		"seal_fp_twist_pitch": {
+			"coverage": "upper",
+			"duration": 0.300000011920929,
+			"path": "res://assets/animations/seal_firing_reference/seal_fp_twist_pitch.tres",
+			"sha256": "2c262c4da743f0c8fa77c367f3f991ee5311fdf83bd27e5a17f4c6f116aba478"
+		},
+		"seal_fp_walk": {
+			"coverage": "full",
+			"duration": 0.833333313465118,
+			"path": "res://assets/animations/seal_firing_reference/seal_fp_walk.tres",
+			"sha256": "7048d26ce778a5ec7e26ae5946c57a22ed3d505c8ddb3a8112d53b3410ce128a"
+		},
+		"seal_fp_walk_bw": {
+			"coverage": "full",
+			"duration": 0.866666674613953,
+			"path": "res://assets/animations/seal_firing_reference/seal_fp_walk_bw.tres",
+			"sha256": "ae960d95df88180ab3ad3a0ef4d0cc3944829a16ef53a4967afad8206ae420b7"
+		},
+		"seal_pfp_crouch": {
+			"base": "seal_crouch",
+			"composed_path": "res://assets/animations/seal_firing_reference/seal_pfp_crouch_composed.tres",
+			"coverage": "upper",
+			"duration": 0.16666667163372,
+			"path": "res://assets/animations/seal_firing_reference/seal_pfp_crouch.tres",
+			"sha256": "e6526d17beab043432fbb9341ced66a776f18c31b3b6209ee8334b7ef085a9ee"
+		},
+		"seal_pfp_crouch_step": {
+			"coverage": "full",
+			"duration": 0.600000023841858,
+			"path": "res://assets/animations/seal_firing_reference/seal_pfp_crouch_step.tres",
+			"sha256": "69e386b92c34a5ed08b9ea03a720fa06fd12276e027facf2e85d144d35dfdfda"
+		},
+		"seal_pfp_crouchwalk": {
+			"base": "seal_crouchwalk",
+			"composed_path": "res://assets/animations/seal_firing_reference/seal_pfp_crouchwalk_composed.tres",
+			"coverage": "upper",
+			"duration": 0.633333325386047,
+			"path": "res://assets/animations/seal_firing_reference/seal_pfp_crouchwalk.tres",
+			"sha256": "0ceadb4fa869cb0bdec5e0d67073bdb62379639d0c2bc023a774093c8bd9b07c"
+		},
+		"seal_pfp_crouchwalk_bw": {
+			"base": "seal_crouchwalk_bw",
+			"composed_path": "res://assets/animations/seal_firing_reference/seal_pfp_crouchwalk_bw_composed.tres",
+			"coverage": "upper",
+			"duration": 0.766666650772095,
+			"path": "res://assets/animations/seal_firing_reference/seal_pfp_crouchwalk_bw.tres",
+			"sha256": "44a8cad98d9af3ca50270cbe74e3cc7c2eb260099d947061b635d5e0b94554ec"
+		},
+		"seal_pfp_jog": {
+			"coverage": "full",
+			"duration": 0.666666686534882,
+			"path": "res://assets/animations/seal_firing_reference/seal_pfp_jog.tres",
+			"sha256": "33f2d88fa01b012fae7b1343b13493e17c3a2158b5e1bc073e6402576a663c01"
+		},
+		"seal_pfp_prone": {
+			"base": "seal_prone",
+			"composed_path": "res://assets/animations/seal_firing_reference/seal_pfp_prone_composed.tres",
+			"coverage": "upper",
+			"duration": 0.16666667163372,
+			"path": "res://assets/animations/seal_firing_reference/seal_pfp_prone.tres",
+			"sha256": "9b19fa26d7b5ec4a706dff95ff88505ab74a0f6184db45c8aa29e42892ddc3db"
+		},
+		"seal_pfp_run": {
+			"base": "seal_run",
+			"composed_path": "res://assets/animations/seal_firing_reference/seal_pfp_run_composed.tres",
+			"coverage": "upper",
+			"duration": 0.566666662693024,
+			"path": "res://assets/animations/seal_firing_reference/seal_pfp_run.tres",
+			"sha256": "22abc27fb9bcfa1eed4636477faa8111338cc00e054d22bc8a01fe3c83842b87"
+		},
+		"seal_pfp_run_bw": {
+			"coverage": "full",
+			"duration": 0.566666662693024,
+			"path": "res://assets/animations/seal_firing_reference/seal_pfp_run_bw.tres",
+			"sha256": "dc131842256677337632e2956143e2dad6aea18cadb1ec59147cb19a794ef598"
+		},
+		"seal_pfp_stand": {
+			"coverage": "full",
+			"duration": 0.0333333350718021,
+			"path": "res://assets/animations/seal_firing_reference/seal_pfp_stand.tres",
+			"sha256": "7ea8246663861a32b176635c7bfdf3e7fd62172cda38aa4dd9778b3d2d034b9b"
+		},
+		"seal_pfp_step": {
+			"coverage": "full",
+			"duration": 0.699999988079071,
+			"path": "res://assets/animations/seal_firing_reference/seal_pfp_step.tres",
+			"sha256": "c72edead6efaed346d26c0d3e4396a4c1af58e6a930445c666535cb537754d2f"
+		},
+		"seal_pfp_walk": {
+			"base": "seal_walk",
+			"composed_path": "res://assets/animations/seal_firing_reference/seal_pfp_walk_composed.tres",
+			"coverage": "upper",
+			"duration": 0.533333361148834,
+			"path": "res://assets/animations/seal_firing_reference/seal_pfp_walk.tres",
+			"sha256": "fafae6b204d7d5dfa831e756880e048ac3a3ec76508c7b32ad4f6bfc72a10fc1"
+		},
+		"seal_pfp_walk_bw": {
+			"coverage": "full",
+			"duration": 0.966666638851166,
+			"path": "res://assets/animations/seal_firing_reference/seal_pfp_walk_bw.tres",
+			"sha256": "cb13ba4ae70e367312a685aa652810a554a1aa57865261f4e6841163ca0c8516"
+		}
+	},
+	"meaning": "Source animset names these firing poses, not first-person. Weapon/helper parent mapping is not recovered.",
+	"source_animset_sha256": "6462c387c3d452b19df2eddf3cbde5f7543f1e0c23070e6e8069cf554e785f64"
+}

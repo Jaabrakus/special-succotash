@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "feature_id": "socom2_matched_firing",
+  "player_intent": "Existing matching guns use source firing settings through the canonical equip/fire path.",
+  "acceptance_rule": "32 profiles retain exact source cadence and stance settings. Three display aliases are explicit, Jackhammer is auto-only, authored modes survive Gunsmith saves, canonical accepted shots consume ammo once and early repeats do not. Multiplayer settings agree.",
+  "canonical_scene": "res://main.tscn",
+  "ownership": {"authored_settings": "GunsmithWeaponProfileRepository", "trigger": "SocomWeaponFireModePolicy", "shot_cadence": "SocomWeaponBallistics"},
+  "nodes": [{"id": "canonical_weapon", "type": "Node", "owner": "SocomWeaponController", "role": "Consumes shared profiles and emits accepted firing results", "source_script": "res://scripts/weapons/socom_weapon_controller.gd", "code_symbols": ["func apply_authorized_weapon_pickup(", "func request_fire(", "authoritative_shot.emit(result)"]}],
+  "data_contracts": [
+    {"path": "res://config/reference/socom2_weapon_aliases.json", "writer": "res://tools/socom2_weapon_reference.cjs", "readers": ["res://tools/socom2_weapon_reference_test.cjs"]},
+    {"path": "res://config/weapons/m3_12_gauge.json", "writer": "res://scripts/labs/gunsmith/gunsmith_weapon_profile_repository.gd", "readers": ["res://scripts/weapons/socom_weapon_controller.gd", "res://scripts/network/socom_multiplayer_rounds.gd", "res://scripts/network/socom_multiplayer_state.gd"]},
+    {"path": "res://config/weapons/ta_12_gauge.json", "writer": "res://scripts/labs/gunsmith/gunsmith_weapon_profile_repository.gd", "readers": ["res://scripts/weapons/socom_weapon_controller.gd"]},
+    {"path": "res://config/weapons/12_gauge_pump.json", "writer": "res://scripts/labs/gunsmith/gunsmith_weapon_profile_repository.gd", "readers": ["res://scripts/weapons/socom_weapon_controller.gd"]}
+  ],
+  "must_not_change": ["movement/collision", "camera equations", "animation and mesh attachment", "damage/pellets", "reload timing", "unmatched profiles", "published build"],
+  "proof_scripts": ["res://tools/socom2_matched_firing_regression.gd", "res://tools/socom2_weapon_behavior_regression.gd", "res://tools/weapon_fire_mode_policy_regression.gd"],
+  "visual_check": "No visual asset or pose edits. Accepted shot events and projectile results tested in the canonical scene; original game visual and timing parity is not claimed.",
+  "system_delta": {
+    "decision": "MERGE", "reason": "Retain source aliases and explicit modes; shared profiles, not archived catalog records, own authored firing settings.",
+    "current": {"system": "res://scripts/labs/gunsmith/gunsmith_recom_catalog_adapter.gd", "correctness": 3, "ownership_clarity": 4, "runtime_parity": 3, "editor_usability": 3, "performance": 5, "regression_coverage": 3, "evidence_paths": ["res://scripts/labs/gunsmith/gunsmith_recom_catalog_adapter.gd"]},
+    "candidate": {"system": "res://scripts/labs/gunsmith/gunsmith_recom_catalog_adapter.gd", "correctness": 4, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 5, "regression_coverage": 5, "evidence_paths": ["res://tools/socom2_matched_firing_regression.gd", "res://config/reference/socom2_weapon_aliases.json"]}
+  }
+}

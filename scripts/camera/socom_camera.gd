@@ -28,14 +28,18 @@ var vrc_weapon_id := ""
 var vrc_height_px := 0.0
 var vrc_age := 99.0
 
-func configure_reticle_climb(reticle: Dictionary, weapon_id: String) -> void:
+func configure_reticle_climb(reticle: Dictionary, weapon_id: String, preserve_same_weapon: bool = false) -> void:
     var next := ReticleClimbProfile.resolve(reticle)
     if next == vrc_profile and weapon_id == vrc_weapon_id:
         return
+    var keep_climb := preserve_same_weapon and weapon_id == vrc_weapon_id
     vrc_profile = next
     vrc_weapon_id = weapon_id
-    vrc_height_px = 0.0
-    vrc_age = 99.0
+    if keep_climb:
+        vrc_height_px = minf(vrc_height_px, float(next.cap))
+    else:
+        vrc_height_px = 0.0
+        vrc_age = 99.0
 
 func reticle_climb_enabled() -> bool:
     return bool(vrc_profile.get("enabled", false))

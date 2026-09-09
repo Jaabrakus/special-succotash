@@ -1,0 +1,14 @@
+{
+	"duration_seconds": 3.0,
+	"limitations": [
+		"no weapon attached",
+		"extra finger bones have no new mesh weights",
+		"full animation library not tested"
+	],
+	"passed": true,
+	"scope": "isolated asset trial; no runtime replacement",
+	"source_clip": "res://assets/external/agls_intake/imported/weapon_reload/ALSP2_Reloading_Rifle_AK47.scn",
+	"target": "res://assets/characters/ps1_gas_mask_soldier/trooper_rigged.fbx",
+	"target_bones": 65,
+	"tracks": 53
+}

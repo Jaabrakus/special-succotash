@@ -11,7 +11,7 @@
     "bloom_recovery_speed": 17.5,
     "damage": 48.0,
     "effective_range_m": 50.0,
-    "fire_rate_rpm": 300.0,
+    "fire_rate_rpm": 299.9999955296517,
     "full_gait_spread_deg": 1.543,
     "headshot_multiplier": 3.5,
     "is_silenced": false,
@@ -20,7 +20,7 @@
     "max_recoil_bloom_deg": 2.6,
     "moving_spread_deg": 1.029,
     "muzzle_velocity_mps": 270.0,
-    "reserve_ammo": 36.0
+    "reserve_ammo": 60.0
   },
   "burst_size": 3,
   "catalog_source": "reCOM zweapon.rdr",
@@ -188,10 +188,32 @@
     "cadence_driven_return": false,
     "base_gap_px": 5.1,
     "max_gap_px": 41.6,
-    "maximum_shot_kick_px": 40.0,
+    "maximum_shot_kick_px": 40,
     "response_speed": 26.2,
-    "shot_kick_px": 20.0,
-    "shot_kick_return": 60.0
+    "shot_kick_px": 20,
+    "shot_kick_return": 60,
+    "vrc_return_speed_px_per_second": 60,
+    "socom2_source_name": "Mark 23",
+    "socom2_stances": {
+      "STANDING": {
+        "shot_kick_px": 20,
+        "maximum_shot_kick_px": 40,
+        "shot_kick_return": 60,
+        "vrc_return_speed_px_per_second": 60
+      },
+      "CROUCHED": {
+        "shot_kick_px": 20,
+        "maximum_shot_kick_px": 40,
+        "shot_kick_return": 60,
+        "vrc_return_speed_px_per_second": 60
+      },
+      "PRONE": {
+        "shot_kick_px": 20,
+        "maximum_shot_kick_px": 40,
+        "shot_kick_return": 60,
+        "vrc_return_speed_px_per_second": 60
+      }
+    }
   },
   "schema_version": 3,
   "socom_original_id": 2,

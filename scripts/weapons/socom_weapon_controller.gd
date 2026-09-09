@@ -11,6 +11,7 @@ const ShotAuthority := preload("res://scripts/network/socom_shot_authority.gd")
 const WeaponContract := preload("res://scripts/weapons/weapon_rig_contract.gd")
 const FireModePolicy := preload("res://scripts/weapons/weapon_fire_mode_policy.gd")
 const Composure := preload("res://scripts/weapons/operator_composure.gd")
+const ReticleStanceProfile := preload("res://scripts/weapons/weapon_reticle_stance_profile.gd")
 const PlayerAmmunitionInventory := preload("res://scripts/player/player_ammunition_inventory.gd")
 const SlotRules := preload("res://scripts/economy/socom_economy_rules.gd")
 var carried_loadout: Dictionary = {"primary": "", "secondary": ""}
@@ -78,6 +79,7 @@ var equipped_weapon_config: Dictionary = {}
 var _movement_ratio: float = 0.0
 var _turning_ratio: float = 0.0
 var _last_camera_yaw: float = 0.0
+var _reticle_posture: StringName = &""
 var reticle_profile: Dictionary = {
 	"base_gap_px": 10.0,
 	"max_gap_px": 46.0,
@@ -130,6 +132,9 @@ func _apply_weapon_config(config: Dictionary) -> bool:
 	var saved_reticle: Variant = config.get("reticle", {})
 	if saved_reticle is Dictionary:
 		reticle_profile = (saved_reticle as Dictionary).duplicate(true)
+	_reticle_posture = StringName(player.call("get_posture_name")) if player != null and player.has_method("get_posture_name") else &"STANDING"
+	reticle_profile = ReticleStanceProfile.resolve(reticle_profile, _reticle_posture)
+	reticle_profile["weapon_category"] = String(config.get("category", ""))
 	reticle_profile["functional_aim_climb_enabled"] = bool(
 		values.get("functional_aim_climb_enabled", false)
 	)
@@ -174,6 +179,7 @@ func _apply_weapon_config(config: Dictionary) -> bool:
 		9999
 	)
 	ballistics.configure_projectiles(values)
+	ballistics.configure_bloom_envelope(config)
 	ballistics.fire_interval = 60.0 / maxf(1.0, ballistics.fire_rate_rpm)
 	reticle_profile["fire_interval_seconds"] = ballistics.fire_interval
 	var raw_modes: Variant = config.get("fire_modes", values.get("fire_modes", []))
@@ -250,6 +256,15 @@ func apply_authorized_weapon_pickup(config_path: String) -> bool:
 	return true
 
 
+func _update_reticle_posture(posture_name: StringName) -> void:
+	if posture_name == _reticle_posture:
+		return
+	_reticle_posture = posture_name
+	reticle_profile = ReticleStanceProfile.resolve(reticle_profile, posture_name)
+	if camera_rig != null:
+		camera_rig.configure_reticle_climb(reticle_profile, String(equipped_weapon_id), true)
+
+
 func _physics_process(delta: float) -> void:
 	if player == null or camera_rig == null:
 		return
@@ -268,12 +283,14 @@ func _physics_process(delta: float) -> void:
 		if player.has_method("get_posture_name")
 		else &"STANDING"
 	)
+	_update_reticle_posture(posture_name)
 	var stance := OperatorComposure.Stance.STANDING
 	if posture_name == &"CROUCHED":
 		stance = OperatorComposure.Stance.CROUCHED
 	elif posture_name == &"PRONE":
 		stance = OperatorComposure.Stance.PRONE
 	composure.advance(delta, _movement_ratio, _turning_ratio, stance)
+	ballistics.visual_bloom_input = composure.get_visual_bloom()
 	var retained_instability := composure.get_shot_instability(
 		_movement_ratio,
 		_turning_ratio
@@ -306,7 +323,11 @@ func _process(_delta: float) -> void:
 		and Input.is_action_just_pressed("fire")
 	):
 		reload_fire_interrupt_requested.emit()
-	var local_fire_allowed := local_input_allowed and not _reload_blocks_fire()
+	var local_fire_allowed := (
+		local_input_allowed
+		and not _reload_blocks_fire()
+		and not _mobility_blocks_fire()
+	)
 	var trigger_held := local_fire_allowed and Input.is_action_pressed("fire")
 	var trigger_pressed := local_fire_allowed and Input.is_action_just_pressed("fire")
 	if not local_fire_allowed:
@@ -329,6 +350,14 @@ func _set_presentation_trigger_held(active: bool) -> void:
 		mannequin.call("set_operator_fire_trigger_held", active)
 
 
+func _mobility_blocks_fire() -> bool:
+	return (
+		player != null
+		and player.has_method("is_fire_locked_by_mobility")
+		and bool(player.call("is_fire_locked_by_mobility"))
+	)
+
+
 func request_fire() -> Dictionary:
 	if player != null and player.has_method("is_dead_for_presentation") and player.call("is_dead_for_presentation"):
 		if ballistics != null:
@@ -340,6 +369,11 @@ func request_fire() -> Dictionary:
 			ballistics.release_trigger()
 		_set_presentation_trigger_held(false)
 		return {"fired": false, "reason": "RELOADING"}
+	if _mobility_blocks_fire():
+		if ballistics != null:
+			ballistics.release_trigger()
+		_set_presentation_trigger_held(false)
+		return {"fired": false, "reason": "MOBILITY_ACTION"}
 	if (
 		ballistics == null
 		or player == null

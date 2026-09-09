@@ -1,0 +1,12 @@
+{
+  "pass": true,
+  "bones": 34,
+  "actions": [
+    "reload_ak47"
+  ],
+  "frames": [
+    0,
+    72
+  ],
+  "max_vertex_motion": 0.5774021664039058
+}

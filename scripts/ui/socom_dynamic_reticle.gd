@@ -1,9 +1,10 @@
 class_name SocomDynamicReticle
 extends Control
 
-## SOCOM II reference-inspired dynamic reticle
+## Custom family silhouettes; source sprites and legacy shapes remain fallbacks.
 ## Features:
-## - Four cardinal ticks, pale center point, and faint central backing disc
+## - Split Halo shotguns, Horizon pistols, faded Offset rifle-style weapons
+## - Source sprites / cardinal ticks remain configurable fallbacks
 ## - Red Target Acquisition when hovering over enemies/targets
 ## - Yellow Ladder / Interact brackets when facing interactable cover
 ## - Stance & Movement bloom scaling (Prone = tight, Standing Sprint = wide)
@@ -18,7 +19,7 @@ enum ReticleMode {
 @export var target_color := Color(1.0, 0.15, 0.15, 0.95)   # Target Lock Red
 @export var interact_color := Color(0.95, 0.85, 0.2, 0.9)  # Ladder/Door Yellow
 
-# Reticle Dimensions (Pixels - Authentic SOCOM II Scale)
+# Legacy dimensions in project pixels; source assembly is configured separately.
 # Kept for saved-profile compatibility; spread now opens all four ticks instead.
 @export var maximum_movement_tick_extension: float = 16.0
 @export var tick_thickness: float = 2.4
@@ -48,6 +49,59 @@ var shot_bounce_amplitude: float = 0.0
 var functional_aim_climb_enabled: bool = false
 var camera_owned_aim: bool = false
 var cadence_driven_return: bool = true
+var source_family: String = ""
+var _source_family_settings: Dictionary = {}
+var _source_base: Texture2D
+var _source_floating: Texture2D
+var custom_family: String = ""
+var custom_shape: String = ""
+var _custom_style: Dictionary = {}
+var _custom_settings: Dictionary = {}
+
+const CustomGeometry := preload("res://scripts/ui/custom_reticle_geometry.gd")
+const BloomEnvelope := preload("res://scripts/weapons/reticle_bloom_envelope.gd")
+var bloom_weapon: Node
+var bloom_projection_scale: float = 1.0
+
+func bind_bloom_envelope(weapon: Node) -> void:
+    bloom_weapon = weapon
+
+func _read_bloom_envelope() -> bool:
+    bloom_projection_scale = 1.0
+    if not is_instance_valid(bloom_weapon):
+        return false
+    var model: Variant = bloom_weapon.get("ballistics")
+    if model == null or model.bloom_profile.is_empty():
+        return false
+    # The weapon owns the one smoothing clock. Do not lerp its result again.
+    current_gap = float(model.bloom_gap_px)
+    var rig: Variant = bloom_weapon.get("camera_rig")
+    var mannequin: Variant = bloom_weapon.get("mannequin")
+    if rig != null and rig.camera != null and mannequin != null:
+        var muzzle: Marker3D = mannequin.get_active_muzzle_marker()
+        if muzzle != null:
+            var boundary: float = BloomEnvelope.radius_px(model.bloom_profile, current_gap)
+            var projected := BloomEnvelope.projected_radius(rig.camera, muzzle.global_position,
+                rig.weapon_aim_point, model.get_bloom_tangent_limit())
+            # Keep normal-lens artwork unchanged. Optical compensation is only
+            # for lens/framing magnification, never the former oversized spread.
+            if boundary > 0.0 and is_finite(projected):
+                bloom_projection_scale = maxf(1.0, projected / boundary)
+    return true
+
+const PRESENTATION_PATH := "res://config/reticle_presentation.json"
+# Explicit dependencies keep the six runtime images in scene-filtered exports.
+# The unused accuracy sprite remains local reference material only.
+const SOURCE_TEXTURES := {
+    "res://assets/ui/socom2_reticle/ret_rifle_01.png": preload("res://assets/ui/socom2_reticle/ret_rifle_01.png"),
+    "res://assets/ui/socom2_reticle/ret_rifle_02.png": preload("res://assets/ui/socom2_reticle/ret_rifle_02.png"),
+    "res://assets/ui/socom2_reticle/ret_sidearm_01.png": preload("res://assets/ui/socom2_reticle/ret_sidearm_01.png"),
+    "res://assets/ui/socom2_reticle/ret_sidearm_02.png": preload("res://assets/ui/socom2_reticle/ret_sidearm_02.png"),
+    "res://assets/ui/socom2_reticle/ret_shotgun_01.png": preload("res://assets/ui/socom2_reticle/ret_shotgun_01.png"),
+    "res://assets/ui/socom2_reticle/ret_shotgun_02.png": preload("res://assets/ui/socom2_reticle/ret_shotgun_02.png"),
+}
+static var _presentation: Dictionary = {}
+static var _presentation_loaded := false
 
 const CADENCE_BOUNCE_FRACTION: float = 0.52
 const CADENCE_RETURN_REMAINDER: float = 0.10
@@ -60,6 +114,7 @@ const CENTER_DOT_RADIUS: float = 1.3
 
 func _ready() -> void:
     mouse_filter = MOUSE_FILTER_IGNORE
+    texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
     _sync_to_viewport()
     if not get_viewport().size_changed.is_connected(_sync_to_viewport):
         get_viewport().size_changed.connect(_sync_to_viewport)
@@ -73,7 +128,8 @@ func _sync_to_viewport() -> void:
 
 func _process(delta: float) -> void:
     # Smooth bloom interpolation
-    current_gap = lerpf(current_gap, target_gap, 1.0 - exp(-response_speed * delta))
+    if not _read_bloom_envelope():
+        current_gap = lerpf(current_gap, target_gap, 1.0 - exp(-response_speed * delta))
     current_movement = lerpf(
         current_movement,
         target_movement,
@@ -107,6 +163,12 @@ func notify_hit() -> void:
     hit_marker_timer = 0.15
 
 func notify_shot(shot_index: int = 1, intensity: float = 1.0) -> void:
+    if not source_family.is_empty():
+        # Camera VRC already supplies the moving aim center. Weapon bloom
+        # supplies spread. Do not add our unverified second kick/opening layer.
+        shot_gap_impulse = 0.0
+        shot_bounce_amplitude = 0.0
+        return
     # Resolve the bullet before this presentation impulse. The complete tick
     # reference silhouette pops upward, then returns before the next trained
     # cadence. This never drags the authoritative aim point or the shot that
@@ -128,6 +190,8 @@ func notify_shot(shot_index: int = 1, intensity: float = 1.0) -> void:
     )
 
 func apply_profile(profile: Dictionary) -> void:
+    _apply_source_presentation(String(profile.get("socom2_source_name", "")))
+    _apply_custom_presentation(profile)
     camera_owned_aim = bool(profile.get("camera_owned_aim", false))
     cadence_driven_return = bool(profile.get("cadence_driven_return", true))
     functional_aim_climb_enabled = bool(
@@ -161,6 +225,131 @@ func apply_profile(profile: Dictionary) -> void:
         _apply_fire_cadence(float(profile.get("fire_interval_seconds", 0.0)))
     target_gap = clampf(target_gap, base_gap, max_bloom_gap)
 
+func _apply_source_presentation(source_name: String) -> void:
+    if not _presentation_loaded:
+        _presentation_loaded = true
+        var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(PRESENTATION_PATH))
+        if parsed is Dictionary:
+            _presentation = parsed
+    var family := String(_presentation.get("source_names", {}).get(source_name, ""))
+    if not bool(_presentation.get("enabled", false)):
+        family = ""
+    if family == source_family:
+        return
+    source_family = ""
+    _source_family_settings = {}
+    _source_base = null
+    _source_floating = null
+    shot_gap_impulse = 0.0
+    shot_bounce_amplitude = 0.0
+    shot_bounce_age = 99.0
+    if family.is_empty():
+        return
+    var settings: Dictionary = _presentation.get("families", {}).get(family, {})
+    var asset_root := String(_presentation.get("asset_root", ""))
+    _source_base = SOURCE_TEXTURES.get(asset_root + String(settings.get("base", "")))
+    _source_floating = SOURCE_TEXTURES.get(asset_root + String(settings.get("floating", "")))
+    if _source_base == null or _source_floating == null:
+        push_error("Missing source reticle textures for " + family)
+        return
+    _source_family_settings = settings
+    source_family = family
+
+func _apply_custom_presentation(profile: Dictionary) -> void:
+    _custom_settings = _presentation.get("custom", {})
+    # Category is presentation metadata from the equipped weapon, not a new
+    # weapon rule. Raw source profiles can still be previewed without it.
+    custom_family = String(_custom_settings.get("categories", {}).get(profile.weapon_category, "")) if profile.has("weapon_category") else source_family
+    if not bool(_custom_settings.get("enabled", false)):
+        custom_family = ""
+    _custom_style = _custom_settings.get("families", {}).get(custom_family, {})
+    custom_shape = String(_custom_style.get("shape", ""))
+    if custom_shape not in CustomGeometry.SHAPES:
+        custom_family = ""
+        custom_shape = ""
+
+func get_custom_reference_geometry() -> Dictionary:
+    if custom_shape.is_empty():
+        return {}
+    _read_bloom_envelope()
+    var strokes := CustomGeometry.build(custom_shape, current_gap + shot_gap_impulse + reference_arc_padding, _custom_style)
+    if bloom_projection_scale > 1.0:
+        for index in strokes.size():
+            for point in strokes[index].size():
+                strokes[index][point] *= bloom_projection_scale
+    return {
+        "family": custom_family,
+        "shape": custom_shape,
+        "center": get_authoritative_center(),
+        "strokes": strokes,
+        "width": clampf(float(_custom_style.get("stroke_px", 2.2)), 1.0, 5.0),
+        "alpha_samples": _custom_settings.get("alpha_profiles", {}).get(_custom_style.get("alpha_profile", ""), {}).get("samples_u8", []),
+    }
+
+func _draw_custom_reference() -> void:
+    var geometry := get_custom_reference_geometry()
+    var color := target_color if is_target_acquired else Color.from_string(String(_custom_settings.get("color", "#d5e7ac")), default_color)
+    var outline := Color.from_string(String(_custom_settings.get("outline_color", "#080e10e6")), Color.BLACK)
+    var stroke_outline := outline
+    var width := float(geometry.width)
+    var outline_extra := clampf(float(_custom_settings.get("outline_extra_px", 2.0)), 0.0, 5.0)
+    var alpha_samples: Array = geometry.alpha_samples
+    if not alpha_samples.is_empty():
+        # Same tint opacity as the source renderer; ramp comes from sprite alpha.
+        if not is_target_acquired:
+            color.a *= default_color.a
+        stroke_outline.a *= target_color.a if is_target_acquired else default_color.a
+    draw_set_transform(geometry.center)
+    for stroke: PackedVector2Array in geometry.strokes:
+        if alpha_samples.is_empty():
+            draw_polyline(stroke, stroke_outline, width + outline_extra, true)
+        else:
+            var shaded := CustomGeometry.fade_stroke(stroke, stroke_outline, alpha_samples)
+            draw_polyline_colors(shaded.points, shaded.colors, width + outline_extra, true)
+    for stroke: PackedVector2Array in geometry.strokes:
+        if alpha_samples.is_empty():
+            draw_polyline(stroke, color, width, true)
+        else:
+            var shaded := CustomGeometry.fade_stroke(stroke, color, alpha_samples)
+            draw_polyline_colors(shaded.points, shaded.colors, width, true)
+    var dot_radius := clampf(float(_custom_settings.get("center_radius_px", 1.4)), 0.5, 4.0)
+    var dot_outline := maxf(dot_radius, float(_custom_settings.get("center_outline_radius_px", 2.9)))
+    draw_circle(Vector2.ZERO, dot_outline, outline, true, -1.0, true)
+    draw_circle(Vector2.ZERO, dot_radius, Color.from_string(String(_custom_settings.get("center_color", "#fff9e8")), Color.WHITE), true, -1.0, true)
+    draw_set_transform(Vector2.ZERO)
+
+func get_source_reference_geometry() -> Dictionary:
+    if source_family.is_empty():
+        return {}
+    var pixel_scale := maxf(0.01, float(_presentation.get("pixel_scale", 1.0)))
+    var base_size := _source_base.get_size() * pixel_scale
+    var values: Array = _source_family_settings.region
+    var region := Rect2(float(values[0]), float(values[1]), float(values[2]), float(values[3]))
+    var gap := maxf(0.0, current_gap + reference_arc_padding)
+    var rect := Rect2(Vector2(-region.size.x * 0.5, -gap - region.size.y) * pixel_scale, region.size * pixel_scale)
+    if _source_family_settings.assembly == "quarter_arcs":
+        # Original quarter-circle pixels, reconstructed four-way assembly.
+        # Radius/spacing are explicit calibration, not recovered game code.
+        var radius_scale := (float(_source_family_settings.arc_radius_px) + gap) / float(_source_family_settings.texture_radius_px)
+        rect = Rect2(Vector2(-region.size.x, 0.0) * radius_scale * pixel_scale, region.size * radius_scale * pixel_scale)
+    return {
+        "family": source_family,
+        "center": get_authoritative_center(),
+        "base_rect": Rect2(-base_size * 0.5, base_size),
+        "region": region,
+        "floating_rect": rect,
+        "rotations": PackedFloat32Array([0.0, PI * 0.5, PI, PI * 1.5]),
+    }
+
+func _draw_source_reference(color: Color) -> void:
+    var geometry := get_source_reference_geometry()
+    draw_set_transform(geometry.center)
+    draw_texture_rect(_source_base, geometry.base_rect, false, color)
+    for angle: float in geometry.rotations:
+        draw_set_transform(geometry.center, angle)
+        draw_texture_rect_region(_source_floating, geometry.floating_rect, geometry.region, color)
+    draw_set_transform(Vector2.ZERO)
+
 func _apply_fire_cadence(fire_interval_seconds: float) -> void:
     var interval := maxf(fire_interval_seconds, 0.001)
     shot_bounce_duration = clampf(
@@ -186,15 +375,19 @@ func _draw() -> void:
         _draw_interact_brackets(center, color)
         return
 
-    # Fixed central reference backing; only the outer tick gap reflects spread.
-    # The center point stays on camera aim even during cosmetic shot bounce.
-    draw_circle(center, CENTER_DISC_RADIUS, Color(0.18, 0.20, 0.19, 0.18), true, -1.0, true)
-    draw_circle(center, CENTER_DOT_RADIUS, Color(color.r, color.g, color.b, 0.65), true, -1.0, true)
-    var geometry := get_combat_reference_geometry()
-    var t := tick_thickness
-    var ticks: PackedVector2Array = geometry.ticks
-    draw_multiline(ticks, Color(shadow_color, 0.45), t + 1.0, true)
-    draw_multiline(ticks, color, t, true)
+    if not custom_shape.is_empty():
+        _draw_custom_reference()
+    elif not source_family.is_empty():
+        _draw_source_reference(color)
+    else:
+        # Legacy profiles retain their authored reference presentation.
+        draw_circle(center, CENTER_DISC_RADIUS, Color(0.18, 0.20, 0.19, 0.18), true, -1.0, true)
+        draw_circle(center, CENTER_DOT_RADIUS, Color(color.r, color.g, color.b, 0.65), true, -1.0, true)
+        var geometry := get_combat_reference_geometry()
+        var t := tick_thickness
+        var ticks: PackedVector2Array = geometry.ticks
+        draw_multiline(ticks, Color(shadow_color, 0.45), t + 1.0, true)
+        draw_multiline(ticks, color, t, true)
 
     # Hit Marker Flash (SOCOM Red X on hit)
     if hit_marker_timer > 0.0:

@@ -75,6 +75,7 @@ func _process(_delta: float) -> void:
 	if reticle != null and local_camera != null:
 		reticle.screen_center_override = local_camera.reticle_screen_normalized * get_viewport().get_visible_rect().size
 		if is_instance_valid(local_weapon_presentation):
+			reticle.bind_bloom_envelope(local_weapon_presentation)
 			reticle.update_reticle_state(local_weapon_presentation.get_reticle_spread_normalized(),
 				false, reticle.screen_center_override, false, local_weapon_presentation.get_movement_ratio())
 	if session_active and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:

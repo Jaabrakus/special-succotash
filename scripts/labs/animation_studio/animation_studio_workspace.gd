@@ -320,6 +320,7 @@ func _scan_all_mixamo_fbx() -> void:
         workshop_repository.scan_authored(APPLE_MOCAP_REVIEW_DIR),
         true
     )
+    authored_animation_files.merge(workshop_repository.scan_seal_reference(), false)
 
 func _scan_authored_animations() -> void:
     authored_animation_files = workshop_repository.scan_authored(AUTHORED_ANIMATION_DIR)
@@ -327,6 +328,7 @@ func _scan_authored_animations() -> void:
         workshop_repository.scan_authored(APPLE_MOCAP_REVIEW_DIR),
         true
     )
+    authored_animation_files.merge(workshop_repository.scan_seal_reference(), false)
 
 func _scan_dir_recursive(dir_path: String) -> void:
     # Compatibility wrapper for older tests/tools that invoke the scene method.

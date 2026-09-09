@@ -7,7 +7,8 @@ extends RefCounted
 
 # Schema 2 invalidates libraries that cached AGLS pistol actions after the old
 # Mixamo-only retarget removed every Unreal-named track.
-const CACHE_SCHEMA := 2
+const CACHE_SCHEMA := 6
+const TARGET_RIG_PATH := "res://assets/characters/ps1_dual_source_rig/ps1_dual_source_rig.scn"
 const PACKAGED_PATH := "res://assets/animations/cache/operator_animation_library.res"
 const USER_PATH := "user://operator_animation_library.res"
 
@@ -87,6 +88,9 @@ func store(profile, library: AnimationLibrary, sources: Dictionary) -> void:
 
 func fingerprint_for(profile) -> String:
 	var entries: Array[String] = ["schema:%d" % CACHE_SCHEMA]
+	entries.append("target_rig:" + FileAccess.get_sha256(TARGET_RIG_PATH))
+	entries.append("source_jump:" + JSON.stringify(profile.source_jump))
+	entries.append("gait_alignment:%s:%s" % [profile.locomotion.get("grounded_gait_alignment", false), profile.locomotion.get("gait_support_height_m", 0.05)])
 	# StringName ordering depends on the process' interning order. Canonicalize to
 	# ordinary strings before sorting so launcher, main.tscn, and regression
 	# processes produce the same fingerprint for identical animation data.

@@ -34,6 +34,7 @@ func outgoing(packet: Dictionary, respawn_epoch: int) -> Dictionary:
 			if bool(previous.get(FLAGS[flag], false)): bits |= 1 << flag
 		bytes.encode_u16(start + 28, bits)
 		bytes[start + 30] = int(previous.direction_held)
+		bytes[start + 31] = int(previous.get("peek_held", 0))
 	result["movement_history"] = bytes
 	result["movement_epoch"] = respawn_epoch
 	if history.is_empty() or int(packet.tick) > int(history.back().tick):
@@ -56,7 +57,7 @@ func incoming(packet: Dictionary) -> Array[Dictionary]:
 		if tick < 0 or tick <= last_tick or tick >= int(packet.tick) or bits > 127: return []
 		var previous := {"tick": tick, "move": Vector2(bytes.decode_float(start + 8), bytes.decode_float(start + 12)),
 			"aim_yaw": bytes.decode_float(start + 16), "aim_pitch": bytes.decode_float(start + 20),
-			"peek": bytes.decode_float(start + 24), "direction_held": int(bytes[start + 30])}
+			"peek": bytes.decode_float(start + 24), "direction_held": int(bytes[start + 30]), "peek_held": int(bytes[start + 31])}
 		for flag in FLAGS.size(): previous[FLAGS[flag]] = bool(bits & (1 << flag))
 		if not Protocol.movement_packet_is_sane(previous): return []
 		result.append(previous)

@@ -1,0 +1,2509 @@
+{
+  "schema_version": 1,
+  "map_id": "mp51_jungle_village",
+  "name": "Jungle Village — MP51 Variant",
+  "source_map": "user://maps/mp51_geometry_kit.json",
+  "library_path": "user://maps/mp51_jungle_village.json",
+  "spawn_clear_radius": 12,
+  "max_surface_error": 0.35,
+  "local_research_only": true,
+  "environment_overrides": {"sun_energy": 0.5, "ambient_energy": 0.65, "exposure": 1.0},
+  "placements": [
+    {
+      "id": "jungle_0",
+      "asset": "mp64_jungletree05.glb",
+      "position": [
+        22.5,
+        15.581,
+        112
+      ],
+      "scale": 0.85,
+      "yaw": 0,
+      "role": "canopy"
+    },
+    {
+      "id": "jungle_1",
+      "asset": "mp64_fern02.glb",
+      "position": [
+        22.5,
+        15.761,
+        115.5
+      ],
+      "scale": 0.75,
+      "yaw": 137.508,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_2",
+      "asset": "mp64_bush01.glb",
+      "position": [
+        22.5,
+        16.161,
+        136.5
+      ],
+      "scale": 0.9,
+      "yaw": 275.016,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_3",
+      "asset": "mp64_tree_canopy.glb",
+      "position": [
+        22.5,
+        16.932,
+        143.5
+      ],
+      "scale": 0.85,
+      "yaw": 52.524,
+      "role": "canopy"
+    },
+    {
+      "id": "jungle_4",
+      "asset": "mp64_bush03.glb",
+      "position": [
+        26,
+        16.179,
+        98
+      ],
+      "scale": 0.75,
+      "yaw": 190.03200000000004,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_5",
+      "asset": "mp64_bananatree2.glb",
+      "position": [
+        26,
+        15.608,
+        101.5
+      ],
+      "scale": 0.9,
+      "yaw": 327.5400000000001,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_6",
+      "asset": "mp64_fern01.glb",
+      "position": [
+        26,
+        17.363,
+        147
+      ],
+      "scale": 0.6,
+      "yaw": 105.048,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_7",
+      "asset": "mp64_fern02.glb",
+      "position": [
+        29.5,
+        10.648,
+        108.5
+      ],
+      "scale": 0.75,
+      "yaw": 242.55600000000004,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_8",
+      "asset": "mp64_bush01.glb",
+      "position": [
+        33,
+        10.278,
+        105
+      ],
+      "scale": 0.9,
+      "yaw": 20.064000000000078,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_9",
+      "asset": "mp64_tree_canopy.glb",
+      "position": [
+        33,
+        11.872,
+        129.5
+      ],
+      "scale": 0.85,
+      "yaw": 157.57200000000012,
+      "role": "canopy"
+    },
+    {
+      "id": "jungle_10",
+      "asset": "mp64_bush03.glb",
+      "position": [
+        36.5,
+        8.798,
+        94.5
+      ],
+      "scale": 0.75,
+      "yaw": 295.08000000000015,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_11",
+      "asset": "mp64_bananatree2.glb",
+      "position": [
+        36.5,
+        9.234,
+        101.5
+      ],
+      "scale": 0.9,
+      "yaw": 72.58800000000019,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_12",
+      "asset": "mp64_fern01.glb",
+      "position": [
+        36.5,
+        14.636,
+        136.5
+      ],
+      "scale": 0.6,
+      "yaw": 210.096,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_13",
+      "asset": "mp64_fern02.glb",
+      "position": [
+        40,
+        7.634,
+        63
+      ],
+      "scale": 0.75,
+      "yaw": 347.60400000000004,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_14",
+      "asset": "mp64_bush01.glb",
+      "position": [
+        40,
+        7.928,
+        70
+      ],
+      "scale": 0.9,
+      "yaw": 125.11200000000008,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_15",
+      "asset": "mp64_tree_canopy.glb",
+      "position": [
+        40,
+        8.362,
+        77
+      ],
+      "scale": 0.85,
+      "yaw": 262.62000000000035,
+      "role": "canopy"
+    },
+    {
+      "id": "jungle_16",
+      "asset": "mp64_bush03.glb",
+      "position": [
+        40,
+        8.459,
+        101.5
+      ],
+      "scale": 0.75,
+      "yaw": 40.128000000000156,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_17",
+      "asset": "mp64_bananatree2.glb",
+      "position": [
+        40,
+        14.79,
+        140
+      ],
+      "scale": 0.9,
+      "yaw": 177.63599999999997,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_18",
+      "asset": "mp64_jungletree05.glb",
+      "position": [
+        40,
+        15.027,
+        143.5
+      ],
+      "scale": 0.85,
+      "yaw": 315.14400000000023,
+      "role": "canopy"
+    },
+    {
+      "id": "jungle_19",
+      "asset": "mp64_fern02.glb",
+      "position": [
+        40,
+        14.989,
+        147
+      ],
+      "scale": 0.75,
+      "yaw": 92.65200000000004,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_20",
+      "asset": "mp64_bush01.glb",
+      "position": [
+        40,
+        19.139,
+        154
+      ],
+      "scale": 0.9,
+      "yaw": 230.1600000000003,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_21",
+      "asset": "mp64_bush02.glb",
+      "position": [
+        43.5,
+        7.58,
+        66.5
+      ],
+      "scale": 0.6,
+      "yaw": 7.66800000000012,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_22",
+      "asset": "mp64_bush03.glb",
+      "position": [
+        43.5,
+        7.81,
+        70
+      ],
+      "scale": 0.75,
+      "yaw": 145.17600000000039,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_23",
+      "asset": "mp64_bananatree2.glb",
+      "position": [
+        43.5,
+        7.899,
+        73.5
+      ],
+      "scale": 0.9,
+      "yaw": 282.6840000000002,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_24",
+      "asset": "mp64_fern01.glb",
+      "position": [
+        43.5,
+        7.55,
+        80.5
+      ],
+      "scale": 0.6,
+      "yaw": 60.19200000000001,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_25",
+      "asset": "mp64_fern02.glb",
+      "position": [
+        43.5,
+        11.694,
+        129.5
+      ],
+      "scale": 0.75,
+      "yaw": 197.70000000000027,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_26",
+      "asset": "mp64_bush01.glb",
+      "position": [
+        43.5,
+        14.738,
+        140
+      ],
+      "scale": 0.9,
+      "yaw": 335.2080000000001,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_27",
+      "asset": "mp64_bush02.glb",
+      "position": [
+        43.5,
+        14.742,
+        143.5
+      ],
+      "scale": 0.6,
+      "yaw": 112.71600000000035,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_28",
+      "asset": "mp64_bush03.glb",
+      "position": [
+        43.5,
+        20.436,
+        157.5
+      ],
+      "scale": 0.75,
+      "yaw": 250.22400000000016,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_29",
+      "asset": "mp64_bananatree2.glb",
+      "position": [
+        47,
+        6.56,
+        63
+      ],
+      "scale": 0.9,
+      "yaw": 27.732000000000426,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_30",
+      "asset": "mp64_fern01.glb",
+      "position": [
+        47,
+        6.768,
+        84
+      ],
+      "scale": 0.6,
+      "yaw": 165.2400000000007,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_31",
+      "asset": "mp64_fern02.glb",
+      "position": [
+        47,
+        6.233,
+        98
+      ],
+      "scale": 0.75,
+      "yaw": 302.7480000000005,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_32",
+      "asset": "mp64_bush01.glb",
+      "position": [
+        47,
+        8.4,
+        108.5
+      ],
+      "scale": 0.9,
+      "yaw": 80.25600000000031,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_33",
+      "asset": "mp64_tree_canopy.glb",
+      "position": [
+        47,
+        12.039,
+        129.5
+      ],
+      "scale": 0.85,
+      "yaw": 217.76400000000012,
+      "role": "canopy"
+    },
+    {
+      "id": "jungle_34",
+      "asset": "mp64_bush03.glb",
+      "position": [
+        47,
+        14.677,
+        133
+      ],
+      "scale": 0.75,
+      "yaw": 355.27199999999993,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_35",
+      "asset": "mp64_bananatree2.glb",
+      "position": [
+        47,
+        14.675,
+        136.5
+      ],
+      "scale": 0.9,
+      "yaw": 132.78000000000065,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_36",
+      "asset": "mp64_fern01.glb",
+      "position": [
+        47,
+        14.758,
+        143.5
+      ],
+      "scale": 0.6,
+      "yaw": 270.28800000000047,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_37",
+      "asset": "mp64_fern02.glb",
+      "position": [
+        47,
+        15.728,
+        150.5
+      ],
+      "scale": 0.75,
+      "yaw": 47.79600000000028,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_38",
+      "asset": "mp64_bush01.glb",
+      "position": [
+        47,
+        20.045,
+        154
+      ],
+      "scale": 0.9,
+      "yaw": 185.3040000000001,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_39",
+      "asset": "mp64_tree_canopy.glb",
+      "position": [
+        47,
+        20.756,
+        157.5
+      ],
+      "scale": 0.85,
+      "yaw": 322.8120000000008,
+      "role": "canopy"
+    },
+    {
+      "id": "jungle_40",
+      "asset": "mp64_bush03.glb",
+      "position": [
+        50.5,
+        9.615,
+        115.5
+      ],
+      "scale": 0.75,
+      "yaw": 100.32000000000062,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_41",
+      "asset": "mp64_bananatree2.glb",
+      "position": [
+        50.5,
+        10.943,
+        126
+      ],
+      "scale": 0.9,
+      "yaw": 237.82800000000043,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_42",
+      "asset": "mp64_jungletree05.glb",
+      "position": [
+        54,
+        5.867,
+        101.5
+      ],
+      "scale": 0.85,
+      "yaw": 15.33600000000024,
+      "role": "canopy"
+    },
+    {
+      "id": "jungle_43",
+      "asset": "mp64_fern02.glb",
+      "position": [
+        54,
+        6.842,
+        108.5
+      ],
+      "scale": 0.75,
+      "yaw": 152.84400000000005,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_44",
+      "asset": "mp64_bush01.glb",
+      "position": [
+        54,
+        8.207,
+        112
+      ],
+      "scale": 0.9,
+      "yaw": 290.35200000000077,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_45",
+      "asset": "mp64_tree_canopy.glb",
+      "position": [
+        54,
+        15.911,
+        143.5
+      ],
+      "scale": 0.85,
+      "yaw": 67.86000000000058,
+      "role": "canopy"
+    },
+    {
+      "id": "jungle_46",
+      "asset": "mp64_bush03.glb",
+      "position": [
+        57.5,
+        5.903,
+        105
+      ],
+      "scale": 0.75,
+      "yaw": 205.3680000000004,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_47",
+      "asset": "mp64_bananatree2.glb",
+      "position": [
+        61,
+        4.978,
+        101.5
+      ],
+      "scale": 0.9,
+      "yaw": 342.8760000000002,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_48",
+      "asset": "mp64_fern01.glb",
+      "position": [
+        61,
+        5.255,
+        105
+      ],
+      "scale": 0.6,
+      "yaw": 120.38400000000001,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_49",
+      "asset": "mp64_fern02.glb",
+      "position": [
+        61,
+        7.542,
+        115.5
+      ],
+      "scale": 0.75,
+      "yaw": 257.89200000000073,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_50",
+      "asset": "mp64_bush01.glb",
+      "position": [
+        64.5,
+        7.776,
+        42
+      ],
+      "scale": 0.9,
+      "yaw": 35.400000000000546,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_51",
+      "asset": "mp64_tree_canopy.glb",
+      "position": [
+        64.5,
+        6.806,
+        115.5
+      ],
+      "scale": 0.85,
+      "yaw": 172.90800000000036,
+      "role": "canopy"
+    },
+    {
+      "id": "jungle_52",
+      "asset": "mp64_bush03.glb",
+      "position": [
+        64.5,
+        14.824,
+        133
+      ],
+      "scale": 0.75,
+      "yaw": 310.41600000000017,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_53",
+      "asset": "mp64_bananatree2.glb",
+      "position": [
+        64.5,
+        15.277,
+        136.5
+      ],
+      "scale": 0.9,
+      "yaw": 87.92400000000089,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_54",
+      "asset": "mp64_jungletree05.glb",
+      "position": [
+        68,
+        8.361,
+        35
+      ],
+      "scale": 0.85,
+      "yaw": 225.4320000000007,
+      "role": "canopy"
+    },
+    {
+      "id": "jungle_55",
+      "asset": "mp64_fern02.glb",
+      "position": [
+        68,
+        7.682,
+        42
+      ],
+      "scale": 0.75,
+      "yaw": 2.9400000000005093,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_56",
+      "asset": "mp64_bush01.glb",
+      "position": [
+        68,
+        5.992,
+        112
+      ],
+      "scale": 0.9,
+      "yaw": 140.44800000000032,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_57",
+      "asset": "mp64_bush02.glb",
+      "position": [
+        68,
+        13.568,
+        122.5
+      ],
+      "scale": 0.6,
+      "yaw": 277.95600000000013,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_58",
+      "asset": "mp64_bush03.glb",
+      "position": [
+        68,
+        13.612,
+        126
+      ],
+      "scale": 0.75,
+      "yaw": 55.46400000000085,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_59",
+      "asset": "mp64_bananatree2.glb",
+      "position": [
+        68,
+        15.186,
+        136.5
+      ],
+      "scale": 0.9,
+      "yaw": 192.97200000000066,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_60",
+      "asset": "mp64_fern01.glb",
+      "position": [
+        71.5,
+        8.179,
+        35
+      ],
+      "scale": 0.6,
+      "yaw": 330.4800000000014,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_61",
+      "asset": "mp64_fern02.glb",
+      "position": [
+        71.5,
+        7.948,
+        38.5
+      ],
+      "scale": 0.75,
+      "yaw": 107.9880000000012,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_62",
+      "asset": "mp64_bush01.glb",
+      "position": [
+        71.5,
+        4.898,
+        87.5
+      ],
+      "scale": 0.9,
+      "yaw": 245.496000000001,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_63",
+      "asset": "mp64_tree_canopy.glb",
+      "position": [
+        71.5,
+        4.667,
+        101.5
+      ],
+      "scale": 0.85,
+      "yaw": 23.004000000000815,
+      "role": "canopy"
+    },
+    {
+      "id": "jungle_64",
+      "asset": "mp64_bush03.glb",
+      "position": [
+        71.5,
+        5.927,
+        112
+      ],
+      "scale": 0.75,
+      "yaw": 160.51200000000063,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_65",
+      "asset": "mp64_bananatree2.glb",
+      "position": [
+        71.5,
+        8.11,
+        119
+      ],
+      "scale": 0.9,
+      "yaw": 298.02000000000044,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_66",
+      "asset": "mp64_fern01.glb",
+      "position": [
+        75,
+        8.179,
+        35
+      ],
+      "scale": 0.6,
+      "yaw": 75.52800000000025,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_67",
+      "asset": "mp64_fern02.glb",
+      "position": [
+        75,
+        7.875,
+        38.5
+      ],
+      "scale": 0.75,
+      "yaw": 213.03600000000006,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_68",
+      "asset": "mp64_bush01.glb",
+      "position": [
+        75,
+        6.878,
+        49
+      ],
+      "scale": 0.9,
+      "yaw": 350.54399999999987,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_69",
+      "asset": "mp64_tree_canopy.glb",
+      "position": [
+        75,
+        5.453,
+        56
+      ],
+      "scale": 0.85,
+      "yaw": 128.0520000000015,
+      "role": "canopy"
+    },
+    {
+      "id": "jungle_70",
+      "asset": "mp64_bush03.glb",
+      "position": [
+        75,
+        4.869,
+        59.5
+      ],
+      "scale": 0.75,
+      "yaw": 265.5600000000013,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_71",
+      "asset": "mp64_bananatree2.glb",
+      "position": [
+        75,
+        4.467,
+        66.5
+      ],
+      "scale": 0.9,
+      "yaw": 43.06800000000112,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_72",
+      "asset": "mp64_jungletree05.glb",
+      "position": [
+        75,
+        11.538,
+        129.5
+      ],
+      "scale": 0.85,
+      "yaw": 180.57600000000093,
+      "role": "canopy"
+    },
+    {
+      "id": "jungle_73",
+      "asset": "mp64_fern02.glb",
+      "position": [
+        78.5,
+        7.899,
+        35
+      ],
+      "scale": 0.75,
+      "yaw": 318.08400000000074,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_74",
+      "asset": "mp64_bush01.glb",
+      "position": [
+        78.5,
+        7.158,
+        49
+      ],
+      "scale": 0.9,
+      "yaw": 95.59200000000055,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_75",
+      "asset": "mp64_bush02.glb",
+      "position": [
+        78.5,
+        4.053,
+        59.5
+      ],
+      "scale": 0.6,
+      "yaw": 233.10000000000036,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_76",
+      "asset": "mp64_bush03.glb",
+      "position": [
+        78.5,
+        5.671,
+        108.5
+      ],
+      "scale": 0.75,
+      "yaw": 10.608000000000175,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_77",
+      "asset": "mp64_bananatree2.glb",
+      "position": [
+        78.5,
+        10.092,
+        122.5
+      ],
+      "scale": 0.9,
+      "yaw": 148.11599999999999,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_78",
+      "asset": "mp64_fern01.glb",
+      "position": [
+        82,
+        8.825,
+        105
+      ],
+      "scale": 0.6,
+      "yaw": 285.6240000000016,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_79",
+      "asset": "mp64_fern02.glb",
+      "position": [
+        82,
+        10.258,
+        122.5
+      ],
+      "scale": 0.75,
+      "yaw": 63.132000000001426,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_80",
+      "asset": "mp64_bush01.glb",
+      "position": [
+        82,
+        10.82,
+        126
+      ],
+      "scale": 0.9,
+      "yaw": 200.64000000000124,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_81",
+      "asset": "mp64_tree_canopy.glb",
+      "position": [
+        85.5,
+        3.64,
+        35
+      ],
+      "scale": 0.85,
+      "yaw": 338.14800000000105,
+      "role": "canopy"
+    },
+    {
+      "id": "jungle_82",
+      "asset": "mp64_bush03.glb",
+      "position": [
+        85.5,
+        3.064,
+        38.5
+      ],
+      "scale": 0.75,
+      "yaw": 115.65600000000086,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_83",
+      "asset": "mp64_bananatree2.glb",
+      "position": [
+        85.5,
+        3.873,
+        98
+      ],
+      "scale": 0.9,
+      "yaw": 253.16400000000067,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_84",
+      "asset": "mp64_jungletree05.glb",
+      "position": [
+        89,
+        3.745,
+        17.5
+      ],
+      "scale": 0.85,
+      "yaw": 30.67200000000048,
+      "role": "canopy"
+    },
+    {
+      "id": "jungle_85",
+      "asset": "mp64_fern02.glb",
+      "position": [
+        89,
+        3.359,
+        21
+      ],
+      "scale": 0.75,
+      "yaw": 168.1800000000003,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_86",
+      "asset": "mp64_bush01.glb",
+      "position": [
+        89,
+        2.95,
+        28
+      ],
+      "scale": 0.9,
+      "yaw": 305.6880000000001,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_87",
+      "asset": "mp64_bush02.glb",
+      "position": [
+        89,
+        2.802,
+        35
+      ],
+      "scale": 0.6,
+      "yaw": 83.19600000000173,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_88",
+      "asset": "mp64_bush03.glb",
+      "position": [
+        89,
+        4.332,
+        98
+      ],
+      "scale": 0.75,
+      "yaw": 220.70400000000154,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_89",
+      "asset": "mp64_bananatree2.glb",
+      "position": [
+        89,
+        10.027,
+        115.5
+      ],
+      "scale": 0.9,
+      "yaw": 358.21200000000135,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_90",
+      "asset": "mp64_jungletree05.glb",
+      "position": [
+        89,
+        10.337,
+        119
+      ],
+      "scale": 0.85,
+      "yaw": 135.72000000000116,
+      "role": "canopy"
+    },
+    {
+      "id": "jungle_91",
+      "asset": "mp64_fern02.glb",
+      "position": [
+        92.5,
+        3.958,
+        14
+      ],
+      "scale": 0.75,
+      "yaw": 273.228000000001,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_92",
+      "asset": "mp64_bush01.glb",
+      "position": [
+        92.5,
+        2.327,
+        28
+      ],
+      "scale": 0.9,
+      "yaw": 50.736000000000786,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_93",
+      "asset": "mp64_bush02.glb",
+      "position": [
+        92.5,
+        2.275,
+        31.5
+      ],
+      "scale": 0.6,
+      "yaw": 188.2440000000006,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_94",
+      "asset": "mp64_bush03.glb",
+      "position": [
+        92.5,
+        1.804,
+        42
+      ],
+      "scale": 0.75,
+      "yaw": 325.7520000000004,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_95",
+      "asset": "mp64_bananatree2.glb",
+      "position": [
+        92.5,
+        1.61,
+        52.5
+      ],
+      "scale": 0.9,
+      "yaw": 103.26000000000022,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_96",
+      "asset": "mp64_jungletree05.glb",
+      "position": [
+        92.5,
+        1.573,
+        56
+      ],
+      "scale": 0.85,
+      "yaw": 240.76800000000003,
+      "role": "canopy"
+    },
+    {
+      "id": "jungle_97",
+      "asset": "mp64_fern02.glb",
+      "position": [
+        96,
+        2.274,
+        28
+      ],
+      "scale": 0.75,
+      "yaw": 18.27600000000166,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_98",
+      "asset": "mp64_bush01.glb",
+      "position": [
+        99.5,
+        3.594,
+        17.5
+      ],
+      "scale": 0.9,
+      "yaw": 155.78400000000147,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_99",
+      "asset": "mp64_tree_canopy.glb",
+      "position": [
+        99.5,
+        0.634,
+        38.5
+      ],
+      "scale": 0.85,
+      "yaw": 293.2920000000013,
+      "role": "canopy"
+    },
+    {
+      "id": "jungle_100",
+      "asset": "mp64_bush03.glb",
+      "position": [
+        99.5,
+        0.782,
+        52.5
+      ],
+      "scale": 0.75,
+      "yaw": 70.80000000000109,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_101",
+      "asset": "mp64_bananatree2.glb",
+      "position": [
+        99.5,
+        1.163,
+        56
+      ],
+      "scale": 0.9,
+      "yaw": 208.3080000000009,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_102",
+      "asset": "mp64_fern01.glb",
+      "position": [
+        99.5,
+        1.157,
+        59.5
+      ],
+      "scale": 0.6,
+      "yaw": 345.8160000000007,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_103",
+      "asset": "mp64_fern02.glb",
+      "position": [
+        99.5,
+        0.741,
+        63
+      ],
+      "scale": 0.75,
+      "yaw": 123.32400000000052,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_104",
+      "asset": "mp64_bush01.glb",
+      "position": [
+        103,
+        4.411,
+        14
+      ],
+      "scale": 0.9,
+      "yaw": 260.83200000000033,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_105",
+      "asset": "mp64_tree_canopy.glb",
+      "position": [
+        103,
+        2.946,
+        21
+      ],
+      "scale": 0.85,
+      "yaw": 38.340000000000146,
+      "role": "canopy"
+    },
+    {
+      "id": "jungle_106",
+      "asset": "mp64_bush03.glb",
+      "position": [
+        103,
+        0.492,
+        42
+      ],
+      "scale": 0.75,
+      "yaw": 175.84800000000178,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_107",
+      "asset": "mp64_bananatree2.glb",
+      "position": [
+        103,
+        -0.081,
+        52.5
+      ],
+      "scale": 0.9,
+      "yaw": 313.3560000000016,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_108",
+      "asset": "mp64_fern01.glb",
+      "position": [
+        103,
+        0.197,
+        56
+      ],
+      "scale": 0.6,
+      "yaw": 90.8640000000014,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_109",
+      "asset": "mp64_fern02.glb",
+      "position": [
+        103,
+        0.355,
+        59.5
+      ],
+      "scale": 0.75,
+      "yaw": 228.3720000000012,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_110",
+      "asset": "mp64_bush01.glb",
+      "position": [
+        103,
+        0.18,
+        63
+      ],
+      "scale": 0.9,
+      "yaw": 5.880000000001019,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_111",
+      "asset": "mp64_bush02.glb",
+      "position": [
+        106.5,
+        0.888,
+        35
+      ],
+      "scale": 0.6,
+      "yaw": 143.38800000000083,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_112",
+      "asset": "mp64_bush03.glb",
+      "position": [
+        106.5,
+        0.273,
+        45.5
+      ],
+      "scale": 0.75,
+      "yaw": 280.89600000000064,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_113",
+      "asset": "mp64_bananatree2.glb",
+      "position": [
+        106.5,
+        4.177,
+        94.5
+      ],
+      "scale": 0.9,
+      "yaw": 58.40400000000045,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_114",
+      "asset": "mp64_jungletree05.glb",
+      "position": [
+        106.5,
+        4.26,
+        98
+      ],
+      "scale": 0.85,
+      "yaw": 195.91200000000026,
+      "role": "canopy"
+    },
+    {
+      "id": "jungle_115",
+      "asset": "mp64_fern02.glb",
+      "position": [
+        106.5,
+        7.227,
+        115.5
+      ],
+      "scale": 0.75,
+      "yaw": 333.4200000000019,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_116",
+      "asset": "mp64_bush01.glb",
+      "position": [
+        110,
+        6.07,
+        7
+      ],
+      "scale": 0.9,
+      "yaw": 110.9280000000017,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_117",
+      "asset": "mp64_bush02.glb",
+      "position": [
+        110,
+        5.839,
+        10.5
+      ],
+      "scale": 0.6,
+      "yaw": 248.4360000000015,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_118",
+      "asset": "mp64_bush03.glb",
+      "position": [
+        110,
+        1.185,
+        35
+      ],
+      "scale": 0.75,
+      "yaw": 25.944000000001324,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_119",
+      "asset": "mp64_bananatree2.glb",
+      "position": [
+        110,
+        -0.931,
+        63
+      ],
+      "scale": 0.9,
+      "yaw": 163.45200000000114,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_120",
+      "asset": "mp64_jungletree05.glb",
+      "position": [
+        110,
+        -0.912,
+        66.5
+      ],
+      "scale": 0.85,
+      "yaw": 300.96000000000276,
+      "role": "canopy"
+    },
+    {
+      "id": "jungle_121",
+      "asset": "mp64_fern02.glb",
+      "position": [
+        110,
+        3.673,
+        94.5
+      ],
+      "scale": 0.75,
+      "yaw": 78.46800000000076,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_122",
+      "asset": "mp64_bush01.glb",
+      "position": [
+        110,
+        6.932,
+        112
+      ],
+      "scale": 0.9,
+      "yaw": 215.9760000000024,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_123",
+      "asset": "mp64_tree_canopy.glb",
+      "position": [
+        110,
+        6.841,
+        115.5
+      ],
+      "scale": 0.85,
+      "yaw": 353.4840000000004,
+      "role": "canopy"
+    },
+    {
+      "id": "jungle_124",
+      "asset": "mp64_bush03.glb",
+      "position": [
+        113.5,
+        6.417,
+        10.5
+      ],
+      "scale": 0.75,
+      "yaw": 130.992000000002,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_125",
+      "asset": "mp64_bananatree2.glb",
+      "position": [
+        113.5,
+        5.541,
+        17.5
+      ],
+      "scale": 0.9,
+      "yaw": 268.5,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_126",
+      "asset": "mp64_fern01.glb",
+      "position": [
+        113.5,
+        5.48,
+        21
+      ],
+      "scale": 0.6,
+      "yaw": 46.00800000000163,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_127",
+      "asset": "mp64_fern02.glb",
+      "position": [
+        113.5,
+        5.445,
+        24.5
+      ],
+      "scale": 0.75,
+      "yaw": 183.51599999999962,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_128",
+      "asset": "mp64_bush01.glb",
+      "position": [
+        113.5,
+        5.387,
+        28
+      ],
+      "scale": 0.9,
+      "yaw": 321.02400000000125,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_129",
+      "asset": "mp64_tree_canopy.glb",
+      "position": [
+        113.5,
+        0.67,
+        42
+      ],
+      "scale": 0.85,
+      "yaw": 98.53200000000288,
+      "role": "canopy"
+    },
+    {
+      "id": "jungle_130",
+      "asset": "mp64_bush03.glb",
+      "position": [
+        113.5,
+        -1.25,
+        52.5
+      ],
+      "scale": 0.75,
+      "yaw": 236.04000000000087,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_131",
+      "asset": "mp64_bananatree2.glb",
+      "position": [
+        113.5,
+        -0.491,
+        84
+      ],
+      "scale": 0.9,
+      "yaw": 13.548000000002503,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_132",
+      "asset": "mp64_fern01.glb",
+      "position": [
+        113.5,
+        6.64,
+        112
+      ],
+      "scale": 0.6,
+      "yaw": 151.0560000000005,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_133",
+      "asset": "mp64_fern02.glb",
+      "position": [
+        117,
+        5.762,
+        21
+      ],
+      "scale": 0.75,
+      "yaw": 288.5640000000021,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_134",
+      "asset": "mp64_bush01.glb",
+      "position": [
+        117,
+        5.789,
+        24.5
+      ],
+      "scale": 0.9,
+      "yaw": 66.07200000000012,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_135",
+      "asset": "mp64_bush02.glb",
+      "position": [
+        117,
+        2.104,
+        35
+      ],
+      "scale": 0.6,
+      "yaw": 203.58000000000175,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_136",
+      "asset": "mp64_bush03.glb",
+      "position": [
+        117,
+        -2.135,
+        59.5
+      ],
+      "scale": 0.75,
+      "yaw": 341.08799999999974,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_137",
+      "asset": "mp64_bananatree2.glb",
+      "position": [
+        117,
+        1.196,
+        94.5
+      ],
+      "scale": 0.9,
+      "yaw": 118.59600000000137,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_138",
+      "asset": "mp64_fern01.glb",
+      "position": [
+        117,
+        5.873,
+        115.5
+      ],
+      "scale": 0.6,
+      "yaw": 256.104000000003,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_139",
+      "asset": "mp64_fern02.glb",
+      "position": [
+        117,
+        5.78,
+        122.5
+      ],
+      "scale": 0.75,
+      "yaw": 33.61200000000099,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_140",
+      "asset": "mp64_bush01.glb",
+      "position": [
+        120.5,
+        -2.315,
+        52.5
+      ],
+      "scale": 0.9,
+      "yaw": 171.12000000000262,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_141",
+      "asset": "mp64_tree_canopy.glb",
+      "position": [
+        120.5,
+        7.403,
+        105
+      ],
+      "scale": 0.85,
+      "yaw": 308.6280000000006,
+      "role": "canopy"
+    },
+    {
+      "id": "jungle_142",
+      "asset": "mp64_bush03.glb",
+      "position": [
+        120.5,
+        7.009,
+        108.5
+      ],
+      "scale": 0.75,
+      "yaw": 86.13600000000224,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_143",
+      "asset": "mp64_bananatree2.glb",
+      "position": [
+        120.5,
+        6.149,
+        112
+      ],
+      "scale": 0.9,
+      "yaw": 223.64400000000023,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_144",
+      "asset": "mp64_fern01.glb",
+      "position": [
+        120.5,
+        5.085,
+        119
+      ],
+      "scale": 0.6,
+      "yaw": 1.1520000000018626,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_145",
+      "asset": "mp64_fern02.glb",
+      "position": [
+        124,
+        6.784,
+        14
+      ],
+      "scale": 0.75,
+      "yaw": 138.65999999999985,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_146",
+      "asset": "mp64_bush01.glb",
+      "position": [
+        124,
+        6.694,
+        17.5
+      ],
+      "scale": 0.9,
+      "yaw": 276.1680000000015,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_147",
+      "asset": "mp64_bush02.glb",
+      "position": [
+        124,
+        -0.09,
+        42
+      ],
+      "scale": 0.6,
+      "yaw": 53.676000000003114,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_148",
+      "asset": "mp64_bush03.glb",
+      "position": [
+        124,
+        4.309,
+        115.5
+      ],
+      "scale": 0.75,
+      "yaw": 191.1840000000011,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_149",
+      "asset": "mp64_bananatree2.glb",
+      "position": [
+        124,
+        9,
+        126
+      ],
+      "scale": 0.9,
+      "yaw": 328.69200000000274,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_150",
+      "asset": "mp64_jungletree05.glb",
+      "position": [
+        124,
+        9.734,
+        129.5
+      ],
+      "scale": 0.85,
+      "yaw": 106.20000000000073,
+      "role": "canopy"
+    },
+    {
+      "id": "jungle_151",
+      "asset": "mp64_fern02.glb",
+      "position": [
+        127.5,
+        -3.209,
+        59.5
+      ],
+      "scale": 0.75,
+      "yaw": 243.70800000000236,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_152",
+      "asset": "mp64_bush01.glb",
+      "position": [
+        127.5,
+        1.641,
+        108.5
+      ],
+      "scale": 0.9,
+      "yaw": 21.21600000000035,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_153",
+      "asset": "mp64_bush02.glb",
+      "position": [
+        127.5,
+        2.613,
+        112
+      ],
+      "scale": 0.6,
+      "yaw": 158.72400000000198,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_154",
+      "asset": "mp64_bush03.glb",
+      "position": [
+        127.5,
+        3.261,
+        115.5
+      ],
+      "scale": 0.75,
+      "yaw": 296.23199999999997,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_155",
+      "asset": "mp64_bananatree2.glb",
+      "position": [
+        127.5,
+        9.53,
+        129.5
+      ],
+      "scale": 0.9,
+      "yaw": 73.7400000000016,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_156",
+      "asset": "mp64_jungletree05.glb",
+      "position": [
+        131,
+        -2.619,
+        49
+      ],
+      "scale": 0.85,
+      "yaw": 211.24800000000323,
+      "role": "canopy"
+    },
+    {
+      "id": "jungle_157",
+      "asset": "mp64_fern02.glb",
+      "position": [
+        131,
+        1.419,
+        108.5
+      ],
+      "scale": 0.75,
+      "yaw": 348.7560000000012,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_158",
+      "asset": "mp64_bush01.glb",
+      "position": [
+        131,
+        1.908,
+        112
+      ],
+      "scale": 0.9,
+      "yaw": 126.26400000000285,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_159",
+      "asset": "mp64_bush02.glb",
+      "position": [
+        134.5,
+        -2.497,
+        42
+      ],
+      "scale": 0.6,
+      "yaw": 263.77200000000084,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_160",
+      "asset": "mp64_bush03.glb",
+      "position": [
+        134.5,
+        -2.806,
+        45.5
+      ],
+      "scale": 0.75,
+      "yaw": 41.280000000002474,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_161",
+      "asset": "mp64_bananatree2.glb",
+      "position": [
+        134.5,
+        -2.828,
+        49
+      ],
+      "scale": 0.9,
+      "yaw": 178.78800000000047,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_162",
+      "asset": "mp64_fern01.glb",
+      "position": [
+        134.5,
+        -3.145,
+        56
+      ],
+      "scale": 0.6,
+      "yaw": 316.2960000000021,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_163",
+      "asset": "mp64_fern02.glb",
+      "position": [
+        134.5,
+        2.62,
+        115.5
+      ],
+      "scale": 0.75,
+      "yaw": 93.80400000000009,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_164",
+      "asset": "mp64_bush01.glb",
+      "position": [
+        138,
+        -3.359,
+        56
+      ],
+      "scale": 0.9,
+      "yaw": 231.31200000000172,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_165",
+      "asset": "mp64_tree_canopy.glb",
+      "position": [
+        138,
+        -1.525,
+        91
+      ],
+      "scale": 0.85,
+      "yaw": 8.820000000003347,
+      "role": "canopy"
+    },
+    {
+      "id": "jungle_166",
+      "asset": "mp64_bush03.glb",
+      "position": [
+        138,
+        -1.085,
+        94.5
+      ],
+      "scale": 0.75,
+      "yaw": 146.32800000000134,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_167",
+      "asset": "mp64_bananatree2.glb",
+      "position": [
+        138,
+        -0.503,
+        98
+      ],
+      "scale": 0.9,
+      "yaw": 283.83600000000297,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_168",
+      "asset": "mp64_fern01.glb",
+      "position": [
+        138,
+        0.131,
+        101.5
+      ],
+      "scale": 0.6,
+      "yaw": 61.34400000000096,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_169",
+      "asset": "mp64_fern02.glb",
+      "position": [
+        141.5,
+        3.302,
+        28
+      ],
+      "scale": 0.75,
+      "yaw": 198.8520000000026,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_170",
+      "asset": "mp64_bush01.glb",
+      "position": [
+        141.5,
+        -3.754,
+        52.5
+      ],
+      "scale": 0.9,
+      "yaw": 336.3600000000006,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_171",
+      "asset": "mp64_tree_canopy.glb",
+      "position": [
+        141.5,
+        -3.03,
+        73.5
+      ],
+      "scale": 0.85,
+      "yaw": 113.86800000000221,
+      "role": "canopy"
+    },
+    {
+      "id": "jungle_172",
+      "asset": "mp64_bush03.glb",
+      "position": [
+        141.5,
+        -2.621,
+        77
+      ],
+      "scale": 0.75,
+      "yaw": 251.3760000000002,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_173",
+      "asset": "mp64_bananatree2.glb",
+      "position": [
+        141.5,
+        -2.076,
+        84
+      ],
+      "scale": 0.9,
+      "yaw": 28.884000000001834,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_174",
+      "asset": "mp64_jungletree05.glb",
+      "position": [
+        141.5,
+        1.029,
+        105
+      ],
+      "scale": 0.85,
+      "yaw": 166.39200000000346,
+      "role": "canopy"
+    },
+    {
+      "id": "jungle_175",
+      "asset": "mp64_fern02.glb",
+      "position": [
+        141.5,
+        1.922,
+        115.5
+      ],
+      "scale": 0.75,
+      "yaw": 303.90000000000146,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_176",
+      "asset": "mp64_bush01.glb",
+      "position": [
+        145,
+        2.709,
+        31.5
+      ],
+      "scale": 0.9,
+      "yaw": 81.40800000000309,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_177",
+      "asset": "mp64_tree_canopy.glb",
+      "position": [
+        145,
+        -0.542,
+        42
+      ],
+      "scale": 0.85,
+      "yaw": 218.91600000000108,
+      "role": "canopy"
+    },
+    {
+      "id": "jungle_178",
+      "asset": "mp64_bush03.glb",
+      "position": [
+        145,
+        -2.859,
+        77
+      ],
+      "scale": 0.75,
+      "yaw": 356.4240000000027,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_179",
+      "asset": "mp64_bananatree2.glb",
+      "position": [
+        145,
+        -2.506,
+        80.5
+      ],
+      "scale": 0.9,
+      "yaw": 133.9320000000007,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_180",
+      "asset": "mp64_fern01.glb",
+      "position": [
+        145,
+        -2.205,
+        84
+      ],
+      "scale": 0.6,
+      "yaw": 271.4400000000023,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_181",
+      "asset": "mp64_fern02.glb",
+      "position": [
+        145,
+        -1.89,
+        87.5
+      ],
+      "scale": 0.75,
+      "yaw": 48.94800000000032,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_182",
+      "asset": "mp64_bush01.glb",
+      "position": [
+        145,
+        1.354,
+        108.5
+      ],
+      "scale": 0.9,
+      "yaw": 186.45600000000195,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_183",
+      "asset": "mp64_bush02.glb",
+      "position": [
+        145,
+        1.844,
+        115.5
+      ],
+      "scale": 0.6,
+      "yaw": 323.9640000000036,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_184",
+      "asset": "mp64_bush03.glb",
+      "position": [
+        145,
+        1.979,
+        119
+      ],
+      "scale": 0.75,
+      "yaw": 101.47200000000157,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_185",
+      "asset": "mp64_bananatree2.glb",
+      "position": [
+        148.5,
+        3.055,
+        28
+      ],
+      "scale": 0.9,
+      "yaw": 238.9800000000032,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_186",
+      "asset": "mp64_fern01.glb",
+      "position": [
+        148.5,
+        2.813,
+        35
+      ],
+      "scale": 0.6,
+      "yaw": 16.488000000001193,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_187",
+      "asset": "mp64_fern02.glb",
+      "position": [
+        148.5,
+        -0.43,
+        42
+      ],
+      "scale": 0.75,
+      "yaw": 153.99600000000282,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_188",
+      "asset": "mp64_bush01.glb",
+      "position": [
+        148.5,
+        -3.866,
+        52.5
+      ],
+      "scale": 0.9,
+      "yaw": 291.5040000000008,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_189",
+      "asset": "mp64_tree_canopy.glb",
+      "position": [
+        148.5,
+        -4.044,
+        56
+      ],
+      "scale": 0.85,
+      "yaw": 69.01200000000244,
+      "role": "canopy"
+    },
+    {
+      "id": "jungle_190",
+      "asset": "mp64_bush03.glb",
+      "position": [
+        148.5,
+        -4.026,
+        59.5
+      ],
+      "scale": 0.75,
+      "yaw": 206.52000000000044,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_191",
+      "asset": "mp64_bananatree2.glb",
+      "position": [
+        148.5,
+        -4.228,
+        63
+      ],
+      "scale": 0.9,
+      "yaw": 344.02800000000207,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_192",
+      "asset": "mp64_fern01.glb",
+      "position": [
+        148.5,
+        -1.884,
+        87.5
+      ],
+      "scale": 0.6,
+      "yaw": 121.53600000000006,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_193",
+      "asset": "mp64_fern02.glb",
+      "position": [
+        148.5,
+        1.8,
+        115.5
+      ],
+      "scale": 0.75,
+      "yaw": 259.0440000000017,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_194",
+      "asset": "mp64_bush01.glb",
+      "position": [
+        148.5,
+        2.03,
+        119
+      ],
+      "scale": 0.9,
+      "yaw": 36.55200000000332,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_195",
+      "asset": "mp64_bush02.glb",
+      "position": [
+        152,
+        0.102,
+        42
+      ],
+      "scale": 0.6,
+      "yaw": 174.0600000000013,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_196",
+      "asset": "mp64_bush03.glb",
+      "position": [
+        152,
+        -1.77,
+        87.5
+      ],
+      "scale": 0.75,
+      "yaw": 311.56800000000294,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_197",
+      "asset": "mp64_bananatree2.glb",
+      "position": [
+        155.5,
+        0.888,
+        42
+      ],
+      "scale": 0.9,
+      "yaw": 89.07600000000093,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_198",
+      "asset": "mp64_jungletree05.glb",
+      "position": [
+        155.5,
+        -1.131,
+        87.5
+      ],
+      "scale": 0.85,
+      "yaw": 226.58400000000256,
+      "role": "canopy"
+    },
+    {
+      "id": "jungle_199",
+      "asset": "mp64_fern02.glb",
+      "position": [
+        155.5,
+        0.355,
+        98
+      ],
+      "scale": 0.75,
+      "yaw": 4.092000000000553,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_200",
+      "asset": "mp64_bush01.glb",
+      "position": [
+        155.5,
+        1.422,
+        108.5
+      ],
+      "scale": 0.9,
+      "yaw": 141.60000000000218,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_201",
+      "asset": "mp64_tree_canopy.glb",
+      "position": [
+        159,
+        1.992,
+        45.5
+      ],
+      "scale": 0.85,
+      "yaw": 279.1080000000002,
+      "role": "canopy"
+    },
+    {
+      "id": "jungle_202",
+      "asset": "mp64_bush03.glb",
+      "position": [
+        159,
+        1.543,
+        49
+      ],
+      "scale": 0.75,
+      "yaw": 56.616000000001804,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_203",
+      "asset": "mp64_bananatree2.glb",
+      "position": [
+        166,
+        1.203,
+        105
+      ],
+      "scale": 0.9,
+      "yaw": 194.12400000000343,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_204",
+      "asset": "mp64_jungletree05.glb",
+      "position": [
+        166,
+        5.082,
+        112
+      ],
+      "scale": 0.85,
+      "yaw": 331.6320000000014,
+      "role": "canopy"
+    },
+    {
+      "id": "jungle_205",
+      "asset": "mp64_fern02.glb",
+      "position": [
+        169.5,
+        3.803,
+        98
+      ],
+      "scale": 0.75,
+      "yaw": 109.14000000000306,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_206",
+      "asset": "mp64_bush01.glb",
+      "position": [
+        169.5,
+        4.423,
+        101.5
+      ],
+      "scale": 0.9,
+      "yaw": 246.64800000000105,
+      "role": "undergrowth"
+    },
+    {
+      "id": "jungle_207",
+      "asset": "mp64_bush02.glb",
+      "position": [
+        169.5,
+        6.046,
+        112
+      ],
+      "scale": 0.6,
+      "yaw": 24.156000000002678,
+      "role": "undergrowth"
+    }
+  ]
+}

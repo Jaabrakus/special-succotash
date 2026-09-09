@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "toggle_enabled": true,
+  "movement_deadzone": 0.15,
+  "movement_hold_seconds": 0.22,
+  "peek_speed_mps": 0.65
+}

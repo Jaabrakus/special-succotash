@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "feature_id": "socom_local_geometry_kit",
+  "player_intent": "Use actual decoded environment geometry as an editable local map kit instead of texture-only blockout primitives.",
+  "acceptance_rule": "98 validated local GLBs; 82 independently editable world chunks retain source assembly positions; saved document builds through canonical MapRuntime with detailed collision and supported preview spawns.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://map_creation_lab.tscn",
+  "ownership": {
+    "map_construction": "SocomMapRuntime"
+  },
+  "nodes": [
+    {
+      "id": "authored_map",
+      "type": "Node3D",
+      "role": "Builds saved geometry for editor and game.",
+      "owner": "SocomMapRuntime",
+      "source_script": "res://scripts/maps/socom_map_runtime.gd",
+      "code_symbols": [
+        "root.name = \"AuthoredMap\"",
+        "static func build_into"
+      ]
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://config/maps/mp51_geometry_kit_spec.json",
+      "writer": "res://tools/import_socom_geometry.gd",
+      "readers": [
+        "res://tools/socom_geometry_regression.gd",
+        "res://scripts/maps/socom_map_document.gd"
+      ]
+    }
+  ],
+  "must_not_change": [
+    "default_map",
+    "browser_export",
+    "movement",
+    "camera_aim",
+    "animation",
+    "weapon_damage",
+    "network_authority"
+  ],
+  "proof_scripts": [
+    "res://tools/socom_geometry_regression.gd",
+    "res://tools/socom_geometry/test.cjs",
+    "res://tools/imported_map_asset_boundary_regression.gd"
+  ],
+  "visual_check": "Inspect actual textured MP51 village geometry in Godot, then assembled chunks in Map Lab. Missing materials and sky are reported, not substituted.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Reuse established GLB library and map document runtime; add strict offline static geometry decoding instead of replacing runtime owners.",
+    "current": {
+      "system": "Texture-only field depot blockout",
+      "correctness": 2,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 3,
+      "performance": 4,
+      "regression_coverage": 3,
+      "evidence_paths": [
+        "res://config/maps/field_depot_research.json",
+        "res://scripts/maps/socom_map_runtime.gd"
+      ]
+    },
+    "candidate": {
+      "system": "Decoded source geometry with centered editable chunks",
+      "correctness": 4,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 4,
+      "performance": 4,
+      "regression_coverage": 4,
+      "evidence_paths": [
+        "res://tools/socom_geometry/mesh.cjs",
+        "res://tools/socom_geometry/world.cjs",
+        "res://tools/import_socom_geometry.gd",
+        "res://tools/socom_geometry_regression.gd"
+      ]
+    }
+  }
+}

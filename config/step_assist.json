@@ -1,0 +1,6 @@
+{
+  "enabled": true,
+  "maximum_step_up_m": 0.28,
+  "maximum_step_down_m": 0.28,
+  "minimum_lift_m": 0.005
+}

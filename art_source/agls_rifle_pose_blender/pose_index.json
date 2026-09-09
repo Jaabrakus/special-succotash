@@ -1,0 +1,41 @@
+{
+	"banks": [
+		{
+			"bank": "ALS_Props_Rifle_M4A1_Poses",
+			"first_frame": 0,
+			"last_frame": 24
+		},
+		{
+			"bank": "ALS_Props_Rifle_AK-47_Poses",
+			"first_frame": 25,
+			"last_frame": 49
+		},
+		{
+			"bank": "ALS_Props_Rifle_C8_Poses",
+			"first_frame": 50,
+			"last_frame": 74
+		},
+		{
+			"bank": "ALS_Props_Rifle_Famas_Poses",
+			"first_frame": 75,
+			"last_frame": 99
+		},
+		{
+			"bank": "ALS_Props_Rifle_AS-50_Poses",
+			"first_frame": 100,
+			"last_frame": 124
+		},
+		{
+			"bank": "ALS_Crawl_Props_Rifle_M4A1_Poses",
+			"first_frame": 125,
+			"last_frame": 135
+		},
+		{
+			"bank": "ALS_Crawl_Props_Rifle_AS-50_Poses",
+			"first_frame": 136,
+			"last_frame": 146
+		}
+	],
+	"fps": 30,
+	"frames": 147
+}

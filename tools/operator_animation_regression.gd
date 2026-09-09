@@ -94,6 +94,9 @@ func _check_symmetric_left_locomotion(driver) -> void:
     }
     for target in expected_pairs:
         var source: StringName = expected_pairs[target]
+        if _uses_seal_gameplay_clip(driver, target):
+            _check_seal_direction_source(driver, target)
+            continue
         _expect(
             driver.animation_profile.mirror_source(target) == source,
             "%s is configured as the mirror of %s" % [target, source]
@@ -149,6 +152,9 @@ func _check_lateral_locomotion_sources(driver) -> void:
     var library: AnimationLibrary = driver.animation_player.get_animation_library("")
     for lateral_clip: StringName in expected_aliases:
         var diagonal_clip: StringName = expected_aliases[lateral_clip]
+        if _uses_seal_gameplay_clip(driver, lateral_clip):
+            _check_seal_direction_source(driver, lateral_clip)
+            continue
         _expect(
             driver.animation_profile.alias_source(lateral_clip) == diagonal_clip,
             "%s is configured from %s" % [lateral_clip, diagonal_clip]
@@ -166,6 +172,24 @@ func _check_lateral_locomotion_sources(driver) -> void:
             ),
             "%s preserves %s with only its configured hip yaw" % [lateral_clip, diagonal_clip]
         )
+
+func _uses_seal_gameplay_clip(driver, state: StringName) -> bool:
+    return str(driver.animation_profile.clip_paths.get(state, "")).begins_with("res://assets/animations/seal_gameplay/")
+
+func _check_seal_direction_source(driver, state: StringName) -> void:
+    var expected_sources := {&"walk_left": "seal_lstrafe", &"run_left": "seal_run_90l",
+        &"run_right": "seal_run_90r", &"crouch_left": "seal_crouchstrafe_left",
+        &"crouch_right": "seal_crouchstrafe_right_fast"}
+    var clip: Animation = driver.animation_player.get_animation(state)
+    _expect(driver.animation_profile.alias_source(state) == &""
+        and driver.animation_profile.mirror_source(state) == &"",
+        "%s keeps its explicit SEAL directional take" % state)
+    _expect(clip.get_meta("source_name", "") == expected_sources[state],
+        "%s uses the reviewed SEAL source identity" % state)
+    var expected := (load(str(driver.animation_profile.clip_paths[state])) as Animation).duplicate(true) as Animation
+    preload("res://scripts/player/operator_animation_root_sanitizer.gd").sanitize(expected, driver.animation_profile.is_looping(state))
+    _expect(_animations_match_exactly(clip, expected),
+        "%s runtime tracks match its saved native SEAL clip" % state)
 
 func _animations_match_with_hip_yaw_offset(
     target_animation: Animation,
@@ -443,6 +467,7 @@ func _check_direction_hysteresis(driver) -> void:
     _expect(driver.current_clip == &"run_forward", "clear reverse intent returns to forward")
 
 func _check_layered_recoil(driver) -> void:
+    var source_fire := _uses_seal_gameplay_clip(driver, &"combat_fire")
     _set_motion(driver, Vector2(0.0, 1.0), 0.8)
     _advance(driver)
     var gait_before_fire: StringName = driver.current_clip
@@ -465,10 +490,10 @@ func _check_layered_recoil(driver) -> void:
     var weapon_pose: Dictionary = snapshot.get("weapon_pose", {})
     _expect(
         String(event_presentation.get("event", "")) == "FIRE_ACCEPTED"
-        and String(event_presentation.get("state", "")) == "aim_idle"
+        and String(event_presentation.get("state", "")) == ("combat_fire" if source_fire else "aim_idle")
         and "ENTER_READY_AIM" in (event_presentation.get("effects", []) as Array)
         and "RAIL_TO_BLUE_LINE" not in (event_presentation.get("effects", []) as Array),
-        "playable fire routes directly into the recovery-ready pose"
+        "playable fire selects its saved source or legacy recovery route"
     )
     _expect(
         not bool(weapon_pose.get("rail_to_blue_line_event_active", true))
@@ -487,28 +512,28 @@ func _check_layered_recoil(driver) -> void:
     )
     _expect(bool(snapshot.get("fire_layer_available", false)), "legacy fire layer remains loadable but unselected")
     _expect(
-        int(snapshot.get("fire_trigger_count", 0)) == fire_count_before
-        and StringName(snapshot.get("active_fire_clip", &"")) == &""
+        int(snapshot.get("fire_trigger_count", 0)) == fire_count_before + (1 if source_fire else 0)
+        and StringName(snapshot.get("active_fire_clip", &"")) == (&"combat_fire" if source_fire else &"")
         and bool(
             (snapshot.get("fire_upper_body_latch", {}) as Dictionary).get(
                 "selected",
                 false
             )
         ),
-        "standing FIRE_RECOVERY selects ready aim without a combat_fire one-shot"
+        "standing source recoil is one-shot; legacy recovery remains ready-only"
     )
     _expect(driver.notify_fired(), "a later accepted bullet refreshes the fire latch")
     var repeated_snapshot: Dictionary = driver.get_animation_debug_state()
     _expect(
-        int(repeated_snapshot.get("fire_trigger_count", 0)) == fire_count_before
-        and StringName(repeated_snapshot.get("active_fire_clip", &"")) == &""
+        int(repeated_snapshot.get("fire_trigger_count", 0)) == fire_count_before + (2 if source_fire else 0)
+        and StringName(repeated_snapshot.get("active_fire_clip", &"")) == (&"combat_fire" if source_fire else &"")
         and not bool(
             (repeated_snapshot.get("weapon_pose", {}) as Dictionary).get(
                 "rail_to_blue_line_event_active",
                 true
             )
         ),
-        "each later accepted standing bullet refreshes only FIRE_RECOVERY"
+        "each accepted bullet restarts configured source recoil without weapon relocation"
     )
 
     driver.set_visual_inputs(
@@ -541,19 +566,19 @@ func _check_layered_recoil(driver) -> void:
     )
     _expect(
         String(crouched_event_presentation.get("event", "")) == "FIRE_ACCEPTED"
-        and String(crouched_event_presentation.get("state", "")) == "aim_idle_crouch",
+        and String(crouched_event_presentation.get("state", "")) == ("crouch_fire" if source_fire else "aim_idle_crouch"),
         "crouched FIRE_ACCEPTED routes to its posture-matched recovery pose"
     )
     _expect(
-        int(crouch_snapshot.get("fire_trigger_count", 0)) == fire_count_before
-        and StringName(crouch_snapshot.get("active_fire_clip", &"")) == &""
+        int(crouch_snapshot.get("fire_trigger_count", 0)) == fire_count_before + (3 if source_fire else 0)
+        and StringName(crouch_snapshot.get("active_fire_clip", &"")) == (&"crouch_fire" if source_fire else &"")
         and bool(
             (crouch_snapshot.get("fire_upper_body_latch", {}) as Dictionary).get(
                 "selected",
                 false
             )
         ),
-        "crouched FIRE_RECOVERY selects ready aim without a crouch_fire one-shot"
+        "crouched source recoil is one-shot; legacy recovery remains ready-only"
     )
     _expect(
         not bool(crouched_weapon_pose.get("rail_to_blue_line_event_active", true))
@@ -913,16 +938,16 @@ func _check_instant_lateral_selection(driver) -> void:
     _expect(driver.current_clip == &"crouch_left", "crouched A selects the left animation point")
     _expect(
         driver.asset_runtime.get_source_animation_name(driver.current_clip)
-        == &"alias:crouch_forward",
-        "crouched A renders the shared forward crouch cycle"
+        == (&"authored:crouch_left.tres" if _uses_seal_gameplay_clip(driver, &"crouch_left") else &"alias:crouch_forward"),
+        "crouched A renders its configured crouch cycle"
     )
     _set_crouch_motion(driver, Vector2.RIGHT)
     _advance(driver)
     _expect(driver.current_clip == &"crouch_right", "crouched D selects the right animation point")
     _expect(
         driver.asset_runtime.get_source_animation_name(driver.current_clip)
-        == &"alias:crouch_forward",
-        "crouched D keeps the same forward crouch cycle"
+        == (&"authored:crouch_right.tres" if _uses_seal_gameplay_clip(driver, &"crouch_right") else &"alias:crouch_forward"),
+        "crouched D renders its configured crouch cycle"
     )
 
 func _set_crouch_motion(driver, direction: Vector2) -> void:

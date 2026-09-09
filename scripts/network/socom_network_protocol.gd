@@ -26,6 +26,7 @@ static func movement_to_packet(command) -> Dictionary:
 		"crouch": bool(command.crouch_held),
 		"crouch_released": bool(command.crouch_released),
 		"peek": clampf(float(command.peek_axis), -1.0, 1.0),
+		"peek_held": int(command.peek_held_mask) & 3,
 	}
 
 
@@ -44,10 +45,14 @@ static func packet_to_movement(packet: Dictionary):
 	command.crouch_held = bool(packet.get("crouch", false))
 	command.crouch_released = bool(packet.get("crouch_released", false))
 	command.peek_axis = clampf(float(packet.get("peek", 0.0)), -1.0, 1.0)
+	command.peek_held_mask = int(packet.get("peek_held", 0)) & 3
 	return command
 
 
 static func movement_packet_is_sane(packet: Dictionary) -> bool:
+	var peek_held: Variant = packet.get("peek_held", 0)
+	if typeof(peek_held) != TYPE_INT or int(peek_held) < 0 or int(peek_held) > 3:
+		return false
 	var held: Variant = packet.get("direction_held", 0)
 	if typeof(held) != TYPE_INT or int(held) < 0 or int(held) > 15:
 		return false

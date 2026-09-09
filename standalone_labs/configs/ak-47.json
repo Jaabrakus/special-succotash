@@ -28,7 +28,7 @@
     "full_gait_spread_deg": 1.543,
     "max_recoil_bloom_deg": 2.6,
     "magazine_capacity": 30,
-    "reserve_ammo": 90,
+    "reserve_ammo": 150,
     "effective_range_m": 600.0,
     "max_range_m": 1000.0
   },

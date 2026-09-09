@@ -163,8 +163,14 @@ func _run() -> void:
 		Vector2.ZERO, &"CROUCHED", 0.0, 0.0, 0.0, false, 0.0,
 		0.0, &"CROUCHED", 0.0, &"WALK", 0.0
 	)
-	for _frame in range(8):
+	# Recovery deliberately protects the authored fire pose. Wait for the real
+	# owner to release that protection before testing unrelated crouch contact;
+	# a fixed eight render frames is shorter than the accepted fire hold.
+	for _frame in range(600):
 		await process_frame
+		if not bool(foot_lock.get_debug_state().get("protected_pose_active", true)):
+			break
+	_expect(not bool(foot_lock.get_debug_state().get("protected_pose_active", true)), "fire recovery releases grounding protection")
 	var crouched_left_world := (
 		skeleton.global_transform * skeleton.get_bone_global_pose(left_foot_index)
 	).origin
@@ -177,6 +183,7 @@ func _run() -> void:
 	for _frame in range(16):
 		await process_frame
 	var crouch_state: Dictionary = foot_lock.get_debug_state()
+	print("OPERATOR_STAIR_CROUCH_STATE ", JSON.stringify(crouch_state))
 	_expect(
 		bool(crouch_state.get("active", false))
 		and bool(crouch_state.get("left_ray_hit", false)),

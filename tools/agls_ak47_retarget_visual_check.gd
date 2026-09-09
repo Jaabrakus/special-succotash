@@ -28,7 +28,14 @@ func _run() -> void:
 	stage.name = "AK47ReloadRetargetProof"
 	root.add_child(stage)
 	_build_environment(stage)
-	var source_root := (load(RELOAD_PATH) as PackedScene).instantiate()
+	var target_path := TARGET_PATH
+	var source_path := RELOAD_PATH
+	for argument in OS.get_cmdline_user_args():
+		if argument.begins_with("--target="):
+			target_path = argument.trim_prefix("--target=")
+		if argument.begins_with("--source="):
+			source_path = argument.trim_prefix("--source=")
+	var source_root := (load(source_path) as PackedScene).instantiate()
 	stage.add_child(source_root)
 	source_root.visible = false
 	var source_skeleton := _find_skeleton(source_root)
@@ -42,7 +49,7 @@ func _run() -> void:
 	var target_texture := load(TARGET_TEXTURE_PATH) as Texture2D
 	var sample_times: Array[float] = [0.0, 0.75, 1.50, 2.25, 3.0]
 	for sample_index in sample_times.size():
-		var target_root := (load(TARGET_PATH) as PackedScene).instantiate() as Node3D
+		var target_root := (load(target_path) as PackedScene).instantiate() as Node3D
 		target_root.name = "ReloadPose_%d" % sample_index
 		target_root.position = Vector3((float(sample_index) - 2.0) * 1.18, 0.0, 0.0)
 		target_root.rotation.y = PI

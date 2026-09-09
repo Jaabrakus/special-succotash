@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "feature_id": "lean_movement_latch",
+  "player_intent": "Tap movement for a small slow peek step while leaning; hold movement to leave lean and travel normally.",
+  "acceptance_rule": "Lean release remains latched; same-side press cancels and opposite switches. Movement under 0.22 seconds retains lean at at most 0.65 m/s, release stops immediately and resets the timer, continuous movement cancels lean at the hold threshold. Direction changes cannot reset the timer; diagonals cannot boost speed. Gravity/collision and prediction remain authoritative.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://keyboard_mapping_lab.tscn",
+  "ownership": {"lean_and_translation": "SocomTestPlayer"},
+  "nodes": [{"id":"player","type":"CharacterBody3D","role":"Owns lean intent, horizontal planting and collision movement.","owner":"SocomTestPlayer","scene_path":"res://main.tscn","node_path":"Player"}],
+  "data_contracts": [{"path":"res://config/lean_behavior.json","writer":"res://docs/LEAN_MOVEMENT_LATCH.md","readers":["res://scripts/player/player_lean_latch.gd"]}],
+  "must_not_change": ["Camera and reticle aim", "Stationary authored lean poses", "Shot and damage authority", "Gravity and collision", "Committed slide and dive motion"],
+  "proof_scripts": ["res://tools/lean_movement_latch_regression.gd", "res://tools/network_movement_loss_regression.gd"],
+  "visual_check": "In main.tscn toggle Q/E, tap WASD for small slow steps with upper-body lean retained and lower-body locomotion active, release to plant, and hold WASD past 0.22s to exit lean. Check standing/crouched/prone and collision at an edge.",
+  "system_delta": {
+    "decision":"MERGE",
+    "reason":"New user intent replaces movement-edge cancellation with timed tap/hold. Merge into the same CharacterBody solver and prediction codec; the existing posture consumer stops overwriting walking legs. No additional movement or bone owner.",
+    "current":{"system":"Planted toggle cancels on fresh movement and overwrites legs with held pose","correctness":2,"ownership_clarity":5,"runtime_parity":5,"editor_usability":3,"performance":5,"regression_coverage":3,"evidence_paths":["res://scripts/player/player_controller.gd","res://scripts/player/operator_posture_layer.gd"]},
+    "candidate":{"system":"Timed micro steps with replayed hold timer and locomotion-owned legs","correctness":5,"ownership_clarity":5,"runtime_parity":5,"editor_usability":3,"performance":5,"regression_coverage":5,"evidence_paths":["res://scripts/player/player_lean_latch.gd","res://scripts/network/socom_movement_state.gd","res://scripts/player/operator_posture_layer.gd","res://tools/lean_movement_latch_regression.gd"]}
+  }
+}

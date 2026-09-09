@@ -454,7 +454,7 @@
     "crouch_spread_multiplier": 0.72,
     "damage": 37.0,
     "effective_range_m": 1500.0,
-    "fire_rate_rpm": 40,
+    "fire_rate_rpm": 120,
     "reload_duration_seconds": 3.5,
     "full_gait_spread_deg": 1.543,
     "functional_aim_climb_enabled": false,
@@ -467,7 +467,7 @@
     "moving_spread_deg": 1.029,
     "muzzle_velocity_mps": 777.0,
     "opening_burst_motion_multiplier": 0.35,
-    "reserve_ammo": 25.0
+    "reserve_ammo": 125.0
   },
   "burst_size": 3,
   "camo_skin": "Factory Classic (Wood & Steel)",
@@ -718,12 +718,34 @@
     "cadence_driven_return": false,
     "base_gap_px": 5.1,
     "max_gap_px": 41.6,
-    "maximum_movement_tick_extension_px": 16.0,
-    "maximum_shot_kick_px": 40.0,
+    "maximum_movement_tick_extension_px": 16,
+    "maximum_shot_kick_px": 40,
     "response_speed": 26.2,
     "shot_bounce_duration": 0.07,
-    "shot_kick_px": 35.0,
-    "shot_kick_return": 15.0
+    "shot_kick_px": 35,
+    "shot_kick_return": 15,
+    "vrc_return_speed_px_per_second": 15,
+    "socom2_source_name": "M40A1",
+    "socom2_stances": {
+      "STANDING": {
+        "shot_kick_px": 35,
+        "maximum_shot_kick_px": 40,
+        "shot_kick_return": 15,
+        "vrc_return_speed_px_per_second": 15
+      },
+      "CROUCHED": {
+        "shot_kick_px": 31,
+        "maximum_shot_kick_px": 40,
+        "shot_kick_return": 18,
+        "vrc_return_speed_px_per_second": 18
+      },
+      "PRONE": {
+        "shot_kick_px": 27,
+        "maximum_shot_kick_px": 40,
+        "shot_kick_return": 22,
+        "vrc_return_speed_px_per_second": 22
+      }
+    }
   },
   "schema_version": 3.0,
   "scope_attachment": "None",

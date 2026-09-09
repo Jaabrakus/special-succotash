@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "feature_id": "source_rifle_fingers",
+  "player_intent": "Close articulated glove fingers around rifle grips while preserving the source strafe and arm pose.",
+  "acceptance_rule": "Source rifles use native rest-relative flex on both hands, less curl on the trigger index, and opposing thumb directions. Finger-only transforms do not accumulate, alter wrists or move the weapon; reload releases the support fingers and grenade/hidden weapon states skip shaping. Existing saved curl and thumb controls remain effective.",
+  "canonical_scene": "res://main.tscn",
+  "ownership": {"finger_presentation": "SocomOperatorWeaponGripContact"},
+  "nodes": [{"id": "operator", "type": "Node3D", "role": "Runs the existing finger-only pass after weapon IK", "owner": "SocomOperatorAnimationDriver", "scene_path": "res://scenes/player/operator_player.tscn", "node_path": "Mannequin/ProductionAnimation"}],
+  "data_contracts": [{"path": "res://config/weapons/ak-47.json", "writer": "res://scripts/labs/gunsmith2/guns_lab_2.gd", "readers": ["res://scripts/weapons/weapon_rig_contract.gd", "res://scripts/player/operator_asset_runtime.gd", "res://scripts/player/operator_weapon_grip_contact.gd"]}, {"path": "res://config/operator_animation_map.json", "writer": "res://scripts/labs/animation_workshop_repository.gd", "readers": ["res://scripts/player/operator_animation_profile.gd", "res://scripts/player/operator_animation_driver_runtime.gd"]}],
+  "must_not_change": ["CharacterBody movement", "Camera and reticle", "Shot and damage authority", "Wrist and arm targets", "Weapon root transform", "Legacy pistol hybrid", "Character mesh"],
+  "proof_scripts": ["res://tools/rifle_finger_regression.gd", "res://tools/seal_locomotion_visual_probe.gd", "res://tools/pistol_hybrid_main_regression.gd"],
+  "visual_check": "Canonical AK/M4 idle, both strafes, accepted fire and recovery from close-up opposing angles. Confirm curled glove fingers and retained trigger index without a wrist/weapon shift.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Native rig finger rests flex toward local +Z around +X on both hands; the legacy right-hand negative sign opens rather than closes. Use rest-relative shaping inside the existing finger writer, retaining legacy behavior outside source rifles.",
+    "current": {"system": "Legacy additive mirrored curl", "correctness": 2, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 4, "regression_coverage": 2, "evidence_paths": ["res://scripts/player/operator_weapon_grip_contact.gd", "res://tools/blender/build_ps1_dual_source_rig.py"]},
+    "candidate": {"system": "Native rifle rest-relative finger shaping", "correctness": 4, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 4, "regression_coverage": 4, "evidence_paths": ["res://scripts/player/operator_weapon_grip_contact.gd", "res://tools/rifle_finger_regression.gd", "res://tools/seal_locomotion_visual_probe.gd"]}
+  }
+}

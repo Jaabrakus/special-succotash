@@ -6,6 +6,7 @@ extends RefCounted
 ## keeps file loading. This component never edits maps or player state.
 const MapDocument := preload("res://scripts/maps/socom_map_document.gd")
 const MapAssetLibrary := preload("res://scripts/maps/socom_map_asset_library.gd")
+const StairCollision := preload("res://scripts/maps/socom_stair_collision.gd")
 
 
 static func build(object: Dictionary, editor_preview: bool) -> Node3D:
@@ -29,7 +30,19 @@ static func build(object: Dictionary, editor_preview: bool) -> Node3D:
 	var original_bounds := _combined_mesh_bounds(content)
 	content.scale = size
 	var collision_mode := String(properties.get("collision_mode", "box"))
-	if editor_preview or collision_mode == "box":
+	if collision_mode in StairCollision.MODES:
+		body.add_to_group(StairCollision.GROUP)
+		# Discard embedded solid colliders for this explicit collision replacement.
+		# Keep meshes/materials intact. Do not silently convert arbitrary assets.
+		for found: Node in content.find_children("*", "CollisionShape3D", true, false):
+			(found as CollisionShape3D).disabled = true
+		var collision := CollisionShape3D.new()
+		collision.name = "StairTraversalCollision"
+		var shape := ConvexPolygonShape3D.new()
+		shape.points = StairCollision.points(original_bounds, collision_mode, size)
+		collision.shape = shape
+		body.add_child(collision)
+	elif editor_preview or collision_mode == "box":
 		var collision := CollisionShape3D.new()
 		collision.name = "EditorSelectionCollision" if editor_preview else "CollisionShape3D"
 		var shape := BoxShape3D.new()

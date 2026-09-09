@@ -240,7 +240,18 @@ var connected_routes: Dictionary = DEFAULT_CONNECTED_ROUTES.duplicate(true)
 var state_rules: Dictionary = AnimationStateContract.normalized_rules(DEFAULT_CLIPS)
 var event_routes: Dictionary = {}
 var jump_lower_body: Dictionary = {}
+var source_jump: Dictionary = {}
+var authored_peek: Dictionary = {}
+var family_animation_slots: Dictionary = {}
 var locomotion: Dictionary = {
+	"grounded_gait_alignment": false,
+	"gait_support_height_m": 0.05,
+	"stop_grace_seconds": 0.0,
+	"microstep_speed_mps": 0.0,
+	"preserve_source_locomotion": false,
+	"source_firing_locomotion": false,
+	"source_upright_weapon": false,
+	"legacy_pistol_upper_body": false,
 	"walk_nominal_speed_mps": 2.15,
 	"full_nominal_speed_mps": 5.70,
 	"standing_sprint_only": false,
@@ -283,6 +294,9 @@ func load_project_map(path: String = MAP_PATH) -> void:
 	state_rules = AnimationStateContract.normalized_rules(DEFAULT_CLIPS)
 	event_routes.clear()
 	jump_lower_body.clear()
+	source_jump.clear()
+	authored_peek.clear()
+	family_animation_slots.clear()
 	warnings.clear()
 	var config := (
 		PlaytestStateCollector.bundled_state("animation_map")
@@ -318,12 +332,30 @@ func load_project_map(path: String = MAP_PATH) -> void:
 	var jump_section: Variant = config.get("jump_lower_body", {})
 	if jump_section is Dictionary:
 		jump_lower_body = (jump_section as Dictionary).duplicate(true)
+	var source_jump_section: Variant = config.get("source_jump", {})
+	if source_jump_section is Dictionary:
+		source_jump = (source_jump_section as Dictionary).duplicate(true)
+	var peek_section: Variant = config.get("authored_peek", {})
+	if peek_section is Dictionary:
+		authored_peek = (peek_section as Dictionary).duplicate(true)
+	var family_slots: Variant = config.get("family_animation_slots", {})
+	if family_slots is Dictionary:
+		family_animation_slots = (family_slots as Dictionary).duplicate(true)
 	_merge_numeric_section(locomotion, config.get("locomotion", {}))
 	_merge_numeric_section(transitions, config.get("transitions", {}))
 
 
+func resolve_family_animation_slot(family: StringName, slot: String, available: Dictionary) -> StringName:
+	var slots: Variant = family_animation_slots.get(String(family), {})
+	if slots is Dictionary:
+		var value: Variant = slots.get(slot, "")
+		if value is String and available.has(StringName(value)):
+			return StringName(value)
+	return &""
+
+
 func is_looping(clip_name: StringName) -> bool:
-	return LOOPING_CLIPS.has(clip_name) or FULL_LATERAL_GAIT_CLIPS.has(clip_name)
+	return LOOPING_CLIPS.has(clip_name) or FULL_LATERAL_GAIT_CLIPS.has(clip_name) or String(clip_name).begins_with("legacy_pistol_")
 
 
 func nominal_speed(posture: StringName, full_gait_weight: float) -> float:

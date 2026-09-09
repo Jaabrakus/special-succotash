@@ -5,12 +5,13 @@ extends RefCounted
 ## Keeping asset plumbing out of the driver makes locomotion logic testable.
 
 const TROOPER_SCENE := preload(
-	"res://assets/characters/ps1_gas_mask_soldier/trooper_rigged.fbx"
+	"res://assets/characters/ps1_dual_source_rig/ps1_dual_source_rig.scn"
 )
 const TeamAppearance := preload("res://scripts/player/operator_team_appearance.gd")
 const AK47_SCENE := preload("res://assets/weapons/ps1_ak47/source/ak-47.fbx")
 const AK47_TEXTURE := preload("res://assets/weapons/ps1_ak47/textures/AK-47TextureMap.png")
 const ROOT_SANITIZER := preload("res://scripts/player/operator_animation_root_sanitizer.gd")
+const GAIT_ALIGNMENT := preload("res://scripts/player/operator_gait_alignment.gd")
 const ANIMATION_LAYER_COMPOSER := preload("res://scripts/player/animation_layer_composer.gd")
 const WEAPON_CONTRACT := preload("res://scripts/weapons/weapon_rig_contract.gd")
 const BACKPACK_VISUAL := preload("res://scripts/player/operator_backpack_visual.gd")
@@ -657,8 +658,10 @@ func _build_animation_library() -> void:
 		if resource is Animation:
 			var authored := (resource as Animation).duplicate() as Animation
 			authored = _settle_idle_pose(clip_name, authored)
-			ROOT_SANITIZER.sanitize(authored, profile.is_looping(clip_name))
-			authored.loop_mode = Animation.LOOP_LINEAR if profile.is_looping(clip_name) else Animation.LOOP_NONE
+			var source_loop_policy: bool = bool(authored.get_meta("seal_reference", false)) and bool(profile.locomotion.get("preserve_source_locomotion", false))
+			var loops: bool = authored.loop_mode != Animation.LOOP_NONE if source_loop_policy else profile.is_looping(clip_name)
+			ROOT_SANITIZER.sanitize(authored, loops)
+			authored.loop_mode = Animation.LOOP_LINEAR if loops else Animation.LOOP_NONE
 			animation_library.add_animation(clip_name, authored)
 			available_clips[clip_name] = true
 			source_animation_names[clip_name] = StringName("authored:%s" % clip_path.get_file())
@@ -688,8 +691,62 @@ func _build_animation_library() -> void:
 	_anchor_full_body_grenade_toss()
 	_apply_crouch_grenade_composite()
 	_apply_clip_pose_yaw_offsets()
+	_anchor_source_jump_hips()
+	_anchor_traversal_hips()
+	_align_grounded_gaits()
 	animation_player.add_animation_library("", animation_library)
 	cache.store(profile, animation_library, source_animation_names)
+
+
+func _align_grounded_gaits() -> void:
+	if not bool(profile.locomotion.get("grounded_gait_alignment", false)): return
+	var support := float(profile.locomotion.get("gait_support_height_m", 0.05)) / operator_scale
+	for name: StringName in animation_library.get_animation_list():
+		var text := String(name)
+		# Only continuous grounded bases, never jumps, dives, traversal or actions.
+		var gait := text.begins_with("run_") or text.begins_with("walk_") or text.begins_with("pistol_run_") or text.begins_with("pistol_walk_")
+		gait = gait or text in ["crouch_forward", "crouch_backward", "crouch_left", "crouch_right", "crouch_lateral_left", "crouch_lateral_right", "pistol_crouch_forward", "pistol_crouch_backward", "pistol_crouch_left", "pistol_crouch_right"]
+		gait = gait or text.begins_with("seal_fp_") or text.begins_with("seal_pfp_")
+		if gait: GAIT_ALIGNMENT.align_support(animation_library.get_animation(name), skeleton, support)
+
+
+func _anchor_traversal_hips() -> void:
+	if not animation_library.has_animation(&"seal_stand_alert02"):
+		return
+	var reference := animation_library.get_animation(&"seal_stand_alert02")
+	var track := reference.find_track(NodePath(".:mixamorig_Hips"), Animation.TYPE_POSITION_3D)
+	if track < 0: return
+	var anchor := reference.position_track_interpolate(track, 0.0)
+	for name: StringName in animation_library.get_animation_list():
+		if not String(name).begins_with("traversal_"): continue
+		var clip := animation_library.get_animation(name)
+		var hips := clip.find_track(NodePath(".:mixamorig_Hips"), Animation.TYPE_POSITION_3D)
+		if hips >= 0:
+			for key in clip.track_get_key_count(hips): clip.track_set_key_value(hips, key, anchor)
+
+
+func _anchor_source_jump_hips() -> void:
+	# The native standing launch includes an entire jump-height arc. Runtime
+	# translation belongs to CharacterBody, not this second vertical animation.
+	# Only processed library copies change; keep the extracted source intact.
+	var reference_name := StringName(profile.source_jump.get("anchor_hips_to_clip", ""))
+	if not bool(profile.source_jump.get("enabled", false)) or not animation_library.has_animation(reference_name):
+		return
+	var reference := animation_library.get_animation(reference_name)
+	var reference_track := reference.find_track(NodePath(".:mixamorig_Hips"), Animation.TYPE_POSITION_3D)
+	if reference_track < 0:
+		return
+	var anchor := reference.position_track_interpolate(reference_track, 0.0)
+	for raw_name in profile.source_jump.get("clips", {}):
+		var clip := StringName(raw_name)
+		if not animation_library.has_animation(clip):
+			continue
+		var animation := animation_library.get_animation(clip)
+		var track := animation.find_track(NodePath(".:mixamorig_Hips"), Animation.TYPE_POSITION_3D)
+		if track < 0:
+			continue
+		for key in animation.track_get_key_count(track):
+			animation.track_set_key_value(track, key, anchor)
 
 
 func _anchor_full_body_grenade_toss() -> void:
@@ -698,6 +755,8 @@ func _anchor_full_body_grenade_toss() -> void:
 	if not animation_library.has_animation(&"aim_idle"):
 		return
 	var throw_animation := animation_library.get_animation(&"grenade_toss")
+	if bool(throw_animation.get_meta("seal_reference", false)):
+		return # Native retarget already has presentation-only root translation.
 	var standing_reference := animation_library.get_animation(&"aim_idle")
 	var reference_position := Vector3.ZERO
 	var found_reference := false
@@ -724,6 +783,10 @@ func _anchor_full_body_grenade_toss() -> void:
 
 
 func _apply_crouch_grenade_composite() -> void:
+	if animation_library.has_animation(&"crouch_grenade_toss") and bool(
+		animation_library.get_animation(&"crouch_grenade_toss").get_meta("seal_reference", false)
+	):
+		return # Keep the explicitly authored crouched throw, not standing-arm substitution.
 	if not animation_library.has_animation(&"grenade_toss"):
 		return
 	var throw_source := animation_library.get_animation(&"grenade_toss")
@@ -759,6 +822,8 @@ func _build_right_arm_grenade_composite(
 
 
 func _settle_idle_pose(clip_name: StringName, animation: Animation) -> Animation:
+	if animation != null and bool(animation.get_meta("seal_reference", false)):
+		return animation # The source already supplies a real prone idle pose.
 	if clip_name not in [&"idle_prone", &"pistol_reload_hold_prone"] or animation == null:
 		return animation
 	# There is no dedicated non-firing prone idle asset yet. The terminal frame
@@ -959,6 +1024,13 @@ func _retarget_animation(
 			retargeted.remove_track(track)
 			continue
 		retargeted.track_set_path(track, NodePath(str(skeleton_path) + ":" + target_bone))
+		# Finger proportions belong to the authored target rig. Mixamo provides
+		# joint rotations, not replacement local offsets for these finger chains.
+		if "Hand" in target_bone and not target_bone.ends_with("Hand"):
+			if retargeted.track_get_type(track) == Animation.TYPE_POSITION_3D:
+				var finger_rest := skeleton.get_bone_rest(skeleton.find_bone(target_bone)).origin
+				for key in retargeted.track_get_key_count(track):
+					retargeted.track_set_key_value(track, key, finger_rest)
 		if ("Hips" in raw_bone or "root" in raw_bone.to_lower()) and retargeted.track_get_type(track) == Animation.TYPE_POSITION_3D:
 			for key in range(retargeted.track_get_key_count(track)):
 				var position: Vector3 = retargeted.track_get_key_value(track, key)

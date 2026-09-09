@@ -23,7 +23,7 @@
     "max_recoil_bloom_deg": 2.6,
     "moving_spread_deg": 1.029,
     "muzzle_velocity_mps": 393,
-    "reserve_ammo": 36,
+    "reserve_ammo": 60,
     "pellet_count": 8,
     "pellet_spread_deg": 3,
     "pellet_damage": 13,
@@ -51,10 +51,32 @@
     "cadence_driven_return": false,
     "base_gap_px": 5.1,
     "max_gap_px": 41.6,
-    "maximum_shot_kick_px": 70.0,
+    "maximum_shot_kick_px": 70,
     "response_speed": 26.2,
-    "shot_kick_px": 13.0,
-    "shot_kick_return": 65.0
+    "shot_kick_px": 8,
+    "shot_kick_return": 40,
+    "vrc_return_speed_px_per_second": 40,
+    "socom2_source_name": "870",
+    "socom2_stances": {
+      "STANDING": {
+        "shot_kick_px": 8,
+        "maximum_shot_kick_px": 70,
+        "shot_kick_return": 40,
+        "vrc_return_speed_px_per_second": 40
+      },
+      "CROUCHED": {
+        "shot_kick_px": 8,
+        "maximum_shot_kick_px": 70,
+        "shot_kick_return": 40,
+        "vrc_return_speed_px_per_second": 40
+      },
+      "PRONE": {
+        "shot_kick_px": 8,
+        "maximum_shot_kick_px": 70,
+        "shot_kick_return": 40,
+        "vrc_return_speed_px_per_second": 40
+      }
+    }
   },
   "socom_original_id": 84,
   "weapon_id": "870"

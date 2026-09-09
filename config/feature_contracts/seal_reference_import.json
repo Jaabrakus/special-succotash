@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "feature_id": "seal_reference_import",
+  "player_intent": "Import third-person SEAL reference clips for optional testing without replacing our animation defaults.",
+  "acceptance_rule": "261 classified target-native clips load and seek through Animation Studio; the same authored resources are assignable through the existing runtime. Existing state mappings remain unchanged; partial clips are not promoted to full-body motion.",
+  "canonical_scene": "res://main.tscn",
+  "ownership": {"catalog": "SocomAnimationWorkshopRepository", "runtime_animation": "SocomOperatorAssetRuntime"},
+  "nodes": [{"id": "operator", "type": "Node3D", "role": "Existing animation presentation owner", "owner": "SocomOperatorAnimationDriver", "scene_path": "res://scenes/player/operator_player.tscn", "node_path": "Mannequin/ProductionAnimation"}],
+  "data_contracts": [
+    {"path": "res://assets/animations/seal_reference/manifest.json", "writer": "res://tools/import_seal_reference_animations.gd", "readers": ["res://scripts/labs/animation_workshop_repository.gd"]},
+    {"path": "res://assets/animations/seal_reference/seal_stand.tres", "writer": "res://tools/import_seal_reference_animations.gd", "readers": ["res://scripts/labs/animation_retarget_service.gd", "res://scripts/player/operator_asset_runtime.gd"]}
+  ],
+  "must_not_change": ["Current animation mappings and assets", "Target rig and mesh", "Movement/collision", "Camera/reticle aim", "Weapon damage and networking"],
+  "proof_scripts": ["res://tools/seal_reference_import_regression.gd", "res://tools/animation_workshop_repository_regression.gd"],
+  "visual_check": "Review SEAL-labelled clips in Animation Studio on native PS1 skin. Partial/static badges are mandatory; weapon contact and original-game fidelity require manual review before mapping live states.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Add native reference data to existing catalog and authored loader; retain all current controllers and defaults. Source timing and coverage are explicit, not inferred from a filename.",
+    "current": {"system": "Standalone decoded viewer", "correctness": 3, "ownership_clarity": 5, "runtime_parity": 1, "editor_usability": 2, "performance": 5, "regression_coverage": 3, "evidence_paths": ["res://docs/SEAL_REFERENCE_IMPORT.md"]},
+    "candidate": {"system": "Optional native authored reference library", "correctness": 3, "ownership_clarity": 5, "runtime_parity": 4, "editor_usability": 4, "performance": 5, "regression_coverage": 4, "evidence_paths": ["res://tools/import_seal_reference_animations.gd", "res://scripts/labs/animation_retarget_service.gd", "res://tools/seal_reference_import_regression.gd"]}
+  }
+}

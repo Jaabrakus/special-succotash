@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "enabled": true,
+  "evidence": "Original decoded pixels; four-piece assembly, spacing, scale and tint are provisional calibration, not verified SOCOM II equations.",
+  "asset_root": "res://assets/ui/socom2_reticle/",
+  "pixel_scale": 1.0,
+  "shot_envelope": {
+    "reference_height_px": 1080.0,
+    "reference_vertical_fov_deg": 68.0,
+    "semantics": "The authored smoothed gap caps the entire shot cone, including pellets. Normal-lens styling stays unchanged; narrower lenses receive presentation-only projection compensation. The server computes the cap from its own weapon state, never client HUD values."
+  },
+  "custom": {
+    "enabled": true,
+    "color": "#d5e7ac",
+    "center_color": "#fff9e8",
+    "outline_color": "#080e10e6",
+    "outline_extra_px": 2.0,
+    "center_radius_px": 1.4,
+    "center_outline_radius_px": 2.9,
+    "alpha_profiles": {
+      "socom2_rifle": {
+        "source_texture": "res://assets/ui/socom2_reticle/ret_rifle_02.png",
+        "source_column": 30,
+        "source_inner_row": 30,
+        "source_outer_row": 8,
+        "samples_u8": [175, 175, 175, 175, 175, 175, 175, 175, 175, 175, 131, 131, 131, 131, 131, 88, 88, 88, 44, 44, 44, 44, 44]
+      }
+    },
+    "categories": {
+      "Pistols": "sidearm",
+      "Shotguns": "shotgun",
+      "Assault Rifles": "rifle",
+      "Submachine Guns": "rifle",
+      "Machine Guns": "rifle",
+      "Sniper Rifles": "rifle"
+    },
+    "families": {
+      "sidearm": {"shape": "horizon", "spacing_scale": 0.72, "stroke_px": 1.9, "arm_length_px": 6.0},
+      "shotgun": {"shape": "split_halo", "spacing_scale": 1.35, "stroke_px": 2.2, "arm_length_px": 9.0},
+      "rifle": {"shape": "offset", "spacing_scale": 1.0, "stroke_px": 2.2, "arm_length_px": 9.0, "alpha_profile": "socom2_rifle"}
+    },
+    "bloom_semantics": "Shared weapon-owned gap caps shot dispersion before traces. Custom marks bound the cone at the aimed depth; nearer occluders and old tracers are not that plane."
+  },
+  "source_names": {
+    "870": "shotgun", "JACKHAMMER": "shotgun", "Spas 12": "shotgun",
+    "226": "sidearm", "9mm Pistol": "sidearm", "DE .50": "sidearm", "F57": "sidearm",
+    "M9": "sidearm", "Mark 23": "sidearm", "Mark 23SD": "sidearm", "Model 18": "sidearm",
+    "552": "rifle", "9mm Sub": "rifle", "AK-47": "rifle", "AKS-74": "rifle",
+    "F90": "rifle", "HK5": "rifle", "HK5SD": "rifle", "M14": "rifle",
+    "M16A2-M203": "rifle", "M16A2": "rifle", "M40A1": "rifle",
+    "M4A1-M203": "rifle", "M4A1": "rifle", "M4A1 SD": "rifle",
+    "M60E3": "rifle", "M63A": "rifle", "M82A1A": "rifle", "M87ELR": "rifle",
+    "SR-25": "rifle", "SR-25 SD": "rifle"
+  },
+  "families": {
+    "rifle": {"base": "ret_rifle_01.png", "floating": "ret_rifle_02.png", "assembly": "cardinal_bars", "region": [29, 8, 3, 23]},
+    "sidearm": {"base": "ret_sidearm_01.png", "floating": "ret_sidearm_02.png", "assembly": "cardinal_bars", "region": [14, 2, 2, 13]},
+    "shotgun": {"base": "ret_shotgun_01.png", "floating": "ret_shotgun_02.png", "assembly": "quarter_arcs", "region": [15, 0, 17, 17], "arc_radius_px": 24.0, "texture_radius_px": 16.0}
+  }
+}

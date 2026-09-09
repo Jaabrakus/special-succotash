@@ -291,8 +291,20 @@ func get_animation_aim_state() -> Dictionary:
 	return {"angles": network_aim_angles, "target": global_position + Vector3.UP * height + direction * 100.0}
 
 
+var network_traversal_presentation: Dictionary = {}
+
+func get_traversal_presentation() -> Dictionary:
+	return network_traversal_presentation if is_proxy_replica else super.get_traversal_presentation()
+
 func _apply_snapshot_presentation(entry: Dictionary) -> void:
 	var state: Dictionary = entry.get("presentation", {})
+	network_traversal_presentation = {}
+	var traversal_value: Variant = state.get("traversal", {})
+	if traversal_value is Dictionary and str(traversal_value.get("slot", "")) in ["hang", "pull_up", "ladder_idle", "ladder_move", "ladder_slide"]:
+		var height := float(traversal_value.get("height", 0.0))
+		var phase := float(traversal_value.get("phase", 0.0))
+		if is_finite(height) and is_finite(phase):
+			network_traversal_presentation = {"slot": str(traversal_value.slot), "height": clampf(height, 0.0, 1000.0), "phase": clampf(phase, 0.0, 1.0)}
 	round_deactivated = bool(state.get("round_deactivated", false))
 	if mannequin != null:
 		mannequin.visible = not round_deactivated
@@ -382,6 +394,8 @@ func set_authoritative_snapshot(
 
 func respawn_at(spawn_position: Vector3) -> void:
 	round_deactivated = false
+	lean_latch.reset()
+	peek_amount = 0.0
 	reset_jump_combos()
 	respawn_revision += 1
 	consumed_input_tick = -1
@@ -405,6 +419,8 @@ func respawn_at(spawn_position: Vector3) -> void:
 
 func deactivate_for_round() -> void:
 	round_deactivated = true
+	lean_latch.reset()
+	peek_amount = 0.0
 	reset_jump_combos()
 	pending_position_correction = Vector3.ZERO
 	# The operator remains network-visible for spectating, but cannot move,

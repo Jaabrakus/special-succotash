@@ -16,13 +16,32 @@ static func build(graph: RefCounted, root: AnimationNodeBlendTree, available_cli
 	root.add_node(&"standing_speed_blend", speed_blend, Vector2(-300.0, 40.0))
 	root.connect_node(&"standing_speed_blend", 0, &"walk_space")
 	root.connect_node(&"standing_speed_blend", 1, &"full_space")
+	var standing_source: StringName = &"standing_speed_blend"
+	var crouch_source: StringName = &"crouch_space"
+	if graph.source_firing_enabled():
+		for prefix: String in ["walk", "run", "crouch"]:
+			root.add_node(StringName("firing_%s_space" % prefix), graph._direction_space(StringName(prefix), available_clips, true))
+		var firing_speed := AnimationNodeBlend2.new()
+		firing_speed.sync = true
+		root.add_node(&"firing_speed_blend", firing_speed)
+		root.connect_node(&"firing_speed_blend", 0, &"firing_walk_space")
+		root.connect_node(&"firing_speed_blend", 1, &"firing_run_space")
+		for stance: String in ["standing", "crouch"]:
+			var ready := AnimationNodeBlend2.new()
+			ready.sync = true
+			var node_name := StringName(stance + "_source_ready")
+			root.add_node(node_name, ready)
+			root.connect_node(node_name, 0, standing_source if stance == "standing" else crouch_source)
+			root.connect_node(node_name, 1, &"firing_speed_blend" if stance == "standing" else &"firing_crouch_space")
+		standing_source = &"standing_source_ready"
+		crouch_source = &"crouch_source_ready"
 	var standing_scale := AnimationNodeTimeScale.new()
 	root.add_node(&"standing_time_scale", standing_scale, Vector2(-40.0, 40.0))
-	root.connect_node(&"standing_time_scale", 0, &"standing_speed_blend")
+	root.connect_node(&"standing_time_scale", 0, standing_source)
 
 	var crouch_scale := AnimationNodeTimeScale.new()
 	root.add_node(&"crouch_time_scale", crouch_scale, Vector2(-40.0, 430.0))
-	root.connect_node(&"crouch_time_scale", 0, &"crouch_space")
+	root.connect_node(&"crouch_time_scale", 0, crouch_source)
 	var prone_scale := AnimationNodeTimeScale.new()
 	root.add_node(&"prone_time_scale", prone_scale, Vector2(-40.0, 610.0))
 	root.connect_node(&"prone_time_scale", 0, &"prone_space")
@@ -34,7 +53,7 @@ static func build(graph: RefCounted, root: AnimationNodeBlendTree, available_cli
 	var equipped_idle: StringName = (
 		graph._weapon_action_clip("idle_standing", &"pistol_idle", available_clips)
 		if is_pistol_family
-		else graph._fallback_clip(&"idle_rifle", available_clips)
+		else graph._weapon_action_clip("idle_standing", &"idle_rifle", available_clips)
 	)
 	var equipped_ready: StringName = (
 		graph._weapon_action_clip(
@@ -52,7 +71,7 @@ static func build(graph: RefCounted, root: AnimationNodeBlendTree, available_cli
 		if is_pistol_family
 		else graph._weapon_action_clip("idle_crouched", &"idle_crouch", available_clips)
 	)
-	var equipped_prone_idle: StringName = graph._fallback_clip(&"idle_prone", available_clips)
+	var equipped_prone_idle: StringName = graph._weapon_action_clip("idle_prone", &"idle_prone", available_clips)
 	var equipped_crouch_ready: StringName = (
 		graph._weapon_action_clip("ready_crouched", &"pistol_idle_kneeling", available_clips)
 		if is_pistol_family
@@ -105,7 +124,7 @@ static func build(graph: RefCounted, root: AnimationNodeBlendTree, available_cli
 	)
 	var crouch_idle_aim_frame := AnimationNodeBlend2.new()
 	crouch_idle_aim_frame.sync = true
-	crouch_idle_aim_frame.filter_enabled = true
+	crouch_idle_aim_frame.filter_enabled = not graph.source_firing_enabled()
 	for bone_name: StringName in graph.AIM_FRAME_BONES:
 		crouch_idle_aim_frame.set_filter_path(NodePath(".:%s" % bone_name), true)
 	root.add_node(&"crouch_idle_aim_frame", crouch_idle_aim_frame, Vector2(120.0, 345.0))
@@ -154,14 +173,22 @@ static func build(graph: RefCounted, root: AnimationNodeBlendTree, available_cli
 	# weapon's authored standing-ready clip owns only the upper body while the
 	# standing base continues to own hips and legs.
 	root.add_node(&"standing_idle_base", graph._animation_node(equipped_idle), Vector2(-300.0, -90.0))
-	root.add_node(
-		&"standing_idle_aim_frame_source",
-		graph._animation_node(equipped_ready),
-		Vector2(-300.0, -130.0)
-	)
+	var standing_fire: StringName = graph.profile.resolve_family_animation_slot(
+		StringName(graph.weapon_handling_profile.get("family", "")), "firing_standing", available_clips)
+	if graph.source_firing_enabled() and not is_pistol_family and standing_fire != &"":
+		root.add_node(&"source_standing_alert", graph._animation_node(equipped_ready))
+		root.add_node(&"source_standing_fire", graph._animation_node(standing_fire))
+		var ready_fire := AnimationNodeBlend2.new()
+		ready_fire.sync = true
+		root.add_node(&"standing_idle_aim_frame_source", ready_fire)
+		root.connect_node(&"standing_idle_aim_frame_source", 0, &"source_standing_alert")
+		root.connect_node(&"standing_idle_aim_frame_source", 1, &"source_standing_fire")
+		graph.source_standing_fire_split = true
+	else:
+		root.add_node(&"standing_idle_aim_frame_source", graph._animation_node(equipped_ready))
 	var standing_idle_aim_frame := AnimationNodeBlend2.new()
 	standing_idle_aim_frame.sync = true
-	standing_idle_aim_frame.filter_enabled = true
+	standing_idle_aim_frame.filter_enabled = not graph.source_firing_enabled()
 	for bone_name: StringName in graph.AIM_FRAME_BONES:
 		standing_idle_aim_frame.set_filter_path(NodePath(".:%s" % bone_name), true)
 	root.add_node(&"standing_idle_aim_frame", standing_idle_aim_frame, Vector2(120.0, -90.0))
@@ -184,6 +211,14 @@ static func build(graph: RefCounted, root: AnimationNodeBlendTree, available_cli
 		&"idle_prone": &"modern_idle_prone",
 		&"prone": &"prone_time_scale",
 	}
+	if graph.source_firing_enabled():
+		root.add_node(&"source_prone_ready_pose", graph._animation_node(graph._weapon_action_clip("ready_prone", equipped_prone_idle, available_clips)))
+		var prone_ready := AnimationNodeBlend2.new()
+		prone_ready.sync = true
+		root.add_node(&"prone_source_ready", prone_ready)
+		root.connect_node(&"prone_source_ready", 0, &"modern_idle_prone")
+		root.connect_node(&"prone_source_ready", 1, &"source_prone_ready_pose")
+		state_sources[&"idle_prone"] = &"prone_source_ready"
 	for raw_clip_name in available_clips.keys():
 		var clip_name := StringName(raw_clip_name)
 		if graph._is_directional_locomotion(clip_name) or clip_name in [&"idle_rifle", &"aim_idle", &"aim_idle_crouch", &"idle_crouch"]:
@@ -191,6 +226,12 @@ static func build(graph: RefCounted, root: AnimationNodeBlendTree, available_cli
 		var node_name := StringName("modern_state_%s" % clip_name)
 		var source_name := node_name
 		root.add_node(node_name, graph._animation_node(clip_name), Vector2(40.0, 540.0 + state_sources.size() * 42.0))
+		if graph.source_jump_clip(clip_name):
+			var jump_seek := StringName("%s_source_jump_seek" % node_name)
+			root.add_node(jump_seek, AnimationNodeTimeSeek.new())
+			root.connect_node(jump_seek, 0, source_name)
+			source_name = jump_seek
+			graph.source_jump_seek_paths[clip_name] = StringName("parameters/%s/seek_request" % jump_seek)
 		if graph.combo_seek_paths.has(clip_name):
 			var seek_name := StringName("%s_combo_seek" % node_name)
 			root.add_node(seek_name, AnimationNodeTimeSeek.new(), Vector2(140.0, 540.0 + state_sources.size() * 42.0))

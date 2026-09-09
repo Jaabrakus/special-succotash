@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "feature_id": "stair_locomotion",
+  "player_intent": "Walk up and down stairs without jumping or entering climbing animations.",
+  "acceptance_rule": "Canonical CharacterBody crosses authored ramps, imported ramps and untagged raw 18cm risers up/down with no Jump input, no traversal or airborne animation states. Bounded geometry-aware step assistance rejects ceilings, oversized risers and large drops.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://map_creation_lab.tscn",
+  "ownership": {"map_collision": "SocomMapRuntime", "movement": "SocomTestPlayer"},
+  "nodes": [
+    {"id": "stairs", "type": "StaticBody3D", "owner": "SocomMapRuntime", "role": "One continuous stair collision surface", "source_script": "res://scripts/maps/socom_map_runtime.gd", "code_symbols": ["TraversalRamp", "StairCollision.points"]},
+    {"id": "imported_stairs", "type": "CollisionShape3D", "owner": "SocomImportedMapAssetBuilder", "role": "Replaces riser collisions for an explicitly configured straight stair flight", "source_script": "res://scripts/maps/socom_imported_map_asset_builder.gd", "code_symbols": ["StairTraversalCollision", "StairCollision.points"]}
+  ],
+  "data_contracts": [{"path": "res://scripts/maps/socom_map_document.gd", "writer": "res://scripts/labs/map_creation_lab.gd", "readers": ["res://scripts/maps/socom_map_runtime.gd", "res://scripts/maps/socom_imported_map_asset_builder.gd"]}, {"path": "res://config/step_assist.json", "writer": "res://docs/STAIR_LOCOMOTION.md", "readers": ["res://scripts/player/player_step_probe.gd", "res://scripts/player/player_controller.gd"]}],
+  "must_not_change": ["Jump physics", "Camera and aim", "Weapon authority", "Animation and foot IK", "Network movement ownership"],
+  "proof_scripts": ["res://tools/stair_playability_regression.gd", "res://tools/step_probe_regression.gd", "res://tools/agls_auto_vault_regression.gd", "res://tools/ledge_climb_regression.gd", "res://tools/network_prediction_regression.gd"],
+  "visual_check": "Render imported flight ascent. Body should rise smoothly; no vault or pull-up poses. Exact foot tread alignment is not asserted. Existing imported maps require explicit stair-mode authoring.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Retain map-owned ramps, expose them to imported assets and reject stairs in vault/climb probes.",
+    "current": {"system": "Authored stairs and box/trimesh imports", "correctness": 3, "ownership_clarity": 5, "runtime_parity": 4, "editor_usability": 2, "performance": 4, "regression_coverage": 3, "evidence_paths": ["res://scripts/maps/socom_imported_map_asset_builder.gd"]},
+    "candidate": {"system": "Shared stair collision and explicit import policy", "correctness": 4, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 4, "regression_coverage": 4, "evidence_paths": ["res://scripts/maps/socom_stair_collision.gd", "res://tools/stair_playability_regression.gd"]}
+  }
+}

@@ -24,6 +24,16 @@ func _run() -> void:
 		_finish()
 		return
 	var scene := packed.instantiate()
+	# Same live test with the untouched source mesh for rig-change A/B diagnosis.
+	if OS.get_cmdline_user_args().has("--original-rig-baseline"):
+		var parent := scene.get_node("Player/Mannequin/ProductionAnimation")
+		var previous := parent.get_node("TrooperModel") as Node3D
+		var original := (load("res://assets/characters/ps1_gas_mask_soldier/trooper_rigged.fbx") as PackedScene).instantiate() as Node3D
+		original.name = "TrooperModel"
+		original.transform = previous.transform
+		parent.remove_child(previous)
+		previous.free()
+		parent.add_child(original)
 	root.add_child(scene)
 	await _steps(45)
 	var player := scene.get_node_or_null("Player") as CharacterBody3D

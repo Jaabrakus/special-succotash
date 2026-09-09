@@ -1272,6 +1272,10 @@ func _build_imported_asset_property_panel() -> void:
 	for entry in [
 		{"label": "No Collision — decoration / foliage", "mode": "none"},
 		{"label": "Simple Box — fast", "mode": "box"},
+		{"label": "Stairs — smooth ramp rising -Z", "mode": "stair_ramp"},
+		{"label": "Stairs — smooth ramp rising +Z", "mode": "stair_ramp_positive_z"},
+		{"label": "Stairs — smooth ramp rising +X", "mode": "stair_ramp_positive_x"},
+		{"label": "Stairs — smooth ramp rising -X", "mode": "stair_ramp_negative_x"},
 		{"label": "Detailed Static Mesh — expensive", "mode": "detailed_mesh"},
 	]:
 		imported_collision_option.add_item(entry["label"])
@@ -1279,7 +1283,7 @@ func _build_imported_asset_property_panel() -> void:
 	imported_collision_option.item_selected.connect(_imported_collision_mode_selected)
 	panel.add_child(imported_collision_option)
 	var note := Label.new()
-	note.text = "Size X/Y/Z scales the imported model. GLB materials and textures remain embedded and portable."
+	note.text = "Size X/Y/Z scales the imported model. Stair ramps are for one straight flight: choose the uphill local axis. Bounds must cover the walking surface only, not railings or a whole building. Keep the slope walkable (45 degrees or less)."
 	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	note.add_theme_font_size_override("font_size", 11)
 	panel.add_child(note)

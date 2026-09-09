@@ -1,0 +1,505 @@
+{
+	"combat_note": "Crouched pistol uses standing pistol recoil through the existing upper-body-only fire mask; crouched base remains. No separate crouched pistol recoil was extracted.",
+	"locomotion_note": "Standing/crouch diagonals blend native cardinal clips; legacy diagonal assets are inactive in this graph. No separate pistol in-air clip was recovered: shared seal_runningjump_in_air is explicit. No exact held weapon parent/angle recovery yet.",
+	"source": "SEAL reference retargets",
+	"states": {
+		"aim_idle": {
+			"duration": 0.0333333333333333,
+			"kind": "held pre-recoil source frame",
+			"path": "res://assets/animations/seal_gameplay/held_aim_idle.tres",
+			"source": "seal_recoil",
+			"source_time": 0.0
+		},
+		"aim_idle_crouch": {
+			"duration": 0.0333333333333333,
+			"kind": "held pre-recoil source frame",
+			"path": "res://assets/animations/seal_gameplay/held_aim_idle_crouch.tres",
+			"source": "seal_crouch_recoil",
+			"source_time": 0.0
+		},
+		"combat_fire": {
+			"duration": 0.06666667,
+			"kind": "full",
+			"path": "res://assets/animations/seal_gameplay/combat_fire.tres",
+			"source": "seal_recoil",
+			"timing": "source"
+		},
+		"crouch_backward": {
+			"duration": 1.1333333,
+			"kind": "full",
+			"path": "res://assets/animations/seal_gameplay/crouch_backward.tres",
+			"source": "seal_crouchwalk_bw",
+			"timing": "source"
+		},
+		"crouch_fire": {
+			"duration": 0.06666667,
+			"kind": "full",
+			"path": "res://assets/animations/seal_gameplay/crouch_fire.tres",
+			"source": "seal_crouch_recoil",
+			"timing": "source"
+		},
+		"crouch_forward": {
+			"duration": 0.933333337306976,
+			"kind": "full",
+			"path": "res://assets/animations/seal_gameplay/crouch_forward.tres",
+			"source": "seal_crouchwalk",
+			"timing": "source"
+		},
+		"crouch_grenade_toss": {
+			"duration": 3.2,
+			"kind": "full",
+			"path": "res://assets/animations/seal_gameplay/crouch_grenade_toss.tres",
+			"source": "seal_crouch_throwgrenade",
+			"timing": "existing gameplay"
+		},
+		"crouch_lateral_left": {
+			"duration": 1.3,
+			"kind": "full",
+			"path": "res://assets/animations/seal_gameplay/crouch_lateral_left.tres",
+			"source": "seal_crouchstrafe_left",
+			"timing": "source"
+		},
+		"crouch_lateral_right": {
+			"duration": 1.1,
+			"kind": "full",
+			"path": "res://assets/animations/seal_gameplay/crouch_lateral_right.tres",
+			"source": "seal_crouchstrafe_right_fast",
+			"timing": "source"
+		},
+		"crouch_left": {
+			"duration": 1.3,
+			"kind": "full",
+			"path": "res://assets/animations/seal_gameplay/crouch_left.tres",
+			"source": "seal_crouchstrafe_left",
+			"timing": "source"
+		},
+		"crouch_right": {
+			"duration": 1.1,
+			"kind": "full",
+			"path": "res://assets/animations/seal_gameplay/crouch_right.tres",
+			"source": "seal_crouchstrafe_right_fast",
+			"timing": "source"
+		},
+		"crouch_to_prone": {
+			"duration": 1.1,
+			"kind": "full",
+			"path": "res://assets/animations/seal_gameplay/crouch_to_prone.tres",
+			"source": "seal_crouch2prone",
+			"timing": "source"
+		},
+		"dive_roll": {
+			"duration": 0.5,
+			"kind": "full",
+			"path": "res://assets/animations/seal_gameplay/seal_dive_to_prone.tres",
+			"source": "seal_dive2prone",
+			"timing": "source without terminal closure; gameplay duration unchanged"
+		},
+		"grenade_throw": {
+			"duration": 3.5,
+			"kind": "full",
+			"path": "res://assets/animations/seal_gameplay/grenade_throw.tres",
+			"source": "seal_prone_throwgrenade",
+			"timing": "existing gameplay"
+		},
+		"grenade_toss": {
+			"duration": 3.2,
+			"kind": "full",
+			"path": "res://assets/animations/seal_gameplay/grenade_toss.tres",
+			"source": "seal_tossgrenade",
+			"timing": "existing gameplay"
+		},
+		"idle_crouch": {
+			"duration": 0.7,
+			"kind": "full",
+			"path": "res://assets/animations/seal_gameplay/idle_crouch.tres",
+			"source": "seal_crouch",
+			"timing": "source"
+		},
+		"idle_prone": {
+			"duration": 0.33333334,
+			"kind": "full",
+			"path": "res://assets/animations/seal_gameplay/idle_prone.tres",
+			"source": "seal_prone",
+			"timing": "source"
+		},
+		"idle_rifle": {
+			"duration": 0.53333336,
+			"kind": "full",
+			"path": "res://assets/animations/seal_gameplay/idle_rifle.tres",
+			"source": "seal_stand",
+			"timing": "source"
+		},
+		"jump_down": {
+			"duration": 0.6666667,
+			"kind": "full",
+			"path": "res://assets/animations/seal_gameplay/jump_down.tres",
+			"source": "seal_land_soft",
+			"timing": "source"
+		},
+		"jump_forward_action": {
+			"duration": 0.8333333,
+			"kind": "full",
+			"path": "res://assets/animations/seal_gameplay/jump_forward_action.tres",
+			"source": "seal_runningjump_launch",
+			"timing": "source"
+		},
+		"jump_loop": {
+			"duration": 0.46666667,
+			"kind": "full",
+			"path": "res://assets/animations/seal_gameplay/jump_loop.tres",
+			"source": "seal_runningjump_in_air",
+			"timing": "source"
+		},
+		"jump_slide_prone": {
+			"duration": 0.5,
+			"kind": "full",
+			"path": "res://assets/animations/seal_gameplay/seal_dive_to_prone.tres",
+			"source": "seal_dive2prone",
+			"timing": "source without terminal closure; gameplay duration unchanged"
+		},
+		"jump_up": {
+			"duration": 0.8333333,
+			"kind": "full",
+			"path": "res://assets/animations/seal_gameplay/jump_up.tres",
+			"source": "seal_runningjump_launch",
+			"timing": "source"
+		},
+		"jump_up_standing": {
+			"duration": 0.6666667,
+			"kind": "full",
+			"path": "res://assets/animations/seal_gameplay/jump_up_standing.tres",
+			"source": "seal_jump",
+			"timing": "source"
+		},
+		"pistol_compressed_idle_crouched": {
+			"duration": 0.33333334,
+			"kind": "full",
+			"path": "res://assets/animations/seal_gameplay/pistol_compressed_idle_crouched.tres",
+			"source": "seal_p_crouch",
+			"timing": "source"
+		},
+		"pistol_compressed_idle_standing": {
+			"duration": 0.53333336,
+			"kind": "full",
+			"path": "res://assets/animations/seal_gameplay/pistol_compressed_idle_standing.tres",
+			"source": "seal_p_stand",
+			"timing": "source"
+		},
+		"pistol_crouch_backward": {
+			"base": "seal_crouchwalk_bw",
+			"duration": 0.76666665,
+			"kind": "phase-matched missing-track composition",
+			"path": "res://assets/animations/seal_gameplay/pistol_crouch_backward.tres",
+			"source": "seal_p_crouchwalk_bw"
+		},
+		"pistol_crouch_forward": {
+			"base": "seal_crouchwalk",
+			"duration": 0.6333333,
+			"kind": "phase-matched missing-track composition",
+			"path": "res://assets/animations/seal_gameplay/pistol_crouch_forward.tres",
+			"source": "seal_p_crouchwalk"
+		},
+		"pistol_crouch_left": {
+			"base": "seal_crouchstrafe_left",
+			"duration": 0.7,
+			"kind": "phase-matched missing-track composition",
+			"path": "res://assets/animations/seal_gameplay/pistol_crouch_left.tres",
+			"source": "seal_p_crouchstrafe_left"
+		},
+		"pistol_crouch_right": {
+			"base": "seal_crouchstrafe_right_fast",
+			"duration": 0.6333333,
+			"kind": "phase-matched missing-track composition",
+			"path": "res://assets/animations/seal_gameplay/pistol_crouch_right.tres",
+			"source": "seal_p_crouchstrafe_right"
+		},
+		"pistol_fire": {
+			"duration": 0.06666667,
+			"kind": "full",
+			"path": "res://assets/animations/seal_gameplay/pistol_fire.tres",
+			"source": "seal_p_recoil",
+			"timing": "source"
+		},
+		"pistol_idle": {
+			"duration": 0.53333336,
+			"kind": "full",
+			"path": "res://assets/animations/seal_gameplay/pistol_idle.tres",
+			"source": "seal_p_stand",
+			"timing": "source"
+		},
+		"pistol_idle_kneeling": {
+			"duration": 0.33333334,
+			"kind": "full",
+			"path": "res://assets/animations/seal_gameplay/pistol_idle_kneeling.tres",
+			"source": "seal_p_crouch",
+			"timing": "source"
+		},
+		"pistol_idle_prone": {
+			"duration": 0.033333335,
+			"kind": "full",
+			"path": "res://assets/animations/seal_gameplay/pistol_idle_prone.tres",
+			"source": "seal_p_prone",
+			"timing": "source"
+		},
+		"pistol_jump": {
+			"duration": 0.8333333,
+			"kind": "full",
+			"path": "res://assets/animations/seal_gameplay/pistol_jump.tres",
+			"source": "seal_p_runningjump_launch",
+			"timing": "source"
+		},
+		"pistol_jump_alt": {
+			"duration": 0.8333333,
+			"kind": "full",
+			"path": "res://assets/animations/seal_gameplay/pistol_jump_alt.tres",
+			"source": "seal_p_runningjump_launch",
+			"timing": "source"
+		},
+		"pistol_jump_down": {
+			"base": "",
+			"duration": 0.6666667,
+			"kind": "full",
+			"path": "res://assets/animations/seal_gameplay/pistol_jump_down.tres",
+			"source": "seal_p_land_soft"
+		},
+		"pistol_prone_fire": {
+			"duration": 0.06666667,
+			"kind": "full",
+			"path": "res://assets/animations/seal_gameplay/pistol_prone_fire.tres",
+			"source": "seal_p_prone_recoil",
+			"timing": "source"
+		},
+		"pistol_recovery_reference_crouched": {
+			"duration": 0.0333333333333333,
+			"kind": "held pre-recoil source frame",
+			"path": "res://assets/animations/seal_gameplay/held_pistol_recovery_reference_crouched.tres",
+			"source": "seal_p_recoil",
+			"source_time": 0.0
+		},
+		"pistol_recovery_reference_standing": {
+			"duration": 0.0333333333333333,
+			"kind": "held pre-recoil source frame",
+			"path": "res://assets/animations/seal_gameplay/held_pistol_recovery_reference_standing.tres",
+			"source": "seal_p_recoil",
+			"source_time": 0.0
+		},
+		"pistol_run_backward": {
+			"duration": 0.53333336,
+			"kind": "full",
+			"path": "res://assets/animations/seal_gameplay/pistol_run_backward.tres",
+			"source": "seal_p_run_bw",
+			"timing": "source"
+		},
+		"pistol_run_forward": {
+			"base": "seal_run",
+			"duration": 0.6,
+			"kind": "phase-matched missing-track composition",
+			"path": "res://assets/animations/seal_gameplay/pistol_run_forward.tres",
+			"source": "seal_p_run"
+		},
+		"pistol_run_left": {
+			"base": "seal_run_90l",
+			"duration": 0.6,
+			"kind": "phase-matched missing-track composition",
+			"path": "res://assets/animations/seal_gameplay/pistol_run_left.tres",
+			"source": "seal_p_run_90l"
+		},
+		"pistol_run_right": {
+			"base": "seal_run_90r",
+			"duration": 0.6,
+			"kind": "phase-matched missing-track composition",
+			"path": "res://assets/animations/seal_gameplay/pistol_run_right.tres",
+			"source": "seal_p_run_90r"
+		},
+		"pistol_stand_to_kneel": {
+			"base": "seal_stand2crouch",
+			"duration": 0.56666666,
+			"kind": "phase-matched missing-track composition",
+			"path": "res://assets/animations/seal_gameplay/pistol_stand_to_kneel.tres",
+			"source": "seal_p_stand2crouch"
+		},
+		"pistol_strafe_left": {
+			"base": "seal_lstrafe",
+			"duration": 0.7,
+			"kind": "phase-matched missing-track composition",
+			"path": "res://assets/animations/seal_gameplay/pistol_strafe_left.tres",
+			"source": "seal_p_lstrafe"
+		},
+		"pistol_strafe_right": {
+			"base": "seal_rstrafe",
+			"duration": 0.76666665,
+			"kind": "phase-matched missing-track composition",
+			"path": "res://assets/animations/seal_gameplay/pistol_strafe_right.tres",
+			"source": "seal_p_rstrafe"
+		},
+		"pistol_walk_backward": {
+			"duration": 0.53333336,
+			"kind": "full",
+			"path": "res://assets/animations/seal_gameplay/pistol_walk_backward.tres",
+			"source": "seal_p_walk_bw",
+			"timing": "source"
+		},
+		"pistol_walk_forward": {
+			"base": "seal_walk",
+			"duration": 0.56666666,
+			"kind": "phase-matched missing-track composition",
+			"path": "res://assets/animations/seal_gameplay/pistol_walk_forward.tres",
+			"source": "seal_p_walk"
+		},
+		"prone_fire": {
+			"duration": 0.06666667,
+			"kind": "full",
+			"path": "res://assets/animations/seal_gameplay/prone_fire.tres",
+			"source": "seal_prone_recoil",
+			"timing": "source"
+		},
+		"prone_forward": {
+			"duration": 0.8666667,
+			"kind": "full",
+			"path": "res://assets/animations/seal_gameplay/prone_forward.tres",
+			"source": "seal_prone_crawl",
+			"timing": "source"
+		},
+		"prone_turn_left": {
+			"duration": 0.73333335,
+			"kind": "full",
+			"path": "res://assets/animations/seal_gameplay/prone_turn_left.tres",
+			"source": "seal_prone_lstrafe",
+			"timing": "source"
+		},
+		"prone_turn_right": {
+			"duration": 0.73333335,
+			"kind": "full",
+			"path": "res://assets/animations/seal_gameplay/prone_turn_right.tres",
+			"source": "seal_prone_rstrafe",
+			"timing": "source"
+		},
+		"run_backward": {
+			"duration": 0.6,
+			"kind": "full",
+			"path": "res://assets/animations/seal_gameplay/run_backward.tres",
+			"source": "seal_run_bw",
+			"timing": "source"
+		},
+		"run_forward": {
+			"duration": 0.6333333,
+			"kind": "full",
+			"path": "res://assets/animations/seal_gameplay/run_forward.tres",
+			"source": "seal_run",
+			"timing": "source"
+		},
+		"run_lateral_left": {
+			"duration": 0.6,
+			"kind": "full",
+			"path": "res://assets/animations/seal_gameplay/run_lateral_left.tres",
+			"source": "seal_run_90l",
+			"timing": "source"
+		},
+		"run_lateral_right": {
+			"duration": 0.6,
+			"kind": "full",
+			"path": "res://assets/animations/seal_gameplay/run_lateral_right.tres",
+			"source": "seal_run_90r",
+			"timing": "source"
+		},
+		"run_left": {
+			"duration": 0.6,
+			"kind": "full",
+			"path": "res://assets/animations/seal_gameplay/run_left.tres",
+			"source": "seal_run_90l",
+			"timing": "source"
+		},
+		"run_right": {
+			"duration": 0.6,
+			"kind": "full",
+			"path": "res://assets/animations/seal_gameplay/run_right.tres",
+			"source": "seal_run_90r",
+			"timing": "source"
+		},
+		"walk_backward": {
+			"duration": 0.53333336,
+			"kind": "full",
+			"path": "res://assets/animations/seal_gameplay/walk_backward.tres",
+			"source": "seal_walk_bw",
+			"timing": "source"
+		},
+		"walk_forward": {
+			"duration": 0.8333333,
+			"kind": "full",
+			"path": "res://assets/animations/seal_gameplay/walk_forward.tres",
+			"source": "seal_walk",
+			"timing": "source"
+		},
+		"walk_left": {
+			"duration": 0.73333335,
+			"kind": "full",
+			"path": "res://assets/animations/seal_gameplay/walk_left.tres",
+			"source": "seal_lstrafe",
+			"timing": "source"
+		},
+		"walk_right": {
+			"duration": 0.76666665,
+			"kind": "full",
+			"path": "res://assets/animations/seal_gameplay/walk_right.tres",
+			"source": "seal_rstrafe",
+			"timing": "source"
+		}
+	},
+	"status": "candidate, not activated",
+	"unconverted": [
+		"crouch_dive_left",
+		"crouch_dive_right",
+		"crouch_dive_back",
+		"death_kneel_back",
+		"jump_slide_crouch",
+		"jump_back_crouch",
+		"climb",
+		"crouch_back_left",
+		"crouch_back_right",
+		"crouch_forward_left",
+		"crouch_forward_right",
+		"crouch_start",
+		"crouch_stop",
+		"crouch_to_stand",
+		"death_right",
+		"jump_backward_action",
+		"jump_peak_slide_candidate",
+		"backward_dive_pose_candidate",
+		"jump_dive_left",
+		"jump_dive_right",
+		"pistol_reload",
+		"pistol_reload_hold_prone",
+		"pistol_kneel_to_stand",
+		"pistol_run_back_left",
+		"pistol_run_back_right",
+		"pistol_run_forward_left",
+		"pistol_run_forward_right",
+		"pistol_walk_back_left",
+		"pistol_walk_back_right",
+		"pistol_walk_forward_left",
+		"pistol_walk_forward_right",
+		"prone_backward",
+		"prone_reload",
+		"prone_stop_backward",
+		"prone_stop_forward",
+		"reload",
+		"reload_ak47",
+		"roll",
+		"run_back_left",
+		"run_back_right",
+		"run_forward_left",
+		"run_forward_right",
+		"run_to_stop",
+		"start_backward",
+		"start_forward",
+		"stop_backward",
+		"stop_forward",
+		"turn_90_left",
+		"turn_90_right",
+		"walk_back_left",
+		"walk_back_right",
+		"walk_forward_left",
+		"walk_forward_right"
+	],
+	"version": 1.0
+}

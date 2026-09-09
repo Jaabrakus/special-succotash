@@ -1,0 +1,13 @@
+{
+  "source": "assets/characters/ps1_gas_mask_soldier/trooper_rigged.fbx",
+  "source_sha256": "16f84945fac4c76c3eac01b0245b0dd433c945e498246541d806a62ca525e5e9",
+  "bones": 41,
+  "vertices": 371,
+  "checks": [
+    "rigged geometry, UVs, weights and bone rests preserved",
+    "detached mesh world geometry and UVs preserved",
+    "rig-only contains no mesh",
+    "source unchanged"
+  ],
+  "scope": "Authoring files only; no animations exported and no runtime selection changed"
+}

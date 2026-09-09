@@ -1,0 +1,2867 @@
+{
+  "schema_version": 1,
+  "enabled": true,
+  "map_id": "field_depot_research",
+  "name": "Field Depot — Local Asset Study",
+  "grid_size": 0.5,
+  "environment": {
+    "preset": "tactical_overcast",
+    "ambient_energy": 0.8,
+    "sun_energy": 1.2,
+    "fog_enabled": false
+  },
+  "objects": [
+    {
+      "id": "fd_000",
+      "name": "Packed dirt courtyard",
+      "type": "ground",
+      "position": {
+        "x": 0,
+        "y": -0.2,
+        "z": 0
+      },
+      "size": {
+        "x": 60,
+        "y": 0.4,
+        "z": 48
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true,
+        "surface_kind": "default",
+        "texture_path": "user://map_assets/field_depot/dirt.png",
+        "uv_scale": 0.35,
+        "roughness": 0.95,
+        "texture_multiplier": {
+          "r": 0.38,
+          "g": 0.32,
+          "b": 0.25,
+          "a": 1
+        },
+        "texture_tint_weight": 0
+      }
+    },
+    {
+      "id": "fd_001",
+      "name": "Grass verge",
+      "type": "ground",
+      "position": {
+        "x": -25,
+        "y": 0.02,
+        "z": 0
+      },
+      "size": {
+        "x": 9,
+        "y": 0.04,
+        "z": 46
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true,
+        "surface_kind": "default",
+        "texture_path": "user://map_assets/field_depot/grass.png",
+        "uv_scale": 0.35,
+        "roughness": 0.95,
+        "texture_multiplier": {
+          "r": 0.55,
+          "g": 0.62,
+          "b": 0.45,
+          "a": 1
+        },
+        "texture_tint_weight": 0
+      }
+    },
+    {
+      "id": "fd_002",
+      "name": "Grass verge",
+      "type": "ground",
+      "position": {
+        "x": 25,
+        "y": 0.02,
+        "z": 0
+      },
+      "size": {
+        "x": 9,
+        "y": 0.04,
+        "z": 46
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true,
+        "surface_kind": "default",
+        "texture_path": "user://map_assets/field_depot/grass.png",
+        "uv_scale": 0.35,
+        "roughness": 0.95,
+        "texture_multiplier": {
+          "r": 0.55,
+          "g": 0.62,
+          "b": 0.45,
+          "a": 1
+        },
+        "texture_tint_weight": 0
+      }
+    },
+    {
+      "id": "fd_003",
+      "name": "Stone perimeter",
+      "type": "wall",
+      "position": {
+        "x": 0,
+        "y": 2,
+        "z": -24
+      },
+      "size": {
+        "x": 60,
+        "y": 4,
+        "z": 0.6
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true,
+        "surface_kind": "default",
+        "texture_path": "user://map_assets/field_depot/stone.png",
+        "uv_scale": 0.6,
+        "roughness": 0.95,
+        "texture_multiplier": {
+          "r": 0.52,
+          "g": 0.52,
+          "b": 0.48,
+          "a": 1
+        },
+        "texture_tint_weight": 0
+      }
+    },
+    {
+      "id": "fd_004",
+      "name": "Stone perimeter",
+      "type": "wall",
+      "position": {
+        "x": 0,
+        "y": 2,
+        "z": 24
+      },
+      "size": {
+        "x": 60,
+        "y": 4,
+        "z": 0.6
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true,
+        "surface_kind": "default",
+        "texture_path": "user://map_assets/field_depot/stone.png",
+        "uv_scale": 0.6,
+        "roughness": 0.95,
+        "texture_multiplier": {
+          "r": 0.52,
+          "g": 0.52,
+          "b": 0.48,
+          "a": 1
+        },
+        "texture_tint_weight": 0
+      }
+    },
+    {
+      "id": "fd_005",
+      "name": "Stone perimeter",
+      "type": "wall",
+      "position": {
+        "x": -30,
+        "y": 2,
+        "z": 0
+      },
+      "size": {
+        "x": 48,
+        "y": 4,
+        "z": 0.6
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 90,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true,
+        "surface_kind": "default",
+        "texture_path": "user://map_assets/field_depot/stone.png",
+        "uv_scale": 0.6,
+        "roughness": 0.95,
+        "texture_multiplier": {
+          "r": 0.52,
+          "g": 0.52,
+          "b": 0.48,
+          "a": 1
+        },
+        "texture_tint_weight": 0
+      }
+    },
+    {
+      "id": "fd_006",
+      "name": "Stone perimeter",
+      "type": "wall",
+      "position": {
+        "x": 30,
+        "y": 2,
+        "z": 0
+      },
+      "size": {
+        "x": 48,
+        "y": 4,
+        "z": 0.6
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 90,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true,
+        "surface_kind": "default",
+        "texture_path": "user://map_assets/field_depot/stone.png",
+        "uv_scale": 0.6,
+        "roughness": 0.95,
+        "texture_multiplier": {
+          "r": 0.52,
+          "g": 0.52,
+          "b": 0.48,
+          "a": 1
+        },
+        "texture_tint_weight": 0
+      }
+    },
+    {
+      "id": "fd_007",
+      "name": "Warehouse wide entrance",
+      "type": "doorway_wall",
+      "position": {
+        "x": 0,
+        "y": 2,
+        "z": -5
+      },
+      "size": {
+        "x": 12,
+        "y": 4,
+        "z": 0.4
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true,
+        "surface_kind": "default",
+        "texture_path": "user://map_assets/field_depot/stone.png",
+        "uv_scale": 0.6,
+        "roughness": 0.95,
+        "texture_multiplier": {
+          "r": 0.52,
+          "g": 0.52,
+          "b": 0.48,
+          "a": 1
+        },
+        "texture_tint_weight": 0,
+        "opening_width": 3.2,
+        "opening_height": 3.2
+      }
+    },
+    {
+      "id": "fd_008",
+      "name": "Warehouse wide entrance",
+      "type": "doorway_wall",
+      "position": {
+        "x": 0,
+        "y": 2,
+        "z": 5
+      },
+      "size": {
+        "x": 12,
+        "y": 4,
+        "z": 0.4
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true,
+        "surface_kind": "default",
+        "texture_path": "user://map_assets/field_depot/stone.png",
+        "uv_scale": 0.6,
+        "roughness": 0.95,
+        "texture_multiplier": {
+          "r": 0.52,
+          "g": 0.52,
+          "b": 0.48,
+          "a": 1
+        },
+        "texture_tint_weight": 0,
+        "opening_width": 3.2,
+        "opening_height": 3.2
+      }
+    },
+    {
+      "id": "fd_009",
+      "name": "Warehouse side windows",
+      "type": "window_wall",
+      "position": {
+        "x": -6,
+        "y": 2,
+        "z": 0
+      },
+      "size": {
+        "x": 10,
+        "y": 4,
+        "z": 0.4
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 90,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true,
+        "surface_kind": "default",
+        "texture_path": "user://map_assets/field_depot/stone.png",
+        "uv_scale": 0.6,
+        "roughness": 0.95,
+        "texture_multiplier": {
+          "r": 0.52,
+          "g": 0.52,
+          "b": 0.48,
+          "a": 1
+        },
+        "texture_tint_weight": 0,
+        "opening_width": 3.5,
+        "opening_height": 1.4
+      }
+    },
+    {
+      "id": "fd_010",
+      "name": "Warehouse side windows",
+      "type": "window_wall",
+      "position": {
+        "x": 6,
+        "y": 2,
+        "z": 0
+      },
+      "size": {
+        "x": 10,
+        "y": 4,
+        "z": 0.4
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 90,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true,
+        "surface_kind": "default",
+        "texture_path": "user://map_assets/field_depot/stone.png",
+        "uv_scale": 0.6,
+        "roughness": 0.95,
+        "texture_multiplier": {
+          "r": 0.52,
+          "g": 0.52,
+          "b": 0.48,
+          "a": 1
+        },
+        "texture_tint_weight": 0,
+        "opening_width": 3.5,
+        "opening_height": 1.4
+      }
+    },
+    {
+      "id": "fd_011",
+      "name": "Warehouse roof west",
+      "type": "roof",
+      "position": {
+        "x": -3,
+        "y": 4.5,
+        "z": 0
+      },
+      "size": {
+        "x": 6.3,
+        "y": 0.25,
+        "z": 11
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 12
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true,
+        "surface_kind": "default",
+        "texture_path": "user://map_assets/field_depot/tile.png",
+        "uv_scale": 0.6,
+        "roughness": 0.95,
+        "texture_multiplier": {
+          "r": 0.55,
+          "g": 0.51,
+          "b": 0.48,
+          "a": 1
+        },
+        "texture_tint_weight": 0
+      }
+    },
+    {
+      "id": "fd_012",
+      "name": "Warehouse roof east",
+      "type": "roof",
+      "position": {
+        "x": 3,
+        "y": 4.5,
+        "z": 0
+      },
+      "size": {
+        "x": 6.3,
+        "y": 0.25,
+        "z": 11
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": -12
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true,
+        "surface_kind": "default",
+        "texture_path": "user://map_assets/field_depot/tile.png",
+        "uv_scale": 0.6,
+        "roughness": 0.95,
+        "texture_multiplier": {
+          "r": 0.55,
+          "g": 0.51,
+          "b": 0.48,
+          "a": 1
+        },
+        "texture_tint_weight": 0
+      }
+    },
+    {
+      "id": "fd_013",
+      "name": "Warehouse sorting benches",
+      "type": "cover_low",
+      "position": {
+        "x": -3,
+        "y": 0.55,
+        "z": 0
+      },
+      "size": {
+        "x": 2,
+        "y": 1.1,
+        "z": 3
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true,
+        "surface_kind": "default",
+        "texture_path": "user://map_assets/field_depot/wood.png",
+        "uv_scale": 0.35,
+        "roughness": 0.95,
+        "texture_multiplier": {
+          "r": 0.42,
+          "g": 0.34,
+          "b": 0.26,
+          "a": 1
+        },
+        "texture_tint_weight": 0
+      }
+    },
+    {
+      "id": "fd_014",
+      "name": "Warehouse sorting benches",
+      "type": "cover_low",
+      "position": {
+        "x": 3,
+        "y": 0.55,
+        "z": 0
+      },
+      "size": {
+        "x": 2,
+        "y": 1.1,
+        "z": 3
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true,
+        "surface_kind": "default",
+        "texture_path": "user://map_assets/field_depot/wood.png",
+        "uv_scale": 0.35,
+        "roughness": 0.95,
+        "texture_multiplier": {
+          "r": 0.42,
+          "g": 0.34,
+          "b": 0.26,
+          "a": 1
+        },
+        "texture_tint_weight": 0
+      }
+    },
+    {
+      "id": "fd_015",
+      "name": "Spawn sightline blocker",
+      "type": "cover_tall",
+      "position": {
+        "x": -5,
+        "y": 1.7,
+        "z": -12
+      },
+      "size": {
+        "x": 5,
+        "y": 3.4,
+        "z": 1.2
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true,
+        "surface_kind": "default",
+        "texture_path": "user://map_assets/field_depot/stone.png",
+        "uv_scale": 0.6,
+        "roughness": 0.95,
+        "texture_multiplier": {
+          "r": 0.52,
+          "g": 0.52,
+          "b": 0.48,
+          "a": 1
+        },
+        "texture_tint_weight": 0
+      }
+    },
+    {
+      "id": "fd_016",
+      "name": "Spawn sightline blocker",
+      "type": "cover_tall",
+      "position": {
+        "x": 5,
+        "y": 1.7,
+        "z": -12
+      },
+      "size": {
+        "x": 5,
+        "y": 3.4,
+        "z": 1.2
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true,
+        "surface_kind": "default",
+        "texture_path": "user://map_assets/field_depot/stone.png",
+        "uv_scale": 0.6,
+        "roughness": 0.95,
+        "texture_multiplier": {
+          "r": 0.52,
+          "g": 0.52,
+          "b": 0.48,
+          "a": 1
+        },
+        "texture_tint_weight": 0
+      }
+    },
+    {
+      "id": "fd_017",
+      "name": "Center approach barricade",
+      "type": "cover_low",
+      "position": {
+        "x": 0,
+        "y": 0.6,
+        "z": -9
+      },
+      "size": {
+        "x": 3,
+        "y": 1.2,
+        "z": 0.8
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true,
+        "surface_kind": "default",
+        "texture_path": "user://map_assets/field_depot/wood.png",
+        "uv_scale": 0.35,
+        "roughness": 0.95,
+        "texture_multiplier": {
+          "r": 0.42,
+          "g": 0.34,
+          "b": 0.26,
+          "a": 1
+        },
+        "texture_tint_weight": 0
+      }
+    },
+    {
+      "id": "fd_018",
+      "name": "Side outpost rear wall",
+      "type": "wall",
+      "position": {
+        "x": -16,
+        "y": 1.6,
+        "z": -12
+      },
+      "size": {
+        "x": 7,
+        "y": 3.2,
+        "z": 0.4
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true,
+        "surface_kind": "default",
+        "texture_path": "user://map_assets/field_depot/stone.png",
+        "uv_scale": 0.6,
+        "roughness": 0.95,
+        "texture_multiplier": {
+          "r": 0.52,
+          "g": 0.52,
+          "b": 0.48,
+          "a": 1
+        },
+        "texture_tint_weight": 0
+      }
+    },
+    {
+      "id": "fd_019",
+      "name": "Side outpost outer wall",
+      "type": "wall",
+      "position": {
+        "x": -19.5,
+        "y": 1.6,
+        "z": -9
+      },
+      "size": {
+        "x": 6,
+        "y": 3.2,
+        "z": 0.4
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 90,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true,
+        "surface_kind": "default",
+        "texture_path": "user://map_assets/field_depot/stone.png",
+        "uv_scale": 0.6,
+        "roughness": 0.95,
+        "texture_multiplier": {
+          "r": 0.52,
+          "g": 0.52,
+          "b": 0.48,
+          "a": 1
+        },
+        "texture_tint_weight": 0
+      }
+    },
+    {
+      "id": "fd_020",
+      "name": "Outpost red tile canopy",
+      "type": "roof",
+      "position": {
+        "x": -16,
+        "y": 3.3,
+        "z": -9
+      },
+      "size": {
+        "x": 7.5,
+        "y": 0.3,
+        "z": 6.5
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true,
+        "surface_kind": "default",
+        "texture_path": "user://map_assets/field_depot/red_tile.png",
+        "uv_scale": 0.6,
+        "roughness": 0.95,
+        "texture_multiplier": {
+          "r": 0.57,
+          "g": 0.46,
+          "b": 0.4,
+          "a": 1
+        },
+        "texture_tint_weight": 0
+      }
+    },
+    {
+      "id": "fd_021",
+      "name": "Supply crate",
+      "type": "primitive_box",
+      "position": {
+        "x": -16,
+        "y": 0.75,
+        "z": -9
+      },
+      "size": {
+        "x": 1.5,
+        "y": 1.5,
+        "z": 1.5
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true,
+        "surface_kind": "default",
+        "texture_path": "user://map_assets/field_depot/wood.png",
+        "uv_scale": 0.35,
+        "roughness": 0.95,
+        "texture_multiplier": {
+          "r": 0.42,
+          "g": 0.34,
+          "b": 0.26,
+          "a": 1
+        },
+        "texture_tint_weight": 0
+      }
+    },
+    {
+      "id": "fd_022",
+      "name": "Side outpost rear wall",
+      "type": "wall",
+      "position": {
+        "x": 16,
+        "y": 1.6,
+        "z": -12
+      },
+      "size": {
+        "x": 7,
+        "y": 3.2,
+        "z": 0.4
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true,
+        "surface_kind": "default",
+        "texture_path": "user://map_assets/field_depot/stone.png",
+        "uv_scale": 0.6,
+        "roughness": 0.95,
+        "texture_multiplier": {
+          "r": 0.52,
+          "g": 0.52,
+          "b": 0.48,
+          "a": 1
+        },
+        "texture_tint_weight": 0
+      }
+    },
+    {
+      "id": "fd_023",
+      "name": "Side outpost outer wall",
+      "type": "wall",
+      "position": {
+        "x": 19.5,
+        "y": 1.6,
+        "z": -9
+      },
+      "size": {
+        "x": 6,
+        "y": 3.2,
+        "z": 0.4
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 90,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true,
+        "surface_kind": "default",
+        "texture_path": "user://map_assets/field_depot/stone.png",
+        "uv_scale": 0.6,
+        "roughness": 0.95,
+        "texture_multiplier": {
+          "r": 0.52,
+          "g": 0.52,
+          "b": 0.48,
+          "a": 1
+        },
+        "texture_tint_weight": 0
+      }
+    },
+    {
+      "id": "fd_024",
+      "name": "Outpost red tile canopy",
+      "type": "roof",
+      "position": {
+        "x": 16,
+        "y": 3.3,
+        "z": -9
+      },
+      "size": {
+        "x": 7.5,
+        "y": 0.3,
+        "z": 6.5
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true,
+        "surface_kind": "default",
+        "texture_path": "user://map_assets/field_depot/red_tile.png",
+        "uv_scale": 0.6,
+        "roughness": 0.95,
+        "texture_multiplier": {
+          "r": 0.57,
+          "g": 0.46,
+          "b": 0.4,
+          "a": 1
+        },
+        "texture_tint_weight": 0
+      }
+    },
+    {
+      "id": "fd_025",
+      "name": "Supply crate",
+      "type": "primitive_box",
+      "position": {
+        "x": 16,
+        "y": 0.75,
+        "z": -9
+      },
+      "size": {
+        "x": 1.5,
+        "y": 1.5,
+        "z": 1.5
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true,
+        "surface_kind": "default",
+        "texture_path": "user://map_assets/field_depot/wood.png",
+        "uv_scale": 0.35,
+        "roughness": 0.95,
+        "texture_multiplier": {
+          "r": 0.42,
+          "g": 0.34,
+          "b": 0.26,
+          "a": 1
+        },
+        "texture_tint_weight": 0
+      }
+    },
+    {
+      "id": "fd_026",
+      "name": "Bravo spawn 1",
+      "type": "team_bravo_spawn",
+      "position": {
+        "x": -3,
+        "y": 0.08,
+        "z": -17
+      },
+      "size": {
+        "x": 0.8,
+        "y": 1.8,
+        "z": 0.8
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 180,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "fd_027",
+      "name": "Bravo spawn 2",
+      "type": "team_bravo_spawn",
+      "position": {
+        "x": -1,
+        "y": 0.08,
+        "z": -17
+      },
+      "size": {
+        "x": 0.8,
+        "y": 1.8,
+        "z": 0.8
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 180,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "fd_028",
+      "name": "Bravo spawn 3",
+      "type": "team_bravo_spawn",
+      "position": {
+        "x": 1,
+        "y": 0.08,
+        "z": -17
+      },
+      "size": {
+        "x": 0.8,
+        "y": 1.8,
+        "z": 0.8
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 180,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "fd_029",
+      "name": "Bravo spawn 4",
+      "type": "team_bravo_spawn",
+      "position": {
+        "x": 3,
+        "y": 0.08,
+        "z": -17
+      },
+      "size": {
+        "x": 0.8,
+        "y": 1.8,
+        "z": 0.8
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 180,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "fd_030",
+      "name": "Bravo spawn 5",
+      "type": "team_bravo_spawn",
+      "position": {
+        "x": -3,
+        "y": 0.08,
+        "z": -18.5
+      },
+      "size": {
+        "x": 0.8,
+        "y": 1.8,
+        "z": 0.8
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 180,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "fd_031",
+      "name": "Bravo spawn 6",
+      "type": "team_bravo_spawn",
+      "position": {
+        "x": -1,
+        "y": 0.08,
+        "z": -18.5
+      },
+      "size": {
+        "x": 0.8,
+        "y": 1.8,
+        "z": 0.8
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 180,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "fd_032",
+      "name": "Bravo spawn 7",
+      "type": "team_bravo_spawn",
+      "position": {
+        "x": 1,
+        "y": 0.08,
+        "z": -18.5
+      },
+      "size": {
+        "x": 0.8,
+        "y": 1.8,
+        "z": 0.8
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 180,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "fd_033",
+      "name": "Bravo spawn 8",
+      "type": "team_bravo_spawn",
+      "position": {
+        "x": 3,
+        "y": 0.08,
+        "z": -18.5
+      },
+      "size": {
+        "x": 0.8,
+        "y": 1.8,
+        "z": 0.8
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 180,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "fd_034",
+      "name": "Bravo spawn 9",
+      "type": "team_bravo_spawn",
+      "position": {
+        "x": -3,
+        "y": 0.08,
+        "z": -20
+      },
+      "size": {
+        "x": 0.8,
+        "y": 1.8,
+        "z": 0.8
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 180,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "fd_035",
+      "name": "Bravo spawn 10",
+      "type": "team_bravo_spawn",
+      "position": {
+        "x": -1,
+        "y": 0.08,
+        "z": -20
+      },
+      "size": {
+        "x": 0.8,
+        "y": 1.8,
+        "z": 0.8
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 180,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "fd_036",
+      "name": "Bravo spawn 11",
+      "type": "team_bravo_spawn",
+      "position": {
+        "x": 1,
+        "y": 0.08,
+        "z": -20
+      },
+      "size": {
+        "x": 0.8,
+        "y": 1.8,
+        "z": 0.8
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 180,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "fd_037",
+      "name": "Bravo spawn 12",
+      "type": "team_bravo_spawn",
+      "position": {
+        "x": 3,
+        "y": 0.08,
+        "z": -20
+      },
+      "size": {
+        "x": 0.8,
+        "y": 1.8,
+        "z": 0.8
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 180,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "fd_038",
+      "name": "Bravo spawn 13",
+      "type": "team_bravo_spawn",
+      "position": {
+        "x": -3,
+        "y": 0.08,
+        "z": -21.5
+      },
+      "size": {
+        "x": 0.8,
+        "y": 1.8,
+        "z": 0.8
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 180,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "fd_039",
+      "name": "Bravo spawn 14",
+      "type": "team_bravo_spawn",
+      "position": {
+        "x": -1,
+        "y": 0.08,
+        "z": -21.5
+      },
+      "size": {
+        "x": 0.8,
+        "y": 1.8,
+        "z": 0.8
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 180,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "fd_040",
+      "name": "Bravo spawn 15",
+      "type": "team_bravo_spawn",
+      "position": {
+        "x": 1,
+        "y": 0.08,
+        "z": -21.5
+      },
+      "size": {
+        "x": 0.8,
+        "y": 1.8,
+        "z": 0.8
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 180,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "fd_041",
+      "name": "Bravo spawn 16",
+      "type": "team_bravo_spawn",
+      "position": {
+        "x": 3,
+        "y": 0.08,
+        "z": -21.5
+      },
+      "size": {
+        "x": 0.8,
+        "y": 1.8,
+        "z": 0.8
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 180,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "fd_042",
+      "name": "Base objective",
+      "type": "bravo_bomb_site",
+      "position": {
+        "x": 0,
+        "y": 0.05,
+        "z": -15
+      },
+      "size": {
+        "x": 3,
+        "y": 0.1,
+        "z": 3
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "fd_043",
+      "name": "Spawn sightline blocker",
+      "type": "cover_tall",
+      "position": {
+        "x": -5,
+        "y": 1.7,
+        "z": 12
+      },
+      "size": {
+        "x": 5,
+        "y": 3.4,
+        "z": 1.2
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true,
+        "surface_kind": "default",
+        "texture_path": "user://map_assets/field_depot/stone.png",
+        "uv_scale": 0.6,
+        "roughness": 0.95,
+        "texture_multiplier": {
+          "r": 0.52,
+          "g": 0.52,
+          "b": 0.48,
+          "a": 1
+        },
+        "texture_tint_weight": 0
+      }
+    },
+    {
+      "id": "fd_044",
+      "name": "Spawn sightline blocker",
+      "type": "cover_tall",
+      "position": {
+        "x": 5,
+        "y": 1.7,
+        "z": 12
+      },
+      "size": {
+        "x": 5,
+        "y": 3.4,
+        "z": 1.2
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true,
+        "surface_kind": "default",
+        "texture_path": "user://map_assets/field_depot/stone.png",
+        "uv_scale": 0.6,
+        "roughness": 0.95,
+        "texture_multiplier": {
+          "r": 0.52,
+          "g": 0.52,
+          "b": 0.48,
+          "a": 1
+        },
+        "texture_tint_weight": 0
+      }
+    },
+    {
+      "id": "fd_045",
+      "name": "Center approach barricade",
+      "type": "cover_low",
+      "position": {
+        "x": 0,
+        "y": 0.6,
+        "z": 9
+      },
+      "size": {
+        "x": 3,
+        "y": 1.2,
+        "z": 0.8
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true,
+        "surface_kind": "default",
+        "texture_path": "user://map_assets/field_depot/wood.png",
+        "uv_scale": 0.35,
+        "roughness": 0.95,
+        "texture_multiplier": {
+          "r": 0.42,
+          "g": 0.34,
+          "b": 0.26,
+          "a": 1
+        },
+        "texture_tint_weight": 0
+      }
+    },
+    {
+      "id": "fd_046",
+      "name": "Side outpost rear wall",
+      "type": "wall",
+      "position": {
+        "x": -16,
+        "y": 1.6,
+        "z": 12
+      },
+      "size": {
+        "x": 7,
+        "y": 3.2,
+        "z": 0.4
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true,
+        "surface_kind": "default",
+        "texture_path": "user://map_assets/field_depot/stone.png",
+        "uv_scale": 0.6,
+        "roughness": 0.95,
+        "texture_multiplier": {
+          "r": 0.52,
+          "g": 0.52,
+          "b": 0.48,
+          "a": 1
+        },
+        "texture_tint_weight": 0
+      }
+    },
+    {
+      "id": "fd_047",
+      "name": "Side outpost outer wall",
+      "type": "wall",
+      "position": {
+        "x": -19.5,
+        "y": 1.6,
+        "z": 9
+      },
+      "size": {
+        "x": 6,
+        "y": 3.2,
+        "z": 0.4
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 90,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true,
+        "surface_kind": "default",
+        "texture_path": "user://map_assets/field_depot/stone.png",
+        "uv_scale": 0.6,
+        "roughness": 0.95,
+        "texture_multiplier": {
+          "r": 0.52,
+          "g": 0.52,
+          "b": 0.48,
+          "a": 1
+        },
+        "texture_tint_weight": 0
+      }
+    },
+    {
+      "id": "fd_048",
+      "name": "Outpost red tile canopy",
+      "type": "roof",
+      "position": {
+        "x": -16,
+        "y": 3.3,
+        "z": 9
+      },
+      "size": {
+        "x": 7.5,
+        "y": 0.3,
+        "z": 6.5
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true,
+        "surface_kind": "default",
+        "texture_path": "user://map_assets/field_depot/red_tile.png",
+        "uv_scale": 0.6,
+        "roughness": 0.95,
+        "texture_multiplier": {
+          "r": 0.57,
+          "g": 0.46,
+          "b": 0.4,
+          "a": 1
+        },
+        "texture_tint_weight": 0
+      }
+    },
+    {
+      "id": "fd_049",
+      "name": "Supply crate",
+      "type": "primitive_box",
+      "position": {
+        "x": -16,
+        "y": 0.75,
+        "z": 9
+      },
+      "size": {
+        "x": 1.5,
+        "y": 1.5,
+        "z": 1.5
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true,
+        "surface_kind": "default",
+        "texture_path": "user://map_assets/field_depot/wood.png",
+        "uv_scale": 0.35,
+        "roughness": 0.95,
+        "texture_multiplier": {
+          "r": 0.42,
+          "g": 0.34,
+          "b": 0.26,
+          "a": 1
+        },
+        "texture_tint_weight": 0
+      }
+    },
+    {
+      "id": "fd_050",
+      "name": "Side outpost rear wall",
+      "type": "wall",
+      "position": {
+        "x": 16,
+        "y": 1.6,
+        "z": 12
+      },
+      "size": {
+        "x": 7,
+        "y": 3.2,
+        "z": 0.4
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true,
+        "surface_kind": "default",
+        "texture_path": "user://map_assets/field_depot/stone.png",
+        "uv_scale": 0.6,
+        "roughness": 0.95,
+        "texture_multiplier": {
+          "r": 0.52,
+          "g": 0.52,
+          "b": 0.48,
+          "a": 1
+        },
+        "texture_tint_weight": 0
+      }
+    },
+    {
+      "id": "fd_051",
+      "name": "Side outpost outer wall",
+      "type": "wall",
+      "position": {
+        "x": 19.5,
+        "y": 1.6,
+        "z": 9
+      },
+      "size": {
+        "x": 6,
+        "y": 3.2,
+        "z": 0.4
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 90,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true,
+        "surface_kind": "default",
+        "texture_path": "user://map_assets/field_depot/stone.png",
+        "uv_scale": 0.6,
+        "roughness": 0.95,
+        "texture_multiplier": {
+          "r": 0.52,
+          "g": 0.52,
+          "b": 0.48,
+          "a": 1
+        },
+        "texture_tint_weight": 0
+      }
+    },
+    {
+      "id": "fd_052",
+      "name": "Outpost red tile canopy",
+      "type": "roof",
+      "position": {
+        "x": 16,
+        "y": 3.3,
+        "z": 9
+      },
+      "size": {
+        "x": 7.5,
+        "y": 0.3,
+        "z": 6.5
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true,
+        "surface_kind": "default",
+        "texture_path": "user://map_assets/field_depot/red_tile.png",
+        "uv_scale": 0.6,
+        "roughness": 0.95,
+        "texture_multiplier": {
+          "r": 0.57,
+          "g": 0.46,
+          "b": 0.4,
+          "a": 1
+        },
+        "texture_tint_weight": 0
+      }
+    },
+    {
+      "id": "fd_053",
+      "name": "Supply crate",
+      "type": "primitive_box",
+      "position": {
+        "x": 16,
+        "y": 0.75,
+        "z": 9
+      },
+      "size": {
+        "x": 1.5,
+        "y": 1.5,
+        "z": 1.5
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true,
+        "surface_kind": "default",
+        "texture_path": "user://map_assets/field_depot/wood.png",
+        "uv_scale": 0.35,
+        "roughness": 0.95,
+        "texture_multiplier": {
+          "r": 0.42,
+          "g": 0.34,
+          "b": 0.26,
+          "a": 1
+        },
+        "texture_tint_weight": 0
+      }
+    },
+    {
+      "id": "fd_054",
+      "name": "Alpha spawn 1",
+      "type": "team_alpha_spawn",
+      "position": {
+        "x": -3,
+        "y": 0.08,
+        "z": 17
+      },
+      "size": {
+        "x": 0.8,
+        "y": 1.8,
+        "z": 0.8
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "fd_055",
+      "name": "Alpha spawn 2",
+      "type": "team_alpha_spawn",
+      "position": {
+        "x": -1,
+        "y": 0.08,
+        "z": 17
+      },
+      "size": {
+        "x": 0.8,
+        "y": 1.8,
+        "z": 0.8
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "fd_056",
+      "name": "Alpha spawn 3",
+      "type": "team_alpha_spawn",
+      "position": {
+        "x": 1,
+        "y": 0.08,
+        "z": 17
+      },
+      "size": {
+        "x": 0.8,
+        "y": 1.8,
+        "z": 0.8
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "fd_057",
+      "name": "Alpha spawn 4",
+      "type": "team_alpha_spawn",
+      "position": {
+        "x": 3,
+        "y": 0.08,
+        "z": 17
+      },
+      "size": {
+        "x": 0.8,
+        "y": 1.8,
+        "z": 0.8
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "fd_058",
+      "name": "Alpha spawn 5",
+      "type": "team_alpha_spawn",
+      "position": {
+        "x": -3,
+        "y": 0.08,
+        "z": 18.5
+      },
+      "size": {
+        "x": 0.8,
+        "y": 1.8,
+        "z": 0.8
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "fd_059",
+      "name": "Alpha spawn 6",
+      "type": "team_alpha_spawn",
+      "position": {
+        "x": -1,
+        "y": 0.08,
+        "z": 18.5
+      },
+      "size": {
+        "x": 0.8,
+        "y": 1.8,
+        "z": 0.8
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "fd_060",
+      "name": "Alpha spawn 7",
+      "type": "team_alpha_spawn",
+      "position": {
+        "x": 1,
+        "y": 0.08,
+        "z": 18.5
+      },
+      "size": {
+        "x": 0.8,
+        "y": 1.8,
+        "z": 0.8
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "fd_061",
+      "name": "Alpha spawn 8",
+      "type": "team_alpha_spawn",
+      "position": {
+        "x": 3,
+        "y": 0.08,
+        "z": 18.5
+      },
+      "size": {
+        "x": 0.8,
+        "y": 1.8,
+        "z": 0.8
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "fd_062",
+      "name": "Alpha spawn 9",
+      "type": "team_alpha_spawn",
+      "position": {
+        "x": -3,
+        "y": 0.08,
+        "z": 20
+      },
+      "size": {
+        "x": 0.8,
+        "y": 1.8,
+        "z": 0.8
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "fd_063",
+      "name": "Alpha spawn 10",
+      "type": "team_alpha_spawn",
+      "position": {
+        "x": -1,
+        "y": 0.08,
+        "z": 20
+      },
+      "size": {
+        "x": 0.8,
+        "y": 1.8,
+        "z": 0.8
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "fd_064",
+      "name": "Alpha spawn 11",
+      "type": "team_alpha_spawn",
+      "position": {
+        "x": 1,
+        "y": 0.08,
+        "z": 20
+      },
+      "size": {
+        "x": 0.8,
+        "y": 1.8,
+        "z": 0.8
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "fd_065",
+      "name": "Alpha spawn 12",
+      "type": "team_alpha_spawn",
+      "position": {
+        "x": 3,
+        "y": 0.08,
+        "z": 20
+      },
+      "size": {
+        "x": 0.8,
+        "y": 1.8,
+        "z": 0.8
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "fd_066",
+      "name": "Alpha spawn 13",
+      "type": "team_alpha_spawn",
+      "position": {
+        "x": -3,
+        "y": 0.08,
+        "z": 21.5
+      },
+      "size": {
+        "x": 0.8,
+        "y": 1.8,
+        "z": 0.8
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "fd_067",
+      "name": "Alpha spawn 14",
+      "type": "team_alpha_spawn",
+      "position": {
+        "x": -1,
+        "y": 0.08,
+        "z": 21.5
+      },
+      "size": {
+        "x": 0.8,
+        "y": 1.8,
+        "z": 0.8
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "fd_068",
+      "name": "Alpha spawn 15",
+      "type": "team_alpha_spawn",
+      "position": {
+        "x": 1,
+        "y": 0.08,
+        "z": 21.5
+      },
+      "size": {
+        "x": 0.8,
+        "y": 1.8,
+        "z": 0.8
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "fd_069",
+      "name": "Alpha spawn 16",
+      "type": "team_alpha_spawn",
+      "position": {
+        "x": 3,
+        "y": 0.08,
+        "z": 21.5
+      },
+      "size": {
+        "x": 0.8,
+        "y": 1.8,
+        "z": 0.8
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "fd_070",
+      "name": "Base objective",
+      "type": "alpha_bomb_site",
+      "position": {
+        "x": 0,
+        "y": 0.05,
+        "z": 15
+      },
+      "size": {
+        "x": 3,
+        "y": 0.1,
+        "z": 3
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "fd_071",
+      "name": "Flank broken sightline",
+      "type": "cover_low",
+      "position": {
+        "x": -12,
+        "y": 0.6,
+        "z": 0
+      },
+      "size": {
+        "x": 3,
+        "y": 1.2,
+        "z": 1.2
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": -20,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true,
+        "surface_kind": "default",
+        "texture_path": "user://map_assets/field_depot/stone.png",
+        "uv_scale": 0.6,
+        "roughness": 0.95,
+        "texture_multiplier": {
+          "r": 0.52,
+          "g": 0.52,
+          "b": 0.48,
+          "a": 1
+        },
+        "texture_tint_weight": 0
+      }
+    },
+    {
+      "id": "fd_072",
+      "name": "Supply drum",
+      "type": "primitive_cylinder",
+      "position": {
+        "x": -10.2,
+        "y": 0.6,
+        "z": 2
+      },
+      "size": {
+        "x": 0.8,
+        "y": 1.2,
+        "z": 0.8
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true,
+        "surface_kind": "default",
+        "texture_path": "user://map_assets/field_depot/wood.png",
+        "uv_scale": 0.35,
+        "roughness": 0.95,
+        "texture_multiplier": {
+          "r": 0.42,
+          "g": 0.34,
+          "b": 0.26,
+          "a": 1
+        },
+        "texture_tint_weight": 0
+      }
+    },
+    {
+      "id": "fd_073",
+      "name": "Flank broken sightline",
+      "type": "cover_low",
+      "position": {
+        "x": 12,
+        "y": 0.6,
+        "z": 0
+      },
+      "size": {
+        "x": 3,
+        "y": 1.2,
+        "z": 1.2
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": -20,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true,
+        "surface_kind": "default",
+        "texture_path": "user://map_assets/field_depot/stone.png",
+        "uv_scale": 0.6,
+        "roughness": 0.95,
+        "texture_multiplier": {
+          "r": 0.52,
+          "g": 0.52,
+          "b": 0.48,
+          "a": 1
+        },
+        "texture_tint_weight": 0
+      }
+    },
+    {
+      "id": "fd_074",
+      "name": "Supply drum",
+      "type": "primitive_cylinder",
+      "position": {
+        "x": 13.8,
+        "y": 0.6,
+        "z": 2
+      },
+      "size": {
+        "x": 0.8,
+        "y": 1.2,
+        "z": 0.8
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true,
+        "surface_kind": "default",
+        "texture_path": "user://map_assets/field_depot/wood.png",
+        "uv_scale": 0.35,
+        "roughness": 0.95,
+        "texture_multiplier": {
+          "r": 0.42,
+          "g": 0.34,
+          "b": 0.26,
+          "a": 1
+        },
+        "texture_tint_weight": 0
+      }
+    },
+    {
+      "id": "fd_075",
+      "name": "Flank broken sightline",
+      "type": "cover_low",
+      "position": {
+        "x": -21,
+        "y": 0.6,
+        "z": 0
+      },
+      "size": {
+        "x": 3,
+        "y": 1.2,
+        "z": 1.2
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 20,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true,
+        "surface_kind": "default",
+        "texture_path": "user://map_assets/field_depot/stone.png",
+        "uv_scale": 0.6,
+        "roughness": 0.95,
+        "texture_multiplier": {
+          "r": 0.52,
+          "g": 0.52,
+          "b": 0.48,
+          "a": 1
+        },
+        "texture_tint_weight": 0
+      }
+    },
+    {
+      "id": "fd_076",
+      "name": "Supply drum",
+      "type": "primitive_cylinder",
+      "position": {
+        "x": -19.2,
+        "y": 0.6,
+        "z": 2
+      },
+      "size": {
+        "x": 0.8,
+        "y": 1.2,
+        "z": 0.8
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true,
+        "surface_kind": "default",
+        "texture_path": "user://map_assets/field_depot/wood.png",
+        "uv_scale": 0.35,
+        "roughness": 0.95,
+        "texture_multiplier": {
+          "r": 0.42,
+          "g": 0.34,
+          "b": 0.26,
+          "a": 1
+        },
+        "texture_tint_weight": 0
+      }
+    },
+    {
+      "id": "fd_077",
+      "name": "Flank broken sightline",
+      "type": "cover_low",
+      "position": {
+        "x": 21,
+        "y": 0.6,
+        "z": 0
+      },
+      "size": {
+        "x": 3,
+        "y": 1.2,
+        "z": 1.2
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 20,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true,
+        "surface_kind": "default",
+        "texture_path": "user://map_assets/field_depot/stone.png",
+        "uv_scale": 0.6,
+        "roughness": 0.95,
+        "texture_multiplier": {
+          "r": 0.52,
+          "g": 0.52,
+          "b": 0.48,
+          "a": 1
+        },
+        "texture_tint_weight": 0
+      }
+    },
+    {
+      "id": "fd_078",
+      "name": "Supply drum",
+      "type": "primitive_cylinder",
+      "position": {
+        "x": 22.8,
+        "y": 0.6,
+        "z": 2
+      },
+      "size": {
+        "x": 0.8,
+        "y": 1.2,
+        "z": 0.8
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true,
+        "surface_kind": "default",
+        "texture_path": "user://map_assets/field_depot/wood.png",
+        "uv_scale": 0.35,
+        "roughness": 0.95,
+        "texture_multiplier": {
+          "r": 0.42,
+          "g": 0.34,
+          "b": 0.26,
+          "a": 1
+        },
+        "texture_tint_weight": 0
+      }
+    },
+    {
+      "id": "fd_079",
+      "name": "Editor play start",
+      "type": "player_spawn",
+      "position": {
+        "x": 0,
+        "y": 0.08,
+        "z": 21
+      },
+      "size": {
+        "x": 0.8,
+        "y": 1.8,
+        "z": 0.8
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true
+      }
+    },
+    {
+      "id": "fd_080",
+      "name": "Central pickup",
+      "type": "bomb_pickup",
+      "position": {
+        "x": 0,
+        "y": 0.4,
+        "z": 0
+      },
+      "size": {
+        "x": 0.8,
+        "y": 0.8,
+        "z": 0.8
+      },
+      "rotation_degrees": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "color": {
+        "r": 1,
+        "g": 1,
+        "b": 1,
+        "a": 1
+      },
+      "properties": {
+        "collision_enabled": true
+      }
+    }
+  ]
+}

@@ -1,0 +1,104 @@
+[gd_resource type="Animation" format=3]
+
+[resource]
+resource_name = "seal_p_ledge2hang_bw"
+length = 0.033333335
+tracks/0/type = "rotation_3d"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:mixamorig_Spine")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = PackedFloat32Array(0, 1, 0.5594898, -0.064078905, -0.035575934, 0.8255904, 0.033333335, 1, 0.5594898, -0.064078905, -0.035575934, 0.8255904)
+tracks/1/type = "rotation_3d"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:mixamorig_Spine2")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = PackedFloat32Array(0, 1, -0.17957501, -0.0020188813, 0.023263527, 0.9834671, 0.033333335, 1, -0.17957501, -0.0020188813, 0.023263527, 0.9834671)
+tracks/2/type = "rotation_3d"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath(".:mixamorig_Neck")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = PackedFloat32Array(0, 1, -0.08959603, -0.08847705, -0.006254081, 0.9920208, 0.033333335, 1, -0.08959603, -0.08847705, -0.006254081, 0.9920208)
+tracks/3/type = "rotation_3d"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath(".:mixamorig_Head")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = PackedFloat32Array(0, 1, 0.18873529, -0.048717722, 0.0305425, 0.98034316, 0.033333335, 1, 0.18873529, -0.048717722, 0.0305425, 0.98034316)
+tracks/4/type = "rotation_3d"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath(".:mixamorig_LeftShoulder")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/keys = PackedFloat32Array(0, 1, 0.6451026, 0.30282912, -0.5783597, 0.3970355, 0.033333335, 1, 0.6451026, 0.30282912, -0.5783597, 0.3970355)
+tracks/5/type = "rotation_3d"
+tracks/5/imported = false
+tracks/5/enabled = true
+tracks/5/path = NodePath(".:mixamorig_LeftArm")
+tracks/5/interp = 1
+tracks/5/loop_wrap = true
+tracks/5/keys = PackedFloat32Array(0, 1, 0.260472, -0.22024584, 0.15516084, 0.9271307, 0.033333335, 1, 0.260472, -0.22024584, 0.15516084, 0.9271307)
+tracks/6/type = "rotation_3d"
+tracks/6/imported = false
+tracks/6/enabled = true
+tracks/6/path = NodePath(".:mixamorig_LeftForeArm")
+tracks/6/interp = 1
+tracks/6/loop_wrap = true
+tracks/6/keys = PackedFloat32Array(0, 1, 0.026980357, 0.022293558, 0.61748743, 0.7858017, 0.033333335, 1, 0.026980357, 0.022293558, 0.61748743, 0.7858017)
+tracks/7/type = "rotation_3d"
+tracks/7/imported = false
+tracks/7/enabled = true
+tracks/7/path = NodePath(".:mixamorig_LeftHand")
+tracks/7/interp = 1
+tracks/7/loop_wrap = true
+tracks/7/keys = PackedFloat32Array(0, 1, 0.04871961, 0.4305763, -0.3219134, 0.84178513, 0.033333335, 1, 0.04871961, 0.4305763, -0.3219134, 0.84178513)
+tracks/8/type = "rotation_3d"
+tracks/8/imported = false
+tracks/8/enabled = true
+tracks/8/path = NodePath(".:mixamorig_RightShoulder")
+tracks/8/interp = 1
+tracks/8/loop_wrap = true
+tracks/8/keys = PackedFloat32Array(0, 1, 0.6611301, -0.30616102, 0.5596774, 0.3948844, 0.033333335, 1, 0.6611301, -0.30616102, 0.5596774, 0.3948844)
+tracks/9/type = "rotation_3d"
+tracks/9/imported = false
+tracks/9/enabled = true
+tracks/9/path = NodePath(".:mixamorig_RightArm")
+tracks/9/interp = 1
+tracks/9/loop_wrap = true
+tracks/9/keys = PackedFloat32Array(0, 1, 0.2979007, 0.27843934, -0.21646005, 0.8870579, 0.033333335, 1, 0.2979007, 0.27843934, -0.21646005, 0.8870579)
+tracks/10/type = "rotation_3d"
+tracks/10/imported = false
+tracks/10/enabled = true
+tracks/10/path = NodePath(".:mixamorig_RightForeArm")
+tracks/10/interp = 1
+tracks/10/loop_wrap = true
+tracks/10/keys = PackedFloat32Array(0, 1, 0.03327959, -0.013155248, -0.3658381, 0.9299903, 0.033333335, 1, 0.03327959, -0.013155248, -0.3658381, 0.9299903)
+tracks/11/type = "rotation_3d"
+tracks/11/imported = false
+tracks/11/enabled = true
+tracks/11/path = NodePath(".:mixamorig_RightHand")
+tracks/11/interp = 1
+tracks/11/loop_wrap = true
+tracks/11/keys = PackedFloat32Array(0, 1, -0.06121541, -0.31049353, 0.18464932, 0.9304575, 0.033333335, 1, -0.06121541, -0.31049353, 0.18464932, 0.9304575)
+metadata/seal_reference = true
+metadata/source_name = "seal_p_ledge2hang_bw"
+metadata/source_sha256 = "e9c2e8ad11b5c3833e373db5d3cc7482e9ab5d4f755fe57cf3ea81daad2ada68"
+metadata/source_settings = {
+"NoPitchtwist": [],
+"NoTurn": [],
+"anim_name": "seal_p_ledge2hang_bw",
+"looped": 0.0,
+"max_velocity": -1.0,
+"playback": 1.0,
+"refPt": [0.0, -10.53, 0.4]
+}
+metadata/source_static = true
+metadata/source_coverage = "upper"
+metadata/target_rig_sha256 = "c1ef12342140f66db26e74c85b4ca6bc82c2ce772b3d2f2406d647b49e093016"

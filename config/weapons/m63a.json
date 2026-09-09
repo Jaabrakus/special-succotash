@@ -13,7 +13,7 @@
     "bloom_recovery_speed": 17.5,
     "damage": 37.0,
     "effective_range_m": 400.0,
-    "fire_rate_rpm": 500,
+    "fire_rate_rpm": 500.0000111758711,
     "reload_duration_seconds": 5,
     "full_gait_spread_deg": 1.543,
     "headshot_multiplier": 3.5,
@@ -23,7 +23,7 @@
     "max_recoil_bloom_deg": 2.6,
     "moving_spread_deg": 1.029,
     "muzzle_velocity_mps": 990.0,
-    "reserve_ammo": 150.0
+    "reserve_ammo": 375.0
   },
   "burst_size": 3,
   "catalog_source": "reCOM zweapon.rdr",
@@ -45,10 +45,32 @@
     "cadence_driven_return": false,
     "base_gap_px": 5.1,
     "max_gap_px": 41.6,
-    "maximum_shot_kick_px": 50.0,
+    "maximum_shot_kick_px": 50,
     "response_speed": 26.2,
-    "shot_kick_px": 10.0,
-    "shot_kick_return": 42.0
+    "shot_kick_px": 10,
+    "shot_kick_return": 42,
+    "vrc_return_speed_px_per_second": 42,
+    "socom2_source_name": "M63A",
+    "socom2_stances": {
+      "STANDING": {
+        "shot_kick_px": 10,
+        "maximum_shot_kick_px": 50,
+        "shot_kick_return": 42,
+        "vrc_return_speed_px_per_second": 42
+      },
+      "CROUCHED": {
+        "shot_kick_px": 8,
+        "maximum_shot_kick_px": 42,
+        "shot_kick_return": 42,
+        "vrc_return_speed_px_per_second": 42
+      },
+      "PRONE": {
+        "shot_kick_px": 7,
+        "maximum_shot_kick_px": 20,
+        "shot_kick_return": 42,
+        "vrc_return_speed_px_per_second": 42
+      }
+    }
   },
   "socom_original_id": 92,
   "weapon_id": "m63a"

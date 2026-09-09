@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "feature_id": "source_rifle_fire_pose",
+  "player_intent": "Firing preserves native left/right rifle stance and authored wrist orientation rather than substituting a generic stationary pose.",
+  "acceptance_rule": "Source standing/crouched rifles mask all generic shot pose tracks, retain accepted shot events and separate recoil, and keep physical hand contacts within 1 cm and settled bore error below 6 degrees in canonical strafe tests. Pistol and prone shot filters remain unchanged.",
+  "canonical_scene": "res://main.tscn",
+  "ownership": {"animation": "SocomOperatorAnimationDriver", "weapon_presentation": "WeaponPoseSolver"},
+  "nodes": [{"id": "operator", "type": "Node3D", "role": "Existing animation and weapon-presentation integration", "owner": "SocomOperatorAnimationDriver", "scene_path": "res://scenes/player/operator_player.tscn", "node_path": "Mannequin/ProductionAnimation"}],
+  "data_contracts": [{"path": "res://config/operator_animation_map.json", "writer": "res://scripts/labs/animation_workshop_repository.gd", "readers": ["res://scripts/player/operator_animation_profile.gd", "res://scripts/player/operator_locomotion_blend_tree.gd"]}],
+  "must_not_change": ["CharacterBody movement and collision", "Camera/reticle aim", "Shots, damage and networking", "Legacy pistol hybrid", "Reload and mobility action ownership"],
+  "proof_scripts": ["res://tools/source_rifle_fire_regression.gd", "res://tools/seal_locomotion_visual_probe.gd", "res://tools/pistol_hybrid_main_regression.gd"],
+  "visual_check": "Render canonical AK47/M4 left/right firing entry, recovery and idle from rear and side; inspect wrists and shoulders. Do not claim exact SOCOM parity without source-frame comparison.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Existing source firing locomotion is overridden by a stationary shot overlay; existing wrist fit assumes sockets are wrist coordinate frames. Preserve source animation orientation inside the same owners.",
+    "current": {"system": "Generic fire overlay and socket wrist basis", "correctness": 2, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 4, "regression_coverage": 3, "evidence_paths": ["res://scripts/player/operator_locomotion_blend_tree.gd", "res://scripts/player/operator_seal_weapon_pose.gd"]},
+    "candidate": {"system": "Source rifle mask and source-relative wrist fit", "correctness": 3, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 4, "regression_coverage": 4, "evidence_paths": ["res://tools/source_rifle_fire_regression.gd", "res://tools/seal_locomotion_visual_probe.gd"]}
+  }
+}

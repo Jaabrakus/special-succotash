@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "note": "Explicit source display-name matches, not fuzzy matches or promises of original models. 12 Gauge Pump uses the same source 870 behavior as the existing 870 profile; its current prototype mesh is retained.",
+  "aliases": {
+    "12_gauge_pump": {"source_name": "870", "source_display_name": "12 GAUGE PUMP"},
+    "m3_12_gauge": {"source_name": "JACKHAMMER", "source_display_name": "M3 12 GAUGE"},
+    "ta_12_gauge": {"source_name": "Spas 12", "source_display_name": "TA 12 GAUGE"}
+  }
+}

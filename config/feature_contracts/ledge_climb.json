@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "feature_id": "ledge_climb",
+  "player_intent": "Jump to reachable ledges, hang and pull up, climb ladders and hold Jump to slide down.",
+  "acceptance_rule": "Raised-hand reach is relative to current physical feet; clear supported tops accept climbs, too-high/blocked/opt-out geometry rejects them. Hanging waits for pull-up or drop. Ladder input supports up/down, tap detach and hold-slide/release grip. Existing traversal context survives movement-state codec round-trip. CharacterBody remains the only movement writer.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://scenes/traversal/climbable_ladder.tscn",
+  "ownership": {"movement_collision": "SocomTestPlayer", "presentation": "SocomOperatorAnimationDriver"},
+  "nodes": [
+    {"id": "player", "type": "CharacterBody3D", "owner": "SocomTestPlayer", "role": "Consumes movement commands and applies traversal velocities", "scene_path": "res://scenes/player/operator_player.tscn", "node_path": "."},
+    {"id": "ladder", "type": "Area3D", "owner": "SocomLadder", "role": "Authored detection volume and endpoints, never moves player", "scene_path": "res://scenes/traversal/climbable_ladder.tscn", "node_path": "."}
+  ],
+  "data_contracts": [{"path": "res://config/ledge_climb.json", "writer": "res://docs/LEDGE_CLIMB.md", "readers": ["res://scripts/traversal/socom_mantle_motor.gd", "res://scripts/traversal/socom_traversal_runtime.gd", "res://scripts/player/operator_animation_driver_runtime.gd"]}],
+  "must_not_change": ["Normal jump impulse/gravity", "Automatic low-vault behavior", "Camera/reticle aim", "Damage authority", "Network movement ownership"],
+  "proof_scripts": ["res://tools/ledge_climb_regression.gd", "res://tools/agls_auto_vault_regression.gd", "res://tools/traversal_contract_regression.gd", "res://tools/network_prediction_regression.gd"],
+  "visual_check": "Inspect dedicated retargeted pull-up, stable hang, safe landing and distance-driven ladder movement/slide. Runtime hip anchoring prevents duplicate body lift. Exact hand-contact polish remains; ladder art and markers must be placed in desired maps.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Existing vault only lands behind cover; extend its collision owner and serialized context for ledge tops, hangs and ladder states.",
+    "current": {"system": "Grounded low-cover vault", "correctness": 2, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 2, "performance": 4, "regression_coverage": 3, "evidence_paths": ["res://scripts/traversal/socom_mantle_motor.gd"]},
+    "candidate": {"system": "Reach-limited ledges and authored ladders", "correctness": 4, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 4, "regression_coverage": 4, "evidence_paths": ["res://scripts/traversal/socom_traversal_runtime.gd", "res://tools/ledge_climb_regression.gd"]}
+  }
+}

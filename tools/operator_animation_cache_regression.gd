@@ -126,6 +126,9 @@ func _canonical_fingerprint(profile) -> String:
 	var entries: Array[String] = [
 		"schema:%d" % AnimationLibraryCache.CACHE_SCHEMA,
 	]
+	entries.append("target_rig:" + FileAccess.get_sha256(AnimationLibraryCache.TARGET_RIG_PATH))
+	entries.append("source_jump:" + JSON.stringify(profile.source_jump))
+	entries.append("gait_alignment:%s:%s" % [profile.locomotion.get("grounded_gait_alignment", false), profile.locomotion.get("gait_support_height_m", 0.05)])
 	var clip_names: Array[String] = []
 	for raw_clip_name in profile.clip_paths.keys():
 		clip_names.append(String(raw_clip_name))

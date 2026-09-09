@@ -1,6 +1,7 @@
 extends "res://scripts/player/operator_weapon_pose_placement.gd"
 
 const AuthoredPose := preload("res://scripts/player/operator_weapon_authored_pose.gd")
+const SealPose := preload("res://scripts/player/operator_seal_weapon_pose.gd")
 
 func begin_posture_frame() -> void:
 	# The same final-pose owner retires its own prior-frame elbow pins. The base
@@ -43,17 +44,29 @@ func apply(
 		posture, movement_state, ready_weight, requested_action,
 		locomotion_active_hint, signed_strafe_weight
 	), strafe_left_elbow_flare_degrees > 0.0)
+	# Cache the solved, weapon-relative grasp, never a socket basis interpreted
+	# as a wrist. Airborne samples may animate a free hand; our held weapon must
+	# not twist that wrist while the final palm contact remains locked.
+	if source_jump_grip_weight <= 0.001 and movement_state not in [&"AIRBORNE", &"LANDING", &"DIVING", &"ROLLING"] and requested_action == &"" and support_hand_mode == WeaponOwnershipContract.SUPPORT_IK_TO_WEAPON and skeleton != null and weapon_node != null and support_socket != null:
+		var palm := _left_hand_grip_world_transform()
+		if palm.origin.distance_to(support_socket.global_position) <= 0.01:
+			grounded_support_wrist_offset = weapon_node.global_basis.orthonormalized().inverse() * palm.basis.orthonormalized()
+			grounded_support_wrist_valid = true
 
 func _elbow_presentation_angle(
 	posture: StringName, movement_state: StringName, ready_weight: float,
 	requested_action: StringName, locomotion_active_hint: bool, signed_strafe_weight: float
 ) -> float:
+	# SEAL rifle/pistol fire clips already contain elbow recoil. Preserve their
+	# motion; the normal grip solve still runs before this cosmetic-only pass.
+	if seal_source_pose_active:
+		return 0.0
 	if requested_action != &"" or movement_state in [&"DIVING", &"ROLLING", &"AIRBORNE", &"LANDING"]:
 		return 0.0
 	var recoil_angle: float = fire_recoil.offset(posture) if ready_weight > 0.001 else 0.0
 	var carry_angle := 0.0
 	if (
-		posture in [&"STANDING", &"CROUCHED"]
+		not seal_source_pose_active and posture in [&"STANDING", &"CROUCHED"]
 		and movement_state in [&"STANDING", &"CROUCHED", &"LOCOMOTION"]
 		and locomotion_active_hint and is_finite(signed_strafe_weight)
 	):
@@ -71,7 +84,7 @@ func _apply_base_pose(
 	if skeleton == null or body == null:
 		return
 	var jump_combo: bool = body.has_method("get_mobility_combo_clip") and body.call("get_mobility_combo_clip") != &""
-	if jump_combo:
+	if jump_combo and not seal_source_pose_active:
 		# Presentation-only strategy: preserve the current ready/shooting form.
 		# Gameplay remains DIVING, including existing fire restrictions.
 		movement_state = &"JUMP_COMBO"
@@ -155,8 +168,12 @@ func _apply_base_pose(
 		weapon_owner,
 		reload_support_regrip
 	)
+	if SealPose.apply_mobility(self, movement_state, requested_action):
+		return
 	if action_owns_arms:
 		AuthoredPose.apply_action(self, reload_action_active, reload_support_regrip, posture, world_aim_target, body, delta)
+		return
+	if SealPose.apply(self, aim_yaw, aim_pitch, ready_weight, world_aim_target, body, accepted_shot_aim_weight):
 		return
 	if (
 		not hand_socket_ik_enabled

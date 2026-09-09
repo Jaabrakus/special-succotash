@@ -61,7 +61,7 @@ func _inspect_saved_contract() -> void:
 			float(grip.get("rot_x", 0.0)),
 			float(grip.get("rot_y", 0.0)),
 			float(grip.get("rot_z", 0.0))
-		).distance_to(Vector3(-32.82586, -176.2812, 70.73891)) <= 0.0001,
+		).distance_to(Vector3(-84.5158, -87.42641, -21.50843)) <= 0.0001,
 		"AK-47 one master mount rotates mesh and sockets into canonical aim space"
 	)
 	var expected_sockets := {
@@ -142,13 +142,13 @@ func _inspect_saved_contract() -> void:
 		and int(ballistics.get("fire_rate_rpm", 0)) == 375
 		and is_equal_approx(float(ballistics.get("muzzle_velocity_mps", 0.0)), 710.0)
 		and int(ballistics.get("magazine_capacity", 0)) == 30
-		and int(ballistics.get("reserve_ammo", 0)) == 90,
+		and int(ballistics.get("reserve_ammo", 0)) == 150,
 		"AK-47 presentation pass preserves RECOM ballistics and ammunition"
 	)
 	_expect(
 		is_equal_approx(float(reticle.get("base_gap_px", 0.0)), 5.1)
 		and is_equal_approx(float(reticle.get("max_gap_px", 0.0)), 41.6)
-		and is_equal_approx(float(reticle.get("shot_kick_px", 0.0)), 20.0),
+		and is_equal_approx(float(reticle.get("shot_kick_px", 0.0)), 10.0),
 		"AK-47 presentation pass leaves the reticle contract unchanged"
 	)
 

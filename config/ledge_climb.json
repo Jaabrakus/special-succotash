@@ -1,0 +1,26 @@
+{
+  "enabled": true,
+  "raised_hand_reach_m": 2.15,
+  "ledge_hang_enabled": true,
+  "ladder_speed_mps": 1.4,
+  "ladder_slide_speed_mps": 3.5,
+  "ladder_slide_hold_seconds": 0.22,
+  "presentation_clips": {
+    "hang": "traversal_hang",
+    "pull_up": "traversal_pull_up",
+    "ladder_idle": "traversal_ladder_idle",
+    "ladder_move": "traversal_ladder_move",
+    "ladder_slide": "traversal_ladder_slide"
+  },
+  "hang_clip_time_seconds": 0.0,
+  "ladder_animation_seconds_per_metre": 0.7,
+  "minimum_ledge_above_feet_m": 0.45,
+  "forward_reach_m": 0.65,
+  "stand_inset_extra_m": 0.12,
+  "clearance_m": 0.08,
+  "minimum_duration_seconds": 0.65,
+  "maximum_duration_seconds": 1.2,
+  "require_climbable_group": false,
+  "allowed_group": "climbable",
+  "blocked_group": "no_climb"
+}

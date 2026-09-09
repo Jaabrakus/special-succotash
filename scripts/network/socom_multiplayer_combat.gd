@@ -52,8 +52,13 @@ func _try_submit_local_shot() -> void:
 			var driver: Node = local_operator.mannequin.get("production_animation")
 			if driver != null:
 				driver.call("cancel_reload_action")
+	var fire_input_allowed: bool = (
+		input_allowed
+		and not local_reload_pending
+		and not local_operator.is_fire_locked_by_mobility()
+	)
 	if not _local_trigger_wants_shot(Input.is_action_just_pressed("fire"),
-			Input.is_action_pressed("fire"), input_allowed and not local_reload_pending):
+			Input.is_action_pressed("fire"), fire_input_allowed):
 		return
 	var packet: Dictionary = local_camera.build_local_aim_intent()
 	if packet.is_empty():
@@ -122,6 +127,9 @@ func _server_process_shot(peer_id: int, packet: Dictionary) -> void:
 		or not shooter.alive
 		or (not round_active and not is_lobby_warmup_active())
 	):
+		return
+	if shooter.is_fire_locked_by_mobility():
+		last_rejected_shot_reason[peer_id] = "MOBILITY_ACTION"
 		return
 	if int(server_magazine_ammo.get(peer_id, 0)) <= 0:
 		_send_ammo_state(peer_id)
@@ -395,6 +403,11 @@ func _advance_server_composure(delta: float) -> void:
 		elif operator.posture == PlayerScript.MotionState.PRONE:
 			stance = ComposureScript.Stance.PRONE
 		server_composure[raw_id].advance(delta, ratio, 0.0, stance)
+		var bloom: Variant = server_ballistics.get(peer_id)
+		if bloom != null:
+			bloom.visual_bloom_input = server_composure[raw_id].get_visual_bloom()
+			bloom.update_spread_state(operator.get_posture_name(),
+				server_composure[raw_id].get_shot_instability(ratio, 0.0), not operator.is_on_floor())
 
 
 func _broadcast_authoritative_state() -> void:

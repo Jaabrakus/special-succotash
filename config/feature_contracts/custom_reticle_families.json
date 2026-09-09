@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "feature_id": "custom_reticle_families",
+  "player_intent": "Split Halo shotguns, Horizon pistols, Offset rifles with source-derived faded strokes; keep existing gunplay.",
+  "acceptance_rule": "Canonical and multiplayer HUDs consume the same category/style contract. Rifle Offset adapts the original 23-sample rifle alpha ramp from inner marks to outer tips and applies it to the outline too. Camera aim center, existing bloom/recovery, other family shapes, hit X and interaction brackets remain. This indicator does not guarantee bullet or pellet containment.",
+  "canonical_scene": "res://main.tscn",
+  "ownership": {"reticle_presentation": "SocomDynamicReticle", "aim_intent": "SocomCameraRig", "shot_and_damage": "existing weapon/server authority"},
+  "nodes": [{"id": "reticle", "type": "Control", "owner": "SocomDynamicReticle", "role": "Draw selected custom family at camera aim center", "source_script": "res://scripts/ui/socom_dynamic_reticle.gd", "code_symbols": ["extends Control", "func _apply_custom_presentation(", "func _draw_custom_reference(", "draw_polyline("]}],
+  "data_contracts": [
+    {"path": "res://config/reticle_presentation.json", "writer": "res://config/reticle_presentation.json", "readers": ["res://scripts/ui/socom_dynamic_reticle.gd", "res://tools/custom_reticle_regression.gd"]},
+    {"path": "res://config/weapons/m4a1.json", "writer": "res://scripts/labs/gunsmith/gunsmith_weapon_profile_repository.gd", "readers": ["res://scripts/weapons/socom_weapon_controller.gd", "res://scripts/network/socom_multiplayer_world_ui.gd"]}
+  ],
+  "must_not_change": ["fire input and sniper ADS", "camera aim/VRC", "ballistic spread and pellets", "damage and reloads", "movement and animation", "server authority", "live sessions and published builds"],
+  "proof_scripts": ["res://tools/custom_reticle_regression.gd", "res://tools/socom2_reticle_regression.gd", "res://tools/shared_weapon_reticle_regression.gd", "res://tools/ballistic_reference_reticle_regression.gd"],
+  "visual_check": "Run custom_reticle_regression with --render and inspect three Godot family drawings and actual main HUD captures. No live session reload. Exact pellet containment is not claimed.",
+  "system_delta": {
+    "decision": "MERGE", "reason": "Replace rejected Tripod default with Offset and source-derived rifle opacity inside the existing HUD owner; other families and ballistic behavior remain.",
+    "current": {"system": "solid Tripod rifle default", "correctness": 1, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 4, "regression_coverage": 5, "evidence_paths": ["res://scripts/ui/socom_dynamic_reticle.gd", "res://tools/socom2_reticle_regression.gd"]},
+    "candidate": {"system": "Offset rifle geometry with original alpha ramp", "correctness": 5, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 4, "regression_coverage": 5, "evidence_paths": ["res://scripts/ui/custom_reticle_geometry.gd", "res://tools/custom_reticle_regression.gd", "res://docs/CUSTOM_RETICLE_FAMILIES.md"]}
+  }
+}

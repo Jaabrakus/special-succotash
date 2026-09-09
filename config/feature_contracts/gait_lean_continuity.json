@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "feature_id": "gait_lean_continuity",
+  "player_intent": "Run without cyclic sinking and retain a grounded gait during standing/crouch lean microsteps.",
+  "acceptance_rule": "Canonical rifle/pistol fixture has no hip step over 8cm at 60Hz, no lost floor contact, one moving entry across repeated taps, paused gait during tap gaps and settled idle after deliberate stop.",
+  "canonical_scene": "res://main.tscn",
+  "ownership": {"animation": "SocomOperatorAnimationDriver", "movement": "SocomTestPlayer"},
+  "nodes": [{"id": "pose", "type": "Node", "owner": "SocomOperatorAnimationDriver", "role": "Existing canonical AnimationTree and presentation coordinator", "scene_path": "res://scenes/player/operator_player.tscn", "node_path": "Mannequin/ProductionAnimation"}],
+  "data_contracts": [{"path": "res://config/operator_animation_map.json", "writer": "res://scripts/labs/animation_workshop_repository.gd", "readers": ["res://scripts/player/operator_animation_profile.gd", "res://scripts/player/operator_asset_runtime.gd", "res://scripts/player/operator_locomotion_blend_tree.gd"]}, {"path": "res://config/animation_presets/seal_pistol_hybrid.json", "writer": "res://docs/GAIT_LEAN_CONTINUITY.md", "readers": ["res://scripts/player/operator_animation_profile.gd"]}],
+  "must_not_change": ["CharacterBody movement, jump and stair physics", "Camera and aim", "Server shot/damage authority", "Original source animations", "Prone, action and traversal routes"],
+  "proof_scripts": ["res://tools/gait_lean_continuity_regression.gd", "res://tools/gait_alignment_regression.gd", "res://tools/operator_animation_cache_regression.gd", "res://tools/lean_movement_latch_regression.gd", "res://tools/source_jump_regression.gd", "res://tools/operator_stair_foot_grounding_regression.gd"],
+  "visual_check": "Separate rendered canonical-operator fixture: inspect run and crouch lean taps. Feet should stay near floor and short releases should not visibly restart the gait. Kneeling-to-crouch-walking remains an authored posture change.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Measured hip-loop closure drift and 30cm tap discontinuity require source preparation and visual hysteresis; retain movement and AnimationTree ownership.",
+    "current": {"system": "Native clips with unaligned hip curves and immediate lean tap route switches", "correctness": 2, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 3, "performance": 5, "regression_coverage": 2, "evidence_paths": ["res://assets/animations/seal_gameplay/run_forward.tres", "res://scripts/player/operator_animation_driver_pose.gd"]},
+    "candidate": {"system": "Cached grounded clip alignment and bounded visual stop grace", "correctness": 4, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 5, "regression_coverage": 4, "evidence_paths": ["res://scripts/player/operator_gait_alignment.gd", "res://tools/gait_lean_continuity_regression.gd"]}
+  }
+}

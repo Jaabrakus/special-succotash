@@ -27,7 +27,7 @@
     "bloom_recovery_speed": 17.5,
     "damage": 37.0,
     "effective_range_m": 600.0,
-    "fire_rate_rpm": 600.0,
+    "fire_rate_rpm": 599.9999910593034,
     "full_gait_spread_deg": 1.543,
     "headshot_multiplier": 3.5,
     "is_silenced": false,
@@ -36,7 +36,7 @@
     "max_recoil_bloom_deg": 2.6,
     "moving_spread_deg": 1.029,
     "muzzle_velocity_mps": 991.0,
-    "reserve_ammo": 90.0
+    "reserve_ammo": 150.0
   },
   "burst_size": 3,
   "camo_skin": "Factory Classic (Wood & Steel)",
@@ -69,10 +69,32 @@
     "cadence_driven_return": false,
     "base_gap_px": 5.1,
     "max_gap_px": 41.6,
-    "maximum_shot_kick_px": 25.0,
+    "maximum_shot_kick_px": 25,
     "response_speed": 26.2,
-    "shot_kick_px": 9.0,
-    "shot_kick_return": 20.0
+    "shot_kick_px": 9,
+    "shot_kick_return": 20,
+    "vrc_return_speed_px_per_second": 20,
+    "socom2_source_name": "M16A2-M203",
+    "socom2_stances": {
+      "STANDING": {
+        "shot_kick_px": 9,
+        "maximum_shot_kick_px": 25,
+        "shot_kick_return": 20,
+        "vrc_return_speed_px_per_second": 20
+      },
+      "CROUCHED": {
+        "shot_kick_px": 8,
+        "maximum_shot_kick_px": 25,
+        "shot_kick_return": 20,
+        "vrc_return_speed_px_per_second": 20
+      },
+      "PRONE": {
+        "shot_kick_px": 7,
+        "maximum_shot_kick_px": 25,
+        "shot_kick_return": 20,
+        "vrc_return_speed_px_per_second": 20
+      }
+    }
   },
   "scope_attachment": "None",
   "silencer_attachment": "None",

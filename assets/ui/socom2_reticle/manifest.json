@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "source": {
+    "game": "SOCOM II USA",
+    "map": "RUN/MP51.ZDB",
+    "map_lba": 1944771,
+    "texture_bank": "RUN/COMMON/HUD2_TXR.ZED",
+    "palette_bank": "RUN/COMMON/HUD2_PAL.ZED",
+    "texture_bank_sha256": "ff58df4e508f938c491e1e1a040cb65dd097c3b4b4c49b3978056700dac7688d",
+    "palette_bank_sha256": "4277ebb76af840e4e21fb4e16f2c2316ffc840d99942ce8338865da237d7ce1c"
+  },
+  "note": "Source pixels decoded; on-screen assembly, display scaling and timing must be verified separately.",
+  "images": [
+    {
+      "name": "ret_accuracy",
+      "width": 16,
+      "height": 16,
+      "source_sha256": "e12d8b9e6f222902a2c75ba69132a2ca464289459a11e19b492a13fdeaf01293",
+      "rgba_sha256": "56b6fdfde2bffd78d273108350cdc51727a778928e5695fd0b70150a0e8dd129",
+      "png_sha256": "c069e819e456a7fb86f1d016da05d5994cd5cf7bbf7be4281aa9cffddfec166e"
+    },
+    {
+      "name": "ret_rifle_01",
+      "width": 64,
+      "height": 64,
+      "source_sha256": "3a41f2bbc855e1821d740c9f3173115eb7f07f2cfb53df582e6a24545ef9d8e0",
+      "rgba_sha256": "3a573928a4d3e1a1caafc9d326d8b34866d7a81b6376a83d99cbe8e964c93ed2",
+      "png_sha256": "e8317e0432ef11558ed41b6849eb9eb678f5cd462d4de2220f364d26ec33fc43"
+    },
+    {
+      "name": "ret_rifle_02",
+      "width": 32,
+      "height": 32,
+      "source_sha256": "5e95b796601f48818bc3cff12e52066223fda749d532c6c9ed0aeb2c5838bea6",
+      "rgba_sha256": "d08bc3adce15973c10107bcec1ad46e90e5d55f9ea2ab90304dd07c871fd742e",
+      "png_sha256": "ec2b79f93bb402337e1494b0f492be4f04cdbf34d64a584d3541fa9f3a84f636"
+    },
+    {
+      "name": "ret_shotgun_01",
+      "width": 64,
+      "height": 64,
+      "source_sha256": "a3ce7ffc3a5842b868f4f4075894d6c4846d21b0e14c2b6961baaef2365e67b1",
+      "rgba_sha256": "928fec74d1667a9323be65f15e2c38ab949f032d78c1514e7b99daeeea344fe9",
+      "png_sha256": "263d1b8239cb9f198666e663aab6f479edcfc36aa2ad26e87e61a58914b1e6a2"
+    },
+    {
+      "name": "ret_shotgun_02",
+      "width": 32,
+      "height": 32,
+      "source_sha256": "74cadd259898e3f8aec88c71f253380112d21416a0e2b29be720f8405dd9ce53",
+      "rgba_sha256": "3c096961605eb595abe3adda277ffd707fa8e4b6461a24f1d775817dbff16fb2",
+      "png_sha256": "82a9eb6baf8b6ac9d65e0bcd16cc073bf9b4cd02583c035f1ee858506f8c4d48"
+    },
+    {
+      "name": "ret_sidearm_01",
+      "width": 32,
+      "height": 32,
+      "source_sha256": "f3b0c445b6ca5acc99c94c784baaec4e326a48036ab15325246a375db373f35e",
+      "rgba_sha256": "c60de0e4dbe471b3d5e2586324776ae7707e0cd71d4b1fa0bac334f61aaf9263",
+      "png_sha256": "3684de550f23b08f06634f8dd689ec44f467cf4c1acdb322ca67327586b093ab"
+    },
+    {
+      "name": "ret_sidearm_02",
+      "width": 16,
+      "height": 16,
+      "source_sha256": "0daf4336010ea4b5d4704b00f72bce7febbf46f25f7837d13ebf3b75cbaf23ce",
+      "rgba_sha256": "5245414be4a5f3b5af2ce9b1ca51c07b213d04b9a96ad48338dc2f078d3e12d8",
+      "png_sha256": "ff5e7d3e14b63f3f6b2b24ebd22c6000f9a2b6718b4f7b2c24b615fffafc8bc2"
+    }
+  ]
+}

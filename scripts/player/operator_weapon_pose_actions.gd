@@ -54,7 +54,7 @@ func _set_weapon_solver_owned(enabled: bool) -> void:
 		ownership_return_elapsed = ownership_return_seconds
 
 
-func _attach_reload_weapon_to_right_hand() -> void:
+func _attach_reload_weapon_to_right_hand(posture: StringName, delta: float) -> void:
 	if weapon_node == null or weapon_presentation_owner == null:
 		return
 	# Reload animation owns the right arm. Finalize that current authored palm
@@ -65,11 +65,97 @@ func _attach_reload_weapon_to_right_hand() -> void:
 	weapon_presentation_owner.use_solver_parent(true)
 	weapon_solver_owned = false
 	action_weapon_chest_owned = false
-	_weapon_transform_on_trigger_hand(_right_hand_grip_world_transform(), true)
+	var hand_world := _right_hand_grip_world_transform()
+	if reload_attachment_origin_posture == &"":
+		reload_attachment_origin_posture = posture
+		reload_attachment_posture = posture
+		reload_attachment_handoff_start = weapon_node.global_transform
+		reload_attachment_handoff_elapsed = 0.0
+	if posture != reload_attachment_posture:
+		# The upper-body reload keeps one playhead while the lower-body route changes.
+		# Preserve the visible rifle frame at that ownership boundary; a prone reload
+		# sampled over crouched hips otherwise turns its right palm almost vertical.
+		reload_attachment_handoff_start = weapon_node.global_transform
+		reload_attachment_handoff_elapsed = 0.0
+		reload_attachment_guard_direction_world = _reload_barrel_direction()
+		reload_attachment_guard_active = (
+			reload_attachment_origin_posture == &"PRONE"
+			and posture != reload_attachment_origin_posture
+		)
+		reload_attachment_posture = posture
+	_weapon_transform_on_trigger_hand(hand_world, true)
+	var desired_transform := weapon_node.global_transform
+	if reload_attachment_guard_active:
+		desired_transform = _limit_reload_handoff_barrel(
+			desired_transform,
+			reload_attachment_guard_direction_world,
+			deg_to_rad(22.0)
+		)
+	var handoff_seconds := maxf(action_weapon_follow_blend_seconds, 0.18)
+	if reload_attachment_handoff_elapsed < handoff_seconds:
+		var amount := clampf(
+			reload_attachment_handoff_elapsed / handoff_seconds,
+			0.0,
+			1.0
+		)
+		amount = amount * amount * (3.0 - 2.0 * amount)
+		weapon_presentation_owner.set_world_transform(
+			reload_attachment_handoff_start.interpolate_with(desired_transform, amount)
+		)
+	else:
+		weapon_presentation_owner.set_world_transform(desired_transform)
+	# Orientation is eased and prone-to-crouch elevation is bounded, but the same
+	# trigger palm remains the attachment authority on every frame.
+	if trigger_socket != null:
+		weapon_presentation_owner.translate_world(
+			hand_world.origin - trigger_socket.global_position
+		)
+	reload_attachment_handoff_elapsed = minf(
+		reload_attachment_handoff_elapsed + maxf(delta, 1.0 / 60.0),
+		handoff_seconds
+	)
 	if trigger_socket != null:
 		action_trigger_contact_error_m = trigger_socket.global_position.distance_to(
-			_right_hand_grip_world_transform().origin
+			hand_world.origin
 		)
+
+
+func _reload_barrel_direction() -> Vector3:
+	if muzzle_socket != null and barrel_base_socket != null:
+		return barrel_base_socket.global_position.direction_to(muzzle_socket.global_position)
+	return -weapon_node.global_basis.z.normalized()
+
+
+func _limit_reload_handoff_barrel(
+	target_transform: Transform3D,
+	guard_direction: Vector3,
+	maximum_angle_rad: float
+) -> Transform3D:
+	if guard_direction.length_squared() < 0.50:
+		return target_transform
+	weapon_presentation_owner.set_world_transform(target_transform)
+	var target_direction := _reload_barrel_direction()
+	var angle := guard_direction.angle_to(target_direction)
+	if angle <= maximum_angle_rad or angle <= 0.00001:
+		return target_transform
+	var limited_direction := guard_direction.slerp(
+		target_direction,
+		maximum_angle_rad / angle
+	).normalized()
+	var scale := target_transform.basis.get_scale()
+	var correction := Quaternion(target_direction, limited_direction).normalized()
+	target_transform.basis = (
+		Basis(correction) * target_transform.basis.orthonormalized()
+	).orthonormalized().scaled(scale)
+	return target_transform
+
+
+func _reset_reload_attachment_handoff() -> void:
+	reload_attachment_origin_posture = &""
+	reload_attachment_posture = &""
+	reload_attachment_handoff_elapsed = 0.0
+	reload_attachment_guard_direction_world = Vector3.ZERO
+	reload_attachment_guard_active = false
 
 
 func _update_action_weapon_follow(delta: float, chest_owned: bool = false) -> void:

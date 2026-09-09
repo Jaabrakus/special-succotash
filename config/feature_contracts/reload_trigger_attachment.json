@@ -1,20 +1,20 @@
 {
   "schema_version": 1,
   "feature_id": "reload_trigger_attachment",
-  "player_intent": "Keep the reload weapon physically attached to the authored trigger hand without changing reload mechanics.",
-  "acceptance_rule": "Actual trigger contact stays within ten millimeters through reload, interrupt and completion in all three postures while existing ammunition, timing and action ownership remain intact.",
+  "player_intent": "Keep the reload weapon physically attached to the authored trigger hand and visually controlled through stance changes without changing reload mechanics.",
+  "acceptance_rule": "Actual trigger contact stays within ten millimeters through reload, interrupt and completion in all three postures. A prone reload can move through crouch and back on one uninterrupted playhead without a rifle rotation step above twelve degrees or an upward barrel takeover, while existing ammunition, timing and action ownership remain intact.",
   "canonical_scene": "res://main.tscn",
   "editor_scene": "res://gun_calibration_lab_2.tscn",
   "ownership": {"weapon_presentation": "SocomOperatorWeaponPoseSolver", "weapon_transform": "SocomOperatorWeaponPresentationOwner"},
-  "nodes": [{"id":"weapon_pose","type":"Node3D","role":"Existing authored reload presentation strategy uses the current anatomical trigger palm.","owner":"SocomOperatorWeaponPoseSolver","source_script":"res://scripts/player/operator_weapon_pose_actions.gd","code_symbols":["_attach_reload_weapon_to_right_hand","weapon_presentation_owner"]}],
+  "nodes": [{"id":"weapon_pose","type":"Node3D","role":"Existing authored reload presentation strategy uses the current anatomical trigger palm and bounds the weapon-only posture handoff from an incompatible prone reload basis.","owner":"SocomOperatorWeaponPoseSolver","source_script":"res://scripts/player/operator_weapon_pose_actions.gd","code_symbols":["_attach_reload_weapon_to_right_hand","_limit_reload_handoff_barrel","weapon_presentation_owner"]}],
   "data_contracts": [{"path":"res://config/weapon_visual_rigs/m16a2_directional_v1.json","writer":"res://scripts/labs/gunsmith2/weapon_visual_rig_repository.gd","readers":["res://scripts/labs/gunsmith2/weapon_visual_rig_resolver.gd","res://scripts/player/operator_weapon_pose_actions.gd"]}],
-  "must_not_change": ["reload duration and ammunition commit", "authored right-arm animation", "support reload motion", "saved grips and models", "camera, movement and network authority", "ready/firing and release behavior"],
-  "proof_scripts": ["res://tools/reload_trigger_attachment_regression.gd", "res://tools/reload_evaluated_source_regression.gd", "res://tools/pistol_compressed_idle_regression.gd", "res://tools/rifle_support_release_regression.gd"],
-  "visual_check": "The trigger hand holds the visible weapon throughout reload and interruption while the support hand can manipulate the magazine.",
+  "must_not_change": ["reload duration, playhead and ammunition commit", "authored right-arm animation", "support reload motion", "saved grips and models", "camera, movement and network authority", "ready/firing and release behavior"],
+  "proof_scripts": ["res://tools/reload_trigger_attachment_regression.gd", "res://tools/reload_evaluated_source_regression.gd", "res://tools/prone_reload_transition_smoothing_regression.gd", "res://tools/test_dynamic_reload_handoff.gd", "res://tools/reload_input_regression.gd", "res://tools/pistol_compressed_idle_regression.gd", "res://tools/rifle_support_release_regression.gd"],
+  "visual_check": "The trigger hand holds the visible weapon throughout reload and interruption while the support hand can manipulate the magazine. Leaving or returning to prone during that reload eases the rifle between body frames without pointing the barrel upward.",
   "system_delta": {
     "decision":"MERGE",
-    "reason":"Conditionally finalize the existing authored reload mount at the single presentation boundary, avoiding deferred parent resampling without changing action timing.",
-    "current":{"system":"Animation-parented reload correction","correctness":2,"ownership_clarity":4,"runtime_parity":5,"editor_usability":4,"performance":5,"regression_coverage":3,"evidence_paths":["res://scripts/player/operator_weapon_pose_actions.gd"]},
-    "candidate":{"system":"Current-frame authored reload anchor","correctness":4,"ownership_clarity":5,"runtime_parity":5,"editor_usability":4,"performance":5,"regression_coverage":5,"evidence_paths":["res://docs/RELOAD_TRIGGER_ATTACHMENT_TRANSLATION.md","res://tools/reload_trigger_attachment_regression.gd"]}
+    "reason":"Keep the single authored reload playhead and current-palm attachment, then merge one presentation-owned stance handoff that eases orientation and bounds the incompatible prone-to-crouch barrel basis.",
+    "current":{"system":"Hard current-palm reload attachment across posture routes","correctness":2,"ownership_clarity":5,"runtime_parity":5,"editor_usability":4,"performance":5,"regression_coverage":3,"evidence_paths":["res://scripts/player/operator_weapon_pose_actions.gd","res://tools/prone_reload_transition_smoothing_regression.gd"]},
+    "candidate":{"system":"Current-palm reload attachment with bounded posture handoff","correctness":5,"ownership_clarity":5,"runtime_parity":5,"editor_usability":4,"performance":5,"regression_coverage":5,"evidence_paths":["res://scripts/player/operator_weapon_pose_actions.gd","res://tools/reload_trigger_attachment_regression.gd","res://tools/prone_reload_transition_smoothing_regression.gd"]}
   }
 }

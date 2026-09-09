@@ -1,0 +1,118 @@
+{
+  "schema_version": 1,
+  "feature_id": "socom2_weapon_settings",
+  "player_intent": "Use verified SOCOM II weapon settings in the canonical game without inventing unrecovered spread equations.",
+  "acceptance_rule": "32 firearm profiles (29 internal-name matches and three explicit display-name aliases) retain source FireWait and all three stance kick/cap/return values. Main and multiplayer agree on cadence and reticle selection; stance cannot reset climb; equip resets. Existing bloom, damage and nonmatching profiles remain unchanged.",
+  "canonical_scene": "res://main.tscn",
+  "ownership": {
+    "weapon_settings": "GunsmithWeaponProfileRepository",
+    "aim_intent": "SocomCameraRig",
+    "shot_cadence": "SocomWeaponBallistics"
+  },
+  "nodes": [
+    {
+      "id": "reticle_profile_resolver",
+      "type": "RefCounted",
+      "role": "Pure stance selection, no simulation state",
+      "owner": "SocomCameraRig",
+      "source_script": "res://scripts/weapons/weapon_reticle_stance_profile.gd",
+      "code_symbols": [
+        "static func resolve(",
+        "socom2_stances"
+      ]
+    },
+    {
+      "id": "canonical_player",
+      "type": "CharacterBody3D",
+      "role": "Unchanged player posture source",
+      "owner": "SocomPlayerController",
+      "scene_path": "res://scenes/player/operator_player.tscn",
+      "node_path": "."
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://config/weapons/operator_loadout.json",
+      "writer": "res://scripts/labs/gunsmith/gunsmith_weapon_profile_repository.gd",
+      "readers": ["res://scripts/weapons/weapon_rig_contract.gd"]
+    },
+    {
+      "path": "res://config/reference/socom2_weapon_settings.json",
+      "writer": "res://tools/socom2_weapon_reference.cjs",
+      "readers": [
+        "res://tools/socom2_weapon_reference_test.cjs"
+      ]
+    },
+    {
+      "path": "res://config/weapons/m4a1.json",
+      "writer": "res://scripts/labs/gunsmith/gunsmith_weapon_profile_repository.gd",
+      "readers": [
+        "res://scripts/weapons/socom_weapon_controller.gd",
+        "res://scripts/network/socom_multiplayer_rounds.gd",
+        "res://scripts/network/socom_multiplayer_world_ui.gd"
+      ]
+    },
+    {
+      "path": "res://config/weapons/ak-47.json",
+      "writer": "res://scripts/labs/gunsmith/gunsmith_weapon_profile_repository.gd",
+      "readers": [
+        "res://scripts/weapons/socom_weapon_controller.gd",
+        "res://scripts/network/socom_multiplayer_rounds.gd",
+        "res://scripts/network/socom_multiplayer_world_ui.gd"
+      ]
+    },
+    {
+      "path": "res://config/weapons/mark_23.json",
+      "writer": "res://scripts/labs/gunsmith/gunsmith_weapon_profile_repository.gd",
+      "readers": [
+        "res://scripts/weapons/socom_weapon_controller.gd",
+        "res://scripts/network/socom_multiplayer_rounds.gd",
+        "res://scripts/network/socom_multiplayer_world_ui.gd"
+      ]
+    }
+  ],
+  "must_not_change": [
+    "movement/collision",
+    "animation/IK",
+    "damage/pellet count",
+    "shot validation and network authority",
+    "current spread angle interpretation",
+    "unmatched profiles",
+    "published browser build"
+  ],
+  "proof_scripts": [
+    "res://tools/socom2_weapon_behavior_regression.gd",
+    "res://tools/vrc_armory_regression.gd",
+    "res://tools/shared_weapon_reticle_regression.gd",
+    "res://tools/rapid_tap_bloom_regression.gd"
+  ],
+  "visual_check": "Separate canonical main render of AK standing/crouching/prone cap at /private/tmp/socom2-reticle-*.png; no original pixel scaling or full gunplay parity claimed.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Use decoded SOCOM II numeric fields in existing owners; keep unverified bloom/accuracy equations unchanged.",
+    "current": {
+      "system": "res://tools/import_recom_weapons.py",
+      "correctness": 2,
+      "ownership_clarity": 5,
+      "runtime_parity": 4,
+      "editor_usability": 3,
+      "performance": 5,
+      "regression_coverage": 3,
+      "evidence_paths": [
+        "res://tools/import_recom_weapons.py"
+      ]
+    },
+    "candidate": {
+      "system": "res://scripts/weapons/weapon_reticle_stance_profile.gd",
+      "correctness": 3,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 3,
+      "performance": 5,
+      "regression_coverage": 5,
+      "evidence_paths": [
+        "res://scripts/weapons/weapon_reticle_stance_profile.gd"
+      ]
+    }
+  }
+}

@@ -249,10 +249,10 @@ func _test_aim_relative_strafing(scene: Node, player: CharacterBody3D) -> void:
             "D selects the right strafe side of the animation matrix"
         )
         print("MOBILITY_METRIC right_peak_hip_roll_deg=%.3f" % right_peak_hip_roll)
-        _expect(
-            right_peak_hip_roll >= 0.65,
-            "D builds deliberate hip lean during the early strafe response"
-        )
+        if _seal_body_active(animation_driver):
+            _expect(right_peak_hip_roll < 0.001, "SEAL D bypasses legacy hip correction")
+        else:
+            _expect(right_peak_hip_roll >= 0.65, "D builds deliberate hip lean during the early strafe response")
         var right_skeleton: Skeleton3D = animation_driver.get("skeleton")
         if right_skeleton != null:
             var right_hips_yaw := _rest_relative_global_yaw(right_skeleton, "mixamorig_Hips")
@@ -264,10 +264,10 @@ func _test_aim_relative_strafing(scene: Node, player: CharacterBody3D) -> void:
                 "D keeps the hips and torso inside a stable strafe envelope"
             )
             var right_debug: Dictionary = animation_driver.call("get_animation_debug_state")
-            _expect(
-                float(right_debug.get("shoulder_square_error_deg", 180.0)) <= 10.0,
-                "D keeps the shoulder bar square to the centered reticle"
-            )
+            if _seal_body_active(animation_driver):
+                _expect(float(right_debug.get("shoulder_square_weight", 1.0)) == 0.0, "SEAL D preserves the authored shoulder frame")
+            else:
+                _expect(float(right_debug.get("shoulder_square_error_deg", 180.0)) <= 10.0, "D keeps the shoulder bar square to the centered reticle")
 
     await _step_physics(12)
     var left_start := player.global_position
@@ -291,17 +291,17 @@ func _test_aim_relative_strafing(scene: Node, player: CharacterBody3D) -> void:
             "A selects the left strafe side of the animation matrix"
         )
         print("MOBILITY_METRIC left_peak_hip_roll_deg=%.3f" % left_peak_hip_roll)
-        _expect(
-            left_peak_hip_roll >= 0.65,
-            "A builds deliberate hip lean during the early strafe response"
-        )
+        if _seal_body_active(animation_driver):
+            _expect(left_peak_hip_roll < 0.001, "SEAL A bypasses legacy hip correction")
+        else:
+            _expect(left_peak_hip_roll >= 0.65, "A builds deliberate hip lean during the early strafe response")
         var left_skeleton: Skeleton3D = animation_driver.get("skeleton")
         if left_skeleton != null:
             var left_debug: Dictionary = animation_driver.call("get_animation_debug_state")
-            _expect(
-                float(left_debug.get("shoulder_square_error_deg", 180.0)) <= 10.0,
-                "A keeps the shoulder bar square to the centered reticle"
-            )
+            if _seal_body_active(animation_driver):
+                _expect(float(left_debug.get("shoulder_square_weight", 1.0)) == 0.0, "SEAL A preserves the authored shoulder frame")
+            else:
+                _expect(float(left_debug.get("shoulder_square_error_deg", 180.0)) <= 10.0, "A keeps the shoulder bar square to the centered reticle")
 
     await _step_physics(12)
     player.velocity = Vector3.ZERO
@@ -368,6 +368,10 @@ func _rest_relative_global_yaw(skeleton: Skeleton3D, bone_name: String) -> float
     var rested := skeleton.get_bone_global_rest(bone_index).basis.orthonormalized()
     return (posed * rested.inverse()).get_euler().y
 
+func _seal_body_active(driver: Node) -> bool:
+    var paths: Dictionary = driver.get("clip_paths")
+    return String(paths.get(driver.get("current_clip"), "")).begins_with("res://assets/animations/seal_gameplay/") and bool(driver.call("get_animation_debug_state").get("preserve_authored_body", false))
+
 func _test_full_body_peek(player: CharacterBody3D) -> void:
     var driver := player.get_node_or_null("Mannequin/ProductionAnimation")
     _expect(driver != null, "operator animation driver exists for full-body peek")
@@ -399,8 +403,13 @@ func _test_full_body_peek(player: CharacterBody3D) -> void:
     _expect(right_offset > neutral_offset + 0.001, "right peek exposes the head on the requested side")
     await _capture_pose("peek_right")
     Input.action_release(&"peek_right")
+    await _step_physics(2)
+    _expect(float(player.call("get_peek_amount")) > 0.95, "lean remains latched after key release")
+    Input.action_press(&"peek_right")
+    await _step_physics(1)
+    Input.action_release(&"peek_right")
     await _step_physics(8)
-    _expect(absf(float(player.call("get_peek_amount"))) < 0.01, "peek releases smoothly back to neutral")
+    _expect(absf(float(player.call("get_peek_amount"))) < 0.01, "second lean press releases smoothly back to neutral")
 
 func _head_lateral_offset(player: CharacterBody3D, skeleton: Skeleton3D) -> float:
     var hips_index := skeleton.find_bone("mixamorig_Hips")
@@ -446,6 +455,13 @@ func _test_jump(player: CharacterBody3D) -> void:
     _expect(_state(player) == &"STANDING", "jump recovers to standing")
 
 func _test_dive(player: CharacterBody3D) -> void:
+    # Independent action fixture: earlier movement tests can leave us facing
+    # nearby cover, which legitimately ends a dive on collision immediately.
+    player.global_position = Vector3(0.0, 0.05, 6.0)
+    player.velocity = Vector3.ZERO
+    await _step_physics(6)
+    _face_clearest_hold_dive_runway(player)
+    await _step_physics(2)
     Input.action_press(&"move_forward")
     await _step_physics(2)
     var start := player.global_position

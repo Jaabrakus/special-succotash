@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "id": "field_depot_local_assets",
+  "source_container": "RUN/MP51.ZDB",
+  "source_container_sha256": "dd2d4cf2b8e60b30a1f8a16205fe0d8d8a5cf525d4d0d52d097abec380c04865",
+  "destination": "user://map_assets/field_depot",
+  "distribution": "Local research only; extracted game textures are not bundled or cleared for redistribution.",
+  "geometry": "New editable MapDocument primitives, NOT decoded SOCOM map geometry.",
+  "textures": [
+    {
+      "id": "grass",
+      "source": "MP51/png/0361--ground_grassy.tif.png",
+      "target": "grass.png"
+    },
+    {
+      "id": "wood",
+      "source": "MP51/png/0364--wood_dark.tif.png",
+      "target": "wood.png"
+    },
+    {
+      "id": "stone",
+      "source": "MP51/png/0366--rockwall.tif.png",
+      "target": "stone.png"
+    },
+    {
+      "id": "dirt",
+      "source": "MP51/png/0369--ground_dirt_rough.tif.png",
+      "target": "dirt.png"
+    },
+    {
+      "id": "tile",
+      "source": "MP51/png/0372--rooftile.tif.png",
+      "target": "tile.png"
+    },
+    {
+      "id": "red_tile",
+      "source": "MP51/png/0374--roof_tile_red.tif.png",
+      "target": "red_tile.png"
+    }
+  ]
+}

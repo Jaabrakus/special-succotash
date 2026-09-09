@@ -32,6 +32,10 @@
     ],
     "jump": [
       {
+        "physical_keycode": 32,
+        "type": "key"
+      },
+      {
         "button_index": 5,
         "type": "mouse"
       }

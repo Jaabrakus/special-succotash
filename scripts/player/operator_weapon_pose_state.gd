@@ -1,5 +1,15 @@
 extends Node3D
 
+var seal_source_pose_active := false
+
+var seal_upright_weapon := false
+
+var seal_two_hand_pistol := false
+var legacy_pistol_grip_active := false
+var source_jump_grip_weight := 0.0
+var grounded_support_wrist_valid := false
+var grounded_support_wrist_offset := Basis.IDENTITY
+
 var fire_recoil := preload("res://scripts/player/operator_fire_recoil_pulse.gd").new()
 var strafe_left_elbow_flare_degrees: float = 0.0
 var authored_shoulder_stock_enabled: bool = false
@@ -204,6 +214,12 @@ var action_weapon_chest_start_origin := Vector3.ZERO
 var action_weapon_follow_elapsed: float = 0.0
 var action_weapon_follow_blend_seconds: float = 0.12
 var action_weapon_chest_owned: bool = false
+var reload_attachment_origin_posture: StringName = &""
+var reload_attachment_posture: StringName = &""
+var reload_attachment_handoff_start := Transform3D.IDENTITY
+var reload_attachment_handoff_elapsed: float = 0.0
+var reload_attachment_guard_direction_world := Vector3.ZERO
+var reload_attachment_guard_active := false
 var weapon_owner: StringName = WeaponOwnershipContract.HOLSTERED_ANIMATION
 var previous_weapon_owner: StringName = WeaponOwnershipContract.HOLSTERED_ANIMATION
 var weapon_owner_transition_count: int = 0

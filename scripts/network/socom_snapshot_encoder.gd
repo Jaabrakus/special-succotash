@@ -17,6 +17,7 @@ static func capture(operators: Dictionary, peer_ids: Array) -> Dictionary:
 			"ack_input_tick": operator.consumed_input_tick,
 			"respawn_revision": operator.respawn_revision,
 			"presentation": {"motion_state": operator.motion_state,
+				"traversal": operator.get_traversal_presentation(),
 				"combo_kind": String(operator.mobility_combo_kind),
 				"combo_exit_prone": operator.combo_exit_prone,
 				"combo_recovering": operator.combo_recovering,

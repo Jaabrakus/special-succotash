@@ -20,7 +20,7 @@
     "max_recoil_bloom_deg": 2.6,
     "moving_spread_deg": 1.029,
     "muzzle_velocity_mps": 990.0,
-    "reserve_ammo": 225.0
+    "reserve_ammo": 375.0
   },
   "burst_size": 3,
   "catalog_source": "reCOM zweapon.rdr",

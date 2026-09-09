@@ -1,0 +1,58 @@
+[gd_resource type="Animation" format=3]
+
+[resource]
+resource_name = "seal_headlooks_prone"
+length = 0.1
+tracks/0/type = "rotation_3d"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:mixamorig_Hips")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = PackedFloat32Array(0, 1, 0.5935694, -0.09727415, -0.25710607, 0.75637925, 0.033333335, 1, 0.5935694, -0.09727415, -0.25710607, 0.75637925, 0.06666667, 1, 0.5935694, -0.09727415, -0.25710607, 0.75637925, 0.1, 1, 0.5935694, -0.09727415, -0.25710607, 0.75637925)
+tracks/1/type = "position_3d"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:mixamorig_Hips")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = PackedFloat32Array(0, 1, 0, 0.001881469, 0, 0.033333335, 1, 0, 0.001881469, 0, 0.06666667, 1, 0, 0.001881469, 0, 0.1, 1, 0, 0.001881469, 0)
+tracks/2/type = "rotation_3d"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath(".:mixamorig_Spine")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = PackedFloat32Array(0, 1, 0.08129028, 0.025879065, 0.21700779, 0.972435, 0.033333335, 1, 0.08129028, 0.025879065, 0.21700779, 0.972435, 0.06666667, 1, 0.08129028, 0.025879065, 0.21700779, 0.972435, 0.1, 1, 0.08129028, 0.025879065, 0.21700779, 0.972435)
+tracks/3/type = "rotation_3d"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath(".:mixamorig_Spine2")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = PackedFloat32Array(0, 1, -0.04245767, 0.04026798, 0.005903913, 0.9982691, 0.033333335, 1, -0.04245767, 0.04026798, 0.005903913, 0.9982691, 0.06666667, 1, -0.04245767, 0.04026798, 0.005903913, 0.9982691, 0.1, 1, -0.04245767, 0.04026798, 0.005903913, 0.9982691)
+tracks/4/type = "rotation_3d"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath(".:mixamorig_Neck")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/keys = PackedFloat32Array(0, 1, -0.20589793, 0.31679407, 0.24897885, 0.8917719, 0.033333335, 1, -0.16411507, 0.19285217, 0.22635718, 0.9405514, 0.06666667, 1, -0.10248284, -0.06539351, 0.1928896, 0.9736604, 0.1, 1, -0.20589793, 0.31679407, 0.24897885, 0.8917719)
+tracks/5/type = "rotation_3d"
+tracks/5/imported = false
+tracks/5/enabled = true
+tracks/5/path = NodePath(".:mixamorig_Head")
+tracks/5/interp = 1
+tracks/5/loop_wrap = true
+tracks/5/keys = PackedFloat32Array(0, 1, -0.09290304, 0.27584752, -0.30386356, 0.90716267, 0.033333335, 1, -0.27050248, 0.13682954, -0.26092938, 0.91652715, 0.06666667, 1, -0.31829312, -0.033905774, 0.04670794, 0.94623375, 0.1, 1, -0.09290304, 0.27584752, -0.30386356, 0.90716267)
+metadata/seal_reference = true
+metadata/source_name = "seal_headlooks_prone"
+metadata/source_sha256 = "32ed4ef8660cb777c0054a575303192b7c0054d335b6413a3317acc7d5608f46"
+metadata/source_settings = {
+"anim_name": "seal_headlooks_prone",
+"looped": 0.0,
+"playback": 1.0
+}
+metadata/source_static = false
+metadata/source_coverage = "partial"
+metadata/target_rig_sha256 = "c1ef12342140f66db26e74c85b4ca6bc82c2ce772b3d2f2406d647b49e093016"

@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "feature_id": "socom2_reticle_presentation",
+  "player_intent": "Use original weapon-family reticle artwork and remove the invented secondary kick/opening effect.",
+  "acceptance_rule": "32 matched profiles retain source sprites as fallback when custom presentation is disabled. Source pixels retain alpha. Authoritative bloom and aim center remain unchanged; source mode adds no cosmetic kick/radial impulse. The custom_reticle_families contract owns the current default art. Other profiles, red hit X and interaction brackets remain.",
+  "canonical_scene": "res://main.tscn",
+  "ownership": {"reticle_presentation": "SocomDynamicReticle", "aim_intent": "SocomCameraRig", "shot_and_damage": "SocomWeaponController and server weapon"},
+  "nodes": [{"id": "reticle", "type": "Control", "owner": "SocomDynamicReticle", "role": "Draw source family artwork from shared settings at the camera aim center", "source_script": "res://scripts/ui/socom_dynamic_reticle.gd", "code_symbols": ["extends Control", "func _apply_source_presentation(", "func _draw_source_reference(", "draw_texture_rect_region("]}],
+  "data_contracts": [
+    {"path": "res://config/reticle_presentation.json", "writer": "res://config/reticle_presentation.json", "readers": ["res://scripts/ui/socom_dynamic_reticle.gd", "res://tools/socom2_reticle_regression.gd"]},
+    {"path": "res://assets/ui/socom2_reticle/manifest.json", "writer": "res://tools/socom2_reticle_reference.cjs", "readers": ["res://tools/socom2_reticle_regression.gd"]},
+    {"path": "res://config/weapons/m4a1.json", "writer": "res://scripts/labs/gunsmith/gunsmith_weapon_profile_repository.gd", "readers": ["res://scripts/weapons/socom_weapon_controller.gd", "res://scripts/network/socom_multiplayer_world_ui.gd"]}
+  ],
+  "must_not_change": ["camera VRC recovery", "bullet spread equations", "damage and cadence", "movement and animation", "live sessions and published builds"],
+  "proof_scripts": ["res://tools/socom2_reticle_regression.gd", "res://tools/shared_weapon_reticle_regression.gd", "res://tools/ballistic_reference_reticle_regression.gd"],
+  "visual_check": "Run the focused regression with --render: captures actual family drawing and the canonical main HUD. Original pixels are verified; four-piece assembly, scale, tint and spacing remain provisional calibration. Exact recovery timing is not claimed.",
+  "system_delta": {
+    "decision": "MERGE", "reason": "Use decoded artwork and one presentation owner; remove unsupported second impulse while retaining authority and legacy fallback.",
+    "current": {"system": "custom reticle geometry and extra radial kick", "correctness": 2, "ownership_clarity": 5, "runtime_parity": 4, "editor_usability": 3, "performance": 5, "regression_coverage": 3, "evidence_paths": ["res://scripts/ui/socom_dynamic_reticle.gd"]},
+    "candidate": {"system": "source sprites through canonical reticle", "correctness": 3, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 5, "regression_coverage": 5, "evidence_paths": ["res://assets/ui/socom2_reticle/manifest.json", "res://tools/socom2_reticle_regression.gd", "res://docs/SOCOM2_RETICLE_PRESENTATION.md"]}
+  }
+}

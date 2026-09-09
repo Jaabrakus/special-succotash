@@ -39,7 +39,7 @@
     "max_recoil_bloom_deg": 2.6,
     "moving_spread_deg": 1.029,
     "muzzle_velocity_mps": 921.0,
-    "reserve_ammo": 90.0
+    "reserve_ammo": 150.0
   },
   "burst_size": 3,
   "camo_skin": "Factory Classic (Wood & Steel)",
@@ -230,20 +230,52 @@
     "space": "animated_target_local_offsets_meters",
     "targets": {
       "right_shoulder": {
-        "position_offset_m": {"x": 0.0, "y": 0.0, "z": 0.0},
-        "rotation_offset_degrees": {"x": 0.0, "y": 0.0, "z": 0.0}
+        "position_offset_m": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "rotation_offset_degrees": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
       },
       "trigger_hand": {
-        "position_offset_m": {"x": 0.0, "y": 0.0, "z": 0.0},
-        "rotation_offset_degrees": {"x": 0.0, "y": 0.0, "z": 0.0}
+        "position_offset_m": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "rotation_offset_degrees": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
       },
       "support_hand": {
-        "position_offset_m": {"x": 0.0, "y": 0.0, "z": 0.0},
-        "rotation_offset_degrees": {"x": 0.0, "y": 0.0, "z": 0.0}
+        "position_offset_m": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "rotation_offset_degrees": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
       },
       "spine_aim": {
-        "position_offset_m": {"x": 0.0, "y": 0.0, "z": 0.0},
-        "rotation_offset_degrees": {"x": 0.0, "y": 0.0, "z": 0.0}
+        "position_offset_m": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "rotation_offset_degrees": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        }
       }
     }
   }

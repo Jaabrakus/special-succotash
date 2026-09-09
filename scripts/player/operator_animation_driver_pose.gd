@@ -1,6 +1,27 @@
 extends "res://scripts/player/operator_animation_driver_api.gd"
 ## Animation graph, clip selection, saved frame pose, and locomotion helpers.
 
+var source_jump_timeline := preload("res://scripts/player/operator_source_jump_timeline.gd").new()
+var source_jump_frame: Dictionary = {}
+
+func _update_source_jump_timeline() -> void:
+	source_jump_frame.clear()
+	var actor := _get_player()
+	if not use_modern_locomotion or not bool(animation_profile.source_jump.get("enabled", false)) or actor == null:
+		source_jump_timeline.reset()
+		return
+	source_jump_frame = source_jump_timeline.sample(movement_state, vertical_speed, _locomotion_active,
+		float(actor.get("jump_velocity")), float(actor.get("action_elapsed")), float(actor.get("action_duration")))
+	if not source_jump_frame.is_empty():
+		var slot: StringName = source_jump_frame.slot
+		var clip := _equipped_action_clip(String(slot), slot)
+		var settings: Dictionary = animation_profile.source_jump.get("clips", {}).get(String(clip), {})
+		if settings.is_empty() or not locomotion_graph.source_jump_clip(clip):
+			source_jump_frame.clear()
+			return
+		source_jump_frame["clip"] = clip
+		source_jump_frame["time"] = lerpf(float(settings.get("start_seconds", 0.0)), float(settings.end_seconds), float(source_jump_frame.progress))
+
 func _build_animation_tree() -> void:
 	if animation_tree != null:
 		animation_tree.active = false
@@ -144,6 +165,8 @@ func _right_strafe_shoulder_yaw() -> float:
 
 
 func _select_visual_clip() -> StringName:
+	if not source_jump_frame.is_empty() and movement_state in [&"AIRBORNE", &"LANDING"]:
+		return source_jump_frame.clip
 	if movement_state == &"DIVING":
 		var player := _get_player()
 		if player != null and player.has_method("get_mobility_combo_clip"):
@@ -154,6 +177,11 @@ func _select_visual_clip() -> StringName:
 	if movement_state == &"ROLLING":
 		return &"roll"
 	if movement_state == &"AIRBORNE":
+		if bool(animation_profile.locomotion.get("preserve_source_locomotion", false)):
+			var phase := &"jump_loop"
+			if vertical_speed > 1.0:
+				phase = &"jump_up" if _locomotion_active else &"jump_up_standing"
+			return _equipped_action_clip(String(phase), phase)
 		if vertical_speed > 1.0:
 			if not _locomotion_active and available_clips.has(&"jump_up_standing"):
 				return &"jump_up_standing"
@@ -167,7 +195,7 @@ func _select_visual_clip() -> StringName:
 			return equipped_jump
 		return &"jump_loop"
 	if movement_state == &"LANDING":
-		return &"jump_down"
+		return _equipped_action_clip("jump_down", &"jump_down")
 	if posture == &"PRONE":
 		if not _locomotion_active:
 			return &"idle_prone"
@@ -219,6 +247,9 @@ func _equipped_locomotion_clip(slot_name: String, fallback: StringName) -> Strin
 
 
 func _equipped_action_clip(slot_name: String, fallback: StringName) -> StringName:
+	var override_clip: StringName = animation_profile.resolve_family_animation_slot(equipped_weapon_family, slot_name, available_clips)
+	if override_clip != &"":
+		return override_clip
 	var slots: Dictionary = equipped_weapon_handling_profile.get("animation_slots", {})
 	var candidate := StringName(slots.get(slot_name, ""))
 	return candidate if candidate != &"" and available_clips.has(candidate) else fallback
@@ -257,6 +288,8 @@ func _request_clip(clip_name: StringName, blend_seconds: float = -1.0) -> void:
 			clip_name,
 			fallback_blend
 		)
+	if locomotion_graph.source_jump_clip(clip_name) or locomotion_graph.source_jump_clip(previous_clip):
+		blend = maxf(float(animation_profile.source_jump.get("blend_seconds", 0.055)), 0.0)
 	if not use_modern_locomotion:
 		locomotion_graph.request_legacy_clip(clip_name, blend)
 		_sync_jump_combo_clip(clip_name)
@@ -265,6 +298,8 @@ func _request_clip(clip_name: StringName, blend_seconds: float = -1.0) -> void:
 		locomotion_graph.set_modern_enabled(false)
 		locomotion_graph.request_legacy_clip(clip_name, blend)
 	_sync_jump_combo_clip(clip_name)
+	if not source_jump_frame.is_empty() and source_jump_frame.clip == clip_name:
+		locomotion_graph.sync_source_jump(clip_name, float(source_jump_frame.time))
 
 func _sync_jump_combo_clip(clip_name: StringName) -> void:
 	var player := _get_player()
@@ -320,6 +355,9 @@ func _apply_saved_animation_frame_pose(delta: float) -> void:
 			_frame_pose_clip_time = minf(_frame_pose_clip_time, duration)
 	if pose_clip == current_clip:
 		pose_time = _frame_pose_clip_time
+		if not source_jump_frame.is_empty() and source_jump_frame.clip == current_clip:
+			# Read the evaluated playhead, not the request queued for next frame.
+			pose_time = float(animation_tree.get("parameters/modern_state_%s/current_position" % current_clip))
 	var candidates: Array = [
 		String(pose_clip),
 		String(clip_paths.get(pose_clip, "")),
@@ -407,6 +445,12 @@ func _scaled_frame_joint_rotations(raw_rotations: Variant, weight: float) -> Dic
 
 
 func _fire_uses_aim_idle(event_state: StringName = &"") -> bool:
+	if event_state == &"":
+		event_state = animation_profile.resolve_animation_event(&"FIRE_ACCEPTED", posture, equipped_weapon_family)
+	# An explicit source-recoil event must not be swallowed by legacy per-weapon
+	# stable-ready flags. Defaults still use their existing ready/recovery path.
+	if String(event_state).ends_with("fire") and String(clip_paths.get(event_state, "")).begins_with("res://assets/animations/seal_gameplay/"):
+		return false
 	if posture == &"PRONE":
 		return false
 	var profile_key := (
@@ -436,6 +480,10 @@ func _standing_reload_pose_active() -> bool:
 
 
 func _standing_ready_frame_pose_clip() -> StringName:
+	var family_slot := "ready_standing_moving" if _locomotion_active or _requested_action_is_transition else "ready_standing"
+	var override_clip: StringName = animation_profile.resolve_family_animation_slot(equipped_weapon_family, family_slot, available_clips)
+	if override_clip != &"":
+		return override_clip
 	var animation_slots: Variant = equipped_weapon_handling_profile.get(
 		"animation_slots",
 		{}
@@ -460,6 +508,8 @@ func _standing_ready_frame_pose_clip() -> StringName:
 
 
 func _modern_state_for_clip(clip_name: StringName) -> StringName:
+	if String(clip_name).begins_with("traversal_") and movement_state == &"VAULTING":
+		return clip_name
 	# Death is a full-body graph state, never a standing/crouched idle route.
 	if String(clip_name).begins_with("death_"):
 		return clip_name
@@ -528,13 +578,27 @@ func _update_prone_straightening(delta: float) -> void:
 	)
 
 
-func _update_locomotion_latch() -> void:
-	if _locomotion_active and movement_speed_normalized <= locomotion_exit_speed:
+func _update_locomotion_latch(delta: float = 0.0) -> void:
+	# Small lean taps must still animate steps below the ordinary gait threshold.
+	var lean_steps := absf(peek_amount) > 0.001
+	var enter_speed := 0.01 if lean_steps else locomotion_enter_speed
+	var exit_speed := 0.005 if lean_steps else locomotion_exit_speed
+	if posture != _locomotion_latch_posture:
 		_locomotion_active = false
-		_direction_initialized = false
-	elif not _locomotion_active and movement_speed_normalized >= locomotion_enter_speed:
+		_locomotion_stop_time = 0.0
+		_locomotion_latch_posture = posture
+	if _locomotion_active and movement_speed_normalized <= exit_speed:
+		_locomotion_stop_time += maxf(delta, 0.0)
+		var grace := float(animation_profile.locomotion.get("stop_grace_seconds", 0.0)) if posture != &"PRONE" and movement_state not in [&"AIRBORNE", &"DIVING", &"ROLLING", &"LANDING"] else 0.0
+		if _locomotion_stop_time >= grace:
+			_locomotion_active = false
+			_direction_initialized = false
+	elif not _locomotion_active and movement_speed_normalized >= enter_speed:
 		_locomotion_active = true
 		_direction_initialized = false
+		_locomotion_stop_time = 0.0
+	elif movement_speed_normalized > exit_speed:
+		_locomotion_stop_time = 0.0
 
 
 func _pull_player_inputs() -> void:

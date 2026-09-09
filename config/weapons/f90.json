@@ -13,7 +13,7 @@
     "bloom_recovery_speed": 17.5,
     "damage": 22.0,
     "effective_range_m": 150.0,
-    "fire_rate_rpm": 667.0,
+    "fire_rate_rpm": 666.6666401757145,
     "full_gait_spread_deg": 1.543,
     "headshot_multiplier": 3.5,
     "is_silenced": false,
@@ -22,7 +22,7 @@
     "max_recoil_bloom_deg": 2.6,
     "moving_spread_deg": 1.029,
     "muzzle_velocity_mps": 375.0,
-    "reserve_ammo": 150.0
+    "reserve_ammo": 250.0
   },
   "burst_size": 3,
   "catalog_source": "reCOM zweapon.rdr",
@@ -45,10 +45,32 @@
     "cadence_driven_return": false,
     "base_gap_px": 5.1,
     "max_gap_px": 41.6,
-    "maximum_shot_kick_px": 32.0,
+    "maximum_shot_kick_px": 32,
     "response_speed": 26.2,
-    "shot_kick_px": 12.0,
-    "shot_kick_return": 40.0
+    "shot_kick_px": 12,
+    "shot_kick_return": 40,
+    "vrc_return_speed_px_per_second": 40,
+    "socom2_source_name": "F90",
+    "socom2_stances": {
+      "STANDING": {
+        "shot_kick_px": 12,
+        "maximum_shot_kick_px": 32,
+        "shot_kick_return": 40,
+        "vrc_return_speed_px_per_second": 40
+      },
+      "CROUCHED": {
+        "shot_kick_px": 12,
+        "maximum_shot_kick_px": 30,
+        "shot_kick_return": 42,
+        "vrc_return_speed_px_per_second": 42
+      },
+      "PRONE": {
+        "shot_kick_px": 12,
+        "maximum_shot_kick_px": 34,
+        "shot_kick_return": 44,
+        "vrc_return_speed_px_per_second": 44
+      }
+    }
   },
   "socom_original_id": 34,
   "weapon_id": "f90"

@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "feature_id": "mobility_fire_lock",
+  "player_intent": "Slides and dives are committed evasive movement, never a firing stance.",
+  "acceptance_rule": "Every slide and dive rejects firing for the full active mobility action on local, browser-client, and authoritative-server paths without consuming ammunition. The existing slide-to-crouch movement handoff remains unchanged; once movement resumes, the normal movement-spread owner opens the reticle and firing resumes only after the mobility action ends.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://animation_library_lab.tscn",
+  "ownership": {
+    "committed_mobility_state": "SocomTestPlayer",
+    "offline_shot": "SocomWeaponController",
+    "network_shot": "SocomMultiplayerSession"
+  },
+  "nodes": [
+    {
+      "id": "mobility_fire_decision",
+      "type": "CharacterBody3D",
+      "role": "Exposes whether the canonical committed mobility state locks firing.",
+      "owner": "SocomTestPlayer",
+      "source_script": "res://scripts/player/player_controller.gd",
+      "code_symbols": ["is_fire_locked_by_mobility", "MotionState.DIVING"]
+    },
+    {
+      "id": "offline_weapon_consumer",
+      "type": "Node3D",
+      "role": "Rejects local canonical shots before ballistics or ammunition changes.",
+      "owner": "SocomWeaponController",
+      "source_script": "res://scripts/weapons/socom_weapon_controller.gd",
+      "code_symbols": ["_mobility_blocks_fire", "MOBILITY_ACTION"]
+    },
+    {
+      "id": "server_weapon_consumer",
+      "type": "Node3D",
+      "role": "Rechecks authoritative operator mobility before server ballistics.",
+      "owner": "SocomMultiplayerSession",
+      "source_script": "res://scripts/network/socom_multiplayer_combat.gd",
+      "code_symbols": ["shooter.is_fire_locked_by_mobility", "MOBILITY_ACTION"]
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://config/jump_direction_combos.json",
+      "writer": "res://docs/MOBILITY_MOVEMENT_HANDOFF.md",
+      "readers": ["res://scripts/player/jump_direction_combo_intent.gd", "res://scripts/player/player_controller.gd"]
+    }
+  ],
+  "must_not_change": ["Camera/reticle aim and movement-spread response", "Damage and recoil", "Reload", "Normal crouch and slide handoff timing", "Movement distance", "Animation bone ownership"],
+  "proof_scripts": ["res://tools/mobility_fire_lock_regression.gd", "res://tools/mobility_movement_handoff_regression.gd"],
+  "visual_check": "In res://main.tscn, begin every slide and dive while pressing fire. Confirm no muzzle flash, recoil, sound, tracer, or ammunition change; after the mobility action ends in crouch or prone, confirm the next fresh fire input works.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Consume the existing CharacterBody committed-action state in both shot paths; do not create a second timer or animation owner.",
+    "current": {
+      "system": "Shot paths ignore committed mobility",
+      "correctness": 1,
+      "ownership_clarity": 4,
+      "runtime_parity": 2,
+      "editor_usability": 3,
+      "performance": 5,
+      "regression_coverage": 1,
+      "evidence_paths": ["res://scripts/player/player_controller.gd", "res://scripts/network/socom_multiplayer_combat.gd"]
+    },
+    "candidate": {
+      "system": "CharacterBody-owned mobility lock consumed by local and server shots",
+      "correctness": 5,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 4,
+      "performance": 5,
+      "regression_coverage": 5,
+      "evidence_paths": ["res://scripts/player/player_controller.gd", "res://scripts/weapons/socom_weapon_controller.gd", "res://scripts/network/socom_multiplayer_combat.gd", "res://tools/mobility_fire_lock_regression.gd"]
+    }
+  }
+}

@@ -72,7 +72,8 @@ func _run() -> void:
 		else {}
 	)
 	_expect(
-		bool(reload_pose.get("action_weapon_follow_active", false)),
+		StringName(reload_pose.get("weapon_owner", &"")) == &"RELOAD_RIGHT_HAND"
+		and not bool(reload_pose.get("weapon_solver_owned", true)),
 		"reload transfers visual rifle ownership to the authored right hand"
 	)
 	_expect(

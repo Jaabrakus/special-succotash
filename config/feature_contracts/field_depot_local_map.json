@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "feature_id": "field_depot_local_map",
+  "player_intent": "Build and edit a local tactical map with extracted environment textures.",
+  "acceptance_rule": "Six local textures and all map objects roundtrip and build through MapRuntime; local library entry is editable and Play enters main.tscn.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://map_creation_lab.tscn",
+  "ownership": {
+    "map_construction": "SocomMapRuntime"
+  },
+  "nodes": [
+    {
+      "id": "authored_map",
+      "type": "Node3D",
+      "role": "Constructs saved map geometry once for editor or runtime.",
+      "owner": "SocomMapRuntime",
+      "source_script": "res://scripts/maps/socom_map_runtime.gd",
+      "code_symbols": [
+        "root.name = \"AuthoredMap\"",
+        "static func build_into"
+      ]
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://config/maps/field_depot_research.json",
+      "writer": "res://tools/import_field_depot.gd",
+      "readers": [
+        "res://scripts/maps/socom_map_document.gd",
+        "res://scripts/maps/socom_map_runtime.gd",
+        "res://tools/field_depot_regression.gd"
+      ]
+    },
+    {
+      "path": "res://config/maps/field_depot_assets.json",
+      "writer": "res://config/maps/field_depot_assets.json",
+      "readers": [
+        "res://tools/import_field_depot.gd"
+      ]
+    }
+  ],
+  "must_not_change": [
+    "active_map",
+    "browser_export",
+    "camera_aim",
+    "movement",
+    "animation",
+    "shot_damage",
+    "network_authority"
+  ],
+  "proof_scripts": [
+    "res://tools/field_depot_regression.gd",
+    "res://tools/map_creation_lab_regression.gd",
+    "res://tools/feature_contract_regression.gd"
+  ],
+  "visual_check": "Render the actual MapRuntime-built courtyard and inspect textures, warehouse, side routes and cover. New primitive geometry, not extracted original meshes.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Reuse the existing saved map/material pipeline; source binaries remain local and modified map copies are preserved.",
+    "current": {
+      "system": "Existing runtime and editor without local extracted map",
+      "correctness": 4,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 2,
+      "performance": 4,
+      "regression_coverage": 2,
+      "evidence_paths": [
+        "res://scripts/maps/socom_map_document.gd",
+        "res://scripts/maps/socom_map_surface_materials.gd"
+      ]
+    },
+    "candidate": {
+      "system": "Same runtime plus reproducible local map/data installation",
+      "correctness": 4,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 4,
+      "performance": 4,
+      "regression_coverage": 4,
+      "evidence_paths": [
+        "res://tools/import_field_depot.gd",
+        "res://tools/field_depot_regression.gd"
+      ]
+    }
+  }
+}
