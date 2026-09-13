@@ -7,6 +7,13 @@
   "runtime_entry_scene": "res://game_launcher.tscn",
   "labs": [
     {
+      "id": "character_creation",
+      "label": "Modern Character Creator",
+      "scene": "res://character_creation.tscn",
+      "controller": "res://scripts/ui/character_creation.gd",
+      "shared_contracts": ["res://config/operator_character.json", "res://config/character_appearance.json", "res://scripts/player/character_appearance_profile.gd"]
+    },
+    {
       "id": "game_launcher",
       "label": "Play Current Game Build",
       "scene": "res://game_launcher.tscn",

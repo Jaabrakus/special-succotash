@@ -1,0 +1,195 @@
+COMMAND: /Users/kiwimango/Applications/Godot-4.7.1.app/Contents/MacOS/Godot --headless -s tools/firearm_family_presentation_regression.gd
+EXIT_CODE: 1
+DURATION: 0.34s
+
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+ERROR: FIREARM_FAMILY_PRESENTATION_CHECK FAIL all saved pistol, rifle, and SMG profiles are discovered
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/firearm_family_presentation_regression.gd:261)
+       [1] _run (res://tools/firearm_family_presentation_regression.gd:49)
+FIREARM_FAMILY_PRESENTATION_CHECK PASS 226 loads through SocomWeaponRigContract
+FIREARM_FAMILY_PRESENTATION_CHECK PASS 226 resolves to independently expected family TWO_HAND_PISTOL
+FIREARM_FAMILY_PRESENTATION_CHECK PASS 226 uses the certified optic-up pistol roll
+FIREARM_FAMILY_PRESENTATION_CHECK PASS 226 resolves all seven physical sockets from saved authored data
+FIREARM_FAMILY_PRESENTATION_CHECK PASS 226 mesh length 0.1960 m is within 0.16-0.35 m
+FIREARM_FAMILY_PRESENTATION_CHECK PASS 226 keeps trigger-hand weapon ownership with support-hand-only IK
+FIREARM_FAMILY_PRESENTATION_CHECK PASS 226 preserves standing and crouched recovery without a fire OneShot
+FIREARM_FAMILY_PRESENTATION_CHECK PASS 552 loads through SocomWeaponRigContract
+FIREARM_FAMILY_PRESENTATION_CHECK PASS 552 resolves to independently expected family TWO_HAND_RIFLE
+FIREARM_FAMILY_PRESENTATION_CHECK PASS 552 resolves all seven physical sockets from saved authored data
+FIREARM_FAMILY_PRESENTATION_CHECK PASS 552 mesh length 0.7300 m is within 0.45-1.20 m
+FIREARM_FAMILY_PRESENTATION_CHECK PASS 552 keeps trigger-hand weapon ownership with support-hand-only IK
+FIREARM_FAMILY_PRESENTATION_CHECK PASS 552 preserves standing and crouched recovery without a fire OneShot
+FIREARM_FAMILY_PRESENTATION_CHECK PASS 9mm_pistol loads through SocomWeaponRigContract
+FIREARM_FAMILY_PRESENTATION_CHECK PASS 9mm_pistol resolves to independently expected family TWO_HAND_PISTOL
+FIREARM_FAMILY_PRESENTATION_CHECK PASS 9mm_pistol uses the certified optic-up pistol roll
+FIREARM_FAMILY_PRESENTATION_CHECK PASS 9mm_pistol resolves all seven physical sockets from saved authored data
+FIREARM_FAMILY_PRESENTATION_CHECK PASS 9mm_pistol mesh length 0.2200 m is within 0.16-0.35 m
+FIREARM_FAMILY_PRESENTATION_CHECK PASS 9mm_pistol keeps trigger-hand weapon ownership with support-hand-only IK
+FIREARM_FAMILY_PRESENTATION_CHECK PASS 9mm_pistol preserves standing and crouched recovery without a fire OneShot
+FIREARM_FAMILY_PRESENTATION_CHECK PASS 9mm_sub loads through SocomWeaponRigContract
+FIREARM_FAMILY_PRESENTATION_CHECK PASS 9mm_sub resolves to independently expected family TWO_HAND_RIFLE
+FIREARM_FAMILY_PRESENTATION_CHECK PASS 9mm_sub resolves all seven physical sockets from saved authored data
+FIREARM_FAMILY_PRESENTATION_CHECK PASS 9mm_sub mesh length 0.5500 m is within 0.35-0.85 m
+FIREARM_FAMILY_PRESENTATION_CHECK PASS 9mm_sub keeps trigger-hand weapon ownership with support-hand-only IK
+FIREARM_FAMILY_PRESENTATION_CHECK PASS 9mm_sub preserves standing and crouched recovery without a fire OneShot
+FIREARM_FAMILY_PRESENTATION_CHECK PASS ak-47 loads through SocomWeaponRigContract
+FIREARM_FAMILY_PRESENTATION_CHECK PASS ak-47 resolves to independently expected family TWO_HAND_RIFLE
+FIREARM_FAMILY_PRESENTATION_CHECK PASS ak-47 resolves all seven physical sockets from saved authored data
+FIREARM_FAMILY_PRESENTATION_CHECK PASS ak-47 mesh length 0.9850 m is within 0.45-1.20 m
+FIREARM_FAMILY_PRESENTATION_CHECK PASS ak-47 keeps trigger-hand weapon ownership with support-hand-only IK
+FIREARM_FAMILY_PRESENTATION_CHECK PASS ak-47 preserves standing and crouched recovery without a fire OneShot
+FIREARM_FAMILY_PRESENTATION_CHECK PASS aks-74 loads through SocomWeaponRigContract
+FIREARM_FAMILY_PRESENTATION_CHECK PASS aks-74 resolves to independently expected family TWO_HAND_RIFLE
+FIREARM_FAMILY_PRESENTATION_CHECK PASS aks-74 resolves all seven physical sockets from saved authored data
+FIREARM_FAMILY_PRESENTATION_CHECK PASS aks-74 mesh length 0.7350 m is within 0.45-1.20 m
+FIREARM_FAMILY_PRESENTATION_CHECK PASS aks-74 keeps trigger-hand weapon ownership with support-hand-only IK
+FIREARM_FAMILY_PRESENTATION_CHECK PASS aks-74 preserves standing and crouched recovery without a fire OneShot
+FIREARM_FAMILY_PRESENTATION_CHECK PASS assaultrifle_1 loads through SocomWeaponRigContract
+FIREARM_FAMILY_PRESENTATION_CHECK PASS assaultrifle_1 resolves to independently expected family TWO_HAND_RIFLE
+FIREARM_FAMILY_PRESENTATION_CHECK PASS assaultrifle_1 resolves all seven physical sockets from saved authored data
+FIREARM_FAMILY_PRESENTATION_CHECK PASS assaultrifle_1 mesh length 0.5916 m is within 0.45-1.20 m
+FIREARM_FAMILY_PRESENTATION_CHECK PASS assaultrifle_1 keeps trigger-hand weapon ownership with support-hand-only IK
+FIREARM_FAMILY_PRESENTATION_CHECK PASS assaultrifle_1 preserves standing and crouched recovery without a fire OneShot
+FIREARM_FAMILY_PRESENTATION_CHECK PASS assaultrifle_2 loads through SocomWeaponRigContract
+FIREARM_FAMILY_PRESENTATION_CHECK PASS assaultrifle_2 resolves to independently expected family TWO_HAND_RIFLE
+FIREARM_FAMILY_PRESENTATION_CHECK PASS assaultrifle_2 resolves all seven physical sockets from saved authored data
+FIREARM_FAMILY_PRESENTATION_CHECK PASS assaultrifle_2 mesh length 0.8400 m is within 0.45-1.20 m
+FIREARM_FAMILY_PRESENTATION_CHECK PASS assaultrifle_2 keeps trigger-hand weapon ownership with support-hand-only IK
+FIREARM_FAMILY_PRESENTATION_CHECK PASS assaultrifle_2 preserves standing and crouched recovery without a fire OneShot
+FIREARM_FAMILY_PRESENTATION_CHECK PASS assaultrifle_3 loads through SocomWeaponRigContract
+FIREARM_FAMILY_PRESENTATION_CHECK PASS assaultrifle_3 resolves to independently expected family TWO_HAND_RIFLE
+FIREARM_FAMILY_PRESENTATION_CHECK PASS assaultrifle_3 resolves all seven physical sockets from saved authored data
+FIREARM_FAMILY_PRESENTATION_CHECK PASS assaultrifle_3 mesh length 0.7800 m is within 0.45-1.20 m
+FIREARM_FAMILY_PRESENTATION_CHECK PASS assaultrifle_3 keeps trigger-hand weapon ownership with support-hand-only IK
+FIREARM_FAMILY_PRESENTATION_CHECK PASS assaultrifle_3 preserves standing and crouched recovery without a fire OneShot
+FIREARM_FAMILY_PRESENTATION_CHECK PASS assaultrifle_4 loads through SocomWeaponRigContract
+FIREARM_FAMILY_PRESENTATION_CHECK PASS assaultrifle_4 resolves to independently expected family TWO_HAND_RIFLE
+FIREARM_FAMILY_PRESENTATION_CHECK PASS assaultrifle_4 resolves all seven physical sockets from saved authored data
+FIREARM_FAMILY_PRESENTATION_CHECK PASS assaultrifle_4 mesh length 0.8800 m is within 0.45-1.20 m
+FIREARM_FAMILY_PRESENTATION_CHECK PASS assaultrifle_4 keeps trigger-hand weapon ownership with support-hand-only IK
+FIREARM_FAMILY_PRESENTATION_CHECK PASS assaultrifle_4 preserves standing and crouched recovery without a fire OneShot
+FIREARM_FAMILY_PRESENTATION_CHECK PASS bullpup_1 loads through SocomWeaponRigContract
+FIREARM_FAMILY_PRESENTATION_CHECK PASS bullpup_1 resolves to independently expected family TWO_HAND_RIFLE
+FIREARM_FAMILY_PRESENTATION_CHECK PASS bullpup_1 resolves all seven physical sockets from saved authored data
+FIREARM_FAMILY_PRESENTATION_CHECK PASS bullpup_1 mesh length 0.7200 m is within 0.45-1.20 m
+FIREARM_FAMILY_PRESENTATION_CHECK PASS bullpup_1 keeps trigger-hand weapon ownership with support-hand-only IK
+FIREARM_FAMILY_PRESENTATION_CHECK PASS bullpup_1 preserves standing and crouched recovery without a fire OneShot
+FIREARM_FAMILY_PRESENTATION_CHECK PASS de__50 loads through SocomWeaponRigContract
+FIREARM_FAMILY_PRESENTATION_CHECK PASS de__50 resolves to independently expected family TWO_HAND_PISTOL
+FIREARM_FAMILY_PRESENTATION_CHECK PASS de__50 uses the certified optic-up pistol roll
+FIREARM_FAMILY_PRESENTATION_CHECK PASS de__50 resolves all seven physical sockets from saved authored data
+FIREARM_FAMILY_PRESENTATION_CHECK PASS de__50 mesh length 0.2700 m is within 0.16-0.35 m
+FIREARM_FAMILY_PRESENTATION_CHECK PASS de__50 keeps trigger-hand weapon ownership with support-hand-only IK
+FIREARM_FAMILY_PRESENTATION_CHECK PASS de__50 preserves standing and crouched recovery without a fire OneShot
+FIREARM_FAMILY_PRESENTATION_CHECK PASS f57 loads through SocomWeaponRigContract
+FIREARM_FAMILY_PRESENTATION_CHECK PASS f57 resolves to independently expected family TWO_HAND_PISTOL
+FIREARM_FAMILY_PRESENTATION_CHECK PASS f57 uses the certified optic-up pistol roll
+FIREARM_FAMILY_PRESENTATION_CHECK PASS f57 resolves all seven physical sockets from saved authored data
+FIREARM_FAMILY_PRESENTATION_CHECK PASS f57 mesh length 0.2100 m is within 0.16-0.35 m
+FIREARM_FAMILY_PRESENTATION_CHECK PASS f57 keeps trigger-hand weapon ownership with support-hand-only IK
+FIREARM_FAMILY_PRESENTATION_CHECK PASS f57 preserves standing and crouched recovery without a fire OneShot
+FIREARM_FAMILY_PRESENTATION_CHECK PASS f90 loads through SocomWeaponRigContract
+FIREARM_FAMILY_PRESENTATION_CHECK PASS f90 resolves to independently expected family TWO_HAND_RIFLE
+FIREARM_FAMILY_PRESENTATION_CHECK PASS f90 resolves all seven physical sockets from saved authored data
+FIREARM_FAMILY_PRESENTATION_CHECK PASS f90 mesh length 0.5000 m is within 0.35-0.85 m
+FIREARM_FAMILY_PRESENTATION_CHECK PASS f90 keeps trigger-hand weapon ownership with support-hand-only IK
+FIREARM_FAMILY_PRESENTATION_CHECK PASS f90 preserves standing and crouched recovery without a fire OneShot
+FIREARM_FAMILY_PRESENTATION_CHECK PASS hk5 loads through SocomWeaponRigContract
+FIREARM_FAMILY_PRESENTATION_CHECK PASS hk5 resolves to independently expected family TWO_HAND_RIFLE
+FIREARM_FAMILY_PRESENTATION_CHECK PASS hk5 resolves all seven physical sockets from saved authored data
+FIREARM_FAMILY_PRESENTATION_CHECK PASS hk5 mesh length 0.6800 m is within 0.35-0.85 m
+FIREARM_FAMILY_PRESENTATION_CHECK PASS hk5 keeps trigger-hand weapon ownership with support-hand-only IK
+FIREARM_FAMILY_PRESENTATION_CHECK PASS hk5 preserves standing and crouched recovery without a fire OneShot
+FIREARM_FAMILY_PRESENTATION_CHECK PASS hk5sd loads through SocomWeaponRigContract
+FIREARM_FAMILY_PRESENTATION_CHECK PASS hk5sd resolves to independently expected family TWO_HAND_RIFLE
+FIREARM_FAMILY_PRESENTATION_CHECK PASS hk5sd resolves all seven physical sockets from saved authored data
+FIREARM_FAMILY_PRESENTATION_CHECK PASS hk5sd mesh length 0.7900 m is within 0.35-0.85 m
+FIREARM_FAMILY_PRESENTATION_CHECK PASS hk5sd keeps trigger-hand weapon ownership with support-hand-only IK
+FIREARM_FAMILY_PRESENTATION_CHECK PASS hk5sd preserves standing and crouched recovery without a fire OneShot
+FIREARM_FAMILY_PRESENTATION_CHECK PASS m14 loads through SocomWeaponRigContract
+FIREARM_FAMILY_PRESENTATION_CHECK PASS m14 resolves to independently expected family TWO_HAND_RIFLE
+FIREARM_FAMILY_PRESENTATION_CHECK PASS m14 resolves all seven physical sockets from saved authored data
+FIREARM_FAMILY_PRESENTATION_CHECK PASS m14 mesh length 1.0000 m is within 0.45-1.20 m
+FIREARM_FAMILY_PRESENTATION_CHECK PASS m14 keeps trigger-hand weapon ownership with support-hand-only IK
+FIREARM_FAMILY_PRESENTATION_CHECK PASS m14 preserves standing and crouched recovery without a fire OneShot
+FIREARM_FAMILY_PRESENTATION_CHECK PASS m16a2-m203 loads through SocomWeaponRigContract
+FIREARM_FAMILY_PRESENTATION_CHECK PASS m16a2-m203 resolves to independently expected family TWO_HAND_RIFLE
+FIREARM_FAMILY_PRESENTATION_CHECK PASS m16a2-m203 resolves all seven physical sockets from saved authored data
+FIREARM_FAMILY_PRESENTATION_CHECK PASS m16a2-m203 mesh length 0.8400 m is within 0.45-1.20 m
+FIREARM_FAMILY_PRESENTATION_CHECK PASS m16a2-m203 keeps trigger-hand weapon ownership with support-hand-only IK
+FIREARM_FAMILY_PRESENTATION_CHECK PASS m16a2-m203 preserves standing and crouched recovery without a fire OneShot
+FIREARM_FAMILY_PRESENTATION_CHECK PASS m16a2 loads through SocomWeaponRigContract
+FIREARM_FAMILY_PRESENTATION_CHECK PASS m16a2 resolves to independently expected family TWO_HAND_RIFLE
+FIREARM_FAMILY_PRESENTATION_CHECK PASS m16a2 resolves all seven physical sockets from saved authored data
+FIREARM_FAMILY_PRESENTATION_CHECK PASS m16a2 mesh length 0.6392 m is within 0.45-1.20 m
+FIREARM_FAMILY_PRESENTATION_CHECK PASS m16a2 keeps trigger-hand weapon ownership with support-hand-only IK
+FIREARM_FAMILY_PRESENTATION_CHECK PASS m16a2 preserves standing and crouched recovery without a fire OneShot
+FIREARM_FAMILY_PRESENTATION_CHECK PASS m4a1-m203 loads through SocomWeaponRigContract
+FIREARM_FAMILY_PRESENTATION_CHECK PASS m4a1-m203 resolves to independently expected family TWO_HAND_RIFLE
+FIREARM_FAMILY_PRESENTATION_CHECK PASS m4a1-m203 resolves all seven physical sockets from saved authored data
+FIREARM_FAMILY_PRESENTATION_CHECK PASS m4a1-m203 mesh length 0.8400 m is within 0.45-1.20 m
+FIREARM_FAMILY_PRESENTATION_CHECK PASS m4a1-m203 keeps trigger-hand weapon ownership with support-hand-only IK
+FIREARM_FAMILY_PRESENTATION_CHECK PASS m4a1-m203 preserves standing and crouched recovery without a fire OneShot
+FIREARM_FAMILY_PRESENTATION_CHECK PASS m4a1 loads through SocomWeaponRigContract
+FIREARM_FAMILY_PRESENTATION_CHECK PASS m4a1 resolves to independently expected family TWO_HAND_RIFLE
+FIREARM_FAMILY_PRESENTATION_CHECK PASS m4a1 resolves all seven physical sockets from saved authored data
+FIREARM_FAMILY_PRESENTATION_CHECK PASS m4a1 mesh length 0.8982 m is within 0.45-1.20 m
+FIREARM_FAMILY_PRESENTATION_CHECK PASS m4a1 keeps trigger-hand weapon ownership with support-hand-only IK
+FIREARM_FAMILY_PRESENTATION_CHECK PASS m4a1 preserves standing and crouched recovery without a fire OneShot
+FIREARM_FAMILY_PRESENTATION_CHECK PASS m4a1_sd loads through SocomWeaponRigContract
+FIREARM_FAMILY_PRESENTATION_CHECK PASS m4a1_sd resolves to independently expected family TWO_HAND_RIFLE
+FIREARM_FAMILY_PRESENTATION_CHECK PASS m4a1_sd resolves all seven physical sockets from saved authored data
+FIREARM_FAMILY_PRESENTATION_CHECK PASS m4a1_sd mesh length 0.8800 m is within 0.45-1.20 m
+FIREARM_FAMILY_PRESENTATION_CHECK PASS m4a1_sd keeps trigger-hand weapon ownership with support-hand-only IK
+FIREARM_FAMILY_PRESENTATION_CHECK PASS m4a1_sd preserves standing and crouched recovery without a fire OneShot
+FIREARM_FAMILY_PRESENTATION_CHECK PASS m9 loads through SocomWeaponRigContract
+FIREARM_FAMILY_PRESENTATION_CHECK PASS m9 resolves to independently expected family TWO_HAND_PISTOL
+FIREARM_FAMILY_PRESENTATION_CHECK PASS m9 uses the certified optic-up pistol roll
+FIREARM_FAMILY_PRESENTATION_CHECK PASS m9 resolves all seven physical sockets from saved authored data
+FIREARM_FAMILY_PRESENTATION_CHECK PASS m9 mesh length 0.2170 m is within 0.16-0.35 m
+FIREARM_FAMILY_PRESENTATION_CHECK PASS m9 keeps trigger-hand weapon ownership with support-hand-only IK
+FIREARM_FAMILY_PRESENTATION_CHECK PASS m9 preserves standing and crouched recovery without a fire OneShot
+FIREARM_FAMILY_PRESENTATION_CHECK PASS mark_23 loads through SocomWeaponRigContract
+FIREARM_FAMILY_PRESENTATION_CHECK PASS mark_23 resolves to independently expected family TWO_HAND_PISTOL
+FIREARM_FAMILY_PRESENTATION_CHECK PASS mark_23 uses the certified optic-up pistol roll
+FIREARM_FAMILY_PRESENTATION_CHECK PASS mark_23 resolves all seven physical sockets from saved authored data
+FIREARM_FAMILY_PRESENTATION_CHECK PASS mark_23 mesh length 0.2200 m is within 0.16-0.35 m
+FIREARM_FAMILY_PRESENTATION_CHECK PASS mark_23 keeps trigger-hand weapon ownership with support-hand-only IK
+FIREARM_FAMILY_PRESENTATION_CHECK PASS mark_23 preserves standing and crouched recovery without a fire OneShot
+FIREARM_FAMILY_PRESENTATION_CHECK PASS mark_23sd loads through SocomWeaponRigContract
+FIREARM_FAMILY_PRESENTATION_CHECK PASS mark_23sd resolves to independently expected family TWO_HAND_PISTOL
+FIREARM_FAMILY_PRESENTATION_CHECK PASS mark_23sd uses the certified optic-up pistol roll
+FIREARM_FAMILY_PRESENTATION_CHECK PASS mark_23sd resolves all seven physical sockets from saved authored data
+FIREARM_FAMILY_PRESENTATION_CHECK PASS mark_23sd mesh length 0.1900 m is within 0.16-0.35 m
+FIREARM_FAMILY_PRESENTATION_CHECK PASS mark_23sd keeps trigger-hand weapon ownership with support-hand-only IK
+FIREARM_FAMILY_PRESENTATION_CHECK PASS mark_23sd preserves standing and crouched recovery without a fire OneShot
+FIREARM_FAMILY_PRESENTATION_CHECK PASS model_18 loads through SocomWeaponRigContract
+FIREARM_FAMILY_PRESENTATION_CHECK PASS model_18 resolves to independently expected family TWO_HAND_PISTOL
+FIREARM_FAMILY_PRESENTATION_CHECK PASS model_18 uses the certified optic-up pistol roll
+FIREARM_FAMILY_PRESENTATION_CHECK PASS model_18 resolves all seven physical sockets from saved authored data
+FIREARM_FAMILY_PRESENTATION_CHECK PASS model_18 mesh length 0.1900 m is within 0.16-0.35 m
+FIREARM_FAMILY_PRESENTATION_CHECK PASS model_18 keeps trigger-hand weapon ownership with support-hand-only IK
+FIREARM_FAMILY_PRESENTATION_CHECK PASS model_18 preserves standing and crouched recovery without a fire OneShot
+FIREARM_FAMILY_PRESENTATION_CHECK PASS shotgun_1 loads through SocomWeaponRigContract
+FIREARM_FAMILY_PRESENTATION_CHECK PASS shotgun_1 resolves to independently expected family LONG_GUN
+FIREARM_FAMILY_PRESENTATION_CHECK PASS shotgun_1 resolves all seven physical sockets from saved authored data
+FIREARM_FAMILY_PRESENTATION_CHECK PASS shotgun_1 mesh length 0.9500 m is within 0.65-1.50 m
+FIREARM_FAMILY_PRESENTATION_CHECK PASS shotgun_1 keeps trigger-hand weapon ownership with support-hand-only IK
+FIREARM_FAMILY_PRESENTATION_CHECK PASS shotgun_1 preserves standing and crouched recovery without a fire OneShot
+FIREARM_FAMILY_PRESENTATION_CHECK PASS sniperrifle_1 loads through SocomWeaponRigContract
+FIREARM_FAMILY_PRESENTATION_CHECK PASS sniperrifle_1 resolves to independently expected family LONG_GUN
+FIREARM_FAMILY_PRESENTATION_CHECK PASS sniperrifle_1 resolves all seven physical sockets from saved authored data
+FIREARM_FAMILY_PRESENTATION_CHECK PASS sniperrifle_1 mesh length 1.1500 m is within 0.65-1.50 m
+FIREARM_FAMILY_PRESENTATION_CHECK PASS sniperrifle_1 keeps trigger-hand weapon ownership with support-hand-only IK
+FIREARM_FAMILY_PRESENTATION_CHECK PASS sniperrifle_1 preserves standing and crouched recovery without a fire OneShot
+FIREARM_FAMILY_PRESENTATION_CHECK PASS submachinegun_1 loads through SocomWeaponRigContract
+FIREARM_FAMILY_PRESENTATION_CHECK PASS submachinegun_1 resolves to independently expected family TWO_HAND_RIFLE
+FIREARM_FAMILY_PRESENTATION_CHECK PASS submachinegun_1 resolves all seven physical sockets from saved authored data
+FIREARM_FAMILY_PRESENTATION_CHECK PASS submachinegun_1 mesh length 0.6800 m is within 0.35-0.85 m
+FIREARM_FAMILY_PRESENTATION_CHECK PASS submachinegun_1 keeps trigger-hand weapon ownership with support-hand-only IK
+FIREARM_FAMILY_PRESENTATION_CHECK PASS submachinegun_1 preserves standing and crouched recovery without a fire OneShot
+FIREARM_FAMILY_PRESENTATION_CHECK PASS non-firearm catalog placeholders stay outside the family presentation gate
+FIREARM_FAMILY_PRESENTATION_REGRESSION FAIL ["all saved pistol, rifle, and SMG profiles are discovered"]

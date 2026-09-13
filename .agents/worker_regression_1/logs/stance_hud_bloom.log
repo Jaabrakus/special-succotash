@@ -1,0 +1,7 @@
+COMMAND: /Users/kiwimango/Applications/Godot-4.7.1.app/Contents/MacOS/Godot --headless -s tools/stance_hud_bloom_regression.gd
+EXIT_CODE: 0
+DURATION: 0.27s
+
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+STANCE_HUD_BLOOM_PASS: stationary cap, moving/airborne and stance caps, matching ballistics, stance tracking and larger health/ammo

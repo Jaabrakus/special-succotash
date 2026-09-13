@@ -42,7 +42,12 @@ func _run() -> void:
 				anchored = anchored and reference.is_equal_approx(clip.track_get_key_value(hips, key))
 		_expect(anchored, "no duplicate hip lift: " + str(clip_name))
 	await _step(true, true)
-	_expect(player.traversal.is_mantling(), "Jump starts a standing-reach climb")
+	_expect(player.traversal.is_hanging(), "Jump grabs before climbing")
+	for frame in 10: await _step(false, false, false, -1.0)
+	_expect(player.traversal.is_hanging(), "held forward cannot skip hang")
+	await _step()
+	await _step(false, false, false, -1.0)
+	_expect(player.traversal.is_mantling(), "fresh W starts pull-up")
 	_expect(player.is_fire_locked_by_mobility(), "pull-up occupies weapon hands")
 	_expect(player.get_traversal_presentation().get("slot") == "pull_up", "pull-up selects dedicated presentation")
 	for frame in 110:
@@ -55,6 +60,7 @@ func _run() -> void:
 	await _reset(Vector3(0, 0.03, 1.35))
 	ledge.add_to_group("no_climb")
 	_expect(not _probe().get("accepted", false), "no_climb opt-out rejects platform")
+	_expect(not player._try_begin_automatic_vault(Vector3.FORWARD, true, true), "fresh tap respects no_climb")
 	ledge.remove_from_group("no_climb")
 	player.traversal.mantle_motor.climb_profile.require_climbable_group = true
 	_expect(not _probe().get("accepted", false), "tag-only policy rejects untagged platform")
@@ -63,12 +69,39 @@ func _run() -> void:
 	player.traversal.mantle_motor.climb_profile.require_climbable_group = false
 	var ceiling := _box("Ceiling", Vector3(4, 0.2, 4), Vector3(0, 3, 0.5))
 	await physics_frame
-	_expect(not _probe().get("accepted", false), "blocked overhead rejects climb")
+	var blocked_top := _probe()
+	_expect(bool(blocked_top.get("accepted",false)) and not bool(blocked_top.get("can_pull_up",true)), "standing overhead blockage may retain safe grip only")
+	_expect(player._try_begin_automatic_vault(Vector3.FORWARD, true, true) and player.traversal.is_hanging(), "fresh tap can hang below standing overhead blocker")
+	for frame in 20: await _step()
+	_expect(not player.traversal.pull_up(player) and player.traversal.is_hanging(), "overhead blocker never permits unsafe pull-up")
+	player.traversal.leave_grip()
 	ceiling.queue_free()
 	await physics_frame
 	ledge.position.y += 0.55
+	# A second tap must climb, not require holding Jump or full movement input.
+	for tap_axis in [0.0, -0.25, -1.0]:
+		await _reset(Vector3(0, 0.03, 1.35))
+		await _step(true, false)
+		for frame in 25:
+			await _step(false, false, false, -1.0)
+			if _probe().get("accepted", false): break
+		_expect(_probe().get("accepted", false), "second-tap fixture is within physical reach")
+		player.automatic_vault_retry_remaining = 0.5
+		_expect(not player._try_begin_automatic_vault(Vector3.FORWARD, true, true), "fresh tap respects detach cooldown")
+		player.automatic_vault_retry_remaining = 0.0
+		player.automatic_vault_probe_remaining = 0.08
+		await _step(true, false, false, tap_axis, false)
+		_expect(player.traversal.is_hanging(), "second tap grabs despite probe timer, axis=" + str(tap_axis))
+		await _step()
+		await _step(false, false, false, -1.0)
+		_expect(player.traversal.is_mantling(), "fresh W pulls up after tap grab")
+		for frame in 110:
+			await _step()
+			if tap_axis == 0.0 and frame in [5, 25, 55]: await _capture("tap-" + str(frame))
+		_expect(player.is_on_floor() and player.global_position.y > 2.5, "second tap lands on ledge, axis=" + str(tap_axis))
 	await _reset(Vector3(0, 0.03, 1.35))
 	_expect(not _probe().get("accepted", false), "2.55m ledge is beyond grounded fingertips")
+	_expect(not player._try_begin_automatic_vault(Vector3.FORWARD, true, true), "fresh tap cannot bypass physical reach")
 	await _step(true, true)
 	var caught := false
 	for frame in 45:
@@ -96,6 +129,15 @@ func _run() -> void:
 		Codec.apply(player, state)
 		_expect(player.traversal.is_hanging(), "replayed hang keeps anchor and mode")
 		await _capture("hang")
+		var before_shimmy := player.global_position
+		for frame in 30: await _step(false, false, false, 0, false, 1)
+		_expect(player.global_position.x > before_shimmy.x + 0.2, "D shimmies right")
+		for frame in 30: await _step(false, false, false, 0, false, -1)
+		_expect(absf(player.global_position.x - before_shimmy.x) < 0.08, "A shimmies left")
+		for frame in 180: await _step(false, false, false, 0, false, 1)
+		var hand_margin := float(player.traversal.mantle_motor.climb_profile.get("grip_half_width_m",0.19))
+		_expect(player.traversal.is_hanging() and player.global_position.x <= 1.5-hand_margin+0.001 and player.global_position.x > 0.5, "shimmy stops before unsupported hand grip")
+		for frame in 180: await _step(false, false, false, 0, false, -1)
 		await _step(true, false)
 		_expect(player.traversal.is_mantling(), "fresh Jump pulls up from hang")
 		for frame in 110: await _step()
@@ -105,14 +147,26 @@ func _run() -> void:
 	for frame in 45:
 		await _step(false, true)
 		if player.traversal.is_hanging(): break
-	await _step(false, false, true)
-	_expect(not player.traversal.is_active(), "Crouch drops ledge hang")
+	await _step(false, false, false, 1)
+	_expect(not player.traversal.is_active(), "S drops ledge hang")
 	ledge.position.y += 0.65
 	await _reset(Vector3(0, 0.03, 1.35))
 	await _step(true, true)
 	for frame in 50: await _step(false, true)
 	_expect(not player.traversal.is_active(), "jump cannot reach 3.2m ledge")
 	ledge.queue_free()
+	await physics_frame
+	var awning := _box("ThinAwning", Vector3(3, 0.06, 4), Vector3(0, 2.0, -1.5))
+	await _reset(Vector3(0, 0.03, 1.35))
+	_expect(_probe().get("accepted", false), "thin awning has reachable supported edge")
+	await _step(true, true)
+	_expect(player.traversal.is_hanging(), "awning grabs into hang")
+	await _step()
+	await _step(false, false, false, -1)
+	for frame in 110: await _step()
+	_expect(player.is_on_floor() and player.global_position.y > 2.0, "awning pull-up completes")
+	_expect(not player.traversal.is_active() and player.get_traversal_presentation().slot == "", "completed climb exits presentation without replay")
+	awning.queue_free()
 	await physics_frame
 	# Explicit authored ladder plus a top platform at the exit marker.
 	_box("LadderPlatform", Vector3(3, 3, 4), Vector3(0, 1.5, -2))
@@ -168,14 +222,14 @@ func _reset(point: Vector3) -> void:
 	player.automatic_vault_probe_remaining = 0.0
 	for frame in 12: await _step()
 
-func _step(jump: bool = false, held: bool = false, drop: bool = false, axis: float = 0.0) -> void:
+func _step(jump: bool = false, held: bool = false, drop: bool = false, axis: float = 0.0, auto_forward: bool = true, lateral: float = 0.0) -> void:
 	var command := Command.new()
 	command.simulation_tick = Engine.get_physics_frames()
 	command.jump_pressed = jump
 	command.jump_held = held
 	command.crouch_held = drop
-	command.move_axis = Vector2(0, axis)
-	if jump or held: command.move_axis.y = -1.0
+	command.move_axis = Vector2(lateral, axis)
+	if auto_forward and (jump or held): command.move_axis.y = -1.0
 	player.queue_movement_command(command)
 	await physics_frame
 	await process_frame

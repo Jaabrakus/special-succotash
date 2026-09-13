@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "feature_id": "look_pitch_presentation",
+  "player_intent": "Torso follows look pitch smoothly without automatic downward lens zoom.",
+  "acceptance_rule": "Clear-space FOV stays at base across downward aim; collision widening remains. Relaxed standing/crouching uses bounded smoothed spine pitch, prone and authored actions retain ownership.",
+  "canonical_scene": "res://main.tscn",
+  "ownership": {"lens": "SocomCameraRig", "spine_pitch": "SocomOperatorPostureLayer"},
+  "nodes": [
+    {"id":"camera","type":"Node3D","owner":"SocomCameraRig","role":"Sole camera composition owner","scene_path":"res://main.tscn","node_path":"IndependentCameraRig"},
+    {"id":"operator","type":"Node3D","owner":"SocomOperatorAnimationDriver","role":"Existing posture consumer before weapon IK","scene_path":"res://scenes/player/operator_player.tscn","node_path":"Mannequin/ProductionAnimation"}
+  ],
+  "data_contracts": [
+    {"path":"res://config/look_pitch_presentation.json","writer":"res://docs/LOOK_PITCH_PRESENTATION.md","readers":["res://scripts/player/operator_posture_layer.gd"]},
+    {"path":"res://scripts/camera/camera_profile.gd","writer":"res://docs/LOOK_PITCH_PRESENTATION.md","readers":["res://scripts/camera/socom_camera.gd","res://scripts/camera/camera_composition_controller.gd"]}
+  ],
+  "must_not_change": ["aim intent", "CharacterBody movement and collision", "camera obstacle safety", "server shot/damage", "reload and traversal timing"],
+  "proof_scripts": ["res://tools/look_pitch_presentation_regression.gd","res://tools/camera_obstruction_guard_regression.gd"],
+  "visual_check": "Main-scene idle and moving standing/crouched pitch sweeps from side and player view; no arms-only aiming or exaggerated back arch; no intentional downward zoom.",
+  "system_delta": {
+    "decision":"MERGE", "reason":"User requests pitch lens zoom disabled and relaxed torso articulation through existing owners.",
+    "current":{"system":"Ready-only torso pitch and downward lens zoom","correctness":2,"ownership_clarity":5,"runtime_parity":5,"editor_usability":3,"performance":5,"regression_coverage":2,"evidence_paths":["res://scripts/camera/camera_composition_controller.gd","res://scripts/player/operator_posture_layer.gd"]},
+    "candidate":{"system":"Smoothed relaxed torso pitch and optional lens zoom","correctness":4,"ownership_clarity":5,"runtime_parity":5,"editor_usability":4,"performance":5,"regression_coverage":4,"evidence_paths":["res://tools/look_pitch_presentation_regression.gd","res://config/look_pitch_presentation.json"]}
+  }
+}

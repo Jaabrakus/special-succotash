@@ -1,0 +1,19 @@
+COMMAND: /Users/kiwimango/Applications/Godot-4.7.1.app/Contents/MacOS/Godot --headless -s tools/prone_grounding_regression.gd
+EXIT_CODE: 1
+DURATION: 3.74s
+
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+PRONE_GROUND_CHECK PASS main scene loads
+PRONE_GROUND_CHECK PASS production prone rig exists
+PRONE_GROUND_CHECK PASS production skeleton exists
+PRONE_GROUND_METRIC floor_y=0.0900 left_foot_m=0.1141 right_foot_m=-0.0089 left_knee_m=-0.0211 right_knee_m=-0.1228
+PRONE_GROUND_METRIC axis_error_deg=0.0000
+PRONE_GROUND_CHECK PASS forward-prone crawl keeps one planted foot while bounding the moving foot
+ERROR: PRONE_GROUND_CHECK FAIL forward-prone crawl keeps one support knee grounded and the moving knee bounded
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/prone_grounding_regression.gd:107)
+       [1] _run (res://tools/prone_grounding_regression.gd:86)
+PRONE_GROUND_CHECK PASS grounded prone pelvis, spine, and head remain stacked for W travel
+PRONE_GROUNDING_REGRESSION FAIL ["forward-prone crawl keeps one support knee grounded and the moving knee bounded"]

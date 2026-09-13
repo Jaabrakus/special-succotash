@@ -11,6 +11,9 @@ extends CharacterBody3D
 const TROOPER_SCENE := preload("res://assets/characters/ps1_gas_mask_soldier/trooper_rigged.fbx")
 const TROOPER_TEXTURE := preload("res://assets/characters/ps1_gas_mask_soldier/trooper.png")
 const AnimatedHurtboxRigScript := preload("res://scripts/combat/socom_animated_hurtbox_rig.gd")
+const SourceFirearmDamage := preload("res://scripts/combat/source_firearm_damage.gd")
+const SourceFirearmPolicy := preload("res://scripts/weapons/source_firearm_policy.gd")
+var source_health: RefCounted = null
 
 @export var max_health: float = 100.0
 var current_health: float = 100.0
@@ -186,6 +189,32 @@ func take_profiled_bullet_damage_region(
 		hit_normal, shooter_origin, headshot_multiplier, directional_torso_modifiers_enabled)
 
 
+func take_source_bullet_damage(combat: Dictionary, hit_region: StringName, _attacker_peer_id: int = 0) -> Dictionary:
+	if not is_alive or not SourceFirearmPolicy.valid_impact(combat, hit_region):
+		return {"accepted": false, "hit_region": hit_region}
+	if source_health == null:
+		source_health = SourceFirearmDamage.new()
+		if not source_health.initialize(SourceFirearmPolicy.multiplayer_defaults()):
+			source_health = null
+			return {"accepted": false, "reason": "SOURCE_HEALTH_PROFILE_INVALID"}
+		source_health.cap_legacy_health_ratio(current_health / maxf(max_health, 0.001))
+	var before_health := current_health
+	var result: Dictionary = source_health.apply_projectile(combat.impact_damage, combat.damage_modifier,
+		combat.piercing, float(combat.get("distance_m", INF)), combat.effective_range_m,
+		combat.maximum_range_m, SourceFirearmPolicy.source_region(hit_region))
+	if not bool(result.get("accepted", false)): return result
+	current_health = max_health * source_health.weighted_health_ratio()
+	flinch_rotation.x = randf_range(-0.15, -0.28)
+	flinch_rotation.z = randf_range(-0.10, 0.10)
+	if health_label:
+		health_label.text = "HOSTILE %.0f%% | %s" % [current_health, String(hit_region)]
+	if not source_health.alive:
+		_die("HEADSHOT" if hit_region == &"HEAD" else "SOURCE_BODY")
+	result.merge({"damage": before_health - current_health, "hit_region": hit_region, "headshot": hit_region == &"HEAD", "remaining_health": current_health,
+		"eliminated": not is_alive, "damage_model": SourceFirearmPolicy.DAMAGE_MODEL}, true)
+	return result
+
+
 func take_bullet_damage_region(
 	base_damage: float,
 	hit_region: StringName,
@@ -250,6 +279,7 @@ func take_bullet_damage_region(
 
 	var actual_damage: float = base_damage * zone_mult * dist_falloff
 	current_health = maxf(0.0, current_health - actual_damage)
+	if source_health != null: source_health.cap_legacy_health_ratio(current_health / maxf(max_health, 0.001))
 
 	# Physical flinch reaction
 	flinch_rotation.x = randf_range(-0.15, -0.28)
@@ -297,6 +327,7 @@ func take_explosion_damage(
 		return {"accepted": false}
 	var damage := maxf(0.0, damage_value)
 	current_health = maxf(0.0, current_health - damage)
+	if source_health != null: source_health.cap_legacy_health_ratio(current_health / maxf(max_health, 0.001))
 	flinch_rotation.x = randf_range(-0.15, -0.28)
 	flinch_rotation.z = randf_range(-0.10, 0.10)
 	if health_label:
@@ -331,6 +362,7 @@ func _die(hit_type: String) -> void:
 
 	# Auto-respawn after 2.5 seconds
 	get_tree().create_timer(2.5).timeout.connect(func():
+		source_health = null
 		current_health = max_health
 		is_alive = true
 		if hurtbox_rig and is_instance_valid(hurtbox_rig):

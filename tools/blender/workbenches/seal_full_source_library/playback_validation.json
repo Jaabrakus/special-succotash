@@ -1,0 +1,2647 @@
+{
+  "passed": true,
+  "actions": 264,
+  "all_source_keys_unchanged": true,
+  "scenes": [
+    {
+      "action": "seal_180",
+      "range": [
+        1,
+        29
+      ],
+      "duration_seconds": 0.9333333333333333,
+      "coverage": "full",
+      "key_sha256": "88fe079ce05fb75d3daedfd040d9a343ba29d295ac14a5b2a221a55ea16a312d"
+    },
+    {
+      "action": "seal_alert_step",
+      "range": [
+        1,
+        17
+      ],
+      "duration_seconds": 0.5333333333333333,
+      "coverage": "full",
+      "key_sha256": "b95c63a31064ba5a4923b222c36ce9dd849c12b6967cb0b515e0fbba8a910eb5"
+    },
+    {
+      "action": "seal_apply_restraints",
+      "range": [
+        1,
+        39
+      ],
+      "duration_seconds": 1.2666666666666666,
+      "coverage": "full",
+      "key_sha256": "93dd270f6e828f405859dba7c9435af7e9152d68ab21170ccaf3f61ff03d4667"
+    },
+    {
+      "action": "seal_breach_door",
+      "range": [
+        1,
+        51
+      ],
+      "duration_seconds": 1.6666666666666667,
+      "coverage": "full",
+      "key_sha256": "e9aeb75cd753c94d6795662481fc579e718e787dacf7a2f75512d5849c11f6f7"
+    },
+    {
+      "action": "seal_buddycarried_pickup",
+      "range": [
+        1,
+        82
+      ],
+      "duration_seconds": 2.7,
+      "coverage": "full",
+      "key_sha256": "4a96ba0c8ba6296ba2e9e415d53984ed8733315979a650e5433ab516dbf68598"
+    },
+    {
+      "action": "seal_buddycarried_stand",
+      "range": [
+        1,
+        2
+      ],
+      "duration_seconds": 0.03333333333333333,
+      "coverage": "full",
+      "key_sha256": "c675ac2128ec3a0f1990b6378b7742bf75832109bc2e2a18c51e9bc44bcee8f5"
+    },
+    {
+      "action": "seal_buddycarried_step",
+      "range": [
+        1,
+        17
+      ],
+      "duration_seconds": 0.5333333333333333,
+      "coverage": "full",
+      "key_sha256": "464263c2dd57f4c19875e6fb5c89238a82521fcfa6aad64de18294793171f31b"
+    },
+    {
+      "action": "seal_buddycarried_walk",
+      "range": [
+        1,
+        29
+      ],
+      "duration_seconds": 0.9333333333333333,
+      "coverage": "full",
+      "key_sha256": "512b986ead582bf5aef9133924620ee8a6dcbbe339e909bae3e18b38f6b0258c"
+    },
+    {
+      "action": "seal_buddycarry_body",
+      "range": [
+        1,
+        2
+      ],
+      "duration_seconds": 0.03333333333333333,
+      "coverage": "full",
+      "key_sha256": "2450838fe16d988b491c1a2eede6d853a7dd1d67dca686db23d99da9772d0fd8"
+    },
+    {
+      "action": "seal_buddycarry_pickup",
+      "range": [
+        1,
+        82
+      ],
+      "duration_seconds": 2.7,
+      "coverage": "full",
+      "key_sha256": "3159464f804377edafc88da8335cfccd66d019b0869fbb16ea334cf5609dfc52"
+    },
+    {
+      "action": "seal_buddycarry_stand",
+      "range": [
+        1,
+        2
+      ],
+      "duration_seconds": 0.03333333333333333,
+      "coverage": "full",
+      "key_sha256": "ff3623a27e162d65203000678caf576479cc24d84f237d8209d7f3c2560b91e4"
+    },
+    {
+      "action": "seal_buddycarry_step",
+      "range": [
+        1,
+        17
+      ],
+      "duration_seconds": 0.5333333333333333,
+      "coverage": "full",
+      "key_sha256": "94ea4faeb4c7932b72603134e58988dfbddbbfb9f7b84384bc3e3b37919926e0"
+    },
+    {
+      "action": "seal_buddycarry_walk",
+      "range": [
+        1,
+        29
+      ],
+      "duration_seconds": 0.9333333333333333,
+      "coverage": "full",
+      "key_sha256": "1a596f9806cd1ae305579aa9da564ae68a5f4b0ba620229000fc0928c72ba971"
+    },
+    {
+      "action": "seal_climb_medium",
+      "range": [
+        1,
+        33
+      ],
+      "duration_seconds": 1.0666666666666667,
+      "coverage": "full",
+      "key_sha256": "4657bd7e3301bc39a1c0c3dececf597ca6cbcbe51956ffcb312f3c4ebafa2736"
+    },
+    {
+      "action": "seal_climb_over",
+      "range": [
+        1,
+        20
+      ],
+      "duration_seconds": 0.6333333333333333,
+      "coverage": "full",
+      "key_sha256": "94cafeebd50036a07ff2af17b7eb4105add9faff9c621bc8da38ef563a7d48de"
+    },
+    {
+      "action": "seal_climbcrate",
+      "range": [
+        1,
+        31
+      ],
+      "duration_seconds": 1.0,
+      "coverage": "full",
+      "key_sha256": "6ae27c259a5073f338fdf4ce474157595cf0424de001c278fe5ffa351f6f8590"
+    },
+    {
+      "action": "seal_climbladder",
+      "range": [
+        1,
+        17
+      ],
+      "duration_seconds": 0.5333333333333333,
+      "coverage": "full",
+      "key_sha256": "b9f5ddba5d3b08246a6787dee303ae0a1a551249b9fd8c8619b07723046ac468"
+    },
+    {
+      "action": "seal_climboffladder",
+      "range": [
+        1,
+        38
+      ],
+      "duration_seconds": 1.2333333333333334,
+      "coverage": "full",
+      "key_sha256": "80b41a3bede933afda89649afd089d37f455a2cb5e69fbb0d06eec09f6ffccd4"
+    },
+    {
+      "action": "seal_cqb_attack",
+      "range": [
+        1,
+        33
+      ],
+      "duration_seconds": 1.0666666666666667,
+      "coverage": "full",
+      "key_sha256": "4deab77af4fb49a294d819779b9b6d42d2d5d22886fb2dfa4f1a7ffac46f18fa"
+    },
+    {
+      "action": "seal_crouch",
+      "range": [
+        1,
+        22
+      ],
+      "duration_seconds": 0.7,
+      "coverage": "full",
+      "key_sha256": "1bc85daced536e4f627e10cd666c1a982ec7c3dcfbee5c005138b50d2ee8b759"
+    },
+    {
+      "action": "seal_crouch2binocular",
+      "range": [
+        1,
+        24
+      ],
+      "duration_seconds": 0.7666666666666667,
+      "coverage": "full",
+      "key_sha256": "dcbd8c68967fef76e52ebeda39b51a9599cf3c8d90d65e668d12437fdb372a60"
+    },
+    {
+      "action": "seal_crouch2llean",
+      "range": [
+        1,
+        16
+      ],
+      "duration_seconds": 0.5,
+      "coverage": "full",
+      "key_sha256": "238b397f53955579437c5df10aa4cf70ff3c9eef0397f8f6136f7875affb806a"
+    },
+    {
+      "action": "seal_crouch2prone",
+      "range": [
+        1,
+        34
+      ],
+      "duration_seconds": 1.1,
+      "coverage": "full",
+      "key_sha256": "6f3c13fee74f1982ec4f76f2ea43d46f44480d3e9b5b88e417f2a2b14a9fda84"
+    },
+    {
+      "action": "seal_crouch2rlean",
+      "range": [
+        1,
+        22
+      ],
+      "duration_seconds": 0.7,
+      "coverage": "full",
+      "key_sha256": "1aee731a9beb42daff94c494ae6f9d642284e78f6e06047aa05839dcd46fbc1b"
+    },
+    {
+      "action": "seal_crouch_alert01",
+      "range": [
+        1,
+        17
+      ],
+      "duration_seconds": 0.5333333333333333,
+      "coverage": "full",
+      "key_sha256": "e05b34d720fe970f5054b433ff810d8ab56fedcb41b4330d42b091500702e565"
+    },
+    {
+      "action": "seal_crouch_alert02",
+      "range": [
+        1,
+        11
+      ],
+      "duration_seconds": 0.3333333333333333,
+      "coverage": "full",
+      "key_sha256": "da5b2a6644eee5d439f9850d317d113f8d62940c23ed3d4fdb3ef9dbc1f6a60d"
+    },
+    {
+      "action": "seal_crouch_pump_shotgun",
+      "range": [
+        1,
+        14
+      ],
+      "duration_seconds": 0.43333333333333335,
+      "coverage": "full",
+      "key_sha256": "1d5a0ffd3c51575633461fbe4f0ebde2205801137cb4b34d37c877d6b95315b7"
+    },
+    {
+      "action": "seal_crouch_recoil",
+      "range": [
+        1,
+        3
+      ],
+      "duration_seconds": 0.06666666666666667,
+      "coverage": "full",
+      "key_sha256": "180d27332aecd716b60064726a7de5453e1c0326282af5f76603fe357024e5e7"
+    },
+    {
+      "action": "seal_crouch_reload",
+      "range": [
+        1,
+        29
+      ],
+      "duration_seconds": 0.9333333333333333,
+      "coverage": "full",
+      "key_sha256": "b3c2f5b8801f1b73d78abd82970368814aa3b98bfdb2370026f5dd171e08dabd"
+    },
+    {
+      "action": "seal_crouch_reload_shotgun",
+      "range": [
+        1,
+        17
+      ],
+      "duration_seconds": 0.5333333333333333,
+      "coverage": "full",
+      "key_sha256": "468ce96a1a4ae659dce6efe7f9b982439f675f959850ff8f07676e9c20fe5e6b"
+    },
+    {
+      "action": "seal_crouch_rflinch",
+      "range": [
+        1,
+        21
+      ],
+      "duration_seconds": 0.6666666666666666,
+      "coverage": "full",
+      "key_sha256": "6d106a4cd45c9844f55c645ffa3938b3f0ca2e18de201bd51f576c9a81395e27"
+    },
+    {
+      "action": "seal_crouch_rifle2pistol",
+      "range": [
+        1,
+        24
+      ],
+      "duration_seconds": 0.7666666666666667,
+      "coverage": "full",
+      "key_sha256": "46698d22e25623659c86509ffbfda731aba56da434d80e4a152c3e7d9fb3fe5a"
+    },
+    {
+      "action": "seal_crouch_signal_deploy",
+      "range": [
+        1,
+        29
+      ],
+      "duration_seconds": 0.9333333333333333,
+      "coverage": "full",
+      "key_sha256": "8ea26b226beb16b2318d5435e1704b045df97525a1cecda79363527396bf13d1"
+    },
+    {
+      "action": "seal_crouch_signal_follow",
+      "range": [
+        1,
+        31
+      ],
+      "duration_seconds": 1.0,
+      "coverage": "full",
+      "key_sha256": "ffccfdec8637281ed34275da50e7b454c5ff0d5069b72c3b7fbfe2ec9d476553"
+    },
+    {
+      "action": "seal_crouch_signal_getdown",
+      "range": [
+        1,
+        33
+      ],
+      "duration_seconds": 1.0666666666666667,
+      "coverage": "full",
+      "key_sha256": "f17cbf739d6a128682262fe42388bf4f820f4ab1f3e5028ba73fc5931b7929b5"
+    },
+    {
+      "action": "seal_crouch_step",
+      "range": [
+        1,
+        20
+      ],
+      "duration_seconds": 0.6333333333333333,
+      "coverage": "full",
+      "key_sha256": "0dfbe985b7de8b3e3a87f4db6df434ad855e1f3dc84734dbcd7e25ebf7abc1cd"
+    },
+    {
+      "action": "seal_crouch_throwgrenade",
+      "range": [
+        1,
+        20
+      ],
+      "duration_seconds": 0.6333333333333333,
+      "coverage": "full",
+      "key_sha256": "5c9b959aeae74315599ba00cad1d11cf19d7b305f00cd4a8c579d63daf6e077b"
+    },
+    {
+      "action": "seal_crouchstrafe_left",
+      "range": [
+        1,
+        40
+      ],
+      "duration_seconds": 1.2999999225139618,
+      "coverage": "full",
+      "key_sha256": "948feb813e46ff807d486daa2a2cbb716555466f2969f71d9161d80c9512d35e"
+    },
+    {
+      "action": "seal_crouchstrafe_right_fast",
+      "range": [
+        1,
+        34
+      ],
+      "duration_seconds": 1.1,
+      "coverage": "full",
+      "key_sha256": "ada3fc5bbebe866caad0bf01658b5485cc4e09b25106f328289d560e29c59246"
+    },
+    {
+      "action": "seal_crouchwalk",
+      "range": [
+        1,
+        29
+      ],
+      "duration_seconds": 0.9333333333333333,
+      "coverage": "full",
+      "key_sha256": "fbe085270d1087da11f37806404790fe653655863387605f39e09f642b64fb2a"
+    },
+    {
+      "action": "seal_crouchwalk_bw",
+      "range": [
+        1,
+        35
+      ],
+      "duration_seconds": 1.1333333333333333,
+      "coverage": "full",
+      "key_sha256": "c354e6adb56f43f20095938f789d44f443165e5dfccd58ac1e0f05da9063a319"
+    },
+    {
+      "action": "seal_defusebomb_begin",
+      "range": [
+        1,
+        22
+      ],
+      "duration_seconds": 0.7,
+      "coverage": "full",
+      "key_sha256": "acee8806dc4af4229016ccb8fb6bb0d6bdedfc1b224b8d8ddc4b804fff05dc20"
+    },
+    {
+      "action": "seal_defusebomb_end",
+      "range": [
+        1,
+        22
+      ],
+      "duration_seconds": 0.7,
+      "coverage": "full",
+      "key_sha256": "87d7637c850fb6f28cd653d3b9b74d30ee6777994be92e7744fb656f7e66186c"
+    },
+    {
+      "action": "seal_defusebomb_loop",
+      "range": [
+        1,
+        37
+      ],
+      "duration_seconds": 1.2,
+      "coverage": "full",
+      "key_sha256": "ebfd37c49d6cb5ebb8844483471448cd4b35feccdca448c1263dfa22ab2b6b51"
+    },
+    {
+      "action": "seal_dive2prone",
+      "range": [
+        1,
+        17
+      ],
+      "duration_seconds": 0.5333333333333333,
+      "coverage": "full",
+      "key_sha256": "eb731c2420acafd1c1496f57c88c8377536e531f4f393cb635fcaccadec751dc"
+    },
+    {
+      "action": "seal_fallbackwards01",
+      "range": [
+        1,
+        17
+      ],
+      "duration_seconds": 0.5333333333333333,
+      "coverage": "full",
+      "key_sha256": "f320a7a0ac989ae0d8ca4f82d00f7d543dca6be71a7eef8e9815a35077a63e89"
+    },
+    {
+      "action": "seal_fallforward01",
+      "range": [
+        1,
+        16
+      ],
+      "duration_seconds": 0.5,
+      "coverage": "full",
+      "key_sha256": "2a02c688a1cdd840e9aeb7e5b9b6546a357922fe7e58ad8bedd29fe314fbdb75"
+    },
+    {
+      "action": "seal_flinch_larm",
+      "range": [
+        1,
+        26
+      ],
+      "duration_seconds": 0.8333333333333334,
+      "coverage": "full",
+      "key_sha256": "7c363233fcbd671a3c1f0d59dd3269bd7f59cb8f420b6c6953c3bc8f924ee642"
+    },
+    {
+      "action": "seal_flinch_lleg",
+      "range": [
+        1,
+        26
+      ],
+      "duration_seconds": 0.8333333333333334,
+      "coverage": "full",
+      "key_sha256": "e6eb2e5a73778fad86e3bbc7efca4dc90a23205e260df2cb8739e1553f1b6cd8"
+    },
+    {
+      "action": "seal_flinch_rarm",
+      "range": [
+        1,
+        15
+      ],
+      "duration_seconds": 0.4666666666666667,
+      "coverage": "full",
+      "key_sha256": "1b4a765dddb8949d5ed83c995128abe0c44d6be4a940d57a158dcbbb41505e4e"
+    },
+    {
+      "action": "seal_flinch_rleg",
+      "range": [
+        1,
+        14
+      ],
+      "duration_seconds": 0.43333333333333335,
+      "coverage": "full",
+      "key_sha256": "769bee1b1cf46d2ab1c5192d5ec25fdee49d696370803646251fb5180547349c"
+    },
+    {
+      "action": "seal_flipswitch",
+      "range": [
+        1,
+        38
+      ],
+      "duration_seconds": 1.2333333333333334,
+      "coverage": "full",
+      "key_sha256": "3c74b6db55896ec30f6acf68b0b56037ff613dadce3c990cfdb647c47f069947"
+    },
+    {
+      "action": "seal_flipswitch_reverse",
+      "range": [
+        1,
+        20
+      ],
+      "duration_seconds": 0.6333333333333333,
+      "coverage": "full",
+      "key_sha256": "c1b3de8912d3567b270ced0bc168eae4a0230b35a0bf59ec8b315908ab1d36d5"
+    },
+    {
+      "action": "seal_fp_crouch",
+      "range": [
+        1,
+        12
+      ],
+      "duration_seconds": 0.36666666666666664,
+      "coverage": "full",
+      "key_sha256": "714663d6397df0f4300dfac90a5a222000a6867712dbd06f27690eb0f67015e2"
+    },
+    {
+      "action": "seal_fp_crouch_step",
+      "range": [
+        1,
+        19
+      ],
+      "duration_seconds": 0.6,
+      "coverage": "full",
+      "key_sha256": "763e82c4ca7c6200268d806a01984f1fff6441f379366977e404177211f8a67f"
+    },
+    {
+      "action": "seal_fp_crouchwalk",
+      "range": [
+        1,
+        29
+      ],
+      "duration_seconds": 0.9333333333333333,
+      "coverage": "full",
+      "key_sha256": "c3c8ccd893af4a08c36c54115bf1a9c89cc1cbf4711bfe2bd214e1ad08da5291"
+    },
+    {
+      "action": "seal_fp_crouchwalk_bw",
+      "range": [
+        1,
+        35
+      ],
+      "duration_seconds": 1.1333333333333333,
+      "coverage": "full",
+      "key_sha256": "522db401bb9ec97469c5c9a91e2cdb239b95f2f921ea6d606dac07809a962c75"
+    },
+    {
+      "action": "seal_fp_jog",
+      "range": [
+        1,
+        21
+      ],
+      "duration_seconds": 0.6666666666666666,
+      "coverage": "full",
+      "key_sha256": "f90019d1c6de4b4c139ffbfdefa19d62e2865008db7fe6c6963e0e28b642f131"
+    },
+    {
+      "action": "seal_fp_prone",
+      "range": [
+        1,
+        2
+      ],
+      "duration_seconds": 0.03333333333333333,
+      "coverage": "full",
+      "key_sha256": "917ee197c36ecd0f7d439a066f49f57b8246f2a05d2ea5505387da5461d48a67"
+    },
+    {
+      "action": "seal_fp_run",
+      "range": [
+        1,
+        19
+      ],
+      "duration_seconds": 0.6,
+      "coverage": "full",
+      "key_sha256": "c034ca066d549f7dd3a85d1f5d55b5b3ddeaf600ff8cc9a293fb3c35bac8a4fe"
+    },
+    {
+      "action": "seal_fp_run_bw",
+      "range": [
+        1,
+        19
+      ],
+      "duration_seconds": 0.6,
+      "coverage": "full",
+      "key_sha256": "cec6f9568968e55b3fdb75bce4f92e608255cc9cfff8213a6534dc907fc0ddcf"
+    },
+    {
+      "action": "seal_fp_stand",
+      "range": [
+        1,
+        9
+      ],
+      "duration_seconds": 0.26666666666666666,
+      "coverage": "full",
+      "key_sha256": "6e76b61ee4b5181ee2bb48c72f5d1a9940ea25359a4f16ef09364f22e4f7b7f2"
+    },
+    {
+      "action": "seal_fp_step",
+      "range": [
+        1,
+        22
+      ],
+      "duration_seconds": 0.7,
+      "coverage": "full",
+      "key_sha256": "458f7895cc55671bf64f33ee472973a1f67041d516db77adb89f2fd8bc637082"
+    },
+    {
+      "action": "seal_fp_twist_pitch",
+      "range": [
+        1,
+        10
+      ],
+      "duration_seconds": 0.3,
+      "coverage": "upper",
+      "key_sha256": "ee48baf919b8e07b4b0eb1935283af3c96ac8e0d96f7c212374afd7845c8b220"
+    },
+    {
+      "action": "seal_fp_walk",
+      "range": [
+        1,
+        26
+      ],
+      "duration_seconds": 0.8333333333333334,
+      "coverage": "full",
+      "key_sha256": "cc78b0e123aebee867167d97e644194aa2a5e740f4df625eede853d7368b1713"
+    },
+    {
+      "action": "seal_fp_walk_bw",
+      "range": [
+        1,
+        27
+      ],
+      "duration_seconds": 0.8666666666666667,
+      "coverage": "full",
+      "key_sha256": "7163dd0b31e4d97feb661213b7b183def2664d485cbec0d0561ea06ae2d40079"
+    },
+    {
+      "action": "seal_get_fromground",
+      "range": [
+        1,
+        35
+      ],
+      "duration_seconds": 1.1333333333333333,
+      "coverage": "full",
+      "key_sha256": "ad03c005fefccd4450373292f8393ef601a3f36eb297bcaabaac5e32f7c63d7a"
+    },
+    {
+      "action": "seal_get_fromsurface",
+      "range": [
+        1,
+        30
+      ],
+      "duration_seconds": 0.9666666666666667,
+      "coverage": "full",
+      "key_sha256": "7e8dc5b4be6306a3c6ef34cadeeae6c8edf802feab1cbf819b62c6fd9f3d8efd"
+    },
+    {
+      "action": "seal_getupbackwards01",
+      "range": [
+        1,
+        14
+      ],
+      "duration_seconds": 0.43333333333333335,
+      "coverage": "full",
+      "key_sha256": "958cbf12d6f45067c5570125a8cd068cb8b16f8b8541be5c8956a8ad91bee0a6"
+    },
+    {
+      "action": "seal_getupforward01",
+      "range": [
+        1,
+        28
+      ],
+      "duration_seconds": 0.9,
+      "coverage": "full",
+      "key_sha256": "4909824abc1fbf549e2c1b3ff726748f84bfd6b3b9411a619e29a7b0fc1615b3"
+    },
+    {
+      "action": "seal_hang",
+      "range": [
+        1,
+        14
+      ],
+      "duration_seconds": 0.43333333333333335,
+      "coverage": "full",
+      "key_sha256": "1ebb05aa57eaff22353a66a6ea62e5d46542003e7edcee56bdb194a0cda5b436"
+    },
+    {
+      "action": "seal_hang2climbup",
+      "range": [
+        1,
+        64
+      ],
+      "duration_seconds": 2.099999874830246,
+      "coverage": "full",
+      "key_sha256": "9a1b5a0695a6bf569593670465a344d47d7a8fbabb3a3c02b9f301cccc7630fe"
+    },
+    {
+      "action": "seal_hang_jumpdown",
+      "range": [
+        1,
+        38
+      ],
+      "duration_seconds": 1.2333333333333334,
+      "coverage": "full",
+      "key_sha256": "98a7601eb4d014ca1b9d4b7845c153d3ed16deae197c3c621119cfaeed412a7d"
+    },
+    {
+      "action": "seal_headlooks",
+      "range": [
+        1,
+        10
+      ],
+      "duration_seconds": 0.3,
+      "coverage": "upper",
+      "key_sha256": "ee9101e2fad71bba4eb6567bd9ebdc3e817ae2b17c73b87f2d0447a15731e41f"
+    },
+    {
+      "action": "seal_headlooks_prone",
+      "range": [
+        1,
+        4
+      ],
+      "duration_seconds": 0.1,
+      "coverage": "partial",
+      "key_sha256": "ae95bdb79baa4b3f36efee41acd7d19d861ac568305549dcf29c95722d705694"
+    },
+    {
+      "action": "seal_hopdown_bw",
+      "range": [
+        1,
+        2
+      ],
+      "duration_seconds": 0.03333333333333333,
+      "coverage": "full",
+      "key_sha256": "c161c0a5db2d576b70ed968c838ef477d0fe00aebdd5111186ebf8a5f4855e9f"
+    },
+    {
+      "action": "seal_hopdown_fw",
+      "range": [
+        1,
+        2
+      ],
+      "duration_seconds": 0.03333333333333333,
+      "coverage": "full",
+      "key_sha256": "83ef5cbb875905a8b67573cfd38658e4e7ae5fd60ed507f0922d1bb8ae11045f"
+    },
+    {
+      "action": "seal_jog",
+      "range": [
+        1,
+        23
+      ],
+      "duration_seconds": 0.7333333333333333,
+      "coverage": "full",
+      "key_sha256": "bbc5d0801ae9596c0a05660acb9ba347ef5560751adeb7ce582599956f5334f4"
+    },
+    {
+      "action": "seal_jog_alert",
+      "range": [
+        1,
+        20
+      ],
+      "duration_seconds": 0.6333333333333333,
+      "coverage": "full",
+      "key_sha256": "a24904166d8d572fd9b4257dd3807616aa6dcd0750758aea4a75448e206df85d"
+    },
+    {
+      "action": "seal_jog_bw",
+      "range": [
+        1,
+        25
+      ],
+      "duration_seconds": 0.8,
+      "coverage": "full",
+      "key_sha256": "cb3800559f3f462820b5c02848c8ef23405303fc9c1022d62bd3fa5a5cc9b467"
+    },
+    {
+      "action": "seal_jump",
+      "range": [
+        1,
+        21
+      ],
+      "duration_seconds": 0.6666666666666666,
+      "coverage": "full",
+      "key_sha256": "669c3deb673588c7bd7e171e8a063c913ae26fa82265944b482e4626e29cc388"
+    },
+    {
+      "action": "seal_kickgrenade",
+      "range": [
+        1,
+        15
+      ],
+      "duration_seconds": 0.4666666666666667,
+      "coverage": "full",
+      "key_sha256": "30b67cb036af9d6cab81b2dfe881610470ebb5afcd3b9be35dc139d34382fa9e"
+    },
+    {
+      "action": "seal_kickopendoor",
+      "range": [
+        1,
+        23
+      ],
+      "duration_seconds": 0.7333333333333333,
+      "coverage": "full",
+      "key_sha256": "034c6385a2bb9dbb13f21f543f0a7bd11873c7d914323032e7751dce721f3824"
+    },
+    {
+      "action": "seal_knife_guard",
+      "range": [
+        1,
+        45
+      ],
+      "duration_seconds": 1.4666666666666666,
+      "coverage": "full",
+      "key_sha256": "7a6996cb1f9d0d48a60dcaa1ad4e3b4f261d47f822b98ad3f5850afc9037ee77"
+    },
+    {
+      "action": "seal_ladder",
+      "range": [
+        1,
+        11
+      ],
+      "duration_seconds": 0.3333333333333333,
+      "coverage": "full",
+      "key_sha256": "60226c384811d9f05175aa36da37f12778bec2501eeefcd7ff9ecdf6f03d9a37"
+    },
+    {
+      "action": "seal_ladder2slide",
+      "range": [
+        1,
+        14
+      ],
+      "duration_seconds": 0.43333333333333335,
+      "coverage": "full",
+      "key_sha256": "187d6a37e970c101c8cb103891c6d1972241e846a88d672bf282f2712c9b1474"
+    },
+    {
+      "action": "seal_ladderslide",
+      "range": [
+        1,
+        8
+      ],
+      "duration_seconds": 0.23333333333333334,
+      "coverage": "full",
+      "key_sha256": "7d668dd92ed2c19cf1b4002450e25235d94c71e37f19bcd28fa973e4de484b5b"
+    },
+    {
+      "action": "seal_ladderslide_land",
+      "range": [
+        1,
+        38
+      ],
+      "duration_seconds": 1.2333333333333334,
+      "coverage": "full",
+      "key_sha256": "e3ef1b3da681f83ca69c1a4f0f918d2f1710d344c3bd9d1384086ec6dceba18f"
+    },
+    {
+      "action": "seal_land_hard",
+      "range": [
+        1,
+        21
+      ],
+      "duration_seconds": 0.6666666666666666,
+      "coverage": "full",
+      "key_sha256": "371a71cc9c56e393b9b5065160779283d8e169c6dcbc29eab32a16a8d576a8af"
+    },
+    {
+      "action": "seal_land_soft",
+      "range": [
+        1,
+        21
+      ],
+      "duration_seconds": 0.6666666666666666,
+      "coverage": "full",
+      "key_sha256": "48b2741cd50ba449dfb133387467ddb3ec1e32b96f084eced36cf2a3f31f6e10"
+    },
+    {
+      "action": "seal_landbackwards01",
+      "range": [
+        1,
+        13
+      ],
+      "duration_seconds": 0.4,
+      "coverage": "full",
+      "key_sha256": "2d517c60644aa8191ef0566187000346b39563f91cd46ba13b077e72436dbbae"
+    },
+    {
+      "action": "seal_landforward01",
+      "range": [
+        1,
+        12
+      ],
+      "duration_seconds": 0.36666666666666664,
+      "coverage": "full",
+      "key_sha256": "132cc3fb5bd363438f36ed03711f96a5c8ade4d2cd31d155bffd85074441f510"
+    },
+    {
+      "action": "seal_launcher",
+      "range": [
+        1,
+        2
+      ],
+      "duration_seconds": 0.03333333333333333,
+      "coverage": "full",
+      "key_sha256": "d31aad770587a3e5c0f7f3824a506ad63d771ea34a89aeee6829c7486ff74c20"
+    },
+    {
+      "action": "seal_launcher_reload",
+      "range": [
+        1,
+        35
+      ],
+      "duration_seconds": 1.1333333333333333,
+      "coverage": "full",
+      "key_sha256": "3f03fe21c3c4508c8fc35bdbe73ee04fc8b242c2dc49516f563c197c4516ec77"
+    },
+    {
+      "action": "seal_launcher_step",
+      "range": [
+        1,
+        11
+      ],
+      "duration_seconds": 0.3333333333333333,
+      "coverage": "full",
+      "key_sha256": "23db883b79b2c39eb4854d6777ca9c05b8bfefb8aa288a3c71ac6bbf80746465"
+    },
+    {
+      "action": "seal_ledge2hang_bw",
+      "range": [
+        1,
+        2
+      ],
+      "duration_seconds": 0.03333333333333333,
+      "coverage": "full",
+      "key_sha256": "437d43b155f0662ecb865a5568dcae201b0c49ce675c515b9adf9552a177ea5b"
+    },
+    {
+      "action": "seal_llean_rstep",
+      "range": [
+        1,
+        11
+      ],
+      "duration_seconds": 0.3333333333333333,
+      "coverage": "full",
+      "key_sha256": "b0e26aa6ca7bd0257cca0a18fd81378ead7c1eb89597065ad5fc13554c72fa52"
+    },
+    {
+      "action": "seal_lstrafe",
+      "range": [
+        1,
+        23
+      ],
+      "duration_seconds": 0.7333333333333333,
+      "coverage": "full",
+      "key_sha256": "58ad3855ce9a360940bfa4c35a3db6fb0156777ba3abd6b383c8651c69f130ef"
+    },
+    {
+      "action": "seal_lstrafe_fast",
+      "range": [
+        1,
+        28
+      ],
+      "duration_seconds": 0.9,
+      "coverage": "full",
+      "key_sha256": "1192ac0abb6214d1c97d0e5701ac21cfbf04d91e719ee1de567f982f060774bc"
+    },
+    {
+      "action": "seal_mv_pistol2launcher",
+      "range": [
+        1,
+        25
+      ],
+      "duration_seconds": 0.8,
+      "coverage": "upper",
+      "key_sha256": "dabfae2db65cc4af331819157b72f17f8c8348234f3b702295cdeb69a64c46a1"
+    },
+    {
+      "action": "seal_mv_pump_shotgun",
+      "range": [
+        1,
+        15
+      ],
+      "duration_seconds": 0.4666666666666667,
+      "coverage": "upper",
+      "key_sha256": "8c9be0125f41c4acaf04a3d6b973b5deaab758d699979f2a219ce74083a0954b"
+    },
+    {
+      "action": "seal_mv_reload",
+      "range": [
+        1,
+        34
+      ],
+      "duration_seconds": 1.1,
+      "coverage": "upper",
+      "key_sha256": "63db680b779b32315a50b7ac6b75cbb7524169e17fae196eaa27449ec1e618e8"
+    },
+    {
+      "action": "seal_mv_reload_shotgun",
+      "range": [
+        1,
+        19
+      ],
+      "duration_seconds": 0.6,
+      "coverage": "upper",
+      "key_sha256": "74551a0e396603e5e4ade6d90cd23a045b8104413bf62c12e21063487b7c7aaa"
+    },
+    {
+      "action": "seal_mv_rifle2launcher",
+      "range": [
+        1,
+        36
+      ],
+      "duration_seconds": 1.1666665971279144,
+      "coverage": "upper",
+      "key_sha256": "ad4853cd7477355dabd1921d1cc980c40c861c54dbefb3fc6452b0a8c0aa3b69"
+    },
+    {
+      "action": "seal_mv_rifle2pistol",
+      "range": [
+        1,
+        22
+      ],
+      "duration_seconds": 0.7,
+      "coverage": "upper",
+      "key_sha256": "7911061e60eae07c10cd67a484125e378d04f51f3c9ac316ba982d70c712df24"
+    },
+    {
+      "action": "seal_open_door",
+      "range": [
+        1,
+        15
+      ],
+      "duration_seconds": 0.4666666666666667,
+      "coverage": "full",
+      "key_sha256": "595fb656383ae978fcf375c1f4622bec7d655f09e34c96dad57ef5ea660d9b81"
+    },
+    {
+      "action": "seal_p_apply_restraints",
+      "range": [
+        1,
+        39
+      ],
+      "duration_seconds": 1.2666666666666666,
+      "coverage": "full",
+      "key_sha256": "bbd8d1982ff20b3298c8bd8dfb79b09721128ae7951f6b59962baa0d100c6971"
+    },
+    {
+      "action": "seal_p_buddycarry_pickup",
+      "range": [
+        1,
+        82
+      ],
+      "duration_seconds": 2.7,
+      "coverage": "full",
+      "key_sha256": "54a3be2d58b39b0a30259882fac02cf211e2aa9a76b20cde0f159fa734ce6e63"
+    },
+    {
+      "action": "seal_p_buddycarry_stand",
+      "range": [
+        1,
+        2
+      ],
+      "duration_seconds": 0.03333333333333333,
+      "coverage": "full",
+      "key_sha256": "cde39f81af84b7f3aed19d2adc4bbb90c34bde1157054d06170cb1d5dc524548"
+    },
+    {
+      "action": "seal_p_buddycarry_step",
+      "range": [
+        1,
+        9
+      ],
+      "duration_seconds": 0.26666666666666666,
+      "coverage": "full",
+      "key_sha256": "52d439c60ceac83362ea459d5364e03ec22e749a1d59ac616901b3b7ece0ecf8"
+    },
+    {
+      "action": "seal_p_buddycarry_walk",
+      "range": [
+        1,
+        29
+      ],
+      "duration_seconds": 0.9333333333333333,
+      "coverage": "full",
+      "key_sha256": "1a596f9806cd1ae305579aa9da564ae68a5f4b0ba620229000fc0928c72ba971"
+    },
+    {
+      "action": "seal_p_climb_medium",
+      "range": [
+        1,
+        33
+      ],
+      "duration_seconds": 1.0666666666666667,
+      "coverage": "full",
+      "key_sha256": "e26c58c3859b86cb3f503f2b0a45814fde44dced494e74b583febea8c1c09021"
+    },
+    {
+      "action": "seal_p_climbcrate",
+      "range": [
+        1,
+        31
+      ],
+      "duration_seconds": 1.0,
+      "coverage": "full",
+      "key_sha256": "9a719704cb614bc3e45e798bc32e3da546238771491ecfbb30b30bc26a54ddbe"
+    },
+    {
+      "action": "seal_p_climbladder",
+      "range": [
+        1,
+        17
+      ],
+      "duration_seconds": 0.5333333333333333,
+      "coverage": "full",
+      "key_sha256": "0634532b0c6e40549ea3e8bc1444c78eab668912e0e4e7d803762b305dbb30fa"
+    },
+    {
+      "action": "seal_p_climboffladder",
+      "range": [
+        1,
+        36
+      ],
+      "duration_seconds": 1.1666665971279144,
+      "coverage": "full",
+      "key_sha256": "ec84537c036ce7366b6b0077e8e946f0b2450a44938bc2509860e45c1137cec5"
+    },
+    {
+      "action": "seal_p_cqb_alt_attack",
+      "range": [
+        1,
+        23
+      ],
+      "duration_seconds": 0.7333333333333333,
+      "coverage": "full",
+      "key_sha256": "a17602ede960e31a2388a3a9837252eb254100598b93a54c5b94d9b31d34b363"
+    },
+    {
+      "action": "seal_p_cqb_attack",
+      "range": [
+        1,
+        33
+      ],
+      "duration_seconds": 1.0666666666666667,
+      "coverage": "full",
+      "key_sha256": "f2701a674bb19ba1b932acc32581e0e5cec923fc8b949fbdd6333183844e243e"
+    },
+    {
+      "action": "seal_p_crouch",
+      "range": [
+        1,
+        11
+      ],
+      "duration_seconds": 0.3333333333333333,
+      "coverage": "full",
+      "key_sha256": "4e8ca8c5bb09aa3c54de2b8c0fecf1db63bf10d5104aa9b03269c9b8a7d7c416"
+    },
+    {
+      "action": "seal_p_crouch2binocular",
+      "range": [
+        1,
+        24
+      ],
+      "duration_seconds": 0.7666666666666667,
+      "coverage": "upper",
+      "key_sha256": "6d705cc318c4f29417900c42eb9edad75ad08e49f9fdaef72f5b563de6693516"
+    },
+    {
+      "action": "seal_p_crouch2llean",
+      "range": [
+        1,
+        13
+      ],
+      "duration_seconds": 0.4,
+      "coverage": "upper",
+      "key_sha256": "da99016895d025993d3e43aa2430419c5e9b101f11207f57cf3579a27aa4cb30"
+    },
+    {
+      "action": "seal_p_crouch2rlean",
+      "range": [
+        1,
+        15
+      ],
+      "duration_seconds": 0.4666666666666667,
+      "coverage": "upper",
+      "key_sha256": "74e12c355c96e0f99b75207b279ae0ce5344c6792240f36588b1a70b15a26bc8"
+    },
+    {
+      "action": "seal_p_crouch_reload",
+      "range": [
+        1,
+        30
+      ],
+      "duration_seconds": 0.9666666666666667,
+      "coverage": "full",
+      "key_sha256": "78e7d99d872e467535702f6d624a88f19d12c577ce1cfb7e969dc952823ee511"
+    },
+    {
+      "action": "seal_p_crouch_step",
+      "range": [
+        1,
+        10
+      ],
+      "duration_seconds": 0.3,
+      "coverage": "upper",
+      "key_sha256": "c964b3fb6a0173ffbe5cfd86c17c283a4e43817e781943e75f91258b2f45ac77"
+    },
+    {
+      "action": "seal_p_crouchstrafe_left",
+      "range": [
+        1,
+        22
+      ],
+      "duration_seconds": 0.7,
+      "coverage": "upper",
+      "key_sha256": "a86ec6754da9c0a4d5524d8ca78cab46683cfa649f96eaa57c7461076ce841fc"
+    },
+    {
+      "action": "seal_p_crouchstrafe_right",
+      "range": [
+        1,
+        20
+      ],
+      "duration_seconds": 0.6333333333333333,
+      "coverage": "upper",
+      "key_sha256": "06eba466ebd23863da59645bc83f8c0734fbff5788275cb88f4b0e8c8730a7ba"
+    },
+    {
+      "action": "seal_p_crouchwalk",
+      "range": [
+        1,
+        20
+      ],
+      "duration_seconds": 0.6333333333333333,
+      "coverage": "upper",
+      "key_sha256": "422f9b6afc7a6d3298cd3c016a2cad0c7020e263d231263efe7bf5924023f4ec"
+    },
+    {
+      "action": "seal_p_crouchwalk_bw",
+      "range": [
+        1,
+        24
+      ],
+      "duration_seconds": 0.7666666666666667,
+      "coverage": "upper",
+      "key_sha256": "e6ad86df8b1d51a3a8cdc85f0770bc8b068689e7c9f2d265e8b28d527ae7b542"
+    },
+    {
+      "action": "seal_p_defusebomb_begin",
+      "range": [
+        1,
+        30
+      ],
+      "duration_seconds": 0.9666666666666667,
+      "coverage": "full",
+      "key_sha256": "f3fee915b5d9adf3e7acb60fbc661cab863b63d938dc03e96f5df6e366a712b7"
+    },
+    {
+      "action": "seal_p_defusebomb_end",
+      "range": [
+        1,
+        27
+      ],
+      "duration_seconds": 0.8666666666666667,
+      "coverage": "full",
+      "key_sha256": "73dde2446abeaaba1a5cdaaceb885a6c8e0abdef76a458c7f35ea7a94f01d06d"
+    },
+    {
+      "action": "seal_p_defusebomb_loop",
+      "range": [
+        1,
+        19
+      ],
+      "duration_seconds": 0.6,
+      "coverage": "full",
+      "key_sha256": "f08e3199ddbf7ffc88b5d96677ddd32b214378166a0bb3e3f24a297379d25e26"
+    },
+    {
+      "action": "seal_p_hang",
+      "range": [
+        1,
+        8
+      ],
+      "duration_seconds": 0.23333333333333334,
+      "coverage": "full",
+      "key_sha256": "182b2486065811cf5237f5ea5b0ee775bbfc515a970067e3ab3e04dbdbed7d35"
+    },
+    {
+      "action": "seal_p_hang2climbup",
+      "range": [
+        1,
+        43
+      ],
+      "duration_seconds": 1.4,
+      "coverage": "full",
+      "key_sha256": "3133284d77c4961004f7625457b8350536fec73483f3641985f82bf9d8b039f4"
+    },
+    {
+      "action": "seal_p_hang_jumpdown",
+      "range": [
+        1,
+        20
+      ],
+      "duration_seconds": 0.6333333333333333,
+      "coverage": "upper",
+      "key_sha256": "671df9f76086a616d0e45bbbdd6449237f91f43109509128680350f6edbc9d5b"
+    },
+    {
+      "action": "seal_p_hopdown_bw",
+      "range": [
+        1,
+        2
+      ],
+      "duration_seconds": 0.03333333333333333,
+      "coverage": "upper",
+      "key_sha256": "f5c24406dae44960ff7d33c88fec160f4f0a33745f04d185dec2b9012a36f169"
+    },
+    {
+      "action": "seal_p_hopdown_fw",
+      "range": [
+        1,
+        2
+      ],
+      "duration_seconds": 0.03333333333333333,
+      "coverage": "upper",
+      "key_sha256": "e806ba60c26c024f412f6f9ceba99cdda342c76b5751077cc91f208517f43a7c"
+    },
+    {
+      "action": "seal_p_jog",
+      "range": [
+        1,
+        22
+      ],
+      "duration_seconds": 0.7,
+      "coverage": "upper",
+      "key_sha256": "b0edf9fd207c000a9e116a601e7fdf2b2e8730861681dc8064e8e344cfe91845"
+    },
+    {
+      "action": "seal_p_kickopendoor",
+      "range": [
+        1,
+        44
+      ],
+      "duration_seconds": 1.4333332479000092,
+      "coverage": "upper",
+      "key_sha256": "05f1c5565d0544a2e6c08c0f313cace3c9033aed0a0410c7f41987654f3a5075"
+    },
+    {
+      "action": "seal_p_knife_guard",
+      "range": [
+        1,
+        45
+      ],
+      "duration_seconds": 1.4666666666666666,
+      "coverage": "full",
+      "key_sha256": "a3251010a20c76bf2daa8a318c9c2a26800f0dac98cd39c2f9d097b6a278ce39"
+    },
+    {
+      "action": "seal_p_ladder",
+      "range": [
+        1,
+        2
+      ],
+      "duration_seconds": 0.03333333333333333,
+      "coverage": "upper",
+      "key_sha256": "5d86be4263516249673a3e26458c9b95193dcf9291bf0dd06ed8f20eb069935c"
+    },
+    {
+      "action": "seal_p_ladder2slide",
+      "range": [
+        1,
+        26
+      ],
+      "duration_seconds": 0.8333333333333334,
+      "coverage": "full",
+      "key_sha256": "6c862d29f71d7e862c4d1313993c26e538309a9782fda0cf0aaad74033583132"
+    },
+    {
+      "action": "seal_p_ladderslide",
+      "range": [
+        1,
+        15
+      ],
+      "duration_seconds": 0.4666666666666667,
+      "coverage": "full",
+      "key_sha256": "50e9d2c0d4774ab5a08677f1d3a9d5901d06f2e5c47cb4067b16ee865a7b4de4"
+    },
+    {
+      "action": "seal_p_ladderslide_land",
+      "range": [
+        1,
+        24
+      ],
+      "duration_seconds": 0.7666666666666667,
+      "coverage": "full",
+      "key_sha256": "f6344cb6506ca6e1801f069ae4c56ba3cc49746a8e578884fef7b6df054d567e"
+    },
+    {
+      "action": "seal_p_land_hard",
+      "range": [
+        1,
+        11
+      ],
+      "duration_seconds": 0.3333333333333333,
+      "coverage": "upper",
+      "key_sha256": "0261e447e0adba47e49b4de07863bedbefec58598777eff6d13258e234234aea"
+    },
+    {
+      "action": "seal_p_land_soft",
+      "range": [
+        1,
+        21
+      ],
+      "duration_seconds": 0.6666666666666666,
+      "coverage": "full",
+      "key_sha256": "7437a2eba19db9d26207c561a4b5aaa825fc3b3a8b7de7d8ff742b64b160a44e"
+    },
+    {
+      "action": "seal_p_ledge2hang_bw",
+      "range": [
+        1,
+        2
+      ],
+      "duration_seconds": 0.03333333333333333,
+      "coverage": "upper",
+      "key_sha256": "7db589b4b42c2769a7019defb124a419c9fa4911d1ee175488b87746c7bf08a4"
+    },
+    {
+      "action": "seal_p_llean_rstep",
+      "range": [
+        1,
+        11
+      ],
+      "duration_seconds": 0.3333333333333333,
+      "coverage": "full",
+      "key_sha256": "216a394cca3bc07fb028740f196b2d0536ce33e5e942382182e27f846e232182"
+    },
+    {
+      "action": "seal_p_lstrafe",
+      "range": [
+        1,
+        22
+      ],
+      "duration_seconds": 0.7,
+      "coverage": "upper",
+      "key_sha256": "926feaca0c70c689c34a8792451c55bcf5b3731b0a89eee5e76a99e8b6b56e35"
+    },
+    {
+      "action": "seal_p_lstrafe_fast",
+      "range": [
+        1,
+        28
+      ],
+      "duration_seconds": 0.9,
+      "coverage": "upper",
+      "key_sha256": "9d9176f093f46e1e9667ffc840949233ab7f8766ba4c54b28f22f082ea91f5b5"
+    },
+    {
+      "action": "seal_p_mv_reload",
+      "range": [
+        1,
+        22
+      ],
+      "duration_seconds": 0.7,
+      "coverage": "upper",
+      "key_sha256": "d9623b57baee20cd3f4b3d29358ffb4708c0cc3e234d56db39a93670a8ce9722"
+    },
+    {
+      "action": "seal_p_place_claymore",
+      "range": [
+        1,
+        56
+      ],
+      "duration_seconds": 1.8333333333333333,
+      "coverage": "full",
+      "key_sha256": "5564b03cec9e41915c6149b4b458bd8ed2da58a06911383a9e31866ba2fb2fec"
+    },
+    {
+      "action": "seal_p_prone",
+      "range": [
+        1,
+        2
+      ],
+      "duration_seconds": 0.03333333333333333,
+      "coverage": "full",
+      "key_sha256": "ff079e03b13dc5e024098b02d6ab3e4535b1db4b9c8a5399c251189ae49ba0dc"
+    },
+    {
+      "action": "seal_p_prone2binocular",
+      "range": [
+        1,
+        31
+      ],
+      "duration_seconds": 1.0,
+      "coverage": "upper",
+      "key_sha256": "f90d62f45f7238d34e00fce7f9fe99a7a291b743d99657d431411dbdec4ac8b0"
+    },
+    {
+      "action": "seal_p_prone2llean",
+      "range": [
+        1,
+        13
+      ],
+      "duration_seconds": 0.4,
+      "coverage": "full",
+      "key_sha256": "4735023ff58db9e1f50b5f391df1d80c92f2e57c9dfaccd31712147763684701"
+    },
+    {
+      "action": "seal_p_prone2rlean",
+      "range": [
+        1,
+        11
+      ],
+      "duration_seconds": 0.3333333333333333,
+      "coverage": "full",
+      "key_sha256": "0eee284491207b445bda4b4db765f12ca31a9b997e11f811982fd1a9a2b6700f"
+    },
+    {
+      "action": "seal_p_prone_recoil",
+      "range": [
+        1,
+        3
+      ],
+      "duration_seconds": 0.06666666666666667,
+      "coverage": "full",
+      "key_sha256": "e49594da8e5edac6c44d8cb86a7e46098b4494d09a4ec8bf98de452daae0ebbf"
+    },
+    {
+      "action": "seal_p_prone_reload",
+      "range": [
+        1,
+        32
+      ],
+      "duration_seconds": 1.033333271741867,
+      "coverage": "full",
+      "key_sha256": "7dd92a916673dbd18ab581eb0d5b6afd5b608f19fbe2a45bf35e85509a72b67e"
+    },
+    {
+      "action": "seal_p_put_onground",
+      "range": [
+        1,
+        36
+      ],
+      "duration_seconds": 1.1666665971279144,
+      "coverage": "full",
+      "key_sha256": "443f7b1a2a621869a51f542f2f81deab601538e69c6aa27891e926f48af341cd"
+    },
+    {
+      "action": "seal_p_put_onwall",
+      "range": [
+        1,
+        43
+      ],
+      "duration_seconds": 1.4,
+      "coverage": "upper",
+      "key_sha256": "9023fd69fdda87d239bf5eea91cf1d32ae152fc581ae4eb182fe334849dc5256"
+    },
+    {
+      "action": "seal_p_recoil",
+      "range": [
+        1,
+        3
+      ],
+      "duration_seconds": 0.06666666666666667,
+      "coverage": "full",
+      "key_sha256": "59b35a8e3adb27dad235805056d4e9ceec07c5ddbd826fff58044c81556b7298"
+    },
+    {
+      "action": "seal_p_reload",
+      "range": [
+        1,
+        27
+      ],
+      "duration_seconds": 0.8666666666666667,
+      "coverage": "full",
+      "key_sha256": "c3fd441518be80a2a9859b6de9987e132fba9b417dec3cc2af5c6729c033e107"
+    },
+    {
+      "action": "seal_p_rlean_rstep",
+      "range": [
+        1,
+        11
+      ],
+      "duration_seconds": 0.3333333333333333,
+      "coverage": "full",
+      "key_sha256": "c5a85c22a55fc26c908ccd09bd5971eb157d1a4b9fe67e964d4ca28208d223f0"
+    },
+    {
+      "action": "seal_p_rstrafe",
+      "range": [
+        1,
+        24
+      ],
+      "duration_seconds": 0.7666666666666667,
+      "coverage": "upper",
+      "key_sha256": "f67eacba0e3cd56d8bc3bd6908e079ff81cc334bd7449d649c9753bb4d4a2413"
+    },
+    {
+      "action": "seal_p_rstrafe_fast",
+      "range": [
+        1,
+        28
+      ],
+      "duration_seconds": 0.9,
+      "coverage": "upper",
+      "key_sha256": "5e8f039f99c93aeb529ce96a09102aa7f9b329c1104e4221e80a96079a335bbd"
+    },
+    {
+      "action": "seal_p_run",
+      "range": [
+        1,
+        19
+      ],
+      "duration_seconds": 0.6,
+      "coverage": "upper",
+      "key_sha256": "8d90175e29bb7aa1b701c55f6084aa9fd4c4cdfd386976dc7f147af3c6af596b"
+    },
+    {
+      "action": "seal_p_run_90l",
+      "range": [
+        1,
+        19
+      ],
+      "duration_seconds": 0.6,
+      "coverage": "upper",
+      "key_sha256": "fa81d54f1c1fa4df64e843dda002f3432b1c4c5bec4b5495d483f8c0049d0164"
+    },
+    {
+      "action": "seal_p_run_90r",
+      "range": [
+        1,
+        19
+      ],
+      "duration_seconds": 0.6,
+      "coverage": "upper",
+      "key_sha256": "ad4f33ff8d16418380a305bd465626863d3cebd442dd58cc47cfe8c3796dbdf2"
+    },
+    {
+      "action": "seal_p_run_bw",
+      "range": [
+        1,
+        17
+      ],
+      "duration_seconds": 0.5333333333333333,
+      "coverage": "full",
+      "key_sha256": "7d2b53bc95a87fff53e43797dea52c0ce6bf3b91b0fce1a1e136f21a5c3f13a1"
+    },
+    {
+      "action": "seal_p_runningjump_launch",
+      "range": [
+        1,
+        26
+      ],
+      "duration_seconds": 0.8333333333333334,
+      "coverage": "full",
+      "key_sha256": "aa4e19fd5cbd6b04cc4b3398e2e63f027dc720e038c720de346f141d22badc4b"
+    },
+    {
+      "action": "seal_p_stand",
+      "range": [
+        1,
+        17
+      ],
+      "duration_seconds": 0.5333333333333333,
+      "coverage": "full",
+      "key_sha256": "da1d5d2a28656e9e2a7f6185e491dc127b62e896d47b285ad155a14c3b8f7861"
+    },
+    {
+      "action": "seal_p_stand2binocular",
+      "range": [
+        1,
+        12
+      ],
+      "duration_seconds": 0.36666666666666664,
+      "coverage": "upper",
+      "key_sha256": "002a5a31a2c9f7792f901f937a1b7db7b84b1caabef1536f1a80903ef4a535ca"
+    },
+    {
+      "action": "seal_p_stand2crouch",
+      "range": [
+        1,
+        18
+      ],
+      "duration_seconds": 0.5666666666666667,
+      "coverage": "upper",
+      "key_sha256": "2292de1d22f5a589e9d07985c99e3ac16a32e51b7e83aa91917f1178dc325015"
+    },
+    {
+      "action": "seal_p_stand2hang",
+      "range": [
+        1,
+        26
+      ],
+      "duration_seconds": 0.8333333333333334,
+      "coverage": "full",
+      "key_sha256": "a73bef10361f6f99e1b353e788fe8f89577967cdc7aba7c20f21e7160a907128"
+    },
+    {
+      "action": "seal_p_stand2ladder",
+      "range": [
+        1,
+        31
+      ],
+      "duration_seconds": 1.0,
+      "coverage": "full",
+      "key_sha256": "d4801ca2bfaa5afd6e7b4b8b80e7224e6d5172192dd2261d00fe882b449aaa03"
+    },
+    {
+      "action": "seal_p_stand2llean",
+      "range": [
+        1,
+        25
+      ],
+      "duration_seconds": 0.8,
+      "coverage": "full",
+      "key_sha256": "6dafd72b950302a733fe1ef5ab0d0dfd7370c79b15fa635d44c0c72a18b5749d"
+    },
+    {
+      "action": "seal_p_stand2prone",
+      "range": [
+        1,
+        37
+      ],
+      "duration_seconds": 1.2,
+      "coverage": "full",
+      "key_sha256": "8d622b440d05389a713ffcbea4ab76c205d20da35f1a52a45a3d9e8229c517b4"
+    },
+    {
+      "action": "seal_p_stand2rlean",
+      "range": [
+        1,
+        21
+      ],
+      "duration_seconds": 0.6666666666666666,
+      "coverage": "full",
+      "key_sha256": "8e193efdbc0f19526750ea2d7f00b1d33f8391c58b2d5349b0be6fe09ccd303e"
+    },
+    {
+      "action": "seal_p_stand2turret",
+      "range": [
+        1,
+        27
+      ],
+      "duration_seconds": 0.8666666666666667,
+      "coverage": "full",
+      "key_sha256": "96ed81bba8edd62dec339d058cf5a3f2574547df3889ae1cf5f1afe3f23a6fa1"
+    },
+    {
+      "action": "seal_p_step",
+      "range": [
+        1,
+        21
+      ],
+      "duration_seconds": 0.6666666666666666,
+      "coverage": "full",
+      "key_sha256": "cf31bdfe8958fde99d0bbececb1cdc9f4a6476b6136e531acb79b6929cfc82b7"
+    },
+    {
+      "action": "seal_p_throwgrenade",
+      "range": [
+        1,
+        29
+      ],
+      "duration_seconds": 0.9333333333333333,
+      "coverage": "upper",
+      "key_sha256": "d712ea55ceb69c571fc0939027857237923180671a63cfeb80deae115690dc8b"
+    },
+    {
+      "action": "seal_p_toss_llean",
+      "range": [
+        1,
+        29
+      ],
+      "duration_seconds": 0.9333333333333333,
+      "coverage": "full",
+      "key_sha256": "e4ed61839fe1792588be4ebf6cecf8468e9dd5eb0703159c0e848e8f75da062b"
+    },
+    {
+      "action": "seal_p_toss_rlean",
+      "range": [
+        1,
+        36
+      ],
+      "duration_seconds": 1.1666665971279144,
+      "coverage": "full",
+      "key_sha256": "86f0f62ec5d4e37d89ef7262681c6bd5c491ff66fc68eefdc0cfb2095d9c2ac6"
+    },
+    {
+      "action": "seal_p_tossgrenade",
+      "range": [
+        1,
+        31
+      ],
+      "duration_seconds": 1.0,
+      "coverage": "upper",
+      "key_sha256": "2585b57681d2ecb4e7857dd9066a97b26715759785d29186b8aff99fa30cbd65"
+    },
+    {
+      "action": "seal_p_twist_pitch",
+      "range": [
+        1,
+        10
+      ],
+      "duration_seconds": 0.3,
+      "coverage": "upper",
+      "key_sha256": "99b9d619fa9d5502af7b8f13812d6e23f3f093541d3a3355e075393a8b0cb632"
+    },
+    {
+      "action": "seal_p_walk",
+      "range": [
+        1,
+        18
+      ],
+      "duration_seconds": 0.5666666666666667,
+      "coverage": "upper",
+      "key_sha256": "9a38bae78c801032f190205add9af49e4ff15d6eaf713233cc395a3af949a097"
+    },
+    {
+      "action": "seal_p_walk_bw",
+      "range": [
+        1,
+        17
+      ],
+      "duration_seconds": 0.5333333333333333,
+      "coverage": "full",
+      "key_sha256": "38f77631aa0882aac31b3f5b3a608de38ca864c0c1cb7bba4ff58c170ffc6eee"
+    },
+    {
+      "action": "seal_pfp_crouch",
+      "range": [
+        1,
+        6
+      ],
+      "duration_seconds": 0.16666666666666666,
+      "coverage": "upper",
+      "key_sha256": "be0904b78bbbb14378ddd37f77572391531c641f1b9d4eb0e30a1df7abf98425"
+    },
+    {
+      "action": "seal_pfp_crouch_step",
+      "range": [
+        1,
+        19
+      ],
+      "duration_seconds": 0.6,
+      "coverage": "full",
+      "key_sha256": "7b0c52f5768efa34b8487b928b2a23fa56029254a7094f5c2ed59560ff883071"
+    },
+    {
+      "action": "seal_pfp_crouchwalk",
+      "range": [
+        1,
+        20
+      ],
+      "duration_seconds": 0.6333333333333333,
+      "coverage": "upper",
+      "key_sha256": "7ed58027b99dedcd8db90728996d7fd8995bae73dd44000ac72a914cc69314ac"
+    },
+    {
+      "action": "seal_pfp_crouchwalk_bw",
+      "range": [
+        1,
+        24
+      ],
+      "duration_seconds": 0.7666666666666667,
+      "coverage": "upper",
+      "key_sha256": "62b77ec6e6a7619dc8daf4ebcd49a686c9b5e436e6568363869d77a97739fe7e"
+    },
+    {
+      "action": "seal_pfp_jog",
+      "range": [
+        1,
+        21
+      ],
+      "duration_seconds": 0.6666666666666666,
+      "coverage": "full",
+      "key_sha256": "7e984f9a7c6089539220f2b5b8b5fe4bc18eba0f54e72141701a4f23080b7a9e"
+    },
+    {
+      "action": "seal_pfp_prone",
+      "range": [
+        1,
+        6
+      ],
+      "duration_seconds": 0.16666666666666666,
+      "coverage": "upper",
+      "key_sha256": "b08f1a00bf61b6c15c9883c593e357006b31dfae323d0f012485cdb9eab7261f"
+    },
+    {
+      "action": "seal_pfp_run",
+      "range": [
+        1,
+        18
+      ],
+      "duration_seconds": 0.5666666666666667,
+      "coverage": "upper",
+      "key_sha256": "3bbc1074ac53e9741f9a7dde480e996e723b2ed4b3c0134a7d1fd61a855e7962"
+    },
+    {
+      "action": "seal_pfp_run_bw",
+      "range": [
+        1,
+        18
+      ],
+      "duration_seconds": 0.5666666666666667,
+      "coverage": "full",
+      "key_sha256": "563181b2503829749b4a6e6063e1e1a238fbe31fc805e2a85dbbb5f6d5633b8b"
+    },
+    {
+      "action": "seal_pfp_stand",
+      "range": [
+        1,
+        2
+      ],
+      "duration_seconds": 0.03333333333333333,
+      "coverage": "full",
+      "key_sha256": "1c31b252cbdaa767b62d52e6610d803f79e93b52e831a04904fee01c995f82bb"
+    },
+    {
+      "action": "seal_pfp_step",
+      "range": [
+        1,
+        22
+      ],
+      "duration_seconds": 0.7,
+      "coverage": "full",
+      "key_sha256": "4ae29349a127171b672ed72dd53b517e176c495a2c9d73242ed302dc5dfbf17d"
+    },
+    {
+      "action": "seal_pfp_walk",
+      "range": [
+        1,
+        17
+      ],
+      "duration_seconds": 0.5333333333333333,
+      "coverage": "upper",
+      "key_sha256": "cf3412243386505d3d58c755bc06293e1b56133977a74d6b41872b9e66d42de9"
+    },
+    {
+      "action": "seal_pfp_walk_bw",
+      "range": [
+        1,
+        30
+      ],
+      "duration_seconds": 0.9666666666666667,
+      "coverage": "full",
+      "key_sha256": "0b88a0dfe374bd30178e38319f41daa3bbaae7f7c3a2833fe11cfef1a9ab0494"
+    },
+    {
+      "action": "seal_pistol2handsfree",
+      "range": [
+        1,
+        6
+      ],
+      "duration_seconds": 0.16666666666666666,
+      "coverage": "upper",
+      "key_sha256": "851ccf25d5a1a9100755c61d971aa25ad58a975961a48e2e452c7424df14d448"
+    },
+    {
+      "action": "seal_pistol2launcher",
+      "range": [
+        1,
+        25
+      ],
+      "duration_seconds": 0.8,
+      "coverage": "full",
+      "key_sha256": "40a504610f78262cf5c3636024731ec9dbc721e1a33dc520ee74ec996bc7b4d4"
+    },
+    {
+      "action": "seal_place_claymore",
+      "range": [
+        1,
+        56
+      ],
+      "duration_seconds": 1.8333333333333333,
+      "coverage": "full",
+      "key_sha256": "3e37204b6db4efdc954d6b48379a08c99f51750747130a7938411f8195bdf618"
+    },
+    {
+      "action": "seal_prone",
+      "range": [
+        1,
+        11
+      ],
+      "duration_seconds": 0.3333333333333333,
+      "coverage": "full",
+      "key_sha256": "a22261b03eed37ec7f149869c9d9dc817ae63eb1eaef57e3f191a28e19d800b4"
+    },
+    {
+      "action": "seal_prone2binocular",
+      "range": [
+        1,
+        31
+      ],
+      "duration_seconds": 1.0,
+      "coverage": "full",
+      "key_sha256": "8f2ab420986f5865dff6411c995e015cec2fef72c53713b3aaeb35a071869395"
+    },
+    {
+      "action": "seal_prone2llean",
+      "range": [
+        1,
+        13
+      ],
+      "duration_seconds": 0.4,
+      "coverage": "full",
+      "key_sha256": "c241ed8c30249d02e12e287a20864353af342829ae00fa256d7245696439ef2c"
+    },
+    {
+      "action": "seal_prone2rlean",
+      "range": [
+        1,
+        11
+      ],
+      "duration_seconds": 0.3333333333333333,
+      "coverage": "full",
+      "key_sha256": "061f37a105133633d0855274c0268f585af415900b2074f955be3e205fa3d978"
+    },
+    {
+      "action": "seal_prone_crawl",
+      "range": [
+        1,
+        27
+      ],
+      "duration_seconds": 0.8666666666666667,
+      "coverage": "full",
+      "key_sha256": "235d54b6f34dff8499155ca85eccc593dab3e5006c3a1f0308ba3382dbda93c8"
+    },
+    {
+      "action": "seal_prone_lstrafe",
+      "range": [
+        1,
+        23
+      ],
+      "duration_seconds": 0.7333333333333333,
+      "coverage": "full",
+      "key_sha256": "70eebdc109ba6bb60c6325f19e678875b7493f198803151d42a059635d7f9dd5"
+    },
+    {
+      "action": "seal_prone_pump_shotgun",
+      "range": [
+        1,
+        23
+      ],
+      "duration_seconds": 0.7333333333333333,
+      "coverage": "full",
+      "key_sha256": "06eb3a4cddc14087fb322dbf4d36e7c7acb83e73d97231938274bd89c706f116"
+    },
+    {
+      "action": "seal_prone_recoil",
+      "range": [
+        1,
+        3
+      ],
+      "duration_seconds": 0.06666666666666667,
+      "coverage": "full",
+      "key_sha256": "9d7920f6fc4270a2184f44ca3b2d185b3994ca439963da3a15604aa7dfa39bcf"
+    },
+    {
+      "action": "seal_prone_reload",
+      "range": [
+        1,
+        31
+      ],
+      "duration_seconds": 1.0,
+      "coverage": "full",
+      "key_sha256": "a7eaf6644cd48a283db06837000963dcd8ca256d7d7c9674ad10d5e3163f6e03"
+    },
+    {
+      "action": "seal_prone_reload_shotgun",
+      "range": [
+        1,
+        15
+      ],
+      "duration_seconds": 0.4666666666666667,
+      "coverage": "full",
+      "key_sha256": "edc88f1613a9dc2159ca9ca688482a959bdeb070fad7282b1c52d75db582aa15"
+    },
+    {
+      "action": "seal_prone_rflinch",
+      "range": [
+        1,
+        22
+      ],
+      "duration_seconds": 0.7,
+      "coverage": "full",
+      "key_sha256": "c2f829b11596fa53da1fb5587ee06b250cfddb7ccd988f2221a56a05460ef306"
+    },
+    {
+      "action": "seal_prone_rifle2pistol",
+      "range": [
+        1,
+        39
+      ],
+      "duration_seconds": 1.2666666666666666,
+      "coverage": "full",
+      "key_sha256": "ab90b6e5e9bc4c88321325a9b43802051b962239e63683f5c1cfe695afe464e7"
+    },
+    {
+      "action": "seal_prone_rstrafe",
+      "range": [
+        1,
+        23
+      ],
+      "duration_seconds": 0.7333333333333333,
+      "coverage": "full",
+      "key_sha256": "8c348ba39ad11a1f12e10061c9332d936f24713422de268efa249df7906b2370"
+    },
+    {
+      "action": "seal_prone_throwgrenade",
+      "range": [
+        1,
+        28
+      ],
+      "duration_seconds": 0.9,
+      "coverage": "full",
+      "key_sha256": "b4df9678b98d7e37ac00a5b4ebedcebb4bca96f073ed32a457e56bba942451cb"
+    },
+    {
+      "action": "seal_prone_tossgrenade",
+      "range": [
+        1,
+        28
+      ],
+      "duration_seconds": 0.9,
+      "coverage": "full",
+      "key_sha256": "644b7601fb5ba27bd6f54aa52d13367ca870e343d28bbb4cfedd091da18462c2"
+    },
+    {
+      "action": "seal_prone_turn",
+      "range": [
+        1,
+        27
+      ],
+      "duration_seconds": 0.8666666666666667,
+      "coverage": "full",
+      "key_sha256": "b01f5a2e5d4dbb9efbecc6b2e44146a924b511afd54978dd21d98a74aa60106e"
+    },
+    {
+      "action": "seal_pump_shotgun",
+      "range": [
+        1,
+        19
+      ],
+      "duration_seconds": 0.6,
+      "coverage": "full",
+      "key_sha256": "7a89d95c01733380e3012a2325bd1c79fff8799d12ce16f94235375252b95e20"
+    },
+    {
+      "action": "seal_put_onground",
+      "range": [
+        1,
+        44
+      ],
+      "duration_seconds": 1.4333332479000092,
+      "coverage": "full",
+      "key_sha256": "8a35768c3aec8d31f53b34698d30016180425393598942f655bb698d212a0f02"
+    },
+    {
+      "action": "seal_put_onwall",
+      "range": [
+        1,
+        43
+      ],
+      "duration_seconds": 1.4,
+      "coverage": "full",
+      "key_sha256": "25671d71057f17a0d5ffe8545519ebc1e36e1273eb5ca8e71ea27182325ff099"
+    },
+    {
+      "action": "seal_recoil",
+      "range": [
+        1,
+        3
+      ],
+      "duration_seconds": 0.06666666666666667,
+      "coverage": "full",
+      "key_sha256": "6d372be018fba0976ba8cb84bed2b81511d254dd863d59470b738eeb0ce308f0"
+    },
+    {
+      "action": "seal_reload",
+      "range": [
+        1,
+        46
+      ],
+      "duration_seconds": 1.5,
+      "coverage": "full",
+      "key_sha256": "1208cfefac60d2373ff780bdc369f90d9b5ae4776de91c588c592f0d89e15ab3"
+    },
+    {
+      "action": "seal_reload_m203",
+      "range": [
+        1,
+        38
+      ],
+      "duration_seconds": 1.2333333333333334,
+      "coverage": "full",
+      "key_sha256": "74b798cf056c1a7474e3079b059b3cb860806edc273100c61c18d5a08775fd64"
+    },
+    {
+      "action": "seal_reload_shotgun",
+      "range": [
+        1,
+        19
+      ],
+      "duration_seconds": 0.6,
+      "coverage": "full",
+      "key_sha256": "ae1ffe6192d314f01f9022508fcb71eb1f58cdd5060c573926509f2d1b9974dd"
+    },
+    {
+      "action": "seal_returnthrow",
+      "range": [
+        1,
+        32
+      ],
+      "duration_seconds": 1.033333271741867,
+      "coverage": "full",
+      "key_sha256": "323fe6ea4c75c3476c05031ea21ab294c6c48d1258643d69ef1888e90004b954"
+    },
+    {
+      "action": "seal_rifle2handsfree",
+      "range": [
+        1,
+        14
+      ],
+      "duration_seconds": 0.43333333333333335,
+      "coverage": "upper",
+      "key_sha256": "9d7d09beef4d626e5726284ab868e1eda8b21ad3c09e59af51cef1a0d35ae8b0"
+    },
+    {
+      "action": "seal_rifle2launcher",
+      "range": [
+        1,
+        36
+      ],
+      "duration_seconds": 1.1666665971279144,
+      "coverage": "full",
+      "key_sha256": "0f09a491d2e0ca71b8c77e375b6e425cb7d91ded295474e05f3c43f5e9464926"
+    },
+    {
+      "action": "seal_rifle2pistol",
+      "range": [
+        1,
+        33
+      ],
+      "duration_seconds": 1.0666666666666667,
+      "coverage": "full",
+      "key_sha256": "27ad1689da7365347a7589b58cdfc1fefb4adfefc2b2d3ba1e9ae0991144dd81"
+    },
+    {
+      "action": "seal_rstrafe",
+      "range": [
+        1,
+        24
+      ],
+      "duration_seconds": 0.7666666666666667,
+      "coverage": "full",
+      "key_sha256": "cf22cf97a4ac9f5ca78e29e6ce03295722195497a819148e46cbe1b74afec521"
+    },
+    {
+      "action": "seal_rstrafe_fast",
+      "range": [
+        1,
+        28
+      ],
+      "duration_seconds": 0.9,
+      "coverage": "full",
+      "key_sha256": "8344a70843ed671e3cd73d32107fb9b44d5bc55134cf1f593096e3d8f5465c46"
+    },
+    {
+      "action": "seal_run",
+      "range": [
+        1,
+        20
+      ],
+      "duration_seconds": 0.6333333333333333,
+      "coverage": "full",
+      "key_sha256": "7c94c4ca32d46ad9ad246946c011f7f83974b747a5226d5dd843548360121de8"
+    },
+    {
+      "action": "seal_run_90l",
+      "range": [
+        1,
+        19
+      ],
+      "duration_seconds": 0.6,
+      "coverage": "full",
+      "key_sha256": "a5690616c62de1db56dbff296780f9d3dbdc06f5e844d98ef25ac039e1b6f255"
+    },
+    {
+      "action": "seal_run_90r",
+      "range": [
+        1,
+        19
+      ],
+      "duration_seconds": 0.6,
+      "coverage": "full",
+      "key_sha256": "584870f87600cabb0997865e7dce922aae72443054eb1058956344dadfb8c435"
+    },
+    {
+      "action": "seal_run_bw",
+      "range": [
+        1,
+        19
+      ],
+      "duration_seconds": 0.6,
+      "coverage": "full",
+      "key_sha256": "c4b2ff1545f62a0ab2ee81affe1d47bf1c78ff0195a5705031808b3d58e3cbd7"
+    },
+    {
+      "action": "seal_runningjump_in_air",
+      "range": [
+        1,
+        15
+      ],
+      "duration_seconds": 0.4666666666666667,
+      "coverage": "full",
+      "key_sha256": "aa67e3bb50bd849816cd542751ce7375b7bef38b276175643ce177fe5114c4fc"
+    },
+    {
+      "action": "seal_runningjump_launch",
+      "range": [
+        1,
+        26
+      ],
+      "duration_seconds": 0.8333333333333334,
+      "coverage": "full",
+      "key_sha256": "72b11bfcfee398bca4b1ab75d81432a8c3533d2b0e8ce9fcada74eb6d3a681c2"
+    },
+    {
+      "action": "seal_signal_deploy",
+      "range": [
+        1,
+        27
+      ],
+      "duration_seconds": 0.8666666666666667,
+      "coverage": "full",
+      "key_sha256": "19a3f91aba9d0add34658e80be892db0f9c4644f36a9f023c9c4e54ea120a34c"
+    },
+    {
+      "action": "seal_signal_fireatwill",
+      "range": [
+        1,
+        14
+      ],
+      "duration_seconds": 0.43333333333333335,
+      "coverage": "full",
+      "key_sha256": "ca333f1a4ee198094c91af6ab7ecc8d7740ddf2c739bbd1676f7a804b409bffd"
+    },
+    {
+      "action": "seal_signal_follow",
+      "range": [
+        1,
+        19
+      ],
+      "duration_seconds": 0.6,
+      "coverage": "full",
+      "key_sha256": "4ded69710d147db67c3d64b42f36c4246ee55c7257766d8f383b52d121f88445"
+    },
+    {
+      "action": "seal_signal_holdposition",
+      "range": [
+        1,
+        20
+      ],
+      "duration_seconds": 0.6333333333333333,
+      "coverage": "full",
+      "key_sha256": "300d34aa430446bdf12e6a077731e7345a492781cc96b34f5d959bfbcfa746ae"
+    },
+    {
+      "action": "seal_slide",
+      "range": [
+        1,
+        15
+      ],
+      "duration_seconds": 0.4666666666666667,
+      "coverage": "full",
+      "key_sha256": "39db341d0aecfa6e561c06e01b152724d1795f3fcadab312968f7e3beaad49d8"
+    },
+    {
+      "action": "seal_stand",
+      "range": [
+        1,
+        17
+      ],
+      "duration_seconds": 0.5333333333333333,
+      "coverage": "full",
+      "key_sha256": "b3521c90a66c28051b0b1a8cd65028551abf47479d551b967e08a9a42072e77c"
+    },
+    {
+      "action": "seal_stand2binocular",
+      "range": [
+        1,
+        12
+      ],
+      "duration_seconds": 0.36666666666666664,
+      "coverage": "full",
+      "key_sha256": "6f03de96bb367e176cf3e7695b117f43e103db9d2f3c2cc6a21acfffd12c1150"
+    },
+    {
+      "action": "seal_stand2crouch",
+      "range": [
+        1,
+        28
+      ],
+      "duration_seconds": 0.9,
+      "coverage": "full",
+      "key_sha256": "8eecde615f9d4cdc0971614d704a4a8f5899a8c8bd45f0138a301ccab896fdcd"
+    },
+    {
+      "action": "seal_stand2hang",
+      "range": [
+        1,
+        26
+      ],
+      "duration_seconds": 0.8333333333333334,
+      "coverage": "full",
+      "key_sha256": "49cf81d362bbfc00febc9215d13c8aaa2d9d5bda966d6e60d4bf7589bb8b8d44"
+    },
+    {
+      "action": "seal_stand2ladder",
+      "range": [
+        1,
+        28
+      ],
+      "duration_seconds": 0.9,
+      "coverage": "full",
+      "key_sha256": "410ea16d5c89aeab2e0c6e0a4bfeb976de362cb2e9451133974fe41f63700704"
+    },
+    {
+      "action": "seal_stand2llean",
+      "range": [
+        1,
+        24
+      ],
+      "duration_seconds": 0.7666666666666667,
+      "coverage": "full",
+      "key_sha256": "45814410fbdb9ed77dd9cbf5bc379d10aaf6550241e0f4034e5304244b1ad1a3"
+    },
+    {
+      "action": "seal_stand2prone",
+      "range": [
+        1,
+        37
+      ],
+      "duration_seconds": 1.2,
+      "coverage": "full",
+      "key_sha256": "e4ff790d1563e5d2c6c65e6363812e3facc9a8320c5ce7b85f47aa98a0d0df1c"
+    },
+    {
+      "action": "seal_stand2rlean",
+      "range": [
+        1,
+        19
+      ],
+      "duration_seconds": 0.6,
+      "coverage": "full",
+      "key_sha256": "360e400670c89b02509101d06e540944a1f5895dc30a2ab501b47a0cd8fd4946"
+    },
+    {
+      "action": "seal_stand2turret",
+      "range": [
+        1,
+        27
+      ],
+      "duration_seconds": 0.8666666666666667,
+      "coverage": "full",
+      "key_sha256": "78e81316159ea9eff305e93ea1e805cd366b8b0a6d1a5223766e69690b51dbda"
+    },
+    {
+      "action": "seal_stand_alert01",
+      "range": [
+        1,
+        32
+      ],
+      "duration_seconds": 1.033333271741867,
+      "coverage": "full",
+      "key_sha256": "be5b456c683cf9feb62f579f66ff53c64fdf19c6ec265d630088170afd136154"
+    },
+    {
+      "action": "seal_stand_alert02",
+      "range": [
+        1,
+        32
+      ],
+      "duration_seconds": 1.033333271741867,
+      "coverage": "full",
+      "key_sha256": "9cd190786fd6552080a468bfd8efdde1a93886d2ed7d343af7c144b1fdc68f08"
+    },
+    {
+      "action": "seal_step",
+      "range": [
+        1,
+        21
+      ],
+      "duration_seconds": 0.6666666666666666,
+      "coverage": "full",
+      "key_sha256": "12f35f4dcfb4f9ffc6a558a6856e8a96977938a9429267070d90973c4c16e502"
+    },
+    {
+      "action": "seal_step_up",
+      "range": [
+        1,
+        14
+      ],
+      "duration_seconds": 0.43333333333333335,
+      "coverage": "full",
+      "key_sha256": "968b15ea7136f0663927759685132f09a0b0be60e46e310616138993ada054fa"
+    },
+    {
+      "action": "seal_swaprifle",
+      "range": [
+        1,
+        32
+      ],
+      "duration_seconds": 1.033333271741867,
+      "coverage": "full",
+      "key_sha256": "0e5d2dc1e1148b53ba16bf460b24292f7ee0d66d0e53bf5828f447b85fd68917"
+    },
+    {
+      "action": "seal_throwgrenade",
+      "range": [
+        1,
+        29
+      ],
+      "duration_seconds": 0.9333333333333333,
+      "coverage": "full",
+      "key_sha256": "dbb4112b30247ab9b7208d17c9db4d6bb4c4c51cdaeab52d3297d14f333ebe56"
+    },
+    {
+      "action": "seal_toss_llean",
+      "range": [
+        1,
+        29
+      ],
+      "duration_seconds": 0.9333333333333333,
+      "coverage": "full",
+      "key_sha256": "9b3b63390bc6ed426e01e3176a556fee6a3212a4163d9dac618c1aa4b9100844"
+    },
+    {
+      "action": "seal_toss_rlean",
+      "range": [
+        1,
+        36
+      ],
+      "duration_seconds": 1.1666665971279144,
+      "coverage": "full",
+      "key_sha256": "770d53ff380ae12f31fe13d2de2d261a897fdc12e35a6c7164ea1d14ff8e3024"
+    },
+    {
+      "action": "seal_tossgrenade",
+      "range": [
+        1,
+        31
+      ],
+      "duration_seconds": 1.0,
+      "coverage": "full",
+      "key_sha256": "83925489916187f4e08ea21428ccc86d8535bf3b1ddc6a5c6946ed7a9cb74fe7"
+    },
+    {
+      "action": "seal_turret_poses",
+      "range": [
+        1,
+        4
+      ],
+      "duration_seconds": 0.1,
+      "coverage": "full",
+      "key_sha256": "d6a37970c52c274ae661b6be041b5c19f6638a9c9028a7cf5a41e5638244d27e"
+    },
+    {
+      "action": "seal_turret_stand",
+      "range": [
+        1,
+        2
+      ],
+      "duration_seconds": 0.03333333333333333,
+      "coverage": "full",
+      "key_sha256": "ef429d4246f3cc6b3969ef350cef377d52917af182a3cf6793c95812c9681760"
+    },
+    {
+      "action": "seal_walk",
+      "range": [
+        1,
+        26
+      ],
+      "duration_seconds": 0.8333333333333334,
+      "coverage": "full",
+      "key_sha256": "b546fa0cc6853ca5fc8c14460f4691d9acaef653d781d745a4b9aa98804a19e9"
+    },
+    {
+      "action": "seal_walk_alert",
+      "range": [
+        1,
+        18
+      ],
+      "duration_seconds": 0.5666666666666667,
+      "coverage": "full",
+      "key_sha256": "86f1807783c6b2991e2eed303884a03918a92c4e3d8cc6dca3c2e0c51141922f"
+    },
+    {
+      "action": "seal_walk_alert02",
+      "range": [
+        1,
+        13
+      ],
+      "duration_seconds": 0.4,
+      "coverage": "full",
+      "key_sha256": "61b36c32655e5a9ceef4c9623fd19570c59e9a2daa9a3c429fdbd43d6a43c560"
+    },
+    {
+      "action": "seal_walk_bw",
+      "range": [
+        1,
+        17
+      ],
+      "duration_seconds": 0.5333333333333333,
+      "coverage": "full",
+      "key_sha256": "3a66a671b78d013317d4f0c689640136c40ec67c87a7c662d9af69a9508328f4"
+    }
+  ]
+}

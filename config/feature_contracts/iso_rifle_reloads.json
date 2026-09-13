@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "feature_id": "iso_rifle_reloads",
+  "player_intent": "Use the recovered SOCOM II rifle reload motions on the modern M4 and AK operators.",
+  "acceptance_rule": "M4 and AK select the verified standing, crouched and prone ISO reload clips through saved weapon slots; reload start, interruption, ammo conservation, duration and trigger-hand contact pass the canonical lifecycle regression.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://character_creation.tscn",
+  "ownership": {
+    "reload_gameplay": "WeaponReloadCoordinator",
+    "reload_presentation": "SocomOperatorAnimationDriver"
+  },
+  "nodes": [
+    {
+      "id": "production_animation",
+      "type": "Node3D",
+      "role": "Existing animation driver consumes the saved reload slots.",
+      "owner": "SocomOperatorAnimationDriver",
+      "scene_path": "res://scenes/player/operator_player.tscn",
+      "node_path": "Mannequin/ProductionAnimation"
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://config/weapon_visual_rigs/m4a1_agls_v10.json",
+      "writer": "res://scripts/labs/gunsmith2/weapon_visual_rig_contract.gd",
+      "readers": [
+        "res://scripts/labs/gunsmith2/weapon_visual_rig_resolver.gd"
+      ]
+    },
+    {
+      "path": "res://config/operator_animation_map.json",
+      "writer": "res://scripts/player/operator_animation_profile.gd",
+      "readers": [
+        "res://scripts/player/operator_animation_profile.gd"
+      ]
+    },
+    {
+      "path": "res://config/weapons/m4a1.json",
+      "writer": "res://scripts/weapons/weapon_animation_profile.gd",
+      "readers": [
+        "res://scripts/weapons/weapon_animation_profile.gd"
+      ]
+    },
+    {
+      "path": "res://config/weapons/ak-47.json",
+      "writer": "res://scripts/weapons/weapon_animation_profile.gd",
+      "readers": [
+        "res://scripts/weapons/weapon_animation_profile.gd"
+      ]
+    }
+  ],
+  "must_not_change": [
+    "movement",
+    "camera",
+    "reload_duration_seconds",
+    "ammo_commit",
+    "damage",
+    "network_protocol",
+    "unrelated_weapon_slots"
+  ],
+  "proof_scripts": [
+    "res://tools/iso_rifle_reload_regression.gd",
+    "res://tools/reload_trigger_attachment_regression.gd"
+  ],
+  "visual_check": "M4 and AK reload in all three stances with live weapon presentation; detached ISO rifle tracks are not imported. Partial moving, shotgun, launcher and pistol reloads are not activated by this feature.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Use already decoded and retargeted complete ISO body clips through existing per-weapon slots; preserve timing, interruption and ammo owners.",
+    "current": {
+      "correctness": 2,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 4,
+      "performance": 5,
+      "regression_coverage": 4,
+      "evidence_paths": [
+        "res://scripts/weapons/weapon_animation_profile.gd"
+      ],
+      "system": "Previous generic rifle reload slots"
+    },
+    "candidate": {
+      "correctness": 4,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 4,
+      "performance": 5,
+      "regression_coverage": 4,
+      "evidence_paths": [
+        "res://config/operator_animation_map.json",
+        "res://tools/iso_rifle_reload_regression.gd",
+        "res://tools/reload_trigger_attachment_regression.gd"
+      ],
+      "system": "Verified ISO rifle reload slots"
+    }
+  }
+}

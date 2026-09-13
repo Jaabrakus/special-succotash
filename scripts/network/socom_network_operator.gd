@@ -9,6 +9,9 @@ const MannequinScript := preload("res://scripts/player/test_mannequin.gd")
 const MovementState := preload("res://scripts/network/socom_movement_state.gd")
 const TeamAppearance := preload("res://scripts/player/operator_team_appearance.gd")
 const AnimatedHurtboxRigScript := preload("res://scripts/combat/socom_animated_hurtbox_rig.gd")
+const SourceFirearmDamage := preload("res://scripts/combat/source_firearm_damage.gd")
+const SourceFirearmPolicy := preload("res://scripts/weapons/source_firearm_policy.gd")
+var source_health: RefCounted = null
 
 signal eliminated(victim_peer_id: int, attacker_peer_id: int)
 
@@ -298,13 +301,24 @@ func get_traversal_presentation() -> Dictionary:
 
 func _apply_snapshot_presentation(entry: Dictionary) -> void:
 	var state: Dictionary = entry.get("presentation", {})
+	var launch := float(state.get("jump_launch_speed", jump_velocity))
+	active_jump_launch_speed = clampf(launch, 1.0, 10.0) if is_finite(launch) else jump_velocity
 	network_traversal_presentation = {}
 	var traversal_value: Variant = state.get("traversal", {})
-	if traversal_value is Dictionary and str(traversal_value.get("slot", "")) in ["hang", "pull_up", "ladder_idle", "ladder_move", "ladder_slide"]:
+	if traversal_value is Dictionary and str(traversal_value.get("slot", "")) in ["hang", "pull_up", "low_mantle", "vault", "ladder_idle", "ladder_move", "ladder_slide"]:
 		var height := float(traversal_value.get("height", 0.0))
 		var phase := float(traversal_value.get("phase", 0.0))
 		if is_finite(height) and is_finite(phase):
 			network_traversal_presentation = {"slot": str(traversal_value.slot), "height": clampf(height, 0.0, 1000.0), "phase": clampf(phase, 0.0, 1.0)}
+			var anchor: Variant = traversal_value.get("anchor")
+			var normal: Variant = traversal_value.get("surface_normal")
+			if anchor is Vector3 and normal is Vector3 and anchor.is_finite() and normal.is_finite() and normal.length_squared() > 0.01:
+				network_traversal_presentation["anchor"] = anchor
+				network_traversal_presentation["surface_normal"] = normal.normalized()
+			for key in ["start_point", "landing_point"]:
+				var point: Variant = traversal_value.get(key)
+				if point is Vector3 and point.is_finite():
+					network_traversal_presentation[key] = point
 	round_deactivated = bool(state.get("round_deactivated", false))
 	if mannequin != null:
 		mannequin.visible = not round_deactivated
@@ -393,6 +407,7 @@ func set_authoritative_snapshot(
 
 
 func respawn_at(spawn_position: Vector3) -> void:
+	source_health = null
 	round_deactivated = false
 	lean_latch.reset()
 	peek_amount = 0.0
@@ -437,6 +452,31 @@ func set_bomb_carrier(active: bool) -> void:
 		mannequin.set_bomb_backpack_visible(active)
 
 
+func take_source_bullet_damage(combat: Dictionary, hit_region: StringName, attacker_peer_id: int = 0) -> Dictionary:
+	if not multiplayer.is_server() or not alive or not SourceFirearmPolicy.valid_impact(combat, hit_region):
+		return {"accepted": false, "hit_region": hit_region}
+	if source_health == null:
+		source_health = SourceFirearmDamage.new()
+		if not source_health.initialize(SourceFirearmPolicy.multiplayer_defaults()):
+			source_health = null
+			return {"accepted": false, "reason": "SOURCE_HEALTH_PROFILE_INVALID"}
+		source_health.cap_legacy_health_ratio(current_health / maxf(max_health, 0.001))
+	var before_health := current_health
+	var result: Dictionary = source_health.apply_projectile(combat.impact_damage, combat.damage_modifier,
+		combat.piercing, float(combat.get("distance_m", INF)), combat.effective_range_m,
+		combat.maximum_range_m, SourceFirearmPolicy.source_region(hit_region))
+	if not bool(result.get("accepted", false)): return result
+	current_health = max_health * source_health.weighted_health_ratio()
+	if not source_health.alive:
+		_set_alive_and_health(false, 0.0)
+		eliminated.emit(network_peer_id, attacker_peer_id)
+	else:
+		_refresh_nameplate()
+	result.merge({"damage": before_health - current_health, "hit_region": hit_region, "headshot": hit_region == &"HEAD", "remaining_health": current_health,
+		"eliminated": not alive, "victim_peer_id": network_peer_id, "damage_model": SourceFirearmPolicy.DAMAGE_MODEL}, true)
+	return result
+
+
 func take_bullet_damage_region(
 	base_damage: float,
 	hit_region: StringName,
@@ -464,6 +504,7 @@ func take_bullet_damage_region(
 		multiplier = 0.72
 	var damage := maxf(0.0, base_damage * multiplier)
 	current_health = maxf(0.0, current_health - damage)
+	if source_health != null: source_health.cap_legacy_health_ratio(current_health / maxf(max_health, 0.001))
 	if current_health <= 0.0:
 		_set_alive_and_health(false, 0.0)
 		eliminated.emit(network_peer_id, attacker_peer_id)
@@ -489,6 +530,7 @@ func take_explosion_damage(
 		return {"accepted": false}
 	var damage := maxf(0.0, damage_value)
 	current_health = maxf(0.0, current_health - damage)
+	if source_health != null: source_health.cap_legacy_health_ratio(current_health / maxf(max_health, 0.001))
 	if current_health <= 0.0:
 		_set_alive_and_health(false, 0.0)
 		eliminated.emit(network_peer_id, attacker_peer_id)

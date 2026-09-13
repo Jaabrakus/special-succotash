@@ -4,6 +4,7 @@ extends RefCounted
 const MapDocument := preload("res://scripts/maps/socom_map_document.gd")
 const PainterlyCoastalSky := preload("res://assets/shaders/painterly_coastal_sky.gdshader")
 const PainterlyCoastalV2Sky := preload("res://assets/shaders/painterly_coastal_v2_sky.gdshader")
+const ScreenEffects := preload("res://scripts/tactical/tactical_screen_effects.gd")
 
 
 static func build_into(parent: Node, document: Dictionary) -> Node3D:
@@ -69,6 +70,7 @@ static func build_into(parent: Node, document: Dictionary) -> Node3D:
 	sun.directional_shadow_fade_start = 0.82
 	root.add_child(sun)
 	root.set_meta("soundscape", String(data.get("soundscape", "outdoor_tactical")))
+	ScreenEffects.add_map_grain(root, float(data["film_grain_strength"]))
 	return root
 
 

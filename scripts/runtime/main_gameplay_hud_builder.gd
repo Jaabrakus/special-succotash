@@ -34,6 +34,10 @@ static func _build_ui(hud: Node) -> void:
 		layer.name = "GameplayHUD"
 		layer.layer = 10
 		hud.add_child(layer)
+	hud.gameplay_layer = layer
+	var placeholder := layer.get_node_or_null("StatusCard") as Control
+	if placeholder != null:
+		placeholder.visible = false
 
 	if not hud.public_training_mode:
 		hud.debug_label = Label.new()
@@ -138,6 +142,10 @@ static func _build_ui(hud: Node) -> void:
 		hud.stance_indicator.name = "SocomStanceIndicator"
 		layer.add_child(hud.stance_indicator)
 
+	if hud.loadout_card_hud == null:
+		hud.loadout_card_hud = LoadoutCardHUD.new()
+		hud.loadout_card_hud.name = "SocomLoadoutCardHUD"
+		layer.add_child(hud.loadout_card_hud)
 	if not hud.public_training_mode:
 		hud._build_calibration_overlay(layer)
 		hud._build_camera_workbench(layer)
@@ -186,6 +194,7 @@ static func _build_public_training_navigation(hud: Node, layer: CanvasLayer) -> 
 	title.offset_top = 16.0
 	title.offset_bottom = 48.0
 	layer.add_child(title)
+	hud.training_range_title = title
 	var menu_button := Button.new()
 	menu_button.name = "TrainingRangeMainMenuButton"
 	menu_button.text = "MAIN MENU"
@@ -200,6 +209,21 @@ static func _build_public_training_navigation(hud: Node, layer: CanvasLayer) -> 
 		hud.get_tree().change_scene_to_file("res://game_launcher.tscn")
 	)
 	layer.add_child(menu_button)
+	hud.main_menu_button = menu_button
+	var hud_button := Button.new()
+	hud_button.name = "TrainingRangeToggleHudButton"
+	hud_button.text = "HIDE HUD"
+	hud_button.tooltip_text = "Press H or click to hide all HUD elements"
+	hud_button.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	hud_button.offset_left = -276.0
+	hud_button.offset_right = -152.0
+	hud_button.offset_top = 16.0
+	hud_button.offset_bottom = 58.0
+	hud_button.pressed.connect(func():
+		hud.toggle_hud_mechanics()
+	)
+	layer.add_child(hud_button)
+	hud.hud_toggle_button = hud_button
 	hud.training_bomb_status_label = Label.new()
 	hud.training_bomb_status_label.name = "TrainingBombStatus"
 	hud.training_bomb_status_label.text = ""
@@ -213,3 +237,41 @@ static func _build_public_training_navigation(hud: Node, layer: CanvasLayer) -> 
 	hud.training_bomb_status_label.offset_bottom = 94.0
 	hud.training_bomb_status_label.visible = false
 	layer.add_child(hud.training_bomb_status_label)
+
+
+static func set_hud_mechanics_visible(hud: Node, enabled: bool) -> void:
+	if hud.gameplay_layer != null:
+		hud.gameplay_layer.visible = enabled
+	if hud.dynamic_reticle != null:
+		hud.dynamic_reticle.visible = enabled
+	if hud.crosshair != null and not enabled:
+		hud.crosshair.visible = false
+	if hud.tactical_compass != null:
+		hud.tactical_compass.visible = enabled
+	if hud.loadout_card_hud != null:
+		hud.loadout_card_hud.visible = enabled
+	if hud.stance_indicator != null:
+		hud.stance_indicator.visible = enabled
+	if hud.player_status_panel != null:
+		hud.player_status_panel.visible = enabled and (hud.loadout_card_hud == null or not bool(hud.loadout_card_hud.attention.profile.enabled))
+	elif hud.player_status_label != null:
+		hud.player_status_label.visible = enabled
+	if hud.training_bomb_status_label != null and not enabled:
+		hud.training_bomb_status_label.visible = false
+	if hud.training_range_title != null:
+		hud.training_range_title.visible = enabled
+	if hud.main_menu_button != null:
+		hud.main_menu_button.visible = enabled
+	if hud.hud_toggle_button != null:
+		hud.hud_toggle_button.visible = enabled
+		hud.hud_toggle_button.text = "HIDE HUD" if enabled else "SHOW HUD"
+	if hud.controls_guide != null and hud.controls_guide.has_method("set_hint_button_visible"):
+		hud.controls_guide.call("set_hint_button_visible", enabled)
+	if hud.debug_label != null and not enabled:
+		hud.debug_label.visible = false
+	if hud.body_stack_overlay != null and not enabled:
+		hud.body_stack_overlay.visible = false
+	if hud.pose_tuner_panel != null and not enabled:
+		hud.pose_tuner_panel.visible = false
+	if hud.voice_status_label != null and not enabled:
+		hud.voice_status_label.visible = false

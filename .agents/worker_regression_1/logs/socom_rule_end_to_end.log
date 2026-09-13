@@ -1,0 +1,17 @@
+COMMAND: /Users/kiwimango/Applications/Godot-4.7.1.app/Contents/MacOS/Godot --headless -s tools/socom_rule_end_to_end_regression.gd
+EXIT_CODE: 1
+DURATION: 0.24s
+
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+SOCOM_RULE_CHECK PASS natural language produces a review proposal
+SOCOM_RULE_CHECK PASS the sentence compiles to valid fire and combat fire
+SOCOM_RULE_CHECK PASS the sentence compiles torso ownership and exact blend timing
+ERROR: SOCOM_RULE_CHECK FAIL the saved state keeps the human sentence as its authoring source
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/socom_rule_end_to_end_regression.gd:65)
+       [1] _initialize (res://tools/socom_rule_end_to_end_regression.gd:35)
+SOCOM_RULE_CHECK PASS the saved sentence resolves through the same runtime presentation router
+SOCOM_RULE_CHECK PASS the compiled rule enters ready aim without relocating the rifle
+SOCOM_RULE_END_TO_END_REGRESSION FAIL ["the saved state keeps the human sentence as its authoring source"]

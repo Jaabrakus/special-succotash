@@ -467,7 +467,7 @@ static func _set_environment(document: Dictionary, command: Dictionary) -> Dicti
 	var allowed := [
 		"sky_top", "sky_horizon", "ground_color", "ambient_color", "ambient_energy",
 		"sun_color", "sun_energy", "sun_rotation", "fog_enabled", "fog_density",
-		"fog_color", "exposure", "soundscape",
+		"fog_color", "exposure", "soundscape", "film_grain_strength",
 	]
 	for key: Variant in (changes as Dictionary):
 		if String(key) in allowed:

@@ -7,6 +7,7 @@ extends RefCounted
 const MapDocument := preload("res://scripts/maps/socom_map_document.gd")
 const MapAssetLibrary := preload("res://scripts/maps/socom_map_asset_library.gd")
 const StairCollision := preload("res://scripts/maps/socom_stair_collision.gd")
+const Materials := preload("res://scripts/maps/socom_map_surface_materials.gd")
 
 
 static func build(object: Dictionary, editor_preview: bool) -> Node3D:
@@ -29,6 +30,7 @@ static func build(object: Dictionary, editor_preview: bool) -> Node3D:
 	body.add_child(content)
 	var original_bounds := _combined_mesh_bounds(content)
 	content.scale = size
+	Materials.apply_imported_yard_finish(content, properties)
 	var collision_mode := String(properties.get("collision_mode", "box"))
 	if collision_mode in StairCollision.MODES:
 		body.add_to_group(StairCollision.GROUP)

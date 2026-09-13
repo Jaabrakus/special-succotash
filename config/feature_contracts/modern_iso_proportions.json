@@ -1,0 +1,92 @@
+{
+  "schema_version": 1,
+  "feature_id": "modern_iso_proportions",
+  "player_intent": "Keep the modern soldier mesh and gear while matching recovered SOCOM II body-joint proportions without stretching the neck.",
+  "acceptance_rule": "The selected runtime rig matches 21 recovered control positions within 0.1 mm after uniform unit normalization, retains the canonical 65-bone animation interface, passes mesh and animation regressions, and has an intact body in rendered live poses.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://character_creation.tscn",
+  "ownership": {
+    "asset_fit": "build_modern_soldier",
+    "asset_selection": "SocomOperatorCharacterSelection",
+    "bone_pose": "SocomOperatorAnimationDriver"
+  },
+  "nodes": [
+    {
+      "id": "modern_selection",
+      "type": "Node3D",
+      "role": "Loads the saved fitted asset before animation binding.",
+      "owner": "SocomOperatorCharacterSelection",
+      "source_script": "res://scripts/player/operator_character_selection.gd",
+      "code_symbols": [
+        "scene.instantiate()",
+        "candidate.name = \"TrooperModel\""
+      ]
+    },
+    {
+      "id": "rig_specific_library",
+      "type": "AnimationPlayer",
+      "role": "Uses rest-translation-adapted clips through the existing animation player.",
+      "owner": "SocomOperatorAssetRuntime",
+      "source_script": "res://scripts/player/operator_asset_runtime.gd",
+      "code_symbols": [
+        "canonical_rest_before_proportions",
+        "operator_proportion_animation_adapter.gd"
+      ]
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://config/operator_character.json",
+      "writer": "res://tools/build_modern_soldier.gd",
+      "readers": [
+        "res://scripts/player/operator_character_selection.gd"
+      ]
+    }
+  ],
+  "must_not_change": [
+    "movement",
+    "collision",
+    "aim_intent",
+    "shot_authority",
+    "damage",
+    "network_protocol",
+    "source_artwork"
+  ],
+  "proof_scripts": [
+    "res://tools/modern_soldier_regression.gd",
+    "res://tools/modern_iso_anatomy_regression.gd",
+    "res://tools/modern_soldier_visual_check.gd",
+    "res://tools/modern_weapon_follow_regression.gd"
+  ],
+  "visual_check": "Standing from front and both sides, ADS, crouch, prone, run, reload and dive phases; joint measurements alone cannot approve anatomy. Original ISO skin contours are unavailable; this is modern artwork on matched joint proportions, not a literal original 27-node rig or original mesh.",
+  "system_delta": {
+    "decision": "REPLACE",
+    "reason": "Fit trunk mesh continuously between anatomical hip/neck anchors instead of independently mapping skin regions onto non-homologous source control pivots. Keep exact target joint positions and existing runtime pose owner.",
+    "current": {
+      "correctness": 1,
+      "ownership_clarity": 5,
+      "runtime_parity": 4,
+      "editor_usability": 1,
+      "performance": 4,
+      "regression_coverage": 2,
+      "evidence_paths": [
+        "res://tools/modern_iso_proportion_builder.gd"
+      ],
+      "system": "Rejected control-pivot mesh fit"
+    },
+    "candidate": {
+      "correctness": 4,
+      "ownership_clarity": 5,
+      "runtime_parity": 4,
+      "editor_usability": 3,
+      "performance": 4,
+      "regression_coverage": 4,
+      "evidence_paths": [
+        "res://tools/build_modern_soldier.gd",
+        "res://tools/modern_iso_anatomy_regression.gd",
+        "res://tools/modern_soldier_regression.gd"
+      ],
+      "system": "Continuous anatomical torso fit on ISO joint targets"
+    }
+  }
+}

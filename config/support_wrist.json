@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "enabled": true,
+  "palm_under_fore_end": true,
+  "finger_curl": 0.72,
+  "thumb_wrap": 0.64,
+  "maximum_bend_degrees": 55.0
+}

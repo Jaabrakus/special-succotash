@@ -538,6 +538,7 @@ static func normalize_environment(value: Variant) -> Dictionary:
 		"fog_density": clampf(float(source.get("fog_density", fallback["fog_density"])), 0.0, 0.1),
 		"fog_color": color_to_data(data_to_color(source.get("fog_color", {}), data_to_color(fallback["fog_color"]))),
 		"exposure": clampf(float(source.get("exposure", fallback["exposure"])), 0.25, 3.0),
+		"film_grain_strength": clampf(float(source.get("film_grain_strength", 0.0)), 0.0, 0.12),
 		"soundscape": String(source.get("soundscape", fallback["soundscape"])),
 		"backdrop_texture": String(source.get("backdrop_texture", fallback["backdrop_texture"])),
 		"backdrop_position": vector_to_data(data_to_vector(source.get("backdrop_position", {}), data_to_vector(fallback["backdrop_position"]))),

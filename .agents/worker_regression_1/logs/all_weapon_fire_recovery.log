@@ -1,0 +1,873 @@
+COMMAND: /Users/kiwimango/Applications/Godot-4.7.1.app/Contents/MacOS/Godot --headless -s tools/all_weapon_fire_recovery_regression.gd
+EXIT_CODE: 1
+DURATION: 30.78s
+
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS canonical firearm catalog is fully discovered
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS 12_gauge_pump resolves to a declared animation family
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS 12_gauge_pump inherits stable standing/crouched FIRE_RECOVERY
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS 12_gauge_pump FIRE_ACCEPTED cannot resolve to reload
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS 226 resolves to a declared animation family
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS 226 inherits stable standing/crouched FIRE_RECOVERY
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS 226 FIRE_ACCEPTED cannot resolve to reload
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS 552 resolves to a declared animation family
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS 552 inherits stable standing/crouched FIRE_RECOVERY
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS 552 FIRE_ACCEPTED cannot resolve to reload
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS 870 resolves to a declared animation family
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS 870 inherits stable standing/crouched FIRE_RECOVERY
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS 870 FIRE_ACCEPTED cannot resolve to reload
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS 9mm_pistol resolves to a declared animation family
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS 9mm_pistol inherits stable standing/crouched FIRE_RECOVERY
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS 9mm_pistol FIRE_ACCEPTED cannot resolve to reload
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS 9mm_sub resolves to a declared animation family
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS 9mm_sub inherits stable standing/crouched FIRE_RECOVERY
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS 9mm_sub FIRE_ACCEPTED cannot resolve to reload
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS air_to_ground_missile resolves to a declared animation family
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS air_to_ground_missile inherits stable standing/crouched FIRE_RECOVERY
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS air_to_ground_missile FIRE_ACCEPTED cannot resolve to reload
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS ak-47 resolves to a declared animation family
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS ak-47 inherits stable standing/crouched FIRE_RECOVERY
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS ak-47 FIRE_ACCEPTED cannot resolve to reload
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS aks-74 resolves to a declared animation family
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS aks-74 inherits stable standing/crouched FIRE_RECOVERY
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS aks-74 FIRE_ACCEPTED cannot resolve to reload
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS assaultrifle_1 resolves to a declared animation family
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS assaultrifle_1 inherits stable standing/crouched FIRE_RECOVERY
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS assaultrifle_1 FIRE_ACCEPTED cannot resolve to reload
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS assaultrifle_2 resolves to a declared animation family
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS assaultrifle_2 inherits stable standing/crouched FIRE_RECOVERY
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS assaultrifle_2 FIRE_ACCEPTED cannot resolve to reload
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS assaultrifle_3 resolves to a declared animation family
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS assaultrifle_3 inherits stable standing/crouched FIRE_RECOVERY
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS assaultrifle_3 FIRE_ACCEPTED cannot resolve to reload
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS assaultrifle_4 resolves to a declared animation family
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS assaultrifle_4 inherits stable standing/crouched FIRE_RECOVERY
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS assaultrifle_4 FIRE_ACCEPTED cannot resolve to reload
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS bullpup_1 resolves to a declared animation family
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS bullpup_1 inherits stable standing/crouched FIRE_RECOVERY
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS bullpup_1 FIRE_ACCEPTED cannot resolve to reload
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS de__50 resolves to a declared animation family
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS de__50 inherits stable standing/crouched FIRE_RECOVERY
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS de__50 FIRE_ACCEPTED cannot resolve to reload
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS designator resolves to a declared animation family
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS designator inherits stable standing/crouched FIRE_RECOVERY
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS designator FIRE_ACCEPTED cannot resolve to reload
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS exploding_fuel resolves to a declared animation family
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS exploding_fuel inherits stable standing/crouched FIRE_RECOVERY
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS exploding_fuel FIRE_ACCEPTED cannot resolve to reload
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS f57 resolves to a declared animation family
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS f57 inherits stable standing/crouched FIRE_RECOVERY
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS f57 FIRE_ACCEPTED cannot resolve to reload
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS f90 resolves to a declared animation family
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS f90 inherits stable standing/crouched FIRE_RECOVERY
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS f90 FIRE_ACCEPTED cannot resolve to reload
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS hk5 resolves to a declared animation family
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS hk5 inherits stable standing/crouched FIRE_RECOVERY
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS hk5 FIRE_ACCEPTED cannot resolve to reload
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS hk5sd resolves to a declared animation family
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS hk5sd inherits stable standing/crouched FIRE_RECOVERY
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS hk5sd FIRE_ACCEPTED cannot resolve to reload
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m14 resolves to a declared animation family
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m14 inherits stable standing/crouched FIRE_RECOVERY
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m14 FIRE_ACCEPTED cannot resolve to reload
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m16a2-m203 resolves to a declared animation family
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m16a2-m203 inherits stable standing/crouched FIRE_RECOVERY
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m16a2-m203 FIRE_ACCEPTED cannot resolve to reload
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m16a2 resolves to a declared animation family
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m16a2 inherits stable standing/crouched FIRE_RECOVERY
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m16a2 FIRE_ACCEPTED cannot resolve to reload
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m3_12_gauge resolves to a declared animation family
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m3_12_gauge inherits stable standing/crouched FIRE_RECOVERY
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m3_12_gauge FIRE_ACCEPTED cannot resolve to reload
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m40a1 resolves to a declared animation family
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m40a1 inherits stable standing/crouched FIRE_RECOVERY
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m40a1 FIRE_ACCEPTED cannot resolve to reload
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m4a1-m203 resolves to a declared animation family
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m4a1-m203 inherits stable standing/crouched FIRE_RECOVERY
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m4a1-m203 FIRE_ACCEPTED cannot resolve to reload
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m4a1 resolves to a declared animation family
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m4a1 inherits stable standing/crouched FIRE_RECOVERY
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m4a1 FIRE_ACCEPTED cannot resolve to reload
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m4a1_sd resolves to a declared animation family
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m4a1_sd inherits stable standing/crouched FIRE_RECOVERY
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m4a1_sd FIRE_ACCEPTED cannot resolve to reload
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m60e3 resolves to a declared animation family
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m60e3 inherits stable standing/crouched FIRE_RECOVERY
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m60e3 FIRE_ACCEPTED cannot resolve to reload
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m63a resolves to a declared animation family
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m63a inherits stable standing/crouched FIRE_RECOVERY
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m63a FIRE_ACCEPTED cannot resolve to reload
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m82a1a resolves to a declared animation family
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m82a1a inherits stable standing/crouched FIRE_RECOVERY
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m82a1a FIRE_ACCEPTED cannot resolve to reload
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m87elr resolves to a declared animation family
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m87elr inherits stable standing/crouched FIRE_RECOVERY
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m87elr FIRE_ACCEPTED cannot resolve to reload
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m9 resolves to a declared animation family
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m9 inherits stable standing/crouched FIRE_RECOVERY
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m9 FIRE_ACCEPTED cannot resolve to reload
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS mark_23 resolves to a declared animation family
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS mark_23 inherits stable standing/crouched FIRE_RECOVERY
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS mark_23 FIRE_ACCEPTED cannot resolve to reload
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS mark_23sd resolves to a declared animation family
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS mark_23sd inherits stable standing/crouched FIRE_RECOVERY
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS mark_23sd FIRE_ACCEPTED cannot resolve to reload
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS mark_46_mod_0 resolves to a declared animation family
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS mark_46_mod_0 inherits stable standing/crouched FIRE_RECOVERY
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS mark_46_mod_0 FIRE_ACCEPTED cannot resolve to reload
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS mk_3-a2 resolves to a declared animation family
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS mk_3-a2 inherits stable standing/crouched FIRE_RECOVERY
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS mk_3-a2 FIRE_ACCEPTED cannot resolve to reload
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS model_18 resolves to a declared animation family
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS model_18 inherits stable standing/crouched FIRE_RECOVERY
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS model_18 FIRE_ACCEPTED cannot resolve to reload
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS shotgun_1 resolves to a declared animation family
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS shotgun_1 inherits stable standing/crouched FIRE_RECOVERY
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS shotgun_1 FIRE_ACCEPTED cannot resolve to reload
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS sniperrifle_1 resolves to a declared animation family
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS sniperrifle_1 inherits stable standing/crouched FIRE_RECOVERY
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS sniperrifle_1 FIRE_ACCEPTED cannot resolve to reload
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS sr-25 resolves to a declared animation family
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS sr-25 inherits stable standing/crouched FIRE_RECOVERY
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS sr-25 FIRE_ACCEPTED cannot resolve to reload
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS sr-25_sd resolves to a declared animation family
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS sr-25_sd inherits stable standing/crouched FIRE_RECOVERY
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS sr-25_sd FIRE_ACCEPTED cannot resolve to reload
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS submachinegun_1 resolves to a declared animation family
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS submachinegun_1 inherits stable standing/crouched FIRE_RECOVERY
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS submachinegun_1 FIRE_ACCEPTED cannot resolve to reload
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS ta_12_gauge resolves to a declared animation family
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS ta_12_gauge inherits stable standing/crouched FIRE_RECOVERY
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS ta_12_gauge FIRE_ACCEPTED cannot resolve to reload
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS STANDING canonical playable scene loads
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS STANDING canonical weapon and animation consumers are ready
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS canonical player enters STANDING
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS 12_gauge_pump equips through the canonical STANDING handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS 12_gauge_pump STANDING cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS 12_gauge_pump accepts a canonical STANDING shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL 12_gauge_pump STANDING shot uses combat_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS 226 equips through the canonical STANDING handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS 226 STANDING cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS 226 accepts a canonical STANDING shot
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS 226 STANDING shot uses legacy_pistol_ready_standing recovery without a fire OneShot
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS 552 equips through the canonical STANDING handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS 552 STANDING cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS 552 accepts a canonical STANDING shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL 552 STANDING shot uses combat_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS 870 equips through the canonical STANDING handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS 870 STANDING cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS 870 accepts a canonical STANDING shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL 870 STANDING shot uses combat_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS 9mm_pistol equips through the canonical STANDING handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS 9mm_pistol STANDING cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS 9mm_pistol accepts a canonical STANDING shot
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS 9mm_pistol STANDING shot uses legacy_pistol_ready_standing recovery without a fire OneShot
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS 9mm_sub equips through the canonical STANDING handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS 9mm_sub STANDING cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS 9mm_sub accepts a canonical STANDING shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL 9mm_sub STANDING shot uses combat_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS air_to_ground_missile equips through the canonical STANDING handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS air_to_ground_missile STANDING cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS air_to_ground_missile accepts a canonical STANDING shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL air_to_ground_missile STANDING shot uses combat_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS ak-47 equips through the canonical STANDING handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS ak-47 STANDING cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS ak-47 accepts a canonical STANDING shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL ak-47 STANDING shot uses combat_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS aks-74 equips through the canonical STANDING handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS aks-74 STANDING cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS aks-74 accepts a canonical STANDING shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL aks-74 STANDING shot uses combat_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS assaultrifle_1 equips through the canonical STANDING handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS assaultrifle_1 STANDING cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS assaultrifle_1 accepts a canonical STANDING shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL assaultrifle_1 STANDING shot uses combat_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS assaultrifle_2 equips through the canonical STANDING handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS assaultrifle_2 STANDING cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS assaultrifle_2 accepts a canonical STANDING shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL assaultrifle_2 STANDING shot uses combat_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS assaultrifle_3 equips through the canonical STANDING handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS assaultrifle_3 STANDING cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS assaultrifle_3 accepts a canonical STANDING shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL assaultrifle_3 STANDING shot uses combat_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS assaultrifle_4 equips through the canonical STANDING handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS assaultrifle_4 STANDING cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS assaultrifle_4 accepts a canonical STANDING shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL assaultrifle_4 STANDING shot uses combat_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS bullpup_1 equips through the canonical STANDING handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS bullpup_1 STANDING cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS bullpup_1 accepts a canonical STANDING shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL bullpup_1 STANDING shot uses combat_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS de__50 equips through the canonical STANDING handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS de__50 STANDING cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS de__50 accepts a canonical STANDING shot
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS de__50 STANDING shot uses legacy_pistol_ready_standing recovery without a fire OneShot
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS designator equips through the canonical STANDING handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS designator STANDING cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS designator accepts a canonical STANDING shot
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS designator STANDING shot uses legacy_pistol_ready_standing recovery without a fire OneShot
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS exploding_fuel equips through the canonical STANDING handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS exploding_fuel STANDING cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS exploding_fuel accepts a canonical STANDING shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL exploding_fuel STANDING shot uses combat_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS f57 equips through the canonical STANDING handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS f57 STANDING cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS f57 accepts a canonical STANDING shot
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS f57 STANDING shot uses legacy_pistol_ready_standing recovery without a fire OneShot
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS f90 equips through the canonical STANDING handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS f90 STANDING cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS f90 accepts a canonical STANDING shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL f90 STANDING shot uses combat_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS hk5 equips through the canonical STANDING handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS hk5 STANDING cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS hk5 accepts a canonical STANDING shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL hk5 STANDING shot uses combat_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS hk5sd equips through the canonical STANDING handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS hk5sd STANDING cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS hk5sd accepts a canonical STANDING shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL hk5sd STANDING shot uses combat_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m14 equips through the canonical STANDING handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m14 STANDING cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m14 accepts a canonical STANDING shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL m14 STANDING shot uses combat_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m16a2-m203 equips through the canonical STANDING handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m16a2-m203 STANDING cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m16a2-m203 accepts a canonical STANDING shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL m16a2-m203 STANDING shot uses combat_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m16a2 equips through the canonical STANDING handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m16a2 STANDING cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m16a2 accepts a canonical STANDING shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL m16a2 STANDING shot uses combat_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m3_12_gauge equips through the canonical STANDING handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m3_12_gauge STANDING cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m3_12_gauge accepts a canonical STANDING shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL m3_12_gauge STANDING shot uses combat_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m40a1 equips through the canonical STANDING handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m40a1 STANDING cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m40a1 accepts a canonical STANDING shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL m40a1 STANDING shot uses combat_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m4a1-m203 equips through the canonical STANDING handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m4a1-m203 STANDING cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m4a1-m203 accepts a canonical STANDING shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL m4a1-m203 STANDING shot uses combat_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m4a1 equips through the canonical STANDING handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m4a1 STANDING cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m4a1 accepts a canonical STANDING shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL m4a1 STANDING shot uses combat_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m4a1_sd equips through the canonical STANDING handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m4a1_sd STANDING cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m4a1_sd accepts a canonical STANDING shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL m4a1_sd STANDING shot uses combat_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m60e3 equips through the canonical STANDING handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m60e3 STANDING cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m60e3 accepts a canonical STANDING shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL m60e3 STANDING shot uses combat_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m63a equips through the canonical STANDING handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m63a STANDING cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m63a accepts a canonical STANDING shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL m63a STANDING shot uses combat_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m82a1a equips through the canonical STANDING handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m82a1a STANDING cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m82a1a accepts a canonical STANDING shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL m82a1a STANDING shot uses combat_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m87elr equips through the canonical STANDING handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m87elr STANDING cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m87elr accepts a canonical STANDING shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL m87elr STANDING shot uses combat_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m9 equips through the canonical STANDING handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m9 STANDING cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m9 accepts a canonical STANDING shot
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m9 STANDING shot uses legacy_pistol_ready_standing recovery without a fire OneShot
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS mark_23 equips through the canonical STANDING handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS mark_23 STANDING cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS mark_23 accepts a canonical STANDING shot
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS mark_23 STANDING shot uses legacy_pistol_ready_standing recovery without a fire OneShot
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS mark_23sd equips through the canonical STANDING handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS mark_23sd STANDING cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS mark_23sd accepts a canonical STANDING shot
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS mark_23sd STANDING shot uses legacy_pistol_ready_standing recovery without a fire OneShot
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS mark_46_mod_0 equips through the canonical STANDING handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS mark_46_mod_0 STANDING cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS mark_46_mod_0 accepts a canonical STANDING shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL mark_46_mod_0 STANDING shot uses combat_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS mk_3-a2 equips through the canonical STANDING handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS mk_3-a2 STANDING cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS mk_3-a2 accepts a canonical STANDING shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL mk_3-a2 STANDING shot uses combat_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS model_18 equips through the canonical STANDING handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS model_18 STANDING cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS model_18 accepts a canonical STANDING shot
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS model_18 STANDING shot uses legacy_pistol_ready_standing recovery without a fire OneShot
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS shotgun_1 equips through the canonical STANDING handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS shotgun_1 STANDING cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS shotgun_1 accepts a canonical STANDING shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL shotgun_1 STANDING shot uses combat_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS sniperrifle_1 equips through the canonical STANDING handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS sniperrifle_1 STANDING cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS sniperrifle_1 accepts a canonical STANDING shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL sniperrifle_1 STANDING shot uses combat_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS sr-25 equips through the canonical STANDING handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS sr-25 STANDING cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS sr-25 accepts a canonical STANDING shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL sr-25 STANDING shot uses combat_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS sr-25_sd equips through the canonical STANDING handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS sr-25_sd STANDING cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS sr-25_sd accepts a canonical STANDING shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL sr-25_sd STANDING shot uses combat_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS submachinegun_1 equips through the canonical STANDING handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS submachinegun_1 STANDING cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS submachinegun_1 accepts a canonical STANDING shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL submachinegun_1 STANDING shot uses combat_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS ta_12_gauge equips through the canonical STANDING handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS ta_12_gauge STANDING cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS ta_12_gauge accepts a canonical STANDING shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL ta_12_gauge STANDING shot uses combat_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS CROUCHED canonical playable scene loads
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS CROUCHED canonical weapon and animation consumers are ready
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS canonical player enters CROUCHED
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS 12_gauge_pump equips through the canonical CROUCHED handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS 12_gauge_pump CROUCHED cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS 12_gauge_pump accepts a canonical CROUCHED shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL 12_gauge_pump CROUCHED shot uses crouch_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS 226 equips through the canonical CROUCHED handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS 226 CROUCHED cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS 226 accepts a canonical CROUCHED shot
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS 226 CROUCHED shot uses legacy_pistol_ready_crouched recovery without a fire OneShot
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS 552 equips through the canonical CROUCHED handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS 552 CROUCHED cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS 552 accepts a canonical CROUCHED shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL 552 CROUCHED shot uses crouch_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS 870 equips through the canonical CROUCHED handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS 870 CROUCHED cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS 870 accepts a canonical CROUCHED shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL 870 CROUCHED shot uses crouch_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS 9mm_pistol equips through the canonical CROUCHED handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS 9mm_pistol CROUCHED cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS 9mm_pistol accepts a canonical CROUCHED shot
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS 9mm_pistol CROUCHED shot uses legacy_pistol_ready_crouched recovery without a fire OneShot
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS 9mm_sub equips through the canonical CROUCHED handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS 9mm_sub CROUCHED cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS 9mm_sub accepts a canonical CROUCHED shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL 9mm_sub CROUCHED shot uses crouch_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS air_to_ground_missile equips through the canonical CROUCHED handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS air_to_ground_missile CROUCHED cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS air_to_ground_missile accepts a canonical CROUCHED shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL air_to_ground_missile CROUCHED shot uses crouch_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS ak-47 equips through the canonical CROUCHED handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS ak-47 CROUCHED cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS ak-47 accepts a canonical CROUCHED shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL ak-47 CROUCHED shot uses crouch_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS aks-74 equips through the canonical CROUCHED handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS aks-74 CROUCHED cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS aks-74 accepts a canonical CROUCHED shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL aks-74 CROUCHED shot uses crouch_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS assaultrifle_1 equips through the canonical CROUCHED handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS assaultrifle_1 CROUCHED cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS assaultrifle_1 accepts a canonical CROUCHED shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL assaultrifle_1 CROUCHED shot uses crouch_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS assaultrifle_2 equips through the canonical CROUCHED handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS assaultrifle_2 CROUCHED cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS assaultrifle_2 accepts a canonical CROUCHED shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL assaultrifle_2 CROUCHED shot uses crouch_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS assaultrifle_3 equips through the canonical CROUCHED handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS assaultrifle_3 CROUCHED cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS assaultrifle_3 accepts a canonical CROUCHED shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL assaultrifle_3 CROUCHED shot uses crouch_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS assaultrifle_4 equips through the canonical CROUCHED handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS assaultrifle_4 CROUCHED cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS assaultrifle_4 accepts a canonical CROUCHED shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL assaultrifle_4 CROUCHED shot uses crouch_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS bullpup_1 equips through the canonical CROUCHED handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS bullpup_1 CROUCHED cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS bullpup_1 accepts a canonical CROUCHED shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL bullpup_1 CROUCHED shot uses crouch_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS de__50 equips through the canonical CROUCHED handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS de__50 CROUCHED cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS de__50 accepts a canonical CROUCHED shot
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS de__50 CROUCHED shot uses legacy_pistol_ready_crouched recovery without a fire OneShot
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS designator equips through the canonical CROUCHED handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS designator CROUCHED cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS designator accepts a canonical CROUCHED shot
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS designator CROUCHED shot uses legacy_pistol_ready_crouched recovery without a fire OneShot
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS exploding_fuel equips through the canonical CROUCHED handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS exploding_fuel CROUCHED cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS exploding_fuel accepts a canonical CROUCHED shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL exploding_fuel CROUCHED shot uses crouch_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS f57 equips through the canonical CROUCHED handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS f57 CROUCHED cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS f57 accepts a canonical CROUCHED shot
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS f57 CROUCHED shot uses legacy_pistol_ready_crouched recovery without a fire OneShot
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS f90 equips through the canonical CROUCHED handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS f90 CROUCHED cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS f90 accepts a canonical CROUCHED shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL f90 CROUCHED shot uses crouch_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS hk5 equips through the canonical CROUCHED handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS hk5 CROUCHED cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS hk5 accepts a canonical CROUCHED shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL hk5 CROUCHED shot uses crouch_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS hk5sd equips through the canonical CROUCHED handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS hk5sd CROUCHED cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS hk5sd accepts a canonical CROUCHED shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL hk5sd CROUCHED shot uses crouch_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m14 equips through the canonical CROUCHED handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m14 CROUCHED cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m14 accepts a canonical CROUCHED shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL m14 CROUCHED shot uses crouch_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m16a2-m203 equips through the canonical CROUCHED handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m16a2-m203 CROUCHED cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m16a2-m203 accepts a canonical CROUCHED shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL m16a2-m203 CROUCHED shot uses crouch_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m16a2 equips through the canonical CROUCHED handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m16a2 CROUCHED cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m16a2 accepts a canonical CROUCHED shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL m16a2 CROUCHED shot uses crouch_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m3_12_gauge equips through the canonical CROUCHED handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m3_12_gauge CROUCHED cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m3_12_gauge accepts a canonical CROUCHED shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL m3_12_gauge CROUCHED shot uses crouch_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m40a1 equips through the canonical CROUCHED handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m40a1 CROUCHED cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m40a1 accepts a canonical CROUCHED shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL m40a1 CROUCHED shot uses crouch_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m4a1-m203 equips through the canonical CROUCHED handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m4a1-m203 CROUCHED cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m4a1-m203 accepts a canonical CROUCHED shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL m4a1-m203 CROUCHED shot uses crouch_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m4a1 equips through the canonical CROUCHED handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m4a1 CROUCHED cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m4a1 accepts a canonical CROUCHED shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL m4a1 CROUCHED shot uses crouch_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m4a1_sd equips through the canonical CROUCHED handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m4a1_sd CROUCHED cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m4a1_sd accepts a canonical CROUCHED shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL m4a1_sd CROUCHED shot uses crouch_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m60e3 equips through the canonical CROUCHED handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m60e3 CROUCHED cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m60e3 accepts a canonical CROUCHED shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL m60e3 CROUCHED shot uses crouch_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m63a equips through the canonical CROUCHED handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m63a CROUCHED cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m63a accepts a canonical CROUCHED shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL m63a CROUCHED shot uses crouch_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m82a1a equips through the canonical CROUCHED handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m82a1a CROUCHED cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m82a1a accepts a canonical CROUCHED shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL m82a1a CROUCHED shot uses crouch_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m87elr equips through the canonical CROUCHED handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m87elr CROUCHED cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m87elr accepts a canonical CROUCHED shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL m87elr CROUCHED shot uses crouch_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m9 equips through the canonical CROUCHED handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m9 CROUCHED cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m9 accepts a canonical CROUCHED shot
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS m9 CROUCHED shot uses legacy_pistol_ready_crouched recovery without a fire OneShot
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS mark_23 equips through the canonical CROUCHED handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS mark_23 CROUCHED cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS mark_23 accepts a canonical CROUCHED shot
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS mark_23 CROUCHED shot uses legacy_pistol_ready_crouched recovery without a fire OneShot
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS mark_23sd equips through the canonical CROUCHED handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS mark_23sd CROUCHED cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS mark_23sd accepts a canonical CROUCHED shot
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS mark_23sd CROUCHED shot uses legacy_pistol_ready_crouched recovery without a fire OneShot
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS mark_46_mod_0 equips through the canonical CROUCHED handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS mark_46_mod_0 CROUCHED cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS mark_46_mod_0 accepts a canonical CROUCHED shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL mark_46_mod_0 CROUCHED shot uses crouch_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS mk_3-a2 equips through the canonical CROUCHED handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS mk_3-a2 CROUCHED cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS mk_3-a2 accepts a canonical CROUCHED shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL mk_3-a2 CROUCHED shot uses crouch_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS model_18 equips through the canonical CROUCHED handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS model_18 CROUCHED cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS model_18 accepts a canonical CROUCHED shot
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS model_18 CROUCHED shot uses legacy_pistol_ready_crouched recovery without a fire OneShot
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS shotgun_1 equips through the canonical CROUCHED handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS shotgun_1 CROUCHED cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS shotgun_1 accepts a canonical CROUCHED shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL shotgun_1 CROUCHED shot uses crouch_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS sniperrifle_1 equips through the canonical CROUCHED handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS sniperrifle_1 CROUCHED cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS sniperrifle_1 accepts a canonical CROUCHED shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL sniperrifle_1 CROUCHED shot uses crouch_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS sr-25 equips through the canonical CROUCHED handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS sr-25 CROUCHED cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS sr-25 accepts a canonical CROUCHED shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL sr-25 CROUCHED shot uses crouch_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS sr-25_sd equips through the canonical CROUCHED handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS sr-25_sd CROUCHED cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS sr-25_sd accepts a canonical CROUCHED shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL sr-25_sd CROUCHED shot uses crouch_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS submachinegun_1 equips through the canonical CROUCHED handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS submachinegun_1 CROUCHED cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS submachinegun_1 accepts a canonical CROUCHED shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL submachinegun_1 CROUCHED shot uses crouch_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS ta_12_gauge equips through the canonical CROUCHED handoff
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS ta_12_gauge CROUCHED cadence owner exists
+ALL_WEAPON_FIRE_RECOVERY_CHECK PASS ta_12_gauge accepts a canonical CROUCHED shot
+ERROR: ALL_WEAPON_FIRE_RECOVERY_CHECK FAIL ta_12_gauge CROUCHED shot uses crouch_fire recovery without a fire OneShot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/all_weapon_fire_recovery_regression.gd:195)
+       [1] _check_live_equipment_chain (res://tools/all_weapon_fire_recovery_regression.gd:137)
+       [2] _frames (res://tools/all_weapon_fire_recovery_regression.gd:187)
+ALL_WEAPON_FIRE_RECOVERY_REGRESSION FAIL ["12_gauge_pump STANDING shot uses combat_fire recovery without a fire OneShot", "552 STANDING shot uses combat_fire recovery without a fire OneShot", "870 STANDING shot uses combat_fire recovery without a fire OneShot", "9mm_sub STANDING shot uses combat_fire recovery without a fire OneShot", "air_to_ground_missile STANDING shot uses combat_fire recovery without a fire OneShot", "ak-47 STANDING shot uses combat_fire recovery without a fire OneShot", "aks-74 STANDING shot uses combat_fire recovery without a fire OneShot", "assaultrifle_1 STANDING shot uses combat_fire recovery without a fire OneShot", "assaultrifle_2 STANDING shot uses combat_fire recovery without a fire OneShot", "assaultrifle_3 STANDING shot uses combat_fire recovery without a fire OneShot", "assaultrifle_4 STANDING shot uses combat_fire recovery without a fire OneShot", "bullpup_1 STANDING shot uses combat_fire recovery without a fire OneShot", "exploding_fuel STANDING shot uses combat_fire recovery without a fire OneShot", "f90 STANDING shot uses combat_fire recovery without a fire OneShot", "hk5 STANDING shot uses combat_fire recovery without a fire OneShot", "hk5sd STANDING shot uses combat_fire recovery without a fire OneShot", "m14 STANDING shot uses combat_fire recovery without a fire OneShot", "m16a2-m203 STANDING shot uses combat_fire recovery without a fire OneShot", "m16a2 STANDING shot uses combat_fire recovery without a fire OneShot", "m3_12_gauge STANDING shot uses combat_fire recovery without a fire OneShot", "m40a1 STANDING shot uses combat_fire recovery without a fire OneShot", "m4a1-m203 STANDING shot uses combat_fire recovery without a fire OneShot", "m4a1 STANDING shot uses combat_fire recovery without a fire OneShot", "m4a1_sd STANDING shot uses combat_fire recovery without a fire OneShot", "m60e3 STANDING shot uses combat_fire recovery without a fire OneShot", "m63a STANDING shot uses combat_fire recovery without a fire OneShot", "m82a1a STANDING shot uses combat_fire recovery without a fire OneShot", "m87elr STANDING shot uses combat_fire recovery without a fire OneShot", "mark_46_mod_0 STANDING shot uses combat_fire recovery without a fire OneShot", "mk_3-a2 STANDING shot uses combat_fire recovery without a fire OneShot", "shotgun_1 STANDING shot uses combat_fire recovery without a fire OneShot", "sniperrifle_1 STANDING shot uses combat_fire recovery without a fire OneShot", "sr-25 STANDING shot uses combat_fire recovery without a fire OneShot", "sr-25_sd STANDING shot uses combat_fire recovery without a fire OneShot", "submachinegun_1 STANDING shot uses combat_fire recovery without a fire OneShot", "ta_12_gauge STANDING shot uses combat_fire recovery without a fire OneShot", "12_gauge_pump CROUCHED shot uses crouch_fire recovery without a fire OneShot", "552 CROUCHED shot uses crouch_fire recovery without a fire OneShot", "870 CROUCHED shot uses crouch_fire recovery without a fire OneShot", "9mm_sub CROUCHED shot uses crouch_fire recovery without a fire OneShot", "air_to_ground_missile CROUCHED shot uses crouch_fire recovery without a fire OneShot", "ak-47 CROUCHED shot uses crouch_fire recovery without a fire OneShot", "aks-74 CROUCHED shot uses crouch_fire recovery without a fire OneShot", "assaultrifle_1 CROUCHED shot uses crouch_fire recovery without a fire OneShot", "assaultrifle_2 CROUCHED shot uses crouch_fire recovery without a fire OneShot", "assaultrifle_3 CROUCHED shot uses crouch_fire recovery without a fire OneShot", "assaultrifle_4 CROUCHED shot uses crouch_fire recovery without a fire OneShot", "bullpup_1 CROUCHED shot uses crouch_fire recovery without a fire OneShot", "exploding_fuel CROUCHED shot uses crouch_fire recovery without a fire OneShot", "f90 CROUCHED shot uses crouch_fire recovery without a fire OneShot", "hk5 CROUCHED shot uses crouch_fire recovery without a fire OneShot", "hk5sd CROUCHED shot uses crouch_fire recovery without a fire OneShot", "m14 CROUCHED shot uses crouch_fire recovery without a fire OneShot", "m16a2-m203 CROUCHED shot uses crouch_fire recovery without a fire OneShot", "m16a2 CROUCHED shot uses crouch_fire recovery without a fire OneShot", "m3_12_gauge CROUCHED shot uses crouch_fire recovery without a fire OneShot", "m40a1 CROUCHED shot uses crouch_fire recovery without a fire OneShot", "m4a1-m203 CROUCHED shot uses crouch_fire recovery without a fire OneShot", "m4a1 CROUCHED shot uses crouch_fire recovery without a fire OneShot", "m4a1_sd CROUCHED shot uses crouch_fire recovery without a fire OneShot", "m60e3 CROUCHED shot uses crouch_fire recovery without a fire OneShot", "m63a CROUCHED shot uses crouch_fire recovery without a fire OneShot", "m82a1a CROUCHED shot uses crouch_fire recovery without a fire OneShot", "m87elr CROUCHED shot uses crouch_fire recovery without a fire OneShot", "mark_46_mod_0 CROUCHED shot uses crouch_fire recovery without a fire OneShot", "mk_3-a2 CROUCHED shot uses crouch_fire recovery without a fire OneShot", "shotgun_1 CROUCHED shot uses crouch_fire recovery without a fire OneShot", "sniperrifle_1 CROUCHED shot uses crouch_fire recovery without a fire OneShot", "sr-25 CROUCHED shot uses crouch_fire recovery without a fire OneShot", "sr-25_sd CROUCHED shot uses crouch_fire recovery without a fire OneShot", "submachinegun_1 CROUCHED shot uses crouch_fire recovery without a fire OneShot", "ta_12_gauge CROUCHED shot uses crouch_fire recovery without a fire OneShot"]
+WARNING: 8 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 3 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)

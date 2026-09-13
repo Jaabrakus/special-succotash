@@ -1,0 +1,7 @@
+COMMAND: /Users/kiwimango/Applications/Godot-4.7.1.app/Contents/MacOS/Godot --headless -s tools/sniper_torso_damage_regression.gd
+EXIT_CODE: 0
+DURATION: 2.19s
+
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+SNIPER_TORSO_DAMAGE_REGRESSION PASS checks=135 snipers=5

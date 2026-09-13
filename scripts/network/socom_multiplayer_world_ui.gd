@@ -393,8 +393,11 @@ func _refresh_player_state() -> void:
 		WeaponSlotRules.slot_for_category(String(equipped_config.get("category", ""))),
 		local_fire_policy.current_mode,
 		local_fire_policy.available_modes,
-		local_fire_policy.burst_size
+		local_fire_policy.burst_size,
+		int(equipped_config.get("ballistics", {}).get("magazine_capacity", 0))
 	)
+	if multiplayer_hud.loadout_card_hud != null:
+		multiplayer_hud.loadout_card_hud.bind_player(local_operator)
 func _ensure_input_map() -> void:
 	KeyboardMappingProfile.apply_project_mapping()
 

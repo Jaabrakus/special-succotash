@@ -1,0 +1,23 @@
+COMMAND: /Users/kiwimango/Applications/Godot-4.7.1.app/Contents/MacOS/Godot --headless -s tools/tactical_grenade_profile_regression.gd
+EXIT_CODE: 0
+DURATION: 2.08s
+
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+GRENADE_PROFILE_CHECK PASS saved smoke defaults are larger and denser
+GRENADE_PROFILE_CHECK PASS saved throw profile slightly accelerates the animation and arc with bounded locomotion recovery
+GRENADE_PROFILE_CHECK PASS profile clamps unsafe lab values
+GRENADE_PROFILE_CHECK PASS smoke runtime consumes the shared profile
+GRENADE_PROFILE_CHECK PASS flash, Frag damage/visuals, and common fuse consume the shared profile
+GRENADE_PROFILE_CHECK PASS throw strength consumes the shared profile
+GRENADE_PROFILE_CHECK PASS overhand throw arc rises and falls with aim pitch without changing throw power
+GRENADE_PROFILE_CHECK PASS underhand throw arc rises and falls with aim pitch without changing throw power
+GRENADE_PROFILE_CHECK PASS Grenade Lab scene loads
+GRENADE_PROFILE_CHECK PASS Grenade Lab exposes throwable tabs and one shared Save control
+GRENADE_PROFILE_CHECK PASS Grenade Lab exposes the Frag radius smoke controls
+GRENADE_PROFILE_CHECK PASS Grenade Lab exposes throw animation and movement recovery timing
+GRENADE_PROFILE_CHECK PASS selecting the Frag tab also selects Frag preview throws
+GRENADE_PROFILE_CHECK PASS Grenade Lab stages the real operator animation and follow camera
+GRENADE_PROFILE_CHECK PASS Space preview plays the throw and releases a visible grenade
+GRENADE_PROFILE_CHECK PASS Smoke throw leaves a visible cloud at detonation
+TACTICAL_GRENADE_PROFILE_REGRESSION PASS

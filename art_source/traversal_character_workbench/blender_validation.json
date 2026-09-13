@@ -1,0 +1,4727 @@
+{
+  "stage": "character-retarget review; not approved runtime replacements",
+  "bones": 65,
+  "actions": [
+    {
+      "name": "AGLS_AGLS_NarrowLedgeWalk_Enter_L_01",
+      "frames": [
+        0.0,
+        46.0
+      ],
+      "midpoint_vertex_displacement": 1.4549953257921522,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_AGLS_NarrowLedgeWalk_Enter_R_01",
+      "frames": [
+        0.0,
+        46.0
+      ],
+      "midpoint_vertex_displacement": 1.539234110660985,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_AGLS_NarrowLedgeWalk_Exit_LB_01",
+      "frames": [
+        0.0,
+        55.0
+      ],
+      "midpoint_vertex_displacement": 0.38606976711717056,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_AGLS_NarrowLedgeWalk_Exit_LF_01",
+      "frames": [
+        0.0,
+        75.0
+      ],
+      "midpoint_vertex_displacement": 1.0975911385851294,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_AGLS_NarrowLedgeWalk_Exit_RB_01",
+      "frames": [
+        0.0,
+        68.0
+      ],
+      "midpoint_vertex_displacement": 1.4228865305649443,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_AGLS_NarrowLedgeWalk_Exit_RF_01",
+      "frames": [
+        0.0,
+        75.0
+      ],
+      "midpoint_vertex_displacement": 1.097261541134224,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_AGLS_NarrowLedgeWalk_MainPoses",
+      "frames": [
+        0.0,
+        7.0
+      ],
+      "midpoint_vertex_displacement": 0.23093087148883715,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_AGLS_NarrowLedgeWalk_Move_LF",
+      "frames": [
+        0.0,
+        60.0
+      ],
+      "midpoint_vertex_displacement": 0.5227547976710535,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_AGLS_NarrowLedgeWalk_Move_RB",
+      "frames": [
+        0.0,
+        60.0
+      ],
+      "midpoint_vertex_displacement": 0.5228894421707133,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_AGLS_NarrowLedgeWalk_Move_RF",
+      "frames": [
+        0.0,
+        60.0
+      ],
+      "midpoint_vertex_displacement": 0.5130217082589312,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_ALS_HardLanding_Back",
+      "frames": [
+        0.0,
+        101.0
+      ],
+      "midpoint_vertex_displacement": 2.2944066414850335,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_ALS_HardLanding_Forward",
+      "frames": [
+        0.0,
+        101.0
+      ],
+      "midpoint_vertex_displacement": 1.8077423015308431,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_ALS_Ladder_BeginTransition_02",
+      "frames": [
+        0.0,
+        20.0
+      ],
+      "midpoint_vertex_displacement": 1.1672519346884167,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_ALS_Ladder_BeginTransition_03",
+      "frames": [
+        0.0,
+        25.0
+      ],
+      "midpoint_vertex_displacement": 1.141524320017333,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_ALS_Ladder_BeginTransition_04_FH",
+      "frames": [
+        0.0,
+        51.0
+      ],
+      "midpoint_vertex_displacement": 1.5044464181620876,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_ALS_Ladder_BeginTransition_05_FH",
+      "frames": [
+        0.0,
+        39.0
+      ],
+      "midpoint_vertex_displacement": 1.0206857688101911,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_ALS_Ladder_BeginTransition_06_FH",
+      "frames": [
+        0.0,
+        50.0
+      ],
+      "midpoint_vertex_displacement": 1.53812069021049,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_ALS_Ladder_BeginTransition_06_FH_Add",
+      "frames": [
+        0.0,
+        66.0
+      ],
+      "midpoint_vertex_displacement": 1.0574961017955014,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_ALS_Ladder_BeginTransition_07_Ground",
+      "frames": [
+        0.0,
+        24.0
+      ],
+      "midpoint_vertex_displacement": 1.4551676969857923,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_ALS_Ladder_JumpNext_L",
+      "frames": [
+        0.0,
+        45.0
+      ],
+      "midpoint_vertex_displacement": 1.6526781976917198,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_ALS_Ladder_JumpNext_R",
+      "frames": [
+        0.0,
+        45.0
+      ],
+      "midpoint_vertex_displacement": 1.6704860914687072,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_ALS_Ladder_JumpNext_StridePose",
+      "frames": [
+        0.0,
+        40.0
+      ],
+      "midpoint_vertex_displacement": 0.0,
+      "status": "review_static_or_loop"
+    },
+    {
+      "name": "AGLS_ALS_Ladder_JumpNext_U",
+      "frames": [
+        0.0,
+        46.0
+      ],
+      "midpoint_vertex_displacement": 1.6042832028032514,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_ALS_Ladder_MoveDown_22H_LH",
+      "frames": [
+        0.0,
+        23.0
+      ],
+      "midpoint_vertex_displacement": 0.5065593032297375,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_ALS_Ladder_MoveDown_22H_RH",
+      "frames": [
+        0.0,
+        23.0
+      ],
+      "midpoint_vertex_displacement": 0.4800992024031985,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_ALS_Ladder_MoveDown_32H_LH",
+      "frames": [
+        0.0,
+        23.0
+      ],
+      "midpoint_vertex_displacement": 0.7006839710244549,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_ALS_Ladder_MoveDown_32H_LH_FreeHang",
+      "frames": [
+        0.0,
+        33.0
+      ],
+      "midpoint_vertex_displacement": 0.7144550715566473,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_ALS_Ladder_MoveDown_32H_RH",
+      "frames": [
+        0.0,
+        23.0
+      ],
+      "midpoint_vertex_displacement": 0.6991754930051672,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_ALS_Ladder_MoveDown_32H_RH_FreeHang",
+      "frames": [
+        0.0,
+        33.0
+      ],
+      "midpoint_vertex_displacement": 0.6920659114464418,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_ALS_Ladder_MoveL_32H_LH",
+      "frames": [
+        0.0,
+        24.0
+      ],
+      "midpoint_vertex_displacement": 0.45748950523597903,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_ALS_Ladder_MoveL_32H_RH",
+      "frames": [
+        0.0,
+        24.0
+      ],
+      "midpoint_vertex_displacement": 0.4842421329631011,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_ALS_Ladder_MoveR_32H_LH",
+      "frames": [
+        0.0,
+        24.0
+      ],
+      "midpoint_vertex_displacement": 0.4549352117276024,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_ALS_Ladder_MoveR_32H_RH",
+      "frames": [
+        0.0,
+        24.0
+      ],
+      "midpoint_vertex_displacement": 0.4302460264556013,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_ALS_Ladder_MoveUp_22H_LH",
+      "frames": [
+        0.0,
+        21.0
+      ],
+      "midpoint_vertex_displacement": 0.5864686682324615,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_ALS_Ladder_MoveUp_22H_RH",
+      "frames": [
+        0.0,
+        21.0
+      ],
+      "midpoint_vertex_displacement": 0.5811175236264883,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_ALS_Ladder_MoveUp_32H_LH",
+      "frames": [
+        0.0,
+        21.0
+      ],
+      "midpoint_vertex_displacement": 0.7552444305807435,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_ALS_Ladder_MoveUp_32H_LH_FreeHang",
+      "frames": [
+        0.0,
+        32.0
+      ],
+      "midpoint_vertex_displacement": 0.9144304443799222,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_ALS_Ladder_MoveUp_32H_RH",
+      "frames": [
+        0.0,
+        21.0
+      ],
+      "midpoint_vertex_displacement": 0.7555399958940121,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_ALS_Ladder_MoveUp_32H_RH_FreeHang",
+      "frames": [
+        0.0,
+        32.0
+      ],
+      "midpoint_vertex_displacement": 0.909502294854768,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_ALS_Ladder_SlideDownLoop",
+      "frames": [
+        0.0,
+        10.0
+      ],
+      "midpoint_vertex_displacement": 0.2921384683877801,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_ALS_MediumLand_Forward",
+      "frames": [
+        0.0,
+        45.0
+      ],
+      "midpoint_vertex_displacement": 2.0731411923674474,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_ALS_RopeSwing_AdditiveIdle_01",
+      "frames": [
+        0.0,
+        62.999996185302734
+      ],
+      "midpoint_vertex_displacement": 0.7404967926243091,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_ALS_RopeSwing_AdditiveIdle_02",
+      "frames": [
+        0.0,
+        282.0
+      ],
+      "midpoint_vertex_displacement": 1.4381126673839817,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_ALS_RopeSwing_BasePoses_01",
+      "frames": [
+        0.0,
+        15.0
+      ],
+      "midpoint_vertex_displacement": 0.3047934066892712,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_ALS_RopeSwing_BeginSwinging_01",
+      "frames": [
+        0.0,
+        64.0
+      ],
+      "midpoint_vertex_displacement": 0.3885112600116812,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_ALS_RopeSwing_ForwardLean_Add",
+      "frames": [
+        0.0,
+        31.0
+      ],
+      "midpoint_vertex_displacement": 1.10093408018437,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_ALS_RopeSwing_Jump_01_Long",
+      "frames": [
+        0.0,
+        37.0
+      ],
+      "midpoint_vertex_displacement": 4.644936764453997,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_ALS_RopeSwing_PullingUp_01",
+      "frames": [
+        0.0,
+        30.0
+      ],
+      "midpoint_vertex_displacement": 0.632119000256115,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_ALS_RopeSwing_PullingUp_02_Wall",
+      "frames": [
+        0.0,
+        29.0
+      ],
+      "midpoint_vertex_displacement": 0.6299608569902231,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_ALS_RopeSwing_RightLean_Add",
+      "frames": [
+        0.0,
+        30.0
+      ],
+      "midpoint_vertex_displacement": 0.6754405804356296,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_ALS_RopeSwing_SwayStart_01",
+      "frames": [
+        0.0,
+        51.0
+      ],
+      "midpoint_vertex_displacement": 2.12850194294117,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_ALS_RopeSwing_ThrowHook_01",
+      "frames": [
+        0.0,
+        20.0
+      ],
+      "midpoint_vertex_displacement": 0.45689229197661324,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_ALS_RopeSwing_ToFall_01",
+      "frames": [
+        0.0,
+        19.0
+      ],
+      "midpoint_vertex_displacement": 1.686613348865292,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_ALS_WallHitReaction_01",
+      "frames": [
+        0.0,
+        100.0
+      ],
+      "midpoint_vertex_displacement": 2.3219449308705227,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_ALSP2_Hard_Landing_2_Overlay",
+      "frames": [
+        0.0,
+        35.0
+      ],
+      "midpoint_vertex_displacement": 1.7107496216277438,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_ALSP2_Land_Heavy_1",
+      "frames": [
+        0.0,
+        151.0
+      ],
+      "midpoint_vertex_displacement": 1.8028562072974845,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_ALSv2_JumpSeq_Idle",
+      "frames": [
+        0.0,
+        27.0
+      ],
+      "midpoint_vertex_displacement": 0.4476956742026411,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_ALSv2_JumpSeq_Idle_Down_01_RF",
+      "frames": [
+        0.0,
+        28.0
+      ],
+      "midpoint_vertex_displacement": 1.1967915954737351,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_ALSv2_JumpSeq_Idle_Down_02_LF_WithLand",
+      "frames": [
+        0.0,
+        32.0
+      ],
+      "midpoint_vertex_displacement": 2.0546484990699576,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_ALSv2_JumpSeq_Idle_Down_02_RF_WithLand",
+      "frames": [
+        0.0,
+        32.0
+      ],
+      "midpoint_vertex_displacement": 2.0546513503714747,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_ALSv2_JumpSeq_Sprint_Down_01_LF",
+      "frames": [
+        0.0,
+        25.0
+      ],
+      "midpoint_vertex_displacement": 2.8637220360865454,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_ALSv2_JumpSeq_Sprint_Down_01_RF",
+      "frames": [
+        0.0,
+        25.0
+      ],
+      "midpoint_vertex_displacement": 2.8636084749506474,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_ALSv2_Mantle_2m_Walking_01",
+      "frames": [
+        0.0,
+        30.0
+      ],
+      "midpoint_vertex_displacement": 2.3270297770597015,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_ALSv2_Mantle_2m_Walking_02",
+      "frames": [
+        0.0,
+        30.0
+      ],
+      "midpoint_vertex_displacement": 1.9606255590956685,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_ALSv2_N_Vault_1m_LH",
+      "frames": [
+        0.0,
+        38.0
+      ],
+      "midpoint_vertex_displacement": 1.8691473724578278,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_ALSv2_N_Vault_1m_RH",
+      "frames": [
+        0.0,
+        38.0
+      ],
+      "midpoint_vertex_displacement": 1.873693148841297,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_ALSv2_Stealth_Finishers_WhenClimbing_01_Att",
+      "frames": [
+        0.0,
+        65.5
+      ],
+      "midpoint_vertex_displacement": 1.541976286001035,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_ALSv2_Stealth_Finishers_WhenClimbing_01_Vic",
+      "frames": [
+        0.0,
+        60.5
+      ],
+      "midpoint_vertex_displacement": 2.6583952291277444,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_ALSv2_Vault_N_2m_LH",
+      "frames": [
+        0.0,
+        80.0
+      ],
+      "midpoint_vertex_displacement": 2.706825088863486,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_ALSv2_Vault_N_2m_Walking",
+      "frames": [
+        0.0,
+        65.0
+      ],
+      "midpoint_vertex_displacement": 3.2920948004509176,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Additive_FreeHang",
+      "frames": [
+        0.0,
+        105.0
+      ],
+      "midpoint_vertex_displacement": 0.08474829969479053,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Additive_FreeHang_IK",
+      "frames": [
+        0.0,
+        105.0
+      ],
+      "midpoint_vertex_displacement": 0.08471164430901804,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Additive_FreeHang_Transition",
+      "frames": [
+        0.0,
+        40.0
+      ],
+      "midpoint_vertex_displacement": 0.0743510315800556,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Additive_Hang",
+      "frames": [
+        0.0,
+        300.0
+      ],
+      "midpoint_vertex_displacement": 0.0008761887181371765,
+      "status": "review_static_or_loop"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Additive_Hang_Reach_LH",
+      "frames": [
+        0.0,
+        76.0
+      ],
+      "midpoint_vertex_displacement": 0.08787136976265912,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Additive_Hang_Reach_RH",
+      "frames": [
+        0.0,
+        77.0
+      ],
+      "midpoint_vertex_displacement": 0.0183734286737543,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Aiming_Up_01",
+      "frames": [
+        0.0,
+        15.0
+      ],
+      "midpoint_vertex_displacement": 0.40689527691890126,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_AimingPoses",
+      "frames": [
+        0.0,
+        5.0
+      ],
+      "midpoint_vertex_displacement": 0.0,
+      "status": "review_static_or_loop"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Corner_Inner_L",
+      "frames": [
+        0.0,
+        36.0
+      ],
+      "midpoint_vertex_displacement": 1.1514577470032892,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Corner_Inner_R",
+      "frames": [
+        0.0,
+        36.0
+      ],
+      "midpoint_vertex_displacement": 1.1249724170045405,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Corner_Outer_L",
+      "frames": [
+        0.0,
+        38.0
+      ],
+      "midpoint_vertex_displacement": 1.3859016106312043,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Corner_Outer_L2",
+      "frames": [
+        0.0,
+        39.0
+      ],
+      "midpoint_vertex_displacement": 1.4104641448791249,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Corner_Outer_L_FH",
+      "frames": [
+        0.0,
+        43.0
+      ],
+      "midpoint_vertex_displacement": 1.2384022975445506,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Corner_Outer_R",
+      "frames": [
+        0.0,
+        40.0
+      ],
+      "midpoint_vertex_displacement": 1.4844829269123143,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Corner_Outer_R_FH",
+      "frames": [
+        0.0,
+        43.0
+      ],
+      "midpoint_vertex_displacement": 1.205393807040272,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Direction_LH_L",
+      "frames": [
+        0.0,
+        1.0
+      ],
+      "midpoint_vertex_displacement": 0.0,
+      "status": "review_static_or_loop"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Direction_LH_LD",
+      "frames": [
+        0.0,
+        1.0
+      ],
+      "midpoint_vertex_displacement": 0.0,
+      "status": "review_static_or_loop"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Direction_LH_LU",
+      "frames": [
+        0.0,
+        1.0
+      ],
+      "midpoint_vertex_displacement": 0.0,
+      "status": "review_static_or_loop"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Direction_LH_U",
+      "frames": [
+        0.0,
+        1.0
+      ],
+      "midpoint_vertex_displacement": 0.0,
+      "status": "review_static_or_loop"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Direction_RH_D",
+      "frames": [
+        0.0,
+        1.0
+      ],
+      "midpoint_vertex_displacement": 0.0,
+      "status": "review_static_or_loop"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Direction_RH_R",
+      "frames": [
+        0.0,
+        1.0
+      ],
+      "midpoint_vertex_displacement": 0.0,
+      "status": "review_static_or_loop"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Direction_RH_RD",
+      "frames": [
+        0.0,
+        1.0
+      ],
+      "midpoint_vertex_displacement": 0.0,
+      "status": "review_static_or_loop"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Direction_RH_RU",
+      "frames": [
+        0.0,
+        1.0
+      ],
+      "midpoint_vertex_displacement": 0.0,
+      "status": "review_static_or_loop"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Direction_RH_U",
+      "frames": [
+        0.0,
+        1.0
+      ],
+      "midpoint_vertex_displacement": 0.0,
+      "status": "review_static_or_loop"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Drop_To_Ledge_01",
+      "frames": [
+        0.0,
+        35.0
+      ],
+      "midpoint_vertex_displacement": 1.6161475131679421,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_FH_Forward_Move_LH",
+      "frames": [
+        0.0,
+        36.0
+      ],
+      "midpoint_vertex_displacement": 0.7627303940254848,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_FH_Forward_Move_RH",
+      "frames": [
+        0.0,
+        36.0
+      ],
+      "midpoint_vertex_displacement": 0.7816703567028522,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_FH_JumpNextForward_01",
+      "frames": [
+        0.0,
+        80.0
+      ],
+      "midpoint_vertex_displacement": 4.849384169740116,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_FH_JumpToStartSwing_01",
+      "frames": [
+        0.0,
+        85.0
+      ],
+      "midpoint_vertex_displacement": 5.543480670024758,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_FH_JumpToStartSwing_02",
+      "frames": [
+        0.0,
+        25.0
+      ],
+      "midpoint_vertex_displacement": 1.7853047041858925,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_FH_JumpToStartSwing_03",
+      "frames": [
+        0.0,
+        50.0
+      ],
+      "midpoint_vertex_displacement": 2.319945742299197,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_FH_SwingEnd_01",
+      "frames": [
+        0.0,
+        115.0
+      ],
+      "midpoint_vertex_displacement": 2.360460605951336,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_FH_SwingLoop",
+      "frames": [
+        0.0,
+        54.0
+      ],
+      "midpoint_vertex_displacement": 3.2101482158147454,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_FH_SwingLoop_02",
+      "frames": [
+        0.0,
+        103.0
+      ],
+      "midpoint_vertex_displacement": 0.15855205478797352,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_FH_SwingStart_01",
+      "frames": [
+        0.0,
+        65.0
+      ],
+      "midpoint_vertex_displacement": 1.7987245769084257,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_FH_SwingStart_02",
+      "frames": [
+        0.0,
+        103.0
+      ],
+      "midpoint_vertex_displacement": 2.307783836372052,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Foots_Transition_RL",
+      "frames": [
+        0.0,
+        30.0
+      ],
+      "midpoint_vertex_displacement": 0.015182126026288817,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Hanging_Idle_Loop",
+      "frames": [
+        0.0,
+        300.0
+      ],
+      "midpoint_vertex_displacement": 0.18419413910153642,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Hanging_Idle_Poses",
+      "frames": [
+        0.0,
+        30.0
+      ],
+      "midpoint_vertex_displacement": 1.4361515944824803,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Hanging_Idle_Poses_V2",
+      "frames": [
+        0.0,
+        30.0
+      ],
+      "midpoint_vertex_displacement": 1.4406612407326431,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_HeadPoseCorrect",
+      "frames": [
+        0.0,
+        5.0
+      ],
+      "midpoint_vertex_displacement": 0.06035233279349266,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Hit_React_01",
+      "frames": [
+        0.0,
+        38.0
+      ],
+      "midpoint_vertex_displacement": 1.0555875469924327,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Hit_React_02",
+      "frames": [
+        0.0,
+        35.0
+      ],
+      "midpoint_vertex_displacement": 0.6287445251366783,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Huge_Jump_LH_L",
+      "frames": [
+        0.0,
+        41.0
+      ],
+      "midpoint_vertex_displacement": 1.4850819466528815,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Huge_Jump_LH_LD",
+      "frames": [
+        0.0,
+        41.0
+      ],
+      "midpoint_vertex_displacement": 1.73207812274877,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Huge_Jump_LH_LU",
+      "frames": [
+        0.0,
+        41.0
+      ],
+      "midpoint_vertex_displacement": 1.6144087456068266,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Huge_Jump_RH_R",
+      "frames": [
+        0.0,
+        41.0
+      ],
+      "midpoint_vertex_displacement": 1.5602614138101991,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Huge_Jump_RH_RD",
+      "frames": [
+        0.0,
+        41.0
+      ],
+      "midpoint_vertex_displacement": 1.560275721476569,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Huge_Jump_RH_RU",
+      "frames": [
+        0.0,
+        41.0
+      ],
+      "midpoint_vertex_displacement": 1.6761810824990995,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_JumpEndAdditive_D",
+      "frames": [
+        0.0,
+        45.0
+      ],
+      "midpoint_vertex_displacement": 0.1677908806384512,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_JumpEndAdditive_L",
+      "frames": [
+        0.0,
+        45.0
+      ],
+      "midpoint_vertex_displacement": 0.240203182724519,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_JumpEndAdditive_R",
+      "frames": [
+        0.0,
+        40.0
+      ],
+      "midpoint_vertex_displacement": 0.2213902006434982,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_MoveCycle_FH_LH_L",
+      "frames": [
+        0.0,
+        90.0
+      ],
+      "midpoint_vertex_displacement": 1.061392901552999,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_MoveCycle_FH_RH_R",
+      "frames": [
+        0.0,
+        90.0
+      ],
+      "midpoint_vertex_displacement": 1.0666808932512317,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_MoveCycle_LH_L",
+      "frames": [
+        0.0,
+        67.0
+      ],
+      "midpoint_vertex_displacement": 1.0754927410905104,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_MoveCycle_LH_LD",
+      "frames": [
+        0.0,
+        67.0
+      ],
+      "midpoint_vertex_displacement": 1.1820395678954299,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_MoveCycle_LH_LU",
+      "frames": [
+        0.0,
+        67.0
+      ],
+      "midpoint_vertex_displacement": 1.1868556369991863,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_MoveCycle_RH_R",
+      "frames": [
+        0.0,
+        66.0
+      ],
+      "midpoint_vertex_displacement": 1.0543679923147595,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_MoveCycle_RH_RD",
+      "frames": [
+        0.0,
+        66.0
+      ],
+      "midpoint_vertex_displacement": 1.1509675561088724,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_MoveCycle_RH_RU",
+      "frames": [
+        0.0,
+        67.0
+      ],
+      "midpoint_vertex_displacement": 1.1472801116743745,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_MoveUp_LH",
+      "frames": [
+        0.0,
+        28.0
+      ],
+      "midpoint_vertex_displacement": 0.4023378358230929,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_MoveUp_Loop",
+      "frames": [
+        0.0,
+        24.0
+      ],
+      "midpoint_vertex_displacement": 0.6990830112211462,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_N_Spine_Rotation_Yaw",
+      "frames": [
+        0.0,
+        30.0
+      ],
+      "midpoint_vertex_displacement": 0.3428364246112856,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Pistol1H_AimSweep",
+      "frames": [
+        0.0,
+        30.0
+      ],
+      "midpoint_vertex_displacement": 1.2402520668465011,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_PrepareJumpBack_Poses",
+      "frames": [
+        0.0,
+        8.0
+      ],
+      "midpoint_vertex_displacement": 0.7591235296344917,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Short_Leap_Move_L",
+      "frames": [
+        0.0,
+        34.99998474121094
+      ],
+      "midpoint_vertex_displacement": 0.9982183406178026,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Short_Leap_Move_LD",
+      "frames": [
+        0.0,
+        34.99998474121094
+      ],
+      "midpoint_vertex_displacement": 0.8263793876182135,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Short_Leap_Move_LU",
+      "frames": [
+        0.0,
+        34.99998474121094
+      ],
+      "midpoint_vertex_displacement": 0.71058756146642,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Short_Leap_Move_R",
+      "frames": [
+        0.0,
+        34.99998474121094
+      ],
+      "midpoint_vertex_displacement": 1.0081824641395154,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Short_Leap_Move_RD",
+      "frames": [
+        0.0,
+        34.99998474121094
+      ],
+      "midpoint_vertex_displacement": 0.8453985688899436,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Short_Leap_Move_RU",
+      "frames": [
+        0.0,
+        34.99998474121094
+      ],
+      "midpoint_vertex_displacement": 0.756905763946639,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Short_Move_LH_L",
+      "frames": [
+        0.0,
+        27.0
+      ],
+      "midpoint_vertex_displacement": 0.5685748708920482,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Short_Move_LH_L_FH",
+      "frames": [
+        0.0,
+        30.0
+      ],
+      "midpoint_vertex_displacement": 0.5810258381357433,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Short_Move_LH_L_OtherRoot",
+      "frames": [
+        0.0,
+        27.0
+      ],
+      "midpoint_vertex_displacement": 0.5685264611764469,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Short_Move_LH_LU",
+      "frames": [
+        0.0,
+        27.0
+      ],
+      "midpoint_vertex_displacement": 0.5486775452375356,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Short_Move_RH_R",
+      "frames": [
+        0.0,
+        27.0
+      ],
+      "midpoint_vertex_displacement": 0.537120727072306,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Short_Move_RH_R_FH",
+      "frames": [
+        0.0,
+        30.0
+      ],
+      "midpoint_vertex_displacement": 0.5786889664527946,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Short_Move_RH_R_OtherRoot",
+      "frames": [
+        0.0,
+        27.0
+      ],
+      "midpoint_vertex_displacement": 0.5371206525138846,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Short_Move_RH_RU",
+      "frames": [
+        0.0,
+        26.0
+      ],
+      "midpoint_vertex_displacement": 0.611290301136016,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Stride_15Frames_Vertical",
+      "frames": [
+        0.0,
+        15.0
+      ],
+      "midpoint_vertex_displacement": 0.0,
+      "status": "review_static_or_loop"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Stride_1Frame",
+      "frames": [
+        0.0,
+        1.0
+      ],
+      "midpoint_vertex_displacement": 0.0,
+      "status": "review_static_or_loop"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Stride_30Frames",
+      "frames": [
+        0.0,
+        30.0
+      ],
+      "midpoint_vertex_displacement": 0.0,
+      "status": "review_static_or_loop"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Stride_30Frames_Curves",
+      "frames": [
+        0.0,
+        30.0
+      ],
+      "midpoint_vertex_displacement": 0.0,
+      "status": "review_static_or_loop"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Stride_30Frames_NoCurves",
+      "frames": [
+        0.0,
+        30.0
+      ],
+      "midpoint_vertex_displacement": 0.0,
+      "status": "review_static_or_loop"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Stride_40Frames_FH",
+      "frames": [
+        0.0,
+        40.0000114440918
+      ],
+      "midpoint_vertex_displacement": 0.0,
+      "status": "review_static_or_loop"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Stride_50Frames",
+      "frames": [
+        0.0,
+        50.0
+      ],
+      "midpoint_vertex_displacement": 0.0,
+      "status": "review_static_or_loop"
+    },
+    {
+      "name": "AGLS_CMC_Climb_To_Standing",
+      "frames": [
+        0.0,
+        70.0
+      ],
+      "midpoint_vertex_displacement": 1.6677031830472444,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_To_Standing_FreeHang",
+      "frames": [
+        0.0,
+        70.0
+      ],
+      "midpoint_vertex_displacement": 2.0114153612395427,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Transition_Fall_To_Climb_01",
+      "frames": [
+        0.0,
+        35.0
+      ],
+      "midpoint_vertex_displacement": 1.2939051092847833,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Transition_Fall_To_Climb_02",
+      "frames": [
+        0.0,
+        20.0
+      ],
+      "midpoint_vertex_displacement": 0.7842160921031335,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Transition_Fall_To_Climb_03",
+      "frames": [
+        0.0,
+        24.0
+      ],
+      "midpoint_vertex_displacement": 1.2998431319721238,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Transition_Fall_To_Climb_04",
+      "frames": [
+        0.0,
+        50.0
+      ],
+      "midpoint_vertex_displacement": 1.5572166298540289,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Transition_Fall_To_Climb_05",
+      "frames": [
+        0.0,
+        70.0
+      ],
+      "midpoint_vertex_displacement": 1.5854814183684038,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Transition_N_To_FH_01",
+      "frames": [
+        0.0,
+        30.0
+      ],
+      "midpoint_vertex_displacement": 1.1886017129307134,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Turn180_FreeHang",
+      "frames": [
+        0.0,
+        30.0
+      ],
+      "midpoint_vertex_displacement": 0.9544864061905275,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Velocity_Offset_FH_LR",
+      "frames": [
+        0.0,
+        30.0
+      ],
+      "midpoint_vertex_displacement": 0.8085178106925158,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_Velocity_Offset_N_LR",
+      "frames": [
+        0.0,
+        30.0
+      ],
+      "midpoint_vertex_displacement": 0.2567012708128256,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_VerticalBasePoses",
+      "frames": [
+        0.0,
+        15.0
+      ],
+      "midpoint_vertex_displacement": 1.0483450602955549,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Climb_VerticalBasePoses_NoCurves",
+      "frames": [
+        0.0,
+        15.0
+      ],
+      "midpoint_vertex_displacement": 1.0483450602955549,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Leap_Back_01",
+      "frames": [
+        0.0,
+        36.0
+      ],
+      "midpoint_vertex_displacement": 3.2193112972667426,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Leap_Back_02",
+      "frames": [
+        0.0,
+        79.0
+      ],
+      "midpoint_vertex_displacement": 3.2765325735035233,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Leap_Back_03",
+      "frames": [
+        0.0,
+        84.0
+      ],
+      "midpoint_vertex_displacement": 3.566211944271568,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Leap_Back_04",
+      "frames": [
+        0.0,
+        65.0
+      ],
+      "midpoint_vertex_displacement": 4.157683437226553,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_NarrowFloor_Hang_To_Stand_01",
+      "frames": [
+        0.0,
+        48.0
+      ],
+      "midpoint_vertex_displacement": 1.4057229120503578,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_NarrowFloor_Hang_To_Stand_02",
+      "frames": [
+        0.0,
+        26.0
+      ],
+      "midpoint_vertex_displacement": 0.995044591074075,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_NarrowFloor_IdlePoses",
+      "frames": [
+        0.0,
+        12.0
+      ],
+      "midpoint_vertex_displacement": 0.7537639710964543,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_NarrowFloor_JumpStart_L",
+      "frames": [
+        0.0,
+        18.0
+      ],
+      "midpoint_vertex_displacement": 0.36615406003970635,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_NarrowFloor_JumpStart_LU",
+      "frames": [
+        0.0,
+        18.0
+      ],
+      "midpoint_vertex_displacement": 0.6972251521046099,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_NarrowFloor_JumpStart_R",
+      "frames": [
+        0.0,
+        18.0
+      ],
+      "midpoint_vertex_displacement": 0.37018870207568283,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_NarrowFloor_JumpStart_RU",
+      "frames": [
+        0.0,
+        18.0
+      ],
+      "midpoint_vertex_displacement": 0.7043387401111022,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_NarrowFloor_JumpStart_U",
+      "frames": [
+        0.0,
+        18.0
+      ],
+      "midpoint_vertex_displacement": 0.16546401638243005,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_NarrowFloor_Stand_To_Hang_01",
+      "frames": [
+        0.0,
+        30.0
+      ],
+      "midpoint_vertex_displacement": 1.4911379612051887,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_NarrowFloor_StridePose_17Frames",
+      "frames": [
+        0.0,
+        18.0
+      ],
+      "midpoint_vertex_displacement": 0.0,
+      "status": "review_static_or_loop"
+    },
+    {
+      "name": "AGLS_CMC_NarrowFloor_StridePose_17Frames_Curves",
+      "frames": [
+        0.0,
+        18.0
+      ],
+      "midpoint_vertex_displacement": 0.0,
+      "status": "review_static_or_loop"
+    },
+    {
+      "name": "AGLS_CMC_NarrowFloor_Walk_L",
+      "frames": [
+        0.0,
+        25.0
+      ],
+      "midpoint_vertex_displacement": 0.5789708849765592,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_NarrowFloor_Walk_R",
+      "frames": [
+        0.0,
+        25.0
+      ],
+      "midpoint_vertex_displacement": 0.5768385479187244,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_PickaxeClimb_BasePoses",
+      "frames": [
+        0.0,
+        7.5
+      ],
+      "midpoint_vertex_displacement": 0.3751006152853913,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_PickaxeClimb_JumpFromLedge_D_LH",
+      "frames": [
+        0.0,
+        38.0
+      ],
+      "midpoint_vertex_displacement": 1.2758464862034538,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_PickaxeClimb_JumpFromLedge_D_RH",
+      "frames": [
+        0.0,
+        38.0
+      ],
+      "midpoint_vertex_displacement": 1.3853805182934864,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_PickaxeClimb_JumpFromLedge_L",
+      "frames": [
+        0.0,
+        38.0
+      ],
+      "midpoint_vertex_displacement": 1.2368871404689676,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_PickaxeClimb_JumpFromLedge_LU",
+      "frames": [
+        0.0,
+        46.0
+      ],
+      "midpoint_vertex_displacement": 1.6324562067318074,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_PickaxeClimb_JumpFromLedge_R",
+      "frames": [
+        0.0,
+        38.0
+      ],
+      "midpoint_vertex_displacement": 1.4245612130576228,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_PickaxeClimb_JumpFromLedge_RU",
+      "frames": [
+        0.0,
+        46.0
+      ],
+      "midpoint_vertex_displacement": 1.6048637025031258,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_PickaxeClimb_JumpFromLedge_U",
+      "frames": [
+        0.0,
+        35.0
+      ],
+      "midpoint_vertex_displacement": 1.221820597141782,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_PickaxeClimb_LongMove_D_LH",
+      "frames": [
+        0.0,
+        46.0
+      ],
+      "midpoint_vertex_displacement": 1.169366814333276,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_PickaxeClimb_LongMove_D_RH",
+      "frames": [
+        0.0,
+        46.0
+      ],
+      "midpoint_vertex_displacement": 1.1850645341072732,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_PickaxeClimb_LongMove_DL",
+      "frames": [
+        0.0,
+        46.0
+      ],
+      "midpoint_vertex_displacement": 0.6554603690218581,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_PickaxeClimb_LongMove_DLv2",
+      "frames": [
+        0.0,
+        69.0
+      ],
+      "midpoint_vertex_displacement": 2.0377109184387843,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_PickaxeClimb_LongMove_DR",
+      "frames": [
+        0.0,
+        46.0
+      ],
+      "midpoint_vertex_displacement": 0.7613126364444074,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_PickaxeClimb_LongMove_L",
+      "frames": [
+        0.0,
+        46.0
+      ],
+      "midpoint_vertex_displacement": 0.5162238748699455,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_PickaxeClimb_LongMove_R",
+      "frames": [
+        0.0,
+        46.0
+      ],
+      "midpoint_vertex_displacement": 0.5115513972394523,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_PickaxeClimb_LongMove_U",
+      "frames": [
+        0.0,
+        46.0
+      ],
+      "midpoint_vertex_displacement": 0.48847395421725587,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_PickaxeClimb_LongMove_UL",
+      "frames": [
+        0.0,
+        46.0
+      ],
+      "midpoint_vertex_displacement": 0.5721068487485343,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_PickaxeClimb_LongMove_UR",
+      "frames": [
+        0.0,
+        46.0
+      ],
+      "midpoint_vertex_displacement": 0.5632823158060961,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_PickaxeClimb_LongMove_Uv2",
+      "frames": [
+        0.0,
+        46.0
+      ],
+      "midpoint_vertex_displacement": 0.5176510661022488,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_PickaxeClimb_Move_L",
+      "frames": [
+        0.0,
+        33.0
+      ],
+      "midpoint_vertex_displacement": 0.6686709759458871,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_PickaxeClimb_Move_U",
+      "frames": [
+        0.0,
+        33.0
+      ],
+      "midpoint_vertex_displacement": 0.9028910219964507,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_PickaxeClimb_Move_UL",
+      "frames": [
+        0.0,
+        33.0
+      ],
+      "midpoint_vertex_displacement": 0.9271481054416735,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_PickaxeClimb_StartTransition_01",
+      "frames": [
+        0.0,
+        46.0
+      ],
+      "midpoint_vertex_displacement": 1.1285675606639223,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_PickaxeClimb_StartTransition_02",
+      "frames": [
+        0.0,
+        38.0
+      ],
+      "midpoint_vertex_displacement": 1.3470484482499514,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_PickaxeClimb_StartTransition_03",
+      "frames": [
+        0.0,
+        67.0
+      ],
+      "midpoint_vertex_displacement": 1.5974619620203645,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_PickaxeClimb_StartTransition_04",
+      "frames": [
+        0.0,
+        71.0
+      ],
+      "midpoint_vertex_displacement": 1.7898722985603774,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_PickaxeClimb_StartTransition_05",
+      "frames": [
+        0.0,
+        33.0
+      ],
+      "midpoint_vertex_displacement": 1.848116383911421,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_PickaxeClimb_StridePose_30Frames",
+      "frames": [
+        0.0,
+        30.0
+      ],
+      "midpoint_vertex_displacement": 0.0,
+      "status": "review_static_or_loop"
+    },
+    {
+      "name": "AGLS_CMC_PickaxeClimb_ToLedgeHold_D",
+      "frames": [
+        0.0,
+        40.0
+      ],
+      "midpoint_vertex_displacement": 1.0194076813979267,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_PickaxeClimb_ToLedgeHold_DR",
+      "frames": [
+        0.0,
+        40.0
+      ],
+      "midpoint_vertex_displacement": 1.0439158561269128,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_PickaxeClimb_ToLedgeHold_L",
+      "frames": [
+        0.0,
+        35.0
+      ],
+      "midpoint_vertex_displacement": 1.0136703085106302,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_PickaxeClimb_ToLedgeHold_R",
+      "frames": [
+        0.0,
+        35.0
+      ],
+      "midpoint_vertex_displacement": 0.4793191061328188,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_PickaxeClimb_ToLedgeHold_U",
+      "frames": [
+        0.0,
+        30.0
+      ],
+      "midpoint_vertex_displacement": 0.5406318924623338,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_PickaxeClimb_ToLedgeHold_UL",
+      "frames": [
+        0.0,
+        35.0
+      ],
+      "midpoint_vertex_displacement": 0.830956352649196,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_PickaxeClimb_ToLedgeHold_UR",
+      "frames": [
+        0.0,
+        35.0
+      ],
+      "midpoint_vertex_displacement": 0.4712899406462866,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Shimmy_Long_FH_LH_D",
+      "frames": [
+        0.0,
+        35.0
+      ],
+      "midpoint_vertex_displacement": 1.126339566681083,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Shimmy_Long_FH_LH_L",
+      "frames": [
+        0.0,
+        35.0
+      ],
+      "midpoint_vertex_displacement": 1.371155206912443,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Shimmy_Long_FH_LH_LD",
+      "frames": [
+        0.0,
+        46.0
+      ],
+      "midpoint_vertex_displacement": 2.0869039339811373,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Shimmy_Long_FH_LH_U",
+      "frames": [
+        0.0,
+        35.0
+      ],
+      "midpoint_vertex_displacement": 1.1434764888514781,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Shimmy_Long_FH_LH_UL",
+      "frames": [
+        0.0,
+        46.0
+      ],
+      "midpoint_vertex_displacement": 1.8676999079324008,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Shimmy_Long_FH_RH_RD",
+      "frames": [
+        0.0,
+        46.0
+      ],
+      "midpoint_vertex_displacement": 2.1126391500519883,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Shimmy_Long_FH_RH_UR",
+      "frames": [
+        0.0,
+        46.0
+      ],
+      "midpoint_vertex_displacement": 1.8742549850350871,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Shimmy_Long_LH_D",
+      "frames": [
+        0.0,
+        36.0
+      ],
+      "midpoint_vertex_displacement": 1.2220863316162622,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Shimmy_Long_LH_L",
+      "frames": [
+        0.0,
+        36.0
+      ],
+      "midpoint_vertex_displacement": 1.0744158266416348,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Shimmy_Long_LH_LD",
+      "frames": [
+        0.0,
+        41.0
+      ],
+      "midpoint_vertex_displacement": 1.7290500709039396,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Shimmy_Long_LH_U",
+      "frames": [
+        0.0,
+        36.0
+      ],
+      "midpoint_vertex_displacement": 1.1288095420910065,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Shimmy_Long_LH_UL",
+      "frames": [
+        0.0,
+        39.0
+      ],
+      "midpoint_vertex_displacement": 1.4017675710149637,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Shimmy_Long_RH_D",
+      "frames": [
+        0.0,
+        36.0
+      ],
+      "midpoint_vertex_displacement": 1.190461957244671,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Shimmy_Long_RH_R",
+      "frames": [
+        0.0,
+        36.0
+      ],
+      "midpoint_vertex_displacement": 1.1061139001814775,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Shimmy_Long_RH_RD",
+      "frames": [
+        0.0,
+        44.0
+      ],
+      "midpoint_vertex_displacement": 1.847589447233266,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Shimmy_Long_RH_U",
+      "frames": [
+        0.0,
+        36.0
+      ],
+      "midpoint_vertex_displacement": 1.162799839854233,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Shimmy_Long_RH_UR",
+      "frames": [
+        0.0,
+        39.0
+      ],
+      "midpoint_vertex_displacement": 1.4548015408420059,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Shimmy_LongDrop_LH",
+      "frames": [
+        0.0,
+        37.0
+      ],
+      "midpoint_vertex_displacement": 1.5040465750808258,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Shimmy_Short_LH_D",
+      "frames": [
+        0.0,
+        31.0
+      ],
+      "midpoint_vertex_displacement": 0.6000687028741987,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Shimmy_Short_LH_DL",
+      "frames": [
+        0.0,
+        31.0
+      ],
+      "midpoint_vertex_displacement": 0.721984268554738,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Shimmy_Short_LH_L",
+      "frames": [
+        0.0,
+        31.0
+      ],
+      "midpoint_vertex_displacement": 0.5155894885198108,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Shimmy_Short_LH_U",
+      "frames": [
+        0.0,
+        31.0
+      ],
+      "midpoint_vertex_displacement": 0.6627286089564345,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Shimmy_Short_LH_UL",
+      "frames": [
+        0.0,
+        31.0
+      ],
+      "midpoint_vertex_displacement": 0.7406544254740905,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Shimmy_Short_RH_D",
+      "frames": [
+        0.0,
+        31.0
+      ],
+      "midpoint_vertex_displacement": 0.5484160669279559,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Shimmy_Short_RH_DR",
+      "frames": [
+        0.0,
+        31.0
+      ],
+      "midpoint_vertex_displacement": 0.7588311549457787,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Shimmy_Short_RH_R",
+      "frames": [
+        0.0,
+        31.0
+      ],
+      "midpoint_vertex_displacement": 0.5193735111554283,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Shimmy_Short_RH_U",
+      "frames": [
+        0.0,
+        31.0
+      ],
+      "midpoint_vertex_displacement": 0.7283376738937235,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Shimmy_Short_RH_UR",
+      "frames": [
+        0.0,
+        30.0
+      ],
+      "midpoint_vertex_displacement": 0.8904049344229643,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Zipline_BasePoses_01",
+      "frames": [
+        0.0,
+        10.0
+      ],
+      "midpoint_vertex_displacement": 0.9020821161212947,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Zipline_DirectionPosesLR",
+      "frames": [
+        0.0,
+        30.0
+      ],
+      "midpoint_vertex_displacement": 0.4391639334645586,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Zipline_HoldingBeginSwinging_L",
+      "frames": [
+        0.0,
+        50.0
+      ],
+      "midpoint_vertex_displacement": 0.2734076879632539,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Zipline_HoldingBeginSwinging_R",
+      "frames": [
+        0.0,
+        65.0
+      ],
+      "midpoint_vertex_displacement": 0.5185686098805243,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Zipline_HoldingLoopAdditiveV2",
+      "frames": [
+        0.0,
+        110.0
+      ],
+      "midpoint_vertex_displacement": 0.1765739108449086,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Zipline_LandEnd_02",
+      "frames": [
+        0.0,
+        105.0
+      ],
+      "midpoint_vertex_displacement": 0.9572159725117904,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_CMC_Zipline_VelocityEffect",
+      "frames": [
+        0.0,
+        30.0
+      ],
+      "midpoint_vertex_displacement": 1.1768907682018332,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_DCSv2_EquipRope_2",
+      "frames": [
+        0.0,
+        33.0
+      ],
+      "midpoint_vertex_displacement": 0.731626343781852,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_DCSv2_RopeHolding_Aim_Idle_loop",
+      "frames": [
+        0.0,
+        27.0
+      ],
+      "midpoint_vertex_displacement": 0.007056995257063577,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_DCSv2_RopeHolding_Aim_Sweep",
+      "frames": [
+        0.0,
+        30.0
+      ],
+      "midpoint_vertex_displacement": 0.2682370907182952,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_DCSv2_RopeHolding_Poses",
+      "frames": [
+        0.0,
+        7.0
+      ],
+      "midpoint_vertex_displacement": 0.5016307983362753,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_DCSv2_RopeHolding_Poses_NoCurves",
+      "frames": [
+        0.0,
+        7.0
+      ],
+      "midpoint_vertex_displacement": 0.49947738529467095,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_DCSv2_Swing_Ledge_To_Swing",
+      "frames": [
+        0.0,
+        75.0
+      ],
+      "midpoint_vertex_displacement": 0.69295981808898,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_DCSv2_Swing_Ledge_To_Swing_FreeHang",
+      "frames": [
+        0.0,
+        76.0
+      ],
+      "midpoint_vertex_displacement": 1.0271504876710575,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_DCSv2_Swing_Mantle_2m",
+      "frames": [
+        0.0,
+        80.0
+      ],
+      "midpoint_vertex_displacement": 1.6486203806344801,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_DCSv2_Swing_Mantle_2m_var2",
+      "frames": [
+        0.0,
+        80.0
+      ],
+      "midpoint_vertex_displacement": 1.5600126208962464,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_DCSv2_Swing_To_Fall-Default",
+      "frames": [
+        0.0,
+        28.0
+      ],
+      "midpoint_vertex_displacement": 1.2848912113613236,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_DCSv2_Swing_To_Fall-Long_Up",
+      "frames": [
+        0.0,
+        35.0
+      ],
+      "midpoint_vertex_displacement": 4.560932726333174,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_DCSv2_Swing_To_Fall-Short_Up",
+      "frames": [
+        0.0,
+        45.0
+      ],
+      "midpoint_vertex_displacement": 2.8840907164472185,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_DCSv2_Swing_To_Ground_Land_1",
+      "frames": [
+        0.0,
+        70.0
+      ],
+      "midpoint_vertex_displacement": 5.372219131480453,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_DCSv2_Swing_To_Ground_Land_2",
+      "frames": [
+        0.0,
+        85.0
+      ],
+      "midpoint_vertex_displacement": 3.411163109612867,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_DCSv2_Swing_Wall_Crash_R",
+      "frames": [
+        0.0,
+        45.0
+      ],
+      "midpoint_vertex_displacement": 3.4634025999942364,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_DCSv2_Swing_Wall_Crash_R_NoCurves",
+      "frames": [
+        0.0,
+        45.0
+      ],
+      "midpoint_vertex_displacement": 3.4634025999942364,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_LMv2_Additive_Idle",
+      "frames": [
+        0.0,
+        31.0
+      ],
+      "midpoint_vertex_displacement": 0.019228147242866974,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_LMv2_Enter_Ladder_Down_01",
+      "frames": [
+        0.0,
+        59.0
+      ],
+      "midpoint_vertex_displacement": 1.1660172288330908,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_LMv2_Enter_Ladder_Down_02",
+      "frames": [
+        0.0,
+        55.0
+      ],
+      "midpoint_vertex_displacement": 0.9509467297417848,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_LMv2_Exit_Ladder_Up_01",
+      "frames": [
+        0.0,
+        55.0
+      ],
+      "midpoint_vertex_displacement": 1.274381112443709,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_LMv2_Jump_To_Ladder_01",
+      "frames": [
+        0.0,
+        32.0
+      ],
+      "midpoint_vertex_displacement": 3.1921454954347928,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_LMv2_Jump_To_Ladder_02",
+      "frames": [
+        0.0,
+        34.0
+      ],
+      "midpoint_vertex_displacement": 3.614870057949121,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_LMv2_Jump_To_Ladder_03",
+      "frames": [
+        0.0,
+        40.0
+      ],
+      "midpoint_vertex_displacement": 1.1368961042763628,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_LMv2_Jump_To_Ladder_04",
+      "frames": [
+        0.0,
+        52.0
+      ],
+      "midpoint_vertex_displacement": 1.543925522273878,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_LMv2_Movement_Down_01",
+      "frames": [
+        0.0,
+        30.0
+      ],
+      "midpoint_vertex_displacement": 1.0788770381666035,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_LMv2_Movement_Up_01",
+      "frames": [
+        0.0,
+        30.0
+      ],
+      "midpoint_vertex_displacement": 1.2279201331843148,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_LMv2_Poses_01_NoCurves",
+      "frames": [
+        0.0,
+        10.0
+      ],
+      "midpoint_vertex_displacement": 1.1703105879387306,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_LMv2_ShortMove_R",
+      "frames": [
+        0.0,
+        23.0
+      ],
+      "midpoint_vertex_displacement": 0.4327857293193759,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Jump_Down01_Mid",
+      "frames": [
+        0.0,
+        45.0
+      ],
+      "midpoint_vertex_displacement": 1.1042762413701523,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Jump_Down01_Short",
+      "frames": [
+        0.0,
+        43.0
+      ],
+      "midpoint_vertex_displacement": 0.8367897453806602,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Jump_Down02_Long_1m",
+      "frames": [
+        0.0,
+        65.0
+      ],
+      "midpoint_vertex_displacement": 2.2120736702434427,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Jump_Down02_Long_2_m",
+      "frames": [
+        0.0,
+        75.0
+      ],
+      "midpoint_vertex_displacement": 2.4060112223959753,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Jump_Down02_Short_1m",
+      "frames": [
+        0.0,
+        54.0
+      ],
+      "midpoint_vertex_displacement": 1.3487671088462874,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Jump_Down02_VeryLong_1m",
+      "frames": [
+        0.0,
+        68.0
+      ],
+      "midpoint_vertex_displacement": 2.446448009146987,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Jump_Down03_Mid",
+      "frames": [
+        0.0,
+        51.0
+      ],
+      "midpoint_vertex_displacement": 2.45967367678726,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Jump_Idle01_Long_LF",
+      "frames": [
+        0.0,
+        75.0
+      ],
+      "midpoint_vertex_displacement": 1.6784002156316684,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Jump_Idle01_Long_RF",
+      "frames": [
+        0.0,
+        75.0
+      ],
+      "midpoint_vertex_displacement": 1.6778662355539073,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Jump_Idle01_Long_TF",
+      "frames": [
+        0.0,
+        69.0
+      ],
+      "midpoint_vertex_displacement": 1.5257111626547684,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Jump_Idle01_Mid_LF",
+      "frames": [
+        0.0,
+        75.0
+      ],
+      "midpoint_vertex_displacement": 1.201121380372657,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Jump_Idle01_Mid_RF",
+      "frames": [
+        0.0,
+        75.0
+      ],
+      "midpoint_vertex_displacement": 1.201675268075871,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Jump_Idle01_Short_LF",
+      "frames": [
+        0.0,
+        62.999996185302734
+      ],
+      "midpoint_vertex_displacement": 1.3412859922680904,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Jump_Idle01_Short_RF",
+      "frames": [
+        0.0,
+        58.0
+      ],
+      "midpoint_vertex_displacement": 1.3457906082795237,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Jump_Idle02_Short_TF",
+      "frames": [
+        0.0,
+        45.0
+      ],
+      "midpoint_vertex_displacement": 1.2655751798384427,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Jump_Idle_Step01_High",
+      "frames": [
+        0.0,
+        50.0
+      ],
+      "midpoint_vertex_displacement": 2.581206735349838,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Jump_Idle_Step01_Short",
+      "frames": [
+        0.0,
+        45.0
+      ],
+      "midpoint_vertex_displacement": 1.5982485870462564,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Jump_Sprint01_LF",
+      "frames": [
+        0.0,
+        26.0
+      ],
+      "midpoint_vertex_displacement": 2.7227667316804984,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Jump_Sprint01_RF",
+      "frames": [
+        0.0,
+        26.0
+      ],
+      "midpoint_vertex_displacement": 2.722750220189039,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Jump_Sprint02_Down05m_LF",
+      "frames": [
+        0.0,
+        55.0
+      ],
+      "midpoint_vertex_displacement": 3.570427360085259,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Jump_Sprint02_Down05m_RF",
+      "frames": [
+        0.0,
+        55.0
+      ],
+      "midpoint_vertex_displacement": 3.5678956012816,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Jump_Sprint02_Down1m_LF",
+      "frames": [
+        0.0,
+        55.0
+      ],
+      "midpoint_vertex_displacement": 3.6741407328333926,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Jump_Sprint02_Down1m_RF",
+      "frames": [
+        0.0,
+        55.0
+      ],
+      "midpoint_vertex_displacement": 3.68052434415699,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Jump_Sprint02_Flat_LF",
+      "frames": [
+        0.0,
+        50.0
+      ],
+      "midpoint_vertex_displacement": 3.265226482984669,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Jump_Sprint02_Flat_RF",
+      "frames": [
+        0.0,
+        50.0
+      ],
+      "midpoint_vertex_displacement": 3.2715477629114513,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Jump_Sprint02_Up03m_LF",
+      "frames": [
+        0.0,
+        50.0
+      ],
+      "midpoint_vertex_displacement": 3.643092705120798,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Jump_Sprint02_Up03m_RF",
+      "frames": [
+        0.0,
+        50.0
+      ],
+      "midpoint_vertex_displacement": 3.615333759790403,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Jump_Sprint03_LargeFall01",
+      "frames": [
+        0.0,
+        90.0
+      ],
+      "midpoint_vertex_displacement": 7.071639755713222,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Jump_Sprint03_LargeFall02",
+      "frames": [
+        0.0,
+        88.0
+      ],
+      "midpoint_vertex_displacement": 7.045589998067438,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_B_Land_Run_Heavy",
+      "frames": [
+        0.0,
+        101.0
+      ],
+      "midpoint_vertex_displacement": 9.264158007328422,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_B_Land_Run_Light",
+      "frames": [
+        0.0,
+        75.0
+      ],
+      "midpoint_vertex_displacement": 8.583013934069125,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_B_Land_Stand_Heavy_Lfoot",
+      "frames": [
+        0.0,
+        113.0
+      ],
+      "midpoint_vertex_displacement": 8.572577084289032,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_B_Land_Stand_Heavy_Rfoot",
+      "frames": [
+        0.0,
+        114.0
+      ],
+      "midpoint_vertex_displacement": 8.527451359432021,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_B_Land_Stand_Light_Lfoot",
+      "frames": [
+        0.0,
+        89.0
+      ],
+      "midpoint_vertex_displacement": 6.6071291076947904,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_B_Land_Stand_Light_Rfoot",
+      "frames": [
+        0.0,
+        89.0
+      ],
+      "midpoint_vertex_displacement": 6.57697999281158,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_B_Land_Walk_Heavy",
+      "frames": [
+        0.0,
+        122.0
+      ],
+      "midpoint_vertex_displacement": 9.887205279981842,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_B_Land_Walk_Light",
+      "frames": [
+        0.0,
+        92.0
+      ],
+      "midpoint_vertex_displacement": 7.508978773943581,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_B_Off_Run_Lfoot",
+      "frames": [
+        0.0,
+        74.0
+      ],
+      "midpoint_vertex_displacement": 3.856113584754848,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_B_Off_Run_Rfoot",
+      "frames": [
+        0.0,
+        77.0
+      ],
+      "midpoint_vertex_displacement": 4.213003755694322,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_B_Off_Walk_Lfoot",
+      "frames": [
+        0.0,
+        86.0
+      ],
+      "midpoint_vertex_displacement": 2.417117775630862,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_B_Off_Walk_Rfoot",
+      "frames": [
+        0.0,
+        89.0
+      ],
+      "midpoint_vertex_displacement": 2.3865825595489714,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_B_Start_Lfoot",
+      "frames": [
+        0.0,
+        56.0
+      ],
+      "midpoint_vertex_displacement": 2.463649269518639,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_B_Start_Rfoot",
+      "frames": [
+        0.0,
+        59.0
+      ],
+      "midpoint_vertex_displacement": 2.739104620581928,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_F_Land_Run_Heavy_Lfoot",
+      "frames": [
+        0.0,
+        92.0
+      ],
+      "midpoint_vertex_displacement": 9.330779265885779,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_F_Land_Run_Heavy_Rfoot",
+      "frames": [
+        0.0,
+        93.0
+      ],
+      "midpoint_vertex_displacement": 9.891308682512413,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_F_Land_Run_Light_Lfoot",
+      "frames": [
+        0.0,
+        66.0
+      ],
+      "midpoint_vertex_displacement": 8.6393276313284,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_F_Land_Run_Light_Rfoot",
+      "frames": [
+        0.0,
+        64.0
+      ],
+      "midpoint_vertex_displacement": 10.18027797122384,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_F_Land_Sprint_Light_Lfoot",
+      "frames": [
+        0.0,
+        85.0
+      ],
+      "midpoint_vertex_displacement": 9.81675494705991,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_F_Land_Sprint_Light_Rfoot",
+      "frames": [
+        0.0,
+        84.0
+      ],
+      "midpoint_vertex_displacement": 11.612990417072233,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_F_Land_Stand_Heavy_Lfoot",
+      "frames": [
+        0.0,
+        113.0
+      ],
+      "midpoint_vertex_displacement": 7.664148848355372,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_F_Land_Stand_Heavy_Rfoot",
+      "frames": [
+        0.0,
+        114.0
+      ],
+      "midpoint_vertex_displacement": 7.63480052125167,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_F_Land_Stand_Light_Lfoot",
+      "frames": [
+        0.0,
+        83.0
+      ],
+      "midpoint_vertex_displacement": 5.567963661604787,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_F_Land_Stand_Light_Rfoot",
+      "frames": [
+        0.0,
+        74.0
+      ],
+      "midpoint_vertex_displacement": 6.95375996272827,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_F_Land_Stumble_Lfoot",
+      "frames": [
+        0.0,
+        97.0
+      ],
+      "midpoint_vertex_displacement": 10.057213691183282,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_F_Land_Stumble_Rfoot",
+      "frames": [
+        0.0,
+        102.0
+      ],
+      "midpoint_vertex_displacement": 9.445714097994527,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_F_Land_Walk_Heavy_Lfoot",
+      "frames": [
+        0.0,
+        132.0
+      ],
+      "midpoint_vertex_displacement": 9.882906423280733,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_F_Land_Walk_Heavy_Rfoot",
+      "frames": [
+        0.0,
+        132.0
+      ],
+      "midpoint_vertex_displacement": 10.584318801600041,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_F_Land_Walk_Light_Lfoot",
+      "frames": [
+        0.0,
+        99.0
+      ],
+      "midpoint_vertex_displacement": 11.053583991842308,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_F_Land_Walk_Light_Rfoot",
+      "frames": [
+        0.0,
+        75.0
+      ],
+      "midpoint_vertex_displacement": 8.538658379452857,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_F_Off_Run_Lfoot",
+      "frames": [
+        0.0,
+        48.0
+      ],
+      "midpoint_vertex_displacement": 5.299959658101457,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_F_Off_Run_Rfoot",
+      "frames": [
+        0.0,
+        49.0
+      ],
+      "midpoint_vertex_displacement": 5.417155678542568,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_F_Off_Walk_Lfoot",
+      "frames": [
+        0.0,
+        62.0
+      ],
+      "midpoint_vertex_displacement": 2.3596431920404077,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_F_Off_Walk_Rfoot",
+      "frames": [
+        0.0,
+        62.999996185302734
+      ],
+      "midpoint_vertex_displacement": 2.36774302937989,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_F_Start_Across_Lfoot",
+      "frames": [
+        0.0,
+        62.999996185302734
+      ],
+      "midpoint_vertex_displacement": 4.786182157351229,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_F_Start_Across_Rfoot",
+      "frames": [
+        0.0,
+        62.999996185302734
+      ],
+      "midpoint_vertex_displacement": 4.747294507189532,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_F_Start_Cliff_Lfoot",
+      "frames": [
+        0.0,
+        72.0
+      ],
+      "midpoint_vertex_displacement": 6.669324103024373,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_F_Start_Cliff_Rfoot",
+      "frames": [
+        0.0,
+        73.0
+      ],
+      "midpoint_vertex_displacement": 6.6430110024830435,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_F_Start_Run_Lfoot",
+      "frames": [
+        0.0,
+        76.0
+      ],
+      "midpoint_vertex_displacement": 7.214059463469973,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_F_Start_Run_Rfoot",
+      "frames": [
+        0.0,
+        73.0
+      ],
+      "midpoint_vertex_displacement": 7.218590340355583,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_F_Start_Sprint_Lfoot",
+      "frames": [
+        0.0,
+        70.0
+      ],
+      "midpoint_vertex_displacement": 6.954812419457667,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_F_Start_Sprint_Rfoot",
+      "frames": [
+        0.0,
+        70.0
+      ],
+      "midpoint_vertex_displacement": 6.687498763899822,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_F_Start_Stand_Lfoot",
+      "frames": [
+        0.0,
+        75.0
+      ],
+      "midpoint_vertex_displacement": 0.602747221220803,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_F_Start_Stand_Rfoot",
+      "frames": [
+        0.0,
+        73.0
+      ],
+      "midpoint_vertex_displacement": 1.2574081463255415,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_F_Start_Walk_Lfoot",
+      "frames": [
+        0.0,
+        79.0
+      ],
+      "midpoint_vertex_displacement": 3.5423031174309507,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_F_Start_Walk_Rfoot",
+      "frames": [
+        0.0,
+        79.0
+      ],
+      "midpoint_vertex_displacement": 3.8245460493907406,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_LL_Land_Run_Heavy",
+      "frames": [
+        0.0,
+        92.0
+      ],
+      "midpoint_vertex_displacement": 11.578632667932917,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_LL_Land_Run_Light",
+      "frames": [
+        0.0,
+        76.0
+      ],
+      "midpoint_vertex_displacement": 6.920322601490137,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_LL_Land_Stand_Heavy_Lfoot",
+      "frames": [
+        0.0,
+        113.0
+      ],
+      "midpoint_vertex_displacement": 10.287523222580722,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_LL_Land_Stand_Heavy_Rfoot",
+      "frames": [
+        0.0,
+        114.0
+      ],
+      "midpoint_vertex_displacement": 10.227887224463307,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_LL_Land_Stand_Light_Lfoot",
+      "frames": [
+        0.0,
+        94.0
+      ],
+      "midpoint_vertex_displacement": 6.270900254800746,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_LL_Land_Stand_Light_Rfoot",
+      "frames": [
+        0.0,
+        98.0
+      ],
+      "midpoint_vertex_displacement": 6.266072533741858,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_LL_Land_Walk_Heavy",
+      "frames": [
+        0.0,
+        116.0
+      ],
+      "midpoint_vertex_displacement": 11.741547744769523,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_LL_Land_Walk_Light",
+      "frames": [
+        0.0,
+        85.0
+      ],
+      "midpoint_vertex_displacement": 6.4329099332274815,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_LL_Off_Run_Lfoot",
+      "frames": [
+        0.0,
+        77.0
+      ],
+      "midpoint_vertex_displacement": 4.562198204353548,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_LL_Off_Run_Rfoot",
+      "frames": [
+        0.0,
+        82.0
+      ],
+      "midpoint_vertex_displacement": 4.839773022486639,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_LL_Off_Walk_Lfoot",
+      "frames": [
+        0.0,
+        81.0
+      ],
+      "midpoint_vertex_displacement": 2.741659014331483,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_LL_Off_Walk_Rfoot",
+      "frames": [
+        0.0,
+        84.0
+      ],
+      "midpoint_vertex_displacement": 2.80727622640406,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_LL_Start_Lfoot",
+      "frames": [
+        0.0,
+        60.0
+      ],
+      "midpoint_vertex_displacement": 3.4433371683271243,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_LL_Start_Rfoot",
+      "frames": [
+        0.0,
+        60.0
+      ],
+      "midpoint_vertex_displacement": 4.14016523687684,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_Loop_Fall",
+      "frames": [
+        0.0,
+        101.0
+      ],
+      "midpoint_vertex_displacement": 15.810827867957396,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_RL_Land_Run_Heavy",
+      "frames": [
+        0.0,
+        97.0
+      ],
+      "midpoint_vertex_displacement": 12.577634813696646,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_RL_Land_Run_Light",
+      "frames": [
+        0.0,
+        78.0
+      ],
+      "midpoint_vertex_displacement": 7.140350474249488,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_RL_Land_Stand_Heavy_Lfoot",
+      "frames": [
+        0.0,
+        79.0
+      ],
+      "midpoint_vertex_displacement": 9.324998155104229,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_RL_Land_Stand_Heavy_Rfoot",
+      "frames": [
+        0.0,
+        114.0
+      ],
+      "midpoint_vertex_displacement": 8.673000382531129,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_RL_Land_Stand_Light_Lfoot",
+      "frames": [
+        0.0,
+        99.0
+      ],
+      "midpoint_vertex_displacement": 5.77469103332949,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_RL_Land_Stand_Light_Rfoot",
+      "frames": [
+        0.0,
+        79.0
+      ],
+      "midpoint_vertex_displacement": 6.704013907796527,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_RL_Land_Walk_Heavy",
+      "frames": [
+        0.0,
+        116.0
+      ],
+      "midpoint_vertex_displacement": 12.791303658486099,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_RL_Land_Walk_Light",
+      "frames": [
+        0.0,
+        86.0
+      ],
+      "midpoint_vertex_displacement": 6.611984607440883,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_RL_Off_Run_Lfoot",
+      "frames": [
+        0.0,
+        81.0
+      ],
+      "midpoint_vertex_displacement": 4.981097979720747,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_RL_Off_Run_Rfoot",
+      "frames": [
+        0.0,
+        83.0
+      ],
+      "midpoint_vertex_displacement": 5.466573156622174,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_RL_Off_Walk_Lfoot",
+      "frames": [
+        0.0,
+        87.0
+      ],
+      "midpoint_vertex_displacement": 2.8441247792195528,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_RL_Off_Walk_Rfoot",
+      "frames": [
+        0.0,
+        84.0
+      ],
+      "midpoint_vertex_displacement": 2.9057023562843733,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_RL_Start_Lfoot",
+      "frames": [
+        0.0,
+        60.0
+      ],
+      "midpoint_vertex_displacement": 3.719840452354028,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Neutral_Jump_RL_Start_Rfoot",
+      "frames": [
+        0.0,
+        62.0
+      ],
+      "midpoint_vertex_displacement": 4.064946743615114,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Relaxed_Jump_B_Land_Run_Heavy",
+      "frames": [
+        0.0,
+        94.0
+      ],
+      "midpoint_vertex_displacement": 9.40286229997327,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Relaxed_Jump_B_Land_Run_Light",
+      "frames": [
+        0.0,
+        93.0
+      ],
+      "midpoint_vertex_displacement": 12.671971458321938,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Relaxed_Jump_F_Land_Run_Heavy_Lfoot",
+      "frames": [
+        0.0,
+        116.0
+      ],
+      "midpoint_vertex_displacement": 10.471659446781414,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Relaxed_Jump_F_Land_Run_Heavy_Rfoot",
+      "frames": [
+        0.0,
+        119.0
+      ],
+      "midpoint_vertex_displacement": 10.790828595158864,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Relaxed_Jump_F_Land_Run_Light_Lfoot",
+      "frames": [
+        0.0,
+        101.0
+      ],
+      "midpoint_vertex_displacement": 9.78589184598279,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Relaxed_Jump_F_Land_Run_Light_Rfoot",
+      "frames": [
+        0.0,
+        99.0
+      ],
+      "midpoint_vertex_displacement": 11.52460603640564,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Relaxed_Jump_F_Off_Run_Lfoot",
+      "frames": [
+        0.0,
+        52.0
+      ],
+      "midpoint_vertex_displacement": 4.214070774312201,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Relaxed_Jump_F_Off_Run_Rfoot",
+      "frames": [
+        0.0,
+        53.0
+      ],
+      "midpoint_vertex_displacement": 4.611662373820871,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Relaxed_Jump_F_Start_Run_Lfoot",
+      "frames": [
+        0.0,
+        79.0
+      ],
+      "midpoint_vertex_displacement": 7.283305180112215,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Relaxed_Jump_F_Start_Run_Rfoot",
+      "frames": [
+        0.0,
+        76.0
+      ],
+      "midpoint_vertex_displacement": 7.207300405464401,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Relaxed_Jump_LL_Land_Run_Heavy",
+      "frames": [
+        0.0,
+        85.0
+      ],
+      "midpoint_vertex_displacement": 7.600724177970156,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Relaxed_Jump_LL_Land_Run_Light",
+      "frames": [
+        0.0,
+        85.0
+      ],
+      "midpoint_vertex_displacement": 7.6004514303685085,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Relaxed_Jump_LL_Start_Lfoot",
+      "frames": [
+        0.0,
+        72.0
+      ],
+      "midpoint_vertex_displacement": 3.148121818566812,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Relaxed_Jump_LL_Start_Rfoot",
+      "frames": [
+        0.0,
+        68.0
+      ],
+      "midpoint_vertex_displacement": 3.57281452198959,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Relaxed_Jump_LR_Land_Run_Heavy",
+      "frames": [
+        0.0,
+        128.0
+      ],
+      "midpoint_vertex_displacement": 14.31233163176541,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Relaxed_Jump_LR_Start_Lfoot",
+      "frames": [
+        0.0,
+        70.0
+      ],
+      "midpoint_vertex_displacement": 3.112181009014258,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Relaxed_Jump_LR_Start_Rfoot",
+      "frames": [
+        0.0,
+        70.0
+      ],
+      "midpoint_vertex_displacement": 3.4493479929057087,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Relaxed_Jump_RL_Land_Run_Heavy",
+      "frames": [
+        0.0,
+        103.0
+      ],
+      "midpoint_vertex_displacement": 13.23621097156543,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Relaxed_Jump_RL_Land_Run_Light",
+      "frames": [
+        0.0,
+        84.0
+      ],
+      "midpoint_vertex_displacement": 7.555948548657744,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Relaxed_Jump_RL_Start_Lfoot",
+      "frames": [
+        0.0,
+        70.0
+      ],
+      "midpoint_vertex_displacement": 3.5812882388072342,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "AGLS_MM_Relaxed_Jump_RL_Start_Rfoot",
+      "frames": [
+        0.0,
+        70.0
+      ],
+      "midpoint_vertex_displacement": 3.731442431437026,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "aim_idle",
+      "frames": [
+        0.0,
+        0.0
+      ],
+      "midpoint_vertex_displacement": 0.0,
+      "status": "review_static_or_loop"
+    },
+    {
+      "name": "aim_idle_crouch",
+      "frames": [
+        0.0,
+        0.0
+      ],
+      "midpoint_vertex_displacement": 0.0,
+      "status": "review_static_or_loop"
+    },
+    {
+      "name": "combat_fire",
+      "frames": [
+        0.0,
+        2.0
+      ],
+      "midpoint_vertex_displacement": 0.04011807590290702,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "crouch_backward",
+      "frames": [
+        0.0,
+        34.0
+      ],
+      "midpoint_vertex_displacement": 0.4029341568239004,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "crouch_fire",
+      "frames": [
+        0.0,
+        2.0
+      ],
+      "midpoint_vertex_displacement": 0.02893794534998337,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "crouch_forward",
+      "frames": [
+        0.0,
+        28.0
+      ],
+      "midpoint_vertex_displacement": 0.3692759059087715,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "crouch_grenade_toss",
+      "frames": [
+        0.0,
+        96.0
+      ],
+      "midpoint_vertex_displacement": 0.8518382083956184,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "crouch_lateral_left",
+      "frames": [
+        0.0,
+        39.0
+      ],
+      "midpoint_vertex_displacement": 0.8968559572353141,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "crouch_lateral_right",
+      "frames": [
+        0.0,
+        33.0
+      ],
+      "midpoint_vertex_displacement": 0.8963349809109475,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "crouch_left",
+      "frames": [
+        0.0,
+        39.0
+      ],
+      "midpoint_vertex_displacement": 0.8968559572353141,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "crouch_right",
+      "frames": [
+        0.0,
+        33.0
+      ],
+      "midpoint_vertex_displacement": 0.8963349809109475,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "crouch_to_prone",
+      "frames": [
+        0.0,
+        33.0
+      ],
+      "midpoint_vertex_displacement": 1.645384503167475,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "dive_roll",
+      "frames": [
+        0.0,
+        15.0
+      ],
+      "midpoint_vertex_displacement": 1.542177108296764,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "grenade_throw",
+      "frames": [
+        0.0,
+        105.0
+      ],
+      "midpoint_vertex_displacement": 0.9882515593731642,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "grenade_toss",
+      "frames": [
+        0.0,
+        96.0
+      ],
+      "midpoint_vertex_displacement": 0.7934855899439635,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "idle_crouch",
+      "frames": [
+        0.0,
+        21.0
+      ],
+      "midpoint_vertex_displacement": 0.007732729011685508,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "idle_prone",
+      "frames": [
+        0.0,
+        10.0
+      ],
+      "midpoint_vertex_displacement": 0.0,
+      "status": "review_static_or_loop"
+    },
+    {
+      "name": "idle_rifle",
+      "frames": [
+        0.0,
+        16.0
+      ],
+      "midpoint_vertex_displacement": 0.01872046689680811,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "jump_down",
+      "frames": [
+        0.0,
+        30.0
+      ],
+      "midpoint_vertex_displacement": 0.33793251866085855,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "jump_forward_action",
+      "frames": [
+        0.0,
+        25.0
+      ],
+      "midpoint_vertex_displacement": 1.3767013059139146,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "jump_loop",
+      "frames": [
+        0.0,
+        30.0
+      ],
+      "midpoint_vertex_displacement": 0.5001183205741682,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "jump_running_air",
+      "frames": [
+        0.0,
+        30.0
+      ],
+      "midpoint_vertex_displacement": 0.5307585727998486,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "jump_running_land",
+      "frames": [
+        0.0,
+        30.0
+      ],
+      "midpoint_vertex_displacement": 0.47679968907962506,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "jump_slide_prone",
+      "frames": [
+        0.0,
+        15.0
+      ],
+      "midpoint_vertex_displacement": 1.542177108296764,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "jump_up",
+      "frames": [
+        0.0,
+        30.0
+      ],
+      "midpoint_vertex_displacement": 1.38496195500328,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "jump_up_standing",
+      "frames": [
+        0.0,
+        30.0
+      ],
+      "midpoint_vertex_displacement": 0.6606442225216569,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "pistol_compressed_idle_crouched",
+      "frames": [
+        0.0,
+        10.0
+      ],
+      "midpoint_vertex_displacement": 0.0,
+      "status": "review_static_or_loop"
+    },
+    {
+      "name": "pistol_compressed_idle_standing",
+      "frames": [
+        0.0,
+        16.0
+      ],
+      "midpoint_vertex_displacement": 0.01697357250911589,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "pistol_crouch_backward",
+      "frames": [
+        0.0,
+        23.0
+      ],
+      "midpoint_vertex_displacement": 0.4029341568239004,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "pistol_crouch_forward",
+      "frames": [
+        0.0,
+        19.0
+      ],
+      "midpoint_vertex_displacement": 0.3692759059087715,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "pistol_crouch_left",
+      "frames": [
+        0.0,
+        21.0
+      ],
+      "midpoint_vertex_displacement": 0.8968560577034587,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "pistol_crouch_right",
+      "frames": [
+        0.0,
+        19.0
+      ],
+      "midpoint_vertex_displacement": 0.8963351429028369,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "pistol_fire",
+      "frames": [
+        0.0,
+        2.0
+      ],
+      "midpoint_vertex_displacement": 0.09281606612417215,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "pistol_idle",
+      "frames": [
+        0.0,
+        16.0
+      ],
+      "midpoint_vertex_displacement": 0.01697357250911589,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "pistol_idle_kneeling",
+      "frames": [
+        0.0,
+        10.0
+      ],
+      "midpoint_vertex_displacement": 0.0,
+      "status": "review_static_or_loop"
+    },
+    {
+      "name": "pistol_idle_prone",
+      "frames": [
+        0.0,
+        1.0
+      ],
+      "midpoint_vertex_displacement": 0.0,
+      "status": "review_static_or_loop"
+    },
+    {
+      "name": "pistol_jump",
+      "frames": [
+        0.0,
+        30.0
+      ],
+      "midpoint_vertex_displacement": 1.38496195500328,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "pistol_jump_alt",
+      "frames": [
+        0.0,
+        25.0
+      ],
+      "midpoint_vertex_displacement": 1.3767013059139146,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "pistol_jump_down",
+      "frames": [
+        0.0,
+        30.0
+      ],
+      "midpoint_vertex_displacement": 0.33793251866085855,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "pistol_prone_fire",
+      "frames": [
+        0.0,
+        2.0
+      ],
+      "midpoint_vertex_displacement": 0.04107590410909884,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "pistol_recovery_reference_crouched",
+      "frames": [
+        0.0,
+        0.0
+      ],
+      "midpoint_vertex_displacement": 0.0,
+      "status": "review_static_or_loop"
+    },
+    {
+      "name": "pistol_recovery_reference_standing",
+      "frames": [
+        0.0,
+        0.0
+      ],
+      "midpoint_vertex_displacement": 0.0,
+      "status": "review_static_or_loop"
+    },
+    {
+      "name": "pistol_run_backward",
+      "frames": [
+        0.0,
+        16.0
+      ],
+      "midpoint_vertex_displacement": 0.27536010277135187,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "pistol_run_forward",
+      "frames": [
+        0.0,
+        18.0
+      ],
+      "midpoint_vertex_displacement": 0.7347223900867103,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "pistol_run_left",
+      "frames": [
+        0.0,
+        18.0
+      ],
+      "midpoint_vertex_displacement": 0.7762768717912404,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "pistol_run_right",
+      "frames": [
+        0.0,
+        18.0
+      ],
+      "midpoint_vertex_displacement": 0.34086199289698466,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "pistol_stand_to_kneel",
+      "frames": [
+        0.0,
+        17.0
+      ],
+      "midpoint_vertex_displacement": 0.534791123128531,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "pistol_strafe_left",
+      "frames": [
+        0.0,
+        21.0
+      ],
+      "midpoint_vertex_displacement": 0.440823238806335,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "pistol_strafe_right",
+      "frames": [
+        0.0,
+        23.0
+      ],
+      "midpoint_vertex_displacement": 0.505299206616139,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "pistol_walk_backward",
+      "frames": [
+        0.0,
+        16.0
+      ],
+      "midpoint_vertex_displacement": 0.22185670406166558,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "pistol_walk_forward",
+      "frames": [
+        0.0,
+        17.0
+      ],
+      "midpoint_vertex_displacement": 0.3442615082485095,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "profile_authored_peek_families_TWO_HAND_PISTOL_CROUCHED_left",
+      "frames": [
+        0.0,
+        12.0
+      ],
+      "midpoint_vertex_displacement": 0.24173384343778093,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "profile_authored_peek_families_TWO_HAND_PISTOL_CROUCHED_right",
+      "frames": [
+        0.0,
+        14.0
+      ],
+      "midpoint_vertex_displacement": 0.22346506323898552,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "profile_authored_peek_families_TWO_HAND_PISTOL_PRONE_left",
+      "frames": [
+        0.0,
+        12.0
+      ],
+      "midpoint_vertex_displacement": 0.48649122899408304,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "profile_authored_peek_families_TWO_HAND_PISTOL_PRONE_right",
+      "frames": [
+        0.0,
+        10.0
+      ],
+      "midpoint_vertex_displacement": 0.38171735447216865,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "profile_authored_peek_families_TWO_HAND_PISTOL_STANDING_left",
+      "frames": [
+        0.0,
+        24.0
+      ],
+      "midpoint_vertex_displacement": 0.39939602957475306,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "profile_authored_peek_families_TWO_HAND_PISTOL_STANDING_right",
+      "frames": [
+        0.0,
+        20.0
+      ],
+      "midpoint_vertex_displacement": 0.4091634090267907,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "profile_authored_peek_families_TWO_HAND_RIFLE_CROUCHED_left",
+      "frames": [
+        0.0,
+        15.0
+      ],
+      "midpoint_vertex_displacement": 0.4306989780532052,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "profile_authored_peek_families_TWO_HAND_RIFLE_CROUCHED_right",
+      "frames": [
+        0.0,
+        21.0
+      ],
+      "midpoint_vertex_displacement": 0.4409814800866112,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "profile_authored_peek_families_TWO_HAND_RIFLE_PRONE_left",
+      "frames": [
+        0.0,
+        12.0
+      ],
+      "midpoint_vertex_displacement": 0.8036083401321684,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "profile_authored_peek_families_TWO_HAND_RIFLE_PRONE_right",
+      "frames": [
+        0.0,
+        10.0
+      ],
+      "midpoint_vertex_displacement": 0.7657673250958754,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "profile_authored_peek_families_TWO_HAND_RIFLE_STANDING_left",
+      "frames": [
+        0.0,
+        23.0
+      ],
+      "midpoint_vertex_displacement": 0.43014106798130175,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "profile_authored_peek_families_TWO_HAND_RIFLE_STANDING_right",
+      "frames": [
+        0.0,
+        18.0
+      ],
+      "midpoint_vertex_displacement": 0.3435793035145228,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "prone_fire",
+      "frames": [
+        0.0,
+        2.0
+      ],
+      "midpoint_vertex_displacement": 0.03036279706366924,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "prone_forward",
+      "frames": [
+        0.0,
+        26.0
+      ],
+      "midpoint_vertex_displacement": 0.800283105520619,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "prone_turn_left",
+      "frames": [
+        0.0,
+        22.0
+      ],
+      "midpoint_vertex_displacement": 0.34342345087671833,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "prone_turn_right",
+      "frames": [
+        0.0,
+        22.0
+      ],
+      "midpoint_vertex_displacement": 0.3775731386736107,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "run_backward",
+      "frames": [
+        0.0,
+        18.0
+      ],
+      "midpoint_vertex_displacement": 0.3114174420354796,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "run_forward",
+      "frames": [
+        0.0,
+        19.0
+      ],
+      "midpoint_vertex_displacement": 0.5248507702796732,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "run_lateral_left",
+      "frames": [
+        0.0,
+        18.0
+      ],
+      "midpoint_vertex_displacement": 0.33701456201946267,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "run_lateral_right",
+      "frames": [
+        0.0,
+        18.0
+      ],
+      "midpoint_vertex_displacement": 0.34086199289698466,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "run_left",
+      "frames": [
+        0.0,
+        18.0
+      ],
+      "midpoint_vertex_displacement": 0.33701456201946267,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "run_right",
+      "frames": [
+        0.0,
+        18.0
+      ],
+      "midpoint_vertex_displacement": 0.34086199289698466,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "seal_fp_crouch",
+      "frames": [
+        0.0,
+        11.0
+      ],
+      "midpoint_vertex_displacement": 0.010773851836626052,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "seal_fp_crouch_step",
+      "frames": [
+        0.0,
+        18.0
+      ],
+      "midpoint_vertex_displacement": 0.4118189694411315,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "seal_fp_crouchwalk",
+      "frames": [
+        0.0,
+        28.0
+      ],
+      "midpoint_vertex_displacement": 0.3691736337748447,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "seal_fp_crouchwalk_bw",
+      "frames": [
+        0.0,
+        34.0
+      ],
+      "midpoint_vertex_displacement": 0.39966916003439074,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "seal_fp_jog",
+      "frames": [
+        0.0,
+        20.0
+      ],
+      "midpoint_vertex_displacement": 0.355392751848788,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "seal_fp_prone",
+      "frames": [
+        0.0,
+        1.0
+      ],
+      "midpoint_vertex_displacement": 0.0,
+      "status": "review_static_or_loop"
+    },
+    {
+      "name": "seal_fp_run",
+      "frames": [
+        0.0,
+        18.0
+      ],
+      "midpoint_vertex_displacement": 0.3415024974707763,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "seal_fp_run_bw",
+      "frames": [
+        0.0,
+        18.0
+      ],
+      "midpoint_vertex_displacement": 0.41256689205256836,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "seal_fp_stand",
+      "frames": [
+        0.0,
+        8.0
+      ],
+      "midpoint_vertex_displacement": 0.019270662259858722,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "seal_fp_step",
+      "frames": [
+        0.0,
+        21.0
+      ],
+      "midpoint_vertex_displacement": 0.30270998873016536,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "seal_fp_twist_pitch",
+      "frames": [
+        0.0,
+        9.0
+      ],
+      "midpoint_vertex_displacement": 1.5822401332708818,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "seal_fp_walk",
+      "frames": [
+        0.0,
+        25.0
+      ],
+      "midpoint_vertex_displacement": 0.3737820837613392,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "seal_fp_walk_bw",
+      "frames": [
+        0.0,
+        26.0
+      ],
+      "midpoint_vertex_displacement": 0.9727906264509116,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "seal_lstrafe_fast",
+      "frames": [
+        0.0,
+        27.0
+      ],
+      "midpoint_vertex_displacement": 0.35221659158971497,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "seal_p_lstrafe_fast",
+      "frames": [
+        0.0,
+        27.0
+      ],
+      "midpoint_vertex_displacement": 0.35221659158971497,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "seal_p_rstrafe_fast",
+      "frames": [
+        0.0,
+        27.0
+      ],
+      "midpoint_vertex_displacement": 0.3219953588569956,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "seal_pfp_crouch",
+      "frames": [
+        0.0,
+        5.0
+      ],
+      "midpoint_vertex_displacement": 0.009076693561154665,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "seal_pfp_crouch_step",
+      "frames": [
+        0.0,
+        18.0
+      ],
+      "midpoint_vertex_displacement": 0.4118189694411315,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "seal_pfp_crouchwalk",
+      "frames": [
+        0.0,
+        19.0
+      ],
+      "midpoint_vertex_displacement": 0.3692759059087715,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "seal_pfp_crouchwalk_bw",
+      "frames": [
+        0.0,
+        23.0
+      ],
+      "midpoint_vertex_displacement": 0.4029341568239004,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "seal_pfp_jog",
+      "frames": [
+        0.0,
+        20.0
+      ],
+      "midpoint_vertex_displacement": 0.3508008680613784,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "seal_pfp_prone",
+      "frames": [
+        0.0,
+        5.0
+      ],
+      "midpoint_vertex_displacement": 0.0,
+      "status": "review_static_or_loop"
+    },
+    {
+      "name": "seal_pfp_run",
+      "frames": [
+        0.0,
+        17.0
+      ],
+      "midpoint_vertex_displacement": 0.8878064783654774,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "seal_pfp_run_bw",
+      "frames": [
+        0.0,
+        17.0
+      ],
+      "midpoint_vertex_displacement": 0.6059726275819944,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "seal_pfp_stand",
+      "frames": [
+        0.0,
+        1.0
+      ],
+      "midpoint_vertex_displacement": 0.0,
+      "status": "review_static_or_loop"
+    },
+    {
+      "name": "seal_pfp_step",
+      "frames": [
+        0.0,
+        21.0
+      ],
+      "midpoint_vertex_displacement": 0.2834356490012848,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "seal_pfp_walk",
+      "frames": [
+        0.0,
+        16.0
+      ],
+      "midpoint_vertex_displacement": 0.34426156757437304,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "seal_pfp_walk_bw",
+      "frames": [
+        0.0,
+        29.0
+      ],
+      "midpoint_vertex_displacement": 0.4709152507090711,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "seal_rstrafe_fast",
+      "frames": [
+        0.0,
+        27.0
+      ],
+      "midpoint_vertex_displacement": 0.3219953588569956,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "seal_stand_alert02",
+      "frames": [
+        0.0,
+        31.0
+      ],
+      "midpoint_vertex_displacement": 0.01252017449641921,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "traversal_ladder_idle",
+      "frames": [
+        0.0,
+        10.0
+      ],
+      "midpoint_vertex_displacement": 0.0,
+      "status": "review_static_or_loop"
+    },
+    {
+      "name": "traversal_ladder_move",
+      "frames": [
+        0.0,
+        16.0
+      ],
+      "midpoint_vertex_displacement": 1.0759252293269541,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "traversal_ladder_slide",
+      "frames": [
+        0.0,
+        7.0
+      ],
+      "midpoint_vertex_displacement": 0.03170014231070039,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "walk_backward",
+      "frames": [
+        0.0,
+        16.0
+      ],
+      "midpoint_vertex_displacement": 0.22185670406166558,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "walk_forward",
+      "frames": [
+        0.0,
+        25.0
+      ],
+      "midpoint_vertex_displacement": 0.34426127365023146,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "walk_left",
+      "frames": [
+        0.0,
+        22.0
+      ],
+      "midpoint_vertex_displacement": 0.440823238806335,
+      "status": "mesh_deformation_verified"
+    },
+    {
+      "name": "walk_right",
+      "frames": [
+        0.0,
+        23.0
+      ],
+      "midpoint_vertex_displacement": 0.505299206616139,
+      "status": "mesh_deformation_verified"
+    }
+  ],
+  "meshes": [
+    "BaseBody"
+  ],
+  "removed_unbound_helpers": [
+    "Icosphere"
+  ],
+  "expected_actions": 519,
+  "source_key_parity": false,
+  "interchange": "GLTF baked editable review",
+  "display_only_unit_factor": 100.70368477316026,
+  "standing_reference_error_m": {
+    "mixamorig_Head": 2.3335903530367948e-07,
+    "mixamorig_Hips": 1.83073282521841e-07,
+    "mixamorig_LeftHand": 0.022316913055369564,
+    "mixamorig_RightHand": 0.01601237773503276
+  },
+  "standing_exact_runtime_pose_parity": false,
+  "review_landmark_tolerance_m": 0.03,
+  "display_parent_matrix": [
+    [
+      100.05697631835938,
+      -5.637085914611816,
+      9.902302742004395,
+      0.06353860348463058
+    ],
+    [
+      9.444720268249512,
+      -7.9268999099731445,
+      -99.94596099853516,
+      0.08934801816940308
+    ],
+    [
+      6.374136447906494,
+      100.23282623291016,
+      -7.3473029136657715,
+      -0.0026243925094604492
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "standing_mesh_size_m": [
+    0.6687690019607544,
+    0.8121275901794434,
+    2.0072021484375
+  ],
+  "rendered_character_proof": "/Users/kiwimango/socom-141-camera-lab/art_source/traversal_character_workbench/current_character_review.png"
+}

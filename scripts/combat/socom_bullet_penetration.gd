@@ -1,6 +1,8 @@
 class_name SocomBulletPenetration
 extends RefCounted
 
+const SourceFirearmPolicy := preload("res://scripts/weapons/source_firearm_policy.gd")
+
 ## CS:GO-style dual-raycast bullet penetration and wallbanging engine.
 ## Calculates entry, exit points, material thickness, and damage degradation.
 
@@ -69,7 +71,9 @@ static func trace_bullet(
 	max_range: float,
 	initial_damage: float,
 	penetration_power: float = 1.5,
-	exclude_rids: Array[RID] = []
+	exclude_rids: Array[RID] = [],
+	query_range_scale: float = 1.0,
+	strict_terminal_range: bool = false
 ) -> Array[Dictionary]:
 	var results: Array[Dictionary] = []
 	if space_state == null:
@@ -83,7 +87,7 @@ static func trace_bullet(
 	var local_exclude := exclude_rids.duplicate()
 
 	while penetrations_left >= 0 and remaining_damage > 1.0 and remaining_range > 0.1:
-		var ray_target := current_pos + current_dir * remaining_range
+		var ray_target := current_pos + current_dir * remaining_range * query_range_scale
 		var ray_query := PhysicsRayQueryParameters3D.create(current_pos, ray_target)
 		ray_query.collide_with_areas = true
 		ray_query.collide_with_bodies = true
@@ -95,6 +99,10 @@ static func trace_bullet(
 			break
 
 		var hit_pos: Vector3 = hit.position
+		# Padding improves candidate search, never damage range. Gate BEFORE
+		# recording an impact, probing an exit or exposing a wallbang signal.
+		if not SourceFirearmPolicy.accepts_impact(start_pos, hit_pos, max_range, strict_terminal_range):
+			break
 		var hit_normal: Vector3 = hit.normal
 		var hit_collider: Object = hit.collider
 		var hit_rid: RID = hit.rid

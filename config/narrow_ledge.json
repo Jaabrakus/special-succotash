@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "speed_mps": 0.6,
+  "stride_metres": 0.495,
+  "idle_pose_seconds": 0.0,
+  "floor_velocity_mps": -0.5,
+  "maximum_step_seconds": 0.05,
+  "outer_probe_extra_m": 0.35,
+  "floor_probe_above_m": 0.12,
+  "floor_probe_below_m": 0.20,
+  "capsule_query_lift_m": 0.01,
+  "note": "Query-only wall-facing shuffle after an already validated climb. Existing five-point support and ledge_climb surface policy remain mandatory."
+}

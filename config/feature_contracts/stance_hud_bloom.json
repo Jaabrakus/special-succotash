@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "feature_id": "stance_hud_bloom",
+  "player_intent": "Tighter standing-still fire and a larger status HUD that moves with crouch/prone.",
+  "acceptance_rule": "Standing-still maximum expansion is reduced 20%; moving, airborne, closed baseline and other stance caps remain unchanged. Shared HUD follows canonical stance and enlarges health/ammo/counts without changing aim or state ownership.",
+  "canonical_scene": "res://main.tscn",
+  "ownership": {"shot_envelope": "ReticleBloomEnvelope consumed by WeaponBallistics", "status_presentation": "SocomLoadoutCardHUD"},
+  "nodes": [{"id": "hud", "type": "Control", "owner": "SocomLoadoutCardHUD", "role": "Shared local and multiplayer stance/status presentation", "source_script": "res://scripts/ui/socom_loadout_card_hud.gd", "code_symbols": ["func _update_floating_position", "func _draw_contextual"]}],
+  "data_contracts": [
+    {"path": "res://config/contextual_hud.json", "writer": "res://scripts/ui/contextual_hud_attention.gd", "readers": ["res://scripts/ui/socom_loadout_card_hud.gd"]},
+    {"path": "res://config/reticle_presentation.json", "writer": "res://docs/STANCE_HUD_BLOOM.md", "readers": ["res://scripts/weapons/reticle_bloom_envelope.gd", "res://scripts/weapons/weapon_ballistics.gd"]}
+  ],
+  "must_not_change": ["Camera/aim", "Movement and animation", "Shot cadence/damage authority", "Moving and airborne maximum bloom", "HUD attention and hide controls"],
+  "proof_scripts": ["res://tools/stance_hud_bloom_regression.gd", "res://tools/stance_bloom_cap_regression.gd", "res://tools/contextual_hud_regression.gd", "res://tools/bloom_shot_envelope_regression.gd"],
+  "visual_check": "Render canonical main standing, crouched and prone; inspect enlarged status placement, clipping and aim-center preservation.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Extend the shared envelope and existing HUD owner; preserve dirty user layout and protect camera/movement/network authority.",
+    "current": {"system": "Uniform standing cap, collider-only HUD tracking, small status", "correctness": 2, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 3, "performance": 5, "regression_coverage": 3, "evidence_paths": ["res://scripts/weapons/reticle_bloom_envelope.gd", "res://scripts/ui/socom_loadout_card_hud.gd"]},
+    "candidate": {"system": "Movement-aware standing envelope and stance-aware readable HUD", "correctness": 4, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 5, "regression_coverage": 4, "evidence_paths": ["res://tools/stance_hud_bloom_regression.gd", "res://config/contextual_hud.json", "res://config/reticle_presentation.json"]}
+  }
+}

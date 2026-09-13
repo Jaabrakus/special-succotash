@@ -1,0 +1,3844 @@
+{
+  "schema_version": 1,
+  "source": {
+    "volume": "SOCOM_II",
+    "iso_size": 4380753920,
+    "boot_config": "BOOT2 = cdrom0:\\SCUS_972.75;1\r\nVER = 1.02\r\nVMODE = NTSC\r\n"
+  },
+  "status": "Read-only directory/header/symbol/reference inventory; no executable invocation or disassembly",
+  "directories": [
+    "/",
+    "RUN",
+    "RUN/COMMON",
+    "RUN/ICONS",
+    "RUN/ICONS/HDD",
+    "RUN/ICONS/NETCNF",
+    "RUN/ICONS/NTGUICNF",
+    "RUN/IRX",
+    "RUN/IRX/HDD",
+    "RUN/IRX/SOUND",
+    "RUN/IRX/USB",
+    "RUN/LOCALE",
+    "RUN/LOCALE/STATES",
+    "RUN/MOVIES",
+    "RUN/MOVIES/COMMON",
+    "RUN/MOVIES/M51",
+    "RUN/MOVIES/M52",
+    "RUN/MOVIES/M53",
+    "RUN/MOVIES/M61",
+    "RUN/MOVIES/M62",
+    "RUN/MOVIES/M63",
+    "RUN/MOVIES/M71",
+    "RUN/MOVIES/M72",
+    "RUN/MOVIES/M73",
+    "RUN/MOVIES/M81",
+    "RUN/MOVIES/M82",
+    "RUN/MOVIES/M83",
+    "RUN/RAW",
+    "RUN/RECO",
+    "RUN/RECO/ENU",
+    "RUN/SOUNDS",
+    "RUN/UI",
+    "CNF",
+    "NETGUI",
+    "NETGUI/MODULES",
+    "OVERLAY",
+    "OVERLAY/REL"
+  ],
+  "files": [
+    {
+      "path": "RUN/COMMON/FONT_PAL.ZED",
+      "sector": 967043,
+      "size": 2352
+    },
+    {
+      "path": "RUN/COMMON/FONT_TXR.ZED",
+      "sector": 967018,
+      "size": 49776
+    },
+    {
+      "path": "RUN/COMMON/SPLA_PAL.ZED",
+      "sector": 1258633,
+      "size": 1904
+    },
+    {
+      "path": "RUN/COMMON/SPLA_TXR.ZED",
+      "sector": 1258504,
+      "size": 263280
+    },
+    {
+      "path": "RUN/COMMON/SPMP_PAL.ZED",
+      "sector": 1258808,
+      "size": 1328
+    },
+    {
+      "path": "RUN/COMMON/SPMP_TXR.ZED",
+      "sector": 1258679,
+      "size": 263008
+    },
+    {
+      "path": "RUN/EXTZANIM.ZAR",
+      "sector": 1258475,
+      "size": 53056
+    },
+    {
+      "path": "RUN/ICONS/COPYING.ICO",
+      "sector": 1259,
+      "size": 50234
+    },
+    {
+      "path": "RUN/ICONS/DELETING.ICO",
+      "sector": 1284,
+      "size": 50234
+    },
+    {
+      "path": "RUN/ICONS/HDD/DELETING.ICO",
+      "sector": 1413,
+      "size": 50234
+    },
+    {
+      "path": "RUN/ICONS/HDD/ICON.SYS",
+      "sector": 1438,
+      "size": 421
+    },
+    {
+      "path": "RUN/ICONS/HDD/LIST.ICO",
+      "sector": 1439,
+      "size": 50234
+    },
+    {
+      "path": "RUN/ICONS/ICON.SYS",
+      "sector": 1309,
+      "size": 964
+    },
+    {
+      "path": "RUN/ICONS/LIST.ICO",
+      "sector": 1310,
+      "size": 50234
+    },
+    {
+      "path": "RUN/ICONS/MEDIUS.ICO",
+      "sector": 1335,
+      "size": 50234
+    },
+    {
+      "path": "RUN/ICONS/NETCNF/ICON.SYS",
+      "sector": 1360,
+      "size": 964
+    },
+    {
+      "path": "RUN/ICONS/NETCNF/SYS_NET.ICO",
+      "sector": 1361,
+      "size": 33688
+    },
+    {
+      "path": "RUN/ICONS/NTGUICNF/ICON.SYS",
+      "sector": 1378,
+      "size": 964
+    },
+    {
+      "path": "RUN/ICONS/NTGUICNF/SYS_NET.ICO",
+      "sector": 1379,
+      "size": 33688
+    },
+    {
+      "path": "RUN/ICONS/SYS_NET.ICO",
+      "sector": 1396,
+      "size": 33688
+    },
+    {
+      "path": "RUN/IRX/CDVDSTM.IRX",
+      "sector": 735,
+      "size": 24721
+    },
+    {
+      "path": "RUN/IRX/DBCMAN.IRX",
+      "sector": 799,
+      "size": 15477
+    },
+    {
+      "path": "RUN/IRX/DEV9.IRX",
+      "sector": 838,
+      "size": 13197
+    },
+    {
+      "path": "RUN/IRX/DNAS271.IMG",
+      "sector": 1464,
+      "size": 268977
+    },
+    {
+      "path": "RUN/IRX/DS2U_S1.IRX",
+      "sector": 943,
+      "size": 10853
+    },
+    {
+      "path": "RUN/IRX/EZNETCNF.IRX",
+      "sector": 980,
+      "size": 15402
+    },
+    {
+      "path": "RUN/IRX/EZNETCTL.IRX",
+      "sector": 988,
+      "size": 19872
+    },
+    {
+      "path": "RUN/IRX/HDD/ATAD.IRX",
+      "sector": 1205,
+      "size": 12085
+    },
+    {
+      "path": "RUN/IRX/HDD/HDD.IRX",
+      "sector": 1211,
+      "size": 30117
+    },
+    {
+      "path": "RUN/IRX/HDD/PFS.IRX",
+      "sector": 1226,
+      "size": 49417
+    },
+    {
+      "path": "RUN/IRX/HEADSETO.IRX",
+      "sector": 972,
+      "size": 15728
+    },
+    {
+      "path": "RUN/IRX/INET.IRX",
+      "sector": 998,
+      "size": 141181
+    },
+    {
+      "path": "RUN/IRX/INETCTL.IRX",
+      "sector": 1067,
+      "size": 24781
+    },
+    {
+      "path": "RUN/IRX/LGAUD.IRX",
+      "sector": 949,
+      "size": 45925
+    },
+    {
+      "path": "RUN/IRX/LIBNETB.IRX",
+      "sector": 1080,
+      "size": 32181
+    },
+    {
+      "path": "RUN/IRX/LIBSD.IRX",
+      "sector": 845,
+      "size": 28605
+    },
+    {
+      "path": "RUN/IRX/MCMAN.IRX",
+      "sector": 748,
+      "size": 95877
+    },
+    {
+      "path": "RUN/IRX/MCSERV.IRX",
+      "sector": 795,
+      "size": 7417
+    },
+    {
+      "path": "RUN/IRX/MSIFRPC.IRX",
+      "sector": 1096,
+      "size": 7809
+    },
+    {
+      "path": "RUN/IRX/NETCNF.IRX",
+      "sector": 1100,
+      "size": 65805
+    },
+    {
+      "path": "RUN/IRX/PPP.IRX",
+      "sector": 1133,
+      "size": 102285
+    },
+    {
+      "path": "RUN/IRX/PPPOE.IRX",
+      "sector": 1183,
+      "size": 17121
+    },
+    {
+      "path": "RUN/IRX/SDRDRV.IRX",
+      "sector": 1192,
+      "size": 8065
+    },
+    {
+      "path": "RUN/IRX/SIO2D.IRX",
+      "sector": 807,
+      "size": 10985
+    },
+    {
+      "path": "RUN/IRX/SIO2MAN.IRX",
+      "sector": 731,
+      "size": 6641
+    },
+    {
+      "path": "RUN/IRX/SMAP.IRX",
+      "sector": 1196,
+      "size": 16977
+    },
+    {
+      "path": "RUN/IRX/SOUND/989DSTRM.IRX",
+      "sector": 939,
+      "size": 7968
+    },
+    {
+      "path": "RUN/IRX/SOUND/989SND.IRX",
+      "sector": 859,
+      "size": 163268
+    },
+    {
+      "path": "RUN/IRX/USB/USBD.IRX",
+      "sector": 813,
+      "size": 34969
+    },
+    {
+      "path": "RUN/IRX/USB/USBKB.IRX",
+      "sector": 831,
+      "size": 12853
+    },
+    {
+      "path": "RUN/LOCALE/STATES/ALBLOC.ZAR",
+      "sector": 2043386,
+      "size": 34528
+    },
+    {
+      "path": "RUN/LOCALE/STATES/ALGLOC.ZAR",
+      "sector": 2091395,
+      "size": 19472
+    },
+    {
+      "path": "RUN/LOCALE/STATES/BRAZLOC.ZAR",
+      "sector": 2067494,
+      "size": 38768
+    },
+    {
+      "path": "RUN/LOCALE/STATES/HUDCLOC.ZAR",
+      "sector": 965368,
+      "size": 72800
+    },
+    {
+      "path": "RUN/LOCALE/STATES/RUSSLOC.ZAR",
+      "sector": 2115964,
+      "size": 27008
+    },
+    {
+      "path": "RUN/LOCALE/STATES/UIMNLOC.ZAR",
+      "sector": 965404,
+      "size": 221632
+    },
+    {
+      "path": "RUN/LOCALE/STATES/UIMPXLOC.ZAR",
+      "sector": 1258676,
+      "size": 4144
+    },
+    {
+      "path": "RUN/LOCALE/STATES/UIXLOC.ZAR",
+      "sector": 1258501,
+      "size": 5664
+    },
+    {
+      "path": "RUN/M51.ZDB",
+      "sector": 2043403,
+      "size": 17037312
+    },
+    {
+      "path": "RUN/M52.ZDB",
+      "sector": 2051722,
+      "size": 15714304
+    },
+    {
+      "path": "RUN/M53.ZDB",
+      "sector": 2059395,
+      "size": 16586752
+    },
+    {
+      "path": "RUN/M61.ZDB",
+      "sector": 2067513,
+      "size": 17332224
+    },
+    {
+      "path": "RUN/M62.ZDB",
+      "sector": 2075976,
+      "size": 15286272
+    },
+    {
+      "path": "RUN/M63.ZDB",
+      "sector": 2083440,
+      "size": 16291840
+    },
+    {
+      "path": "RUN/M71.ZDB",
+      "sector": 2091405,
+      "size": 16809984
+    },
+    {
+      "path": "RUN/M72.ZDB",
+      "sector": 2099613,
+      "size": 16830464
+    },
+    {
+      "path": "RUN/M73.ZDB",
+      "sector": 2107831,
+      "size": 16656384
+    },
+    {
+      "path": "RUN/M81.ZDB",
+      "sector": 2115978,
+      "size": 14692352
+    },
+    {
+      "path": "RUN/M82.ZDB",
+      "sector": 2123152,
+      "size": 15972352
+    },
+    {
+      "path": "RUN/M83.ZDB",
+      "sector": 2130951,
+      "size": 15396864
+    },
+    {
+      "path": "RUN/MOTION_P.ZAR",
+      "sector": 963846,
+      "size": 1856512
+    },
+    {
+      "path": "RUN/MOVIES/ALB_AOP.PSS",
+      "sector": 1775178,
+      "size": 68141060
+    },
+    {
+      "path": "RUN/MOVIES/ALG_AOP.PSS",
+      "sector": 1838244,
+      "size": 64684036
+    },
+    {
+      "path": "RUN/MOVIES/BRAZ_AOP.PSS",
+      "sector": 1808451,
+      "size": 61014020
+    },
+    {
+      "path": "RUN/MOVIES/COMMON/ARTGALL2.PSS",
+      "sector": 10241,
+      "size": 327188484
+    },
+    {
+      "path": "RUN/MOVIES/COMMON/CREDITS.PSS",
+      "sector": 170002,
+      "size": 226328580
+    },
+    {
+      "path": "RUN/MOVIES/COMMON/MENULOOP.PSS",
+      "sector": 905752,
+      "size": 115458052
+    },
+    {
+      "path": "RUN/MOVIES/COMMON/MUSVID.PSS",
+      "sector": 280515,
+      "size": 334725124
+    },
+    {
+      "path": "RUN/MOVIES/COMMON/SONY448.PSS",
+      "sector": 842462,
+      "size": 5701636
+    },
+    {
+      "path": "RUN/MOVIES/COMMON/TUT_01.PSS",
+      "sector": 443956,
+      "size": 68026372
+    },
+    {
+      "path": "RUN/MOVIES/COMMON/TUT_02.PSS",
+      "sector": 477173,
+      "size": 89063428
+    },
+    {
+      "path": "RUN/MOVIES/COMMON/TUT_03.PSS",
+      "sector": 520662,
+      "size": 144179204
+    },
+    {
+      "path": "RUN/MOVIES/COMMON/TUT_04.PSS",
+      "sector": 591063,
+      "size": 98336772
+    },
+    {
+      "path": "RUN/MOVIES/COMMON/TUT_05.PSS",
+      "sector": 639080,
+      "size": 138362884
+    },
+    {
+      "path": "RUN/MOVIES/COMMON/TUT_06.PSS",
+      "sector": 706641,
+      "size": 79446020
+    },
+    {
+      "path": "RUN/MOVIES/COMMON/TUT_07.PSS",
+      "sector": 745434,
+      "size": 45973508
+    },
+    {
+      "path": "RUN/MOVIES/COMMON/TUT_08.PSS",
+      "sector": 767883,
+      "size": 57311236
+    },
+    {
+      "path": "RUN/MOVIES/COMMON/TUT_09.PSS",
+      "sector": 795868,
+      "size": 50855940
+    },
+    {
+      "path": "RUN/MOVIES/COMMON/TUT_10.PSS",
+      "sector": 820701,
+      "size": 44564484
+    },
+    {
+      "path": "RUN/MOVIES/INTRO_2.PSS",
+      "sector": 845247,
+      "size": 123912196
+    },
+    {
+      "path": "RUN/MOVIES/M51/M51IG01.PSS",
+      "sector": 1285594,
+      "size": 88506372
+    },
+    {
+      "path": "RUN/MOVIES/M51/M51IG07.PSS",
+      "sector": 1328811,
+      "size": 9961476
+    },
+    {
+      "path": "RUN/MOVIES/M51/M51IG09.PSS",
+      "sector": 1333676,
+      "size": 37961732
+    },
+    {
+      "path": "RUN/MOVIES/M51/M51_EXT.PSS",
+      "sector": 1352213,
+      "size": 38617092
+    },
+    {
+      "path": "RUN/MOVIES/M51/M51_INS.PSS",
+      "sector": 1258809,
+      "size": 54853636
+    },
+    {
+      "path": "RUN/MOVIES/M52/M52EXT.PSS",
+      "sector": 1413440,
+      "size": 14680068
+    },
+    {
+      "path": "RUN/MOVIES/M52/M52IG01.PSS",
+      "sector": 1401887,
+      "size": 23658500
+    },
+    {
+      "path": "RUN/MOVIES/M52/M52INS.PSS",
+      "sector": 1371070,
+      "size": 63111172
+    },
+    {
+      "path": "RUN/MOVIES/M53/M53IG01.PSS",
+      "sector": 1435618,
+      "size": 30621700
+    },
+    {
+      "path": "RUN/MOVIES/M53/M53_EXT.PSS",
+      "sector": 1450571,
+      "size": 19480580
+    },
+    {
+      "path": "RUN/MOVIES/M53/M53_INS.PSS",
+      "sector": 1420609,
+      "size": 30736388
+    },
+    {
+      "path": "RUN/MOVIES/M61/M61IG01.PSS",
+      "sector": 1460084,
+      "size": 57032708
+    },
+    {
+      "path": "RUN/MOVIES/M61/M61_EXT.PSS",
+      "sector": 1487933,
+      "size": 9699332
+    },
+    {
+      "path": "RUN/MOVIES/M62/M62EXT.PSS",
+      "sector": 1511785,
+      "size": 36126724
+    },
+    {
+      "path": "RUN/MOVIES/M62/M62IG03.PSS",
+      "sector": 1492670,
+      "size": 11927556
+    },
+    {
+      "path": "RUN/MOVIES/M62/M62IG04.PSS",
+      "sector": 1498495,
+      "size": 10928132
+    },
+    {
+      "path": "RUN/MOVIES/M62/M62IG05.PSS",
+      "sector": 1503832,
+      "size": 16285700
+    },
+    {
+      "path": "RUN/MOVIES/M63/M63IG03.PSS",
+      "sector": 1545107,
+      "size": 19480580
+    },
+    {
+      "path": "RUN/MOVIES/M63/M63IG05.PSS",
+      "sector": 1554620,
+      "size": 20365316
+    },
+    {
+      "path": "RUN/MOVIES/M63/M63IG07.PSS",
+      "sector": 1564565,
+      "size": 16318468
+    },
+    {
+      "path": "RUN/MOVIES/M63/M63INS.PSS",
+      "sector": 1529426,
+      "size": 32112644
+    },
+    {
+      "path": "RUN/MOVIES/M71/M71EXT.PSS",
+      "sector": 1617594,
+      "size": 11698180
+    },
+    {
+      "path": "RUN/MOVIES/M71/M71IG02.PSS",
+      "sector": 1600143,
+      "size": 12091396
+    },
+    {
+      "path": "RUN/MOVIES/M71/M71IG07.PSS",
+      "sector": 1606048,
+      "size": 18284548
+    },
+    {
+      "path": "RUN/MOVIES/M71/M71IG08.PSS",
+      "sector": 1614977,
+      "size": 5357572
+    },
+    {
+      "path": "RUN/MOVIES/M71/M71INS.PSS",
+      "sector": 1572534,
+      "size": 56541188
+    },
+    {
+      "path": "RUN/MOVIES/M72/M72INS.PSS",
+      "sector": 1623307,
+      "size": 27164676
+    },
+    {
+      "path": "RUN/MOVIES/M72/M72_IG01.PSS",
+      "sector": 1636572,
+      "size": 27492356
+    },
+    {
+      "path": "RUN/MOVIES/M73/M73EXT.PSS",
+      "sector": 1669249,
+      "size": 23609348
+    },
+    {
+      "path": "RUN/MOVIES/M73/M73IG02.PSS",
+      "sector": 1649997,
+      "size": 16646148
+    },
+    {
+      "path": "RUN/MOVIES/M73/M73IG03.PSS",
+      "sector": 1658126,
+      "size": 9715716
+    },
+    {
+      "path": "RUN/MOVIES/M73/M73IG04.PSS",
+      "sector": 1662871,
+      "size": 9125892
+    },
+    {
+      "path": "RUN/MOVIES/M73/M73IG05.PSS",
+      "sector": 1667328,
+      "size": 3932164
+    },
+    {
+      "path": "RUN/MOVIES/M81/M81EXT.PSS",
+      "sector": 1700757,
+      "size": 16695300
+    },
+    {
+      "path": "RUN/MOVIES/M81/M81IG02.PSS",
+      "sector": 1693043,
+      "size": 8470532
+    },
+    {
+      "path": "RUN/MOVIES/M81/M81IG09.PSS",
+      "sector": 1697180,
+      "size": 7323652
+    },
+    {
+      "path": "RUN/MOVIES/M81/M81INS.PSS",
+      "sector": 1680778,
+      "size": 25116676
+    },
+    {
+      "path": "RUN/MOVIES/M82/M82EXT.PSS",
+      "sector": 1708910,
+      "size": 17940484
+    },
+    {
+      "path": "RUN/MOVIES/M82/M82IG00.PSS",
+      "sector": 1717671,
+      "size": 10436612
+    },
+    {
+      "path": "RUN/MOVIES/M82/M82IG01.PSS",
+      "sector": 1722768,
+      "size": 10878980
+    },
+    {
+      "path": "RUN/MOVIES/M83/M83EXT.PSS",
+      "sector": 1769761,
+      "size": 11091972
+    },
+    {
+      "path": "RUN/MOVIES/M83/M83IG01.PSS",
+      "sector": 1728081,
+      "size": 10420228
+    },
+    {
+      "path": "RUN/MOVIES/M83/M83IG03.PSS",
+      "sector": 1733170,
+      "size": 4702212
+    },
+    {
+      "path": "RUN/MOVIES/M83/M83IG04.PSS",
+      "sector": 1735467,
+      "size": 13123588
+    },
+    {
+      "path": "RUN/MOVIES/M83/M83IG04B.PSS",
+      "sector": 1741876,
+      "size": 12468228
+    },
+    {
+      "path": "RUN/MOVIES/M83/M83IG07.PSS",
+      "sector": 1747965,
+      "size": 10649604
+    },
+    {
+      "path": "RUN/MOVIES/M83/M83IG08.PSS",
+      "sector": 1753166,
+      "size": 14057476
+    },
+    {
+      "path": "RUN/MOVIES/M83/M83IG09.PSS",
+      "sector": 1760031,
+      "size": 3260420
+    },
+    {
+      "path": "RUN/MOVIES/M83/M83IG12.PSS",
+      "sector": 1761624,
+      "size": 16662532
+    },
+    {
+      "path": "RUN/MOVIES/RUSS_AOP.PSS",
+      "sector": 1869829,
+      "size": 53411844
+    },
+    {
+      "path": "RUN/MP1.ZDB",
+      "sector": 1895910,
+      "size": 9084928
+    },
+    {
+      "path": "RUN/MP10.ZDB",
+      "sector": 1929964,
+      "size": 10676224
+    },
+    {
+      "path": "RUN/MP11.ZDB",
+      "sector": 1935177,
+      "size": 9822208
+    },
+    {
+      "path": "RUN/MP12.ZDB",
+      "sector": 1939973,
+      "size": 9826304
+    },
+    {
+      "path": "RUN/MP2.ZDB",
+      "sector": 1900346,
+      "size": 7985152
+    },
+    {
+      "path": "RUN/MP5.ZDB",
+      "sector": 1904245,
+      "size": 9535488
+    },
+    {
+      "path": "RUN/MP51.ZDB",
+      "sector": 1944771,
+      "size": 10074112
+    },
+    {
+      "path": "RUN/MP52.ZDB",
+      "sector": 1949690,
+      "size": 12677120
+    },
+    {
+      "path": "RUN/MP53.ZDB",
+      "sector": 1955880,
+      "size": 11794432
+    },
+    {
+      "path": "RUN/MP6.ZDB",
+      "sector": 1908901,
+      "size": 10852352
+    },
+    {
+      "path": "RUN/MP61.ZDB",
+      "sector": 1961639,
+      "size": 10735616
+    },
+    {
+      "path": "RUN/MP62.ZDB",
+      "sector": 1966881,
+      "size": 10362880
+    },
+    {
+      "path": "RUN/MP64.ZDB",
+      "sector": 1971941,
+      "size": 10391552
+    },
+    {
+      "path": "RUN/MP7.ZDB",
+      "sector": 1914200,
+      "size": 9512960
+    },
+    {
+      "path": "RUN/MP71.ZDB",
+      "sector": 1977015,
+      "size": 11046912
+    },
+    {
+      "path": "RUN/MP72.ZDB",
+      "sector": 1982409,
+      "size": 11612160
+    },
+    {
+      "path": "RUN/MP73.ZDB",
+      "sector": 1988079,
+      "size": 12093440
+    },
+    {
+      "path": "RUN/MP8.ZDB",
+      "sector": 1918845,
+      "size": 11732992
+    },
+    {
+      "path": "RUN/MP81.ZDB",
+      "sector": 1993984,
+      "size": 9381888
+    },
+    {
+      "path": "RUN/MP82.ZDB",
+      "sector": 1998565,
+      "size": 12201984
+    },
+    {
+      "path": "RUN/MP83.ZDB",
+      "sector": 2004523,
+      "size": 12156928
+    },
+    {
+      "path": "RUN/MP9.ZDB",
+      "sector": 1924574,
+      "size": 11038720
+    },
+    {
+      "path": "RUN/MPZANIM.ZAR",
+      "sector": 1258634,
+      "size": 84496
+    },
+    {
+      "path": "RUN/RAW/APACHE00.ZDB",
+      "sector": 2025,
+      "size": 1548056
+    },
+    {
+      "path": "RUN/RAW/LOADING.RAW",
+      "sector": 3107,
+      "size": 1146880
+    },
+    {
+      "path": "RUN/RAW/PULOADGP.RAW",
+      "sector": 3667,
+      "size": 327680
+    },
+    {
+      "path": "RUN/RAW/PUNOTRE2.RAW",
+      "sector": 3827,
+      "size": 327680
+    },
+    {
+      "path": "RUN/RAW/PUNOTREM.RAW",
+      "sector": 3987,
+      "size": 327680
+    },
+    {
+      "path": "RUN/RAW/PUPUTBA2.RAW",
+      "sector": 4147,
+      "size": 327680
+    },
+    {
+      "path": "RUN/RAW/PUPUTBAK.RAW",
+      "sector": 4307,
+      "size": 327680
+    },
+    {
+      "path": "RUN/READERC.ZAR",
+      "sector": 962365,
+      "size": 1026848
+    },
+    {
+      "path": "RUN/RECO/ENU/ENU3004B.LNG",
+      "sector": 962129,
+      "size": 463284
+    },
+    {
+      "path": "RUN/RECO/ENU/ENU_RL0.CTX",
+      "sector": 962356,
+      "size": 4516
+    },
+    {
+      "path": "RUN/RECO/ENU/ENU_RL0.WRD",
+      "sector": 962359,
+      "size": 742
+    },
+    {
+      "path": "RUN/RECO/ENU/ENU_RL1.CTX",
+      "sector": 962360,
+      "size": 2804
+    },
+    {
+      "path": "RUN/RECO/ENU/ENU_RL1.WRD",
+      "sector": 962362,
+      "size": 548
+    },
+    {
+      "path": "RUN/RECO/ENU/ENU_RL2.CTX",
+      "sector": 962363,
+      "size": 1192
+    },
+    {
+      "path": "RUN/RECO/ENU/ENU_RL2.WRD",
+      "sector": 962364,
+      "size": 212
+    },
+    {
+      "path": "RUN/SOUNDRDR.ZAR",
+      "sector": 962919,
+      "size": 1897008
+    },
+    {
+      "path": "RUN/SOUNDS/BNKSTORE.ZAR",
+      "sector": 2010459,
+      "size": 67433088
+    },
+    {
+      "path": "RUN/SOUNDS/VAGSTORE.ZAR",
+      "sector": 976897,
+      "size": 576593920
+    },
+    {
+      "path": "RUN/UI/BF51_PAL.ZED",
+      "sector": 971013,
+      "size": 3680
+    },
+    {
+      "path": "RUN/UI/BF51_TXR.ZED",
+      "sector": 970788,
+      "size": 460192
+    },
+    {
+      "path": "RUN/UI/BF52_PAL.ZED",
+      "sector": 971240,
+      "size": 3680
+    },
+    {
+      "path": "RUN/UI/BF52_TXR.ZED",
+      "sector": 971015,
+      "size": 460192
+    },
+    {
+      "path": "RUN/UI/BF53_PAL.ZED",
+      "sector": 971467,
+      "size": 3680
+    },
+    {
+      "path": "RUN/UI/BF53_TXR.ZED",
+      "sector": 971242,
+      "size": 460192
+    },
+    {
+      "path": "RUN/UI/BF61_PAL.ZED",
+      "sector": 971694,
+      "size": 3680
+    },
+    {
+      "path": "RUN/UI/BF61_TXR.ZED",
+      "sector": 971469,
+      "size": 460192
+    },
+    {
+      "path": "RUN/UI/BF62_PAL.ZED",
+      "sector": 971921,
+      "size": 3680
+    },
+    {
+      "path": "RUN/UI/BF62_TXR.ZED",
+      "sector": 971696,
+      "size": 460192
+    },
+    {
+      "path": "RUN/UI/BF63_PAL.ZED",
+      "sector": 972148,
+      "size": 3680
+    },
+    {
+      "path": "RUN/UI/BF63_TXR.ZED",
+      "sector": 971923,
+      "size": 460192
+    },
+    {
+      "path": "RUN/UI/BF71_PAL.ZED",
+      "sector": 972375,
+      "size": 3680
+    },
+    {
+      "path": "RUN/UI/BF71_TXR.ZED",
+      "sector": 972150,
+      "size": 460192
+    },
+    {
+      "path": "RUN/UI/BF72_PAL.ZED",
+      "sector": 972602,
+      "size": 3680
+    },
+    {
+      "path": "RUN/UI/BF72_TXR.ZED",
+      "sector": 972377,
+      "size": 460192
+    },
+    {
+      "path": "RUN/UI/BF73_PAL.ZED",
+      "sector": 972829,
+      "size": 3680
+    },
+    {
+      "path": "RUN/UI/BF73_TXR.ZED",
+      "sector": 972604,
+      "size": 460192
+    },
+    {
+      "path": "RUN/UI/BF81_PAL.ZED",
+      "sector": 973056,
+      "size": 3680
+    },
+    {
+      "path": "RUN/UI/BF81_TXR.ZED",
+      "sector": 972831,
+      "size": 460192
+    },
+    {
+      "path": "RUN/UI/BF82_PAL.ZED",
+      "sector": 973283,
+      "size": 3680
+    },
+    {
+      "path": "RUN/UI/BF82_TXR.ZED",
+      "sector": 973058,
+      "size": 460192
+    },
+    {
+      "path": "RUN/UI/BF83_PAL.ZED",
+      "sector": 973510,
+      "size": 3680
+    },
+    {
+      "path": "RUN/UI/BF83_TXR.ZED",
+      "sector": 973285,
+      "size": 460192
+    },
+    {
+      "path": "RUN/UI/DBUFFER.ZAR",
+      "sector": 973512,
+      "size": 8784
+    },
+    {
+      "path": "RUN/UI/EM01_PAL.ZED",
+      "sector": 973646,
+      "size": 8944
+    },
+    {
+      "path": "RUN/UI/EM01_TXR.ZED",
+      "sector": 973517,
+      "size": 263984
+    },
+    {
+      "path": "RUN/UI/EM02_PAL.ZED",
+      "sector": 973780,
+      "size": 8944
+    },
+    {
+      "path": "RUN/UI/EM02_TXR.ZED",
+      "sector": 973651,
+      "size": 264000
+    },
+    {
+      "path": "RUN/UI/EM05_PAL.ZED",
+      "sector": 973914,
+      "size": 8944
+    },
+    {
+      "path": "RUN/UI/EM05_TXR.ZED",
+      "sector": 973785,
+      "size": 263984
+    },
+    {
+      "path": "RUN/UI/EM06_PAL.ZED",
+      "sector": 974048,
+      "size": 8944
+    },
+    {
+      "path": "RUN/UI/EM06_TXR.ZED",
+      "sector": 973919,
+      "size": 263984
+    },
+    {
+      "path": "RUN/UI/EM07_PAL.ZED",
+      "sector": 974182,
+      "size": 8944
+    },
+    {
+      "path": "RUN/UI/EM07_TXR.ZED",
+      "sector": 974053,
+      "size": 263984
+    },
+    {
+      "path": "RUN/UI/EM08_PAL.ZED",
+      "sector": 974316,
+      "size": 8944
+    },
+    {
+      "path": "RUN/UI/EM08_TXR.ZED",
+      "sector": 974187,
+      "size": 263984
+    },
+    {
+      "path": "RUN/UI/EM09_PAL.ZED",
+      "sector": 974450,
+      "size": 8944
+    },
+    {
+      "path": "RUN/UI/EM09_TXR.ZED",
+      "sector": 974321,
+      "size": 263984
+    },
+    {
+      "path": "RUN/UI/EM10_PAL.ZED",
+      "sector": 974584,
+      "size": 8944
+    },
+    {
+      "path": "RUN/UI/EM10_TXR.ZED",
+      "sector": 974455,
+      "size": 263984
+    },
+    {
+      "path": "RUN/UI/EM11_PAL.ZED",
+      "sector": 974718,
+      "size": 8944
+    },
+    {
+      "path": "RUN/UI/EM11_TXR.ZED",
+      "sector": 974589,
+      "size": 263984
+    },
+    {
+      "path": "RUN/UI/EM12_PAL.ZED",
+      "sector": 974852,
+      "size": 8944
+    },
+    {
+      "path": "RUN/UI/EM12_TXR.ZED",
+      "sector": 974723,
+      "size": 263984
+    },
+    {
+      "path": "RUN/UI/EM51_PAL.ZED",
+      "sector": 974986,
+      "size": 8944
+    },
+    {
+      "path": "RUN/UI/EM51_TXR.ZED",
+      "sector": 974857,
+      "size": 264000
+    },
+    {
+      "path": "RUN/UI/EM52_PAL.ZED",
+      "sector": 975120,
+      "size": 8944
+    },
+    {
+      "path": "RUN/UI/EM52_TXR.ZED",
+      "sector": 974991,
+      "size": 264000
+    },
+    {
+      "path": "RUN/UI/EM53_PAL.ZED",
+      "sector": 975254,
+      "size": 8944
+    },
+    {
+      "path": "RUN/UI/EM53_TXR.ZED",
+      "sector": 975125,
+      "size": 264000
+    },
+    {
+      "path": "RUN/UI/EM61_PAL.ZED",
+      "sector": 975388,
+      "size": 8944
+    },
+    {
+      "path": "RUN/UI/EM61_TXR.ZED",
+      "sector": 975259,
+      "size": 264016
+    },
+    {
+      "path": "RUN/UI/EM62_PAL.ZED",
+      "sector": 975522,
+      "size": 8944
+    },
+    {
+      "path": "RUN/UI/EM62_TXR.ZED",
+      "sector": 975393,
+      "size": 264016
+    },
+    {
+      "path": "RUN/UI/EM64_PAL.ZED",
+      "sector": 975656,
+      "size": 8944
+    },
+    {
+      "path": "RUN/UI/EM64_TXR.ZED",
+      "sector": 975527,
+      "size": 264016
+    },
+    {
+      "path": "RUN/UI/EM71_PAL.ZED",
+      "sector": 975790,
+      "size": 8944
+    },
+    {
+      "path": "RUN/UI/EM71_TXR.ZED",
+      "sector": 975661,
+      "size": 264016
+    },
+    {
+      "path": "RUN/UI/EM72_PAL.ZED",
+      "sector": 975924,
+      "size": 8944
+    },
+    {
+      "path": "RUN/UI/EM72_TXR.ZED",
+      "sector": 975795,
+      "size": 264016
+    },
+    {
+      "path": "RUN/UI/EM73_PAL.ZED",
+      "sector": 976058,
+      "size": 8944
+    },
+    {
+      "path": "RUN/UI/EM73_TXR.ZED",
+      "sector": 975929,
+      "size": 264016
+    },
+    {
+      "path": "RUN/UI/EM81_PAL.ZED",
+      "sector": 976192,
+      "size": 8944
+    },
+    {
+      "path": "RUN/UI/EM81_TXR.ZED",
+      "sector": 976063,
+      "size": 264016
+    },
+    {
+      "path": "RUN/UI/EM82_PAL.ZED",
+      "sector": 976326,
+      "size": 8944
+    },
+    {
+      "path": "RUN/UI/EM82_TXR.ZED",
+      "sector": 976197,
+      "size": 264016
+    },
+    {
+      "path": "RUN/UI/EM83_PAL.ZED",
+      "sector": 976460,
+      "size": 8944
+    },
+    {
+      "path": "RUN/UI/EM83_TXR.ZED",
+      "sector": 976331,
+      "size": 264016
+    },
+    {
+      "path": "RUN/UI/EQ51_PAL.ZED",
+      "sector": 976498,
+      "size": 4560
+    },
+    {
+      "path": "RUN/UI/EQ51_TXR.ZED",
+      "sector": 976465,
+      "size": 66576
+    },
+    {
+      "path": "RUN/UI/EQ52_PAL.ZED",
+      "sector": 976534,
+      "size": 4560
+    },
+    {
+      "path": "RUN/UI/EQ52_TXR.ZED",
+      "sector": 976501,
+      "size": 66576
+    },
+    {
+      "path": "RUN/UI/EQ53_PAL.ZED",
+      "sector": 976570,
+      "size": 4560
+    },
+    {
+      "path": "RUN/UI/EQ53_TXR.ZED",
+      "sector": 976537,
+      "size": 66576
+    },
+    {
+      "path": "RUN/UI/EQ61_PAL.ZED",
+      "sector": 976606,
+      "size": 4560
+    },
+    {
+      "path": "RUN/UI/EQ61_TXR.ZED",
+      "sector": 976573,
+      "size": 66576
+    },
+    {
+      "path": "RUN/UI/EQ62_PAL.ZED",
+      "sector": 976642,
+      "size": 4560
+    },
+    {
+      "path": "RUN/UI/EQ62_TXR.ZED",
+      "sector": 976609,
+      "size": 66576
+    },
+    {
+      "path": "RUN/UI/EQ63_PAL.ZED",
+      "sector": 976678,
+      "size": 4560
+    },
+    {
+      "path": "RUN/UI/EQ63_TXR.ZED",
+      "sector": 976645,
+      "size": 66576
+    },
+    {
+      "path": "RUN/UI/EQ71_PAL.ZED",
+      "sector": 976714,
+      "size": 4560
+    },
+    {
+      "path": "RUN/UI/EQ71_TXR.ZED",
+      "sector": 976681,
+      "size": 66576
+    },
+    {
+      "path": "RUN/UI/EQ72_PAL.ZED",
+      "sector": 976786,
+      "size": 4560
+    },
+    {
+      "path": "RUN/UI/EQ72_TXR.ZED",
+      "sector": 976717,
+      "size": 66576
+    },
+    {
+      "path": "RUN/UI/EQ73_PAL.ZED",
+      "sector": 976750,
+      "size": 4560
+    },
+    {
+      "path": "RUN/UI/EQ73_TXR.ZED",
+      "sector": 976753,
+      "size": 66576
+    },
+    {
+      "path": "RUN/UI/EQ81_PAL.ZED",
+      "sector": 976822,
+      "size": 4560
+    },
+    {
+      "path": "RUN/UI/EQ81_TXR.ZED",
+      "sector": 976789,
+      "size": 66592
+    },
+    {
+      "path": "RUN/UI/EQ82_PAL.ZED",
+      "sector": 976858,
+      "size": 4560
+    },
+    {
+      "path": "RUN/UI/EQ82_TXR.ZED",
+      "sector": 976825,
+      "size": 66576
+    },
+    {
+      "path": "RUN/UI/EQ83_PAL.ZED",
+      "sector": 976894,
+      "size": 4560
+    },
+    {
+      "path": "RUN/UI/EQ83_TXR.ZED",
+      "sector": 976861,
+      "size": 66576
+    },
+    {
+      "path": "RUN/UI/JUNK_TXR.ZED",
+      "sector": 965514,
+      "size": 528
+    },
+    {
+      "path": "RUN/UI/READERC.ZAR",
+      "sector": 964753,
+      "size": 1257632
+    },
+    {
+      "path": "RUN/UI/READERX.ZAR",
+      "sector": 1258437,
+      "size": 77248
+    },
+    {
+      "path": "RUN/UI/UI.ZED",
+      "sector": 965513,
+      "size": 1136
+    },
+    {
+      "path": "RUN/UI/UI2D_PAL.ZED",
+      "sector": 968595,
+      "size": 16208
+    },
+    {
+      "path": "RUN/UI/UI2D_TXR.ZED",
+      "sector": 967951,
+      "size": 1318688
+    },
+    {
+      "path": "RUN/UI/UIBF_PAL.ZED",
+      "sector": 969777,
+      "size": 19728
+    },
+    {
+      "path": "RUN/UI/UIBF_TXR.ZED",
+      "sector": 968885,
+      "size": 1825840
+    },
+    {
+      "path": "RUN/UI/UICG_PAL.ZED",
+      "sector": 970585,
+      "size": 16368
+    },
+    {
+      "path": "RUN/UI/UICG_TXR.ZED",
+      "sector": 970214,
+      "size": 759568
+    },
+    {
+      "path": "RUN/UI/UIGC_PAL.ZED",
+      "sector": 970786,
+      "size": 2432
+    },
+    {
+      "path": "RUN/UI/UIGC_TXR.ZED",
+      "sector": 970593,
+      "size": 394304
+    },
+    {
+      "path": "RUN/UI/UIMP_PAL.ZED",
+      "sector": 967935,
+      "size": 32256
+    },
+    {
+      "path": "RUN/UI/UIMP_TXR.ZED",
+      "sector": 967643,
+      "size": 596144
+    },
+    {
+      "path": "RUN/UI/UIOP_PAL.ZED",
+      "sector": 970207,
+      "size": 12832
+    },
+    {
+      "path": "RUN/UI/UIOP_TXR.ZED",
+      "sector": 969787,
+      "size": 859840
+    },
+    {
+      "path": "RUN/UI/UISK_PAL.ZED",
+      "sector": 967015,
+      "size": 5360
+    },
+    {
+      "path": "RUN/UI/UISK_TXR.ZED",
+      "sector": 966225,
+      "size": 1617536
+    },
+    {
+      "path": "RUN/UI/UI_GEO.ZED",
+      "sector": 965819,
+      "size": 33424
+    },
+    {
+      "path": "RUN/UI/UI_MDL.ZED",
+      "sector": 965836,
+      "size": 796464
+    },
+    {
+      "path": "RUN/UI/UI_PAL.ZED",
+      "sector": 965802,
+      "size": 33616
+    },
+    {
+      "path": "RUN/UI/UI_TXR.ZED",
+      "sector": 965515,
+      "size": 587504
+    },
+    {
+      "path": "RUN/UI/WSLC_PAL.ZED",
+      "sector": 968829,
+      "size": 13344
+    },
+    {
+      "path": "RUN/UI/WSLC_TXR.ZED",
+      "sector": 968603,
+      "size": 461456
+    },
+    {
+      "path": "RUN/UI/WSSP_PAL.ZED",
+      "sector": 968882,
+      "size": 5136
+    },
+    {
+      "path": "RUN/UI/WSSP_TXR.ZED",
+      "sector": 968836,
+      "size": 92640
+    },
+    {
+      "path": "RUN/UIZANIM.ZAR",
+      "sector": 967045,
+      "size": 1224080
+    },
+    {
+      "path": "RUN/ZWEAPON.ZAR",
+      "sector": 962867,
+      "size": 105968
+    },
+    {
+      "path": "CNF/DIAL_SPD.CNF",
+      "sector": 9354,
+      "size": 812
+    },
+    {
+      "path": "CNF/ICON.SYS",
+      "sector": 9685,
+      "size": 964
+    },
+    {
+      "path": "CNF/SYS_NET.ICO",
+      "sector": 9852,
+      "size": 33688
+    },
+    {
+      "path": "NETGUI/BG.RGB",
+      "sector": 7126,
+      "size": 860160
+    },
+    {
+      "path": "NETGUI/BG2.RGB",
+      "sector": 7546,
+      "size": 1310720
+    },
+    {
+      "path": "NETGUI/EFF.BD",
+      "sector": 8186,
+      "size": 127536
+    },
+    {
+      "path": "NETGUI/EFF.HD",
+      "sector": 8249,
+      "size": 560
+    },
+    {
+      "path": "NETGUI/JIS2UCS.BIN",
+      "sector": 8250,
+      "size": 131072
+    },
+    {
+      "path": "NETGUI/MODULES/989MINI.IRX",
+      "sector": 4467,
+      "size": 82980
+    },
+    {
+      "path": "NETGUI/MODULES/DEV9.IRX",
+      "sector": 4508,
+      "size": 13197
+    },
+    {
+      "path": "NETGUI/MODULES/EZMIDI.IRX",
+      "sector": 4515,
+      "size": 60804
+    },
+    {
+      "path": "NETGUI/MODULES/INET.IRX",
+      "sector": 4545,
+      "size": 141181
+    },
+    {
+      "path": "NETGUI/MODULES/INETCTL.IRX",
+      "sector": 4614,
+      "size": 24781
+    },
+    {
+      "path": "NETGUI/MODULES/IOPRP271.IMG",
+      "sector": 4627,
+      "size": 266817
+    },
+    {
+      "path": "NETGUI/MODULES/LIBSD.IRX",
+      "sector": 4758,
+      "size": 28605
+    },
+    {
+      "path": "NETGUI/MODULES/MCMAN.IRX",
+      "sector": 4772,
+      "size": 95877
+    },
+    {
+      "path": "NETGUI/MODULES/MCSERV.IRX",
+      "sector": 4819,
+      "size": 7417
+    },
+    {
+      "path": "NETGUI/MODULES/MODHSYN.IRX",
+      "sector": 4823,
+      "size": 59669
+    },
+    {
+      "path": "NETGUI/MODULES/MODMIDI.IRX",
+      "sector": 4853,
+      "size": 21965
+    },
+    {
+      "path": "NETGUI/MODULES/NETCNF.IRX",
+      "sector": 4864,
+      "size": 65805
+    },
+    {
+      "path": "NETGUI/MODULES/NETCNFIF.IRX",
+      "sector": 4897,
+      "size": 19909
+    },
+    {
+      "path": "NETGUI/MODULES/NTGUI2.IRX",
+      "sector": 4907,
+      "size": 31029
+    },
+    {
+      "path": "NETGUI/MODULES/PADMAN.IRX",
+      "sector": 4923,
+      "size": 43813
+    },
+    {
+      "path": "NETGUI/MODULES/PPP.IRX",
+      "sector": 4945,
+      "size": 102285
+    },
+    {
+      "path": "NETGUI/MODULES/PPPOE.IRX",
+      "sector": 4995,
+      "size": 17121
+    },
+    {
+      "path": "NETGUI/MODULES/SDRDRV.IRX",
+      "sector": 5004,
+      "size": 8065
+    },
+    {
+      "path": "NETGUI/MODULES/SIO2MAN.IRX",
+      "sector": 5008,
+      "size": 6641
+    },
+    {
+      "path": "NETGUI/MODULES/SMAP.IRX",
+      "sector": 5012,
+      "size": 16977
+    },
+    {
+      "path": "NETGUI/MODULES/SPDUART.IRX",
+      "sector": 5021,
+      "size": 18105
+    },
+    {
+      "path": "NETGUI/MODULES/USBD.IRX",
+      "sector": 5030,
+      "size": 34969
+    },
+    {
+      "path": "NETGUI/MODULES/USBKB.IRX",
+      "sector": 5048,
+      "size": 12853
+    },
+    {
+      "path": "NETGUI/NGSHELL.BNK",
+      "sector": 8314,
+      "size": 86344
+    },
+    {
+      "path": "NETGUI/SAMPLE.PF",
+      "sector": 8357,
+      "size": 637456
+    },
+    {
+      "path": "NETGUI/UCS2JIS.BIN",
+      "sector": 8956,
+      "size": 131072
+    },
+    {
+      "path": "OVERLAY/REL/DNAS.BIN",
+      "sector": 2781,
+      "size": 667136
+    },
+    {
+      "path": "SCUS_972.75",
+      "sector": 1597,
+      "size": 874792
+    },
+    {
+      "path": "DEV003.CNF",
+      "sector": 1254,
+      "size": 97
+    },
+    {
+      "path": "ENDER.",
+      "sector": 2138469,
+      "size": 1146880
+    },
+    {
+      "path": "IFC003.CNF",
+      "sector": 1256,
+      "size": 76
+    },
+    {
+      "path": "IFC005.CNF",
+      "sector": 1257,
+      "size": 76
+    },
+    {
+      "path": "NET001.CNF",
+      "sector": 1251,
+      "size": 111
+    },
+    {
+      "path": "NET003.CNF",
+      "sector": 1252,
+      "size": 111
+    },
+    {
+      "path": "NET005.CNF",
+      "sector": 1253,
+      "size": 111
+    },
+    {
+      "path": "DEV002.CNF",
+      "sector": 1255,
+      "size": 119
+    },
+    {
+      "path": "SCUSNGUI.ELF",
+      "sector": 5055,
+      "size": 4239480
+    },
+    {
+      "path": "SYSTEM.CNF",
+      "sector": 1596,
+      "size": 57
+    },
+    {
+      "path": "USBDRVCD.CNF",
+      "sector": 1258,
+      "size": 1055
+    }
+  ],
+  "modules": [
+    {
+      "path": "RUN/IRX/CDVDSTM.IRX",
+      "sector": 735,
+      "size": 24721,
+      "sha256": "39a38b90283da2fd2e6ab15339ff9a177fca31360f60a7c8182a6ebc69e2eee2",
+      "magic_hex": "7f454c46010101000000000000000000",
+      "format": "ELF",
+      "elf": {
+        "entry": "0x16bc",
+        "machine": 8,
+        "type": 65408,
+        "section_count": 12,
+        "symbol_tables": [
+          {
+            "section": ".symtab",
+            "entries": 1
+          }
+        ],
+        "named_functions_count": 0,
+        "projectile_named_functions": [],
+        "named_function_examples": []
+      }
+    },
+    {
+      "path": "RUN/IRX/DBCMAN.IRX",
+      "sector": 799,
+      "size": 15477,
+      "sha256": "c8407c955467fa612fd9f1b4074eb2d19bd80149ecc5752988f8a904cbcd4fcb",
+      "magic_hex": "7f454c46010101000000000000000000",
+      "format": "ELF",
+      "elf": {
+        "entry": "0x0",
+        "machine": 8,
+        "type": 65408,
+        "section_count": 12,
+        "symbol_tables": [
+          {
+            "section": ".symtab",
+            "entries": 1
+          }
+        ],
+        "named_functions_count": 0,
+        "projectile_named_functions": [],
+        "named_function_examples": []
+      }
+    },
+    {
+      "path": "RUN/IRX/DEV9.IRX",
+      "sector": 838,
+      "size": 13197,
+      "sha256": "091b2ec1a25474fe136b5e62b01961d95abc5191d0ea06ccc133e20c46675432",
+      "magic_hex": "7f454c46010101000000000000000000",
+      "format": "ELF",
+      "elf": {
+        "entry": "0x2e8",
+        "machine": 8,
+        "type": 65408,
+        "section_count": 12,
+        "symbol_tables": [
+          {
+            "section": ".symtab",
+            "entries": 1
+          }
+        ],
+        "named_functions_count": 0,
+        "projectile_named_functions": [],
+        "named_function_examples": []
+      }
+    },
+    {
+      "path": "RUN/IRX/DNAS271.IMG",
+      "sector": 1464,
+      "size": 268977,
+      "sha256": "b4cb0a96b71978aef13eff8b69962189a824958d43ff4d54623b70e1d85a2478",
+      "magic_hex": "52455345540000000000080000000000",
+      "format": "non-ELF module/data container; not decoded"
+    },
+    {
+      "path": "RUN/IRX/DS2U_S1.IRX",
+      "sector": 943,
+      "size": 10853,
+      "sha256": "2f8d081e3b542e85b5c61b00ac6b305af711f7fca5ace05786c14725c5d5112a",
+      "magic_hex": "7f454c46010101000000000000000000",
+      "format": "ELF",
+      "elf": {
+        "entry": "0x0",
+        "machine": 8,
+        "type": 65408,
+        "section_count": 12,
+        "symbol_tables": [
+          {
+            "section": ".symtab",
+            "entries": 1
+          }
+        ],
+        "named_functions_count": 0,
+        "projectile_named_functions": [],
+        "named_function_examples": []
+      }
+    },
+    {
+      "path": "RUN/IRX/EZNETCNF.IRX",
+      "sector": 980,
+      "size": 15402,
+      "sha256": "01429ee81cfa27b2f5f2f9784641bf1d381809ddd48b85eeabdc925e60473f7b",
+      "magic_hex": "7f454c46010101000000000000000000",
+      "format": "ELF",
+      "elf": {
+        "entry": "0x0",
+        "machine": 8,
+        "type": 65408,
+        "section_count": 14,
+        "symbol_tables": [
+          {
+            "section": ".symtab",
+            "entries": 102
+          }
+        ],
+        "named_functions_count": 22,
+        "projectile_named_functions": [],
+        "named_function_examples": [
+          {
+            "index": 15,
+            "name": "moduleStop",
+            "value": "0xc4",
+            "size": 160,
+            "type": 2,
+            "binding": 0,
+            "section_index": 2
+          },
+          {
+            "index": 16,
+            "name": "moduleStart",
+            "value": "0x34",
+            "size": 144,
+            "type": 2,
+            "binding": 0,
+            "section_index": 2
+          },
+          {
+            "index": 22,
+            "name": "getProtocolType",
+            "value": "0x230",
+            "size": 148,
+            "type": 2,
+            "binding": 0,
+            "section_index": 2
+          },
+          {
+            "index": 23,
+            "name": "getDisplayName",
+            "value": "0x2c4",
+            "size": 116,
+            "type": 2,
+            "binding": 0,
+            "section_index": 2
+          },
+          {
+            "index": 24,
+            "name": "getCombinationValue",
+            "value": "0x338",
+            "size": 100,
+            "type": 2,
+            "binding": 0,
+            "section_index": 2
+          },
+          {
+            "index": 25,
+            "name": "getCombinationList",
+            "value": "0x39c",
+            "size": 1044,
+            "type": 2,
+            "binding": 0,
+            "section_index": 2
+          },
+          {
+            "index": 27,
+            "name": "getProperties",
+            "value": "0x7b0",
+            "size": 280,
+            "type": 2,
+            "binding": 0,
+            "section_index": 2
+          },
+          {
+            "index": 33,
+            "name": "get_cmd",
+            "value": "0xc10",
+            "size": 160,
+            "type": 2,
+            "binding": 0,
+            "section_index": 2
+          },
+          {
+            "index": 34,
+            "name": "get_attach",
+            "value": "0xcb0",
+            "size": 764,
+            "type": 2,
+            "binding": 0,
+            "section_index": 2
+          },
+          {
+            "index": 36,
+            "name": "get_net",
+            "value": "0xfac",
+            "size": 172,
+            "type": 2,
+            "binding": 0,
+            "section_index": 2
+          },
+          {
+            "index": 39,
+            "name": "resetEnv",
+            "value": "0xb5c",
+            "size": 64,
+            "type": 2,
+            "binding": 1,
+            "section_index": 2
+          },
+          {
+            "index": 44,
+            "name": "loadEnv",
+            "value": "0xa50",
+            "size": 136,
+            "type": 2,
+            "binding": 1,
+            "section_index": 2
+          }
+        ]
+      }
+    },
+    {
+      "path": "RUN/IRX/EZNETCTL.IRX",
+      "sector": 988,
+      "size": 19872,
+      "sha256": "584b706d6b3d64e5f3209b0389c16eeebbe9abd0e1335c795585e0e0cd6c06f8",
+      "magic_hex": "7f454c46010101000000000000000000",
+      "format": "ELF",
+      "elf": {
+        "entry": "0x0",
+        "machine": 8,
+        "type": 65408,
+        "section_count": 14,
+        "symbol_tables": [
+          {
+            "section": ".symtab",
+            "entries": 126
+          }
+        ],
+        "named_functions_count": 26,
+        "projectile_named_functions": [],
+        "named_function_examples": [
+          {
+            "index": 15,
+            "name": "moduleStop",
+            "value": "0xc4",
+            "size": 160,
+            "type": 2,
+            "binding": 0,
+            "section_index": 2
+          },
+          {
+            "index": 16,
+            "name": "moduleStart",
+            "value": "0x34",
+            "size": 144,
+            "type": 2,
+            "binding": 0,
+            "section_index": 2
+          },
+          {
+            "index": 26,
+            "name": "ievHandler",
+            "value": "0x630",
+            "size": 136,
+            "type": 2,
+            "binding": 0,
+            "section_index": 2
+          },
+          {
+            "index": 28,
+            "name": "getStatus",
+            "value": "0x324",
+            "size": 748,
+            "type": 2,
+            "binding": 0,
+            "section_index": 2
+          },
+          {
+            "index": 29,
+            "name": "alarmHandler",
+            "value": "0x610",
+            "size": 32,
+            "type": 2,
+            "binding": 0,
+            "section_index": 2
+          },
+          {
+            "index": 30,
+            "name": "patchEnv",
+            "value": "0x6b8",
+            "size": 812,
+            "type": 2,
+            "binding": 0,
+            "section_index": 2
+          },
+          {
+            "index": 31,
+            "name": "bindConfiguration",
+            "value": "0x9e4",
+            "size": 164,
+            "type": 2,
+            "binding": 0,
+            "section_index": 2
+          },
+          {
+            "index": 39,
+            "name": "init_usrntcnf",
+            "value": "0xda0",
+            "size": 156,
+            "type": 2,
+            "binding": 0,
+            "section_index": 2
+          },
+          {
+            "index": 40,
+            "name": "check_address",
+            "value": "0xe3c",
+            "size": 80,
+            "type": 2,
+            "binding": 0,
+            "section_index": 2
+          },
+          {
+            "index": 41,
+            "name": "put_gw",
+            "value": "0xe8c",
+            "size": 300,
+            "type": 2,
+            "binding": 0,
+            "section_index": 2
+          },
+          {
+            "index": 43,
+            "name": "put_ns",
+            "value": "0xfb8",
+            "size": 200,
+            "type": 2,
+            "binding": 0,
+            "section_index": 2
+          },
+          {
+            "index": 46,
+            "name": "put_cmd",
+            "value": "0x1080",
+            "size": 236,
+            "type": 2,
+            "binding": 0,
+            "section_index": 2
+          }
+        ]
+      }
+    },
+    {
+      "path": "RUN/IRX/HDD/ATAD.IRX",
+      "sector": 1205,
+      "size": 12085,
+      "sha256": "faa7f9a5b3e6761dd07a546c157848f8cf0f970bc473f0093923e028b08b10c0",
+      "magic_hex": "7f454c46010101000000000000000000",
+      "format": "ELF",
+      "elf": {
+        "entry": "0x1aa8",
+        "machine": 8,
+        "type": 65408,
+        "section_count": 12,
+        "symbol_tables": [
+          {
+            "section": ".symtab",
+            "entries": 1
+          }
+        ],
+        "named_functions_count": 0,
+        "projectile_named_functions": [],
+        "named_function_examples": []
+      }
+    },
+    {
+      "path": "RUN/IRX/HDD/HDD.IRX",
+      "sector": 1211,
+      "size": 30117,
+      "sha256": "6b4fea4633ce22f361a9043780e2d70adead8e55101984468b977e05d0003fbf",
+      "magic_hex": "7f454c46010101000000000000000000",
+      "format": "ELF",
+      "elf": {
+        "entry": "0x2998",
+        "machine": 8,
+        "type": 65408,
+        "section_count": 12,
+        "symbol_tables": [
+          {
+            "section": ".symtab",
+            "entries": 1
+          }
+        ],
+        "named_functions_count": 0,
+        "projectile_named_functions": [],
+        "named_function_examples": []
+      }
+    },
+    {
+      "path": "RUN/IRX/HDD/PFS.IRX",
+      "sector": 1226,
+      "size": 49417,
+      "sha256": "5f6a009a0a8c4cb11e1dc8835f5f3fd600d6f7c6143b7068da6c6e7ac8243379",
+      "magic_hex": "7f454c46010101000000000000000000",
+      "format": "ELF",
+      "elf": {
+        "entry": "0x2cec",
+        "machine": 8,
+        "type": 65408,
+        "section_count": 11,
+        "symbol_tables": [
+          {
+            "section": ".symtab",
+            "entries": 1
+          }
+        ],
+        "named_functions_count": 0,
+        "projectile_named_functions": [],
+        "named_function_examples": []
+      }
+    },
+    {
+      "path": "RUN/IRX/HEADSETO.IRX",
+      "sector": 972,
+      "size": 15728,
+      "sha256": "8358958423d99a7ff3d620a1d88a659e2132f5f41b6f0441f43614b478e318ee",
+      "magic_hex": "7f454c46010101000000000000000000",
+      "format": "ELF",
+      "elf": {
+        "entry": "0x488",
+        "machine": 8,
+        "type": 65408,
+        "section_count": 8,
+        "symbol_tables": [],
+        "named_functions_count": 0,
+        "projectile_named_functions": [],
+        "named_function_examples": []
+      }
+    },
+    {
+      "path": "RUN/IRX/INET.IRX",
+      "sector": 998,
+      "size": 141181,
+      "sha256": "4a8050574db8f8c77c67cd2c6f9027a11c9c35c75211b54013e271eae4468dcc",
+      "magic_hex": "7f454c46010101000000000000000000",
+      "format": "ELF",
+      "elf": {
+        "entry": "0x11ebc",
+        "machine": 8,
+        "type": 65408,
+        "section_count": 15,
+        "symbol_tables": [
+          {
+            "section": ".symtab",
+            "entries": 1
+          }
+        ],
+        "named_functions_count": 0,
+        "projectile_named_functions": [],
+        "named_function_examples": []
+      }
+    },
+    {
+      "path": "RUN/IRX/INETCTL.IRX",
+      "sector": 1067,
+      "size": 24781,
+      "sha256": "b2d1de173972c66bd05c8a538587f4db299e8ac39d760fcff92d85edc1392529",
+      "magic_hex": "7f454c46010101000000000000000000",
+      "format": "ELF",
+      "elf": {
+        "entry": "0x3aac",
+        "machine": 8,
+        "type": 65408,
+        "section_count": 14,
+        "symbol_tables": [
+          {
+            "section": ".symtab",
+            "entries": 1
+          }
+        ],
+        "named_functions_count": 0,
+        "projectile_named_functions": [],
+        "named_function_examples": []
+      }
+    },
+    {
+      "path": "RUN/IRX/LGAUD.IRX",
+      "sector": 949,
+      "size": 45925,
+      "sha256": "9de964020a7d52a0ad7206dbb28d1b5810be2931effbd81520783cfacec4cd34",
+      "magic_hex": "7f454c46010101000000000000000000",
+      "format": "ELF",
+      "elf": {
+        "entry": "0x1458",
+        "machine": 8,
+        "type": 65408,
+        "section_count": 12,
+        "symbol_tables": [
+          {
+            "section": ".symtab",
+            "entries": 1
+          }
+        ],
+        "named_functions_count": 0,
+        "projectile_named_functions": [],
+        "named_function_examples": []
+      }
+    },
+    {
+      "path": "RUN/IRX/LIBNETB.IRX",
+      "sector": 1080,
+      "size": 32181,
+      "sha256": "3cbbde55db017830970a557c677621d0bcca2d07a106a2a42e528057ba1a4958",
+      "magic_hex": "7f454c46010101000000000000000000",
+      "format": "ELF",
+      "elf": {
+        "entry": "0xafc",
+        "machine": 8,
+        "type": 65408,
+        "section_count": 14,
+        "symbol_tables": [
+          {
+            "section": ".symtab",
+            "entries": 1
+          }
+        ],
+        "named_functions_count": 0,
+        "projectile_named_functions": [],
+        "named_function_examples": []
+      }
+    },
+    {
+      "path": "RUN/IRX/LIBSD.IRX",
+      "sector": 845,
+      "size": 28605,
+      "sha256": "57cbd80b7c2f966985e14ca18c03e849e3b3eb1216f06a6f4c1e6ca85084ea37",
+      "magic_hex": "7f454c46010101000000000000000000",
+      "format": "ELF",
+      "elf": {
+        "entry": "0xb0",
+        "machine": 8,
+        "type": 65408,
+        "section_count": 12,
+        "symbol_tables": [
+          {
+            "section": ".symtab",
+            "entries": 1
+          }
+        ],
+        "named_functions_count": 0,
+        "projectile_named_functions": [],
+        "named_function_examples": []
+      }
+    },
+    {
+      "path": "RUN/IRX/MCMAN.IRX",
+      "sector": 748,
+      "size": 95877,
+      "sha256": "cdb1dfd12cb71f60d4834eb888dbbffeb6f6382e3bdffc1a50122034f7969b6b",
+      "magic_hex": "7f454c46010101000000000000000000",
+      "format": "ELF",
+      "elf": {
+        "entry": "0x178",
+        "machine": 8,
+        "type": 65408,
+        "section_count": 12,
+        "symbol_tables": [
+          {
+            "section": ".symtab",
+            "entries": 1
+          }
+        ],
+        "named_functions_count": 0,
+        "projectile_named_functions": [],
+        "named_function_examples": []
+      }
+    },
+    {
+      "path": "RUN/IRX/MCSERV.IRX",
+      "sector": 795,
+      "size": 7417,
+      "sha256": "42790c4999c9deb17bb0fe2ceb155d3b141adf059c3055e11039070be2a8a7a6",
+      "magic_hex": "7f454c46010101000000000000000000",
+      "format": "ELF",
+      "elf": {
+        "entry": "0x58",
+        "machine": 8,
+        "type": 65408,
+        "section_count": 11,
+        "symbol_tables": [
+          {
+            "section": ".symtab",
+            "entries": 1
+          }
+        ],
+        "named_functions_count": 0,
+        "projectile_named_functions": [],
+        "named_function_examples": []
+      }
+    },
+    {
+      "path": "RUN/IRX/MSIFRPC.IRX",
+      "sector": 1096,
+      "size": 7809,
+      "sha256": "d78e0702d4c1d2604effb693fb2bcb44879a096c6502f1946e8bf31159946213",
+      "magic_hex": "7f454c46010101000000000000000000",
+      "format": "ELF",
+      "elf": {
+        "entry": "0x0",
+        "machine": 8,
+        "type": 65408,
+        "section_count": 11,
+        "symbol_tables": [
+          {
+            "section": ".symtab",
+            "entries": 1
+          }
+        ],
+        "named_functions_count": 0,
+        "projectile_named_functions": [],
+        "named_function_examples": []
+      }
+    },
+    {
+      "path": "RUN/IRX/NETCNF.IRX",
+      "sector": 1100,
+      "size": 65805,
+      "sha256": "3c77d5567dc9403116e224d6e79b34be0bc7fa9d61cfd02183be714d3f39a6ad",
+      "magic_hex": "7f454c46010101000000000000000000",
+      "format": "ELF",
+      "elf": {
+        "entry": "0x334",
+        "machine": 8,
+        "type": 65408,
+        "section_count": 12,
+        "symbol_tables": [
+          {
+            "section": ".symtab",
+            "entries": 1
+          }
+        ],
+        "named_functions_count": 0,
+        "projectile_named_functions": [],
+        "named_function_examples": []
+      }
+    },
+    {
+      "path": "RUN/IRX/PPP.IRX",
+      "sector": 1133,
+      "size": 102285,
+      "sha256": "321dc00e786f7adc96db1d060c6c94f263eba3a100eee9cb9ae24fcde9d7e0da",
+      "magic_hex": "7f454c46010101000000000000000000",
+      "format": "ELF",
+      "elf": {
+        "entry": "0xea0c",
+        "machine": 8,
+        "type": 65408,
+        "section_count": 14,
+        "symbol_tables": [
+          {
+            "section": ".symtab",
+            "entries": 1
+          }
+        ],
+        "named_functions_count": 0,
+        "projectile_named_functions": [],
+        "named_function_examples": []
+      }
+    },
+    {
+      "path": "RUN/IRX/PPPOE.IRX",
+      "sector": 1183,
+      "size": 17121,
+      "sha256": "55ad62d45ed4ad7cc989c377b329ecf7fbd562f5fd3a6029580c5694b9292dee",
+      "magic_hex": "7f454c46010101000000000000000000",
+      "format": "ELF",
+      "elf": {
+        "entry": "0x2388",
+        "machine": 8,
+        "type": 65408,
+        "section_count": 13,
+        "symbol_tables": [
+          {
+            "section": ".symtab",
+            "entries": 1
+          }
+        ],
+        "named_functions_count": 0,
+        "projectile_named_functions": [],
+        "named_function_examples": []
+      }
+    },
+    {
+      "path": "RUN/IRX/SDRDRV.IRX",
+      "sector": 1192,
+      "size": 8065,
+      "sha256": "37b615869fed71ec90760543d83170dc7b7608142a4117d665a0cfbe78c3cc52",
+      "magic_hex": "7f454c46010101000000000000000000",
+      "format": "ELF",
+      "elf": {
+        "entry": "0x0",
+        "machine": 8,
+        "type": 65408,
+        "section_count": 11,
+        "symbol_tables": [
+          {
+            "section": ".symtab",
+            "entries": 1
+          }
+        ],
+        "named_functions_count": 0,
+        "projectile_named_functions": [],
+        "named_function_examples": []
+      }
+    },
+    {
+      "path": "RUN/IRX/SIO2D.IRX",
+      "sector": 807,
+      "size": 10985,
+      "sha256": "ad6aa19834d0dc9eaaaddd08c51f75ba4f6eaec3df30795720aafb31c60372e9",
+      "magic_hex": "7f454c46010101000000000000000000",
+      "format": "ELF",
+      "elf": {
+        "entry": "0xcf4",
+        "machine": 8,
+        "type": 65408,
+        "section_count": 11,
+        "symbol_tables": [
+          {
+            "section": ".symtab",
+            "entries": 1
+          }
+        ],
+        "named_functions_count": 0,
+        "projectile_named_functions": [],
+        "named_function_examples": []
+      }
+    },
+    {
+      "path": "RUN/IRX/SIO2MAN.IRX",
+      "sector": 731,
+      "size": 6641,
+      "sha256": "0facd5a832d3114c3477ded714f8766d443705a1440deeb84c59927cf0b6968e",
+      "magic_hex": "7f454c46010101000000000000000000",
+      "format": "ELF",
+      "elf": {
+        "entry": "0x634",
+        "machine": 8,
+        "type": 65408,
+        "section_count": 11,
+        "symbol_tables": [
+          {
+            "section": ".symtab",
+            "entries": 1
+          }
+        ],
+        "named_functions_count": 0,
+        "projectile_named_functions": [],
+        "named_function_examples": []
+      }
+    },
+    {
+      "path": "RUN/IRX/SMAP.IRX",
+      "sector": 1196,
+      "size": 16977,
+      "sha256": "feb9e7c0909c7f4c53bfc0a8dc7ca1141ff3cbe8fcf2491738fd68399f41b009",
+      "magic_hex": "7f454c46010101000000000000000000",
+      "format": "ELF",
+      "elf": {
+        "entry": "0x272c",
+        "machine": 8,
+        "type": 65408,
+        "section_count": 13,
+        "symbol_tables": [
+          {
+            "section": ".symtab",
+            "entries": 1
+          }
+        ],
+        "named_functions_count": 0,
+        "projectile_named_functions": [],
+        "named_function_examples": []
+      }
+    },
+    {
+      "path": "RUN/IRX/SOUND/989DSTRM.IRX",
+      "sector": 939,
+      "size": 7968,
+      "sha256": "3abab5bf8cdde551258b10ad5b8da02a8db19b948bfb72a82c1bc8784ed4233d",
+      "magic_hex": "7f454c46010101000000000000000000",
+      "format": "ELF",
+      "elf": {
+        "entry": "0x0",
+        "machine": 8,
+        "type": 65408,
+        "section_count": 8,
+        "symbol_tables": [],
+        "named_functions_count": 0,
+        "projectile_named_functions": [],
+        "named_function_examples": []
+      }
+    },
+    {
+      "path": "RUN/IRX/SOUND/989SND.IRX",
+      "sector": 859,
+      "size": 163268,
+      "sha256": "f8038434befb2fa3b25995127b7a170e8074108d2a8542107d17524efcf3ec30",
+      "magic_hex": "7f454c46010101000000000000000000",
+      "format": "ELF",
+      "elf": {
+        "entry": "0x19a4",
+        "machine": 8,
+        "type": 65408,
+        "section_count": 9,
+        "symbol_tables": [],
+        "named_functions_count": 0,
+        "projectile_named_functions": [],
+        "named_function_examples": []
+      }
+    },
+    {
+      "path": "RUN/IRX/USB/USBD.IRX",
+      "sector": 813,
+      "size": 34969,
+      "sha256": "f0e882517547bd689051950eb323f861b70eef8662ed2cac50533ae3cc93c564",
+      "magic_hex": "7f454c46010101000000000000000000",
+      "format": "ELF",
+      "elf": {
+        "entry": "0x4cc4",
+        "machine": 8,
+        "type": 65408,
+        "section_count": 14,
+        "symbol_tables": [
+          {
+            "section": ".symtab",
+            "entries": 1
+          }
+        ],
+        "named_functions_count": 0,
+        "projectile_named_functions": [],
+        "named_function_examples": []
+      }
+    },
+    {
+      "path": "RUN/IRX/USB/USBKB.IRX",
+      "sector": 831,
+      "size": 12853,
+      "sha256": "fa42d528dc19f8d93847f76fac865664a915c872e450027832451d8d28e577df",
+      "magic_hex": "7f454c46010101000000000000000000",
+      "format": "ELF",
+      "elf": {
+        "entry": "0x0",
+        "machine": 8,
+        "type": 65408,
+        "section_count": 12,
+        "symbol_tables": [
+          {
+            "section": ".symtab",
+            "entries": 1
+          }
+        ],
+        "named_functions_count": 0,
+        "projectile_named_functions": [],
+        "named_function_examples": []
+      }
+    },
+    {
+      "path": "NETGUI/JIS2UCS.BIN",
+      "sector": 8250,
+      "size": 131072,
+      "sha256": "d1c0f65ac91bc52cb58dcba7d5d7b21452301b18106ecb2e10f8c26e88f3bdfb",
+      "magic_hex": "00000100020003000400050006000700",
+      "format": "non-ELF module/data container; not decoded"
+    },
+    {
+      "path": "NETGUI/MODULES/989MINI.IRX",
+      "sector": 4467,
+      "size": 82980,
+      "sha256": "9b7c73facf7c8928dc372c12ed915c29f78786a3c441be4a134c44b4da911177",
+      "magic_hex": "7f454c46010101000000000000000000",
+      "format": "ELF",
+      "elf": {
+        "entry": "0x13d0",
+        "machine": 8,
+        "type": 65408,
+        "section_count": 14,
+        "symbol_tables": [],
+        "named_functions_count": 0,
+        "projectile_named_functions": [],
+        "named_function_examples": []
+      }
+    },
+    {
+      "path": "NETGUI/MODULES/DEV9.IRX",
+      "sector": 4508,
+      "size": 13197,
+      "sha256": "091b2ec1a25474fe136b5e62b01961d95abc5191d0ea06ccc133e20c46675432",
+      "magic_hex": "7f454c46010101000000000000000000",
+      "format": "ELF",
+      "elf": {
+        "entry": "0x2e8",
+        "machine": 8,
+        "type": 65408,
+        "section_count": 12,
+        "symbol_tables": [
+          {
+            "section": ".symtab",
+            "entries": 1
+          }
+        ],
+        "named_functions_count": 0,
+        "projectile_named_functions": [],
+        "named_function_examples": []
+      }
+    },
+    {
+      "path": "NETGUI/MODULES/EZMIDI.IRX",
+      "sector": 4515,
+      "size": 60804,
+      "sha256": "539ea6316e1004fd71491d08ac296ad7173297bd071bee4ce6cd4b5bebd11712",
+      "magic_hex": "7f454c46010101000000000000000000",
+      "format": "ELF",
+      "elf": {
+        "entry": "0x0",
+        "machine": 8,
+        "type": 65408,
+        "section_count": 13,
+        "symbol_tables": [
+          {
+            "section": ".symtab",
+            "entries": 126
+          }
+        ],
+        "named_functions_count": 27,
+        "projectile_named_functions": [],
+        "named_function_examples": [
+          {
+            "index": 16,
+            "name": "midiFunc",
+            "value": "0x16c",
+            "size": 724,
+            "type": 2,
+            "binding": 0,
+            "section_index": 2
+          },
+          {
+            "index": 19,
+            "name": "atick",
+            "value": "0x4a8",
+            "size": 228,
+            "type": 2,
+            "binding": 0,
+            "section_index": 2
+          },
+          {
+            "index": 24,
+            "name": "make_thread",
+            "value": "0x58c",
+            "size": 116,
+            "type": 2,
+            "binding": 0,
+            "section_index": 2
+          },
+          {
+            "index": 35,
+            "name": "set_timer",
+            "value": "0x600",
+            "size": 300,
+            "type": 2,
+            "binding": 1,
+            "section_index": 2
+          },
+          {
+            "index": 40,
+            "name": "sce_midi_loop",
+            "value": "0xd0",
+            "size": 156,
+            "type": 2,
+            "binding": 1,
+            "section_index": 2
+          },
+          {
+            "index": 42,
+            "name": "timer_handler",
+            "value": "0x440",
+            "size": 104,
+            "type": 2,
+            "binding": 1,
+            "section_index": 2
+          },
+          {
+            "index": 44,
+            "name": "clear_timer",
+            "value": "0x79c",
+            "size": 112,
+            "type": 2,
+            "binding": 1,
+            "section_index": 2
+          },
+          {
+            "index": 46,
+            "name": "MidiSetPortVolume",
+            "value": "0x1338",
+            "size": 84,
+            "type": 2,
+            "binding": 1,
+            "section_index": 2
+          },
+          {
+            "index": 49,
+            "name": "MidiSetHd",
+            "value": "0x1084",
+            "size": 512,
+            "type": 2,
+            "binding": 1,
+            "section_index": 2
+          },
+          {
+            "index": 54,
+            "name": "repeatCB",
+            "value": "0x8d8",
+            "size": 52,
+            "type": 2,
+            "binding": 1,
+            "section_index": 2
+          },
+          {
+            "index": 61,
+            "name": "MidiStop",
+            "value": "0x1574",
+            "size": 116,
+            "type": 2,
+            "binding": 1,
+            "section_index": 2
+          },
+          {
+            "index": 67,
+            "name": "stop_timer",
+            "value": "0x80c",
+            "size": 140,
+            "type": 2,
+            "binding": 1,
+            "section_index": 2
+          }
+        ]
+      }
+    },
+    {
+      "path": "NETGUI/MODULES/INET.IRX",
+      "sector": 4545,
+      "size": 141181,
+      "sha256": "4a8050574db8f8c77c67cd2c6f9027a11c9c35c75211b54013e271eae4468dcc",
+      "magic_hex": "7f454c46010101000000000000000000",
+      "format": "ELF",
+      "elf": {
+        "entry": "0x11ebc",
+        "machine": 8,
+        "type": 65408,
+        "section_count": 15,
+        "symbol_tables": [
+          {
+            "section": ".symtab",
+            "entries": 1
+          }
+        ],
+        "named_functions_count": 0,
+        "projectile_named_functions": [],
+        "named_function_examples": []
+      }
+    },
+    {
+      "path": "NETGUI/MODULES/INETCTL.IRX",
+      "sector": 4614,
+      "size": 24781,
+      "sha256": "b2d1de173972c66bd05c8a538587f4db299e8ac39d760fcff92d85edc1392529",
+      "magic_hex": "7f454c46010101000000000000000000",
+      "format": "ELF",
+      "elf": {
+        "entry": "0x3aac",
+        "machine": 8,
+        "type": 65408,
+        "section_count": 14,
+        "symbol_tables": [
+          {
+            "section": ".symtab",
+            "entries": 1
+          }
+        ],
+        "named_functions_count": 0,
+        "projectile_named_functions": [],
+        "named_function_examples": []
+      }
+    },
+    {
+      "path": "NETGUI/MODULES/IOPRP271.IMG",
+      "sector": 4627,
+      "size": 266817,
+      "sha256": "8d752d01d3dda7d418ae174ffe645787f4bf3fab4e035ca1c3300a0522ee22f1",
+      "magic_hex": "52455345540000000000080000000000",
+      "format": "non-ELF module/data container; not decoded"
+    },
+    {
+      "path": "NETGUI/MODULES/LIBSD.IRX",
+      "sector": 4758,
+      "size": 28605,
+      "sha256": "57cbd80b7c2f966985e14ca18c03e849e3b3eb1216f06a6f4c1e6ca85084ea37",
+      "magic_hex": "7f454c46010101000000000000000000",
+      "format": "ELF",
+      "elf": {
+        "entry": "0xb0",
+        "machine": 8,
+        "type": 65408,
+        "section_count": 12,
+        "symbol_tables": [
+          {
+            "section": ".symtab",
+            "entries": 1
+          }
+        ],
+        "named_functions_count": 0,
+        "projectile_named_functions": [],
+        "named_function_examples": []
+      }
+    },
+    {
+      "path": "NETGUI/MODULES/MCMAN.IRX",
+      "sector": 4772,
+      "size": 95877,
+      "sha256": "cdb1dfd12cb71f60d4834eb888dbbffeb6f6382e3bdffc1a50122034f7969b6b",
+      "magic_hex": "7f454c46010101000000000000000000",
+      "format": "ELF",
+      "elf": {
+        "entry": "0x178",
+        "machine": 8,
+        "type": 65408,
+        "section_count": 12,
+        "symbol_tables": [
+          {
+            "section": ".symtab",
+            "entries": 1
+          }
+        ],
+        "named_functions_count": 0,
+        "projectile_named_functions": [],
+        "named_function_examples": []
+      }
+    },
+    {
+      "path": "NETGUI/MODULES/MCSERV.IRX",
+      "sector": 4819,
+      "size": 7417,
+      "sha256": "42790c4999c9deb17bb0fe2ceb155d3b141adf059c3055e11039070be2a8a7a6",
+      "magic_hex": "7f454c46010101000000000000000000",
+      "format": "ELF",
+      "elf": {
+        "entry": "0x58",
+        "machine": 8,
+        "type": 65408,
+        "section_count": 11,
+        "symbol_tables": [
+          {
+            "section": ".symtab",
+            "entries": 1
+          }
+        ],
+        "named_functions_count": 0,
+        "projectile_named_functions": [],
+        "named_function_examples": []
+      }
+    },
+    {
+      "path": "NETGUI/MODULES/MODHSYN.IRX",
+      "sector": 4823,
+      "size": 59669,
+      "sha256": "2f93a4794d46df11a18d39563fb28e9fb523a9804964edb6f4241aa5c52bbe24",
+      "magic_hex": "7f454c46010101000000000000000000",
+      "format": "ELF",
+      "elf": {
+        "entry": "0x0",
+        "machine": 8,
+        "type": 65408,
+        "section_count": 12,
+        "symbol_tables": [
+          {
+            "section": ".symtab",
+            "entries": 1
+          }
+        ],
+        "named_functions_count": 0,
+        "projectile_named_functions": [],
+        "named_function_examples": []
+      }
+    },
+    {
+      "path": "NETGUI/MODULES/MODMIDI.IRX",
+      "sector": 4853,
+      "size": 21965,
+      "sha256": "c9d4378cc1c067382b416faf560dbfa51583879649479535846c7e10a50969a1",
+      "magic_hex": "7f454c46010101000000000000000000",
+      "format": "ELF",
+      "elf": {
+        "entry": "0x0",
+        "machine": 8,
+        "type": 65408,
+        "section_count": 12,
+        "symbol_tables": [
+          {
+            "section": ".symtab",
+            "entries": 1
+          }
+        ],
+        "named_functions_count": 0,
+        "projectile_named_functions": [],
+        "named_function_examples": []
+      }
+    },
+    {
+      "path": "NETGUI/MODULES/NETCNF.IRX",
+      "sector": 4864,
+      "size": 65805,
+      "sha256": "3c77d5567dc9403116e224d6e79b34be0bc7fa9d61cfd02183be714d3f39a6ad",
+      "magic_hex": "7f454c46010101000000000000000000",
+      "format": "ELF",
+      "elf": {
+        "entry": "0x334",
+        "machine": 8,
+        "type": 65408,
+        "section_count": 12,
+        "symbol_tables": [
+          {
+            "section": ".symtab",
+            "entries": 1
+          }
+        ],
+        "named_functions_count": 0,
+        "projectile_named_functions": [],
+        "named_function_examples": []
+      }
+    },
+    {
+      "path": "NETGUI/MODULES/NETCNFIF.IRX",
+      "sector": 4897,
+      "size": 19909,
+      "sha256": "b46ff77260358692cfdc75375567d8ede3c9ff9d4545fb227077d87c5e6c639b",
+      "magic_hex": "7f454c46010101000000000000000000",
+      "format": "ELF",
+      "elf": {
+        "entry": "0x35c",
+        "machine": 8,
+        "type": 65408,
+        "section_count": 12,
+        "symbol_tables": [
+          {
+            "section": ".symtab",
+            "entries": 1
+          }
+        ],
+        "named_functions_count": 0,
+        "projectile_named_functions": [],
+        "named_function_examples": []
+      }
+    },
+    {
+      "path": "NETGUI/MODULES/NTGUI2.IRX",
+      "sector": 4907,
+      "size": 31029,
+      "sha256": "b6ae31b6da142ab0d92026941887407b82f2e424999054823ffb29c7444dfb87",
+      "magic_hex": "7f454c46010101000000000000000000",
+      "format": "ELF",
+      "elf": {
+        "entry": "0x2f8",
+        "machine": 8,
+        "type": 65408,
+        "section_count": 13,
+        "symbol_tables": [
+          {
+            "section": ".symtab",
+            "entries": 1
+          }
+        ],
+        "named_functions_count": 0,
+        "projectile_named_functions": [],
+        "named_function_examples": []
+      }
+    },
+    {
+      "path": "NETGUI/MODULES/PADMAN.IRX",
+      "sector": 4923,
+      "size": 43813,
+      "sha256": "c11d3fffbca7f99f571299eddbbea3a77fa2d0614dbb22ee8f5a4f9a1c22d67f",
+      "magic_hex": "7f454c46010101000000000000000000",
+      "format": "ELF",
+      "elf": {
+        "entry": "0x3178",
+        "machine": 8,
+        "type": 65408,
+        "section_count": 12,
+        "symbol_tables": [
+          {
+            "section": ".symtab",
+            "entries": 1
+          }
+        ],
+        "named_functions_count": 0,
+        "projectile_named_functions": [],
+        "named_function_examples": []
+      }
+    },
+    {
+      "path": "NETGUI/MODULES/PPP.IRX",
+      "sector": 4945,
+      "size": 102285,
+      "sha256": "321dc00e786f7adc96db1d060c6c94f263eba3a100eee9cb9ae24fcde9d7e0da",
+      "magic_hex": "7f454c46010101000000000000000000",
+      "format": "ELF",
+      "elf": {
+        "entry": "0xea0c",
+        "machine": 8,
+        "type": 65408,
+        "section_count": 14,
+        "symbol_tables": [
+          {
+            "section": ".symtab",
+            "entries": 1
+          }
+        ],
+        "named_functions_count": 0,
+        "projectile_named_functions": [],
+        "named_function_examples": []
+      }
+    },
+    {
+      "path": "NETGUI/MODULES/PPPOE.IRX",
+      "sector": 4995,
+      "size": 17121,
+      "sha256": "55ad62d45ed4ad7cc989c377b329ecf7fbd562f5fd3a6029580c5694b9292dee",
+      "magic_hex": "7f454c46010101000000000000000000",
+      "format": "ELF",
+      "elf": {
+        "entry": "0x2388",
+        "machine": 8,
+        "type": 65408,
+        "section_count": 13,
+        "symbol_tables": [
+          {
+            "section": ".symtab",
+            "entries": 1
+          }
+        ],
+        "named_functions_count": 0,
+        "projectile_named_functions": [],
+        "named_function_examples": []
+      }
+    },
+    {
+      "path": "NETGUI/MODULES/SDRDRV.IRX",
+      "sector": 5004,
+      "size": 8065,
+      "sha256": "37b615869fed71ec90760543d83170dc7b7608142a4117d665a0cfbe78c3cc52",
+      "magic_hex": "7f454c46010101000000000000000000",
+      "format": "ELF",
+      "elf": {
+        "entry": "0x0",
+        "machine": 8,
+        "type": 65408,
+        "section_count": 11,
+        "symbol_tables": [
+          {
+            "section": ".symtab",
+            "entries": 1
+          }
+        ],
+        "named_functions_count": 0,
+        "projectile_named_functions": [],
+        "named_function_examples": []
+      }
+    },
+    {
+      "path": "NETGUI/MODULES/SIO2MAN.IRX",
+      "sector": 5008,
+      "size": 6641,
+      "sha256": "0facd5a832d3114c3477ded714f8766d443705a1440deeb84c59927cf0b6968e",
+      "magic_hex": "7f454c46010101000000000000000000",
+      "format": "ELF",
+      "elf": {
+        "entry": "0x634",
+        "machine": 8,
+        "type": 65408,
+        "section_count": 11,
+        "symbol_tables": [
+          {
+            "section": ".symtab",
+            "entries": 1
+          }
+        ],
+        "named_functions_count": 0,
+        "projectile_named_functions": [],
+        "named_function_examples": []
+      }
+    },
+    {
+      "path": "NETGUI/MODULES/SMAP.IRX",
+      "sector": 5012,
+      "size": 16977,
+      "sha256": "feb9e7c0909c7f4c53bfc0a8dc7ca1141ff3cbe8fcf2491738fd68399f41b009",
+      "magic_hex": "7f454c46010101000000000000000000",
+      "format": "ELF",
+      "elf": {
+        "entry": "0x272c",
+        "machine": 8,
+        "type": 65408,
+        "section_count": 13,
+        "symbol_tables": [
+          {
+            "section": ".symtab",
+            "entries": 1
+          }
+        ],
+        "named_functions_count": 0,
+        "projectile_named_functions": [],
+        "named_function_examples": []
+      }
+    },
+    {
+      "path": "NETGUI/MODULES/SPDUART.IRX",
+      "sector": 5021,
+      "size": 18105,
+      "sha256": "bd6e2d991fa059d70f78aa3cf760202bf6e27767936ffcc7e83b581c37673e05",
+      "magic_hex": "7f454c46010101000000000000000000",
+      "format": "ELF",
+      "elf": {
+        "entry": "0x19d4",
+        "machine": 8,
+        "type": 65408,
+        "section_count": 14,
+        "symbol_tables": [
+          {
+            "section": ".symtab",
+            "entries": 1
+          }
+        ],
+        "named_functions_count": 0,
+        "projectile_named_functions": [],
+        "named_function_examples": []
+      }
+    },
+    {
+      "path": "NETGUI/MODULES/USBD.IRX",
+      "sector": 5030,
+      "size": 34969,
+      "sha256": "f0e882517547bd689051950eb323f861b70eef8662ed2cac50533ae3cc93c564",
+      "magic_hex": "7f454c46010101000000000000000000",
+      "format": "ELF",
+      "elf": {
+        "entry": "0x4cc4",
+        "machine": 8,
+        "type": 65408,
+        "section_count": 14,
+        "symbol_tables": [
+          {
+            "section": ".symtab",
+            "entries": 1
+          }
+        ],
+        "named_functions_count": 0,
+        "projectile_named_functions": [],
+        "named_function_examples": []
+      }
+    },
+    {
+      "path": "NETGUI/MODULES/USBKB.IRX",
+      "sector": 5048,
+      "size": 12853,
+      "sha256": "fa42d528dc19f8d93847f76fac865664a915c872e450027832451d8d28e577df",
+      "magic_hex": "7f454c46010101000000000000000000",
+      "format": "ELF",
+      "elf": {
+        "entry": "0x0",
+        "machine": 8,
+        "type": 65408,
+        "section_count": 12,
+        "symbol_tables": [
+          {
+            "section": ".symtab",
+            "entries": 1
+          }
+        ],
+        "named_functions_count": 0,
+        "projectile_named_functions": [],
+        "named_function_examples": []
+      }
+    },
+    {
+      "path": "NETGUI/UCS2JIS.BIN",
+      "sector": 8956,
+      "size": 131072,
+      "sha256": "349e34b8841c6429a4c973c43545ac32496a50cf08a5ad5fd03b3cd27c1e11b0",
+      "magic_hex": "00000100020003000400050006000700",
+      "format": "non-ELF module/data container; not decoded"
+    },
+    {
+      "path": "OVERLAY/REL/DNAS.BIN",
+      "sector": 2781,
+      "size": 667136,
+      "sha256": "b205b68251723e554bc34a6afe5ef5cb37df2a688b0bcdd660c4f3f2845edafd",
+      "magic_hex": "4d576f330200000080534c00c0400800",
+      "format": "MWo3 overlay container; header layout not fully decoded",
+      "first_40_bytes_u32le": [
+        {
+          "offset": 0,
+          "value": "0x336f574d"
+        },
+        {
+          "offset": 4,
+          "value": "0x2"
+        },
+        {
+          "offset": 8,
+          "value": "0x4c5380"
+        },
+        {
+          "offset": 12,
+          "value": "0x840c0"
+        },
+        {
+          "offset": 16,
+          "value": "0x1ed00"
+        },
+        {
+          "offset": 20,
+          "value": "0x91f80"
+        },
+        {
+          "offset": 24,
+          "value": "0x568180"
+        },
+        {
+          "offset": 28,
+          "value": "0x568180"
+        },
+        {
+          "offset": 32,
+          "value": "0x53414e44"
+        },
+        {
+          "offset": 36,
+          "value": "0x6e69622e"
+        }
+      ],
+      "named_references": [
+        {
+          "offset": 32,
+          "value": "DNAS.bin"
+        },
+        {
+          "offset": 540928,
+          "value": "PsIIdnas2no 271mDnAsusfermat20030513104347"
+        },
+        {
+          "offset": 608490,
+          "value": "DNAS CA1)0'"
+        },
+        {
+          "offset": 649152,
+          "value": "zlib compression"
+        },
+        {
+          "offset": 649184,
+          "value": "run length compression"
+        }
+      ]
+    },
+    {
+      "path": "SCUS_972.75",
+      "sector": 1597,
+      "size": 874792,
+      "sha256": "0172dc0bec19c83d1fe2d0fec0a290f41cc5d32efa14ed6859ca92773c05346c",
+      "magic_hex": "7f454c46010101000000000000000000",
+      "format": "ELF",
+      "elf": {
+        "entry": "0x180008",
+        "machine": 8,
+        "type": 2,
+        "section_count": 11,
+        "symbol_tables": [
+          {
+            "section": ".symtab",
+            "entries": 0
+          }
+        ],
+        "named_functions_count": 0,
+        "projectile_named_functions": [],
+        "named_function_examples": []
+      },
+      "program_headers": [
+        {
+          "index": 0,
+          "type": 1,
+          "file_offset": 256,
+          "file_bytes": 873984,
+          "virtual_address": "0x100000",
+          "memory_bytes": 943744,
+          "end_address_exclusive": "0x1e6680",
+          "executable": true,
+          "flags": 7
+        },
+        {
+          "index": 1,
+          "type": 1,
+          "file_offset": 874240,
+          "file_bytes": 0,
+          "virtual_address": "0x1e7000",
+          "memory_bytes": 2941824,
+          "end_address_exclusive": "0x4b5380",
+          "executable": true,
+          "flags": 7
+        },
+        {
+          "index": 2,
+          "type": 1,
+          "file_offset": 874240,
+          "file_bytes": 0,
+          "virtual_address": "0x4c5380",
+          "memory_bytes": 1265024,
+          "end_address_exclusive": "0x5fa100",
+          "executable": true,
+          "flags": 7
+        },
+        {
+          "index": 3,
+          "type": 1,
+          "file_offset": 874240,
+          "file_bytes": 0,
+          "virtual_address": "0x4c5380",
+          "memory_bytes": 1842176,
+          "end_address_exclusive": "0x686f80",
+          "executable": true,
+          "flags": 7
+        },
+        {
+          "index": 4,
+          "type": 1,
+          "file_offset": 874240,
+          "file_bytes": 0,
+          "virtual_address": "0x686f80",
+          "memory_bytes": 0,
+          "end_address_exclusive": "0x686f80",
+          "executable": false,
+          "flags": 6
+        }
+      ],
+      "payload_prefix_before_entry": {
+        "file_offset": 256,
+        "bytes": 524288,
+        "all_zero": true
+      },
+      "compiler_comment": "MW MIPS C Compiler (2.4.1.01)\u0000PlayStation2\u0000",
+      "named_references": [
+        {
+          "offset": 869496,
+          "value": "DNAS271.IMG"
+        },
+        {
+          "offset": 869680,
+          "value": "BASCUS-97275SOCOMII"
+        },
+        {
+          "offset": 869744,
+          "value": "host0:./OVERLAY/REL/"
+        },
+        {
+          "offset": 869768,
+          "value": "DNAS.BIN"
+        },
+        {
+          "offset": 869792,
+          "value": "cdrom0:\\OVERLAY\\REL\\"
+        },
+        {
+          "offset": 869920,
+          "value": "cdrom0:\\SCUS_972.75;1"
+        },
+        {
+          "offset": 870400,
+          "value": "unknown compression method"
+        }
+      ]
+    },
+    {
+      "path": "SCUSNGUI.ELF",
+      "sector": 5055,
+      "size": 4239480,
+      "sha256": "82bbf0943141025e1bc746a2cae65a84e0e75c539e837e158a4003ec39ed63b1",
+      "magic_hex": "7f454c46010101000000000000000000",
+      "format": "ELF",
+      "elf": {
+        "entry": "0x100008",
+        "machine": 8,
+        "type": 2,
+        "section_count": 21,
+        "symbol_tables": [],
+        "named_functions_count": 0,
+        "projectile_named_functions": [],
+        "named_function_examples": []
+      },
+      "program_headers": [
+        {
+          "index": 0,
+          "type": 1879048192,
+          "file_offset": 756720,
+          "file_bytes": 24,
+          "virtual_address": "0x1b7bf0",
+          "memory_bytes": 24,
+          "end_address_exclusive": "0x1b7c08",
+          "executable": false,
+          "flags": 4
+        },
+        {
+          "index": 1,
+          "type": 1,
+          "file_offset": 4096,
+          "file_bytes": 752648,
+          "virtual_address": "0x100000",
+          "memory_bytes": 752648,
+          "end_address_exclusive": "0x1b7c08",
+          "executable": true,
+          "flags": 7
+        },
+        {
+          "index": 2,
+          "type": 1,
+          "file_offset": 756864,
+          "file_bytes": 3479668,
+          "virtual_address": "0x1b7c80",
+          "memory_bytes": 15660440,
+          "end_address_exclusive": "0x10a7218",
+          "executable": false,
+          "flags": 6
+        }
+      ],
+      "named_references": [
+        {
+          "offset": 4017592,
+          "value": "cdrom0:\\NETGUI\\BG.RGB;1"
+        },
+        {
+          "offset": 4017999,
+          "value": "vcdrom0:\\NETGUI\\FRANCE.RGB;1"
+        },
+        {
+          "offset": 4018032,
+          "value": "cdrom0:\\NETGUI\\GERMANY.RGB;1"
+        },
+        {
+          "offset": 4018064,
+          "value": "cdrom0:\\NETGUI\\ITALY.RGB;1"
+        },
+        {
+          "offset": 4018096,
+          "value": "cdrom0:\\NETGUI\\JAPAN.RGB;1"
+        },
+        {
+          "offset": 4018128,
+          "value": "cdrom0:\\NETGUI\\KOREA.RGB;1"
+        },
+        {
+          "offset": 4018160,
+          "value": "cdrom0:\\NETGUI\\SPAIN.RGB;1"
+        },
+        {
+          "offset": 4018192,
+          "value": "cdrom0:\\NETGUI\\MODULES\\IOPRP271.IMG;1"
+        },
+        {
+          "offset": 4018232,
+          "value": "cdrom0:\\NETGUI\\MODULES\\SIO2MAN.IRX;1"
+        },
+        {
+          "offset": 4018272,
+          "value": "cdrom0:\\NETGUI\\MODULES\\PADMAN.IRX;1"
+        },
+        {
+          "offset": 4018312,
+          "value": "cdrom0:\\NETGUI\\MODULES\\MCMAN.IRX;1"
+        },
+        {
+          "offset": 4018352,
+          "value": "cdrom0:\\NETGUI\\MODULES\\MCSERV.IRX;1"
+        },
+        {
+          "offset": 4018392,
+          "value": "cdrom0:\\NETGUI\\MODULES\\INET.IRX;1"
+        },
+        {
+          "offset": 4018432,
+          "value": "cdrom0:\\NETGUI\\MODULES\\NETCNF.IRX;1"
+        },
+        {
+          "offset": 4018472,
+          "value": "cdrom0:\\NETGUI\\MODULES\\INETCTL.IRX;1"
+        },
+        {
+          "offset": 4018512,
+          "value": "cdrom0:\\NETGUI\\MODULES\\PPP.IRX;1"
+        },
+        {
+          "offset": 4018552,
+          "value": "cdrom0:\\NETGUI\\MODULES\\PPPOE.IRX;1"
+        },
+        {
+          "offset": 4018592,
+          "value": "cdrom0:\\NETGUI\\MODULES\\NTGUI2.IRX;1"
+        },
+        {
+          "offset": 4018632,
+          "value": "cdrom0:\\NETGUI\\MODULES\\DEV9.IRX;1"
+        },
+        {
+          "offset": 4018672,
+          "value": "cdrom0:\\NETGUI\\MODULES\\SMAP.IRX;1"
+        },
+        {
+          "offset": 4018712,
+          "value": "cdrom0:\\NETGUI\\MODULES\\SPDUART.IRX;1"
+        },
+        {
+          "offset": 4018752,
+          "value": "cdrom0:\\NETGUI\\MODULES\\USBD.IRX;1"
+        },
+        {
+          "offset": 4018792,
+          "value": "cdrom0:\\NETGUI\\MODULES\\AN986.IRX;1"
+        },
+        {
+          "offset": 4018832,
+          "value": "cdrom0:\\NETGUI\\MODULES\\USBKB.IRX;1"
+        },
+        {
+          "offset": 4018872,
+          "value": "cdrom0:\\NETGUI\\MODULES\\LIBSD.IRX;1"
+        },
+        {
+          "offset": 4018912,
+          "value": "cdrom0:\\NETGUI\\MODULES\\SDRDRV.IRX;1"
+        },
+        {
+          "offset": 4018952,
+          "value": "cdrom0:\\NETGUI\\MODULES\\MODHSYN.IRX;1"
+        },
+        {
+          "offset": 4018992,
+          "value": "cdrom0:\\NETGUI\\MODULES\\MODMIDI.IRX;1"
+        },
+        {
+          "offset": 4019032,
+          "value": "cdrom0:\\NETGUI\\MODULES\\EZMIDI.IRX;1"
+        },
+        {
+          "offset": 4019072,
+          "value": "cdrom0:\\NETGUI\\JIS2UCS.BIN;1"
+        },
+        {
+          "offset": 4019104,
+          "value": "cdrom0:\\NETGUI\\UCS2JIS.BIN;1"
+        },
+        {
+          "offset": 4019136,
+          "value": "cdrom0:\\NETGUI\\SAMPLE.PF;1"
+        },
+        {
+          "offset": 4019168,
+          "value": "cdrom0:\\NETGUI\\EFF.HD;1"
+        },
+        {
+          "offset": 4019192,
+          "value": "cdrom0:\\NETGUI\\EFF.BD;1"
+        },
+        {
+          "offset": 4019416,
+          "value": "cdrom0:\\NETGUI\\MODULES\\LIBSD.IRX;1"
+        },
+        {
+          "offset": 4019456,
+          "value": "cdrom0:\\NETGUI\\MODULES\\989MINI.IRX;1"
+        },
+        {
+          "offset": 4019520,
+          "value": "cdrom0:\\NETGUI\\NGSHELL.BNK"
+        },
+        {
+          "offset": 4236597,
+          "value": ".DVP.overlay..0x0.440771.26.0"
+        },
+        {
+          "offset": 4236627,
+          "value": ".DVP.overlay..0x0.440771.35.1"
+        },
+        {
+          "offset": 4238580,
+          "value": ".DVP.overlay..0x0.440771.26.0"
+        },
+        {
+          "offset": 4238610,
+          "value": ".DVP.overlay..0x0.440771.35.1"
+        }
+      ]
+    }
+  ],
+  "sampled_archives": [
+    {
+      "path": "RUN/READERC.ZAR",
+      "sha256": "1b7df1c9732d4d9be0c9ce49de342cd9b552f0d41269dc486be0075e62db9123",
+      "entry_count": 55,
+      "executable_named_entries": [],
+      "weapon_named_entries": []
+    },
+    {
+      "path": "RUN/ZWEAPON.ZAR",
+      "sha256": "496d80a9dbb12e288465fe2ee45744cc53a3450fa97bf912cfc98c5c54c74372",
+      "entry_count": 1,
+      "executable_named_entries": [],
+      "weapon_named_entries": [
+        {
+          "name": "zweapon.rdr",
+          "offset": 144,
+          "size": 105816
+        }
+      ]
+    },
+    {
+      "path": "RUN/MP1.ZDB",
+      "sha256": "6829bd96bb56fd4efa8df1898c5084599373ca55db13b20eeca0796cf8862823",
+      "entry_count": 53,
+      "executable_named_entries": [],
+      "weapon_named_entries": [
+        {
+          "name": "RUN\\COMMON\\WEAP_TXR.ZED",
+          "offset": 2310144,
+          "size": 172704
+        },
+        {
+          "name": "RUN\\COMMON\\WEAP_PAL.ZED",
+          "offset": 2484224,
+          "size": 30464
+        },
+        {
+          "name": "RUN\\COMMON\\WEAP_GEO.ZED",
+          "offset": 2514944,
+          "size": 94048
+        },
+        {
+          "name": "RUN\\COMMON\\WEAP_MDL.ZED",
+          "offset": 6090752,
+          "size": 960784
+        }
+      ]
+    },
+    {
+      "path": "RUN/M51.ZDB",
+      "sha256": "6ab8321ee73eddd66b72ede44ab4103f5ef2546474d84bee8ba3f52cc0fa7baf",
+      "entry_count": 76,
+      "executable_named_entries": [],
+      "weapon_named_entries": [
+        {
+          "name": "RUN\\COMMON\\WEAP_TXR.ZED",
+          "offset": 6062080,
+          "size": 172704
+        },
+        {
+          "name": "RUN\\COMMON\\WEAP_PAL.ZED",
+          "offset": 6236160,
+          "size": 30464
+        },
+        {
+          "name": "RUN\\COMMON\\WEAP_GEO.ZED",
+          "offset": 6266880,
+          "size": 94048
+        },
+        {
+          "name": "RUN\\COMMON\\WEAP_MDL.ZED",
+          "offset": 11345920,
+          "size": 960784
+        }
+      ]
+    },
+    {
+      "path": "RUN/RAW/APACHE00.ZDB",
+      "sha256": "9f9bab21544d02d5040a0f30af82de902d55cae66a4d255dfc93ecd62315e044",
+      "entry_count": 2,
+      "executable_named_entries": [
+        {
+          "name": "ftscore",
+          "offset": 344,
+          "size": 855920
+        },
+        {
+          "name": "zsealetc",
+          "offset": 856264,
+          "size": 691792
+        }
+      ],
+      "weapon_named_entries": []
+    }
+  ],
+  "embedded_modules": [
+    {
+      "name": "ftscore",
+      "offset": 344,
+      "size": 855920,
+      "archive": "RUN/RAW/APACHE00.ZDB",
+      "sha256": "7aa530a801f05872319a9fd4475b10bc7ddbd5150ae2fc0f736e87ff65f9a000",
+      "prefix_96_bytes_hex": "83f4060a3de2bae49206656964eb851a69442187fb4d9fe4d827c26f4c0ef768d7e7868e8f786e19db5a5d0a47d78218558912aa46354263f8ff7305918b6fbec6b14681e92936a04b9af0b12b1a212829706781645778229dbb65b01ec0dffb",
+      "is_plain_elf": false,
+      "is_plain_mwo3": false,
+      "named_references": [],
+      "status": "Named runtime-code candidate; wrapped payload, decoding/loading not established. Not claimed to contain a located projectile routine."
+    },
+    {
+      "name": "zsealetc",
+      "offset": 856264,
+      "size": 691792,
+      "archive": "RUN/RAW/APACHE00.ZDB",
+      "sha256": "647055ef609e8f07b9e1a8c39624dc48fa770fd900c82fcdf9dc41ad2fa69dc4",
+      "prefix_96_bytes_hex": "83f4060a3de2bae49206656964eb851a69442187fb4d9fe4d827c26f4c0ef768d7e7868e8f786e19db5a5d0a47d78218558912aa46354263f8ff7305918b6fbec6b14681e92936a04b9af0b12b1a212829706781645778229dbb65b01ec0dffb",
+      "is_plain_elf": false,
+      "is_plain_mwo3": false,
+      "named_references": [],
+      "status": "Named runtime-code candidate; wrapped payload, decoding/loading not established. Not claimed to contain a located projectile routine."
+    }
+  ],
+  "limits": [
+    "Only five named gameplay/data archives inspected internally; no claim that every disc payload is exhaustively decoded.",
+    "MWo3 numeric header words and strings are evidence, not a recovered relocation/compression loader.",
+    "Reserved executable virtual memory is not proof of which subsystem fills it.",
+    "IOP/network GUI symbols do not establish EE gameplay projectile functions."
+  ]
+}

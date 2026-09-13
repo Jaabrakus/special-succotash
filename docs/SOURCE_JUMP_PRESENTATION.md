@@ -1,5 +1,36 @@
 # Source jump presentation
 
+## Moving jump revision
+
+Player intent: use the decoded SOCOM II running jump, not a partial launch followed by standing air. Acceptance: moving jumps select the copied running launch, running air and matched landing through the canonical driver; standing jumps remain unchanged. Owner: SocomOperatorAnimationDriver. Protect physics, camera, weapons, networking and traversal rules. Focused proof: provenance/rotation samples, phase seams and canonical AK/M4/Mark23 renders.
+
+The project has no separate sprint command. Moving takeoff copies `seal_runningjump_launch` via `jump_up.tres` at source seconds 0–0.8 into `jump_coherent_run.tres`. Descent copies `seal_runningjump_in_air` via `jump_loop.tres` at 0–0.43333333 into `jump_running_air.tres`. Its first 20% blends from the launch endpoint. `jump_running_land.tres` copies `seal_land_soft` at 0–0.6, blending its first half from running air. Closure samples are excluded. Standing takeoff/air/landing remain separate, including pistols. Both saved animation maps match. Original source takes, body trajectory and grip owner remain unchanged. This is adapted source motion, not exact original timing.
+
+REPLACE the partial running/standing-air mix. Scores correctness/ownership/runtime parity/editor usability/performance/coverage: previous 2/5/5/4/4/3, copied running sequence 4/5/5/4/4/5. Evidence: builder source windows, timeline's latched running route, both saved maps and source-jump regression.
+
+Verification: `source_jump_regression` and all 121 feature contracts pass. Canonical rendered AK/M4/Mark23 standing/running fixture passes (`/private/tmp/running-copy-visual.json`); sampled running side poses were inspected. An initial rotation-copy assertion compared unnormalized interpolated quaternions and failed; comparing normalized saved keys to normalized source samples passes without changing assets or tolerance. Original-game timing parity remains unverified. Browser ZIP was not rebuilt. Aggregate integration is still blocked by the main-only gate on `codex/render-deployment`.
+
+## Coherent source copy — September 11
+
+Player intent: replace the visibly mismatched running launch/air/landing poses,
+not only fix jump input or hip translation. Owner: existing animation driver.
+Protect movement, aim, weapons, climb controls and networking. Proof: copied
+phase seams, main-scene standing/running AK/M4/Mark23 renders and grip checks.
+
+`tools/build_coherent_source_jump.gd` copies decoded `seal_jump` through the
+existing `jump_up_standing.tres`: takeoff 0.23333333–0.4s, air 0.4–0.6333333s.
+This earlier revision used those segments for both routes; the moving revision above supersedes it. Standing landing copies `seal_land_soft` 0–0.6s and blends its first half from
+the preceding air endpoint. Originals remain untouched. Generated assets keep
+source provenance and non-looping metadata; otherwise the loader's looping
+hip-yaw sanitizer would change the seam. Body physics still drives normalized
+phase time. This is an adapted source copy, not original SOCOM timing parity.
+
+REPLACE phase assets: old mixed source phases score 2/5/5/4/4/3 for correctness,
+ownership, runtime parity, editor usability, performance and regression coverage.
+Contiguous copied phases with tested rotation seams score 4/5/5/4/4/5. Evidence:
+the builder, both saved animation maps and `tools/source_jump_regression.gd`.
+Existing takeoff hip anchor and support-hand contact policy remain in place.
+
 ## Translation card
 
 Player intent: a coherent takeoff, airborne and landing sequence with a stable held weapon, without manual clip debugging. Acceptance: one takeoff selection per jump; source playheads follow the actual airborne/landing phases rather than clipping a long take at a velocity threshold; no artificial closing-frame rewind; no support arm stretching or ownership pop during main AK/M4/pistol jump entry and recovery. Animation remains presentation only. Owner: existing SocomOperatorAnimationDriver and its AnimationTree/weapon presentation pass. Protect CharacterBody trajectory/collision and recovery permissions, camera/reticle, server shots/damage, networking, standing ready/fire, normal pistol hybrid, dive/roll/reload/grenade. Proof: focused main-scene jump probe, timeline regression, existing ready/fire/pistol/mobility regressions and feature contract gate. No user game restart or browser export.

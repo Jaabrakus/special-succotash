@@ -1,0 +1,22 @@
+COMMAND: /Users/kiwimango/Applications/Godot-4.7.1.app/Contents/MacOS/Godot --headless -s tools/test_dynamic_hand_owned_weapon.gd
+EXIT_CODE: 0
+DURATION: 2.79s
+
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+DYNAMIC_HAND_OWNERSHIP_CHECK PASS playground loads
+DYNAMIC_HAND_OWNERSHIP_CHECK PASS live weapon pose path is available
+DYNAMIC_HAND_OWNERSHIP_CHECK PASS weapon exposes its authored barrel and trigger grip
+DYNAMIC_HAND_OWNERSHIP_CHECK PASS ready solver owns the rifle while preserving the authored base pose
+DYNAMIC_HAND_OWNERSHIP_AIM initial=(0.0, 0.0, -1.0) aimed=(-0.394655, -0.241922, -0.886409) yaw=0.00 pitch=0.00 wrist=0.00 aim_error=0.00 weight=1.000
+DYNAMIC_HAND_OWNERSHIP_DIRECTIONS initial_barrel=(0.0, 0.0, -1.0) aimed_barrel=(-0.394653, -0.241923, -0.88641) target=(-0.394655, -0.241922, -0.886409) alignment_error_deg=0.00
+DYNAMIC_HAND_OWNERSHIP_METRIC barrel_rotation_deg=27.57 hand_rotation_deg=27.73 grip_position_error=0.00004 grip_relationship_error_deg=0.00 trigger_rotation_error_deg=0.00 trigger=0.00004 support=0.00019
+DYNAMIC_HAND_OWNERSHIP_CHECK PASS rifle barrel responds to yaw and pitch
+DYNAMIC_HAND_OWNERSHIP_CHECK PASS rifle barrel finishes on the requested aim line
+DYNAMIC_HAND_OWNERSHIP_CHECK PASS right hand rotates dynamically with the rifle
+DYNAMIC_HAND_OWNERSHIP_CHECK PASS rifle trigger grip remains position-attached to the right palm
+DYNAMIC_HAND_OWNERSHIP_CHECK PASS right hand preserves the saved grip orientation while the rifle turns
+DYNAMIC_HAND_OWNERSHIP_CHECK PASS trigger wrist finishes on the saved grip basis
+DYNAMIC_HAND_OWNERSHIP_CHECK PASS trigger hand remains on its saved grip
+DYNAMIC_HAND_OWNERSHIP_CHECK PASS left hand follows the moving support grip
+DYNAMIC_HAND_OWNERSHIP_REGRESSION PASS

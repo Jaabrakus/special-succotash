@@ -44,6 +44,8 @@ func configure(player_node: Node, controller: Node) -> void:
 			weapon_controller.disconnect("ammo_changed", previous_callback)
 	player = player_node
 	weapon_controller = controller
+	if weapon_controller != null and "reload_coordinator" in weapon_controller:
+		weapon_controller.set("reload_coordinator", self)
 	if weapon_controller != null and weapon_controller.has_method("set_reload_locked"):
 		weapon_controller.call("set_reload_locked", false)
 	if player != null and player.has_signal("mobility_action_started"):
@@ -86,7 +88,11 @@ func _request_auto_reload() -> void:
 		_set_auto_reload_waiting(true)
 		return
 	_set_auto_reload_waiting(false)
-	request_reload()
+	# A safe movement state does not guarantee the presentation route is ready.
+	# Retain the empty-magazine request until an animation accepts it; no ammo
+	# transaction or trigger lock begins before that acceptance.
+	if not request_reload():
+		_set_auto_reload_waiting(true)
 
 
 func _physics_process(_delta: float) -> void:
@@ -97,17 +103,44 @@ func _physics_process(_delta: float) -> void:
 
 
 func _on_mobility_action_started(state_name: StringName) -> void:
-	# Reload is an upper-body timeline. Movement never cancels it.
-	pass
+	if state_name in [&"DIVING", &"ROLLING"]:
+		cancel_for_mobility()
 
 
 func _on_mobility_action_requested(state_name: StringName) -> void:
-	# Reload is an upper-body timeline. Movement never cancels it.
-	pass
+	if state_name in [&"DIVING", &"ROLLING"]:
+		cancel_for_mobility()
+
+
+func cancel_for_mobility() -> bool:
+	if not pending or ammo_committed:
+		return false
+	if animation_driver != null and animation_driver.has_method("cancel_reload_action"):
+		var cancelled := bool(animation_driver.call("cancel_reload_action"))
+		return cancelled and not pending
+	generation += 1
+	_disconnect_driver_signals()
+	_set_pending(false)
+	return true
+
+
+func cancel_for_swap() -> bool:
+	if not pending or ammo_committed:
+		return false
+	if animation_driver != null and animation_driver.has_method("cancel_reload_action"):
+		var cancelled := bool(animation_driver.call("cancel_reload_action"))
+		return cancelled and not pending
+	generation += 1
+	_disconnect_driver_signals()
+	_set_pending(false)
+	return true
 
 
 func request_reload() -> bool:
 	if player == null or pending or not _player_allows_reload_start():
+		return false
+	if weapon_controller == null or not weapon_controller.has_method("can_reload") \
+			or not bool(weapon_controller.call("can_reload")):
 		return false
 	if player.has_method("play_socom_action") and player.get_node_or_null("Mannequin") == null:
 		var played := bool(player.call("play_socom_action", &"reload"))
@@ -190,7 +223,7 @@ func _player_allows_reload_start() -> bool:
 	var movement_state := &""
 	if player.has_method("get_motion_state_name"):
 		movement_state = StringName(player.call("get_motion_state_name"))
-	if movement_state in [&"AIRBORNE", &"LANDING"]:
+	if movement_state in [&"AIRBORNE", &"LANDING", &"DIVING", &"ROLLING"]:
 		return false
 	return not (player is CharacterBody3D) or (player as CharacterBody3D).is_on_floor()
 

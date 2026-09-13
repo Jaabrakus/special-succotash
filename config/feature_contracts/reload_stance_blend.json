@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "feature_id": "reload_stance_blend",
+  "player_intent": "Keep prone firing arms stable and smoothly change reload presentation when rising to crouch without restarting ammunition timing.",
+  "acceptance_rule": "The existing animation tree blends to the equipped weapon's current-stance reload at the accepted reload's normalized progress in 0.32 seconds. A third stance waits for the current handoff to finish before reusing its invisible source, then blends to the latest requested stance; reversals reuse existing sources immediately. Each accepted reload resets both seeks and its sampled phase. A rejected automatic reload animation remains queued until accepted or no longer eligible. The original action, duration and ammunition commit remain unchanged. Prone fire does not overwrite planted arm and forearm tracks.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://gun_calibration_lab_2.tscn",
+  "ownership": {"animation": "OperatorAnimationTree"},
+  "nodes": [{"id":"reload_pose", "type":"AnimationTree", "role":"Existing animation tree owns reload crossfade and prone fire bone filtering.", "owner":"OperatorAnimationTree", "source_script":"res://scripts/player/operator_locomotion_blend_tree.gd", "code_symbols":["active_reload_pose", "_configure_fire_filter"]}],
+  "data_contracts": [{"path":"res://config/reload_stance_blend.json", "writer":"res://config/reload_stance_blend.json", "readers":["res://scripts/player/operator_reload_stance_blend.gd", "res://scripts/player/operator_locomotion_blend_tree.gd"]}],
+  "must_not_change": ["CharacterBody3D movement", "camera and reticle aim intent", "server shot and damage authority", "reload transaction duration and ammunition commit", "weapon socket ownership", "source animation assets"],
+  "proof_scripts": ["res://tools/prone_reload_transition_smoothing_regression.gd", "res://tools/gameplay_reload_completion_regression.gd", "res://tools/seal_combat_pose_regression.gd", "res://tools/reload_handoff_regression.gd", "res://tools/reload_start_retry_regression.gd"],
+  "visual_check": "Observe prone firing, then reload and rise to crouch: support elbows stay controlled and the reload changes body frame without an upward rifle snap.",
+  "system_delta": {
+    "decision":"MERGE",
+    "reason":"MERGE bounded reload resets, invisible-source replacement and retry of rejected automatic starts into existing owners. Regression reproduced stale phase/seeks; three distinct loaded clips cover replacement of a contributing source. The combat regression also exposed a disabled jump layer incorrectly bound as active, aborting presentation updates before reload processing; initialize it only when enabled and available. No movement, aim or ammunition timing changes.",
+    "current":{"system":"Two-source stance blend with stale start seeks and dropped auto-start rejection", "correctness":2, "ownership_clarity":5, "runtime_parity":5, "editor_usability":3, "performance":5, "regression_coverage":3, "evidence_paths":["res://scripts/player/operator_reload_stance_blend.gd", "res://scripts/runtime/weapon_reload_coordinator.gd"]},
+    "candidate":{"system":"Resettable phase-matched blend with deferred third pose and retained automatic request", "correctness":4, "ownership_clarity":5, "runtime_parity":5, "editor_usability":3, "performance":4, "regression_coverage":4, "evidence_paths":["res://scripts/player/operator_reload_stance_blend.gd", "res://scripts/runtime/weapon_reload_coordinator.gd", "res://tools/reload_handoff_regression.gd", "res://tools/reload_start_retry_regression.gd"]}
+  }
+}

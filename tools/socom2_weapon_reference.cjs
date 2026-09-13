@@ -75,4 +75,4 @@ function extract(iso) {
     status:'Exact numeric settings; executable equations and screen-unit conversion are not recovered',weapons};
 }
 if(require.main===module){assert(process.argv[2],'usage: node tools/socom2_weapon_reference.cjs path/to/game.iso');console.log(JSON.stringify(extract(process.argv[2]),null,2));}
-module.exports={extract,reader,pairs};
+module.exports={extract,reader,pairs,isoFile};

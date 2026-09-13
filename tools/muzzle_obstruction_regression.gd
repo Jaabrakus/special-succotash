@@ -38,6 +38,10 @@ func _run() -> void:
 	if shooter == null or target == null or ballistics == null:
 		_finish(slice)
 		return
+	# Exercise the original damage path through the actual authoritative shot
+	# handler, not only an isolated receiver or whichever random gun spawned.
+	var source_config: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://config/weapons/m4a1.json"))
+	slice.call("_apply_ballistics_profile", ballistics, source_config)
 
 	slice.round_active = true
 	ballistics.shot_fired.connect(_on_server_shot_fired)
@@ -134,6 +138,7 @@ func _run() -> void:
 		target.current_health < target_health_before,
 		"clear server shot reaches authoritative damage resolution"
 	)
+	_expect(target.source_health != null, "actual server shot uses verified source MP health pools")
 	_expect(
 		last_shot_origin.distance_to(clear_server_muzzle) < 0.001,
 		"server ballistics trace starts at the authoritative muzzle"

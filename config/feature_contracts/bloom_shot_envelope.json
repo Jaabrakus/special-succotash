@@ -14,10 +14,10 @@
     {"path": "res://config/weapons/m4a1.json", "writer": "res://scripts/labs/gunsmith/gunsmith_weapon_profile_repository.gd", "readers": ["res://scripts/weapons/socom_weapon_controller.gd", "res://scripts/network/socom_multiplayer_rounds.gd"]}
   ],
   "must_not_change": ["fire rate and damage", "ammunition", "camera aim and recoil", "movement and animations", "RNG angular/radial distribution", "client/server damage authority", "live sessions and deployed builds"],
-  "proof_scripts": ["res://tools/bloom_shot_envelope_regression.gd", "res://tools/custom_reticle_regression.gd", "res://tools/rapid_tap_bloom_regression.gd"],
+  "proof_scripts": ["res://tools/bloom_shot_envelope_regression.gd", "res://tools/stance_bloom_cap_regression.gd", "res://tools/custom_reticle_regression.gd", "res://tools/rapid_tap_bloom_regression.gd"],
   "visual_check": "Canonical main fires rifles, pistols and shotguns with the selected custom silhouettes. No reload of the user's live game. Narrow-lens compensation is not a larger authored bloom. Real remote latency remains a separate test.",
   "system_delta": {
-    "decision": "MERGE", "reason": "User wants the visible gap to constrain shots. Move its existing smoothing into the shot owner and cap combined bullet/pellet dispersion, without changing aim or damage authority.",
+    "decision": "MERGE", "reason": "User requests tighter stance maxima. Shared saved expansion multipliers cap crouch at 75% and prone at 55% of standing expansion above base, including movement bloom. Shot owner supplies the same capped gap to HUD and cone limit. Base size, standing/airborne limit, cadence and damage remain unchanged.",
     "current": {"system": "independent HUD gap and degree cone", "correctness": 1, "ownership_clarity": 4, "runtime_parity": 4, "editor_usability": 4, "performance": 5, "regression_coverage": 2, "evidence_paths": ["res://scripts/weapons/weapon_ballistics.gd", "res://scripts/ui/socom_dynamic_reticle.gd"]},
     "candidate": {"system": "shared authored gap with pre-trace envelope cap", "correctness": 4, "ownership_clarity": 5, "runtime_parity": 4, "editor_usability": 4, "performance": 4, "regression_coverage": 5, "evidence_paths": ["res://scripts/weapons/reticle_bloom_envelope.gd", "res://tools/bloom_shot_envelope_regression.gd", "res://docs/BLOOM_LIMITS_SHOTS.md"]}
   }

@@ -59,6 +59,7 @@ var _custom_style: Dictionary = {}
 var _custom_settings: Dictionary = {}
 
 const CustomGeometry := preload("res://scripts/ui/custom_reticle_geometry.gd")
+var contextual_style: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://config/contextual_hud.json"))
 const BloomEnvelope := preload("res://scripts/weapons/reticle_bloom_envelope.gd")
 var bloom_weapon: Node
 var bloom_projection_scale: float = 1.0
@@ -288,6 +289,9 @@ func get_custom_reference_geometry() -> Dictionary:
 
 func _draw_custom_reference() -> void:
     var geometry := get_custom_reference_geometry()
+    if bool(contextual_style.get("reference_reticle", false)):
+        _draw_contextual_ring(geometry)
+        return
     var color := target_color if is_target_acquired else Color.from_string(String(_custom_settings.get("color", "#d5e7ac")), default_color)
     var outline := Color.from_string(String(_custom_settings.get("outline_color", "#080e10e6")), Color.BLACK)
     var stroke_outline := outline
@@ -316,6 +320,27 @@ func _draw_custom_reference() -> void:
     var dot_outline := maxf(dot_radius, float(_custom_settings.get("center_outline_radius_px", 2.9)))
     draw_circle(Vector2.ZERO, dot_outline, outline, true, -1.0, true)
     draw_circle(Vector2.ZERO, dot_radius, Color.from_string(String(_custom_settings.get("center_color", "#fff9e8")), Color.WHITE), true, -1.0, true)
+    draw_set_transform(Vector2.ZERO)
+
+func _draw_contextual_ring(geometry: Dictionary) -> void:
+    # Keep the existing weapon-owned spread bound. Never change ballistic style data.
+    var outline := float(_custom_settings.get("outline_extra_px", 2.0))
+    var radius := BloomEnvelope.inner_radius(geometry.strokes, float(geometry.width) + outline) + 0.75
+    radius = maxf(radius, 1.0)
+    var tint := target_color if is_target_acquired else Color.from_string(String(contextual_style.reticle_color), Color.CYAN)
+    draw_set_transform(geometry.center)
+    draw_arc(Vector2.ZERO, radius, 0.0, TAU, 96, tint, 1.5, true)
+    var tick_gap := radius * float(contextual_style.get("reticle_tick_gap_ratio", 0.22))
+    var tick_length := radius * float(contextual_style.get("reticle_tick_length_ratio", 0.65))
+    for direction in [Vector2.UP, Vector2.RIGHT, Vector2.DOWN, Vector2.LEFT]:
+        var near_color := Color(tint, tint.a * 0.7)
+        var far_color := Color(tint, tint.a * 0.12)
+        var start: Vector2 = direction * (radius + tick_gap)
+        var end: Vector2 = direction * (radius + tick_gap + tick_length)
+        var side: Vector2 = direction.orthogonal() * 0.5
+        draw_polygon(PackedVector2Array([start - side, start + side, end + side, end - side]),
+            PackedColorArray([near_color, near_color, far_color, far_color]))
+    draw_circle(Vector2.ZERO, 1.2, Color.from_string(String(contextual_style.center_color), Color.ORANGE), true, -1, true)
     draw_set_transform(Vector2.ZERO)
 
 func get_source_reference_geometry() -> Dictionary:

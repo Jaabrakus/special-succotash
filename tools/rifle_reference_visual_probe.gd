@@ -160,7 +160,7 @@ func _sample(state: String) -> void:
 		# the normal dirty-pose notification, not an animation/modifier time step.
 		skeleton.notification(Skeleton3D.NOTIFICATION_UPDATE_SKELETON)
 		player.force_update_transform()
-		(driver.get("weapon_node") as Node3D).force_update_transform()
+		_flush_capture_transforms(driver.get("weapon_node") as Node3D)
 		var focus := player.global_position + Vector3.UP * (1.10 if int(player.get("posture")) == 0 else 0.80)
 		var close_hands := "--hands-closeup" in OS.get_cmdline_user_args()
 		if close_hands:
@@ -195,6 +195,17 @@ func _sample(state: String) -> void:
 			failures.append("Review capture advanced or changed its source pose: " + state)
 	samples.append(row)
 	print("RIFLE_REFERENCE_SAMPLE ", JSON.stringify(row))
+
+
+func _flush_capture_transforms(node: Node) -> void:
+	# A paused synchronous capture must flush child mesh/socket notifications,
+	# too: flushing the root alone can render the previous weapon mount.
+	if node == null:
+		return
+	if node is Node3D:
+		(node as Node3D).force_update_transform()
+	for child in node.get_children():
+		_flush_capture_transforms(child)
 
 
 func _capture_invariants() -> Dictionary:

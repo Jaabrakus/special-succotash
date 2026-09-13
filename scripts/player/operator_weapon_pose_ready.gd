@@ -2,6 +2,8 @@ extends "res://scripts/player/operator_weapon_pose_placement.gd"
 
 const AuthoredPose := preload("res://scripts/player/operator_weapon_authored_pose.gd")
 const SealPose := preload("res://scripts/player/operator_seal_weapon_pose.gd")
+const SourcePistolAttachment := preload("res://scripts/player/operator_source_pistol_attachment.gd")
+const SourceAttachmentAim := preload("res://scripts/player/operator_source_attachment_aim.gd")
 
 func begin_posture_frame() -> void:
 	# The same final-pose owner retires its own prior-frame elbow pins. The base
@@ -27,6 +29,10 @@ func apply(
 	signed_strafe_weight: float = 0.0,
 	right_stock_turn_weight: float = -1.0
 ) -> void:
+	if source_pose_only:
+		_present_source_pose_only(aim_yaw, aim_pitch, posture, movement_state,
+			ready_weight, requested_action, world_aim_target, body, delta)
+		return
 	# Presentation consumes the driver's smoothed direction; it owns no movement
 	# clock. Replacing this value every frame prevents direction/equip leakage.
 	authored_stock_signed_strafe = clampf(signed_strafe_weight, -1.0, 1.0) if (
@@ -52,6 +58,49 @@ func apply(
 		if palm.origin.distance_to(support_socket.global_position) <= 0.01:
 			grounded_support_wrist_offset = weapon_node.global_basis.orthonormalized().inverse() * palm.basis.orthonormalized()
 			grounded_support_wrist_valid = true
+
+
+func _present_source_pose_only(aim_yaw: float, aim_pitch: float, posture: StringName,
+		movement: StringName, ready: float, action: StringName, target: Vector3,
+		body: Node3D, delta: float) -> void:
+	if skeleton == null or weapon_node == null or weapon_presentation_owner == null or body == null:
+		return
+	# Retire the previous solver's persistent pins; do not solve either arm or
+	# manufacture a support grip. The source clip owns both wrist trajectories.
+	fire_recoil.advance(delta)
+	_stop_socket_ik()
+	skeleton.clear_bones_global_pose_override()
+	skeleton.force_update_all_bone_transforms()
+	present_traversal_equip() # existing rigid right-palm mount, no bone writes
+	source_rifle_aim_applied_degrees = 0.0
+	if source_pistol_attachment and action == &"":
+		SourcePistolAttachment.aim_upper_body(self, aim_yaw, aim_pitch,
+			1.0 if posture == &"PRONE" else ready, target, body)
+	else:
+		source_pistol_aim_applied_degrees = 0.0
+	if source_rifle_attachment and action == &"":
+		source_rifle_aim_applied_degrees = SourceAttachmentAim.apply(self,
+			aim_yaw, aim_pitch, 1.0 if posture == &"PRONE" else ready,
+			target, body, source_rifle_aim_limit_degrees)
+	last_posture = posture
+	last_movement_state = movement
+	last_requested_action = action
+	last_ready_weight = ready
+	last_reload_support_regrip = false
+	animation_owned_aim_alignment_active = false
+	authored_shoulder_stock_active = false
+	pistol_trigger_centerline_ik_active = false
+	grounded_support_wrist_valid = false
+	if target != Vector3.ZERO: last_target_point = target
+	last_aim_direction = _resolve_aim_direction(aim_yaw, aim_pitch, target,
+		muzzle_socket.global_position if muzzle_socket != null else weapon_node.global_position, body)
+	if muzzle_socket != null and barrel_base_socket != null:
+		weapon_aim_error_deg = rad_to_deg((muzzle_socket.global_position - barrel_base_socket.global_position).normalized().angle_to(last_aim_direction))
+	trigger_hand_error_m = trigger_socket.global_position.distance_to(_right_hand_grip_world_transform().origin) if trigger_socket != null else 0.0
+	# Diagnostic only: a free support hand is not a failed grip.
+	support_hand_error_m = support_socket.global_position.distance_to(_left_hand_grip_world_transform().origin) if support_socket != null else 0.0
+	right_elbow_angle_deg = _current_elbow_angle(&"right")
+	left_elbow_angle_deg = _current_elbow_angle(&"left")
 
 func _elbow_presentation_angle(
 	posture: StringName, movement_state: StringName, ready_weight: float,
@@ -168,7 +217,7 @@ func _apply_base_pose(
 		weapon_owner,
 		reload_support_regrip
 	)
-	if SealPose.apply_mobility(self, movement_state, requested_action):
+	if SealPose.apply_mobility(self, movement_state, requested_action, accepted_shot_aim_weight, ready_weight):
 		return
 	if action_owns_arms:
 		AuthoredPose.apply_action(self, reload_action_active, reload_support_regrip, posture, world_aim_target, body, delta)

@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "feature_id": "source_pose_only",
+  "player_intent": "Keep ISO-derived body and hand motion instead of replacing it with old procedural overlays, including the free pistol arm during running.",
+  "acceptance_rule": "When the shared animation profile enables locomotion.source_pose_only, the canonical driver removes the legacy pistol graph branch, skips post-tree body/arm/finger corrections, and mounts the rigid weapon at its animated trigger palm. Main-scene movement and accepted shots must show zero post-tree body changes and stopped arm IK. Source lean clips and action transitions remain. This is an opt-in candidate: source aiming/grip orientation and original-engine parity remain unresolved, so the current main default is not changed.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://scenes/player/operator_player.tscn",
+  "ownership": {
+    "animation": "SocomOperatorAnimationDriver",
+    "weapon_transform": "SocomOperatorWeaponPresentationOwner",
+    "movement_collision": "CharacterBody3D",
+    "aim_intent": "SOCOMCameraReticleChain",
+    "shot_damage": "AuthoritativeServerWeapon"
+  },
+  "nodes": [{
+    "id": "operator_animation",
+    "type": "Node3D",
+    "role": "Consumes saved source-only policy without creating a second pose writer",
+    "owner": "SocomOperatorAnimationDriver",
+    "scene_path": "res://scenes/player/operator_player.tscn",
+    "node_path": "Mannequin/ProductionAnimation"
+  }],
+  "data_contracts": [{
+    "path": "res://config/operator_animation_map.json",
+    "writer": "res://scripts/labs/animation_workshop_repository.gd",
+    "readers": ["res://scripts/player/operator_animation_profile.gd", "res://scripts/player/operator_animation_driver_runtime.gd"]
+  }, {
+    "path": "res://config/animation_presets/seal_source_pose_only.json",
+    "writer": "res://tools/source_pose_only_candidate.cjs",
+    "readers": ["res://scripts/player/operator_animation_profile.gd", "res://tools/main_source_motion_proof.gd"]
+  }],
+  "must_not_change": [
+    "CharacterBody movement, collision, jump and traversal safety",
+    "Camera aim or authoritative weapon shots/damage/ammunition/reload timing",
+    "Original animation assets or the selected character",
+    "Clip crossfades, source lean, source-root normalization and AGLS traversal contacts",
+    "Main default until source aiming and rendered grip review pass"
+  ],
+  "proof_scripts": [
+    "res://tools/source_pose_only_main_regression.gd",
+    "res://tools/source_pose_posture_regression.gd",
+    "res://tools/source_pose_only_profile_regression.gd",
+    "res://tools/source_pose_audit_hand_use.gd",
+    "res://tools/pistol_hybrid_main_regression.gd",
+    "res://tools/feature_contract_regression.gd"
+  ],
+  "visual_check": "Run main via source_pose_only_main_regression with --profile=res://config/animation_presets/seal_source_pose_only.json --capture. Inspect early/middle/late forward and both strafes, standing/crouched firing, reload, running jump and landing. Record selected character. Do not call free-arm conservation, zero trigger distance or structural tests proof of a natural grasp or correct aim.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Keep a independently tested source-only candidate in the existing owners; do not promote it over the main default while the native directional aim/grip behavior remains unverified. Legacy two-handed solving demonstrably destroys the original running pistol arm.",
+    "current": {
+      "system": "Legacy upper overlay and two-hand fitting on native locomotion",
+      "correctness": 2, "ownership_clarity": 4, "runtime_parity": 2,
+      "editor_usability": 4, "performance": 3, "regression_coverage": 3,
+      "evidence_paths": ["res://scripts/player/operator_pistol_upper_layer.gd", "res://scripts/player/operator_seal_weapon_pose.gd"]
+    },
+    "candidate": {
+      "system": "Source-owned evaluated body, animated trigger-palm mount, no legacy corrections; original aim unresolved",
+      "correctness": 3, "ownership_clarity": 5, "runtime_parity": 3,
+      "editor_usability": 4, "performance": 5, "regression_coverage": 4,
+      "evidence_paths": ["res://scripts/player/operator_weapon_pose_ready.gd", "res://tools/source_pose_only_main_regression.gd", "res://docs/SOURCE_POSE_ONLY.md"]
+    }
+  }
+}

@@ -19,7 +19,13 @@ var editing_presentation := false
 var save_changes_to_user_profile := true
 var previous_mouse_mode := Input.MOUSE_MODE_CAPTURED
 var show_hint_button := true
+var hint_button: Button
 var public_player_copy := false
+
+
+func set_hint_button_visible(enabled: bool) -> void:
+	if hint_button != null:
+		hint_button.visible = enabled and show_hint_button
 
 
 func _ready() -> void:
@@ -75,7 +81,7 @@ func _input(event: InputEvent) -> void:
 
 
 func _build_interface() -> void:
-	var hint_button := Button.new()
+	hint_button = Button.new()
 	hint_button.name = "ControlsGuideButton"
 	hint_button.text = "F3  ALL CONTROLS"
 	hint_button.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
@@ -319,6 +325,7 @@ func _refresh_text() -> void:
 	gameplay_lines.append("[color=#79d8f2]Jump[/color]  Cancel a ready/pending grenade throw and restore the rifle")
 	gameplay_lines.append("[color=#79d8f2]Shift + Fire[/color]  Underhand equipped grenade throw")
 	gameplay_lines.append("[color=#79d8f2]Mouse Move[/color]  Aim and orbit camera")
+	gameplay_lines.append("[color=#79d8f2]H[/color]  Hide/Show all HUD mechanics (Clean View)")
 	gameplay_lines.append("[color=#79d8f2]Escape[/color]  Release mouse; click viewport to recapture")
 	if public_player_copy:
 		guide_text.text = "[font_size=22][color=#8bc5ae]GAMEPLAY CONTROLS[/color][/font_size]\n\n" + "\n".join(gameplay_lines)

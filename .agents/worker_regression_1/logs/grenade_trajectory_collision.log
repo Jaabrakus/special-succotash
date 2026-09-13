@@ -1,0 +1,13 @@
+COMMAND: /Users/kiwimango/Applications/Godot-4.7.1.app/Contents/MacOS/Godot --headless -s tools/grenade_trajectory_collision_regression.gd
+EXIT_CODE: 0
+DURATION: 0.43s
+
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+GRENADE_TRAJECTORY_COLLISION_CHECK PASS volume preview detects the thin wall
+GRENADE_TRAJECTORY_COLLISION_CHECK PASS preview stops the grenade radius before the wall surface
+GRENADE_TRAJECTORY_COLLISION_CHECK PASS runtime grenade uses continuous collision detection
+GRENADE_TRAJECTORY_COLLISION_CHECK PASS runtime grenade collides with and rebounds from the thin wall
+GRENADE_TRAJECTORY_COLLISION_CHECK PASS runtime contact remains inside the preview collision envelope
+GRENADE_TRAJECTORY_COLLISION_METRIC predicted_z=-0.8734 runtime_min_z=-0.8765
+GRENADE_TRAJECTORY_COLLISION_REGRESSION PASS

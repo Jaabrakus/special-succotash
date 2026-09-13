@@ -27,13 +27,13 @@ var landing_point := Vector3.ZERO
 var climb_profile: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://config/ledge_climb.json"))
 
 
-func probe_climb(body: CharacterBody3D, world_direction: Vector3, capsule_height: float, capsule_radius: float) -> Dictionary:
+func probe_climb(body: CharacterBody3D, world_direction: Vector3, capsule_height: float, capsule_radius: float, probe_foot: Vector3 = Vector3.INF) -> Dictionary:
 	if not bool(climb_profile.get("enabled", false)) or body == null or not body.is_inside_tree():
 		return _rejection("Ledge climbing unavailable")
 	var direction := world_direction.slide(Vector3.UP).normalized()
 	if direction.length_squared() < 0.9:
 		return _rejection("Climbing needs movement toward the ledge")
-	var foot := body.global_position
+	var foot := body.global_position if probe_foot == Vector3.INF else probe_foot
 	var reach := float(climb_profile.raised_hand_reach_m)
 	var space := body.get_world_3d().direct_space_state
 	var excluded: Array[RID] = [body.get_rid()]
@@ -42,30 +42,114 @@ func probe_climb(body: CharacterBody3D, world_direction: Vector3, capsule_height
 	var wall: Dictionary = {}
 	for fraction: float in [0.25, 0.5, 0.75, 0.95]:
 		var origin := foot + Vector3.UP * reach * fraction
-		wall = space.intersect_ray(_ray(origin, origin + direction * (capsule_radius + float(climb_profile.forward_reach_m)), body.collision_mask, excluded))
-		if not wall.is_empty():
+		var candidate := space.intersect_ray(_ray(origin, origin + direction * (capsule_radius + float(climb_profile.forward_reach_m)), body.collision_mask, excluded))
+		if candidate.is_empty(): continue
+		if not _climb_surface_allowed(candidate.collider):
+			return _rejection("No climbable solid face")
+		if _is_ledge_face(candidate.normal, direction, body.floor_max_angle):
+			wall = candidate
 			break
+	if wall.is_empty():
+		# Thin awnings can sit between the horizontal ray heights. Find a top
+		# first, then query its actual front face just beneath that top.
+		var ahead := foot + direction * (capsule_radius + float(climb_profile.forward_reach_m))
+		var edge := space.intersect_ray(_ray(ahead + Vector3.UP * (reach + 0.01), ahead + Vector3.UP * float(climb_profile.minimum_ledge_above_feet_m), body.collision_mask, excluded))
+		if not edge.is_empty() and _climb_surface_allowed(edge.collider):
+			# A sloping top is higher farther inward. Locate its near boundary
+			# before querying below it, otherwise the horizontal ray hits the
+			# walkable slope instead of the real vertical fascia. All samples
+			# stay within the original raised-hand/forward reach envelope.
+			var near_distance := 0.0
+			var far_distance := capsule_radius + float(climb_profile.forward_reach_m)
+			for iteration in 7:
+				var distance := (near_distance + far_distance) * 0.5
+				var point := foot + direction * distance
+				var top := space.intersect_ray(_ray(point + Vector3.UP * (reach + 0.01), point + Vector3.UP * float(climb_profile.minimum_ledge_above_feet_m), body.collision_mask, excluded))
+				if not top.is_empty() and top.collider == edge.collider and Vector3(top.normal).y >= cos(body.floor_max_angle):
+					far_distance = distance
+					edge = top
+				else:
+					near_distance = distance
+			var origin := Vector3(foot.x, Vector3(edge.position).y - 0.02, foot.z)
+			wall = space.intersect_ray(_ray(origin, Vector3(ahead.x, origin.y, ahead.z), body.collision_mask, excluded))
 	if wall.is_empty() or not _climb_surface_allowed(wall.collider):
 		return _rejection("No climbable solid face")
 	var normal: Vector3 = wall.normal
-	if absf(normal.y) > 0.35 or normal.dot(direction) > -0.25:
+	if not _is_ledge_face(normal, direction, body.floor_max_angle):
 		return _rejection("Not a ledge face")
-	var sample: Vector3 = wall.position + direction * 0.06
+	var result := _rejection("Top is out of raised-hand reach")
+	var hang_candidate: Dictionary = {}
+	for depth in climb_profile.get("top_search_depths_m", [0.06]):
+		var sample: Vector3 = wall.position + direction * float(depth)
+		if Vector2(sample.x - foot.x, sample.z - foot.z).length() > capsule_radius + float(climb_profile.forward_reach_m):
+			continue
+		result = _probe_climb_top(body, direction, foot, wall, capsule_height, capsule_radius, sample)
+		if bool(result.get("accepted", false)):
+			if bool(result.get("can_pull_up",false)): return result
+			hang_candidate = result
+	return result if hang_candidate.is_empty() else hang_candidate
+
+
+func _is_ledge_face(normal: Vector3, direction: Vector3, floor_max_angle: float) -> bool:
+	return absf(normal.y) < cos(floor_max_angle) and normal.dot(direction) <= -0.25
+
+
+func _probe_climb_top(body: CharacterBody3D, direction: Vector3, foot: Vector3, wall: Dictionary, capsule_height: float, capsule_radius: float, sample: Vector3) -> Dictionary:
+	var space := body.get_world_3d().direct_space_state
+	var excluded: Array[RID] = [body.get_rid()]
+	var reach := float(climb_profile.raised_hand_reach_m)
+	var normal: Vector3 = wall.normal
 	var top := space.intersect_ray(_ray(Vector3(sample.x, foot.y + reach + 0.01, sample.z), Vector3(sample.x, foot.y + float(climb_profile.minimum_ledge_above_feet_m), sample.z), body.collision_mask, excluded))
 	if top.is_empty() or not _climb_surface_allowed(top.collider):
 		return _rejection("Top is out of raised-hand reach")
 	var top_point: Vector3 = top.position
-	if top_point.y - foot.y > reach or Vector3(top.normal).y < cos(body.floor_max_angle):
+	if top_point.y - foot.y > reach + 0.001 or Vector3(top.normal).y < cos(body.floor_max_angle):
 		return _rejection("Top is too high or too steep")
+	var landing := _validate_climb_landing(body,direction,foot,top_point,top.normal,normal,capsule_height,capsule_radius,true)
+	if bool(landing.get("accepted",false)): return landing
+	# Existing full-footprint candidates retain their original proof. The
+	# finite hand strip is the additional guard for the new hang-only route.
+	if not _has_grip_strip(body, top_point, top.normal, top.collider, direction):
+		return _rejection("Insufficient solid hand grip")
+	var grip := {"accepted":true,"action_type":&"climb","anchor":top_point,"surface_normal":normal,"start_point":foot,"can_pull_up":false}
+	grip["pull_up_reason"] = landing.get("reason","No safe standing top")
+	return grip
+
+
+func _has_grip_strip(body: CharacterBody3D, anchor: Vector3, top_normal: Vector3, collider: Object, direction: Vector3) -> bool:
+	var side := direction.cross(Vector3.UP)
+	var half_width := float(climb_profile.get("grip_half_width_m",0.19))
+	var depth := float(climb_profile.get("grip_min_depth_m",0.08))
+	var tolerance := float(climb_profile.get("grip_surface_tolerance_m",0.04))
+	for lateral: float in [-half_width,0.0,half_width]:
+		for forward: float in [-0.04,depth-0.06]:
+			var point := anchor + side*lateral + direction*forward
+			point.y = anchor.y - (top_normal.x*(point.x-anchor.x)+top_normal.z*(point.z-anchor.z))/top_normal.y
+			var hit := body.get_world_3d().direct_space_state.intersect_ray(_ray(point+Vector3.UP*tolerance,point-Vector3.UP*tolerance,body.collision_mask,[body.get_rid()]))
+			if hit.is_empty() or hit.collider != collider or not _climb_surface_allowed(hit.collider) or Vector3(hit.normal).y < cos(body.floor_max_angle): return false
+	return true
+
+
+func _validate_climb_landing(body: CharacterBody3D, direction: Vector3, foot: Vector3, top_point: Vector3, top_normal: Vector3, normal: Vector3, capsule_height: float, capsule_radius: float, enforce_support_reach: bool) -> Dictionary:
+	var space := body.get_world_3d().direct_space_state
+	var excluded: Array[RID] = [body.get_rid()]
 	var inset := capsule_radius + float(climb_profile.stand_inset_extra_m)
 	var target := top_point + direction * inset
 	var side := direction.cross(Vector3.UP)
+	var support_tolerance := float(climb_profile.get("support_plane_tolerance_m", 0.08))
+	var highest_support := top_point.y
 	# A center ray alone could accept a thin rail or the far side of a gap.
 	for offset: Vector3 in [Vector3.ZERO, side * capsule_radius * 0.85, -side * capsule_radius * 0.85, direction * capsule_radius * 0.85, -direction * capsule_radius * 0.85]:
-		var support := space.intersect_ray(_ray(target + offset + Vector3.UP * 0.05, target + offset - Vector3.UP * 0.08, body.collision_mask, excluded))
+		var point := target + offset
+		# Follow a walkable sloping plane, not a world-horizontal 13cm band.
+		point.y = top_point.y - (top_normal.x * (point.x - top_point.x) + top_normal.z * (point.z - top_point.z)) / top_normal.y
+		var support := space.intersect_ray(_ray(point + Vector3.UP * support_tolerance, point - Vector3.UP * support_tolerance, body.collision_mask, excluded))
 		if support.is_empty() or not _climb_surface_allowed(support.collider) or Vector3(support.normal).y < cos(body.floor_max_angle):
 			return _rejection("Insufficient walkable top for the feet")
-	target.y += float(climb_profile.clearance_m)
+		highest_support = maxf(highest_support, Vector3(support.position).y)
+	if enforce_support_reach and highest_support - foot.y > float(climb_profile.raised_hand_reach_m) + 0.001:
+		return _rejection("Supported top exceeds raised-hand reach")
+	target.y = highest_support + float(climb_profile.clearance_m)
 	var apex := Vector3(foot.x, target.y, foot.z)
 	# Sweep the actual standing body up then across. test_move is query-only;
 	# only the controller later writes velocity and calls move_and_slide.
@@ -78,10 +162,26 @@ func probe_climb(body: CharacterBody3D, world_direction: Vector3, capsule_height
 			return _rejection("Climb path or overhead space blocked")
 	if not _capsule_has_room(space, body, target, capsule_height, capsule_radius, excluded):
 		return _rejection("Standing space blocked")
-	return {"accepted": true, "action_type": &"climb", "anchor": top_point, "surface_normal": normal,
+	return {"accepted": true, "can_pull_up":true,"pull_up_reason":"", "action_type": &"climb", "anchor": top_point, "surface_normal": normal,
 		"start_point": foot, "apex_point": apex, "landing_point": target,
 		"duration": clampf((foot.distance_to(apex) + apex.distance_to(target)) / 3.0,
 			float(climb_profile.minimum_duration_seconds), float(climb_profile.maximum_duration_seconds))}
+
+
+func revalidate_pull_up(body: CharacterBody3D, context: Dictionary, capsule_height: float, capsule_radius: float) -> Dictionary:
+	var anchor: Vector3 = context.anchor
+	var normal: Vector3 = context.surface_normal
+	var direction := -normal.slide(Vector3.UP).normalized()
+	var reach := float(climb_profile.raised_hand_reach_m)
+	if anchor.y-body.global_position.y > reach+0.02 or Vector2(anchor.x-body.global_position.x,anchor.z-body.global_position.z).length() > capsule_radius+float(climb_profile.forward_reach_m):
+		return _rejection("Grip moved outside raised-hand reach")
+	var tolerance := float(climb_profile.get("grip_surface_tolerance_m",0.04))
+	var hit := body.get_world_3d().direct_space_state.intersect_ray(_ray(anchor+Vector3.UP*tolerance,anchor-Vector3.UP*tolerance,body.collision_mask,[body.get_rid()]))
+	if hit.is_empty() or not _climb_surface_allowed(hit.collider) or Vector3(hit.normal).y < cos(body.floor_max_angle):
+		return _rejection("Grip no longer supported")
+	# The acquired handhold, not a theoretical jump apex, bounds reach here.
+	# Climbing raises the feet above that hold; recheck the real support/path.
+	return _validate_climb_landing(body,direction,body.global_position,hit.position,hit.normal,normal,capsule_height,capsule_radius,false)
 
 
 func _climb_surface_allowed(collider: Object) -> bool:

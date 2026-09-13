@@ -427,9 +427,6 @@ func _set_movement_locked(locked: bool) -> void:
 		return
 	if player.has_method("set_local_input_enabled"):
 		player.call("set_local_input_enabled", not locked)
-	if locked and player is CharacterBody3D:
-		player.velocity.x = 0.0
-		player.velocity.z = 0.0
 
 
 func _cancel_operator_action() -> void:

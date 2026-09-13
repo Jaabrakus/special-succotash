@@ -1,0 +1,509 @@
+{
+  "source_sha256": "cf09a7fabaf59a1d68f01411bd1db9e859af054df1f2fbc4775d8c221785f836",
+  "category_cases": 256,
+  "category_names": [
+    {
+      "lo": 4,
+      "hi_exclusive": 31,
+      "name": "PISTOLS",
+      "direct": true
+    },
+    {
+      "lo": 31,
+      "hi_exclusive": 51,
+      "name": "SMGS",
+      "direct": true
+    },
+    {
+      "lo": 51,
+      "hi_exclusive": 81,
+      "name": "ASSAULT RIFLES",
+      "direct": true
+    },
+    {
+      "lo": 81,
+      "hi_exclusive": 91,
+      "name": "SHOTGUNS",
+      "direct": true
+    },
+    {
+      "lo": 91,
+      "hi_exclusive": 101,
+      "name": "MACHINE GUNS",
+      "direct": true
+    },
+    {
+      "lo": 101,
+      "hi_exclusive": 121,
+      "name": "SNIPER RIFLES",
+      "direct": true
+    },
+    {
+      "lo": 121,
+      "hi_exclusive": 141,
+      "name": "GRENADES",
+      "direct": false
+    },
+    {
+      "lo": 141,
+      "hi_exclusive": 145,
+      "name": "HEAVY WEAPONS",
+      "direct": true
+    },
+    {
+      "lo": 145,
+      "hi_exclusive": 151,
+      "name": "LAUNCHERS",
+      "direct": true
+    },
+    {
+      "lo": 151,
+      "hi_exclusive": 171,
+      "name": "EXPLOSIVES",
+      "direct": false
+    },
+    {
+      "lo": 171,
+      "hi_exclusive": 185,
+      "name": "LAUNCHED",
+      "direct": false
+    },
+    {
+      "lo": 185,
+      "hi_exclusive": 190,
+      "name": "MISSILE",
+      "direct": false
+    },
+    {
+      "lo": 190,
+      "hi_exclusive": 201,
+      "name": "MISC EQUIP",
+      "direct": false
+    },
+    {
+      "lo": 201,
+      "hi_exclusive": 205,
+      "name": "ARMOR",
+      "direct": true
+    },
+    {
+      "lo": 205,
+      "hi_exclusive": 230,
+      "name": "TURRETED WEAPONS",
+      "direct": true
+    },
+    {
+      "lo": 230,
+      "hi_exclusive": 254,
+      "name": "TURRETED LAUNCHERS",
+      "direct": false
+    }
+  ],
+  "trajectory_cases": [
+    {
+      "mode": "normal",
+      "input": {
+        "position": [
+          10,
+          20,
+          30
+        ],
+        "velocity": [
+          9000,
+          100,
+          30
+        ],
+        "gravity": 98,
+        "dt": 0.03333333333333333,
+        "range": 5000
+      },
+      "observed": {
+        "position": [
+          310.0000305175781,
+          23.224445343017578,
+          31
+        ],
+        "velocity": [
+          9000,
+          96.73332977294922,
+          30
+        ]
+      },
+      "instructions": 116
+    },
+    {
+      "mode": "one_frame",
+      "input": {
+        "position": [
+          10,
+          20,
+          30
+        ],
+        "velocity": [
+          9000,
+          100,
+          30
+        ],
+        "gravity": 98,
+        "dt": 0.03333333333333333,
+        "range": 5000
+      },
+      "observed": {
+        "position": [
+          5509.63037109375,
+          81.10699462890625,
+          48.33209991455078
+        ],
+        "velocity": [
+          299.9798278808594,
+          3.333109140396118,
+          0.9999327659606934
+        ]
+      },
+      "instructions": 105
+    },
+    {
+      "mode": "normal",
+      "input": {
+        "position": [
+          -3,
+          8,
+          -20
+        ],
+        "velocity": [
+          10,
+          50,
+          -10
+        ],
+        "gravity": 98,
+        "dt": 0.016666666666666666,
+        "range": 750
+      },
+      "observed": {
+        "position": [
+          -2.8333332538604736,
+          8.806111335754395,
+          -20.16666603088379
+        ],
+        "velocity": [
+          10,
+          48.36666488647461,
+          -10
+        ]
+      },
+      "instructions": 116
+    },
+    {
+      "mode": "one_frame",
+      "input": {
+        "position": [
+          -3,
+          8,
+          -20
+        ],
+        "velocity": [
+          10,
+          50,
+          -10
+        ],
+        "gravity": 98,
+        "dt": 0.016666666666666666,
+        "range": 750
+      },
+      "observed": {
+        "position": [
+          155.7713165283203,
+          801.8565673828125,
+          -178.7713165283203
+        ],
+        "velocity": [
+          57.735023498535156,
+          288.67510986328125,
+          -57.735023498535156
+        ]
+      },
+      "instructions": 105
+    },
+    {
+      "mode": "normal",
+      "input": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "velocity": [
+          0,
+          0,
+          900
+        ],
+        "gravity": 0,
+        "dt": 0.25,
+        "range": 10000
+      },
+      "observed": {
+        "position": [
+          0,
+          0,
+          225
+        ],
+        "velocity": [
+          0,
+          0,
+          900
+        ]
+      },
+      "instructions": 116
+    },
+    {
+      "mode": "one_frame",
+      "input": {
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "velocity": [
+          0,
+          0,
+          900
+        ],
+        "gravity": 0,
+        "dt": 0.25,
+        "range": 10000
+      },
+      "observed": {
+        "position": [
+          0,
+          0,
+          11000
+        ],
+        "velocity": [
+          0,
+          0,
+          300
+        ]
+      },
+      "instructions": 105
+    },
+    {
+      "mode": "normal",
+      "input": {
+        "position": [
+          1,
+          2,
+          3
+        ],
+        "velocity": [
+          3,
+          4,
+          12
+        ],
+        "gravity": 75,
+        "dt": 0.016,
+        "range": 1250
+      },
+      "observed": {
+        "position": [
+          1.0479999780654907,
+          2.044800043106079,
+          3.191999912261963
+        ],
+        "velocity": [
+          3,
+          2.799999952316284,
+          12
+        ]
+      },
+      "instructions": 116
+    },
+    {
+      "mode": "one_frame",
+      "input": {
+        "position": [
+          1,
+          2,
+          3
+        ],
+        "velocity": [
+          3,
+          4,
+          12
+        ],
+        "gravity": 75,
+        "dt": 0.016,
+        "range": 1250
+      },
+      "observed": {
+        "position": [
+          318.3077087402344,
+          425.0769348144531,
+          1272.2308349609375
+        ],
+        "velocity": [
+          69.23077392578125,
+          92.30769348144531,
+          276.923095703125
+        ]
+      },
+      "instructions": 105
+    },
+    {
+      "mode": "normal",
+      "input": {
+        "position": [
+          1,
+          2,
+          3
+        ],
+        "velocity": [
+          0,
+          0,
+          0
+        ],
+        "gravity": 0,
+        "dt": 0,
+        "range": 1000
+      },
+      "observed": {
+        "position": [
+          1,
+          2,
+          3
+        ],
+        "velocity": [
+          0,
+          0,
+          0
+        ]
+      },
+      "instructions": 116
+    },
+    {
+      "mode": "one_frame",
+      "input": {
+        "position": [
+          1,
+          2,
+          3
+        ],
+        "velocity": [
+          0,
+          0,
+          0
+        ],
+        "gravity": 0,
+        "dt": 0,
+        "range": 1000
+      },
+      "observed": {
+        "position": [
+          1,
+          2,
+          3
+        ],
+        "velocity": [
+          0,
+          0,
+          0
+        ]
+      },
+      "instructions": 94
+    },
+    {
+      "mode": "normal",
+      "input": {
+        "position": [
+          100000000,
+          -100000000,
+          100000000
+        ],
+        "velocity": [
+          1000000000000,
+          0,
+          -1000000000000
+        ],
+        "gravity": 98,
+        "dt": 0.25,
+        "range": 10000000000
+      },
+      "observed": {
+        "position": [
+          250100006912,
+          -100000008,
+          -249899991040
+        ],
+        "velocity": [
+          999999995904,
+          -24.5,
+          -999999995904
+        ]
+      },
+      "instructions": 116
+    },
+    {
+      "mode": "one_frame",
+      "input": {
+        "position": [
+          100000000,
+          -100000000,
+          100000000
+        ],
+        "velocity": [
+          1000000000000,
+          0,
+          -1000000000000
+        ],
+        "gravity": 98,
+        "dt": 0.25,
+        "range": 10000000000
+      },
+      "observed": {
+        "position": [
+          7878174720,
+          -100000000,
+          -7678175232
+        ],
+        "velocity": [
+          212.1320343017578,
+          0,
+          -212.1320343017578
+        ]
+      },
+      "instructions": 105
+    }
+  ],
+  "initial_velocity": "PASS",
+  "range_candidate_cutoff": [
+    {
+      "distance": 0,
+      "range": 1000,
+      "selected": false
+    },
+    {
+      "distance": 999.9,
+      "range": 1000,
+      "selected": true
+    },
+    {
+      "distance": 1000,
+      "range": 1000,
+      "selected": false
+    },
+    {
+      "distance": 1050,
+      "range": 1000,
+      "selected": false
+    },
+    {
+      "distance": 1100,
+      "range": 1000,
+      "selected": false
+    }
+  ],
+  "limitations": [
+    "IEEE float32 fixture arithmetic is not bit-exact PS2 EE denormal/rounding emulation. Only finite normal fixtures are claimed.",
+    "No collision-world, impact response, networking, damage or Godot integration is exercised.",
+    "Positions/range/speed here remain original module world units; SI conversion is not inferred by these fixtures."
+  ]
+}

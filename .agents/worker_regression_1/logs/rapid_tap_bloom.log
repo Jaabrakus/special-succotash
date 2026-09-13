@@ -1,0 +1,9 @@
+COMMAND: /Users/kiwimango/Applications/Godot-4.7.1.app/Contents/MacOS/Godot --headless -s tools/rapid_tap_bloom_regression.gd
+EXIT_CODE: 0
+DURATION: 0.82s
+
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+RAPID_TAP_PROFILE res://config/weapons/m14.json spread_deg=[0.429, 0.429, 1.429, 2.429, 3.029, 3.029]
+RAPID_TAP_PROFILE res://config/weapons/aks-74.json spread_deg=[0.429, 0.429, 1.429, 2.429, 3.029, 3.029]
+RAPID_TAP_BLOOM_REGRESSION PASS failures=0

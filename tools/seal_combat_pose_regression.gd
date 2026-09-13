@@ -70,6 +70,10 @@ func _run() -> void:
 			var animation: Animation = driver.animation_player.get_animation(ready_clip)
 			check(animation != null and animation.get_meta("seal_firing_pose", false), gun + " " + ready_node + " actual source firing stance")
 		var expected := {"modern_idle_rifle": "pistol_compressed_idle_standing" if pistol else "idle_rifle", "modern_idle_crouch": "pistol_compressed_idle_crouched" if pistol else "idle_crouch", "modern_idle_prone": "pistol_idle_prone" if pistol else "idle_prone"}
+		# Rifle idle is now selected by the saved equipped-weapon contract, not
+		# the historical fallback name. Keep provenance checks below intact.
+		if not pistol:
+			expected["modern_idle_rifle"] = String(graph._weapon_action_clip("idle_standing", &"idle_rifle", driver.available_clips))
 		for node_name: String in expected:
 			var selected: String = str((tree.get_node(node_name) as AnimationNodeAnimation).animation)
 			check(selected == expected[node_name], gun + " " + node_name + " selects " + expected[node_name])
@@ -93,6 +97,9 @@ func _run() -> void:
 			var clip: Animation = driver.animation_player.get_animation(selected)
 			check(clip != null and clip.loop_mode == Animation.LOOP_NONE, str(selected) + " one-shot source")
 			check(graph.fire_layer_node.filter_enabled, str(selected) + " upper-body layer retains stance legs")
+			if stance == "PRONE":
+				for bone in ["RightArm", "RightForeArm", "LeftArm", "LeftForeArm"]:
+					check(not graph.fire_layer_node.is_path_filtered(NodePath(".:mixamorig_" + bone)), gun + " prone shot retains planted " + bone)
 			if clip != null:
 				driver.animation_tree.advance(clip.length + 0.1)
 	driver.queue_free()

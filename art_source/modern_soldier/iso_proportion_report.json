@@ -1,0 +1,185 @@
+{
+	"iso_proportions": {
+		"landmarks": {
+			"mixamorig_Head": [
+				-0.00476144114509225,
+				17.629467010498,
+				0.140922784805298
+			],
+			"mixamorig_Hips": [
+				-0.00278900004923344,
+				11.6703643798828,
+				0.536364018917084
+			],
+			"mixamorig_LeftArm": [
+				-2.00283694267273,
+				15.8971834182739,
+				0.913994371891022
+			],
+			"mixamorig_LeftFoot": [
+				-2.02179479598999,
+				1.10979604721069,
+				1.05923938751221
+			],
+			"mixamorig_LeftForeArm": [
+				-4.65156173706055,
+				13.8590812683105,
+				1.32121586799622
+			],
+			"mixamorig_LeftHand": [
+				-6.87941932678223,
+				12.1340503692627,
+				1.00695466995239
+			],
+			"mixamorig_LeftLeg": [
+				-1.56552600860596,
+				5.72896099090576,
+				-0.103904664516449
+			],
+			"mixamorig_LeftShoulder": [
+				-0.0033606041688472,
+				15.6497688293457,
+				0.692177414894104
+			],
+			"mixamorig_LeftToeBase": [
+				-2.01090908050537,
+				0.451450526714325,
+				-0.567724704742432
+			],
+			"mixamorig_LeftUpLeg": [
+				-1.16145598888397,
+				10.0133371353149,
+				0.390164315700531
+			],
+			"mixamorig_Neck": [
+				-0.00388205843046308,
+				16.73415184021,
+				0.319891363382339
+			],
+			"mixamorig_RightArm": [
+				1.99660527706146,
+				15.8986892700195,
+				0.910458385944366
+			],
+			"mixamorig_RightFoot": [
+				2.01637268066406,
+				1.1079216003418,
+				1.0517669916153
+			],
+			"mixamorig_RightForeArm": [
+				4.65447330474854,
+				13.8528022766113,
+				1.30998456478119
+			],
+			"mixamorig_RightHand": [
+				6.87435245513916,
+				12.1331424713135,
+				0.993555903434753
+			],
+			"mixamorig_RightLeg": [
+				1.56489515304565,
+				5.73015308380127,
+				-0.106298208236694
+			],
+			"mixamorig_RightShoulder": [
+				-0.0028814785182476,
+				15.6493911743164,
+				0.692250430583954
+			],
+			"mixamorig_RightToeBase": [
+				2.01372647285461,
+				0.450458288192749,
+				-0.575545191764832
+			],
+			"mixamorig_RightUpLeg": [
+				1.1682037115097,
+				10.0132293701172,
+				0.390756011009216
+			],
+			"mixamorig_Spine": [
+				-0.00278900121338665,
+				11.670337677002,
+				0.536364018917084
+			],
+			"mixamorig_Spine2": [
+				-0.0031155701726675,
+				13.986011505127,
+				0.704339861869812
+			]
+		},
+		"metres_per_source_unit": 0.102499836420227,
+		"reference": "seal_A_arc",
+		"scope": "21 recovered body landmarks; modern head volume, fingers and surface detail retained",
+		"skin_fit": {
+			"method": "continuous_anatomical_trunk_independent_of_control_pivots",
+			"neck_anchor_error_m": 0.000000000116415321826935,
+			"revision": 2,
+			"shoulder_scale": 1.07823461967205,
+			"torso_scale_y": 1.15892279148102
+		},
+		"source_sha256": "26e991e38bb09147c54ce3062116466fef3225e76b5e6771da619d56e625c551",
+		"units": "source units uniformly normalized to existing head-to-ankle height"
+	},
+	"mapping": {
+		"ball_l": "mixamorig_LeftToeBase",
+		"ball_r": "mixamorig_RightToeBase",
+		"calf_l": "mixamorig_LeftLeg",
+		"calf_r": "mixamorig_RightLeg",
+		"clavicle_l": "mixamorig_LeftShoulder",
+		"clavicle_r": "mixamorig_RightShoulder",
+		"foot_l": "mixamorig_LeftFoot",
+		"foot_r": "mixamorig_RightFoot",
+		"hand_l": "mixamorig_LeftHand",
+		"hand_r": "mixamorig_RightHand",
+		"head": "mixamorig_Head",
+		"index_01_l": "mixamorig_LeftHandIndex1",
+		"index_01_r": "mixamorig_RightHandIndex1",
+		"index_02_l": "mixamorig_LeftHandIndex2",
+		"index_02_r": "mixamorig_RightHandIndex2",
+		"index_03_l": "mixamorig_LeftHandIndex3",
+		"index_03_r": "mixamorig_RightHandIndex3",
+		"lowerarm_l": "mixamorig_LeftForeArm",
+		"lowerarm_r": "mixamorig_RightForeArm",
+		"middle_01_l": "mixamorig_LeftHandMiddle1",
+		"middle_01_r": "mixamorig_RightHandMiddle1",
+		"middle_02_l": "mixamorig_LeftHandMiddle2",
+		"middle_02_r": "mixamorig_RightHandMiddle2",
+		"middle_03_l": "mixamorig_LeftHandMiddle3",
+		"middle_03_r": "mixamorig_RightHandMiddle3",
+		"neck_01": "mixamorig_Neck",
+		"pelvis": "mixamorig_Hips",
+		"pinky_01_l": "mixamorig_LeftHandPinky1",
+		"pinky_01_r": "mixamorig_RightHandPinky1",
+		"pinky_02_l": "mixamorig_LeftHandPinky2",
+		"pinky_02_r": "mixamorig_RightHandPinky2",
+		"pinky_03_l": "mixamorig_LeftHandPinky3",
+		"pinky_03_r": "mixamorig_RightHandPinky3",
+		"ring_01_l": "mixamorig_LeftHandRing1",
+		"ring_01_r": "mixamorig_RightHandRing1",
+		"ring_02_l": "mixamorig_LeftHandRing2",
+		"ring_02_r": "mixamorig_RightHandRing2",
+		"ring_03_l": "mixamorig_LeftHandRing3",
+		"ring_03_r": "mixamorig_RightHandRing3",
+		"spine_01": "mixamorig_Spine",
+		"spine_03": "mixamorig_Spine1",
+		"spine_05": "mixamorig_Spine2",
+		"thigh_l": "mixamorig_LeftUpLeg",
+		"thigh_r": "mixamorig_RightUpLeg",
+		"thumb_01_l": "mixamorig_LeftHandThumb1",
+		"thumb_01_r": "mixamorig_RightHandThumb1",
+		"thumb_02_l": "mixamorig_LeftHandThumb2",
+		"thumb_02_r": "mixamorig_RightHandThumb2",
+		"thumb_03_l": "mixamorig_LeftHandThumb3",
+		"thumb_03_r": "mixamorig_RightHandThumb3",
+		"upperarm_l": "mixamorig_LeftArm",
+		"upperarm_r": "mixamorig_RightArm"
+	},
+	"note": "ISO control positions with coherent modern anatomical skin fit; canonical bone names, parents and rest orientations retained, rest translations adapted. Not an original ISO mesh.",
+	"output": "res://assets/characters/modern_soldier/modern_soldier_iso.scn",
+	"runtime_bones": 65,
+	"scale_ratio": 1.09718182204226,
+	"source": "res://art_source/modern_soldier/modern_soldier_native.glb",
+	"source_bones": 275,
+	"triangles": 162194,
+	"vertices": 102651
+}

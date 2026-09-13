@@ -124,6 +124,10 @@ func update_dynamic_fov(delta: float) -> void:
         rig.profile.steep_downward_fov,
         steep_lens_amount
     )
+    # Looking down is aim, not a zoom command. Preserve obstacle recovery and
+    # its close-lens widening independently of this optional authored zoom.
+    if not rig.profile.pitch_zoom_enabled:
+        target_fov = rig.profile.vertical_fov
     var close_lens_amount: float = smoothstep(
         rig.profile.close_fov_start_compression,
         rig.profile.close_fov_full_compression,

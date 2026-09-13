@@ -1,0 +1,3965 @@
+{
+	"agls_clips": [
+		{
+			"clip": "AGLS_ALSv2_Stealth_Finishers_WhenClimbing_01_Att",
+			"duration": 2.18333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/ALSv2_Stealth_Finishers_WhenClimbing_01_Att.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_ALSv2_Stealth_Finishers_WhenClimbing_01_Vic",
+			"duration": 2.01666666666667,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/ALSv2_Stealth_Finishers_WhenClimbing_01_Vic.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Additive_FreeHang",
+			"duration": 3.5,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Additive_FreeHang.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Additive_FreeHang_IK",
+			"duration": 3.5,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Additive_FreeHang_IK.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Additive_FreeHang_Transition",
+			"duration": 1.33333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Additive_FreeHang_Transition.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Additive_Hang",
+			"duration": 10.0,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Additive_Hang.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Additive_Hang_Reach_LH",
+			"duration": 2.53333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Additive_Hang_Reach_LH.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Additive_Hang_Reach_RH",
+			"duration": 2.56666666666667,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Additive_Hang_Reach_RH.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_AimingPoses",
+			"duration": 0.166666666666667,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_AimingPoses.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Aiming_Up_01",
+			"duration": 0.5,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Aiming_Up_01.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Corner_Inner_L",
+			"duration": 1.2,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Corner_Inner_L.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Corner_Inner_R",
+			"duration": 1.2,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Corner_Inner_R.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Corner_Outer_L",
+			"duration": 1.26666666666667,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Corner_Outer_L.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Corner_Outer_L2",
+			"duration": 1.3,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Corner_Outer_L2.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Corner_Outer_L_FH",
+			"duration": 1.43333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Corner_Outer_L_FH.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Corner_Outer_R",
+			"duration": 1.33333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Corner_Outer_R.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Corner_Outer_R_FH",
+			"duration": 1.43333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Corner_Outer_R_FH.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Direction_LH_L",
+			"duration": 0.0333333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Direction_LH_L.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Direction_LH_LD",
+			"duration": 0.0333333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Direction_LH_LD.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Direction_LH_LU",
+			"duration": 0.0333333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Direction_LH_LU.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Direction_LH_U",
+			"duration": 0.0333333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Direction_LH_U.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Direction_RH_D",
+			"duration": 0.0333333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Direction_RH_D.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Direction_RH_R",
+			"duration": 0.0333333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Direction_RH_R.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Direction_RH_RD",
+			"duration": 0.0333333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Direction_RH_RD.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Direction_RH_RU",
+			"duration": 0.0333333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Direction_RH_RU.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Direction_RH_U",
+			"duration": 0.0333333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Direction_RH_U.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Drop_To_Ledge_01",
+			"duration": 1.16666666666667,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Drop_To_Ledge_01.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_FH_Forward_Move_LH",
+			"duration": 1.2,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_FH_Forward_Move_LH.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_FH_Forward_Move_RH",
+			"duration": 1.2,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_FH_Forward_Move_RH.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_FH_JumpNextForward_01",
+			"duration": 2.66666666666667,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_FH_JumpNextForward_01.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_FH_JumpToStartSwing_01",
+			"duration": 2.83333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_FH_JumpToStartSwing_01.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_FH_JumpToStartSwing_02",
+			"duration": 0.833333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_FH_JumpToStartSwing_02.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_FH_JumpToStartSwing_03",
+			"duration": 1.66666666666667,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_FH_JumpToStartSwing_03.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_FH_SwingEnd_01",
+			"duration": 3.83333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_FH_SwingEnd_01.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_FH_SwingLoop",
+			"duration": 1.8,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_FH_SwingLoop.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_FH_SwingLoop_02",
+			"duration": 3.43333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_FH_SwingLoop_02.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_FH_SwingStart_01",
+			"duration": 2.16666666666667,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_FH_SwingStart_01.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_FH_SwingStart_02",
+			"duration": 3.43333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_FH_SwingStart_02.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Foots_Transition_RL",
+			"duration": 1.0,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Foots_Transition_RL.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Hanging_Idle_Loop",
+			"duration": 10.0,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Hanging_Idle_Loop.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Hanging_Idle_Poses",
+			"duration": 1.0,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Hanging_Idle_Poses.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Hanging_Idle_Poses_V2",
+			"duration": 1.0,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Hanging_Idle_Poses_V2.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_HeadPoseCorrect",
+			"duration": 0.166666666666667,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_HeadPoseCorrect.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Hit_React_01",
+			"duration": 1.26666666666667,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Hit_React_01.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Hit_React_02",
+			"duration": 1.16666666666667,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Hit_React_02.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Huge_Jump_LH_L",
+			"duration": 1.36666666666667,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Huge_Jump_LH_L.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Huge_Jump_LH_LD",
+			"duration": 1.36666666666667,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Huge_Jump_LH_LD.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Huge_Jump_LH_LU",
+			"duration": 1.36666666666667,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Huge_Jump_LH_LU.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Huge_Jump_RH_R",
+			"duration": 1.36666666666667,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Huge_Jump_RH_R.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Huge_Jump_RH_RD",
+			"duration": 1.36666666666667,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Huge_Jump_RH_RD.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Huge_Jump_RH_RU",
+			"duration": 1.36666666666667,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Huge_Jump_RH_RU.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_JumpEndAdditive_D",
+			"duration": 1.5,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_JumpEndAdditive_D.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_JumpEndAdditive_L",
+			"duration": 1.5,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_JumpEndAdditive_L.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_JumpEndAdditive_R",
+			"duration": 1.33333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_JumpEndAdditive_R.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_MoveCycle_FH_LH_L",
+			"duration": 3.0,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_MoveCycle_FH_LH_L.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_MoveCycle_FH_RH_R",
+			"duration": 3.0,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_MoveCycle_FH_RH_R.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_MoveCycle_LH_L",
+			"duration": 2.23333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_MoveCycle_LH_L.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_MoveCycle_LH_LD",
+			"duration": 2.23333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_MoveCycle_LH_LD.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_MoveCycle_LH_LU",
+			"duration": 2.23333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_MoveCycle_LH_LU.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_MoveCycle_RH_R",
+			"duration": 2.2,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_MoveCycle_RH_R.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_MoveCycle_RH_RD",
+			"duration": 2.2,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_MoveCycle_RH_RD.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_MoveCycle_RH_RU",
+			"duration": 2.23333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_MoveCycle_RH_RU.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_MoveUp_LH",
+			"duration": 0.933333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_MoveUp_LH.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_MoveUp_Loop",
+			"duration": 0.8,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_MoveUp_Loop.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_N_Spine_Rotation_Yaw",
+			"duration": 1.0,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_N_Spine_Rotation_Yaw.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Pistol1H_AimSweep",
+			"duration": 1.0,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Pistol1H_AimSweep.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_PrepareJumpBack_Poses",
+			"duration": 0.266666666666667,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_PrepareJumpBack_Poses.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Short_Leap_Move_L",
+			"duration": 1.16666615644886,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Short_Leap_Move_L.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Short_Leap_Move_LD",
+			"duration": 1.16666615644886,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Short_Leap_Move_LD.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Short_Leap_Move_LU",
+			"duration": 1.16666615644886,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Short_Leap_Move_LU.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Short_Leap_Move_R",
+			"duration": 1.16666615644886,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Short_Leap_Move_R.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Short_Leap_Move_RD",
+			"duration": 1.16666615644886,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Short_Leap_Move_RD.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Short_Leap_Move_RU",
+			"duration": 1.16666615644886,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Short_Leap_Move_RU.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Short_Move_LH_L",
+			"duration": 0.9,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Short_Move_LH_L.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Short_Move_LH_LU",
+			"duration": 0.9,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Short_Move_LH_LU.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Short_Move_LH_L_FH",
+			"duration": 1.0,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Short_Move_LH_L_FH.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Short_Move_LH_L_OtherRoot",
+			"duration": 0.9,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Short_Move_LH_L_OtherRoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Short_Move_RH_R",
+			"duration": 0.9,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Short_Move_RH_R.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Short_Move_RH_RU",
+			"duration": 0.866666666666667,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Short_Move_RH_RU.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Short_Move_RH_R_FH",
+			"duration": 1.0,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Short_Move_RH_R_FH.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Short_Move_RH_R_OtherRoot",
+			"duration": 0.9,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Short_Move_RH_R_OtherRoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Stride_15Frames_Vertical",
+			"duration": 0.5,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Stride_15Frames_Vertical.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Stride_1Frame",
+			"duration": 0.0333333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Stride_1Frame.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Stride_30Frames",
+			"duration": 1.0,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Stride_30Frames.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Stride_30Frames_Curves",
+			"duration": 1.0,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Stride_30Frames_Curves.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Stride_30Frames_NoCurves",
+			"duration": 1.0,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Stride_30Frames_NoCurves.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Stride_40Frames_FH",
+			"duration": 1.3333337726641,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Stride_40Frames_FH.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Stride_50Frames",
+			"duration": 1.66666666666667,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Stride_50Frames.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_To_Standing",
+			"duration": 2.33333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_To_Standing.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_To_Standing_FreeHang",
+			"duration": 2.33333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_To_Standing_FreeHang.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Transition_Fall_To_Climb_01",
+			"duration": 1.16666666666667,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Transition_Fall_To_Climb_01.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Transition_Fall_To_Climb_02",
+			"duration": 0.666666666666667,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Transition_Fall_To_Climb_02.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Transition_Fall_To_Climb_03",
+			"duration": 0.8,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Transition_Fall_To_Climb_03.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Transition_Fall_To_Climb_04",
+			"duration": 1.66666666666667,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Transition_Fall_To_Climb_04.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Transition_Fall_To_Climb_05",
+			"duration": 2.33333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Transition_Fall_To_Climb_05.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Transition_N_To_FH_01",
+			"duration": 1.0,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Transition_N_To_FH_01.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Turn180_FreeHang",
+			"duration": 1.0,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Turn180_FreeHang.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Velocity_Offset_FH_LR",
+			"duration": 1.0,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Velocity_Offset_FH_LR.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_Velocity_Offset_N_LR",
+			"duration": 1.0,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_Velocity_Offset_N_LR.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_VerticalBasePoses",
+			"duration": 0.5,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_VerticalBasePoses.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Climb_VerticalBasePoses_NoCurves",
+			"duration": 0.5,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_VerticalBasePoses_NoCurves.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Leap_Back_01",
+			"duration": 1.2,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Leap_Back_01.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Leap_Back_02",
+			"duration": 2.63333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Leap_Back_02.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Leap_Back_03",
+			"duration": 2.8,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Leap_Back_03.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Leap_Back_04",
+			"duration": 2.16666666666667,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Leap_Back_04.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_NarrowFloor_Hang_To_Stand_01",
+			"duration": 1.6,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_NarrowFloor_Hang_To_Stand_01.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_NarrowFloor_Hang_To_Stand_02",
+			"duration": 0.866666666666667,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_NarrowFloor_Hang_To_Stand_02.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_NarrowFloor_IdlePoses",
+			"duration": 0.4,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_NarrowFloor_IdlePoses.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_NarrowFloor_JumpStart_L",
+			"duration": 0.6,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_NarrowFloor_JumpStart_L.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_NarrowFloor_JumpStart_LU",
+			"duration": 0.6,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_NarrowFloor_JumpStart_LU.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_NarrowFloor_JumpStart_R",
+			"duration": 0.6,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_NarrowFloor_JumpStart_R.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_NarrowFloor_JumpStart_RU",
+			"duration": 0.6,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_NarrowFloor_JumpStart_RU.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_NarrowFloor_JumpStart_U",
+			"duration": 0.6,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_NarrowFloor_JumpStart_U.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_NarrowFloor_Stand_To_Hang_01",
+			"duration": 1.0,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_NarrowFloor_Stand_To_Hang_01.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_NarrowFloor_StridePose_17Frames",
+			"duration": 0.6,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_NarrowFloor_StridePose_17Frames.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_NarrowFloor_StridePose_17Frames_Curves",
+			"duration": 0.6,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_NarrowFloor_StridePose_17Frames_Curves.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_NarrowFloor_Walk_L",
+			"duration": 0.833333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_NarrowFloor_Walk_L.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_NarrowFloor_Walk_R",
+			"duration": 0.833333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_NarrowFloor_Walk_R.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_PickaxeClimb_BasePoses",
+			"duration": 0.25,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_PickaxeClimb_BasePoses.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_PickaxeClimb_JumpFromLedge_D_LH",
+			"duration": 1.26666666666667,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_PickaxeClimb_JumpFromLedge_D_LH.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_PickaxeClimb_JumpFromLedge_D_RH",
+			"duration": 1.26666666666667,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_PickaxeClimb_JumpFromLedge_D_RH.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_PickaxeClimb_JumpFromLedge_L",
+			"duration": 1.26666666666667,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_PickaxeClimb_JumpFromLedge_L.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_PickaxeClimb_JumpFromLedge_LU",
+			"duration": 1.53333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_PickaxeClimb_JumpFromLedge_LU.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_PickaxeClimb_JumpFromLedge_R",
+			"duration": 1.26666666666667,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_PickaxeClimb_JumpFromLedge_R.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_PickaxeClimb_JumpFromLedge_RU",
+			"duration": 1.53333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_PickaxeClimb_JumpFromLedge_RU.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_PickaxeClimb_JumpFromLedge_U",
+			"duration": 1.16666666666667,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_PickaxeClimb_JumpFromLedge_U.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_PickaxeClimb_LongMove_DL",
+			"duration": 1.53333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_PickaxeClimb_LongMove_DL.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_PickaxeClimb_LongMove_DLv2",
+			"duration": 2.3,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_PickaxeClimb_LongMove_DLv2.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_PickaxeClimb_LongMove_DR",
+			"duration": 1.53333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_PickaxeClimb_LongMove_DR.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_PickaxeClimb_LongMove_D_LH",
+			"duration": 1.53333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_PickaxeClimb_LongMove_D_LH.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_PickaxeClimb_LongMove_D_RH",
+			"duration": 1.53333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_PickaxeClimb_LongMove_D_RH.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_PickaxeClimb_LongMove_L",
+			"duration": 1.53333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_PickaxeClimb_LongMove_L.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_PickaxeClimb_LongMove_R",
+			"duration": 1.53333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_PickaxeClimb_LongMove_R.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_PickaxeClimb_LongMove_U",
+			"duration": 1.53333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_PickaxeClimb_LongMove_U.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_PickaxeClimb_LongMove_UL",
+			"duration": 1.53333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_PickaxeClimb_LongMove_UL.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_PickaxeClimb_LongMove_UR",
+			"duration": 1.53333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_PickaxeClimb_LongMove_UR.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_PickaxeClimb_LongMove_Uv2",
+			"duration": 1.53333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_PickaxeClimb_LongMove_Uv2.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_PickaxeClimb_Move_L",
+			"duration": 1.1,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_PickaxeClimb_Move_L.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_PickaxeClimb_Move_U",
+			"duration": 1.1,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_PickaxeClimb_Move_U.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_PickaxeClimb_Move_UL",
+			"duration": 1.1,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_PickaxeClimb_Move_UL.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_PickaxeClimb_StartTransition_01",
+			"duration": 1.53333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_PickaxeClimb_StartTransition_01.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_PickaxeClimb_StartTransition_02",
+			"duration": 1.26666666666667,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_PickaxeClimb_StartTransition_02.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_PickaxeClimb_StartTransition_03",
+			"duration": 2.23333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_PickaxeClimb_StartTransition_03.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_PickaxeClimb_StartTransition_04",
+			"duration": 2.36666666666667,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_PickaxeClimb_StartTransition_04.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_PickaxeClimb_StartTransition_05",
+			"duration": 1.1,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_PickaxeClimb_StartTransition_05.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_PickaxeClimb_StridePose_30Frames",
+			"duration": 1.0,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_PickaxeClimb_StridePose_30Frames.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_PickaxeClimb_ToLedgeHold_D",
+			"duration": 1.33333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_PickaxeClimb_ToLedgeHold_D.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_PickaxeClimb_ToLedgeHold_DR",
+			"duration": 1.33333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_PickaxeClimb_ToLedgeHold_DR.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_PickaxeClimb_ToLedgeHold_L",
+			"duration": 1.16666666666667,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_PickaxeClimb_ToLedgeHold_L.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_PickaxeClimb_ToLedgeHold_R",
+			"duration": 1.16666666666667,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_PickaxeClimb_ToLedgeHold_R.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_PickaxeClimb_ToLedgeHold_U",
+			"duration": 1.0,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_PickaxeClimb_ToLedgeHold_U.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_PickaxeClimb_ToLedgeHold_UL",
+			"duration": 1.16666666666667,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_PickaxeClimb_ToLedgeHold_UL.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_PickaxeClimb_ToLedgeHold_UR",
+			"duration": 1.16666666666667,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_PickaxeClimb_ToLedgeHold_UR.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Shimmy_LongDrop_LH",
+			"duration": 1.23333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Shimmy_LongDrop_LH.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Shimmy_Long_FH_LH_D",
+			"duration": 1.16666666666667,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Shimmy_Long_FH_LH_D.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Shimmy_Long_FH_LH_L",
+			"duration": 1.16666666666667,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Shimmy_Long_FH_LH_L.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Shimmy_Long_FH_LH_LD",
+			"duration": 1.53333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Shimmy_Long_FH_LH_LD.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Shimmy_Long_FH_LH_U",
+			"duration": 1.16666666666667,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Shimmy_Long_FH_LH_U.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Shimmy_Long_FH_LH_UL",
+			"duration": 1.53333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Shimmy_Long_FH_LH_UL.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Shimmy_Long_FH_RH_RD",
+			"duration": 1.53333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Shimmy_Long_FH_RH_RD.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Shimmy_Long_FH_RH_UR",
+			"duration": 1.53333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Shimmy_Long_FH_RH_UR.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Shimmy_Long_LH_D",
+			"duration": 1.2,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Shimmy_Long_LH_D.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Shimmy_Long_LH_L",
+			"duration": 1.2,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Shimmy_Long_LH_L.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Shimmy_Long_LH_LD",
+			"duration": 1.36666666666667,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Shimmy_Long_LH_LD.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Shimmy_Long_LH_U",
+			"duration": 1.2,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Shimmy_Long_LH_U.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Shimmy_Long_LH_UL",
+			"duration": 1.3,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Shimmy_Long_LH_UL.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Shimmy_Long_RH_D",
+			"duration": 1.2,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Shimmy_Long_RH_D.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Shimmy_Long_RH_R",
+			"duration": 1.2,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Shimmy_Long_RH_R.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Shimmy_Long_RH_RD",
+			"duration": 1.46666666666667,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Shimmy_Long_RH_RD.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Shimmy_Long_RH_U",
+			"duration": 1.2,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Shimmy_Long_RH_U.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Shimmy_Long_RH_UR",
+			"duration": 1.3,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Shimmy_Long_RH_UR.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Shimmy_Short_LH_D",
+			"duration": 1.03333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Shimmy_Short_LH_D.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Shimmy_Short_LH_DL",
+			"duration": 1.03333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Shimmy_Short_LH_DL.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Shimmy_Short_LH_L",
+			"duration": 1.03333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Shimmy_Short_LH_L.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Shimmy_Short_LH_U",
+			"duration": 1.03333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Shimmy_Short_LH_U.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Shimmy_Short_LH_UL",
+			"duration": 1.03333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Shimmy_Short_LH_UL.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Shimmy_Short_RH_D",
+			"duration": 1.03333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Shimmy_Short_RH_D.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Shimmy_Short_RH_DR",
+			"duration": 1.03333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Shimmy_Short_RH_DR.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Shimmy_Short_RH_R",
+			"duration": 1.03333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Shimmy_Short_RH_R.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Shimmy_Short_RH_U",
+			"duration": 1.03333333333333,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Shimmy_Short_RH_U.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Shimmy_Short_RH_UR",
+			"duration": 1.0,
+			"family": "climbing",
+			"path": "res://assets/external/agls_intake/imported/climbing/CMC_Shimmy_Short_RH_UR.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_ALSv2_Mantle_2m_Walking_01",
+			"duration": 1.0,
+			"family": "mantle_vault",
+			"path": "res://assets/external/agls_intake/imported/mantle_vault/ALSv2_Mantle_2m_Walking_01.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_ALSv2_Mantle_2m_Walking_02",
+			"duration": 1.0,
+			"family": "mantle_vault",
+			"path": "res://assets/external/agls_intake/imported/mantle_vault/ALSv2_Mantle_2m_Walking_02.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_ALSv2_N_Vault_1m_LH",
+			"duration": 1.26666666666667,
+			"family": "mantle_vault",
+			"path": "res://assets/external/agls_intake/imported/mantle_vault/ALSv2_N_Vault_1m_LH.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_ALSv2_N_Vault_1m_RH",
+			"duration": 1.26666666666667,
+			"family": "mantle_vault",
+			"path": "res://assets/external/agls_intake/imported/mantle_vault/ALSv2_N_Vault_1m_RH.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_ALSv2_Vault_N_2m_LH",
+			"duration": 2.66666666666667,
+			"family": "mantle_vault",
+			"path": "res://assets/external/agls_intake/imported/mantle_vault/ALSv2_Vault_N_2m_LH.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_ALSv2_Vault_N_2m_Walking",
+			"duration": 2.16666666666667,
+			"family": "mantle_vault",
+			"path": "res://assets/external/agls_intake/imported/mantle_vault/ALSv2_Vault_N_2m_Walking.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_ALS_Ladder_BeginTransition_02",
+			"duration": 0.666666666666667,
+			"family": "ladder",
+			"path": "res://assets/external/agls_intake/imported/ladder/ALS_Ladder_BeginTransition_02.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_ALS_Ladder_BeginTransition_03",
+			"duration": 0.833333333333333,
+			"family": "ladder",
+			"path": "res://assets/external/agls_intake/imported/ladder/ALS_Ladder_BeginTransition_03.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_ALS_Ladder_BeginTransition_04_FH",
+			"duration": 1.7,
+			"family": "ladder",
+			"path": "res://assets/external/agls_intake/imported/ladder/ALS_Ladder_BeginTransition_04_FH.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_ALS_Ladder_BeginTransition_05_FH",
+			"duration": 1.3,
+			"family": "ladder",
+			"path": "res://assets/external/agls_intake/imported/ladder/ALS_Ladder_BeginTransition_05_FH.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_ALS_Ladder_BeginTransition_06_FH",
+			"duration": 1.66666666666667,
+			"family": "ladder",
+			"path": "res://assets/external/agls_intake/imported/ladder/ALS_Ladder_BeginTransition_06_FH.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_ALS_Ladder_BeginTransition_06_FH_Add",
+			"duration": 2.2,
+			"family": "ladder",
+			"path": "res://assets/external/agls_intake/imported/ladder/ALS_Ladder_BeginTransition_06_FH_Add.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_ALS_Ladder_BeginTransition_07_Ground",
+			"duration": 0.8,
+			"family": "ladder",
+			"path": "res://assets/external/agls_intake/imported/ladder/ALS_Ladder_BeginTransition_07_Ground.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_ALS_Ladder_JumpNext_L",
+			"duration": 1.5,
+			"family": "ladder",
+			"path": "res://assets/external/agls_intake/imported/ladder/ALS_Ladder_JumpNext_L.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_ALS_Ladder_JumpNext_R",
+			"duration": 1.5,
+			"family": "ladder",
+			"path": "res://assets/external/agls_intake/imported/ladder/ALS_Ladder_JumpNext_R.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_ALS_Ladder_JumpNext_StridePose",
+			"duration": 1.33333333333333,
+			"family": "ladder",
+			"path": "res://assets/external/agls_intake/imported/ladder/ALS_Ladder_JumpNext_StridePose.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_ALS_Ladder_JumpNext_U",
+			"duration": 1.53333333333333,
+			"family": "ladder",
+			"path": "res://assets/external/agls_intake/imported/ladder/ALS_Ladder_JumpNext_U.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_ALS_Ladder_MoveDown_22H_LH",
+			"duration": 0.766666666666667,
+			"family": "ladder",
+			"path": "res://assets/external/agls_intake/imported/ladder/ALS_Ladder_MoveDown_22H_LH.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_ALS_Ladder_MoveDown_22H_RH",
+			"duration": 0.766666666666667,
+			"family": "ladder",
+			"path": "res://assets/external/agls_intake/imported/ladder/ALS_Ladder_MoveDown_22H_RH.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_ALS_Ladder_MoveDown_32H_LH",
+			"duration": 0.766666666666667,
+			"family": "ladder",
+			"path": "res://assets/external/agls_intake/imported/ladder/ALS_Ladder_MoveDown_32H_LH.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_ALS_Ladder_MoveDown_32H_LH_FreeHang",
+			"duration": 1.1,
+			"family": "ladder",
+			"path": "res://assets/external/agls_intake/imported/ladder/ALS_Ladder_MoveDown_32H_LH_FreeHang.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_ALS_Ladder_MoveDown_32H_RH",
+			"duration": 0.766666666666667,
+			"family": "ladder",
+			"path": "res://assets/external/agls_intake/imported/ladder/ALS_Ladder_MoveDown_32H_RH.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_ALS_Ladder_MoveDown_32H_RH_FreeHang",
+			"duration": 1.1,
+			"family": "ladder",
+			"path": "res://assets/external/agls_intake/imported/ladder/ALS_Ladder_MoveDown_32H_RH_FreeHang.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_ALS_Ladder_MoveL_32H_LH",
+			"duration": 0.8,
+			"family": "ladder",
+			"path": "res://assets/external/agls_intake/imported/ladder/ALS_Ladder_MoveL_32H_LH.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_ALS_Ladder_MoveL_32H_RH",
+			"duration": 0.8,
+			"family": "ladder",
+			"path": "res://assets/external/agls_intake/imported/ladder/ALS_Ladder_MoveL_32H_RH.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_ALS_Ladder_MoveR_32H_LH",
+			"duration": 0.8,
+			"family": "ladder",
+			"path": "res://assets/external/agls_intake/imported/ladder/ALS_Ladder_MoveR_32H_LH.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_ALS_Ladder_MoveR_32H_RH",
+			"duration": 0.8,
+			"family": "ladder",
+			"path": "res://assets/external/agls_intake/imported/ladder/ALS_Ladder_MoveR_32H_RH.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_ALS_Ladder_MoveUp_22H_LH",
+			"duration": 0.7,
+			"family": "ladder",
+			"path": "res://assets/external/agls_intake/imported/ladder/ALS_Ladder_MoveUp_22H_LH.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_ALS_Ladder_MoveUp_22H_RH",
+			"duration": 0.7,
+			"family": "ladder",
+			"path": "res://assets/external/agls_intake/imported/ladder/ALS_Ladder_MoveUp_22H_RH.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_ALS_Ladder_MoveUp_32H_LH",
+			"duration": 0.7,
+			"family": "ladder",
+			"path": "res://assets/external/agls_intake/imported/ladder/ALS_Ladder_MoveUp_32H_LH.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_ALS_Ladder_MoveUp_32H_LH_FreeHang",
+			"duration": 1.06666666666667,
+			"family": "ladder",
+			"path": "res://assets/external/agls_intake/imported/ladder/ALS_Ladder_MoveUp_32H_LH_FreeHang.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_ALS_Ladder_MoveUp_32H_RH",
+			"duration": 0.7,
+			"family": "ladder",
+			"path": "res://assets/external/agls_intake/imported/ladder/ALS_Ladder_MoveUp_32H_RH.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_ALS_Ladder_MoveUp_32H_RH_FreeHang",
+			"duration": 1.06666666666667,
+			"family": "ladder",
+			"path": "res://assets/external/agls_intake/imported/ladder/ALS_Ladder_MoveUp_32H_RH_FreeHang.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_ALS_Ladder_SlideDownLoop",
+			"duration": 0.333333333333333,
+			"family": "ladder",
+			"path": "res://assets/external/agls_intake/imported/ladder/ALS_Ladder_SlideDownLoop.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_LMv2_Additive_Idle",
+			"duration": 1.03333333333333,
+			"family": "ladder",
+			"path": "res://assets/external/agls_intake/imported/ladder/LMv2_Additive_Idle.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_LMv2_Enter_Ladder_Down_01",
+			"duration": 1.96666666666667,
+			"family": "ladder",
+			"path": "res://assets/external/agls_intake/imported/ladder/LMv2_Enter_Ladder_Down_01.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_LMv2_Enter_Ladder_Down_02",
+			"duration": 1.83333333333333,
+			"family": "ladder",
+			"path": "res://assets/external/agls_intake/imported/ladder/LMv2_Enter_Ladder_Down_02.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_LMv2_Exit_Ladder_Up_01",
+			"duration": 1.83333333333333,
+			"family": "ladder",
+			"path": "res://assets/external/agls_intake/imported/ladder/LMv2_Exit_Ladder_Up_01.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_LMv2_Jump_To_Ladder_01",
+			"duration": 1.06666666666667,
+			"family": "ladder",
+			"path": "res://assets/external/agls_intake/imported/ladder/LMv2_Jump_To_Ladder_01.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_LMv2_Jump_To_Ladder_02",
+			"duration": 1.13333333333333,
+			"family": "ladder",
+			"path": "res://assets/external/agls_intake/imported/ladder/LMv2_Jump_To_Ladder_02.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_LMv2_Jump_To_Ladder_03",
+			"duration": 1.33333333333333,
+			"family": "ladder",
+			"path": "res://assets/external/agls_intake/imported/ladder/LMv2_Jump_To_Ladder_03.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_LMv2_Jump_To_Ladder_04",
+			"duration": 1.73333333333333,
+			"family": "ladder",
+			"path": "res://assets/external/agls_intake/imported/ladder/LMv2_Jump_To_Ladder_04.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_LMv2_Movement_Down_01",
+			"duration": 1.0,
+			"family": "ladder",
+			"path": "res://assets/external/agls_intake/imported/ladder/LMv2_Movement_Down_01.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_LMv2_Movement_Up_01",
+			"duration": 1.0,
+			"family": "ladder",
+			"path": "res://assets/external/agls_intake/imported/ladder/LMv2_Movement_Up_01.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_LMv2_Poses_01_NoCurves",
+			"duration": 0.333333333333333,
+			"family": "ladder",
+			"path": "res://assets/external/agls_intake/imported/ladder/LMv2_Poses_01_NoCurves.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_LMv2_ShortMove_R",
+			"duration": 0.766666666666667,
+			"family": "ladder",
+			"path": "res://assets/external/agls_intake/imported/ladder/LMv2_ShortMove_R.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_AGLS_NarrowLedgeWalk_Enter_L_01",
+			"duration": 1.53333333333333,
+			"family": "narrow_ledge",
+			"path": "res://assets/external/agls_intake/imported/narrow_ledge/AGLS_NarrowLedgeWalk_Enter_L_01.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_AGLS_NarrowLedgeWalk_Enter_R_01",
+			"duration": 1.53333333333333,
+			"family": "narrow_ledge",
+			"path": "res://assets/external/agls_intake/imported/narrow_ledge/AGLS_NarrowLedgeWalk_Enter_R_01.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_AGLS_NarrowLedgeWalk_Exit_LB_01",
+			"duration": 1.83333333333333,
+			"family": "narrow_ledge",
+			"path": "res://assets/external/agls_intake/imported/narrow_ledge/AGLS_NarrowLedgeWalk_Exit_LB_01.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_AGLS_NarrowLedgeWalk_Exit_LF_01",
+			"duration": 2.5,
+			"family": "narrow_ledge",
+			"path": "res://assets/external/agls_intake/imported/narrow_ledge/AGLS_NarrowLedgeWalk_Exit_LF_01.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_AGLS_NarrowLedgeWalk_Exit_RB_01",
+			"duration": 2.26666666666667,
+			"family": "narrow_ledge",
+			"path": "res://assets/external/agls_intake/imported/narrow_ledge/AGLS_NarrowLedgeWalk_Exit_RB_01.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_AGLS_NarrowLedgeWalk_Exit_RF_01",
+			"duration": 2.5,
+			"family": "narrow_ledge",
+			"path": "res://assets/external/agls_intake/imported/narrow_ledge/AGLS_NarrowLedgeWalk_Exit_RF_01.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_AGLS_NarrowLedgeWalk_MainPoses",
+			"duration": 0.233333333333333,
+			"family": "narrow_ledge",
+			"path": "res://assets/external/agls_intake/imported/narrow_ledge/AGLS_NarrowLedgeWalk_MainPoses.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_AGLS_NarrowLedgeWalk_Move_LF",
+			"duration": 2.0,
+			"family": "narrow_ledge",
+			"path": "res://assets/external/agls_intake/imported/narrow_ledge/AGLS_NarrowLedgeWalk_Move_LF.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_AGLS_NarrowLedgeWalk_Move_RB",
+			"duration": 2.0,
+			"family": "narrow_ledge",
+			"path": "res://assets/external/agls_intake/imported/narrow_ledge/AGLS_NarrowLedgeWalk_Move_RB.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_AGLS_NarrowLedgeWalk_Move_RF",
+			"duration": 2.0,
+			"family": "narrow_ledge",
+			"path": "res://assets/external/agls_intake/imported/narrow_ledge/AGLS_NarrowLedgeWalk_Move_RF.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_ALS_RopeSwing_AdditiveIdle_01",
+			"duration": 2.1,
+			"family": "rope",
+			"path": "res://assets/external/agls_intake/imported/rope/ALS_RopeSwing_AdditiveIdle_01.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_ALS_RopeSwing_AdditiveIdle_02",
+			"duration": 9.4,
+			"family": "rope",
+			"path": "res://assets/external/agls_intake/imported/rope/ALS_RopeSwing_AdditiveIdle_02.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_ALS_RopeSwing_BasePoses_01",
+			"duration": 0.5,
+			"family": "rope",
+			"path": "res://assets/external/agls_intake/imported/rope/ALS_RopeSwing_BasePoses_01.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_ALS_RopeSwing_BeginSwinging_01",
+			"duration": 2.13333333333333,
+			"family": "rope",
+			"path": "res://assets/external/agls_intake/imported/rope/ALS_RopeSwing_BeginSwinging_01.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_ALS_RopeSwing_ForwardLean_Add",
+			"duration": 1.03333333333333,
+			"family": "rope",
+			"path": "res://assets/external/agls_intake/imported/rope/ALS_RopeSwing_ForwardLean_Add.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_ALS_RopeSwing_Jump_01_Long",
+			"duration": 1.23333333333333,
+			"family": "rope",
+			"path": "res://assets/external/agls_intake/imported/rope/ALS_RopeSwing_Jump_01_Long.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_ALS_RopeSwing_PullingUp_01",
+			"duration": 1.0,
+			"family": "rope",
+			"path": "res://assets/external/agls_intake/imported/rope/ALS_RopeSwing_PullingUp_01.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_ALS_RopeSwing_PullingUp_02_Wall",
+			"duration": 0.966666666666667,
+			"family": "rope",
+			"path": "res://assets/external/agls_intake/imported/rope/ALS_RopeSwing_PullingUp_02_Wall.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_ALS_RopeSwing_RightLean_Add",
+			"duration": 1.0,
+			"family": "rope",
+			"path": "res://assets/external/agls_intake/imported/rope/ALS_RopeSwing_RightLean_Add.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_ALS_RopeSwing_SwayStart_01",
+			"duration": 1.7,
+			"family": "rope",
+			"path": "res://assets/external/agls_intake/imported/rope/ALS_RopeSwing_SwayStart_01.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_ALS_RopeSwing_ThrowHook_01",
+			"duration": 0.666666666666667,
+			"family": "rope",
+			"path": "res://assets/external/agls_intake/imported/rope/ALS_RopeSwing_ThrowHook_01.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_ALS_RopeSwing_ToFall_01",
+			"duration": 0.633333333333333,
+			"family": "rope",
+			"path": "res://assets/external/agls_intake/imported/rope/ALS_RopeSwing_ToFall_01.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_DCSv2_EquipRope_2",
+			"duration": 1.1,
+			"family": "rope",
+			"path": "res://assets/external/agls_intake/imported/rope/DCSv2_EquipRope_2.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_DCSv2_RopeHolding_Aim_Idle_loop",
+			"duration": 0.9,
+			"family": "rope",
+			"path": "res://assets/external/agls_intake/imported/rope/DCSv2_RopeHolding_Aim_Idle_loop.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_DCSv2_RopeHolding_Aim_Sweep",
+			"duration": 1.0,
+			"family": "rope",
+			"path": "res://assets/external/agls_intake/imported/rope/DCSv2_RopeHolding_Aim_Sweep.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_DCSv2_RopeHolding_Poses",
+			"duration": 0.233333333333333,
+			"family": "rope",
+			"path": "res://assets/external/agls_intake/imported/rope/DCSv2_RopeHolding_Poses.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_DCSv2_RopeHolding_Poses_NoCurves",
+			"duration": 0.233333333333333,
+			"family": "rope",
+			"path": "res://assets/external/agls_intake/imported/rope/DCSv2_RopeHolding_Poses_NoCurves.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_DCSv2_Swing_Ledge_To_Swing",
+			"duration": 2.5,
+			"family": "rope",
+			"path": "res://assets/external/agls_intake/imported/rope/DCSv2_Swing_Ledge_To_Swing.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_DCSv2_Swing_Ledge_To_Swing_FreeHang",
+			"duration": 2.53333333333333,
+			"family": "rope",
+			"path": "res://assets/external/agls_intake/imported/rope/DCSv2_Swing_Ledge_To_Swing_FreeHang.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_DCSv2_Swing_Mantle_2m",
+			"duration": 2.66666666666667,
+			"family": "rope",
+			"path": "res://assets/external/agls_intake/imported/rope/DCSv2_Swing_Mantle_2m.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_DCSv2_Swing_Mantle_2m_var2",
+			"duration": 2.66666666666667,
+			"family": "rope",
+			"path": "res://assets/external/agls_intake/imported/rope/DCSv2_Swing_Mantle_2m_var2.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_DCSv2_Swing_To_Fall-Default",
+			"duration": 0.933333333333333,
+			"family": "rope",
+			"path": "res://assets/external/agls_intake/imported/rope/DCSv2_Swing_To_Fall-Default.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_DCSv2_Swing_To_Fall-Long_Up",
+			"duration": 1.16666666666667,
+			"family": "rope",
+			"path": "res://assets/external/agls_intake/imported/rope/DCSv2_Swing_To_Fall-Long_Up.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_DCSv2_Swing_To_Fall-Short_Up",
+			"duration": 1.5,
+			"family": "rope",
+			"path": "res://assets/external/agls_intake/imported/rope/DCSv2_Swing_To_Fall-Short_Up.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_DCSv2_Swing_To_Ground_Land_1",
+			"duration": 2.33333333333333,
+			"family": "rope",
+			"path": "res://assets/external/agls_intake/imported/rope/DCSv2_Swing_To_Ground_Land_1.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_DCSv2_Swing_To_Ground_Land_2",
+			"duration": 2.83333333333333,
+			"family": "rope",
+			"path": "res://assets/external/agls_intake/imported/rope/DCSv2_Swing_To_Ground_Land_2.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_DCSv2_Swing_Wall_Crash_R",
+			"duration": 1.5,
+			"family": "rope",
+			"path": "res://assets/external/agls_intake/imported/rope/DCSv2_Swing_Wall_Crash_R.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_DCSv2_Swing_Wall_Crash_R_NoCurves",
+			"duration": 1.5,
+			"family": "rope",
+			"path": "res://assets/external/agls_intake/imported/rope/DCSv2_Swing_Wall_Crash_R_NoCurves.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Zipline_BasePoses_01",
+			"duration": 0.333333333333333,
+			"family": "zipline",
+			"path": "res://assets/external/agls_intake/imported/zipline/CMC_Zipline_BasePoses_01.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Zipline_DirectionPosesLR",
+			"duration": 1.0,
+			"family": "zipline",
+			"path": "res://assets/external/agls_intake/imported/zipline/CMC_Zipline_DirectionPosesLR.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Zipline_HoldingBeginSwinging_L",
+			"duration": 1.66666666666667,
+			"family": "zipline",
+			"path": "res://assets/external/agls_intake/imported/zipline/CMC_Zipline_HoldingBeginSwinging_L.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Zipline_HoldingBeginSwinging_R",
+			"duration": 2.16666666666667,
+			"family": "zipline",
+			"path": "res://assets/external/agls_intake/imported/zipline/CMC_Zipline_HoldingBeginSwinging_R.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Zipline_HoldingLoopAdditiveV2",
+			"duration": 3.66666666666667,
+			"family": "zipline",
+			"path": "res://assets/external/agls_intake/imported/zipline/CMC_Zipline_HoldingLoopAdditiveV2.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Zipline_LandEnd_02",
+			"duration": 3.5,
+			"family": "zipline",
+			"path": "res://assets/external/agls_intake/imported/zipline/CMC_Zipline_LandEnd_02.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_CMC_Zipline_VelocityEffect",
+			"duration": 1.0,
+			"family": "zipline",
+			"path": "res://assets/external/agls_intake/imported/zipline/CMC_Zipline_VelocityEffect.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_ALSP2_Hard_Landing_2_Overlay",
+			"duration": 1.16666666666667,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/ALSP2_Hard_Landing_2_Overlay.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_ALSP2_Land_Heavy_1",
+			"duration": 5.03333333333333,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/ALSP2_Land_Heavy_1.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_ALS_HardLanding_Back",
+			"duration": 3.36666666666667,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/ALS_HardLanding_Back.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_ALS_HardLanding_Forward",
+			"duration": 3.36666666666667,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/ALS_HardLanding_Forward.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_ALS_MediumLand_Forward",
+			"duration": 1.5,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/ALS_MediumLand_Forward.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_ALS_WallHitReaction_01",
+			"duration": 3.33333333333333,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/ALS_WallHitReaction_01.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_ALSv2_JumpSeq_Idle",
+			"duration": 0.9,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/ALSv2_JumpSeq_Idle.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_ALSv2_JumpSeq_Idle_Down_01_RF",
+			"duration": 0.933333333333333,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/ALSv2_JumpSeq_Idle_Down_01_RF.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_ALSv2_JumpSeq_Idle_Down_02_LF_WithLand",
+			"duration": 1.06666666666667,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/ALSv2_JumpSeq_Idle_Down_02_LF_WithLand.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_ALSv2_JumpSeq_Idle_Down_02_RF_WithLand",
+			"duration": 1.06666666666667,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/ALSv2_JumpSeq_Idle_Down_02_RF_WithLand.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_ALSv2_JumpSeq_Sprint_Down_01_LF",
+			"duration": 0.833333333333333,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/ALSv2_JumpSeq_Sprint_Down_01_LF.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_ALSv2_JumpSeq_Sprint_Down_01_RF",
+			"duration": 0.833333333333333,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/ALSv2_JumpSeq_Sprint_Down_01_RF.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Jump_Down01_Mid",
+			"duration": 1.5,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Jump_Down01_Mid.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Jump_Down01_Short",
+			"duration": 1.43333333333333,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Jump_Down01_Short.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Jump_Down02_Long_1m",
+			"duration": 2.16666666666667,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Jump_Down02_Long_1m.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Jump_Down02_Long_2_m",
+			"duration": 2.5,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Jump_Down02_Long_2_m.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Jump_Down02_Short_1m",
+			"duration": 1.8,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Jump_Down02_Short_1m.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Jump_Down02_VeryLong_1m",
+			"duration": 2.26666666666667,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Jump_Down02_VeryLong_1m.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Jump_Down03_Mid",
+			"duration": 1.7,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Jump_Down03_Mid.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Jump_Idle01_Long_LF",
+			"duration": 2.5,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Jump_Idle01_Long_LF.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Jump_Idle01_Long_RF",
+			"duration": 2.5,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Jump_Idle01_Long_RF.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Jump_Idle01_Long_TF",
+			"duration": 2.3,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Jump_Idle01_Long_TF.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Jump_Idle01_Mid_LF",
+			"duration": 2.5,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Jump_Idle01_Mid_LF.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Jump_Idle01_Mid_RF",
+			"duration": 2.5,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Jump_Idle01_Mid_RF.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Jump_Idle01_Short_LF",
+			"duration": 2.1,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Jump_Idle01_Short_LF.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Jump_Idle01_Short_RF",
+			"duration": 1.93333333333333,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Jump_Idle01_Short_RF.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Jump_Idle02_Short_TF",
+			"duration": 1.5,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Jump_Idle02_Short_TF.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Jump_Idle_Step01_High",
+			"duration": 1.66666666666667,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Jump_Idle_Step01_High.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Jump_Idle_Step01_Short",
+			"duration": 1.5,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Jump_Idle_Step01_Short.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Jump_Sprint01_LF",
+			"duration": 0.866666666666667,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Jump_Sprint01_LF.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Jump_Sprint01_RF",
+			"duration": 0.866666666666667,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Jump_Sprint01_RF.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Jump_Sprint02_Down05m_LF",
+			"duration": 1.83333333333333,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Jump_Sprint02_Down05m_LF.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Jump_Sprint02_Down05m_RF",
+			"duration": 1.83333333333333,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Jump_Sprint02_Down05m_RF.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Jump_Sprint02_Down1m_LF",
+			"duration": 1.83333333333333,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Jump_Sprint02_Down1m_LF.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Jump_Sprint02_Down1m_RF",
+			"duration": 1.83333333333333,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Jump_Sprint02_Down1m_RF.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Jump_Sprint02_Flat_LF",
+			"duration": 1.66666666666667,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Jump_Sprint02_Flat_LF.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Jump_Sprint02_Flat_RF",
+			"duration": 1.66666666666667,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Jump_Sprint02_Flat_RF.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Jump_Sprint02_Up03m_LF",
+			"duration": 1.66666666666667,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Jump_Sprint02_Up03m_LF.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Jump_Sprint02_Up03m_RF",
+			"duration": 1.66666666666667,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Jump_Sprint02_Up03m_RF.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Jump_Sprint03_LargeFall01",
+			"duration": 3.0,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Jump_Sprint03_LargeFall01.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Jump_Sprint03_LargeFall02",
+			"duration": 2.93333333333333,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Jump_Sprint03_LargeFall02.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_B_Land_Run_Heavy",
+			"duration": 3.36666666666667,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_B_Land_Run_Heavy.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_B_Land_Run_Light",
+			"duration": 2.5,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_B_Land_Run_Light.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_B_Land_Stand_Heavy_Lfoot",
+			"duration": 3.76666666666667,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_B_Land_Stand_Heavy_Lfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_B_Land_Stand_Heavy_Rfoot",
+			"duration": 3.8,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_B_Land_Stand_Heavy_Rfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_B_Land_Stand_Light_Lfoot",
+			"duration": 2.96666666666667,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_B_Land_Stand_Light_Lfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_B_Land_Stand_Light_Rfoot",
+			"duration": 2.96666666666667,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_B_Land_Stand_Light_Rfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_B_Land_Walk_Heavy",
+			"duration": 4.06666666666667,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_B_Land_Walk_Heavy.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_B_Land_Walk_Light",
+			"duration": 3.06666666666667,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_B_Land_Walk_Light.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_B_Off_Run_Lfoot",
+			"duration": 2.46666666666667,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_B_Off_Run_Lfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_B_Off_Run_Rfoot",
+			"duration": 2.56666666666667,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_B_Off_Run_Rfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_B_Off_Walk_Lfoot",
+			"duration": 2.86666666666667,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_B_Off_Walk_Lfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_B_Off_Walk_Rfoot",
+			"duration": 2.96666666666667,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_B_Off_Walk_Rfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_B_Start_Lfoot",
+			"duration": 1.86666666666667,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_B_Start_Lfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_B_Start_Rfoot",
+			"duration": 1.96666666666667,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_B_Start_Rfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_F_Land_Run_Heavy_Lfoot",
+			"duration": 3.06666666666667,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_F_Land_Run_Heavy_Lfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_F_Land_Run_Heavy_Rfoot",
+			"duration": 3.1,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_F_Land_Run_Heavy_Rfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_F_Land_Run_Light_Lfoot",
+			"duration": 2.2,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_F_Land_Run_Light_Lfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_F_Land_Run_Light_Rfoot",
+			"duration": 2.13333333333333,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_F_Land_Run_Light_Rfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_F_Land_Sprint_Light_Lfoot",
+			"duration": 2.83333333333333,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_F_Land_Sprint_Light_Lfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_F_Land_Sprint_Light_Rfoot",
+			"duration": 2.8,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_F_Land_Sprint_Light_Rfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_F_Land_Stand_Heavy_Lfoot",
+			"duration": 3.76666666666667,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_F_Land_Stand_Heavy_Lfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_F_Land_Stand_Heavy_Rfoot",
+			"duration": 3.8,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_F_Land_Stand_Heavy_Rfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_F_Land_Stand_Light_Lfoot",
+			"duration": 2.76666666666667,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_F_Land_Stand_Light_Lfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_F_Land_Stand_Light_Rfoot",
+			"duration": 2.46666666666667,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_F_Land_Stand_Light_Rfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_F_Land_Stumble_Lfoot",
+			"duration": 3.23333333333333,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_F_Land_Stumble_Lfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_F_Land_Stumble_Rfoot",
+			"duration": 3.4,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_F_Land_Stumble_Rfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_F_Land_Walk_Heavy_Lfoot",
+			"duration": 4.4,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_F_Land_Walk_Heavy_Lfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_F_Land_Walk_Heavy_Rfoot",
+			"duration": 4.4,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_F_Land_Walk_Heavy_Rfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_F_Land_Walk_Light_Lfoot",
+			"duration": 3.3,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_F_Land_Walk_Light_Lfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_F_Land_Walk_Light_Rfoot",
+			"duration": 2.5,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_F_Land_Walk_Light_Rfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_F_Off_Run_Lfoot",
+			"duration": 1.6,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_F_Off_Run_Lfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_F_Off_Run_Rfoot",
+			"duration": 1.63333333333333,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_F_Off_Run_Rfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_F_Off_Walk_Lfoot",
+			"duration": 2.06666666666667,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_F_Off_Walk_Lfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_F_Off_Walk_Rfoot",
+			"duration": 2.1,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_F_Off_Walk_Rfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_F_Start_Across_Lfoot",
+			"duration": 2.1,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_F_Start_Across_Lfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_F_Start_Across_Rfoot",
+			"duration": 2.1,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_F_Start_Across_Rfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_F_Start_Cliff_Lfoot",
+			"duration": 2.4,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_F_Start_Cliff_Lfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_F_Start_Cliff_Rfoot",
+			"duration": 2.43333333333333,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_F_Start_Cliff_Rfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_F_Start_Run_Lfoot",
+			"duration": 2.53333333333333,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_F_Start_Run_Lfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_F_Start_Run_Rfoot",
+			"duration": 2.43333333333333,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_F_Start_Run_Rfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_F_Start_Sprint_Lfoot",
+			"duration": 2.33333333333333,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_F_Start_Sprint_Lfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_F_Start_Sprint_Rfoot",
+			"duration": 2.33333333333333,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_F_Start_Sprint_Rfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_F_Start_Stand_Lfoot",
+			"duration": 2.5,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_F_Start_Stand_Lfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_F_Start_Stand_Rfoot",
+			"duration": 2.43333333333333,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_F_Start_Stand_Rfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_F_Start_Walk_Lfoot",
+			"duration": 2.63333333333333,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_F_Start_Walk_Lfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_F_Start_Walk_Rfoot",
+			"duration": 2.63333333333333,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_F_Start_Walk_Rfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_LL_Land_Run_Heavy",
+			"duration": 3.06666666666667,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_LL_Land_Run_Heavy.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_LL_Land_Run_Light",
+			"duration": 2.53333333333333,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_LL_Land_Run_Light.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_LL_Land_Stand_Heavy_Lfoot",
+			"duration": 3.76666666666667,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_LL_Land_Stand_Heavy_Lfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_LL_Land_Stand_Heavy_Rfoot",
+			"duration": 3.8,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_LL_Land_Stand_Heavy_Rfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_LL_Land_Stand_Light_Lfoot",
+			"duration": 3.13333333333333,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_LL_Land_Stand_Light_Lfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_LL_Land_Stand_Light_Rfoot",
+			"duration": 3.26666666666667,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_LL_Land_Stand_Light_Rfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_LL_Land_Walk_Heavy",
+			"duration": 3.86666666666667,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_LL_Land_Walk_Heavy.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_LL_Land_Walk_Light",
+			"duration": 2.83333333333333,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_LL_Land_Walk_Light.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_LL_Off_Run_Lfoot",
+			"duration": 2.56666666666667,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_LL_Off_Run_Lfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_LL_Off_Run_Rfoot",
+			"duration": 2.73333333333333,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_LL_Off_Run_Rfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_LL_Off_Walk_Lfoot",
+			"duration": 2.7,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_LL_Off_Walk_Lfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_LL_Off_Walk_Rfoot",
+			"duration": 2.8,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_LL_Off_Walk_Rfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_LL_Start_Lfoot",
+			"duration": 2.0,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_LL_Start_Lfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_LL_Start_Rfoot",
+			"duration": 2.0,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_LL_Start_Rfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_Loop_Fall",
+			"duration": 3.36666666666667,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_Loop_Fall.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_RL_Land_Run_Heavy",
+			"duration": 3.23333333333333,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_RL_Land_Run_Heavy.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_RL_Land_Run_Light",
+			"duration": 2.6,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_RL_Land_Run_Light.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_RL_Land_Stand_Heavy_Lfoot",
+			"duration": 2.63333333333333,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_RL_Land_Stand_Heavy_Lfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_RL_Land_Stand_Heavy_Rfoot",
+			"duration": 3.8,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_RL_Land_Stand_Heavy_Rfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_RL_Land_Stand_Light_Lfoot",
+			"duration": 3.3,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_RL_Land_Stand_Light_Lfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_RL_Land_Stand_Light_Rfoot",
+			"duration": 2.63333333333333,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_RL_Land_Stand_Light_Rfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_RL_Land_Walk_Heavy",
+			"duration": 3.86666666666667,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_RL_Land_Walk_Heavy.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_RL_Land_Walk_Light",
+			"duration": 2.86666666666667,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_RL_Land_Walk_Light.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_RL_Off_Run_Lfoot",
+			"duration": 2.7,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_RL_Off_Run_Lfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_RL_Off_Run_Rfoot",
+			"duration": 2.76666666666667,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_RL_Off_Run_Rfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_RL_Off_Walk_Lfoot",
+			"duration": 2.9,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_RL_Off_Walk_Lfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_RL_Off_Walk_Rfoot",
+			"duration": 2.8,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_RL_Off_Walk_Rfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_RL_Start_Lfoot",
+			"duration": 2.0,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_RL_Start_Lfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Neutral_Jump_RL_Start_Rfoot",
+			"duration": 2.06666666666667,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Neutral_Jump_RL_Start_Rfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Relaxed_Jump_B_Land_Run_Heavy",
+			"duration": 3.13333333333333,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Relaxed_Jump_B_Land_Run_Heavy.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Relaxed_Jump_B_Land_Run_Light",
+			"duration": 3.1,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Relaxed_Jump_B_Land_Run_Light.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Relaxed_Jump_F_Land_Run_Heavy_Lfoot",
+			"duration": 3.86666666666667,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Relaxed_Jump_F_Land_Run_Heavy_Lfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Relaxed_Jump_F_Land_Run_Heavy_Rfoot",
+			"duration": 3.96666666666667,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Relaxed_Jump_F_Land_Run_Heavy_Rfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Relaxed_Jump_F_Land_Run_Light_Lfoot",
+			"duration": 3.36666666666667,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Relaxed_Jump_F_Land_Run_Light_Lfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Relaxed_Jump_F_Land_Run_Light_Rfoot",
+			"duration": 3.3,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Relaxed_Jump_F_Land_Run_Light_Rfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Relaxed_Jump_F_Off_Run_Lfoot",
+			"duration": 1.73333333333333,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Relaxed_Jump_F_Off_Run_Lfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Relaxed_Jump_F_Off_Run_Rfoot",
+			"duration": 1.76666666666667,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Relaxed_Jump_F_Off_Run_Rfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Relaxed_Jump_F_Start_Run_Lfoot",
+			"duration": 2.63333333333333,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Relaxed_Jump_F_Start_Run_Lfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Relaxed_Jump_F_Start_Run_Rfoot",
+			"duration": 2.53333333333333,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Relaxed_Jump_F_Start_Run_Rfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Relaxed_Jump_LL_Land_Run_Heavy",
+			"duration": 2.83333333333333,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Relaxed_Jump_LL_Land_Run_Heavy.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Relaxed_Jump_LL_Land_Run_Light",
+			"duration": 2.83333333333333,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Relaxed_Jump_LL_Land_Run_Light.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Relaxed_Jump_LL_Start_Lfoot",
+			"duration": 2.4,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Relaxed_Jump_LL_Start_Lfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Relaxed_Jump_LL_Start_Rfoot",
+			"duration": 2.26666666666667,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Relaxed_Jump_LL_Start_Rfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Relaxed_Jump_LR_Land_Run_Heavy",
+			"duration": 4.26666666666667,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Relaxed_Jump_LR_Land_Run_Heavy.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Relaxed_Jump_LR_Start_Lfoot",
+			"duration": 2.33333333333333,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Relaxed_Jump_LR_Start_Lfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Relaxed_Jump_LR_Start_Rfoot",
+			"duration": 2.33333333333333,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Relaxed_Jump_LR_Start_Rfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Relaxed_Jump_RL_Land_Run_Heavy",
+			"duration": 3.43333333333333,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Relaxed_Jump_RL_Land_Run_Heavy.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Relaxed_Jump_RL_Land_Run_Light",
+			"duration": 2.8,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Relaxed_Jump_RL_Land_Run_Light.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Relaxed_Jump_RL_Start_Lfoot",
+			"duration": 2.33333333333333,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Relaxed_Jump_RL_Start_Lfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		},
+		{
+			"clip": "AGLS_MM_Relaxed_Jump_RL_Start_Rfoot",
+			"duration": 2.33333333333333,
+			"family": "locomotion_air",
+			"path": "res://assets/external/agls_intake/imported/locomotion_air/MM_Relaxed_Jump_RL_Start_Rfoot.scn",
+			"status": "retargeted_for_character_review_not_runtime_state",
+			"tracks": 53
+		}
+	],
+	"canonical_model_scale": 62.0,
+	"canonical_model_yaw_radians": 3.14159265358979,
+	"godot_standing_reference_points": {
+		"mixamorig_Head": [
+			0.119147144258022,
+			1.77110302448273,
+			-0.0846056267619133
+		],
+		"mixamorig_Hips": [
+			0.0,
+			1.12715137004852,
+			0.0
+		],
+		"mixamorig_LeftHand": [
+			0.174739584326744,
+			1.55665040016174,
+			-0.522665143013
+		],
+		"mixamorig_RightHand": [
+			0.255569487810135,
+			1.54419612884521,
+			-0.244696542620659
+		]
+	},
+	"removed_unskinned_meshes": [],
+	"runtime_replacements_promoted": false,
+	"skeleton_bones": 65,
+	"socom_runtime_slots": [
+		{
+			"duration": 1.03333330154419,
+			"slot": "seal_stand_alert02",
+			"source": "res://assets/animations/seal_reference/seal_stand_alert02.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.0333333333333333,
+			"slot": "aim_idle",
+			"source": "res://assets/animations/seal_gameplay/held_aim_idle.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.0333333333333333,
+			"slot": "aim_idle_crouch",
+			"source": "res://assets/animations/seal_gameplay/held_aim_idle_crouch.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.33333334,
+			"slot": "traversal_ladder_idle",
+			"source": "res://assets/animations/seal_reference/seal_ladder.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.53333336,
+			"slot": "traversal_ladder_move",
+			"source": "res://assets/animations/seal_reference/seal_climbladder.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.23333333,
+			"slot": "traversal_ladder_slide",
+			"source": "res://assets/animations/seal_reference/seal_ladderslide.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.06666667,
+			"slot": "combat_fire",
+			"source": "res://assets/animations/seal_gameplay/combat_fire.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 1.1333333,
+			"slot": "crouch_backward",
+			"source": "res://assets/animations/seal_gameplay/crouch_backward.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.06666667,
+			"slot": "crouch_fire",
+			"source": "res://assets/animations/seal_gameplay/crouch_fire.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.933333337306976,
+			"slot": "crouch_forward",
+			"source": "res://assets/animations/seal_gameplay/crouch_forward.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 3.2,
+			"slot": "crouch_grenade_toss",
+			"source": "res://assets/animations/seal_gameplay/crouch_grenade_toss.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 1.3,
+			"slot": "crouch_lateral_left",
+			"source": "res://assets/animations/seal_gameplay/crouch_lateral_left.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 1.1,
+			"slot": "crouch_lateral_right",
+			"source": "res://assets/animations/seal_gameplay/crouch_lateral_right.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 1.3,
+			"slot": "crouch_left",
+			"source": "res://assets/animations/seal_gameplay/crouch_left.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 1.1,
+			"slot": "crouch_right",
+			"source": "res://assets/animations/seal_gameplay/crouch_right.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 1.1,
+			"slot": "crouch_to_prone",
+			"source": "res://assets/animations/seal_gameplay/crouch_to_prone.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.5,
+			"slot": "dive_roll",
+			"source": "res://assets/animations/seal_gameplay/seal_dive_to_prone.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 3.5,
+			"slot": "grenade_throw",
+			"source": "res://assets/animations/seal_gameplay/grenade_throw.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 3.2,
+			"slot": "grenade_toss",
+			"source": "res://assets/animations/seal_gameplay/grenade_toss.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.7,
+			"slot": "idle_crouch",
+			"source": "res://assets/animations/seal_gameplay/idle_crouch.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.33333334,
+			"slot": "idle_prone",
+			"source": "res://assets/animations/seal_gameplay/idle_prone.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.53333336,
+			"slot": "idle_rifle",
+			"source": "res://assets/animations/seal_gameplay/idle_rifle.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 1.03333333,
+			"slot": "jump_down",
+			"source": "res://assets/animations/seal_gameplay/jump_coherent_land.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.8333333,
+			"slot": "jump_forward_action",
+			"source": "res://assets/animations/seal_gameplay/jump_forward_action.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 1.03333333,
+			"slot": "jump_loop",
+			"source": "res://assets/animations/seal_gameplay/jump_coherent_air.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 1.03333333,
+			"slot": "jump_running_air",
+			"source": "res://assets/animations/seal_gameplay/jump_running_air.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 1.03333333,
+			"slot": "jump_running_land",
+			"source": "res://assets/animations/seal_gameplay/jump_running_land.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.5,
+			"slot": "jump_slide_prone",
+			"source": "res://assets/animations/seal_gameplay/seal_dive_to_prone.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 1.03333333,
+			"slot": "jump_up",
+			"source": "res://assets/animations/seal_gameplay/jump_coherent_run.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 1.03333333,
+			"slot": "jump_up_standing",
+			"source": "res://assets/animations/seal_gameplay/jump_coherent_up.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.33333334,
+			"slot": "pistol_compressed_idle_crouched",
+			"source": "res://assets/animations/seal_gameplay/pistol_compressed_idle_crouched.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.53333336,
+			"slot": "pistol_compressed_idle_standing",
+			"source": "res://assets/animations/seal_gameplay/pistol_compressed_idle_standing.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.76666665,
+			"slot": "pistol_crouch_backward",
+			"source": "res://assets/animations/seal_gameplay/pistol_crouch_backward.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.6333333,
+			"slot": "pistol_crouch_forward",
+			"source": "res://assets/animations/seal_gameplay/pistol_crouch_forward.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.7,
+			"slot": "pistol_crouch_left",
+			"source": "res://assets/animations/seal_gameplay/pistol_crouch_left.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.6333333,
+			"slot": "pistol_crouch_right",
+			"source": "res://assets/animations/seal_gameplay/pistol_crouch_right.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.06666667,
+			"slot": "pistol_fire",
+			"source": "res://assets/animations/seal_gameplay/pistol_fire.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.53333336,
+			"slot": "pistol_idle",
+			"source": "res://assets/animations/seal_gameplay/pistol_idle.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.33333334,
+			"slot": "pistol_idle_kneeling",
+			"source": "res://assets/animations/seal_gameplay/pistol_idle_kneeling.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.033333335,
+			"slot": "pistol_idle_prone",
+			"source": "res://assets/animations/seal_gameplay/pistol_idle_prone.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 1.03333333,
+			"slot": "pistol_jump",
+			"source": "res://assets/animations/seal_gameplay/jump_coherent_run.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.8333333,
+			"slot": "pistol_jump_alt",
+			"source": "res://assets/animations/seal_gameplay/pistol_jump_alt.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 1.03333333,
+			"slot": "pistol_jump_down",
+			"source": "res://assets/animations/seal_gameplay/jump_coherent_land.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.06666667,
+			"slot": "pistol_prone_fire",
+			"source": "res://assets/animations/seal_gameplay/pistol_prone_fire.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.0333333333333333,
+			"slot": "pistol_recovery_reference_crouched",
+			"source": "res://assets/animations/seal_gameplay/held_pistol_recovery_reference_crouched.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.0333333333333333,
+			"slot": "pistol_recovery_reference_standing",
+			"source": "res://assets/animations/seal_gameplay/held_pistol_recovery_reference_standing.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.53333336,
+			"slot": "pistol_run_backward",
+			"source": "res://assets/animations/seal_gameplay/pistol_run_backward.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.6,
+			"slot": "pistol_run_forward",
+			"source": "res://assets/animations/seal_gameplay/pistol_run_forward.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.6,
+			"slot": "pistol_run_left",
+			"source": "res://assets/animations/seal_gameplay/pistol_run_left.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.6,
+			"slot": "pistol_run_right",
+			"source": "res://assets/animations/seal_gameplay/pistol_run_right.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.56666666,
+			"slot": "pistol_stand_to_kneel",
+			"source": "res://assets/animations/seal_gameplay/pistol_stand_to_kneel.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.7,
+			"slot": "pistol_strafe_left",
+			"source": "res://assets/animations/seal_gameplay/pistol_strafe_left.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.76666665,
+			"slot": "pistol_strafe_right",
+			"source": "res://assets/animations/seal_gameplay/pistol_strafe_right.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.53333336,
+			"slot": "pistol_walk_backward",
+			"source": "res://assets/animations/seal_gameplay/pistol_walk_backward.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.56666666,
+			"slot": "pistol_walk_forward",
+			"source": "res://assets/animations/seal_gameplay/pistol_walk_forward.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.06666667,
+			"slot": "prone_fire",
+			"source": "res://assets/animations/seal_gameplay/prone_fire.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.8666667,
+			"slot": "prone_forward",
+			"source": "res://assets/animations/seal_gameplay/prone_forward.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.73333335,
+			"slot": "prone_turn_left",
+			"source": "res://assets/animations/seal_gameplay/prone_turn_left.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.73333335,
+			"slot": "prone_turn_right",
+			"source": "res://assets/animations/seal_gameplay/prone_turn_right.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.6,
+			"slot": "run_backward",
+			"source": "res://assets/animations/seal_gameplay/run_backward.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.6333333,
+			"slot": "run_forward",
+			"source": "res://assets/animations/seal_gameplay/run_forward.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.6,
+			"slot": "run_lateral_left",
+			"source": "res://assets/animations/seal_gameplay/run_lateral_left.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.6,
+			"slot": "run_lateral_right",
+			"source": "res://assets/animations/seal_gameplay/run_lateral_right.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.6,
+			"slot": "run_left",
+			"source": "res://assets/animations/seal_gameplay/run_left.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.6,
+			"slot": "run_right",
+			"source": "res://assets/animations/seal_gameplay/run_right.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.36666667,
+			"slot": "seal_fp_crouch",
+			"source": "res://assets/animations/seal_firing_reference/seal_fp_crouch.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.6,
+			"slot": "seal_fp_crouch_step",
+			"source": "res://assets/animations/seal_firing_reference/seal_fp_crouch_step.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.933333337306976,
+			"slot": "seal_fp_crouchwalk",
+			"source": "res://assets/animations/seal_firing_reference/seal_fp_crouchwalk.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 1.1333333,
+			"slot": "seal_fp_crouchwalk_bw",
+			"source": "res://assets/animations/seal_firing_reference/seal_fp_crouchwalk_bw.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.6666667,
+			"slot": "seal_fp_jog",
+			"source": "res://assets/animations/seal_firing_reference/seal_fp_jog.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.033333335,
+			"slot": "seal_fp_prone",
+			"source": "res://assets/animations/seal_firing_reference/seal_fp_prone.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.6,
+			"slot": "seal_fp_run",
+			"source": "res://assets/animations/seal_firing_reference/seal_fp_run.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.6,
+			"slot": "seal_fp_run_bw",
+			"source": "res://assets/animations/seal_firing_reference/seal_fp_run_bw.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.26666668,
+			"slot": "seal_fp_stand",
+			"source": "res://assets/animations/seal_firing_reference/seal_fp_stand.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.7,
+			"slot": "seal_fp_step",
+			"source": "res://assets/animations/seal_firing_reference/seal_fp_step.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.3,
+			"slot": "seal_fp_twist_pitch",
+			"source": "res://assets/animations/seal_firing_reference/seal_fp_twist_pitch.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.8333333,
+			"slot": "seal_fp_walk",
+			"source": "res://assets/animations/seal_firing_reference/seal_fp_walk.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.8666667,
+			"slot": "seal_fp_walk_bw",
+			"source": "res://assets/animations/seal_firing_reference/seal_fp_walk_bw.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.9,
+			"slot": "seal_lstrafe_fast",
+			"source": "res://assets/animations/seal_firing_reference/seal_lstrafe_fast_locomotion.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.9,
+			"slot": "seal_p_lstrafe_fast",
+			"source": "res://assets/animations/seal_firing_reference/seal_p_lstrafe_fast_locomotion.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.9,
+			"slot": "seal_p_rstrafe_fast",
+			"source": "res://assets/animations/seal_firing_reference/seal_p_rstrafe_fast_locomotion.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.16666667,
+			"slot": "seal_pfp_crouch",
+			"source": "res://assets/animations/seal_firing_reference/seal_pfp_crouch_composed.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.6,
+			"slot": "seal_pfp_crouch_step",
+			"source": "res://assets/animations/seal_firing_reference/seal_pfp_crouch_step.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.6333333,
+			"slot": "seal_pfp_crouchwalk",
+			"source": "res://assets/animations/seal_firing_reference/seal_pfp_crouchwalk_composed.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.76666665,
+			"slot": "seal_pfp_crouchwalk_bw",
+			"source": "res://assets/animations/seal_firing_reference/seal_pfp_crouchwalk_bw_composed.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.6666667,
+			"slot": "seal_pfp_jog",
+			"source": "res://assets/animations/seal_firing_reference/seal_pfp_jog.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.16666667,
+			"slot": "seal_pfp_prone",
+			"source": "res://assets/animations/seal_firing_reference/seal_pfp_prone_composed.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.56666666,
+			"slot": "seal_pfp_run",
+			"source": "res://assets/animations/seal_firing_reference/seal_pfp_run_composed.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.56666666,
+			"slot": "seal_pfp_run_bw",
+			"source": "res://assets/animations/seal_firing_reference/seal_pfp_run_bw.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.033333335,
+			"slot": "seal_pfp_stand",
+			"source": "res://assets/animations/seal_firing_reference/seal_pfp_stand.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.7,
+			"slot": "seal_pfp_step",
+			"source": "res://assets/animations/seal_firing_reference/seal_pfp_step.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.53333336,
+			"slot": "seal_pfp_walk",
+			"source": "res://assets/animations/seal_firing_reference/seal_pfp_walk_composed.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.96666664,
+			"slot": "seal_pfp_walk_bw",
+			"source": "res://assets/animations/seal_firing_reference/seal_pfp_walk_bw.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.9,
+			"slot": "seal_rstrafe_fast",
+			"source": "res://assets/animations/seal_firing_reference/seal_rstrafe_fast_locomotion.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.53333336,
+			"slot": "walk_backward",
+			"source": "res://assets/animations/seal_gameplay/walk_backward.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.8333333,
+			"slot": "walk_forward",
+			"source": "res://assets/animations/seal_gameplay/walk_forward.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.73333335,
+			"slot": "walk_left",
+			"source": "res://assets/animations/seal_gameplay/walk_left.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.76666665,
+			"slot": "walk_right",
+			"source": "res://assets/animations/seal_gameplay/walk_right.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.4,
+			"slot": "profile_authored_peek_families_TWO_HAND_PISTOL_CROUCHED_left",
+			"source": "res://assets/animations/seal_reference/seal_p_crouch2llean.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.46666667,
+			"slot": "profile_authored_peek_families_TWO_HAND_PISTOL_CROUCHED_right",
+			"source": "res://assets/animations/seal_reference/seal_p_crouch2rlean.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.4,
+			"slot": "profile_authored_peek_families_TWO_HAND_PISTOL_PRONE_left",
+			"source": "res://assets/animations/seal_reference/seal_p_prone2llean.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.33333334,
+			"slot": "profile_authored_peek_families_TWO_HAND_PISTOL_PRONE_right",
+			"source": "res://assets/animations/seal_reference/seal_p_prone2rlean.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.8,
+			"slot": "profile_authored_peek_families_TWO_HAND_PISTOL_STANDING_left",
+			"source": "res://assets/animations/seal_reference/seal_p_stand2llean.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.6666667,
+			"slot": "profile_authored_peek_families_TWO_HAND_PISTOL_STANDING_right",
+			"source": "res://assets/animations/seal_reference/seal_p_stand2rlean.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.5,
+			"slot": "profile_authored_peek_families_TWO_HAND_RIFLE_CROUCHED_left",
+			"source": "res://assets/animations/seal_reference/seal_crouch2llean.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.7,
+			"slot": "profile_authored_peek_families_TWO_HAND_RIFLE_CROUCHED_right",
+			"source": "res://assets/animations/seal_reference/seal_crouch2rlean.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.4,
+			"slot": "profile_authored_peek_families_TWO_HAND_RIFLE_PRONE_left",
+			"source": "res://assets/animations/seal_reference/seal_prone2llean.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.33333334,
+			"slot": "profile_authored_peek_families_TWO_HAND_RIFLE_PRONE_right",
+			"source": "res://assets/animations/seal_reference/seal_prone2rlean.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.76666665,
+			"slot": "profile_authored_peek_families_TWO_HAND_RIFLE_STANDING_left",
+			"source": "res://assets/animations/seal_reference/seal_stand2llean.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		},
+		{
+			"duration": 0.6,
+			"slot": "profile_authored_peek_families_TWO_HAND_RIFLE_STANDING_right",
+			"source": "res://assets/animations/seal_reference/seal_stand2rlean.tres",
+			"status": "character_retargeted_review_not_new_runtime_replacement"
+		}
+	]
+}

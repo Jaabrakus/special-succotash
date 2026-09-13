@@ -1,0 +1,39 @@
+COMMAND: /Users/kiwimango/Applications/Godot-4.7.1.app/Contents/MacOS/Godot --headless -s tools/test_dynamic_reload_handoff.gd
+EXIT_CODE: 1
+DURATION: 6.72s
+
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+DYNAMIC_RELOAD_CHECK PASS playground loads
+DYNAMIC_RELOAD_CHECK PASS production animation driver is live
+DYNAMIC_RELOAD_CHECK PASS weapon and visual pose solver are live
+DYNAMIC_RELOAD_CHECK PASS reload magazine presentation prop is available
+INITIAL_RIFLE_CONTACT_METRIC trigger_error=0.00021 parent=WeaponSolverAnchor type=Node3D
+DYNAMIC_RELOAD_CHECK PASS standing reload action starts
+DYNAMIC_RELOAD_METRIC motion=1.2181 max_step=0.0111@2 max_rotation_step_deg=4.81@4 parent_samples=478 wrong_parent=0 trigger_error=0.00000
+DYNAMIC_RELOAD_CHECK PASS reload moves the rifle instead of freezing it
+DYNAMIC_RELOAD_CHECK PASS reload has no one-frame position teleport
+DYNAMIC_RELOAD_CHECK PASS reload has no one-frame rotation teleport
+DYNAMIC_RELOAD_CHECK PASS reload transfers the visual magazine to the left hand
+DYNAMIC_RELOAD_CHECK PASS reload reaches its saved two-hand regrip frame
+DYNAMIC_RELOAD_CHECK PASS every active reload frame keeps right-hand reload ownership
+DYNAMIC_RELOAD_CHECK PASS reload keeps the rifle trigger on the right palm
+DYNAMIC_RELOAD_CHECK PASS reload cancellation/end hides the loose magazine
+DYNAMIC_RELOAD_CHECK PASS jump/reload coordinator is live
+DYNAMIC_RELOAD_CHECK PASS a new reload waits when input begins in midair
+DYNAMIC_RELOAD_CHECK PASS rejected midair start creates no pending commit
+ERROR: DYNAMIC_RELOAD_CHECK FAIL grounded reload starts before jump continuity proof
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/test_dynamic_reload_handoff.gd:218)
+       [1] _run (res://tools/test_dynamic_reload_handoff.gd:132)
+AIRBORNE_RELOAD_METRIC max_step=0.12422 max_rotation_deg=24.187 states=[&"AIRBORNE"]
+ERROR: DYNAMIC_RELOAD_CHECK FAIL jump does not cancel or restart the active reload
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/test_dynamic_reload_handoff.gd:218)
+       [1] _run (res://tools/test_dynamic_reload_handoff.gd:168)
+DYNAMIC_RELOAD_CHECK PASS airborne reload adds no one-frame rifle teleport
+DYNAMIC_RELOAD_CHECK PASS jumping reload reaches animation completion
+AIRBORNE_RELOAD_RECOVERY_METRIC vertical_dot=0.129 pending=false
+DYNAMIC_RELOAD_CHECK PASS reload completion cannot leave the rifle vertical

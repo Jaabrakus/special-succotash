@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "feature_id": "contextual_traversal",
+  "player_intent": "Mantle short edges, vault with AGLS motion, jump higher with a running start and pass through open windows when timed correctly.",
+  "acceptance_rule": "Grounded Jump at a supported edge up to 1.35 m starts low mantle without hanging. Higher edges retain hang-first controls. Full forward input with at least 4.5 m/s actual speed selects a 7 m/s launch; otherwise preserve the 5 m/s hop. Launch speed survives replay and proxy presentation. Real open-window fixtures accept timed jumps; solid panes and late sill contact remain blocking. AGLS poses are presentation only. Warehouse uses mesh collision in both saved map copies.",
+  "canonical_scene": "res://main.tscn",
+  "ownership": {"movement": "SocomTestPlayer", "animation": "SocomOperatorAnimationDriver"},
+  "nodes": [{"id": "player", "type": "CharacterBody3D", "owner": "SocomTestPlayer", "role": "Selects contextual movement and applies collision", "scene_path": "res://scenes/player/operator_player.tscn", "node_path": "."}],
+  "data_contracts": [
+    {"path": "res://config/ledge_climb.json", "writer": "res://docs/CONTEXTUAL_TRAVERSAL.md", "readers": ["res://scripts/traversal/socom_mantle_motor.gd", "res://scripts/traversal/socom_traversal_runtime.gd", "res://scripts/player/player_controller.gd"]},
+    {"path": "res://config/operator_animation_map.json", "writer": "res://scripts/labs/animation_workshop_repository.gd", "readers": ["res://scripts/player/operator_animation_profile.gd"]},
+    {"path": "res://config/maps/current_map.json", "writer": "res://docs/CONTEXTUAL_TRAVERSAL.md", "readers": ["res://scripts/maps/socom_imported_map_asset_builder.gd"]}
+  ],
+  "must_not_change": ["Camera/reticle aim", "Server shot/damage ownership", "Container dimensions", "Stair movement", "Standing hop impulse", "Collision cannot be bypassed for windows"],
+  "proof_scripts": ["res://tools/contextual_traversal_regression.gd", "res://tools/ledge_climb_regression.gd", "res://tools/agls_auto_vault_regression.gd", "res://tools/network_prediction_regression.gd"],
+  "visual_check": "Render low mantle and vault early/mid/late. Source one-meter motion is adapted, not contact IK. Exact hand-to-edge matching and arbitrary rock/awning eligibility still require map-specific checks.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Extend existing motor/controller instead of scaling the world or adding root-motion authority. Short grounded edges bypass inappropriate hang; movement launch remains deterministic. Mesh collision replaces warehouse bounding box that hid the visible awning edge.",
+    "current": {"system": "Hang-first at every height and one jump impulse", "correctness": 2, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 3, "performance": 4, "regression_coverage": 3, "evidence_paths": ["res://scripts/traversal/socom_traversal_runtime.gd", "res://config/maps/relic_depot.json"]},
+    "candidate": {"system": "Height-aware mantle and running launch", "correctness": 3, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 3, "regression_coverage": 5, "evidence_paths": ["res://scripts/player/player_controller.gd", "res://tools/contextual_traversal_regression.gd"]}
+  }
+}

@@ -1,0 +1,26 @@
+COMMAND: /Users/kiwimango/Applications/Godot-4.7.1.app/Contents/MacOS/Godot --headless -s tools/stair_playability_regression.gd
+EXIT_CODE: 0
+DURATION: 4.68s
+
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+STAIR_PLAYABILITY_CHECK PASS authored stairs build through SocomMapRuntime
+STAIR_PLAYABILITY_CHECK PASS stairs expose one named authoritative traversal ramp
+STAIR_PLAYABILITY_CHECK PASS stair traversal ramp has one enabled convex collision surface
+STAIR_PLAYABILITY_CHECK PASS stair visuals remain present
+STAIR_PLAYABILITY_CHECK PASS fixture uses intended ramp or raw-riser collision
+STAIR_PLAYABILITY_CHECK PASS the real SocomTestPlayer scene instantiates
+STAIR_PLAYABILITY_CHECK PASS player starts grounded on the lower landing
+STAIR_PLAYABILITY_METRIC ascent_frames=97 grounded=97 peak_y=1.807 end=(0.0, 1.800822, -4.358377)
+STAIR_PLAYABILITY_CHECK PASS player crosses the full stair run upward
+STAIR_PLAYABILITY_CHECK PASS player reaches the upper landing height
+STAIR_PLAYABILITY_CHECK PASS player settles grounded on the upper landing
+STAIR_PLAYABILITY_CHECK PASS ascent preserves continuous floor contact
+STAIR_PLAYABILITY_METRIC descent_frames=81 grounded=81 low_y=0.001 end=(0.0, 0.000822, 4.311795)
+STAIR_PLAYABILITY_CHECK PASS player crosses the full stair run downward
+STAIR_PLAYABILITY_CHECK PASS player returns to the lower landing height
+STAIR_PLAYABILITY_CHECK PASS player settles grounded on the lower landing
+STAIR_PLAYABILITY_CHECK PASS descent preserves continuous floor contact
+STAIR_PLAYABILITY_CHECK PASS stairs never activate vault, hang or climb; no Jump input required
+STAIR_PLAYABILITY_CHECK PASS stair edges never trigger airborne animation state
+STAIR_PLAYABILITY_REGRESSION PASS

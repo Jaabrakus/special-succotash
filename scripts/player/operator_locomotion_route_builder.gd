@@ -10,21 +10,39 @@ static func build(graph: RefCounted, root: AnimationNodeBlendTree, available_cli
 	root.add_node(&"full_space", full_space, Vector2(-640.0, 150.0))
 	root.add_node(&"crouch_space", crouch_space, Vector2(-640.0, 430.0))
 	root.add_node(&"prone_space", prone_space, Vector2(-640.0, 610.0))
+	var walking_source: StringName = &"walk_space"
+	if graph.source_controller_active:
+		root.add_node(&"jog_space", graph._direction_space(&"jog", available_clips))
+		var walk_jog := AnimationNodeBlend2.new()
+		walk_jog.sync = true
+		root.add_node(&"source_walk_jog", walk_jog)
+		root.connect_node(&"source_walk_jog", 0, &"walk_space")
+		root.connect_node(&"source_walk_jog", 1, &"jog_space")
+		walking_source = &"source_walk_jog"
 
 	var speed_blend := AnimationNodeBlend2.new()
 	speed_blend.sync = true
 	root.add_node(&"standing_speed_blend", speed_blend, Vector2(-300.0, 40.0))
-	root.connect_node(&"standing_speed_blend", 0, &"walk_space")
+	root.connect_node(&"standing_speed_blend", 0, walking_source)
 	root.connect_node(&"standing_speed_blend", 1, &"full_space")
 	var standing_source: StringName = &"standing_speed_blend"
 	var crouch_source: StringName = &"crouch_space"
 	if graph.source_firing_enabled():
 		for prefix: String in ["walk", "run", "crouch"]:
 			root.add_node(StringName("firing_%s_space" % prefix), graph._direction_space(StringName(prefix), available_clips, true))
+		var firing_walk_source: StringName = &"firing_walk_space"
+		if graph.source_controller_active:
+			root.add_node(&"firing_jog_space", graph._direction_space(&"jog", available_clips, true))
+			var walk_jog := AnimationNodeBlend2.new()
+			walk_jog.sync = true
+			root.add_node(&"source_firing_walk_jog", walk_jog)
+			root.connect_node(&"source_firing_walk_jog", 0, &"firing_walk_space")
+			root.connect_node(&"source_firing_walk_jog", 1, &"firing_jog_space")
+			firing_walk_source = &"source_firing_walk_jog"
 		var firing_speed := AnimationNodeBlend2.new()
 		firing_speed.sync = true
 		root.add_node(&"firing_speed_blend", firing_speed)
-		root.connect_node(&"firing_speed_blend", 0, &"firing_walk_space")
+		root.connect_node(&"firing_speed_blend", 0, firing_walk_source)
 		root.connect_node(&"firing_speed_blend", 1, &"firing_run_space")
 		for stance: String in ["standing", "crouch"]:
 			var ready := AnimationNodeBlend2.new()
@@ -45,6 +63,11 @@ static func build(graph: RefCounted, root: AnimationNodeBlendTree, available_cli
 	var prone_scale := AnimationNodeTimeScale.new()
 	root.add_node(&"prone_time_scale", prone_scale, Vector2(-40.0, 610.0))
 	root.connect_node(&"prone_time_scale", 0, &"prone_space")
+	if graph.source_controller_active:
+		var standing_spaces: Array[StringName] = [&"walk_space", &"jog_space", &"full_space", &"firing_walk_space", &"firing_jog_space", &"firing_run_space"]
+		var crouch_spaces: Array[StringName] = [&"crouch_space", &"firing_crouch_space"]
+		graph.gait_phase_sync.bind(root, &"standing", standing_spaces, 0.6333333, graph.source_animation_player)
+		graph.gait_phase_sync.bind(root, &"crouched", crouch_spaces, 0.6333333, graph.source_animation_player)
 
 	var is_pistol_family: bool = (
 		graph.weapon_handling_profile.get("locomotion_family", "") == "PISTOL"
@@ -72,6 +95,11 @@ static func build(graph: RefCounted, root: AnimationNodeBlendTree, available_cli
 		else graph._weapon_action_clip("idle_crouched", &"idle_crouch", available_clips)
 	)
 	var equipped_prone_idle: StringName = graph._weapon_action_clip("idle_prone", &"idle_prone", available_clips)
+	graph.source_idle_blend_times = {
+		&"idle": graph.profile.source_idle_blend_seconds(equipped_idle),
+		&"idle_crouch": graph.profile.source_idle_blend_seconds(equipped_crouch_idle),
+	}
+	graph.grounded_idle_clips = {&"STANDING": equipped_idle, &"CROUCHED": equipped_crouch_idle, &"PRONE": equipped_prone_idle}
 	var equipped_crouch_ready: StringName = (
 		graph._weapon_action_clip("ready_crouched", &"pistol_idle_kneeling", available_clips)
 		if is_pistol_family

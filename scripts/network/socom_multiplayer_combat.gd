@@ -221,7 +221,17 @@ func _server_process_shot(peer_id: int, packet: Dictionary) -> void:
 	composure.notify_shot()
 	# Classify every pellet against the same rewound pose, then restore once.
 	var impacts: Array[Dictionary] = []
+	var shot_candidates: Array[Dictionary] = []
 	for projectile: Dictionary in result.get("projectiles", [result]):
+		if projectile.has("damage_impacts"):
+			var contacts: Array = projectile.damage_impacts
+			# Preserve the first solid/miss visual even when a later target is hit.
+			if contacts.is_empty() or contacts[0].hit_collider != projectile.get("hit_collider"):
+				shot_candidates.append(projectile)
+			for contact: Dictionary in contacts: shot_candidates.append(contact)
+		else:
+			shot_candidates.append(projectile)
+	for projectile: Dictionary in shot_candidates:
 		var collider: Object = projectile.get("hit_collider")
 		var receiver: Variant = null
 		if collider != null:
@@ -232,7 +242,7 @@ func _server_process_shot(peer_id: int, packet: Dictionary) -> void:
 		var scale := 1.0
 		var region: StringName = &"TORSO"
 		if receiver != null and _shot_can_damage_peer(peer_id, int(receiver.network_peer_id)):
-			if collider.has_method("classify_shot_path"):
+			if not projectile.has("source_combat") and collider.has_method("classify_shot_path"):
 				var classification: Dictionary = collider.call(
 					"classify_shot_path", muzzle, Vector3(projectile.direction), core_scale)
 				if not bool(classification.get("precision", true)):
@@ -251,11 +261,15 @@ func _server_process_shot(peer_id: int, packet: Dictionary) -> void:
 		var receiver: Variant = impact.receiver
 		var message := "MISS"
 		if is_instance_valid(receiver):
-			var damage_result: Dictionary = receiver.take_bullet_damage_region(
-				float(projectile.get("damage", ballistics.damage_per_shot)) * float(impact.scale),
-				StringName(impact.region), Vector3(projectile.hit_pos),
-				Vector3(projectile.get("normal", Vector3.UP)), muzzle, peer_id,
-				float(ballistics.headshot_multiplier))
+			var damage_result: Dictionary
+			if projectile.has("source_combat"):
+				damage_result = receiver.take_source_bullet_damage(projectile.source_combat, StringName(impact.region), peer_id)
+			else:
+				damage_result = receiver.take_bullet_damage_region(
+					float(projectile.get("damage", ballistics.damage_per_shot)) * float(impact.scale),
+					StringName(impact.region), Vector3(projectile.hit_pos),
+					Vector3(projectile.get("normal", Vector3.UP)), muzzle, peer_id,
+					float(ballistics.headshot_multiplier))
 			if bool(damage_result.get("accepted", false)):
 				message = "%s  %.0f DMG" % [String(damage_result.get("hit_region", &"HIT")),
 					float(damage_result.get("damage", 0.0))]

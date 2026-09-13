@@ -3,6 +3,7 @@ extends SceneTree
 const Profile = preload("res://scripts/player/operator_animation_profile.gd")
 const Driver = preload("res://scripts/player/operator_animation_driver.gd")
 const Weapons = preload("res://scripts/weapons/weapon_rig_contract.gd")
+const HISTORICAL_PRESET := "res://config/animation_presets/seal_pistol_hybrid.json"
 var failures: Array[String] = []
 
 func _initialize() -> void:
@@ -10,10 +11,28 @@ func _initialize() -> void:
 	_run.call_deferred()
 
 func _run() -> void:
+	# Keep the original hybrid assertions as a rollback gate. The canonical
+	# profile may select source-only presentation; this explicit bundle is
+	# process-local and never rewrites the player's saved animation map.
+	var collector := root.get_node("PlaytestStateCollector")
+	var result: Dictionary = collector.call("collect_saved_state")
+	check(bool(result.get("ok", false)), "saved state collection")
+	var preset: Variant = JSON.parse_string(FileAccess.get_file_as_string(HISTORICAL_PRESET))
+	check(preset is Dictionary, "historical hybrid preset loads")
+	if not bool(result.get("ok", false)) or not preset is Dictionary:
+		print("PISTOL_HYBRID_MAIN FAIL ", failures)
+		quit(1)
+		return
+	var bundle: Dictionary = result.bundle.duplicate(true)
+	bundle.states.animation_map = preset.duplicate(true)
+	collector.set("active_bundle", bundle)
+	ProjectSettings.set_setting("socom/playtest/active_bundle", bundle)
+	ProjectSettings.set_setting("socom/playtest/use_active_bundle", true)
 	var p := Profile.new()
 	p.load_project_map()
-	check(bool(p.locomotion.get("legacy_pistol_upper_body", false)), "main profile activates hybrid")
-	check(bool(p.locomotion.get("preserve_source_locomotion", false)), "main profile preserves SEAL gait")
+	check(bool(p.locomotion.get("legacy_pistol_upper_body", false)), "historical preset activates hybrid")
+	check(bool(p.locomotion.get("preserve_source_locomotion", false)), "historical preset preserves SEAL gait")
+	check(not bool(p.locomotion.get("source_pose_only", true)), "historical preset retains false source-only policy")
 	var driver := Driver.new()
 	root.add_child(driver)
 	await process_frame

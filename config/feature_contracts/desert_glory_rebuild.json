@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "feature_id": "desert_glory_rebuild",
+  "player_intent": "Play a local Desert Glory layout recreation with our materials/props, source-inspired lighting and subtle grain.",
+  "acceptance_rule": "Verify ISO archive checksum, all 318 draw keys and 581 packet bounds including stored origins; build ten local geometry sectors, replacement props and clear supported preview spawns; library selection opens main.tscn; saved grain edits reach editor and runtime while absent grain remains off.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://map_creation_lab.tscn",
+  "ownership": {"map_objects": "SocomMapRuntime", "map_atmosphere": "SocomMapAmbienceEngine", "screen_shader_construction": "TacticalScreenEffects"},
+  "nodes": [
+    {"id":"map", "type":"Node3D", "role":"Consume saved map objects and static collision", "owner":"SocomMapRuntime", "source_script":"res://scripts/maps/socom_map_runtime.gd", "code_symbols":["root.name = \"AuthoredMap\"", "build_object(object, editor_preview)"]},
+    {"id":"grain", "type":"CanvasLayer", "role":"One presentation-only grain pass below HUD", "owner":"SocomMapAmbienceEngine", "source_script":"res://scripts/tactical/tactical_screen_effects.gd", "code_symbols":["static func add_map_grain", "canvas.layer = -1", "BackBufferCopy.new()"]}
+  ],
+  "data_contracts": [
+    {"path":"res://config/maps/desert_glory_rebuild_spec.json", "writer":"res://tools/build_desert_glory.gd", "readers":["res://tools/build_desert_glory.gd", "res://scripts/maps/socom_map_document.gd", "res://scripts/maps/socom_map_ambience_engine.gd"]}
+  ],
+  "saved_instance_contract": "Builder materializes the spec as user://maps/desert_glory_rebuild.json. Map Lab edits that library map using SocomMapCommandService; canonical MapDocument.load_active consumes the same saved document. Local proprietary geometry is never bundled or uploaded.",
+  "must_not_change": ["Existing active map", "Player mesh/rig/animation", "CharacterBody3D movement ownership", "SOCOM camera/FOV/aim", "Server weapon/damage and networking authority", "Other maps' appearance"],
+  "proof_scripts": ["res://tools/desert_glory_regression.gd", "res://tools/desert_glory_visual_check.gd", "res://tools/socom_geometry/desert_glory.cjs"],
+  "visual_check": "Run canonical main with local map selection. Capture player, overview and street. Check architecture alignment, no opaque sky/decal cards, source-inspired warm light/cool fog, one grain layer below HUD. No claim of original mode, truck/door completeness or exact PS2 rendering.",
+  "system_delta": {
+    "decision":"MERGE",
+    "reason":"Reuse map runtime and saved atmosphere. Existing MP51 converter lacks MP6 node transforms and nonzero packet origins. New fail-closed local extractor validates every packet and spatially batches textures. No gameplay owner changes.",
+    "current":{"system":"MP51-only geometry study and atmosphere without grain", "correctness":2,"ownership_clarity":5,"runtime_parity":4,"editor_usability":3,"performance":3,"regression_coverage":2,"evidence_paths":["res://tools/socom_geometry/world.cjs","res://tools/socom_geometry/mesh.cjs"]},
+    "candidate":{"system":"Verified MP6 local import plus saved opt-in grain", "correctness":4,"ownership_clarity":5,"runtime_parity":5,"editor_usability":4,"performance":4,"regression_coverage":4,"evidence_paths":["res://tools/socom_geometry/desert_glory.cjs","res://tools/desert_glory_regression.gd","res://tools/desert_glory_visual_check.gd"]}
+  }
+}

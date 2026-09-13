@@ -22,10 +22,10 @@ func sample(state: StringName, vertical_speed: float, moving: bool,
 		# Once descent begins, steering or a small upward correction cannot
 		# restart launch. Walking off a ledge starts directly in the air pose.
 		descending = descending or vertical_speed <= 0.0
-		slot = &"jump_loop" if descending else takeoff_slot
+		slot = (&"jump_running_air" if takeoff_slot == &"jump_up" else &"jump_loop") if descending else takeoff_slot
 		progress = clampf(-vertical_speed / maxf(launch_speed, 0.001), 0.0, 1.0) if descending else clampf(1.0 - vertical_speed / maxf(launch_speed, 0.001), 0.0, 1.0)
 	elif state == &"LANDING":
-		slot = &"jump_down"
+		slot = &"jump_running_land" if takeoff_slot == &"jump_up" else &"jump_down"
 		progress = clampf(landing_elapsed / maxf(landing_duration, 0.001), 0.0, 1.0)
 	else:
 		reset()

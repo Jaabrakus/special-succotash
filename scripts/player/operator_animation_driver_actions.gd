@@ -3,13 +3,17 @@ extends "res://scripts/player/operator_animation_driver_pose.gd"
 ## Action lifecycle: transitions, reload, grenade, visibility, and semantic routes.
 
 func _cancel_reload_for_mobility() -> void:
-	# Reload owns the upper body until completion or an explicit fire interrupt.
-	return
+	if movement_state in [&"DIVING", &"ROLLING"]:
+		_cancel_active_reload()
 
 
-func _cancel_reload_for_posture_change() -> void:
-	# Stance change preserves the active reload playhead on the upper body.
-	return
+func _update_reload_stance_pose(delta: float) -> void:
+	if not _reload_action_is_active() or not _requested_action_upper_body_layered \
+			or locomotion_graph == null or locomotion_graph.active_reload_pose == null:
+		return
+	var phase := 1.0 - requested_action_remaining / maxf(requested_action_total_duration, 0.001)
+	locomotion_graph.active_reload_pose.update(
+		_resolve_equipped_weapon_action(&"reload"), phase, animation_player, delta)
 
 
 func _reload_action_is_active() -> bool:
@@ -365,20 +369,13 @@ func resolve_semantic_action(action_name: StringName) -> StringName:
 
 
 func _resolve_equipped_weapon_action(action_name: StringName) -> StringName:
-	var slots: Dictionary = equipped_weapon_handling_profile.get("animation_slots", {})
-	if not slots.is_empty() and action_name in [&"fire", &"reload"]:
-		var posture_suffix := String(posture).to_lower()
-		if posture_suffix == "standing":
-			posture_suffix = "standing"
-		elif posture_suffix == "crouched":
-			posture_suffix = "crouched"
-		elif posture_suffix == "prone":
-			posture_suffix = "prone"
-		var slot_name := "%s_%s" % [String(action_name), posture_suffix]
-		var candidate := StringName(slots.get(slot_name, ""))
-		if candidate != &"" and available_clips.has(candidate):
-			return candidate
-	return animation_profile.resolve_semantic_action(action_name, posture)
+	var fallback: StringName = animation_profile.resolve_semantic_action(action_name, posture)
+	if action_name in [&"fire", &"reload"]:
+		# Semantic actions and stance-pose updates use the same family -> weapon
+		# slot resolution as the base pose; sparse weapons still reach the family.
+		var slot_name := "%s_%s" % [String(action_name), String(posture).to_lower()]
+		return _equipped_action_clip(slot_name, fallback)
+	return fallback
 
 
 func _load_equipped_weapon_handling_profile() -> Dictionary:

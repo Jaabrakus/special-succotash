@@ -1,0 +1,8 @@
+COMMAND: /Users/kiwimango/Applications/Godot-4.7.1.app/Contents/MacOS/Godot --headless -s tools/diagonal_mobility_regression.gd
+EXIT_CODE: 0
+DURATION: 25.2s
+
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+DIAGONAL_MOBILITY PASS []
+RIFLE_REFERENCE_PROBE PASS /private/tmp/diagonal_mobility []

@@ -41,6 +41,7 @@ var current_health: float = 100.0
 # 0.55-0.60 m; the previous 6.2 m/s impulse could lift the full standing
 # capsule roughly 1.75 m and visibly drive the operator through low ceilings.
 @export var jump_velocity: float = 5.0
+var active_jump_launch_speed: float = 5.0
 @export var dive_speed: float = 7.6
 @export var dive_duration: float = 0.78
 @export var dive_minimum_run_speed: float = 2.8
@@ -149,7 +150,7 @@ func is_dead_for_presentation() -> bool:
 func is_fire_locked_by_mobility() -> bool:
 	# Slides and every dive variant share the committed DIVING state. The
 	# CharacterBody owns that state; weapon systems only consume this decision.
-	return motion_state == MotionState.DIVING or traversal.is_hanging() or traversal.is_on_ladder() or (traversal.is_mantling() and StringName(traversal.state_machine.context.get("action_type", &"")) == &"climb")
+	return motion_state == MotionState.DIVING or traversal.is_hanging() or traversal.is_on_ladder() or traversal.is_narrow_walking() or (traversal.is_mantling() and StringName(traversal.state_machine.context.get("action_type", &"")) == &"climb")
 
 
 func take_explosion_damage(
@@ -200,6 +201,7 @@ func _physics_process(delta: float) -> void:
 		peek_target = 0.0
 	var peek_response := peek_enter_response if absf(peek_target) > absf(peek_amount) else peek_exit_response
 	peek_amount = move_toward(peek_amount, peek_target, peek_response * delta)
+	_apply_posture_collider()
 	if OS.get_cmdline_user_args().has("--movement-test"):
 		input = Vector2(1.0, 0.0)
 	elif OS.get_cmdline_user_args().has("--prone-forward-test"):
@@ -284,18 +286,47 @@ func _physics_process(delta: float) -> void:
 	)
 	var jump_started: bool = jump_requested or command.jump_pressed
 	jump_requested = false
+	if traversal.is_narrow_walking():
+		reset_jump_combos()
+		if jump_started:
+			# A deliberate jump returns to the existing jump/airborne path below.
+			traversal.leave_grip()
+			motion_state = posture
+			automatic_vault_retry_remaining = 0.45
+		else:
+			var before := global_position
+			var narrow_solution := traversal.solve_narrow(self, desired_dir, delta)
+			velocity = narrow_solution.get("velocity", Vector3.ZERO)
+			horizontal_response_mode = &"NARROW_LEDGE"
+			_update_orientation(desired_dir, authoritative_aim_yaw, delta)
+			_move_body_with_collision()
+			if traversal.is_narrow_walking():
+				var narrow_context := traversal.state_machine.context
+				var travelled := (global_position - before).dot(Vector3(narrow_context.travel_axis))
+				narrow_context["travel_metres"] = float(narrow_context.get("travel_metres", 0.0)) + absf(travelled)
+				narrow_context["travel_sign"] = signf(travelled) if absf(travelled) > 0.00001 else 0.0
+			else:
+				motion_state = posture if _movement_floor_contact() else MotionState.AIRBORNE
+			was_on_floor = _movement_floor_contact()
+			return
 	if traversal.is_hanging() or traversal.is_on_ladder():
 		reset_jump_combos()
+		var hanging := traversal.is_hanging()
+		if hanging and input.y >= -0.2:
+			traversal.state_machine.context["forward_released"] = true
+		var forward_climb := hanging and input.y < -0.2 and bool(traversal.state_machine.context.get("forward_released", false))
 		var ladder_input := traversal.ladder_jump_input(jump_started, command.jump_held, delta) if traversal.is_on_ladder() else {"detach": false, "slide": false}
-		if command.crouch_held or bool(ladder_input.detach):
+		if command.crouch_held or (hanging and input.y > 0.2) or bool(ladder_input.detach):
 			traversal.leave_grip()
 			motion_state = MotionState.AIRBORNE
 			velocity = Vector3.ZERO
 			automatic_vault_retry_remaining = 0.75
-		elif jump_started and traversal.pull_up(self):
+		elif (forward_climb or (jump_started and input.y < -0.2)) and traversal.pull_up(self):
 			_advance_automatic_vault(authoritative_aim_yaw, delta)
 			return
 		else:
+			if hanging:
+				traversal.shimmy(self, input.x, delta)
 			var grip_axis := 0.0 if traversal.is_on_ladder() and bool(traversal.state_machine.context.get("jump_tracking", false)) else -input.y
 			velocity = traversal.solve_grip(self, grip_axis, delta, bool(ladder_input.slide)).velocity
 			horizontal_response_mode = &"VAULTING"
@@ -317,9 +348,14 @@ func _physics_process(delta: float) -> void:
 		reset_jump_combos()
 		_advance_automatic_vault(authoritative_aim_yaw, delta)
 		return
-	# Jump at a reachable ledge, or keep Jump held while approaching in air.
+	# A fresh tap or held Jump catches a ledge; fresh forward pulls up afterward.
+	# Releasing movement must not discard a tap or held airborne grab ahead.
 	# A rejected probe falls through to the ordinary jump/gravity path.
-	if actions_enabled and not lean_latch.is_active() and mobility_combo_kind == &"" and (jump_started or (command.jump_held and motion_state == MotionState.AIRBORNE)) and _try_begin_automatic_vault(desired_dir, true):
+	var climb_requested: bool = jump_started or (command.jump_held and motion_state == MotionState.AIRBORNE)
+	var climb_direction := desired_dir
+	if climb_requested and climb_direction.length_squared() < 0.01:
+		climb_direction = Vector3.FORWARD.rotated(Vector3.UP, authoritative_aim_yaw)
+	if actions_enabled and not lean_latch.is_active() and mobility_combo_kind == &"" and climb_requested and _try_begin_automatic_vault(climb_direction, true, jump_started):
 		reset_jump_combos()
 		_advance_automatic_vault(authoritative_aim_yaw, delta)
 		return
@@ -368,7 +404,13 @@ func _physics_process(delta: float) -> void:
 	# diagonal response up to sqrt(2) times stronger than cardinal response.
 	var horizontal_velocity := Vector2(velocity.x, velocity.z)
 	var horizontal_target := Vector2(desired_velocity.x, desired_velocity.z)
-	if lean_latch.is_active():
+	if not _movement_floor_contact():
+		horizontal_response_mode = &"AIRBORNE"
+		horizontal_velocity = horizontal_velocity.move_toward(
+			horizontal_target,
+			5.0 * delta
+		)
+	elif lean_latch.is_active():
 		horizontal_response_mode = &"LEAN_PEEK"
 		horizontal_velocity = horizontal_target
 	elif posture == MotionState.CROUCHED and _movement_floor_contact() and bool(jump_combo_intent.profile.get("instant_crouch_response", false)):
@@ -571,6 +613,8 @@ func _resolve_opposing_lateral_input(raw_move_axis: Vector2) -> Vector2:
 	return raw_move_axis.limit_length(1.0)
 
 func _movement_speed() -> float:
+	if motion_state == MotionState.LANDING:
+		return move_speed * 0.60
 	if posture == MotionState.PRONE:
 		return prone_speed
 	if posture == MotionState.CROUCHED:
@@ -643,24 +687,40 @@ func get_traversal_snapshot() -> Dictionary:
 func get_traversal_presentation() -> Dictionary:
 	var context: Dictionary = traversal.state_machine.context
 	var slot := ""
-	if traversal.is_hanging(): slot = "hang"
+	if traversal.is_hanging(): slot = "hang_free" if context.get("hang_style","braced") == "free" else "hang"
+	elif traversal.is_narrow_walking():
+		var travel_sign := float(context.get("travel_sign", 0.0))
+		slot = "narrow_idle" if is_zero_approx(travel_sign) else ("narrow_right" if travel_sign > 0.0 else "narrow_left")
 	elif traversal.is_on_ladder():
 		var sliding := bool(context.get("jump_tracking", false)) and float(context.get("jump_hold_seconds", 0.0)) >= float(traversal.mantle_motor.climb_profile.ladder_slide_hold_seconds)
 		slot = "ladder_slide" if sliding else ("ladder_move" if absf(velocity.y) > 0.05 else "ladder_idle")
-	elif traversal.is_mantling() and StringName(context.get("action_type", &"")) == &"climb": slot = "pull_up"
-	return {"slot": slot, "height": float(context.get("height", 0.0)),
-		"phase": clampf(traversal.mantle_motor.elapsed / maxf(traversal.mantle_motor.duration, 0.01), 0.0, 1.0)}
+	elif traversal.is_mantling():
+		slot = str(context.get("presentation_slot", "pull_up")) if StringName(context.get("action_type", &"")) == &"climb" else "vault"
+		if slot == "pull_up" and context.get("hang_style","braced") == "free": slot = "pull_up_free"
+	var presentation := {"slot": slot, "height": float(context.get("height", 0.0)),
+		"phase": clampf(traversal.mantle_motor.elapsed / maxf(traversal.mantle_motor.duration, 0.01), 0.0, 1.0),
+		"hang_style":context.get("hang_style","braced"),"can_pull_up":context.get("can_pull_up",false),"pull_up_reason":context.get("pull_up_reason","")}
+	if context.has("anchor"):
+		presentation["anchor"] = context.anchor
+		presentation["surface_normal"] = context.get("surface_normal", Vector3.BACK)
+		if context.has("start_point") and context.has("landing_point"):
+			presentation["start_point"] = context.start_point
+			presentation["landing_point"] = context.landing_point
+	presentation["travel_metres"] = float(context.get("travel_metres", 0.0))
+	return presentation
 
 
-func _try_begin_automatic_vault(desired_dir: Vector3, climbing: bool = false) -> bool:
+func _try_begin_automatic_vault(desired_dir: Vector3, climbing: bool = false, fresh_jump: bool = false) -> bool:
+	var deliberate_climb := climbing and fresh_jump
 	if (
 		not automatic_vault_enabled
-		or automatic_vault_probe_remaining > 0.0
+		or (automatic_vault_probe_remaining > 0.0 and not deliberate_climb)
 		or automatic_vault_retry_remaining > 0.0
 		or posture != MotionState.STANDING
 		or (motion_state not in [MotionState.STANDING, MotionState.LANDING, MotionState.AIRBORNE] if climbing else motion_state != MotionState.STANDING)
 		or (not climbing and not _movement_floor_contact())
-		or desired_dir.length() < full_gait_input_threshold
+		or desired_dir.is_zero_approx()
+		or (not climbing and desired_dir.length() < full_gait_input_threshold)
 		or (not climbing and Vector2(velocity.x, velocity.z).length() < automatic_vault_minimum_speed)
 	):
 		return false
@@ -678,7 +738,7 @@ func _try_begin_automatic_vault(desired_dir: Vector3, climbing: bool = false) ->
 		capsule.height,
 		capsule.radius,
 		climbing,
-		climbing and motion_state == MotionState.AIRBORNE
+		climbing
 	)
 	if not bool(result.get("accepted", false)):
 		return false
@@ -696,7 +756,7 @@ func _advance_automatic_vault(authoritative_aim_yaw: float, delta: float) -> voi
 		velocity = traversal.solve_grip(self, 0.0, delta).velocity
 		_move_body_with_collision()
 		return
-	var solution := traversal.solve_mantle(global_position, delta)
+	var solution := traversal.solve_mantle(global_position, delta, self)
 	velocity = solution.get("velocity", Vector3.ZERO) as Vector3
 	horizontal_response_mode = &"VAULTING"
 	_update_orientation(action_direction, authoritative_aim_yaw, delta)
@@ -783,7 +843,7 @@ func _try_begin_mobility_action(
 	jump_started: bool,
 	command
 ) -> bool:
-	if not _movement_floor_contact() or motion_state == MotionState.DIVING or motion_state == MotionState.ROLLING:
+	if not _movement_floor_contact() or motion_state == MotionState.DIVING or motion_state == MotionState.ROLLING or motion_state == MotionState.LANDING:
 		return false
 
 	# Jump owns one action only. Travel input must never reinterpret Space as a
@@ -791,7 +851,9 @@ func _try_begin_mobility_action(
 	if jump_started and posture != MotionState.PRONE:
 		if not _try_set_posture(MotionState.STANDING):
 			return false
-		velocity.y = jump_velocity
+		var running := input.length() >= full_gait_input_threshold and Vector2(velocity.x, velocity.z).length() >= float(traversal.mantle_motor.climb_profile.running_jump_min_speed_mps)
+		active_jump_launch_speed = float(traversal.mantle_motor.climb_profile.running_jump_velocity_mps) if running else jump_velocity
+		velocity.y = active_jump_launch_speed
 		motion_state = MotionState.AIRBORNE
 		_emit_mobility_started(&"AIRBORNE")
 		return true
@@ -888,6 +950,7 @@ func _update_air_and_landing_state(delta: float) -> void:
 		action_elapsed += delta
 		if action_elapsed >= action_duration:
 			motion_state = posture
+			active_jump_launch_speed = jump_velocity
 	elif motion_state != MotionState.DIVING and motion_state != MotionState.ROLLING:
 		motion_state = posture
 
@@ -903,6 +966,7 @@ func _apply_posture_collider() -> void:
 		target_height = 0.82
 	capsule.height = target_height
 	collider.position.y = target_height * 0.5
+	collider.position.x = peek_amount * 0.38
 	if mobility_combo_kind != &"":
 		capsule.height = float(jump_combo_intent.profile.collider_height)
 		collider.position.y = capsule.height * 0.5

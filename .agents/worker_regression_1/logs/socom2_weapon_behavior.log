@@ -1,0 +1,17 @@
+COMMAND: /Users/kiwimango/Applications/Godot-4.7.1.app/Contents/MacOS/Godot --headless -s tools/socom2_weapon_behavior_regression.gd
+EXIT_CODE: 0
+DURATION: 2.64s
+
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+WARNING: You must enable the project setting "audio/driver/enable_input" to use audio capture.
+     at: set_input_device_active (servers/audio/audio_server.cpp:1870)
+     GDScript backtrace (most recent call first):
+         [0] _setup_audio_bus_and_capture (res://scripts/audio/socom_voice_chat_controller.gd:61)
+         [1] _ready (res://scripts/audio/socom_voice_chat_controller.gd:37)
+         [2] _build_ui (res://scripts/runtime/main_gameplay_hud_builder.gd:110)
+         [3] _build_ui (res://scripts/runtime/main_gameplay_hud.gd:136)
+         [4] _build_ui (res://scripts/main.gd:418)
+         [5] _ready (res://scripts/main.gd:213)
+         [6] _run (res://tools/socom2_weapon_behavior_regression.gd:24)
+SOCOM2_WEAPON_BEHAVIOR PASS profiles=32 []

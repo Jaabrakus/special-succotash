@@ -111,6 +111,7 @@
         "a": 1
       },
       "properties": {
+        "yard_weathering": true,
         "surface_kind": "concrete",
         "uv_scale": 0.25
       }
@@ -466,7 +467,7 @@
       },
       "properties": {
         "asset_path": "res://assets/environment/relic_depot/psx_old_warehouse.glb",
-        "collision_mode": "box",
+        "collision_mode": "detailed_mesh",
         "collision_enabled": true
       }
     },
@@ -496,6 +497,7 @@
         "a": 1
       },
       "properties": {
+        "yard_finish": true,
         "asset_path": "res://assets/environment/relic_depot/container_4.glb",
         "collision_mode": "box",
         "collision_enabled": true
@@ -527,6 +529,7 @@
         "a": 1
       },
       "properties": {
+        "yard_finish": true,
         "asset_path": "res://assets/environment/relic_depot/container_5.glb",
         "collision_mode": "box",
         "collision_enabled": true
@@ -744,6 +747,7 @@
         "a": 1
       },
       "properties": {
+        "yard_finish": true,
         "asset_path": "res://assets/environment/relic_depot/container_6.glb",
         "collision_mode": "box",
         "collision_enabled": true
@@ -806,6 +810,7 @@
         "a": 1
       },
       "properties": {
+        "yard_finish": true,
         "asset_path": "res://assets/environment/relic_depot/generator_unit.glb",
         "collision_mode": "box",
         "collision_enabled": true
@@ -868,6 +873,7 @@
         "a": 1
       },
       "properties": {
+        "yard_finish": true,
         "asset_path": "res://assets/environment/relic_depot/crate_wood.glb",
         "collision_mode": "box",
         "collision_enabled": true
@@ -961,6 +967,7 @@
         "a": 1
       },
       "properties": {
+        "yard_finish": true,
         "asset_path": "res://assets/environment/relic_depot/crate_metal.glb",
         "collision_mode": "box",
         "collision_enabled": true
@@ -992,6 +999,7 @@
         "a": 1
       },
       "properties": {
+        "yard_finish": true,
         "asset_path": "res://assets/environment/relic_depot/barrel_oil.glb",
         "collision_mode": "box",
         "collision_enabled": true
@@ -1023,6 +1031,7 @@
         "a": 1
       },
       "properties": {
+        "yard_finish": true,
         "asset_path": "res://assets/environment/relic_depot/barrel_oil.glb",
         "collision_mode": "box",
         "collision_enabled": true

@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "feature_id": "run_stride_balance",
+  "player_intent": "Run without a deeper hip dip on every other step.",
+  "acceptance_rule": "Real forward commands through main.tscn retain 6.5m/s and floor contact. Total hip travel below 5cm, hip trough range below 1.5cm, frame step below 3cm at 60Hz, left/right travel within 8cm, support ankle -5..16cm. Fitted ankle paths within 1cm of prior paths. Original clips, upper-body tracks and timing unchanged; only runtime-copy hips and six leg rotations may change.",
+  "canonical_scene": "res://main.tscn",
+  "ownership": {"animation": "SocomOperatorAnimationDriver"},
+  "nodes": [{"id": "pose", "type": "Node", "owner": "SocomOperatorAnimationDriver", "role": "Existing canonical animation presentation", "scene_path": "res://scenes/player/operator_player.tscn", "node_path": "Mannequin/ProductionAnimation"}],
+  "data_contracts": [{"path": "res://config/operator_animation_map.json", "writer": "res://scripts/labs/animation_workshop_repository.gd", "readers": ["res://scripts/player/operator_animation_profile.gd", "res://scripts/player/operator_asset_runtime.gd", "res://scripts/player/operator_animation_library_cache.gd"]}],
+  "must_not_change": ["CharacterBody movement/collision", "Camera aim", "Server shot/damage", "Source animation assets", "Non-running actions and clip timing"],
+  "proof_scripts": ["res://tools/main_run_stride_regression.gd", "res://tools/gait_alignment_regression.gd", "res://tools/gait_lean_continuity_regression.gd"],
+  "visual_check": "Capture side/rear frames spanning a complete running stride through main.tscn. Inspect support, alternating leg movement and absence of one-sided hip dip; test rifle and pistol.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Symmetry correction leaves 12cm total bounce. Limit cached forward-run height to saved 4cm and refit legs to retained ankle targets using the existing solver. No new per-frame pose writer and no source-engine parity claim.",
+    "current": {"system": "Balanced but high-bounce gait", "correctness": 2, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 5, "regression_coverage": 3, "evidence_paths": ["res://docs/RUN_STRIDE_BALANCE.md"]},
+    "candidate": {"system": "Library-time bounce limit and ankle-preserving leg fit", "correctness": 4, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 4, "regression_coverage": 4, "evidence_paths": ["res://scripts/player/operator_gait_alignment.gd", "res://tools/main_run_stride_regression.gd", "res://tools/gait_alignment_regression.gd"]}
+  }
+}

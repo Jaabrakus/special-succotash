@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "feature_id": "source_grounded_blending",
+  "player_intent": "Begin matching source animation blending and remove added locomotion sluggishness.",
+  "acceptance_rule": "Canonical main rifle grounded-to-idle uses the selected source idle BlendTime 0.5 seconds; full 6.5m/s gait plays at 1x; stopped gait releases without extra grace. Missing source timings and action exits retain fallback. Repeated requests do not rewrite an active fade. This is source-informed timing, not original-engine or camera parity.",
+  "canonical_scene": "res://main.tscn",
+  "ownership": {"animation": "ProductionAnimation"},
+  "nodes": [{"id": "animation_driver", "type": "Node3D", "owner": "ProductionAnimation", "role": "Reads authoritative movement and drives the sole animation graph", "scene_path": "res://scenes/player/operator_player.tscn", "node_path": "Mannequin/ProductionAnimation"}],
+  "data_contracts": [{"path": "res://config/operator_animation_map.json", "writer": "res://docs/SOURCE_GROUNDED_BLENDING.md", "readers": ["res://scripts/player/operator_animation_profile.gd", "res://scripts/player/operator_locomotion_route_builder.gd", "res://scripts/player/operator_locomotion_blend_tree.gd", "res://scripts/player/operator_animation_driver_pose.gd"]}],
+  "must_not_change": ["CharacterBody movement and collision", "Camera/reticle aim intent", "Server weapon shots/damage and action timing", "Hand contact and retargeting", "Action-exit and pistol cross-fade duration policy"],
+  "proof_scripts": ["res://tools/source_grounded_blending_regression.gd", "res://tools/main_rifle_source_pose_audit.gd", "res://tools/camera_source_hybrid_regression.gd"],
+  "visual_check": "In main, run and stop with the modern rifle character, change direction, crouch, fire and reload. Review feet and weapon contact. Compare original footage before claiming 1:1. Camera calibration remains uncompleted.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Use existing source metadata in the existing graph. Remove artificial cadence reduction and stop hold, retain action/movement/weapon owners. KEEP current camera until original live behavior is measured; no guessed exact preset.",
+    "current": {"system": "Custom fallback fades and slowed gait", "correctness": 2, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 5, "regression_coverage": 3, "evidence_paths": ["res://scripts/player/operator_animation_driver_pose.gd", "res://scripts/player/operator_animation_profile.gd"]},
+    "candidate": {"system": "Source-informed idle fades and calibrated gait inside existing graph", "correctness": 3, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 5, "regression_coverage": 4, "evidence_paths": ["res://scripts/player/operator_locomotion_blend_tree.gd", "res://scripts/player/operator_locomotion_route_builder.gd", "res://tools/source_grounded_blending_regression.gd", "res://docs/SOURCE_GROUNDED_BLENDING.md"]}
+  }
+}

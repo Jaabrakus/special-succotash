@@ -1,0 +1,119 @@
+{
+  "source": "/Users/kiwimango/Downloads/FBX/SKM_Character.fbx",
+  "source_bones": 275,
+  "meshes": [
+    "Shirt_RolledUp",
+    "Holster_Hard",
+    "Jeans_Tactic",
+    "SKM_Patch_Back",
+    "Drops_1",
+    "Eyelashes",
+    "Teeth_Down",
+    "Quantum_Arms",
+    "Bulletproof",
+    "Head",
+    "Cap",
+    "Eye",
+    "Teeth_UP",
+    "SKM_Patch_Flag_Cap",
+    "Pistol_Leg"
+  ],
+  "vertices": 82285,
+  "materials": {
+    "M_Holster_Hard": [
+      "M_Holster_Hard_Bege_BaseColor.png",
+      "M_Holster_Hard_Roughness.png",
+      "M_Holster_Hard_Metallic.png",
+      "M_Holster_Hard_Unity_Normal.png"
+    ],
+    "M_Jeans": [
+      "T_Jeans_Bege_BaseColor.png",
+      "T_Jeans_Roughness.png",
+      "T_Jeans_Metallic.png",
+      "T_Jeans_Unity_Normal.png"
+    ],
+    "M_Eyelashesh": [
+      "T_Eyelashesh_BaseColor.png",
+      "T_Eyelashesh_Roughness.png",
+      "T_Eyelashesh_Metallic.png",
+      "T_Eyelashesh_Unity_Normal.png"
+    ],
+    "M_Bulletproof_Light": [
+      "T_Bulletproof_Bege_BaseColor.png",
+      "T_Bulletproof_Light_Roughness.png",
+      "T_Bulletproof_Light_Metallic.png",
+      "T_Bulletproof_Light_Unity_Normal.png"
+    ],
+    "M_Pistol": [
+      "Pistol_BaseColor.png",
+      "Pistol_Roughness.png",
+      "Pistol_Metallic.png",
+      "Pistol_Unity_Normal.png"
+    ],
+    "M_Cap": [
+      "T_Cap_Bege_BaseColor.png",
+      "T_Cap_Roughness.png",
+      "T_Cap_Metallic.png",
+      "T_Cap_Unity_Normal.png"
+    ],
+    "M_Patches": [
+      "T_Patches_BaseColor.jpg",
+      "T_Patches_Roughness.png",
+      "T_Patches_Metallic.png",
+      "T_Patches_Unity_Normal.png"
+    ],
+    "M_Teeth": [
+      "T_Teeth_BaseColor.png",
+      "T_Teeth_Roughness.png",
+      "T_Teeth_Metallic.png",
+      "T_Teeth_Unity_Normal.png"
+    ],
+    "M_Quantum_Body": [
+      "T_Body_BaseColor.png",
+      "T_Body_Roughness.png",
+      "T_Body_Metallic.png",
+      "T_Body_Unity_Normal.png"
+    ],
+    "M_Sclera": [
+      "T_Sclera_BaseColor.png",
+      "T_Sclera_Roughness.png",
+      "T_Sclera_Metallic.png",
+      "T_Sclera_Unity_Normal.png"
+    ],
+    "M_Drops_Tactical": [
+      "T_Drops_Tactical_Bege_BaseColor.png",
+      "T_Drops_Tactical_Roughness.png",
+      "T_Drops_Tactical_Metallic.png",
+      "T_Drops_Tactical_Unity_Normal.png"
+    ],
+    "M_Quantum_Head": [
+      "T_Head_BaseColor.png",
+      "T_Head_Roughness.png",
+      "T_Head_Metallic.png",
+      "T_Head_Unity_Normal.png"
+    ],
+    "M_Quantum_Arms": [
+      "T_Quantum_Basemesh_Arms_BaseColor.1003.png",
+      "T_Quantum_Basemesh_Arms_Roughness.1003.png"
+    ],
+    "M_Head": [
+      "T_Head_BaseColor.png",
+      "T_Head_Roughness.png",
+      "T_Head_Metallic.png",
+      "T_Head_Unity_Normal.png"
+    ],
+    "M_Eyeball": [
+      "T_Eyeball_BaseColor.png",
+      "T_Eyeball_Roughness.png",
+      "T_Eyeball_Metallic.png",
+      "T_Eyeball_Unity_Normal.png"
+    ],
+    "M_Shirt_RolledUp": [
+      "T_Shirt_RolledUp_Blue_BaseColor.png",
+      "T_Shirt_RolledUp_Roughness.png",
+      "T_Shirt_RolledUp_Metallic.png",
+      "T_Shirt_RolledUp_Unity_Normal.png"
+    ]
+  },
+  "texture_limit": 2048
+}

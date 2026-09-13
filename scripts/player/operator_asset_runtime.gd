@@ -20,6 +20,7 @@ const SKELETON_CONTRACT := preload("res://scripts/player/operator_skeleton_contr
 const NATIVE_RIG_ADAPTER := preload("res://scripts/player/operator_native_rig_adapter.gd")
 const WEAPON_LOADOUT_PATH := "res://config/weapons/operator_loadout.json"
 const OPERATOR_GEAR_PATH := "res://config/operator_gear.json"
+const CharacterSelection := preload("res://scripts/player/operator_character_selection.gd")
 
 var model_root: Node3D
 var animation_player: AnimationPlayer
@@ -57,6 +58,7 @@ func build(
 	operator_scale = scale_value
 	grip_position = grip_pos
 	grip_rotation = grip_rot
+	CharacterSelection.apply(owner)
 	if owner != null and owner.has_node("TrooperModel"):
 		model_root = owner.get_node("TrooperModel") as Node3D
 	else:
@@ -639,6 +641,28 @@ func _apply_material_recursive(node: Node, material: Material) -> void:
 
 
 func _build_animation_library() -> void:
+	var old_rests: Array = skeleton.get_meta("canonical_rest_before_proportions", [])
+	if old_rests.is_empty():
+		_build_canonical_animation_library()
+		return
+	# Build/adopt the unchanged canonical cache, then create a rig-specific
+	# variant. No live pose has run yet, and the shared cache is never mutated.
+	var selected_rests: Array[Transform3D] = []
+	for bone in skeleton.get_bone_count():
+		selected_rests.append(skeleton.get_bone_rest(bone))
+		skeleton.set_bone_rest(bone, old_rests[bone])
+	skeleton.reset_bone_poses()
+	_build_canonical_animation_library()
+	for bone in skeleton.get_bone_count():
+		skeleton.set_bone_rest(bone, selected_rests[bone])
+	skeleton.reset_bone_poses()
+	animation_library = preload("res://scripts/player/operator_proportion_animation_adapter.gd").adapt(animation_library, old_rests, skeleton, ANIMATION_CACHE.new().fingerprint_for(profile))
+	animation_player.remove_animation_library("")
+	animation_player.add_animation_library("", animation_library)
+	_make_jump_clips_local()
+
+
+func _build_canonical_animation_library() -> void:
 	var cache = ANIMATION_CACHE.new()
 	var cached: Dictionary = cache.adopt(profile, animation_player)
 	if not cached.is_empty():
@@ -647,6 +671,7 @@ func _build_animation_library() -> void:
 		source_animation_names = (
 			(cached["source_animation_names"] as Dictionary).duplicate(true)
 		)
+		_make_jump_clips_local()
 		return
 	animation_library = AnimationLibrary.new()
 	available_clips.clear()
@@ -696,18 +721,62 @@ func _build_animation_library() -> void:
 	_align_grounded_gaits()
 	animation_player.add_animation_library("", animation_library)
 	cache.store(profile, animation_library, source_animation_names)
+	_make_jump_clips_local()
+
+
+func _make_jump_clips_local() -> void:
+	if not bool(profile.source_jump.get("anchor_hips_at_takeoff", false)):
+		return
+	# Keep the cache immutable and share all non-jump clips. Only these six
+	# small runtime takes need player-local translation keys.
+	var local := AnimationLibrary.new()
+	for name: StringName in animation_library.get_animation_list():
+		var clip := animation_library.get_animation(name)
+		if profile.source_jump.get("clips", {}).has(String(name)):
+			clip = clip.duplicate() as Animation
+		local.add_animation(name, clip)
+	animation_player.remove_animation_library("")
+	animation_player.add_animation_library("", local)
+	animation_library = local
+
+
+func anchor_jump_at_takeoff() -> void:
+	if not bool(profile.source_jump.get("anchor_hips_at_takeoff", false)) or skeleton == null:
+		return
+	var hip := skeleton.find_bone("mixamorig_Hips")
+	if hip < 0:
+		return
+	var anchor := skeleton.get_bone_pose_position(hip)
+	for name in profile.source_jump.get("clips", {}):
+		if not animation_library.has_animation(name):
+			continue
+		var clip := animation_library.get_animation(name)
+		var track := clip.find_track(NodePath(".:mixamorig_Hips"), Animation.TYPE_POSITION_3D)
+		if track < 0:
+			continue
+		for key in clip.track_get_key_count(track):
+			clip.track_set_key_value(track, key, anchor)
 
 
 func _align_grounded_gaits() -> void:
+	if bool(profile.locomotion.get("source_pose_only", false)): return
 	if not bool(profile.locomotion.get("grounded_gait_alignment", false)): return
 	var support := float(profile.locomotion.get("gait_support_height_m", 0.05)) / operator_scale
 	for name: StringName in animation_library.get_animation_list():
 		var text := String(name)
+		if bool(profile.locomotion.get("source_rifle_attachment", false)) and not (text.begins_with("pistol_") or text.begins_with("seal_p_") or text.begins_with("seal_pfp_")):
+			continue
 		# Only continuous grounded bases, never jumps, dives, traversal or actions.
+		if bool(profile.locomotion.get("source_pistol_attachment", false)) and (text.begins_with("pistol_") or text.begins_with("seal_p_") or text.begins_with("seal_pfp_")):
+			continue
 		var gait := text.begins_with("run_") or text.begins_with("walk_") or text.begins_with("pistol_run_") or text.begins_with("pistol_walk_")
 		gait = gait or text in ["crouch_forward", "crouch_backward", "crouch_left", "crouch_right", "crouch_lateral_left", "crouch_lateral_right", "pistol_crouch_forward", "pistol_crouch_backward", "pistol_crouch_left", "pistol_crouch_right"]
 		gait = gait or text.begins_with("seal_fp_") or text.begins_with("seal_pfp_")
 		if gait: GAIT_ALIGNMENT.align_support(animation_library.get_animation(name), skeleton, support)
+		if text in ["run_forward", "pistol_run_forward", "seal_fp_run", "seal_pfp_run"] and bool(profile.locomotion.get("forward_run_hip_balance", false)):
+			GAIT_ALIGNMENT.balance_run_support(animation_library.get_animation(name), 0.025 / operator_scale)
+			GAIT_ALIGNMENT.limit_run_bounce(animation_library.get_animation(name), skeleton,
+				float(profile.locomotion.get("forward_run_max_hip_travel_m", 0.0)) / operator_scale)
 
 
 func _anchor_traversal_hips() -> void:
@@ -720,6 +789,17 @@ func _anchor_traversal_hips() -> void:
 	for name: StringName in animation_library.get_animation_list():
 		if not String(name).begins_with("traversal_"): continue
 		var clip := animation_library.get_animation(name)
+		# The decoded take closes on its first pose. Remove that closure once,
+		# before caching, so a completed pull-up cannot return to the hang pose.
+		if name in [&"traversal_pull_up", &"traversal_pull_up_free"]:
+			var settings: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://config/ledge_climb.json"))
+			var end := maxf(clip.length - float(settings.get("pull_up_terminal_trim_seconds", 1.0 / 30.0)), 0.01)
+			for channel in clip.get_track_count():
+				for key in range(clip.track_get_key_count(channel) - 1, -1, -1):
+					if clip.track_get_key_time(channel, key) > end + 0.00001:
+						clip.track_remove_key(channel, key)
+			clip.length = end
+			clip.loop_mode = Animation.LOOP_NONE
 		var hips := clip.find_track(NodePath(".:mixamorig_Hips"), Animation.TYPE_POSITION_3D)
 		if hips >= 0:
 			for key in clip.track_get_key_count(hips): clip.track_set_key_value(hips, key, anchor)
@@ -931,8 +1011,13 @@ func _apply_clip_aliases() -> void:
 
 
 func _apply_clip_pose_yaw_offsets() -> void:
+	# The model's native PI facing/rest basis remains unchanged. Skip only the
+	# additional saved correction rotations, not source directional animation.
+	if bool(profile.locomotion.get("source_pose_only", false)): return
 	for raw_clip_name in profile.pose_yaw_offsets_degrees.keys():
 		var clip_name := StringName(raw_clip_name)
+		if bool(profile.locomotion.get("source_pistol_attachment", false)) and (String(clip_name).begins_with("pistol_") or String(clip_name).begins_with("seal_p_") or String(clip_name).begins_with("seal_pfp_")):
+			continue
 		var yaw_degrees: float = profile.pose_yaw_offset_degrees(clip_name)
 		if is_zero_approx(yaw_degrees) or not animation_library.has_animation(clip_name):
 			continue

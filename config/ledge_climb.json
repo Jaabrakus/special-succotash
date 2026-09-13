@@ -1,21 +1,599 @@
 {
   "enabled": true,
+  "low_mantle_max_height_m": 1.35,
+  "running_jump_velocity_mps": 7.0,
+  "running_jump_min_speed_mps": 4.5,
   "raised_hand_reach_m": 2.15,
   "ledge_hang_enabled": true,
+  "grip_min_depth_m": 0.08,
+  "grip_half_width_m": 0.19,
+  "grip_surface_tolerance_m": 0.04,
+  "hang_brace_probe_height_m": 0.65,
+  "hang_brace_probe_distance_m": 0.75,
+  "airborne_floor_blocked_hang_pull_up": true,
+  "hang_shimmy_speed_mps": 0.65,
+  "hang_outward_search_m": [0.0, 0.08, 0.16, 0.24],
+  "pull_up_terminal_trim_seconds": 0.0,
   "ladder_speed_mps": 1.4,
   "ladder_slide_speed_mps": 3.5,
   "ladder_slide_hold_seconds": 0.22,
   "presentation_clips": {
+    "vault": "traversal_vault",
+    "low_mantle": "traversal_low_mantle",
     "hang": "traversal_hang",
+    "hang_free": "traversal_hang_free",
+    "narrow_idle": "traversal_narrow_idle",
+    "narrow_left": "traversal_narrow_left",
+    "narrow_right": "traversal_narrow_right",
     "pull_up": "traversal_pull_up",
+    "pull_up_free": "traversal_pull_up_free",
     "ladder_idle": "traversal_ladder_idle",
     "ladder_move": "traversal_ladder_move",
     "ladder_slide": "traversal_ladder_slide"
   },
   "hang_clip_time_seconds": 0.0,
+  "presentation_segments": {"low_mantle": {"start_phase": 0.3, "end_phase": 1.0}},
+  "hand_contact_by_slot": {
+    "narrow_idle": {"enabled": true, "align_only": true},
+    "narrow_left": {"enabled": true, "align_only": true},
+    "narrow_right": {"enabled": true, "align_only": true},
+    "hang_free": {"enabled":true,"blend_seconds":0.12,"hand_spacing_m":0.38,"wrist_outset_m":0.04,"wrist_height_m":0.02,"left_release":{"start_phase":0.75,"end_phase":0.82},"right_release":{"start_phase":0.45,"end_phase":0.55}},
+    "pull_up_free": {"enabled":true,"blend_seconds":0.12,"hand_spacing_m":0.38,"wrist_outset_m":0.04,"wrist_height_m":0.02,"left_release":{"start_phase":0.75,"end_phase":0.82},"right_release":{"start_phase":0.45,"end_phase":0.55}},
+    "low_mantle": {
+      "enabled": true, "blend_seconds": 0.18, "hand_spacing_m": 0.5,
+      "acquire": {"start_phase": 0.1, "end_phase": 0.16},
+      "wrist_outset_m": 0.04, "wrist_height_m": 0.02,
+      "left_release": {"start_phase": 0.257, "end_phase": 0.457},
+      "right_release": {"start_phase": 0.257, "end_phase": 0.457}
+    }
+  },
+  "visual_root_by_slot": {
+    "narrow_idle": {"source": "res://assets/external/agls_intake/imported/climbing/CMC_NarrowFloor_IdlePoses.scn", "face_wall": true},
+    "narrow_left": {"source": "res://assets/external/agls_intake/imported/climbing/CMC_NarrowFloor_Walk_L.scn", "face_wall": true},
+    "narrow_right": {"source": "res://assets/external/agls_intake/imported/climbing/CMC_NarrowFloor_Walk_R.scn", "face_wall": true},
+    "hang_free": {"enabled":true,"source":"res://assets/external/agls_intake/imported/climbing/CMC_Climb_To_Standing_FreeHang.scn","face_wall":true,"preserve_authored_hand_rotation":true,"hang_up_m":0},
+    "pull_up_free": {
+      "enabled": true,
+      "source": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_To_Standing_FreeHang.scn",
+      "face_wall": true,
+      "preserve_authored_hand_rotation": true,
+      "hang_up_m": 0,
+      "source_rise_m": 2.174137145280837,
+      "source_forward_m": 0.503477156162262,
+      "endpoint_fit_start_phase": 0.82,
+      "max_down_m": 1,
+      "max_up_m": 0.35,
+      "max_horizontal_m": 0.65,
+      "exit_fade_start_phase": 0.92,
+      "vertical_progress": [
+        [
+          0,
+          0
+        ],
+        [
+          0.05,
+          -0.01127416945762535
+        ],
+        [
+          0.1,
+          0.019560522429993562
+        ],
+        [
+          0.15,
+          0.12861189689863883
+        ],
+        [
+          0.2,
+          0.27362646998667073
+        ],
+        [
+          0.25,
+          0.36698448459291844
+        ],
+        [
+          0.3,
+          0.39331864484969203
+        ],
+        [
+          0.35,
+          0.4271784174832814
+        ],
+        [
+          0.4,
+          0.499672832539044
+        ],
+        [
+          0.45,
+          0.5813059768378754
+        ],
+        [
+          0.5,
+          0.6648814958813205
+        ],
+        [
+          0.55,
+          0.7324001965842232
+        ],
+        [
+          0.6,
+          0.7465386011614742
+        ],
+        [
+          0.65,
+          0.7134995880918127
+        ],
+        [
+          0.7,
+          0.7104672354347505
+        ],
+        [
+          0.75,
+          0.7675681730013565
+        ],
+        [
+          0.8,
+          0.8453968398399071
+        ],
+        [
+          0.85,
+          0.9184196027584592
+        ],
+        [
+          0.9,
+          0.9704949849378228
+        ],
+        [
+          0.95,
+          0.993512550598896
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "forward_progress": [
+        [
+          0,
+          0
+        ],
+        [
+          0.05,
+          0.30339838841143163
+        ],
+        [
+          0.1,
+          0.6196921490550736
+        ],
+        [
+          0.15,
+          0.6163865752647851
+        ],
+        [
+          0.2,
+          0.4395057621424078
+        ],
+        [
+          0.25,
+          0.21288530942251888
+        ],
+        [
+          0.3,
+          0.061952546157221206
+        ],
+        [
+          0.35,
+          0.11405715320746124
+        ],
+        [
+          0.4,
+          0.31192762590498746
+        ],
+        [
+          0.45,
+          0.42317405878693526
+        ],
+        [
+          0.5,
+          0.44021075075071636
+        ],
+        [
+          0.55,
+          0.4545916896582138
+        ],
+        [
+          0.6,
+          0.4526976321024948
+        ],
+        [
+          0.65,
+          0.4358771129680623
+        ],
+        [
+          0.7,
+          0.4158130543054338
+        ],
+        [
+          0.75,
+          0.40711298581913424
+        ],
+        [
+          0.8,
+          0.45883334152169913
+        ],
+        [
+          0.85,
+          0.5839023457593255
+        ],
+        [
+          0.9,
+          0.7550718040664421
+        ],
+        [
+          0.95,
+          0.9285130896436533
+        ],
+        [
+          1,
+          1
+        ]
+      ]
+    },
+    "low_mantle": {
+      "enabled": true,
+      "source": "res://assets/external/agls_intake/imported/mantle_vault/ALSv2_Mantle_2m_Walking_01.scn",
+      "support_offset": {"forward_m": 0.2, "up_m": -0.22, "fade_start_phase": 0.45, "fade_end_phase": 0.8},
+      "source_rise_m": 1.06080412864685,
+      "source_forward_m": 0.775712609291077,
+      "endpoint_fit_start_phase": 0.5,
+      "max_down_m": 0.8,
+      "max_up_m": 0.5,
+      "max_horizontal_m": 0.8,
+      "exit_fade_start_phase": 0.95,
+      "vertical_progress": [
+        [
+          0,
+          0
+        ],
+        [
+          0.0714285714285714,
+          0.24041660158203454
+        ],
+        [
+          0.142857142857143,
+          0.3581858862054668
+        ],
+        [
+          0.214285714285714,
+          0.47465610029363947
+        ],
+        [
+          0.285714285714286,
+          0.5627555578530278
+        ],
+        [
+          0.357142857142857,
+          0.6210447179185207
+        ],
+        [
+          0.428571428571429,
+          0.657489490002439
+        ],
+        [
+          0.5,
+          0.6922991862828944
+        ],
+        [
+          0.571428571428571,
+          0.7271084330579745
+        ],
+        [
+          0.642857142857143,
+          0.7691048212822816
+        ],
+        [
+          0.714285714285714,
+          0.8191266784811673
+        ],
+        [
+          0.785714285714286,
+          0.8779154637715526
+        ],
+        [
+          0.857142857142857,
+          0.9375396548023478
+        ],
+        [
+          0.928571428571428,
+          0.9809119789811255
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "forward_progress": [
+        [
+          0,
+          0
+        ],
+        [
+          0.0714285714285714,
+          0.1273640729603701
+        ],
+        [
+          0.142857142857143,
+          0.17365900181477373
+        ],
+        [
+          0.214285714285714,
+          0.22572281655145723
+        ],
+        [
+          0.285714285714286,
+          0.28926093439692274
+        ],
+        [
+          0.357142857142857,
+          0.34495152946397906
+        ],
+        [
+          0.428571428571429,
+          0.42287690046746973
+        ],
+        [
+          0.5,
+          0.5120405265040029
+        ],
+        [
+          0.571428571428571,
+          0.6012043062176694
+        ],
+        [
+          0.642857142857143,
+          0.6806347910582653
+        ],
+        [
+          0.714285714285714,
+          0.7545799243263057
+        ],
+        [
+          0.785714285714286,
+          0.8387256846277836
+        ],
+        [
+          0.857142857142857,
+          0.9225324331746515
+        ],
+        [
+          0.928571428571428,
+          0.977592798320739
+        ],
+        [
+          1,
+          1
+        ]
+      ]
+    }
+  },
+  "entry_blend_seconds": 0.12,
+  "ledge_hand_shape": {
+    "enabled": true,
+    "slots": ["hang", "hang_free", "pull_up", "pull_up_free", "low_mantle"],
+    "finger_curl_degrees": [0.0, 8.0, 12.0],
+    "thumb_curl_degrees": 10.0
+  },
+  "terminal_support": {
+    "enabled": true,
+    "start_phase": 0.8,
+    "full_phase": 0.96,
+    "maximum_correction_m": 0.25
+  },
+  "exit_transition": {"enabled": true, "seconds": 0.24},
+  "hang_elbow_pole": {"enabled": true, "weight": 0.85, "outward": 1.0, "away_from_wall": 0.45, "down": 0.3},
+  "hand_contact": {
+    "enabled": true,
+    "blend_seconds": 0.12,
+    "hand_spacing_m": 0.38,
+    "wrist_outset_m": 0.04,
+    "wrist_height_m": 0.02,
+    "release_start_phase": 0.75,
+    "release_end_phase": 0.82,
+    "left_release": {"start_phase": 0.70, "end_phase": 0.77},
+    "right_release": {"start_phase": 0.40, "end_phase": 0.50}
+  },
+  "pull_up_visual_root": {
+    "enabled": true,
+    "source": "res://assets/external/agls_intake/imported/climbing/CMC_Climb_To_Standing.scn",
+    "wall_clearance": {"enabled": true, "outset_m": 0.08, "top_margin_m": 0.04, "maximum_offset_m": 0.8},
+    "hang_up_m": 0.25,
+    "face_wall": true,
+    "preserve_authored_hand_rotation": true,
+    "support_offset": {"forward_m": 0.0, "up_m": 0.25, "fade_start_phase": 0.0, "fade_end_phase": 0.2},
+    "source_rise_m": 1.89303797483444,
+    "source_forward_m": 0.827463552355766,
+    "endpoint_fit_start_phase": 0.77,
+    "max_down_m": 1,
+    "max_up_m": 0.65,
+    "max_horizontal_m": 0.9,
+    "exit_fade_start_phase": 0.92,
+    "vertical_progress": [
+      [
+        0,
+        0
+      ],
+      [
+        0.05,
+        0.06147244070960298
+      ],
+      [
+        0.1,
+        0.2085985327349984
+      ],
+      [
+        0.15,
+        0.3669990280513107
+      ],
+      [
+        0.2,
+        0.44017084181008503
+      ],
+      [
+        0.25,
+        0.4403630338086321
+      ],
+      [
+        0.3,
+        0.4330671056436032
+      ],
+      [
+        0.35,
+        0.45336968398553595
+      ],
+      [
+        0.4,
+        0.5295206626392203
+      ],
+      [
+        0.45,
+        0.6254631350148492
+      ],
+      [
+        0.5,
+        0.6978050345046662
+      ],
+      [
+        0.55,
+        0.7019887369317572
+      ],
+      [
+        0.6,
+        0.6648242704237132
+      ],
+      [
+        0.65,
+        0.671399856429054
+      ],
+      [
+        0.7,
+        0.7431207843272353
+      ],
+      [
+        0.75,
+        0.8325383005687009
+      ],
+      [
+        0.8,
+        0.9144494976008584
+      ],
+      [
+        0.85,
+        0.9682817711021665
+      ],
+      [
+        0.9,
+        0.9925645877993278
+      ],
+      [
+        0.95,
+        0.999205539235365
+      ],
+      [
+        1,
+        1
+      ]
+    ],
+    "forward_progress": [
+      [
+        0,
+        0
+      ],
+      [
+        0.05,
+        0.24536221672342673
+      ],
+      [
+        0.1,
+        0.3715260644314249
+      ],
+      [
+        0.15,
+        0.4894190522375605
+      ],
+      [
+        0.2,
+        0.5801091367698537
+      ],
+      [
+        0.25,
+        0.6221423828958909
+      ],
+      [
+        0.3,
+        0.6291177661197641
+      ],
+      [
+        0.35,
+        0.6323480479672487
+      ],
+      [
+        0.4,
+        0.6410049324745971
+      ],
+      [
+        0.45,
+        0.6515921561082351
+      ],
+      [
+        0.5,
+        0.6595457108436192
+      ],
+      [
+        0.55,
+        0.6565065324255724
+      ],
+      [
+        0.6,
+        0.6459225502749054
+      ],
+      [
+        0.65,
+        0.6336442809912647
+      ],
+      [
+        0.7,
+        0.6306536167683648
+      ],
+      [
+        0.75,
+        0.6705801150614805
+      ],
+      [
+        0.8,
+        0.7514475517520313
+      ],
+      [
+        0.85,
+        0.8571670782239531
+      ],
+      [
+        0.9,
+        0.9601512972982111
+      ],
+      [
+        0.95,
+        0.9970764704910967
+      ],
+      [
+        1,
+        1
+      ]
+    ]
+  },
   "ladder_animation_seconds_per_metre": 0.7,
   "minimum_ledge_above_feet_m": 0.45,
   "forward_reach_m": 0.65,
+  "top_search_depths_m": [0.06, 0.24, 0.42, 0.6],
+  "support_plane_tolerance_m": 0.08,
   "stand_inset_extra_m": 0.12,
   "clearance_m": 0.08,
   "minimum_duration_seconds": 0.65,

@@ -1,0 +1,1356 @@
+{
+  "scope": "All SOCOM source dependencies found in the saved animation map, including registered fallbacks",
+  "count": 97,
+  "samples": 1906,
+  "clips": [
+    {
+      "name": "seal_climbladder",
+      "samples": 17,
+      "duration": 0.5333333611488342,
+      "max_matrix_error": 1.049041748046875e-05,
+      "unattached_tracks": [
+        "rifle"
+      ],
+      "source_sha256": "6e5e2eeaccdbefd890f909b51e11aac20a3e3e10370a1a1523a3fdbc1abf77c7",
+      "consumers": [
+        "profile/clips/traversal_ladder_move"
+      ]
+    },
+    {
+      "name": "seal_crouch",
+      "samples": 22,
+      "duration": 0.699999988079071,
+      "max_matrix_error": 4.5299530029296875e-06,
+      "unattached_tracks": [
+        "rifle"
+      ],
+      "source_sha256": "b6afe2552f7d41052d90b3c22ec36f83c132d6460c52acac1dbf3baadc3b1b44",
+      "consumers": [
+        "profile/clips/idle_crouch",
+        "profile/clips/seal_pfp_crouch/composition_base"
+      ]
+    },
+    {
+      "name": "seal_crouch2llean",
+      "samples": 16,
+      "duration": 0.5,
+      "max_matrix_error": 5.7220458984375e-06,
+      "unattached_tracks": [
+        "rifle"
+      ],
+      "source_sha256": "9f09a9dd140d7c1a5bf6209ed4a3b5cb69c2ea54eb30e63ffdee59fc4f55cb1a",
+      "consumers": [
+        "profile/authored_peek/families/TWO_HAND_RIFLE/CROUCHED/left"
+      ]
+    },
+    {
+      "name": "seal_crouch2prone",
+      "samples": 34,
+      "duration": 1.100000023841858,
+      "max_matrix_error": 6.4373016357421875e-06,
+      "unattached_tracks": [
+        "do_not_use",
+        "weapon"
+      ],
+      "source_sha256": "047858634b464c2fa4cc97989d3ed5ee56d75fdb5ca910882e5baefa041dfb8e",
+      "consumers": [
+        "profile/clips/crouch_to_prone"
+      ]
+    },
+    {
+      "name": "seal_crouch2rlean",
+      "samples": 22,
+      "duration": 0.699999988079071,
+      "max_matrix_error": 6.67572021484375e-06,
+      "unattached_tracks": [
+        "rifle"
+      ],
+      "source_sha256": "8527ff117e67d59ed1aff4c29e948b40d538a7a60efca4c15350ef7281b1a716",
+      "consumers": [
+        "profile/authored_peek/families/TWO_HAND_RIFLE/CROUCHED/right"
+      ]
+    },
+    {
+      "name": "seal_crouch_recoil",
+      "samples": 3,
+      "duration": 0.06666667014360428,
+      "max_matrix_error": 4.76837158203125e-06,
+      "unattached_tracks": [
+        "do_not_use",
+        "weapon"
+      ],
+      "source_sha256": "2a9f238fee58cbdf126033c25c746e35797a33fbee7fe2fa93335ee13e99aeec",
+      "consumers": [
+        "profile/clips/aim_idle_crouch",
+        "profile/clips/crouch_fire"
+      ]
+    },
+    {
+      "name": "seal_crouch_throwgrenade",
+      "samples": 20,
+      "duration": 0.6333333253860474,
+      "max_matrix_error": 7.62939453125e-06,
+      "unattached_tracks": [
+        "weapon"
+      ],
+      "source_sha256": "3074825c393687c0cb082c2c9f5eb4357400505d0afcc899eae7e35cc2989be4",
+      "consumers": [
+        "profile/clips/crouch_grenade_toss"
+      ]
+    },
+    {
+      "name": "seal_crouchstrafe_left",
+      "samples": 40,
+      "duration": 1.2999999523162842,
+      "max_matrix_error": 7.62939453125e-06,
+      "unattached_tracks": [
+        "do_not_use",
+        "rifle"
+      ],
+      "source_sha256": "1021e837efc4a368ffe5460ced522b32f2bafcaf08f8e26738eef6a6e43e61dd",
+      "consumers": [
+        "profile/clips/crouch_lateral_left",
+        "profile/clips/crouch_left"
+      ]
+    },
+    {
+      "name": "seal_crouchstrafe_right_fast",
+      "samples": 34,
+      "duration": 1.100000023841858,
+      "max_matrix_error": 6.67572021484375e-06,
+      "unattached_tracks": [
+        "do_not_use",
+        "rifle"
+      ],
+      "source_sha256": "9adae4f38f745e2014e33ea062770bd1985873eb08023536aac667c07c883d51",
+      "consumers": [
+        "profile/clips/crouch_lateral_right",
+        "profile/clips/crouch_right"
+      ]
+    },
+    {
+      "name": "seal_crouchwalk",
+      "samples": 29,
+      "duration": 0.9333333373069763,
+      "max_matrix_error": 5.7220458984375e-06,
+      "unattached_tracks": [
+        "do_not_use",
+        "rifle"
+      ],
+      "source_sha256": "1c63a557aca9fe7d71b5cae9bb541fff673dc4b14938cda3afdcdbc4df3d5d2d",
+      "consumers": [
+        "profile/clips/crouch_forward",
+        "profile/clips/seal_pfp_crouchwalk/composition_base"
+      ]
+    },
+    {
+      "name": "seal_crouchwalk_bw",
+      "samples": 35,
+      "duration": 1.1333333253860474,
+      "max_matrix_error": 9.5367431640625e-06,
+      "unattached_tracks": [
+        "do_not_use",
+        "rifle"
+      ],
+      "source_sha256": "9964b6a6b71bcf10c0324e2381f931ace1be9a6af4da41e045bc37faeb778674",
+      "consumers": [
+        "profile/clips/crouch_backward",
+        "profile/clips/seal_pfp_crouchwalk_bw/composition_base"
+      ]
+    },
+    {
+      "name": "seal_dive2prone",
+      "samples": 17,
+      "duration": 0.5333333611488342,
+      "max_matrix_error": 8.58306884765625e-06,
+      "unattached_tracks": [
+        "weapon"
+      ],
+      "source_sha256": "b1ce44d357a93b57bed6313772405cb289ecc6c8030c1b24b2bd0ac337b8d3ac",
+      "consumers": [
+        "profile/clips/dive_roll",
+        "profile/clips/jump_slide_prone"
+      ]
+    },
+    {
+      "name": "seal_fp_crouch",
+      "samples": 12,
+      "duration": 0.36666667461395264,
+      "max_matrix_error": 6.198883056640625e-06,
+      "unattached_tracks": [
+        "rifle"
+      ],
+      "source_sha256": "da19b466037f2f8398af663b81218cc163273c3c1cf427b4159e5e66d3c1b8e6",
+      "consumers": [
+        "profile/clips/seal_fp_crouch"
+      ]
+    },
+    {
+      "name": "seal_fp_crouch_step",
+      "samples": 19,
+      "duration": 0.6000000238418579,
+      "max_matrix_error": 5.0067901611328125e-06,
+      "unattached_tracks": [
+        "rifle"
+      ],
+      "source_sha256": "b1471e9334e36477ea429856d3a7814ed2510256184710cdd1b5936f48cd6af6",
+      "consumers": [
+        "profile/clips/seal_fp_crouch_step"
+      ]
+    },
+    {
+      "name": "seal_fp_crouchwalk",
+      "samples": 29,
+      "duration": 0.9333333373069763,
+      "max_matrix_error": 5.7220458984375e-06,
+      "unattached_tracks": [
+        "do_not_use",
+        "rifle"
+      ],
+      "source_sha256": "8221e412eb92797abbb0da8373a274ac8c09aeac8e907e987b1339db9cbfab25",
+      "consumers": [
+        "profile/clips/seal_fp_crouchwalk"
+      ]
+    },
+    {
+      "name": "seal_fp_crouchwalk_bw",
+      "samples": 35,
+      "duration": 1.1333333253860474,
+      "max_matrix_error": 7.62939453125e-06,
+      "unattached_tracks": [
+        "do_not_use",
+        "rifle"
+      ],
+      "source_sha256": "8cb551e5b7340ea2de36d14aa799f8daeb7690eda6b80fa5e26522d7803f62a8",
+      "consumers": [
+        "profile/clips/seal_fp_crouchwalk_bw"
+      ]
+    },
+    {
+      "name": "seal_fp_jog",
+      "samples": 21,
+      "duration": 0.6666666865348816,
+      "max_matrix_error": 1.52587890625e-05,
+      "unattached_tracks": [
+        "rifle"
+      ],
+      "source_sha256": "7f16eedd195cef9d797e45d3f1b4210827b5b124a6f5727834f59c09d67a5f28",
+      "consumers": [
+        "profile/clips/seal_fp_jog"
+      ]
+    },
+    {
+      "name": "seal_fp_prone",
+      "samples": 2,
+      "duration": 0.03333333507180214,
+      "max_matrix_error": 4.0531158447265625e-06,
+      "unattached_tracks": [
+        "do_not_use",
+        "rifle"
+      ],
+      "source_sha256": "4164f3103b601349b396ff5add7de545e86c51fe6352940c7ae2060daf03dad3",
+      "consumers": [
+        "profile/clips/seal_fp_prone"
+      ]
+    },
+    {
+      "name": "seal_fp_run",
+      "samples": 19,
+      "duration": 0.6000000238418579,
+      "max_matrix_error": 1.049041748046875e-05,
+      "unattached_tracks": [
+        "do_not_use",
+        "rifle"
+      ],
+      "source_sha256": "15d43216df6a85b112e152ac470aba9f1d3153a357ffb42b1679c9a751e645a9",
+      "consumers": [
+        "profile/clips/seal_fp_run"
+      ]
+    },
+    {
+      "name": "seal_fp_run_bw",
+      "samples": 19,
+      "duration": 0.6000000238418579,
+      "max_matrix_error": 9.5367431640625e-06,
+      "unattached_tracks": [
+        "do_not_use",
+        "rifle"
+      ],
+      "source_sha256": "5a9c3128449a093efca7fc71b39960c5b1c7073b6afab947105aa6924c8b425f",
+      "consumers": [
+        "profile/clips/seal_fp_run_bw"
+      ]
+    },
+    {
+      "name": "seal_fp_stand",
+      "samples": 9,
+      "duration": 0.2666666805744171,
+      "max_matrix_error": 6.67572021484375e-06,
+      "unattached_tracks": [
+        "rifle"
+      ],
+      "source_sha256": "5de394f9cde35c69c855e88263c4234c0f77596fa0854cd8ecac04abf1b236a4",
+      "consumers": [
+        "profile/clips/seal_fp_stand"
+      ]
+    },
+    {
+      "name": "seal_fp_step",
+      "samples": 22,
+      "duration": 0.699999988079071,
+      "max_matrix_error": 7.62939453125e-06,
+      "unattached_tracks": [
+        "pistol",
+        "rifle"
+      ],
+      "source_sha256": "cb10e49da06a80dea6f2e9fb6f823f0e01b2035ed5d04e940fec881271cf65dd",
+      "consumers": [
+        "profile/clips/seal_fp_step"
+      ]
+    },
+    {
+      "name": "seal_fp_twist_pitch",
+      "samples": 10,
+      "duration": 0.30000001192092896,
+      "max_matrix_error": 7.62939453125e-06,
+      "unattached_tracks": [
+        "rifle"
+      ],
+      "source_sha256": "2c262c4da743f0c8fa77c367f3f991ee5311fdf83bd27e5a17f4c6f116aba478",
+      "consumers": [
+        "profile/clips/seal_fp_twist_pitch"
+      ]
+    },
+    {
+      "name": "seal_fp_walk",
+      "samples": 26,
+      "duration": 0.8333333134651184,
+      "max_matrix_error": 8.58306884765625e-06,
+      "unattached_tracks": [
+        "rifle"
+      ],
+      "source_sha256": "7048d26ce778a5ec7e26ae5946c57a22ed3d505c8ddb3a8112d53b3410ce128a",
+      "consumers": [
+        "profile/clips/seal_fp_walk"
+      ]
+    },
+    {
+      "name": "seal_fp_walk_bw",
+      "samples": 27,
+      "duration": 0.8666666746139526,
+      "max_matrix_error": 7.62939453125e-06,
+      "unattached_tracks": [
+        "do_not_use",
+        "rifle"
+      ],
+      "source_sha256": "ae960d95df88180ab3ad3a0ef4d0cc3944829a16ef53a4967afad8206ae420b7",
+      "consumers": [
+        "profile/clips/seal_fp_walk_bw"
+      ]
+    },
+    {
+      "name": "seal_hang",
+      "samples": 14,
+      "duration": 0.4333333373069763,
+      "max_matrix_error": 7.62939453125e-06,
+      "unattached_tracks": [
+        "do_not_use",
+        "rifle"
+      ],
+      "source_sha256": "c57b43cfe8fa9ef8333ebea62d1b02688b7ddcb3197ee4e720aa94b7a484536b",
+      "consumers": [
+        "profile/clips/traversal_hang"
+      ]
+    },
+    {
+      "name": "seal_hang2climbup",
+      "samples": 64,
+      "duration": 2.0999999046325684,
+      "max_matrix_error": 1.1444091796875e-05,
+      "unattached_tracks": [
+        "do_not_use",
+        "rifle"
+      ],
+      "source_sha256": "d12fa73fb94175d07c5466a3623393cd4ae53ea79f21c6f3c8ef220026356030",
+      "consumers": [
+        "profile/clips/traversal_pull_up"
+      ]
+    },
+    {
+      "name": "seal_jump",
+      "samples": 21,
+      "duration": 0.6666666865348816,
+      "max_matrix_error": 7.62939453125e-06,
+      "unattached_tracks": [
+        "weapon"
+      ],
+      "source_sha256": "f23c7d926e36e67a29b04a850239065da02071edbe10bcea3a46a78477af9a53",
+      "consumers": [
+        "profile/clips/jump_up_standing"
+      ]
+    },
+    {
+      "name": "seal_ladder",
+      "samples": 11,
+      "duration": 0.3333333432674408,
+      "max_matrix_error": 5.7220458984375e-06,
+      "unattached_tracks": [
+        "do_not_use",
+        "rifle"
+      ],
+      "source_sha256": "36a8742245ea549885630f39a6a228565f1610682b8e33bc69172f36bd2cc202",
+      "consumers": [
+        "profile/clips/traversal_ladder_idle"
+      ]
+    },
+    {
+      "name": "seal_ladderslide",
+      "samples": 8,
+      "duration": 0.23333333432674408,
+      "max_matrix_error": 7.62939453125e-06,
+      "unattached_tracks": [
+        "rifle"
+      ],
+      "source_sha256": "cb14671de7ffdccc08fa4e91dcf570754f1ab27e0c694e841d1e77ddc153b29d",
+      "consumers": [
+        "profile/clips/traversal_ladder_slide"
+      ]
+    },
+    {
+      "name": "seal_land_soft",
+      "samples": 21,
+      "duration": 0.6666666865348816,
+      "max_matrix_error": 1.1444091796875e-05,
+      "unattached_tracks": [
+        "do_not_use",
+        "rifle"
+      ],
+      "source_sha256": "4651a3c7597843a2d3ff2ec80dad054ac510cc4463b9dcce7a34093c5e57bde3",
+      "consumers": [
+        "profile/clips/jump_down"
+      ]
+    },
+    {
+      "name": "seal_lstrafe",
+      "samples": 23,
+      "duration": 0.7333333492279053,
+      "max_matrix_error": 6.67572021484375e-06,
+      "unattached_tracks": [
+        "do_not_use",
+        "rifle"
+      ],
+      "source_sha256": "db9aa77ba3d04378ab87cdb23c0d61a0722b076eaab2dd696541b08246ded97f",
+      "consumers": [
+        "profile/clips/walk_left"
+      ]
+    },
+    {
+      "name": "seal_lstrafe_fast",
+      "samples": 28,
+      "duration": 0.8999999761581421,
+      "max_matrix_error": 1.1444091796875e-05,
+      "unattached_tracks": [
+        "do_not_use",
+        "rifle"
+      ],
+      "source_sha256": "603f13c5fac92d9748ba22ee738a38f473078fde528354969fd99a4817419186",
+      "consumers": [
+        "profile/clips/seal_lstrafe_fast"
+      ]
+    },
+    {
+      "name": "seal_p_crouch",
+      "samples": 11,
+      "duration": 0.3333333432674408,
+      "max_matrix_error": 2.9653310775756836e-06,
+      "unattached_tracks": [
+        "do_not_use",
+        "pistol"
+      ],
+      "source_sha256": "148ac5c4a2288331c20752a060d445e1fe420f99089b59afa725558dacd0cdf0",
+      "consumers": [
+        "profile/clips/pistol_compressed_idle_crouched",
+        "profile/clips/pistol_idle_kneeling"
+      ]
+    },
+    {
+      "name": "seal_p_crouch2llean",
+      "samples": 13,
+      "duration": 0.4000000059604645,
+      "max_matrix_error": 6.67572021484375e-06,
+      "unattached_tracks": [
+        "do_not_use",
+        "pistol"
+      ],
+      "source_sha256": "db196242def08035e0ea328b0e7fb14a8f0988eb6d7562576976949b0d3ef033",
+      "consumers": [
+        "profile/authored_peek/families/TWO_HAND_PISTOL/CROUCHED/left"
+      ]
+    },
+    {
+      "name": "seal_p_crouch2rlean",
+      "samples": 15,
+      "duration": 0.46666666865348816,
+      "max_matrix_error": 6.67572021484375e-06,
+      "unattached_tracks": [
+        "do_not_use",
+        "pistol"
+      ],
+      "source_sha256": "e683debca782282fd1d46556c0d29d07e2b26fd6667b9550e4257a9dca1fce16",
+      "consumers": [
+        "profile/authored_peek/families/TWO_HAND_PISTOL/CROUCHED/right"
+      ]
+    },
+    {
+      "name": "seal_p_crouchstrafe_left",
+      "samples": 22,
+      "duration": 0.699999988079071,
+      "max_matrix_error": 4.76837158203125e-06,
+      "unattached_tracks": [
+        "do_not_use",
+        "pistol"
+      ],
+      "source_sha256": "ad644ce79657e31d91ead85ca44f2c25bee08a05799134dde77980a50de114ee",
+      "consumers": [
+        "profile/clips/pistol_crouch_left"
+      ]
+    },
+    {
+      "name": "seal_p_crouchstrafe_right",
+      "samples": 20,
+      "duration": 0.6333333253860474,
+      "max_matrix_error": 6.67572021484375e-06,
+      "unattached_tracks": [
+        "do_not_use",
+        "pistol"
+      ],
+      "source_sha256": "807d5c5fa4a41d038deb850bb47d7e5d734cd7626dc75e34ff7cd34f5da663af",
+      "consumers": [
+        "profile/clips/pistol_crouch_right"
+      ]
+    },
+    {
+      "name": "seal_p_crouchwalk",
+      "samples": 20,
+      "duration": 0.6333333253860474,
+      "max_matrix_error": 5.7220458984375e-06,
+      "unattached_tracks": [
+        "do_not_use",
+        "pistol"
+      ],
+      "source_sha256": "f5991ea1c72b8897d31ef52d5dd2ef31381f2ee5a28aac9d0f8ca91fa2c69b15",
+      "consumers": [
+        "profile/clips/pistol_crouch_forward"
+      ]
+    },
+    {
+      "name": "seal_p_crouchwalk_bw",
+      "samples": 24,
+      "duration": 0.7666666507720947,
+      "max_matrix_error": 5.7220458984375e-06,
+      "unattached_tracks": [
+        "do_not_use",
+        "pistol"
+      ],
+      "source_sha256": "f2c4a0154f7abdf18546035f44c9bf106e54fba8b048e0954fd50168ef344440",
+      "consumers": [
+        "profile/clips/pistol_crouch_backward"
+      ]
+    },
+    {
+      "name": "seal_p_land_soft",
+      "samples": 21,
+      "duration": 0.6666666865348816,
+      "max_matrix_error": 1.52587890625e-05,
+      "unattached_tracks": [
+        "do_not_use",
+        "pistol"
+      ],
+      "source_sha256": "bff20d48e04e1478a8554b9a64d02b7132db2ccb53fd531d0ca8612006ddff2b",
+      "consumers": [
+        "profile/clips/pistol_jump_down"
+      ]
+    },
+    {
+      "name": "seal_p_lstrafe",
+      "samples": 22,
+      "duration": 0.699999988079071,
+      "max_matrix_error": 7.62939453125e-06,
+      "unattached_tracks": [
+        "do_not_use",
+        "pistol"
+      ],
+      "source_sha256": "c329698e49ec21c2a1425b5e6bf41faea8a01ae49876c6df80d134afa66c6759",
+      "consumers": [
+        "profile/clips/pistol_strafe_left"
+      ]
+    },
+    {
+      "name": "seal_p_lstrafe_fast",
+      "samples": 28,
+      "duration": 0.8999999761581421,
+      "max_matrix_error": 7.62939453125e-06,
+      "unattached_tracks": [
+        "do_not_use",
+        "pistol"
+      ],
+      "source_sha256": "88bfe5901f1c978fb304a5c9bb2f40de4e3e950bc8c2f477dab564e2bb6f3e34",
+      "consumers": [
+        "profile/clips/seal_p_lstrafe_fast"
+      ]
+    },
+    {
+      "name": "seal_p_prone",
+      "samples": 2,
+      "duration": 0.03333333507180214,
+      "max_matrix_error": 2.86102294921875e-06,
+      "unattached_tracks": [
+        "do_not_use",
+        "pistol"
+      ],
+      "source_sha256": "7f21bd8a4dede5d27ce0ac03ff834c64e8e454d9fe8b7c716cb58ec656446cb7",
+      "consumers": [
+        "profile/clips/pistol_idle_prone"
+      ]
+    },
+    {
+      "name": "seal_p_prone2llean",
+      "samples": 13,
+      "duration": 0.4000000059604645,
+      "max_matrix_error": 4.76837158203125e-06,
+      "unattached_tracks": [
+        "pistol"
+      ],
+      "source_sha256": "b2e1ec2ebc0d96a11bbb437a6eea5a1ea6a778eee527fe34cca02c0d375f3730",
+      "consumers": [
+        "profile/authored_peek/families/TWO_HAND_PISTOL/PRONE/left"
+      ]
+    },
+    {
+      "name": "seal_p_prone2rlean",
+      "samples": 11,
+      "duration": 0.3333333432674408,
+      "max_matrix_error": 6.67572021484375e-06,
+      "unattached_tracks": [
+        "pistol"
+      ],
+      "source_sha256": "783a078bdda01c984e353a71fa9ef2184b3494b2918bad3d80bad21d300ea7be",
+      "consumers": [
+        "profile/authored_peek/families/TWO_HAND_PISTOL/PRONE/right"
+      ]
+    },
+    {
+      "name": "seal_p_prone_recoil",
+      "samples": 3,
+      "duration": 0.06666667014360428,
+      "max_matrix_error": 3.337860107421875e-06,
+      "unattached_tracks": [
+        "do_not_use",
+        "pistol"
+      ],
+      "source_sha256": "7f662b5a0dd2b7f8b9506003044886af35b10175ec7b14b4c92b25471f82d38a",
+      "consumers": [
+        "profile/clips/pistol_prone_fire"
+      ]
+    },
+    {
+      "name": "seal_p_recoil",
+      "samples": 3,
+      "duration": 0.06666667014360428,
+      "max_matrix_error": 5.7220458984375e-06,
+      "unattached_tracks": [
+        "do_not_use",
+        "pistol"
+      ],
+      "source_sha256": "50f36e6f3a56e1cd3dcde52877a69e08ba487ff0ab8a3ef28977c7a73f54c955",
+      "consumers": [
+        "profile/clips/pistol_fire",
+        "profile/clips/pistol_recovery_reference_crouched",
+        "profile/clips/pistol_recovery_reference_standing"
+      ]
+    },
+    {
+      "name": "seal_p_rstrafe",
+      "samples": 24,
+      "duration": 0.7666666507720947,
+      "max_matrix_error": 7.62939453125e-06,
+      "unattached_tracks": [
+        "do_not_use",
+        "pistol"
+      ],
+      "source_sha256": "289b58740c13c9276bca6cdcfe8f50aa84175d4f179d2a29376e1563dc4be723",
+      "consumers": [
+        "profile/clips/pistol_strafe_right"
+      ]
+    },
+    {
+      "name": "seal_p_rstrafe_fast",
+      "samples": 28,
+      "duration": 0.8999999761581421,
+      "max_matrix_error": 6.198883056640625e-06,
+      "unattached_tracks": [
+        "do_not_use",
+        "pistol"
+      ],
+      "source_sha256": "1fd67b9719631e477871af4696e01d39d6abf1f693153c3f1a13aa5d436d2a73",
+      "consumers": [
+        "profile/clips/seal_p_rstrafe_fast"
+      ]
+    },
+    {
+      "name": "seal_p_run",
+      "samples": 19,
+      "duration": 0.6000000238418579,
+      "max_matrix_error": 6.67572021484375e-06,
+      "unattached_tracks": [
+        "do_not_use",
+        "pistol"
+      ],
+      "source_sha256": "7853d9d667833bc8cf464cf3e03b3cf99d2d0d1e0d8b15ebf04ddb65dfb2abf0",
+      "consumers": [
+        "profile/clips/pistol_run_forward"
+      ]
+    },
+    {
+      "name": "seal_p_run_90l",
+      "samples": 19,
+      "duration": 0.6000000238418579,
+      "max_matrix_error": 7.62939453125e-06,
+      "unattached_tracks": [
+        "do_not_use",
+        "pistol"
+      ],
+      "source_sha256": "576c595159544a2e6d6912f344ffdd4c1437aef3b14744d1d1ac16f198e5fe64",
+      "consumers": [
+        "profile/clips/pistol_run_left"
+      ]
+    },
+    {
+      "name": "seal_p_run_90r",
+      "samples": 19,
+      "duration": 0.6000000238418579,
+      "max_matrix_error": 7.62939453125e-06,
+      "unattached_tracks": [
+        "do_not_use",
+        "pistol"
+      ],
+      "source_sha256": "778a04e59868ed5b40b1bc7338b9f430e8ed08f9bf874bf0f71e6e4d1e7d186d",
+      "consumers": [
+        "profile/clips/pistol_run_right"
+      ]
+    },
+    {
+      "name": "seal_p_run_bw",
+      "samples": 17,
+      "duration": 0.5333333611488342,
+      "max_matrix_error": 7.62939453125e-06,
+      "unattached_tracks": [
+        "do_not_use",
+        "pistol"
+      ],
+      "source_sha256": "8edabe3e2ec294daff6716301003fda13b7e0ffe8074bf91ac97998802b03385",
+      "consumers": [
+        "profile/clips/pistol_run_backward"
+      ]
+    },
+    {
+      "name": "seal_p_runningjump_launch",
+      "samples": 26,
+      "duration": 0.8333333134651184,
+      "max_matrix_error": 1.1444091796875e-05,
+      "unattached_tracks": [
+        "pistol"
+      ],
+      "source_sha256": "d558ab06670c8b56ae8dbb99c45e9074cdff69d08622112bee96013390093345",
+      "consumers": [
+        "profile/clips/pistol_jump",
+        "profile/clips/pistol_jump_alt"
+      ]
+    },
+    {
+      "name": "seal_p_stand",
+      "samples": 17,
+      "duration": 0.5333333611488342,
+      "max_matrix_error": 4.76837158203125e-06,
+      "unattached_tracks": [
+        "do_not_use",
+        "pistol"
+      ],
+      "source_sha256": "a4493a5393312d607749982ea3213999f44e3cb24a72ca423373989739e58576",
+      "consumers": [
+        "profile/clips/pistol_compressed_idle_standing",
+        "profile/clips/pistol_idle"
+      ]
+    },
+    {
+      "name": "seal_p_stand2crouch",
+      "samples": 18,
+      "duration": 0.5666666626930237,
+      "max_matrix_error": 5.7220458984375e-06,
+      "unattached_tracks": [
+        "do_not_use",
+        "pistol"
+      ],
+      "source_sha256": "8c5d7315b97b11cea5a108e86dd52a984914e63c2750e6eaabedc204d992c8de",
+      "consumers": [
+        "profile/clips/pistol_stand_to_kneel"
+      ]
+    },
+    {
+      "name": "seal_p_stand2llean",
+      "samples": 25,
+      "duration": 0.800000011920929,
+      "max_matrix_error": 9.5367431640625e-06,
+      "unattached_tracks": [
+        "pistol"
+      ],
+      "source_sha256": "1c92a84c5ccf4f226eee9165de546b4be20d82f14af672c32bb99768db46f523",
+      "consumers": [
+        "profile/authored_peek/families/TWO_HAND_PISTOL/STANDING/left"
+      ]
+    },
+    {
+      "name": "seal_p_stand2rlean",
+      "samples": 21,
+      "duration": 0.6666666865348816,
+      "max_matrix_error": 9.5367431640625e-06,
+      "unattached_tracks": [
+        "pistol"
+      ],
+      "source_sha256": "a0fd8976a94563e70a042aed11a77eb9a90408ff20c4cb328b75bedb080160d9",
+      "consumers": [
+        "profile/authored_peek/families/TWO_HAND_PISTOL/STANDING/right"
+      ]
+    },
+    {
+      "name": "seal_p_walk",
+      "samples": 18,
+      "duration": 0.5666666626930237,
+      "max_matrix_error": 5.7220458984375e-06,
+      "unattached_tracks": [
+        "do_not_use",
+        "pistol"
+      ],
+      "source_sha256": "abf856291c656db3665247e153d74435269435cc5884bf7983f909b4f3623567",
+      "consumers": [
+        "profile/clips/pistol_walk_forward"
+      ]
+    },
+    {
+      "name": "seal_p_walk_bw",
+      "samples": 17,
+      "duration": 0.5333333611488342,
+      "max_matrix_error": 7.62939453125e-06,
+      "unattached_tracks": [
+        "do_not_use",
+        "pistol"
+      ],
+      "source_sha256": "9c051e9c457555df12eed1c9bb1b1075e917e2eaae17271071b728fa7f6d5b0a",
+      "consumers": [
+        "profile/clips/pistol_walk_backward"
+      ]
+    },
+    {
+      "name": "seal_pfp_crouch",
+      "samples": 6,
+      "duration": 0.1666666716337204,
+      "max_matrix_error": 6.67572021484375e-06,
+      "unattached_tracks": [
+        "do_not_use",
+        "pistol"
+      ],
+      "source_sha256": "e6526d17beab043432fbb9341ced66a776f18c31b3b6209ee8334b7ef085a9ee",
+      "consumers": [
+        "profile/clips/seal_pfp_crouch"
+      ]
+    },
+    {
+      "name": "seal_pfp_crouch_step",
+      "samples": 19,
+      "duration": 0.6000000238418579,
+      "max_matrix_error": 4.76837158203125e-06,
+      "unattached_tracks": [
+        "pistol"
+      ],
+      "source_sha256": "69e386b92c34a5ed08b9ea03a720fa06fd12276e027facf2e85d144d35dfdfda",
+      "consumers": [
+        "profile/clips/seal_pfp_crouch_step"
+      ]
+    },
+    {
+      "name": "seal_pfp_crouchwalk",
+      "samples": 20,
+      "duration": 0.6333333253860474,
+      "max_matrix_error": 5.7220458984375e-06,
+      "unattached_tracks": [
+        "do_not_use",
+        "pistol"
+      ],
+      "source_sha256": "0ceadb4fa869cb0bdec5e0d67073bdb62379639d0c2bc023a774093c8bd9b07c",
+      "consumers": [
+        "profile/clips/seal_pfp_crouchwalk"
+      ]
+    },
+    {
+      "name": "seal_pfp_crouchwalk_bw",
+      "samples": 24,
+      "duration": 0.7666666507720947,
+      "max_matrix_error": 7.62939453125e-06,
+      "unattached_tracks": [
+        "do_not_use",
+        "pistol"
+      ],
+      "source_sha256": "44a8cad98d9af3ca50270cbe74e3cc7c2eb260099d947061b635d5e0b94554ec",
+      "consumers": [
+        "profile/clips/seal_pfp_crouchwalk_bw"
+      ]
+    },
+    {
+      "name": "seal_pfp_jog",
+      "samples": 21,
+      "duration": 0.6666666865348816,
+      "max_matrix_error": 1.9073486328125e-05,
+      "unattached_tracks": [
+        "do_not_use"
+      ],
+      "source_sha256": "33f2d88fa01b012fae7b1343b13493e17c3a2158b5e1bc073e6402576a663c01",
+      "consumers": [
+        "profile/clips/seal_pfp_jog"
+      ]
+    },
+    {
+      "name": "seal_pfp_prone",
+      "samples": 6,
+      "duration": 0.1666666716337204,
+      "max_matrix_error": 1.9073486328125e-06,
+      "unattached_tracks": [
+        "do_not_use",
+        "pistol"
+      ],
+      "source_sha256": "9b19fa26d7b5ec4a706dff95ff88505ab74a0f6184db45c8aa29e42892ddc3db",
+      "consumers": [
+        "profile/clips/seal_pfp_prone"
+      ]
+    },
+    {
+      "name": "seal_pfp_run",
+      "samples": 18,
+      "duration": 0.5666666626930237,
+      "max_matrix_error": 6.67572021484375e-06,
+      "unattached_tracks": [
+        "do_not_use",
+        "pistol"
+      ],
+      "source_sha256": "22abc27fb9bcfa1eed4636477faa8111338cc00e054d22bc8a01fe3c83842b87",
+      "consumers": [
+        "profile/clips/seal_pfp_run"
+      ]
+    },
+    {
+      "name": "seal_pfp_run_bw",
+      "samples": 18,
+      "duration": 0.5666666626930237,
+      "max_matrix_error": 8.58306884765625e-06,
+      "unattached_tracks": [
+        "do_not_use",
+        "pistol"
+      ],
+      "source_sha256": "dc131842256677337632e2956143e2dad6aea18cadb1ec59147cb19a794ef598",
+      "consumers": [
+        "profile/clips/seal_pfp_run_bw"
+      ]
+    },
+    {
+      "name": "seal_pfp_stand",
+      "samples": 2,
+      "duration": 0.03333333507180214,
+      "max_matrix_error": 5.7220458984375e-06,
+      "unattached_tracks": [
+        "do_not_use",
+        "pistol"
+      ],
+      "source_sha256": "7ea8246663861a32b176635c7bfdf3e7fd62172cda38aa4dd9778b3d2d034b9b",
+      "consumers": [
+        "profile/clips/seal_pfp_stand"
+      ]
+    },
+    {
+      "name": "seal_pfp_step",
+      "samples": 22,
+      "duration": 0.699999988079071,
+      "max_matrix_error": 5.7220458984375e-06,
+      "unattached_tracks": [
+        "do_not_use",
+        "pistol"
+      ],
+      "source_sha256": "c72edead6efaed346d26c0d3e4396a4c1af58e6a930445c666535cb537754d2f",
+      "consumers": [
+        "profile/clips/seal_pfp_step"
+      ]
+    },
+    {
+      "name": "seal_pfp_walk",
+      "samples": 17,
+      "duration": 0.5333333611488342,
+      "max_matrix_error": 7.62939453125e-06,
+      "unattached_tracks": [
+        "do_not_use",
+        "pistol"
+      ],
+      "source_sha256": "fafae6b204d7d5dfa831e756880e048ac3a3ec76508c7b32ad4f6bfc72a10fc1",
+      "consumers": [
+        "profile/clips/seal_pfp_walk"
+      ]
+    },
+    {
+      "name": "seal_pfp_walk_bw",
+      "samples": 30,
+      "duration": 0.9666666388511658,
+      "max_matrix_error": 6.67572021484375e-06,
+      "unattached_tracks": [
+        "do_not_use",
+        "pistol"
+      ],
+      "source_sha256": "cb13ba4ae70e367312a685aa652810a554a1aa57865261f4e6841163ca0c8516",
+      "consumers": [
+        "profile/clips/seal_pfp_walk_bw"
+      ]
+    },
+    {
+      "name": "seal_prone",
+      "samples": 11,
+      "duration": 0.3333333432674408,
+      "max_matrix_error": 2.86102294921875e-06,
+      "unattached_tracks": [
+        "do_not_use",
+        "rifle"
+      ],
+      "source_sha256": "3af39d198546c7cfa7f3c729755d82d2c6abc028e013bc12bcd6708d3efea44c",
+      "consumers": [
+        "profile/clips/idle_prone",
+        "profile/clips/seal_pfp_prone/composition_base"
+      ]
+    },
+    {
+      "name": "seal_prone2llean",
+      "samples": 13,
+      "duration": 0.4000000059604645,
+      "max_matrix_error": 4.76837158203125e-06,
+      "unattached_tracks": [
+        "rifle"
+      ],
+      "source_sha256": "0863f7cfbd89074e5588793b9a61992b9bd2e64b8eda1222af4c04a9280e124c",
+      "consumers": [
+        "profile/authored_peek/families/TWO_HAND_RIFLE/PRONE/left"
+      ]
+    },
+    {
+      "name": "seal_prone2rlean",
+      "samples": 11,
+      "duration": 0.3333333432674408,
+      "max_matrix_error": 5.7220458984375e-06,
+      "unattached_tracks": [
+        "rifle"
+      ],
+      "source_sha256": "27c94345d76cd50c5b972c1636bed3682320065236f605b5397f07568830b609",
+      "consumers": [
+        "profile/authored_peek/families/TWO_HAND_RIFLE/PRONE/right"
+      ]
+    },
+    {
+      "name": "seal_prone_crawl",
+      "samples": 27,
+      "duration": 0.8666666746139526,
+      "max_matrix_error": 5.7220458984375e-06,
+      "unattached_tracks": [
+        "weapon"
+      ],
+      "source_sha256": "250bf78781ea2f329315c09b3c46f0cbe20f671e50eb07741af5c9c4cfd00713",
+      "consumers": [
+        "profile/clips/prone_forward"
+      ]
+    },
+    {
+      "name": "seal_prone_lstrafe",
+      "samples": 23,
+      "duration": 0.7333333492279053,
+      "max_matrix_error": 6.67572021484375e-06,
+      "unattached_tracks": [
+        "weapon"
+      ],
+      "source_sha256": "2c0ece13601fa9c79f6d64d3a4a76c5a06dd9345fe84a275f900cf18ea532ab0",
+      "consumers": [
+        "profile/clips/prone_turn_left"
+      ]
+    },
+    {
+      "name": "seal_prone_recoil",
+      "samples": 3,
+      "duration": 0.06666667014360428,
+      "max_matrix_error": 4.0531158447265625e-06,
+      "unattached_tracks": [
+        "do_not_use",
+        "rifle"
+      ],
+      "source_sha256": "d8355d2161530adf41a2c1164e83c910b5667be1e34b25d6030101fcbd9eb0ee",
+      "consumers": [
+        "profile/clips/prone_fire"
+      ]
+    },
+    {
+      "name": "seal_prone_rstrafe",
+      "samples": 23,
+      "duration": 0.7333333492279053,
+      "max_matrix_error": 6.67572021484375e-06,
+      "unattached_tracks": [
+        "weapon"
+      ],
+      "source_sha256": "d30c457ee3b5a626315f6ec6ad6f73356116342b124f2213a2024857b1a8ef4d",
+      "consumers": [
+        "profile/clips/prone_turn_right"
+      ]
+    },
+    {
+      "name": "seal_prone_throwgrenade",
+      "samples": 28,
+      "duration": 0.8999999761581421,
+      "max_matrix_error": 7.987022399902344e-06,
+      "unattached_tracks": [
+        "weapon"
+      ],
+      "source_sha256": "b00b518dd75ff9515adb51082a43f0a3b7f869b106af3e3538212f0e87540477",
+      "consumers": [
+        "profile/clips/grenade_throw"
+      ]
+    },
+    {
+      "name": "seal_recoil",
+      "samples": 3,
+      "duration": 0.06666667014360428,
+      "max_matrix_error": 5.7220458984375e-06,
+      "unattached_tracks": [
+        "do_not_use",
+        "rifle"
+      ],
+      "source_sha256": "d8557b933ece8ac89962940e5e0151cf42ab175acde04db8f9aff806fcd1d419",
+      "consumers": [
+        "profile/clips/aim_idle",
+        "profile/clips/combat_fire"
+      ]
+    },
+    {
+      "name": "seal_rstrafe",
+      "samples": 24,
+      "duration": 0.7666666507720947,
+      "max_matrix_error": 6.67572021484375e-06,
+      "unattached_tracks": [
+        "do_not_use",
+        "rifle"
+      ],
+      "source_sha256": "94d0d5975145d7f60163081965d5fe8c2a43cb79cc051fc0b42e80a4380e1e2c",
+      "consumers": [
+        "profile/clips/walk_right"
+      ]
+    },
+    {
+      "name": "seal_rstrafe_fast",
+      "samples": 28,
+      "duration": 0.8999999761581421,
+      "max_matrix_error": 7.62939453125e-06,
+      "unattached_tracks": [
+        "do_not_use",
+        "rifle"
+      ],
+      "source_sha256": "0913a24e2fbe047bfb73be0983011e125120697913a90bf3680544c2e1038325",
+      "consumers": [
+        "profile/clips/seal_rstrafe_fast"
+      ]
+    },
+    {
+      "name": "seal_run",
+      "samples": 20,
+      "duration": 0.6333333253860474,
+      "max_matrix_error": 9.5367431640625e-06,
+      "unattached_tracks": [
+        "rifle"
+      ],
+      "source_sha256": "303edaa186f788ffd50bb3aed138fc081e44639d68850a05765ea6ab045d79f3",
+      "consumers": [
+        "profile/clips/run_forward",
+        "profile/clips/seal_pfp_run/composition_base"
+      ]
+    },
+    {
+      "name": "seal_run_90l",
+      "samples": 19,
+      "duration": 0.6000000238418579,
+      "max_matrix_error": 6.67572021484375e-06,
+      "unattached_tracks": [
+        "do_not_use",
+        "rifle"
+      ],
+      "source_sha256": "584c8f5718df9f7bb736e8777ba6fb1741682a7dab5c0f44243c1e407727dc0e",
+      "consumers": [
+        "profile/clips/run_lateral_left",
+        "profile/clips/run_left"
+      ]
+    },
+    {
+      "name": "seal_run_90r",
+      "samples": 19,
+      "duration": 0.6000000238418579,
+      "max_matrix_error": 7.62939453125e-06,
+      "unattached_tracks": [
+        "do_not_use",
+        "rifle"
+      ],
+      "source_sha256": "ff0d46f0a3c3151ebf64bee48765896b391271f16161284e6c0e3be719871554",
+      "consumers": [
+        "profile/clips/run_lateral_right",
+        "profile/clips/run_right"
+      ]
+    },
+    {
+      "name": "seal_run_bw",
+      "samples": 19,
+      "duration": 0.6000000238418579,
+      "max_matrix_error": 6.67572021484375e-06,
+      "unattached_tracks": [
+        "do_not_use",
+        "rifle"
+      ],
+      "source_sha256": "7989e6315ee67a3c84aef5fd864e0109e344b32acdcc6fc6e1b9191565fcd7cf",
+      "consumers": [
+        "profile/clips/run_backward"
+      ]
+    },
+    {
+      "name": "seal_runningjump_in_air",
+      "samples": 15,
+      "duration": 0.46666666865348816,
+      "max_matrix_error": 6.67572021484375e-06,
+      "unattached_tracks": [
+        "weapon"
+      ],
+      "source_sha256": "d3f0d54cafbafc8cfaccacacb020c6ac46fe913cf3721b87776f114a4043c8f9",
+      "consumers": [
+        "profile/clips/jump_loop"
+      ]
+    },
+    {
+      "name": "seal_runningjump_launch",
+      "samples": 26,
+      "duration": 0.8333333134651184,
+      "max_matrix_error": 1.1444091796875e-05,
+      "unattached_tracks": [
+        "rifle"
+      ],
+      "source_sha256": "c9d6ba99324213c024142f9c8e6503d890c229d3bb2b53132bb7ad2b6a78fbbc",
+      "consumers": [
+        "profile/clips/jump_forward_action",
+        "profile/clips/jump_up"
+      ]
+    },
+    {
+      "name": "seal_stand",
+      "samples": 17,
+      "duration": 0.5333333611488342,
+      "max_matrix_error": 5.7220458984375e-06,
+      "unattached_tracks": [
+        "do_not_use",
+        "rifle"
+      ],
+      "source_sha256": "8d212af6190c65e3f2dc83046605a80aab407d5dc3d69324de955da8a4c0c9f3",
+      "consumers": [
+        "profile/clips/idle_rifle"
+      ]
+    },
+    {
+      "name": "seal_stand2llean",
+      "samples": 24,
+      "duration": 0.7666666507720947,
+      "max_matrix_error": 9.5367431640625e-06,
+      "unattached_tracks": [
+        "rifle"
+      ],
+      "source_sha256": "d11e1ce4edbec2cf20bcc24a2404d786539876a34dc498c4fde38e98935e9f81",
+      "consumers": [
+        "profile/authored_peek/families/TWO_HAND_RIFLE/STANDING/left"
+      ]
+    },
+    {
+      "name": "seal_stand2rlean",
+      "samples": 19,
+      "duration": 0.6000000238418579,
+      "max_matrix_error": 8.58306884765625e-06,
+      "unattached_tracks": [
+        "rifle"
+      ],
+      "source_sha256": "80fb46b8a46840fa018d1315df324d04b4c0d922937f815c2239909ba598c67d",
+      "consumers": [
+        "profile/authored_peek/families/TWO_HAND_RIFLE/STANDING/right"
+      ]
+    },
+    {
+      "name": "seal_stand_alert02",
+      "samples": 32,
+      "duration": 1.0333333015441895,
+      "max_matrix_error": 7.62939453125e-06,
+      "unattached_tracks": [
+        "rifle"
+      ],
+      "source_sha256": "3e6099df02ee437ef6e486d10e4f408a89c93545e40458a1d86b7070d34fbfcf",
+      "consumers": [
+        "profile/clips/seal_stand_alert02"
+      ]
+    },
+    {
+      "name": "seal_tossgrenade",
+      "samples": 31,
+      "duration": 1,
+      "max_matrix_error": 6.67572021484375e-06,
+      "unattached_tracks": [
+        "rifle"
+      ],
+      "source_sha256": "59f3aeb1b37a126a3e3e89b56be6016226208facc0a207fce2be87cd6157953c",
+      "consumers": [
+        "profile/clips/grenade_toss"
+      ]
+    },
+    {
+      "name": "seal_walk",
+      "samples": 26,
+      "duration": 0.8333333134651184,
+      "max_matrix_error": 8.58306884765625e-06,
+      "unattached_tracks": [
+        "do_not_use",
+        "rifle"
+      ],
+      "source_sha256": "a20cb8dad5436a7e485e63ed49cc087caad12415fe6f1d3d1d290d70554b3d32",
+      "consumers": [
+        "profile/clips/seal_pfp_walk/composition_base",
+        "profile/clips/walk_forward"
+      ]
+    },
+    {
+      "name": "seal_walk_bw",
+      "samples": 17,
+      "duration": 0.5333333611488342,
+      "max_matrix_error": 7.62939453125e-06,
+      "unattached_tracks": [
+        "do_not_use",
+        "rifle"
+      ],
+      "source_sha256": "6baf66a81d3a1e85d620ade7dbb78a47a0ad1381daf181db719f7219bdb764ae",
+      "consumers": [
+        "profile/clips/walk_backward"
+      ]
+    }
+  ],
+  "limits": [
+    "No original-engine interpolation proof",
+    "No recovered weapon/helper parent",
+    "Bone-only source rig, not a character mesh",
+    "No runtime mappings changed"
+  ]
+}

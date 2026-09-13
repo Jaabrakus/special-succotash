@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "feature_id": "locomotion_playback_cadence",
-  "player_intent": "Run, crouch movement, and prone movement animate at a calmer, less visually fatiguing cadence without slowing the player's movement.",
-  "acceptance_rule": "The saved canonical locomotion profile applies a 0.80 visual playback scale to standing, crouched, and prone AnimationTree time-scale nodes while CharacterBody3D movement-speed values remain unchanged.",
+  "player_intent": "Restore normal authored locomotion cadence as the first source-informed blending pass without changing player speed.",
+  "acceptance_rule": "The saved canonical locomotion profile applies a 1.0 visual playback scale with full nominal speed 6.5m/s; standing, crouched and prone TimeScale nodes consume it while CharacterBody3D movement speeds remain unchanged.",
   "canonical_scene": "res://main.tscn",
   "editor_scene": "res://animation_library_lab.tscn",
   "ownership": {
@@ -57,12 +57,12 @@
     "res://tools/hybrid_locomotion_action_regression.gd",
     "res://tools/feature_contract_regression.gd"
   ],
-  "visual_check": "Run forward and strafe, then crouch-walk and crawl in res://main.tscn. Confirm the foot and body cycles are visibly slower, the player still covers the same distance per second, and no foot sliding, animation restart, weapon-contact, fire, or reload regression is visible.",
+  "visual_check": "Run forward and strafe, then crouch-walk and crawl in main. Check normal clip cadence, unchanged distance per second, feet and weapon contacts. Original-engine timing fidelity still needs comparison.",
   "system_delta": {
     "decision": "MERGE",
-    "reason": "The existing profile already separates visual playback cadence from authoritative movement. Lower its bounded presentation scale instead of changing movement velocity, clip assets, or AnimationTree ownership.",
+    "reason": "User requested source-informed blending, superseding the older deliberate 0.80 slowdown. Use the same saved profile, normal clip speed and source run velocity calibration without changing movement authority.",
     "current": {
-      "system": "Canonical locomotion profile with a 0.88 visual playback scale",
+      "system": "Canonical locomotion profile with a 0.80 visual playback scale",
       "correctness": 3,
       "ownership_clarity": 5,
       "runtime_parity": 5,
@@ -77,8 +77,8 @@
       ]
     },
     "candidate": {
-      "system": "Same canonical locomotion graph with a 0.80 presentation-only playback scale",
-      "correctness": 5,
+      "system": "Same canonical graph with normal-speed source-informed cadence",
+      "correctness": 4,
       "ownership_clarity": 5,
       "runtime_parity": 5,
       "editor_usability": 4,

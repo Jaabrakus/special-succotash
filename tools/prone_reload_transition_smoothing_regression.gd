@@ -6,6 +6,7 @@ var failures: Array[String] = []
 
 
 func _initialize() -> void:
+	Engine.max_fps = 60
 	_run.call_deferred()
 
 
@@ -28,6 +29,13 @@ func _run() -> void:
 		return
 	_expect(bool(player.call("_try_set_posture", 2)), "operator enters prone before reload")
 	await _frames(45)
+	await _capture(main, player, "prone-ready")
+	driver.notify_fired()
+	await _frames(3)
+	for bone in ["RightArm", "RightForeArm", "LeftArm", "LeftForeArm"]:
+		_expect(not driver.locomotion_graph.fire_layer_node.is_path_filtered(NodePath(".:mixamorig_" + bone)), "prone fire retains " + bone)
+	await _capture(main, player, "prone-shot")
+	await _frames(30)
 	weapon.set("rounds_in_magazine", 5)
 	weapon.set("reserve_rounds", 20)
 	_expect(bool(main.call("_request_weapon_reload")), "prone reload starts")
@@ -35,6 +43,7 @@ func _run() -> void:
 	var reload_action := StringName(driver.get("requested_action"))
 	var reload_duration := float(driver.get("requested_action_total_duration"))
 	var remaining_before := float(driver.get("requested_action_remaining"))
+	await _capture(main, player, "prone-reload")
 	var previous_transform := _relative_transform(player, rifle)
 	var previous_vertical := _barrel_vertical(pose)
 	var entry_vertical := previous_vertical
@@ -82,6 +91,13 @@ func _run() -> void:
 		]
 	)
 	_expect(not action_changed, "stance change keeps one reload action")
+	await _capture(main, player, "crouch-reload")
+	var reload_pose = driver.locomotion_graph.active_reload_pose
+	_expect(reload_pose != null and reload_pose.tree != null, "reload blend has its runtime tree")
+	if reload_pose != null:
+		_expect(reload_pose.selected_clip == driver._resolve_equipped_weapon_action(&"reload"), "crouch reload visual replaces prone reload")
+		_expect(is_equal_approx(reload_pose.weight, float(reload_pose.desired_slot)), "crouch reload handoff finishes")
+		_expect(reload_pose.sampled_phase > 0.05, "reload handoff preserves progress")
 	_expect(not duration_changed and not remaining_increased, "stance change does not restart the reload playhead")
 	_expect(max_rotation_step_deg <= 12.0, "rifle rotation is smooth through prone-to-crouch reload")
 	_expect(max_position_step_m <= 0.17, "rifle position follows the trigger hand through prone-to-crouch reload")
@@ -125,6 +141,22 @@ func _run() -> void:
 	_expect(max_position_step_m <= 0.17, "rifle position follows the trigger hand through crouch-to-prone reload")
 	_expect(max_upward_step <= 0.10, "rifle cannot point up while returning to prone reload")
 	_finish(main)
+
+
+func _capture(main: Node, player: CharacterBody3D, label: String) -> void:
+	if not "--capture" in OS.get_cmdline_user_args():
+		return
+	var camera := main.get_node_or_null("ReloadProofCamera") as Camera3D
+	if camera == null:
+		camera = Camera3D.new()
+		camera.name = "ReloadProofCamera"
+		main.add_child(camera)
+	var target := player.global_position + Vector3.UP * 0.7
+	camera.global_position = target + player.global_basis * Vector3(2.5, 1.0, -2.0)
+	camera.look_at(target)
+	camera.current = true
+	await RenderingServer.frame_post_draw
+	root.get_texture().get_image().save_png("/private/tmp/reload-blend-" + label + ".png")
 
 
 func _relative_transform(player: CharacterBody3D, rifle: Node3D) -> Transform3D:

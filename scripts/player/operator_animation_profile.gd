@@ -244,13 +244,25 @@ var source_jump: Dictionary = {}
 var authored_peek: Dictionary = {}
 var family_animation_slots: Dictionary = {}
 var locomotion: Dictionary = {
+	"source_three_tier": false,
+	"source_idle_blending": false,
+	"source_pose_only": false,
+	"source_pistol_attachment": false,
+	"source_pistol_palm_offset_m": [0.0, 0.0, 0.0],
+	"source_rifle_attachment": false,
+	"source_rifle_aim_limit_degrees": 85.0,
+	"source_pistol_aim_limit_degrees": 85.0,
 	"grounded_gait_alignment": false,
+	"forward_run_hip_balance": false,
+	"forward_run_max_hip_travel_m": 0.0,
 	"gait_support_height_m": 0.05,
 	"stop_grace_seconds": 0.0,
+	"lean_stop_grace_seconds": 0.0,
 	"microstep_speed_mps": 0.0,
 	"preserve_source_locomotion": false,
 	"source_firing_locomotion": false,
 	"source_upright_weapon": false,
+	"m4_source_elbow_transport_max_degrees": 0.0,
 	"legacy_pistol_upper_body": false,
 	"walk_nominal_speed_mps": 2.15,
 	"full_nominal_speed_mps": 5.70,
@@ -284,6 +296,14 @@ var warnings: Array[String] = []
 
 
 func load_project_map(path: String = MAP_PATH) -> void:
+	locomotion["source_three_tier"] = false
+	locomotion["source_idle_blending"] = false
+	locomotion["lean_stop_grace_seconds"] = 0.0
+	# Older presets omit this opt-in. Reusing a workshop profile must not carry
+	# source-only presentation into a subsequently loaded historical preset.
+	locomotion["source_pose_only"] = false
+	locomotion["source_pistol_attachment"] = false
+	locomotion["source_rifle_attachment"] = false
 	clip_paths = DEFAULT_CLIPS.duplicate(true)
 	mirrored_clips = DEFAULT_MIRRORED_CLIPS.duplicate(true)
 	leg_mirrored_clips = DEFAULT_LEG_MIRRORED_CLIPS.duplicate(true)
@@ -342,6 +362,9 @@ func load_project_map(path: String = MAP_PATH) -> void:
 	if family_slots is Dictionary:
 		family_animation_slots = (family_slots as Dictionary).duplicate(true)
 	_merge_numeric_section(locomotion, config.get("locomotion", {}))
+	var saved_locomotion: Variant = config.get("locomotion", {})
+	if not (saved_locomotion is Dictionary and saved_locomotion.has("lean_stop_grace_seconds")):
+		locomotion["lean_stop_grace_seconds"] = locomotion.get("stop_grace_seconds", 0.0)
 	_merge_numeric_section(transitions, config.get("transitions", {}))
 
 
@@ -390,6 +413,27 @@ func playback_rate(actual_speed_mps: float, posture: StringName, full_weight: fl
 		0.50,
 		1.20
 	)
+
+
+func source_idle_blend_seconds(clip_name: StringName) -> float:
+	# Called when building the graph, never while evaluating a frame. Read the
+	# actual selected idle resource, including family/weapon overrides. -1 means
+	# no usable source timing; callers retain their existing transition policy.
+	var path := String(clip_paths.get(clip_name, ""))
+	if not path.ends_with(".tres") or not ResourceLoader.exists(path):
+		return -1.0
+	var clip := load(path) as Animation
+	if clip == null or not bool(clip.get_meta("seal_reference", false)):
+		return -1.0
+	var settings: Variant = clip.get_meta("source_settings", {})
+	if not settings is Dictionary:
+		return -1.0
+	if String(settings.get("anim_name", "")) != String(clip.get_meta("source_name", "")):
+		return -1.0
+	var value: Variant = settings.get("BlendTime", null)
+	if not (value is float or value is int):
+		return -1.0
+	return float(value) if is_finite(float(value)) and float(value) >= 0.0 and float(value) <= 2.0 else -1.0
 
 
 func phase_offset(clip_name: StringName) -> float:

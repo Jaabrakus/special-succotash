@@ -1,6 +1,7 @@
 extends "res://scripts/player/operator_weapon_pose_state.gd"
 
 const AimAlignment := preload("res://scripts/player/operator_weapon_aim_alignment.gd")
+const SourcePistolMount := preload("res://scripts/player/operator_source_pistol_mount.gd")
 
 func _animation_frame_weapon_correction_transform() -> Transform3D:
 	if animation_frame_pose.is_empty():
@@ -40,7 +41,7 @@ func _right_hand_grip_world_transform() -> Transform3D:
 		return Transform3D.IDENTITY
 	var hand_pose := skeleton.get_bone_global_pose(hand_index)
 	var hand_world := skeleton.global_transform * hand_pose
-	return Transform3D(
+	var palm_world := Transform3D(
 		hand_world.basis.orthonormalized(),
 		WeaponContactSolver.palm_contact_world(
 			skeleton,
@@ -48,6 +49,7 @@ func _right_hand_grip_world_transform() -> Transform3D:
 			right_palm_anchor_local
 		)
 	)
+	return SourcePistolMount.contact_transform(palm_world, source_pistol_attachment, source_pistol_palm_offset_m)
 
 
 func _left_hand_grip_world_transform() -> Transform3D:

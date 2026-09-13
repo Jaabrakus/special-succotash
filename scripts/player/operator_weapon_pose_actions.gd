@@ -1,5 +1,22 @@
 extends "res://scripts/player/operator_weapon_pose_kinematics.gd"
 
+func present_traversal_equip() -> void:
+	# Authored AGLS draw owns both arms. The existing weapon presentation owner
+	# follows its evaluated trigger palm; no support IK pulls the reaching hand
+	# back onto a rifle that is still on the sling.
+	if weapon_node == null or weapon_presentation_owner == null: return
+	_finish_action_weapon_follow()
+	_release_trigger_hand_grip_lock()
+	_release_support_hand_grip_lock()
+	_stop_socket_ik()
+	_set_weapon_owner(WeaponOwnershipContract.AUTHORED_ANIMATION_MOUNT)
+	support_hand_mode = WeaponOwnershipContract.SUPPORT_ANIMATION_FREE
+	weapon_presentation_owner.use_solver_parent(true)
+	weapon_solver_owned = false
+	_weapon_transform_on_trigger_hand(_right_hand_grip_world_transform(), true)
+	current_weight = 0.0
+	desired_weight = 0.0
+
 func _find_weapon_socket(socket_name: String) -> Marker3D:
 	if weapon_node == null:
 		return null

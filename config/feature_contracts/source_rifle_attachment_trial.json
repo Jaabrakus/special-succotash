@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "feature_id": "source_rifle_attachment_trial",
+  "player_intent": "Preserve native rifle arm geometry while retaining a held and aimed weapon.",
+  "acceptance_rule": "An opt-in saved source_rifle_attachment policy uses the existing animation/weapon owners, stops arm IK, and applies only a bounded upper-body group aim. Promotion requires main-scene source-pose, bore, support-contact and rendered checks. Current support-contact/visual checks FAIL; the canonical saved profile must not enable this trial. It is not a completed one-for-one rifle port.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://scenes/player/operator_player.tscn",
+  "ownership": {
+    "animation": "SocomOperatorAnimationDriver",
+    "weapon_presentation": "SocomOperatorWeaponPresentationOwner"
+  },
+  "nodes": [{
+    "id": "native_rifle_presentation_trial",
+    "type": "Node3D",
+    "role": "Optional native rifle presentation within the existing production driver",
+    "owner": "SocomOperatorAnimationDriver",
+    "scene_path": "res://scenes/player/operator_player.tscn",
+    "node_path": "Mannequin/ProductionAnimation"
+  }],
+  "data_contracts": [{
+    "path": "res://config/operator_animation_map.json",
+    "writer": "res://scripts/labs/animation_workshop_repository.gd",
+    "readers": ["res://scripts/player/operator_animation_profile.gd", "res://scripts/player/operator_animation_driver_runtime.gd"]
+  }],
+  "must_not_change": ["CharacterBody movement/collision", "Camera/reticle aim", "Server weapon/damage/ammo/reload duration", "Original assets", "Canonical rifle activation until physical acceptance"],
+  "proof_scripts": ["res://tools/main_rifle_source_pose_audit.gd", "res://tools/source_clip_classification_regression.gd", "res://tools/feature_contract_regression.gd"],
+  "visual_check": "Current M4 native trial fails palm/receiver and support/fore-end fit despite correctly aimed bore. Keep trial off; inspect native gun geometry and attachment before promotion.",
+  "system_delta": {
+    "decision": "REJECT",
+    "reason": "Reject promotion, retain bounded comparison capability: native bones and whole-upper aim alone do not fit the existing rifle geometry. Main working rifle contact policy is retained.",
+    "current": {
+      "system": "Source rifle clips with existing contact solver",
+      "correctness": 3, "ownership_clarity": 4, "runtime_parity": 3, "editor_usability": 4, "performance": 3, "regression_coverage": 4,
+      "evidence_paths": ["res://scripts/player/operator_seal_weapon_pose.gd", "res://docs/RIFLE_SOURCE_POSE_RUNTIME_AUDIT.md"]
+    },
+    "candidate": {
+      "system": "Native arm geometry and bounded whole-upper aim with uncalibrated rigid rifle mount",
+      "correctness": 2, "ownership_clarity": 5, "runtime_parity": 3, "editor_usability": 4, "performance": 4, "regression_coverage": 4,
+      "evidence_paths": ["res://scripts/player/operator_source_attachment_aim.gd", "res://docs/SOURCE_RIFLE_NATIVE_RUNTIME.md"]
+    }
+  }
+}

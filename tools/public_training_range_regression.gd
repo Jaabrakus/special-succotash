@@ -16,6 +16,7 @@ func _run() -> void:
 	ProjectSettings.set_setting("socom/session/selected_map_document", MapDocument.new_document("Public Training Regression"))
 	var training := TrainingScene.instantiate()
 	root.add_child(training)
+	var initial_player_position: Vector3 = training.get_node("Player").global_position
 	for _frame in 6:
 		await process_frame
 	await physics_frame
@@ -23,8 +24,43 @@ func _run() -> void:
 	_expect(bool(training.get("public_training_mode")), "public Training Range mode is active")
 	_expect(training.find_child("PublicTrainingRangeTitle", true, false) != null, "Training Range has player-facing identity")
 	_expect(training.find_child("TrainingRangeMainMenuButton", true, false) is Button, "Training Range can return to the player menu")
-	var status_hud := training.find_child("PlayerStatusHUD", true, false) as Control
+	var hud_toggle_btn := training.find_child("TrainingRangeToggleHudButton", true, false) as Button
+	_expect(hud_toggle_btn != null, "Training Range has toggle HUD button")
+	_expect(hud_toggle_btn != null and hud_toggle_btn.text == "HIDE HUD", "HUD button shows HIDE HUD when HUD is visible")
+	var status_hud := training.find_child("SocomLoadoutCardHUD", true, false) as Control
 	var reticle := training.find_child("SocomDynamicReticle", true, false) as Control
+	var gameplay_hud = training.get("gameplay_hud")
+	_expect(gameplay_hud != null, "Training Range has gameplay HUD node")
+	if gameplay_hud != null and hud_toggle_btn != null:
+		var menu_btn := training.find_child("TrainingRangeMainMenuButton", true, false) as Button
+		hud_toggle_btn.emit_signal("pressed")
+		await process_frame
+		_expect(hud_toggle_btn.text == "SHOW HUD", "HUD toggle button changes text to SHOW HUD")
+		_expect(hud_toggle_btn != null and not hud_toggle_btn.visible, "HUD toggle button is hidden when HUD toggled off")
+		_expect(menu_btn != null and not menu_btn.visible, "Main menu button is hidden when HUD toggled off")
+		_expect(status_hud != null and not status_hud.visible, "Player status HUD is hidden when HUD toggled off")
+		_expect(reticle != null and not reticle.visible, "Reticle is hidden when HUD toggled off")
+		hud_toggle_btn.emit_signal("pressed")
+		await process_frame
+		_expect(hud_toggle_btn.text == "HIDE HUD", "HUD toggle button changes text back to HIDE HUD")
+		_expect(hud_toggle_btn != null and hud_toggle_btn.visible, "HUD toggle button restored when HUD toggled on")
+		_expect(menu_btn != null and menu_btn.visible, "Main menu button restored when HUD toggled on")
+		_expect(status_hud != null and status_hud.visible, "Player status HUD restored when HUD toggled on")
+		_expect(reticle != null and reticle.visible, "Reticle restored when HUD toggled on")
+
+		var key_event := InputEventKey.new()
+		key_event.pressed = true
+		key_event.keycode = KEY_H
+		gameplay_hud._unhandled_input(key_event)
+		await process_frame
+		_expect(not gameplay_hud.hud_mechanics_visible, "H key input toggles HUD mechanics off")
+		_expect(status_hud != null and not status_hud.visible, "H key hides status HUD")
+		_expect(reticle != null and not reticle.visible, "H key hides reticle")
+		gameplay_hud._unhandled_input(key_event)
+		await process_frame
+		_expect(gameplay_hud.hud_mechanics_visible, "H key input toggles HUD mechanics back on")
+		_expect(status_hud != null and status_hud.visible, "H key restores status HUD")
+		_expect(reticle != null and reticle.visible, "H key restores reticle")
 	_expect(status_hud != null, "Training Range keeps health, weapon ammo, and grenade inventory")
 	_expect(status_hud != null and status_hud.is_visible_in_tree(), "Training Range HUD is visible during play")
 	_expect(reticle != null, "Training Range keeps the gameplay reticle")
@@ -106,6 +142,16 @@ func _run() -> void:
 	_expect(training.find_child("AnimationStudioPanel", true, false) == null, "public Training Range does not create Animation Studio")
 	_expect(training.find_child("OperatorPoseTuner", true, false) == null, "public Training Range does not create the pose editor")
 
+	if "--render" in OS.get_cmdline_user_args():
+		training.get_node("Player").global_position = initial_player_position
+		for frame in 90:
+			await process_frame
+		for channel in ["weapon", "health", "throwable"]:
+			status_hud.attention.reveal(channel)
+		await process_frame
+		await RenderingServer.frame_post_draw
+		_expect(status_hud._anchor_valid, "Floating HUD has a visible canonical torso anchor")
+		root.get_texture().get_image().save_png("/private/tmp/contextual-hud-canonical.png")
 	training.queue_free()
 	await process_frame
 	if failures.is_empty():

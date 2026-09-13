@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "feature_id": "source_pistol_attachment",
+  "player_intent": "Use native direction-specific pistol arms in the main game with a rigid held weapon, correct target finger closure and bounded presentation aim.",
+  "acceptance_rule": "The main saved profile enables source_pistol_attachment and disables legacy_pistol_upper_body. Pistol families use native ready and strafe clips, stopped arm IK, exact animated trigger-palm attachment and declared finger closure. A single bounded upper-body group aim preserves relative arm geometry. Main-scene movement, accepted shots and reload must retain attachment. This is a Godot adaptation, not proof of recovered original held-helper parenting or one-for-one engine behavior.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://scenes/player/operator_player.tscn",
+  "ownership": {
+    "animation": "SocomOperatorAnimationDriver",
+    "weapon_transform": "SocomOperatorWeaponPresentationOwner",
+    "fingers": "SocomOperatorWeaponGripContact",
+    "movement_collision": "CharacterBody3D",
+    "aim_intent": "SOCOMCameraReticleChain",
+    "shot_damage": "AuthoritativeServerWeapon"
+  },
+  "nodes": [{
+    "id": "operator_animation",
+    "type": "Node3D",
+    "role": "Consumes the saved pistol-only presentation policy",
+    "owner": "SocomOperatorAnimationDriver",
+    "scene_path": "res://scenes/player/operator_player.tscn",
+    "node_path": "Mannequin/ProductionAnimation"
+  }],
+  "data_contracts": [{
+    "path": "res://config/operator_animation_map.json",
+    "writer": "res://scripts/labs/animation_workshop_repository.gd",
+    "readers": ["res://scripts/player/operator_animation_profile.gd", "res://scripts/player/operator_animation_driver_runtime.gd", "res://scripts/player/operator_pistol_upper_layer.gd"]
+  }],
+  "must_not_change": [
+    "CharacterBody movement and collision",
+    "Camera aim and authoritative shots/damage/ammo/reload duration",
+    "Original animation resources and selected character",
+    "Rifle, shotgun and sniper presentation policies",
+    "Held ISO helper interpretation until its parent is recovered"
+  ],
+  "proof_scripts": [
+    "res://tools/main_pistol_source_attachment_regression.gd",
+    "res://tools/source_pistol_finger_regression.gd",
+    "res://tools/source_pistol_mount_regression.gd",
+    "res://tools/source_pose_audit_hand_use.gd",
+    "res://tools/feature_contract_regression.gd"
+  ],
+  "visual_check": "Inspect main-scene standing/crouched early/middle/late forward, left and right movement/fire, idle and reload. Confirm actual selected model, compact source right pose, independent left arm where authored, closed trigger fingers, stable gun contact and accepted-fire bore. Numerical contact is not a visual-quality pass.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "The previous main profile replaced source arms with legacy upper poses. The isolated no-layer candidate left missing finger and aim inputs. A pistol-only adaptation uses existing owners while preserving source arm geometry and other weapon families.",
+    "current": {
+      "system": "Native directional clips overwritten by legacy upper-body and two-arm fitting",
+      "correctness": 2, "ownership_clarity": 4, "runtime_parity": 2,
+      "editor_usability": 4, "performance": 3, "regression_coverage": 3,
+      "evidence_paths": ["res://scripts/player/operator_pistol_upper_layer.gd", "res://docs/SOURCE_POSE_AUDIT.md"]
+    },
+    "candidate": {
+      "system": "Pistol-only native body, rigid palm mount, bounded group aiming and explicit finger closure",
+      "correctness": 3, "ownership_clarity": 5, "runtime_parity": 4,
+      "editor_usability": 4, "performance": 4, "regression_coverage": 4,
+      "evidence_paths": ["res://scripts/player/operator_source_pistol_attachment.gd", "res://scripts/player/operator_source_pistol_mount.gd", "res://scripts/player/operator_weapon_grip_contact.gd", "res://docs/SOURCE_PISTOL_RUNTIME_FIX.md"]
+    }
+  }
+}

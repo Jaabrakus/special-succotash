@@ -1,0 +1,62 @@
+COMMAND: /Users/kiwimango/Applications/Godot-4.7.1.app/Contents/MacOS/Godot --headless -s tools/weapon_bloom_profile_regression.gd
+EXIT_CODE: 1
+DURATION: 0.25s
+
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+WEAPON_BLOOM_PROFILE_CHECK PASS weapon profile opens
+WEAPON_BLOOM_PROFILE_CHECK PASS weapon profile parses
+WEAPON_BLOOM_PROFILE_CHECK PASS crouch settle timing remains unchanged
+WEAPON_BLOOM_PROFILE_CHECK PASS profile burst shot fires
+WEAPON_BLOOM_PROFILE_CHECK PASS profile burst shot fires
+WEAPON_BLOOM_PROFILE_CHECK PASS profile burst shot fires
+WEAPON_BLOOM_PROFILE_CHECK PASS profile burst shot fires
+WEAPON_BLOOM_PROFILE_CHECK PASS profile burst shot fires
+WEAPON_BLOOM_PROFILE_CHECK PASS profile burst shot fires
+WEAPON_BLOOM_PROFILE_CHECK PASS profile burst shot fires
+WEAPON_BLOOM_PROFILE_CHECK PASS profile burst shot fires
+WEAPON_BLOOM_PROFILE_CHECK PASS profile burst shot fires
+WEAPON_BLOOM_PROFILE_CHECK PASS profile burst shot fires
+WEAPON_BLOOM_PROFILE_CHECK PASS profile burst shot fires
+WEAPON_BLOOM_PROFILE_CHECK PASS profile burst shot fires
+WEAPON_BLOOM_PROFILE_CHECK PASS profile burst shot fires
+WEAPON_BLOOM_PROFILE_CHECK PASS profile burst shot fires
+WEAPON_BLOOM_PROFILE_CHECK PASS profile burst shot fires
+WEAPON_BLOOM_PROFILE_CHECK PASS settled opening pair shares one precise cone
+WEAPON_BLOOM_PROFILE_CHECK PASS standing bloom begins on the third shot
+WEAPON_BLOOM_PROFILE_CHECK PASS crouch produces a tighter controlled burst
+WEAPON_BLOOM_PROFILE_CHECK PASS crouch reaches a smaller sustained-fire cone
+WEAPON_BLOOM_PROFILE_CHECK PASS full strafe remains wider than settled fire
+WEAPON_BLOOM_PROFILE_CHECK PASS full-strafe spraying still blooms after the opening pair
+ERROR: WEAPON_BLOOM_PROFILE_REGRESSION: walk spread remains unchanged
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tools/weapon_bloom_profile_regression.gd:73)
+ERROR: WEAPON_BLOOM_PROFILE_REGRESSION: full strafe spread uses the approved cone
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tools/weapon_bloom_profile_regression.gd:73)
+ERROR: WEAPON_BLOOM_PROFILE_REGRESSION: standing settle timing remains unchanged
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tools/weapon_bloom_profile_regression.gd:73)
+ERROR: WEAPON_BLOOM_PROFILE_REGRESSION: reticle maximum gap is bounded
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tools/weapon_bloom_profile_regression.gd:73)
+ERROR: WEAPON_BLOOM_PROFILE_REGRESSION: reticle shot kick remains unchanged
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tools/weapon_bloom_profile_regression.gd:73)
+ERROR: WEAPON_BLOOM_PROFILE_REGRESSION: bounce duration follows the rifle cadence
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tools/weapon_bloom_profile_regression.gd:73)
+ERROR: WEAPON_BLOOM_PROFILE_REGRESSION: kick return leaves ten percent before the next legal shot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tools/weapon_bloom_profile_regression.gd:73)
+ERROR: WEAPON_BLOOM_PROFILE_REGRESSION: standing sustained-fire cone stays bounded
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tools/weapon_bloom_profile_regression.gd:73)

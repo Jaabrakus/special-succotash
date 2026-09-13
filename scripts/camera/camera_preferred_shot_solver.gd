@@ -1,6 +1,9 @@
 class_name SocomCameraPreferredShotSolver
 extends RefCounted
 
+const SourceHybrid := preload("res://scripts/camera/camera_source_hybrid.gd")
+const ANCHOR_HEIGHT := 1.05
+
 var rig
 
 func configure(camera_rig) -> void:
@@ -14,14 +17,14 @@ func preferred_position() -> Vector3:
     var anchor: Vector3 = (
         rig.target.global_position
         + rig.movement_lead
-        + Vector3.UP * 1.05
+        + Vector3.UP * ANCHOR_HEIGHT
     )
     var yaw_basis := Basis(Vector3.UP, rig.yaw)
     var back: Vector3 = yaw_basis * Vector3.BACK
     var side: Vector3 = yaw_basis * Vector3.RIGHT
     var forward: Vector3 = yaw_basis * Vector3.FORWARD
     var base_distance: float = lerpf(
-        rig.profile.distance,
+        SourceHybrid.open_distance(rig.profile),
         rig.profile.interior_distance,
         rig.interior_amount
     )

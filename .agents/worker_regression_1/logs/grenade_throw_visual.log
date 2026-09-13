@@ -1,0 +1,27 @@
+COMMAND: /Users/kiwimango/Applications/Godot-4.7.1.app/Contents/MacOS/Godot --headless -s tools/grenade_throw_visual_regression.gd
+EXIT_CODE: 0
+DURATION: 4.78s
+
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+GRENADE_THROW_VISUAL_CHECK PASS production throw animation stack is live
+GRENADE_THROW_VISUAL_CHECK PASS rendered rig exposes the throwing hand
+GRENADE_THROW_VISUAL_CHECK PASS grenade equips
+GRENADE_THROW_VISUAL_CHECK PASS equipped grenade model is attached visibly to the throwing hand
+GRENADE_HAND_SCALE_METRIC attachment=(63.99997, 63.99999, 63.99999) holder=(0.999999, 1.0, 1.0)
+GRENADE_THROW_VISUAL_CHECK PASS hand attachment cancels the imported rig's oversized bone scale
+GRENADE_THROW_VISUAL_CHECK PASS release requests a grenade clip
+GRENADE_THROW_VISUAL_CHECK PASS grenade clip owns the rendered base animation
+GRENADE_THROW_VISUAL_CHECK PASS modern animation graph enters the requested grenade take
+GRENADE_THROW_VISUAL_CHECK PASS rendered transition node selects the grenade take
+GRENADE_THROW_VISUAL_CHECK PASS rendered grenade take and gameplay timer use one playback speed
+GRENADE_THROW_VISUAL_CHECK PASS grenade detaches from the hand on the physical release cue
+GRENADE_THROW_VISUAL_METRIC clip=grenade_toss speed=1.415 duration=2.262 release=1.250 completion=2.233 hand_travel=0.0178 hand_rotation_deg=126.28
+GRENADE_THROW_VISUAL_CHECK PASS grenade remains in the hand for the full pre-release swing
+GRENADE_THROW_VISUAL_CHECK PASS rendered throwing hand performs visible authored motion
+GRENADE_THROW_VISUAL_CHECK PASS physical release matches the authored animation fraction
+GRENADE_THROW_VISUAL_CHECK PASS throw finishes on the final animation frame
+GRENADE_THROW_VISUAL_CHECK PASS grenade playback speed resets after the final frame
+GRENADE_THROW_VISUAL_REGRESSION PASS
+WARNING: 2 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)

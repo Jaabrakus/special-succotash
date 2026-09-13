@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "enabled": true,
+  "recovery": {
+    "enabled": true,
+    "traversal_start_phase": 0.82,
+    "source_start_phase": 0.20,
+    "blend_in_seconds": 0.10,
+    "blend_out_seconds": 0.18,
+    "hand_transfer_phase": 0.36,
+    "clips": {
+      "rifle_standing": "agls_equip_rifle_standing",
+      "rifle_crouched": "agls_equip_rifle_crouched",
+      "pistol_standing": "agls_equip_pistol_standing",
+      "pistol_crouched": "agls_equip_pistol_crouched"
+    }
+  },
+  "primary": {
+    "bone": "mixamorig_Spine2",
+    "position_m": [0.14, -0.12, -0.25],
+    "rotation_degrees": [0.0, 0.0, -20.0],
+    "maximum_length_m": 1.20
+  },
+  "pistol": {
+    "bone": "mixamorig_Hips",
+    "position_m": [0.25, -0.15, 0.04],
+    "rotation_degrees": [0.0, 0.0, 180.0],
+    "maximum_length_m": 0.38
+  }
+}

@@ -1,0 +1,21 @@
+COMMAND: /Users/kiwimango/Applications/Godot-4.7.1.app/Contents/MacOS/Godot --headless -s tools/test_strafe_latency_regression.gd
+EXIT_CODE: 0
+DURATION: 4.77s
+
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+--- STARTING SOCOM STRAFE & LATENCY REGRESSION SUITE ---
+TEST: Two-frame strafe burst decays to 6.5 m/s sustained speed
+  -> Opening 7.67, 7.67; decay 7.61, 7.23, 6.76; sustained 6.50 m/s
+  -> First reversal 7.67 m/s; repeated reversal 7.67 m/s; sustained 6.50 m/s
+TEST: Local Player 0ms Input Responsiveness
+TEST: Remote Proxy Snapshot Buffer & 120-150ms Interpolation
+  -> At current_time=10.200 (render_time=10.070), proxy pos.x = 0.676
+  -> At current_time=10.230 (render_time=10.100), proxy pos.x = 1.000
+  -> At current_time=10.350 (extrapolating), proxy pos.x = 2.200
+TEST: Composure & Strafe Duel Precision Dynamics
+  -> Settled first shot dispersion: 0.000 (core scale: 1.000)
+  -> Moving first shot dispersion: 1.000 (core scale: 0.831)
+  -> Dispersion after 300ms micro-pause: 0.621
+  -> Fully closed reticle earned at 700 ms
+STRAFE_LATENCY_REGRESSION PASS

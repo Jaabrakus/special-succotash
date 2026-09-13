@@ -1,0 +1,14 @@
+COMMAND: /Users/kiwimango/Applications/Godot-4.7.1.app/Contents/MacOS/Godot --headless -s tools/camera_passage_perception_regression.gd
+EXIT_CODE: 0
+DURATION: 0.24s
+
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+CAMERA_PASSAGE_CHECK PASS map property exposes an explicit camera-soft authoring control
+CAMERA_PASSAGE_METRIC hard_safe=0.598 skipped_soft=1
+CAMERA_PASSAGE_CHECK PASS camera passage skips explicitly tagged soft doorway geometry
+CAMERA_PASSAGE_CHECK PASS untagged building wall remains a hard camera blocker
+CAMERA_PASSAGE_CHECK PASS soft doorway geometry alone does not cramp the rendered camera
+CAMERA_PASSAGE_CHECK PASS non-rendering sensor classifies a visible enemy in the real camera frustum
+CAMERA_PASSAGE_CHECK PASS sensor never reveals an enemy through unapproved world geometry
+CAMERA_PASSAGE_PERCEPTION_REGRESSION PASS

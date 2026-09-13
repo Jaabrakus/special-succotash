@@ -8,6 +8,14 @@ var death_elapsed: float = 0.0
 var death_clip: StringName = &""
 var traversal_presentation_active: bool = false
 var traversal_weapon_was_visible: bool = false
+var traversal_recovery_pending := false
+const TraversalHandModifier := preload("res://scripts/player/operator_traversal_hand_modifier.gd")
+var traversal_hand_contact: TraversalHandModifier
+const TraversalStow := preload("res://scripts/player/operator_traversal_stow.gd")
+var traversal_stow := TraversalStow.new()
+var source_pose_only := false
+var source_pistol_attachment := false
+var source_rifle_attachment := false
 
 func _ready() -> void:
 	process_priority = 100
@@ -36,6 +44,7 @@ func _ready() -> void:
 	)
 	animation_profile = AnimationProfile.new()
 	animation_profile.load_project_map()
+	source_pose_only = bool(animation_profile.locomotion.get("source_pose_only", false))
 	presentation_router = PresentationRouter.new()
 	presentation_router.configure(
 		animation_profile.clip_paths,
@@ -86,6 +95,10 @@ func _ready() -> void:
 	ik_contract.name = "OperatorIKContract"
 	pose_pipeline.attach_component(&"50_HandContact", ik_contract)
 	ik_contract.bind(skeleton, weapon_node)
+	traversal_hand_contact = TraversalHandModifier.new()
+	traversal_hand_contact.name = "TraversalHandContact"
+	traversal_hand_contact.active = false
+	skeleton.add_child(traversal_hand_contact)
 	foot_contact_lock = FootContactLock.new()
 	foot_contact_lock.name = "FootContactLock"
 	pose_pipeline.attach_component(&"60_FootGrounding", foot_contact_lock)
@@ -121,6 +134,21 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	if animation_tree == null:
 		return
+	source_pistol_attachment = bool(animation_profile.locomotion.get("source_pistol_attachment", false)) and equipped_weapon_family == &"TWO_HAND_PISTOL"
+	source_rifle_attachment = bool(animation_profile.locomotion.get("source_rifle_attachment", false)) and equipped_weapon_family == &"TWO_HAND_RIFLE"
+	source_pose_only = bool(animation_profile.locomotion.get("source_pose_only", false)) or source_pistol_attachment or source_rifle_attachment
+	posture_layer.source_pose_only = source_pose_only
+	if weapon_pose_solver != null:
+		weapon_pose_solver.source_pose_only = source_pose_only
+		weapon_pose_solver.source_pistol_attachment = source_pistol_attachment
+		weapon_pose_solver.source_rifle_attachment = source_rifle_attachment
+		weapon_pose_solver.source_rifle_aim_limit_degrees = float(animation_profile.locomotion.get("source_rifle_aim_limit_degrees", 85.0))
+		var palm_offset: Variant = animation_profile.locomotion.get("source_pistol_palm_offset_m", [0.0, 0.0, 0.0])
+		weapon_pose_solver.source_pistol_palm_offset_m = Vector3.ZERO
+		if palm_offset is Array and palm_offset.size() == 3:
+			var offset := Vector3(float(palm_offset[0]), float(palm_offset[1]), float(palm_offset[2]))
+			if offset.is_finite(): weapon_pose_solver.source_pistol_palm_offset_m = offset.limit_length(0.05)
+		weapon_pose_solver.source_pistol_aim_limit_degrees = float(animation_profile.locomotion.get("source_pistol_aim_limit_degrees", 85.0))
 	if _advance_death_presentation(delta):
 		return
 	var evaluated_jump_frame: Vector2 = locomotion_graph.get_evaluated_jump_source_frame()
@@ -134,6 +162,7 @@ func _process(delta: float) -> void:
 		_pull_player_inputs()
 	if _advance_traversal_presentation(delta):
 		return
+	_advance_traversal_equipment(delta)
 	var upper_body_action_override := (
 		movement_state in [&"DIVING", &"ROLLING"]
 		or (requested_action != &"" and not _requested_action_upper_body_layered and not _requested_action_is_transition)
@@ -141,13 +170,19 @@ func _process(delta: float) -> void:
 	_update_locomotion_latch(delta)
 	_update_source_jump_timeline()
 	_update_weapon_ready(delta, upper_body_action_override)
-	_cancel_reload_for_posture_change()
+	_update_reload_stance_pose(delta)
 	_cancel_reload_for_mobility()
 	_cancel_cosmetic_transition_for_gameplay()
 	var mobility_owns_full_body := movement_state in [
 		&"DIVING", &"ROLLING", &"AIRBORNE", &"LANDING",
 	]
-	var displacement_mobility := movement_state in [&"DIVING", &"ROLLING"]
+	var displacement_mobility := (
+		movement_state in [&"DIVING", &"ROLLING"]
+		or (
+			movement_state in [&"AIRBORNE", &"LANDING"]
+			and not _presentation_fire_selected
+		)
+	)
 	var legacy_pistol_upper: bool = locomotion_graph.PistolUpperLayer.enabled(locomotion_graph) and posture in [&"STANDING", &"CROUCHED"] and not mobility_owns_full_body
 	locomotion_graph.PistolUpperLayer.update(locomotion_graph, posture, weapon_ready_weight, legacy_pistol_upper and (requested_action == &"" or _requested_action_upper_body_layered), delta)
 	var presentation_ready_weight := (
@@ -257,11 +292,20 @@ func _process(delta: float) -> void:
 		)
 	if requested_action == &"" or _requested_action_upper_body_layered:
 		_request_clip(_select_visual_clip())
-	_apply_saved_animation_frame_pose(delta)
+	if source_pose_only:
+		# Retire the saved correction state; retain the source action playheads.
+		_active_frame_pose = {}
+		_standing_master_pose_frame_suppressed = true
+		animation_frame_pose_runtime.last_pose_active = false
+		posture_layer.set_animation_frame_rotation_overrides({})
+		if weapon_pose_solver != null:
+			weapon_pose_solver.set_animation_frame_pose({})
+	elif not locomotion_graph.traversal_equip.active:
+		_apply_saved_animation_frame_pose(delta)
 	_update_prone_straightening(delta)
 	# Grenade clips author their complete upper-body turn. Dive and roll retain
 	# the original posture path; suppressing it changes their authored arm data.
-	var action_owns_upper_body_rotation := mobility_owns_full_body or (
+	var action_owns_upper_body_rotation: bool = locomotion_graph.traversal_equip.active or mobility_owns_full_body or (
 		requested_action != &""
 		and "grenade" in String(requested_action).to_lower()
 	)
@@ -288,8 +332,8 @@ func _process(delta: float) -> void:
 	var posture_aim_yaw := (
 		0.0 if action_owns_upper_body_rotation or authored_locomotion_owns_posture else aim_yaw_rad
 	)
-	var posture_aim_pitch := (
-		0.0 if action_owns_upper_body_rotation or authored_locomotion_owns_posture else aim_pitch_rad
+	var posture_aim_pitch: float = posture_layer.advance_look_pitch(
+		aim_pitch_rad, not action_owns_upper_body_rotation and requested_action == &"", delta
 	)
 	var posture_ready_weight := (
 		0.0 if authored_locomotion_owns_posture else _presentation_ready_weight
@@ -302,7 +346,7 @@ func _process(delta: float) -> void:
 		{}
 	)
 	var seal_source_clip: bool = locomotion_graph.is_source_clip(String(clip_paths.get(current_clip, ""))) or (requested_action == &"" and locomotion_graph.source_gait_is_active())
-	seal_source_clip = seal_source_clip or evaluated_source_jump_weight > 0.001
+	seal_source_clip = seal_source_clip or evaluated_source_jump_weight > 0.001 or locomotion_graph.jump_lower_body_weight > 0.001
 	posture_layer.preserve_authored_body = seal_source_clip or bool(
 		animation_profile.locomotion.get("preserve_source_locomotion", false)
 	)
@@ -314,7 +358,7 @@ func _process(delta: float) -> void:
 	if legacy_pistol_upper:
 		var hybrid_stance := "crouched" if posture == &"CROUCHED" else "standing"
 		posture_layer.legacy_pistol_reference_hips = _neutral_pose_hip_rotation(StringName("legacy_pistol_idle_" + hybrid_stance)).slerp(_neutral_pose_hip_rotation(StringName("legacy_pistol_ready_" + hybrid_stance)), weapon_ready_weight)
-	var fire_spine_ccdik_enabled: bool = not posture_layer.preserve_authored_body and (
+	var fire_spine_ccdik_enabled: bool = not source_pose_only and not posture_layer.preserve_authored_body and (
 		bool((dynamic_hold as Dictionary).get("fire_spine_ccdik_enabled", false))
 		if dynamic_hold is Dictionary
 		else false
@@ -335,6 +379,18 @@ func _process(delta: float) -> void:
 		weapon_pose_solver.begin_posture_frame()
 	posture_layer.authored_peek_family = equipped_weapon_family
 	posture_layer.peek_travel_weight = smoothstep(0.03, 0.35, movement_speed_mps)
+	var visual_peek: float = posture_layer.advance_lean(
+		0.0 if requested_action != &"" or mobility_owns_full_body else peek_amount,
+		_presentation_posture == &"STANDING" and not presentation_locomotion_active,
+		delta
+	)
+	if _presentation_posture == &"PRONE":
+		# Preserve the existing prone timing and full-body sampling policy.
+		visual_peek = peek_amount
+		posture_layer.visual_peek_amount = peek_amount
+	if requested_action != &"" or mobility_owns_full_body:
+		visual_peek = 0.0
+		posture_layer.visual_peek_amount = 0.0
 	posture_layer.apply(
 		0.0 if combat_ready_ccdik_weight > 0.001 else posture_aim_yaw,
 		0.0 if combat_ready_ccdik_weight > 0.001 else posture_aim_pitch,
@@ -351,7 +407,7 @@ func _process(delta: float) -> void:
 		deg_to_rad(prone_axis_max_correction_deg),
 		deg_to_rad(prone_axis_target_pitch_deg),
 		_presentation_posture,
-		0.0 if requested_action != &"" or mobility_owns_full_body else peek_amount,
+		visual_peek,
 		visual_aim_target,
 		0.0 if authored_standing_locomotion else neutral_hip_roll_trim_deg,
 		square_idle_frame,
@@ -384,9 +440,14 @@ func _process(delta: float) -> void:
 			aim_pitch_rad,
 			combat_ready_ccdik_weight
 		)
-	if weapon_pose_solver != null:
+	if weapon_pose_solver != null and not locomotion_graph.traversal_equip.active:
 		# Fallback clips share the no-squaring policy, not the SEAL hand strategy.
 		weapon_pose_solver.seal_source_pose_active = seal_source_clip and not legacy_pistol_upper
+		# Saved, M4-only presentation calibration. Replace on every frame/equip;
+		# source actions, other weapons and gameplay authorities keep their owners.
+		weapon_pose_solver.source_elbow_transport_max_degrees = float(animation_profile.locomotion.get(
+			"m4_source_elbow_transport_max_degrees", 0.0
+		)) if String(equipped_weapon_config.get("weapon_id", "")) == "m4a1" else 0.0
 		weapon_pose_solver.seal_upright_weapon = bool(animation_profile.locomotion.get("source_upright_weapon", false))
 		weapon_pose_solver.seal_two_hand_pistol = equipped_weapon_family == &"TWO_HAND_PISTOL"
 		weapon_pose_solver.legacy_pistol_grip_active = legacy_pistol_upper
@@ -405,12 +466,23 @@ func _process(delta: float) -> void:
 			_get_player(),
 			delta,
 			presentation_locomotion_active,
-			peek_amount,
-			1.0 if (authored_idle_baseline or weapon_pose_solver.authored_shoulder_stock_enabled) and _presentation_fire_selected else -1.0,
+			visual_peek,
+			1.0 if (authored_idle_baseline or weapon_pose_solver.authored_shoulder_stock_enabled or movement_state in [&"AIRBORNE", &"LANDING"]) and _presentation_fire_selected else -1.0,
 			_directional_carry_strafe(),
 			clampf(posture_layer.last_directional_shoulder_target_deg / 90.0, 0.0, 1.0) * posture_layer.last_shoulder_square_weight
 		)
-	if weapon_grip_contact != null:
+	elif weapon_pose_solver != null:
+		weapon_pose_solver.present_traversal_equip()
+	if weapon_grip_contact != null and source_pistol_attachment:
+		# No finger keys exist in the original source rig. Close target fingers
+		# explicitly; do not interpret a free source left arm as failed support IK.
+		var visible_pistol: bool = weapon_node != null and weapon_node.visible and not ("grenade" in String(requested_action)) and not locomotion_graph.traversal_equip.active
+		var close_support := false
+		if weapon_pose_solver != null:
+			var wrist_gap: float = weapon_pose_solver._bone_world_position(&"mixamorig_RightHand").distance_to(weapon_pose_solver._bone_world_position(&"mixamorig_LeftHand"))
+			close_support = wrist_gap < weapon_pose_solver._arm_length(&"left") * 0.30 and requested_action == &""
+		weapon_grip_contact.apply_source_pistol(visible_pistol, close_support)
+	elif weapon_grip_contact != null and (not source_pose_only or source_rifle_attachment):
 		var owner_state: Dictionary = (
 			weapon_pose_solver.get_weapon_presentation_owner_state()
 			if weapon_pose_solver != null
@@ -419,6 +491,9 @@ func _process(delta: float) -> void:
 		var support_mode: StringName = StringName(
 			owner_state.get("support_hand_mode", &"IK_TO_WEAPON")
 		)
+		if source_rifle_attachment:
+			# Retain native free hands on actions. Finger closure is not arm IK.
+			support_mode = &"IK_TO_WEAPON" if requested_action == &"" else &"ANIMATION_FREE"
 		var weapon_vis: bool = bool(
 			owner_state.get("visible", weapon_node != null and weapon_node.visible)
 		)
@@ -442,7 +517,8 @@ func _process(delta: float) -> void:
 			requested_action,
 			delta,
 			(
-				firing
+				source_pose_only
+				or firing
 				or _presentation_fire_selected
 				or (_clean_fire_recovery_weight > 0.001 and not authored_idle_baseline)
 				or (authored_idle_baseline and _presentation_ready_weight > 0.001)
@@ -451,14 +527,78 @@ func _process(delta: float) -> void:
 		)
 	_previous_firing = firing
 	_previous_movement_state = movement_state
+	_finalize_traversal_equipment_visibility()
+
+
+func get_animation_debug_state() -> Dictionary:
+	var snapshot := super.get_animation_debug_state()
+	snapshot["source_pose_only"] = source_pose_only
+	snapshot["source_pistol_attachment"] = source_pistol_attachment
+	snapshot["source_rifle_attachment"] = source_rifle_attachment
+	return snapshot
+
+func _advance_traversal_equipment(delta: float) -> void:
+	var equip = locomotion_graph.traversal_equip
+	# Cosmetic draw must yield to an accepted action, ready aim, a new jump,
+	# stance requiring unsupported equip, or explicit equipment visibility.
+	var interrupted := firing or requested_weapon_ready_weight > 0.1 or requested_action != &"" or posture == &"PRONE" or movement_state in [&"DIVING", &"ROLLING"] or not _equipped_weapon_visible
+	if interrupted and (traversal_recovery_pending or equip.active):
+		traversal_recovery_pending = false
+		equip.cancel()
+		if traversal_hand_contact != null: traversal_hand_contact.cancel_exit()
+		traversal_stow.end()
+		return
+	if traversal_recovery_pending:
+		traversal_recovery_pending = false
+		if not equip.active:
+			equip.begin(equipped_weapon_family, posture, animation_player)
+	equip.advance(delta)
+	if traversal_hand_contact != null:
+		traversal_hand_contact.exit_live_upper_body = equip.active
+
+func _finalize_traversal_equipment_visibility() -> void:
+	_update_weapon_visibility()
+	var equip = locomotion_graph.traversal_equip
+	var settling := traversal_hand_contact != null and traversal_hand_contact.exit_active
+	var stowed: bool = settling or traversal_recovery_pending or (equip.active and not equip.hand_attached)
+	if not stowed: traversal_stow.end()
+	if weapon_node != null:
+		# Existing action visibility remains authoritative; this can only hide.
+		weapon_node.visible = weapon_node.visible and not stowed
+
+func _exit_tree() -> void:
+	traversal_stow.end()
 
 func _advance_traversal_presentation(delta: float) -> bool:
 	var actor := _get_player()
 	var presentation: Dictionary = actor.get_traversal_presentation() if actor != null and actor.has_method("get_traversal_presentation") else {}
 	var active := str(presentation.get("slot", "")) != ""
+	if active:
+		traversal_recovery_pending = false
+		if not traversal_presentation_active:
+			locomotion_graph.traversal_equip.cancel()
+	if traversal_hand_contact != null and active:
+		if actor != null: presentation["body_point"] = actor.global_position
+		if active:
+			var contact_clips: Dictionary = actor.traversal.mantle_motor.climb_profile.get("presentation_clips", {})
+			presentation["source"] = str(clip_paths.get(str(contact_clips.get(str(presentation.slot), "")), ""))
+		traversal_hand_contact.update_contact(presentation, actor.traversal.mantle_motor.climb_profile if actor != null else {}, delta)
+		traversal_hand_contact.track_traversal_exit(str(presentation.slot))
 	if not active:
-		if traversal_presentation_active and weapon_node != null:
-			weapon_node.visible = traversal_weapon_was_visible
+		if traversal_hand_contact != null:
+			if traversal_presentation_active:
+				traversal_recovery_pending = traversal_weapon_was_visible
+				var exit_settings: Dictionary = actor.traversal.mantle_motor.climb_profile.get("exit_transition", {}) if actor != null else {}
+				traversal_hand_contact.begin_exit(exit_settings)
+			else:
+				traversal_hand_contact.advance_exit(delta)
+		# Keep the weapon on its cosmetic sling while post-animation exit
+		# smoothing can still move the hands after the held-weapon solve.
+		var settling := traversal_hand_contact != null and traversal_hand_contact.exit_active
+		if not settling and not traversal_recovery_pending and not locomotion_graph.traversal_equip.active:
+			traversal_stow.end()
+		if weapon_node != null and (traversal_presentation_active or settling):
+			weapon_node.visible = traversal_weapon_was_visible and not settling
 		traversal_presentation_active = false
 		return false
 	var profile: Dictionary = actor.traversal.mantle_motor.climb_profile
@@ -467,25 +607,58 @@ func _advance_traversal_presentation(delta: float) -> bool:
 	if not available_clips.has(clip):
 		return false
 	if not traversal_presentation_active:
+		locomotion_graph.clear_jump_overlay_for_full_body_action()
+		locomotion_graph.clear_combat_overlays_for_full_body_action()
 		traversal_weapon_was_visible = weapon_node != null and weapon_node.visible
 		traversal_presentation_active = true
 		if weapon_pose_solver != null:
 			weapon_pose_solver._stop_socket_ik()
 			weapon_pose_solver._set_weapon_solver_owned(false)
 		skeleton.clear_bones_global_pose_override()
-	if weapon_node != null: weapon_node.visible = false
+	if weapon_node != null:
+		traversal_stow.begin(skeleton, weapon_node, equipped_weapon_family)
+		weapon_node.visible = false
 	if locomotion_graph.PistolUpperLayer.enabled(locomotion_graph):
 		locomotion_graph.PistolUpperLayer.update(locomotion_graph, posture, 0.0, false, delta)
 	var animation := animation_player.get_animation(clip)
+	var segment: Dictionary = profile.get("presentation_segments", {}).get(slot, {})
+	var segment_start := clampf(float(segment.get("start_phase", 0.0)), 0.0, 0.99)
+	var segment_end := clampf(float(segment.get("end_phase", 1.0)), segment_start + 0.001, 1.0)
+	if traversal_hand_contact != null:
+		traversal_hand_contact.animation_tree = animation_tree
+		traversal_hand_contact.body_node = actor
+		traversal_hand_contact.animation_clip = clip
+		traversal_hand_contact.animation_duration = animation.length
+		traversal_hand_contact.animation_start_phase = segment_start
+		traversal_hand_contact.animation_end_phase = segment_end
 	var time := minf(float(profile.hang_clip_time_seconds), animation.length - 0.001)
-	if slot == "ladder_move":
+	if slot.begins_with("narrow_"):
+		var narrow_profile: Dictionary = actor.traversal.narrow_motor.profile
+		time = clampf(float(narrow_profile.get("idle_pose_seconds", 0.0)), 0.0, animation.length - 0.001)
+		if slot != "narrow_idle":
+			time = fposmod(float(presentation.get("travel_metres", 0.0)) / maxf(float(narrow_profile.get("stride_metres", 0.495)), 0.01), 1.0) * (animation.length - 0.001)
+	elif slot == "ladder_move":
 		time = fposmod(float(presentation.height) * float(profile.ladder_animation_seconds_per_metre), maxf(animation.length - 1.0 / 30.0, 0.01))
-	elif slot == "pull_up":
-		time = float(presentation.phase) * (animation.length - 0.001)
-	_request_clip(clip, 0.12)
+	elif slot in ["pull_up", "pull_up_free", "low_mantle", "vault"]:
+		time = lerpf(segment_start, segment_end, float(presentation.phase)) * (animation.length - 0.001)
+	_request_clip(clip, float(profile.get("entry_blend_seconds", 0.12)))
 	locomotion_graph.sync_jump_combo(clip, time)
+	# Start the existing upper-body draw after both hands release support,
+	# before the source climb reaches its neutral standing tail. Continue the
+	# same draw through exit smoothing instead of adding an arms-out pause.
+	var equip = locomotion_graph.traversal_equip
+	var recovering := slot in ["pull_up", "pull_up_free", "low_mantle", "vault"] and float(presentation.get("phase", 0.0)) >= float(equip.profile.get("traversal_start_phase", 1.0))
+	if recovering and traversal_weapon_was_visible:
+		if not equip.active:
+			equip.begin(equipped_weapon_family, posture, animation_player)
+		equip.advance(delta)
+	else:
+		equip.cancel()
 	# Keep the accepted reload clock intact; traversal only owns presentation.
 	_update_requested_action(delta)
+	# Completing a reload can update normal equipped visibility. Traversal is
+	# still using both hands, so its visibility decision is the final one.
+	if weapon_node != null: weapon_node.visible = false
 	if combat_ready_ccdik != null: combat_ready_ccdik.apply(0.0, 0.0, 0.0)
 	if foot_contact_lock != null: foot_contact_lock.apply(Vector2.ZERO, 0.0, posture, &"VAULTING", clip, delta, true)
 	return true
@@ -499,6 +672,13 @@ func _advance_death_presentation(delta: float) -> bool:
 		death_elapsed = 0.0
 		return false
 	if not death_presentation_active:
+		traversal_recovery_pending = false
+		locomotion_graph.traversal_equip.cancel()
+		traversal_stow.end()
+		locomotion_graph.clear_jump_overlay_for_full_body_action()
+		locomotion_graph.clear_combat_overlays_for_full_body_action()
+		if traversal_hand_contact != null:
+			traversal_hand_contact.cancel_exit()
 		death_presentation_active = true
 		var stance := StringName(actor.call("get_posture_name"))
 		death_clip = StringName(death_profile.crouched_clip if stance == &"CROUCHED" else death_profile.standing_clip)
@@ -532,6 +712,9 @@ func _advance_death_presentation(delta: float) -> bool:
 
 func _stabilize_locomotion_legs(delta: float) -> void:
 	if skeleton == null:
+		return
+	if source_pose_only:
+		_stabilized_leg_rotations.clear()
 		return
 	var ordinary_locomotion := (
 		(requested_action == &"" or _requested_action_upper_body_layered)

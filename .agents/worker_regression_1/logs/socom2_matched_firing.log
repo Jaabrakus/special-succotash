@@ -1,0 +1,53 @@
+COMMAND: /Users/kiwimango/Applications/Godot-4.7.1.app/Contents/MacOS/Godot --headless -s tools/socom2_matched_firing_regression.gd
+EXIT_CODE: 0
+DURATION: 5.87s
+
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+WARNING: You must enable the project setting "audio/driver/enable_input" to use audio capture.
+     at: set_input_device_active (servers/audio/audio_server.cpp:1870)
+     GDScript backtrace (most recent call first):
+         [0] _setup_audio_bus_and_capture (res://scripts/audio/socom_voice_chat_controller.gd:61)
+         [1] _ready (res://scripts/audio/socom_voice_chat_controller.gd:37)
+         [2] _build_ui (res://scripts/runtime/main_gameplay_hud_builder.gd:110)
+         [3] _build_ui (res://scripts/runtime/main_gameplay_hud.gd:136)
+         [4] _build_ui (res://scripts/main.gd:418)
+         [5] _ready (res://scripts/main.gd:213)
+         [6] _run (res://tools/socom2_matched_firing_regression.gd:35)
+MATCHED_FIRE 12_gauge_pump interval=0.75 modes=["semi"]
+MATCHED_FIRE 226 interval=0.18000000715256 modes=["semi"]
+MATCHED_FIRE 552 interval=0.15000000596046 modes=["semi", "auto"]
+MATCHED_FIRE 870 interval=0.75 modes=["semi"]
+MATCHED_FIRE 9mm_pistol interval=0.18000000715256 modes=["semi"]
+MATCHED_FIRE 9mm_sub interval=0.07500000298023 modes=["semi", "auto"]
+MATCHED_FIRE ak-47 interval=0.15999999642372 modes=["semi", "auto"]
+MATCHED_FIRE aks-74 interval=0.12999999523163 modes=["semi", "auto"]
+MATCHED_FIRE de__50 interval=0.30000001192093 modes=["semi"]
+MATCHED_FIRE f57 interval=0.20000000298023 modes=["semi"]
+MATCHED_FIRE f90 interval=0.09000000357628 modes=["semi", "auto"]
+MATCHED_FIRE hk5 interval=0.10000000149012 modes=["semi", "auto"]
+MATCHED_FIRE hk5sd interval=0.11999999731779 modes=["semi", "auto"]
+MATCHED_FIRE m14 interval=0.11999999731779 modes=["semi", "auto"]
+MATCHED_FIRE m16a2-m203 interval=0.10000000149012 modes=["semi", "burst"]
+MATCHED_FIRE m16a2 interval=0.10000000149012 modes=["semi", "burst"]
+MATCHED_FIRE m3_12_gauge interval=0.30000001192093 modes=["auto"]
+MATCHED_FIRE m40a1 interval=0.5 modes=["semi"]
+MATCHED_FIRE m4a1-m203 interval=0.14000000059605 modes=["semi", "auto"]
+MATCHED_FIRE m4a1 interval=0.11999999731779 modes=["semi", "auto"]
+MATCHED_FIRE m4a1_sd interval=0.14000000059605 modes=["semi", "auto"]
+MATCHED_FIRE m60e3 interval=0.14000000059605 modes=["auto"]
+MATCHED_FIRE m63a interval=0.11999999731779 modes=["auto"]
+MATCHED_FIRE m82a1a interval=2.09999990463257 modes=["semi"]
+MATCHED_FIRE m87elr interval=0.69999998807907 modes=["semi"]
+MATCHED_FIRE m9 interval=0.18000000715256 modes=["semi"]
+MATCHED_FIRE mark_23 interval=0.20000000298023 modes=["semi"]
+MATCHED_FIRE mark_23sd interval=0.20000000298023 modes=["semi"]
+MATCHED_FIRE model_18 interval=0.0599999986589 modes=["semi", "auto"]
+MATCHED_FIRE sr-25 interval=0.15000000596046 modes=["semi"]
+MATCHED_FIRE sr-25_sd interval=0.15000000596046 modes=["semi"]
+MATCHED_FIRE ta_12_gauge interval=0.44999998807907 modes=["semi"]
+SOCOM2_MATCHED_FIRING PASS profiles=32 accepted_events=159 failures=[]
+WARNING: 11 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 4 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)

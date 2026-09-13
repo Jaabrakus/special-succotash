@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "feature_id": "relic_yard_finish",
+  "player_intent": "Give the south Relic Depot freight yard a more grounded worn appearance without changing how it plays.",
+  "acceptance_rule": "One bounded ground weathering pass and eight opt-in imported prop finishes reach the canonical runtime and Map Lab; source materials, geometry, collision and other objects are unchanged; toggles roundtrip and undo.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://map_creation_lab.tscn",
+  "ownership": {"map_materials": "socom_map_surface_materials.gd", "saved_map_edits": "SocomMapCommandService"},
+  "nodes": [
+    {"id": "yard_toggle", "type": "CheckBox", "role": "Opt the selected ground or prop into the saved finish", "owner": "MapCreationLab", "source_script": "res://scripts/labs/map_creation_lab.gd", "code_symbols": ["yard_finish_toggle = CheckBox.new()", "func _yard_finish_changed"]},
+    {"id": "imported_visual", "type": "StaticBody3D", "role": "Existing static prop with presentation-only material overrides", "owner": "SocomImportedMapAssetBuilder", "source_script": "res://scripts/maps/socom_imported_map_asset_builder.gd", "code_symbols": ["StaticBody3D.new()", "Materials.apply_imported_yard_finish(content, properties)"]}
+  ],
+  "data_contracts": [
+    {"path": "res://config/maps/current_map.json", "writer": "res://scripts/labs/map_creation_lab.gd", "readers": ["res://scripts/maps/socom_map_document.gd", "res://scripts/runtime/main_training_world.gd", "res://scripts/network/socom_multiplayer_world_ui.gd"]},
+    {"path": "res://config/maps/relic_depot.json", "writer": "res://scripts/maps/socom_map_document.gd", "readers": ["res://scripts/maps/socom_map_document.gd"]}
+  ],
+  "must_not_change": ["Character, rig and animations", "Movement and collision", "Camera and aim", "Weapons and damage", "Network authority", "Sky, global lighting and other map objects"],
+  "proof_scripts": ["res://tools/relic_yard_finish_regression.gd", "res://tools/relic_yard_visual_check.gd", "res://tools/imported_map_asset_boundary_regression.gd"],
+  "visual_check": "Capture canonical main at identical player and yard-inspection views; compare grit, painted lines, prop shading and frame times on Compatibility. Do not mistake old user-library selections for updated bundled content.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Extend existing map-material owner through opt-in saved properties. Reuse licensed project assets, retain the retro silhouette and preserve all gameplay ownership. One extra ground pass is a measured rendering tradeoff.",
+    "current": {"system": "Unmodified imported finishes and repeating freight ground", "correctness": 2, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 3, "performance": 5, "regression_coverage": 3, "evidence_paths": ["res://scripts/maps/socom_imported_map_asset_builder.gd", "res://scripts/maps/socom_map_surface_materials.gd", "res://tools/imported_map_asset_boundary_regression.gd"]},
+    "candidate": {"system": "Opt-in lit materials and bounded freight-yard weathering", "correctness": 4, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 4, "regression_coverage": 5, "evidence_paths": ["res://tools/relic_yard_finish_regression.gd", "res://tools/relic_yard_visual_check.gd", "res://scripts/labs/map_creation_lab.gd", "res://assets/shaders/relic_yard_weathering.gdshader"]}
+  }
+}

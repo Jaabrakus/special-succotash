@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "feature_id": "traversal_weapon_stow",
+  "player_intent": "The equipped firearm is visible on the back or hip while both hands are occupied by traversal.",
+  "acceptance_rule": "Traversal creates only a cosmetic mesh copy following a non-overriding bone attachment. After support releases, overlap imported AGLS upper-body equip with the neutral climb tail and exit settling; the exit modifier must not freeze the live upper body. Keep the copy visible until exit settling and evaluated hand transfer complete. Support IK stays released during equip; combat interrupts cosmetic recovery without delaying gameplay.",
+  "canonical_scene": "res://main.tscn",
+  "ownership": {
+    "cosmetic_stowed_weapon": "SocomOperatorTraversalStow",
+    "actual_weapon_visibility": "operator_animation_driver_runtime.gd traversal presentation",
+    "movement_collision": "CharacterBody3D",
+    "shot_damage": "Existing authoritative server weapon"
+  },
+  "nodes": [
+    {
+      "id": "stowed_attachment",
+      "type": "BoneAttachment3D",
+      "owner": "SocomOperatorTraversalStow",
+      "role": "Read-only spine or hip follower; never overrides a bone pose.",
+      "source_script": "res://scripts/player/operator_traversal_stow.gd",
+      "code_symbols": ["BoneAttachment3D.new()", "attachment.override_pose = false", "skeleton.add_child(attachment)"]
+    },
+    {
+      "id": "stowed_visual",
+      "type": "Node3D",
+      "owner": "SocomOperatorTraversalStow",
+      "role": "Disabled-processing cosmetic geometry with no source scripts or collision.",
+      "source_script": "res://scripts/player/operator_traversal_stow.gd",
+      "code_symbols": ["TraversalStowedWeaponVisual", "MeshInstance3D.new()", "copy.skin = null"]
+    },
+    {
+      "id": "traversal_consumer",
+      "type": "Node3D",
+      "owner": "Canonical animation driver",
+      "role": "Begins stow in traversal and clears it on exit or death.",
+      "source_script": "res://scripts/player/operator_animation_driver_runtime.gd",
+      "code_symbols": ["traversal_stow.begin(skeleton, weapon_node, equipped_weapon_family)", "traversal_stow.end()"]
+    }
+  ],
+  "data_contracts": [
+    {"path": "res://config/traversal_weapon_stow.json", "writer": "res://docs/TRAVERSAL_WEAPON_STOW.md", "readers": ["res://scripts/player/operator_traversal_stow.gd", "res://scripts/player/operator_traversal_equip_layer.gd"]},
+    {"path": "res://config/operator_animation_map.json", "writer": "res://docs/TRAVERSAL_EXIT_SMOOTHING.md", "readers": ["res://scripts/player/operator_animation_profile.gd"]}
+  ],
+  "must_not_change": ["Canonical weapon transform ownership", "Ammo and inventory", "Camera aim", "CharacterBody movement and collision", "Server shots and damage", "Source clips and rest poses", "Backpack and demolition objectives"],
+  "proof_scripts": ["res://tools/traversal_weapon_stow_regression.gd", "res://tools/main_vault_presentation_regression.gd", "res://tools/traversal_hand_contact_regression.gd", "res://tools/traversal_exit_pose_regression.gd"],
+  "visual_check": "Inspect primary hang/pull-up, exit settling, and early/middle/late AGLS equip. Inspect pistol separately. No physical strap or authored entry-unequip is claimed; hand transfer contact remains a visual approval item.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Keep the canonical palm weapon and existing visibility owner. Add one geometry-only bone follower instead of reparenting gameplay nodes or duplicating weapon scripts.",
+    "current": {"system": "Hidden firearm during traversal", "correctness": 2, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 2, "performance": 5, "regression_coverage": 2, "evidence_paths": ["res://scripts/player/operator_animation_driver_runtime.gd"]},
+    "candidate": {"system": "Cosmetic stow consumer with shared offsets", "correctness": 4, "ownership_clarity": 5, "runtime_parity": 4, "editor_usability": 4, "performance": 4, "regression_coverage": 4, "evidence_paths": ["res://scripts/player/operator_traversal_stow.gd", "res://config/traversal_weapon_stow.json", "res://tools/traversal_weapon_stow_regression.gd"]}
+  }
+}

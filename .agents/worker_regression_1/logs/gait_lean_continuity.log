@@ -1,0 +1,71 @@
+COMMAND: /Users/kiwimango/Applications/Godot-4.7.1.app/Contents/MacOS/Godot --headless -s tools/gait_lean_continuity_regression.gd
+EXIT_CODE: 0
+DURATION: 56.71s
+
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+GAIT_METRIC ak-47_run feet=(0.019497, 0.109555) hips=(0.86067, 1.126892) hip_step=0.0354262702167 knee_diff=0.2414179444313 states={ "idle": true, "standing": true }
+GAIT_STEADY ak-47_run hip_range=0.1358183955308 hip_step=0.0354262702167 moving_entries=1
+GAIT_BODY ak-47_run height_delta=0.00612759473734 no_floor_frames=0
+GAIT_METRIC ak-47_run_nofoot feet=(0.042575, 0.075883) hips=(0.860514, 0.996634) hip_step=0.03815332707018 knee_diff=0.23956209421158 states={ "standing": true }
+GAIT_STEADY ak-47_run_nofoot hip_range=0.13612047443166 hip_step=0.03815332707018 moving_entries=0
+GAIT_BODY ak-47_run_nofoot height_delta=0.00511897704564 no_floor_frames=0
+GAIT_METRIC ak-47_stand_lean feet=(0.109542, 0.11189) hips=(0.983212, 1.123481) hip_step=0.02591073466465 knee_diff=0.04654788970947 states={ "idle": true }
+GAIT_STEADY ak-47_stand_lean hip_range=0.0003500576131 hip_step=0.00008064555004 moving_entries=0
+GAIT_BODY ak-47_stand_lean height_delta=0.00000000046566 no_floor_frames=0
+GAIT_METRIC ak-47_stand_right_lean feet=(0.109582, 0.111892) hips=(0.995423, 1.128407) hip_step=0.02658009482548 knee_diff=0.04761093854904 states={ "idle": true }
+GAIT_STEADY ak-47_stand_right_lean hip_range=0.00065624760464 hip_step=0.00023841811344 moving_entries=0
+GAIT_BODY ak-47_stand_right_lean height_delta=0.00000000046566 no_floor_frames=0
+GAIT_METRIC ak-47_stand_taps feet=(-0.0322, 0.110616) hips=(0.865558, 0.989975) hip_step=0.03301411867142 knee_diff=0.13612133264542 states={ "idle": true, "standing": true }
+GAIT_STEADY ak-47_stand_taps hip_range=0.09464477095753 hip_step=0.01389087177813 moving_entries=1
+GAIT_BODY ak-47_stand_taps height_delta=0.0076412090566 no_floor_frames=0
+LEAN_EXIT ak-47 side=1 max_upper_step_deg=9.71697118403958 clip=idle_rifle action=
+LEAN_EXIT ak-47 side=2 max_upper_step_deg=9.66515651522222 clip=idle_rifle action=
+GAIT_METRIC ak-47_crouch_idle feet=(0.04955, 0.05099) hips=(0.429325, 0.43732) hip_step=0.0011277794838 knee_diff=0.56724990531802 states={ "idle_crouch": true }
+GAIT_STEADY ak-47_crouch_idle hip_range=0.00143188238144 hip_step=0.00055572390556 moving_entries=0
+GAIT_BODY ak-47_crouch_idle height_delta=0.0 no_floor_frames=0
+GAIT_METRIC ak-47_crouch_lean feet=(0.04955, 0.050965) hips=(0.429419, 0.437323) hip_step=0.00111147761345 knee_diff=0.56710778176785 states={ "idle_crouch": true }
+GAIT_STEADY ak-47_crouch_lean hip_range=0.00273513793945 hip_step=0.0008672773838 moving_entries=0
+GAIT_BODY ak-47_crouch_lean height_delta=0.0 no_floor_frames=0
+GAIT_METRIC ak-47_crouch_right_lean feet=(0.04955, 0.050989) hips=(0.429322, 0.43732) hip_step=0.00111147761345 knee_diff=0.56724545359612 states={ "idle_crouch": true }
+GAIT_STEADY ak-47_crouch_right_lean hip_range=0.00618615746498 hip_step=0.00111147761345 moving_entries=0
+GAIT_BODY ak-47_crouch_right_lean height_delta=0.0 no_floor_frames=0
+GAIT_METRIC ak-47_crouch_taps feet=(-0.021701, 0.050457) hips=(0.437309, 0.920871) hip_step=0.05788117647171 knee_diff=0.55784830451012 states={ "idle_crouch": true, "crouch": true }
+GAIT_STEADY ak-47_crouch_taps hip_range=0.0774078508839 hip_step=0.00666848197579 moving_entries=1
+GAIT_BODY ak-47_crouch_taps height_delta=0.00829218607396 no_floor_frames=0
+GAIT_METRIC ak-47_crouch_right_taps feet=(-0.004801, 0.049992) hips=(0.875884, 0.920871) hip_step=0.01118856854737 knee_diff=0.23320347070694 states={ "crouch": true }
+GAIT_STEADY ak-47_crouch_right_taps hip_range=0.012312409468 hip_step=0.00205642031506 moving_entries=0
+GAIT_BODY ak-47_crouch_right_taps height_delta=0.00783751020208 no_floor_frames=0
+GAIT_METRIC mark_23_run feet=(0.020187, 0.131802) hips=(0.859089, 1.152231) hip_step=0.04360965732485 knee_diff=0.24216172099113 states={ "idle": true, "standing": true }
+GAIT_STEADY mark_23_run hip_range=0.13757548201829 hip_step=0.03713347413577 moving_entries=1
+GAIT_BODY mark_23_run height_delta=0.00853196479147 no_floor_frames=0
+GAIT_METRIC mark_23_run_nofoot feet=(0.042607, 0.075086) hips=(0.858298, 0.996483) hip_step=0.03739442350343 knee_diff=0.23953455686569 states={ "standing": true }
+GAIT_STEADY mark_23_run_nofoot hip_range=0.13818519562483 hip_step=0.03739442350343 moving_entries=0
+GAIT_BODY mark_23_run_nofoot height_delta=0.00715933274478 no_floor_frames=0
+GAIT_METRIC mark_23_stand_lean feet=(0.130738, 0.133719) hips=(1.008747, 1.14598) hip_step=0.02304267883301 knee_diff=0.04418236017227 states={ "idle": true }
+GAIT_STEADY mark_23_stand_lean hip_range=0.0020786523819 hip_step=0.0003674030304 moving_entries=0
+GAIT_BODY mark_23_stand_lean height_delta=0.0 no_floor_frames=0
+GAIT_METRIC mark_23_stand_right_lean feet=(0.130736, 0.133719) hips=(1.026297, 1.150259) hip_step=0.024080991745 knee_diff=0.04632699489594 states={ "idle": true }
+GAIT_STEADY mark_23_stand_right_lean hip_range=0.00239372253418 hip_step=0.0003776550293 moving_entries=0
+GAIT_BODY mark_23_stand_right_lean height_delta=0.0 no_floor_frames=0
+GAIT_METRIC mark_23_stand_taps feet=(0.036982, 0.133694) hips=(0.900806, 1.025396) hip_step=0.01685571670532 knee_diff=0.12255671620369 states={ "idle": true, "standing": true }
+GAIT_STEADY mark_23_stand_taps hip_range=0.0421009901911 hip_step=0.00992686487734 moving_entries=1
+GAIT_BODY mark_23_stand_taps height_delta=0.00833328813314 no_floor_frames=0
+LEAN_EXIT mark_23 side=1 max_upper_step_deg=8.78326468770497 clip=pistol_compressed_idle_standing action=
+LEAN_EXIT mark_23 side=2 max_upper_step_deg=9.15787495047078 clip=pistol_compressed_idle_standing action=
+GAIT_METRIC mark_23_crouch_idle feet=(0.077707, 0.077707) hips=(0.464734, 0.464734) hip_step=0.0 knee_diff=0.59225462004542 states={ "idle_crouch": true }
+GAIT_STEADY mark_23_crouch_idle hip_range=0.0 hip_step=0.0 moving_entries=0
+GAIT_BODY mark_23_crouch_idle height_delta=0.0 no_floor_frames=0
+GAIT_METRIC mark_23_crouch_lean feet=(0.077707, 0.077707) hips=(0.464734, 0.464734) hip_step=0.0 knee_diff=0.59225462004542 states={ "idle_crouch": true }
+GAIT_STEADY mark_23_crouch_lean hip_range=0.0 hip_step=0.0 moving_entries=0
+GAIT_BODY mark_23_crouch_lean height_delta=0.0 no_floor_frames=0
+GAIT_METRIC mark_23_crouch_right_lean feet=(0.077707, 0.077707) hips=(0.464734, 0.464734) hip_step=0.0 knee_diff=0.59225462004542 states={ "idle_crouch": true }
+GAIT_STEADY mark_23_crouch_right_lean hip_range=0.0 hip_step=0.0 moving_entries=0
+GAIT_BODY mark_23_crouch_right_lean height_delta=0.0 no_floor_frames=0
+GAIT_METRIC mark_23_crouch_taps feet=(-0.016169, 0.077707) hips=(0.464731, 0.933047) hip_step=0.05801787227392 knee_diff=0.59225851297379 states={ "idle_crouch": true, "crouch": true }
+GAIT_STEADY mark_23_crouch_taps hip_range=0.05011852184543 hip_step=0.01056407485157 moving_entries=1
+GAIT_BODY mark_23_crouch_taps height_delta=0.0083680874086 no_floor_frames=0
+GAIT_METRIC mark_23_crouch_right_taps feet=(-0.021265, 0.052919) hips=(0.82639, 0.930744) hip_step=0.0236851722002 knee_diff=0.20437949895859 states={ "crouch": true }
+GAIT_STEADY mark_23_crouch_right_taps hip_range=0.04113206360489 hip_step=0.00503599643707 moving_entries=0
+GAIT_BODY mark_23_crouch_right_taps height_delta=0.00916094961576 no_floor_frames=0
+GAIT_LEAN_CONTINUITY PASS []

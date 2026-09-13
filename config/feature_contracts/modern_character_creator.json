@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "feature_id": "modern_character_creator",
+  "player_intent": "Play as the downloaded modern soldier, customize cosmetic gear and garment tint, and retain the existing game movement and weapon behavior.",
+  "acceptance_rule": "Character creator saves a sanitized appearance consumed by main; local and network operators select the new compatible skeleton; hand, animation and rendered checks pass.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://character_creation.tscn",
+  "ownership": {
+    "asset_selection": "SocomOperatorAssetRuntime",
+    "appearance": "SocomOperatorTeamAppearance",
+    "saved_cosmetics": "SocomCharacterAppearanceProfile",
+    "bone_pose": "SocomOperatorAnimationDriver"
+  },
+  "nodes": [
+    {"id": "character_creator", "type": "Node3D", "role": "Edits the saved appearance and previews the production player.", "owner": "CharacterCreation", "scene_path": "res://character_creation.tscn", "node_path": "."},
+    {"id": "runtime_character_selection", "type": "Node3D", "role": "Selects a compatible visual asset before the existing driver binds its skeleton.", "owner": "SocomOperatorAssetRuntime", "source_script": "res://scripts/player/operator_asset_runtime.gd", "code_symbols": ["CharacterSelection.apply(owner)"]},
+    {"id": "preview_actor", "type": "CharacterBody3D", "role": "Production actor instantiated with physics/input disabled only for preview.", "owner": "CharacterCreation", "source_script": "res://scripts/ui/character_creation.gd", "code_symbols": ["PLAYER.instantiate()", "actor.set_physics_process(false)"]}
+  ],
+  "data_contracts": [
+    {"path": "res://config/operator_character.json", "writer": "res://scripts/player/operator_character_selection.gd", "readers": ["res://scripts/player/operator_character_selection.gd"]},
+    {"path": "res://config/character_appearance.json", "writer": "res://scripts/player/character_appearance_profile.gd", "readers": ["res://scripts/player/operator_team_appearance.gd", "res://scripts/ui/character_creation.gd"]}
+  ],
+  "must_not_change": ["movement", "collision_capsule", "camera", "shot_authority", "damage", "action_timing", "network_protocol"],
+  "proof_scripts": ["res://tools/modern_soldier_regression.gd", "res://tools/modern_soldier_visual_check.gd", "res://tools/modern_weapon_follow_regression.gd", "res://tools/ps1_dual_source_rig_regression.gd"],
+  "visual_check": "Main player and creator: clothing and eyes, trigger hand, support palm, ADS, crouch, prone, run, reload and dives. Local cosmetic selections are not yet replicated to peers.",
+  "rig_audit": {
+    "decision": "KEEP",
+    "reason": "Expanded regression verifies unchanged canonical hierarchy/rests, inverse binds, valid weights and track targets, all vertices through 24 deformation samples, and local/network rest parity. Keep the rig and merge stronger regression coverage; this is not hand-surface or full network sign-off.",
+    "proof_script": "res://tools/modern_soldier_regression.gd",
+    "current": {"correctness": 3, "ownership_clarity": 5, "runtime_parity": 4, "editor_usability": 3, "performance": 5, "regression_coverage": 2},
+    "candidate": {"correctness": 4, "ownership_clarity": 5, "runtime_parity": 4, "editor_usability": 3, "performance": 4, "regression_coverage": 4},
+    "evidence_paths": ["res://tools/modern_soldier_regression.gd", "res://tools/modern_weapon_follow_regression.gd"]
+  },
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Replace the visible asset with an offline compatible derivative while keeping the proven runtime skeleton rest, pose writer and gameplay owners. Add a shared saved cosmetic profile rather than a preview-only model.",
+    "current": {"system": "PS1 65-bone operator and texture recolor", "correctness": 3, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 2, "performance": 5, "regression_coverage": 4, "evidence_paths": ["res://scripts/player/operator_asset_runtime.gd", "res://tools/ps1_dual_source_rig_regression.gd"]},
+    "candidate": {"system": "Modern compatible operator with shared character creator", "correctness": 4, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 3, "regression_coverage": 4, "evidence_paths": ["res://tools/build_modern_soldier.gd", "res://scripts/player/operator_character_selection.gd", "res://scripts/ui/character_creation.gd", "res://tools/modern_soldier_regression.gd"]}
+  }
+}

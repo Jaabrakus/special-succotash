@@ -6,3 +6,7 @@
 
 # This contract uses Markdown hard line breaks intentionally.
 /docs/GAMEPLAY_INTENT_DICTIONARY.md -whitespace
+
+# Oversized modern-soldier source art uses Git LFS, not ordinary Git blobs.
+/art_source/modern_soldier/modern_soldier_native.glb filter=lfs diff=lfs merge=lfs -text
+/art_source/modern_soldier/modern_soldier_textured.blend filter=lfs diff=lfs merge=lfs -text

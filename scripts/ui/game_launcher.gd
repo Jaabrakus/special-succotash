@@ -172,6 +172,8 @@ func _build_ui() -> void:
 	)
 	training_button.name = "TrainingRange"
 	training_button.tooltip_text = "Practice solo. Press B near spawn to choose a weapon. No server required."
+	var character_button := _add_primary_action(menu_column, "CREATE CHARACTER", func(): get_tree().change_scene_to_file("res://character_creation.tscn"))
+	character_button.name = "CreateCharacter"
 
 	if not restricted_web_build:
 		var join_row := HBoxContainer.new()

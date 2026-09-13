@@ -156,10 +156,16 @@ func update_bomb(delta: float) -> void:
 	if bomb_planted:
 		bomb_status.text = "BOMB PLANTED" if toast_seconds > 0.0 else ""
 		bomb_status.visible = toast_seconds > 0.0
-		return
-	if bomb_carried:
+	elif bomb_carried:
 		_update_carried_bomb(delta)
-		return
+	else:
+		_update_ground_bomb(delta)
+	var hud = host.get("gameplay_hud")
+	if hud != null and "hud_mechanics_visible" in hud and not bool(hud.get("hud_mechanics_visible")):
+		bomb_status.visible = false
+
+
+func _update_ground_bomb(_delta: float) -> void:
 	var closest_bomb: Node3D
 	var closest_distance := INF
 	for bomb: Node3D in bomb_visuals:

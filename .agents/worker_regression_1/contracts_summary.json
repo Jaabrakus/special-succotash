@@ -1,0 +1,3744 @@
+{
+  "contracts": [
+    {
+      "file": "accepted_shot_fire_recovery.json",
+      "feature_id": "accepted_shot_fire_recovery",
+      "player_intent": "Authored base locomotion owns the operator from spawn and after recovery. For 1.2 seconds after an accepted shot, every equipped weapon family keeps its posture-matched stationary ready frame above the waist while locomotion continues below it; rifle support-hand contact and torso-to-reticle aim remain stable.",
+      "acceptance_rule": "Before the first shot and after recovery, authored standing or crouched locomotion owns the complete body without a permanent Aim Idle replacement. Every declared weapon family resolves an accepted standing or crouched shot to its posture-matched stable ready state; TWO_HAND_PISTOL uses pistol_idle or pistol_idle_kneeling, while rifle and long-gun families use their matching aim-ready states. No accepted standing or crouched shot starts a separate fire AnimationTree OneShot. Only while the existing recovery/ready weight is active, a distinct Aim Frame mask copies Spine, Spine1, Spine2, Neck, and Head from that posture's stationary recovery take onto both idle and moving routes. A separate FIRE_RECOVERY limb mask remains restricted to shoulders, arms, forearms, hands, and fingers. Hips and legs always remain authored locomotion. A posture-specific neutral-hip correction at Spine prevents moving pelvis yaw and pitch from dragging the aim frame without changing CharacterBody3D or the animated hips and legs. During FIRE_RECOVERY, bounded torso-to-reticle aim preserves the authored square shoulder frame without saved joint rotation overrides, procedural clavicle correction, or procedural spine CCDIK. Full hand socket IK stays disabled. For rifles, a bounded left-arm-only support-hand solver closes the left palm and saved wrist basis onto the immutable physical foregrip before, during, and after crouched fire, but it cannot move the right trigger hand or claim the weapon root. Animation and stance maps cannot relocate that authored weapon socket. The configured recovery remains 1.2 seconds. Holding fire without another accepted shot cannot select or extend it. Muzzle flash, recoil, ballistics, and damage remain sourced from the accepted authoritative shot. Prone presentation is outside this bounded standing/crouched contract.",
+      "proof_scripts": [
+        "res://tools/all_weapon_fire_recovery_regression.gd",
+        "res://tools/fire_recovery_movement_aim_parity_regression.gd",
+        "res://tools/operator_pose_pipeline_regression.gd",
+        "res://tools/operator_animation_regression.gd",
+        "res://tools/weapon_fire_regression.gd",
+        "res://tools/rendered_arm_animation_liveness_regression.gd",
+        "res://tools/weapon_hand_detach_regression.gd"
+      ],
+      "ownership": {
+        "fire_recovery_presentation": "SocomOperatorFireUpperBodyLatch",
+        "aim_frame_presentation": "SocomOperatorLocomotionBlendTree",
+        "locomotion_and_posture": "CharacterBody3D",
+        "aim_intent": "SOCOMCameraReticleChain",
+        "shot_damage_and_accepted_event": "AuthoritativeServerWeapon",
+        "support_hand_contact": "SocomOperatorWeaponPose"
+      }
+    },
+    {
+      "file": "action_hud_tracking.json",
+      "feature_id": "action_hud_tracking",
+      "player_intent": "HUD follows the visible body through leans, dives, slides and recovery.",
+      "acceptance_rule": "HUD reads canonical animated Spine2 world position, stays upright/clamped, and leaves body/camera/skeleton transforms unchanged across left/right leans, four mobility directions and recovery. Static stance fallback and prior HUD settings remain.",
+      "proof_scripts": [
+        "res://tools/action_hud_tracking_regression.gd",
+        "res://tools/contextual_hud_regression.gd",
+        "res://tools/stance_hud_bloom_regression.gd"
+      ],
+      "ownership": {
+        "HUD screen translation": "SocomLoadoutCardHUD"
+      }
+    },
+    {
+      "file": "ak_m4_canonical_rifle_presentation.json",
+      "feature_id": "ak_m4_canonical_rifle_presentation",
+      "player_intent": "Equipping either the AK-47 or M4A1 in the real game uses its measured AGLS model and sockets while retaining the accepted SOCOM two-hand aim, square-shoulder fire recovery, stable left-palm contact, authored prone firing pose, and human reload presentation.",
+      "acceptance_rule": "AK-47 and M4A1 load through res://main.tscn with their exact AGLS model and seven authored sockets. The trigger hand remains the sole weapon-root owner, only the support hand may solve to the foregrip, accepted standing and crouched shots use the shared authored recovery for 1.2 seconds, and weapon swaps reconfigure one existing contact modifier instead of appending nodes. The AK-47 saved profile remains authoritative in prone: hand_socket_ik_enabled is false, support_hand_socket_ik_enabled is true, right_hand_owns_weapon is true, relaxed prone resolves to RELAXED_RIFLE_LOCOMOTION, and relaxed-prone plus prone-fire samples keep right-hand IK stopped and the weapon on its authored trigger-hand mount. The verified AK reload may replace the generic standing/crouched reload; the rejected AGLS hold-pose strips and unsafe M4A4 reload may not enter canonical routing. Ballistics, reticle, camera, movement, and networking do not change.",
+      "proof_scripts": [
+        "res://tools/agls_ak47_asset_regression.gd",
+        "res://tools/ak47_prone_profile_authority_regression.gd",
+        "res://tools/m4a1_agls_vertical_slice_regression.gd",
+        "res://tools/weapon_equipment_event_regression.gd",
+        "res://tools/fire_recovery_movement_aim_parity_regression.gd",
+        "res://tools/operator_pose_pipeline_regression.gd",
+        "res://tools/operator_animation_regression.gd",
+        "res://tools/gameplay_reload_completion_regression.gd",
+        "res://tools/ballistic_reference_reticle_regression.gd",
+        "res://tools/startup_performance_regression.gd",
+        "res://tools/feature_contract_regression.gd"
+      ],
+      "ownership": {
+        "authorized_weapon_handoff": "SocomOperatorWeaponEquipmentRuntime",
+        "weapon_model_and_socket_instantiation": "SocomOperatorAssetRuntime",
+        "weapon_root_transform": "TriggerHandBoneAttachment3D",
+        "support_hand_contact": "SocomOperatorWeaponPose",
+        "prone_profile_authority": "SocomOperatorWeaponPose",
+        "accepted_shot_and_damage": "AuthoritativeServerWeapon",
+        "aim_intent_and_reticle": "SOCOMCameraReticleChain"
+      }
+    },
+    {
+      "file": "ak_m4_strafe_carry.json",
+      "feature_id": "ak_m4_strafe_carry",
+      "player_intent": "AK/M4: natural head bob without sideways shoulder sway. A legs left and firing shoulders square forward. D legs/torso right; rifle held crosswise IN FRONT of the turned torso, not beside it, barrel stays at reticle and hands on unchanged grips. Straight standing-idle pelvis and distributed waist turn.",
+      "acceptance_rule": "Only AK/M4: continuous full-lateral gait and existing fire/readiness with unchanged 1.2-second recovery. Keep natural bob, barrel at reticle and both palm contacts. Stock high on A/forward; D intentionally has the saved torso-forward release. Straight stationary-standing pelvis; distributed spine turn must improve native appearance. Existing contact/bore/elbow bounds remain; broader A/idle firing transitions are not yet all passing.",
+      "proof_scripts": [
+        "res://tools/rifle_strafe_carry_regression.gd",
+        "res://tools/directional_elbow_swivel_regression.gd",
+        "res://tools/rifle_reference_visual_probe.gd",
+        "res://tools/crouch_strafe_continuity_probe.gd",
+        "res://tools/fire_recovery_movement_aim_parity_regression.gd",
+        "res://tools/feature_contract_regression.gd",
+        "res://tools/rifle_shoulder_stock_regression.gd",
+        "res://tools/strafe_head_orientation_regression.gd",
+        "res://tools/m4a1_agls_vertical_slice_regression.gd",
+        "res://tools/rifle_upper_body_stability_regression.gd",
+        "res://tools/rifle_lateral_gait_regression.gd",
+        "res://tools/jump_forward_legs_regression.gd",
+        "res://tools/rifle_articulated_spine_regression.gd",
+        "res://tools/rifle_left_shoulder_physical_regression.gd",
+        "res://tools/rifle_idle_pelvis_regression.gd",
+        "res://tools/rifle_idle_pelvis_math_regression.gd",
+        "res://tools/rifle_right_carry_release_regression.gd",
+        "res://tools/rifle_right_carry_visual_probe.gd"
+      ],
+      "ownership": {
+        "pose": "SocomOperatorAnimationDriver and its existing locomotion graph",
+        "torso_correction": "SocomOperatorPostureLayer",
+        "weapon_root": "Existing weapon presentation owner: authored trigger attachment at rest, existing world presentation anchor during scoped ready/fire",
+        "movement": "CharacterBody3D",
+        "aim": "SOCOM camera/reticle",
+        "shot_and_damage": "Authoritative server weapon",
+        "head": "Existing SocomOperatorPostureLayer neck/head writer"
+      }
+    },
+    {
+      "file": "armory_loadout_selection.json",
+      "feature_id": "armory_loadout_selection",
+      "player_intent": "Choose one primary and one pistol without money or non-firearm entries; find M40A1 under Sniper Rifles.",
+      "acceptance_rule": "Actual canonical armory rows contain 33 eligible firearms, no prices, and M40A1 only under Sniper Rifles. Free selection replaces one of two slots. Shared validation rejects archived non-firearms. Warm-up replication works and live tournament selection stays locked.",
+      "proof_scripts": [
+        "res://tools/armory_loadout_selection_regression.gd",
+        "res://tools/gunsmith_recom_catalog_regression.gd",
+        "res://tools/mixed_weapon_roster_regression.gd",
+        "res://tools/vrc_armory_regression.gd",
+        "res://tools/lobby_warmup_regression.gd",
+        "res://tools/round_random_weapon_regression.gd"
+      ],
+      "ownership": {
+        "selection_policy": "SocomEconomyRules",
+        "catalog_metadata": "SocomWeaponCatalog",
+        "local_equip": "SocomWeaponController",
+        "multiplayer_equip": "SocomMultiplayerWarmup"
+      }
+    },
+    {
+      "file": "armory_primary_pistol.json",
+      "feature_id": "armory_primary_pistol",
+      "player_intent": "Armory retains one primary and one pistol; switching preserves ammo.",
+      "acceptance_rule": "Armory retains one primary and one pistol; switching preserves ammo. Focused tests and rendered checks must pass.",
+      "proof_scripts": [
+        "res://tools/vrc_armory_regression.gd",
+        "res://tools/lobby_warmup_regression.gd"
+      ],
+      "ownership": {
+        "feature": "SocomWeaponController"
+      }
+    },
+    {
+      "file": "authenticated_matchmaking_directory.json",
+      "feature_id": "public_matchmaking_directory",
+      "player_intent": "Native development tools can find a healthy compatible SOCOM server without requiring the player to type its address, while the browser uses automatic WebRTC tournament signaling.",
+      "acceptance_rule": "The public Supabase publishable key lists only operational or degraded regions and fresh online servers with capacity through SELECT-only anonymous RLS policies, converts each timestamptz heartbeat to last_heartbeat_unix, applies the canonical build and protocol selection policy, and returns one validated ws:// or wss:// endpoint without waiting for player identity. The restricted browser front door does not expose this standalone server list.",
+      "proof_scripts": [
+        "res://tools/matchmaking_directory_client_regression.gd",
+        "res://tools/feature_contract_regression.gd"
+      ],
+      "ownership": {
+        "public_read_only_service_directory_requests": "SocomMatchmakingDirectoryClient",
+        "region_and_server_selection_policy": "SocomServiceDirectory",
+        "publishable_key_and_rest_transport": "SocomSupabaseClient",
+        "network_connection": "SocomMultiplayerSession"
+      }
+    },
+    {
+      "file": "ballistic_reference_reticle.json",
+      "feature_id": "ballistic_reference_reticle",
+      "player_intent": "Replace the U-shaped reticle with the SOCOM II video reference: four chartreuse cardinal ticks, a tiny center point, and a faint shaded central disc.",
+      "acceptance_rule": "The combat reticle draws four outward-facing cardinal ticks with symmetric gaps driven by the existing saved weapon spread profile. Movement does not independently lengthen the side ticks. A tiny point and fixed-size faint disc remain on authoritative camera aim while existing cosmetic shot feedback may move the ticks. Target colors, hit confirmation, and interaction brackets remain available. This is reference-inspired presentation, not a change to shot spread, gravity, damage, recoil mechanics, or weapon balance.",
+      "proof_scripts": [
+        "res://tools/ballistic_reference_reticle_regression.gd",
+        "res://tools/reticle_render_integration.gd",
+        "res://tools/feature_contract_regression.gd",
+        "res://tools/public_training_range_regression.gd"
+      ],
+      "ownership": {
+        "reticle_geometry_and_feedback": "SocomDynamicReticle",
+        "aim_intent": "SOCOMCameraReticleChain",
+        "shot_damage_and_dispersion": "AuthoritativeServerWeapon"
+      }
+    },
+    {
+      "file": "basic_movement_head.json",
+      "feature_id": "basic_movement_head",
+      "player_intent": "Keep the head straight during W/A/S/D, crouch idle/movement, and DD right dive.",
+      "acceptance_rule": "Standing/crouched travel and crouch idle remove head roll within 35 degrees; DD permits 80 degrees shared over neck/head. Preserve head facing, torso and arms. Standing idle, prone, other actions and death are excluded.",
+      "proof_scripts": [
+        "res://tools/basic_movement_head_regression.gd"
+      ],
+      "ownership": {
+        "head_pose": "SocomOperatorPostureLayer"
+      }
+    },
+    {
+      "file": "bloom_shot_envelope.json",
+      "feature_id": "bloom_shot_envelope",
+      "player_intent": "Fit every bullet and pellet inside the authored bloom rather than enlarge it to match the old spread.",
+      "acceptance_rule": "The entire sampled pattern is capped by the pre-shot weapon-owned bloom. Canonical custom HUD reads the same gap without double smoothing. Shared state produces the same local/server cap. Projected containment applies at aimed depth; remote prediction reconciliation remains unverified.",
+      "proof_scripts": [
+        "res://tools/bloom_shot_envelope_regression.gd",
+        "res://tools/stance_bloom_cap_regression.gd",
+        "res://tools/custom_reticle_regression.gd",
+        "res://tools/rapid_tap_bloom_regression.gd"
+      ],
+      "ownership": {
+        "shot_and_gap": "SocomWeaponBallistics",
+        "aim": "SocomCameraRig",
+        "drawing": "SocomDynamicReticle"
+      }
+    },
+    {
+      "file": "blue_night_vision.json",
+      "feature_id": "blue_night_vision",
+      "player_intent": "Blue night vision with readable shadow detail and light edge shading.",
+      "acceptance_rule": "Canonical toggle enables blue screen grading and existing IR light; shadows retain distinct brightness, highlights stay bounded, and toggling off disables both.",
+      "proof_scripts": [
+        "res://tools/night_vision_regression.gd"
+      ],
+      "ownership": {
+        "night_vision": "SocomNightVisionOverlay"
+      }
+    },
+    {
+      "file": "browser_multiarena_playable_deployment.json",
+      "feature_id": "browser_multiarena_playable_deployment",
+      "player_intent": "A browser player joins one 32-player WebRTC tournament, becomes one of 16 duos, and plays only the assigned 2v2 arena while winners advance through the shared bracket.",
+      "acceptance_rule": "Automatic WebRTC signaling admits at most 32 peers to each tournament room, initializes peer 1 as the sole gameplay authority, and enters the canonical tournament runtime. That runtime starts 16 duos across eight isolated arena maps, derives local starts from authored markers, scopes state and damage to each arena, and uses the map-owned stair collider without changing CharacterBody3D movement.",
+      "proof_scripts": [
+        "res://tools/browser_tournament_front_door_regression.gd",
+        "res://tools/browser_webrtc_private_match_regression.gd",
+        "res://tools/browser_multiarena_deployment_regression.gd",
+        "res://tools/tournament_session_regression.gd",
+        "res://tools/tournament_map_pods_regression.gd",
+        "res://tools/tournament_replication_scope_regression.gd",
+        "res://tools/stair_playability_regression.gd",
+        "res://tools/feature_contract_regression.gd"
+      ],
+      "ownership": {
+        "browser_join_presentation": "SocomGameLauncher",
+        "webrtc_room_allocation": "SocomWebRTCSignalingService",
+        "network_and_match_authority": "SocomMultiplayerSession peer 1",
+        "arena_assignment_and_world_offsets": "SocomMultiArenaCoordinator",
+        "authoritative_tournament_session": "SocomTournamentSession",
+        "map_geometry_and_stair_collision": "SocomMapRuntime",
+        "movement_and_collision": "SocomTestPlayer CharacterBody3D",
+        "shot_and_damage": "AuthoritativeServerWeapon"
+      }
+    },
+    {
+      "file": "browser_tournament_front_door.json",
+      "feature_id": "browser_dedicated_tournament_front_door",
+      "player_intent": "One-click join to the dedicated 32-player tournament, plus solo training and global leaderboard.",
+      "acceptance_rule": "Browser joins the configured secure dedicated endpoint, never player-hosts as fallback, and preserves tournament and leaderboard UI.",
+      "proof_scripts": [
+        "res://tools/browser_tournament_front_door_regression.gd",
+        "res://tools/browser_webrtc_private_match_regression.gd",
+        "res://tools/restricted_web_launcher_regression.gd",
+        "res://tools/tournament_session_regression.gd",
+        "res://tools/test_multi_arena_tournament.gd",
+        "res://tools/feature_contract_regression.gd"
+      ],
+      "ownership": {
+        "browser_navigation": "SocomGameLauncher",
+        "network_peer_and_match_authority": "SocomMultiplayerSession peer 1",
+        "tournament_bracket_and_arena_isolation": "SocomTournamentSession",
+        "global_leaderboard_read": "SocomSupabaseClient",
+        "shot_and_damage": "AuthoritativeServerWeapon"
+      }
+    },
+    {
+      "file": "browser_training_grounds.json",
+      "feature_id": "browser_training_grounds",
+      "player_intent": "Browser players can practice solo and select weapons without waiting for 32 tournament players or a signaling service.",
+      "acceptance_rule": "Training Grounds opens main.tscn in public training mode, clears stale network launch intent, provides the existing B loadout menu and shootable targets, and returns to the browser launcher. The restricted export contains main.tscn but no development labs.",
+      "proof_scripts": [
+        "res://tools/browser_training_entry_regression.gd",
+        "res://tools/restricted_web_launcher_regression.gd",
+        "res://tools/public_training_range_regression.gd",
+        "res://tools/feature_contract_regression.gd"
+      ],
+      "ownership": {
+        "navigation": "SocomGameLauncher",
+        "training_gameplay": "CanonicalMainRuntime"
+      }
+    },
+    {
+      "file": "canonical_shared_lobby_pair_selection.json",
+      "feature_id": "canonical_shared_lobby_pair_selection",
+      "player_intent": "A player in the canonical multiplayer lobby can choose one two-player duo and every connected player sees the same server-approved assignment.",
+      "acceptance_rule": "Ordinary lobbies reset to Alpha-versus-Bravo team mode and cannot start without both teams. Tournament HUDs emit only pair-id requests, hide irrelevant team controls, and group players by duo. The authoritative session accepts pair changes only during WAITING, rejects invalid or full pairs, clears the mover's ready flag after an actual move, and broadcasts the resulting SocomLobbyState snapshot.",
+      "proof_scripts": [
+        "res://tools/lobby_pair_selection_regression.gd",
+        "res://tools/multiplayer_inheritance_regression.gd",
+        "res://tools/multiplayer_slice_architecture_regression.gd",
+        "res://tools/feature_contract_regression.gd"
+      ],
+      "ownership": {
+        "lobby_pair_assignment": "SocomMultiplayerSession"
+      }
+    },
+    {
+      "file": "canonical_target_pivot_presentation.json",
+      "feature_id": "canonical_target_pivot_presentation",
+      "player_intent": "Forward sprint and ordinary locomotion own both arms and hands. Accepted fire temporarily blends the authored combat-ready/fire upper body over moving legs, and reload remains an authored upper-body animation during movement and posture changes.",
+      "acceptance_rule": "Forward sprint, walk, crouch, prone, jump, and reload keep every TargetPivot body modifier at zero. Accepted fire and its short combat-ready hold raise the complete TargetPivot graph to full influence over the upper body while locomotion continues on the legs. When the hold ends, every body modifier returns to zero and forward sprint owns both arms again.",
+      "proof_scripts": [
+        "res://tools/authored_operator_rig_scene_regression.gd",
+        "res://tools/rendered_arm_animation_liveness_regression.gd",
+        "res://tools/runtime_skeleton_modifier_proof.gd",
+        "res://tools/held_weapon_transform_collision_regression.gd",
+        "res://tools/canonical_socom_ik_rig_regression.gd",
+        "res://tools/weapon_contact_graph_integration_regression.gd",
+        "res://tools/gameplay_reload_completion_regression.gd",
+        "res://tools/test_dynamic_reload_handoff.gd",
+        "res://tools/weapon_auto_reload_regression.gd"
+      ],
+      "ownership": {
+        "operator_target_pivot_presentation": "SocomOperatorGodotIkAimRuntime",
+        "weapon_contact_authoring": "GunsmithContactGraphController",
+        "locomotion_and_collision": "SocomTestPlayer",
+        "aim_intent": "SOCOMCameraReticleChain",
+        "shot_and_damage": "AuthoritativeServerWeapon"
+      }
+    },
+    {
+      "file": "clean_canonical_scene_tree.json",
+      "feature_id": "clean_canonical_scene_tree",
+      "player_intent": "The player experiences a responsive, cinematic SOCOM tactical shooter where character movement, weapon recoil, camera aim, and tactical HUD operate with zero debug clutter and complete visual scene tree clarity.",
+      "acceptance_rule": "main.tscn exposes pre-authored World, Player (with CollisionShape3D, TraversalProbes, and Presentation/OperatorRig), CameraRig, and GameplayHUD instances. CharacterBody3D owns movement and collision, CameraRig owns aim intent, server weapon owns shot and damage, and all 22 integration gate test suites pass.",
+      "proof_scripts": [
+        "res://tools/mobility_regression.gd",
+        "res://tools/operator_animation_regression.gd",
+        "res://tools/feature_contract_regression.gd"
+      ],
+      "ownership": {
+        "movement_and_collision": "SocomTestPlayer",
+        "aim_intent": "SocomCameraAimResolver",
+        "weapon_authority": "SocomWeaponController",
+        "animation_presentation": "SocomOperatorAnimationDriver"
+      }
+    },
+    {
+      "file": "cod_style_reload_commit_timeline.json",
+      "feature_id": "cod_style_reload_commit_timeline",
+      "player_intent": "Reloading stays visible and continuous through every movement technique. It ends only when the authored reload finishes or a fire click interrupts it to shoot ammunition already available in the magazine.",
+      "acceptance_rule": "Standing, crouch, prone, sprint, jump, dive, roll, vault, and landing cannot cancel or restart an active reload. The magazine-in cue commits ammunition exactly once. A fire click with at least one chambered magazine round cancels the reload before the weapon processes that same shot; an empty magazine cannot cancel its required reload. Authored completion ends the reload normally.",
+      "proof_scripts": [
+        "res://tools/weapon_auto_reload_regression.gd",
+        "res://tools/gameplay_reload_completion_regression.gd",
+        "res://tools/operator_animation_regression.gd",
+        "res://tools/test_dynamic_reload_handoff.gd",
+        "res://tools/feature_contract_regression.gd"
+      ],
+      "ownership": {
+        "reload_transaction": "SocomWeaponReloadCoordinator",
+        "ammo_write": "SocomWeaponController",
+        "timing_cue": "SocomOperatorAnimationDriver",
+        "timeline_data": "WeaponReloadVisualTimeline"
+      }
+    },
+    {
+      "file": "construction_responsibility_boundaries.json",
+      "feature_id": "construction_responsibility_boundaries",
+      "player_intent": "Maintain unchanged play while separating five safe construction/equipment responsibilities from oversized coordinators.",
+      "acceptance_rule": "Five coordinators meet unchanged budgets, helpers have no frame callbacks, and focused map/retarget/equipment regressions pass. This does not certify the four deferred animation files.",
+      "proof_scripts": [
+        "res://tools/construction_boundary_regression.gd",
+        "res://tools/map_creation_lab_regression.gd",
+        "res://tools/retarget_mapping_lab_regression.gd",
+        "res://tools/equipment_wheel_regression.gd",
+        "res://tools/feature_contract_regression.gd"
+      ],
+      "ownership": {
+        "map_dispatch": "SocomMapRuntime",
+        "equipment_state": "SocomMainGrenadeRuntime",
+        "hud_state": "SocomMainGameplayHud",
+        "proxy_registry": "SocomTestMannequin",
+        "retarget_lab": "SocomRetargetMappingLab"
+      }
+    },
+    {
+      "file": "contextual_hud.json",
+      "feature_id": "contextual_hud",
+      "player_intent": "Player condition floats left of the torso; weapon and throwable actions float right. Empty magazine highlights EMPTY \u2014 RELOAD or NO AMMO persistently. Zero reserves rejects reload before animation; periodic full-status glances remain.",
+      "acceptance_rule": "Card follows the local player's projected torso on its left side, clamps to viewport and suppresses drawing behind camera without overriding HUD hide. Unchanged snapshots do not refresh timers. Ammo, equip and damage snapshots reveal independent sections. All sections reveal every 20 seconds for 2 seconds. Critical health stays readable. Ring ticks use radius-relative spacing and outward fading; existing ballistic geometry and aim owners are unchanged.",
+      "proof_scripts": [
+        "res://tools/contextual_hud_regression.gd",
+        "res://tools/empty_ammo_reload_regression.gd"
+      ],
+      "ownership": {
+        "attention_and_status_drawing": "SocomLoadoutCardHUD",
+        "reticle_drawing": "SocomDynamicReticle",
+        "aim_and_damage": "existing camera and weapon/server owners",
+        "reload_eligibility": "SocomWeaponController.can_reload; existing server ammo validation"
+      }
+    },
+    {
+      "file": "contextual_traversal.json",
+      "feature_id": "contextual_traversal",
+      "player_intent": "Mantle short edges, vault with AGLS motion, jump higher with a running start and pass through open windows when timed correctly.",
+      "acceptance_rule": "Grounded Jump at a supported edge up to 1.35 m starts low mantle without hanging. Higher edges retain hang-first controls. Full forward input with at least 4.5 m/s actual speed selects a 7 m/s launch; otherwise preserve the 5 m/s hop. Launch speed survives replay and proxy presentation. Real open-window fixtures accept timed jumps; solid panes and late sill contact remain blocking. AGLS poses are presentation only. Warehouse uses mesh collision in both saved map copies.",
+      "proof_scripts": [
+        "res://tools/contextual_traversal_regression.gd",
+        "res://tools/ledge_climb_regression.gd",
+        "res://tools/agls_auto_vault_regression.gd",
+        "res://tools/network_prediction_regression.gd"
+      ],
+      "ownership": {
+        "movement": "SocomTestPlayer",
+        "animation": "SocomOperatorAnimationDriver"
+      }
+    },
+    {
+      "file": "contributor_map_asset_boundary.json",
+      "feature_id": "contributor_map_asset_boundary",
+      "player_intent": "Contributors provide map geometry through the existing saved map contract without editing protected gameplay owners.",
+      "acceptance_rule": "Imported prop transforms, geometry, metadata, three collision modes and missing-asset preview behavior match before/after extraction; saved example commands reach the same builder as canonical play.",
+      "proof_scripts": [
+        "res://tools/imported_map_asset_boundary_regression.gd",
+        "res://tools/check_contributed_map_prop.gd",
+        "res://tools/map_creation_lab_regression.gd",
+        "res://tools/community_map_workflow_regression.gd",
+        "res://tools/feature_contract_regression.gd"
+      ],
+      "ownership": {
+        "imported_prop_construction": "SocomImportedMapAssetBuilder",
+        "map_dispatch": "SocomMapRuntime",
+        "asset_loading": "SocomMapAssetLibrary"
+      }
+    },
+    {
+      "file": "core_weapon_roster.json",
+      "feature_id": "core_weapon_roster",
+      "player_intent": "Show twelve approved weapons including the restored Desert Eagle under original codenames and hide the remaining weapons without deleting their data.",
+      "acceptance_rule": "Menu and tournament pool contain exactly the same twelve IDs including de__50; canonical HUD names agree; hidden IDs fail normal selection validation while source records remain intact.",
+      "proof_scripts": [
+        "res://tools/core_weapon_roster_regression.gd",
+        "res://tools/armory_loadout_selection_regression.gd"
+      ],
+      "ownership": {
+        "public_roster_metadata": "SocomWeaponCatalog"
+      }
+    },
+    {
+      "file": "crouch_strafe_height_continuity.json",
+      "feature_id": "crouch_strafe_height_continuity",
+      "player_intent": "Keep crouch strafing at a consistent moving height without restarting the animation on direction changes.",
+      "acceptance_rule": "Canonical crouched input with transitions enabled selects no crouch start/stop actions. Actual BlendSpace phase continues. Moving direction changes remain below 8 cm hip and 6 cm head vertical range, including natural gait; exact static height and idle-to-moving height parity are not claimed.",
+      "proof_scripts": [
+        "res://tools/crouch_strafe_continuity_probe.gd",
+        "res://tools/directional_locomotion_phase_regression.gd"
+      ],
+      "ownership": {
+        "cosmetic_action_selection": "SocomOperatorTransitionStateMachine",
+        "direction_blend": "SocomOperatorLocomotionBlendTree"
+      }
+    },
+    {
+      "file": "custom_reticle_families.json",
+      "feature_id": "custom_reticle_families",
+      "player_intent": "Split Halo shotguns, Horizon pistols, Offset rifles with source-derived faded strokes; keep existing gunplay.",
+      "acceptance_rule": "Canonical and multiplayer HUDs consume the same category/style contract. Rifle Offset adapts the original 23-sample rifle alpha ramp from inner marks to outer tips and applies it to the outline too. Camera aim center, existing bloom/recovery, other family shapes, hit X and interaction brackets remain. This indicator does not guarantee bullet or pellet containment.",
+      "proof_scripts": [
+        "res://tools/custom_reticle_regression.gd",
+        "res://tools/socom2_reticle_regression.gd",
+        "res://tools/shared_weapon_reticle_regression.gd",
+        "res://tools/ballistic_reference_reticle_regression.gd"
+      ],
+      "ownership": {
+        "reticle_presentation": "SocomDynamicReticle",
+        "aim_intent": "SocomCameraRig",
+        "shot_and_damage": "existing weapon/server authority"
+      }
+    },
+    {
+      "file": "depot_web_release.json",
+      "feature_id": "depot_web_release",
+      "player_intent": "Play Relic Depot with audible browser shots.",
+      "acceptance_rule": "Depot is the saved default with assets in both packages; browser audio uses stream pools and measurable output.",
+      "proof_scripts": [
+        "res://tools/depot_web_release_regression.gd",
+        "res://tools/relic_depot_regression.gd",
+        "res://tools/web_release_audit.gd"
+      ],
+      "ownership": {
+        "map": "SocomMapDocument",
+        "audio": "AcousticPropagation and LabLeakAudioEngine existing voice pools"
+      }
+    },
+    {
+      "file": "diagonal_mobility.json",
+      "feature_id": "diagonal_mobility",
+      "player_intent": "Hold a perpendicular movement key while double-tapping an action key to slide or dive diagonally.",
+      "acceptance_rule": "Eight diagonal combinations use normalized 45-degree travel, keep original speed, commit direction at activation and preserve aim. Crouched WW remains blocked. Server and proxy preserve heading, position and selected clip.",
+      "proof_scripts": [
+        "res://tools/diagonal_mobility_regression.gd",
+        "res://tools/jump_direction_combo_regression.gd",
+        "res://tools/network_prediction_regression.gd"
+      ],
+      "ownership": {
+        "movement_collision": "SocomTestPlayer",
+        "direction_math": "jump_direction_combo_intent"
+      }
+    },
+    {
+      "file": "directional_locomotion_phase_continuity.json",
+      "feature_id": "directional_locomotion_phase_continuity",
+      "player_intent": "Changing direction while standing or crouched continues the current gait cycle instead of visibly restarting the animation from its first frame.",
+      "acceptance_rule": "Standing and crouched lateral points reuse their posture-matched forward gait source with bounded hip yaw, both BlendSpace2D nodes use Cyclic Mutable synchronization, and a forward-to-right switch advances normalized phase by more than 0.001 and less than 0.08 in one physics frame. Opposing A/D and W/S direction changes reach at least 0.99 logical and rendered target alignment within one second at 30, 60, and 120 Hz. Standing heading changes stay below 45 degrees per update; crouch crossfades through a shared center gait with coordinate steps below 0.5 and an advancing gait clock. See crouch_strafe_height_continuity for live action and actual-playhead coverage.",
+      "proof_scripts": [
+        "res://tools/directional_locomotion_phase_regression.gd",
+        "res://tools/operator_animation_regression.gd",
+        "res://tools/feature_contract_regression.gd"
+      ],
+      "ownership": {
+        "directional_clip_and_yaw_data": "SocomOperatorAnimationProfile",
+        "normalized_gait_phase": "SocomOperatorLocomotionBlendTree",
+        "movement_and_collision": "SocomTestPlayer"
+      }
+    },
+    {
+      "file": "dive_weapon_descent.json",
+      "feature_id": "dive_weapon_descent",
+      "player_intent": "A standing dive keeps the gun supported near the chest during the opening motion, then lowers it smoothly into the prone firing posture instead of striking the floor immediately.",
+      "acceptance_rule": "During a standing dive the stable chest weapon anchor retains at least 90 percent of its standing-to-prone height through the declared early phase, reaches prone by the end of the same 0.78-second CharacterBody3D action, keeps both hand contacts within their existing limits, and returns to the prone ready solver.",
+      "proof_scripts": [
+        "res://tools/dive_hand_attachment_regression.gd",
+        "res://tools/mobility_regression.gd",
+        "res://tools/feature_contract_regression.gd"
+      ],
+      "ownership": {
+        "dive_movement_and_collision": "SocomTestPlayer",
+        "dive_weapon_translation": "SocomOperatorWeaponPoseSolver",
+        "dive_hand_contacts": "SocomOperatorMobilityWeaponGripSolver"
+      }
+    },
+    {
+      "file": "existing_weapon_reference_sounds.json",
+      "feature_id": "existing_weapon_reference_sounds",
+      "player_intent": "Matching existing guns play their reference recordings.",
+      "acceptance_rule": "All 33 actual selectable firearms have explicit cached audio assignments: 29 direct/game-label matches, two parent-rifle variants and two documented provisional family substitutions. Canonical and multiplayer emit one matching sound; legacy non-firearms are audited and unknown IDs preserve fallback.",
+      "proof_scripts": [
+        "res://tools/weapon_sound_bank_regression.gd",
+        "res://tools/feature_contract_regression.gd"
+      ],
+      "ownership": {
+        "weapon_sound_selection": "LabLeakAudioEngine",
+        "spatial_playback": "AcousticPropagationEngine"
+      }
+    },
+    {
+      "file": "field_backpack.json",
+      "feature_id": "field_backpack",
+      "player_intent": "Pick up the AGLS field pack and wear it in the local game and multiplayer.",
+      "acceptance_rule": "Interact awards one available pack to one nearby living admitted player, rejects walls/range/stale-life requests, hides the ground mesh, and reliably reproduces the wearer for current and late-joining peers. Death, respawn, disconnect and round/session reset restore availability. Existing bomb-pack presentation retains priority.",
+      "proof_scripts": [
+        "res://tools/field_backpack_regression.gd",
+        "res://tools/field_backpack_runtime_regression.gd"
+      ],
+      "ownership": {
+        "field_item_state": "FieldBackpackPickup (server online, local authority offline)",
+        "attachment_transform": "BoneAttachment3D follows canonical spine without override"
+      }
+    },
+    {
+      "file": "field_depot_local_map.json",
+      "feature_id": "field_depot_local_map",
+      "player_intent": "Build and edit a local tactical map with extracted environment textures.",
+      "acceptance_rule": "Six local textures and all map objects roundtrip and build through MapRuntime; local library entry is editable and Play enters main.tscn.",
+      "proof_scripts": [
+        "res://tools/field_depot_regression.gd",
+        "res://tools/map_creation_lab_regression.gd",
+        "res://tools/feature_contract_regression.gd"
+      ],
+      "ownership": {
+        "map_construction": "SocomMapRuntime"
+      }
+    },
+    {
+      "file": "fire_recoil_presentation.json",
+      "feature_id": "fire_recoil_presentation",
+      "player_intent": "A small contact-preserving right-elbow recoil pulse on accepted shots.",
+      "acceptance_rule": "Pulse stays bounded, returns to zero, and hands retain physical socket contact.",
+      "proof_scripts": [
+        "res://tools/fire_recoil_pulse_regression.gd",
+        "res://tools/fire_recoil_live_regression.gd",
+        "res://tools/firearm_family_live_contact_regression.gd"
+      ],
+      "ownership": {
+        "arm_presentation": "Operator weapon-pose socket solver"
+      }
+    },
+    {
+      "file": "firearm_directional_carry.json",
+      "feature_id": "firearm_directional_carry",
+      "player_intent": "Extend the accepted square-left and front-torso-right rifle shooting style to the firearm roster while retaining each model's contacts and separate pistol handling.",
+      "acceptance_rule": "Each explicit model opt-in must pass canonical equip, actual standing/crouch A/D, accepted-shot entry, direction reversal and stop contact/aim/anatomy checks, then native appearance review. Do not reopen the full roster while any required weapon remains unverified.",
+      "proof_scripts": [
+        "res://tools/firearm_family_transition_regression.gd",
+        "res://tools/rifle_evaluated_carry_timing_regression.gd",
+        "res://tools/rifle_right_carry_release_regression.gd",
+        "res://tools/rifle_shoulder_stock_regression.gd",
+        "res://tools/m4a1_agls_vertical_slice_regression.gd",
+        "res://tools/m16_directional_rig_regression.gd",
+        "res://tools/m16_contact_surface_probe.gd",
+        "res://tools/authored_stock_scope_regression.gd",
+        "res://tools/weapon_short_barrel_contract_regression.gd",
+        "res://tools/retro_1212_asset_regression.gd",
+        "res://tools/retro_1212_socket_review.gd",
+        "res://tools/retro_1212_canonical_regression.gd",
+        "res://tools/retro_1212_reload_regression.gd",
+        "res://tools/m40_directional_rig_regression.gd"
+      ],
+      "ownership": {
+        "weapon_presentation": "SocomOperatorWeaponPoseSolver",
+        "saved_visual_contract": "GunsLab2VisualRigResolver",
+        "movement": "CharacterBody3D",
+        "aim": "SOCOM camera and reticle",
+        "shots_and_damage": "server weapon"
+      }
+    },
+    {
+      "file": "firearm_family_presentation.json",
+      "feature_id": "firearm_family_presentation",
+      "player_intent": "Every real pistol, assault rifle, and submachine gun equips at human scale and remains visibly connected to its trigger and support hands with the same stable ready and fire-recovery quality as the Mark 23.",
+      "acceptance_rule": "Through res://main.tscn, each in-scope firearm resolves exactly one published model-specific visual rig or its existing authored weapon rig before mesh, animation-family, and hand-contact consumers run. Pistols resolve TWO_HAND_PISTOL, rifles and SMGs resolve their rifle family, every resolved mesh has human-scale geometry and seven physical sockets, the right hand remains the sole weapon-root owner, and only the left support hand solves to the weapon. In ordinary Ready Aim and accepted-shot recovery, every pistol's projected optic-up axis remains within 12 degrees of operator up, both palms remain within 1 cm of their physical contacts, and the bore remains within 1 degree of camera-owned aim. Accepted standing and crouched shots retain the existing posture-matched 1.2-second FIRE_RECOVERY without a separate fire OneShot. Designator, air_to_ground_missile, and exploding_fuel are excluded because their catalog records are not handheld firearms.",
+      "proof_scripts": [
+        "res://tools/firearm_family_presentation_regression.gd",
+        "res://tools/firearm_family_live_contact_regression.gd",
+        "res://tools/firearm_family_visual_proof.gd",
+        "res://tools/all_weapon_fire_recovery_regression.gd",
+        "res://tools/guns_lab_2_runtime_regression.gd",
+        "res://tools/feature_contract_regression.gd"
+      ],
+      "ownership": {
+        "saved_family_visual_calibration": "GunsLab2VisualRigRepository",
+        "single_presentation_resolution_boundary": "SocomWeaponRigContract",
+        "weapon_root_transform": "TriggerHandBoneAttachment3D",
+        "support_hand_contact": "SocomOperatorWeaponPose",
+        "movement_and_collision": "CharacterBody3D",
+        "aim_intent": "SOCOMCameraReticleChain",
+        "shot_and_damage": "AuthoritativeServerWeapon"
+      }
+    },
+    {
+      "file": "gait_lean_continuity.json",
+      "feature_id": "gait_lean_continuity",
+      "player_intent": "Run without cyclic sinking and retain a grounded gait during standing/crouch lean microsteps.",
+      "acceptance_rule": "Canonical rifle/pistol fixture has no hip step over 8cm at 60Hz, no lost floor contact, one moving entry across repeated taps and paused gait during tap gaps. Stationary standing hips and upper frame match the held authored lean within 0.1 degree with unchanged support height. Moving/crouched lean preserves gait legs. Fire then same-button exit has no upper step over 18 degrees at 60Hz, no residual lean and no unrelated action.",
+      "proof_scripts": [
+        "res://tools/lean_upper_frame_regression.gd",
+        "res://tools/gait_lean_continuity_regression.gd",
+        "res://tools/gait_alignment_regression.gd",
+        "res://tools/operator_animation_cache_regression.gd",
+        "res://tools/lean_movement_latch_regression.gd",
+        "res://tools/source_jump_regression.gd",
+        "res://tools/operator_stair_foot_grounding_regression.gd"
+      ],
+      "ownership": {
+        "animation": "SocomOperatorAnimationDriver",
+        "movement": "SocomTestPlayer"
+      }
+    },
+    {
+      "file": "generic_directional_weapon_candidates.json",
+      "feature_id": "generic_directional_weapon_candidates",
+      "player_intent": "Extend the proven directional carry semantics to generic long guns while keeping each model, family, physical contacts and gameplay data unchanged.",
+      "acceptance_rule": "Shared-baseline pass: run the existing canonical standing/crouched A/D/fire/reversal/stop matrix across all33 firearms, keeping pistol handling separate. Preserve each current model/grip and gameplay data, inspect failures natively, and retain previous assignments on failures or geometry deltas. No limits may be relaxed. This bounded carry rollout does not certify unmeasured prone/model replacements or reopen the roster.",
+      "proof_scripts": [
+        "res://tools/generic_directional_reload_regression.gd",
+        "res://tools/generic_contact_surface_probe.gd",
+        "res://tools/generic_directional_batch_regression.gd",
+        "res://tools/firearm_family_transition_regression.gd",
+        "res://tools/authored_stock_scope_regression.gd",
+        "res://tools/feature_contract_regression.gd"
+      ],
+      "ownership": {
+        "saved_profiles": "GunsLab2VisualRigResolver and SocomWeaponRigContract",
+        "pose": "Existing SocomOperatorWeaponPoseSolver",
+        "locomotion_presentation": "SocomOperatorLocomotionBlendTree",
+        "movement": "CharacterBody3D",
+        "aim": "SOCOM camera/reticle",
+        "shots": "Authoritative server weapon"
+      }
+    },
+    {
+      "file": "gun_pose_lineup_editor.json",
+      "feature_id": "gun_pose_lineup_editor",
+      "player_intent": "Open the Gun Pose Lineup from the running game's Studio menu and see every important rifle presentation state at the same time; the same scene also keeps its native Godot hierarchy for detailed editing.",
+      "acceptance_rule": "The OPEN A STUDIO LAB menu contains Gun Pose Lineup \u2014 All States Live. Selecting it opens one horizontal line containing idle rifle, aim idle, combat ready, fire, forward run, left run, right run, crouch move, prone move, and reload with an active review camera. Each state continuously evaluates its mapped animation. Combat ready and fire expose the canonical TargetPivot graph; ordinary movement and reload keep body IK at zero.",
+      "proof_scripts": [
+        "res://tools/gun_pose_lineup_editor_regression.gd",
+        "res://tools/studio_navigation_regression.gd"
+      ],
+      "ownership": {
+        "editor_lineup": "SocomGunPoseLineupEditor",
+        "animation_routes": "SocomOperatorAnimationProfile",
+        "canonical_rig": "res://scenes/player/canonical_socom_operator_rig.tscn",
+        "studio_navigation": "StudioNavigation",
+        "gameplay": "UNCHANGED"
+      }
+    },
+    {
+      "file": "gunsmith_weapon_authoring.json",
+      "feature_id": "gunsmith_weapon_authoring",
+      "player_intent": "The designer can move real 3D hand, elbow, weapon, muzzle, and reticle contacts and use the same authored weapon setup in play.",
+      "acceptance_rule": "Saving and equipping a weapon writes the shared weapon profile, canonical gameplay reads it, and no editor preview node owns camera, movement, shots, or damage.",
+      "proof_scripts": [
+        "res://tools/feature_contract_regression.gd",
+        "res://tools/weapon_contact_graph_integration_regression.gd",
+        "res://tools/test_gunsmith_persistence_regression.gd",
+        "res://tools/weapon_rig_integration_regression.gd"
+      ],
+      "ownership": {
+        "weapon_profile_write": "GunsmithWeaponProfileRepository",
+        "gunsmith_3d_contact_editing": "GunsmithGizmoInteractionController",
+        "runtime_weapon_presentation": "SocomOperatorWeaponPresentationOwner",
+        "aim_intent": "SOCOMCameraReticleChain",
+        "shot_and_damage": "AuthoritativeServerWeapon"
+      }
+    },
+    {
+      "file": "hit_confirmation_no_body_flash.json",
+      "feature_id": "hit_confirmation_no_body_flash",
+      "player_intent": "Keep the red hit X without highlighting the struck body.",
+      "acceptance_rule": "Bullet and explosion hits preserve normal target materials and health changes; the red X still activates.",
+      "proof_scripts": [
+        "res://tools/hit_feedback_performance_regression.gd",
+        "res://tools/body_hit_vfx_regression.gd"
+      ],
+      "ownership": {
+        "target_material": "LabLeakTargetDummy",
+        "hit_x": "SocomDynamicReticle"
+      }
+    },
+    {
+      "file": "hybrid_locomotion_new_actions.json",
+      "feature_id": "hybrid_locomotion_new_actions",
+      "player_intent": "Movement looks and feels like the base SOCOM game while the newer crouch/prone reload and weapon-aim presentations remain available.",
+      "acceptance_rule": "The canonical operator map routes standing, crouched, prone, turn, roll, dive, and jump locomotion to the base clips; reload and weapon aim remain on the newer AGLS clips; animation root motion never moves the CharacterBody3D.",
+      "proof_scripts": [
+        "res://tools/hybrid_locomotion_action_regression.gd",
+        "res://tools/mobility_regression.gd",
+        "res://tools/operator_animation_regression.gd"
+      ],
+      "ownership": {
+        "movement_and_collision": "SocomTestPlayer",
+        "locomotion_animation_routes": "SocomOperatorAnimationProfile",
+        "reload_action_presentation": "SocomOperatorAnimationDriver",
+        "animation_root_motion": "VISUAL_ONLY"
+      }
+    },
+    {
+      "file": "jump_direction_combos.json",
+      "feature_id": "jump_direction_combos",
+      "player_intent": "Grounded double taps without Space. Standing allows WW/AA/DD/SS; crouched allows AA/DD/SS but not WW. Dive torso keeps a forward rifle form with a slight character-right lean. Crouched SS stays low without a standing camera pop. Preserve side rest, chains, crouch/prone exits and fresh-movement get-up.",
+      "acceptance_rule": "Fresh matching direction edges within 0.30s; holding, mixed or expired taps do not trigger. Space alone remains jump. Only slide/back may chain into left/right. Held second tap cannot get up; release at rest then fresh movement resumes recovery. WW/SS finish CROUCHED, slide Z or hold-C finishes PRONE. Body owns collision and headroom. Both saved side poses have low boots. Recovery head marker and lens have no downward step over 0.015m/0.025m in the canonical flat-ground test. Server/proxy preserve state and prone-exit selection.",
+      "proof_scripts": [
+        "res://tools/jump_direction_combo_regression.gd",
+        "res://tools/jump_forward_legs_regression.gd",
+        "res://tools/network_remote_animation_intent_regression.gd"
+      ],
+      "ownership": {
+        "movement_collision": "SocomTestPlayer",
+        "input_recognition": "jump_direction_combo_intent",
+        "animation": "SocomOperatorAnimationDriver",
+        "network": "SocomNetworkProtocol",
+        "camera_markers": "SocomTestMannequin"
+      }
+    },
+    {
+      "file": "jump_forward_legs.json",
+      "feature_id": "jump_forward_legs",
+      "player_intent": "Use forward-jump legs while retaining the equipped weapon upper body.",
+      "acceptance_rule": "Normal jump uses the saved forward clip on thigh-to-toe tracks only, once per airborne entry across takeoff/fall, then releases at landing. Source-parent rebasing keeps its actual leg orientation under the evaluated base hips without changing hips or upper-body transforms. Disabled or missing source leaves the old route intact.",
+      "proof_scripts": [
+        "res://tools/jump_forward_legs_regression.gd",
+        "res://tools/jump_forward_legs_visual_probe.gd",
+        "res://tools/jump_forward_frame_probe.gd"
+      ],
+      "ownership": {
+        "animation": "SocomOperatorLocomotionBlendTree",
+        "movement": "CharacterBody3D"
+      }
+    },
+    {
+      "file": "jump_peak_slide_candidate.json",
+      "feature_id": "jump_peak_slide_candidate",
+      "player_intent": "Put the anatomical right knee on the floor with the left leg forward; preserve the previous reclined pose as a backward-dive pose candidate.",
+      "acceptance_rule": "Right knee joint stays within 0.13m of floor through held pose; left foot ahead. Saved candidate plays in canonical graph, lowers character, releases, adds no body travel or binding. Preserved backward-dive pose is discoverable. Normal jump/dive unchanged.",
+      "proof_scripts": [
+        "res://tools/jump_peak_slide_regression.gd"
+      ],
+      "ownership": {
+        "authored_clip_consumption": "SocomOperatorAssetRuntime",
+        "playback": "SocomOperatorAnimationDriver"
+      }
+    },
+    {
+      "file": "jungle_village_variant.json",
+      "feature_id": "jungle_village_variant",
+      "player_intent": "Keep the original village layout and make a separately editable jungle vegetation variant.",
+      "acceptance_rule": "Original map objects remain identical; more than 100 ground-supported vegetation placements retain source alpha cutouts with no leaf-card collision or vegetation roots within 12m of preview spawns.",
+      "proof_scripts": [
+        "res://tools/jungle_village_canonical_probe.gd",
+        "res://tools/jungle_village_regression.gd",
+        "res://tools/socom_geometry/jungle_test.cjs",
+        "res://tools/imported_map_asset_boundary_regression.gd"
+      ],
+      "ownership": {
+        "map_construction": "SocomMapRuntime"
+      }
+    },
+    {
+      "file": "lean_movement_latch.json",
+      "feature_id": "lean_movement_latch",
+      "player_intent": "Tap movement for a small slow peek step while leaning; hold movement to leave lean and travel normally.",
+      "acceptance_rule": "Lean release remains latched; same-side press cancels and opposite switches. Movement under 0.22 seconds retains lean at at most 0.65 m/s, release stops immediately and resets the timer, continuous movement cancels lean at the hold threshold. Direction changes cannot reset the timer; diagonals cannot boost speed. Gravity/collision and prediction remain authoritative.",
+      "proof_scripts": [
+        "res://tools/lean_movement_latch_regression.gd",
+        "res://tools/network_movement_loss_regression.gd"
+      ],
+      "ownership": {
+        "lean_and_translation": "SocomTestPlayer"
+      }
+    },
+    {
+      "file": "ledge_climb.json",
+      "feature_id": "ledge_climb",
+      "player_intent": "Jump to reachable ledges, hang and pull up, climb ladders and hold Jump to slide down.",
+      "acceptance_rule": "Jump taps and held Jump grab into hang first. Release forward then W climbs; S drops; A/D shimmy at saved speed and stop before unsupported edges or blocked space. Jump plus forward also climbs. Pull-up excludes terminal closure and exits once complete. Thin static awnings use top-down face detection. Reach has 1 mm numerical tolerance; slope, support, clearance and opt-out checks remain. Existing ladder controls and serialized traversal context remain intact. CharacterBody alone moves the player.",
+      "proof_scripts": [
+        "res://tools/ledge_climb_regression.gd",
+        "res://tools/agls_auto_vault_regression.gd",
+        "res://tools/traversal_contract_regression.gd",
+        "res://tools/network_prediction_regression.gd"
+      ],
+      "ownership": {
+        "movement_collision": "SocomTestPlayer",
+        "presentation": "SocomOperatorAnimationDriver"
+      }
+    },
+    {
+      "file": "lobby_replication_arena_boundaries.json",
+      "feature_id": "lobby_replication_arena_boundaries",
+      "player_intent": "Maintainable lobby, replication and arena planning without changing gameplay.",
+      "acceptance_rule": "Standard and tournament countdowns share one decision policy; snapshot packaging and arena roster/deployment planning have independent consumers.",
+      "proof_scripts": [
+        "res://tools/lobby_replication_arena_regression.gd",
+        "res://tools/tournament_replication_scope_regression.gd",
+        "res://tools/tournament_session_regression.gd",
+        "res://tools/tournament_map_pods_regression.gd",
+        "res://tools/lobby_warmup_regression.gd",
+        "res://tools/multiplayer_slice_architecture_regression.gd"
+      ],
+      "ownership": {
+        "lobby_countdown": "SocomLobbyCountdownPolicy",
+        "snapshot_encoding": "SocomSnapshotEncoder",
+        "arena_planning": "SocomArenaRuntimePlan"
+      }
+    },
+    {
+      "file": "local_snapshot_smoothing.json",
+      "feature_id": "local_snapshot_smoothing",
+      "player_intent": "Avoid packet-arrival jolts while retaining authoritative position correction.",
+      "acceptance_rule": "Small corrections queue into CharacterBody physics; large errors snap; health remains server controlled.",
+      "proof_scripts": [
+        "res://tools/local_snapshot_smoothing_regression.gd"
+      ],
+      "ownership": {
+        "movement": "SocomNetworkOperator CharacterBody3D"
+      }
+    },
+    {
+      "file": "locomotion_playback_cadence.json",
+      "feature_id": "locomotion_playback_cadence",
+      "player_intent": "Run, crouch movement, and prone movement animate at a calmer, less visually fatiguing cadence without slowing the player's movement.",
+      "acceptance_rule": "The saved canonical locomotion profile applies a 0.80 visual playback scale to standing, crouched, and prone AnimationTree time-scale nodes while CharacterBody3D movement-speed values remain unchanged.",
+      "proof_scripts": [
+        "res://tools/locomotion_playback_cadence_regression.gd",
+        "res://tools/operator_animation_regression.gd",
+        "res://tools/hybrid_locomotion_action_regression.gd",
+        "res://tools/feature_contract_regression.gd"
+      ],
+      "ownership": {
+        "locomotion_animation_playback_rate": "SocomOperatorAnimationProfile",
+        "locomotion_animation_time_scale_consumer": "SocomOperatorLocomotionBlendTree"
+      }
+    },
+    {
+      "file": "long_gun_projectiles_and_contacts.json",
+      "feature_id": "long_gun_projectiles_and_contacts",
+      "player_intent": "Shotguns fire spread pellets; Breach-12 deals 13 base damage per pellet (104 for eight before modifiers). Shotguns, snipers and machine guns use the existing clean ready/fire hand contacts.",
+      "acceptance_rule": "Both authoritative consumers process eight shotgun projectiles per single-shell acceptance, deterministic dispersion remains at rest, range falloff is saved, profile-specific shotgun/sniper cadence and long-gun reload duration reach canonical and multiplayer consumers, and all additional model categories pass standing and crouched contact tests.",
+      "proof_scripts": [
+        "res://tools/long_gun_timing_regression.gd",
+        "res://tools/browser_training_entry_regression.gd",
+        "res://tools/shotgun_projectile_regression.gd",
+        "res://tools/firearm_family_live_contact_regression.gd",
+        "res://tools/lobby_warmup_regression.gd",
+        "res://tools/feature_contract_regression.gd"
+      ],
+      "ownership": {
+        "practice_lifecycle": "SocomMultiplayerWarmup",
+        "movement": "CharacterBody3D",
+        "aim": "SocomCameraRig",
+        "shot_damage": "AuthoritativeServerWeapon",
+        "weapon_presentation": "GunsLab2VisualRigResolver"
+      }
+    },
+    {
+      "file": "m4a1_photoreal_asset.json",
+      "feature_id": "m4a1_photoreal_asset",
+      "player_intent": "Equipping the M4A1 in SOCOM-141 renders the photoreal potato HD M4A1 model with authentic CoD4-style PBR textures, quad-rail handguard, collapsible waffle stock, and peep-sight optics while maintaining 100% parity with canonical weapon sockets, ballistics, and motion boundaries.",
+      "acceptance_rule": "The M4A1 potato photoreal asset loads cleanly with under 7,000 triangles, 11 canonical bones matching the AGLS v9 coordinate contract, support-hand foregrip IK contact within 3 cm, 1.2-second fire recovery, and zero drift across CharacterBody3D, SOCOMCamera, and server weapon damage authority.",
+      "proof_scripts": [
+        "res://tools/m4a1_photoreal_potato_regression.gd",
+        "res://tools/m4a1_agls_vertical_slice_regression.gd",
+        "res://tools/feature_contract_regression.gd"
+      ],
+      "ownership": {
+        "authorized_weapon_handoff": "SocomOperatorWeaponEquipmentRuntime",
+        "weapon_model_and_socket_instantiation": "SocomOperatorAssetRuntime",
+        "weapon_root_transform": "TriggerHandBoneAttachment3D",
+        "support_hand_contact": "SocomOperatorWeaponPose",
+        "accepted_shot_and_damage": "AuthoritativeServerWeapon",
+        "aim_intent_and_reticle": "SOCOMCameraReticleChain"
+      }
+    },
+    {
+      "file": "mark_23_pistol_equipment.json",
+      "feature_id": "mark_23_pistol_equipment",
+      "player_intent": "The purchased Mark 23 appears as a human-scale two-hand pistol and remains in the pistol family through standing, movement, crouch, accepted-shot recovery, dive, and return.",
+      "acceptance_rule": "The canonical Mark 23 profile renders Pistol_2 at 0.20-0.25 meters, provides authored grip and bore sockets, resolves as TWO_HAND_PISTOL, uses pistol idle and locomotion clips, and routes standing and crouched FIRE_ACCEPTED to the pistol recoil layer for the existing 1.2-second recovery. Equipment replacement clears the previous weapon's fire, frame-socket, stock, and IK solver presentation state without changing locomotion, dive/roll, reload, camera/reticle aim, or authoritative shot and damage owners.",
+      "proof_scripts": [
+        "res://tools/mark_23_equipment_regression.gd",
+        "res://tools/feature_contract_regression.gd"
+      ],
+      "ownership": {
+        "weapon_equipment_presentation": "SocomOperatorWeaponEquipmentRuntime",
+        "saved_mark_23_visual_contract": "GunsmithWeaponProfileRepository",
+        "pistol_family_animation_routes": "SocomOperatorAnimationProfile",
+        "movement_and_collision": "CharacterBody3D",
+        "aim_intent": "SOCOMCameraReticleChain",
+        "shot_and_damage": "AuthoritativeServerWeapon"
+      }
+    },
+    {
+      "file": "matchmaking_front_door_shared_lobby.json",
+      "feature_id": "matchmaking_front_door_shared_lobby",
+      "player_intent": "A browser player clicks one tournament action without typing an address, while native development builds retain server browsing and private-host tools.",
+      "acceptance_rule": "Browser Quick Match enters automatic WebRTC tournament signaling and the canonical multiplayer scene without exposing Browse Servers, private host, or manual join. Native Quick Match and Browse Servers retain public SELECT-only directory discovery. The launcher owns navigation only and contains no local lobby state; duo selection and Green Up remain peer-1 validated and replicated through SocomLobbyState.",
+      "proof_scripts": [
+        "res://tools/matchmaking_launcher_regression.gd",
+        "res://tools/matchmaking_directory_client_regression.gd",
+        "res://tools/lobby_pair_selection_regression.gd",
+        "res://tools/restricted_web_launcher_regression.gd",
+        "res://tools/multiplayer_slice_architecture_regression.gd",
+        "res://tools/feature_contract_regression.gd"
+      ],
+      "ownership": {
+        "launcher_navigation_and_server_list_presentation": "SocomGameLauncher",
+        "public_read_only_server_discovery": "SocomMatchmakingDirectoryClient",
+        "network_connection_and_lobby_state": "SocomMultiplayerSession",
+        "duo_assignment_validation": "SocomLobbyState",
+        "dedicated_server_presence_publication": "SocomServerBackend"
+      }
+    },
+    {
+      "file": "mixed_weapon_roster.json",
+      "feature_id": "mixed_weapon_roster",
+      "player_intent": "Retain existing weapons and add clearly labeled SOCOM II prototype profiles in the shared schema.",
+      "acceptance_rule": "Three prototype shotguns resolve through training and Gunsmith to the same canonical profiles, preserve source metadata, and remain outside random tournament selection.",
+      "proof_scripts": [
+        "res://tools/mixed_weapon_roster_regression.gd",
+        "res://tools/gunsmith_recom_catalog_regression.gd",
+        "res://tools/shotgun_projectile_regression.gd"
+      ],
+      "ownership": {
+        "catalog": "SocomWeaponCatalog",
+        "profile_storage": "GunsmithWeaponProfileRepository",
+        "shot_damage": "AuthoritativeServerWeapon"
+      }
+    },
+    {
+      "file": "mobility_fire_lock.json",
+      "feature_id": "mobility_fire_lock",
+      "player_intent": "Slides and dives are committed evasive movement, never a firing stance.",
+      "acceptance_rule": "Every slide and dive rejects firing for the full active mobility action on local, browser-client, and authoritative-server paths without consuming ammunition. The existing slide-to-crouch movement handoff remains unchanged; once movement resumes, the normal movement-spread owner opens the reticle and firing resumes only after the mobility action ends.",
+      "proof_scripts": [
+        "res://tools/mobility_fire_lock_regression.gd",
+        "res://tools/mobility_movement_handoff_regression.gd"
+      ],
+      "ownership": {
+        "committed_mobility_state": "SocomTestPlayer",
+        "offline_shot": "SocomWeaponController",
+        "network_shot": "SocomMultiplayerSession"
+      }
+    },
+    {
+      "file": "mobility_movement_handoff.json",
+      "feature_id": "mobility_movement_handoff",
+      "player_intent": "Immediate crouch response and no dead tick after completed mobility animations.",
+      "acceptance_rule": "Grounded slide with held movement exits into crouch after the shared 0.75-second unlock, preserving a fresh perpendicular double-tap edge. No-input and prone-requested slides retain the original finish. Completion tick consumes held movement; crouch starts/stops/reverses immediately. Side rest/get-up and authored clip durations remain unchanged.",
+      "proof_scripts": [
+        "res://tools/mobility_movement_handoff_regression.gd",
+        "res://tools/jump_direction_combo_regression.gd",
+        "res://tools/diagonal_mobility_regression.gd",
+        "res://tools/network_prediction_regression.gd"
+      ],
+      "ownership": {
+        "movement_collision": "SocomTestPlayer"
+      }
+    },
+    {
+      "file": "modular_operator_player.json",
+      "feature_id": "modular_operator_player",
+      "player_intent": "The player moves with decoupled 8-way strafe locomotion and stance transitions while the upper body can inject Rifle, Pistol, or Unarmed weapon trees.",
+      "acceptance_rule": "The modular player instantiates with dedicated lower-body locomotion and injectable upper-body weapon modes, aiming through the 4-handle TargetPivot IK.",
+      "proof_scripts": [
+        "res://tools/modular_operator_player_regression.gd"
+      ],
+      "ownership": {
+        "movement": "ModularOperatorController",
+        "aim_intent": "TargetPivot"
+      }
+    },
+    {
+      "file": "morro_do_sol_v2_art_direction.json",
+      "feature_id": "morro_do_sol_v2_art_direction",
+      "player_intent": "Players fight the proven Morro do Sol 2v2 demolition layout inside a richer original hillside neighborhood whose foreground reads as constructed architecture, with supplied damaged-plaster and exposed-wood materials, complete glass-and-sash windows, climbable crate staging, supported ramps to both objective-side roofs, smaller occupied buildings stacked above them, monumental clouds, overhead utility lines, dense edge vegetation, and a distant coast.",
+      "acceptance_rule": "The launcher lists Morro do Sol V1 and V2 separately. V2 preserves every V1 object and every pre-existing V2 non-building transform; replaces the thirty-six disconnected building shell pieces with six base procedural assemblies at the original footprints plus two smaller occupied upper modules; consumes the supplied plaster and wood textures on canonical runtime meshes; constructs glass, sash, mullions, shutters, and bars at every authored window; retains two Alpha spawns, two Bravo spawns, one bomb, A/B sites, the six pre-existing ramps, tall interiors, and no respawns; adds exactly 18 collidable V2 roof-route objects comprising four ramps, two supported landings, four posts, six climb crates, and two upper modules; keeps exactly 51 collision-free tagged art objects and 138 saved objects total; and loads visibly through res://main.tscn.",
+      "proof_scripts": [
+        "res://tools/morro_do_sol_v2_2v2_regression.gd",
+        "res://tools/feature_contract_regression.gd"
+      ],
+      "ownership": {
+        "map_data_and_library_selection": "SocomMapDocument",
+        "world_geometry_and_collision": "SocomMapRuntime",
+        "sky_lighting_coast_and_fog": "SocomMapAmbienceEngine",
+        "demolition_markers_and_rules": "SocomMapGameplayContract"
+      }
+    },
+    {
+      "file": "mouse_string_guide_visibility.json",
+      "feature_id": "mouse_string_guide_visibility",
+      "player_intent": "Mouse aim string stays active; M only shows or hides its guide.",
+      "acceptance_rule": "M press toggles guide visibility without changing aim mode, angles, destination or offset; hidden aim continues updating and key repeats do not toggle.",
+      "proof_scripts": [
+        "res://tools/mouse_aim_string_regression.gd",
+        "res://tools/input_device_ownership_regression.gd"
+      ],
+      "ownership": {
+        "input_and_aim": "SocomCameraRig",
+        "guide_drawing": "SocomMouseAimStringGuide"
+      }
+    },
+    {
+      "file": "multiplayer_component_boundaries.json",
+      "feature_id": "multiplayer_component_boundaries",
+      "player_intent": "Maintainable multiplayer without changing movement, weapon balance or match rules.",
+      "acceptance_rule": "Connection candidates, round decisions, queued combat intents and shot effects have explicit independent components consumed by the canonical match coordinator.",
+      "proof_scripts": [
+        "res://tools/shot_presentation_component_regression.gd",
+        "res://tools/multiplayer_components_regression.gd",
+        "res://tools/multiplayer_slice_architecture_regression.gd",
+        "res://tools/server_reload_rpc_regression.gd",
+        "res://tools/dedicated_reload_regression.gd",
+        "res://tools/lobby_warmup_regression.gd",
+        "res://tools/acoustic_propagation_regression.gd"
+      ],
+      "ownership": {
+        "transport_candidates": "SocomTransportFactory",
+        "round_decisions": "SocomRoundPolicy",
+        "combat_intent_queue": "SocomCombatCommandQueue",
+        "shot_effects": "SocomShotPresentation"
+      }
+    },
+    {
+      "file": "native_ik_weapon_holding.json",
+      "feature_id": "native_ik_weapon_holding",
+      "player_intent": "The operator holds the equipped firearm naturally with both hands; the right hand grips the pistol grip, the left hand cups the foregrip without floating or clipping, and elbows bend anatomically during idle, movement, aiming, and firing.",
+      "acceptance_rule": "The canonical player loads the standard 68-bone humanoid skeleton with native TwoBoneIK3D support-hand solving to the weapon-local foregrip target and UpperChest elbow pole; trigger and foregrip contact errors remain within 0.5 cm, elbow angles remain within 30 to 160 degrees, and upper-body combat fire and reload one-shots blend over moving legs.",
+      "proof_scripts": [
+        "res://tools/native_ik_socom_player_regression.gd",
+        "res://tools/native_ik_gold_standard_live_regression.gd",
+        "res://tools/feature_contract_regression.gd"
+      ],
+      "ownership": {
+        "operator_presentation": "SocomNativeIKPlayerController",
+        "locomotion_and_collision": "CharacterBody3D",
+        "aim_intent": "SOCOMCameraReticleChain",
+        "shot_and_damage": "AuthoritativeServerWeapon"
+      }
+    },
+    {
+      "file": "network_gameplay_parity.json",
+      "feature_id": "network_gameplay_parity",
+      "player_intent": "Use main.tscn's actual character/camera scenes, weapon input rules, recoil and locomotion online.",
+      "acceptance_rule": "Canonical scene/tuning, all 12 public weapon modes and HUD state match; acknowledged past movement does not pull current movement backward; real errors still correct; remote aim/dive works without a camera; local recoil/sound happens once immediately while only server events confirm damage and impacts.",
+      "proof_scripts": [
+        "res://tools/network_fire_mode_parity_regression.gd",
+        "res://tools/network_prediction_regression.gd",
+        "res://tools/network_remote_animation_intent_regression.gd",
+        "res://tools/network_shot_feedback_regression.gd",
+        "res://tools/network_canonical_tuning_regression.gd",
+        "res://tools/network_operator_animation_regression.gd",
+        "res://tools/render_dedicated_server_deployment_regression.gd"
+      ],
+      "ownership": {
+        "character_motion": "SocomTestPlayer / SocomNetworkOperator",
+        "trigger_gate": "SocomWeaponFireModePolicy",
+        "shot_damage": "server weapon",
+        "animation": "SocomTestMannequin / SocomOperatorAnimationDriver"
+      }
+    },
+    {
+      "file": "network_map_transport_capacity.json",
+      "feature_id": "network_map_transport_capacity",
+      "player_intent": "Online players receive the same map as the authoritative match instead of silently losing its admission payload.",
+      "acceptance_rule": "Both WebSocket endpoints use bounded shared capacities before connection. The normalized deployed Relic Depot map survives an actual loopback transport byte-for-byte.",
+      "proof_scripts": [
+        "res://tools/network_map_transport_regression.gd"
+      ],
+      "ownership": {
+        "transport_capacity": "SocomTransportFactory",
+        "session_installation": "SocomMultiplayerSlice"
+      }
+    },
+    {
+      "file": "network_movement_delivery.json",
+      "feature_id": "network_movement_delivery",
+      "player_intent": "Current local movement actions survive short packet-loss bursts and remote animation time advances smoothly.",
+      "acceptance_rule": "540 commands including crouch and double taps arrive once in order through injected loss/jitter; authoritative state matches each input tick. History is bounded to 352 bytes; malformed histories fail closed and respawn clears outgoing history. Remote action clocks interpolate without inventing get-up.",
+      "proof_scripts": [
+        "res://tools/network_movement_loss_regression.gd",
+        "res://tools/network_prediction_regression.gd",
+        "res://tools/multiplayer_lifecycle_probe.gd"
+      ],
+      "ownership": {
+        "delivery": "SocomMovementDelivery",
+        "movement": "SocomTestPlayer",
+        "remote_presentation": "SocomNetworkOperator"
+      }
+    },
+    {
+      "file": "network_operator_animation_parity.json",
+      "feature_id": "network_operator_animation_parity",
+      "player_intent": "Multiplayer characters use the canonical movement, local appearance, saved tuning, fire recoil and recovery presentation.",
+      "acceptance_rule": "Standing and crouched network actors animate their legs; each accepted shot triggers one canonical recoil and 1.2-second recovery; held/released fire reaches the shared driver. Real main.tscn and network actors match their movement, camera profile, animation timing, scale and local cloth color. The initial lobby snapshot releases camera mouse capture, and disabled gameplay input cannot submit fire.",
+      "proof_scripts": [
+        "res://tools/network_operator_animation_regression.gd",
+        "res://tools/network_canonical_tuning_regression.gd"
+      ],
+      "ownership": {
+        "character_presentation": "SocomOperatorAnimationDriver",
+        "saved_operator_tuning": "SocomOperatorTuningProfile",
+        "cloth_color": "SocomOperatorTeamAppearance"
+      }
+    },
+    {
+      "file": "network_weapon_name_parity.json",
+      "feature_id": "network_weapon_name_parity",
+      "player_intent": "Online play displays the same weapon codenames as canonical solo play.",
+      "acceptance_rule": "Every public weapon displays its shared normalized name immediately after a round assignment or warm-up selection, including in the exported package. Explicit published visual rigs must resolve without fallback and each selected model must load as a PackedScene.",
+      "proof_scripts": [
+        "res://tools/network_weapon_names_regression.gd"
+      ],
+      "ownership": {
+        "weapon_identity": "SocomWeaponCatalog",
+        "multiplayer_hud": "SocomMultiplayerHUD"
+      }
+    },
+    {
+      "file": "new_ik_reference_lab.json",
+      "feature_id": "new_ik_reference_lab",
+      "player_intent": "Inspect and tune the purchased New IK character, AnimationTree, weapon contacts, and native modifiers in one isolated Godot lab.",
+      "acceptance_rule": "The Studio selector opens a separate lab whose live player contains the purchased 68-bone skeleton, visible AnimationTree, block-gun contact rig, TargetPivot controls, and native IK modifier stack; accepted combat fire and standing reload run as upper-body OneShots while locomotion continues and combat fire preserves two-hand gun placement.",
+      "proof_scripts": [
+        "res://tools/native_ik_socom_player_regression.gd",
+        "res://tools/native_ik_lab_visual_proof.gd",
+        "res://tools/studio_navigation_regression.gd"
+      ],
+      "ownership": {
+        "reference_lab_presentation": "SocomNativeIKPlayerController"
+      }
+    },
+    {
+      "file": "operator_death_presentation.json",
+      "feature_id": "operator_death_presentation",
+      "player_intent": "At zero health, visibly fall once and hold the final pose until respawn.",
+      "acceptance_rule": "Nonlethal damage keeps living animation. Lethal server health shows a visible death clip, repeated dead snapshots do not restart it, movement and fire remain blocked, hurtboxes stay off, respawn restores living presentation. Round-deactivated reserves remain hidden.",
+      "proof_scripts": [
+        "res://tools/operator_death_regression.gd"
+      ],
+      "ownership": {
+        "death_authority": "SocomNetworkOperator",
+        "animation": "SocomOperatorAnimationDriver",
+        "local_health": "SocomTestPlayer",
+        "local_fire_admission": "SocomWeaponController"
+      }
+    },
+    {
+      "file": "operator_stair_foot_grounding.json",
+      "feature_id": "operator_stair_foot_grounding",
+      "player_intent": "Standing and crouched operators place each boot on the current stair tread without changing their weapon, shoulders, camera, or authoritative movement.",
+      "acceptance_rule": "Two ground rays may drive only the left and right upper-leg, knee, and foot bones during ordinary grounded standing or crouched movement; fire recovery, reload, prone, airborne, and mobility actions disable the pass, while CharacterBody transform and velocity and every upper-body bone remain unchanged.",
+      "proof_scripts": [
+        "res://tools/operator_stair_foot_grounding_regression.gd",
+        "res://tools/operator_stair_foot_grounding_visual_check.gd",
+        "res://tools/weapon_hand_detach_regression.gd",
+        "res://tools/weapon_fire_regression.gd",
+        "res://tools/operator_pose_pipeline_regression.gd",
+        "res://tools/mobility_regression.gd"
+      ],
+      "ownership": {
+        "stair_foot_presentation": "SocomOperatorFootContactLock",
+        "leg_pose_write": "SocomOperatorFootGroundingModifier",
+        "movement_and_collision": "SocomTestPlayer",
+        "aim_intent": "SOCOMCameraReticleChain",
+        "shot_and_damage": "AuthoritativeServerWeapon"
+      }
+    },
+    {
+      "file": "original_blue_green_operators.json",
+      "feature_id": "original_blue_green_operators",
+      "player_intent": "Original operator rig in blue and green for opposing teams.",
+      "acceptance_rule": "Original operator rig in blue and green for opposing teams. Focused tests and rendered checks must pass.",
+      "proof_scripts": [
+        "res://tools/blue_green_operator_regression.gd",
+        "res://tools/firearm_family_live_contact_regression.gd"
+      ],
+      "ownership": {
+        "feature": "SocomOperatorAssetRuntime"
+      }
+    },
+    {
+      "file": "painterly_coastal_village_2v2.json",
+      "feature_id": "painterly_coastal_village_2v2",
+      "player_intent": "Players fight compact 2v2 demolition rounds in a readable fictional Brazilian hillside neighborhood with expressive painted clouds, stacked masonry homes, high interiors, ramp streets, roof terraces, short tactical rotations, and a distant beach-and-ocean horizon outside the playable village.",
+      "acceptance_rule": "The launcher lists Morro do Sol as a separate map. Selecting it causes res://main.tscn to load exactly two Alpha spawns, two Bravo spawns, one bomb pickup, A and B plant sites, at least two entrances per site building, 4.1\u20134.8 meter primary interiors, at least six traversable ramps, ground/middle/roof elevation tiers, real compound collision, bounded hard cover, the painterly coastal sky, painterly building materials, and one collision-free distant coastal ambience card beyond the south boundary. Demolition has no respawns and does not modify player, camera, weapon, animation, damage, or networking owners.",
+      "proof_scripts": [
+        "res://tools/painterly_village_2v2_regression.gd",
+        "res://tools/feature_contract_regression.gd"
+      ],
+      "ownership": {
+        "map_data_and_library_selection": "SocomMapDocument",
+        "world_geometry_and_collision": "SocomMapRuntime",
+        "sky_lighting_and_fog": "SocomMapAmbienceEngine",
+        "demolition_markers_and_rules": "SocomMapGameplayContract"
+      }
+    },
+    {
+      "file": "pistol_carry_contact_and_pose_boundaries.json",
+      "feature_id": "pistol_carry_contact_and_pose_boundaries",
+      "player_intent": "Keep both palms on the pistol through movement entry and split remaining oversized presentation coordinators without changing gameplay.",
+      "acceptance_rule": "All nine original coordinators satisfy unchanged budgets; physical pistol contacts stay within 1 cm and the support target remains current after movement frames; established aim/idle/reload/locomotion gates pass.",
+      "proof_scripts": [
+        "res://tools/pistol_movement_contact_probe.gd",
+        "res://tools/pistol_standing_movement_placement_regression.gd",
+        "res://tools/pistol_compressed_idle_regression.gd",
+        "res://tools/directional_locomotion_phase_regression.gd",
+        "res://tools/construction_boundary_regression.gd",
+        "res://tools/god_file_budget_regression.gd"
+      ],
+      "ownership": {
+        "weapon_mutation": "SocomOperatorWeaponPresentationOwner",
+        "pose_state": "existing operator_weapon_pose_solver node",
+        "locomotion_state": "SocomOperatorLocomotionBlendTree"
+      }
+    },
+    {
+      "file": "pistol_compressed_idle.json",
+      "feature_id": "pistol_compressed_idle",
+      "player_intent": "Mark 23 idle keeps the accepted forward, square-shouldered firing shape with both hands closer to the chest. An accepted shot extends the same shape, holds for the existing 1.2 seconds, then returns smoothly to compressed idle.",
+      "acceptance_rule": "Standing and crouched canonical Mark 23 use distinct native compressed-idle and recovery-reference clips. Idle hands are centered and at least 5 cm closer to the chest than ready; physical hand contacts remain within 1 cm through entry and return; no extra fire OneShot or recovery timer is introduced. At fixed 60 Hz, ready-to-move, moving-recovery-to-stop and rapid-reversal firing boundaries must remain within 3.5 cm and 6 degrees per frame, with both contacts within 1 cm. Ordinary relaxed locomotion is diagnostic only. Opted-in local muzzle light and smoke follow the presented muzzle after pose evaluation; tracer endpoints and accepted shot data remain unchanged. All required focused checks and rendered review must pass before claiming visual completion.",
+      "proof_scripts": [
+        "res://tools/pistol_compressed_idle_regression.gd",
+        "res://tools/pistol_presented_muzzle_effect_regression.gd",
+        "res://tools/pistol_compressed_movement_source_regression.gd",
+        "res://tools/pistol_stationary_blend_weight_regression.gd",
+        "res://tools/pistol_compressed_movement_visual_probe.gd",
+        "res://tools/pistol_distinct_ready_slots_regression.gd",
+        "res://tools/feature_contract_regression.gd"
+      ],
+      "ownership": {
+        "shared_weapon_animation_slots": "SocomWeaponAnimationProfile",
+        "authored_pose_blending": "SocomOperatorLocomotionBlendTree",
+        "post_animation_posture": "SocomOperatorPostureLayer, invoked only by SocomOperatorAnimationDriver",
+        "accepted_fire_recovery_selection": "SocomOperatorFireUpperBodyLatch",
+        "local_muzzle_effect_presentation": "LabLeakTracerSystem"
+      }
+    },
+    {
+      "file": "pistol_distinct_idle_ready_slots.json",
+      "feature_id": "pistol_distinct_idle_ready_slots",
+      "player_intent": "An equipped pistol can use a centered low/chest idle separately from its forward firing pose, hold the firing pose for the existing 1.2 seconds, and return to idle.",
+      "acceptance_rule": "The canonical graph and ready-frame sampling consume optional ready_standing and ready_crouched independently from idle slots. Absent standing-ready preserves the configured idle fallback. Gunsmith previews the same ready slots persistently through READY_SOLVER. An accepted shot selects recovery without a fire OneShot and returns to the idle slot after its existing grace period. This contract proves routing, not the visual quality of any assigned clip.",
+      "proof_scripts": [
+        "res://tools/pistol_distinct_ready_slots_regression.gd",
+        "res://tools/feature_contract_regression.gd"
+      ],
+      "ownership": {
+        "animation_slot_contract": "SocomWeaponAnimationProfile",
+        "animation_graph": "SocomOperatorLocomotionBlendTree",
+        "recovery_selection": "SocomOperatorFireUpperBodyLatch"
+      }
+    },
+    {
+      "file": "pistol_family_idle_parity.json",
+      "feature_id": "pistol_family_idle_parity",
+      "player_intent": "Every pistol rests forward close to the chest like the accepted Mark23 instead of leaning left.",
+      "acceptance_rule": "All eight catalog pistols consume the authored stationary idle/recovery pair, return after the unchanged 1.2 second hold, keep physical contacts within 1 cm, and retain moving-source slots and model dimensions.",
+      "proof_scripts": [
+        "res://tools/pistol_family_idle_parity_regression.gd",
+        "res://tools/firearm_family_live_contact_regression.gd"
+      ],
+      "ownership": {
+        "animation_presentation": "OperatorAnimationDriver",
+        "saved_visual_resolution": "GunsLab2VisualRigResolver"
+      }
+    },
+    {
+      "file": "pistol_hybrid_main.json",
+      "feature_id": "pistol_hybrid_main",
+      "player_intent": "SEAL movement in the normal game, with pistol-specific legacy torso/arms and corrected physical hand fitting.",
+      "acceptance_rule": "Normal saved animation map activates hybrid for all nine normalized pistols; upper mask excludes hips/legs; rifle re-equip removes fallback. Canonical movement/shot/idle contact and aim tests pass.",
+      "proof_scripts": [
+        "res://tools/pistol_hybrid_main_regression.gd",
+        "res://tools/seal_locomotion_visual_probe.gd"
+      ],
+      "ownership": {
+        "animation": "SocomOperatorAnimationDriver",
+        "posture": "SocomOperatorPostureLayer",
+        "weapon_presentation": "WeaponPoseSolver"
+      }
+    },
+    {
+      "file": "pistol_standing_movement_placement.json",
+      "feature_id": "pistol_standing_movement_placement",
+      "player_intent": "Standing Mark 23 movement uses the accepted crouch-moving upper-body pistol placement, before and after firing.",
+      "acceptance_rule": "NOT IMPLEMENTED: rejected candidates must not remain enabled. Future standing upper-body reuse must retain standing hips/legs and physical hand contacts within 1 cm throughout movement entry and firing, with rendered review. The diagnostic currently fails on existing entry contact errors as well as rejected candidates; this feature is not complete.",
+      "proof_scripts": [
+        "res://tools/pistol_compressed_movement_source_regression.gd",
+        "res://tools/pistol_compressed_idle_regression.gd",
+        "res://tools/pistol_standing_movement_placement_regression.gd"
+      ],
+      "ownership": {
+        "animation_presentation": "SocomOperatorLocomotionBlendTree"
+      }
+    },
+    {
+      "file": "player_hosted_private_match.json",
+      "feature_id": "native_player_hosted_private_match",
+      "player_intent": "A native development player can host a private test match while the public browser remains dedicated to the 32-player WebRTC tournament and global leaderboard.",
+      "acceptance_rule": "The native launcher exposes Host Private Match and enters the canonical ENet listen-server path. The restricted browser exposes no private host, room code, manual address, or standalone 2v2 action. Native peer 1 remains authoritative for lobby, shots, damage, and rounds without a Supabase server secret.",
+      "proof_scripts": [
+        "res://tools/player_hosted_private_match_regression.gd",
+        "res://tools/restricted_web_launcher_regression.gd",
+        "res://tools/browser_tournament_front_door_regression.gd",
+        "res://tools/multiplayer_slice_regression.gd",
+        "res://tools/feature_contract_regression.gd"
+      ],
+      "ownership": {
+        "native_host_intent": "SocomGameLauncher",
+        "network_peer_and_lobby_authority": "SocomMultiplayerSession",
+        "shot_and_damage_authority": "AuthoritativeServerWeapon"
+      }
+    },
+    {
+      "file": "private_server_boundary.json",
+      "feature_id": "private_server_boundary",
+      "player_intent": "Do not download privileged persistence implementation in the browser.",
+      "acceptance_rule": "Actual web PCK excludes backend and outbox scripts; native service construction still passes.",
+      "proof_scripts": [
+        "res://tools/private_server_boundary_regression.gd",
+        "res://tools/web_release_audit.gd"
+      ],
+      "ownership": {
+        "private_service_loading": "Existing multiplayer session"
+      }
+    },
+    {
+      "file": "ps1_dual_source_rig.json",
+      "feature_id": "ps1_dual_source_rig",
+      "player_intent": "One PS1 character supports Mixamo and retargeted AGLS animation with deforming fingers.",
+      "acceptance_rule": "Canonical player and fallback loader use the 65-bone authored asset; original body and wrist rests remain within 1mm and 0.1 degrees; all new finger segments have mesh weights; both source clips animate through the runtime adapter; canonical animation and movement pass. Weapon-pose failures must be compared against the untouched original rig and no new failures accepted.",
+      "proof_scripts": [
+        "res://tools/ps1_dual_source_rig_regression.gd",
+        "res://tools/operator_animation_regression.gd",
+        "res://tools/operator_weapon_pose_regression.gd"
+      ],
+      "ownership": {
+        "character_asset": "SocomOperatorAssetRuntime",
+        "animation_presentation": "SocomOperatorAnimationDriver"
+      }
+    },
+    {
+      "file": "ranked_authority_security.json",
+      "feature_id": "ranked_authority_security",
+      "player_intent": "Only trusted dedicated servers can publish persistent competitive results; players may edit names but not rankings.",
+      "acceptance_rule": "Migration narrows profile columns and protects result tables; browser and non-dedicated delivery are fenced. Live database role tests are required before production claims.",
+      "proof_scripts": [
+        "res://tools/ranked_authority_security_regression.gd",
+        "res://tools/tournament_event_delivery_regression.gd"
+      ],
+      "ownership": {
+        "ranked_storage": "PostgreSQL grants and RLS",
+        "result_delivery": "SocomServerBackend"
+      }
+    },
+    {
+      "file": "rapid_tap_bloom.json",
+      "feature_id": "rapid_tap_bloom",
+      "player_intent": "Rapid single-fire clicking must accumulate bloom rather than reset opening-shot accuracy.",
+      "acceptance_rule": "Accepted rapid taps retain shot history and gain capped spread from shot three; local/server recovery is identical; a quiet period then full recovery restores accuracy and closes the canonical reticle.",
+      "proof_scripts": [
+        "res://tools/rapid_tap_bloom_regression.gd",
+        "res://tools/rapid_tap_bloom_live_regression.gd",
+        "res://tools/weapon_stance_bloom_regression.gd",
+        "res://tools/weapon_fire_mode_policy_regression.gd",
+        "res://tools/operator_composure_regression.gd"
+      ],
+      "ownership": {
+        "shot_accuracy": "SocomWeaponBallistics"
+      }
+    },
+    {
+      "file": "relic_depot_and_nvg_operator.json",
+      "feature_id": "relic_depot_and_nvg_operator",
+      "player_intent": "Play a worn tropical freight depot using the supplied props and ORIGINAL character in black, green, blue or white; the NVG replacement was rejected.",
+      "acceptance_rule": "Map library selects Relic Depot and main.tscn consumes that document; all props load, spawns and flank route are clear; original visible character and 65-bone runtime rig remain, with four cloth colors and the canonical equipped weapon.",
+      "proof_scripts": [
+        "res://tools/relic_depot_regression.gd",
+        "res://tools/blue_green_operator_regression.gd",
+        "res://tools/map_creation_lab_regression.gd",
+        "res://tools/operator_palette_regression.gd"
+      ],
+      "ownership": {
+        "map_geometry": "SocomMapRuntime",
+        "character_asset_binding": "SocomOperatorAssetRuntime",
+        "active_world_selection": "SocomMainTrainingWorld"
+      }
+    },
+    {
+      "file": "reload_stance_blend.json",
+      "feature_id": "reload_stance_blend",
+      "player_intent": "Keep prone firing arms stable and smoothly change reload presentation when rising to crouch without restarting ammunition timing.",
+      "acceptance_rule": "The existing animation tree blends to the equipped weapon's current-stance reload at the accepted reload's normalized progress in 0.32 seconds, with the base hip route using at least that duration. The original action, duration and ammunition commit remain unchanged. Prone fire does not overwrite planted arm and forearm tracks.",
+      "proof_scripts": [
+        "res://tools/prone_reload_transition_smoothing_regression.gd",
+        "res://tools/gameplay_reload_completion_regression.gd",
+        "res://tools/seal_combat_pose_regression.gd"
+      ],
+      "ownership": {
+        "animation": "OperatorAnimationTree"
+      }
+    },
+    {
+      "file": "reload_trigger_attachment.json",
+      "feature_id": "reload_trigger_attachment",
+      "player_intent": "Keep the reload weapon physically attached to the authored trigger hand and visually controlled through stance changes without changing reload mechanics.",
+      "acceptance_rule": "Actual trigger contact stays within ten millimeters through reload, interrupt and completion in all three postures. A prone reload can move through crouch and back on one uninterrupted playhead without a rifle rotation step above twelve degrees or an upward barrel takeover, while existing ammunition, timing and action ownership remain intact.",
+      "proof_scripts": [
+        "res://tools/reload_trigger_attachment_regression.gd",
+        "res://tools/reload_evaluated_source_regression.gd",
+        "res://tools/prone_reload_transition_smoothing_regression.gd",
+        "res://tools/test_dynamic_reload_handoff.gd",
+        "res://tools/reload_input_regression.gd",
+        "res://tools/pistol_compressed_idle_regression.gd",
+        "res://tools/rifle_support_release_regression.gd"
+      ],
+      "ownership": {
+        "weapon_presentation": "SocomOperatorWeaponPoseSolver",
+        "weapon_transform": "SocomOperatorWeaponPresentationOwner"
+      }
+    },
+    {
+      "file": "render_http_gateway.json",
+      "feature_id": "render_http_gateway",
+      "player_intent": "Connect to the dedicated server without HTTP probe errors.",
+      "acceptance_rule": "HTTP readiness and actual Godot packet roundtrip pass; a stopped backend returns 503.",
+      "proof_scripts": [
+        "res://tools/render_dedicated_server_deployment_regression.gd",
+        "res://tools/http_gateway_regression.mjs",
+        "res://tools/http_gateway_peer_regression.gd"
+      ],
+      "ownership": {
+        "deployment_http": "http_gateway.mjs",
+        "multiplayer_authority": "SocomMultiplayerSession"
+      }
+    },
+    {
+      "file": "reticle_aim_climb.json",
+      "feature_id": "reticle_aim_climb",
+      "player_intent": "Bullets follow capped rising reticle while camera stays fixed.",
+      "acceptance_rule": "Bullets follow capped rising reticle while camera stays fixed. Focused tests and rendered checks must pass.",
+      "proof_scripts": [
+        "res://tools/vrc_armory_regression.gd",
+        "res://tools/lobby_warmup_regression.gd"
+      ],
+      "ownership": {
+        "feature": "SocomCameraRig"
+      }
+    },
+    {
+      "file": "rifle_lateral_gait.json",
+      "feature_id": "rifle_lateral_gait",
+      "player_intent": "AK/M4 lateral legs turn fully with A/D travel while the rifle keeps the camera-owned aim target.",
+      "acceptance_rule": "Only AK/M4 select the four looped lateral aliases. At matching phases they equal the forward source with a ninety-degree pelvis yaw; all other local tracks and cycle durations are unchanged. A/D changes preserve actual graph phase. Natural crouch hip twist and head bob are not misidentified as directional error.",
+      "proof_scripts": [
+        "res://tools/rifle_lateral_gait_regression.gd",
+        "res://tools/rifle_reference_visual_probe.gd",
+        "res://tools/jump_forward_legs_regression.gd"
+      ],
+      "ownership": {
+        "animation_assets": "SocomOperatorAssetRuntime",
+        "animation_graph": "SocomOperatorLocomotionBlendTree",
+        "movement": "CharacterBody3D",
+        "aim": "SOCOM camera and reticle"
+      }
+    },
+    {
+      "file": "rifle_ready_shoulder_pocket.json",
+      "feature_id": "rifle_ready_shoulder_pocket",
+      "player_intent": "Keep both AK/M4 hands and elbows natural through left strafe, direction changes and stopping, with a high shouldered stock on A and unchanged crosswise carry on D.",
+      "acceptance_rule": "Actual standing/crouch A/D and stop transitions preserve 5 mm palm contact, 0.5 degree accepted-shot bore alignment and 42\u2013150 degree elbow limits; saved pocket calibration remains within the shoulder region and is exactly absent at full D. Other weapon profiles default to zero.",
+      "proof_scripts": [
+        "res://tools/rifle_right_carry_release_regression.gd",
+        "res://tools/rifle_shoulder_stock_regression.gd",
+        "res://tools/rifle_full_right_reach_probe.gd",
+        "res://tools/rifle_reference_visual_probe.gd"
+      ],
+      "ownership": {
+        "weapon_presentation": "SocomOperatorWeaponPoseSolver",
+        "aim": "SOCOM camera and reticle",
+        "movement": "CharacterBody3D"
+      }
+    },
+    {
+      "file": "rifle_right_carry_release.json",
+      "feature_id": "rifle_right_carry_release",
+      "player_intent": "Full right body carry holds AK/M4 crosswise in front of the turned torso, without folding the arms, while fixed palms and physical bore remain attached to the rifle and reticle.",
+      "acceptance_rule": "Only AK/M4 opt into a shared-turn-weighted chest-forward stock release. Settled standing/crouch full-right input keeps both palms within 5 mm, bore within 0.5 degrees and elbows within the existing 42\u2013150 degree limits. Rigid weapon bounds and contact points must be ahead of the physical chest plane, not pushed along the barrel. Left, idle, actions, air and other weapons receive zero release. Native direction/readiness transitions must remain humanly plausible.",
+      "proof_scripts": [
+        "res://tools/rifle_right_carry_release_regression.gd",
+        "res://tools/rifle_full_right_reach_probe.gd",
+        "res://tools/rifle_shoulder_stock_regression.gd",
+        "res://tools/rifle_left_shoulder_physical_regression.gd",
+        "res://tools/rifle_reference_visual_probe.gd"
+      ],
+      "ownership": {
+        "weapon_presentation": "SocomOperatorWeaponPoseSolver",
+        "aim": "SOCOM camera and reticle",
+        "movement": "CharacterBody3D"
+      }
+    },
+    {
+      "file": "rifle_standing_idle_pelvis.json",
+      "feature_id": "rifle_standing_idle_pelvis",
+      "player_intent": "Straighten AK/M4 pelvis when standing idle, without straightening moving A/D legs.",
+      "acceptance_rule": "Canonical AK/M4 standing idle has less than 1 degree physical pelvis yaw error before firing and after stopping. Existing speed input fades the correction; actions, mobility, crouch/prone and other weapons keep the previous path.",
+      "proof_scripts": [
+        "res://tools/rifle_idle_pelvis_regression.gd",
+        "res://tools/rifle_lateral_gait_regression.gd",
+        "res://tools/feature_contract_regression.gd",
+        "res://tools/rifle_idle_pelvis_math_regression.gd"
+      ],
+      "ownership": {
+        "pose": "SocomOperatorPostureLayer",
+        "movement": "CharacterBody3D",
+        "aim": "SOCOM camera/reticle"
+      }
+    },
+    {
+      "file": "rifle_support_release.json",
+      "feature_id": "rifle_support_release",
+      "player_intent": "The support wrist and elbow return smoothly to idle without a final snap after firing.",
+      "acceptance_rule": "AK/M4/M16 standing and crouched readiness-zero handoffs keep existing contact limits, with no more than five degrees wrist or elbow angle change and fifteen millimeters elbow movement relative to the player. Fully-ready poses and all saved rigs remain unchanged.",
+      "proof_scripts": [
+        "res://tools/rifle_support_release_regression.gd",
+        "res://tools/firearm_family_transition_regression.gd",
+        "res://tools/m16_directional_rig_regression.gd"
+      ],
+      "ownership": {
+        "weapon_presentation": "SocomOperatorWeaponPoseSolver",
+        "contact_math": "SocomOperatorWeaponContactSolver"
+      }
+    },
+    {
+      "file": "runtime_presentation_performance_stability.json",
+      "feature_id": "runtime_presentation_performance_stability",
+      "player_intent": "Long gameplay and repeated weapon comparison remain responsive without progressive animation cost, duplicate IK modifiers, stale animation caches, or debug-input error floods.",
+      "acceptance_rule": "The zero-weight legacy locomotion graph does not advance while the modern route owns presentation. Repeated AK/M4 swaps reuse exactly one combat-ready modifier. Public or restricted play may omit developer-only telemetry input without producing errors. The packaged operator library must match the current animation-map fingerprint before release. Canonical idle, movement, and fire frame times remain stable without recurring 20 ms hitches.",
+      "proof_scripts": [
+        "res://tools/operator_animation_regression.gd",
+        "res://tools/weapon_equipment_event_regression.gd",
+        "res://tools/programmatic_3d_telemetry_regression.gd",
+        "res://tools/operator_animation_cache_regression.gd",
+        "res://tools/startup_performance_regression.gd",
+        "res://tools/feature_contract_regression.gd"
+      ],
+      "ownership": {
+        "animation_graph_evaluation": "SocomOperatorLocomotionBlendTree",
+        "combat_ready_modifier_lifetime": "SocomOperatorWeaponEquipmentRuntime",
+        "optional_debug_input": "SocomProgrammatic3DTelemetry",
+        "animation_cache_identity": "SocomOperatorAnimationLibraryCache"
+      }
+    },
+    {
+      "file": "seal_gameplay_activation.json",
+      "feature_id": "seal_gameplay_activation",
+      "player_intent": "Use supported SEAL movement, aim, stance and grenade clips in canonical gameplay, including held Q/E leans, while retaining originals.",
+      "acceptance_rule": "SEAL candidate remains preserved. Canonical config/operator_animation_map.json now activates the SEAL movement/rifle map with legacy standing/crouched pistol upper-body fallback; see pistol_hybrid_main contract. Native left/right gaits remain distinct, original assets and pre_seal_main restore profile retained. No gameplay authority changed.",
+      "proof_scripts": [
+        "res://tools/seal_locomotion_visual_probe.gd",
+        "res://tools/seal_dive_regression.gd",
+        "res://tools/play_seal_candidate.gd",
+        "res://tools/seal_combat_pose_regression.gd",
+        "res://tools/seal_gameplay_data_regression.gd",
+        "res://tools/seal_gameplay_candidate_regression.gd",
+        "res://tools/seal_gameplay_mobility_regression.gd",
+        "res://tools/seal_grenade_regression.gd"
+      ],
+      "ownership": {
+        "clip_contract": "SocomOperatorAnimationProfile",
+        "runtime_animation": "SocomOperatorAnimationDriver",
+        "lean_pose": "SocomOperatorPostureLayer"
+      }
+    },
+    {
+      "file": "seal_reference_import.json",
+      "feature_id": "seal_reference_import",
+      "player_intent": "Import third-person SEAL reference clips for optional testing without replacing our animation defaults.",
+      "acceptance_rule": "261 classified target-native clips load and seek through Animation Studio; the same authored resources are assignable through the existing runtime. Existing state mappings remain unchanged; partial clips are not promoted to full-body motion.",
+      "proof_scripts": [
+        "res://tools/seal_reference_import_regression.gd",
+        "res://tools/animation_workshop_repository_regression.gd"
+      ],
+      "ownership": {
+        "catalog": "SocomAnimationWorkshopRepository",
+        "runtime_animation": "SocomOperatorAssetRuntime"
+      }
+    },
+    {
+      "file": "server_authoritative_sustained_fire.json",
+      "feature_id": "server_authoritative_sustained_fire",
+      "player_intent": "A legitimate shot fired while standing, crouching, running, falling, or reconciling over the network must reach the authoritative weapon once, without intermittent rejection caused only by client/server movement timing.",
+      "acceptance_rule": "The server validates each reported body anchor against the current shooter anchor or the closest anchor in the bounded 0.5-second server-owned operator history. The client-reported point never becomes the ballistics origin. Sequence, direction, cadence, ammunition, obstruction, hit, and damage checks remain server authoritative. Three repeated remote shots must be accepted across repeated ENet and WebSocket rounds, while a reported origin 50 metres from every current or recent server anchor remains rejected as REPORT_ANCHOR_OUT_OF_RANGE.",
+      "proof_scripts": [
+        "res://tools/multiplayer_slice_regression.gd",
+        "res://tools/multiplayer_lifecycle_probe.gd",
+        "res://tools/muzzle_obstruction_regression.gd",
+        "res://tools/feature_contract_regression.gd"
+      ],
+      "ownership": {
+        "movement_and_collision": "CharacterBody3D",
+        "aim_intent": "SOCOMCameraReticleChain",
+        "shot_validation_ballistics_and_damage": "AuthoritativeServerWeapon",
+        "operator_position_history": "SocomMultiplayerReplication",
+        "animation_and_ik": "OperatorPresentationOnly"
+      }
+    },
+    {
+      "file": "server_directory_presence.json",
+      "feature_id": "server_directory_presence",
+      "player_intent": "A player can choose a live server using accurate capacity, mode, map, tournament stage, and free-arena information.",
+      "acceptance_rule": "Dedicated-server registration and every heartbeat publish sanitized current_players, mode_key, map_key, session_stage, and free_arenas values derived from the canonical authoritative session; a clean close request stops heartbeats, marks the listing offline, then quits.",
+      "proof_scripts": [
+        "res://tools/backend_operations_regression.gd",
+        "res://tools/feature_contract_regression.gd",
+        "res://tools/multiplayer_slice_architecture_regression.gd"
+      ],
+      "ownership": {
+        "directory_publication": "SocomServerBackend",
+        "authoritative_presence_facts": "SocomMultiplayerDirectoryPresence",
+        "tournament_presence_facts": "SocomMultiplayerTournamentRuntime"
+      }
+    },
+    {
+      "file": "server_reload_authority.json",
+      "feature_id": "server_reload_authority",
+      "player_intent": "Reload timing is enforced by the match host equally for every weapon and player.",
+      "acceptance_rule": "Start/cancel intent derives sender on the server; only server deadline completion transfers ammunition once; duplicate/early completion does not refill; death, weapon/round reset and disconnect discard deadlines.",
+      "proof_scripts": [
+        "res://tools/reload_authority_regression.gd",
+        "res://tools/server_reload_rpc_regression.gd",
+        "res://tools/dedicated_reload_regression.gd",
+        "res://tools/lobby_warmup_regression.gd",
+        "res://tools/multiplayer_slice_architecture_regression.gd"
+      ],
+      "ownership": {
+        "reload_deadline": "SocomReloadAuthority",
+        "reload_ammo_commit": "SocomMultiplayerSlice combat layer"
+      }
+    },
+    {
+      "file": "shared_lobby_warmup.json",
+      "feature_id": "shared_lobby_warmup",
+      "player_intent": "Try weapons and shoot other connected players before the tournament begins.",
+      "acceptance_rule": "B selects a host-validated weapon during lobby practice only; elimination respawns after two seconds without scores; live start clears practice operators and restores health, ammo and shared random weapon.",
+      "proof_scripts": [
+        "res://tools/lobby_warmup_regression.gd",
+        "res://tools/multiplayer_inheritance_regression.gd",
+        "res://tools/multiplayer_slice_architecture_regression.gd",
+        "res://tools/feature_contract_regression.gd"
+      ],
+      "ownership": {
+        "practice_lifecycle": "SocomMultiplayerWarmup",
+        "movement": "CharacterBody3D",
+        "aim": "SocomCameraRig",
+        "shot_damage": "AuthoritativeServerWeapon",
+        "weapon_presentation": "GunsLab2VisualRigResolver"
+      }
+    },
+    {
+      "file": "shared_random_round_weapon.json",
+      "feature_id": "shared_random_round_weapon",
+      "player_intent": "Every 2v2 round gives both teams the same surprise firearm while preserving each player's throwable loadout and leaving B available for fire-mode control.",
+      "acceptance_rule": "Before every ordinary or tournament arena round begins, the host selects exactly one valid handheld firearm, avoids an immediate repeat when another firearm exists, assigns that same weapon to every player in that match, applies its authoritative ballistics and ammunition, and reliably publishes its presentation to clients. No buy phase, purchase RPC, buy-menu B binding, grenade type, or throwable count participates in the assignment.",
+      "proof_scripts": [
+        "res://tools/round_random_weapon_regression.gd",
+        "res://tools/multiplayer_inheritance_regression.gd",
+        "res://tools/multiplayer_slice_architecture_regression.gd",
+        "res://tools/feature_contract_regression.gd"
+      ],
+      "ownership": {
+        "shared_round_weapon_selection": "SocomRoundWeaponRules",
+        "authoritative_round_equipment_and_replication": "SocomMultiplayerRoundLoadout",
+        "shot_damage_and_ammunition": "AuthoritativeServerWeapon",
+        "throwable_loadout": "PlayerGameplayProfile"
+      }
+    },
+    {
+      "file": "shared_weapon_reticle.json",
+      "feature_id": "shared_weapon_reticle",
+      "player_intent": "Distinct weapon kick and maximum bounce in solo and multiplayer.",
+      "acceptance_rule": "Complete nested stance parsing; 31 firearm standing kick triplets restored without changing ballistics; accepted local shot triggers shared dynamic reticle while remote shots do not; visual bounce does not move aim.",
+      "proof_scripts": [
+        "res://tools/shared_weapon_reticle_regression.gd",
+        "res://tools/recom_stance_import_regression.py",
+        "res://tools/lobby_warmup_regression.gd"
+      ],
+      "ownership": {
+        "reticle_presentation": "SocomDynamicReticle",
+        "weapon_profile": "WeaponContract",
+        "accepted_shot": "AuthoritativeServerWeapon"
+      }
+    },
+    {
+      "file": "sniper_plain_torso_damage.json",
+      "feature_id": "sniper_plain_torso_damage",
+      "player_intent": "Sniper torso hits do plain damage without training-target brace/flank reductions.",
+      "acceptance_rule": "Five sniper profiles have equal front/side/rear torso damage; headshots, limbs, pelvis, grazing, range, other guns, and server torso rules stay unchanged.",
+      "proof_scripts": [
+        "res://tools/sniper_torso_damage_regression.gd",
+        "res://tools/player_health_weapon_ammo_regression.gd",
+        "res://tools/run_hurtbox_regression.gd",
+        "res://tools/shotgun_projectile_regression.gd",
+        "res://tools/feature_contract_regression.gd"
+      ],
+      "ownership": {
+        "shot_damage": "AuthoritativeServerWeapon"
+      }
+    },
+    {
+      "file": "socom2_matched_firing.json",
+      "feature_id": "socom2_matched_firing",
+      "player_intent": "Existing matching guns use source firing settings through the canonical equip/fire path.",
+      "acceptance_rule": "32 profiles retain exact source cadence and stance settings. Three display aliases are explicit, Jackhammer is auto-only, authored modes survive Gunsmith saves, canonical accepted shots consume ammo once and early repeats do not. Multiplayer settings agree.",
+      "proof_scripts": [
+        "res://tools/socom2_matched_firing_regression.gd",
+        "res://tools/socom2_weapon_behavior_regression.gd",
+        "res://tools/weapon_fire_mode_policy_regression.gd"
+      ],
+      "ownership": {
+        "authored_settings": "GunsmithWeaponProfileRepository",
+        "trigger": "SocomWeaponFireModePolicy",
+        "shot_cadence": "SocomWeaponBallistics"
+      }
+    },
+    {
+      "file": "socom2_reticle_presentation.json",
+      "feature_id": "socom2_reticle_presentation",
+      "player_intent": "Use original weapon-family reticle artwork and remove the invented secondary kick/opening effect.",
+      "acceptance_rule": "32 matched profiles retain source sprites as fallback when custom presentation is disabled. Source pixels retain alpha. Authoritative bloom and aim center remain unchanged; source mode adds no cosmetic kick/radial impulse. The custom_reticle_families contract owns the current default art. Other profiles, red hit X and interaction brackets remain.",
+      "proof_scripts": [
+        "res://tools/socom2_reticle_regression.gd",
+        "res://tools/shared_weapon_reticle_regression.gd",
+        "res://tools/ballistic_reference_reticle_regression.gd"
+      ],
+      "ownership": {
+        "reticle_presentation": "SocomDynamicReticle",
+        "aim_intent": "SocomCameraRig",
+        "shot_and_damage": "SocomWeaponController and server weapon"
+      }
+    },
+    {
+      "file": "socom2_tan_operator.json",
+      "feature_id": "socom2_tan_operator",
+      "player_intent": "Retain the authored tan asset for later use; restore the original character for active blue/green teams.",
+      "acceptance_rule": "The tan asset retains its authored body/rest rig; active canonical scene, fallback and warmup use the original FBX instead.",
+      "proof_scripts": [
+        "res://tools/socom2_tan_operator_regression.gd",
+        "res://tools/socom2_tan_operator_visual_check.gd",
+        "res://tools/player_scene_composition_regression.gd",
+        "res://tools/feature_contract_regression.gd"
+      ],
+      "ownership": {
+        "character_visual_asset": "SocomOperatorAssetRuntime",
+        "movement_and_collision": "SocomTestPlayer",
+        "animation_presentation": "SocomOperatorAnimationDriver"
+      }
+    },
+    {
+      "file": "socom2_weapon_settings.json",
+      "feature_id": "socom2_weapon_settings",
+      "player_intent": "Use verified SOCOM II weapon settings in the canonical game without inventing unrecovered spread equations.",
+      "acceptance_rule": "32 firearm profiles (29 internal-name matches and three explicit display-name aliases) retain source FireWait and all three stance kick/cap/return values. Main and multiplayer agree on cadence and reticle selection; stance cannot reset climb; equip resets. Existing bloom, damage and nonmatching profiles remain unchanged.",
+      "proof_scripts": [
+        "res://tools/socom2_weapon_behavior_regression.gd",
+        "res://tools/vrc_armory_regression.gd",
+        "res://tools/shared_weapon_reticle_regression.gd",
+        "res://tools/rapid_tap_bloom_regression.gd"
+      ],
+      "ownership": {
+        "weapon_settings": "GunsmithWeaponProfileRepository",
+        "aim_intent": "SocomCameraRig",
+        "shot_cadence": "SocomWeaponBallistics"
+      }
+    },
+    {
+      "file": "socom_local_geometry_kit.json",
+      "feature_id": "socom_local_geometry_kit",
+      "player_intent": "Use actual decoded environment geometry as an editable local map kit instead of texture-only blockout primitives.",
+      "acceptance_rule": "98 validated local GLBs; 82 independently editable world chunks retain source assembly positions; saved document builds through canonical MapRuntime with detailed collision and supported preview spawns.",
+      "proof_scripts": [
+        "res://tools/socom_geometry_regression.gd",
+        "res://tools/socom_geometry/test.cjs",
+        "res://tools/imported_map_asset_boundary_regression.gd"
+      ],
+      "ownership": {
+        "map_construction": "SocomMapRuntime"
+      }
+    },
+    {
+      "file": "source_jump_presentation.json",
+      "feature_id": "source_jump_presentation",
+      "player_intent": "A coherent copied SOCOM-source jump with continuous takeoff/air poses, matched landing entry and stable rifle/pistol contact, rather than mismatched running/standing phases.",
+      "acceptance_rule": "Main and hybrid maps share phase windows and anchor_hips_at_takeoff. Capture hip translation once on airborne entry into operator-local jump clips; never mutate another operator or the shared cache. Standing and running AK/Mark23 jumps stay within 4 cm of hip translation per physics tick. Choose running or standing launch once, enter airborne at apex or immediately for a ledge fall, map landing to the existing recovery interval, exclude terminal closure, retain hands within 1 cm without arm stretch in AK/M4/Mark23 jumps and accepted-shot recovery. Keep support-wrist grasp within 1 degree of its last grounded weapon-relative orientation; clear on re-equip. Never change CharacterBody trajectory or gameplay permissions.",
+      "proof_scripts": [
+        "res://tools/source_jump_regression.gd",
+        "res://tools/jump_continuity_probe.gd",
+        "res://tools/source_jump_visual_probe.gd",
+        "res://tools/source_rifle_ready_fire_regression.gd",
+        "res://tools/pistol_hybrid_main_regression.gd"
+      ],
+      "ownership": {
+        "animation": "SocomOperatorAnimationDriver"
+      }
+    },
+    {
+      "file": "source_rifle_fingers.json",
+      "feature_id": "source_rifle_fingers",
+      "player_intent": "Close articulated glove fingers around rifle grips while preserving the source strafe and arm pose.",
+      "acceptance_rule": "Source rifles use native rest-relative flex on both hands, less curl on the trigger index, and opposing thumb directions. Finger-only transforms do not accumulate, alter wrists or move the weapon; reload releases the support fingers and grenade/hidden weapon states skip shaping. Existing saved curl and thumb controls remain effective.",
+      "proof_scripts": [
+        "res://tools/rifle_finger_regression.gd",
+        "res://tools/seal_locomotion_visual_probe.gd",
+        "res://tools/pistol_hybrid_main_regression.gd"
+      ],
+      "ownership": {
+        "finger_presentation": "SocomOperatorWeaponGripContact"
+      }
+    },
+    {
+      "file": "source_rifle_fire_pose.json",
+      "feature_id": "source_rifle_fire_pose",
+      "player_intent": "Firing preserves native left/right rifle stance and authored wrist orientation rather than substituting a generic stationary pose.",
+      "acceptance_rule": "Source standing/crouched rifles mask all generic shot pose tracks, retain accepted shot events and separate recoil, and keep physical hand contacts within 1 cm and settled bore error below 6 degrees in canonical strafe tests. Pistol and prone shot filters remain unchanged.",
+      "proof_scripts": [
+        "res://tools/source_rifle_fire_regression.gd",
+        "res://tools/seal_locomotion_visual_probe.gd",
+        "res://tools/pistol_hybrid_main_regression.gd"
+      ],
+      "ownership": {
+        "animation": "SocomOperatorAnimationDriver",
+        "weapon_presentation": "WeaponPoseSolver"
+      }
+    },
+    {
+      "file": "source_rifle_ready_fire_split.json",
+      "feature_id": "source_rifle_ready_fire_split",
+      "player_intent": "An equipped standing rifle uses the extracted chest-level ready posture; accepted firing has a separate posture and recovers smoothly.",
+      "acceptance_rule": "Main rifle idle_standing and ready_standing select seal_stand_alert02, firing_standing selects seal_fp_stand, accepted-shot grace controls a bounded blend, and AK/M4 preserve physical contacts within 1 cm during equip, shot and recovery. Pistol and moving gaits remain unchanged.",
+      "proof_scripts": [
+        "res://tools/source_rifle_ready_fire_regression.gd",
+        "res://tools/ready_fire_visual_probe.gd",
+        "res://tools/pistol_hybrid_main_regression.gd"
+      ],
+      "ownership": {
+        "animation": "SocomOperatorAnimationDriver"
+      }
+    },
+    {
+      "file": "stair_locomotion.json",
+      "feature_id": "stair_locomotion",
+      "player_intent": "Walk up and down stairs without jumping or entering climbing animations.",
+      "acceptance_rule": "Canonical CharacterBody crosses authored ramps, imported ramps and untagged raw 18cm risers up/down with no Jump input, no traversal or airborne animation states. Bounded geometry-aware step assistance rejects ceilings, oversized risers and large drops.",
+      "proof_scripts": [
+        "res://tools/stair_playability_regression.gd",
+        "res://tools/step_probe_regression.gd",
+        "res://tools/agls_auto_vault_regression.gd",
+        "res://tools/ledge_climb_regression.gd",
+        "res://tools/network_prediction_regression.gd"
+      ],
+      "ownership": {
+        "map_collision": "SocomMapRuntime",
+        "movement": "SocomTestPlayer"
+      }
+    },
+    {
+      "file": "stance_hold_prone.json",
+      "feature_id": "stance_hold_prone",
+      "player_intent": "The stance control supports tap-to-crouch and hold-to-prone behavior while standing or crouched, and holding the stance button while prone returns directly to standing.",
+      "acceptance_rule": "A quick stance release toggles standing and crouched; holding for 0.20 seconds enters prone, or starts the existing committed dive when the player is moving at the required speed; holding for 0.20 seconds while prone transitions directly to standing (or crouch under low ceilings); tapping while prone returns through crouch; CharacterBody3D remains the sole posture, collider, and clearance owner.",
+      "proof_scripts": [
+        "res://tools/mobility_regression.gd",
+        "res://tools/dive_hand_attachment_regression.gd",
+        "res://tools/multiplayer_slice_regression.gd",
+        "res://tools/feature_contract_regression.gd"
+      ],
+      "ownership": {
+        "stance_and_dive_state": "SocomTestPlayer",
+        "stance_input_mapping": "SocomKeyboardMappingProfile",
+        "dive_weapon_presentation": "SocomOperatorWeaponPoseSolver"
+      }
+    },
+    {
+      "file": "stance_hud_bloom.json",
+      "feature_id": "stance_hud_bloom",
+      "player_intent": "Tighter standing-still fire and a larger status HUD that moves with crouch/prone.",
+      "acceptance_rule": "Standing-still maximum expansion is reduced 20%; moving, airborne, closed baseline and other stance caps remain unchanged. Shared HUD follows canonical stance and enlarges health/ammo/counts without changing aim or state ownership.",
+      "proof_scripts": [
+        "res://tools/stance_hud_bloom_regression.gd",
+        "res://tools/stance_bloom_cap_regression.gd",
+        "res://tools/contextual_hud_regression.gd",
+        "res://tools/bloom_shot_envelope_regression.gd"
+      ],
+      "ownership": {
+        "shot_envelope": "ReticleBloomEnvelope consumed by WeaponBallistics",
+        "status_presentation": "SocomLoadoutCardHUD"
+      }
+    },
+    {
+      "file": "tournament_six_round_sudden_death_vote.json",
+      "feature_id": "tournament_six_round_sudden_death_vote",
+      "player_intent": "A 2v2 tournament match has a visible six-round regulation limit, resolves timed rounds from authoritative team health, and turns a tied regulation score into a teammate-selected 1v1 sudden death instead of an arbitrary loss or endless draw loop.",
+      "acceptance_rule": "Each isolated arena plays no more than six regulation rounds and ends early only when its score is mathematically uncatchable; a timeout awards the round to the duo with greater combined server health, an exact health tie consumes a drawn regulation round, and a tied score after round six opens a ten-second vote in which each player can nominate only a member of their own duo. The selected representative from each duo is the only combat-eligible player in sudden death, split or absent votes use the pair captain as deterministic authority, a sudden-death timeout replays the same 1v1, and the first representative eliminated loses the match.",
+      "proof_scripts": [
+        "res://tools/tournament_sudden_death_regression.gd",
+        "res://tools/tournament_session_regression.gd",
+        "res://tools/test_multi_arena_tournament.gd",
+        "res://tools/tournament_replication_scope_regression.gd",
+        "res://tools/feature_contract_regression.gd"
+      ],
+      "ownership": {
+        "round_score_phase_and_vote_resolution": "SocomArenaSubMatch",
+        "authoritative_health": "SocomNetworkOperator",
+        "vote_transport_and_deployment": "SocomMultiplayerTournamentRuntime",
+        "vote_presentation": "SocomMultiplayerHUD",
+        "shot_and_damage": "AuthoritativeServerWeapon"
+      }
+    },
+    {
+      "file": "training_buy_menu.json",
+      "feature_id": "training_buy_menu",
+      "player_intent": "Training Mode keeps a fast B-key free-loadout menu without restoring purchases or buy phases to multiplayer.",
+      "acceptance_rule": "In res://main.tscn with Public Training active, B opens and closes the free-loadout menu while the player is inside the equipment zone. Outside Public Training the training action is absent, the local menu does not consume input, and multiplayer B remains fire-mode control.",
+      "proof_scripts": [
+        "res://tools/public_training_range_regression.gd",
+        "res://tools/round_random_weapon_regression.gd",
+        "res://tools/feature_contract_regression.gd"
+      ],
+      "ownership": {
+        "training_loadout_input_and_equip": "SocomMainBuyMenuRuntime"
+      }
+    },
+    {
+      "file": "transient_preserving_weapon_audio.json",
+      "feature_id": "transient_preserving_weapon_audio",
+      "player_intent": "Reduce baked recording ambience without replacing the approved gunshot attack.",
+      "acceptance_rule": "29 separate derivatives serve all33 mapped firearms. Imported attacks remain bit-identical, sources remain unchanged, no clipping or level normalization, and canonical/multiplayer use the selected cached bank.",
+      "proof_scripts": [
+        "res://tools/weapon_audio_cleanup_regression.gd",
+        "res://tools/weapon_sound_bank_regression.gd",
+        "res://tools/acoustic_recorded_weapon_route_probe.gd"
+      ],
+      "ownership": {
+        "weapon_sound_selection": "LabLeakAudioEngine",
+        "spatial_playback": "AcousticPropagationEngine"
+      }
+    },
+    {
+      "file": "two_hand_pistol_family_presentation.json",
+      "feature_id": "two_hand_pistol_family_presentation",
+      "player_intent": "Every real pistol appears at human scale, keeps both hands at authored pistol contacts, and fires toward the reticle from a stable square-shouldered two-hand ready pose while directional movement stays centered beneath it.",
+      "acceptance_rule": "Equipping any pistol through res://main.tscn consumes its saved visual contract and TWO_HAND_PISTOL animation family. An accepted standing shot resolves to pistol_idle and an accepted crouched shot resolves to pistol_idle_kneeling. FIRE_RECOVERY remains active for 1.2 seconds without a separate fire OneShot. During idle, W+A, W+D, S+A, and S+D recovery, frames 1, 2, 4, 8, 12, and 18 must keep the physical bore within 1 degree of camera-owned reticle aim, optic-up roll within 6 degrees, both palms within 1 cm of their physical contacts, shoulders within 10 degrees of square and 4 cm of level, and elbows between 38 and 155 degrees. Forward visual input is positive Y. These angle budgets do not certify natural arm symmetry or entry continuity. The trigger socket and barrel base must stay within 20 percent of shoulder width of the aim plane, with left crossing limited to 10 percent. The pistol-only trigger-palm target, elbow guidance, and rigid root correction must converge to the authored pose as existing readiness fades; at terminal ready-to-zero and the following four frames, each static standing/crouched palm step must stay below 1 cm. The same saved mount must preserve world scale, physical trigger-to-support socket distance, and barrel-base-to-muzzle length across base, firing, and recovery. A unit palm basis must not apply the inverse-scaled BoneAttachment mount directly in world space. Continuous IK, generic two-arm rifle IK, new weapon owners, socket recalibration to mask errors, and gameplay authority changes remain forbidden.",
+      "proof_scripts": [
+        "res://tools/mark_23_equipment_regression.gd",
+        "res://tools/all_weapon_fire_recovery_regression.gd",
+        "res://tools/pistol_fire_recovery_visual_check.gd",
+        "res://tools/pistol_fire_direction_pose_regression.gd",
+        "res://tools/pistol_recovery_exit_regression.gd",
+        "res://tools/pistol_distinct_ready_slots_regression.gd",
+        "res://tools/pistol_moving_entry_timing_regression.gd",
+        "res://tools/de50_support_rotation_probe.gd",
+        "res://tools/feature_contract_regression.gd"
+      ],
+      "ownership": {
+        "accepted_shot_recovery_presentation": "SocomOperatorFireUpperBodyLatch",
+        "pistol_family_route_data": "SocomOperatorAnimationProfile",
+        "saved_pistol_visual_contracts": "GunsmithWeaponProfileRepository",
+        "moving_accepted_ready_mask": "SocomOperatorLocomotionBlendTree",
+        "movement_and_collision": "CharacterBody3D",
+        "aim_intent": "SOCOMCameraReticleChain",
+        "shot_and_damage": "AuthoritativeServerWeapon"
+      }
+    },
+    {
+      "file": "weapon_acoustic_routing.json",
+      "feature_id": "weapon_acoustic_routing",
+      "player_intent": "Gunfire responds correctly to open space, walls, and authored doorways.",
+      "acceptance_rule": "All 33 mapped firearms use direct playback for clear LOS; same-zone walls use blocked transmission; real open doors use positive-hop portal routes; closing doors restores blocked transmission; explicit force-direct and exclusions remain supported.",
+      "proof_scripts": [
+        "res://tools/acoustic_recorded_weapon_route_probe.gd",
+        "res://tools/acoustic_propagation_regression.gd",
+        "res://tools/grenade_acoustic_audio_regression.gd",
+        "res://tools/weapon_sound_bank_regression.gd"
+      ],
+      "ownership": {
+        "acoustic_route_and_playback": "AcousticPropagationEngine"
+      }
+    },
+    {
+      "file": "web_release_protection.json",
+      "feature_id": "web_release_protection",
+      "player_intent": "Distribute a playable browser build without internal review files or recognizable privileged secrets.",
+      "acceptance_rule": "Actual PCK audit and secret detector self-test pass; browser Training Grounds opens.",
+      "proof_scripts": [
+        "res://tools/web_release_audit.gd",
+        "res://tools/restricted_web_launcher_regression.gd"
+      ],
+      "ownership": {
+        "release_packaging": "tools/export_restricted_web.sh"
+      }
+    }
+  ],
+  "proof_scripts": {
+    "tools/all_weapon_fire_recovery_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "accepted_shot_fire_recovery",
+        "firearm_family_presentation",
+        "two_hand_pistol_family_presentation"
+      ]
+    },
+    "tools/fire_recovery_movement_aim_parity_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "accepted_shot_fire_recovery",
+        "ak_m4_canonical_rifle_presentation",
+        "ak_m4_strafe_carry"
+      ]
+    },
+    "tools/operator_pose_pipeline_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "accepted_shot_fire_recovery",
+        "ak_m4_canonical_rifle_presentation",
+        "operator_stair_foot_grounding"
+      ]
+    },
+    "tools/operator_animation_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "accepted_shot_fire_recovery",
+        "ak_m4_canonical_rifle_presentation",
+        "clean_canonical_scene_tree",
+        "cod_style_reload_commit_timeline",
+        "directional_locomotion_phase_continuity",
+        "hybrid_locomotion_new_actions",
+        "locomotion_playback_cadence",
+        "ps1_dual_source_rig",
+        "runtime_presentation_performance_stability"
+      ]
+    },
+    "tools/weapon_fire_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "accepted_shot_fire_recovery",
+        "operator_stair_foot_grounding"
+      ]
+    },
+    "tools/rendered_arm_animation_liveness_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "accepted_shot_fire_recovery",
+        "canonical_target_pivot_presentation"
+      ]
+    },
+    "tools/weapon_hand_detach_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "accepted_shot_fire_recovery",
+        "operator_stair_foot_grounding"
+      ]
+    },
+    "tools/action_hud_tracking_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "action_hud_tracking"
+      ]
+    },
+    "tools/contextual_hud_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "action_hud_tracking",
+        "contextual_hud",
+        "stance_hud_bloom"
+      ]
+    },
+    "tools/stance_hud_bloom_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "action_hud_tracking",
+        "stance_hud_bloom"
+      ]
+    },
+    "tools/agls_ak47_asset_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "ak_m4_canonical_rifle_presentation"
+      ]
+    },
+    "tools/ak47_prone_profile_authority_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "ak_m4_canonical_rifle_presentation"
+      ]
+    },
+    "tools/m4a1_agls_vertical_slice_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "ak_m4_canonical_rifle_presentation",
+        "ak_m4_strafe_carry",
+        "firearm_directional_carry",
+        "m4a1_photoreal_asset"
+      ]
+    },
+    "tools/weapon_equipment_event_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "ak_m4_canonical_rifle_presentation",
+        "runtime_presentation_performance_stability"
+      ]
+    },
+    "tools/gameplay_reload_completion_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "ak_m4_canonical_rifle_presentation",
+        "canonical_target_pivot_presentation",
+        "cod_style_reload_commit_timeline",
+        "reload_stance_blend"
+      ]
+    },
+    "tools/ballistic_reference_reticle_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "ak_m4_canonical_rifle_presentation",
+        "ballistic_reference_reticle",
+        "custom_reticle_families",
+        "socom2_reticle_presentation"
+      ]
+    },
+    "tools/startup_performance_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "ak_m4_canonical_rifle_presentation",
+        "runtime_presentation_performance_stability"
+      ]
+    },
+    "tools/feature_contract_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "ak_m4_canonical_rifle_presentation",
+        "ak_m4_strafe_carry",
+        "public_matchmaking_directory",
+        "ballistic_reference_reticle",
+        "browser_multiarena_playable_deployment",
+        "browser_dedicated_tournament_front_door",
+        "browser_training_grounds",
+        "canonical_shared_lobby_pair_selection",
+        "clean_canonical_scene_tree",
+        "cod_style_reload_commit_timeline",
+        "construction_responsibility_boundaries",
+        "contributor_map_asset_boundary",
+        "directional_locomotion_phase_continuity",
+        "dive_weapon_descent",
+        "existing_weapon_reference_sounds",
+        "field_depot_local_map",
+        "firearm_family_presentation",
+        "generic_directional_weapon_candidates",
+        "gunsmith_weapon_authoring",
+        "locomotion_playback_cadence",
+        "long_gun_projectiles_and_contacts",
+        "m4a1_photoreal_asset",
+        "mark_23_pistol_equipment",
+        "matchmaking_front_door_shared_lobby",
+        "morro_do_sol_v2_art_direction",
+        "native_ik_weapon_holding",
+        "painterly_coastal_village_2v2",
+        "pistol_compressed_idle",
+        "pistol_distinct_idle_ready_slots",
+        "native_player_hosted_private_match",
+        "rifle_standing_idle_pelvis",
+        "runtime_presentation_performance_stability",
+        "server_authoritative_sustained_fire",
+        "server_directory_presence",
+        "shared_lobby_warmup",
+        "shared_random_round_weapon",
+        "sniper_plain_torso_damage",
+        "socom2_tan_operator",
+        "stance_hold_prone",
+        "tournament_six_round_sudden_death_vote",
+        "training_buy_menu",
+        "two_hand_pistol_family_presentation"
+      ]
+    },
+    "tools/rifle_strafe_carry_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "ak_m4_strafe_carry"
+      ]
+    },
+    "tools/directional_elbow_swivel_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "ak_m4_strafe_carry"
+      ]
+    },
+    "tools/rifle_reference_visual_probe.gd": {
+      "exists": true,
+      "contracts": [
+        "ak_m4_strafe_carry",
+        "rifle_lateral_gait",
+        "rifle_ready_shoulder_pocket",
+        "rifle_right_carry_release"
+      ]
+    },
+    "tools/crouch_strafe_continuity_probe.gd": {
+      "exists": true,
+      "contracts": [
+        "ak_m4_strafe_carry",
+        "crouch_strafe_height_continuity"
+      ]
+    },
+    "tools/rifle_shoulder_stock_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "ak_m4_strafe_carry",
+        "firearm_directional_carry",
+        "rifle_ready_shoulder_pocket",
+        "rifle_right_carry_release"
+      ]
+    },
+    "tools/strafe_head_orientation_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "ak_m4_strafe_carry"
+      ]
+    },
+    "tools/rifle_upper_body_stability_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "ak_m4_strafe_carry"
+      ]
+    },
+    "tools/rifle_lateral_gait_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "ak_m4_strafe_carry",
+        "rifle_lateral_gait",
+        "rifle_standing_idle_pelvis"
+      ]
+    },
+    "tools/jump_forward_legs_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "ak_m4_strafe_carry",
+        "jump_direction_combos",
+        "jump_forward_legs",
+        "rifle_lateral_gait"
+      ]
+    },
+    "tools/rifle_articulated_spine_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "ak_m4_strafe_carry"
+      ]
+    },
+    "tools/rifle_left_shoulder_physical_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "ak_m4_strafe_carry",
+        "rifle_right_carry_release"
+      ]
+    },
+    "tools/rifle_idle_pelvis_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "ak_m4_strafe_carry",
+        "rifle_standing_idle_pelvis"
+      ]
+    },
+    "tools/rifle_idle_pelvis_math_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "ak_m4_strafe_carry",
+        "rifle_standing_idle_pelvis"
+      ]
+    },
+    "tools/rifle_right_carry_release_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "ak_m4_strafe_carry",
+        "firearm_directional_carry",
+        "rifle_ready_shoulder_pocket",
+        "rifle_right_carry_release"
+      ]
+    },
+    "tools/rifle_right_carry_visual_probe.gd": {
+      "exists": true,
+      "contracts": [
+        "ak_m4_strafe_carry"
+      ]
+    },
+    "tools/armory_loadout_selection_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "armory_loadout_selection",
+        "core_weapon_roster"
+      ]
+    },
+    "tools/gunsmith_recom_catalog_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "armory_loadout_selection",
+        "mixed_weapon_roster"
+      ]
+    },
+    "tools/mixed_weapon_roster_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "armory_loadout_selection",
+        "mixed_weapon_roster"
+      ]
+    },
+    "tools/vrc_armory_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "armory_loadout_selection",
+        "armory_primary_pistol",
+        "reticle_aim_climb",
+        "socom2_weapon_settings"
+      ]
+    },
+    "tools/lobby_warmup_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "armory_loadout_selection",
+        "armory_primary_pistol",
+        "lobby_replication_arena_boundaries",
+        "long_gun_projectiles_and_contacts",
+        "multiplayer_component_boundaries",
+        "reticle_aim_climb",
+        "server_reload_authority",
+        "shared_lobby_warmup",
+        "shared_weapon_reticle"
+      ]
+    },
+    "tools/round_random_weapon_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "armory_loadout_selection",
+        "shared_random_round_weapon",
+        "training_buy_menu"
+      ]
+    },
+    "tools/matchmaking_directory_client_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "public_matchmaking_directory",
+        "matchmaking_front_door_shared_lobby"
+      ]
+    },
+    "tools/reticle_render_integration.gd": {
+      "exists": true,
+      "contracts": [
+        "ballistic_reference_reticle"
+      ]
+    },
+    "tools/public_training_range_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "ballistic_reference_reticle",
+        "browser_training_grounds",
+        "training_buy_menu"
+      ]
+    },
+    "tools/basic_movement_head_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "basic_movement_head"
+      ]
+    },
+    "tools/bloom_shot_envelope_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "bloom_shot_envelope",
+        "stance_hud_bloom"
+      ]
+    },
+    "tools/stance_bloom_cap_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "bloom_shot_envelope",
+        "stance_hud_bloom"
+      ]
+    },
+    "tools/custom_reticle_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "bloom_shot_envelope",
+        "custom_reticle_families"
+      ]
+    },
+    "tools/rapid_tap_bloom_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "bloom_shot_envelope",
+        "rapid_tap_bloom",
+        "socom2_weapon_settings"
+      ]
+    },
+    "tools/night_vision_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "blue_night_vision"
+      ]
+    },
+    "tools/browser_tournament_front_door_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "browser_multiarena_playable_deployment",
+        "browser_dedicated_tournament_front_door",
+        "native_player_hosted_private_match"
+      ]
+    },
+    "tools/browser_webrtc_private_match_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "browser_multiarena_playable_deployment",
+        "browser_dedicated_tournament_front_door"
+      ]
+    },
+    "tools/browser_multiarena_deployment_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "browser_multiarena_playable_deployment"
+      ]
+    },
+    "tools/tournament_session_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "browser_multiarena_playable_deployment",
+        "browser_dedicated_tournament_front_door",
+        "lobby_replication_arena_boundaries",
+        "tournament_six_round_sudden_death_vote"
+      ]
+    },
+    "tools/tournament_map_pods_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "browser_multiarena_playable_deployment",
+        "lobby_replication_arena_boundaries"
+      ]
+    },
+    "tools/tournament_replication_scope_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "browser_multiarena_playable_deployment",
+        "lobby_replication_arena_boundaries",
+        "tournament_six_round_sudden_death_vote"
+      ]
+    },
+    "tools/stair_playability_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "browser_multiarena_playable_deployment",
+        "stair_locomotion"
+      ]
+    },
+    "tools/restricted_web_launcher_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "browser_dedicated_tournament_front_door",
+        "browser_training_grounds",
+        "matchmaking_front_door_shared_lobby",
+        "native_player_hosted_private_match",
+        "web_release_protection"
+      ]
+    },
+    "tools/test_multi_arena_tournament.gd": {
+      "exists": true,
+      "contracts": [
+        "browser_dedicated_tournament_front_door",
+        "tournament_six_round_sudden_death_vote"
+      ]
+    },
+    "tools/browser_training_entry_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "browser_training_grounds",
+        "long_gun_projectiles_and_contacts"
+      ]
+    },
+    "tools/lobby_pair_selection_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "canonical_shared_lobby_pair_selection",
+        "matchmaking_front_door_shared_lobby"
+      ]
+    },
+    "tools/multiplayer_inheritance_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "canonical_shared_lobby_pair_selection",
+        "shared_lobby_warmup",
+        "shared_random_round_weapon"
+      ]
+    },
+    "tools/multiplayer_slice_architecture_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "canonical_shared_lobby_pair_selection",
+        "lobby_replication_arena_boundaries",
+        "matchmaking_front_door_shared_lobby",
+        "multiplayer_component_boundaries",
+        "server_directory_presence",
+        "server_reload_authority",
+        "shared_lobby_warmup",
+        "shared_random_round_weapon"
+      ]
+    },
+    "tools/authored_operator_rig_scene_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "canonical_target_pivot_presentation"
+      ]
+    },
+    "tools/runtime_skeleton_modifier_proof.gd": {
+      "exists": true,
+      "contracts": [
+        "canonical_target_pivot_presentation"
+      ]
+    },
+    "tools/held_weapon_transform_collision_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "canonical_target_pivot_presentation"
+      ]
+    },
+    "tools/canonical_socom_ik_rig_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "canonical_target_pivot_presentation"
+      ]
+    },
+    "tools/weapon_contact_graph_integration_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "canonical_target_pivot_presentation",
+        "gunsmith_weapon_authoring"
+      ]
+    },
+    "tools/test_dynamic_reload_handoff.gd": {
+      "exists": true,
+      "contracts": [
+        "canonical_target_pivot_presentation",
+        "cod_style_reload_commit_timeline",
+        "reload_trigger_attachment"
+      ]
+    },
+    "tools/weapon_auto_reload_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "canonical_target_pivot_presentation",
+        "cod_style_reload_commit_timeline"
+      ]
+    },
+    "tools/mobility_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "clean_canonical_scene_tree",
+        "dive_weapon_descent",
+        "hybrid_locomotion_new_actions",
+        "operator_stair_foot_grounding",
+        "stance_hold_prone"
+      ]
+    },
+    "tools/construction_boundary_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "construction_responsibility_boundaries",
+        "pistol_carry_contact_and_pose_boundaries"
+      ]
+    },
+    "tools/map_creation_lab_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "construction_responsibility_boundaries",
+        "contributor_map_asset_boundary",
+        "field_depot_local_map",
+        "relic_depot_and_nvg_operator"
+      ]
+    },
+    "tools/retarget_mapping_lab_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "construction_responsibility_boundaries"
+      ]
+    },
+    "tools/equipment_wheel_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "construction_responsibility_boundaries"
+      ]
+    },
+    "tools/empty_ammo_reload_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "contextual_hud"
+      ]
+    },
+    "tools/contextual_traversal_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "contextual_traversal"
+      ]
+    },
+    "tools/ledge_climb_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "contextual_traversal",
+        "ledge_climb",
+        "stair_locomotion"
+      ]
+    },
+    "tools/agls_auto_vault_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "contextual_traversal",
+        "ledge_climb",
+        "stair_locomotion"
+      ]
+    },
+    "tools/network_prediction_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "contextual_traversal",
+        "diagonal_mobility",
+        "ledge_climb",
+        "mobility_movement_handoff",
+        "network_gameplay_parity",
+        "network_movement_delivery",
+        "stair_locomotion"
+      ]
+    },
+    "tools/imported_map_asset_boundary_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "contributor_map_asset_boundary",
+        "jungle_village_variant",
+        "socom_local_geometry_kit"
+      ]
+    },
+    "tools/check_contributed_map_prop.gd": {
+      "exists": true,
+      "contracts": [
+        "contributor_map_asset_boundary"
+      ]
+    },
+    "tools/community_map_workflow_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "contributor_map_asset_boundary"
+      ]
+    },
+    "tools/core_weapon_roster_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "core_weapon_roster"
+      ]
+    },
+    "tools/directional_locomotion_phase_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "crouch_strafe_height_continuity",
+        "directional_locomotion_phase_continuity",
+        "pistol_carry_contact_and_pose_boundaries"
+      ]
+    },
+    "tools/socom2_reticle_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "custom_reticle_families",
+        "socom2_reticle_presentation"
+      ]
+    },
+    "tools/shared_weapon_reticle_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "custom_reticle_families",
+        "shared_weapon_reticle",
+        "socom2_reticle_presentation",
+        "socom2_weapon_settings"
+      ]
+    },
+    "tools/depot_web_release_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "depot_web_release"
+      ]
+    },
+    "tools/relic_depot_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "depot_web_release",
+        "relic_depot_and_nvg_operator"
+      ]
+    },
+    "tools/web_release_audit.gd": {
+      "exists": true,
+      "contracts": [
+        "depot_web_release",
+        "private_server_boundary",
+        "web_release_protection"
+      ]
+    },
+    "tools/diagonal_mobility_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "diagonal_mobility",
+        "mobility_movement_handoff"
+      ]
+    },
+    "tools/jump_direction_combo_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "diagonal_mobility",
+        "jump_direction_combos",
+        "mobility_movement_handoff"
+      ]
+    },
+    "tools/dive_hand_attachment_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "dive_weapon_descent",
+        "stance_hold_prone"
+      ]
+    },
+    "tools/weapon_sound_bank_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "existing_weapon_reference_sounds",
+        "transient_preserving_weapon_audio",
+        "weapon_acoustic_routing"
+      ]
+    },
+    "tools/field_backpack_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "field_backpack"
+      ]
+    },
+    "tools/field_backpack_runtime_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "field_backpack"
+      ]
+    },
+    "tools/field_depot_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "field_depot_local_map"
+      ]
+    },
+    "tools/fire_recoil_pulse_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "fire_recoil_presentation"
+      ]
+    },
+    "tools/fire_recoil_live_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "fire_recoil_presentation"
+      ]
+    },
+    "tools/firearm_family_live_contact_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "fire_recoil_presentation",
+        "firearm_family_presentation",
+        "long_gun_projectiles_and_contacts",
+        "original_blue_green_operators",
+        "pistol_family_idle_parity"
+      ]
+    },
+    "tools/firearm_family_transition_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "firearm_directional_carry",
+        "generic_directional_weapon_candidates",
+        "rifle_support_release"
+      ]
+    },
+    "tools/rifle_evaluated_carry_timing_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "firearm_directional_carry"
+      ]
+    },
+    "tools/m16_directional_rig_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "firearm_directional_carry",
+        "rifle_support_release"
+      ]
+    },
+    "tools/m16_contact_surface_probe.gd": {
+      "exists": true,
+      "contracts": [
+        "firearm_directional_carry"
+      ]
+    },
+    "tools/authored_stock_scope_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "firearm_directional_carry",
+        "generic_directional_weapon_candidates"
+      ]
+    },
+    "tools/weapon_short_barrel_contract_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "firearm_directional_carry"
+      ]
+    },
+    "tools/retro_1212_asset_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "firearm_directional_carry"
+      ]
+    },
+    "tools/retro_1212_socket_review.gd": {
+      "exists": true,
+      "contracts": [
+        "firearm_directional_carry"
+      ]
+    },
+    "tools/retro_1212_canonical_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "firearm_directional_carry"
+      ]
+    },
+    "tools/retro_1212_reload_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "firearm_directional_carry"
+      ]
+    },
+    "tools/m40_directional_rig_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "firearm_directional_carry"
+      ]
+    },
+    "tools/firearm_family_presentation_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "firearm_family_presentation"
+      ]
+    },
+    "tools/firearm_family_visual_proof.gd": {
+      "exists": true,
+      "contracts": [
+        "firearm_family_presentation"
+      ]
+    },
+    "tools/guns_lab_2_runtime_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "firearm_family_presentation"
+      ]
+    },
+    "tools/lean_upper_frame_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "gait_lean_continuity"
+      ]
+    },
+    "tools/gait_lean_continuity_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "gait_lean_continuity"
+      ]
+    },
+    "tools/gait_alignment_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "gait_lean_continuity"
+      ]
+    },
+    "tools/operator_animation_cache_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "gait_lean_continuity",
+        "runtime_presentation_performance_stability"
+      ]
+    },
+    "tools/lean_movement_latch_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "gait_lean_continuity",
+        "lean_movement_latch"
+      ]
+    },
+    "tools/source_jump_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "gait_lean_continuity",
+        "source_jump_presentation"
+      ]
+    },
+    "tools/operator_stair_foot_grounding_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "gait_lean_continuity",
+        "operator_stair_foot_grounding"
+      ]
+    },
+    "tools/generic_directional_reload_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "generic_directional_weapon_candidates"
+      ]
+    },
+    "tools/generic_contact_surface_probe.gd": {
+      "exists": true,
+      "contracts": [
+        "generic_directional_weapon_candidates"
+      ]
+    },
+    "tools/generic_directional_batch_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "generic_directional_weapon_candidates"
+      ]
+    },
+    "tools/gun_pose_lineup_editor_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "gun_pose_lineup_editor"
+      ]
+    },
+    "tools/studio_navigation_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "gun_pose_lineup_editor",
+        "new_ik_reference_lab"
+      ]
+    },
+    "tools/test_gunsmith_persistence_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "gunsmith_weapon_authoring"
+      ]
+    },
+    "tools/weapon_rig_integration_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "gunsmith_weapon_authoring"
+      ]
+    },
+    "tools/hit_feedback_performance_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "hit_confirmation_no_body_flash"
+      ]
+    },
+    "tools/body_hit_vfx_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "hit_confirmation_no_body_flash"
+      ]
+    },
+    "tools/hybrid_locomotion_action_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "hybrid_locomotion_new_actions",
+        "locomotion_playback_cadence"
+      ]
+    },
+    "tools/network_remote_animation_intent_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "jump_direction_combos",
+        "network_gameplay_parity"
+      ]
+    },
+    "tools/jump_forward_legs_visual_probe.gd": {
+      "exists": true,
+      "contracts": [
+        "jump_forward_legs"
+      ]
+    },
+    "tools/jump_forward_frame_probe.gd": {
+      "exists": true,
+      "contracts": [
+        "jump_forward_legs"
+      ]
+    },
+    "tools/jump_peak_slide_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "jump_peak_slide_candidate"
+      ]
+    },
+    "tools/jungle_village_canonical_probe.gd": {
+      "exists": true,
+      "contracts": [
+        "jungle_village_variant"
+      ]
+    },
+    "tools/jungle_village_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "jungle_village_variant"
+      ]
+    },
+    "tools/socom_geometry/jungle_test.cjs": {
+      "exists": true,
+      "contracts": [
+        "jungle_village_variant"
+      ]
+    },
+    "tools/network_movement_loss_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "lean_movement_latch",
+        "network_movement_delivery"
+      ]
+    },
+    "tools/traversal_contract_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "ledge_climb"
+      ]
+    },
+    "tools/lobby_replication_arena_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "lobby_replication_arena_boundaries"
+      ]
+    },
+    "tools/local_snapshot_smoothing_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "local_snapshot_smoothing"
+      ]
+    },
+    "tools/locomotion_playback_cadence_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "locomotion_playback_cadence"
+      ]
+    },
+    "tools/long_gun_timing_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "long_gun_projectiles_and_contacts"
+      ]
+    },
+    "tools/shotgun_projectile_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "long_gun_projectiles_and_contacts",
+        "mixed_weapon_roster",
+        "sniper_plain_torso_damage"
+      ]
+    },
+    "tools/m4a1_photoreal_potato_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "m4a1_photoreal_asset"
+      ]
+    },
+    "tools/mark_23_equipment_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "mark_23_pistol_equipment",
+        "two_hand_pistol_family_presentation"
+      ]
+    },
+    "tools/matchmaking_launcher_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "matchmaking_front_door_shared_lobby"
+      ]
+    },
+    "tools/mobility_fire_lock_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "mobility_fire_lock"
+      ]
+    },
+    "tools/mobility_movement_handoff_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "mobility_fire_lock",
+        "mobility_movement_handoff"
+      ]
+    },
+    "tools/modular_operator_player_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "modular_operator_player"
+      ]
+    },
+    "tools/morro_do_sol_v2_2v2_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "morro_do_sol_v2_art_direction"
+      ]
+    },
+    "tools/mouse_aim_string_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "mouse_string_guide_visibility"
+      ]
+    },
+    "tools/input_device_ownership_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "mouse_string_guide_visibility"
+      ]
+    },
+    "tools/shot_presentation_component_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "multiplayer_component_boundaries"
+      ]
+    },
+    "tools/multiplayer_components_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "multiplayer_component_boundaries"
+      ]
+    },
+    "tools/server_reload_rpc_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "multiplayer_component_boundaries",
+        "server_reload_authority"
+      ]
+    },
+    "tools/dedicated_reload_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "multiplayer_component_boundaries",
+        "server_reload_authority"
+      ]
+    },
+    "tools/acoustic_propagation_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "multiplayer_component_boundaries",
+        "weapon_acoustic_routing"
+      ]
+    },
+    "tools/native_ik_socom_player_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "native_ik_weapon_holding",
+        "new_ik_reference_lab"
+      ]
+    },
+    "tools/native_ik_gold_standard_live_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "native_ik_weapon_holding"
+      ]
+    },
+    "tools/network_fire_mode_parity_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "network_gameplay_parity"
+      ]
+    },
+    "tools/network_shot_feedback_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "network_gameplay_parity"
+      ]
+    },
+    "tools/network_canonical_tuning_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "network_gameplay_parity",
+        "network_operator_animation_parity"
+      ]
+    },
+    "tools/network_operator_animation_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "network_gameplay_parity",
+        "network_operator_animation_parity"
+      ]
+    },
+    "tools/render_dedicated_server_deployment_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "network_gameplay_parity",
+        "render_http_gateway"
+      ]
+    },
+    "tools/network_map_transport_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "network_map_transport_capacity"
+      ]
+    },
+    "tools/multiplayer_lifecycle_probe.gd": {
+      "exists": true,
+      "contracts": [
+        "network_movement_delivery",
+        "server_authoritative_sustained_fire"
+      ]
+    },
+    "tools/network_weapon_names_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "network_weapon_name_parity"
+      ]
+    },
+    "tools/native_ik_lab_visual_proof.gd": {
+      "exists": true,
+      "contracts": [
+        "new_ik_reference_lab"
+      ]
+    },
+    "tools/operator_death_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "operator_death_presentation"
+      ]
+    },
+    "tools/operator_stair_foot_grounding_visual_check.gd": {
+      "exists": true,
+      "contracts": [
+        "operator_stair_foot_grounding"
+      ]
+    },
+    "tools/blue_green_operator_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "original_blue_green_operators",
+        "relic_depot_and_nvg_operator"
+      ]
+    },
+    "tools/painterly_village_2v2_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "painterly_coastal_village_2v2"
+      ]
+    },
+    "tools/pistol_movement_contact_probe.gd": {
+      "exists": true,
+      "contracts": [
+        "pistol_carry_contact_and_pose_boundaries"
+      ]
+    },
+    "tools/pistol_standing_movement_placement_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "pistol_carry_contact_and_pose_boundaries",
+        "pistol_standing_movement_placement"
+      ]
+    },
+    "tools/pistol_compressed_idle_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "pistol_carry_contact_and_pose_boundaries",
+        "pistol_compressed_idle",
+        "pistol_standing_movement_placement",
+        "reload_trigger_attachment"
+      ]
+    },
+    "tools/god_file_budget_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "pistol_carry_contact_and_pose_boundaries"
+      ]
+    },
+    "tools/pistol_presented_muzzle_effect_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "pistol_compressed_idle"
+      ]
+    },
+    "tools/pistol_compressed_movement_source_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "pistol_compressed_idle",
+        "pistol_standing_movement_placement"
+      ]
+    },
+    "tools/pistol_stationary_blend_weight_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "pistol_compressed_idle"
+      ]
+    },
+    "tools/pistol_compressed_movement_visual_probe.gd": {
+      "exists": true,
+      "contracts": [
+        "pistol_compressed_idle"
+      ]
+    },
+    "tools/pistol_distinct_ready_slots_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "pistol_compressed_idle",
+        "pistol_distinct_idle_ready_slots",
+        "two_hand_pistol_family_presentation"
+      ]
+    },
+    "tools/pistol_family_idle_parity_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "pistol_family_idle_parity"
+      ]
+    },
+    "tools/pistol_hybrid_main_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "pistol_hybrid_main",
+        "source_jump_presentation",
+        "source_rifle_fingers",
+        "source_rifle_fire_pose",
+        "source_rifle_ready_fire_split"
+      ]
+    },
+    "tools/seal_locomotion_visual_probe.gd": {
+      "exists": true,
+      "contracts": [
+        "pistol_hybrid_main",
+        "seal_gameplay_activation",
+        "source_rifle_fingers",
+        "source_rifle_fire_pose"
+      ]
+    },
+    "tools/player_hosted_private_match_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "native_player_hosted_private_match"
+      ]
+    },
+    "tools/multiplayer_slice_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "native_player_hosted_private_match",
+        "server_authoritative_sustained_fire",
+        "stance_hold_prone"
+      ]
+    },
+    "tools/private_server_boundary_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "private_server_boundary"
+      ]
+    },
+    "tools/ps1_dual_source_rig_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "ps1_dual_source_rig"
+      ]
+    },
+    "tools/operator_weapon_pose_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "ps1_dual_source_rig"
+      ]
+    },
+    "tools/ranked_authority_security_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "ranked_authority_security"
+      ]
+    },
+    "tools/tournament_event_delivery_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "ranked_authority_security"
+      ]
+    },
+    "tools/rapid_tap_bloom_live_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "rapid_tap_bloom"
+      ]
+    },
+    "tools/weapon_stance_bloom_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "rapid_tap_bloom"
+      ]
+    },
+    "tools/weapon_fire_mode_policy_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "rapid_tap_bloom",
+        "socom2_matched_firing"
+      ]
+    },
+    "tools/operator_composure_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "rapid_tap_bloom"
+      ]
+    },
+    "tools/operator_palette_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "relic_depot_and_nvg_operator"
+      ]
+    },
+    "tools/prone_reload_transition_smoothing_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "reload_stance_blend",
+        "reload_trigger_attachment"
+      ]
+    },
+    "tools/seal_combat_pose_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "reload_stance_blend",
+        "seal_gameplay_activation"
+      ]
+    },
+    "tools/reload_trigger_attachment_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "reload_trigger_attachment"
+      ]
+    },
+    "tools/reload_evaluated_source_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "reload_trigger_attachment"
+      ]
+    },
+    "tools/reload_input_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "reload_trigger_attachment"
+      ]
+    },
+    "tools/rifle_support_release_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "reload_trigger_attachment",
+        "rifle_support_release"
+      ]
+    },
+    "tools/http_gateway_regression.mjs": {
+      "exists": true,
+      "contracts": [
+        "render_http_gateway"
+      ]
+    },
+    "tools/http_gateway_peer_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "render_http_gateway"
+      ]
+    },
+    "tools/rifle_full_right_reach_probe.gd": {
+      "exists": true,
+      "contracts": [
+        "rifle_ready_shoulder_pocket",
+        "rifle_right_carry_release"
+      ]
+    },
+    "tools/programmatic_3d_telemetry_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "runtime_presentation_performance_stability"
+      ]
+    },
+    "tools/seal_dive_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "seal_gameplay_activation"
+      ]
+    },
+    "tools/play_seal_candidate.gd": {
+      "exists": true,
+      "contracts": [
+        "seal_gameplay_activation"
+      ]
+    },
+    "tools/seal_gameplay_data_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "seal_gameplay_activation"
+      ]
+    },
+    "tools/seal_gameplay_candidate_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "seal_gameplay_activation"
+      ]
+    },
+    "tools/seal_gameplay_mobility_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "seal_gameplay_activation"
+      ]
+    },
+    "tools/seal_grenade_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "seal_gameplay_activation"
+      ]
+    },
+    "tools/seal_reference_import_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "seal_reference_import"
+      ]
+    },
+    "tools/animation_workshop_repository_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "seal_reference_import"
+      ]
+    },
+    "tools/muzzle_obstruction_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "server_authoritative_sustained_fire"
+      ]
+    },
+    "tools/backend_operations_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "server_directory_presence"
+      ]
+    },
+    "tools/reload_authority_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "server_reload_authority"
+      ]
+    },
+    "tools/recom_stance_import_regression.py": {
+      "exists": true,
+      "contracts": [
+        "shared_weapon_reticle"
+      ]
+    },
+    "tools/sniper_torso_damage_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "sniper_plain_torso_damage"
+      ]
+    },
+    "tools/player_health_weapon_ammo_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "sniper_plain_torso_damage"
+      ]
+    },
+    "tools/run_hurtbox_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "sniper_plain_torso_damage"
+      ]
+    },
+    "tools/socom2_matched_firing_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "socom2_matched_firing"
+      ]
+    },
+    "tools/socom2_weapon_behavior_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "socom2_matched_firing",
+        "socom2_weapon_settings"
+      ]
+    },
+    "tools/socom2_tan_operator_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "socom2_tan_operator"
+      ]
+    },
+    "tools/socom2_tan_operator_visual_check.gd": {
+      "exists": true,
+      "contracts": [
+        "socom2_tan_operator"
+      ]
+    },
+    "tools/player_scene_composition_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "socom2_tan_operator"
+      ]
+    },
+    "tools/socom_geometry_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "socom_local_geometry_kit"
+      ]
+    },
+    "tools/socom_geometry/test.cjs": {
+      "exists": true,
+      "contracts": [
+        "socom_local_geometry_kit"
+      ]
+    },
+    "tools/jump_continuity_probe.gd": {
+      "exists": true,
+      "contracts": [
+        "source_jump_presentation"
+      ]
+    },
+    "tools/source_jump_visual_probe.gd": {
+      "exists": true,
+      "contracts": [
+        "source_jump_presentation"
+      ]
+    },
+    "tools/source_rifle_ready_fire_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "source_jump_presentation",
+        "source_rifle_ready_fire_split"
+      ]
+    },
+    "tools/rifle_finger_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "source_rifle_fingers"
+      ]
+    },
+    "tools/source_rifle_fire_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "source_rifle_fire_pose"
+      ]
+    },
+    "tools/ready_fire_visual_probe.gd": {
+      "exists": true,
+      "contracts": [
+        "source_rifle_ready_fire_split"
+      ]
+    },
+    "tools/step_probe_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "stair_locomotion"
+      ]
+    },
+    "tools/tournament_sudden_death_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "tournament_six_round_sudden_death_vote"
+      ]
+    },
+    "tools/weapon_audio_cleanup_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "transient_preserving_weapon_audio"
+      ]
+    },
+    "tools/acoustic_recorded_weapon_route_probe.gd": {
+      "exists": true,
+      "contracts": [
+        "transient_preserving_weapon_audio",
+        "weapon_acoustic_routing"
+      ]
+    },
+    "tools/pistol_fire_recovery_visual_check.gd": {
+      "exists": true,
+      "contracts": [
+        "two_hand_pistol_family_presentation"
+      ]
+    },
+    "tools/pistol_fire_direction_pose_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "two_hand_pistol_family_presentation"
+      ]
+    },
+    "tools/pistol_recovery_exit_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "two_hand_pistol_family_presentation"
+      ]
+    },
+    "tools/pistol_moving_entry_timing_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "two_hand_pistol_family_presentation"
+      ]
+    },
+    "tools/de50_support_rotation_probe.gd": {
+      "exists": true,
+      "contracts": [
+        "two_hand_pistol_family_presentation"
+      ]
+    },
+    "tools/grenade_acoustic_audio_regression.gd": {
+      "exists": true,
+      "contracts": [
+        "weapon_acoustic_routing"
+      ]
+    }
+  }
+}

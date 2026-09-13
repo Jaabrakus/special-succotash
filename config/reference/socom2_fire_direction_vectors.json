@@ -1,0 +1,2212 @@
+{
+  "schema_version": 1,
+  "status": "PASS",
+  "original_rng_calls_executed": false,
+  "external_stubs": 0,
+  "inputs": [
+    {
+      "file": "FTSCore.bin",
+      "sha256": "cf09a7fabaf59a1d68f01411bd1db9e859af054df1f2fbc4775d8c221785f836"
+    },
+    {
+      "file": "ZSealEtc.bin",
+      "sha256": "cdb3fa8e707090ac879874e3987c6b7784808a4767e85d0e19fc6909d36549b1"
+    },
+    {
+      "file": "SCUS_972.75",
+      "sha256": "0172dc0bec19c83d1fe2d0fec0a290f41cc5d32efa14ed6859ca92773c05346c"
+    }
+  ],
+  "fixtures": [
+    {
+      "direction": [
+        0,
+        0,
+        -1
+      ],
+      "raw": [
+        1073741823,
+        1073741823
+      ],
+      "accuracy": [
+        0,
+        0,
+        0.10000000149011612
+      ],
+      "expected": {
+        "draws": [
+          {
+            "u": 0,
+            "signed_square": 0
+          },
+          {
+            "u": 0,
+            "signed_square": 0
+          }
+        ],
+        "basis": {
+          "right": [
+            1,
+            0,
+            0
+          ],
+          "up": [
+            0,
+            1,
+            0
+          ]
+        },
+        "axis_offsets": [
+          0,
+          0
+        ],
+        "raw_direction": [
+          0,
+          0,
+          -1
+        ],
+        "normalized_direction_for_adapted_consumer": [
+          0,
+          0,
+          -1
+        ]
+      },
+      "original_execution": {
+        "axis_offsets": [
+          0,
+          0
+        ],
+        "raw_direction": [
+          0,
+          0,
+          -1
+        ],
+        "slices": [
+          {
+            "entry": "0x5922d4",
+            "stop": "0x557e10",
+            "steps": 23
+          },
+          {
+            "entry": "0x557e10",
+            "stop": "0x592348",
+            "steps": 39
+          },
+          {
+            "entry": "0x592350",
+            "stop": "0x557e10",
+            "steps": 23
+          },
+          {
+            "entry": "0x557e10",
+            "stop": "0x5923ec",
+            "steps": 122
+          }
+        ]
+      }
+    },
+    {
+      "direction": [
+        0,
+        0,
+        -1
+      ],
+      "raw": [
+        0,
+        0
+      ],
+      "accuracy": [
+        0,
+        0,
+        0.10000000149011612
+      ],
+      "expected": {
+        "draws": [
+          {
+            "u": -1,
+            "signed_square": -1
+          },
+          {
+            "u": -1,
+            "signed_square": -1
+          }
+        ],
+        "basis": {
+          "right": [
+            1,
+            0,
+            0
+          ],
+          "up": [
+            0,
+            1,
+            0
+          ]
+        },
+        "axis_offsets": [
+          -0.10000000149011612,
+          -0.10000000149011612
+        ],
+        "raw_direction": [
+          -0.10000000149011612,
+          -0.10000000149011612,
+          -1
+        ],
+        "normalized_direction_for_adapted_consumer": [
+          -0.09901475574417216,
+          -0.09901475574417216,
+          -0.9901475426873735
+        ]
+      },
+      "original_execution": {
+        "axis_offsets": [
+          -0.10000000149011612,
+          -0.10000000149011612
+        ],
+        "raw_direction": [
+          -0.10000000149011612,
+          -0.10000000149011612,
+          -1
+        ],
+        "slices": [
+          {
+            "entry": "0x5922d4",
+            "stop": "0x557e10",
+            "steps": 23
+          },
+          {
+            "entry": "0x557e10",
+            "stop": "0x592348",
+            "steps": 39
+          },
+          {
+            "entry": "0x592350",
+            "stop": "0x557e10",
+            "steps": 23
+          },
+          {
+            "entry": "0x557e10",
+            "stop": "0x5923ec",
+            "steps": 122
+          }
+        ]
+      }
+    },
+    {
+      "direction": [
+        0,
+        0,
+        -1
+      ],
+      "raw": [
+        2147483647,
+        2147483647
+      ],
+      "accuracy": [
+        0,
+        0,
+        0.10000000149011612
+      ],
+      "expected": {
+        "draws": [
+          {
+            "u": 1,
+            "signed_square": 1
+          },
+          {
+            "u": 1,
+            "signed_square": 1
+          }
+        ],
+        "basis": {
+          "right": [
+            1,
+            0,
+            0
+          ],
+          "up": [
+            0,
+            1,
+            0
+          ]
+        },
+        "axis_offsets": [
+          0.10000000149011612,
+          0.10000000149011612
+        ],
+        "raw_direction": [
+          0.10000000149011612,
+          0.10000000149011612,
+          -1
+        ],
+        "normalized_direction_for_adapted_consumer": [
+          0.09901475574417216,
+          0.09901475574417216,
+          -0.9901475426873735
+        ]
+      },
+      "original_execution": {
+        "axis_offsets": [
+          0.10000000149011612,
+          0.10000000149011612
+        ],
+        "raw_direction": [
+          0.10000000149011612,
+          0.10000000149011612,
+          -1
+        ],
+        "slices": [
+          {
+            "entry": "0x5922d4",
+            "stop": "0x557e10",
+            "steps": 23
+          },
+          {
+            "entry": "0x557e10",
+            "stop": "0x592348",
+            "steps": 39
+          },
+          {
+            "entry": "0x592350",
+            "stop": "0x557e10",
+            "steps": 23
+          },
+          {
+            "entry": "0x557e10",
+            "stop": "0x5923ec",
+            "steps": 122
+          }
+        ]
+      }
+    },
+    {
+      "direction": [
+        0,
+        0,
+        -1
+      ],
+      "raw": [
+        536870911,
+        1610612735
+      ],
+      "accuracy": [
+        0,
+        0,
+        0.10000000149011612
+      ],
+      "expected": {
+        "draws": [
+          {
+            "u": -0.5,
+            "signed_square": -0.25
+          },
+          {
+            "u": 0.5,
+            "signed_square": 0.25
+          }
+        ],
+        "basis": {
+          "right": [
+            1,
+            0,
+            0
+          ],
+          "up": [
+            0,
+            1,
+            0
+          ]
+        },
+        "axis_offsets": [
+          -0.02500000037252903,
+          0.02500000037252903
+        ],
+        "raw_direction": [
+          -0.02500000037252903,
+          0.02500000037252903,
+          -1
+        ],
+        "normalized_direction_for_adapted_consumer": [
+          -0.02498439000502701,
+          0.02498439000502701,
+          -0.9993755853092237
+        ]
+      },
+      "original_execution": {
+        "axis_offsets": [
+          -0.02500000037252903,
+          0.02500000037252903
+        ],
+        "raw_direction": [
+          -0.02500000037252903,
+          0.02500000037252903,
+          -1
+        ],
+        "slices": [
+          {
+            "entry": "0x5922d4",
+            "stop": "0x557e10",
+            "steps": 23
+          },
+          {
+            "entry": "0x557e10",
+            "stop": "0x592348",
+            "steps": 39
+          },
+          {
+            "entry": "0x592350",
+            "stop": "0x557e10",
+            "steps": 23
+          },
+          {
+            "entry": "0x557e10",
+            "stop": "0x5923ec",
+            "steps": 122
+          }
+        ]
+      }
+    },
+    {
+      "direction": [
+        0,
+        0.6000000238418579,
+        -0.800000011920929
+      ],
+      "raw": [
+        1073741823,
+        1073741823
+      ],
+      "accuracy": [
+        0,
+        0,
+        0.10000000149011612
+      ],
+      "expected": {
+        "draws": [
+          {
+            "u": 0,
+            "signed_square": 0
+          },
+          {
+            "u": 0,
+            "signed_square": 0
+          }
+        ],
+        "basis": {
+          "right": [
+            0.800000011920929,
+            0,
+            0
+          ],
+          "up": [
+            0,
+            0.64000004529953,
+            0.48000001907348633
+          ]
+        },
+        "axis_offsets": [
+          0,
+          0
+        ],
+        "raw_direction": [
+          0,
+          0.6000000238418579,
+          -0.800000011920929
+        ],
+        "normalized_direction_for_adapted_consumer": [
+          0,
+          0.6000000095367428,
+          -0.7999999928474427
+        ]
+      },
+      "original_execution": {
+        "axis_offsets": [
+          0,
+          0
+        ],
+        "raw_direction": [
+          0,
+          0.6000000238418579,
+          -0.800000011920929
+        ],
+        "slices": [
+          {
+            "entry": "0x5922d4",
+            "stop": "0x557e10",
+            "steps": 23
+          },
+          {
+            "entry": "0x557e10",
+            "stop": "0x592348",
+            "steps": 39
+          },
+          {
+            "entry": "0x592350",
+            "stop": "0x557e10",
+            "steps": 23
+          },
+          {
+            "entry": "0x557e10",
+            "stop": "0x5923ec",
+            "steps": 122
+          }
+        ]
+      }
+    },
+    {
+      "direction": [
+        0,
+        0.6000000238418579,
+        -0.800000011920929
+      ],
+      "raw": [
+        0,
+        0
+      ],
+      "accuracy": [
+        0,
+        0,
+        0.10000000149011612
+      ],
+      "expected": {
+        "draws": [
+          {
+            "u": -1,
+            "signed_square": -1
+          },
+          {
+            "u": -1,
+            "signed_square": -1
+          }
+        ],
+        "basis": {
+          "right": [
+            0.800000011920929,
+            0,
+            0
+          ],
+          "up": [
+            0,
+            0.64000004529953,
+            0.48000001907348633
+          ]
+        },
+        "axis_offsets": [
+          -0.10000000149011612,
+          -0.10000000149011612
+        ],
+        "raw_direction": [
+          -0.08000000566244125,
+          0.5360000133514404,
+          -0.8479999899864197
+        ],
+        "normalized_direction_for_adapted_consumer": [
+          -0.07949286904750055,
+          0.5326021981871992,
+          -0.8426243423120174
+        ]
+      },
+      "original_execution": {
+        "axis_offsets": [
+          -0.10000000149011612,
+          -0.10000000149011612
+        ],
+        "raw_direction": [
+          -0.08000000566244125,
+          0.5360000133514404,
+          -0.8479999899864197
+        ],
+        "slices": [
+          {
+            "entry": "0x5922d4",
+            "stop": "0x557e10",
+            "steps": 23
+          },
+          {
+            "entry": "0x557e10",
+            "stop": "0x592348",
+            "steps": 39
+          },
+          {
+            "entry": "0x592350",
+            "stop": "0x557e10",
+            "steps": 23
+          },
+          {
+            "entry": "0x557e10",
+            "stop": "0x5923ec",
+            "steps": 122
+          }
+        ]
+      }
+    },
+    {
+      "direction": [
+        0,
+        0.6000000238418579,
+        -0.800000011920929
+      ],
+      "raw": [
+        2147483647,
+        2147483647
+      ],
+      "accuracy": [
+        0,
+        0,
+        0.10000000149011612
+      ],
+      "expected": {
+        "draws": [
+          {
+            "u": 1,
+            "signed_square": 1
+          },
+          {
+            "u": 1,
+            "signed_square": 1
+          }
+        ],
+        "basis": {
+          "right": [
+            0.800000011920929,
+            0,
+            0
+          ],
+          "up": [
+            0,
+            0.64000004529953,
+            0.48000001907348633
+          ]
+        },
+        "axis_offsets": [
+          0.10000000149011612,
+          0.10000000149011612
+        ],
+        "raw_direction": [
+          0.08000000566244125,
+          0.6640000343322754,
+          -0.7520000338554382
+        ],
+        "normalized_direction_for_adapted_consumer": [
+          0.07949286515518639,
+          0.6597907682023529,
+          -0.7472329132100435
+        ]
+      },
+      "original_execution": {
+        "axis_offsets": [
+          0.10000000149011612,
+          0.10000000149011612
+        ],
+        "raw_direction": [
+          0.08000000566244125,
+          0.6640000343322754,
+          -0.7520000338554382
+        ],
+        "slices": [
+          {
+            "entry": "0x5922d4",
+            "stop": "0x557e10",
+            "steps": 23
+          },
+          {
+            "entry": "0x557e10",
+            "stop": "0x592348",
+            "steps": 39
+          },
+          {
+            "entry": "0x592350",
+            "stop": "0x557e10",
+            "steps": 23
+          },
+          {
+            "entry": "0x557e10",
+            "stop": "0x5923ec",
+            "steps": 122
+          }
+        ]
+      }
+    },
+    {
+      "direction": [
+        0,
+        0.6000000238418579,
+        -0.800000011920929
+      ],
+      "raw": [
+        536870911,
+        1610612735
+      ],
+      "accuracy": [
+        0,
+        0,
+        0.10000000149011612
+      ],
+      "expected": {
+        "draws": [
+          {
+            "u": -0.5,
+            "signed_square": -0.25
+          },
+          {
+            "u": 0.5,
+            "signed_square": 0.25
+          }
+        ],
+        "basis": {
+          "right": [
+            0.800000011920929,
+            0,
+            0
+          ],
+          "up": [
+            0,
+            0.64000004529953,
+            0.48000001907348633
+          ]
+        },
+        "axis_offsets": [
+          -0.02500000037252903,
+          0.02500000037252903
+        ],
+        "raw_direction": [
+          -0.020000001415610313,
+          0.6159999966621399,
+          -0.7879999876022339
+        ],
+        "normalized_direction_for_adapted_consumer": [
+          -0.0199920064475088,
+          0.615753751663377,
+          -0.7876849858862863
+        ]
+      },
+      "original_execution": {
+        "axis_offsets": [
+          -0.02500000037252903,
+          0.02500000037252903
+        ],
+        "raw_direction": [
+          -0.020000001415610313,
+          0.6159999966621399,
+          -0.7879999876022339
+        ],
+        "slices": [
+          {
+            "entry": "0x5922d4",
+            "stop": "0x557e10",
+            "steps": 23
+          },
+          {
+            "entry": "0x557e10",
+            "stop": "0x592348",
+            "steps": 39
+          },
+          {
+            "entry": "0x592350",
+            "stop": "0x557e10",
+            "steps": 23
+          },
+          {
+            "entry": "0x557e10",
+            "stop": "0x5923ec",
+            "steps": 122
+          }
+        ]
+      }
+    },
+    {
+      "direction": [
+        1,
+        0,
+        0
+      ],
+      "raw": [
+        1073741823,
+        1073741823
+      ],
+      "accuracy": [
+        0,
+        0,
+        0.10000000149011612
+      ],
+      "expected": {
+        "draws": [
+          {
+            "u": 0,
+            "signed_square": 0
+          },
+          {
+            "u": 0,
+            "signed_square": 0
+          }
+        ],
+        "basis": {
+          "right": [
+            0,
+            0,
+            1
+          ],
+          "up": [
+            0,
+            1,
+            0
+          ]
+        },
+        "axis_offsets": [
+          0,
+          0
+        ],
+        "raw_direction": [
+          1,
+          0,
+          0
+        ],
+        "normalized_direction_for_adapted_consumer": [
+          1,
+          0,
+          0
+        ]
+      },
+      "original_execution": {
+        "axis_offsets": [
+          0,
+          0
+        ],
+        "raw_direction": [
+          1,
+          0,
+          0
+        ],
+        "slices": [
+          {
+            "entry": "0x5922d4",
+            "stop": "0x557e10",
+            "steps": 23
+          },
+          {
+            "entry": "0x557e10",
+            "stop": "0x592348",
+            "steps": 39
+          },
+          {
+            "entry": "0x592350",
+            "stop": "0x557e10",
+            "steps": 23
+          },
+          {
+            "entry": "0x557e10",
+            "stop": "0x5923ec",
+            "steps": 122
+          }
+        ]
+      }
+    },
+    {
+      "direction": [
+        1,
+        0,
+        0
+      ],
+      "raw": [
+        0,
+        0
+      ],
+      "accuracy": [
+        0,
+        0,
+        0.10000000149011612
+      ],
+      "expected": {
+        "draws": [
+          {
+            "u": -1,
+            "signed_square": -1
+          },
+          {
+            "u": -1,
+            "signed_square": -1
+          }
+        ],
+        "basis": {
+          "right": [
+            0,
+            0,
+            1
+          ],
+          "up": [
+            0,
+            1,
+            0
+          ]
+        },
+        "axis_offsets": [
+          -0.10000000149011612,
+          -0.10000000149011612
+        ],
+        "raw_direction": [
+          1,
+          -0.10000000149011612,
+          -0.10000000149011612
+        ],
+        "normalized_direction_for_adapted_consumer": [
+          0.9901475426873735,
+          -0.09901475574417216,
+          -0.09901475574417216
+        ]
+      },
+      "original_execution": {
+        "axis_offsets": [
+          -0.10000000149011612,
+          -0.10000000149011612
+        ],
+        "raw_direction": [
+          1,
+          -0.10000000149011612,
+          -0.10000000149011612
+        ],
+        "slices": [
+          {
+            "entry": "0x5922d4",
+            "stop": "0x557e10",
+            "steps": 23
+          },
+          {
+            "entry": "0x557e10",
+            "stop": "0x592348",
+            "steps": 39
+          },
+          {
+            "entry": "0x592350",
+            "stop": "0x557e10",
+            "steps": 23
+          },
+          {
+            "entry": "0x557e10",
+            "stop": "0x5923ec",
+            "steps": 122
+          }
+        ]
+      }
+    },
+    {
+      "direction": [
+        1,
+        0,
+        0
+      ],
+      "raw": [
+        2147483647,
+        2147483647
+      ],
+      "accuracy": [
+        0,
+        0,
+        0.10000000149011612
+      ],
+      "expected": {
+        "draws": [
+          {
+            "u": 1,
+            "signed_square": 1
+          },
+          {
+            "u": 1,
+            "signed_square": 1
+          }
+        ],
+        "basis": {
+          "right": [
+            0,
+            0,
+            1
+          ],
+          "up": [
+            0,
+            1,
+            0
+          ]
+        },
+        "axis_offsets": [
+          0.10000000149011612,
+          0.10000000149011612
+        ],
+        "raw_direction": [
+          1,
+          0.10000000149011612,
+          0.10000000149011612
+        ],
+        "normalized_direction_for_adapted_consumer": [
+          0.9901475426873735,
+          0.09901475574417216,
+          0.09901475574417216
+        ]
+      },
+      "original_execution": {
+        "axis_offsets": [
+          0.10000000149011612,
+          0.10000000149011612
+        ],
+        "raw_direction": [
+          1,
+          0.10000000149011612,
+          0.10000000149011612
+        ],
+        "slices": [
+          {
+            "entry": "0x5922d4",
+            "stop": "0x557e10",
+            "steps": 23
+          },
+          {
+            "entry": "0x557e10",
+            "stop": "0x592348",
+            "steps": 39
+          },
+          {
+            "entry": "0x592350",
+            "stop": "0x557e10",
+            "steps": 23
+          },
+          {
+            "entry": "0x557e10",
+            "stop": "0x5923ec",
+            "steps": 122
+          }
+        ]
+      }
+    },
+    {
+      "direction": [
+        1,
+        0,
+        0
+      ],
+      "raw": [
+        536870911,
+        1610612735
+      ],
+      "accuracy": [
+        0,
+        0,
+        0.10000000149011612
+      ],
+      "expected": {
+        "draws": [
+          {
+            "u": -0.5,
+            "signed_square": -0.25
+          },
+          {
+            "u": 0.5,
+            "signed_square": 0.25
+          }
+        ],
+        "basis": {
+          "right": [
+            0,
+            0,
+            1
+          ],
+          "up": [
+            0,
+            1,
+            0
+          ]
+        },
+        "axis_offsets": [
+          -0.02500000037252903,
+          0.02500000037252903
+        ],
+        "raw_direction": [
+          1,
+          0.02500000037252903,
+          -0.02500000037252903
+        ],
+        "normalized_direction_for_adapted_consumer": [
+          0.9993755853092237,
+          0.02498439000502701,
+          -0.02498439000502701
+        ]
+      },
+      "original_execution": {
+        "axis_offsets": [
+          -0.02500000037252903,
+          0.02500000037252903
+        ],
+        "raw_direction": [
+          1,
+          0.02500000037252903,
+          -0.02500000037252903
+        ],
+        "slices": [
+          {
+            "entry": "0x5922d4",
+            "stop": "0x557e10",
+            "steps": 23
+          },
+          {
+            "entry": "0x557e10",
+            "stop": "0x592348",
+            "steps": 39
+          },
+          {
+            "entry": "0x592350",
+            "stop": "0x557e10",
+            "steps": 23
+          },
+          {
+            "entry": "0x557e10",
+            "stop": "0x5923ec",
+            "steps": 122
+          }
+        ]
+      }
+    },
+    {
+      "direction": [
+        0,
+        0,
+        -1
+      ],
+      "raw": [
+        1073741823,
+        1073741823
+      ],
+      "accuracy": [
+        0.019999999552965164,
+        -0.029999999329447746,
+        0.10000000149011612
+      ],
+      "expected": {
+        "draws": [
+          {
+            "u": 0,
+            "signed_square": 0
+          },
+          {
+            "u": 0,
+            "signed_square": 0
+          }
+        ],
+        "basis": {
+          "right": [
+            1,
+            0,
+            0
+          ],
+          "up": [
+            0,
+            1,
+            0
+          ]
+        },
+        "axis_offsets": [
+          0.019999999552965164,
+          -0.029999999329447746
+        ],
+        "raw_direction": [
+          0.019999999552965164,
+          -0.029999999329447746,
+          -1
+        ],
+        "normalized_direction_for_adapted_consumer": [
+          0.019987012215119816,
+          -0.029980518322679728,
+          -0.9993506330932181
+        ]
+      },
+      "original_execution": {
+        "axis_offsets": [
+          0.019999999552965164,
+          -0.029999999329447746
+        ],
+        "raw_direction": [
+          0.019999999552965164,
+          -0.029999999329447746,
+          -1
+        ],
+        "slices": [
+          {
+            "entry": "0x5922d4",
+            "stop": "0x557e10",
+            "steps": 23
+          },
+          {
+            "entry": "0x557e10",
+            "stop": "0x592348",
+            "steps": 39
+          },
+          {
+            "entry": "0x592350",
+            "stop": "0x557e10",
+            "steps": 23
+          },
+          {
+            "entry": "0x557e10",
+            "stop": "0x5923ec",
+            "steps": 122
+          }
+        ]
+      }
+    },
+    {
+      "direction": [
+        0,
+        1,
+        0
+      ],
+      "raw": [
+        0,
+        2147483647
+      ],
+      "accuracy": [
+        0,
+        0,
+        0.10000000149011612
+      ],
+      "expected": {
+        "draws": [
+          {
+            "u": -1,
+            "signed_square": -1
+          },
+          {
+            "u": 1,
+            "signed_square": 1
+          }
+        ],
+        "basis": {
+          "right": [
+            0,
+            0,
+            0
+          ],
+          "up": [
+            0,
+            0,
+            0
+          ]
+        },
+        "axis_offsets": [
+          -0.10000000149011612,
+          0.10000000149011612
+        ],
+        "raw_direction": [
+          0,
+          1,
+          0
+        ],
+        "normalized_direction_for_adapted_consumer": [
+          0,
+          1,
+          0
+        ]
+      },
+      "original_execution": {
+        "axis_offsets": [
+          -0.10000000149011612,
+          0.10000000149011612
+        ],
+        "raw_direction": [
+          0,
+          1,
+          0
+        ],
+        "slices": [
+          {
+            "entry": "0x5922d4",
+            "stop": "0x557e10",
+            "steps": 23
+          },
+          {
+            "entry": "0x557e10",
+            "stop": "0x592348",
+            "steps": 39
+          },
+          {
+            "entry": "0x592350",
+            "stop": "0x557e10",
+            "steps": 23
+          },
+          {
+            "entry": "0x557e10",
+            "stop": "0x5923ec",
+            "steps": 122
+          }
+        ]
+      }
+    }
+  ],
+  "source_ranges": {
+    "distribution": [
+      {
+        "pc": "0x592260",
+        "file_offset": 839392,
+        "word": "0x27bdff60",
+        "assembly": "addiu sp,sp,-160"
+      },
+      {
+        "pc": "0x592264",
+        "file_offset": 839396,
+        "word": "0x3c023f80",
+        "assembly": "lui v0,0x3f80"
+      },
+      {
+        "pc": "0x592268",
+        "file_offset": 839400,
+        "word": "0xffbf0020",
+        "assembly": "sd ra,32(sp)"
+      },
+      {
+        "pc": "0x59226c",
+        "file_offset": 839404,
+        "word": "0x44806000",
+        "assembly": "mtc1 zero,f12"
+      },
+      {
+        "pc": "0x592270",
+        "file_offset": 839408,
+        "word": "0x7fb10010",
+        "assembly": "sq s1,16(sp)"
+      },
+      {
+        "pc": "0x592274",
+        "file_offset": 839412,
+        "word": "0x44826800",
+        "assembly": "mtc1 v0,f13"
+      },
+      {
+        "pc": "0x592278",
+        "file_offset": 839416,
+        "word": "0x7fb00000",
+        "assembly": "sq s0,0(sp)"
+      },
+      {
+        "pc": "0x59227c",
+        "file_offset": 839420,
+        "word": "0xa0882d",
+        "assembly": "daddu s1,a1,zero"
+      },
+      {
+        "pc": "0x592280",
+        "file_offset": 839424,
+        "word": "0x8c830004",
+        "assembly": "lw v1,4(a0)"
+      },
+      {
+        "pc": "0x592284",
+        "file_offset": 839428,
+        "word": "0x46006386",
+        "assembly": "mov.s f14,f12"
+      },
+      {
+        "pc": "0x592288",
+        "file_offset": 839432,
+        "word": "0x247005d4",
+        "assembly": "addiu s0,v1,1492"
+      },
+      {
+        "pc": "0x59228c",
+        "file_offset": 839436,
+        "word": "0xc15053c",
+        "assembly": "jal 0x5414f0"
+      },
+      {
+        "pc": "0x592290",
+        "file_offset": 839440,
+        "word": "0x27a40090",
+        "assembly": "addiu a0,sp,144"
+      },
+      {
+        "pc": "0x592294",
+        "file_offset": 839444,
+        "word": "0xc145a40",
+        "assembly": "jal 0x516900"
+      },
+      {
+        "pc": "0x592298",
+        "file_offset": 839448,
+        "word": "0x27a40080",
+        "assembly": "addiu a0,sp,128"
+      },
+      {
+        "pc": "0x59229c",
+        "file_offset": 839452,
+        "word": "0xc145a40",
+        "assembly": "jal 0x516900"
+      },
+      {
+        "pc": "0x5922a0",
+        "file_offset": 839456,
+        "word": "0x27a40070",
+        "assembly": "addiu a0,sp,112"
+      },
+      {
+        "pc": "0x5922a4",
+        "file_offset": 839460,
+        "word": "0x220202d",
+        "assembly": "daddu a0,s1,zero"
+      },
+      {
+        "pc": "0x5922a8",
+        "file_offset": 839464,
+        "word": "0x27a50090",
+        "assembly": "addiu a1,sp,144"
+      },
+      {
+        "pc": "0x5922ac",
+        "file_offset": 839468,
+        "word": "0x27a60080",
+        "assembly": "addiu a2,sp,128"
+      },
+      {
+        "pc": "0x5922b0",
+        "file_offset": 839472,
+        "word": "0xc164900",
+        "assembly": "jal 0x592400"
+      },
+      {
+        "pc": "0x5922b4",
+        "file_offset": 839476,
+        "word": "0x382d",
+        "assembly": "daddu a3,zero,zero"
+      },
+      {
+        "pc": "0x5922b8",
+        "file_offset": 839480,
+        "word": "0x27a40080",
+        "assembly": "addiu a0,sp,128"
+      },
+      {
+        "pc": "0x5922bc",
+        "file_offset": 839484,
+        "word": "0x220282d",
+        "assembly": "daddu a1,s1,zero"
+      },
+      {
+        "pc": "0x5922c0",
+        "file_offset": 839488,
+        "word": "0x27a60070",
+        "assembly": "addiu a2,sp,112"
+      },
+      {
+        "pc": "0x5922c4",
+        "file_offset": 839492,
+        "word": "0xc164900",
+        "assembly": "jal 0x592400"
+      },
+      {
+        "pc": "0x5922c8",
+        "file_offset": 839496,
+        "word": "0x382d",
+        "assembly": "daddu a3,zero,zero"
+      },
+      {
+        "pc": "0x5922cc",
+        "file_offset": 839500,
+        "word": "0xc065dd0",
+        "assembly": "jal 0x197740"
+      },
+      {
+        "pc": "0x5922d0",
+        "file_offset": 839504,
+        "word": "0x0",
+        "assembly": "nop"
+      },
+      {
+        "pc": "0x5922d4",
+        "file_offset": 839508,
+        "word": "0x3c04c000",
+        "assembly": "lui a0,0xc000"
+      },
+      {
+        "pc": "0x5922d8",
+        "file_offset": 839512,
+        "word": "0x3c033080",
+        "assembly": "lui v1,0x3080"
+      },
+      {
+        "pc": "0x5922dc",
+        "file_offset": 839516,
+        "word": "0x34840001",
+        "assembly": "ori a0,a0,0x1"
+      },
+      {
+        "pc": "0x5922e0",
+        "file_offset": 839520,
+        "word": "0x441021",
+        "assembly": "addu v0,v0,a0"
+      },
+      {
+        "pc": "0x5922e4",
+        "file_offset": 839524,
+        "word": "0x44820800",
+        "assembly": "mtc1 v0,f1"
+      },
+      {
+        "pc": "0x5922e8",
+        "file_offset": 839528,
+        "word": "0x44830000",
+        "assembly": "mtc1 v1,f0"
+      },
+      {
+        "pc": "0x5922ec",
+        "file_offset": 839532,
+        "word": "0x0",
+        "assembly": "nop"
+      },
+      {
+        "pc": "0x5922f0",
+        "file_offset": 839536,
+        "word": "0x46800860",
+        "assembly": "cvt.s.w f1,f1"
+      },
+      {
+        "pc": "0x5922f4",
+        "file_offset": 839540,
+        "word": "0x46010082",
+        "assembly": "mul.s f2,f0,f1"
+      },
+      {
+        "pc": "0x5922f8",
+        "file_offset": 839544,
+        "word": "0x44800000",
+        "assembly": "mtc1 zero,f0"
+      },
+      {
+        "pc": "0x5922fc",
+        "file_offset": 839548,
+        "word": "0x0",
+        "assembly": "nop"
+      },
+      {
+        "pc": "0x592300",
+        "file_offset": 839552,
+        "word": "0x46001034",
+        "assembly": "c.olt.s f2,f0"
+      },
+      {
+        "pc": "0x592304",
+        "file_offset": 839556,
+        "word": "0x45000004",
+        "assembly": "bc1f 0x592318"
+      },
+      {
+        "pc": "0x592308",
+        "file_offset": 839560,
+        "word": "0x46021002",
+        "assembly": "mul.s f0,f2,f2"
+      },
+      {
+        "pc": "0x59230c",
+        "file_offset": 839564,
+        "word": "0x10000004",
+        "assembly": "beq zero,zero,0x592320"
+      },
+      {
+        "pc": "0x592310",
+        "file_offset": 839568,
+        "word": "0x46000087",
+        "assembly": "neg.s f2,f0"
+      },
+      {
+        "pc": "0x592314",
+        "file_offset": 839572,
+        "word": "0x0",
+        "assembly": "nop"
+      },
+      {
+        "pc": "0x592318",
+        "file_offset": 839576,
+        "word": "0x46021082",
+        "assembly": "mul.s f2,f2,f2"
+      },
+      {
+        "pc": "0x59231c",
+        "file_offset": 839580,
+        "word": "0x0",
+        "assembly": "nop"
+      },
+      {
+        "pc": "0x592320",
+        "file_offset": 839584,
+        "word": "0x27a40060",
+        "assembly": "addiu a0,sp,96"
+      },
+      {
+        "pc": "0x592324",
+        "file_offset": 839588,
+        "word": "0xc6010008",
+        "assembly": "lwc1 f1,8(s0)"
+      },
+      {
+        "pc": "0x592328",
+        "file_offset": 839592,
+        "word": "0x27a50080",
+        "assembly": "addiu a1,sp,128"
+      },
+      {
+        "pc": "0x59232c",
+        "file_offset": 839596,
+        "word": "0xc6000000",
+        "assembly": "lwc1 f0,0(s0)"
+      },
+      {
+        "pc": "0x592330",
+        "file_offset": 839600,
+        "word": "0x46020842",
+        "assembly": "mul.s f1,f1,f2"
+      },
+      {
+        "pc": "0x592334",
+        "file_offset": 839604,
+        "word": "0xc155f84",
+        "assembly": "jal 0x557e10"
+      },
+      {
+        "pc": "0x592338",
+        "file_offset": 839608,
+        "word": "0x46010300",
+        "assembly": "add.s f12,f0,f1"
+      },
+      {
+        "pc": "0x59233c",
+        "file_offset": 839612,
+        "word": "0x27a40080",
+        "assembly": "addiu a0,sp,128"
+      },
+      {
+        "pc": "0x592340",
+        "file_offset": 839616,
+        "word": "0xc14e7a4",
+        "assembly": "jal 0x539e90"
+      },
+      {
+        "pc": "0x592344",
+        "file_offset": 839620,
+        "word": "0x27a50060",
+        "assembly": "addiu a1,sp,96"
+      },
+      {
+        "pc": "0x592348",
+        "file_offset": 839624,
+        "word": "0xc065dd0",
+        "assembly": "jal 0x197740"
+      },
+      {
+        "pc": "0x59234c",
+        "file_offset": 839628,
+        "word": "0x0",
+        "assembly": "nop"
+      },
+      {
+        "pc": "0x592350",
+        "file_offset": 839632,
+        "word": "0x3c04c000",
+        "assembly": "lui a0,0xc000"
+      },
+      {
+        "pc": "0x592354",
+        "file_offset": 839636,
+        "word": "0x3c033080",
+        "assembly": "lui v1,0x3080"
+      },
+      {
+        "pc": "0x592358",
+        "file_offset": 839640,
+        "word": "0x34840001",
+        "assembly": "ori a0,a0,0x1"
+      },
+      {
+        "pc": "0x59235c",
+        "file_offset": 839644,
+        "word": "0x441021",
+        "assembly": "addu v0,v0,a0"
+      },
+      {
+        "pc": "0x592360",
+        "file_offset": 839648,
+        "word": "0x44820800",
+        "assembly": "mtc1 v0,f1"
+      },
+      {
+        "pc": "0x592364",
+        "file_offset": 839652,
+        "word": "0x44830000",
+        "assembly": "mtc1 v1,f0"
+      },
+      {
+        "pc": "0x592368",
+        "file_offset": 839656,
+        "word": "0x0",
+        "assembly": "nop"
+      },
+      {
+        "pc": "0x59236c",
+        "file_offset": 839660,
+        "word": "0x46800860",
+        "assembly": "cvt.s.w f1,f1"
+      },
+      {
+        "pc": "0x592370",
+        "file_offset": 839664,
+        "word": "0x46010082",
+        "assembly": "mul.s f2,f0,f1"
+      },
+      {
+        "pc": "0x592374",
+        "file_offset": 839668,
+        "word": "0x44800000",
+        "assembly": "mtc1 zero,f0"
+      },
+      {
+        "pc": "0x592378",
+        "file_offset": 839672,
+        "word": "0x0",
+        "assembly": "nop"
+      },
+      {
+        "pc": "0x59237c",
+        "file_offset": 839676,
+        "word": "0x46001034",
+        "assembly": "c.olt.s f2,f0"
+      },
+      {
+        "pc": "0x592380",
+        "file_offset": 839680,
+        "word": "0x45000003",
+        "assembly": "bc1f 0x592390"
+      },
+      {
+        "pc": "0x592384",
+        "file_offset": 839684,
+        "word": "0x46021002",
+        "assembly": "mul.s f0,f2,f2"
+      },
+      {
+        "pc": "0x592388",
+        "file_offset": 839688,
+        "word": "0x10000003",
+        "assembly": "beq zero,zero,0x592398"
+      },
+      {
+        "pc": "0x59238c",
+        "file_offset": 839692,
+        "word": "0x46000087",
+        "assembly": "neg.s f2,f0"
+      },
+      {
+        "pc": "0x592390",
+        "file_offset": 839696,
+        "word": "0x46021082",
+        "assembly": "mul.s f2,f2,f2"
+      },
+      {
+        "pc": "0x592394",
+        "file_offset": 839700,
+        "word": "0x0",
+        "assembly": "nop"
+      },
+      {
+        "pc": "0x592398",
+        "file_offset": 839704,
+        "word": "0x27a40050",
+        "assembly": "addiu a0,sp,80"
+      },
+      {
+        "pc": "0x59239c",
+        "file_offset": 839708,
+        "word": "0xc6000008",
+        "assembly": "lwc1 f0,8(s0)"
+      },
+      {
+        "pc": "0x5923a0",
+        "file_offset": 839712,
+        "word": "0x27a50070",
+        "assembly": "addiu a1,sp,112"
+      },
+      {
+        "pc": "0x5923a4",
+        "file_offset": 839716,
+        "word": "0xc6010004",
+        "assembly": "lwc1 f1,4(s0)"
+      },
+      {
+        "pc": "0x5923a8",
+        "file_offset": 839720,
+        "word": "0x46020002",
+        "assembly": "mul.s f0,f0,f2"
+      },
+      {
+        "pc": "0x5923ac",
+        "file_offset": 839724,
+        "word": "0xc155f84",
+        "assembly": "jal 0x557e10"
+      },
+      {
+        "pc": "0x5923b0",
+        "file_offset": 839728,
+        "word": "0x46000b00",
+        "assembly": "add.s f12,f1,f0"
+      },
+      {
+        "pc": "0x5923b4",
+        "file_offset": 839732,
+        "word": "0x27a40070",
+        "assembly": "addiu a0,sp,112"
+      },
+      {
+        "pc": "0x5923b8",
+        "file_offset": 839736,
+        "word": "0xc14e7a4",
+        "assembly": "jal 0x539e90"
+      },
+      {
+        "pc": "0x5923bc",
+        "file_offset": 839740,
+        "word": "0x27a50050",
+        "assembly": "addiu a1,sp,80"
+      },
+      {
+        "pc": "0x5923c0",
+        "file_offset": 839744,
+        "word": "0x27a40030",
+        "assembly": "addiu a0,sp,48"
+      },
+      {
+        "pc": "0x5923c4",
+        "file_offset": 839748,
+        "word": "0x220282d",
+        "assembly": "daddu a1,s1,zero"
+      },
+      {
+        "pc": "0x5923c8",
+        "file_offset": 839752,
+        "word": "0xc155f70",
+        "assembly": "jal 0x557dc0"
+      },
+      {
+        "pc": "0x5923cc",
+        "file_offset": 839756,
+        "word": "0x27a60080",
+        "assembly": "addiu a2,sp,128"
+      },
+      {
+        "pc": "0x5923d0",
+        "file_offset": 839760,
+        "word": "0x27a40040",
+        "assembly": "addiu a0,sp,64"
+      },
+      {
+        "pc": "0x5923d4",
+        "file_offset": 839764,
+        "word": "0x27a50030",
+        "assembly": "addiu a1,sp,48"
+      },
+      {
+        "pc": "0x5923d8",
+        "file_offset": 839768,
+        "word": "0xc155f70",
+        "assembly": "jal 0x557dc0"
+      },
+      {
+        "pc": "0x5923dc",
+        "file_offset": 839772,
+        "word": "0x27a60070",
+        "assembly": "addiu a2,sp,112"
+      },
+      {
+        "pc": "0x5923e0",
+        "file_offset": 839776,
+        "word": "0x220202d",
+        "assembly": "daddu a0,s1,zero"
+      },
+      {
+        "pc": "0x5923e4",
+        "file_offset": 839780,
+        "word": "0xc14e7a4",
+        "assembly": "jal 0x539e90"
+      },
+      {
+        "pc": "0x5923e8",
+        "file_offset": 839784,
+        "word": "0x27a50040",
+        "assembly": "addiu a1,sp,64"
+      },
+      {
+        "pc": "0x5923ec",
+        "file_offset": 839788,
+        "word": "0xdfbf0020",
+        "assembly": "ld ra,32(sp)"
+      },
+      {
+        "pc": "0x5923f0",
+        "file_offset": 839792,
+        "word": "0x7bb10010",
+        "assembly": "lq s1,16(sp)"
+      },
+      {
+        "pc": "0x5923f4",
+        "file_offset": 839796,
+        "word": "0x7bb00000",
+        "assembly": "lq s0,0(sp)"
+      },
+      {
+        "pc": "0x5923f8",
+        "file_offset": 839800,
+        "word": "0x3e00008",
+        "assembly": "jr ra"
+      },
+      {
+        "pc": "0x5923fc",
+        "file_offset": 839804,
+        "word": "0x27bd00a0",
+        "assembly": "addiu sp,sp,160"
+      }
+    ],
+    "call_slot": [
+      {
+        "pc": "0x5bf530",
+        "file_offset": 1024432,
+        "word": "0x8ea20830",
+        "assembly": "lw v0,2096(s5)"
+      },
+      {
+        "pc": "0x5bf534",
+        "file_offset": 1024436,
+        "word": "0x8c4400c0",
+        "assembly": "lw a0,192(v0)"
+      },
+      {
+        "pc": "0x5bf538",
+        "file_offset": 1024440,
+        "word": "0x8c990000",
+        "assembly": "lw t9,0(a0)"
+      },
+      {
+        "pc": "0x5bf53c",
+        "file_offset": 1024444,
+        "word": "0x8f390074",
+        "assembly": "lw t9,116(t9)"
+      },
+      {
+        "pc": "0x5bf540",
+        "file_offset": 1024448,
+        "word": "0x320f809",
+        "assembly": "jalr ra,t9"
+      },
+      {
+        "pc": "0x5bf544",
+        "file_offset": 1024452,
+        "word": "0x27a50130",
+        "assembly": "addiu a1,sp,304"
+      },
+      {
+        "pc": "0x5bf548",
+        "file_offset": 1024456,
+        "word": "0x1000000d",
+        "assembly": "beq zero,zero,0x5bf580"
+      },
+      {
+        "pc": "0x5bf54c",
+        "file_offset": 1024460,
+        "word": "0x0",
+        "assembly": "nop"
+      },
+      {
+        "pc": "0x5bf550",
+        "file_offset": 1024464,
+        "word": "0x8c4400c0",
+        "assembly": "lw a0,192(v0)"
+      },
+      {
+        "pc": "0x5bf554",
+        "file_offset": 1024468,
+        "word": "0x8c990000",
+        "assembly": "lw t9,0(a0)"
+      },
+      {
+        "pc": "0x5bf558",
+        "file_offset": 1024472,
+        "word": "0x8f390074",
+        "assembly": "lw t9,116(t9)"
+      },
+      {
+        "pc": "0x5bf55c",
+        "file_offset": 1024476,
+        "word": "0x320f809",
+        "assembly": "jalr ra,t9"
+      },
+      {
+        "pc": "0x5bf560",
+        "file_offset": 1024480,
+        "word": "0x0",
+        "assembly": "nop"
+      },
+      {
+        "pc": "0x5bf564",
+        "file_offset": 1024484,
+        "word": "0x8ea20830",
+        "assembly": "lw v0,2096(s5)"
+      },
+      {
+        "pc": "0x5bf568",
+        "file_offset": 1024488,
+        "word": "0x27a50130",
+        "assembly": "addiu a1,sp,304"
+      },
+      {
+        "pc": "0x5bf56c",
+        "file_offset": 1024492,
+        "word": "0xa0302d",
+        "assembly": "daddu a2,a1,zero"
+      },
+      {
+        "pc": "0x5bf570",
+        "file_offset": 1024496,
+        "word": "0x24070001",
+        "assembly": "addiu a3,zero,1"
+      },
+      {
+        "pc": "0x5bf574",
+        "file_offset": 1024500,
+        "word": "0xc0c1bf4",
+        "assembly": "jal 0x306fd0"
+      },
+      {
+        "pc": "0x5bf578",
+        "file_offset": 1024504,
+        "word": "0x24440050",
+        "assembly": "addiu a0,v0,80"
+      },
+      {
+        "pc": "0x5bf57c",
+        "file_offset": 1024508,
+        "word": "0x0",
+        "assembly": "nop"
+      },
+      {
+        "pc": "0x5bf580",
+        "file_offset": 1024512,
+        "word": "0x8ea20830",
+        "assembly": "lw v0,2096(s5)"
+      },
+      {
+        "pc": "0x5bf584",
+        "file_offset": 1024516,
+        "word": "0x2a0202d",
+        "assembly": "daddu a0,s5,zero"
+      },
+      {
+        "pc": "0x5bf588",
+        "file_offset": 1024520,
+        "word": "0x280282d",
+        "assembly": "daddu a1,s4,zero"
+      },
+      {
+        "pc": "0x5bf58c",
+        "file_offset": 1024524,
+        "word": "0x27a60160",
+        "assembly": "addiu a2,sp,352"
+      },
+      {
+        "pc": "0x5bf590",
+        "file_offset": 1024528,
+        "word": "0x27a70130",
+        "assembly": "addiu a3,sp,304"
+      },
+      {
+        "pc": "0x5bf594",
+        "file_offset": 1024532,
+        "word": "0xc1714d0",
+        "assembly": "jal 0x5c5340"
+      },
+      {
+        "pc": "0x5bf598",
+        "file_offset": 1024536,
+        "word": "0x24480038",
+        "assembly": "addiu t0,v0,56"
+      }
+    ],
+    "direction_saved": [
+      {
+        "pc": "0x5c5378",
+        "file_offset": 1048568,
+        "word": "0xe7b60018",
+        "assembly": "swc1 f22,24(sp)"
+      },
+      {
+        "pc": "0x5c537c",
+        "file_offset": 1048572,
+        "word": "0xe7b50014",
+        "assembly": "swc1 f21,20(sp)"
+      },
+      {
+        "pc": "0x5c5380",
+        "file_offset": 1048576,
+        "word": "0xe7b40010",
+        "assembly": "swc1 f20,16(sp)"
+      },
+      {
+        "pc": "0x5c5384",
+        "file_offset": 1048580,
+        "word": "0xafa700ec",
+        "assembly": "sw a3,236(sp)"
+      },
+      {
+        "pc": "0x5c5388",
+        "file_offset": 1048584,
+        "word": "0xafa800e8",
+        "assembly": "sw t0,232(sp)"
+      }
+    ],
+    "weapon_dispatch": [
+      {
+        "pc": "0x5c63c4",
+        "file_offset": 1052740,
+        "word": "0x8fa900e8",
+        "assembly": "lw t1,232(sp)"
+      },
+      {
+        "pc": "0x5c63c8",
+        "file_offset": 1052744,
+        "word": "0x40282d",
+        "assembly": "daddu a1,v0,zero"
+      },
+      {
+        "pc": "0x5c63cc",
+        "file_offset": 1052748,
+        "word": "0x3c0302d",
+        "assembly": "daddu a2,fp,zero"
+      },
+      {
+        "pc": "0x5c63d0",
+        "file_offset": 1052752,
+        "word": "0x280382d",
+        "assembly": "daddu a3,s4,zero"
+      },
+      {
+        "pc": "0x5c63d4",
+        "file_offset": 1052756,
+        "word": "0x260202d",
+        "assembly": "daddu a0,s3,zero"
+      },
+      {
+        "pc": "0x5c63d8",
+        "file_offset": 1052760,
+        "word": "0xffa00000",
+        "assembly": "sd zero,0(sp)"
+      },
+      {
+        "pc": "0x5c63dc",
+        "file_offset": 1052764,
+        "word": "0x8e790000",
+        "assembly": "lw t9,0(s3)"
+      },
+      {
+        "pc": "0x5c63e0",
+        "file_offset": 1052768,
+        "word": "0x8e0b0004",
+        "assembly": "lw t3,4(s0)"
+      },
+      {
+        "pc": "0x5c63e4",
+        "file_offset": 1052772,
+        "word": "0x8fa800ec",
+        "assembly": "lw t0,236(sp)"
+      },
+      {
+        "pc": "0x5c63e8",
+        "file_offset": 1052776,
+        "word": "0x8f39000c",
+        "assembly": "lw t9,12(t9)"
+      },
+      {
+        "pc": "0x5c63ec",
+        "file_offset": 1052780,
+        "word": "0x320f809",
+        "assembly": "jalr ra,t9"
+      },
+      {
+        "pc": "0x5c63f0",
+        "file_offset": 1052784,
+        "word": "0x240502d",
+        "assembly": "daddu t2,s2,zero"
+      }
+    ],
+    "projectile_forward": [
+      {
+        "pc": "0x3d2fb8",
+        "file_offset": 2015160,
+        "word": "0x8fa700dc",
+        "assembly": "lw a3,220(sp)"
+      },
+      {
+        "pc": "0x3d2fbc",
+        "file_offset": 2015164,
+        "word": "0x8fa201b0",
+        "assembly": "lw v0,432(sp)"
+      },
+      {
+        "pc": "0x3d2fc0",
+        "file_offset": 2015168,
+        "word": "0x280282d",
+        "assembly": "daddu a1,s4,zero"
+      },
+      {
+        "pc": "0x3d2fc4",
+        "file_offset": 2015172,
+        "word": "0x2c0482d",
+        "assembly": "daddu t1,s6,zero"
+      },
+      {
+        "pc": "0x3d2fc8",
+        "file_offset": 2015176,
+        "word": "0x2e0502d",
+        "assembly": "daddu t2,s7,zero"
+      },
+      {
+        "pc": "0x3d2fcc",
+        "file_offset": 2015180,
+        "word": "0x240202d",
+        "assembly": "daddu a0,s2,zero"
+      },
+      {
+        "pc": "0x3d2fd0",
+        "file_offset": 2015184,
+        "word": "0x2a0302d",
+        "assembly": "daddu a2,s5,zero"
+      },
+      {
+        "pc": "0x3d2fd4",
+        "file_offset": 2015188,
+        "word": "0x260402d",
+        "assembly": "daddu t0,s3,zero"
+      },
+      {
+        "pc": "0x3d2fd8",
+        "file_offset": 2015192,
+        "word": "0x220582d",
+        "assembly": "daddu t3,s1,zero"
+      },
+      {
+        "pc": "0x3d2fdc",
+        "file_offset": 2015196,
+        "word": "0xc0f2c68",
+        "assembly": "jal 0x3cb1a0"
+      },
+      {
+        "pc": "0x3d2fe0",
+        "file_offset": 2015200,
+        "word": "0xffa20000",
+        "assembly": "sd v0,0(sp)"
+      }
+    ]
+  },
+  "limitations": [
+    "Explicit supplied 31-bit RNG draws; original global RNG state/lifetime not executed",
+    "Only exact original VU cross helper, not general VU emulation",
+    "Finite-normal float32 fixture domain",
+    "Original direction is not normalized here; normalized report field is labeled adapted"
+  ]
+}

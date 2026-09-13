@@ -93,6 +93,7 @@ var environment_preset: OptionButton
 var special_property_panels: Dictionary = {}
 var special_fields: Dictionary = {}
 var material_panel: VBoxContainer
+var yard_finish_toggle: CheckBox
 var texture_path_edit: LineEdit
 var texture_dialog: FileDialog
 var surface_preset_option: OptionButton
@@ -1290,6 +1291,12 @@ func _build_imported_asset_property_panel() -> void:
 
 
 func _build_material_inspector() -> void:
+	yard_finish_toggle = CheckBox.new()
+	yard_finish_toggle.name = "RelicYardFinish"
+	yard_finish_toggle.text = "Freight-yard finish"
+	yard_finish_toggle.tooltip_text = "Ground: south-yard wear and markings (x -17..13, z 8..24.5). Imported props: lit, filtered, muted material finish. Saves with this map; no collision changes."
+	yard_finish_toggle.toggled.connect(_yard_finish_changed)
+	inspector_panel.add_child(yard_finish_toggle)
 	material_panel = VBoxContainer.new()
 	material_panel.name = "MapMaterialInspector"
 	inspector_panel.add_child(material_panel)
@@ -1339,6 +1346,13 @@ func _build_material_inspector() -> void:
 	add_child(texture_dialog)
 
 
+func _yard_finish_changed(enabled: bool) -> void:
+	if updating_inspector or selected_id.is_empty():
+		return
+	var key := "yard_weathering" if String(_selected_object().get("type", "")) == "ground" else "yard_finish"
+	execute_map_command({"command": "set_object_properties", "id": selected_id, "changes": {key: enabled}})
+
+
 func _add_special_number(parent: Control, label_text: String, field_key: String, minimum: float, maximum: float, step: float) -> void:
 	var row := HBoxContainer.new()
 	parent.add_child(row)
@@ -1374,6 +1388,7 @@ func _build_environment_inspector() -> void:
 	_add_environment_field("Sun", "sun_energy", 0.0, 8.0, 0.05)
 	_add_environment_field("Exposure", "exposure", 0.25, 3.0, 0.05)
 	_add_environment_field("Fog", "fog_density", 0.0, 0.1, 0.001)
+	_add_environment_field("Film Grain", "film_grain_strength", 0.0, 0.12, 0.001)
 	_add_environment_field("Sun Pitch", "sun_pitch", -89.0, 89.0, 1.0)
 	_add_environment_field("Sun Yaw", "sun_yaw", -360.0, 360.0, 1.0)
 	var note := Label.new()
@@ -1584,6 +1599,7 @@ func _refresh_environment_inspector() -> void:
 	(environment_fields["sun_energy"] as SpinBox).value = float(environment["sun_energy"])
 	(environment_fields["exposure"] as SpinBox).value = float(environment["exposure"])
 	(environment_fields["fog_density"] as SpinBox).value = float(environment["fog_density"])
+	(environment_fields["film_grain_strength"] as SpinBox).value = float(environment["film_grain_strength"])
 	var sun_rotation := MapDocument.data_to_vector(environment["sun_rotation"])
 	(environment_fields["sun_pitch"] as SpinBox).value = sun_rotation.x
 	(environment_fields["sun_yaw"] as SpinBox).value = sun_rotation.y
@@ -1774,6 +1790,9 @@ func _refresh_inspector() -> void:
 			(transform_fields["size:%s" % axis] as SpinBox).value = size[axis]
 		(transform_fields["yaw:y"] as SpinBox).value = rotation.y
 	var object_type := String(object.get("type", ""))
+	yard_finish_toggle.visible = has_selection and object_type in ["ground", "imported_asset"]
+	var finish_key := "yard_weathering" if object_type == "ground" else "yard_finish"
+	yard_finish_toggle.set_pressed_no_signal(bool((object.get("properties", {}) as Dictionary).get(finish_key, false)))
 	for type_name: String in special_property_panels:
 		(special_property_panels[type_name] as Control).visible = has_selection and object_type == type_name
 	if has_selection:

@@ -105,12 +105,14 @@ func build_launch_state(thrower: Node, hold_seconds: float, underhand: bool) -> 
 		else TacticalGrenadeThrower.ThrowMode.OVERHAND
 	)
 	var forward := -camera.global_basis.z
+	var player_vel: Vector3 = player.velocity if player != null else Vector3.ZERO
 	var launch_velocity: Vector3 = thrower.call(
 		"calculate_launch_velocity",
 		forward,
 		Vector3.UP,
 		mode,
-		charge
+		charge,
+		player_vel
 	)
 	return {
 		"origin": arc_origin(),

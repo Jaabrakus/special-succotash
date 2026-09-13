@@ -1,6 +1,7 @@
 extends RefCounted
 
 const MapDocument := preload("res://scripts/maps/socom_map_document.gd")
+const YardWeathering := preload("res://assets/shaders/relic_yard_weathering.gdshader")
 const PROCEDURAL_DETAIL_SIZE := 16
 static var surface_texture_cache: Dictionary = {}
 static var surface_normal_cache: Dictionary = {}
@@ -84,7 +85,37 @@ static func _material_for_object(object: Dictionary) -> StandardMaterial3D:
 		material.normal_scale = clampf(float(properties.get("normal_strength", default_normal_strength)), 0.0, 2.0)
 		material.roughness_texture = _procedural_surface_roughness(surface_kind)
 		material.roughness_texture_channel = BaseMaterial3D.TEXTURE_CHANNEL_RED
+	if type_name == &"ground" and bool(properties.get("yard_weathering", false)):
+		var overlay := ShaderMaterial.new()
+		overlay.shader = YardWeathering
+		overlay.set_shader_parameter("strength", clampf(float(properties.get("yard_weathering_strength", 0.45)), 0.0, 1.0))
+		material.next_pass = overlay
 	return material
+
+
+static func apply_imported_yard_finish(content: Node3D, properties: Dictionary) -> void:
+	if not bool(properties.get("yard_finish", false)):
+		return
+	# Duplicate materials, never imported meshes/textures or the cached source.
+	# Each instance opts in; other copies of the same GLB remain untouched.
+	var copies: Dictionary = {}
+	for mesh: MeshInstance3D in content.find_children("*", "MeshInstance3D", true, false):
+		if mesh.mesh == null:
+			continue
+		for surface in mesh.mesh.get_surface_count():
+			var source := mesh.get_active_material(surface) as BaseMaterial3D
+			if source == null:
+				continue
+			var key := source.get_instance_id()
+			if not copies.has(key):
+				var finish := source.duplicate() as BaseMaterial3D
+				finish.shading_mode = BaseMaterial3D.SHADING_MODE_PER_PIXEL
+				finish.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
+				finish.roughness = clampf(float(properties.get("roughness", 0.88)), 0.0, 1.0)
+				finish.metallic = clampf(float(properties.get("metallic", 0.0)), 0.0, 1.0)
+				finish.albedo_color *= Color(0.68, 0.70, 0.72, 1.0)
+				copies[key] = finish
+			mesh.set_surface_override_material(surface, copies[key])
 
 
 static func _load_authored_texture(texture_path: String) -> Texture2D:

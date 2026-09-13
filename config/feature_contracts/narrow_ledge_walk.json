@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "feature_id": "narrow_ledge_walk",
+  "player_intent": "Finish a safe climb onto a narrow supported top in careful AGLS idle and lateral shuffle; keep hanging if there is no safe standing space.",
+  "acceptance_rule": "A validated climb may enter narrow mode only with unchanged five-point standing support and full capsule room. Both wider cross-ledge probes must end; broad platforms retain ordinary locomotion. Tangent travel is capped at saved speed and stops at gaps or obstacles. CharacterBody applies all motion. Shuffle time follows measured body travel, idle holds one pose, and weapon remains stowed. Fresh Jump exits using existing jump physics. A clip name or mode declaration alone is not integration.",
+  "canonical_scene": "res://main.tscn",
+  "ownership": {"movement_collision": "SocomTestPlayer", "query_solver": "SocomNarrowLedgeMotor", "presentation": "SocomOperatorAnimationDriver"},
+  "nodes": [{"id":"player", "type":"CharacterBody3D", "owner":"SocomTestPlayer", "role":"Applies narrow traversal velocity with canonical collision movement", "scene_path":"res://scenes/player/operator_player.tscn", "node_path":"."}],
+  "data_contracts": [
+    {"path":"res://config/narrow_ledge.json", "writer":"res://docs/NARROW_LEDGE_WALK.md", "readers":["res://scripts/traversal/socom_narrow_ledge_motor.gd", "res://scripts/player/operator_animation_driver_runtime.gd"]},
+    {"path":"res://config/ledge_climb.json", "writer":"res://docs/NARROW_LEDGE_WALK.md", "readers":["res://scripts/traversal/socom_narrow_ledge_motor.gd", "res://scripts/player/operator_animation_driver_runtime.gd"]},
+    {"path":"res://config/operator_animation_map.json", "writer":"res://docs/NARROW_LEDGE_WALK.md", "readers":["res://scripts/player/operator_asset_runtime.gd"]}
+  ],
+  "must_not_change": ["CharacterBody collision ownership", "camera/aim", "server damage ownership", "jump impulse", "existing standing support footprint", "original source animations"],
+  "proof_scripts": ["res://tools/narrow_ledge_motor_regression.gd", "res://tools/main_narrow_ledge_regression.gd", "res://tools/traversal_contact_input_regression.gd"],
+  "visual_check": "Inspect main-scene physical jump, hang, current pull-up, arms-out idle, left/right shuffles and jump exit. Narrow-specific Hang_To_Stand_01 is not yet a calibrated replacement; no thin-rail/beam or corner-turn claim.",
+  "system_delta": {
+    "decision":"MERGE",
+    "reason":"Existing NARROW_LEDGE vocabulary has no movement or animation consumer. Add a guarded query solver and canonical consumers without relaxing climb support.",
+    "current":{"system":"Vocabulary and imported assets only", "correctness":1,"ownership_clarity":5,"runtime_parity":1,"editor_usability":2,"performance":5,"regression_coverage":1,"evidence_paths":["res://scripts/traversal/socom_traversal_contract.gd"]},
+    "candidate":{"system":"Saved support-validated narrow movement and authored presentation", "correctness":4,"ownership_clarity":5,"runtime_parity":5,"editor_usability":4,"performance":4,"regression_coverage":4,"evidence_paths":["res://scripts/traversal/socom_narrow_ledge_motor.gd","res://tools/main_narrow_ledge_regression.gd"]}
+  }
+}

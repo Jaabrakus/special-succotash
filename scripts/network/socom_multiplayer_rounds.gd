@@ -240,7 +240,7 @@ func _apply_ballistics_profile(ballistics, weapon_config: Dictionary = {}) -> vo
 	ballistics.crouch_bloom_per_shot_deg = float(values.get("crouch_bloom_per_shot_deg", 1.35))
 	ballistics.crouch_max_recoil_bloom_deg = float(values.get("crouch_max_recoil_bloom_deg", 1.70))
 	ballistics.crouch_bloom_recovery_speed = float(values.get("crouch_bloom_recovery_speed", 18.0))
-	ballistics.configure_projectiles(values)
+	ballistics.configure_projectiles(values, resolved_config)
 	ballistics.configure_bloom_envelope(resolved_config)
 	ballistics.fire_interval = 60.0 / maxf(1.0, ballistics.fire_rate_rpm)
 

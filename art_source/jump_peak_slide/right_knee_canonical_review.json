@@ -1,15 +1,18 @@
 {
 	"canonical_scene": "res://main.tscn",
 	"capture_enabled": false,
-	"failures": [],
+	"failures": [
+		"Normal forward jump assignment changed",
+		"Normal dive assignment changed"
+	],
 	"note": "Measurements are comparative evidence, not a claim of visual parity. Gameplay and saved profiles are unchanged by this tool.",
-	"pass": true,
+	"pass": false,
 	"samples": [
 		{
 			"body_drift_m": 0.0,
-			"held_head_m": 1.20851725526154,
-			"right_knee_m": 0.0615192968398333,
-			"standing_head_m": 1.88042265363038
+			"held_head_m": 1.20666805654764,
+			"right_knee_m": 0.0603453516960144,
+			"standing_head_m": 1.83126834779978
 		}
 	],
 	"shoulder_lock_required": false,

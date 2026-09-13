@@ -1,6 +1,15 @@
 extends Node3D
 
 var seal_source_pose_active := false
+var source_pose_only := false
+var source_pistol_attachment := false
+var source_pistol_palm_offset_m := Vector3.ZERO
+var source_rifle_attachment := false
+var source_rifle_aim_limit_degrees := 85.0
+var source_rifle_aim_applied_degrees := 0.0
+var source_pistol_aim_limit_degrees := 85.0
+var source_pistol_aim_applied_degrees := 0.0
+var source_elbow_transport_max_degrees := 0.0
 
 var seal_upright_weapon := false
 

@@ -39,6 +39,12 @@ var damage_indicator: SocomDamageIndicatorOverlay
 var stance_indicator: SocomStanceIndicator
 var buy_menu_runtime
 var _camera_orbit_before_radio_wheel: bool = true
+var hud_mechanics_visible: bool = true
+var hud_toggle_button: Button = null
+var main_menu_button: Button = null
+var training_range_title: Label = null
+var player_status_panel: PanelContainer = null
+var gameplay_layer: CanvasLayer = null
 
 var host
 
@@ -132,10 +138,21 @@ func _build_ui() -> void:
 func _build_public_training_navigation(layer: CanvasLayer) -> void:
 	HudBuilder._build_public_training_navigation(self, layer)
 
+
+func toggle_hud_mechanics() -> void:
+	set_hud_mechanics_visible(not hud_mechanics_visible)
+
+
+func set_hud_mechanics_visible(enabled: bool) -> void:
+	hud_mechanics_visible = enabled
+	HudBuilder.set_hud_mechanics_visible(self, enabled)
+
+
 func _build_player_status_ui(layer: CanvasLayer) -> void:
 	var panel := PanelContainer.new()
 	panel.name = "PlayerStatusHUD"
 	panel.visible = true
+	player_status_panel = panel
 	panel.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
 	panel.offset_left = 18.0
 	panel.offset_right = 250.0
@@ -190,13 +207,17 @@ func _update_player_status_ui() -> void:
 		tactical_state,
 	]
 	if loadout_card_hud != null:
+		loadout_card_hud.bind_player(player)
+		player_status_panel.visible = not bool(loadout_card_hud.attention.profile.enabled)
 		var fire_mode := "auto"
 		var avail_modes: Array[String] = ["auto", "semi"]
 		var burst_size := 3
+		var capacity := 0
 		if weapon_controller != null and weapon_controller.has_method("get_ammo_snapshot"):
 			var ammo: Dictionary = weapon_controller.call("get_ammo_snapshot")
 			fire_mode = String(ammo.get("fire_mode", "auto"))
 			burst_size = int(ammo.get("burst_size", 3))
+			capacity = int(ammo.get("magazine_capacity", 0))
 			avail_modes.clear()
 			for m: Variant in (ammo.get("available_fire_modes", []) as Array):
 				avail_modes.append(String(m))
@@ -207,7 +228,8 @@ func _update_player_status_ui() -> void:
 			reserve,
 			fire_mode,
 			avail_modes,
-			burst_size
+			burst_size,
+			capacity
 		)
 		loadout_card_hud.update_grenade_state(
 			grenade_inventory,
@@ -294,6 +316,12 @@ func _build_grenade_charge_ui(layer: CanvasLayer) -> void:
 	column.add_child(grenade_charge_bar)
 
 func _update_crosshair(data: Dictionary) -> void:
+	if not hud_mechanics_visible:
+		if crosshair != null:
+			crosshair.visible = false
+		if dynamic_reticle != null:
+			dynamic_reticle.visible = false
+		return
 	if crosshair == null or dynamic_reticle == null:
 		return
 	var viewport_size := get_viewport().get_visible_rect().size
@@ -399,6 +427,15 @@ func _unhandled_input(event: InputEvent) -> void:
 	# The buy menu owns the shared B binding whenever its context is active,
 	# so it must resolve before the fire-mode toggle below.
 	if buy_menu_runtime != null and buy_menu_runtime.handle_unhandled_input(event):
+		get_viewport().set_input_as_handled()
+		return
+	if event.is_action_pressed(&"toggle_debug_hud") or (
+		event is InputEventKey
+		and event.pressed
+		and not event.echo
+		and (event.physical_keycode == KEY_H or event.keycode == KEY_H)
+	):
+		toggle_hud_mechanics()
 		get_viewport().set_input_as_handled()
 		return
 	if not player_build_tactical_hud_enabled:

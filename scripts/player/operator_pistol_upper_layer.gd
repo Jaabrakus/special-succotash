@@ -2,6 +2,10 @@ extends RefCounted
 
 ## Graph-only legacy torso fallback. Never writes skeletons or weapon transforms.
 static func enabled(graph) -> bool:
+	if bool(graph.profile.locomotion.get("source_pose_only", false)):
+		return false
+	if bool(graph.profile.locomotion.get("source_pistol_attachment", false)):
+		return false
 	return bool(graph.profile.locomotion.get("legacy_pistol_upper_body", false)) and String(graph.weapon_handling_profile.get("family", "")) == "TWO_HAND_PISTOL"
 
 static func build(graph, root: AnimationNodeBlendTree, base: StringName) -> StringName:

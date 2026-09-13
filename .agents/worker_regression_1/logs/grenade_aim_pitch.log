@@ -1,0 +1,13 @@
+COMMAND: /Users/kiwimango/Applications/Godot-4.7.1.app/Contents/MacOS/Godot --headless -s tools/grenade_aim_pitch_regression.gd
+EXIT_CODE: 0
+DURATION: 0.24s
+
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+GRENADE_AIM_PITCH_METRIC mode=overhand low_apex=0.00 level_apex=0.95 high_apex=6.62
+GRENADE_AIM_PITCH_CHECK PASS overhand aim pitch produces progressively taller physical arcs
+GRENADE_AIM_PITCH_CHECK PASS overhand aim pitch changes elevation without changing throw power
+GRENADE_AIM_PITCH_METRIC mode=underhand low_apex=0.00 level_apex=0.01 high_apex=0.31
+GRENADE_AIM_PITCH_CHECK PASS underhand aim pitch produces progressively taller physical arcs
+GRENADE_AIM_PITCH_CHECK PASS underhand aim pitch changes elevation without changing throw power
+GRENADE_AIM_PITCH_REGRESSION PASS

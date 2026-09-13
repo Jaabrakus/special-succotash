@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "feature_id": "contextual_hud",
+  "player_intent": "Player condition floats left of the torso; weapon and throwable actions float right. Empty magazine highlights EMPTY — RELOAD or NO AMMO persistently. Zero reserves rejects reload before animation; periodic full-status glances remain.",
+  "acceptance_rule": "Card follows the local player's projected torso on its left side, clamps to viewport and suppresses drawing behind camera without overriding HUD hide. Unchanged snapshots do not refresh timers. Ammo, equip and damage snapshots reveal independent sections. All sections reveal every 20 seconds for 2 seconds. Critical health stays readable. Ring ticks use radius-relative spacing and outward fading; existing ballistic geometry and aim owners are unchanged.",
+  "canonical_scene": "res://main.tscn",
+  "ownership": {
+    "attention_and_status_drawing": "SocomLoadoutCardHUD",
+    "reticle_drawing": "SocomDynamicReticle",
+    "aim_and_damage": "existing camera and weapon/server owners",
+    "reload_eligibility": "SocomWeaponController.can_reload; existing server ammo validation"
+  },
+  "nodes": [
+    {
+      "id": "card",
+      "type": "Control",
+      "role": "Shared training and multiplayer status presentation",
+      "owner": "SocomLoadoutCardHUD",
+      "source_script": "res://scripts/ui/socom_loadout_card_hud.gd",
+      "code_symbols": [
+        "func _draw_contextual()",
+        "attention.advance(delta)"
+      ]
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://config/contextual_hud.json",
+      "writer": "res://scripts/ui/contextual_hud_attention.gd",
+      "readers": [
+        "res://scripts/ui/socom_loadout_card_hud.gd",
+        "res://scripts/ui/socom_dynamic_reticle.gd"
+      ]
+    }
+  ],
+  "must_not_change": [
+    "movement",
+    "animation assets",
+    "camera aim",
+    "shot spread and damage",
+    "network authority",
+    "user HUD hide toggle"
+  ],
+  "proof_scripts": [
+    "res://tools/contextual_hud_regression.gd",
+    "res://tools/empty_ammo_reload_regression.gd"
+  ],
+  "visual_check": "Inspect active and faded ring/status rendering, then verify canonical training firing, weapon switching, grenade use and simultaneous damage. Multiplayer only displays throwable counts when authoritative inventory is provided; no guessed inventory.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "MERGE: retain close split card positions and use canonical selected grenade name for blue icon-only highlighting; other grenades are muted gray. Remove selection box and underline. Existing fades, equipped brightness and reload eligibility remain unchanged.",
+    "current": {
+      "correctness": 2,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 2,
+      "performance": 4,
+      "regression_coverage": 3,
+      "evidence_paths": [
+        "res://scripts/runtime/main_gameplay_hud.gd",
+        "res://scripts/network/socom_multiplayer_hud.gd"
+      ],
+      "system": "Combined left-side status and actions; local reload preview allowed without reserves"
+    },
+    "candidate": {
+      "correctness": 4,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 4,
+      "performance": 4,
+      "regression_coverage": 4,
+      "evidence_paths": [
+        "res://scripts/ui/socom_loadout_card_hud.gd",
+        "res://scripts/ui/socom_dynamic_reticle.gd",
+        "res://scripts/weapons/socom_weapon_controller.gd",
+        "res://scripts/runtime/weapon_reload_coordinator.gd",
+        "res://tools/contextual_hud_regression.gd"
+      ],
+      "system": "Split torso HUD with persistent empty warning and pre-animation reload eligibility"
+    }
+  }
+}

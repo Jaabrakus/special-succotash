@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "feature_id": "pistol_hybrid_main",
-  "player_intent": "SEAL movement in the normal game, with pistol-specific legacy torso/arms and corrected physical hand fitting.",
-  "acceptance_rule": "Normal saved animation map activates hybrid for all nine normalized pistols; upper mask excludes hips/legs; rifle re-equip removes fallback. Canonical movement/shot/idle contact and aim tests pass.",
+  "player_intent": "Retain the historical SEAL gait plus legacy pistol torso/arms as an explicit opt-in fallback, independently of the source-only candidate under investigation.",
+  "acceptance_rule": "The saved seal_pistol_hybrid preset, loaded through the canonical process-local playtest bundle, activates hybrid for all nine normalized pistols with source_pose_only false; upper mask excludes hips/legs; rifle re-equip removes fallback. Original hybrid assertions remain intact. This is a fallback gate, not evidence of exact source motion or default activation.",
   "canonical_scene": "res://main.tscn",
   "ownership": {
     "animation": "SocomOperatorAnimationDriver",
@@ -21,10 +21,11 @@
   ],
   "data_contracts": [
     {
-      "path": "res://config/operator_animation_map.json",
+      "path": "res://config/animation_presets/seal_pistol_hybrid.json",
       "writer": "res://scripts/labs/animation_workshop_repository.gd",
       "readers": [
-        "res://scripts/player/operator_animation_profile.gd"
+        "res://scripts/player/operator_animation_profile.gd",
+        "res://scripts/runtime/playtest_state_collector.gd"
       ]
     }
   ],
@@ -39,24 +40,25 @@
     "res://tools/pistol_hybrid_main_regression.gd",
     "res://tools/seal_locomotion_visual_probe.gd"
   ],
-  "visual_check": "Separate canonical render: pistol idle, left/right strafe, accepted fire, ready/recovery. Check wrist/gun orientation, contacts and unchanged gait.",
+  "visual_check": "Explicit historical-preset main.tscn render only: pistol idle, left/right strafe, accepted fire, ready/recovery. Check wrist/gun orientation, contacts and gait. The source-only candidate must be tested separately before any default change; legacy two-hand contact is not an exact-source acceptance rule.",
   "system_delta": {
-    "decision": "MERGE",
-    "reason": "Legacy upper tracks need pelvis-frame conversion at the existing spine owner and a shared rigid gun/wrist aim correction; source legs and authority remain untouched.",
+    "decision": "KEEP",
+    "reason": "Keep the existing hybrid implementation and its full assertions as an opt-in rollback contract. Explicit preset selection separates that historical policy from the source-only candidate and prevents a future default switch from silently weakening the fallback test. This contract does not promote the candidate.",
     "current": {
-      "system": "SEAL candidate with source wrist fitting",
-      "correctness": 2,
+      "system": "Existing historical hybrid with a regression coupled to whichever profile is default",
+      "correctness": 3,
       "ownership_clarity": 5,
-      "runtime_parity": 2,
+      "runtime_parity": 3,
       "editor_usability": 3,
       "performance": 4,
       "regression_coverage": 4,
       "evidence_paths": [
-        "res://scripts/player/operator_seal_weapon_pose.gd"
+        "res://config/animation_presets/seal_pistol_hybrid.json",
+        "res://tools/pistol_hybrid_main_regression.gd"
       ]
     },
     "candidate": {
-      "system": "Saved hybrid main profile using existing pose owners",
+      "system": "Explicit historical preset using unchanged production pose owners and process-local bundle",
       "correctness": 4,
       "ownership_clarity": 5,
       "runtime_parity": 5,

@@ -4,14 +4,21 @@ extends Node
 const AnatomicalHitResolver := preload("res://scripts/combat/socom_anatomical_hit_resolver.gd")
 const BulletPenetration := preload("res://scripts/combat/socom_bullet_penetration.gd")
 const BloomEnvelope := preload("res://scripts/weapons/reticle_bloom_envelope.gd")
+const SourceFirearmPolicy := preload("res://scripts/weapons/source_firearm_policy.gd")
+const SourceDispersion := preload("res://scripts/weapons/source_firearm_dispersion.gd")
+const SourceRng := preload("res://scripts/weapons/source_firearm_rng.gd")
+const SourceDamage := preload("res://scripts/combat/source_firearm_damage.gd")
+const SourceTrace := preload("res://scripts/combat/source_firearm_trace.gd")
 
-## SOCOM II Ballistics & Burst-Fire Accuracy Model
+## Project ballistics with verified SOCOM II firearm direction/range policy.
+## Scope/adaptations: docs/SOURCE_FIREARM_RUNTIME.md. Bloom recovery, damage and
+## penetration below remain project tuning, not a claimed original engine port.
 ## Implements:
 ## - 2-Round Burst pinpoint accuracy (shots 1 & 2 have 0 extra dispersion)
 ## - CS:GO Bullet Penetration through thin wood, drywall, and sheet metal
 ## - Continuous fire bloom escalation
 ## - Shot-timed bloom recovery; rapid trigger releases cannot reset accuracy
-## - Stance bloom multipliers (Prone = 0.20x, Crouch = 0.60x, Stand = 1.0x)
+## - Authored posture-specific spread, bloom caps and recovery
 ## - Raycast hitscan with dispersion cone matching on-screen reticle
 ## - Visual bullet tracers and impact effects
 
@@ -42,9 +49,12 @@ signal wallbang_penetrated(entry_pos: Vector3, exit_pos: Vector3, remaining_dama
 @export var bloom_recovery_speed: float = 10.0 # Rapid decay on pause
 @export_range(0.05, 1.0, 0.01) var bloom_recovery_delay_seconds: float = 0.30
 @export_range(0.1, 1.0, 0.05) var crouch_spread_multiplier: float = 0.72
-@export var crouch_bloom_per_shot_deg: float = 1.35
+@export var crouch_bloom_per_shot_deg: float = 0.24
 @export var crouch_max_recoil_bloom_deg: float = 1.70
 @export var crouch_bloom_recovery_speed: float = 18.0
+@export var prone_bloom_per_shot_deg: float = 0.213
+@export var prone_max_recoil_bloom_deg: float = 1.07
+@export var prone_bloom_recovery_speed: float = 18.0
 @export_range(0.1, 1.0, 0.05) var opening_burst_motion_multiplier: float = 0.35
 
 var fire_interval: float = 0.10
@@ -60,6 +70,9 @@ var seconds_since_last_shot: float = 99.0
 var bloom_profile: Dictionary = {}
 var bloom_gap_px: float = 8.0
 var visual_bloom_input: float = 0.0
+var trajectory_policy: Dictionary = SourceFirearmPolicy.legacy()
+var source_damage_math := SourceDamage.new()
+var source_materials: Dictionary = {}
 
 func configure_bloom_envelope(weapon_config: Dictionary) -> void:
     bloom_profile = weapon_config.get("reticle", {}).duplicate(true)
@@ -102,9 +115,11 @@ func _process(delta: float) -> void:
         current_is_airborne
     )
     if not bloom_profile.is_empty():
+        var envelope_posture := &"STANDING" if current_is_airborne else current_posture
         bloom_gap_px = BloomEnvelope.advance_gap(bloom_gap_px,
-            BloomEnvelope.gap_for(bloom_profile, maxf(get_normalized_spread(), visual_bloom_input)),
+            BloomEnvelope.gap_for(bloom_profile, maxf(get_normalized_spread(), visual_bloom_input), envelope_posture, current_movement_speed_norm, current_is_airborne),
             bloom_profile, delta)
+        bloom_gap_px = minf(bloom_gap_px, BloomEnvelope.gap_for(bloom_profile, 1.0, envelope_posture, current_movement_speed_norm, current_is_airborne))
 
 func calculate_current_spread(
     posture: StringName,
@@ -114,8 +129,11 @@ func calculate_current_spread(
     current_posture = posture
     current_movement_speed_norm = clampf(movement_speed_norm, 0.0, 1.0)
     current_is_airborne = is_airborne
+    var bloom_cap := _maximum_bloom_for(posture)
+    var effective_bloom := minf(current_recoil_bloom, bloom_cap)
+    current_recoil_bloom = effective_bloom
     total_current_spread_deg = _spread_for(posture, movement_speed_norm, is_airborne,
-        continuous_shot_count, current_recoil_bloom)
+        continuous_shot_count, effective_bloom)
     return total_current_spread_deg
 
 func _spread_for(posture: StringName, movement_speed_norm: float, is_airborne: bool,
@@ -149,9 +167,9 @@ func _spread_for(posture: StringName, movement_speed_norm: float, is_airborne: b
     return (base_spread_deg * stance_mult) + (motion_spread * stance_mult) + firing_bloom
 
 func _bloom_after_shot(posture: StringName, shot_count: int) -> float:
-    var bloom := current_recoil_bloom
+    var bloom_cap := _maximum_bloom_for(posture)
+    var bloom := minf(current_recoil_bloom, bloom_cap)
     if shot_count > 2:
-        var bloom_cap := _maximum_bloom_for(posture)
         if bloom < bloom_cap:
             bloom = minf(bloom_cap, bloom + _bloom_per_shot_for(posture))
     return bloom
@@ -210,27 +228,42 @@ func try_fire_direction(
     is_airborne: bool = false,
     dispersion_multiplier: float = 1.0
 ) -> Dictionary:
+    var forward_dir := aim_direction.normalized()
+    if not forward_dir.is_finite() or forward_dir.length_squared() < 0.99:
+        return {"fired": false, "reason": "INVALID_DIRECTION"}
     if not record_shot_state(posture, movement_speed_norm, is_airborne):
         return { "fired": false }
-
-    var forward_dir := aim_direction.normalized()
-    if forward_dir.length_squared() < 0.99:
-        return {"fired": false, "reason": "INVALID_DIRECTION"}
     var random := RandomNumberGenerator.new()
     random.seed = deterministic_seed if deterministic_seed != 0 else continuous_shot_count
+    var source_random := SourceRng.new()
+    source_random.seed_from_u32(random.seed)
 
     var applied_dispersion_multiplier := clampf(dispersion_multiplier, 0.0, 2.0)
-    var ray_basis := Basis.looking_at(forward_dir, Vector3.UP)
+    var source_distribution := String(trajectory_policy.dispersion_distribution) == SourceDispersion.DISTRIBUTION
+    var ray_basis := Basis.IDENTITY if source_distribution else Basis.looking_at(forward_dir, Vector3.UP)
     var projectiles: Array[Dictionary] = []
     var count := clampi(pellet_count, 1, 32)
     var cone_radius := cone_tangent_radius(total_current_spread_deg, applied_dispersion_multiplier)
     for index in count:
-        var random_angle := random.randf() * TAU
-        var random_radius := sqrt(random.randf()) * cone_radius
-        var offset := Vector3(cos(random_angle), sin(random_angle), 0.0) * random_radius
-        var direction := (ray_basis * (Vector3.FORWARD + offset)).normalized()
+        var direction: Vector3
+        if source_distribution:
+            var draw_x := source_random.next_raw()
+            var draws := SourceRng.signed_draw_pair(draw_x, source_random.next_raw())
+            direction = SourceDispersion.direction_in_envelope(forward_dir, cone_radius, draws)
+        else:
+            var random_angle := random.randf() * TAU
+            var random_radius := sqrt(random.randf()) * cone_radius
+            var offset := Vector3(cos(random_angle), sin(random_angle), 0.0) * random_radius
+            direction = (ray_basis * (Vector3.FORWARD + offset)).normalized()
         var projectile := _trace_projectile(muzzle_pos, direction, space_state, exclude_rids)
         projectile["damage"] = (pellet_damage if count > 1 else damage_per_shot) * damage_multiplier_at(muzzle_pos.distance_to(projectile.hit_pos))
+        if trajectory_policy.has("combat"):
+            var combat: Dictionary = trajectory_policy.combat.duplicate(true)
+            combat["distance_m"] = muzzle_pos.distance_to(projectile.hit_pos)
+            projectile["source_combat"] = combat
+            projectile["damage_model"] = SourceFirearmPolicy.DAMAGE_MODEL
+            projectile["damage"] = source_damage_math.calculate_projectile_damage(combat.impact_damage, combat.damage_modifier,
+                combat.distance_m, combat.effective_range_m, combat.maximum_range_m)
         projectiles.append(projectile)
     var shot: Dictionary = projectiles[0].duplicate()
     shot["projectiles"] = projectiles
@@ -241,6 +274,8 @@ func try_fire_direction(
     shot["bloom_gap_px"] = bloom_gap_px
     shot["bloom_tangent_limit"] = get_bloom_tangent_limit()
     shot["continuous_count"] = continuous_shot_count
+    shot["dispersion_distribution"] = String(trajectory_policy.dispersion_distribution)
+    shot["rng_algorithm"] = String(trajectory_policy.get("rng_algorithm", "project_pcg"))
     shot_fired.emit(muzzle_pos, shot.hit_pos, bool(shot.get("hit_target", false)))
     return shot
 
@@ -259,8 +294,10 @@ func record_shot_state(posture: StringName, movement_speed_norm: float, is_airbo
     return true
 
 
-func configure_projectiles(values: Dictionary) -> void:
+func configure_projectiles(values: Dictionary, weapon_config: Dictionary = {}) -> void:
     # Shared by training and multiplayer; defaults reset on weapon switches.
+    trajectory_policy = SourceFirearmPolicy.resolve(weapon_config)
+    source_materials = SourceFirearmPolicy.material_coefficients() if trajectory_policy.has("combat") else {}
     bloom_recovery_delay_seconds = clampf(float(values.get("bloom_recovery_delay_seconds", 0.30)), 0.05, 1.0)
     directional_torso_modifiers_enabled = bool(values.get("directional_torso_modifiers_enabled", true))
     pellet_count = clampi(int(values.get("pellet_count", 1)), 1, 32)
@@ -270,6 +307,16 @@ func configure_projectiles(values: Dictionary) -> void:
     damage_falloff_start_m = maxf(0.0, float(values.get("damage_falloff_start_m", 0.0)))
     damage_falloff_end_m = maxf(damage_falloff_start_m, float(values.get("damage_falloff_end_m", 0.0)))
     minimum_damage_multiplier = clampf(float(values.get("minimum_damage_multiplier", 1.0)), 0.0, 1.0)
+    if trajectory_policy.has("combat"):
+        var combat: Dictionary = trajectory_policy.combat
+        pellet_count = int(combat.pellet_count)
+        max_range = float(combat.maximum_range_m)
+        pellet_damage = source_damage_math.calculate_projectile_damage(combat.impact_damage, combat.damage_modifier,
+            0.0, combat.effective_range_m, combat.maximum_range_m)
+        damage_per_shot = pellet_damage
+        damage_falloff_start_m = float(combat.effective_range_m)
+        damage_falloff_end_m = max_range
+        minimum_damage_multiplier = 0.0
 
 
 func damage_multiplier_at(distance_m: float) -> float:
@@ -283,6 +330,8 @@ func _trace_projectile(
     muzzle_pos: Vector3, final_dir: Vector3,
     space_state: PhysicsDirectSpaceState3D, exclude_rids: Array[RID]
 ) -> Dictionary:
+    if trajectory_policy.has("combat"):
+        return _trace_source_projectile(muzzle_pos, final_dir, space_state, exclude_rids)
     var ray_end := muzzle_pos + final_dir * max_range
 
     # CS:GO Dual-Raycast Penetration Solver
@@ -293,7 +342,9 @@ func _trace_projectile(
         max_range,
         pellet_damage if pellet_count > 1 else damage_per_shot,
         penetration_power,
-        exclude_rids
+        exclude_rids,
+        float(trajectory_policy.query_range_scale),
+        bool(trajectory_policy.strict_terminal_range)
     )
 
     var hit_pos := ray_end
@@ -327,6 +378,12 @@ func _trace_projectile(
         hit_pos + final_dir * 0.05,
         exclude_rids
     )
+    # The fallback's small overlap probe must not bypass the source range gate.
+    if not result.is_empty() and not SourceFirearmPolicy.accepts_impact(
+        muzzle_pos, Vector3(result.position), max_range,
+        bool(trajectory_policy.strict_terminal_range)
+    ):
+        result = {}
     if not result.is_empty() and (not is_wallbang or hit_collider == null):
         hit_pos = result.position
         hit_collider = result.collider
@@ -347,6 +404,7 @@ func _trace_projectile(
         "normal": hit_normal,
         "continuous_count": continuous_shot_count,
         "muzzle_velocity_mps": muzzle_velocity_mps,
+        "trajectory_policy": String(trajectory_policy.policy_id),
         "penetrations": pen_traces,
         "is_wallbang": is_wallbang,
         "tracer_travel_seconds": (
@@ -354,25 +412,69 @@ func _trace_projectile(
         ),
     }
 
+
+func _trace_source_projectile(muzzle: Vector3, direction: Vector3,
+    space: PhysicsDirectSpaceState3D, excludes: Array[RID]) -> Dictionary:
+    var combat: Dictionary = trajectory_policy.combat
+    var traces := SourceTrace.trace(space, muzzle, direction, max_range, combat.piercing, excludes, source_materials)
+    var primary: Dictionary = traces[0] if not traces.is_empty() else {}
+    # Preserve our measured anatomical contact arbitration only for the same
+    # first target. It can never resurrect a target through an unknown solid.
+    if bool(primary.get("is_target", false)):
+        var refined := AnatomicalHitResolver.trace(space, muzzle, Vector3(primary.entry_pos) + direction * 0.05, excludes)
+        if not refined.is_empty() and refined.collider.has_method("get_damage_receiver") \
+            and refined.collider.get_damage_receiver() == primary.receiver \
+            and SourceFirearmPolicy.accepts_impact(muzzle, refined.position, primary.range_limit, true):
+            primary.entry_pos = refined.position
+            primary.collider = refined.collider
+            primary.normal = refined.get("normal", primary.normal)
+    var damage_impacts: Array[Dictionary] = []
+    for contact in traces:
+        if not bool(contact.is_target): continue
+        var payload := combat.duplicate(true)
+        payload["distance_m"] = muzzle.distance_to(contact.entry_pos)
+        damage_impacts.append({"hit_collider": contact.collider, "hit_pos": contact.entry_pos,
+            "normal": contact.normal, "direction": direction, "source_combat": payload,
+            "damage_model": SourceFirearmPolicy.DAMAGE_MODEL, "source_material": contact.source_material})
+    var hit_pos: Vector3 = primary.get("entry_pos", muzzle + direction * max_range)
+    return {"fired": true, "hit_pos": hit_pos, "hit_collider": primary.get("collider"),
+        "hit_target": bool(primary.get("is_target", false)), "normal": primary.get("normal", Vector3.UP),
+        "direction": direction, "hit_region": &"", "spread_deg": total_current_spread_deg,
+        "continuous_count": continuous_shot_count, "muzzle_velocity_mps": muzzle_velocity_mps,
+        "trajectory_policy": String(trajectory_policy.policy_id), "penetrations": traces,
+        "damage_impacts": damage_impacts, "is_wallbang": damage_impacts.size() > 0 and traces.size() > 1,
+        "tracer_travel_seconds": muzzle.distance_to(hit_pos) / maxf(muzzle_velocity_mps, 1.0)}
+
+
 func release_trigger() -> void:
     is_firing_held = false
 
 
 func _bloom_per_shot_for(posture: StringName) -> float:
-    return crouch_bloom_per_shot_deg if posture == &"CROUCHED" else bloom_per_shot_deg
+    match posture:
+        &"PRONE":
+            return prone_bloom_per_shot_deg
+        &"CROUCHED":
+            return crouch_bloom_per_shot_deg
+        _:
+            return bloom_per_shot_deg
 
 
 func _maximum_bloom_for(posture: StringName) -> float:
-    return (
-        crouch_max_recoil_bloom_deg
-        if posture == &"CROUCHED"
-        else max_recoil_bloom_deg
-    )
+    match posture:
+        &"PRONE":
+            return prone_max_recoil_bloom_deg
+        &"CROUCHED":
+            return crouch_max_recoil_bloom_deg
+        _:
+            return max_recoil_bloom_deg
 
 
 func _recovery_speed_for(posture: StringName) -> float:
-    return (
-        crouch_bloom_recovery_speed
-        if posture == &"CROUCHED"
-        else bloom_recovery_speed
-    )
+    match posture:
+        &"PRONE":
+            return prone_bloom_recovery_speed
+        &"CROUCHED":
+            return crouch_bloom_recovery_speed
+        _:
+            return bloom_recovery_speed

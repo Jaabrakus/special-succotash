@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "feature_id": "m4_source_arm_guidance",
+  "player_intent": "M4 arms retain their authored bend direction as aiming adjusts the rifle, without losing grips or snapping between left/right firing and recovery.",
+  "acceptance_rule": "Canonical M4 standing/crouched sequence checks every frame for palm error below 1 cm and accepted-fire bore error below 0.5 degrees. Guide transport is capped at 35 degrees, follows presentation readiness, and preserves shoulder-guide radius. Other weapons, prone, reload and mobility retain the previous guide policy.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://animation_library_lab.tscn",
+  "ownership": {
+    "arm_guidance": "WeaponPoseSolver source-pose strategy"
+  },
+  "nodes": [
+    {
+      "id": "operator",
+      "type": "Node3D",
+      "role": "Existing animation owner supplies saved profile calibration to its existing weapon-pose solver.",
+      "owner": "SocomOperatorAnimationDriver",
+      "scene_path": "res://scenes/player/operator_player.tscn",
+      "node_path": "Mannequin/ProductionAnimation"
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://config/operator_animation_map.json",
+      "writer": "res://scripts/labs/animation_workshop_repository.gd",
+      "readers": [
+        "res://scripts/player/operator_animation_profile.gd",
+        "res://scripts/player/operator_animation_driver_runtime.gd"
+      ]
+    },
+    {
+      "path": "res://config/animation_presets/seal_pistol_hybrid.json",
+      "writer": "res://scripts/labs/animation_workshop_repository.gd",
+      "readers": [
+        "res://scripts/player/operator_animation_profile.gd"
+      ]
+    }
+  ],
+  "must_not_change": [
+    "CharacterBody movement/collision",
+    "Camera and reticle aim intent",
+    "Server shots, damage, ammo and cadence",
+    "Saved weapon sockets and weapon transform owner",
+    "Authored clip files and stride clock",
+    "Pistol and other weapons",
+    "Prone, reload, grenade, jump, dive and vault poses"
+  ],
+  "proof_scripts": [
+    "res://tools/m4_source_arm_guidance_regression.gd",
+    "res://tools/source_rifle_fire_regression.gd",
+    "res://tools/reload_handoff_regression.gd"
+  ],
+  "visual_check": "Run m4_source_arm_guidance_regression with --capture, then --baseline --capture to compare standing/crouched left/right entry, reversal, settled fire and recovery from rear and side. Measurements and source-guidance correction do not establish exact SOCOM II parity.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "The existing source strategy moves wrist targets for bore alignment and reach fitting but leaves elbow guides in the unadjusted source frame. Transport only those guides around fixed shoulders inside the existing solver; scope to M4 and use the existing readiness blend.",
+    "current": {
+      "system": "Source elbows left unadjusted after wrist retargeting",
+      "correctness": 2,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 3,
+      "performance": 5,
+      "regression_coverage": 2,
+      "evidence_paths": [
+        "res://scripts/player/operator_seal_weapon_pose.gd",
+        "res://tools/rifle_reference_visual_probe.gd"
+      ]
+    },
+    "candidate": {
+      "system": "Readiness-weighted bounded source elbow transport",
+      "correctness": 3,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 3,
+      "performance": 4,
+      "regression_coverage": 4,
+      "evidence_paths": [
+        "res://scripts/player/operator_seal_weapon_pose.gd",
+        "res://scripts/player/operator_animation_driver_runtime.gd",
+        "res://tools/m4_source_arm_guidance_regression.gd"
+      ]
+    }
+  }
+}

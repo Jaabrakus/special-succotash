@@ -1,0 +1,7 @@
+COMMAND: /Users/kiwimango/Applications/Godot-4.7.1.app/Contents/MacOS/Godot --headless -s tools/reload_input_regression.gd
+EXIT_CODE: 0
+DURATION: 2.76s
+
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+RELOAD_INPUT_REGRESSION PASS

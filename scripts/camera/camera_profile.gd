@@ -14,6 +14,13 @@ extends Resource
 @export var look_height: float = 1.45
 @export_range(0.0, 0.75, 0.01) var peek_camera_lateral_offset: float = 0.38
 
+@export_group("Source Framing Trial")
+## Zero keeps the existing camera. Loaded from camera_source_hybrid.json.
+@export_range(0.0, 1.0, 0.01) var source_camera_mix: float = 0.0
+## World-unit-derived target for the optional distance trial, not effective source framing.
+@export var source_camera_distance_m: float = 0.0
+@export_range(0.0, 0.6, 0.01) var source_camera_max_distance_delta_m: float = 0.0
+
 @export_group("Orbit")
 @export var mouse_sensitivity: float = 0.0024
 @export var pitch_min_deg: float = -60.0
@@ -63,6 +70,7 @@ extends Resource
 @export var downward_height: float = 1.45
 @export var downward_shoulder_offset: float = 0.0
 @export var downward_fov: float = 60.0
+@export var pitch_zoom_enabled: bool = false
 @export var steep_downward_fov: float = 42.0
 @export var downward_fov_response: float = 12.0
 @export var max_downward_camera_raise: float = 1.90

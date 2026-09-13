@@ -1,0 +1,53 @@
+COMMAND: /Users/kiwimango/Applications/Godot-4.7.1.app/Contents/MacOS/Godot --headless -s tools/strafe_head_orientation_regression.gd
+EXIT_CODE: 0
+DURATION: 0.24s
+
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+STRAFE_HEAD_METRIC STANDING ready=0.00 separation=0.00 head_error_deg=0.0 shoulder_turn_deg=0.0
+STRAFE_HEAD_METRIC STANDING ready=0.00 separation=0.35 head_error_deg=0.0 shoulder_turn_deg=14.4015511951676
+STRAFE_HEAD_METRIC STANDING ready=0.00 separation=1.00 head_error_deg=0.0 shoulder_turn_deg=41.1249412379565
+STRAFE_HEAD_METRIC STANDING ready=0.35 separation=0.00 head_error_deg=0.0 shoulder_turn_deg=0.0
+STRAFE_HEAD_METRIC STANDING ready=0.35 separation=0.35 head_error_deg=0.0 shoulder_turn_deg=14.4016604781943
+STRAFE_HEAD_METRIC STANDING ready=0.35 separation=1.00 head_error_deg=0.0 shoulder_turn_deg=41.1249412379565
+STRAFE_HEAD_METRIC STANDING ready=1.00 separation=0.00 head_error_deg=0.0 shoulder_turn_deg=0.0
+STRAFE_HEAD_METRIC STANDING ready=1.00 separation=0.35 head_error_deg=0.0 shoulder_turn_deg=14.4016604781943
+STRAFE_HEAD_METRIC STANDING ready=1.00 separation=1.00 head_error_deg=0.0 shoulder_turn_deg=41.1249412379565
+STRAFE_HEAD_METRIC CROUCHED ready=0.00 separation=0.00 head_error_deg=0.0 shoulder_turn_deg=0.0
+STRAFE_HEAD_METRIC CROUCHED ready=0.00 separation=0.35 head_error_deg=0.0 shoulder_turn_deg=14.4015511951676
+STRAFE_HEAD_METRIC CROUCHED ready=0.00 separation=1.00 head_error_deg=0.0 shoulder_turn_deg=41.1249412379565
+STRAFE_HEAD_METRIC CROUCHED ready=0.35 separation=0.00 head_error_deg=0.0 shoulder_turn_deg=0.0
+STRAFE_HEAD_METRIC CROUCHED ready=0.35 separation=0.35 head_error_deg=0.0 shoulder_turn_deg=14.4016604781943
+STRAFE_HEAD_METRIC CROUCHED ready=0.35 separation=1.00 head_error_deg=0.0 shoulder_turn_deg=41.1249412379565
+STRAFE_HEAD_METRIC CROUCHED ready=1.00 separation=0.00 head_error_deg=0.0 shoulder_turn_deg=0.0
+STRAFE_HEAD_METRIC CROUCHED ready=1.00 separation=0.35 head_error_deg=0.0 shoulder_turn_deg=14.4016604781943
+STRAFE_HEAD_METRIC CROUCHED ready=1.00 separation=1.00 head_error_deg=0.0 shoulder_turn_deg=41.1249412379565
+STRAFE_LEFT_METRIC STANDING left ready=0.00 before_error_deg=45.3339001580692 after_error_deg=0.0 head_error_deg=0.0
+STRAFE_LEFT_METRIC STANDING left ready=0.35 before_error_deg=49.9562234400248 after_error_deg=0.02797645511829 head_error_deg=0.0
+STRAFE_LEFT_METRIC STANDING left ready=1.00 before_error_deg=58.5160570605455 after_error_deg=0.0 head_error_deg=0.0
+STRAFE_LEFT_METRIC CROUCHED left ready=0.00 before_error_deg=45.3339001580692 after_error_deg=0.0 head_error_deg=0.0
+STRAFE_LEFT_METRIC CROUCHED left ready=0.35 before_error_deg=49.9562234400248 after_error_deg=0.02797645511829 head_error_deg=0.0
+STRAFE_LEFT_METRIC CROUCHED left ready=1.00 before_error_deg=58.5160570605455 after_error_deg=0.0 head_error_deg=0.0
+STRAFE_RIGHT_METRIC target_deg=45.0 directed_error_deg=11.3376007073446 head_error_deg=0.0 applied_deg=90.0
+STRAFE_RIGHT_METRIC target_deg=90.0 directed_error_deg=51.0702322947042 head_error_deg=0.0 applied_deg=90.0
+STRAFE_RIGHT_BASELINE_METRIC retention=0.75 directed_error_deg=0.0 head_error_deg=0.0 applied_deg=85.7175285363935
+STRAFE_RIGHT_BASELINE_METRIC retention=1.0 directed_error_deg=0.0 head_error_deg=0.0 applied_deg=66.2568306097881
+STRAFE_EXACT_HEAD_METRIC STANDING ready=0.0 scope=0.25 error_deg=0.0
+STRAFE_EXACT_HEAD_METRIC STANDING ready=0.0 scope=0.5 error_deg=0.0
+STRAFE_EXACT_HEAD_METRIC STANDING ready=0.0 scope=1.0 error_deg=0.0
+STRAFE_EXACT_HEAD_METRIC STANDING ready=0.5 scope=0.25 error_deg=0.0
+STRAFE_EXACT_HEAD_METRIC STANDING ready=0.5 scope=0.5 error_deg=0.0
+STRAFE_EXACT_HEAD_METRIC STANDING ready=0.5 scope=1.0 error_deg=0.0
+STRAFE_EXACT_HEAD_METRIC STANDING ready=1.0 scope=0.25 error_deg=0.0
+STRAFE_EXACT_HEAD_METRIC STANDING ready=1.0 scope=0.5 error_deg=0.0
+STRAFE_EXACT_HEAD_METRIC STANDING ready=1.0 scope=1.0 error_deg=0.0
+STRAFE_EXACT_HEAD_METRIC CROUCHED ready=0.0 scope=0.25 error_deg=0.0
+STRAFE_EXACT_HEAD_METRIC CROUCHED ready=0.0 scope=0.5 error_deg=0.0
+STRAFE_EXACT_HEAD_METRIC CROUCHED ready=0.0 scope=1.0 error_deg=0.0
+STRAFE_EXACT_HEAD_METRIC CROUCHED ready=0.5 scope=0.25 error_deg=0.0
+STRAFE_EXACT_HEAD_METRIC CROUCHED ready=0.5 scope=0.5 error_deg=0.0
+STRAFE_EXACT_HEAD_METRIC CROUCHED ready=0.5 scope=1.0 error_deg=0.0
+STRAFE_EXACT_HEAD_METRIC CROUCHED ready=1.0 scope=0.25 error_deg=0.0
+STRAFE_EXACT_HEAD_METRIC CROUCHED ready=1.0 scope=0.5 error_deg=0.0
+STRAFE_EXACT_HEAD_METRIC CROUCHED ready=1.0 scope=1.0 error_deg=0.0
+STRAFE_HEAD_ORIENTATION PASS cases=18 []

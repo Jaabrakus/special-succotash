@@ -1,0 +1,540 @@
+{
+  "schema_version": 1,
+  "policy_id": "socom2_verified_one_frame_v1",
+  "mode": "one_frame",
+  "query_range_scale": 1.1,
+  "strict_terminal_range": true,
+  "dispersion_distribution": "source_signed_square_axes_v1",
+  "rng_algorithm": "socom2_lcg64_rand31_v1",
+  "damage_model": "socom2_mp_regions_v1",
+  "multiplayer_defaults": {
+    "health": {
+      "head": 8,
+      "body": 50,
+      "larm": 30,
+      "rarm": 30,
+      "lleg": 30,
+      "rleg": 30
+    },
+    "armor": {
+      "head": 0,
+      "body": 25,
+      "larm": 25,
+      "rarm": 25,
+      "lleg": 25,
+      "rleg": 25
+    }
+  },
+  "material_policy": "socom2_exact_name_range_v1",
+  "materials": {
+    "UNKNOWN": 0,
+    "PARTICLE_SYSTEM": 1,
+    "ACTION": 1,
+    "INVISIBLE_DI": 1,
+    "GRASS": 0,
+    "SAND": 0,
+    "MUD": 0,
+    "STONE": 0,
+    "DIRT": 0,
+    "GLASS": 0.9900000095367432,
+    "GLASS_THICK": 0,
+    "WATER": 0.6000000238418579,
+    "UNDERWATER": 0,
+    "PERSON": 0.9700000286102295,
+    "BROKEN GLASS": 0,
+    "LEAVES": 0,
+    "ICE": 0,
+    "SNOW": 0,
+    "GRAVEL": 0,
+    "WOOD_THICK": 0,
+    "WOOD_THIN": 0.25,
+    "RUBBER": 0.800000011920929,
+    "ASPHALT": 0,
+    "LEAFY_TREE": 0.800000011920929,
+    "SNOWY_TREE": 0.699999988079071,
+    "METAL_THICK": 0,
+    "METAL_THIN": 0.3499999940395355,
+    "METAL_RAILING": 0.949999988079071,
+    "METAL_GRATE": 0.4000000059604645,
+    "METAL_GRATE_THIN": 0.9850000143051147,
+    "FABRIC_HEAVY": 0.8500000238418579,
+    "PIPE_STEAM": 0.3499999940395355,
+    "GASTANK": 0,
+    "ITEM": 1,
+    "CAMO_NET": 0.9800000190734863,
+    "THATCH": 0.800000011920929,
+    "CHAINLINK_FENCE": 0.9800000190734863,
+    "LEATHER": 0.8999999761581421,
+    "BARREL": 0.5,
+    "PLASTER": 0,
+    "CARPET": 0,
+    "GRASS_VOL": 1,
+    "BUSH_VOL": 1,
+    "SNOWY_GRASS_VOL": 1,
+    "GLASS_OPAQUE": 0,
+    "GLASS_MEDIUM": 0.9850000143051147
+  },
+  "scope": "Verified query/cutoff, LCG, signed-square direction algebra, ordinary firearm damage/armor/MP pools and pellet count. Accepted-shot seeds, bloom/projection, world-unit mapping and material continuation remain adapted; explosives and unsupported guns retain project rules.",
+  "source": {
+    "boot": "SCUS_972.75",
+    "module": "FTSCore",
+    "module_sha256": "cf09a7fabaf59a1d68f01411bd1db9e859af054df1f2fbc4775d8c221785f836",
+    "reader": "art_source/socom2_ballistics_reference_20260912/weapon_reader_full.json",
+    "reader_sha256": "13bfadb2417ebb98e877b35fd3dcae205caa61bf4c8201ee293ad108574678dc",
+    "classifier_pc": "0x3d1e20",
+    "segment_pc": "0x3ca998",
+    "cutoff_pc": "0x3c9d28",
+    "character_reader_sha256": "283b91252d9c1432ee2eab005cb10fec1e998cbd37ec08fd0a0b19454a969357",
+    "damage_fixture_sha256": "207299d74413aeae918eac9de5c04825de401da33f59ab454459963529d9d5e3"
+  },
+  "profiles": {
+    "226": {
+      "source_name": "226",
+      "source_id": 6,
+      "source_record_index": 5,
+      "combat": {
+        "ammo_name": "9x19P",
+        "impact_damage": 1.5,
+        "damage_modifier": 0,
+        "piercing": 2.0999999046325684,
+        "effective_range_m": 45,
+        "maximum_range_m": 95,
+        "pellet_count": 1
+      }
+    },
+    "552": {
+      "source_name": "552",
+      "source_id": 57,
+      "source_record_index": 19,
+      "combat": {
+        "ammo_name": "5.56 x 45mm",
+        "impact_damage": 2.299999952316284,
+        "damage_modifier": 0,
+        "piercing": 3,
+        "effective_range_m": 600,
+        "maximum_range_m": 1000,
+        "pellet_count": 1
+      }
+    },
+    "870": {
+      "source_name": "870",
+      "source_id": 84,
+      "source_record_index": 13,
+      "combat": {
+        "ammo_name": "12 Gauge",
+        "impact_damage": 2.5,
+        "damage_modifier": 0,
+        "piercing": 6,
+        "effective_range_m": 41,
+        "maximum_range_m": 84,
+        "pellet_count": 4
+      }
+    },
+    "12_gauge_pump": {
+      "source_name": "870",
+      "source_id": 84,
+      "source_record_index": 13,
+      "combat": {
+        "ammo_name": "12 Gauge",
+        "impact_damage": 2.5,
+        "damage_modifier": 0,
+        "piercing": 6,
+        "effective_range_m": 41,
+        "maximum_range_m": 84,
+        "pellet_count": 4
+      }
+    },
+    "9mm_pistol": {
+      "source_name": "9mm Pistol",
+      "source_id": 8,
+      "source_record_index": 7,
+      "combat": {
+        "ammo_name": "9x19P",
+        "impact_damage": 1.5,
+        "damage_modifier": -0.20000000298023224,
+        "piercing": 2.0999999046325684,
+        "effective_range_m": 40,
+        "maximum_range_m": 85,
+        "pellet_count": 1
+      }
+    },
+    "9mm_sub": {
+      "source_name": "9mm Sub",
+      "source_id": 37,
+      "source_record_index": 34,
+      "combat": {
+        "ammo_name": "9x19P",
+        "impact_damage": 1.5,
+        "damage_modifier": 0,
+        "piercing": 2.0999999046325684,
+        "effective_range_m": 100,
+        "maximum_range_m": 150,
+        "pellet_count": 1
+      }
+    },
+    "ak-47": {
+      "source_name": "AK-47",
+      "source_id": 58,
+      "source_record_index": 21,
+      "combat": {
+        "ammo_name": "7.62 x 39mm M1943",
+        "impact_damage": 2.299999952316284,
+        "damage_modifier": 0,
+        "piercing": 6,
+        "effective_range_m": 600,
+        "maximum_range_m": 1000,
+        "pellet_count": 1
+      }
+    },
+    "aks-74": {
+      "source_name": "AKS-74",
+      "source_id": 59,
+      "source_record_index": 22,
+      "combat": {
+        "ammo_name": "5.45 x 39mm Soviet",
+        "impact_damage": 2.700000047683716,
+        "damage_modifier": 0,
+        "piercing": 4,
+        "effective_range_m": 600,
+        "maximum_range_m": 1000,
+        "pellet_count": 1
+      }
+    },
+    "de__50": {
+      "source_name": "DE .50",
+      "source_id": 7,
+      "source_record_index": 3,
+      "combat": {
+        "ammo_name": "50 AE",
+        "impact_damage": 6.400000095367432,
+        "damage_modifier": 0,
+        "piercing": 5,
+        "effective_range_m": 60,
+        "maximum_range_m": 175,
+        "pellet_count": 1
+      }
+    },
+    "f57": {
+      "source_name": "F57",
+      "source_id": 4,
+      "source_record_index": 2,
+      "combat": {
+        "ammo_name": "5.7 x 28mm",
+        "impact_damage": 1.399999976158142,
+        "damage_modifier": 0,
+        "piercing": 3.5,
+        "effective_range_m": 50,
+        "maximum_range_m": 125,
+        "pellet_count": 1
+      }
+    },
+    "f90": {
+      "source_name": "F90",
+      "source_id": 34,
+      "source_record_index": 33,
+      "combat": {
+        "ammo_name": "5.7 x 28mm",
+        "impact_damage": 1.399999976158142,
+        "damage_modifier": 0,
+        "piercing": 3.5,
+        "effective_range_m": 150,
+        "maximum_range_m": 300,
+        "pellet_count": 1
+      }
+    },
+    "hk5": {
+      "source_name": "HK5",
+      "source_id": 31,
+      "source_record_index": 31,
+      "combat": {
+        "ammo_name": "9x19P",
+        "impact_damage": 1.5,
+        "damage_modifier": 0,
+        "piercing": 2.0999999046325684,
+        "effective_range_m": 150,
+        "maximum_range_m": 300,
+        "pellet_count": 1
+      }
+    },
+    "hk5sd": {
+      "source_name": "HK5SD",
+      "source_id": 33,
+      "source_record_index": 32,
+      "combat": {
+        "ammo_name": "9x19P",
+        "impact_damage": 1.5,
+        "damage_modifier": -0.20000000298023224,
+        "piercing": 2.0999999046325684,
+        "effective_range_m": 110,
+        "maximum_range_m": 250,
+        "pellet_count": 1
+      }
+    },
+    "m14": {
+      "source_name": "M14",
+      "source_id": 60,
+      "source_record_index": 23,
+      "combat": {
+        "ammo_name": "7.62 x 51mm",
+        "impact_damage": 2.299999952316284,
+        "damage_modifier": 0,
+        "piercing": 8,
+        "effective_range_m": 600,
+        "maximum_range_m": 1200,
+        "pellet_count": 1
+      }
+    },
+    "m16a2-m203": {
+      "source_name": "M16A2-M203",
+      "source_id": 52,
+      "source_record_index": 15,
+      "combat": {
+        "ammo_name": "5.56 x 45mm",
+        "impact_damage": 2.299999952316284,
+        "damage_modifier": 0.30000001192092896,
+        "piercing": 3,
+        "effective_range_m": 600,
+        "maximum_range_m": 1200,
+        "pellet_count": 1
+      }
+    },
+    "m16a2": {
+      "source_name": "M16A2",
+      "source_id": 51,
+      "source_record_index": 14,
+      "combat": {
+        "ammo_name": "5.56 x 45mm",
+        "impact_damage": 2.299999952316284,
+        "damage_modifier": 0.30000001192092896,
+        "piercing": 3,
+        "effective_range_m": 600,
+        "maximum_range_m": 1200,
+        "pellet_count": 1
+      }
+    },
+    "m3_12_gauge": {
+      "source_name": "JACKHAMMER",
+      "source_id": 83,
+      "source_record_index": 12,
+      "combat": {
+        "ammo_name": "12 Gauge",
+        "impact_damage": 2.5,
+        "damage_modifier": 0,
+        "piercing": 6,
+        "effective_range_m": 40,
+        "maximum_range_m": 85,
+        "pellet_count": 4
+      }
+    },
+    "m40a1": {
+      "source_name": "M40A1",
+      "source_id": 102,
+      "source_record_index": 38,
+      "combat": {
+        "ammo_name": "7.62 x 51mm",
+        "impact_damage": 2.299999952316284,
+        "damage_modifier": 0,
+        "piercing": 8,
+        "effective_range_m": 1500,
+        "maximum_range_m": 2000,
+        "pellet_count": 1
+      }
+    },
+    "m4a1-m203": {
+      "source_name": "M4A1-M203",
+      "source_id": 61,
+      "source_record_index": 18,
+      "combat": {
+        "ammo_name": "5.56 x 45mm",
+        "impact_damage": 2.299999952316284,
+        "damage_modifier": 0,
+        "piercing": 3,
+        "effective_range_m": 600,
+        "maximum_range_m": 1000,
+        "pellet_count": 1
+      }
+    },
+    "m4a1": {
+      "source_name": "M4A1",
+      "source_id": 54,
+      "source_record_index": 16,
+      "combat": {
+        "ammo_name": "5.56 x 45mm",
+        "impact_damage": 2.299999952316284,
+        "damage_modifier": 0.30000001192092896,
+        "piercing": 3,
+        "effective_range_m": 600,
+        "maximum_range_m": 1000,
+        "pellet_count": 1
+      }
+    },
+    "m4a1_sd": {
+      "source_name": "M4A1 SD",
+      "source_id": 62,
+      "source_record_index": 17,
+      "combat": {
+        "ammo_name": "5.56 x 45mm",
+        "impact_damage": 2.299999952316284,
+        "damage_modifier": 0.15000000596046448,
+        "piercing": 3,
+        "effective_range_m": 550,
+        "maximum_range_m": 800,
+        "pellet_count": 1
+      }
+    },
+    "m60e3": {
+      "source_name": "M60E3",
+      "source_id": 91,
+      "source_record_index": 28,
+      "combat": {
+        "ammo_name": "7.62 x 51mm",
+        "impact_damage": 2.299999952316284,
+        "damage_modifier": 0,
+        "piercing": 8,
+        "effective_range_m": 400,
+        "maximum_range_m": 800,
+        "pellet_count": 1
+      }
+    },
+    "m63a": {
+      "source_name": "M63A",
+      "source_id": 92,
+      "source_record_index": 29,
+      "combat": {
+        "ammo_name": "5.56 x 45mm",
+        "impact_damage": 2.299999952316284,
+        "damage_modifier": -0.4000000059604645,
+        "piercing": 3,
+        "effective_range_m": 400,
+        "maximum_range_m": 800,
+        "pellet_count": 1
+      }
+    },
+    "m82a1a": {
+      "source_name": "M82A1A",
+      "source_id": 101,
+      "source_record_index": 37,
+      "combat": {
+        "ammo_name": ".50 Cal",
+        "impact_damage": 9,
+        "damage_modifier": 0,
+        "piercing": 7,
+        "effective_range_m": 1800,
+        "maximum_range_m": 2400,
+        "pellet_count": 1
+      }
+    },
+    "m87elr": {
+      "source_name": "M87ELR",
+      "source_id": 103,
+      "source_record_index": 39,
+      "combat": {
+        "ammo_name": ".50 Cal",
+        "impact_damage": 9,
+        "damage_modifier": 0,
+        "piercing": 7,
+        "effective_range_m": 1800,
+        "maximum_range_m": 2400,
+        "pellet_count": 1
+      }
+    },
+    "m9": {
+      "source_name": "M9",
+      "source_id": 5,
+      "source_record_index": 4,
+      "combat": {
+        "ammo_name": "9x19P",
+        "impact_damage": 1.5,
+        "damage_modifier": 0,
+        "piercing": 2.0999999046325684,
+        "effective_range_m": 45,
+        "maximum_range_m": 95,
+        "pellet_count": 1
+      }
+    },
+    "mark_23": {
+      "source_name": "Mark 23",
+      "source_id": 15,
+      "source_record_index": 1,
+      "combat": {
+        "ammo_name": "45 ACP",
+        "impact_damage": 3,
+        "damage_modifier": 0,
+        "piercing": 4,
+        "effective_range_m": 50,
+        "maximum_range_m": 125,
+        "pellet_count": 1
+      }
+    },
+    "mark_23sd": {
+      "source_name": "Mark 23SD",
+      "source_id": 16,
+      "source_record_index": 6,
+      "combat": {
+        "ammo_name": "45 ACP",
+        "impact_damage": 3,
+        "damage_modifier": 0,
+        "piercing": 4,
+        "effective_range_m": 45,
+        "maximum_range_m": 110,
+        "pellet_count": 1
+      }
+    },
+    "model_18": {
+      "source_name": "Model 18",
+      "source_id": 14,
+      "source_record_index": 0,
+      "combat": {
+        "ammo_name": "9x19P",
+        "impact_damage": 1.5,
+        "damage_modifier": 0,
+        "piercing": 2.0999999046325684,
+        "effective_range_m": 45,
+        "maximum_range_m": 95,
+        "pellet_count": 1
+      }
+    },
+    "sr-25": {
+      "source_name": "SR-25",
+      "source_id": 106,
+      "source_record_index": 41,
+      "combat": {
+        "ammo_name": "7.62 x 51mm",
+        "impact_damage": 2.299999952316284,
+        "damage_modifier": 0.4000000059604645,
+        "piercing": 8,
+        "effective_range_m": 1200,
+        "maximum_range_m": 1700,
+        "pellet_count": 1
+      }
+    },
+    "sr-25_sd": {
+      "source_name": "SR-25 SD",
+      "source_id": 105,
+      "source_record_index": 40,
+      "combat": {
+        "ammo_name": "7.62 x 51mm",
+        "impact_damage": 2.299999952316284,
+        "damage_modifier": 0,
+        "piercing": 8,
+        "effective_range_m": 1100,
+        "maximum_range_m": 1500,
+        "pellet_count": 1
+      }
+    },
+    "ta_12_gauge": {
+      "source_name": "Spas 12",
+      "source_id": 81,
+      "source_record_index": 11,
+      "combat": {
+        "ammo_name": "12 Gauge",
+        "impact_damage": 2.5,
+        "damage_modifier": 0,
+        "piercing": 6,
+        "effective_range_m": 40,
+        "maximum_range_m": 85,
+        "pellet_count": 4
+      }
+    }
+  }
+}

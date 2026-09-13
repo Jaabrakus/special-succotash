@@ -15,13 +15,19 @@ const ReticleStanceProfile := preload("res://scripts/weapons/weapon_reticle_stan
 const PlayerAmmunitionInventory := preload("res://scripts/player/player_ammunition_inventory.gd")
 const SlotRules := preload("res://scripts/economy/socom_economy_rules.gd")
 var carried_loadout: Dictionary = {"primary": "", "secondary": ""}
+var reload_coordinator: Node = null
 
 func equip_carried_slot(slot: String) -> bool:
 	var id := String(carried_loadout.get(slot, ""))
-	if id.is_empty() or _reload_blocks_fire():
+	if id.is_empty():
 		return false
 	if id == String(equipped_weapon_id):
 		return true
+	if reload_coordinator != null and bool(reload_coordinator.get("pending")):
+		if not bool(reload_coordinator.call("cancel_for_swap")):
+			return false
+	elif _reload_blocks_fire():
+		return false
 	return apply_authorized_weapon_pickup("res://config/weapons/%s.json" % id)
 
 signal authoritative_shot(result: Dictionary)
@@ -178,7 +184,7 @@ func _apply_weapon_config(config: Dictionary) -> bool:
 		0,
 		9999
 	)
-	ballistics.configure_projectiles(values)
+	ballistics.configure_projectiles(values, config)
 	ballistics.configure_bloom_envelope(config)
 	ballistics.fire_interval = 60.0 / maxf(1.0, ballistics.fire_rate_rpm)
 	reticle_profile["fire_interval_seconds"] = ballistics.fire_interval
@@ -497,6 +503,14 @@ func request_fire() -> Dictionary:
 	result["simulation_tick"] = int(payload.simulation_tick)
 	last_result = result
 	for projectile: Dictionary in result.get("projectiles", [result]):
+		if projectile.has("damage_impacts"):
+			for impact: Dictionary in projectile.damage_impacts:
+				var damage_result := _apply_projectile_damage(impact.hit_collider, impact, 1.0, muzzle)
+				impact["damage_result"] = damage_result
+				if bool(damage_result.get("accepted", false)):
+					projectile["damage_result"] = damage_result
+					result["damage_result"] = damage_result
+			continue
 		var hit_collider: Object = projectile.get("hit_collider")
 		if hit_collider != null and hit_collider.has_method("take_bullet_damage"):
 			var damage_classification := {
@@ -505,7 +519,7 @@ func request_fire() -> Dictionary:
 				"normalized_radius": 0.0,
 				"precision_core_scale": shot_precision_core_scale,
 			}
-			if hit_collider.has_method("classify_shot_path"):
+			if not projectile.has("source_combat") and hit_collider.has_method("classify_shot_path"):
 				damage_classification = hit_collider.call(
 					"classify_shot_path",
 					muzzle,
@@ -541,6 +555,12 @@ func request_fire() -> Dictionary:
 func _apply_projectile_damage(
 	hit_collider: Object, projectile: Dictionary, damage_scale: float, shooter_origin: Vector3
 ) -> Dictionary:
+	if projectile.has("source_combat"):
+		var receiver: Object = hit_collider.call("get_damage_receiver") if hit_collider.has_method("get_damage_receiver") else hit_collider
+		if not is_instance_valid(receiver) or not receiver.has_method("take_source_bullet_damage"):
+			return {"accepted": false, "reason": "SOURCE_DAMAGE_RECEIVER_UNSUPPORTED"}
+		var region := StringName(hit_collider.call("get_hit_region")) if hit_collider.has_method("get_hit_region") else &""
+		return receiver.call("take_source_bullet_damage", projectile.source_combat, region)
 	var damage := float(projectile.get("damage", ballistics.damage_per_shot)) * damage_scale
 	if hit_collider.has_method("take_profiled_bullet_damage"):
 		return hit_collider.call("take_profiled_bullet_damage", damage,
@@ -552,11 +572,14 @@ func _apply_projectile_damage(
 		shooter_origin, float(ballistics.headshot_multiplier))
 
 
+func can_reload() -> bool:
+	return rounds_in_magazine < magazine_capacity and reserve_rounds > 0
+
+
 func request_reload() -> bool:
+	if not can_reload():
+		return false
 	fire_mode_policy.cancel_pending_burst()
-	if rounds_in_magazine >= magazine_capacity or reserve_rounds <= 0:
-		# Keep the authored reload preview available even when the magazine is full.
-		return true
 	var transferred := (
 		ammunition_inventory.reload_weapon(equipped_weapon_id)
 		if ammunition_inventory != null

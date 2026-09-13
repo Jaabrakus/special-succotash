@@ -1,0 +1,55 @@
+COMMAND: /Users/kiwimango/Applications/Godot-4.7.1.app/Contents/MacOS/Godot --headless -s tools/weapon_fire_regression.gd -- --camera-regression-map
+EXIT_CODE: 1
+DURATION: 2.65s
+
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+WEAPON_FIRE_CHECK PASS main scene loads
+WEAPON_FIRE_CHECK PASS live weapon path is wired
+WEAPON_FIRE_CHECK PASS left-click fire action exists
+WEAPON_FIRE_CHECK PASS full movement expands the local mouse-string envelope
+WEAPON_FIRE_CHECK PASS reload ownership rejects fire before cadence, ammo, or presentation changes
+WEAPON_FIRE_CHECK PASS first authoritative shot fires
+WEAPON_FIRE_CHECK PASS accepted shot reaches FIRE_RECOVERY without a trigger-held owner
+WEAPON_FIRE_CHECK PASS movement body route evaluates before accepted-fire hands follow
+FIRE_READY_BLEND_METRIC weight=1.0000 desired=1.0000
+ERROR: WEAPON_FIRE_CHECK FAIL accepted fire enters the final hand/weapon layer smoothly
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/weapon_fire_regression.gd:260)
+       [1] _run (res://tools/weapon_fire_regression.gd:108)
+       [2] _steps (res://tools/weapon_fire_regression.gd:252)
+FIRE_WHITE_RED_ALIGNMENT_METRIC error_deg=0.0199
+WEAPON_FIRE_CHECK PASS Fire aligns the white physical barrel line to the red muzzle-shot line
+WEAPON_FIRE_CHECK PASS accepted shot leaves the shared reticle center stable
+ERROR: WEAPON_FIRE_CHECK FAIL firing does not jump the reticle away from screen center
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/weapon_fire_regression.gd:260)
+       [1] _run (res://tools/weapon_fire_regression.gd:142)
+       [2] _steps (res://tools/weapon_fire_regression.gd:252)
+WEAPON_FIRE_CHECK PASS stable firing reticle leaves the camera aim angle unchanged
+WEAPON_FIRE_CHECK PASS first full-strafe shot receives the approved movement cone
+WEAPON_FIRE_CHECK PASS full movement cannot bypass dispersion by tapping the opening shot
+WEAPON_FIRE_CHECK PASS authoritative shot dispersion stays centered on the visible-muzzle-to-sight ray
+WEAPON_FIRE_CHECK PASS full-speed opening cone is visibly wider than a torso at 25 metres
+WEAPON_FIRE_CHECK PASS fire rate rejects same-tick shot spam
+WEAPON_FIRE_CHECK PASS second burst shot fires after cadence interval
+ERROR: WEAPON_FIRE_CHECK FAIL second shot keeps the same world-space aim center while the moving muzzle reconverges
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/weapon_fire_regression.gd:260)
+       [1] _run (res://tools/weapon_fire_regression.gd:177)
+       [2] _steps (res://tools/weapon_fire_regression.gd:252)
+WEAPON_FIRE_CHECK PASS second full-movement tap cannot restore laser accuracy
+WEAPON_FIRE_CHECK PASS third automatic shot fires
+WEAPON_FIRE_CHECK PASS sustained fire blooms only after the accurate opening pair
+WEAPON_FIRE_CHECK PASS accepted shots keep a monotonic multiplayer sequence
+WEAPON_FIRE_CHECK PASS workbench tracer records the actual fired direction
+WEAPON_FIRE_CHECK PASS reticle bloom closes during trigger release without waiting for another shot
+WEAPON_FIRE_CHECK PASS disabled aim climb cannot leave a hidden recoil offset
+WEAPON_FIRE_CHECK PASS production weapon exposes an active muzzle socket
+WEAPON_FIRE_CHECK PASS live shot origin does not use the hidden proxy muzzle
+WEAPON_FIRE_CHECK PASS authoritative shot begins at the visible rifle muzzle
+WEAPON_FIRE_CHECK PASS shared weapon aim point matches the visible acquired sight point
+WEAPON_FIRE_REGRESSION FAIL ["accepted fire enters the final hand/weapon layer smoothly", "firing does not jump the reticle away from screen center", "second shot keeps the same world-space aim center while the moving muzzle reconverges"]

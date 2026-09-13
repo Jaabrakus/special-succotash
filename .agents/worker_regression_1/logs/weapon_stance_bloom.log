@@ -1,0 +1,20 @@
+COMMAND: /Users/kiwimango/Applications/Godot-4.7.1.app/Contents/MacOS/Godot --headless -s tools/weapon_stance_bloom_regression.gd
+EXIT_CODE: 0
+DURATION: 0.23s
+
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+STANCE_BLOOM_CHECK PASS burst shot fires
+STANCE_BLOOM_CHECK PASS burst shot fires
+STANCE_BLOOM_CHECK PASS burst shot fires
+STANCE_BLOOM_CHECK PASS burst shot fires
+STANCE_BLOOM_CHECK PASS burst shot fires
+STANCE_BLOOM_CHECK PASS burst shot fires
+STANCE_BLOOM_CHECK PASS crouch bloom opens faster on the third shot
+STANCE_BLOOM_CHECK PASS burst shot fires
+STANCE_BLOOM_CHECK PASS burst shot fires
+STANCE_BLOOM_CHECK PASS crouch sustained-fire maximum remains below standing
+STANCE_BLOOM_CHECK PASS standing retains bloom during quiet period
+STANCE_BLOOM_CHECK PASS crouch retains bloom during quiet period
+STANCE_BLOOM_CHECK PASS crouch bloom recovers faster after trigger release
+WEAPON_STANCE_BLOOM_REGRESSION PASS third=1.600/1.638 fourth=2.800/1.988 recovery=0.700/0.900

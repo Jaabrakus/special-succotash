@@ -15,18 +15,36 @@ func _run() -> void:
 		for frame in int(0.46 * fps):
 			var velocity := 5.0 - 22.0 * float(frame) / fps
 			var state: Dictionary = timeline.sample(&"AIRBORNE", velocity, frame == 0, 5.0, 0.0, 0.18)
-			check(state.slot == (&"jump_up" if velocity > 0 else &"jump_loop"), "latch takeoff despite steering @" + str(fps))
+			check(state.slot == (&"jump_up" if velocity > 0 else &"jump_running_air"), "latch takeoff despite steering @" + str(fps))
 			check(is_equal_approx(float(state.progress), clampf(1.0 - velocity / 5.0 if velocity > 0 else -velocity / 5.0, 0.0, 1.0)), "physics phase @" + str(fps))
-		check(timeline.sample(&"AIRBORNE", 0.2, false, 5, 0, 0.18).slot == &"jump_loop", "cannot restart after apex")
+		check(timeline.sample(&"AIRBORNE", 0.2, false, 5, 0, 0.18).slot == &"jump_running_air", "cannot restart after apex")
 		check(timeline.sample(&"LANDING", 0, false, 5, 0.18, 0.18).progress == 1.0, "landing reaches end before recovery finishes")
 		check(timeline.sample(&"STANDING", 0, false, 5, 0, 0).is_empty(), "clears on exit")
-		check(timeline.sample(&"AIRBORNE", -1, true, 5, 0, 0).slot == &"jump_loop", "ledge does not launch")
+		check(timeline.sample(&"AIRBORNE", -1, true, 5, 0, 0).slot == &"jump_running_air", "ledge does not launch")
 	var driver := Driver.new()
 	root.add_child(driver)
 	await process_frame
 	driver.set_process(false)
 	var hybrid: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://config/animation_presets/seal_pistol_hybrid.json"))
 	check(driver.animation_profile.source_jump == hybrid.source_jump, "main/preset timing parity")
+	var running: Animation = driver.animation_player.get_animation(&"jump_up")
+	var standing: Animation = driver.animation_player.get_animation(&"jump_up_standing")
+	check(String(running.get_meta("source_asset", "")).ends_with("/jump_up.tres"), "moving jump copies running source")
+	check(String(standing.get_meta("source_asset", "")).ends_with("/jump_up_standing.tres"), "stationary jump retains standing source")
+	var running_air: Animation = driver.animation_player.get_animation(&"jump_running_air")
+	check(String(running_air.get_meta("source_asset", "")).ends_with("/jump_loop.tres"), "running air copies running source")
+	var copied: Animation = load("res://assets/animations/seal_gameplay/jump_coherent_run.tres")
+	var original: Animation = load("res://assets/animations/seal_gameplay/jump_up.tres")
+	for track in copied.get_track_count():
+		if copied.track_get_type(track) != Animation.TYPE_ROTATION_3D: continue
+		var source_track := original.find_track(copied.track_get_path(track), Animation.TYPE_ROTATION_3D)
+		check(source_track >= 0, "running source bone exists")
+		if source_track < 0: continue
+		for key in copied.track_get_key_count(track):
+			var time := copied.track_get_key_time(track, key)
+			var actual: Quaternion = copied.track_get_key_value(track, key)
+			var expected := original.rotation_track_interpolate(source_track, time * 0.8)
+			check(actual.normalized().angle_to(expected.normalized()) < 0.002, "full running launch rotation copied " + str(copied.track_get_path(track)) + " at " + str(time))
 	for gun: String in ["ak-47", "m4a1", "mark_23"]:
 		driver.weapon_pose_solver.grounded_support_wrist_valid = true
 		check(driver.notify_weapon_equipped(Weapons.load_config("res://config/weapons/" + gun + ".json")), "equip " + gun)
@@ -50,14 +68,34 @@ func _run() -> void:
 				var anchor := reference.position_track_interpolate(ref_track,0)
 				for key in source.track_get_key_count(hip_track):
 					check(source.track_get_key_value(hip_track,key).is_equal_approx(anchor),clip_name + " no duplicate jump translation")
-			# The decoded terminal sample equals frame zero; never play it for a
-			# one-shot. Keep the source asset intact for provenance and previews.
-			for track in source.get_track_count():
-				if source.track_get_type(track) != Animation.TYPE_ROTATION_3D or source.track_get_key_count(track) < 2: continue
-				var first: Quaternion = source.track_get_key_value(track, 0)
-				var last: Quaternion = source.track_get_key_value(track, source.track_get_key_count(track) - 1)
-				check(first.angle_to(last) < 0.002, clip_name + " verified source closing frame")
+			check(source.has_meta("source_asset"), clip_name + " copied source provenance")
+		for pair in [["jump_up", "jump_running_air"], ["jump_up_standing", "jump_loop"], ["pistol_jump", "jump_running_air"], ["jump_running_air", "jump_running_land"], ["jump_loop", "jump_down"], ["jump_loop", "pistol_jump_down"]]:
+			var before: Animation = driver.animation_player.get_animation(pair[0])
+			var after: Animation = driver.animation_player.get_animation(pair[1])
+			for track in before.get_track_count():
+				if before.track_get_type(track) != Animation.TYPE_ROTATION_3D: continue
+				var next := after.find_track(before.track_get_path(track), Animation.TYPE_ROTATION_3D)
+				check(next >= 0, "phase seam has matching bone")
+				if next >= 0:
+					check(before.rotation_track_interpolate(track, 1.0).angle_to(after.rotation_track_interpolate(next, 0.0)) < 0.002, "phase seam preserves rotation " + str(pair) + " " + str(before.track_get_path(track)))
 		check(not graph.source_jump_clip(&"dive_roll") and not graph.source_jump_clip(&"reload"), "other action policies unchanged")
+	var other := Driver.new()
+	root.add_child(other)
+	await process_frame
+	other.set_process(false)
+	var first_jump: Animation = driver.animation_player.get_animation(&"jump_up")
+	var other_jump: Animation = other.animation_player.get_animation(&"jump_up")
+	check(first_jump != other_jump, "jump clips are isolated per operator")
+	check(driver.animation_player.get_animation(&"run_forward") == other.animation_player.get_animation(&"run_forward"), "non-jump cache stays shared")
+	var hip_track := other_jump.find_track(NodePath(".:mixamorig_Hips"), Animation.TYPE_POSITION_3D)
+	var untouched: Vector3 = other_jump.track_get_key_value(hip_track, 0)
+	var hip := driver.skeleton.find_bone("mixamorig_Hips")
+	var launch: Vector3 = driver.skeleton.get_bone_pose_position(hip) + Vector3(0, -0.003, 0)
+	driver.skeleton.set_bone_pose_position(hip, launch)
+	driver.asset_runtime.anchor_jump_at_takeoff()
+	check(first_jump.position_track_interpolate(hip_track, 0).is_equal_approx(launch), "jump translation uses takeoff pose")
+	check(other_jump.track_get_key_value(hip_track, 0).is_equal_approx(untouched), "one player cannot move another player's jump")
+	other.queue_free()
 	driver.queue_free()
 	await process_frame
 	print("SOURCE_JUMP_REGRESSION ", "PASS" if failures.is_empty() else "FAIL", " ", failures)

@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "feature_id": "source_route_recovery",
+  "player_intent": "Legacy fallback must not prevent subsequent ISO-source locomotion and blending.",
+  "acceptance_rule": "An individually requested gait take can use the legacy fallback; a subsequent supported idle or movement request restores the source-enabled graph and its rendered route weight. Repeated fallback requests preserve the entry fade. Explicit legacy mode and missing-clip behavior remain unchanged.",
+  "canonical_scene": "res://main.tscn",
+  "ownership": {"animation_route": "SocomOperatorAnimationDriver"},
+  "nodes": [{"id": "animation_driver", "type": "Node3D", "owner": "SocomOperatorAnimationDriver", "role": "Selects the sole active animation graph route", "scene_path": "res://scenes/player/operator_player.tscn", "node_path": "Mannequin/ProductionAnimation"}],
+  "data_contracts": [{"path": "res://config/operator_animation_map.json", "writer": "res://scripts/labs/animation_workshop_repository.gd", "readers": ["res://scripts/player/operator_animation_profile.gd", "res://scripts/player/operator_animation_driver_pose.gd", "res://scripts/player/operator_locomotion_blend_tree.gd"]}],
+  "must_not_change": ["CharacterBody movement and collision", "Camera and reticle aim", "Server weapon, damage and action timing", "Saved character, grip profiles and source attachment trial status", "Explicit legacy-mode preference"],
+  "proof_scripts": ["res://tools/source_route_recovery_regression.gd", "res://tools/source_grounded_blending_regression.gd", "res://tools/feature_contract_regression.gd"],
+  "visual_check": "Review the exit from a fallback take into source idle and moving gait in main. Automated route evaluation is not proof of original animation timing, matching hands, or camera parity.",
+  "system_delta": {
+    "decision": "REPLACE",
+    "reason": "Replace sticky fallback selection with per-request recovery in the same driver. A canonical-scene negative control failed four route/fade assertions before the fix. Retain legacy clips as compatibility fallback; do not delete unconverted actions or enable failed rifle grip trials.",
+    "current": {"system": "One-way legacy fallback and repeated fade writes", "correctness": 2, "ownership_clarity": 5, "runtime_parity": 2, "editor_usability": 3, "performance": 5, "regression_coverage": 2, "evidence_paths": ["res://scripts/player/operator_animation_driver_pose.gd", "res://scripts/player/operator_locomotion_blend_tree.gd", "res://tools/source_route_recovery_regression.gd"]},
+    "candidate": {"system": "Supported requests restore source graph; held fallback preserves fade", "correctness": 4, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 3, "performance": 5, "regression_coverage": 4, "evidence_paths": ["res://scripts/player/operator_animation_driver_pose.gd", "res://scripts/player/operator_locomotion_blend_tree.gd", "res://tools/source_route_recovery_regression.gd"]}
+  }
+}

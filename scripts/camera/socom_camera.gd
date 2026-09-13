@@ -10,6 +10,7 @@ const CameraDebugSnapshotScript := preload("res://scripts/camera/camera_debug_sn
 const CameraInputControllerScript := preload("res://scripts/camera/camera_input_controller.gd")
 const CameraInputPresenterScript := preload("res://scripts/camera/camera_input_presenter.gd")
 const CameraProfileScript := preload("res://scripts/camera/camera_profile.gd")
+const SourceHybrid := preload("res://scripts/camera/camera_source_hybrid.gd")
 const CameraPreferredShotSolverScript := preload("res://scripts/camera/camera_preferred_shot_solver.gd")
 const CameraRecoverySolverScript := preload("res://scripts/camera/camera_recovery_solver.gd")
 const CameraRuntimeSupportScript := preload("res://scripts/camera/camera_runtime_support.gd")
@@ -225,6 +226,7 @@ func _init() -> void:
     runtime_support.configure(self)
 
 func _ready() -> void:
+    SourceHybrid.configure(profile, OS.get_cmdline_user_args().has("--source-camera-hybrid"))
     add_to_group("socom_camera_rig")
     camera = Camera3D.new()
     camera.name = "Camera3D"

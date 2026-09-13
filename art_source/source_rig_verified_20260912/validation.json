@@ -1,0 +1,106 @@
+{
+  "stage": "editable skinned Godot-retarget interchange proof, not source-engine/runtime parity",
+  "bones": 65,
+  "meshes": [
+    "BaseBody"
+  ],
+  "rest_calibrated_scale": 100.00190669194073,
+  "max_rest_landmark_error_m": 3.319594997063639e-05,
+  "original_socom_character_proportions": false,
+  "runtime_promoted": false,
+  "retarget_key_times_preserved": true,
+  "original_decoder_keys_not_rebuilt": true,
+  "actions": [
+    {
+      "name": "stand",
+      "duration_seconds": 1.03333330154419,
+      "authored_time_samples": 33,
+      "sampled_bone_landmarks": 4225,
+      "between_key_validation_samples": 32,
+      "max_landmark_error_m": 3.3542275533842126e-05,
+      "midpoint_max_mesh_displacement_m": 0.012432197099899817,
+      "source_resource": "res://assets/animations/seal_reference/seal_stand_alert02.tres",
+      "source_hash": "67d97c8a142c505cc5f00a03ccdc42c1f01788ab36d7ad434b9374840791845d",
+      "partial_track_composition": false
+    },
+    {
+      "name": "run",
+      "duration_seconds": 0.6333333,
+      "authored_time_samples": 21,
+      "sampled_bone_landmarks": 2665,
+      "between_key_validation_samples": 20,
+      "max_landmark_error_m": 3.342405193269634e-05,
+      "midpoint_max_mesh_displacement_m": 0.5211842225733473,
+      "source_resource": "res://assets/animations/seal_reference/seal_run.tres",
+      "source_hash": "74dba72154d732fceb2c30f164bf4202ab0e2ae79e168432badaad2f4e26e041",
+      "partial_track_composition": false
+    },
+    {
+      "name": "walk",
+      "duration_seconds": 0.8333333,
+      "authored_time_samples": 27,
+      "sampled_bone_landmarks": 3445,
+      "between_key_validation_samples": 26,
+      "max_landmark_error_m": 3.348084423054787e-05,
+      "midpoint_max_mesh_displacement_m": 0.3418605840435727,
+      "source_resource": "res://assets/animations/seal_reference/seal_walk.tres",
+      "source_hash": "1e16a619a24fc3994afb851c383dcffe7d7c66d7de8ab05b9c2b142d6e82eb05",
+      "partial_track_composition": false
+    },
+    {
+      "name": "strafe_left",
+      "duration_seconds": 0.73333335,
+      "authored_time_samples": 24,
+      "sampled_bone_landmarks": 3055,
+      "between_key_validation_samples": 23,
+      "max_landmark_error_m": 3.3362967824719886e-05,
+      "midpoint_max_mesh_displacement_m": 0.437726366885453,
+      "source_resource": "res://assets/animations/seal_reference/seal_lstrafe.tres",
+      "source_hash": "72070c7dc81d86c03a751ab7ebac4757bc59f59d7715429413a947269a2e47b2",
+      "partial_track_composition": false
+    },
+    {
+      "name": "strafe_right",
+      "duration_seconds": 0.76666665,
+      "authored_time_samples": 25,
+      "sampled_bone_landmarks": 3185,
+      "between_key_validation_samples": 24,
+      "max_landmark_error_m": 3.3407383163257084e-05,
+      "midpoint_max_mesh_displacement_m": 0.5017521845272286,
+      "source_resource": "res://assets/animations/seal_reference/seal_rstrafe.tres",
+      "source_hash": "da2ebf86a4cf7dd3461f32e54b9251a435baaa1585448ab3d5d7bfb9f09f244a",
+      "partial_track_composition": false
+    },
+    {
+      "name": "pistol_run",
+      "duration_seconds": 0.6,
+      "authored_time_samples": 38,
+      "sampled_bone_landmarks": 4875,
+      "between_key_validation_samples": 37,
+      "max_landmark_error_m": 3.343128897894476e-05,
+      "midpoint_max_mesh_displacement_m": 0.795852245558383,
+      "source_resource": "res://assets/animations/seal_gameplay/pistol_run_forward.tres",
+      "source_hash": "bb40d6aa1d61726854b3969fe9504ec969c03cf96f0097bc2f8c591bfe0fac38",
+      "partial_track_composition": true
+    }
+  ],
+  "standing_mesh_size_m": [
+    0.6854071617126465,
+    0.8321818709373474,
+    2.0612692832946777
+  ],
+  "renders": [
+    "/private/tmp/source-rig-workbench-20260913-v2/run_rear_0.png",
+    "/private/tmp/source-rig-workbench-20260913-v2/run_rear_1.png",
+    "/private/tmp/source-rig-workbench-20260913-v2/run_rear_2.png",
+    "/private/tmp/source-rig-workbench-20260913-v2/run_side_0.png",
+    "/private/tmp/source-rig-workbench-20260913-v2/run_side_1.png",
+    "/private/tmp/source-rig-workbench-20260913-v2/run_side_2.png",
+    "/private/tmp/source-rig-workbench-20260913-v2/pistol_run_rear_0.png",
+    "/private/tmp/source-rig-workbench-20260913-v2/pistol_run_rear_1.png",
+    "/private/tmp/source-rig-workbench-20260913-v2/pistol_run_rear_2.png",
+    "/private/tmp/source-rig-workbench-20260913-v2/pistol_run_side_0.png",
+    "/private/tmp/source-rig-workbench-20260913-v2/pistol_run_side_1.png",
+    "/private/tmp/source-rig-workbench-20260913-v2/pistol_run_side_2.png"
+  ]
+}

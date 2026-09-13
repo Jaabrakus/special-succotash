@@ -18,6 +18,11 @@ function convert(mapDir,out,options={}){
       assert(/^[\w-]+$/.test(e.name),'unsafe output model name');
       const d=model.subarray(e.offset,e.offset+e.size),p=packets(d,scale),refs=modelKeys.filter(r=>r.parent===e.index).map(r=>{assert.equal(r.size,4);return model.readUInt32LE(r.offset);}),bound=bindings(d,refs);
       assert.equal(bound.size,p.length,'unbound source geometry');for(const pkt of p){pkt.texture=bound.get(pkt.start);assert(texturePaths.has(pkt.texture),'texture not yet decoded: '+pkt.texture);}
+      if(options.packetOrigins)for(const pkt of p){
+        const origin=[0,1,2].map(k=>d.readFloatLE(pkt.start+56+k*4)*scale);
+        assert(origin.every(Number.isFinite),'Invalid packet origin');
+        pkt.positions=pkt.positions.map(v=>v.map((x,k)=>x+origin[k]));
+      }
       const sourceNode=geoKeys.find(k=>k.name===e.name&&geoKeys[k.parent]?.name==='models');assert(sourceNode,'missing model bounds');const bounds=geoKeys.find(k=>k.parent===sourceNode.index&&k.name==='nparams');assert(bounds&&bounds.size===96,'missing nparams');
       const min=[64,68,72].map(k=>geo.readFloatLE(bounds.offset+k)*scale),max=[76,80,84].map(k=>geo.readFloatLE(bounds.offset+k)*scale);
       const actualMin=[Infinity,Infinity,Infinity],actualMax=[-Infinity,-Infinity,-Infinity];for(const pkt of p)for(const v of pkt.positions)for(let k=0;k<3;k++){actualMin[k]=Math.min(actualMin[k],v[k]);actualMax[k]=Math.max(actualMax[k],v[k]);}

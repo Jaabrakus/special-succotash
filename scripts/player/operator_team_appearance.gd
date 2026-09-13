@@ -3,6 +3,7 @@ extends RefCounted
 
 const PATH := "res://config/operator_team_appearance.json"
 const CLOTH := preload("res://assets/shaders/operator_team_cloth.gdshader")
+const Appearance := preload("res://scripts/player/character_appearance_profile.gd")
 static var _profile: Dictionary = {}
 
 static func profile() -> Dictionary:
@@ -17,9 +18,10 @@ static func color_for(team: int) -> Color:
 static func palette_color(name: String) -> Color:
 	return Color(String(profile().get("palette", {}).get(name, "579fe8")))
 
-static func apply(model: Node, team: int, color_name: String = "") -> void:
+static func apply(model: Node, team: int, color_name: String = "", appearance_override: Dictionary = {}) -> void:
 	if model == null:
 		return
+	var appearance := appearance_override if not appearance_override.is_empty() else (Appearance.load_profile() if not color_name.is_empty() else Appearance.defaults())
 	for node: Node in model.find_children("*", "MeshInstance3D", true, false):
 		var ancestor := node.get_parent()
 		var attached := false
@@ -31,11 +33,23 @@ static func apply(model: Node, team: int, color_name: String = "") -> void:
 		if attached:
 			continue
 		var mesh := node as MeshInstance3D
+		if mesh.get_meta("socom_modern_character", false):
+			mesh.visible = Appearance.visible_mesh(String(mesh.name), appearance)
 		if mesh.mesh == null:
 			continue
 		for surface in mesh.mesh.get_surface_count():
 			var source := mesh.mesh.surface_get_material(surface) as BaseMaterial3D
 			if source == null or source.albedo_texture == null:
+				continue
+			if mesh.get_meta("socom_modern_character", false):
+				# Preserve PBR maps on the modern body. Only authored cloth parts
+				# receive team tint; skin, eyes, teeth and equipment stay untouched.
+				var modern := source.duplicate() as BaseMaterial3D
+				modern.albedo_color = source.albedo_color * Appearance.tint(String(mesh.name), appearance)
+				if mesh.get_meta("socom_team_cloth", false):
+					var tint := palette_color(color_name) if not color_name.is_empty() else color_for(team)
+					modern.albedo_color *= Color.WHITE.lerp(tint, 0.45)
+				mesh.set_surface_override_material(surface, modern)
 				continue
 			var material := ShaderMaterial.new()
 			material.shader = CLOTH

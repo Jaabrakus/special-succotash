@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "feature_id": "action_hud_tracking",
+  "player_intent": "HUD follows the visible body through leans, dives, slides and recovery.",
+  "acceptance_rule": "HUD reads canonical animated Spine2 world position, stays upright/clamped, and leaves body/camera/skeleton transforms unchanged across left/right leans, four mobility directions and recovery. Static stance fallback and prior HUD settings remain.",
+  "canonical_scene": "res://main.tscn",
+  "ownership": {"HUD screen translation": "SocomLoadoutCardHUD"},
+  "nodes": [{"id": "hud", "type": "Control", "owner": "SocomLoadoutCardHUD", "role": "Read-only animated torso follower", "source_script": "res://scripts/ui/socom_loadout_card_hud.gd", "code_symbols": ["func _animated_torso_anchor", "func _update_floating_position"]}],
+  "data_contracts": [{"path": "res://config/contextual_hud.json", "writer": "res://scripts/ui/contextual_hud_attention.gd", "readers": ["res://scripts/ui/socom_loadout_card_hud.gd"]}],
+  "must_not_change": ["Movement", "Camera and aim", "Animation and skeleton ownership", "Bloom and shot authority", "Networking", "HUD sizes, fade and hide behavior"],
+  "proof_scripts": ["res://tools/action_hud_tracking_regression.gd", "res://tools/contextual_hud_regression.gd", "res://tools/stance_hud_bloom_regression.gd"],
+  "visual_check": "Inspect rendered canonical lean left/right, slide, side/back dives and recovery; text remains upright next to torso.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Replace only the HUD anchor approximation with a read-only existing animated torso sample, keeping previous stance fallback, smoothing and presentation owners.",
+    "current": {"system": "Stance-height-only HUD", "correctness": 2, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 5, "regression_coverage": 3, "evidence_paths": ["res://docs/STANCE_HUD_BLOOM.md"]},
+    "candidate": {"system": "Read-only animated torso HUD", "correctness": 4, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 5, "regression_coverage": 4, "evidence_paths": ["res://scripts/ui/socom_loadout_card_hud.gd", "res://tools/action_hud_tracking_regression.gd"]}
+  }
+}

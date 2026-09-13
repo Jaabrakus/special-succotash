@@ -90,7 +90,12 @@ func fingerprint_for(profile) -> String:
 	var entries: Array[String] = ["schema:%d" % CACHE_SCHEMA]
 	entries.append("target_rig:" + FileAccess.get_sha256(TARGET_RIG_PATH))
 	entries.append("source_jump:" + JSON.stringify(profile.source_jump))
+	entries.append("source_pose_only:" + str(profile.locomotion.get("source_pose_only", false)))
+	entries.append("source_pistol_attachment:" + str(profile.locomotion.get("source_pistol_attachment", false)))
+	entries.append("source_rifle_attachment:" + str(profile.locomotion.get("source_rifle_attachment", false)))
 	entries.append("gait_alignment:%s:%s" % [profile.locomotion.get("grounded_gait_alignment", false), profile.locomotion.get("gait_support_height_m", 0.05)])
+	entries.append("forward_run_hip_balance:" + str(profile.locomotion.get("forward_run_hip_balance", false)))
+	entries.append("forward_run_max_hip_travel_m:" + str(profile.locomotion.get("forward_run_max_hip_travel_m", 0.0)))
 	# StringName ordering depends on the process' interning order. Canonicalize to
 	# ordinary strings before sorting so launcher, main.tscn, and regression
 	# processes produce the same fingerprint for identical animation data.

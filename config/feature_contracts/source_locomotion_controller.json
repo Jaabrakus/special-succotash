@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "feature_id": "source_locomotion_controller",
+  "player_intent": "Rebuild source-backed SOCOM II locomotion and action blending in the actual game.",
+  "acceptance_rule": "The enabled rifle policy selects native SEAL walk/jog/run from actual velocity, the driver agrees with the graph, related source spaces share cycle phase, and all three native pistol reload routes preserve accepted-action timing and trigger-hand contact. This is the first controller stage, not certified PS2 parity.",
+  "canonical_scene": "res://main.tscn",
+  "ownership": {"animation": "ProductionAnimation"},
+  "nodes": [{"id": "animation_driver", "type": "Node3D", "owner": "ProductionAnimation", "role": "Sole character animation owner consuming movement and accepted actions", "scene_path": "res://scenes/player/operator_player.tscn", "node_path": "Mannequin/ProductionAnimation"}],
+  "data_contracts": [{"path": "res://config/operator_animation_map.json", "writer": "res://docs/SOURCE_LOCOMOTION_CONTROLLER.md", "readers": ["res://scripts/player/operator_animation_profile.gd", "res://scripts/player/operator_locomotion_blend_tree.gd", "res://scripts/player/operator_locomotion_route_builder.gd", "res://scripts/player/operator_animation_driver_actions.gd", "res://scripts/player/operator_animation_driver_pose.gd"]}],
+  "must_not_change": ["CharacterBody movement and collision", "Camera/reticle aim", "Weapon and server action timing, ammunition, shots and damage", "Networking authority", "Hand IK and retargeting", "Maps and art"],
+  "proof_scripts": ["res://tools/source_animation_coverage_audit.gd", "res://tools/source_locomotion_policy_regression.gd", "res://tools/source_gait_phase_regression.gd", "res://tools/source_locomotion_controller_regression.gd", "res://tools/source_action_routing_regression.gd", "res://tools/iso_pistol_reload_regression.gd", "res://tools/iso_rifle_reload_regression.gd", "res://tools/source_grounded_blending_regression.gd"],
+  "visual_check": "Main scene modern rifle: slow analog walk, jog, full run, diagonals, rapid reversals, stop, crouch, fire and reload. Then Mark23 reload all postures. Check feet, torso and trigger-hand contact. Compare original game before declaring 1:1.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Use source-selected tiers and shared phase inside existing animation owner. Retain movement/camera/server contracts. Weighting law remains a labeled inference pending original runtime evidence.",
+    "current": {"system": "Forced run driver and separate mutable phase spaces", "correctness": 2, "ownership_clarity": 4, "runtime_parity": 5, "editor_usability": 4, "performance": 5, "regression_coverage": 3, "evidence_paths": ["res://scripts/player/operator_animation_driver_pose.gd", "res://scripts/player/operator_locomotion_blend_tree.gd", "res://tools/source_gait_phase_regression.gd"]},
+    "candidate": {"system": "Source range adapter, graph-selected tiers and shared native periods", "correctness": 3, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 4, "regression_coverage": 5, "evidence_paths": ["res://scripts/player/operator_source_locomotion_policy.gd", "res://scripts/player/operator_gait_phase_sync.gd", "res://scripts/player/operator_locomotion_route_builder.gd", "res://tools/source_locomotion_controller_regression.gd", "res://docs/SOURCE_LOCOMOTION_CONTROLLER.md"]}
+  }
+}

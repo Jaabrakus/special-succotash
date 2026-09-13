@@ -1,0 +1,12 @@
+COMMAND: /Users/kiwimango/Applications/Godot-4.7.1.app/Contents/MacOS/Godot --headless -s tools/camera_obstruction_guard_regression.gd
+EXIT_CODE: 0
+DURATION: 0.25s
+
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+CAMERA_OBSTRUCTION_GUARD_CHECK PASS one clear frame keeps the legal lens held
+CAMERA_OBSTRUCTION_GUARD_CHECK PASS release guard freezes the rendered camera position
+CAMERA_OBSTRUCTION_GUARD_CHECK PASS release guard does not modify aim
+CAMERA_OBSTRUCTION_GUARD_CHECK PASS renewed contact resets the release guard
+CAMERA_OBSTRUCTION_GUARD_CHECK PASS sustained clearance releases the camera
+CAMERA_OBSTRUCTION_GUARD_REGRESSION PASS

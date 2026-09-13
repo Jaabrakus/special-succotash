@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "enabled": true,
+  "character_id": "modern_modular_soldier",
+  "scene": "res://assets/characters/modern_soldier/modern_soldier_iso.scn",
+  "fallback_scene": "res://assets/characters/ps1_dual_source_rig/ps1_dual_source_rig.scn",
+  "animation_contract": "canonical_mixamo_65_iso_proportions",
+  "proportion_reference": "seal_A_arc",
+  "source_workbench": "res://art_source/modern_soldier/modern_soldier_textured.blend"
+}

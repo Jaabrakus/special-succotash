@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "feature_id": "camera_source_hybrid",
+  "player_intent": "Compare an ISO-parameter-informed framing hybrid without replacing our working camera.",
+  "acceptance_rule": "Default unchanged. Explicit schema-2 trial assumes the source full-distance offset uses verified world units: 30 * 0.1 = 3m target, authored 20 percent mix gives 2.36m from 2.20m baseline. Distance is independent of our height. Old ratio-only or malformed settings fail closed. Preferred distance delta capped at 0.6m; all other profile properties, indoor/downward endpoint preferences and camera ownership unchanged. No claim of source-camera parity or improved feel before playtest.",
+  "canonical_scene": "res://main.tscn",
+  "ownership": {"camera": "SocomCameraRig"},
+  "nodes": [{"id": "camera", "type": "Node3D", "owner": "SocomCameraRig", "role": "Only canonical camera owner", "scene_path": "res://scenes/camera/socom_camera_rig.tscn", "node_path": "."}],
+  "data_contracts": [{"path": "res://config/camera_source_hybrid.json", "writer": "res://docs/ISO_CAMERA_HYBRID.md", "readers": ["res://scripts/camera/camera_source_hybrid.gd", "res://scripts/camera/socom_camera.gd", "res://scripts/camera/camera_preferred_shot_solver.gd"]}],
+  "must_not_change": ["Character movement/collision", "Camera aim/input/FOV", "Server shot/damage", "Animation", "Default camera", "Post-preference collision validation"],
+  "proof_scripts": ["res://tools/camera_source_hybrid_regression.gd", "res://tools/camera_obstruction_guard_regression.gd", "res://tools/main_source_camera_regression.gd", "res://tools/extract_iso_camera_reference.cjs", "res://tools/camera_source_calibration_audit.cjs"],
+  "visual_check": "Compare baseline/trial through main.tscn at standing, crouched and prone poses; retain existing collision pipeline. Trial is not default promotion.",
+  "system_delta": {
+    "decision": "REPLACE",
+    "reason": "Replace only optional ratio-to-our-height heuristic with a world-unit-based distance hypothesis; scale verified against all 34 ISO worlds. KEEP normal camera and off-by-default policy while source active mode, offset semantics and projection remain unmeasured.",
+    "current": {"system": "Prior optional ratio-based trial", "correctness": 2, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 5, "regression_coverage": 4, "evidence_paths": ["res://docs/ISO_CAMERA_HYBRID.md", "res://scripts/camera/camera_profile.gd"]},
+    "candidate": {"system": "Unit-based optional distance trial within existing solver", "correctness": 3, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 5, "regression_coverage": 4, "evidence_paths": ["res://scripts/camera/camera_source_hybrid.gd", "res://tools/camera_source_hybrid_regression.gd", "res://tools/camera_source_calibration_audit.cjs", "res://docs/CAMERA_SOURCE_CALIBRATION.md"]}
+  }
+}

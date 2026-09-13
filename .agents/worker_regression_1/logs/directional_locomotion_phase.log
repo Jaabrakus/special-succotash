@@ -1,0 +1,105 @@
+COMMAND: /Users/kiwimango/Applications/Godot-4.7.1.app/Contents/MacOS/Godot --headless -s tools/directional_locomotion_phase_regression.gd
+EXIT_CODE: 1
+DURATION: 3.23s
+
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+DIRECTIONAL_PHASE_CHECK PASS canonical scene loads
+DIRECTIONAL_PHASE_CHECK PASS canonical player animation owner exists
+ERROR: DIRECTIONAL_PHASE_CHECK FAIL run_left reuses one forward gait cycle
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/directional_locomotion_phase_regression.gd:128)
+       [1] _run (res://tools/directional_locomotion_phase_regression.gd:41)
+ERROR: DIRECTIONAL_PHASE_CHECK FAIL run_right reuses one forward gait cycle
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/directional_locomotion_phase_regression.gd:128)
+       [1] _run (res://tools/directional_locomotion_phase_regression.gd:41)
+ERROR: DIRECTIONAL_PHASE_CHECK FAIL crouch_left reuses one forward gait cycle
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/directional_locomotion_phase_regression.gd:128)
+       [1] _run (res://tools/directional_locomotion_phase_regression.gd:41)
+ERROR: DIRECTIONAL_PHASE_CHECK FAIL crouch_right reuses one forward gait cycle
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/directional_locomotion_phase_regression.gd:128)
+       [1] _run (res://tools/directional_locomotion_phase_regression.gd:41)
+DIRECTIONAL_PHASE_CHECK PASS standing direction points share normalized gait phase
+DIRECTIONAL_PHASE_CHECK PASS crouch direction points share normalized gait phase
+DIRECTIONAL_PHASE_METRIC switch_step=0.0102
+DIRECTIONAL_PHASE_CHECK PASS direction switch advances the existing playhead instead of restarting
+DIRECTIONAL_REVERSAL_METRIC STANDING (-1.0, 0.0)-to-(1.0, 0.0) 30Hz rendered_alignment=0.999999 logical_alignment=1.000000 max_step_deg=42.133 phase_advance=0.7996
+DIRECTIONAL_PHASE_CHECK PASS STANDING (-1.0, 0.0)-to-(1.0, 0.0) 30Hz reaches the reversed gait direction within one second
+DIRECTIONAL_PHASE_CHECK PASS STANDING (-1.0, 0.0)-to-(1.0, 0.0) 30Hz eases the visible reversal while the gait clock advances
+DIRECTIONAL_REVERSAL_METRIC STANDING (1.0, 0.0)-to-(-1.0, 0.0) 30Hz rendered_alignment=0.999999 logical_alignment=1.000000 max_step_deg=42.133 phase_advance=0.7996
+DIRECTIONAL_PHASE_CHECK PASS STANDING (1.0, 0.0)-to-(-1.0, 0.0) 30Hz reaches the reversed gait direction within one second
+DIRECTIONAL_PHASE_CHECK PASS STANDING (1.0, 0.0)-to-(-1.0, 0.0) 30Hz eases the visible reversal while the gait clock advances
+DIRECTIONAL_REVERSAL_METRIC STANDING (0.0, -1.0)-to-(0.0, 1.0) 30Hz rendered_alignment=0.999999 logical_alignment=1.000000 max_step_deg=42.133 phase_advance=0.7996
+DIRECTIONAL_PHASE_CHECK PASS STANDING (0.0, -1.0)-to-(0.0, 1.0) 30Hz reaches the reversed gait direction within one second
+DIRECTIONAL_PHASE_CHECK PASS STANDING (0.0, -1.0)-to-(0.0, 1.0) 30Hz eases the visible reversal while the gait clock advances
+DIRECTIONAL_REVERSAL_METRIC STANDING (0.0, 1.0)-to-(0.0, -1.0) 30Hz rendered_alignment=0.999999 logical_alignment=1.000000 max_step_deg=42.133 phase_advance=0.7996
+DIRECTIONAL_PHASE_CHECK PASS STANDING (0.0, 1.0)-to-(0.0, -1.0) 30Hz reaches the reversed gait direction within one second
+DIRECTIONAL_PHASE_CHECK PASS STANDING (0.0, 1.0)-to-(0.0, -1.0) 30Hz eases the visible reversal while the gait clock advances
+DIRECTIONAL_REVERSAL_METRIC STANDING (-1.0, 0.0)-to-(1.0, 0.0) 60Hz rendered_alignment=0.999999 logical_alignment=1.000000 max_step_deg=22.469 phase_advance=0.7975
+DIRECTIONAL_PHASE_CHECK PASS STANDING (-1.0, 0.0)-to-(1.0, 0.0) 60Hz reaches the reversed gait direction within one second
+DIRECTIONAL_PHASE_CHECK PASS STANDING (-1.0, 0.0)-to-(1.0, 0.0) 60Hz eases the visible reversal while the gait clock advances
+DIRECTIONAL_REVERSAL_METRIC STANDING (1.0, 0.0)-to-(-1.0, 0.0) 60Hz rendered_alignment=0.999999 logical_alignment=1.000000 max_step_deg=22.469 phase_advance=0.7975
+DIRECTIONAL_PHASE_CHECK PASS STANDING (1.0, 0.0)-to-(-1.0, 0.0) 60Hz reaches the reversed gait direction within one second
+DIRECTIONAL_PHASE_CHECK PASS STANDING (1.0, 0.0)-to-(-1.0, 0.0) 60Hz eases the visible reversal while the gait clock advances
+DIRECTIONAL_REVERSAL_METRIC STANDING (0.0, -1.0)-to-(0.0, 1.0) 60Hz rendered_alignment=0.999999 logical_alignment=1.000000 max_step_deg=22.469 phase_advance=0.7975
+DIRECTIONAL_PHASE_CHECK PASS STANDING (0.0, -1.0)-to-(0.0, 1.0) 60Hz reaches the reversed gait direction within one second
+DIRECTIONAL_PHASE_CHECK PASS STANDING (0.0, -1.0)-to-(0.0, 1.0) 60Hz eases the visible reversal while the gait clock advances
+DIRECTIONAL_REVERSAL_METRIC STANDING (0.0, 1.0)-to-(0.0, -1.0) 60Hz rendered_alignment=0.999999 logical_alignment=1.000000 max_step_deg=22.469 phase_advance=0.7975
+DIRECTIONAL_PHASE_CHECK PASS STANDING (0.0, 1.0)-to-(0.0, -1.0) 60Hz reaches the reversed gait direction within one second
+DIRECTIONAL_PHASE_CHECK PASS STANDING (0.0, 1.0)-to-(0.0, -1.0) 60Hz eases the visible reversal while the gait clock advances
+DIRECTIONAL_REVERSAL_METRIC STANDING (-1.0, 0.0)-to-(1.0, 0.0) 120Hz rendered_alignment=0.999999 logical_alignment=1.000000 max_step_deg=11.609 phase_advance=0.7966
+DIRECTIONAL_PHASE_CHECK PASS STANDING (-1.0, 0.0)-to-(1.0, 0.0) 120Hz reaches the reversed gait direction within one second
+DIRECTIONAL_PHASE_CHECK PASS STANDING (-1.0, 0.0)-to-(1.0, 0.0) 120Hz eases the visible reversal while the gait clock advances
+DIRECTIONAL_REVERSAL_METRIC STANDING (1.0, 0.0)-to-(-1.0, 0.0) 120Hz rendered_alignment=0.999999 logical_alignment=1.000000 max_step_deg=11.609 phase_advance=0.7966
+DIRECTIONAL_PHASE_CHECK PASS STANDING (1.0, 0.0)-to-(-1.0, 0.0) 120Hz reaches the reversed gait direction within one second
+DIRECTIONAL_PHASE_CHECK PASS STANDING (1.0, 0.0)-to-(-1.0, 0.0) 120Hz eases the visible reversal while the gait clock advances
+DIRECTIONAL_REVERSAL_METRIC STANDING (0.0, -1.0)-to-(0.0, 1.0) 120Hz rendered_alignment=0.999999 logical_alignment=1.000000 max_step_deg=11.609 phase_advance=0.7966
+DIRECTIONAL_PHASE_CHECK PASS STANDING (0.0, -1.0)-to-(0.0, 1.0) 120Hz reaches the reversed gait direction within one second
+DIRECTIONAL_PHASE_CHECK PASS STANDING (0.0, -1.0)-to-(0.0, 1.0) 120Hz eases the visible reversal while the gait clock advances
+DIRECTIONAL_REVERSAL_METRIC STANDING (0.0, 1.0)-to-(0.0, -1.0) 120Hz rendered_alignment=0.999999 logical_alignment=1.000000 max_step_deg=11.609 phase_advance=0.7966
+DIRECTIONAL_PHASE_CHECK PASS STANDING (0.0, 1.0)-to-(0.0, -1.0) 120Hz reaches the reversed gait direction within one second
+DIRECTIONAL_PHASE_CHECK PASS STANDING (0.0, 1.0)-to-(0.0, -1.0) 120Hz eases the visible reversal while the gait clock advances
+DIRECTIONAL_REVERSAL_METRIC CROUCHED (-1.0, 0.0)-to-(1.0, 0.0) 30Hz rendered_alignment=0.999329 logical_alignment=1.000000 max_step_deg=180.000 phase_advance=0.7564
+DIRECTIONAL_PHASE_CHECK PASS CROUCHED (-1.0, 0.0)-to-(1.0, 0.0) 30Hz reaches the reversed gait direction within one second
+DIRECTIONAL_PHASE_CHECK PASS CROUCHED (-1.0, 0.0)-to-(1.0, 0.0) 30Hz eases the visible reversal while the gait clock advances
+DIRECTIONAL_REVERSAL_METRIC CROUCHED (1.0, 0.0)-to-(-1.0, 0.0) 30Hz rendered_alignment=0.999329 logical_alignment=1.000000 max_step_deg=180.000 phase_advance=0.7564
+DIRECTIONAL_PHASE_CHECK PASS CROUCHED (1.0, 0.0)-to-(-1.0, 0.0) 30Hz reaches the reversed gait direction within one second
+DIRECTIONAL_PHASE_CHECK PASS CROUCHED (1.0, 0.0)-to-(-1.0, 0.0) 30Hz eases the visible reversal while the gait clock advances
+DIRECTIONAL_REVERSAL_METRIC CROUCHED (0.0, -1.0)-to-(0.0, 1.0) 30Hz rendered_alignment=0.999329 logical_alignment=1.000000 max_step_deg=180.000 phase_advance=0.7564
+DIRECTIONAL_PHASE_CHECK PASS CROUCHED (0.0, -1.0)-to-(0.0, 1.0) 30Hz reaches the reversed gait direction within one second
+DIRECTIONAL_PHASE_CHECK PASS CROUCHED (0.0, -1.0)-to-(0.0, 1.0) 30Hz eases the visible reversal while the gait clock advances
+DIRECTIONAL_REVERSAL_METRIC CROUCHED (0.0, 1.0)-to-(0.0, -1.0) 30Hz rendered_alignment=0.999329 logical_alignment=1.000000 max_step_deg=180.000 phase_advance=0.7564
+DIRECTIONAL_PHASE_CHECK PASS CROUCHED (0.0, 1.0)-to-(0.0, -1.0) 30Hz reaches the reversed gait direction within one second
+DIRECTIONAL_PHASE_CHECK PASS CROUCHED (0.0, 1.0)-to-(0.0, -1.0) 30Hz eases the visible reversal while the gait clock advances
+DIRECTIONAL_REVERSAL_METRIC CROUCHED (-1.0, 0.0)-to-(1.0, 0.0) 60Hz rendered_alignment=0.999329 logical_alignment=1.000000 max_step_deg=180.000 phase_advance=0.7545
+DIRECTIONAL_PHASE_CHECK PASS CROUCHED (-1.0, 0.0)-to-(1.0, 0.0) 60Hz reaches the reversed gait direction within one second
+DIRECTIONAL_PHASE_CHECK PASS CROUCHED (-1.0, 0.0)-to-(1.0, 0.0) 60Hz eases the visible reversal while the gait clock advances
+DIRECTIONAL_REVERSAL_METRIC CROUCHED (1.0, 0.0)-to-(-1.0, 0.0) 60Hz rendered_alignment=0.999329 logical_alignment=1.000000 max_step_deg=180.000 phase_advance=0.7545
+DIRECTIONAL_PHASE_CHECK PASS CROUCHED (1.0, 0.0)-to-(-1.0, 0.0) 60Hz reaches the reversed gait direction within one second
+DIRECTIONAL_PHASE_CHECK PASS CROUCHED (1.0, 0.0)-to-(-1.0, 0.0) 60Hz eases the visible reversal while the gait clock advances
+DIRECTIONAL_REVERSAL_METRIC CROUCHED (0.0, -1.0)-to-(0.0, 1.0) 60Hz rendered_alignment=0.999329 logical_alignment=1.000000 max_step_deg=180.000 phase_advance=0.7545
+DIRECTIONAL_PHASE_CHECK PASS CROUCHED (0.0, -1.0)-to-(0.0, 1.0) 60Hz reaches the reversed gait direction within one second
+DIRECTIONAL_PHASE_CHECK PASS CROUCHED (0.0, -1.0)-to-(0.0, 1.0) 60Hz eases the visible reversal while the gait clock advances
+DIRECTIONAL_REVERSAL_METRIC CROUCHED (0.0, 1.0)-to-(0.0, -1.0) 60Hz rendered_alignment=0.999329 logical_alignment=1.000000 max_step_deg=180.000 phase_advance=0.7545
+DIRECTIONAL_PHASE_CHECK PASS CROUCHED (0.0, 1.0)-to-(0.0, -1.0) 60Hz reaches the reversed gait direction within one second
+DIRECTIONAL_PHASE_CHECK PASS CROUCHED (0.0, 1.0)-to-(0.0, -1.0) 60Hz eases the visible reversal while the gait clock advances
+DIRECTIONAL_REVERSAL_METRIC CROUCHED (-1.0, 0.0)-to-(1.0, 0.0) 120Hz rendered_alignment=0.999329 logical_alignment=1.000000 max_step_deg=180.000 phase_advance=0.7535
+DIRECTIONAL_PHASE_CHECK PASS CROUCHED (-1.0, 0.0)-to-(1.0, 0.0) 120Hz reaches the reversed gait direction within one second
+DIRECTIONAL_PHASE_CHECK PASS CROUCHED (-1.0, 0.0)-to-(1.0, 0.0) 120Hz eases the visible reversal while the gait clock advances
+DIRECTIONAL_REVERSAL_METRIC CROUCHED (1.0, 0.0)-to-(-1.0, 0.0) 120Hz rendered_alignment=0.999329 logical_alignment=1.000000 max_step_deg=180.000 phase_advance=0.7535
+DIRECTIONAL_PHASE_CHECK PASS CROUCHED (1.0, 0.0)-to-(-1.0, 0.0) 120Hz reaches the reversed gait direction within one second
+DIRECTIONAL_PHASE_CHECK PASS CROUCHED (1.0, 0.0)-to-(-1.0, 0.0) 120Hz eases the visible reversal while the gait clock advances
+DIRECTIONAL_REVERSAL_METRIC CROUCHED (0.0, -1.0)-to-(0.0, 1.0) 120Hz rendered_alignment=0.999329 logical_alignment=1.000000 max_step_deg=180.000 phase_advance=0.7535
+DIRECTIONAL_PHASE_CHECK PASS CROUCHED (0.0, -1.0)-to-(0.0, 1.0) 120Hz reaches the reversed gait direction within one second
+DIRECTIONAL_PHASE_CHECK PASS CROUCHED (0.0, -1.0)-to-(0.0, 1.0) 120Hz eases the visible reversal while the gait clock advances
+DIRECTIONAL_REVERSAL_METRIC CROUCHED (0.0, 1.0)-to-(0.0, -1.0) 120Hz rendered_alignment=0.999329 logical_alignment=1.000000 max_step_deg=180.000 phase_advance=0.7535
+DIRECTIONAL_PHASE_CHECK PASS CROUCHED (0.0, 1.0)-to-(0.0, -1.0) 120Hz reaches the reversed gait direction within one second
+DIRECTIONAL_PHASE_CHECK PASS CROUCHED (0.0, 1.0)-to-(0.0, -1.0) 120Hz eases the visible reversal while the gait clock advances
+DIRECTIONAL_LOCOMOTION_PHASE_REGRESSION FAIL ["run_left reuses one forward gait cycle", "run_right reuses one forward gait cycle", "crouch_left reuses one forward gait cycle", "crouch_right reuses one forward gait cycle"]

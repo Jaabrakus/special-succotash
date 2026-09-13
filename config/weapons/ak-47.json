@@ -66,9 +66,9 @@
       "idle_prone": "idle_prone",
       "idle_standing": "aim_idle",
       "ready_crouched": "aim_idle_crouch",
-      "reload_crouched": "reload_ak47",
-      "reload_prone": "prone_reload",
-      "reload_standing": "reload_ak47"
+      "reload_crouched": "iso_rifle_reload_crouched",
+      "reload_prone": "iso_rifle_reload_prone",
+      "reload_standing": "iso_rifle_reload_standing"
     },
     "dynamic_hold": {
       "animation_carry_limit_m": 0.025,
@@ -177,9 +177,9 @@
       "z": 0.140029
     },
     "left_hand_ik_target": {
-      "x": 0.045742,
-      "y": 0.058888,
-      "z": 0.247412
+      "x": 0.0,
+      "y": 0.045,
+      "z": 0.30
     },
     "muzzle_socket": {
       "x": 0.0,

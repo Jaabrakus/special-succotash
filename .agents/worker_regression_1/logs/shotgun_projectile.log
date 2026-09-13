@@ -1,0 +1,11 @@
+COMMAND: /Users/kiwimango/Applications/Godot-4.7.1.app/Contents/MacOS/Godot --headless -s tools/shotgun_projectile_regression.gd
+EXIT_CODE: 1
+DURATION: 0.93s
+
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+ERROR: 29 RPM sniper is not clamped to 60 RPM
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tools/shotgun_projectile_regression.gd:66)
+SHOTGUN_PROJECTILE_REGRESSION FAIL

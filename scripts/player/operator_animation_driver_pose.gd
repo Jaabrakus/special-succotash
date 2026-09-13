@@ -10,8 +10,10 @@ func _update_source_jump_timeline() -> void:
 	if not use_modern_locomotion or not bool(animation_profile.source_jump.get("enabled", false)) or actor == null:
 		source_jump_timeline.reset()
 		return
+	if movement_state == &"AIRBORNE" and source_jump_timeline.previous_state != &"AIRBORNE" and asset_runtime != null:
+		asset_runtime.anchor_jump_at_takeoff()
 	source_jump_frame = source_jump_timeline.sample(movement_state, vertical_speed, _locomotion_active,
-		float(actor.get("jump_velocity")), float(actor.get("action_elapsed")), float(actor.get("action_duration")))
+		float(actor.get("active_jump_launch_speed")), float(actor.get("action_elapsed")), float(actor.get("action_duration")))
 	if not source_jump_frame.is_empty():
 		var slot: StringName = source_jump_frame.slot
 		var clip := _equipped_action_clip(String(slot), slot)
@@ -196,6 +198,11 @@ func _select_visual_clip() -> StringName:
 		return &"jump_loop"
 	if movement_state == &"LANDING":
 		return _equipped_action_clip("jump_down", &"jump_down")
+	if use_modern_locomotion and locomotion_graph != null and locomotion_graph.source_controller_active:
+		if not _locomotion_active:
+			return StringName(locomotion_graph.grounded_idle_clips.get(posture, &"idle_rifle"))
+		if posture == &"STANDING" and locomotion_graph.source_grounded_clip != &"":
+			return locomotion_graph.source_grounded_clip
 	if posture == &"PRONE":
 		if not _locomotion_active:
 			return &"idle_prone"
@@ -288,13 +295,23 @@ func _request_clip(clip_name: StringName, blend_seconds: float = -1.0) -> void:
 			clip_name,
 			fallback_blend
 		)
+	# A stance reload changes both the hip frame and its upper-body pose. Keep
+	# the base route from snapping ahead of the phase-matched reload handoff.
+	if requested_action != &"" and "reload" in String(requested_action) \
+			and locomotion_graph.active_reload_pose != null:
+		blend = maxf(blend, float(locomotion_graph.active_reload_pose.settings.blend_seconds))
 	if locomotion_graph.source_jump_clip(clip_name) or locomotion_graph.source_jump_clip(previous_clip):
 		blend = maxf(float(animation_profile.source_jump.get("blend_seconds", 0.055)), 0.0)
 	if not use_modern_locomotion:
 		locomotion_graph.request_legacy_clip(clip_name, blend)
 		_sync_jump_combo_clip(clip_name)
 		return
-	if not locomotion_graph.request_modern_state(_modern_state_for_clip(clip_name), maxf(blend, 0.0)):
+	if locomotion_graph.request_modern_state(_modern_state_for_clip(clip_name), maxf(blend, 0.0)):
+		# Fallback belongs to one unsupported request, not the rest of the
+		# session. A valid state must reconnect the source-enabled graph.
+		if not locomotion_graph.modern_enabled:
+			locomotion_graph.set_modern_enabled(true)
+	else:
 		locomotion_graph.set_modern_enabled(false)
 		locomotion_graph.request_legacy_clip(clip_name, blend)
 	_sync_jump_combo_clip(clip_name)
@@ -508,7 +525,7 @@ func _standing_ready_frame_pose_clip() -> StringName:
 
 
 func _modern_state_for_clip(clip_name: StringName) -> StringName:
-	if String(clip_name).begins_with("traversal_") and movement_state == &"VAULTING":
+	if String(clip_name).begins_with("traversal_") and (movement_state == &"VAULTING" or bool(get("traversal_presentation_active"))):
 		return clip_name
 	# Death is a full-body graph state, never a standing/crouched idle route.
 	if String(clip_name).begins_with("death_"):
@@ -525,10 +542,16 @@ func _modern_state_for_clip(clip_name: StringName) -> StringName:
 
 
 func _is_locomotion_clip(clip_name: StringName) -> bool:
+	if locomotion_graph != null and locomotion_graph.source_controller_active:
+		if clip_name in locomotion_graph.grounded_idle_clips.values():
+			return true
+		for entry: Dictionary in locomotion_graph.source_policy.entries.values():
+			if entry.clip == clip_name:
+				return true
 	var text := String(clip_name)
 	if text.begins_with("pistol_compressed_idle_") or text.begins_with("pistol_recovery_reference_"):
 		return true
-	return text.begins_with("walk_") or text.begins_with("run_") or text.begins_with("crouch_") or text.begins_with("prone_") or text in ["idle_rifle", "aim_idle", "idle_crouch", "idle_prone", "pistol_idle", "pistol_idle_kneeling"]
+	return text.begins_with("walk_") or text.begins_with("jog_") or text.begins_with("run_") or text.begins_with("crouch_") or text.begins_with("prone_") or text in ["idle_rifle", "aim_idle", "idle_crouch", "idle_prone", "pistol_idle", "pistol_idle_kneeling"]
 
 
 func _direction_suffix(direction: Vector2) -> String:
@@ -589,7 +612,10 @@ func _update_locomotion_latch(delta: float = 0.0) -> void:
 		_locomotion_latch_posture = posture
 	if _locomotion_active and movement_speed_normalized <= exit_speed:
 		_locomotion_stop_time += maxf(delta, 0.0)
-		var grace := float(animation_profile.locomotion.get("stop_grace_seconds", 0.0)) if posture != &"PRONE" and movement_state not in [&"AIRBORNE", &"DIVING", &"ROLLING", &"LANDING"] else 0.0
+		# Lean microsteps preserve a paused playhead across taps. Ordinary WASD
+		# stops use the separate (now zero) source-informed stop grace.
+		var grace_key := "lean_stop_grace_seconds" if lean_steps else "stop_grace_seconds"
+		var grace := float(animation_profile.locomotion.get(grace_key, animation_profile.locomotion.get("stop_grace_seconds", 0.0))) if posture != &"PRONE" and movement_state not in [&"AIRBORNE", &"DIVING", &"ROLLING", &"LANDING"] else 0.0
 		if _locomotion_stop_time >= grace:
 			_locomotion_active = false
 			_direction_initialized = false

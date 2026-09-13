@@ -11,20 +11,20 @@ func _init() -> void:
 	var profile = AnimationProfile.new()
 	profile.load_project_map(ANIMATION_MAP_PATH)
 	_expect(
-		is_equal_approx(float(profile.locomotion.get("visual_playback_scale", 0.0)), 0.80),
-		"saved locomotion cadence is 0.80"
+		is_equal_approx(float(profile.locomotion.get("visual_playback_scale", 0.0)), 1.0),
+		"saved locomotion cadence has no artificial slowdown"
 	)
 	_expect(
-		is_equal_approx(profile.playback_rate(6.5, &"STANDING", 1.0), 0.832),
-		"full-speed standing run uses the slower visual cycle"
+		is_equal_approx(profile.playback_rate(6.5, &"STANDING", 1.0), 1.0),
+		"full-speed standing run uses the normal visual cycle"
 	)
 	_expect(
-		is_equal_approx(profile.playback_rate(2.6, &"CROUCHED", 1.0), 0.80),
-		"crouch locomotion uses the same slower visual cycle"
+		is_equal_approx(profile.playback_rate(2.6, &"CROUCHED", 1.0), 1.0),
+		"crouch locomotion uses the normal visual cycle"
 	)
 	_expect(
-		is_equal_approx(profile.playback_rate(1.25, &"PRONE", 1.0), 0.80),
-		"prone locomotion uses the same slower visual cycle"
+		is_equal_approx(profile.playback_rate(1.25, &"PRONE", 1.0), 1.0),
+		"prone locomotion uses the normal visual cycle"
 	)
 	var movement_document := _load_json(MOVEMENT_PROFILE_PATH)
 	var movement: Dictionary = movement_document.get("movement", {})

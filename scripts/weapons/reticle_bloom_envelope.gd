@@ -10,9 +10,17 @@ static func load_settings() -> Dictionary:
 		settings = JSON.parse_string(FileAccess.get_file_as_string(PATH))
 	return settings
 
-static func gap_for(profile: Dictionary, normalized: float) -> float:
-	return lerpf(float(profile.get("base_gap_px", 10.0)),
-		float(profile.get("max_gap_px", 46.0)), clampf(normalized, 0.0, 1.0))
+static func gap_for(profile: Dictionary, normalized: float, posture: StringName = &"STANDING", movement: float = 1.0, airborne: bool = false) -> float:
+	var base := float(profile.get("base_gap_px", 10.0))
+	var maximum := float(profile.get("max_gap_px", 46.0))
+	var scales: Dictionary = load_settings().get("shot_envelope", {}).get("stance_max_expansion", {})
+	var factor := clampf(float(scales.get(String(posture), 1.0)), 0.0, 1.0)
+	if posture == &"STANDING" and not airborne:
+		var envelope: Dictionary = load_settings().get("shot_envelope", {})
+		var stationary := clampf(float(envelope.get("standing_stationary_max_expansion", 1.0)), 0.0, 1.0)
+		var moving := smoothstep(0.0, maxf(0.001, float(envelope.get("standing_full_movement_threshold", 0.15))), movement)
+		factor *= lerpf(stationary, 1.0, moving)
+	return lerpf(base, base + maxf(0.0, maximum - base) * factor, clampf(normalized, 0.0, 1.0))
 
 static func advance_gap(gap: float, target: float, profile: Dictionary, delta: float) -> float:
 	return lerpf(gap, target, 1.0 - exp(-maxf(0.0, float(profile.get("response_speed", 24.0))) * maxf(delta, 0.0)))

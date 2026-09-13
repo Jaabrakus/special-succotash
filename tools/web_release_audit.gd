@@ -14,7 +14,7 @@ func _initialize() -> void:
 		var anon := "eyJhbGciOiJIUzI1NiJ9." + Marshalls.utf8_to_base64('{"role":"anon"}').trim_suffix("=") + ".signature"
 		assert(secret_reason(anon) == "")
 		var test_policy: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://config/web_release_policy.json"))
-		for protected: String in ["config/supabase.json", "config/feature_contracts/example.json", "art_source/model.blend", "config/.env.production"]:
+		for protected: String in ["config/supabase.json", "config/feature_contracts/example.json", "art_source/model.blend", "config/.env.production", "config/reference/socom2_fire_direction_vectors.json", "config/reference/socom2_fire_dilation_vectors.json"]:
 			var blocked := false
 			for pattern: String in test_policy.forbidden_globs:
 				blocked = blocked or protected.matchn(pattern)

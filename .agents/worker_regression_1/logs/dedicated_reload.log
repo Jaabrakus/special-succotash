@@ -1,0 +1,33 @@
+COMMAND: /Users/kiwimango/Applications/Godot-4.7.1.app/Contents/MacOS/Godot --headless -s tools/dedicated_reload_regression.gd
+EXIT_CODE: 0
+DURATION: 7.5s
+
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+MP_SLICE DEDICATED_READY transport=websocket port=14285 peer=1 map=Relic Depot
+SERVER_RELOAD_CHECK PASS real dedicated host starts
+MP_SLICE CLIENT_CONNECTING transport=websocket endpoint=ws://127.0.0.1:14285
+SERVER_RELOAD_CHECK PASS remote A connects via WebSocket
+MP_SLICE CLIENT_CONNECTING transport=websocket endpoint=ws://127.0.0.1:14285
+SERVER_RELOAD_CHECK PASS remote B connects via WebSocket
+MP_SLICE CLIENT_CONNECTED peer=1376151898
+MP_SLICE OPERATOR_SPAWN peer=1376151898 team=0 local=false
+MP_SLICE PEER_JOINED peer=1376151898 players=1
+MP_SLICE OPERATOR_SPAWN peer=1376151898 team=0 local=true
+MP_SLICE CLIENT_CONNECTED peer=1370110025
+MP_SLICE OPERATOR_SPAWN peer=1376151898 team=0 local=false
+MP_SLICE COMMAND_ACCEPTED peer=1376151898
+MP_SLICE OPERATOR_SPAWN peer=1370110025 team=0 local=false
+MP_SLICE PEER_JOINED peer=1370110025 players=2
+MP_SLICE SNAPSHOT_RECEIVED operators=1
+MP_SLICE OPERATOR_SPAWN peer=1370110025 team=0 local=false
+MP_SLICE SNAPSHOT_RECEIVED operators=1
+MP_SLICE OPERATOR_SPAWN peer=1370110025 team=0 local=true
+SERVER_RELOAD_CHECK PASS dedicated host has no player advantage
+SERVER_RELOAD_CHECK PASS dedicated host selects per-peer weapon
+MP_SLICE COMMAND_ACCEPTED peer=1370110025
+SERVER_RELOAD_CHECK PASS client input reaches dedicated reload owner
+SERVER_RELOAD_CHECK PASS dedicated host denies early refill
+SERVER_RELOAD_CHECK PASS dedicated deadline grants and replicates ammo
+DEDICATED_RELOAD_REGRESSION PASS
+SERVER_RELOAD_RPC_REGRESSION PASS

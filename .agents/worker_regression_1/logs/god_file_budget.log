@@ -1,0 +1,10 @@
+COMMAND: /Users/kiwimango/Applications/Godot-4.7.1.app/Contents/MacOS/Godot --headless -s tools/god_file_budget_regression.gd
+EXIT_CODE: 1
+DURATION: 0.24s
+
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+ERROR: GOD_FILE_BUDGET_REGRESSION FAIL ["res://scripts/network/socom_multiplayer_replication.gd grew from its 500-line ceiling to 501", "res://scripts/runtime/main_gameplay_hud.gd grew from its 500-line ceiling to 501", "new unbudgeted god file: res://scripts/player/test_mannequin.gd has 1008 lines", "res://scripts/player/operator_animation_driver_pose.gd grew from its 500-line ceiling to 624", "new unbudgeted god file: res://scripts/player/player_controller.gd has 1138 lines", "new unbudgeted god file: res://scripts/player/operator_asset_runtime.gd has 1118 lines", "res://scripts/player/operator_weapon_pose_ready.gd grew from its 500-line ceiling to 554", "new unbudgeted god file: res://scripts/player/operator_locomotion_blend_tree.gd has 1184 lines", "new unbudgeted god file: res://scripts/player/operator_posture_layer.gd has 1242 lines", "res://scripts/player/operator_animation_driver_runtime.gd grew from its 500-line ceiling to 606"]
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tools/god_file_budget_regression.gd:81)

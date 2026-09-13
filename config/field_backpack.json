@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "enabled": true,
+  "mesh": "res://assets/props/agls_field_backpack/backpack.scn",
+  "local_spawn": [2.0, 0.03, 24.0],
+  "network_spawn": [0.0, 0.03, 24.0],
+  "pickup_range": 1.65,
+  "bone_name": "mixamorig_Spine2",
+  "wear_position": [0.0, -0.10, -0.10],
+  "wear_rotation_degrees": [0.0, 0.0, 0.0],
+  "wear_scale": 1.0
+}

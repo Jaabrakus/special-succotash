@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "feature_id": "source_firearm_policy",
+  "player_intent": "Use verified original ONE_FRAME firearm geometry and signed-square direction sampling in the playable game without inventing bullet-flight damage.",
+  "acceptance_rule": "32 explicitly linked source weapon profiles share the same local/server policy; padded queries never expand terminal damage range. Original signed-square direction vectors match and actual shots stay inside the existing authored envelope. Unsupported profiles retain existing behavior.",
+  "canonical_scene": "res://main.tscn",
+  "ownership": {"shot": "SocomWeaponBallistics", "aim": "SocomCameraRig", "damage": "existing authoritative weapon adapters"},
+  "nodes": [
+    {"id": "ballistics", "type": "Node", "owner": "SocomWeaponBallistics", "role": "Select the saved policy and perform synchronous projectile queries", "source_script": "res://scripts/weapons/weapon_ballistics.gd", "code_symbols": ["extends Node", "trajectory_policy = SourceFirearmPolicy.resolve(weapon_config)", "bool(trajectory_policy.strict_terminal_range)"]},
+    {"id": "local_adapter", "type": "Node", "owner": "SocomWeaponController", "role": "Apply the actual selected weapon to the shared shot owner", "source_script": "res://scripts/weapons/socom_weapon_controller.gd", "code_symbols": ["ballistics.configure_projectiles(values, config)"]}
+  ],
+  "data_contracts": [
+    {"path": "res://config/source_firearm_policy.json", "writer": "res://tools/build_source_firearm_policy.cjs", "readers": ["res://scripts/weapons/source_firearm_policy.gd"]},
+    {"path": "res://config/weapons/m4a1.json", "writer": "res://scripts/labs/gunsmith/gunsmith_weapon_profile_repository.gd", "readers": ["res://scripts/weapons/socom_weapon_controller.gd", "res://scripts/network/socom_multiplayer_rounds.gd"]}
+  ],
+  "must_not_change": ["CharacterBody3D movement", "camera and reticle aim", "authoritative damage ownership", "cadence and ammunition", "accepted-shot RNG seed ownership", "authored bloom/envelope and rapid-tap protection until source-state mapping is verified", "animation", "live sessions and deployed builds"],
+  "proof_scripts": ["res://tools/source_firearm_policy_regression.gd", "res://tools/source_firearm_rng_regression.gd", "res://tools/source_firearm_main_regression.gd", "res://tools/muzzle_obstruction_regression.gd", "res://tools/rapid_tap_bloom_regression.gd"],
+  "visual_check": "Separate actual main.tscn boot and accepted firing with source-linked rifle, pistol and shotgun; current open game and old browser ZIP are not assumed updated.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Original executable fixtures establish ONE_FRAME dispatch, 1.1 range query, strict terminal cutoff and signed-square direction reaching projectile creation. Fit verified sampling to existing authored envelope and keep synchronous authority, seed and project penetration response.",
+    "current": {"system": "project hitscan without source terminal guard", "correctness": 2, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 4, "regression_coverage": 3, "evidence_paths": ["res://scripts/weapons/weapon_ballistics.gd"]},
+    "candidate": {"system": "source-verified ONE_FRAME query/cutoff adapted to existing collision owner", "correctness": 4, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 4, "regression_coverage": 5, "evidence_paths": ["res://scripts/weapons/source_firearm_policy.gd", "res://tools/source_firearm_policy_regression.gd", "res://docs/SOURCE_FIREARM_RUNTIME.md"]}
+  }
+}

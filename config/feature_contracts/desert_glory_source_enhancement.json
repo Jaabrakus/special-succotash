@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "feature_id": "desert_glory_source_enhancement",
+  "player_intent": "Use recovered SOCOM II Desert Glory assets and enhance their textures without redesigning the map.",
+  "acceptance_rule": "Separate local saved map retains 10 source sectors, original UVs, 13217 structural triangles and 95 supported static source placements. No replacement props. One hashed AI wall override; unsupported source data remains deferred. Existing map and protected gameplay owners remain unchanged.",
+  "canonical_scene": "res://main.tscn",
+  "ownership": {"map_objects": "SocomMapRuntime", "map_selection": "Desert Glory preview selector"},
+  "nodes": [{"id": "selector", "type": "Node", "owner": "Desert Glory preview selector", "role": "Selects saved map document then enters canonical main", "scene_path": "res://desert_glory_preview.tscn", "node_path": "."}],
+  "data_contracts": [{"path": "res://config/maps/desert_glory_rebuild_spec.json", "writer": "res://tools/build_desert_glory.gd", "readers": ["res://tools/build_desert_glory.gd", "res://scripts/labs/desert_glory_preview.gd", "res://scripts/maps/socom_map_runtime.gd"]}],
+  "must_not_change": ["Previously installed map and active map", "Camera/reticle", "Animation and CharacterBody movement", "Weapon/network authority", "Source files"],
+  "proof_scripts": ["res://tools/socom_geometry/desert_glory_source.cjs", "res://tools/desert_glory_regression.gd", "res://tools/desert_glory_visual_check.gd"],
+  "visual_check": "Run source variant through main; inspect original UV registration, wall enhancement, source props, clear spawns and single grain owner. No claim of exact source lighting or complete map recovery.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "User changed art direction from substitute materials/props to source assets. Add explicit source variant and keep old map. Bounds failures are deferred, not forced through. AI wall enhancement remains a versioned local-only derivative.",
+    "current": {"system": "Source architecture with substitute surfaces/props", "correctness": 2, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 4, "regression_coverage": 4, "evidence_paths": ["res://tools/socom_geometry/desert_glory.cjs", "res://docs/DESERT_GLORY_LOCAL_REBUILD.md"]},
+    "candidate": {"system": "Original UV/material variant plus validated source props and AI wall detail", "correctness": 3, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 3, "regression_coverage": 4, "evidence_paths": ["res://tools/socom_geometry/desert_glory_source.cjs", "res://tools/build_desert_glory.gd", "res://tools/desert_glory_regression.gd", "res://docs/DESERT_GLORY_SOURCE_ENHANCEMENT.md"]}
+  }
+}

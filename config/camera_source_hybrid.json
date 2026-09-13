@@ -1,0 +1,25 @@
+{
+  "schema_version": 2,
+  "enabled_by_default": false,
+  "source": {
+    "archive": "RUN/READERC.ZAR",
+    "entry": "dynamics.rdr",
+    "entry_sha256": "c09f0b84bd8b612d69b24df678a7b5ce8c1fb72a79706445939b7f6d0e6db0bc",
+    "cam_full_dist": 30.0,
+    "cam_full_height": 20.5,
+    "world_meters_per_unit": 0.10000000149011612,
+    "world_scale_evidence": {
+      "archive": "RUN/MP1.ZDB",
+      "entry": "RUN/MP/MP1/MP1.ZED",
+      "entry_sha256": "face5a11373a3ba9f4ed4d5312fcc20350db3094931f61aebf230434548f7ce4",
+      "record": "MetersPerUnit",
+      "record_offset": 1072,
+      "verified_worlds": 34
+    }
+  },
+  "hybrid": {
+    "mix": 0.2,
+    "max_distance_delta_m": 0.6,
+    "note": "Optional hypothesis: camera full distance uses the verified world's units (30 * 0.1 = 3m). Mix 20 percent, cap delta at 0.6m. Preserve our height, aim, FOV, collision, indoor and downward logic. Not measured source-camera parity."
+  }
+}

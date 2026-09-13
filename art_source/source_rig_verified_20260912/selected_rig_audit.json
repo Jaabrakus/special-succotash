@@ -1,0 +1,85 @@
+{
+  "clip_finger_channels": {
+    "res://assets/animations/seal_firing_reference/seal_pfp_run.tres": [],
+    "res://assets/animations/seal_gameplay/pistol_run_forward.tres": [],
+    "res://assets/animations/seal_reference/seal_p_run.tres": []
+  },
+  "models": {
+    "canonical_ps1_fallback": {
+      "bones": 65,
+      "changed_local_rest_orientations": 0,
+      "changed_local_rests": 0,
+      "iso_proportions": false,
+      "maximum_bind_basis_residual": 0.0000106390725704841,
+      "maximum_bind_translation_residual_m": 0.00000332679746861686,
+      "path": "res://assets/characters/ps1_dual_source_rig/ps1_dual_source_rig.scn",
+      "sha256": "c1ef12342140f66db26e74c85b4ca6bc82c2ce772b3d2f2406d647b49e093016",
+      "skin_binds_checked": 65,
+      "spans_m": {
+        "clavicle_origin_width": 0.138208866119385,
+        "hips_to_head": 0.665554225444794,
+        "hips_to_lower_spine": 0.107781499624252,
+        "left_forearm": 0.312826782464981,
+        "left_upper_arm": 0.314823061227798,
+        "lower_spine_to_upper_spine": 0.269453465938568,
+        "neck_to_head": 0.126949429512024,
+        "shoulder_joint_width": 0.424614459276199,
+        "upper_spine_to_neck": 0.161672189831734
+      }
+    },
+    "modern_selected": {
+      "bones": 65,
+      "changed_local_rest_orientations": 0,
+      "changed_local_rests": 0,
+      "iso_proportions": false,
+      "maximum_bind_basis_residual": 1.83713851242828e-7,
+      "maximum_bind_translation_residual_m": 2.89520869500848e-7,
+      "path": "res://assets/characters/modern_soldier/modern_soldier.scn",
+      "sha256": "4157252aaf837c04900e166d53a2278761abff36732c0c9b50dabeda4cea86cf",
+      "skin_binds_checked": 910,
+      "spans_m": {
+        "clavicle_origin_width": 0.138208866119385,
+        "hips_to_head": 0.665554225444794,
+        "hips_to_lower_spine": 0.107781499624252,
+        "left_forearm": 0.312826782464981,
+        "left_upper_arm": 0.314823061227798,
+        "lower_spine_to_upper_spine": 0.269453465938568,
+        "neck_to_head": 0.126949429512024,
+        "shoulder_joint_width": 0.424614459276199,
+        "upper_spine_to_neck": 0.161672189831734
+      }
+    },
+    "rejected_iso_candidate": {
+      "bones": 65,
+      "changed_local_rest_orientations": 0,
+      "changed_local_rests": 22,
+      "iso_proportions": true,
+      "maximum_bind_basis_residual": 1.83713851242828e-7,
+      "maximum_bind_translation_residual_m": 3.07713463598702e-7,
+      "path": "res://assets/characters/modern_soldier/modern_soldier_iso.scn",
+      "sha256": "3f774bc1c52555842eb663d3ec67b70d1d5437e1a76354cfba9bb8045f1daa43",
+      "skin_binds_checked": 910,
+      "spans_m": {
+        "clavicle_origin_width": 0.0000629642672720365,
+        "hips_to_head": 0.612150728702545,
+        "hips_to_lower_spine": 0.00000265613198280334,
+        "left_forearm": 0.290598154067993,
+        "left_upper_arm": 0.345097839832306,
+        "lower_spine_to_upper_spine": 0.237979874014854,
+        "neck_to_head": 0.0935853645205498,
+        "shoulder_joint_width": 0.409942358732224,
+        "upper_spine_to_neck": 0.284426957368851
+      }
+    }
+  },
+  "selected": {
+    "animation_contract": "canonical_mixamo_65_iso_proportions",
+    "character_id": "modern_modular_soldier",
+    "enabled": true,
+    "fallback_scene": "res://assets/characters/ps1_dual_source_rig/ps1_dual_source_rig.scn",
+    "proportion_reference": "seal_A_arc",
+    "scene": "res://assets/characters/modern_soldier/modern_soldier_iso.scn",
+    "schema_version": 1,
+    "source_workbench": "res://art_source/modern_soldier/modern_soldier_textured.blend"
+  }
+}

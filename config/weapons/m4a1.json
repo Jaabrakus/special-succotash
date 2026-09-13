@@ -1,5 +1,5 @@
 {
-  "visual_rig_id": "m4a1_agls_v9",
+  "visual_rig_id": "m4a1_agls_v10",
   "visual_rig_schema_version": 1,
   "schema_version": 3,
   "ammo_spec": {
@@ -74,9 +74,9 @@
       "idle_prone": "idle_prone",
       "idle_standing": "aim_idle",
       "ready_crouched": "aim_idle_crouch",
-      "reload_crouched": "crouch_reload",
-      "reload_prone": "prone_reload",
-      "reload_standing": "reload"
+      "reload_crouched": "iso_rifle_reload_crouched",
+      "reload_prone": "iso_rifle_reload_prone",
+      "reload_standing": "iso_rifle_reload_standing"
     },
     "dynamic_hold": {
       "animation_carry_limit_m": 0.025,
@@ -262,7 +262,7 @@
     },
     "left_hand_ik_target": {
       "x": 0.0,
-      "y": 0.1008046943,
+      "y": 0.055,
       "z": 0.3156847507
     },
     "muzzle_socket": {

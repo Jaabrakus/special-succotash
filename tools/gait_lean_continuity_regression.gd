@@ -11,6 +11,16 @@ func _initialize() -> void:
 	_run.call_deferred()
 
 func _run() -> void:
+	# Optional process-local A/B profile; never overwrite the canonical map.
+	for argument in OS.get_cmdline_user_args():
+		if argument.begins_with("--profile="):
+			var collector := root.get_node("PlaytestStateCollector")
+			var collected: Dictionary = collector.call("collect_saved_state")
+			assert(bool(collected.get("ok", false)), "Could not collect profile comparison bundle")
+			var bundle: Dictionary = collector.get("active_bundle").duplicate(true)
+			bundle.states.animation_map = JSON.parse_string(FileAccess.get_file_as_string(argument.trim_prefix("--profile=")))
+			ProjectSettings.set_setting("socom/playtest/active_bundle", bundle)
+			ProjectSettings.set_setting("socom/playtest/use_active_bundle", true)
 	var world := Node3D.new()
 	root.add_child(world)
 	var floor_body := StaticBody3D.new()
@@ -58,7 +68,12 @@ func _run() -> void:
 		for i in 45: await _tick()
 		await _tick(Vector2.ZERO, 1)
 		await _measure(weapon + "_stand_lean", 45)
+		await _tick(Vector2.ZERO, 2)
+		await _measure(weapon + "_stand_right_lean", 45)
+		await _tick(Vector2.ZERO, 1)
+		for i in 45: await _tick()
 		await _measure(weapon + "_stand_taps", 120, false, true)
+		await _fire_lean_exit(weapon)
 		player.lean_latch.reset()
 		player.peek_amount = 0.0
 		player._try_set_posture(player.MotionState.CROUCHED)
@@ -66,6 +81,10 @@ func _run() -> void:
 		await _measure(weapon + "_crouch_idle", 40)
 		await _tick(Vector2.ZERO, 1)
 		await _measure(weapon + "_crouch_lean", 45)
+		await _tick(Vector2.ZERO, 2)
+		await _measure(weapon + "_crouch_right_lean", 45)
+		await _tick(Vector2.ZERO, 1)
+		for i in 45: await _tick()
 		await _measure(weapon + "_crouch_taps", 120, false, true)
 		await _tick(Vector2.ZERO, 2)
 		await _measure(weapon + "_crouch_right_taps", 120, false, true, Vector2.RIGHT)
@@ -137,6 +156,44 @@ func _measure(label: String, frames: int, running := false, taps := false, tap_a
 
 func _expect(ok: bool, message: String) -> void:
 	if not ok and message not in failures: failures.append(message)
+
+func _fire_lean_exit(weapon: String) -> void:
+	for side in [1, 2]:
+		player.lean_latch.reset()
+		player.peek_amount = 0.0
+		driver.clear_fire_ready_aim()
+		for i in 90: await _tick()
+		await _tick(Vector2.ZERO, side)
+		for i in 45: await _tick()
+		_expect(driver.notify_fired(), weapon + " accepted lean shot")
+		for i in 12: await _tick()
+		var previous := _upper_rotations()
+		var largest := 0.0
+		for i in 90:
+			await _tick(Vector2.ZERO, side if i == 0 else 0)
+			var current := _upper_rotations()
+			for bone in current:
+				largest = maxf(largest, rad_to_deg(previous[bone].angle_to(current[bone])))
+			previous = current
+			if i in [0, 2, 4, 8, 16, 89] and "--capture" in OS.get_cmdline_user_args():
+				for view in [Vector3(0, 1.3, 3), Vector3(3, 1.3, 0)]:
+					camera.global_position = player.global_position + view
+					camera.look_at(player.global_position + Vector3.UP * 0.9)
+					RenderingServer.force_draw(false)
+					root.get_texture().get_image().save_png("/private/tmp/lean-exit-%s-%s-%s-%s.png" % [weapon, side, i, int(view.x)])
+		_expect(is_zero_approx(player.peek_amount), weapon + " same button cancels lean after shot")
+		_expect(largest < 18.0, weapon + " lean/fire exit no upper-body step over 18 degrees at 60Hz")
+		_expect(driver.posture_layer.last_authored_peek_source.is_empty(), weapon + " no lean pose remains after exit")
+		_expect(driver.requested_action == &"", weapon + " lean exit does not select an unrelated action")
+		print("LEAN_EXIT ", weapon, " side=", side, " max_upper_step_deg=", largest,
+			" clip=", driver.current_clip, " action=", driver.requested_action)
+
+func _upper_rotations() -> Dictionary:
+	var result := {}
+	for name in ["Hips", "Spine", "Spine2", "Head", "LeftArm", "RightArm", "LeftForeArm", "RightForeArm"]:
+		var bone: int = driver.skeleton.find_bone("mixamorig_" + name)
+		result[name] = driver.skeleton.get_bone_global_pose(bone).basis.get_rotation_quaternion()
+	return result
 
 func _height(bone: String) -> float:
 	var sk: Skeleton3D = driver.skeleton

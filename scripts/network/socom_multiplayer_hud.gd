@@ -197,11 +197,13 @@ func refresh_match_clock(round_index: int, remaining: float, session_active: boo
 
 func refresh_player_state(health: float, maximum: float, magazine: int, reserve: int,
 		weapon_name: String = "NO WEAPON", slot: String = "primary",
-		fire_mode: String = "auto", modes: Array[String] = [], burst_size: int = 3) -> void:
+		fire_mode: String = "auto", modes: Array[String] = [], burst_size: int = 3,
+		magazine_capacity: int = 0) -> void:
 	player_state_label.text = "HEALTH %d/%d  •  AMMO %d/%d" % [
 		int(round(health)), int(round(maximum)), magazine, reserve,
 	]
 	if loadout_card_hud != null:
+		player_state_label.visible = not bool(loadout_card_hud.attention.profile.enabled)
 		loadout_card_hud.update_weapon_state(
 			weapon_name,
 			slot,
@@ -209,7 +211,8 @@ func refresh_player_state(health: float, maximum: float, magazine: int, reserve:
 			reserve,
 			fire_mode,
 			modes,
-			burst_size
+			burst_size,
+			magazine_capacity
 		)
 		loadout_card_hud.update_health(health, maximum)
 

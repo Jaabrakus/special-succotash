@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "feature_id": "source_clip_classification",
+  "player_intent": "An imported native jog, alert or reload preserves source presentation classification when selected in the canonical animation map.",
+  "acceptance_rule": "The canonical classifier accepts valid native reference Animation resources with seal_reference=true and matching source_name, preserves existing processed gameplay/firing clips including derived jump windows, rejects foreign or invalid resources, and caches per-path results. No saved mappings or source-only activation change in this feature.",
+  "canonical_scene": "res://main.tscn",
+  "ownership": {"animation_classification": "SocomOperatorLocomotionBlendTree"},
+  "nodes": [{"id": "operator", "type": "Node3D", "role": "Existing animation owner consumes the shared graph classifier", "owner": "SocomOperatorAnimationDriver", "scene_path": "res://scenes/player/operator_player.tscn", "node_path": "Mannequin/ProductionAnimation"}],
+  "data_contracts": [{"path": "res://config/operator_animation_map.json", "writer": "res://scripts/labs/animation_workshop_repository.gd", "readers": ["res://scripts/player/operator_animation_profile.gd", "res://scripts/player/operator_locomotion_blend_tree.gd"]}],
+  "must_not_change": ["Saved animation mappings and activation", "Original or retargeted animation assets", "CharacterBody movement/collision", "Camera/aim intent", "Weapon/damage authority", "Action clocks and existing layers"],
+  "proof_scripts": ["res://tools/source_clip_classification_regression.gd"],
+  "visual_check": "No new mapping is activated here. A subsequent mapping change still requires rendered main.tscn movement/action frames and hand/weapon checks; classification alone does not prove exact source animation parity.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Replace one filename special-case with metadata validation inside the same classifier, while retaining processed source jumps whose provenance uses source_asset rather than source_name. Process cache avoids repeated resource loads in frame paths.",
+    "current": {"system": "One allowed native alert filename plus two processed directory prefixes", "correctness": 2, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 2, "performance": 5, "regression_coverage": 2, "evidence_paths": ["res://scripts/player/operator_locomotion_blend_tree.gd", "res://tools/import_seal_reference_animations.gd"]},
+    "candidate": {"system": "Cached native metadata classification and retained processed source routes", "correctness": 4, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 5, "regression_coverage": 4, "evidence_paths": ["res://scripts/player/operator_locomotion_blend_tree.gd", "res://tools/source_clip_classification_regression.gd"]}
+  }
+}

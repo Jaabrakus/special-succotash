@@ -3,6 +3,31 @@ extends CanvasLayer
 
 const FoleyEngine := preload("res://scripts/audio/tactical_foley_engine.gd")
 const FlashbangScript := preload("res://scripts/tactical/flashbang_grenade.gd")
+const MapGrainShader := preload("res://assets/shaders/map_film_grain.gdshader")
+
+
+static func add_map_grain(parent: Node, strength: float) -> CanvasLayer:
+	# Constructed once by the map atmosphere owner, in both editor and runtime.
+	# Below HUD/default canvas and flash/smoke; never writes a camera transform.
+	if strength <= 0.0 or DisplayServer.get_name() == "headless":
+		return null
+	var canvas := CanvasLayer.new()
+	canvas.name = "MapFilmGrain"
+	canvas.layer = -1
+	parent.add_child(canvas)
+	var copy := BackBufferCopy.new()
+	copy.copy_mode = BackBufferCopy.COPY_MODE_VIEWPORT
+	canvas.add_child(copy)
+	var overlay := ColorRect.new()
+	overlay.name = "GrainOverlay"
+	overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	var material := ShaderMaterial.new()
+	material.shader = MapGrainShader
+	material.set_shader_parameter("strength", clampf(strength, 0.0, 0.12))
+	overlay.material = material
+	canvas.add_child(overlay)
+	return canvas
 
 var camera: Camera3D
 var flash_strength := 0.0

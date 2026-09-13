@@ -1,0 +1,7 @@
+COMMAND: /Users/kiwimango/Applications/Godot-4.7.1.app/Contents/MacOS/Godot --headless -s tools/seal_dive_regression.gd
+EXIT_CODE: 0
+DURATION: 4.21s
+
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+SEAL_DIVE_LOGIC_CONTACT PASS max_trigger_gap_m=0.00000190758146 failures=[] (body orientation requires rendered review)

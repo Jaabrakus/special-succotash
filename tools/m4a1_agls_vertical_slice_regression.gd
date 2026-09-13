@@ -13,7 +13,8 @@ const GunsmithCatalog := preload(
 )
 
 const PROFILE_PATH := "res://config/weapons/m4a1.json"
-const VISUAL_RIG_PATH := "res://config/weapon_visual_rigs/m4a1_agls_v9.json"
+const VISUAL_RIG_PATH := "res://config/weapon_visual_rigs/m4a1_agls_v10.json"
+const PRE_ISO_RELOAD_VISUAL_RIG_PATH := "res://config/weapon_visual_rigs/m4a1_agls_v9.json"
 const PRE_POCKET_VISUAL_RIG_PATH := "res://config/weapon_visual_rigs/m4a1_agls_v8.json"
 const PRE_CHEST_FRAME_VISUAL_RIG_PATH := "res://config/weapon_visual_rigs/m4a1_agls_v7.json"
 const PRE_RELEASE_VISUAL_RIG_PATH := "res://config/weapon_visual_rigs/m4a1_agls_v6.json"
@@ -30,9 +31,9 @@ const EXPECTED_SLOTS := {
 	"idle_prone": "idle_prone",
 	"idle_standing": "aim_idle",
 	"ready_crouched": "aim_idle_crouch",
-	"reload_crouched": "crouch_reload",
-	"reload_prone": "prone_reload",
-	"reload_standing": "reload",
+	"reload_crouched": "iso_rifle_reload_crouched",
+	"reload_prone": "iso_rifle_reload_prone",
+	"reload_standing": "iso_rifle_reload_standing",
 }
 const RUNTIME_SOCKET_NAMES := [
 	"Socket_RightHand",
@@ -73,13 +74,13 @@ func _check_saved_contract(
 	_expect(not raw_profile.is_empty(), "M4A1 profile is valid JSON")
 	_expect(not profile.is_empty(), "M4A1 canonical config normalizes")
 	_expect(
-		String(profile.get("visual_rig_id", "")) == "m4a1_agls_v9",
+		String(profile.get("visual_rig_id", "")) == "m4a1_agls_v10",
 		"M4A1 references its published AGLS visual rig"
 	)
 	var validation := VisualRigContract.validate(visual_document, true)
 	_expect(bool(validation.get("ok", false)), "M4A1 visual rig passes its contract")
 	_expect(
-		String(resolved.get("_visual_rig_id", "")) == "m4a1_agls_v9",
+		String(resolved.get("_visual_rig_id", "")) == "m4a1_agls_v10",
 		"presentation resolver applies the assigned M4A1 visual rig"
 	)
 
@@ -87,6 +88,10 @@ func _check_saved_contract(
 	var stock_visual: Dictionary = _read_json(STOCK_VISUAL_RIG_PATH).get("visual", {})
 	_expect(not stock_visual.is_empty(), "immutable M4A1 v4 stock-contact rig is retained")
 	var carry_visual := visual.duplicate(true)
+	var prior_visual: Dictionary = _read_json(PRE_ISO_RELOAD_VISUAL_RIG_PATH).get("visual", {})
+	for slot in ["reload_standing", "reload_crouched", "reload_prone"]:
+		carry_visual.handling_profile.animation_slots[slot] = prior_visual.handling_profile.animation_slots[slot]
+	_expect(carry_visual == prior_visual, "M4A1 v10 changes only three reload slots versus immutable v9")
 	var released_dynamic: Dictionary = carry_visual.get("handling_profile", {}).get("dynamic_hold", {})
 	_expect(released_dynamic.get("ready_shoulder_pocket", {}) == {"downward_m": 0.065, "right_wrist_roll_degrees": -15.0}, "M4A1 v9 publishes the measured non-right shoulder pocket and wrist calibration")
 	released_dynamic.erase("ready_shoulder_pocket")

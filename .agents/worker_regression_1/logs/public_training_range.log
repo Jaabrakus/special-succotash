@@ -1,0 +1,73 @@
+COMMAND: /Users/kiwimango/Applications/Godot-4.7.1.app/Contents/MacOS/Godot --headless -s tools/public_training_range_regression.gd
+EXIT_CODE: 0
+DURATION: 2.09s
+
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+WARNING: You must enable the project setting "audio/driver/enable_input" to use audio capture.
+     at: set_input_device_active (servers/audio/audio_server.cpp:1870)
+     GDScript backtrace (most recent call first):
+         [0] _setup_audio_bus_and_capture (res://scripts/audio/socom_voice_chat_controller.gd:61)
+         [1] _ready (res://scripts/audio/socom_voice_chat_controller.gd:37)
+         [2] _build_ui (res://scripts/runtime/main_gameplay_hud_builder.gd:110)
+         [3] _build_ui (res://scripts/runtime/main_gameplay_hud.gd:136)
+         [4] _build_ui (res://scripts/main.gd:418)
+         [5] _ready (res://scripts/main.gd:213)
+         [6] _run (res://tools/public_training_range_regression.gd:18)
+PUBLIC_TRAINING_CHECK PASS public Training Range mode is active
+PUBLIC_TRAINING_CHECK PASS Training Range has player-facing identity
+PUBLIC_TRAINING_CHECK PASS Training Range can return to the player menu
+PUBLIC_TRAINING_CHECK PASS Training Range has toggle HUD button
+PUBLIC_TRAINING_CHECK PASS HUD button shows HIDE HUD when HUD is visible
+PUBLIC_TRAINING_CHECK PASS Training Range has gameplay HUD node
+PUBLIC_TRAINING_CHECK PASS HUD toggle button changes text to SHOW HUD
+PUBLIC_TRAINING_CHECK PASS HUD toggle button is hidden when HUD toggled off
+PUBLIC_TRAINING_CHECK PASS Main menu button is hidden when HUD toggled off
+PUBLIC_TRAINING_CHECK PASS Player status HUD is hidden when HUD toggled off
+PUBLIC_TRAINING_CHECK PASS Reticle is hidden when HUD toggled off
+PUBLIC_TRAINING_CHECK PASS HUD toggle button changes text back to HIDE HUD
+PUBLIC_TRAINING_CHECK PASS HUD toggle button restored when HUD toggled on
+PUBLIC_TRAINING_CHECK PASS Main menu button restored when HUD toggled on
+PUBLIC_TRAINING_CHECK PASS Player status HUD restored when HUD toggled on
+PUBLIC_TRAINING_CHECK PASS Reticle restored when HUD toggled on
+PUBLIC_TRAINING_CHECK PASS H key input toggles HUD mechanics off
+PUBLIC_TRAINING_CHECK PASS H key hides status HUD
+PUBLIC_TRAINING_CHECK PASS H key hides reticle
+PUBLIC_TRAINING_CHECK PASS H key input toggles HUD mechanics back on
+PUBLIC_TRAINING_CHECK PASS H key restores status HUD
+PUBLIC_TRAINING_CHECK PASS H key restores reticle
+PUBLIC_TRAINING_CHECK PASS Training Range keeps health, weapon ammo, and grenade inventory
+PUBLIC_TRAINING_CHECK PASS Training Range HUD is visible during play
+PUBLIC_TRAINING_CHECK PASS Training Range keeps the gameplay reticle
+PUBLIC_TRAINING_CHECK PASS Training Range reticle is visible during play
+PUBLIC_TRAINING_CHECK PASS Training Range reticle covers the gameplay viewport
+PUBLIC_TRAINING_CHECK PASS Training Range reticle receives the live camera aim point
+PUBLIC_TRAINING_CHECK PASS Training Range keeps player key-bind settings
+PUBLIC_TRAINING_CHECK PASS Training Range uses the canonical weapon controller
+PUBLIC_TRAINING_CHECK PASS Training Range uses the canonical grenade system
+PUBLIC_TRAINING_CHECK PASS Training Range registers its context-owned buy action
+PUBLIC_TRAINING_CHECK PASS Training Range binds its free-loadout menu to B
+PUBLIC_TRAINING_CHECK PASS Training Range creates one free-loadout menu owner
+PUBLIC_TRAINING_CHECK PASS B is consumed by the Training Range equipment zone
+PUBLIC_TRAINING_CHECK PASS B opens the Training Range free-loadout menu
+PUBLIC_TRAINING_CHECK PASS a second B press is consumed by the open Training Range menu
+PUBLIC_TRAINING_CHECK PASS a second B press closes the Training Range menu
+PUBLIC_TRAINING_CHECK PASS a Training menu selection equips through the canonical weapon controller
+PUBLIC_TRAINING_CHECK PASS Training Range supplies shootable respawning dummies
+PUBLIC_TRAINING_CHECK PASS Training Range exposes the authored demolition bomb
+PUBLIC_TRAINING_CHECK PASS F acquires the bomb in Training Range
+PUBLIC_TRAINING_CHECK PASS acquired Training Range bomb leaves the ground
+PUBLIC_TRAINING_CHECK PASS acquired bomb appears as the operator backpack
+PUBLIC_TRAINING_CHECK PASS Training Range exposes authored demolition plant sites
+PUBLIC_TRAINING_CHECK PASS holding F plants the carried bomb
+PUBLIC_TRAINING_CHECK PASS planted bomb appears at the authored target
+PUBLIC_TRAINING_CHECK PASS planting removes the bomb backpack
+PUBLIC_TRAINING_CHECK PASS public Training Range forces the debug HUD off
+PUBLIC_TRAINING_CHECK PASS public Training Range does not create bone or hitbox overlays
+PUBLIC_TRAINING_CHECK PASS public Training Range does not create the camera workbench
+PUBLIC_TRAINING_CHECK PASS public Training Range does not create camera tuning
+PUBLIC_TRAINING_CHECK PASS public Training Range does not create Animation Studio
+PUBLIC_TRAINING_CHECK PASS public Training Range does not create the pose editor
+PUBLIC_TRAINING_RANGE_REGRESSION PASS
+WARNING: 3 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)

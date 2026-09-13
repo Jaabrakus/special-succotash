@@ -1,0 +1,25 @@
+COMMAND: /Users/kiwimango/Applications/Godot-4.7.1.app/Contents/MacOS/Godot --headless -s tools/gameplay_reload_completion_regression.gd
+EXIT_CODE: 0
+DURATION: 4.04s
+
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+GAMEPLAY_RELOAD_COMPLETION_CHECK PASS playable reload dependencies exist
+GAMEPLAY_RELOAD_COMPLETION_CHECK PASS rifle is visible before reload
+GAMEPLAY_RELOAD_COMPLETION_CHECK PASS rifle begins inside the operator presentation envelope
+GAMEPLAY_RELOAD_COMPLETION_CHECK PASS playable reload request starts
+GAMEPLAY_RELOAD_COMPLETION_CHECK PASS reload owns both gameplay and presentation trigger state
+GAMEPLAY_RELOAD_COMPLETION_CHECK PASS fire click cancels the active partial-magazine reload
+GAMEPLAY_RELOAD_COMPLETION_CHECK PASS the interrupting fire click shoots one remaining round
+GAMEPLAY_RELOAD_COMPLETION_CHECK PASS reload can restart after the interrupting shot
+GAMEPLAY_RELOAD_COMPLETION_CHECK PASS rifle remains visible during reload
+GAMEPLAY_RELOAD_COMPLETION_METRIC planned=1.750 elapsed=1.661 frames=241 commit_frame=178 ammo=24/0 pending=false
+GAMEPLAY_RELOAD_COMPLETION_CHECK PASS playable reload completes without test fast-forwarding
+GAMEPLAY_RELOAD_COMPLETION_CHECK PASS reload completion returns trigger ownership
+GAMEPLAY_RELOAD_COMPLETION_CHECK PASS playable reload commits ammunition at an authored timeline cue
+GAMEPLAY_RELOAD_COMPLETION_CHECK PASS magazine-in commits ammunition while reload recovery still owns the trigger
+GAMEPLAY_RELOAD_COMPLETION_CHECK PASS rifle remains visible after reload
+GAMEPLAY_RELOAD_COMPLETION_CHECK PASS rifle returns inside the operator presentation envelope
+GAMEPLAY_RELOAD_COMPLETION_CHECK PASS playable reload commits player-owned ammunition
+GAMEPLAY_RELOAD_COMPLETION_CHECK PASS playable rifle reload respects its configured timing
+GAMEPLAY_RELOAD_COMPLETION_REGRESSION PASS

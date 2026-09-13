@@ -1,19 +1,24 @@
 {
   "source_jump": {
     "enabled": true,
+    "anchor_hips_at_takeoff": true,
     "hold_support_wrist": true,
     "blend_seconds": 0.10,
     "anchor_hips_to_clip": "seal_stand_alert02",
     "clips": {
-      "jump_up": {"start_seconds": 0.40, "end_seconds": 0.79999995},
-      "jump_up_standing": {"start_seconds": 0.23333333, "end_seconds": 0.40},
-      "jump_loop": {"end_seconds": 0.43333334},
-      "jump_down": {"end_seconds": 0.23333333},
-      "pistol_jump": {"start_seconds": 0.40, "end_seconds": 0.79999995},
-      "pistol_jump_down": {"end_seconds": 0.23333333}
+      "jump_running_air": {"end_seconds": 1.0},
+      "jump_running_land": {"end_seconds": 1.0},
+      "jump_up": {"end_seconds": 1.0},
+      "jump_up_standing": {"end_seconds": 1.0},
+      "jump_loop": {"end_seconds": 1.0},
+      "jump_down": {"end_seconds": 1.0},
+      "pistol_jump": {"end_seconds": 1.0},
+      "pistol_jump_down": {"end_seconds": 1.0}
     }
   },
   "authored_peek": {
+    "standing_full_body": true,
+    "blend_seconds": 0.18,
     "preserve_grounded_legs": true,
 		"enabled": true,
 		"families": {
@@ -60,6 +65,8 @@
 		"backward_dive_pose_candidate": "res://assets/animations/authored/backward_dive_pose_candidate.tres",
     "climb": "res://assets/animations/mixamo/Climbing.fbx",
     "traversal_hang": "res://assets/animations/seal_reference/seal_hang.tres",
+    "traversal_vault": "res://assets/external/agls_intake/imported/mantle_vault/ALSv2_N_Vault_1m_RH.scn",
+    "traversal_low_mantle": "res://assets/external/agls_intake/imported/mantle_vault/ALSv2_N_Vault_1m_LH.scn",
     "traversal_pull_up": "res://assets/animations/seal_reference/seal_hang2climbup.tres",
     "traversal_ladder_idle": "res://assets/animations/seal_reference/seal_ladder.tres",
     "traversal_ladder_move": "res://assets/animations/seal_reference/seal_climbladder.tres",
@@ -96,14 +103,16 @@
 		"jump_backward_action": "res://assets/animations/mixamo/Jump Away.fbx",
 		"jump_dive_left": "res://assets/animations/authored/jump_dive_left.tres",
 		"jump_dive_right": "res://assets/animations/authored/jump_dive_right.tres",
-		"jump_down": "res://assets/animations/seal_gameplay/jump_down.tres",
+    "jump_down": "res://assets/animations/seal_gameplay/jump_coherent_land.tres",
 		"jump_forward_action": "res://assets/animations/seal_gameplay/jump_forward_action.tres",
-		"jump_loop": "res://assets/animations/seal_gameplay/jump_loop.tres",
+    "jump_loop": "res://assets/animations/seal_gameplay/jump_coherent_air.tres",
+    "jump_running_air": "res://assets/animations/seal_gameplay/jump_running_air.tres",
+    "jump_running_land": "res://assets/animations/seal_gameplay/jump_running_land.tres",
 		"jump_peak_slide_candidate": "res://assets/animations/authored/jump_peak_slide_candidate.tres",
 		"jump_slide_crouch": "res://assets/animations/authored/jump_slide_crouch.tres",
 		"jump_slide_prone": "res://assets/animations/seal_gameplay/seal_dive_to_prone.tres",
-		"jump_up": "res://assets/animations/seal_gameplay/jump_up.tres",
-		"jump_up_standing": "res://assets/animations/seal_gameplay/jump_up_standing.tres",
+    "jump_up": "res://assets/animations/seal_gameplay/jump_coherent_run.tres",
+    "jump_up_standing": "res://assets/animations/seal_gameplay/jump_coherent_up.tres",
 		"pistol_compressed_idle_crouched": "res://assets/animations/seal_gameplay/pistol_compressed_idle_crouched.tres",
 		"pistol_compressed_idle_standing": "res://assets/animations/seal_gameplay/pistol_compressed_idle_standing.tres",
 		"pistol_crouch_backward": "res://assets/animations/seal_gameplay/pistol_crouch_backward.tres",
@@ -114,9 +123,9 @@
 		"pistol_idle": "res://assets/animations/seal_gameplay/pistol_idle.tres",
 		"pistol_idle_kneeling": "res://assets/animations/seal_gameplay/pistol_idle_kneeling.tres",
 		"pistol_idle_prone": "res://assets/animations/seal_gameplay/pistol_idle_prone.tres",
-		"pistol_jump": "res://assets/animations/seal_gameplay/pistol_jump.tres",
+    "pistol_jump": "res://assets/animations/seal_gameplay/jump_coherent_run.tres",
 		"pistol_jump_alt": "res://assets/animations/seal_gameplay/pistol_jump_alt.tres",
-		"pistol_jump_down": "res://assets/animations/seal_gameplay/pistol_jump_down.tres",
+    "pistol_jump_down": "res://assets/animations/seal_gameplay/jump_coherent_land.tres",
 		"pistol_kneel_to_stand": "res://assets/animations/mixamo/Pistol_Handgun Locomotion Pack/pistol kneel to stand.fbx",
 		"pistol_prone_fire": "res://assets/animations/seal_gameplay/pistol_prone_fire.tres",
 		"pistol_recovery_reference_crouched": "res://assets/animations/seal_gameplay/held_pistol_recovery_reference_crouched.tres",
@@ -357,7 +366,7 @@
 			"jump_down": "pistol_jump_down",
 			"jump_loop": "jump_loop",
 			"jump_up": "pistol_jump",
-			"jump_up_standing": "pistol_jump",
+      "jump_up_standing": "jump_up_standing",
 			"locomotion/crouch_backward": "pistol_crouch_backward",
 			"locomotion/crouch_forward": "pistol_crouch_forward",
 			"locomotion/crouch_left": "pistol_crouch_left",
@@ -411,15 +420,18 @@
 	"jump_lower_body": {
 		"blend_seconds": 0.06,
 		"clip": "jump_forward_action",
-		"enabled": false,
+		"enabled": true,
 		"match_source_parent_frame": true
 	},
 	"leg_mirrored_clips": {
 		"crouch_forward_left": "crouch_forward_right",
 		"run_forward_left": "run_forward_right"
 	},
-  "locomotion": {
+	"locomotion": {
+		"m4_source_elbow_transport_max_degrees": 35.0,
     "grounded_gait_alignment": true,
+    "forward_run_hip_balance": true,
+    "forward_run_max_hip_travel_m": 0.04,
     "gait_support_height_m": 0.05,
     "stop_grace_seconds": 0.28,
     "microstep_speed_mps": 0.8,

@@ -10,7 +10,7 @@ const BODY := ["global_position", "rotation", "velocity", "posture", "motion_sta
 	"_strafe_burst_frames_remaining", "_strafe_burst_decay_remaining", "_last_lateral_input_sign",
 	"_seconds_since_strafe_reversal", "automatic_vault_probe_remaining", "automatic_vault_retry_remaining",
 	"mobility_combo_kind", "pending_jump_slide", "combo_direction", "combo_wall_blocked",
-	"combo_recovering", "combo_rest_input_released", "combo_exit_prone", "horizontal_response_mode"]
+	"combo_recovering", "combo_rest_input_released", "combo_exit_prone", "horizontal_response_mode", "active_jump_launch_speed"]
 const COMBO := ["previous_mask", "armed", "first_bit", "tap_age"]
 const ORIENTATION := ["movement_direction", "aim_relative_yaw", "is_turning_in_place", "catchup_active"]
 const MANTLE := ["active", "elapsed", "duration", "start_point", "apex_point", "landing_point"]
@@ -18,7 +18,7 @@ const LEAN := ["side", "previous_peek_mask", "previous_direction_mask", "previou
 static var profile: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(PATH))
 
 static func capture(actor) -> Array:
-	return [3, _values(actor, BODY), _values(actor.jump_combo_intent, COMBO),
+	return [4, _values(actor, BODY), _values(actor.jump_combo_intent, COMBO),
 		_values(actor.orientation, ORIENTATION), _values(actor.traversal.mantle_motor, MANTLE),
 		actor.traversal.state_machine.current_mode, actor.traversal.state_machine.context.duplicate(true),
 		actor.traversal.state_machine.revision, actor.traversal.last_solution.duplicate(true), actor._movement_floor_contact(), _values(actor.lean_latch, LEAN)]
@@ -41,7 +41,7 @@ static func unpack(packet: PackedByteArray) -> Array:
 	var length := packet.decode_u32(0)
 	if length <= 0 or length > int(profile.maximum_decoded_bytes): return []
 	var value: Variant = bytes_to_var(packet.slice(4).decompress(length, FileAccess.COMPRESSION_FASTLZ))
-	if not value is Array or value.size() != 11 or value[0] != 3: return []
+	if not value is Array or value.size() != 11 or value[0] != 4: return []
 	if not value[10] is Array or value[10].size() != LEAN.size(): return []
 	if typeof(value[10][0]) not in [TYPE_INT, TYPE_FLOAT] or not is_finite(float(value[10][0])) or absf(float(value[10][0])) > 1.0: return []
 	if typeof(value[10][1]) != TYPE_INT or value[10][1] < 0 or value[10][1] > 3: return []

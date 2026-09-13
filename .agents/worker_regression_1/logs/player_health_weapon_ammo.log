@@ -1,0 +1,37 @@
+COMMAND: /Users/kiwimango/Applications/Godot-4.7.1.app/Contents/MacOS/Godot --headless -s tools/player_health_weapon_ammo_regression.gd
+EXIT_CODE: 0
+DURATION: 2.67s
+
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+PLAYER_AMMO_CHECK PASS weapon contract keeps magazine rounds
+PLAYER_AMMO_CHECK PASS weapon contract keeps reserve rounds
+PLAYER_AMMO_CHECK PASS weapon contract keeps the per-gun headshot multiplier
+PLAYER_AMMO_CHECK PASS weapon contract keeps per-gun crouch bloom
+PLAYER_AMMO_CHECK PASS switching weapons preserves the player's rounds for each weapon identity
+PLAYER_AMMO_CHECK PASS player health is independent of weapon data
+PLAYER_AMMO_CHECK PASS player grenade loadout caps every type between zero and three
+PLAYER_AMMO_CHECK PASS playtest applies saved player health
+PLAYER_AMMO_CHECK PASS player owns mutable magazine and reserve ammunition
+PLAYER_AMMO_CHECK PASS playtest displays health and ammunition
+PLAYER_AMMO_CHECK PASS playtest HUD names the equipped runtime weapon
+PLAYER_AMMO_CHECK PASS playtest exposes maximum-health input
+PLAYER_AMMO_CHECK PASS playtest exposes capped Frag, Flash, and Smoke loadout inputs
+PLAYER_AMMO_CHECK PASS playtest loads the equipped gun's headshot multiplier
+PLAYER_AMMO_CHECK PASS last magazine round fires
+PLAYER_AMMO_CHECK PASS accepted shot consumes one round
+PLAYER_AMMO_CHECK PASS empty magazine blocks firing
+PLAYER_AMMO_CHECK PASS reload transfers reserve rounds
+PLAYER_AMMO_CHECK PASS reload preserves the configured ammunition total
+PLAYER_AMMO_CHECK PASS Gunsmith exposes headshot_multiplier
+PLAYER_AMMO_CHECK PASS Gunsmith exposes crouch_spread
+PLAYER_AMMO_CHECK PASS Gunsmith exposes crouch_bloom
+PLAYER_AMMO_CHECK PASS Gunsmith exposes crouch_max_bloom
+PLAYER_AMMO_CHECK PASS Gunsmith exposes crouch_recovery
+PLAYER_AMMO_CHECK PASS Gunsmith exposes magazine_capacity
+PLAYER_AMMO_CHECK PASS Gunsmith exposes reserve_ammo
+PLAYER_HEALTH_WEAPON_AMMO_REGRESSION PASS
+WARNING: 2 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 1 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)

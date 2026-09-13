@@ -270,6 +270,7 @@ func _ensure_input_map() -> void:
     KeyboardMappingProfile.apply_project_mapping()
     # Keep developer-only controls outside the player-facing mapping profile.
     _add_key_action("toggle_controls_guide", KEY_F3)
+    _add_key_action("toggle_debug_hud", KEY_H)
     if public_training_mode:
         # Training reuses B as a context-owned free-loadout menu. The gameplay
         # HUD resolves this action before the ordinary fire-mode action, so the
@@ -285,7 +286,6 @@ func _ensure_input_map() -> void:
     _add_key_action("toggle_camera_recording", KEY_F9)
     _add_key_action("replay_camera_recording", KEY_F10)
     _add_key_action("toggle_anim_studio", KEY_F5)
-    _add_key_action("toggle_debug_hud", KEY_H)
     _add_key_action("toggle_camera_workbench", KEY_P)
     _add_key_action("toggle_camera_workbench", KEY_F8)
     _add_key_action("toggle_camera_visualizer", KEY_V)
@@ -383,11 +383,11 @@ func _cancel_grenade_for_jump() -> void:
 
 
 func _grenade_type_name() -> String:
-    return grenade_runtime.type_name()
+    return grenade_runtime.type_name() if grenade_runtime != null else ""
 
 
 func _grenade_arc_origin() -> Vector3:
-    return grenade_runtime.arc_origin()
+    return grenade_runtime.arc_origin() if grenade_runtime != null else Vector3.ZERO
 
 
 func _operator_bone_world_position(bone_name: StringName) -> Vector3:

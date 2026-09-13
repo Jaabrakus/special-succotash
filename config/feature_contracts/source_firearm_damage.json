@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "feature_id": "source_firearm_damage",
+  "player_intent": "Source-linked ordinary firearms use original damage, armor, MP body pools and pellet count in the canonical game.",
+  "acceptance_rule": "Exact original finite-float fixtures, 32 explicit profiles shared by local/server shot owners, source receivers bypass custom multipliers, four 12-gauge projectiles per accepted shell, no source/legacy interleaving healing and reset on respawn.",
+  "canonical_scene": "res://main.tscn",
+  "ownership": {"shot": "SocomWeaponBallistics", "damage": "existing authoritative receivers", "movement": "CharacterBody3D", "aim": "SocomCameraRig"},
+  "nodes": [
+    {"id": "ballistics", "type": "Node", "owner": "SocomWeaponBallistics", "role": "Resolve trusted saved source combat and trace original pellet count", "source_script": "res://scripts/weapons/weapon_ballistics.gd", "code_symbols": ["pellet_count = int(combat.pellet_count)", "projectile[\"source_combat\"] = combat"]},
+    {"id": "server_receiver", "type": "CharacterBody3D", "owner": "SocomNetworkOperator", "role": "Apply validated source impact to server-owned health", "source_script": "res://scripts/network/socom_network_operator.gd", "code_symbols": ["func take_source_bullet_damage", "source_health.apply_projectile", "not multiplayer.is_server()", "source_health = null"]},
+    {"id": "training_receiver", "type": "CharacterBody3D", "owner": "LabLeakTargetDummy", "role": "Apply the same pure equations to training targets", "source_script": "res://scripts/combat/lab_leak_target_dummy.gd", "code_symbols": ["func take_source_bullet_damage", "source_health.apply_projectile"]}
+  ],
+  "data_contracts": [
+    {"path": "res://config/source_firearm_policy.json", "writer": "res://tools/build_source_firearm_policy.cjs", "readers": ["res://scripts/weapons/source_firearm_policy.gd", "res://scripts/weapons/weapon_ballistics.gd"]}
+  ],
+  "must_not_change": ["Movement/camera/aim ownership", "Server admission/cadence/ammo authority", "Animation", "Unsupported guns and explosives retain project damage rules with explicit no-healing pool bridge", "Existing branch, unrelated work, live sessions and exports"],
+  "proof_scripts": ["res://tools/source_firearm_damage_regression.gd", "res://tools/source_damage_authority_regression.gd", "res://tools/source_firearm_main_regression.gd", "res://tools/shotgun_projectile_regression.gd"],
+  "visual_check": "Separate main.tscn actual rifle, pistol and shotgun requests show changed target health; do not label animation or full camera/accuracy parity proven.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Original executable armor/region/death routines and both MP profile defaults are verified; keep existing damage owners and replicated weighted HUD percent.",
+    "current": {"system": "custom single pool multipliers", "correctness": 2, "ownership_clarity": 5, "runtime_parity": 3, "editor_usability": 4, "performance": 4, "regression_coverage": 3, "evidence_paths": ["res://scripts/network/socom_network_operator.gd"]},
+    "candidate": {"system": "source firearm regions under existing receivers", "correctness": 4, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 3, "performance": 4, "regression_coverage": 5, "evidence_paths": ["res://scripts/combat/source_firearm_damage.gd", "res://tools/source_firearm_damage_regression.gd", "res://docs/SOURCE_COMBAT_PARITY_20260913.md"]}
+  }
+}

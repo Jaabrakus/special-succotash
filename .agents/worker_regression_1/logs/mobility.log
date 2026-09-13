@@ -1,0 +1,108 @@
+COMMAND: /Users/kiwimango/Applications/Godot-4.7.1.app/Contents/MacOS/Godot --headless -s tools/mobility_regression.gd
+EXIT_CODE: 0
+DURATION: 15.66s
+
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+MOBILITY_CHECK PASS main scene loads
+MOBILITY_CHECK PASS no sprint input action is registered
+MOBILITY_CHECK PASS prone uses the shared tap/hold stance action
+MOBILITY_CHECK PASS removed roll action is not exposed to gameplay
+MOBILITY_CHECK PASS player exists
+MOBILITY_CHECK PASS player settles on the floor
+MOBILITY_CHECK PASS initial state is standing
+MOBILITY_CHECK PASS Single-press fixture does not enter a double-tap combo
+MOBILITY_CHECK PASS partial stick selects walking without a mode button
+MOBILITY_CHECK PASS Single-press fixture does not enter a double-tap combo
+MOBILITY_CHECK PASS full stick or WASD selects the quick tactical gait
+MOBILITY_CHECK PASS Single-press fixture does not enter a double-tap combo
+MOBILITY_CHECK PASS cardinal movement produces immediate response
+MOBILITY_CHECK PASS diagonal and cardinal acceleration have the same magnitude
+MOBILITY_CHECK PASS Single-press fixture does not enter a double-tap combo
+MOBILITY_CHECK PASS full strafe has no lateral speed penalty
+MOBILITY_CHECK PASS full strafe reaches maximum speed within one physics frame
+MOBILITY_CHECK PASS Single-press fixture does not enter a double-tap combo
+MOBILITY_CHECK PASS braking distance stays within the tactical stop budget
+MOBILITY_CHECK PASS braking settles within 24 physics frames
+MOBILITY_CHECK PASS reversal responds immediately to opposite input
+MOBILITY_CHECK PASS movement controller reports a valid reversal response state
+MOBILITY_CHECK PASS Single-press fixture does not enter a double-tap combo
+MOBILITY_CHECK PASS camera rig exists for movement orientation tests
+MOBILITY_CHECK PASS operator animation driver exists
+MOBILITY_CHECK PASS D translates right instead of orbiting the aim point
+MOBILITY_CHECK PASS D preserves the aim-facing lower-body heading for a strafe
+MOBILITY_CHECK PASS movement never rewrites mouse/right-stick aim
+MOBILITY_CHECK PASS D exposes rightward animation intent
+MOBILITY_CHECK PASS D selects the right strafe side of the animation matrix
+MOBILITY_METRIC right_peak_hip_roll_deg=0.000
+MOBILITY_CHECK PASS SEAL D bypasses legacy hip correction
+MOBILITY_METRIC forward_right_leg_torso_separation_deg=7.656
+MOBILITY_CHECK PASS D keeps the hips and torso inside a stable strafe envelope
+MOBILITY_CHECK PASS SEAL D preserves the authored shoulder frame
+MOBILITY_CHECK PASS A translates left instead of orbiting the aim point
+MOBILITY_CHECK PASS A selects the left strafe side of the animation matrix
+MOBILITY_METRIC left_peak_hip_roll_deg=0.000
+MOBILITY_CHECK PASS SEAL A bypasses legacy hip correction
+MOBILITY_CHECK PASS SEAL A preserves the authored shoulder frame
+MOBILITY_CHECK PASS S translates backward relative to aim instead of turning around
+MOBILITY_CHECK PASS backpedaling preserves mouse/right-stick aim authority
+MOBILITY_CHECK PASS S selects the backward leg animation without reversing the torso
+MOBILITY_CHECK PASS legs catch up after torso aim exceeds its twist limit
+MOBILITY_CHECK PASS turn-in-place returns torso aim to its anatomical range
+MOBILITY_CHECK PASS hip catch-up finishes inside a stable release band
+MOBILITY_CHECK PASS hip catch-up exits cleanly instead of chattering on its limit
+MOBILITY_CHECK PASS lower-body catch-up preserves authoritative aim
+MOBILITY_CHECK PASS operator animation driver exists for full-body peek
+MOBILITY_CHECK PASS full-body peek has a live skeleton
+MOBILITY_CHECK PASS Q reaches the planted left-peek pose
+MOBILITY_METRIC peek_head_x neutral=0.1186 left=-0.2190
+MOBILITY_CHECK PASS left peek exposes the head on the requested side
+MOBILITY_CHECK PASS left peek uses the full pelvis-to-head curve
+MOBILITY_CHECK PASS E reaches the planted right-peek pose
+MOBILITY_METRIC peek_head_x neutral=0.1186 right=0.1223
+MOBILITY_CHECK PASS right peek exposes the head on the requested side
+MOBILITY_CHECK PASS lean remains latched after key release
+MOBILITY_CHECK PASS second lean press releases smoothly back to neutral
+MOBILITY_CHECK PASS crouch enters the crouched state
+MOBILITY_CHECK PASS crouch shortens the named collision capsule
+MOBILITY_CHECK PASS prone enters the prone state
+MOBILITY_CHECK PASS prone shortens the named collision capsule
+MOBILITY_CHECK PASS stance controls return to standing
+MOBILITY_CHECK PASS re-entering prone via hold stance
+MOBILITY_CHECK PASS holding stance while prone returns directly to standing
+MOBILITY_CHECK PASS clearance test begins crouched
+MOBILITY_CHECK PASS low ceiling rejects the standing stance
+MOBILITY_CHECK PASS failed clearance keeps the crouched collider
+MOBILITY_CHECK PASS standing succeeds after overhead clearance returns
+MOBILITY_CHECK PASS clearance recovery restores standing
+MOBILITY_CHECK PASS moving Space remains a jump, never a dive-prone
+MOBILITY_CHECK PASS jump applies upward velocity
+MOBILITY_CHECK PASS jump ascent selects the mapped rifle jump-up clip
+MOBILITY_CHECK PASS jump gains visible height
+MOBILITY_CHECK PASS jump stays within the tactical-hop height ceiling
+MOBILITY_CHECK PASS jump enters landing recovery
+MOBILITY_CHECK PASS jump recovers to standing
+MOBILITY_HOLD_DIVE_RUNWAY_METRIC direction=(0.0, 0.0, 1.0) clearance=8.000 yaw=180.00
+MOBILITY_CHECK PASS dive enters the committed dive state
+MOBILITY_CHECK PASS dive finishes prone
+MOBILITY_CHECK PASS dive produces forward displacement
+MOBILITY_CHECK PASS dive finishes with the prone collider
+MOBILITY_CHECK PASS backward-prone animation driver exists
+MOBILITY_CHECK PASS backward prone selects the downloaded backward crawl
+MOBILITY_CHECK PASS backward prone selects the animated Mixamo take instead of the T-pose take
+MOBILITY_CHECK PASS operator returns to standing
+MOBILITY_CHECK PASS hold-C stance begins standing
+MOBILITY_HOLD_DIVE_RUNWAY_METRIC direction=(0.0, 0.0, 1.0) clearance=8.000 yaw=180.00
+MOBILITY_CHECK PASS forward travel reaches the hold-C dive threshold
+MOBILITY_CHECK PASS hold-C fixture runs along its verified clear runway
+MOBILITY_CHECK PASS running hold-C enters the committed dive through the shared stance action
+MOBILITY_CHECK PASS holding C completes in prone through the shared stance action
+MOBILITY_CHECK PASS releasing C clears the stance-hold latch
+MOBILITY_CHECK PASS hold-C stance finishes prone
+MOBILITY_CHECK PASS forward-prone stack has an animation driver
+MOBILITY_METRIC prone_forward_axis_error_deg=0.000
+MOBILITY_METRIC prone_forward_logical_clip=prone_forward
+MOBILITY_CHECK PASS W while prone selects the forward crawl
+MOBILITY_CHECK PASS W-prone pelvis, spine, and head remain stacked on the travel axis
+MOBILITY_CHECK PASS operator returns to standing
+MOBILITY_REGRESSION PASS

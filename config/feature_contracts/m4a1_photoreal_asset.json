@@ -1,0 +1,115 @@
+{
+  "schema_version": 1,
+  "feature_id": "m4a1_photoreal_asset",
+  "player_intent": "Equipping the M4A1 in SOCOM-141 renders the photoreal potato HD M4A1 model with authentic CoD4-style PBR textures, quad-rail handguard, collapsible waffle stock, and peep-sight optics while maintaining 100% parity with canonical weapon sockets, ballistics, and motion boundaries.",
+  "acceptance_rule": "The M4A1 potato photoreal asset loads cleanly with under 7,000 triangles, 11 canonical bones matching the AGLS v9 coordinate contract, support-hand foregrip IK contact within 3 cm, 1.2-second fire recovery, and zero drift across CharacterBody3D, SOCOMCamera, and server weapon damage authority.",
+  "canonical_scene": "res://main.tscn",
+  "ownership": {
+    "authorized_weapon_handoff": "SocomOperatorWeaponEquipmentRuntime",
+    "weapon_model_and_socket_instantiation": "SocomOperatorAssetRuntime",
+    "weapon_root_transform": "TriggerHandBoneAttachment3D",
+    "support_hand_contact": "SocomOperatorWeaponPose",
+    "accepted_shot_and_damage": "AuthoritativeServerWeapon",
+    "aim_intent_and_reticle": "SOCOMCameraReticleChain"
+  },
+  "nodes": [
+    {
+      "id": "canonical_weapon_asset_runtime",
+      "type": "Node3D",
+      "role": "Instantiates the equipped M4A1 weapon model under the canonical operator and publishes its physical socket nodes to presentation consumers.",
+      "owner": "SocomOperatorAssetRuntime",
+      "source_script": "res://scripts/player/operator_animation_driver_runtime.gd",
+      "code_symbols": [
+        "asset_runtime = AssetRuntime.new()",
+        "var runtime: Dictionary = asset_runtime.build("
+      ]
+    },
+    {
+      "id": "authorized_equipment_presentation_consumer",
+      "type": "Node3D",
+      "role": "Consumes authorized weapon visual rigs, builds runtime sockets, and binds the presentation owners without modifying server authority.",
+      "owner": "SocomOperatorWeaponEquipmentRuntime",
+      "source_script": "res://scripts/player/operator_weapon_equipment_runtime.gd",
+      "code_symbols": [
+        "driver.asset_runtime.equip_weapon(next_config)",
+        "driver.call(\"_build_animation_tree\")",
+        "driver.combat_ready_ccdik.reconfigure("
+      ]
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://config/weapons/m4a1.json",
+      "writer": "res://scripts/labs/gunsmith/gunsmith_weapon_profile_repository.gd",
+      "readers": [
+        "res://scripts/weapons/weapon_rig_contract.gd",
+        "res://scripts/player/operator_asset_runtime.gd",
+        "res://scripts/player/operator_weapon_equipment_runtime.gd"
+      ]
+    },
+    {
+      "path": "res://config/weapon_visual_rigs/m4a1_potato_photoreal_v1.json",
+      "writer": "res://scripts/labs/gunsmith2/weapon_visual_rig_repository.gd",
+      "readers": [
+        "res://scripts/labs/gunsmith2/weapon_visual_rig_resolver.gd",
+        "res://scripts/labs/gunsmith/gunsmith_weapon_preview_loader.gd"
+      ]
+    },
+    {
+      "path": "res://config/weapon_visual_rigs/m4a1_agls_v9.json",
+      "writer": "res://scripts/labs/gunsmith2/weapon_visual_rig_repository.gd",
+      "readers": [
+        "res://scripts/labs/gunsmith2/weapon_visual_rig_resolver.gd",
+        "res://scripts/labs/gunsmith/gunsmith_weapon_preview_loader.gd"
+      ]
+    }
+  ],
+  "must_not_change": [
+    "CharacterBody3D movement, posture, and collision authority",
+    "SOCOM camera and reticle aim authority or accepted reticle geometry",
+    "server shot validation, muzzle, ballistics, damage, and networking authority",
+    "1.2-second accepted-shot recovery semantics",
+    "right trigger-hand attachment as sole weapon-root transform owner",
+    "unrelated weapon profiles and user-authored dirty worktree changes"
+  ],
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Merge the optimized ~3,800-poly photoreal PBR M4A1 asset and visual rig into the project, providing a drop-in high-fidelity replacement for the untextured placeholder while maintaining 100% socket and bone coordinate parity with the canonical AGLS v9 contract.",
+    "current": {
+      "system": "AGLS intake M4A1 placeholder model with vertex colors only and no PBR textures",
+      "correctness": 3,
+      "ownership_clarity": 5,
+      "runtime_parity": 4,
+      "editor_usability": 3,
+      "performance": 4,
+      "regression_coverage": 4,
+      "evidence_paths": [
+        "res://assets/external/agls_intake/imported/weapons/m4a1/m4a1.glb",
+        "res://config/weapon_visual_rigs/m4a1_agls_v9.json",
+        "res://tools/m4a1_agls_vertical_slice_regression.gd"
+      ]
+    },
+    "candidate": {
+      "system": "Potato photoreal M4A1 with baked PBR textures, ray-traced AO, authentic waffle stock, and 100% socket parity",
+      "correctness": 5,
+      "ownership_clarity": 5,
+      "runtime_parity": 5,
+      "editor_usability": 5,
+      "performance": 5,
+      "regression_coverage": 5,
+      "evidence_paths": [
+        "res://assets/weapons/m4a1/m4a1_potato_photoreal.glb",
+        "res://config/weapon_visual_rigs/m4a1_potato_photoreal_v1.json",
+        "res://tools/m4a1_photoreal_potato_regression.gd",
+        "res://tools/m4a1_agls_vertical_slice_regression.gd",
+        "res://tools/feature_contract_regression.gd"
+      ]
+    }
+  },
+  "proof_scripts": [
+    "res://tools/m4a1_photoreal_potato_regression.gd",
+    "res://tools/m4a1_agls_vertical_slice_regression.gd",
+    "res://tools/feature_contract_regression.gd"
+  ],
+  "visual_check": "Launch res://main.tscn and verify the equipped M4A1 renders with authentic military matte anodized gunmetal, quad rail handguard, collapsible waffle stock, and clear sightline through the rear peep sight."
+}

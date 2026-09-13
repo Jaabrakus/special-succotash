@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "feature_id": "agls_traversal_presentation",
+  "player_intent": "Use reviewed existing AGLS traversal on the current character, with validated ledge contact.",
+  "acceptance_rule": "Canonical traversal chooses saved authored clips, seeks one-shot actions from authoritative progress, uses post-animation contact without stretching or moving CharacterBody, restores weapons on exit, and clears missing/invalid contact data. Passing the graph gate is not a claim that visual contact passes.",
+  "canonical_scene": "res://main.tscn",
+  "ownership": {"traversal_animation": "SocomOperatorAnimationDriver", "post_animation_contact": "SocomTraversalHandModifier"},
+  "nodes": [{"id":"traversal_contact","type":"SkeletonModifier3D","owner":"SocomTraversalHandModifier","role":"Presentation-only bounded hips residual and arm contact after authored animation, using evaluated clip time and current body position while weapon IK is inactive","source_script":"res://scripts/player/operator_animation_driver_runtime.gd","code_symbols":["traversal_hand_contact = TraversalHandModifier.new()","skeleton.add_child(traversal_hand_contact)"]}],
+  "data_contracts": [
+    {"path":"res://config/ledge_climb.json","writer":"res://docs/AGLS_RUNTIME_INTEGRATION.md","readers":["res://scripts/player/operator_animation_driver_runtime.gd","res://scripts/player/operator_traversal_hand_modifier.gd"]},
+    {"path":"res://config/operator_animation_map.json","writer":"res://docs/AGLS_RUNTIME_INTEGRATION.md","readers":["res://scripts/player/operator_asset_runtime.gd"]}
+  ],
+  "must_not_change": ["CharacterBody movement/collision", "camera/aim", "jump physics", "reload timing", "server shots and damage"],
+  "support_selection": "Validated hang_style from traversal geometry selects braced or free hang/pull-up profiles; unsupported awnings do not get fictional foot bracing. Narrow stance uses align_only presentation with zero hanging hand weights, holds an authored idle frame and loops lateral clips by measured CharacterBody displacement. No source mesh is overwritten.",
+  "exit_and_elbows": "Saved exit_transition blends the last evaluated post-contact lower body into live locomotion for 0.24s without holding movement. When overlapping equip is active, the Spine subtree stays live instead of replaying the captured recovery pose. Same modifier cancels on new traversal/death and clears at completion. Saved wall-relative hang_elbow_pole guides supporting elbows outward. Saved ledge_hand_shape rotates supported palms down with bounded finger curl and releases with hand support; wrist targets and source lengths are unchanged.",
+  "proof_scripts": ["res://tools/traversal_exit_pose_regression.gd","res://tools/traversal_hand_contact_regression.gd","res://tools/traversal_contact_input_regression.gd","res://tools/ledge_climb_regression.gd","res://tools/main_vault_presentation_regression.gd","res://tools/main_mantle_contact_regression.gd"],
+  "visual_check": "Inspect actual jump/hang/pull-up/land and 1.1m thick mantle from both sides. Braced tall hang/pull-up uses CMC_Climb_To_Standing, source-calibrated displacement/release, presentation-only wall facing, preserved authored wrist orientation, and bounded continuous knee/foot wall clearance. Verify while aim looks away. Low-vault motion/exit passes but palm placement remains partial. Low mantle uses Walking01 segment .30 to 1.0 with independent calibration. Do not call complete integration of all traversal.",
+  "system_delta": {
+    "decision":"MERGE",
+    "reason":"MERGE requested braced AGLS hang and matching pull-up, replacing FreeHang selection without overwriting sources. Evaluate contact against rendered clip time/current body; face the wall in presentation and preserve authored hand rotation through arm IK. Tall fixture contact passes while looking away. Large bounded visual corrections remain a calibration limitation; low-vault palm contact remains partial. Preserve physics and protected owners.",
+    "current":{"system":"SOCOM hang and pull-up with no obstacle contact", "correctness":2,"ownership_clarity":5,"runtime_parity":5,"editor_usability":3,"performance":5,"regression_coverage":3,"evidence_paths":["res://config/operator_animation_map.json","res://tools/ledge_climb_regression.gd"]},
+    "candidate":{"system":"Reviewed AGLS base with shared traversal-only contact profile", "correctness":4,"ownership_clarity":5,"runtime_parity":5,"editor_usability":4,"performance":4,"regression_coverage":4,"evidence_paths":["res://scripts/player/operator_traversal_hand_modifier.gd","res://tools/traversal_hand_contact_regression.gd","res://tools/traversal_contact_input_regression.gd","res://tools/main_vault_presentation_regression.gd"]}
+  }
+}

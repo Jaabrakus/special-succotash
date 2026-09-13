@@ -1,0 +1,25 @@
+COMMAND: /Users/kiwimango/Applications/Godot-4.7.1.app/Contents/MacOS/Godot --headless -s tools/reticle_render_integration.gd
+EXIT_CODE: 1
+DURATION: 5.45s
+
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+RETICLE_RENDER_CHECK PASS live camera selects refactored mouse aim model
+RETICLE_RENDER_CHECK PASS white and blue calibration feedback is hidden in normal play
+RETICLE_RENDER_CHECK PASS rendered blue line is capped to the live instability leash
+RETICLE_RENDER_CHECK PASS white circle and HUD reticle remain fixed at screen center
+ERROR: RETICLE_RENDER_CHECK FAIL reference shape bounces upward after a shot
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _expect (res://tools/reticle_render_integration.gd:185)
+       [1] _run (res://tools/reticle_render_integration.gd:59)
+RETICLE_RENDER_CHECK PASS cosmetic recoil leaves ballistic aim authority unchanged
+RETICLE_RENDER_CHECK PASS reference shape returns to the authoritative center after recoil
+RETICLE_RENDER_CHECK PASS canonical movement input reaches the shared reticle
+RETICLE_RENDER_CHECK PASS combat reticle exposes symmetric horizontal lead references
+RETICLE_RENDER_CHECK PASS combat reticle exposes a centered lower tick
+RETICLE_RENDER_CHECK PASS four cardinal ticks keep fixed lengths during movement
+RETICLE_RENDER_CHECK PASS rendered camera begins smooth aim catch-up
+RETICLE_RENDER_CHECK PASS blue remains persistent after smooth camera catch-up
+RETICLE_RENDER_CHECK PASS rendered camera has no timer-induced idle stutter
+RETICLE_RENDER_INTEGRATION FAIL ["reference shape bounces upward after a shot"]

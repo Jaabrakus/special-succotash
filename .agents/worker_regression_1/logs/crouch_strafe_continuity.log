@@ -1,0 +1,51 @@
+COMMAND: /Users/kiwimango/Applications/Godot-4.7.1.app/Contents/MacOS/Godot --headless -s tools/crouch_strafe_continuity_probe.gd
+EXIT_CODE: 1
+DURATION: 8.25s
+
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+WARNING: You must enable the project setting "audio/driver/enable_input" to use audio capture.
+     at: set_input_device_active (servers/audio/audio_server.cpp:1870)
+     GDScript backtrace (most recent call first):
+         [0] _setup_audio_bus_and_capture (res://scripts/audio/socom_voice_chat_controller.gd:61)
+         [1] _ready (res://scripts/audio/socom_voice_chat_controller.gd:37)
+         [2] _build_ui (res://scripts/runtime/main_gameplay_hud_builder.gd:110)
+         [3] _build_ui (res://scripts/runtime/main_gameplay_hud.gd:136)
+         [4] _build_ui (res://scripts/main.gd:418)
+         [5] _ready (res://scripts/main.gd:213)
+         [6] _run (res://tools/crouch_strafe_continuity_probe.gd:11)
+CROUCH_PROBE weapon=m4a1 output_prefix=/private/tmp/crouch-m4a1
+CROUCH_SAMPLE move_left frame=0 state=crouch action= hips=0.44500838965178 head=1.01227512210608 speed=0.39999998532809
+CROUCH_SAMPLE move_left frame=5 state=crouch action= hips=0.71031680557644 head=1.22427144501125 speed=0.39999998532809
+CROUCH_SAMPLE move_left frame=15 state=crouch action= hips=0.94059155520517 head=1.40320030984003 speed=0.39999998532809
+CROUCH_SAMPLE move_left frame=30 state=crouch action= hips=0.96120045194402 head=1.42185429343954 speed=0.39999998532809
+CROUCH_SAMPLE move_left frame=59 state=crouch action= hips=0.9201206350117 head=1.38816551206401 speed=0.39999998532809
+CROUCH_METRIC move_left hips_range=0.51656143448781 head_range=0.41121997020673 states={ "": true }
+CROUCH_ENTRY_METRIC weapon=m4a1 hips_range=0.51731726794969 head_range=0.41173708706629 idle_hips=0.44425255618989 idle_head=1.01175800524652
+CROUCH_SAMPLE move_right frame=0 state=crouch action= hips=0.92175450408831 head=1.38881447399035 speed=0.39999998532809
+CROUCH_SAMPLE move_right frame=5 state=crouch action= hips=0.90365210262826 head=1.38779118744424 speed=0.39999998532809
+CROUCH_SAMPLE move_right frame=15 state=crouch action= hips=0.89975063374732 head=1.39668623975012 speed=0.39999998532809
+CROUCH_SAMPLE move_right frame=30 state=crouch action= hips=0.8846889520064 head=1.3912493372336 speed=0.39999998532809
+CROUCH_SAMPLE move_right frame=59 state=crouch action= hips=0.92031345760915 head=1.41235939657781 speed=0.39999998532809
+CROUCH_METRIC move_right hips_range=0.05266737932106 head_range=0.03998279565712 states={ "": true }
+CROUCH_SAMPLE move_left frame=0 state=crouch action= hips=0.91915621992666 head=1.41217687365133 speed=0.39999998532809
+CROUCH_SAMPLE move_left frame=5 state=crouch action= hips=0.86328116379445 head=1.3475107284612 speed=0.39999998532809
+CROUCH_SAMPLE move_left frame=15 state=crouch action= hips=0.92387084680377 head=1.39736191945849 speed=0.39999998532809
+CROUCH_SAMPLE move_left frame=30 state=crouch action= hips=0.92220244806958 head=1.38883237045957 speed=0.39999998532809
+CROUCH_SAMPLE move_left frame=59 state=crouch action= hips=0.87675223895349 head=1.3492868358735 speed=0.39999998532809
+CROUCH_METRIC move_left hips_range=0.07789384794887 head_range=0.06466614519013 states={ "": true }
+CROUCH_SAMPLE move_forward frame=0 state=crouch action= hips=0.87437703995965 head=1.34776559262536 speed=0.39999998532809
+CROUCH_SAMPLE move_forward frame=5 state=crouch action= hips=0.87893149489537 head=1.36010214919224 speed=0.39999998532809
+CROUCH_SAMPLE move_forward frame=15 state=crouch action= hips=0.91744764149189 head=1.39302451908588 speed=0.39999998532809
+CROUCH_SAMPLE move_forward frame=30 state=crouch action= hips=0.86081876605749 head=1.34050067514181 speed=0.39999998532809
+CROUCH_SAMPLE move_forward frame=59 state=crouch action= hips=0.8975223377347 head=1.38508433848619 speed=0.39999998532809
+CROUCH_METRIC move_forward hips_range=0.07285092771053 head_range=0.06662355363369 states={ "": true }
+CROUCH_SAMPLE move_right frame=0 state=crouch action= hips=0.89743127673864 head=1.38451560586691 speed=0.39999998532809
+CROUCH_SAMPLE move_right frame=5 state=crouch action= hips=0.9000698402524 head=1.38901466876268 speed=0.39999998532809
+CROUCH_SAMPLE move_right frame=15 state=crouch action= hips=0.89278710633516 head=1.39586145430803 speed=0.39999998532809
+CROUCH_SAMPLE move_right frame=30 state=crouch action= hips=0.87736525386572 head=1.37499829381704 speed=0.39999998532809
+CROUCH_SAMPLE move_right frame=59 state=crouch action= hips=0.88909936696291 head=1.39385122805834 speed=0.39999998532809
+CROUCH_METRIC move_right hips_range=0.05185408890247 head_range=0.04018902778625 states={ "": true }
+CROUCH_STRAFE_CONTINUITY FAIL phase_travel=2.8227496593021 failures=["direction changes remain within normal gait height variation"]
+WARNING: 3 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)

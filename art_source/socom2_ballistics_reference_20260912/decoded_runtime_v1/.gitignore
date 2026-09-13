@@ -1,0 +1,2 @@
+# Keep original executable bytes local. Reproduce them from the authorized ISO.
+*.bin

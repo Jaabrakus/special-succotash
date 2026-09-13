@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "feature_id": "field_backpack",
+  "player_intent": "Pick up the AGLS field pack and wear it in the local game and multiplayer.",
+  "acceptance_rule": "Interact awards one available pack to one nearby living admitted player, rejects walls/range/stale-life requests, hides the ground mesh, and reliably reproduces the wearer for current and late-joining peers. Death, respawn, disconnect and round/session reset restore availability. Existing bomb-pack presentation retains priority.",
+  "canonical_scene": "res://main.tscn",
+  "ownership": {"field_item_state": "FieldBackpackPickup (server online, local authority offline)", "attachment_transform": "BoneAttachment3D follows canonical spine without override"},
+  "nodes": [
+    {"id": "solo", "type": "Node3D", "owner": "FieldBackpackPickup", "role": "Offline pickup state and presentation", "scene_path": "res://main.tscn", "node_path": "FieldBackpackPickup"},
+    {"id": "online", "type": "Node3D", "owner": "FieldBackpackPickup", "role": "Server pickup state and replicated presentation", "scene_path": "res://multiplayer_slice.tscn", "node_path": "FieldBackpackPickup"},
+    {"id": "attachment", "type": "BoneAttachment3D", "owner": "FieldBackpackPickup", "role": "Read-only spine attachment", "source_script": "res://scripts/items/field_backpack_pickup.gd", "code_symbols": ["BoneAttachment3D.new()", "attachment.override_pose = false", "skeleton.add_child(attachment)"]}
+  ],
+  "data_contracts": [{"path": "res://config/field_backpack.json", "writer": "res://docs/FIELD_BACKPACK.md", "readers": ["res://scripts/items/field_backpack_pickup.gd"]}],
+  "must_not_change": ["CharacterBody movement/collision", "Camera and reticle aim", "Server shots/damage", "Animation and weapon attachment", "Demolition objective and bomb wearable"],
+  "proof_scripts": ["res://tools/field_backpack_regression.gd", "res://tools/field_backpack_runtime_regression.gd"],
+  "visual_check": "Run focused regression with --visual in a rendered Godot process. Inspect ground pack, rear and side worn views on canonical rig. Check spine binding and bomb priority. No authored pickup animation or full inventory is claimed.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "The existing backpack owner only supports demolition. Keep it intact and add one shared, bounded field-item component to both canonical playable roots. Reuse the spine attachment convention and existing interaction action; import only AGLS presentation data.",
+    "current": {"system": "Demolition-only procedural wearable", "correctness": 2, "ownership_clarity": 5, "runtime_parity": 3, "editor_usability": 3, "performance": 5, "regression_coverage": 2, "evidence_paths": ["res://scripts/player/operator_asset_runtime.gd", "res://scripts/runtime/main_training_world.gd"]},
+    "candidate": {"system": "Shared server-owned field pack with AGLS mesh", "correctness": 4, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 4, "regression_coverage": 4, "evidence_paths": ["res://scripts/items/field_backpack_pickup.gd", "res://tools/field_backpack_regression.gd"]}
+  }
+}

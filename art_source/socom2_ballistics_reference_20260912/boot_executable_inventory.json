@@ -1,0 +1,170 @@
+{
+  "schema_version": 1,
+  "status": "Read-only boot ELF header/section/symbol inventory; no code execution or decompilation",
+  "source": {
+    "iso_size": 4380753920,
+    "volume": "SOCOM_II",
+    "system_cnf_text": "BOOT2 = cdrom0:\\SCUS_972.75;1\r\nVER = 1.02\r\nVMODE = NTSC\r\n",
+    "system_cnf_sha256": "c5c02fba108e74f46fe5cb2cf8feb691b4aa5bc6db8c03ad65a403c952c1029a",
+    "executable_path": "SCUS_972.75",
+    "executable_bytes": 874792,
+    "executable_sector": 1597,
+    "executable_sha256": "0172dc0bec19c83d1fe2d0fec0a290f41cc5d32efa14ed6859ca92773c05346c",
+    "boot_version": "1.02",
+    "video_mode": "NTSC"
+  },
+  "elf": {
+    "format": "ELF32 little-endian",
+    "type": 2,
+    "machine": 8,
+    "elf_version": 1,
+    "entry_point": "0x180008",
+    "flags": "0x20924000",
+    "section_table_offset": 874352,
+    "section_count": 11,
+    "sections": [
+      {
+        "index": 0,
+        "name_offset": 0,
+        "type": 0,
+        "flags": "0x0",
+        "address": "0x0",
+        "offset": 0,
+        "size": 0,
+        "link": 0,
+        "entry_size": 0,
+        "name": ""
+      },
+      {
+        "index": 1,
+        "name_offset": 1,
+        "type": 3,
+        "flags": "0x0",
+        "address": "0x0",
+        "offset": 874240,
+        "size": 45,
+        "link": 0,
+        "entry_size": 1,
+        "name": ".shstrtab"
+      },
+      {
+        "index": 2,
+        "name_offset": 11,
+        "type": 3,
+        "flags": "0x0",
+        "address": "0x0",
+        "offset": 0,
+        "size": 0,
+        "link": 0,
+        "entry_size": 1,
+        "name": ".strtab"
+      },
+      {
+        "index": 3,
+        "name_offset": 19,
+        "type": 2,
+        "flags": "0x0",
+        "address": "0x0",
+        "offset": 0,
+        "size": 0,
+        "link": 2,
+        "entry_size": 16,
+        "name": ".symtab"
+      },
+      {
+        "index": 4,
+        "name_offset": 0,
+        "type": 1,
+        "flags": "0x7",
+        "address": "0x100000",
+        "offset": 256,
+        "size": 873984,
+        "link": 0,
+        "entry_size": 1,
+        "name": ""
+      },
+      {
+        "index": 5,
+        "name_offset": 0,
+        "type": 1,
+        "flags": "0x7",
+        "address": "0x1e7000",
+        "offset": 874240,
+        "size": 0,
+        "link": 0,
+        "entry_size": 1,
+        "name": ""
+      },
+      {
+        "index": 6,
+        "name_offset": 0,
+        "type": 1,
+        "flags": "0x7",
+        "address": "0x4c5380",
+        "offset": 874240,
+        "size": 0,
+        "link": 0,
+        "entry_size": 1,
+        "name": ""
+      },
+      {
+        "index": 7,
+        "name_offset": 0,
+        "type": 1,
+        "flags": "0x7",
+        "address": "0x4c5380",
+        "offset": 874240,
+        "size": 0,
+        "link": 0,
+        "entry_size": 1,
+        "name": ""
+      },
+      {
+        "index": 8,
+        "name_offset": 0,
+        "type": 1,
+        "flags": "0x3",
+        "address": "0x686f80",
+        "offset": 874240,
+        "size": 0,
+        "link": 0,
+        "entry_size": 1,
+        "name": ""
+      },
+      {
+        "index": 9,
+        "name_offset": 27,
+        "type": 1,
+        "flags": "0x0",
+        "address": "0x0",
+        "offset": 874285,
+        "size": 43,
+        "link": 0,
+        "entry_size": 1,
+        "name": ".comment"
+      },
+      {
+        "index": 10,
+        "name_offset": 36,
+        "type": 1879048198,
+        "flags": "0x0",
+        "address": "0x0",
+        "offset": 874328,
+        "size": 24,
+        "link": 0,
+        "entry_size": 1,
+        "name": ".reginfo"
+      }
+    ],
+    "symbol_tables": [
+      {
+        "section": ".symtab",
+        "kind": "SYMTAB",
+        "symbols": []
+      }
+    ],
+    "named_functions": [],
+    "stripped_symbol_tables": true,
+    "interpretation": "ELF symbol tables are absent or empty: no function names are available through ELF symbols. Empty section headers are not usable symbols. This does not prove absence of code, strings, overlays, or external debug metadata."
+  }
+}

@@ -5,6 +5,9 @@
   "asset_root": "res://assets/ui/socom2_reticle/",
   "pixel_scale": 1.0,
   "shot_envelope": {
+    "standing_stationary_max_expansion": 0.8,
+    "standing_full_movement_threshold": 0.15,
+    "stance_max_expansion": {"STANDING": 1.0, "CROUCHED": 0.75, "PRONE": 0.55},
     "reference_height_px": 1080.0,
     "reference_vertical_fov_deg": 68.0,
     "semantics": "The authored smoothed gap caps the entire shot cone, including pellets. Normal-lens styling stays unchanged; narrower lenses receive presentation-only projection compensation. The server computes the cap from its own weapon state, never client HUD values."

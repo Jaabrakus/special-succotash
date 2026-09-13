@@ -1,0 +1,1284 @@
+{
+  "schema_version": 1,
+  "status": "original reader and equation audit; runtime not changed",
+  "mapping": "header-retained bases; includes file offsets so mapping remains auditable",
+  "inputs": [
+    {
+      "file": "FTSCore.bin",
+      "sha256": "cf09a7fabaf59a1d68f01411bd1db9e859af054df1f2fbc4775d8c221785f836",
+      "base": "0x1e7000"
+    },
+    {
+      "file": "ZSealEtc.bin",
+      "sha256": "cdb3fa8e707090ac879874e3987c6b7784808a4767e85d0e19fc6909d36549b1",
+      "base": "0x4c5380"
+    }
+  ],
+  "fields": [
+    {
+      "tag": "AccBurstCnt_Min",
+      "string": 4180400,
+      "reader": 3990512,
+      "setter": 3957424,
+      "offset": 616,
+      "type": "i32"
+    },
+    {
+      "tag": "AccBurstCnt_Max",
+      "string": 4180416,
+      "reader": 3990560,
+      "setter": 3957344,
+      "offset": 620,
+      "type": "i32"
+    },
+    {
+      "tag": "AccScalar_Min",
+      "string": 4180432,
+      "reader": 3990608,
+      "setter": 3957264,
+      "offset": 624,
+      "type": "f32"
+    },
+    {
+      "tag": "AccScalar_Max",
+      "string": 4180448,
+      "reader": 3990656,
+      "setter": 3957184,
+      "offset": 628,
+      "type": "f32"
+    },
+    {
+      "tag": "TargetDilateUponFire",
+      "string": 4179824,
+      "reader": 3989056,
+      "setter": 3957056,
+      "offset": 32,
+      "type": "stance_f32"
+    },
+    {
+      "tag": "TargetMin",
+      "string": 4179936,
+      "reader": 3989248,
+      "setter": 3956976,
+      "offset": 52,
+      "type": "stance_f32"
+    },
+    {
+      "tag": "TargetMax",
+      "string": 4179952,
+      "reader": 3989296,
+      "setter": 3956960,
+      "offset": 56,
+      "type": "stance_f32"
+    }
+  ],
+  "source_ranges": {
+    "slope": [
+      {
+        "pc": "0x3c61c0",
+        "file_offset": 1962432,
+        "word": "0xe48c0274",
+        "assembly": "swc1 f12,628(a0)"
+      },
+      {
+        "pc": "0x3c61c4",
+        "file_offset": 1962436,
+        "word": "0x8c85026c",
+        "assembly": "lw a1,620(a0)"
+      },
+      {
+        "pc": "0x3c61c8",
+        "file_offset": 1962440,
+        "word": "0x44800000",
+        "assembly": "mtc1 zero,f0"
+      },
+      {
+        "pc": "0x3c61cc",
+        "file_offset": 1962444,
+        "word": "0x8c830268",
+        "assembly": "lw v1,616(a0)"
+      },
+      {
+        "pc": "0x3c61d0",
+        "file_offset": 1962448,
+        "word": "0xa31823",
+        "assembly": "subu v1,a1,v1"
+      },
+      {
+        "pc": "0x3c61d4",
+        "file_offset": 1962452,
+        "word": "0x44830800",
+        "assembly": "mtc1 v1,f1"
+      },
+      {
+        "pc": "0x3c61d8",
+        "file_offset": 1962456,
+        "word": "0x0",
+        "assembly": "nop"
+      },
+      {
+        "pc": "0x3c61dc",
+        "file_offset": 1962460,
+        "word": "0x468008a0",
+        "assembly": "cvt.s.w f2,f1"
+      },
+      {
+        "pc": "0x3c61e0",
+        "file_offset": 1962464,
+        "word": "0x46020032",
+        "assembly": "c.eq.s f0,f2"
+      },
+      {
+        "pc": "0x3c61e4",
+        "file_offset": 1962468,
+        "word": "0x45010008",
+        "assembly": "bc1t 0x3c6208"
+      },
+      {
+        "pc": "0x3c61e8",
+        "file_offset": 1962472,
+        "word": "0x0",
+        "assembly": "nop"
+      },
+      {
+        "pc": "0x3c61ec",
+        "file_offset": 1962476,
+        "word": "0xc4810274",
+        "assembly": "lwc1 f1,628(a0)"
+      },
+      {
+        "pc": "0x3c61f0",
+        "file_offset": 1962480,
+        "word": "0xc4800270",
+        "assembly": "lwc1 f0,624(a0)"
+      },
+      {
+        "pc": "0x3c61f4",
+        "file_offset": 1962484,
+        "word": "0x46000801",
+        "assembly": "sub.s f0,f1,f0"
+      },
+      {
+        "pc": "0x3c61f8",
+        "file_offset": 1962488,
+        "word": "0x46020003",
+        "assembly": "div.s f0,f0,f2"
+      },
+      {
+        "pc": "0x3c61fc",
+        "file_offset": 1962492,
+        "word": "0x0",
+        "assembly": "nop"
+      },
+      {
+        "pc": "0x3c6200",
+        "file_offset": 1962496,
+        "word": "0x0",
+        "assembly": "nop"
+      },
+      {
+        "pc": "0x3c6204",
+        "file_offset": 1962500,
+        "word": "0x0",
+        "assembly": "nop"
+      },
+      {
+        "pc": "0x3c6208",
+        "file_offset": 1962504,
+        "word": "0x3e00008",
+        "assembly": "jr ra"
+      },
+      {
+        "pc": "0x3c620c",
+        "file_offset": 1962508,
+        "word": "0xe4800278",
+        "assembly": "swc1 f0,632(a0)"
+      }
+    ],
+    "burst": [
+      {
+        "pc": "0x5c3430",
+        "file_offset": 1040560,
+        "word": "0xc0f18c4",
+        "assembly": "jal 0x3c6310"
+      },
+      {
+        "pc": "0x5c3434",
+        "file_offset": 1040564,
+        "word": "0x220202d",
+        "assembly": "daddu a0,s1,zero"
+      },
+      {
+        "pc": "0x5c3438",
+        "file_offset": 1040568,
+        "word": "0x8e430818",
+        "assembly": "lw v1,2072(s2)"
+      },
+      {
+        "pc": "0x5c343c",
+        "file_offset": 1040572,
+        "word": "0x4480b000",
+        "assembly": "mtc1 zero,f22"
+      },
+      {
+        "pc": "0x5c3440",
+        "file_offset": 1040576,
+        "word": "0x24630001",
+        "assembly": "addiu v1,v1,1"
+      },
+      {
+        "pc": "0x5c3444",
+        "file_offset": 1040580,
+        "word": "0x629823",
+        "assembly": "subu s3,v1,v0"
+      },
+      {
+        "pc": "0x5c3448",
+        "file_offset": 1040584,
+        "word": "0x1a600011",
+        "assembly": "blez s3,zero,0x5c3490"
+      },
+      {
+        "pc": "0x5c344c",
+        "file_offset": 1040588,
+        "word": "0x220202d",
+        "assembly": "daddu a0,s1,zero"
+      },
+      {
+        "pc": "0x5c3450",
+        "file_offset": 1040592,
+        "word": "0xc0f18c0",
+        "assembly": "jal 0x3c6300"
+      },
+      {
+        "pc": "0x5c3454",
+        "file_offset": 1040596,
+        "word": "0x0",
+        "assembly": "nop"
+      },
+      {
+        "pc": "0x5c3458",
+        "file_offset": 1040600,
+        "word": "0x53082a",
+        "assembly": "slt at,v0,s3"
+      },
+      {
+        "pc": "0x5c345c",
+        "file_offset": 1040604,
+        "word": "0x10200006",
+        "assembly": "beq at,zero,0x5c3478"
+      },
+      {
+        "pc": "0x5c3460",
+        "file_offset": 1040608,
+        "word": "0x220202d",
+        "assembly": "daddu a0,s1,zero"
+      },
+      {
+        "pc": "0x5c3464",
+        "file_offset": 1040612,
+        "word": "0xc0f18c0",
+        "assembly": "jal 0x3c6300"
+      },
+      {
+        "pc": "0x5c3468",
+        "file_offset": 1040616,
+        "word": "0x0",
+        "assembly": "nop"
+      },
+      {
+        "pc": "0x5c346c",
+        "file_offset": 1040620,
+        "word": "0x44820000",
+        "assembly": "mtc1 v0,f0"
+      },
+      {
+        "pc": "0x5c3470",
+        "file_offset": 1040624,
+        "word": "0x10000004",
+        "assembly": "beq zero,zero,0x5c3484"
+      },
+      {
+        "pc": "0x5c3474",
+        "file_offset": 1040628,
+        "word": "0x46800060",
+        "assembly": "cvt.s.w f1,f0"
+      },
+      {
+        "pc": "0x5c3478",
+        "file_offset": 1040632,
+        "word": "0x44930000",
+        "assembly": "mtc1 s3,f0"
+      },
+      {
+        "pc": "0x5c347c",
+        "file_offset": 1040636,
+        "word": "0x0",
+        "assembly": "nop"
+      },
+      {
+        "pc": "0x5c3480",
+        "file_offset": 1040640,
+        "word": "0x46800060",
+        "assembly": "cvt.s.w f1,f0"
+      },
+      {
+        "pc": "0x5c3484",
+        "file_offset": 1040644,
+        "word": "0xc6200278",
+        "assembly": "lwc1 f0,632(s1)"
+      },
+      {
+        "pc": "0x5c3488",
+        "file_offset": 1040648,
+        "word": "0x46000d82",
+        "assembly": "mul.s f22,f1,f0"
+      },
+      {
+        "pc": "0x5c348c",
+        "file_offset": 1040652,
+        "word": "0x0",
+        "assembly": "nop"
+      }
+    ],
+    "dilation": [
+      {
+        "pc": "0x5c36a8",
+        "file_offset": 1041192,
+        "word": "0x4616c802",
+        "assembly": "mul.s f0,f25,f22"
+      },
+      {
+        "pc": "0x5c36ac",
+        "file_offset": 1041196,
+        "word": "0xc642084c",
+        "assembly": "lwc1 f2,2124(s2)"
+      },
+      {
+        "pc": "0x5c36b0",
+        "file_offset": 1041200,
+        "word": "0x4600c840",
+        "assembly": "add.s f1,f25,f0"
+      },
+      {
+        "pc": "0x5c36b4",
+        "file_offset": 1041204,
+        "word": "0xe6420850",
+        "assembly": "swc1 f2,2128(s2)"
+      },
+      {
+        "pc": "0x5c36b8",
+        "file_offset": 1041208,
+        "word": "0xc640084c",
+        "assembly": "lwc1 f0,2124(s2)"
+      },
+      {
+        "pc": "0x5c36bc",
+        "file_offset": 1041212,
+        "word": "0x46010000",
+        "assembly": "add.s f0,f0,f1"
+      },
+      {
+        "pc": "0x5c36c0",
+        "file_offset": 1041216,
+        "word": "0x46180034",
+        "assembly": "c.olt.s f0,f24"
+      },
+      {
+        "pc": "0x5c36c4",
+        "file_offset": 1041220,
+        "word": "0x45000004",
+        "assembly": "bc1f 0x5c36d8"
+      },
+      {
+        "pc": "0x5c36c8",
+        "file_offset": 1041224,
+        "word": "0xe640084c",
+        "assembly": "swc1 f0,2124(s2)"
+      },
+      {
+        "pc": "0x5c36cc",
+        "file_offset": 1041228,
+        "word": "0x10000006",
+        "assembly": "beq zero,zero,0x5c36e8"
+      },
+      {
+        "pc": "0x5c36d0",
+        "file_offset": 1041232,
+        "word": "0xe658084c",
+        "assembly": "swc1 f24,2124(s2)"
+      },
+      {
+        "pc": "0x5c36d4",
+        "file_offset": 1041236,
+        "word": "0x0",
+        "assembly": "nop"
+      },
+      {
+        "pc": "0x5c36d8",
+        "file_offset": 1041240,
+        "word": "0x46170036",
+        "assembly": "c.ole.s f0,f23"
+      },
+      {
+        "pc": "0x5c36dc",
+        "file_offset": 1041244,
+        "word": "0x45010002",
+        "assembly": "bc1t 0x5c36e8"
+      },
+      {
+        "pc": "0x5c36e0",
+        "file_offset": 1041248,
+        "word": "0x0",
+        "assembly": "nop"
+      },
+      {
+        "pc": "0x5c36e4",
+        "file_offset": 1041252,
+        "word": "0xe657084c",
+        "assembly": "swc1 f23,2124(s2)"
+      }
+    ]
+  },
+  "fixtures": [
+    {
+      "name": "M4A1 count 0",
+      "countMin": 4,
+      "countMax": 7,
+      "scalarMin": 0,
+      "scalarMax": 0.029999999329447746,
+      "shotCount": 0,
+      "fire": 7,
+      "prior": 1,
+      "minimum": 1,
+      "maximum": 26,
+      "expected": {
+        "slope": 0.009999999776482582,
+        "burst": 0,
+        "increment": 7,
+        "unclamped": 8,
+        "previous": 1,
+        "next": 8
+      }
+    },
+    {
+      "name": "M4A1 count 2",
+      "countMin": 4,
+      "countMax": 7,
+      "scalarMin": 0,
+      "scalarMax": 0.029999999329447746,
+      "shotCount": 2,
+      "fire": 7,
+      "prior": 1,
+      "minimum": 1,
+      "maximum": 26,
+      "expected": {
+        "slope": 0.009999999776482582,
+        "burst": 0,
+        "increment": 7,
+        "unclamped": 8,
+        "previous": 1,
+        "next": 8
+      }
+    },
+    {
+      "name": "M4A1 count 3",
+      "countMin": 4,
+      "countMax": 7,
+      "scalarMin": 0,
+      "scalarMax": 0.029999999329447746,
+      "shotCount": 3,
+      "fire": 7,
+      "prior": 1,
+      "minimum": 1,
+      "maximum": 26,
+      "expected": {
+        "slope": 0.009999999776482582,
+        "burst": 0,
+        "increment": 7,
+        "unclamped": 8,
+        "previous": 1,
+        "next": 8
+      }
+    },
+    {
+      "name": "M4A1 count 4",
+      "countMin": 4,
+      "countMax": 7,
+      "scalarMin": 0,
+      "scalarMax": 0.029999999329447746,
+      "shotCount": 4,
+      "fire": 7,
+      "prior": 1,
+      "minimum": 1,
+      "maximum": 26,
+      "expected": {
+        "slope": 0.009999999776482582,
+        "burst": 0.009999999776482582,
+        "increment": 7.070000171661377,
+        "unclamped": 8.069999694824219,
+        "previous": 1,
+        "next": 8.069999694824219
+      }
+    },
+    {
+      "name": "M4A1 count 6",
+      "countMin": 4,
+      "countMax": 7,
+      "scalarMin": 0,
+      "scalarMax": 0.029999999329447746,
+      "shotCount": 6,
+      "fire": 7,
+      "prior": 1,
+      "minimum": 1,
+      "maximum": 26,
+      "expected": {
+        "slope": 0.009999999776482582,
+        "burst": 0.029999999329447746,
+        "increment": 7.210000038146973,
+        "unclamped": 8.210000038146973,
+        "previous": 1,
+        "next": 8.210000038146973
+      }
+    },
+    {
+      "name": "M4A1 count 7",
+      "countMin": 4,
+      "countMax": 7,
+      "scalarMin": 0,
+      "scalarMax": 0.029999999329447746,
+      "shotCount": 7,
+      "fire": 7,
+      "prior": 1,
+      "minimum": 1,
+      "maximum": 26,
+      "expected": {
+        "slope": 0.009999999776482582,
+        "burst": 0.03999999910593033,
+        "increment": 7.28000020980835,
+        "unclamped": 8.280000686645508,
+        "previous": 1,
+        "next": 8.280000686645508
+      }
+    },
+    {
+      "name": "M4A1 count 9",
+      "countMin": 4,
+      "countMax": 7,
+      "scalarMin": 0,
+      "scalarMax": 0.029999999329447746,
+      "shotCount": 9,
+      "fire": 7,
+      "prior": 1,
+      "minimum": 1,
+      "maximum": 26,
+      "expected": {
+        "slope": 0.009999999776482582,
+        "burst": 0.05999999865889549,
+        "increment": 7.420000076293945,
+        "unclamped": 8.420000076293945,
+        "previous": 1,
+        "next": 8.420000076293945
+      }
+    },
+    {
+      "name": "M4A1 count 10",
+      "countMin": 4,
+      "countMax": 7,
+      "scalarMin": 0,
+      "scalarMax": 0.029999999329447746,
+      "shotCount": 10,
+      "fire": 7,
+      "prior": 1,
+      "minimum": 1,
+      "maximum": 26,
+      "expected": {
+        "slope": 0.009999999776482582,
+        "burst": 0.07000000029802322,
+        "increment": 7.489999771118164,
+        "unclamped": 8.489999771118164,
+        "previous": 1,
+        "next": 8.489999771118164
+      }
+    },
+    {
+      "name": "M4A1 count 30",
+      "countMin": 4,
+      "countMax": 7,
+      "scalarMin": 0,
+      "scalarMax": 0.029999999329447746,
+      "shotCount": 30,
+      "fire": 7,
+      "prior": 1,
+      "minimum": 1,
+      "maximum": 26,
+      "expected": {
+        "slope": 0.009999999776482582,
+        "burst": 0.07000000029802322,
+        "increment": 7.489999771118164,
+        "unclamped": 8.489999771118164,
+        "previous": 1,
+        "next": 8.489999771118164
+      }
+    },
+    {
+      "name": "equal denominator",
+      "countMin": 4,
+      "countMax": 4,
+      "scalarMin": 0,
+      "scalarMax": 0.029999999329447746,
+      "shotCount": 8,
+      "fire": 7,
+      "prior": 1,
+      "minimum": 1,
+      "maximum": 26,
+      "expected": {
+        "slope": 0,
+        "burst": 0,
+        "increment": 7,
+        "unclamped": 8,
+        "previous": 1,
+        "next": 8
+      }
+    },
+    {
+      "name": "upper clamp",
+      "countMin": 4,
+      "countMax": 7,
+      "scalarMin": 0,
+      "scalarMax": 0.029999999329447746,
+      "shotCount": 5,
+      "fire": 7,
+      "prior": 24,
+      "minimum": 1,
+      "maximum": 26,
+      "expected": {
+        "slope": 0.009999999776482582,
+        "burst": 0.019999999552965164,
+        "increment": 7.139999866485596,
+        "unclamped": 31.139999389648438,
+        "previous": 24,
+        "next": 26
+      }
+    },
+    {
+      "name": "lower clamp",
+      "countMin": 4,
+      "countMax": 7,
+      "scalarMin": 0,
+      "scalarMax": 0.029999999329447746,
+      "shotCount": 0,
+      "fire": -7,
+      "prior": 1,
+      "minimum": 1,
+      "maximum": 26,
+      "expected": {
+        "slope": 0.009999999776482582,
+        "burst": 0,
+        "increment": -7,
+        "unclamped": -6,
+        "previous": 1,
+        "next": 1
+      }
+    },
+    {
+      "name": "nonzero scalar minimum not added",
+      "countMin": 3,
+      "countMax": 8,
+      "scalarMin": 0.20000000298023224,
+      "scalarMax": 2.799999952316284,
+      "shotCount": 3,
+      "fire": 1,
+      "prior": 1,
+      "minimum": 1,
+      "maximum": 100,
+      "expected": {
+        "slope": 0.5199999809265137,
+        "burst": 0.5199999809265137,
+        "increment": 1.5199999809265137,
+        "unclamped": 2.5199999809265137,
+        "previous": 1,
+        "next": 2.5199999809265137
+      }
+    },
+    {
+      "name": "constructor default slope zero",
+      "countMin": 16777215,
+      "countMax": 16777215,
+      "scalarMin": 1,
+      "scalarMax": 1,
+      "shotCount": 20,
+      "fire": 7,
+      "prior": 1,
+      "minimum": 1,
+      "maximum": 26,
+      "expected": {
+        "slope": 0,
+        "burst": 0,
+        "increment": 7,
+        "unclamped": 8,
+        "previous": 1,
+        "next": 8
+      }
+    }
+  ],
+  "original_instruction_execution": {
+    "status": "PASS",
+    "domain": "finite-normal IEEE float32 fixture interpreter, not complete R5900 FPU",
+    "external_stubs": 0,
+    "cases": [
+      {
+        "name": "M4A1 count 0",
+        "setters": [
+          {
+            "entry": "0x3c62b0",
+            "steps": 20,
+            "writes": 2
+          },
+          {
+            "entry": "0x3c6260",
+            "steps": 20,
+            "writes": 2
+          },
+          {
+            "entry": "0x3c6210",
+            "steps": 20,
+            "writes": 2
+          },
+          {
+            "entry": "0x3c61c0",
+            "steps": 20,
+            "writes": 2
+          }
+        ],
+        "burst": {
+          "steps": 10,
+          "writes": 0
+        },
+        "dilation": {
+          "steps": 12,
+          "writes": 2
+        },
+        "outputs": {
+          "slope": 0.009999999776482582,
+          "burst": 0,
+          "next": 8,
+          "previous": 1
+        }
+      },
+      {
+        "name": "M4A1 count 2",
+        "setters": [
+          {
+            "entry": "0x3c62b0",
+            "steps": 20,
+            "writes": 2
+          },
+          {
+            "entry": "0x3c6260",
+            "steps": 20,
+            "writes": 2
+          },
+          {
+            "entry": "0x3c6210",
+            "steps": 20,
+            "writes": 2
+          },
+          {
+            "entry": "0x3c61c0",
+            "steps": 20,
+            "writes": 2
+          }
+        ],
+        "burst": {
+          "steps": 10,
+          "writes": 0
+        },
+        "dilation": {
+          "steps": 12,
+          "writes": 2
+        },
+        "outputs": {
+          "slope": 0.009999999776482582,
+          "burst": 0,
+          "next": 8,
+          "previous": 1
+        }
+      },
+      {
+        "name": "M4A1 count 3",
+        "setters": [
+          {
+            "entry": "0x3c62b0",
+            "steps": 20,
+            "writes": 2
+          },
+          {
+            "entry": "0x3c6260",
+            "steps": 20,
+            "writes": 2
+          },
+          {
+            "entry": "0x3c6210",
+            "steps": 20,
+            "writes": 2
+          },
+          {
+            "entry": "0x3c61c0",
+            "steps": 20,
+            "writes": 2
+          }
+        ],
+        "burst": {
+          "steps": 10,
+          "writes": 0
+        },
+        "dilation": {
+          "steps": 12,
+          "writes": 2
+        },
+        "outputs": {
+          "slope": 0.009999999776482582,
+          "burst": 0,
+          "next": 8,
+          "previous": 1
+        }
+      },
+      {
+        "name": "M4A1 count 4",
+        "setters": [
+          {
+            "entry": "0x3c62b0",
+            "steps": 20,
+            "writes": 2
+          },
+          {
+            "entry": "0x3c6260",
+            "steps": 20,
+            "writes": 2
+          },
+          {
+            "entry": "0x3c6210",
+            "steps": 20,
+            "writes": 2
+          },
+          {
+            "entry": "0x3c61c0",
+            "steps": 20,
+            "writes": 2
+          }
+        ],
+        "burst": {
+          "steps": 23,
+          "writes": 0
+        },
+        "dilation": {
+          "steps": 12,
+          "writes": 2
+        },
+        "outputs": {
+          "slope": 0.009999999776482582,
+          "burst": 0.009999999776482582,
+          "next": 8.069999694824219,
+          "previous": 1
+        }
+      },
+      {
+        "name": "M4A1 count 6",
+        "setters": [
+          {
+            "entry": "0x3c62b0",
+            "steps": 20,
+            "writes": 2
+          },
+          {
+            "entry": "0x3c6260",
+            "steps": 20,
+            "writes": 2
+          },
+          {
+            "entry": "0x3c6210",
+            "steps": 20,
+            "writes": 2
+          },
+          {
+            "entry": "0x3c61c0",
+            "steps": 20,
+            "writes": 2
+          }
+        ],
+        "burst": {
+          "steps": 23,
+          "writes": 0
+        },
+        "dilation": {
+          "steps": 12,
+          "writes": 2
+        },
+        "outputs": {
+          "slope": 0.009999999776482582,
+          "burst": 0.029999999329447746,
+          "next": 8.210000038146973,
+          "previous": 1
+        }
+      },
+      {
+        "name": "M4A1 count 7",
+        "setters": [
+          {
+            "entry": "0x3c62b0",
+            "steps": 20,
+            "writes": 2
+          },
+          {
+            "entry": "0x3c6260",
+            "steps": 20,
+            "writes": 2
+          },
+          {
+            "entry": "0x3c6210",
+            "steps": 20,
+            "writes": 2
+          },
+          {
+            "entry": "0x3c61c0",
+            "steps": 20,
+            "writes": 2
+          }
+        ],
+        "burst": {
+          "steps": 23,
+          "writes": 0
+        },
+        "dilation": {
+          "steps": 12,
+          "writes": 2
+        },
+        "outputs": {
+          "slope": 0.009999999776482582,
+          "burst": 0.03999999910593033,
+          "next": 8.280000686645508,
+          "previous": 1
+        }
+      },
+      {
+        "name": "M4A1 count 9",
+        "setters": [
+          {
+            "entry": "0x3c62b0",
+            "steps": 20,
+            "writes": 2
+          },
+          {
+            "entry": "0x3c6260",
+            "steps": 20,
+            "writes": 2
+          },
+          {
+            "entry": "0x3c6210",
+            "steps": 20,
+            "writes": 2
+          },
+          {
+            "entry": "0x3c61c0",
+            "steps": 20,
+            "writes": 2
+          }
+        ],
+        "burst": {
+          "steps": 23,
+          "writes": 0
+        },
+        "dilation": {
+          "steps": 12,
+          "writes": 2
+        },
+        "outputs": {
+          "slope": 0.009999999776482582,
+          "burst": 0.05999999865889549,
+          "next": 8.420000076293945,
+          "previous": 1
+        }
+      },
+      {
+        "name": "M4A1 count 10",
+        "setters": [
+          {
+            "entry": "0x3c62b0",
+            "steps": 20,
+            "writes": 2
+          },
+          {
+            "entry": "0x3c6260",
+            "steps": 20,
+            "writes": 2
+          },
+          {
+            "entry": "0x3c6210",
+            "steps": 20,
+            "writes": 2
+          },
+          {
+            "entry": "0x3c61c0",
+            "steps": 20,
+            "writes": 2
+          }
+        ],
+        "burst": {
+          "steps": 23,
+          "writes": 0
+        },
+        "dilation": {
+          "steps": 12,
+          "writes": 2
+        },
+        "outputs": {
+          "slope": 0.009999999776482582,
+          "burst": 0.07000000029802322,
+          "next": 8.489999771118164,
+          "previous": 1
+        }
+      },
+      {
+        "name": "M4A1 count 30",
+        "setters": [
+          {
+            "entry": "0x3c62b0",
+            "steps": 20,
+            "writes": 2
+          },
+          {
+            "entry": "0x3c6260",
+            "steps": 20,
+            "writes": 2
+          },
+          {
+            "entry": "0x3c6210",
+            "steps": 20,
+            "writes": 2
+          },
+          {
+            "entry": "0x3c61c0",
+            "steps": 20,
+            "writes": 2
+          }
+        ],
+        "burst": {
+          "steps": 27,
+          "writes": 0
+        },
+        "dilation": {
+          "steps": 12,
+          "writes": 2
+        },
+        "outputs": {
+          "slope": 0.009999999776482582,
+          "burst": 0.07000000029802322,
+          "next": 8.489999771118164,
+          "previous": 1
+        }
+      },
+      {
+        "name": "equal denominator",
+        "setters": [
+          {
+            "entry": "0x3c62b0",
+            "steps": 20,
+            "writes": 2
+          },
+          {
+            "entry": "0x3c6260",
+            "steps": 13,
+            "writes": 2
+          },
+          {
+            "entry": "0x3c6210",
+            "steps": 13,
+            "writes": 2
+          },
+          {
+            "entry": "0x3c61c0",
+            "steps": 13,
+            "writes": 2
+          }
+        ],
+        "burst": {
+          "steps": 27,
+          "writes": 0
+        },
+        "dilation": {
+          "steps": 12,
+          "writes": 2
+        },
+        "outputs": {
+          "slope": 0,
+          "burst": 0,
+          "next": 8,
+          "previous": 1
+        }
+      },
+      {
+        "name": "upper clamp",
+        "setters": [
+          {
+            "entry": "0x3c62b0",
+            "steps": 20,
+            "writes": 2
+          },
+          {
+            "entry": "0x3c6260",
+            "steps": 20,
+            "writes": 2
+          },
+          {
+            "entry": "0x3c6210",
+            "steps": 20,
+            "writes": 2
+          },
+          {
+            "entry": "0x3c61c0",
+            "steps": 20,
+            "writes": 2
+          }
+        ],
+        "burst": {
+          "steps": 23,
+          "writes": 0
+        },
+        "dilation": {
+          "steps": 13,
+          "writes": 3
+        },
+        "outputs": {
+          "slope": 0.009999999776482582,
+          "burst": 0.019999999552965164,
+          "next": 26,
+          "previous": 24
+        }
+      },
+      {
+        "name": "lower clamp",
+        "setters": [
+          {
+            "entry": "0x3c62b0",
+            "steps": 20,
+            "writes": 2
+          },
+          {
+            "entry": "0x3c6260",
+            "steps": 20,
+            "writes": 2
+          },
+          {
+            "entry": "0x3c6210",
+            "steps": 20,
+            "writes": 2
+          },
+          {
+            "entry": "0x3c61c0",
+            "steps": 20,
+            "writes": 2
+          }
+        ],
+        "burst": {
+          "steps": 10,
+          "writes": 0
+        },
+        "dilation": {
+          "steps": 11,
+          "writes": 3
+        },
+        "outputs": {
+          "slope": 0.009999999776482582,
+          "burst": 0,
+          "next": 1,
+          "previous": 1
+        }
+      },
+      {
+        "name": "nonzero scalar minimum not added",
+        "setters": [
+          {
+            "entry": "0x3c62b0",
+            "steps": 20,
+            "writes": 2
+          },
+          {
+            "entry": "0x3c6260",
+            "steps": 20,
+            "writes": 2
+          },
+          {
+            "entry": "0x3c6210",
+            "steps": 20,
+            "writes": 2
+          },
+          {
+            "entry": "0x3c61c0",
+            "steps": 20,
+            "writes": 2
+          }
+        ],
+        "burst": {
+          "steps": 23,
+          "writes": 0
+        },
+        "dilation": {
+          "steps": 12,
+          "writes": 2
+        },
+        "outputs": {
+          "slope": 0.5199999809265137,
+          "burst": 0.5199999809265137,
+          "next": 2.5199999809265137,
+          "previous": 1
+        }
+      },
+      {
+        "name": "constructor default slope zero",
+        "setters": [
+          {
+            "entry": "0x3c62b0",
+            "steps": 13,
+            "writes": 2
+          },
+          {
+            "entry": "0x3c6260",
+            "steps": 13,
+            "writes": 2
+          },
+          {
+            "entry": "0x3c6210",
+            "steps": 13,
+            "writes": 2
+          },
+          {
+            "entry": "0x3c61c0",
+            "steps": 13,
+            "writes": 2
+          }
+        ],
+        "burst": {
+          "steps": 10,
+          "writes": 0
+        },
+        "dilation": {
+          "steps": 12,
+          "writes": 2
+        },
+        "outputs": {
+          "slope": 0,
+          "burst": 0,
+          "next": 8,
+          "previous": 1
+        }
+      }
+    ]
+  },
+  "limitations": [
+    "Not complete R5900 floating-point semantics",
+    "Reticle dilation units are not proven degrees",
+    "Burst counter/reset ownership and downstream shot dispersion not proven here",
+    "Nested AccuracyBurstCnt/AccuracyScalar tags are not the named top-level reader fields"
+  ]
+}

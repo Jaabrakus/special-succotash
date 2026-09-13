@@ -1,0 +1,7 @@
+COMMAND: /Users/kiwimango/Applications/Godot-4.7.1.app/Contents/MacOS/Godot --headless -s tools/contextual_hud_regression.gd
+EXIT_CODE: 0
+DURATION: 0.24s
+
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+CONTEXTUAL_HUD_PASS: snapshot dedupe, simultaneous events, fades, glance, critical visibility, aim center

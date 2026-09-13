@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "status": "Decoded original modules; gameplay equations not yet promoted",
+  "modules": [
+    {
+      "name": "FTSCore.bin",
+      "archiveEntry": "ftscore",
+      "sourceSha256": "7aa530a801f05872319a9fd4475b10bc7ddbd5150ae2fc0f736e87ff65f9a000",
+      "compressedBytes": 849785,
+      "compressedSha256": "e4c361bac65ea5759f48522024e0b5c658ff22485a3e7bf99ff8e806790e25a8",
+      "decodedBytes": 2233472,
+      "decodedSha256": "cf09a7fabaf59a1d68f01411bd1db9e859af054df1f2fbc4775d8c221785f836",
+      "base": "0x1e7000",
+      "textBytes": 2052024,
+      "dataBytes": 181200,
+      "bssBytes": 708352,
+      "trailingBytesBeyondUnalignedSpans": 184,
+      "layoutNote": "Header spans are bounded; exact trailing metadata/alignment and runtime load mapping require loader verification.",
+      "outerSourceChecksumVerified": true,
+      "innerMarkersVerified": true,
+      "zlibChecksumVerified": true
+    },
+    {
+      "name": "ZSealEtc.bin",
+      "archiveEntry": "zsealetc",
+      "sourceSha256": "647055ef609e8f07b9e1a8c39624dc48fa770fd900c82fcdf9dc41ad2fa69dc4",
+      "compressedBytes": 686949,
+      "compressedSha256": "3370aad90cf79ab233f78b5ef4ebf2022a993a61a76766c20d2e7fcc8d0b19a1",
+      "decodedBytes": 1723520,
+      "decodedSha256": "cdb3fa8e707090ac879874e3987c6b7784808a4767e85d0e19fc6909d36549b1",
+      "base": "0x4c5380",
+      "textBytes": 1614776,
+      "dataBytes": 108672,
+      "bssBytes": 118656,
+      "trailingBytesBeyondUnalignedSpans": 8,
+      "layoutNote": "Header spans are bounded; exact trailing metadata/alignment and runtime load mapping require loader verification.",
+      "outerSourceChecksumVerified": true,
+      "innerMarkersVerified": true,
+      "zlibChecksumVerified": true
+    }
+  ]
+}

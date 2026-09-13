@@ -9,6 +9,7 @@ extends RefCounted
 
 const FINGER_SEGMENT_WEIGHTS := [0.45, 0.35, 0.20]
 const FINGER_NAMES := ["Index", "Middle", "Ring", "Pinky"]
+const SupportWrist := preload("res://scripts/player/operator_support_wrist.gd")
 
 var skeleton: Skeleton3D
 var weapon: Node3D
@@ -16,19 +17,24 @@ var applied_right: bool = false
 var applied_left: bool = false
 var applied_bone_count: int = 0
 var source_rifle_grip: bool = false
+var source_pistol_grip: bool = false
 var _desired_global_poses: Dictionary = {}
+var _source_pistol_owned_bones: Array[int] = []
 
 
 func bind(target_skeleton: Skeleton3D, attached_weapon: Node3D) -> void:
+	_release_source_pistol_overrides()
 	skeleton = target_skeleton
 	weapon = attached_weapon
 	applied_right = false
 	applied_left = false
 	applied_bone_count = 0
+	source_pistol_grip = false
 	_desired_global_poses.clear()
 
 
 func rebind_weapon(attached_weapon: Node3D) -> void:
+	_release_source_pistol_overrides()
 	weapon = attached_weapon
 
 
@@ -37,6 +43,8 @@ func apply(
 	support_hand_mode: StringName,
 	weapon_visible: bool
 ) -> void:
+	_release_source_pistol_overrides()
+	source_pistol_grip = false
 	applied_right = false
 	applied_left = false
 	applied_bone_count = 0
@@ -63,10 +71,50 @@ func apply(
 	applied_right = true
 	if support_hand_mode == &"IK_TO_WEAPON":
 		if source_rifle_grip:
-			_apply_source_hand("Left", curl, thumb)
+			var support: Dictionary = SupportWrist.profile
+			var underhand: bool = bool(support.get("enabled", false)) and bool(support.get("palm_under_fore_end", false))
+			_apply_source_hand("Left", clampf(float(support.get("finger_curl", curl)), 0.0, 1.0) if underhand else curl,
+				clampf(float(support.get("thumb_wrap", thumb)), 0.0, 1.0) if underhand else thumb)
 		else:
 			_apply_hand("Left", curl, thumb, 1.0, 1.0)
 		applied_left = true
+
+
+func apply_source_pistol(weapon_visible: bool, close_support: bool) -> void:
+	# Source clips own arms and wrists. Only missing target finger articulation
+	# is supplied here; a nearby support hand is not automatically a held grip.
+	_release_source_pistol_overrides()
+	applied_right = false
+	applied_left = false
+	applied_bone_count = 0
+	source_pistol_grip = false
+	_desired_global_poses.clear()
+	if not is_instance_valid(skeleton) or not is_instance_valid(weapon) or not weapon_visible:
+		return
+	var raw_pose: Variant = weapon.get_meta("support_hand_pose", {})
+	var pose: Dictionary = raw_pose if raw_pose is Dictionary else {}
+	var curl := clampf(float(pose.get("finger_curl", 0.72)), 0.0, 1.0)
+	var thumb := clampf(float(pose.get("thumb_wrap", 0.64)), 0.0, 1.0)
+	if not is_finite(curl) or curl <= 0.001:
+		curl = 0.72
+	if not is_finite(thumb) or thumb <= 0.001:
+		thumb = 0.64
+	_apply_source_hand("Right", curl, thumb)
+	applied_right = true
+	if close_support:
+		_apply_source_hand("Left", curl, thumb)
+		applied_left = true
+	for bone: int in _desired_global_poses:
+		_source_pistol_owned_bones.append(bone)
+	source_pistol_grip = true
+
+
+func _release_source_pistol_overrides() -> void:
+	if is_instance_valid(skeleton):
+		for bone: int in _source_pistol_owned_bones:
+			if bone < skeleton.get_bone_count():
+				skeleton.set_bone_global_pose_override(bone, Transform3D.IDENTITY, 0.0, false)
+	_source_pistol_owned_bones.clear()
 
 
 func snapshot() -> Dictionary:
@@ -75,6 +123,7 @@ func snapshot() -> Dictionary:
 		"left_grip_applied": applied_left,
 		"bone_count": applied_bone_count,
 		"source_rifle_grip": source_rifle_grip,
+		"source_pistol_grip": source_pistol_grip,
 	}
 
 

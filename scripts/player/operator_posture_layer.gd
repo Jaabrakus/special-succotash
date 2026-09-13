@@ -2,7 +2,7 @@ class_name SocomOperatorPostureLayer
 extends RefCounted
 
 ## Distributes camera-authoritative aim over the anatomical upper-body chain.
-## It never rotates hips and therefore cannot change gameplay orientation.
+## Bone-only presentation; it never changes the authoritative body's transform.
 
 const ProceduralPoseProfile := preload(
 	"res://scripts/player/operator_procedural_pose_profile.gd"
@@ -75,13 +75,42 @@ var authored_peek_family: StringName = &"TWO_HAND_RIFLE"
 var peek_travel_weight: float = 0.0
 var last_authored_peek_source := ""
 var preserve_authored_body := false
+var source_pose_only := false
+var look_pitch_profile: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://config/look_pitch_presentation.json"))
+var smoothed_look_pitch := 0.0
+
+func advance_look_pitch(target: float, allowed: bool, delta: float) -> float:
+	if source_pose_only or not allowed:
+		smoothed_look_pitch = 0.0
+		return 0.0
+	var response := maxf(float(look_pitch_profile.get("response", 12.0)), 0.0)
+	smoothed_look_pitch = lerpf(smoothed_look_pitch, target, 1.0 - exp(-response * maxf(delta, 0.0)))
+	return smoothed_look_pitch
+
+func torso_pitch_weight(posture_name: StringName, ready_weight: float) -> float:
+	var relaxed := 0.0
+	if bool(look_pitch_profile.get("enabled", false)) and posture_name in [&"STANDING", &"CROUCHED"]:
+		relaxed = clampf(float(look_pitch_profile.get("relaxed_torso_weight", 0.4)), 0.0, 0.6)
+	return maxf(clampf(ready_weight, 0.0, 1.0), relaxed)
 var legacy_pistol_frame_weight := 0.0
 var legacy_pistol_reference_hips := Quaternion.IDENTITY
 
 var preserve_grounded_lean_legs := false
+var standing_lean_full_body := false
+var lean_blend_seconds := 0.18
+var visual_peek_amount := 0.0
+var standing_lean_weight := 0.0
+
+func advance_lean(target: float, stationary_standing: bool, delta: float) -> float:
+	var step := maxf(delta, 0.0) / lean_blend_seconds
+	visual_peek_amount = move_toward(visual_peek_amount, clampf(target, -1.0, 1.0), step)
+	standing_lean_weight = move_toward(standing_lean_weight, float(stationary_standing), step)
+	return visual_peek_amount
 
 func configure_authored_peek(profile: Dictionary) -> void:
 	preserve_grounded_lean_legs = bool(profile.get("preserve_grounded_legs", false))
+	standing_lean_full_body = bool(profile.get("standing_full_body", false))
+	lean_blend_seconds = clampf(float(profile.get("blend_seconds", 0.18)), 0.08, 0.4)
 	authored_peek_clips.clear()
 	if not bool(profile.get("enabled", false)):
 		return
@@ -120,9 +149,15 @@ func _apply_authored_peek(posture: StringName, amount: float) -> bool:
 	var clip: Animation = authored_peek_clips.get(key)
 	if clip == null or skeleton == null:
 		return false
+	if source_pose_only:
+		return _apply_source_only_peek_clip(clip, amount)
 	# The held SEAL pose includes arms and shoulders, not a procedural lean
 	# approximation. Weapon contact runs afterward against these authored arms.
 	var maximum_angle := 0.0
+	var upper_hip_frame := Quaternion.IDENTITY
+	var grounded := preserve_grounded_lean_legs and posture in [&"STANDING", &"CROUCHED"]
+	var lower_weight := standing_lean_weight if standing_lean_full_body and posture == &"STANDING" else 0.0
+	var support_before := _lean_support_height() if grounded and lower_weight > 0.0 else INF
 	for track in clip.get_track_count():
 		if clip.track_get_type(track) != Animation.TYPE_ROTATION_3D:
 			continue
@@ -131,10 +166,19 @@ func _apply_authored_peek(posture: StringName, amount: float) -> bool:
 		if index < 0:
 			continue
 		var initial := clip.rotation_track_interpolate(track, 0.0)
-		var sample := clip.rotation_track_interpolate(track, absf(amount) * clip.length)
+		# Blend to the held pose once. Scrubbing the entry take backward and also
+		# weighting it during fire recovery creates an unrelated intermediate pose.
+		var sample := clip.rotation_track_interpolate(track, clip.length if grounded else absf(amount) * clip.length)
 		var blend_weight := clampf(absf(amount), 0.0, 1.0)
 		if bone.ends_with("Hips") or "Leg" in bone or "Foot" in bone or "Toe" in bone:
-			if preserve_grounded_lean_legs and posture in [&"STANDING", &"CROUCHED"]:
+			if grounded:
+				if bone.ends_with("Hips"):
+					var gait_hips := skeleton.get_bone_pose_rotation(index)
+					var lean_hips := gait_hips.slerp(sample, blend_weight * lower_weight).normalized()
+					upper_hip_frame = (lean_hips.inverse() * gait_hips.slerp(sample, blend_weight)).normalized()
+					skeleton.set_bone_pose_rotation(index, lean_hips)
+				elif lower_weight > 0.0:
+					skeleton.set_bone_pose_rotation(index, skeleton.get_bone_pose_rotation(index).slerp(sample, blend_weight * lower_weight).normalized())
 				continue
 			# Walking/crawling legs remain driven by canonical locomotion, not a
 			# held full-body lean endpoint. Stationary poses remain unchanged.
@@ -144,9 +188,51 @@ func _apply_authored_peek(posture: StringName, amount: float) -> bool:
 		skeleton.set_bone_pose_rotation(index, skeleton.get_bone_pose_rotation(index).slerp(
 			sample, blend_weight
 		).normalized())
+	if grounded:
+		var spine := skeleton.find_bone("mixamorig_Spine")
+		var hips := skeleton.find_bone("mixamorig_Hips")
+		if spine >= 0 and skeleton.get_bone_parent(spine) == hips:
+			skeleton.set_bone_pose_rotation(spine, (upper_hip_frame * skeleton.get_bone_pose_rotation(spine)).normalized())
+		if hips >= 0 and is_finite(support_before):
+			var support_after := _lean_support_height()
+			if is_finite(support_after):
+				# Source rotations require their matching support height. Adjust only
+				# visual pelvis translation, never the CharacterBody or gait clock.
+				var hip_pose := skeleton.get_bone_global_pose(hips)
+				hip_pose.origin.y += support_before - support_after
+				skeleton.set_bone_global_pose(hips, hip_pose)
 	last_peek_roll_deg = maximum_angle
 	last_authored_peek_source = str(clip.get_meta("source_name", ""))
 	return true
+
+
+func _apply_source_only_peek_clip(clip: Animation, amount: float) -> bool:
+	# Authored endpoint blend only: no hip leveling, spine compensation, knee
+	# shaping, or synthetic fallback lean. Moving legs retain their gait source.
+	var weight := clampf(absf(amount), 0.0, 1.0)
+	for track in clip.get_track_count():
+		var bone := str(clip.track_get_path(track)).get_slice(":", 1)
+		var index := skeleton.find_bone(bone)
+		if index < 0: continue
+		var blend := weight
+		if bone.ends_with("Hips") or "Leg" in bone or "Foot" in bone or "Toe" in bone:
+			blend *= 1.0 - clampf(peek_travel_weight, 0.0, 1.0)
+		match clip.track_get_type(track):
+			Animation.TYPE_ROTATION_3D:
+				var sample := clip.rotation_track_interpolate(track, clip.length)
+				skeleton.set_bone_pose_rotation(index, skeleton.get_bone_pose_rotation(index).slerp(sample, blend).normalized())
+			Animation.TYPE_POSITION_3D:
+				skeleton.set_bone_pose_position(index, skeleton.get_bone_pose_position(index).lerp(clip.position_track_interpolate(track, clip.length), blend))
+	last_authored_peek_source = str(clip.get_meta("source_name", ""))
+	last_peek_roll_deg = 0.0
+	return true
+
+func _lean_support_height() -> float:
+	var left := skeleton.find_bone("mixamorig_LeftFoot")
+	var right := skeleton.find_bone("mixamorig_RightFoot")
+	if left < 0 or right < 0:
+		return INF
+	return minf(skeleton.get_bone_global_pose(left).origin.y, skeleton.get_bone_global_pose(right).origin.y)
 var last_peek_roll_deg: float = 0.0
 var last_chest_square_correction_deg: float = 0.0
 var last_shoulder_square_error_deg: float = 0.0
@@ -292,6 +378,25 @@ func apply(
 ) -> void:
 	if skeleton == null:
 		return
+	if source_pose_only:
+		# Stop only this owner's cached additive head contribution, if the tree
+		# has not supplied a fresh pose yet. Never reset the complete skeleton.
+		clear_head_look_additive()
+		last_applied_yaw = 0.0
+		last_applied_pitch = 0.0
+		last_angular_error_deg = 0.0
+		last_lower_body_yaw_deg = 0.0
+		last_lower_body_pitch_deg = 0.0
+		last_lower_body_roll_deg = 0.0
+		last_prone_axis_correction_deg = 0.0
+		last_default_hip_roll_trim_deg = 0.0
+		last_shoulder_square_weight = 0.0
+		last_chest_square_correction_deg = 0.0
+		last_directional_shoulder_target_deg = 0.0
+		last_directional_shoulder_error_deg = 0.0
+		last_square_idle_reference_bone_count = 0
+		_apply_full_body_peek(posture_name, peek_amount)
+		return
 	var post_layer_weight := 1.0 - clampf(clean_recovery_weight, 0.0, 1.0)
 	# Native stationary pistol poses already contain these two corrections.
 	# Fade only their duplicate procedural contribution with the actual source
@@ -380,7 +485,7 @@ func apply(
 	var articulated_rifle_hip := rifle_movement_isolation_weight > 0.001
 	for bone_name: StringName in TORSO_YAW_WEIGHTS:
 		var yaw_amount := torso_yaw * float(TORSO_YAW_WEIGHTS[bone_name]) * torso_ready_scale
-		var pitch_amount := torso_pitch * float(TORSO_PITCH_WEIGHTS[bone_name]) * torso_ready_scale
+		var pitch_amount := torso_pitch * float(TORSO_PITCH_WEIGHTS[bone_name]) * torso_pitch_weight(posture_name, normalized_ready)
 		if bone_name == &"spine2":
 			pitch_amount += recoil_pitch
 		_apply_bone_additive(
@@ -455,7 +560,7 @@ func apply(
 
 func apply_movement_head_level(active: bool, right_dive: bool = false) -> void:
 	last_movement_head_roll_deg = 0.0
-	if (not active and not right_dive) or not bool(movement_head_profile.enabled) or skeleton == null:
+	if source_pose_only or (not active and not right_dive) or not bool(movement_head_profile.enabled) or skeleton == null:
 		return
 	var index := int(bone_indices.get(&"head", -1))
 	if index < 0:
@@ -497,7 +602,7 @@ func apply_head_look_at(
 	yaw_limit: float = deg_to_rad(56.0),
 	pitch_limit: float = deg_to_rad(34.0)
 ) -> Vector2:
-	if skeleton == null or world_target == Vector3.ZERO:
+	if source_pose_only or skeleton == null or world_target == Vector3.ZERO:
 		return Vector2.ZERO
 	var head_index := int(bone_indices.get(&"head", -1))
 	var head_origin := (
@@ -649,6 +754,7 @@ func get_debug_state() -> Dictionary:
 		"peek_roll_deg": last_peek_roll_deg,
 		"authored_peek_source": last_authored_peek_source,
 		"preserve_authored_body": preserve_authored_body,
+		"source_pose_only": source_pose_only,
 		"chest_square_correction_deg": last_chest_square_correction_deg,
 		"shoulder_square_error_deg": last_shoulder_square_error_deg,
 		"shoulder_level_error_cm": last_shoulder_level_error_cm,
@@ -933,6 +1039,9 @@ func _apply_full_body_peek(posture_name: StringName, amount: float) -> void:
 		return
 	if _apply_authored_peek(posture_name, signed_amount):
 		return
+	if source_pose_only:
+		last_peek_roll_deg = 0.0
+		return # Missing source take is not permission to synthesize a lean.
 	var pose_amount := -signed_amount
 	var hip_roll_deg := 5.0
 	var spine_roll_deg := 13.0
