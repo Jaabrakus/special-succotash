@@ -214,22 +214,22 @@ func _build_animation_studio(layer: CanvasLayer) -> void:
     scale_lbl.add_theme_font_size_override("font_size", 11)
     scale_hbox.add_child(scale_lbl)
     var scale_val := Label.new()
-    scale_val.text = "%.1fx" % _tuning_value(
-        "animation", "operator_scale", 62.0
-    )
+    scale_val.text = "%.4fx" % TuningProfile.operator_scale(operator_tuning, _get_animation_driver())
     scale_val.add_theme_font_size_override("font_size", 11)
     scale_val.add_theme_color_override("font_color", Color(0.2, 1.0, 0.6))
     var scale_slider := HSlider.new()
     scale_slider.min_value = 40.0
     scale_slider.max_value = 85.0
-    scale_slider.value = _tuning_value("animation", "operator_scale", 62.0)
-    scale_slider.step = 1.0
+    # Preserve the measured saved value; a whole-unit step rounded it on reopen.
+    scale_slider.step = 0.00001
+    scale_slider.value = TuningProfile.operator_scale(operator_tuning, _get_animation_driver())
     scale_slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     scale_slider.value_changed.connect(func(v):
-        scale_val.text = "%.1fx" % v
+        scale_val.text = "%.4fx" % v
         var d := _get_animation_driver()
         if d: d.set_trooper_scale(v)
-        _set_operator_tuning("animation", "operator_scale", v)
+        TuningProfile.set_operator_scale(operator_tuning, d, v)
+        _save_operator_tuning()
     )
     scale_hbox.add_child(scale_slider)
     scale_hbox.add_child(scale_val)
@@ -419,6 +419,8 @@ func _apply_operator_tuning() -> void:
     TuningProfile.apply(operator_tuning, player, _get_animation_driver())
 
 func _tuning_value(section_name: String, key: String, fallback: float) -> float:
+    if section_name == "animation" and key == "operator_scale":
+        return TuningProfile.operator_scale(operator_tuning, _get_animation_driver())
     return TuningProfile.value(operator_tuning, section_name, key, fallback)
 
 func _set_operator_tuning(section_name: String, key: String, value: float) -> void:

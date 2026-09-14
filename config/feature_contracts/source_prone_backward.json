@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "feature_id": "source_prone_backward",
+  "player_intent": "Backward prone movement uses the same original crawl sequence played backward.",
+  "implementation_status": "Candidate retained but disabled in canonical main after rendered knee/floor penetration failure; prior backward map restored.",
+  "acceptance_rule": "Canonical source_prone_backward=false retains the prior backward mapping. Explicit isolated candidate=true builds the backward point from provenance-checked seal_prone_crawl with PLAY_MODE_BACKWARD. Main M4 and Mark23 commands move and stop in idle_prone. Off, malformed, reused older preset or non-crawl source preserves prior routing. Node tests do not waive failed visual contact.",
+  "canonical_scene": "res://main.tscn",
+  "ownership": {"animation": "SocomOperatorLocomotionBlendTree"},
+  "nodes": [{"id": "operator_animation", "type": "Node3D", "role": "Existing AnimationTree presentation owner", "owner": "SocomOperatorAnimationDriver", "scene_path": "res://scenes/player/operator_player.tscn", "node_path": "Mannequin/ProductionAnimation"}, {"id": "prone_direction_space", "type": "AnimationNodeBlendSpace1D", "role": "Builds forward and source-reversed backward crawl points", "owner": "SocomOperatorLocomotionBlendTree", "source_script": "res://scripts/player/operator_locomotion_blend_tree.gd", "code_symbols": ["func _prone_direction_space", "source_prone_backward", "AnimationNodeAnimation.PLAY_MODE_BACKWARD"]}],
+  "data_contracts": [{"path": "res://config/operator_animation_map.json", "writer": "res://scripts/labs/animation_workshop_repository.gd", "readers": ["res://scripts/player/operator_animation_profile.gd", "res://scripts/player/operator_locomotion_blend_tree.gd"]}],
+  "must_not_change": ["CharacterBody movement/collision and prone speed", "Camera/reticle/spine aim", "Weapon/server shots and damage", "Prone firing/reload layers", "Traversal", "Original animation assets"],
+  "proof_scripts": ["res://tools/source_animation_selection_audit_prone_main.gd"],
+  "visual_check": "FAILED source backward activation: native middle frames place knees/shins below floor. It must stay off until original world baseline/retarget contact is resolved and early/middle/late current-skinned renders pass. Node direction and finite transforms do not prove sole contact.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Retain only a disabled, source-proven optional graph rule: ZSeal583720 selects Prone crawl27 for both signs and583900 reverses the signed clock. REJECT canonical activation because native skin contact failed; restore prior backward mapping. Original hip-Y alone does not resolve ground penetration.",
+    "current": {"system": "Unrelated Mixamo backward crawl", "correctness": 2, "ownership_clarity": 5, "runtime_parity": 3, "editor_usability": 4, "performance": 5, "regression_coverage": 2, "evidence_paths": ["res://scripts/player/operator_locomotion_blend_tree.gd", "res://docs/SOURCE_ANIMATION_SELECTION_AUDIT.md"]},
+    "candidate": {"system": "Source signed-playback backward crawl", "correctness": 4, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 5, "regression_coverage": 4, "evidence_paths": ["res://tools/source_animation_selection_audit.cjs", "res://tools/source_animation_selection_audit_prone_main.gd"]}
+  }
+}

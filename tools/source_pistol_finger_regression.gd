@@ -73,6 +73,15 @@ func _check_model(path: String) -> void:
 	_expect(_flex(skeleton, middle) > 0.35, path + " zero saved controls use pistol defaults")
 	grip.apply_source_pistol(false, false)
 	_compare(before, _poses(skeleton), path + " repeat release preserves source pose")
+	# Extracted long guns opt into these same native rests through their saved
+	# profile, without pretending to belong to the rifle animation family.
+	weapon.set_meta("support_hand_pose", {"finger_basis":"dual_source_rest", "finger_curl":0.82, "thumb_wrap":0.72})
+	grip.source_rifle_grip = false
+	grip.apply(&"READY_SOLVER", &"IK_TO_WEAPON", true)
+	_expect(grip.applied_bone_count == 30 and grip.applied_right and grip.applied_left, path + " saved long-gun native fingers")
+	_forbid_nonfinger_changes(skeleton, before, _poses(skeleton), true, path)
+	_expect(_flex(skeleton, middle) > 0.35, path + " saved right-hand flex is not mirrored open")
+	_expect(_flex(skeleton, skeleton.find_bone("mixamorig_LeftHandMiddle2")) > 0.35, path + " saved left-hand flex")
 	weapon.free()
 	model.free()
 

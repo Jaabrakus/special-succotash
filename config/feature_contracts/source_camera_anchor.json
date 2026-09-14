@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "feature_id": "source_camera_anchor",
+  "player_intent": "Preserve the original animation camera-root channel for the current character without changing its movement or skin.",
+  "acceptance_rule": "Saved285 raw channels retain exact source provenance, independent root samples and mapped source timing. AnimationTree alone writes a non-spatial observer added after skin proportion adaptation and root sanitation. Body keys/bone count/shared source libraries stay unchanged. Explicit terminal-closure removal keeps the observer on the retained body source clock: a one-shot dive must not restore its discarded upright closing frame. Unsupported clips reset coverage instead of exposing stale roots; main stance and real dive-command tests prove actual graph consumption.",
+  "canonical_scene": "res://main.tscn",
+  "ownership": {"animation": "Existing operator AnimationTree", "camera": "SocomCameraRig"},
+  "nodes": [{"id":"source_camera_anchor","type":"Node","owner":"Existing operator AnimationTree","role":"Non-spatial independently keyed observation, never a movement or bone writer","source_script":"res://scripts/player/operator_source_camera_channels.gd","code_symbols":["Anchor.new()","skeleton.add_child(anchor)","SourceCameraAnchor:root_source"]}],
+  "data_contracts": [{"path":"res://config/source_camera_channels.json","writer":"res://tools/build_source_camera_channels.cjs","readers":["res://scripts/player/operator_source_camera_channels.gd","res://scripts/player/operator_asset_runtime.gd","res://scripts/camera/source_gameplay_camera.gd"]}],
+  "must_not_change": ["CharacterBody movement/collision", "65 deforming bones/binds", "Original animation assets", "Camera aim input", "Server shots/damage"],
+  "proof_scripts": ["res://tools/source_camera_channels_regression.gd","res://tools/main_source_gameplay_camera_regression.gd","res://tools/main_dive_camera_regression.gd"],
+  "visual_check": "Main standing/crouch/prone at early/middle/late settled animation and signed camera pitch; compare actual skinned head/chest projection, not placeholder markers.",
+  "system_delta": {
+    "decision":"MERGE",
+    "reason":"Exact original channels and provenance survive without changing65-bone anatomy or adding a second animation owner. Horizontal root preprocessing is independently audited; the current hybrid consumes these same source channels.",
+    "current":{"system":"Independent root discarded by retarget","correctness":1,"ownership_clarity":5,"runtime_parity":3,"editor_usability":4,"performance":5,"regression_coverage":3,"evidence_paths":["res://tools/import_seal_reference_animations.gd"]},
+    "candidate":{"system":"Post-adaptation source observer in existing AnimationTree","correctness":4,"ownership_clarity":5,"runtime_parity":5,"editor_usability":4,"performance":4,"regression_coverage":5,"evidence_paths":["res://scripts/player/operator_source_camera_channels.gd","res://tools/source_camera_channels_regression.gd"]}
+  }
+}

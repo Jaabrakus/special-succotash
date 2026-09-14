@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "feature_id": "source_gameplay_camera",
+  "player_intent": "Use both cameras as requested: source level framing and lens, our bounded pitch framing, collision/trailing and camera lean-follow.",
+  "acceptance_rule": "Saved default is hybrid: fixed74HFOV, source-based level preference and constant-radius pitch orbit, with bounded vertical-only authored framing over8..30degrees pitch and a guarded preferred seed before excursion/collision. Source reference mode retains original70HFOV and radius-contraction equations. Current smoothed Player lean drives decoded lateral source offset exactly once; real main left/right/neutral commands move the rendered lens without changing aim angles. No FOV breathing or horizontal recentering is introduced. Non-source actions use explicit stance fallback; missing operator channels retain authored lens+position together. This deliberate hybrid is not original camera parity.",
+  "canonical_scene": "res://main.tscn",
+  "ownership": {"camera": "SocomCameraRig"},
+  "nodes": [{"id": "camera", "type": "Node3D", "owner": "SocomCameraRig", "role": "Only camera transform and aim-intent owner", "scene_path": "res://scenes/camera/socom_camera_rig.tscn", "node_path": "."}],
+  "data_contracts": [{"path": "res://config/camera_source_match.json", "writer": "res://docs/SOURCE_CAMERA_ANCHOR_INTEGRATION.md", "readers": ["res://scripts/camera/source_gameplay_camera.gd", "res://scripts/camera/socom_camera.gd", "res://scripts/camera/camera_composition_controller.gd", "res://scripts/camera/camera_preferred_shot_solver.gd"]}],
+  "must_not_change": ["Player movement/collision owner", "Server weapon/damage owner", "Camera input angle ownership", "Character assets", "Existing collision validation"],
+  "proof_scripts": ["res://tools/source_camera_runtime_audit.cjs", "res://tools/source_camera_root_motion_audit.cjs", "res://tools/source_gameplay_camera_regression.gd", "res://tools/source_camera_channels_regression.gd", "res://tools/main_source_gameplay_camera_regression.gd"],
+  "visual_check": "Actual main.tscn standing/crouched/prone signed pitch and multiple yaws, maximum28degree upward view, real lean/run commands, wall lens-volume checks and actual map spawn. Require level head/chest visibility and hybrid head visible at tested signed pitches. A wall may physically restrict lean; do not promise a camera through geometry.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "MERGE per user's both-hybrid choice: retain proven source level shot; restore existing vertical framing progressively with pitch and feed player lean to source policy. KEEP collision and trailing. Hybrid saved parameters are authored design, not decoded constants.",
+    "current": {"system": "Authored vertical68 lens", "correctness": 1, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 5, "regression_coverage": 4, "evidence_paths": ["res://scripts/camera/camera_profile.gd"]},
+    "candidate": {"system": "Source-level hybrid with bounded existing pitch framing and lean-follow", "correctness": 4, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 4, "regression_coverage": 5, "evidence_paths": ["res://docs/CAMERA_HYBRID_TRANSLATION_CARD.md", "res://docs/SOURCE_CAMERA_LEAN_FOLLOW.md", "res://scripts/camera/source_gameplay_camera.gd", "res://tools/main_source_gameplay_camera_regression.gd"]}
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "enabled": true,
+  "lens_enabled": true,
+  "preferred_position_enabled": true,
+  "framing_mode": "hybrid",
+  "hybrid": {
+    "horizontal_fov_degrees": 74.0,
+    "preserve_orbit_radius": true,
+    "framing_start_pitch_degrees": 8.0,
+    "framing_full_pitch_degrees": 30.0,
+    "max_height_correction_m": 1.0,
+    "minimum_relative_height_m": 0.15
+  },
+  "horizontal_fov_degrees": 69.99999967119774,
+  "world_meters_per_unit": 0.10000000149011612,
+  "anchor_policy": "retained_source_root_ordinary_xz_zero",
+  "fallback_source_stance_clips": {"standing":"seal_stand","crouched":"seal_crouch","prone":"seal_prone"},
+  "source": {
+    "module": "FTSCore.bin",
+    "sha256": "cf09a7fabaf59a1d68f01411bd1db9e859af054df1f2fbc4775d8c221785f836",
+    "preferred_pose_pc": "0x29a950",
+    "default_algorithm_state": 2,
+    "world_lens_override_pc": "0x319268"
+  },
+  "limitations": [
+    "Hybrid uses fixed74HFOV and constant-radius orbit, source-based animated level framing, and existing authored pitch height correction. Source mode retains70HFOV and original pitch contraction. Hybrid values are local design, not original constants.",
+    "Existing Godot collision/trailing remain. Original special collision, trailing, zoom and airborne movement-baseline handling are not claimed ported.",
+    "Non-source/AGLS animations use explicit source stance-root fallback, not identical original motion. Character mesh and all retargeted limb details are not1:1."
+  ]
+}

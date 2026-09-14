@@ -11,11 +11,12 @@ const SourceDamage := preload("res://scripts/combat/source_firearm_damage.gd")
 const SourceTrace := preload("res://scripts/combat/source_firearm_trace.gd")
 
 ## Project ballistics with verified SOCOM II firearm direction/range policy.
-## Scope/adaptations: docs/SOURCE_FIREARM_RUNTIME.md. Bloom recovery, damage and
-## penetration below remain project tuning, not a claimed original engine port.
+## Scope/adaptations: docs/SOURCE_COMBAT_PARITY_20260913.md. Source-linked shots
+## use original RNG/damage/pellets/material equations; bloom/camera mapping and
+## Godot collision geometry remain adaptations, not a complete engine port.
 ## Implements:
 ## - 2-Round Burst pinpoint accuracy (shots 1 & 2 have 0 extra dispersion)
-## - CS:GO Bullet Penetration through thin wood, drywall, and sheet metal
+## - Source exact-name range reduction; legacy-only thickness/HP heuristics
 ## - Continuous fire bloom escalation
 ## - Shot-timed bloom recovery; rapid trigger releases cannot reset accuracy
 ## - Authored posture-specific spread, bloom caps and recovery

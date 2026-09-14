@@ -78,6 +78,14 @@ var preserve_authored_body := false
 var source_pose_only := false
 var look_pitch_profile: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://config/look_pitch_presentation.json"))
 var smoothed_look_pitch := 0.0
+const AimSpinePitch := preload("res://scripts/player/operator_aim_spine_pitch.gd")
+var aim_spine_pitch := AimSpinePitch.new()
+
+func source_spine_pitch_enabled() -> bool:
+	return aim_spine_pitch.enabled(look_pitch_profile.get("spine_aim", {}))
+
+func apply_source_spine_pitch(pitch: float, posture_name: StringName, allowed: bool, aim_world: Vector3, delta: float) -> void:
+	aim_spine_pitch.apply(self, look_pitch_profile.get("spine_aim", {}), pitch, posture_name, allowed, aim_world, delta)
 
 func advance_look_pitch(target: float, allowed: bool, delta: float) -> float:
 	if source_pose_only or not allowed:
@@ -254,6 +262,8 @@ const HEAD_LOOK_REUSE_EPSILON_RAD := 0.002
 
 
 func bind(target_skeleton: Skeleton3D, neutral_pose_hip_rotation := Quaternion.IDENTITY) -> void:
+	aim_spine_pitch.retire(skeleton)
+	aim_spine_pitch.smoothed_pitch = 0.0
 	skeleton = target_skeleton
 	neutral_hip_rotation = neutral_pose_hip_rotation.normalized()
 	neutral_hip_rotations = {

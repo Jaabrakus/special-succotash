@@ -1,0 +1,3823 @@
+{
+	"checks": 1943,
+	"support_max_m": 0.000970454653725028,
+	"transitions": [
+		{
+			"fire": 0.0,
+			"frame": 180,
+			"label": "m4a1 idle early",
+			"ready": 0.0,
+			"support_m": 0.000390966219129041,
+			"trigger_m": 0.0000431782900705002
+		},
+		{
+			"fire": 0.0,
+			"frame": 182,
+			"label": "m4a1 idle early",
+			"ready": 0.0,
+			"support_m": 0.000390979723306373,
+			"trigger_m": 0.0000307700865960214
+		},
+		{
+			"fire": 0.0,
+			"frame": 184,
+			"label": "m4a1 idle early",
+			"ready": 0.0,
+			"support_m": 0.000398058298742399,
+			"trigger_m": 0.0000686384664732032
+		},
+		{
+			"fire": 0.0,
+			"frame": 186,
+			"label": "m4a1 idle early",
+			"ready": 0.0,
+			"support_m": 0.000388601009035483,
+			"trigger_m": 0.000096918323833961
+		},
+		{
+			"fire": 0.0,
+			"frame": 188,
+			"label": "m4a1 idle early",
+			"ready": 0.0,
+			"support_m": 0.000390956469345838,
+			"trigger_m": 0.0000611943178228103
+		},
+		{
+			"fire": 0.0,
+			"frame": 189,
+			"label": "m4a1 idle early",
+			"ready": 0.0,
+			"support_m": 0.000372753711417317,
+			"trigger_m": 0.0000431590306106955
+		},
+		{
+			"fire": 0.0,
+			"frame": 191,
+			"label": "m4a1 idle early",
+			"ready": 0.0,
+			"support_m": 0.000398097356082872,
+			"trigger_m": 0.0000683817779645324
+		},
+		{
+			"fire": 0.0,
+			"frame": 193,
+			"label": "m4a1 idle early",
+			"ready": 0.0,
+			"support_m": 0.000372712907847017,
+			"trigger_m": 0.0000432116830779705
+		},
+		{
+			"fire": 0.0,
+			"frame": 195,
+			"label": "m4a1 idle early",
+			"ready": 0.0,
+			"support_m": 0.000415279879234731,
+			"trigger_m": 0.0000432309170719236
+		},
+		{
+			"fire": 0.0,
+			"frame": 196,
+			"label": "m4a1 idle early",
+			"ready": 0.0,
+			"support_m": 0.000372672424418852,
+			"trigger_m": 0.000030532475648215
+		},
+		{
+			"fire": 0.0,
+			"frame": 197,
+			"label": "m4a1 idle early",
+			"ready": 0.0,
+			"support_m": 0.000415251677623019,
+			"trigger_m": 0.0000682731042616069
+		},
+		{
+			"fire": 0.0,
+			"frame": 199,
+			"label": "m4a1 idle early",
+			"ready": 0.0,
+			"support_m": 0.000410685548558831,
+			"trigger_m": 0.0000308696835418232
+		},
+		{
+			"fire": 0.0,
+			"frame": 200,
+			"label": "m4a1 idle middle",
+			"ready": 0.0,
+			"support_m": 0.000457878457382321,
+			"trigger_m": 0.00000333786010742188
+		},
+		{
+			"fire": 0.0,
+			"frame": 201,
+			"label": "m4a1 idle middle",
+			"ready": 0.0,
+			"support_m": 0.000476744899060577,
+			"trigger_m": 0.0000308519520331174
+		},
+		{
+			"fire": 0.0,
+			"frame": 202,
+			"label": "m4a1 idle middle",
+			"ready": 0.0,
+			"support_m": 0.000390894885640591,
+			"trigger_m": 0.00004347593858256
+		},
+		{
+			"fire": 0.0,
+			"frame": 204,
+			"label": "m4a1 idle middle",
+			"ready": 0.0,
+			"support_m": 0.000457841902971268,
+			"trigger_m": 0.0000438912029494531
+		},
+		{
+			"fire": 0.0,
+			"frame": 206,
+			"label": "m4a1 idle middle",
+			"ready": 0.0,
+			"support_m": 0.000433795241406187,
+			"trigger_m": 0.0000305289831885602
+		},
+		{
+			"fire": 0.0,
+			"frame": 208,
+			"label": "m4a1 idle middle",
+			"ready": 0.0,
+			"support_m": 0.000388563785236329,
+			"trigger_m": 0.0000305771245621145
+		},
+		{
+			"fire": 0.0,
+			"frame": 210,
+			"label": "m4a1 idle middle",
+			"ready": 0.0,
+			"support_m": 0.000415207585319877,
+			"trigger_m": 0.0000305929206660949
+		},
+		{
+			"fire": 0.0,
+			"frame": 212,
+			"label": "m4a1 idle middle",
+			"ready": 0.0,
+			"support_m": 0.000410697044571862,
+			"trigger_m": 0.000110135966679081
+		},
+		{
+			"fire": 0.0,
+			"frame": 214,
+			"label": "m4a1 idle middle",
+			"ready": 0.0,
+			"support_m": 0.00039093496161513,
+			"trigger_m": 0.0000432059277954977
+		},
+		{
+			"fire": 0.0,
+			"frame": 216,
+			"label": "m4a1 idle middle",
+			"ready": 0.0,
+			"support_m": 0.000390962930396199,
+			"trigger_m": 0.0000686514104017988
+		},
+		{
+			"fire": 0.0,
+			"frame": 218,
+			"label": "m4a1 idle middle",
+			"ready": 0.0,
+			"support_m": 0.000388586951885372,
+			"trigger_m": 0.0000682444806443527
+		},
+		{
+			"fire": 0.0,
+			"frame": 220,
+			"label": "m4a1 idle middle",
+			"ready": 0.0,
+			"support_m": 0.000390986708225682,
+			"trigger_m": 0.0000683152466081083
+		},
+		{
+			"fire": 0.0,
+			"frame": 221,
+			"label": "m4a1 idle late",
+			"ready": 0.0,
+			"support_m": 0.000390990258892998,
+			"trigger_m": 0.0000865837864694186
+		},
+		{
+			"fire": 0.0,
+			"frame": 222,
+			"label": "m4a1 idle late",
+			"ready": 0.0,
+			"support_m": 0.000356065691448748,
+			"trigger_m": 0.00000643730163574219
+		},
+		{
+			"fire": 0.0,
+			"frame": 223,
+			"label": "m4a1 idle late",
+			"ready": 0.0,
+			"support_m": 0.000398065079934895,
+			"trigger_m": 0.0000309064889734145
+		},
+		{
+			"fire": 0.0,
+			"frame": 225,
+			"label": "m4a1 idle late",
+			"ready": 0.0,
+			"support_m": 0.000391001114621758,
+			"trigger_m": 0.0000305631801893469
+		},
+		{
+			"fire": 0.0,
+			"frame": 227,
+			"label": "m4a1 idle late",
+			"ready": 0.0,
+			"support_m": 0.000415258517023176,
+			"trigger_m": 0.0000431598527939059
+		},
+		{
+			"fire": 0.0,
+			"frame": 228,
+			"label": "m4a1 idle late",
+			"ready": 0.0,
+			"support_m": 0.000398048374336213,
+			"trigger_m": 0.0000432695233030245
+		},
+		{
+			"fire": 0.0,
+			"frame": 230,
+			"label": "m4a1 idle late",
+			"ready": 0.0,
+			"support_m": 0.000398086267523468,
+			"trigger_m": 0.0000306015135720372
+		},
+		{
+			"fire": 0.0,
+			"frame": 232,
+			"label": "m4a1 idle late",
+			"ready": 0.0,
+			"support_m": 0.000433871929999441,
+			"trigger_m": 0.0000431598527939059
+		},
+		{
+			"fire": 0.0,
+			"frame": 234,
+			"label": "m4a1 idle late",
+			"ready": 0.0,
+			"support_m": 0.000390943954698741,
+			"trigger_m": 0.000043162490328541
+		},
+		{
+			"fire": 0.0,
+			"frame": 236,
+			"label": "m4a1 idle late",
+			"ready": 0.0,
+			"support_m": 0.000415185408201069,
+			"trigger_m": 0.00000107288360595703
+		},
+		{
+			"fire": 0.0,
+			"frame": 238,
+			"label": "m4a1 idle late",
+			"ready": 0.0,
+			"support_m": 0.000397980678826571,
+			"trigger_m": 0.000030532475648215
+		},
+		{
+			"fire": 0.0,
+			"frame": 240,
+			"label": "m4a1 idle late",
+			"ready": 0.0,
+			"support_m": 0.000415185408201069,
+			"trigger_m": 0.0000305929206660949
+		},
+		{
+			"fire": 0.110118229011976,
+			"frame": 241,
+			"label": "m4a1 shot early",
+			"ready": 0.181269246922018,
+			"support_m": 0.0000966227889875881,
+			"trigger_m": 0.0000686514104017988
+		},
+		{
+			"fire": 0.879500458776597,
+			"frame": 242,
+			"label": "m4a1 shot middle",
+			"ready": 0.531269246922018,
+			"support_m": 0.000460691459011286,
+			"trigger_m": 0.000136479589855298
+		},
+		{
+			"fire": 0.977255774727901,
+			"frame": 243,
+			"label": "m4a1 shot middle",
+			"ready": 0.881269246922018,
+			"support_m": 0.000142101474921219,
+			"trigger_m": 0.000153912114910781
+		},
+		{
+			"fire": 0.981366160066232,
+			"frame": 244,
+			"label": "m4a1 shot middle",
+			"ready": 0.915635529238136,
+			"support_m": 0.000119275071483571,
+			"trigger_m": 0.00017908334848471
+		},
+		{
+			"fire": 0.985466632752505,
+			"frame": 246,
+			"label": "m4a1 shot middle",
+			"ready": 0.944903215897331,
+			"support_m": 0.000104080630990211,
+			"trigger_m": 0.000205331176402979
+		},
+		{
+			"fire": 0.988491178112968,
+			"frame": 247,
+			"label": "m4a1 shot middle",
+			"ready": 0.963067521143883,
+			"support_m": 0.000131108157802373,
+			"trigger_m": 0.000173426902620122
+		},
+		{
+			"fire": 0.990886284026831,
+			"frame": 248,
+			"label": "m4a1 shot middle",
+			"ready": 0.975243419072957,
+			"support_m": 0.000049191130528925,
+			"trigger_m": 0.000178609770955518
+		},
+		{
+			"fire": 0.99278294341029,
+			"frame": 249,
+			"label": "m4a1 shot middle",
+			"ready": 0.9834051675333,
+			"support_m": 0.0000463159922219347,
+			"trigger_m": 0.000153181332279928
+		},
+		{
+			"fire": 0.994197362170716,
+			"frame": 250,
+			"label": "m4a1 shot held",
+			"ready": 0.988582510454336,
+			"support_m": 0.0000331686860590708,
+			"trigger_m": 0.000178446716745384
+		},
+		{
+			"fire": 1.0,
+			"frame": 251,
+			"label": "m4a1 shot held",
+			"ready": 0.999687252039101,
+			"support_m": 0.0000371696005458944,
+			"trigger_m": 0.000173012391314842
+		},
+		{
+			"fire": 1.0,
+			"frame": 252,
+			"label": "m4a1 shot held",
+			"ready": 0.999810434686119,
+			"support_m": 0.0000455050139862578,
+			"trigger_m": 0.000152900684042834
+		},
+		{
+			"fire": 1.0,
+			"frame": 253,
+			"label": "m4a1 shot held",
+			"ready": 0.999859823600008,
+			"support_m": 0.0000338058707711753,
+			"trigger_m": 0.00015293994511012
+		},
+		{
+			"fire": 1.0,
+			"frame": 255,
+			"label": "m4a1 shot held",
+			"ready": 0.999926523499837,
+			"support_m": 0.000097268057288602,
+			"trigger_m": 0.00012988036905881
+		},
+		{
+			"fire": 1.0,
+			"frame": 256,
+			"label": "m4a1 shot held",
+			"ready": 0.999950747229028,
+			"support_m": 0.0000321184415952303,
+			"trigger_m": 0.000152964610606432
+		},
+		{
+			"fire": 1.0,
+			"frame": 257,
+			"label": "m4a1 shot held",
+			"ready": 0.999966984880295,
+			"support_m": 0.0000439352152170613,
+			"trigger_m": 0.000130011874716729
+		},
+		{
+			"fire": 1.0,
+			"frame": 258,
+			"label": "m4a1 shot held",
+			"ready": 0.999976906166602,
+			"support_m": 0.0000314567987516057,
+			"trigger_m": 0.000152931912452914
+		},
+		{
+			"fire": 1.0,
+			"frame": 260,
+			"label": "m4a1 shot held",
+			"ready": 0.999985203160223,
+			"support_m": 0.0000313719792757183,
+			"trigger_m": 0.000153007567860186
+		},
+		{
+			"fire": 1.0,
+			"frame": 261,
+			"label": "m4a1 shot held",
+			"ready": 0.999989385832881,
+			"support_m": 0.00000929832458496094,
+			"trigger_m": 0.000152964610606432
+		},
+		{
+			"fire": 1.0,
+			"frame": 262,
+			"label": "m4a1 shot held",
+			"ready": 0.999992394616924,
+			"support_m": 0.0000321184415952303,
+			"trigger_m": 0.000172930609551258
+		},
+		{
+			"fire": 1.0,
+			"frame": 263,
+			"label": "m4a1 shot held",
+			"ready": 0.999994517377369,
+			"support_m": 0.0000324284337693825,
+			"trigger_m": 0.000152916109072976
+		},
+		{
+			"fire": 1.0,
+			"frame": 265,
+			"label": "m4a1 shot held",
+			"ready": 0.9999970300366,
+			"support_m": 0.0000626891269348562,
+			"trigger_m": 0.000129889827803709
+		},
+		{
+			"fire": 1.0,
+			"frame": 266,
+			"label": "m4a1 shot held",
+			"ready": 0.999997852213817,
+			"support_m": 0.0000457367677881848,
+			"trigger_m": 0.000178221394889988
+		},
+		{
+			"fire": 1.0,
+			"frame": 267,
+			"label": "m4a1 shot held",
+			"ready": 0.999998451688624,
+			"support_m": 0.000034500946640037,
+			"trigger_m": 0.000172877349541523
+		},
+		{
+			"fire": 1.0,
+			"frame": 268,
+			"label": "m4a1 shot held",
+			"ready": 0.999998875695185,
+			"support_m": 0.0000978772150119767,
+			"trigger_m": 0.000178189293364994
+		},
+		{
+			"fire": 1.0,
+			"frame": 269,
+			"label": "m4a1 waiting for natural grace expiry",
+			"ready": 0.999999226707859,
+			"support_m": 0.0000876968842931092,
+			"trigger_m": 0.000172883723280393
+		},
+		{
+			"fire": 1.0,
+			"frame": 270,
+			"label": "m4a1 waiting for natural grace expiry",
+			"ready": 0.99999997616181,
+			"support_m": 0.0000437277158198413,
+			"trigger_m": 0.000152998793055303
+		},
+		{
+			"fire": 1.0,
+			"frame": 273,
+			"label": "m4a1 waiting for natural grace expiry",
+			"ready": 0.999999989334642,
+			"support_m": 0.0000690230008331127,
+			"trigger_m": 0.000152948079630733
+		},
+		{
+			"fire": 1.0,
+			"frame": 275,
+			"label": "m4a1 waiting for natural grace expiry",
+			"ready": 0.999999993598317,
+			"support_m": 0.0000696501665515825,
+			"trigger_m": 0.000172944739460945
+		},
+		{
+			"fire": 1.0,
+			"frame": 277,
+			"label": "m4a1 waiting for natural grace expiry",
+			"ready": 0.999999995708824,
+			"support_m": 0.0000454673681815621,
+			"trigger_m": 0.000152916109072976
+		},
+		{
+			"fire": 1.0,
+			"frame": 279,
+			"label": "m4a1 waiting for natural grace expiry",
+			"ready": 0.999999997123538,
+			"support_m": 0.0000701943354215473,
+			"trigger_m": 0.000152856620843522
+		},
+		{
+			"fire": 1.0,
+			"frame": 280,
+			"label": "m4a1 waiting for natural grace expiry",
+			"ready": 0.999999998054247,
+			"support_m": 0.0000702223696862347,
+			"trigger_m": 0.000152863736730069
+		},
+		{
+			"fire": 1.0,
+			"frame": 281,
+			"label": "m4a1 waiting for natural grace expiry",
+			"ready": 0.999999998713578,
+			"support_m": 0.0000701664903317578,
+			"trigger_m": 0.000152878230437636
+		},
+		{
+			"fire": 1.0,
+			"frame": 282,
+			"label": "m4a1 waiting for natural grace expiry",
+			"ready": 0.999999999014693,
+			"support_m": 0.000034500946640037,
+			"trigger_m": 0.000172858737641945
+		},
+		{
+			"fire": 1.0,
+			"frame": 284,
+			"label": "m4a1 waiting for natural grace expiry",
+			"ready": 0.999999999422671,
+			"support_m": 0.000110958688310347,
+			"trigger_m": 0.000136787086375989
+		},
+		{
+			"fire": 1.0,
+			"frame": 285,
+			"label": "m4a1 waiting for natural grace expiry",
+			"ready": 0.999999999580773,
+			"support_m": 0.0000453561187896412,
+			"trigger_m": 0.000152893102495
+		},
+		{
+			"fire": 1.0,
+			"frame": 286,
+			"label": "m4a1 waiting for natural grace expiry",
+			"ready": 0.999999999689429,
+			"support_m": 0.0000696741335559636,
+			"trigger_m": 0.000152900684042834
+		},
+		{
+			"fire": 1.0,
+			"frame": 288,
+			"label": "m4a1 waiting for natural grace expiry",
+			"ready": 0.999999999826112,
+			"support_m": 0.0000692934190738015,
+			"trigger_m": 0.000195728876860812
+		},
+		{
+			"fire": 1.0,
+			"frame": 289,
+			"label": "m4a1 waiting for natural grace expiry",
+			"ready": 0.99999999987118,
+			"support_m": 0.0000322317318932619,
+			"trigger_m": 0.000129959124024026
+		},
+		{
+			"fire": 1.0,
+			"frame": 290,
+			"label": "m4a1 waiting for natural grace expiry",
+			"ready": 0.999999999904568,
+			"support_m": 0.0000617039040662348,
+			"trigger_m": 0.000129909079987556
+		},
+		{
+			"fire": 1.0,
+			"frame": 292,
+			"label": "m4a1 waiting for natural grace expiry",
+			"ready": 0.999999999943097,
+			"support_m": 0.0000617215264355764,
+			"trigger_m": 0.000110531633254141
+		},
+		{
+			"fire": 1.0,
+			"frame": 294,
+			"label": "m4a1 waiting for natural grace expiry",
+			"ready": 0.999999999964016,
+			"support_m": 0.0000437866619904526,
+			"trigger_m": 0.000152973021613434
+		},
+		{
+			"fire": 1.0,
+			"frame": 295,
+			"label": "m4a1 waiting for natural grace expiry",
+			"ready": 0.999999999970832,
+			"support_m": 0.0000319026876240969,
+			"trigger_m": 0.000152948079630733
+		},
+		{
+			"fire": 0.85363122440086,
+			"frame": 297,
+			"label": "m4a1 waiting for natural grace expiry",
+			"ready": 0.853631224375961,
+			"support_m": 0.0000808671393315308,
+			"trigger_m": 0.000166131736477837
+		},
+		{
+			"fire": 0.79835014465818,
+			"frame": 298,
+			"label": "m4a1 natural return halfway",
+			"ready": 0.798350144634894,
+			"support_m": 0.000171012827195227,
+			"trigger_m": 0.000207797929761
+		},
+		{
+			"fire": 0.280395361424638,
+			"frame": 299,
+			"label": "m4a1 natural return halfway",
+			"ready": 0.448350144634894,
+			"support_m": 0.000257759966189042,
+			"trigger_m": 0.00023572075588163
+		},
+		{
+			"fire": 0.245394539102248,
+			"frame": 300,
+			"label": "m4a1 natural return tail",
+			"ready": 0.392384084173506,
+			"support_m": 0.000606977206189185,
+			"trigger_m": 0.000207518169190735
+		},
+		{
+			"fire": 0.0785601530561822,
+			"frame": 301,
+			"label": "m4a1 natural return tail",
+			"ready": 0.125617113658085,
+			"support_m": 0.000111840425233822,
+			"trigger_m": 0.000194815991562791
+		},
+		{
+			"fire": 0.0704929434792319,
+			"frame": 302,
+			"label": "m4a1 natural return tail",
+			"ready": 0.112717704187655,
+			"support_m": 0.000721035990864038,
+			"trigger_m": 0.0001258780102944
+		},
+		{
+			"fire": 0.0645856734075056,
+			"frame": 303,
+			"label": "m4a1 natural return tail",
+			"ready": 0.103272022284791,
+			"support_m": 0.000678224198054522,
+			"trigger_m": 0.000136579517857172
+		},
+		{
+			"fire": 0.0518875016743914,
+			"frame": 305,
+			"label": "m4a1 natural return tail",
+			"ready": 0.0829677379905918,
+			"support_m": 0.000686086132191122,
+			"trigger_m": 0.0000966410952969454
+		},
+		{
+			"fire": 0.0464500068307342,
+			"frame": 306,
+			"label": "m4a1 natural return tail",
+			"ready": 0.0742732232624642,
+			"support_m": 0.000653342925943434,
+			"trigger_m": 0.0000966675652307458
+		},
+		{
+			"fire": 0.0407366676660867,
+			"frame": 307,
+			"label": "m4a1 natural return tail",
+			"ready": 0.0651376354702731,
+			"support_m": 0.000629287969786674,
+			"trigger_m": 0.000125946637126617
+		},
+		{
+			"fire": 0.0334701482866723,
+			"frame": 309,
+			"label": "m4a1 natural return tail",
+			"ready": 0.0535185238052311,
+			"support_m": 0.000605822599027306,
+			"trigger_m": 0.0000865745096234605
+		},
+		{
+			"fire": 0.0314399049912239,
+			"frame": 310,
+			"label": "m4a1 natural return tail",
+			"ready": 0.0502721795342937,
+			"support_m": 0.000610388058703393,
+			"trigger_m": 0.0000685651393723674
+		},
+		{
+			"fire": 0.0262456942142208,
+			"frame": 312,
+			"label": "m4a1 natural return tail",
+			"ready": 0.0419666742602365,
+			"support_m": 0.000610355753451586,
+			"trigger_m": 0.000110130866232794
+		},
+		{
+			"fire": 0.0224315835492236,
+			"frame": 314,
+			"label": "m4a1 natural return tail",
+			"ready": 0.0358679390328902,
+			"support_m": 0.000629137910436839,
+			"trigger_m": 0.00004344782064436
+		},
+		{
+			"fire": 0.0209353254617599,
+			"frame": 315,
+			"label": "m4a1 natural return tail",
+			"ready": 0.0334754332278119,
+			"support_m": 0.000550163502339274,
+			"trigger_m": 0.000068320965510793
+		},
+		{
+			"fire": 0.0176533409913381,
+			"frame": 317,
+			"label": "m4a1 natural return tail",
+			"ready": 0.0282275639173968,
+			"support_m": 0.000539921398740262,
+			"trigger_m": 0.0000682597819832154
+		},
+		{
+			"fire": 0.015048374002374,
+			"frame": 319,
+			"label": "m4a1 natural return tail",
+			"ready": 0.024062240638377,
+			"support_m": 0.000539943983312696,
+			"trigger_m": 0.0000432453780376818
+		},
+		{
+			"fire": 0.0140307864250681,
+			"frame": 320,
+			"label": "m4a1 natural return tail",
+			"ready": 0.0224351254994328,
+			"support_m": 0.000543386733625084,
+			"trigger_m": 0.0000682397949276492
+		},
+		{
+			"fire": 0.0120933286056872,
+			"frame": 322,
+			"label": "m4a1 natural return tail",
+			"ready": 0.0193371445302402,
+			"support_m": 0.000519748195074499,
+			"trigger_m": 0.0000682993268128484
+		},
+		{
+			"fire": 0.0105035988457022,
+			"frame": 324,
+			"label": "m4a1 natural return tail",
+			"ready": 0.0167951782002756,
+			"support_m": 0.0004767814243678,
+			"trigger_m": 0.0000306513938994613
+		},
+		{
+			"fire": 0.00905209450427612,
+			"frame": 326,
+			"label": "m4a1 natural return tail",
+			"ready": 0.0144742333097822,
+			"support_m": 0.000496886321343482,
+			"trigger_m": 0.0000683152466081083
+		},
+		{
+			"fire": 0.00837472624567446,
+			"frame": 327,
+			"label": "m4a1 natural return tail",
+			"ready": 0.0133911263882836,
+			"support_m": 0.000474840286187828,
+			"trigger_m": 0.0000431585358455777
+		},
+		{
+			"fire": 0.00708813907667745,
+			"frame": 329,
+			"label": "m4a1 natural return tail",
+			"ready": 0.0113338828576689,
+			"support_m": 0.000476817862363532,
+			"trigger_m": 0.000000119209289550781
+		},
+		{
+			"fire": 0.00616114074112797,
+			"frame": 331,
+			"label": "m4a1 natural return tail",
+			"ready": 0.00985161925777114,
+			"support_m": 0.000476770772365853,
+			"trigger_m": 0.0000431590306106955
+		},
+		{
+			"fire": 0.0056874497305239,
+			"frame": 332,
+			"label": "m4a1 natural return tail",
+			"ready": 0.00909419077522591,
+			"support_m": 0.000453811866464093,
+			"trigger_m": 0.0000683097314322367
+		},
+		{
+			"fire": 0.00474077494246495,
+			"frame": 334,
+			"label": "m4a1 natural return tail",
+			"ready": 0.00758046467079992,
+			"support_m": 0.000440234085544944,
+			"trigger_m": 0.0000682852842146531
+		},
+		{
+			"fire": 0.00403982192210816,
+			"frame": 336,
+			"label": "m4a1 natural return tail",
+			"ready": 0.00645964588669994,
+			"support_m": 0.000433881010394543,
+			"trigger_m": 0.0000308346752717625
+		},
+		{
+			"fire": 0.00372922565278912,
+			"frame": 337,
+			"label": "m4a1 natural return tail",
+			"ready": 0.00596300470988191,
+			"support_m": 0.000433884095400572,
+			"trigger_m": 0.000061044585891068
+		},
+		{
+			"fire": 0.00317783647767771,
+			"frame": 339,
+			"label": "m4a1 natural return tail",
+			"ready": 0.00508133742710214,
+			"support_m": 0.000433874927693978,
+			"trigger_m": 0.0000610356219112873
+		},
+		{
+			"fire": 0.00272003584018557,
+			"frame": 341,
+			"label": "m4a1 natural return tail",
+			"ready": 0.00434931753565071,
+			"support_m": 0.000390953267924488,
+			"trigger_m": 0.0000685312406858429
+		},
+		{
+			"fire": 0.00251090954683281,
+			"frame": 342,
+			"label": "m4a1 natural return tail",
+			"ready": 0.00401492611278521,
+			"support_m": 0.000415251677623019,
+			"trigger_m": 0.0000309450879285578
+		},
+		{
+			"fire": 0.00203030753972812,
+			"frame": 344,
+			"label": "m4a1 natural return tail",
+			"ready": 0.00324644699707372,
+			"support_m": 0.000415255082771182,
+			"trigger_m": 0.0000432059277954977
+		},
+		{
+			"fire": 0.00177710792014865,
+			"frame": 345,
+			"label": "m4a1 natural return tail",
+			"ready": 0.00284158264595476,
+			"support_m": 0.00044030201388523,
+			"trigger_m": 0.0000310276373056695
+		},
+		{
+			"fire": 0.0016350182161263,
+			"frame": 346,
+			"label": "m4a1 natural return tail",
+			"ready": 0.00261438224211829,
+			"support_m": 0.000390926288673654,
+			"trigger_m": 0.0000444150209659711
+		},
+		{
+			"fire": 0.00136872023451208,
+			"frame": 348,
+			"label": "m4a1 natural return tail",
+			"ready": 0.00218857370532192,
+			"support_m": 0.000398089934606105,
+			"trigger_m": 0.0000687191641191021
+		},
+		{
+			"fire": 0.00125230678547355,
+			"frame": 349,
+			"label": "m4a1 natural return tail",
+			"ready": 0.00200242944655571,
+			"support_m": 0.000415180227719247,
+			"trigger_m": 0.0000315758370561525
+		},
+		{
+			"fire": 0.00104834161490591,
+			"frame": 351,
+			"label": "m4a1 natural return tail",
+			"ready": 0.00167629062150578,
+			"support_m": 0.000415182788856328,
+			"trigger_m": 0.0000695562484906986
+		},
+		{
+			"fire": 0.0,
+			"frame": 352,
+			"label": "m4a1 natural return tail",
+			"ready": 0.00153371745869285,
+			"support_m": 0.000398035685066134,
+			"trigger_m": 0.000030662751669297
+		},
+		{
+			"fire": 0.0,
+			"frame": 354,
+			"label": "m4a1 natural return tail",
+			"ready": 0.00128391849034617,
+			"support_m": 0.000424060533987358,
+			"trigger_m": 0.0000685651393723674
+		},
+		{
+			"fire": 0.0,
+			"frame": 355,
+			"label": "m4a1 natural return tail",
+			"ready": 0.00118467423938906,
+			"support_m": 0.000390897301258519,
+			"trigger_m": 0.0000438912029494531
+		},
+		{
+			"fire": 0.0,
+			"frame": 357,
+			"label": "m4a1 natural return tail",
+			"ready": 0.00102779099419795,
+			"support_m": 0.000410649692639709,
+			"trigger_m": 0.0000310276373056695
+		},
+		{
+			"fire": 0.0,
+			"frame": 359,
+			"label": "m4a1 natural return tail",
+			"ready": 0.0,
+			"support_m": 0.000415172660723329,
+			"trigger_m": 0.0000686257335473783
+		},
+		{
+			"fire": 0.0,
+			"frame": 360,
+			"label": "m4a1 ready API",
+			"ready": 0.174613898245807,
+			"support_m": 0.0000432872548117302,
+			"trigger_m": 0.000110330889583565
+		},
+		{
+			"fire": 0.0,
+			"frame": 361,
+			"label": "m4a1 ready API",
+			"ready": 0.524613898245807,
+			"support_m": 0.000129817170090973,
+			"trigger_m": 0.000152591659571044
+		},
+		{
+			"fire": 0.0,
+			"frame": 362,
+			"label": "m4a1 ready API",
+			"ready": 0.720735511658485,
+			"support_m": 0.0000610356219112873,
+			"trigger_m": 0.000227027077926323
+		},
+		{
+			"fire": 0.0,
+			"frame": 364,
+			"label": "m4a1 ready API",
+			"ready": 0.821011900632039,
+			"support_m": 0.000138524483190849,
+			"trigger_m": 0.000306695670587942
+		},
+		{
+			"fire": 0.0,
+			"frame": 366,
+			"label": "m4a1 ready API",
+			"ready": 0.895694997897579,
+			"support_m": 0.000691377790644765,
+			"trigger_m": 0.000306174857541919
+		},
+		{
+			"fire": 0.0,
+			"frame": 368,
+			"label": "m4a1 ready API",
+			"ready": 0.935537264049049,
+			"support_m": 0.0000569735602766741,
+			"trigger_m": 0.000280523352557793
+		},
+		{
+			"fire": 0.0,
+			"frame": 369,
+			"label": "m4a1 ready API",
+			"ready": 0.947300428759901,
+			"support_m": 0.000110296874481719,
+			"trigger_m": 0.000283374509308487
+		},
+		{
+			"fire": 0.0,
+			"frame": 371,
+			"label": "m4a1 ready API",
+			"ready": 0.96580418323916,
+			"support_m": 0.000149293497088365,
+			"trigger_m": 0.000282047491054982
+		},
+		{
+			"fire": 0.0,
+			"frame": 373,
+			"label": "m4a1 ready API",
+			"ready": 0.977906709032158,
+			"support_m": 0.000194368360098451,
+			"trigger_m": 0.000267191499006003
+		},
+		{
+			"fire": 0.0,
+			"frame": 375,
+			"label": "m4a1 ready API",
+			"ready": 0.986079407419831,
+			"support_m": 0.000211937382118776,
+			"trigger_m": 0.000254262908129022
+		},
+		{
+			"fire": 0.0,
+			"frame": 376,
+			"label": "m4a1 ready API",
+			"ready": 0.988923809596003,
+			"support_m": 0.000265187729382887,
+			"trigger_m": 0.000291282951366156
+		},
+		{
+			"fire": 0.0,
+			"frame": 378,
+			"label": "m4a1 ready API",
+			"ready": 0.99307210586027,
+			"support_m": 0.000237732878304087,
+			"trigger_m": 0.000290459225652739
+		},
+		{
+			"fire": 0.0,
+			"frame": 380,
+			"label": "m4a1 ready API",
+			"ready": 0.99561402024598,
+			"support_m": 0.000275613943813369,
+			"trigger_m": 0.000282353634247556
+		},
+		{
+			"fire": 0.0,
+			"frame": 382,
+			"label": "m4a1 ready API",
+			"ready": 0.997223280550384,
+			"support_m": 0.000317069177981466,
+			"trigger_m": 0.000281527638435364
+		},
+		{
+			"fire": 0.0,
+			"frame": 383,
+			"label": "m4a1 ready API",
+			"ready": 0.997790649130394,
+			"support_m": 0.000315521756419912,
+			"trigger_m": 0.00028021662728861
+		},
+		{
+			"fire": 0.0,
+			"frame": 385,
+			"label": "m4a1 ready API",
+			"ready": 0.998595952243463,
+			"support_m": 0.000308909366140142,
+			"trigger_m": 0.000267424475168809
+		},
+		{
+			"fire": 0.0,
+			"frame": 387,
+			"label": "m4a1 ready API",
+			"ready": 0.999071633492136,
+			"support_m": 0.000304600427625701,
+			"trigger_m": 0.000267098628683016
+		},
+		{
+			"fire": 0.0,
+			"frame": 389,
+			"label": "m4a1 ready API",
+			"ready": 0.999383070596353,
+			"support_m": 0.000329558679368347,
+			"trigger_m": 0.000282750377664343
+		},
+		{
+			"fire": 0.0,
+			"frame": 391,
+			"label": "m4a1 ready API",
+			"ready": 0.999588127185659,
+			"support_m": 0.000329635658999905,
+			"trigger_m": 0.000268225034233183
+		},
+		{
+			"fire": 0.0,
+			"frame": 392,
+			"label": "m4a1 ready API",
+			"ready": 0.999672285379548,
+			"support_m": 0.000303897773846984,
+			"trigger_m": 0.000266867224127054
+		},
+		{
+			"fire": 0.0,
+			"frame": 394,
+			"label": "m4a1 ready API",
+			"ready": 0.999810704143382,
+			"support_m": 0.000335637509124354,
+			"trigger_m": 0.000293285876978189
+		},
+		{
+			"fire": 0.0,
+			"frame": 396,
+			"label": "m4a1 ready API",
+			"ready": 0.999880158706542,
+			"support_m": 0.000370544206816703,
+			"trigger_m": 0.00030808403971605
+		},
+		{
+			"fire": 0.0,
+			"frame": 398,
+			"label": "m4a1 ready API",
+			"ready": 0.999924129688445,
+			"support_m": 0.00037103402428329,
+			"trigger_m": 0.000295290461508557
+		},
+		{
+			"fire": 0.0,
+			"frame": 399,
+			"label": "m4a1 ready API",
+			"ready": 0.99993963231005,
+			"support_m": 0.00037400284782052,
+			"trigger_m": 0.000309200957417488
+		},
+		{
+			"fire": 0.0,
+			"frame": 401,
+			"label": "m4a1 ready API",
+			"ready": 0.999961781825678,
+			"support_m": 0.000386268715374172,
+			"trigger_m": 0.000334146257955581
+		},
+		{
+			"fire": 0.0,
+			"frame": 403,
+			"label": "m4a1 ready API",
+			"ready": 0.999975804460139,
+			"support_m": 0.000415255432017148,
+			"trigger_m": 0.000311016861815006
+		},
+		{
+			"fire": 0.0,
+			"frame": 405,
+			"label": "m4a1 ready API",
+			"ready": 0.999984682048278,
+			"support_m": 0.000443145749159157,
+			"trigger_m": 0.00032395962625742
+		},
+		{
+			"fire": 0.0,
+			"frame": 406,
+			"label": "m4a1 ready API",
+			"ready": 0.9999878119736,
+			"support_m": 0.000441317621152848,
+			"trigger_m": 0.000336733472067863
+		},
+		{
+			"fire": 0.0,
+			"frame": 408,
+			"label": "m4a1 ready API",
+			"ready": 0.99999230795561,
+			"support_m": 0.000408877851441503,
+			"trigger_m": 0.000336519558914006
+		},
+		{
+			"fire": 0.0,
+			"frame": 409,
+			"label": "m4a1 ready API",
+			"ready": 0.999995592046166,
+			"support_m": 0.00045216511352919,
+			"trigger_m": 0.000388915155781433
+		},
+		{
+			"fire": 0.0,
+			"frame": 410,
+			"label": "m4a1 ready API",
+			"ready": 0.999997044858311,
+			"support_m": 0.00046772780478932,
+			"trigger_m": 0.000362698541721329
+		},
+		{
+			"fire": 0.0,
+			"frame": 411,
+			"label": "m4a1 ready API",
+			"ready": 0.999997736573236,
+			"support_m": 0.000441517477156594,
+			"trigger_m": 0.000363761530024931
+		},
+		{
+			"fire": 0.0,
+			"frame": 412,
+			"label": "m4a1 ready API",
+			"ready": 0.999998690388408,
+			"support_m": 0.000466773723019287,
+			"trigger_m": 0.000338922982336953
+		},
+		{
+			"fire": 0.0,
+			"frame": 413,
+			"label": "m4a1 ready API",
+			"ready": 0.999999122379842,
+			"support_m": 0.000425611040554941,
+			"trigger_m": 0.000352351693436503
+		},
+		{
+			"fire": 0.0,
+			"frame": 414,
+			"label": "m4a1 ready API",
+			"ready": 0.999999411713616,
+			"support_m": 0.00044591465848498,
+			"trigger_m": 0.000339824095135555
+		},
+		{
+			"fire": 0.0,
+			"frame": 415,
+			"label": "m4a1 ready API",
+			"ready": 0.999999605659844,
+			"support_m": 0.000445331243099645,
+			"trigger_m": 0.000363145401934162
+		},
+		{
+			"fire": 0.0,
+			"frame": 416,
+			"label": "m4a1 ready API",
+			"ready": 0.999999735665888,
+			"support_m": 0.000470354629214853,
+			"trigger_m": 0.000351373106241226
+		},
+		{
+			"fire": 0.0,
+			"frame": 417,
+			"label": "m4a1 ready API",
+			"ready": 0.999999822811546,
+			"support_m": 0.000455071625765413,
+			"trigger_m": 0.000325814879033715
+		},
+		{
+			"fire": 0.0,
+			"frame": 419,
+			"label": "m4a1 ready API",
+			"ready": 0.999999919090934,
+			"support_m": 0.000429172767326236,
+			"trigger_m": 0.000362738966941833
+		},
+		{
+			"fire": 0.0,
+			"frame": 420,
+			"label": "m4a1 ready API",
+			"ready": 0.999999934247751,
+			"support_m": 0.000412666966440156,
+			"trigger_m": 0.000350413203705102
+		},
+		{
+			"fire": 0.0,
+			"frame": 422,
+			"label": "m4a1 ready API",
+			"ready": 0.999999960308944,
+			"support_m": 0.000413667235989124,
+			"trigger_m": 0.000360953126801178
+		},
+		{
+			"fire": 0.0,
+			"frame": 424,
+			"label": "m4a1 ready API",
+			"ready": 0.99999997541277,
+			"support_m": 0.000412970985053107,
+			"trigger_m": 0.000321953732054681
+		},
+		{
+			"fire": 0.0,
+			"frame": 425,
+			"label": "m4a1 ready API",
+			"ready": 0.99999998037277,
+			"support_m": 0.000366789463441819,
+			"trigger_m": 0.000334308831952512
+		},
+		{
+			"fire": 0.0,
+			"frame": 427,
+			"label": "m4a1 ready API",
+			"ready": 0.999999987878583,
+			"support_m": 0.000374317198293284,
+			"trigger_m": 0.000321023078868166
+		},
+		{
+			"fire": 0.0,
+			"frame": 429,
+			"label": "m4a1 ready API",
+			"ready": 0.999999992365802,
+			"support_m": 0.00038795592263341,
+			"trigger_m": 0.000295018340693787
+		},
+		{
+			"fire": 0.0,
+			"frame": 430,
+			"label": "m4a1 ready API release",
+			"ready": 0.923116339339383,
+			"support_m": 0.000291343312710524,
+			"trigger_m": 0.000267238006927073
+		},
+		{
+			"fire": 0.0,
+			"frame": 431,
+			"label": "m4a1 ready API release",
+			"ready": 0.573116339339383,
+			"support_m": 0.000970454653725028,
+			"trigger_m": 0.000248677883064374
+		},
+		{
+			"fire": 0.0,
+			"frame": 434,
+			"label": "m4a1 ready API release",
+			"ready": 0.434668960749342,
+			"support_m": 0.000269605166977271,
+			"trigger_m": 0.000226934920647182
+		},
+		{
+			"fire": 0.0,
+			"frame": 436,
+			"label": "m4a1 ready API release",
+			"ready": 0.380216970560543,
+			"support_m": 0.000383685517590493,
+			"trigger_m": 0.00023488505394198
+		},
+		{
+			"fire": 0.0,
+			"frame": 438,
+			"label": "m4a1 ready API release",
+			"ready": 0.332755748081925,
+			"support_m": 0.000596154481172562,
+			"trigger_m": 0.000233659084187821
+		},
+		{
+			"fire": 0.0,
+			"frame": 440,
+			"label": "m4a1 ready API release",
+			"ready": 0.291218952479477,
+			"support_m": 0.000723887875210494,
+			"trigger_m": 0.000205426666070707
+		},
+		{
+			"fire": 0.0,
+			"frame": 442,
+			"label": "m4a1 ready API release",
+			"ready": 0.254867057209675,
+			"support_m": 0.000812767830211669,
+			"trigger_m": 0.000193328247405589
+		},
+		{
+			"fire": 0.0,
+			"frame": 444,
+			"label": "m4a1 ready API release",
+			"ready": 0.2230528483729,
+			"support_m": 0.000896478071808815,
+			"trigger_m": 0.000152723616338335
+		},
+		{
+			"fire": 0.0,
+			"frame": 446,
+			"label": "m4a1 ready API release",
+			"ready": 0.195209901632494,
+			"support_m": 0.000871408672537655,
+			"trigger_m": 0.000152632637764327
+		},
+		{
+			"fire": 0.0,
+			"frame": 447,
+			"label": "m4a1 ready API release",
+			"ready": 0.170680843152577,
+			"support_m": 0.000827523705083877,
+			"trigger_m": 0.000204734940780327
+		},
+		{
+			"fire": 0.0,
+			"frame": 448,
+			"label": "m4a1 ready API release",
+			"ready": 0.149034734804228,
+			"support_m": 0.000869303185027093,
+			"trigger_m": 0.000164342360221781
+		},
+		{
+			"fire": 0.0,
+			"frame": 449,
+			"label": "m4a1 ready API release",
+			"ready": 0.136358917593643,
+			"support_m": 0.000865534064359963,
+			"trigger_m": 0.000155615256517194
+		},
+		{
+			"fire": 0.0,
+			"frame": 451,
+			"label": "m4a1 ready API release",
+			"ready": 0.11389664316767,
+			"support_m": 0.000806349038612098,
+			"trigger_m": 0.000125892460346222
+		},
+		{
+			"fire": 0.0,
+			"frame": 452,
+			"label": "m4a1 ready API release",
+			"ready": 0.10237317665902,
+			"support_m": 0.000758549605961889,
+			"trigger_m": 0.0000966474908636883
+		},
+		{
+			"fire": 0.0,
+			"frame": 453,
+			"label": "m4a1 ready API release",
+			"ready": 0.0926310808442868,
+			"support_m": 0.00073909224011004,
+			"trigger_m": 0.0000966474908636883
+		},
+		{
+			"fire": 0.0,
+			"frame": 455,
+			"label": "m4a1 ready API release",
+			"ready": 0.0763472030914572,
+			"support_m": 0.00072036444908008,
+			"trigger_m": 0.000136598653625697
+		},
+		{
+			"fire": 0.0,
+			"frame": 456,
+			"label": "m4a1 ready API release",
+			"ready": 0.0690818061195411,
+			"support_m": 0.000677667325362563,
+			"trigger_m": 0.0000965712970355526
+		},
+		{
+			"fire": 0.0,
+			"frame": 457,
+			"label": "m4a1 ready API release",
+			"ready": 0.0625078030824663,
+			"support_m": 0.000629164220299572,
+			"trigger_m": 0.0000683741891407408
+		},
+		{
+			"fire": 0.0,
+			"frame": 459,
+			"label": "m4a1 ready API release",
+			"ready": 0.0538799306776755,
+			"support_m": 0.000629141926765442,
+			"trigger_m": 0.000136659873533063
+		},
+		{
+			"fire": 0.0,
+			"frame": 461,
+			"label": "m4a1 ready API release",
+			"ready": 0.0462763052730808,
+			"support_m": 0.000610352493822575,
+			"trigger_m": 0.0000683975667925552
+		},
+		{
+			"fire": 0.0,
+			"frame": 462,
+			"label": "m4a1 ready API release",
+			"ready": 0.0423403772654702,
+			"support_m": 0.000586227921303362,
+			"trigger_m": 0.0000865061956574209
+		},
+		{
+			"fire": 0.0,
+			"frame": 464,
+			"label": "m4a1 ready API release",
+			"ready": 0.0357943501865937,
+			"support_m": 0.000550182128790766,
+			"trigger_m": 0.0000864063404151239
+		},
+		{
+			"fire": 0.0,
+			"frame": 466,
+			"label": "m4a1 ready API release",
+			"ready": 0.0303340263695474,
+			"support_m": 0.000525056442711502,
+			"trigger_m": 0.000068304427259136
+		},
+		{
+			"fire": 0.0,
+			"frame": 467,
+			"label": "m4a1 ready API release",
+			"ready": 0.0280018355934525,
+			"support_m": 0.000482569826999679,
+			"trigger_m": 0.0000432611486758105
+		},
+		{
+			"fire": 0.0,
+			"frame": 469,
+			"label": "m4a1 ready API release",
+			"ready": 0.023038423252598,
+			"support_m": 0.00049214216414839,
+			"trigger_m": 0.0000432116830779705
+		},
+		{
+			"fire": 0.0,
+			"frame": 470,
+			"label": "m4a1 ready API release",
+			"ready": 0.0211963726354191,
+			"support_m": 0.00045785098336637,
+			"trigger_m": 0.0000682431273162365
+		},
+		{
+			"fire": 0.0,
+			"frame": 472,
+			"label": "m4a1 ready API release",
+			"ready": 0.0179423420698538,
+			"support_m": 0.000457810616353527,
+			"trigger_m": 0.0000682444806443527
+		},
+		{
+			"fire": 0.0,
+			"frame": 473,
+			"label": "m4a1 ready API release",
+			"ready": 0.0153899607619831,
+			"support_m": 0.00043384640594013,
+			"trigger_m": 0.0000682597819832154
+		},
+		{
+			"fire": 0.0,
+			"frame": 474,
+			"label": "m4a1 ready API release",
+			"ready": 0.0134688830400055,
+			"support_m": 0.000482580071548,
+			"trigger_m": 0.0000612601215834729
+		},
+		{
+			"fire": 0.0,
+			"frame": 475,
+			"label": "m4a1 ready API release",
+			"ready": 0.0117876070739229,
+			"support_m": 0.000465899065602571,
+			"trigger_m": 0.0000682419849908911
+		},
+		{
+			"fire": 0.0,
+			"frame": 476,
+			"label": "m4a1 ready API release",
+			"ready": 0.0103161992064592,
+			"support_m": 0.000457823334727436,
+			"trigger_m": 0.0000305631801893469
+		},
+		{
+			"fire": 0.0,
+			"frame": 477,
+			"label": "m4a1 ready API release",
+			"ready": 0.00902846229942514,
+			"support_m": 0.000433818844612688,
+			"trigger_m": 0.0000685203558532521
+		},
+		{
+			"fire": 0.0,
+			"frame": 478,
+			"label": "m4a1 ready API release",
+			"ready": 0.00790146931644202,
+			"support_m": 0.000433816545410082,
+			"trigger_m": 0.0000305631801893469
+		},
+		{
+			"fire": 0.0,
+			"frame": 479,
+			"label": "m4a1 ready API release",
+			"ready": 0.0069110072783894,
+			"support_m": 0.000440185074694455,
+			"trigger_m": 0.0000436358095612377
+		},
+		{
+			"fire": 0.0,
+			"frame": 480,
+			"label": "m4a1 ready API release",
+			"ready": 0.00604832917775801,
+			"support_m": 0.000457804038887843,
+			"trigger_m": 0.0000431585358455777
+		},
+		{
+			"fire": 0.0,
+			"frame": 481,
+			"label": "m4a1 ready API release",
+			"ready": 0.00529333632116278,
+			"support_m": 0.000476757093565539,
+			"trigger_m": 0.0000431820735684596
+		},
+		{
+			"fire": 0.0,
+			"frame": 483,
+			"label": "m4a1 ready API release",
+			"ready": 0.00409961544761421,
+			"support_m": 0.000440171133959666,
+			"trigger_m": 0.0000684690021444112
+		},
+		{
+			"fire": 0.0,
+			"frame": 484,
+			"label": "m4a1 ready API release",
+			"ready": 0.00378203439630877,
+			"support_m": 0.000433777226135135,
+			"trigger_m": 0.000068320965510793
+		},
+		{
+			"fire": 0.0,
+			"frame": 486,
+			"label": "m4a1 ready API release",
+			"ready": 0.00312573690483062,
+			"support_m": 0.000476797606097534,
+			"trigger_m": 0.0000305631801893469
+		},
+		{
+			"fire": 0.0,
+			"frame": 487,
+			"label": "m4a1 ready API release",
+			"ready": 0.00289976606047111,
+			"support_m": 0.000433843757491559,
+			"trigger_m": 0.0000318340134981554
+		},
+		{
+			"fire": 0.0,
+			"frame": 488,
+			"label": "m4a1 ready API release",
+			"ready": 0.00262381683506499,
+			"support_m": 0.000410709093557671,
+			"trigger_m": 0.0000305213034152985
+		},
+		{
+			"fire": 0.0,
+			"frame": 490,
+			"label": "m4a1 ready API release",
+			"ready": 0.00214819953331144,
+			"support_m": 0.000367636879673228,
+			"trigger_m": 0.0000614528253208846
+		},
+		{
+			"fire": 0.0,
+			"frame": 491,
+			"label": "m4a1 ready API release",
+			"ready": 0.00182485293142879,
+			"support_m": 0.000410697044571862,
+			"trigger_m": 0.000043337291572243
+		},
+		{
+			"fire": 0.0,
+			"frame": 492,
+			"label": "m4a1 ready API release",
+			"ready": 0.00159706259676378,
+			"support_m": 0.000410715321777388,
+			"trigger_m": 0.0000432453780376818
+		},
+		{
+			"fire": 0.0,
+			"frame": 493,
+			"label": "m4a1 ready API release",
+			"ready": 0.00139770657352911,
+			"support_m": 0.000433863111538813,
+			"trigger_m": 0.0000305771245621145
+		},
+		{
+			"fire": 0.0,
+			"frame": 494,
+			"label": "m4a1 ready API release",
+			"ready": 0.00122323550100362,
+			"support_m": 0.000415216491091996,
+			"trigger_m": 0.0000692523899488151
+		},
+		{
+			"fire": 0.0,
+			"frame": 496,
+			"label": "m4a1 ready API release",
+			"ready": 0.0,
+			"support_m": 0.000410706008551642,
+			"trigger_m": 0.0000684991973685101
+		},
+		{
+			"fire": 0.0,
+			"frame": 498,
+			"label": "m4a1 ready API release",
+			"ready": 0.0,
+			"support_m": 0.000433893583249301,
+			"trigger_m": 0.000030640498152934
+		},
+		{
+			"fire": 0.0,
+			"frame": 500,
+			"label": "m4a1 ready API release",
+			"ready": 0.0,
+			"support_m": 0.000390969536965713,
+			"trigger_m": 0.0000683393736835569
+		},
+		{
+			"fire": 0.0,
+			"frame": 501,
+			"label": "m4a1 ready API release",
+			"ready": 0.0,
+			"support_m": 0.000433881010394543,
+			"trigger_m": 0.0000309064889734145
+		},
+		{
+			"fire": 0.0,
+			"frame": 503,
+			"label": "m4a1 ready API release",
+			"ready": 0.0,
+			"support_m": 0.000433884095400572,
+			"trigger_m": 0.0000613736847299151
+		},
+		{
+			"fire": 0.0,
+			"frame": 505,
+			"label": "m4a1 ready API release",
+			"ready": 0.0,
+			"support_m": 0.000415207585319877,
+			"trigger_m": 0.000086766347521916
+		},
+		{
+			"fire": 0.0,
+			"frame": 506,
+			"label": "m4a1 ready API release",
+			"ready": 0.0,
+			"support_m": 0.000372716807760298,
+			"trigger_m": 0.000031669536838308
+		},
+		{
+			"fire": 0.0,
+			"frame": 508,
+			"label": "m4a1 ready API release",
+			"ready": 0.0,
+			"support_m": 0.000415283546317369,
+			"trigger_m": 0.000111273366201203
+		},
+		{
+			"fire": 0.0,
+			"frame": 510,
+			"label": "m4a1 ready API release",
+			"ready": 0.0,
+			"support_m": 0.000415269052609801,
+			"trigger_m": 0.0000431664375355467
+		},
+		{
+			"fire": 0.0,
+			"frame": 512,
+			"label": "m4a1 ready API release",
+			"ready": 0.0,
+			"support_m": 0.000398101139580831,
+			"trigger_m": 0.0000971262415987439
+		},
+		{
+			"fire": 0.0,
+			"frame": 513,
+			"label": "m4a1 ready API release",
+			"ready": 0.0,
+			"support_m": 0.000367714179446921,
+			"trigger_m": 0.00000202655792236328
+		},
+		{
+			"fire": 0.0,
+			"frame": 515,
+			"label": "m4a1 ready API release",
+			"ready": 0.0,
+			"support_m": 0.000415248301578686,
+			"trigger_m": 0.0000684788610669784
+		},
+		{
+			"fire": 0.0,
+			"frame": 517,
+			"label": "m4a1 ready API release",
+			"ready": 0.0,
+			"support_m": 0.000398068514186889,
+			"trigger_m": 0.0000617574332864024
+		},
+		{
+			"fire": 0.0,
+			"frame": 518,
+			"label": "m4a1 ready API release",
+			"ready": 0.0,
+			"support_m": 0.000415213493397459,
+			"trigger_m": 0.0000870106960064732
+		},
+		{
+			"fire": 0.0,
+			"frame": 520,
+			"label": "m4a1 ready API release",
+			"ready": 0.0,
+			"support_m": 0.000415199028793722,
+			"trigger_m": 0.0000614122254773974
+		},
+		{
+			"fire": 0.0,
+			"frame": 522,
+			"label": "m4a1 ready API release",
+			"ready": 0.0,
+			"support_m": 0.000390932022128254,
+			"trigger_m": 0.0000305929206660949
+		},
+		{
+			"fire": 0.0,
+			"frame": 524,
+			"label": "m4a1 ready API release",
+			"ready": 0.0,
+			"support_m": 0.00041065682307817,
+			"trigger_m": 0.0000436012778664008
+		},
+		{
+			"fire": 0.0,
+			"frame": 525,
+			"label": "m4a1 ready API release",
+			"ready": 0.0,
+			"support_m": 0.000398029544157907,
+			"trigger_m": 0.00000095367431640625
+		},
+		{
+			"fire": 0.0,
+			"frame": 527,
+			"label": "m4a1 ready API release",
+			"ready": 0.0,
+			"support_m": 0.000457819551229477,
+			"trigger_m": 0.0000613612937740982
+		},
+		{
+			"fire": 0.0,
+			"frame": 529,
+			"label": "m4a1 ready API release",
+			"ready": 0.0,
+			"support_m": 0.000433828419772908,
+			"trigger_m": 0.0000305213034152985
+		},
+		{
+			"fire": 0.0,
+			"frame": 530,
+			"label": "m4a1 ready API release",
+			"ready": 0.0,
+			"support_m": 0.000390902248909697,
+			"trigger_m": 0.0000310715768137015
+		},
+		{
+			"fire": 0.0,
+			"frame": 532,
+			"label": "m4a1 ready API release",
+			"ready": 0.0,
+			"support_m": 0.000410649692639709,
+			"trigger_m": 0.0000445893747382797
+		},
+		{
+			"fire": 0.0,
+			"frame": 534,
+			"label": "m4a1 ready API release",
+			"ready": 0.0,
+			"support_m": 0.000433807639637962,
+			"trigger_m": 0.0000683152466081083
+		},
+		{
+			"fire": 0.0,
+			"frame": 535,
+			"label": "m4a1 ready API release",
+			"ready": 0.0,
+			"support_m": 0.000410642911447212,
+			"trigger_m": 0.0000431906300946139
+		},
+		{
+			"fire": 0.0,
+			"frame": 537,
+			"label": "m4a1 ready API release",
+			"ready": 0.0,
+			"support_m": 0.000410680018831044,
+			"trigger_m": 0.000068320965510793
+		},
+		{
+			"fire": 0.0,
+			"frame": 539,
+			"label": "m4a1 ready API release",
+			"ready": 0.0,
+			"support_m": 0.000431699882028624,
+			"trigger_m": 0.00000393390655517578
+		},
+		{
+			"fire": 0.0,
+			"frame": 540,
+			"label": "m4a1 ready API release",
+			"ready": 0.0,
+			"support_m": 0.000410674605518579,
+			"trigger_m": 0.0000610426068305969
+		},
+		{
+			"fire": 0.0,
+			"frame": 542,
+			"label": "m4a1 ready API release",
+			"ready": 0.0,
+			"support_m": 0.00039093496161513,
+			"trigger_m": 0.0000683097314322367
+		},
+		{
+			"fire": 0.0,
+			"frame": 544,
+			"label": "m4a1 ready API release",
+			"ready": 0.0,
+			"support_m": 0.000433887238614261,
+			"trigger_m": 0.0000308878625219222
+		},
+		{
+			"fire": 0.0,
+			"frame": 608,
+			"label": "ak-47 idle early",
+			"ready": 0.0,
+			"support_m": 0.000590074399951845,
+			"trigger_m": 0.0000431590306106955
+		},
+		{
+			"fire": 0.0,
+			"frame": 610,
+			"label": "ak-47 idle early",
+			"ready": 0.0,
+			"support_m": 0.000615218421444297,
+			"trigger_m": 0.0000305259600281715
+		},
+		{
+			"fire": 0.0,
+			"frame": 612,
+			"label": "ak-47 idle early",
+			"ready": 0.0,
+			"support_m": 0.000615366850979626,
+			"trigger_m": 0.00000107288360595703
+		},
+		{
+			"fire": 0.0,
+			"frame": 614,
+			"label": "ak-47 idle early",
+			"ready": 0.0,
+			"support_m": 0.000580586434807628,
+			"trigger_m": 0.0000431598527939059
+		},
+		{
+			"fire": 0.0,
+			"frame": 616,
+			"label": "ak-47 idle early",
+			"ready": 0.0,
+			"support_m": 0.000589075614698231,
+			"trigger_m": 0.00004344782064436
+		},
+		{
+			"fire": 0.0,
+			"frame": 618,
+			"label": "ak-47 idle early",
+			"ready": 0.0,
+			"support_m": 0.000614753691479564,
+			"trigger_m": 0.0000966675652307458
+		},
+		{
+			"fire": 0.0,
+			"frame": 620,
+			"label": "ak-47 idle early",
+			"ready": 0.0,
+			"support_m": 0.000588775321375579,
+			"trigger_m": 0.0000305178109556437
+		},
+		{
+			"fire": 0.0,
+			"frame": 621,
+			"label": "ak-47 idle early",
+			"ready": 0.0,
+			"support_m": 0.000573833880480379,
+			"trigger_m": 0.0000307405134662986
+		},
+		{
+			"fire": 0.0,
+			"frame": 623,
+			"label": "ak-47 idle early",
+			"ready": 0.0,
+			"support_m": 0.000614777964074165,
+			"trigger_m": 0.0000306015135720372
+		},
+		{
+			"fire": 0.0,
+			"frame": 624,
+			"label": "ak-47 idle early",
+			"ready": 0.0,
+			"support_m": 0.00056260428391397,
+			"trigger_m": 0.0000865932233864442
+		},
+		{
+			"fire": 0.0,
+			"frame": 625,
+			"label": "ak-47 idle early",
+			"ready": 0.0,
+			"support_m": 0.000604963337536901,
+			"trigger_m": 0.0000306015135720372
+		},
+		{
+			"fire": 0.0,
+			"frame": 626,
+			"label": "ak-47 idle early",
+			"ready": 0.0,
+			"support_m": 0.000580263207666576,
+			"trigger_m": 0.0000307855552819092
+		},
+		{
+			"fire": 0.0,
+			"frame": 627,
+			"label": "ak-47 idle middle",
+			"ready": 0.0,
+			"support_m": 0.00060446368297562,
+			"trigger_m": 0.0000305364301311783
+		},
+		{
+			"fire": 0.0,
+			"frame": 628,
+			"label": "ak-47 idle middle",
+			"ready": 0.0,
+			"support_m": 0.000599091406911612,
+			"trigger_m": 0.0000325098408211488
+		},
+		{
+			"fire": 0.0,
+			"frame": 629,
+			"label": "ak-47 idle middle",
+			"ready": 0.0,
+			"support_m": 0.000595949473790824,
+			"trigger_m": 0.0000682628015056252
+		},
+		{
+			"fire": 0.0,
+			"frame": 632,
+			"label": "ak-47 idle middle",
+			"ready": 0.0,
+			"support_m": 0.000598993268795311,
+			"trigger_m": 0.0000305457360809669
+		},
+		{
+			"fire": 0.0,
+			"frame": 634,
+			"label": "ak-47 idle middle",
+			"ready": 0.0,
+			"support_m": 0.000622697407379746,
+			"trigger_m": 0.0000305213034152985
+		},
+		{
+			"fire": 0.0,
+			"frame": 636,
+			"label": "ak-47 idle middle",
+			"ready": 0.0,
+			"support_m": 0.000623174186330289,
+			"trigger_m": 0.000043162490328541
+		},
+		{
+			"fire": 0.0,
+			"frame": 638,
+			"label": "ak-47 idle middle",
+			"ready": 0.0,
+			"support_m": 0.000618337362539023,
+			"trigger_m": 0.0000305364301311783
+		},
+		{
+			"fire": 0.0,
+			"frame": 640,
+			"label": "ak-47 idle middle",
+			"ready": 0.0,
+			"support_m": 0.000640914600808173,
+			"trigger_m": 0.0000685768463881686
+		},
+		{
+			"fire": 0.0,
+			"frame": 643,
+			"label": "ak-47 idle middle",
+			"ready": 0.0,
+			"support_m": 0.000605793436989188,
+			"trigger_m": 0.000193836647667922
+		},
+		{
+			"fire": 0.0,
+			"frame": 645,
+			"label": "ak-47 idle middle",
+			"ready": 0.0,
+			"support_m": 0.000647549575660378,
+			"trigger_m": 0.0000436900008935481
+		},
+		{
+			"fire": 0.0,
+			"frame": 647,
+			"label": "ak-47 idle middle",
+			"ready": 0.0,
+			"support_m": 0.000623078143689781,
+			"trigger_m": 0.000206361029995605
+		},
+		{
+			"fire": 0.0,
+			"frame": 649,
+			"label": "ak-47 idle middle",
+			"ready": 0.0,
+			"support_m": 0.000564381829462945,
+			"trigger_m": 0.0000610356219112873
+		},
+		{
+			"fire": 0.0,
+			"frame": 650,
+			"label": "ak-47 idle late",
+			"ready": 0.0,
+			"support_m": 0.000580661580897868,
+			"trigger_m": 0.000186358709470369
+		},
+		{
+			"fire": 0.0,
+			"frame": 651,
+			"label": "ak-47 idle late",
+			"ready": 0.0,
+			"support_m": 0.00060518056852743,
+			"trigger_m": 0.000000357627868652344
+		},
+		{
+			"fire": 0.0,
+			"frame": 654,
+			"label": "ak-47 idle late",
+			"ready": 0.0,
+			"support_m": 0.000588355644140393,
+			"trigger_m": 0.0000683097314322367
+		},
+		{
+			"fire": 0.0,
+			"frame": 656,
+			"label": "ak-47 idle late",
+			"ready": 0.0,
+			"support_m": 0.000629486108664423,
+			"trigger_m": 0.0000683526741340756
+		},
+		{
+			"fire": 0.0,
+			"frame": 658,
+			"label": "ak-47 idle late",
+			"ready": 0.0,
+			"support_m": 0.000580041785724461,
+			"trigger_m": 0.0000431664375355467
+		},
+		{
+			"fire": 0.0,
+			"frame": 660,
+			"label": "ak-47 idle late",
+			"ready": 0.0,
+			"support_m": 0.000604440167080611,
+			"trigger_m": 0.0000431782900705002
+		},
+		{
+			"fire": 0.0,
+			"frame": 661,
+			"label": "ak-47 idle late",
+			"ready": 0.0,
+			"support_m": 0.000579773681238294,
+			"trigger_m": 0.0000616192119196057
+		},
+		{
+			"fire": 0.0,
+			"frame": 663,
+			"label": "ak-47 idle late",
+			"ready": 0.0,
+			"support_m": 0.000575056939851493,
+			"trigger_m": 0.0000308178496197797
+		},
+		{
+			"fire": 0.0,
+			"frame": 664,
+			"label": "ak-47 idle late",
+			"ready": 0.0,
+			"support_m": 0.000640043639577925,
+			"trigger_m": 0.0000305457360809669
+		},
+		{
+			"fire": 0.0,
+			"frame": 665,
+			"label": "ak-47 idle late",
+			"ready": 0.0,
+			"support_m": 0.000622021616436541,
+			"trigger_m": 0.0000696741335559636
+		},
+		{
+			"fire": 0.0,
+			"frame": 666,
+			"label": "ak-47 idle late",
+			"ready": 0.0,
+			"support_m": 0.000621724699158221,
+			"trigger_m": 0.000000715255737304688
+		},
+		{
+			"fire": 0.0,
+			"frame": 668,
+			"label": "ak-47 idle late",
+			"ready": 0.0,
+			"support_m": 0.000598871090915054,
+			"trigger_m": 0.0000683097314322367
+		},
+		{
+			"fire": 0.160542979230793,
+			"frame": 669,
+			"label": "ak-47 shot early",
+			"ready": 0.259181779318282,
+			"support_m": 0.000662746897432953,
+			"trigger_m": 0.000043217765778536
+		},
+		{
+			"fire": 0.8720295626576,
+			"frame": 670,
+			"label": "ak-47 shot middle",
+			"ready": 0.609181779318282,
+			"support_m": 0.0000863464592839591,
+			"trigger_m": 0.00012613604485523
+		},
+		{
+			"fire": 0.978861600268291,
+			"frame": 671,
+			"label": "ak-47 shot middle",
+			"ready": 0.959181779318282,
+			"support_m": 0.00037935993168503,
+			"trigger_m": 0.000140789154102094
+		},
+		{
+			"fire": 0.982654115407413,
+			"frame": 672,
+			"label": "ak-47 shot middle",
+			"ready": 0.970917036178471,
+			"support_m": 0.0000693352412781678,
+			"trigger_m": 0.00035784367355518
+		},
+		{
+			"fire": 0.985004423179522,
+			"frame": 673,
+			"label": "ak-47 shot middle",
+			"ready": 0.977341103255528,
+			"support_m": 0.0000437666967627592,
+			"trigger_m": 0.000399399519665167
+		},
+		{
+			"fire": 0.989505234465726,
+			"frame": 675,
+			"label": "ak-47 shot middle",
+			"ready": 0.987710311627694,
+			"support_m": 0.0000308178496197797,
+			"trigger_m": 0.000331462186295539
+		},
+		{
+			"fire": 0.99181909637338,
+			"frame": 677,
+			"label": "ak-47 shot middle",
+			"ready": 0.991981297970625,
+			"support_m": 0.0000307264126604423,
+			"trigger_m": 0.000315330369630828
+		},
+		{
+			"fire": 0.992997641248749,
+			"frame": 678,
+			"label": "ak-47 shot middle",
+			"ready": 0.9938582488788,
+			"support_m": 0.0000306200854538474,
+			"trigger_m": 0.000356772419763729
+		},
+		{
+			"fire": 0.994103128561275,
+			"frame": 679,
+			"label": "ak-47 shot held",
+			"ready": 0.995425247645691,
+			"support_m": 0.00000274181365966797,
+			"trigger_m": 0.000356739299604669
+		},
+		{
+			"fire": 1.0,
+			"frame": 680,
+			"label": "ak-47 shot held",
+			"ready": 0.999854894676742,
+			"support_m": 0.0000682497920934111,
+			"trigger_m": 0.000357022159732878
+		},
+		{
+			"fire": 1.0,
+			"frame": 683,
+			"label": "ak-47 shot held",
+			"ready": 0.99993725117542,
+			"support_m": 0.0000305699213640764,
+			"trigger_m": 0.000373428221791983
+		},
+		{
+			"fire": 1.0,
+			"frame": 685,
+			"label": "ak-47 shot held",
+			"ready": 0.999962350945312,
+			"support_m": 0.0000431583721365314,
+			"trigger_m": 0.000331064104102552
+		},
+		{
+			"fire": 1.0,
+			"frame": 687,
+			"label": "ak-47 shot held",
+			"ready": 0.999974763083928,
+			"support_m": 0.0000305408539134078,
+			"trigger_m": 0.000331045972416177
+		},
+		{
+			"fire": 1.0,
+			"frame": 688,
+			"label": "ak-47 shot held",
+			"ready": 0.999979434234056,
+			"support_m": 0.00000131130218505859,
+			"trigger_m": 0.000306124362396076
+		},
+		{
+			"fire": 1.0,
+			"frame": 690,
+			"label": "ak-47 shot held",
+			"ready": 0.999986977015353,
+			"support_m": 0.0000682444806443527,
+			"trigger_m": 0.000314987497404218
+		},
+		{
+			"fire": 1.0,
+			"frame": 691,
+			"label": "ak-47 shot held",
+			"ready": 0.999992403589402,
+			"support_m": 0.00000154972076416016,
+			"trigger_m": 0.000305971596390009
+		},
+		{
+			"fire": 1.0,
+			"frame": 692,
+			"label": "ak-47 shot held",
+			"ready": 0.999994907973698,
+			"support_m": 0.0000305233988910913,
+			"trigger_m": 0.000305963039863855
+		},
+		{
+			"fire": 1.0,
+			"frame": 693,
+			"label": "ak-47 shot held",
+			"ready": 0.999996586712695,
+			"support_m": 0.0000431610060331877,
+			"trigger_m": 0.000356575706973672
+		},
+		{
+			"fire": 1.0,
+			"frame": 694,
+			"label": "ak-47 shot held",
+			"ready": 0.999997712005096,
+			"support_m": 0.0000610426068305969,
+			"trigger_m": 0.000325204367982224
+		},
+		{
+			"fire": 1.0,
+			"frame": 695,
+			"label": "ak-47 shot held",
+			"ready": 0.999998466311151,
+			"support_m": 0.0000305408539134078,
+			"trigger_m": 0.000348698085872456
+		},
+		{
+			"fire": 1.0,
+			"frame": 696,
+			"label": "ak-47 shot held",
+			"ready": 0.99999897193762,
+			"support_m": 0.0000431861881224904,
+			"trigger_m": 0.000315100973239169
+		},
+		{
+			"fire": 1.0,
+			"frame": 698,
+			"label": "ak-47 shot held",
+			"ready": 0.999999466348436,
+			"support_m": 0.0000431820735684596,
+			"trigger_m": 0.000325352535583079
+		},
+		{
+			"fire": 1.0,
+			"frame": 700,
+			"label": "ak-47 shot held",
+			"ready": 0.999999649828468,
+			"support_m": 0.0000610370188951492,
+			"trigger_m": 0.000331110117258504
+		},
+		{
+			"fire": 1.0,
+			"frame": 702,
+			"label": "ak-47 shot held",
+			"ready": 0.999999772675231,
+			"support_m": 0.0000682569734635763,
+			"trigger_m": 0.000356866832589731
+		},
+		{
+			"fire": 1.0,
+			"frame": 703,
+			"label": "ak-47 waiting for natural grace expiry",
+			"ready": 0.999999819124623,
+			"support_m": 0.00000107288360595703,
+			"trigger_m": 0.000331166782416403
+		},
+		{
+			"fire": 1.0,
+			"frame": 704,
+			"label": "ak-47 waiting for natural grace expiry",
+			"ready": 0.999999993539316,
+			"support_m": 0.000061044585891068,
+			"trigger_m": 0.0003308339510113
+		},
+		{
+			"fire": 1.0,
+			"frame": 707,
+			"label": "ak-47 waiting for natural grace expiry",
+			"ready": 0.999999997155353,
+			"support_m": 0.00000131130218505859,
+			"trigger_m": 0.00034872954711318
+		},
+		{
+			"fire": 1.0,
+			"frame": 709,
+			"label": "ak-47 waiting for natural grace expiry",
+			"ready": 0.999999998285655,
+			"support_m": 0.000061044585891068,
+			"trigger_m": 0.000356674921931699
+		},
+		{
+			"fire": 1.0,
+			"frame": 711,
+			"label": "ak-47 waiting for natural grace expiry",
+			"ready": 0.99999999885084,
+			"support_m": 0.000000238418579101562,
+			"trigger_m": 0.000315091980155557
+		},
+		{
+			"fire": 1.0,
+			"frame": 713,
+			"label": "ak-47 waiting for natural grace expiry",
+			"ready": 0.999999999229695,
+			"support_m": 0.0000682460449752398,
+			"trigger_m": 0.00030621062614955
+		},
+		{
+			"fire": 1.0,
+			"frame": 715,
+			"label": "ak-47 waiting for natural grace expiry",
+			"ready": 0.999999999483649,
+			"support_m": 0.0000305408539134078,
+			"trigger_m": 0.000356849312083796
+		},
+		{
+			"fire": 1.0,
+			"frame": 717,
+			"label": "ak-47 waiting for natural grace expiry",
+			"ready": 0.99999999965388,
+			"support_m": 0.0000431820735684596,
+			"trigger_m": 0.000331119459588081
+		},
+		{
+			"fire": 1.0,
+			"frame": 718,
+			"label": "ak-47 waiting for natural grace expiry",
+			"ready": 0.999999999812756,
+			"support_m": 0.000043162490328541,
+			"trigger_m": 0.000348940870026127
+		},
+		{
+			"fire": 1.0,
+			"frame": 719,
+			"label": "ak-47 waiting for natural grace expiry",
+			"ready": 0.999999999874487,
+			"support_m": 0.0000306200854538474,
+			"trigger_m": 0.000331110117258504
+		},
+		{
+			"fire": 1.0,
+			"frame": 720,
+			"label": "ak-47 waiting for natural grace expiry",
+			"ready": 0.999999999915866,
+			"support_m": 0.0000305569010379259,
+			"trigger_m": 0.000331001443555579
+		},
+		{
+			"fire": 1.0,
+			"frame": 722,
+			"label": "ak-47 waiting for natural grace expiry",
+			"ready": 0.999999999952812,
+			"support_m": 0.0000305510875477921,
+			"trigger_m": 0.000373217015294358
+		},
+		{
+			"fire": 1.0,
+			"frame": 723,
+			"label": "ak-47 waiting for natural grace expiry",
+			"ready": 0.999999999962178,
+			"support_m": 0.0000305364301311783,
+			"trigger_m": 0.000315047655021772
+		},
+		{
+			"fire": 1.0,
+			"frame": 725,
+			"label": "ak-47 waiting for natural grace expiry",
+			"ready": 0.999999999976427,
+			"support_m": 0.0000305364301311783,
+			"trigger_m": 0.00032515506609343
+		},
+		{
+			"fire": 1.0,
+			"frame": 726,
+			"label": "ak-47 waiting for natural grace expiry",
+			"ready": 0.999999999981017,
+			"support_m": 0.0000610467977821827,
+			"trigger_m": 0.000348667294019833
+		},
+		{
+			"fire": 1.0,
+			"frame": 728,
+			"label": "ak-47 waiting for natural grace expiry",
+			"ready": 0.999999999989372,
+			"support_m": 0.0000682497920934111,
+			"trigger_m": 0.000330857990775257
+		},
+		{
+			"fire": 0.851207324470641,
+			"frame": 730,
+			"label": "ak-47 waiting for natural grace expiry",
+			"ready": 0.851207324461594,
+			"support_m": 0.000220489760977216,
+			"trigger_m": 0.000318845093715936
+		},
+		{
+			"fire": 0.788522240675567,
+			"frame": 731,
+			"label": "ak-47 natural return halfway",
+			"ready": 0.788522240667187,
+			"support_m": 0.000711414555553347,
+			"trigger_m": 0.000337369041517377
+		},
+		{
+			"fire": 0.267273535715448,
+			"frame": 732,
+			"label": "ak-47 natural return halfway",
+			"ready": 0.438522240667187,
+			"support_m": 0.0000625820393906906,
+			"trigger_m": 0.000358128221705556
+		},
+		{
+			"fire": 0.238919962836323,
+			"frame": 733,
+			"label": "ak-47 natural return tail",
+			"ready": 0.392001838725441,
+			"support_m": 0.0000867077760631219,
+			"trigger_m": 0.000227743032155558
+		},
+		{
+			"fire": 0.0871694517569327,
+			"frame": 734,
+			"label": "ak-47 natural return tail",
+			"ready": 0.14302105593753,
+			"support_m": 0.000164395140018314,
+			"trigger_m": 0.000158666443894617
+		},
+		{
+			"fire": 0.0745273331224802,
+			"frame": 735,
+			"label": "ak-47 natural return tail",
+			"ready": 0.122278822047741,
+			"support_m": 0.000547108065802604,
+			"trigger_m": 0.0000305185094475746
+		},
+		{
+			"fire": 0.0667655533403449,
+			"frame": 736,
+			"label": "ak-47 natural return tail",
+			"ready": 0.10954387972539,
+			"support_m": 0.000614824588410556,
+			"trigger_m": 0.000000834465026855469
+		},
+		{
+			"fire": 0.0543477535117299,
+			"frame": 738,
+			"label": "ak-47 natural return tail",
+			"ready": 0.0891696911981784,
+			"support_m": 0.000641078455373645,
+			"trigger_m": 0.000030532475648215
+		},
+		{
+			"fire": 0.0472786717288678,
+			"frame": 740,
+			"label": "ak-47 natural return tail",
+			"ready": 0.0775712754605999,
+			"support_m": 0.00063581409631297,
+			"trigger_m": 0.000000476837158203125
+		},
+		{
+			"fire": 0.0411333520974988,
+			"frame": 742,
+			"label": "ak-47 natural return tail",
+			"ready": 0.0674884989255034,
+			"support_m": 0.000618608028162271,
+			"trigger_m": 0.0000305259600281715
+		},
+		{
+			"fire": 0.0384883377177085,
+			"frame": 743,
+			"label": "ak-47 natural return tail",
+			"ready": 0.0631487590058077,
+			"support_m": 0.000618608028162271,
+			"trigger_m": 0.0000305233988910913
+		},
+		{
+			"fire": 0.0316801809578145,
+			"frame": 745,
+			"label": "ak-47 natural return tail",
+			"ready": 0.0519784493484358,
+			"support_m": 0.000638562312815338,
+			"trigger_m": 0.000000834465026855469
+		},
+		{
+			"fire": 0.0274773843480289,
+			"frame": 747,
+			"label": "ak-47 natural return tail",
+			"ready": 0.0450828179442335,
+			"support_m": 0.000596949481405318,
+			"trigger_m": 0.0000432309170719236
+		},
+		{
+			"fire": 0.0253648226476138,
+			"frame": 748,
+			"label": "ak-47 natural return tail",
+			"ready": 0.0416166861854947,
+			"support_m": 0.000603381486143917,
+			"trigger_m": 0.0000431642984040082
+		},
+		{
+			"fire": 0.0212098270064071,
+			"frame": 750,
+			"label": "ak-47 natural return tail",
+			"ready": 0.0347994830019959,
+			"support_m": 0.000616806501056999,
+			"trigger_m": 0.0000610426068305969
+		},
+		{
+			"fire": 0.0180738223485576,
+			"frame": 752,
+			"label": "ak-47 natural return tail",
+			"ready": 0.029654163299386,
+			"support_m": 0.000621364393737167,
+			"trigger_m": 0.0000431861881224904
+		},
+		{
+			"fire": 0.0166842408516416,
+			"frame": 753,
+			"label": "ak-47 natural return tail",
+			"ready": 0.0273742428800819,
+			"support_m": 0.000621770159341395,
+			"trigger_m": 0.0000610492425039411
+		},
+		{
+			"fire": 0.0142173722153428,
+			"frame": 755,
+			"label": "ak-47 natural return tail",
+			"ready": 0.0233267910479143,
+			"support_m": 0.000575155427213758,
+			"trigger_m": 0.0000305233988910913
+		},
+		{
+			"fire": 0.0121152454287251,
+			"frame": 757,
+			"label": "ak-47 natural return tail",
+			"ready": 0.0198777801079928,
+			"support_m": 0.000604915316216648,
+			"trigger_m": 0.0000431906300946139
+		},
+		{
+			"fire": 0.0111837810957421,
+			"frame": 758,
+			"label": "ak-47 natural return tail",
+			"ready": 0.0183495037475673,
+			"support_m": 0.000622485706117004,
+			"trigger_m": 0.0000306105685012881
+		},
+		{
+			"fire": 0.00953018959789437,
+			"frame": 760,
+			"label": "ak-47 natural return tail",
+			"ready": 0.0156364156491017,
+			"support_m": 0.000580066291149706,
+			"trigger_m": 0.0000435205329267774
+		},
+		{
+			"fire": 0.00812109187351608,
+			"frame": 762,
+			"label": "ak-47 natural return tail",
+			"ready": 0.0133244744770761,
+			"support_m": 0.000580964318942279,
+			"trigger_m": 0.0000432872548117302
+		},
+		{
+			"fire": 0.00749671265895037,
+			"frame": 763,
+			"label": "ak-47 natural return tail",
+			"ready": 0.0123000401968004,
+			"support_m": 0.000589455652516335,
+			"trigger_m": 0.0000437666967627592
+		},
+		{
+			"fire": 0.00638827712998893,
+			"frame": 765,
+			"label": "ak-47 natural return tail",
+			"ready": 0.0104814028577382,
+			"support_m": 0.000589353789109737,
+			"trigger_m": 0.0000611078721703961
+		},
+		{
+			"fire": 0.00530121803625617,
+			"frame": 767,
+			"label": "ak-47 natural return tail",
+			"ready": 0.0086978383598717,
+			"support_m": 0.000598604441620409,
+			"trigger_m": 0.000138755727675743
+		},
+		{
+			"fire": 0.00433966842597506,
+			"frame": 768,
+			"label": "ak-47 natural return tail",
+			"ready": 0.00712020034762176,
+			"support_m": 0.000588850118219852,
+			"trigger_m": 0.000154330497025512
+		},
+		{
+			"fire": 0.00379796201990648,
+			"frame": 769,
+			"label": "ak-47 natural return tail",
+			"ready": 0.00623140937047889,
+			"support_m": 0.000580787309445441,
+			"trigger_m": 0.000135215974296443
+		},
+		{
+			"fire": 0.00332387502656061,
+			"frame": 770,
+			"label": "ak-47 natural return tail",
+			"ready": 0.00545356322107733,
+			"support_m": 0.000589151226449758,
+			"trigger_m": 0.000167151665664278
+		},
+		{
+			"fire": 0.00290896673907901,
+			"frame": 771,
+			"label": "ak-47 natural return tail",
+			"ready": 0.00477281302480079,
+			"support_m": 0.000563907145988196,
+			"trigger_m": 0.000043383173760958
+		},
+		{
+			"fire": 0.00254585007602532,
+			"frame": 772,
+			"label": "ak-47 natural return tail",
+			"ready": 0.00417703861608632,
+			"support_m": 0.000588380149565637,
+			"trigger_m": 0.0000439576870121527
+		},
+		{
+			"fire": 0.00222806006082082,
+			"frame": 773,
+			"label": "ak-47 natural return tail",
+			"ready": 0.00365563274941083,
+			"support_m": 0.000629350077360868,
+			"trigger_m": 0.0000738112503313459
+		},
+		{
+			"fire": 0.00194993871845559,
+			"frame": 774,
+			"label": "ak-47 natural return tail",
+			"ready": 0.00319931224650397,
+			"support_m": 0.000588651222642511,
+			"trigger_m": 0.0000313719792757183
+		},
+		{
+			"fire": 0.00170653434016113,
+			"frame": 775,
+			"label": "ak-47 natural return tail",
+			"ready": 0.00279995271742763,
+			"support_m": 0.00060451083118096,
+			"trigger_m": 0.0000305213034152985
+		},
+		{
+			"fire": 0.00149351332253958,
+			"frame": 776,
+			"label": "ak-47 natural return tail",
+			"ready": 0.00245044391287446,
+			"support_m": 0.000562804518267512,
+			"trigger_m": 0.000110079759906512
+		},
+		{
+			"fire": 0.00130708301152183,
+			"frame": 777,
+			"label": "ak-47 natural return tail",
+			"ready": 0.00214456313235892,
+			"support_m": 0.000588282302487642,
+			"trigger_m": 0.000140222764457576
+		},
+		{
+			"fire": 0.00114392417745821,
+			"frame": 778,
+			"label": "ak-47 natural return tail",
+			"ready": 0.0018768644344437,
+			"support_m": 0.000579484505578876,
+			"trigger_m": 0.000126004160847515
+		},
+		{
+			"fire": 0.0,
+			"frame": 780,
+			"label": "ak-47 natural return tail",
+			"ready": 0.00159919631043908,
+			"support_m": 0.000579919549636543,
+			"trigger_m": 0.000136598653625697
+		},
+		{
+			"fire": 0.0,
+			"frame": 781,
+			"label": "ak-47 natural return tail",
+			"ready": 0.00149092569233459,
+			"support_m": 0.000579870829824358,
+			"trigger_m": 0.0000431664375355467
+		},
+		{
+			"fire": 0.0,
+			"frame": 783,
+			"label": "ak-47 natural return tail",
+			"ready": 0.00124532581823481,
+			"support_m": 0.000604581728111953,
+			"trigger_m": 0.0000308346752717625
+		},
+		{
+			"fire": 0.0,
+			"frame": 785,
+			"label": "ak-47 natural return tail",
+			"ready": 0.00108043657662759,
+			"support_m": 0.000598150247242302,
+			"trigger_m": 0.0000439804753114004
+		},
+		{
+			"fire": 0.0,
+			"frame": 786,
+			"label": "ak-47 natural return tail",
+			"ready": 0.0,
+			"support_m": 0.000622345542069525,
+			"trigger_m": 0.0000313175769406371
+		},
+		{
+			"fire": 0.0,
+			"frame": 787,
+			"label": "ak-47 ready API",
+			"ready": 0.241664465273476,
+			"support_m": 0.000036832585465163,
+			"trigger_m": 0.0000431585358455777
+		},
+		{
+			"fire": 0.0,
+			"frame": 788,
+			"label": "ak-47 ready API",
+			"ready": 0.591664465273475,
+			"support_m": 0.000898447528015822,
+			"trigger_m": 0.000126314655062743
+		},
+		{
+			"fire": 0.0,
+			"frame": 790,
+			"label": "ak-47 ready API",
+			"ready": 0.771600286029405,
+			"support_m": 0.000132452245452441,
+			"trigger_m": 0.000137067254399881
+		},
+		{
+			"fire": 0.0,
+			"frame": 791,
+			"label": "ak-47 ready API",
+			"ready": 0.866272890732806,
+			"support_m": 0.0000610352726653218,
+			"trigger_m": 0.000113995563879143
+		},
+		{
+			"fire": 0.0,
+			"frame": 792,
+			"label": "ak-47 ready API",
+			"ready": 0.910360037959802,
+			"support_m": 0.000658955832477659,
+			"trigger_m": 0.000229651952395216
+		},
+		{
+			"fire": 0.0,
+			"frame": 794,
+			"label": "ak-47 ready API",
+			"ready": 0.95058602764169,
+			"support_m": 0.0000440747244283557,
+			"trigger_m": 0.000361925718607381
+		},
+		{
+			"fire": 0.0,
+			"frame": 795,
+			"label": "ak-47 ready API",
+			"ready": 0.96216717070887,
+			"support_m": 0.0000612211370025761,
+			"trigger_m": 0.000401716300984845
+		},
+		{
+			"fire": 0.0,
+			"frame": 796,
+			"label": "ak-47 ready API",
+			"ready": 0.970421929494287,
+			"support_m": 0.0000456584020867012,
+			"trigger_m": 0.000430913234595209
+		},
+		{
+			"fire": 0.0,
+			"frame": 798,
+			"label": "ak-47 ready API",
+			"ready": 0.982476037579976,
+			"support_m": 0.000945615814998746,
+			"trigger_m": 0.00043565547093749
+		},
+		{
+			"fire": 0.0,
+			"frame": 800,
+			"label": "ak-47 ready API",
+			"ready": 0.988561678816793,
+			"support_m": 0.000937198696192354,
+			"trigger_m": 0.000438405171735212
+		},
+		{
+			"fire": 0.0,
+			"frame": 801,
+			"label": "ak-47 ready API",
+			"ready": 0.991239065662465,
+			"support_m": 0.000901587016414851,
+			"trigger_m": 0.000488093617605045
+		},
+		{
+			"fire": 0.0,
+			"frame": 803,
+			"label": "ak-47 ready API",
+			"ready": 0.99488444161923,
+			"support_m": 0.000892423558980227,
+			"trigger_m": 0.000503910414408892
+		},
+		{
+			"fire": 0.0,
+			"frame": 804,
+			"label": "ak-47 ready API",
+			"ready": 0.996081848869609,
+			"support_m": 0.000842104840558022,
+			"trigger_m": 0.000477623339975253
+		},
+		{
+			"fire": 0.0,
+			"frame": 805,
+			"label": "ak-47 ready API",
+			"ready": 0.996998977015238,
+			"support_m": 0.000821872556116432,
+			"trigger_m": 0.000528663280420005
+		},
+		{
+			"fire": 0.0,
+			"frame": 807,
+			"label": "ak-47 ready API",
+			"ready": 0.998649815532831,
+			"support_m": 0.000792185717727989,
+			"trigger_m": 0.000528925156686455
+		},
+		{
+			"fire": 0.0,
+			"frame": 808,
+			"label": "ak-47 ready API",
+			"ready": 0.998979552531748,
+			"support_m": 0.00076406606240198,
+			"trigger_m": 0.000528881442733109
+		},
+		{
+			"fire": 0.0,
+			"frame": 810,
+			"label": "ak-47 ready API",
+			"ready": 0.999393327865396,
+			"support_m": 0.000742572243325412,
+			"trigger_m": 0.000504229217767715
+		},
+		{
+			"fire": 0.0,
+			"frame": 811,
+			"label": "ak-47 ready API",
+			"ready": 0.999535332620011,
+			"support_m": 0.000738797592930496,
+			"trigger_m": 0.000477382971439511
+		},
+		{
+			"fire": 0.0,
+			"frame": 813,
+			"label": "ak-47 ready API",
+			"ready": 0.9997274046382,
+			"support_m": 0.000690132845193148,
+			"trigger_m": 0.000514569284860045
+		},
+		{
+			"fire": 0.0,
+			"frame": 814,
+			"label": "ak-47 ready API",
+			"ready": 0.99979121148749,
+			"support_m": 0.000694842892698944,
+			"trigger_m": 0.000502350216265768
+		},
+		{
+			"fire": 0.0,
+			"frame": 816,
+			"label": "ak-47 ready API",
+			"ready": 0.999877515008459,
+			"support_m": 0.000688172527588904,
+			"trigger_m": 0.000501854403410107
+		},
+		{
+			"fire": 0.0,
+			"frame": 817,
+			"label": "ak-47 ready API",
+			"ready": 0.999905519212737,
+			"support_m": 0.000644348270725459,
+			"trigger_m": 0.000513599894475192
+		},
+		{
+			"fire": 0.0,
+			"frame": 819,
+			"label": "ak-47 ready API",
+			"ready": 0.999943409007028,
+			"support_m": 0.000646361906547099,
+			"trigger_m": 0.000513337494339794
+		},
+		{
+			"fire": 0.0,
+			"frame": 820,
+			"label": "ak-47 ready API",
+			"ready": 0.999955582012803,
+			"support_m": 0.000653144961688668,
+			"trigger_m": 0.000501049449667335
+		},
+		{
+			"fire": 0.0,
+			"frame": 822,
+			"label": "ak-47 ready API",
+			"ready": 0.999971715201512,
+			"support_m": 0.000607916445005685,
+			"trigger_m": 0.000501138507388532
+		},
+		{
+			"fire": 0.0,
+			"frame": 823,
+			"label": "ak-47 ready API",
+			"ready": 0.999978622809172,
+			"support_m": 0.000630901893600821,
+			"trigger_m": 0.000501049449667335
+		},
+		{
+			"fire": 0.0,
+			"frame": 824,
+			"label": "ak-47 ready API",
+			"ready": 0.999983843466734,
+			"support_m": 0.000597168458625674,
+			"trigger_m": 0.00047506025293842
+		},
+		{
+			"fire": 0.0,
+			"frame": 826,
+			"label": "ak-47 ready API",
+			"ready": 0.999991489320065,
+			"support_m": 0.000612065778113902,
+			"trigger_m": 0.000475107051897794
+		},
+		{
+			"fire": 0.0,
+			"frame": 827,
+			"label": "ak-47 ready API",
+			"ready": 0.999993481429059,
+			"support_m": 0.000611380266491324,
+			"trigger_m": 0.0005127287004143
+		},
+		{
+			"fire": 0.0,
+			"frame": 829,
+			"label": "ak-47 ready API",
+			"ready": 0.999996175905001,
+			"support_m": 0.000592729134950787,
+			"trigger_m": 0.000501004979014397
+		},
+		{
+			"fire": 0.0,
+			"frame": 830,
+			"label": "ak-47 ready API",
+			"ready": 0.999996931697416,
+			"support_m": 0.000641407503280789,
+			"trigger_m": 0.000487819081172347
+		},
+		{
+			"fire": 0.0,
+			"frame": 832,
+			"label": "ak-47 ready API",
+			"ready": 0.999998202658723,
+			"support_m": 0.000615828670561314,
+			"trigger_m": 0.00048795624752529
+		},
+		{
+			"fire": 0.0,
+			"frame": 834,
+			"label": "ak-47 ready API",
+			"ready": 0.999998876352035,
+			"support_m": 0.000662921695038676,
+			"trigger_m": 0.000513775274157524
+		},
+		{
+			"fire": 0.0,
+			"frame": 836,
+			"label": "ak-47 ready API",
+			"ready": 0.999999308765048,
+			"support_m": 0.000685692008119076,
+			"trigger_m": 0.000488830031827092
+		},
+		{
+			"fire": 0.0,
+			"frame": 837,
+			"label": "ak-47 ready API",
+			"ready": 0.999999456255328,
+			"support_m": 0.000697252573445439,
+			"trigger_m": 0.000528334523551166
+		},
+		{
+			"fire": 0.0,
+			"frame": 839,
+			"label": "ak-47 ready API",
+			"ready": 0.999999663539828,
+			"support_m": 0.000718763971235603,
+			"trigger_m": 0.000489386497065425
+		},
+		{
+			"fire": 0.0,
+			"frame": 841,
+			"label": "ak-47 ready API",
+			"ready": 0.999999791804033,
+			"support_m": 0.000732400803826749,
+			"trigger_m": 0.000502712617162615
+		},
+		{
+			"fire": 0.0,
+			"frame": 842,
+			"label": "ak-47 ready API",
+			"ready": 0.999999836227252,
+			"support_m": 0.000735941110178828,
+			"trigger_m": 0.000490180857013911
+		},
+		{
+			"fire": 0.0,
+			"frame": 844,
+			"label": "ak-47 ready API",
+			"ready": 0.999999900255912,
+			"support_m": 0.000790385471191257,
+			"trigger_m": 0.000490934937261045
+		},
+		{
+			"fire": 0.0,
+			"frame": 846,
+			"label": "ak-47 ready API",
+			"ready": 0.999999938464898,
+			"support_m": 0.000768736645113677,
+			"trigger_m": 0.000529363460373133
+		},
+		{
+			"fire": 0.0,
+			"frame": 847,
+			"label": "ak-47 ready API",
+			"ready": 0.999999951594774,
+			"support_m": 0.000802621943876147,
+			"trigger_m": 0.000541796849574894
+		},
+		{
+			"fire": 0.0,
+			"frame": 849,
+			"label": "ak-47 ready API",
+			"ready": 0.99999997004765,
+			"support_m": 0.000820655201096088,
+			"trigger_m": 0.000516724190674722
+		},
+		{
+			"fire": 0.0,
+			"frame": 850,
+			"label": "ak-47 ready API",
+			"ready": 0.999999976438647,
+			"support_m": 0.000805859919637442,
+			"trigger_m": 0.000506260083056986
+		},
+		{
+			"fire": 0.0,
+			"frame": 852,
+			"label": "ak-47 ready API",
+			"ready": 0.999999985859206,
+			"support_m": 0.000806173076853156,
+			"trigger_m": 0.000492606312036514
+		},
+		{
+			"fire": 0.0,
+			"frame": 854,
+			"label": "ak-47 ready API",
+			"ready": 0.999999991423175,
+			"support_m": 0.000830396253149956,
+			"trigger_m": 0.000493186176754534
+		},
+		{
+			"fire": 0.0,
+			"frame": 855,
+			"label": "ak-47 ready API release",
+			"ready": 0.809130815099489,
+			"support_m": 0.000442521588411182,
+			"trigger_m": 0.000468917045509443
+		},
+		{
+			"fire": 0.0,
+			"frame": 856,
+			"label": "ak-47 ready API release",
+			"ready": 0.459130815099489,
+			"support_m": 0.0000694654736435041,
+			"trigger_m": 0.000177428315510042
+		},
+		{
+			"fire": 0.0,
+			"frame": 859,
+			"label": "ak-47 ready API release",
+			"ready": 0.355654292185409,
+			"support_m": 0.00017795228632167,
+			"trigger_m": 0.000256356754107401
+		},
+		{
+			"fire": 0.0,
+			"frame": 861,
+			"label": "ak-47 ready API release",
+			"ready": 0.299158191787386,
+			"support_m": 0.000281429092865437,
+			"trigger_m": 0.000194751788512804
+		},
+		{
+			"fire": 0.0,
+			"frame": 863,
+			"label": "ak-47 ready API release",
+			"ready": 0.261815267625453,
+			"support_m": 0.000348348257830366,
+			"trigger_m": 0.000123020290629938
+		},
+		{
+			"fire": 0.0,
+			"frame": 865,
+			"label": "ak-47 ready API release",
+			"ready": 0.229133736743885,
+			"support_m": 0.000411669578170404,
+			"trigger_m": 0.000110476656118408
+		},
+		{
+			"fire": 0.0,
+			"frame": 866,
+			"label": "ak-47 ready API release",
+			"ready": 0.2143562112303,
+			"support_m": 0.000459149247035384,
+			"trigger_m": 0.0000918505829758942
+		},
+		{
+			"fire": 0.0,
+			"frame": 868,
+			"label": "ak-47 ready API release",
+			"ready": 0.18508919108489,
+			"support_m": 0.000527437427081168,
+			"trigger_m": 0.0000683330290485173
+		},
+		{
+			"fire": 0.0,
+			"frame": 870,
+			"label": "ak-47 ready API release",
+			"ready": 0.159668187913458,
+			"support_m": 0.000564565125387162,
+			"trigger_m": 0.0000305847934214398
+		},
+		{
+			"fire": 0.0,
+			"frame": 871,
+			"label": "ak-47 ready API release",
+			"ready": 0.148468165809971,
+			"support_m": 0.000529301352798939,
+			"trigger_m": 0.0000305408539134078
+		},
+		{
+			"fire": 0.0,
+			"frame": 873,
+			"label": "ak-47 ready API release",
+			"ready": 0.124257007100463,
+			"support_m": 0.00059132237220183,
+			"trigger_m": 0.0000305185094475746
+		},
+		{
+			"fire": 0.0,
+			"frame": 875,
+			"label": "ak-47 ready API release",
+			"ready": 0.106356483438204,
+			"support_m": 0.000574327539652586,
+			"trigger_m": 0.0000305178109556437
+		},
+		{
+			"fire": 0.0,
+			"frame": 877,
+			"label": "ak-47 ready API release",
+			"ready": 0.0910347177459011,
+			"support_m": 0.000617056561168283,
+			"trigger_m": 0.0000431585358455777
+		},
+		{
+			"fire": 0.0,
+			"frame": 878,
+			"label": "ak-47 ready API release",
+			"ready": 0.0842225895469848,
+			"support_m": 0.000575438141822815,
+			"trigger_m": 0.0000305185094475746
+		},
+		{
+			"fire": 0.0,
+			"frame": 880,
+			"label": "ak-47 ready API release",
+			"ready": 0.072089443157393,
+			"support_m": 0.000600611383561045,
+			"trigger_m": 0.0000431861881224904
+		},
+		{
+			"fire": 0.0,
+			"frame": 882,
+			"label": "ak-47 ready API release",
+			"ready": 0.0617042036191945,
+			"support_m": 0.000610811111982912,
+			"trigger_m": 0.0000610408606007695
+		},
+		{
+			"fire": 0.0,
+			"frame": 883,
+			"label": "ak-47 ready API release",
+			"ready": 0.057086877879368,
+			"support_m": 0.000577577215153724,
+			"trigger_m": 0.00000131130218505859
+		},
+		{
+			"fire": 0.0,
+			"frame": 885,
+			"label": "ak-47 ready API release",
+			"ready": 0.0488629150451604,
+			"support_m": 0.000602543237619102,
+			"trigger_m": 0.0000305289831885602
+		},
+		{
+			"fire": 0.0,
+			"frame": 886,
+			"label": "ak-47 ready API release",
+			"ready": 0.040642643029861,
+			"support_m": 0.00056115206098184,
+			"trigger_m": 0.0000305364301311783
+		},
+		{
+			"fire": 0.0,
+			"frame": 887,
+			"label": "ak-47 ready API release",
+			"ready": 0.036899346333088,
+			"support_m": 0.000602870190050453,
+			"trigger_m": 0.000000834465026855469
+		},
+		{
+			"fire": 0.0,
+			"frame": 888,
+			"label": "ak-47 ready API release",
+			"ready": 0.0325872737483635,
+			"support_m": 0.000587043701671064,
+			"trigger_m": 0.0000431642984040082
+		},
+		{
+			"fire": 0.0,
+			"frame": 889,
+			"label": "ak-47 ready API release",
+			"ready": 0.0294286837460142,
+			"support_m": 0.000612997508142143,
+			"trigger_m": 0.0000431717053288594
+		},
+		{
+			"fire": 0.0,
+			"frame": 890,
+			"label": "ak-47 ready API release",
+			"ready": 0.0263339432580295,
+			"support_m": 0.000645259162411094,
+			"trigger_m": 0.00000166893005371094
+		},
+		{
+			"fire": 0.0,
+			"frame": 891,
+			"label": "ak-47 ready API release",
+			"ready": 0.016486653415469,
+			"support_m": 0.000586812675464898,
+			"trigger_m": 0.00000107288360595703
+		},
+		{
+			"fire": 0.0,
+			"frame": 892,
+			"label": "ak-47 ready API release",
+			"ready": 0.0123950248419016,
+			"support_m": 0.000597542151808739,
+			"trigger_m": 0.0000306200854538474
+		},
+		{
+			"fire": 0.0,
+			"frame": 893,
+			"label": "ak-47 ready API release",
+			"ready": 0.00906654413184474,
+			"support_m": 0.000579127750825137,
+			"trigger_m": 0.0000683268954162486
+		},
+		{
+			"fire": 0.0,
+			"frame": 894,
+			"label": "ak-47 ready API release",
+			"ready": 0.00664244460117992,
+			"support_m": 0.000597820908296853,
+			"trigger_m": 0.0000967524247244
+		},
+		{
+			"fire": 0.0,
+			"frame": 895,
+			"label": "ak-47 ready API release",
+			"ready": 0.00559864443357658,
+			"support_m": 0.000598652695771307,
+			"trigger_m": 0.00016750225040596
+		},
+		{
+			"fire": 0.0,
+			"frame": 896,
+			"label": "ak-47 ready API release",
+			"ready": 0.00474728323078273,
+			"support_m": 0.000640778511296958,
+			"trigger_m": 0.0000919981393963099
+		},
+		{
+			"fire": 0.0,
+			"frame": 897,
+			"label": "ak-47 ready API release",
+			"ready": 0.00394725540412811,
+			"support_m": 0.000605694425757974,
+			"trigger_m": 0.0000684499100316316
+		},
+		{
+			"fire": 0.0,
+			"frame": 898,
+			"label": "ak-47 ready API release",
+			"ready": 0.0034209165183909,
+			"support_m": 0.000599042279645801,
+			"trigger_m": 0.0000870106960064732
+		},
+		{
+			"fire": 0.0,
+			"frame": 899,
+			"label": "ak-47 ready API release",
+			"ready": 0.00301253074027623,
+			"support_m": 0.000599437626078725,
+			"trigger_m": 0.0000965263316174969
+		},
+		{
+			"fire": 0.0,
+			"frame": 900,
+			"label": "ak-47 ready API release",
+			"ready": 0.00238974301806255,
+			"support_m": 0.000581091444473714,
+			"trigger_m": 0.0000306995752907824
+		},
+		{
+			"fire": 0.0,
+			"frame": 903,
+			"label": "ak-47 ready API release",
+			"ready": 0.00198746807211979,
+			"support_m": 0.000581373111344874,
+			"trigger_m": 0.000126929182442836
+		},
+		{
+			"fire": 0.0,
+			"frame": 905,
+			"label": "ak-47 ready API release",
+			"ready": 0.00176272605048589,
+			"support_m": 0.000623174186330289,
+			"trigger_m": 0.0000431689077231567
+		},
+		{
+			"fire": 0.0,
+			"frame": 908,
+			"label": "ak-47 ready API release",
+			"ready": 0.00147656529778175,
+			"support_m": 0.000623222324065864,
+			"trigger_m": 0.0000431782900705002
+		},
+		{
+			"fire": 0.0,
+			"frame": 910,
+			"label": "ak-47 ready API release",
+			"ready": 0.00132717414556162,
+			"support_m": 0.000557795981876552,
+			"trigger_m": 0.000166459372849204
+		},
+		{
+			"fire": 0.0,
+			"frame": 913,
+			"label": "ak-47 ready API release",
+			"ready": 0.00112843278827964,
+			"support_m": 0.000589455652516335,
+			"trigger_m": 0.0000432059277954977
+		},
+		{
+			"fire": 0.0,
+			"frame": 915,
+			"label": "ak-47 ready API release",
+			"ready": 0.0010142638621256,
+			"support_m": 0.000606268586125225,
+			"trigger_m": 0.00004319539948483
+		},
+		{
+			"fire": 0.0,
+			"frame": 918,
+			"label": "ak-47 ready API release",
+			"ready": 0.0,
+			"support_m": 0.000605867884587497,
+			"trigger_m": 0.0000431585358455777
+		},
+		{
+			"fire": 0.0,
+			"frame": 920,
+			"label": "ak-47 ready API release",
+			"ready": 0.0,
+			"support_m": 0.000631398637779057,
+			"trigger_m": 0.0000309854731312953
+		},
+		{
+			"fire": 0.0,
+			"frame": 923,
+			"label": "ak-47 ready API release",
+			"ready": 0.0,
+			"support_m": 0.000614729477092624,
+			"trigger_m": 0.0000610467977821827
+		},
+		{
+			"fire": 0.0,
+			"frame": 925,
+			"label": "ak-47 ready API release",
+			"ready": 0.0,
+			"support_m": 0.000615144497714937,
+			"trigger_m": 0.0000305364301311783
+		},
+		{
+			"fire": 0.0,
+			"frame": 928,
+			"label": "ak-47 ready API release",
+			"ready": 0.0,
+			"support_m": 0.000588950118981302,
+			"trigger_m": 0.0000686914499965496
+		},
+		{
+			"fire": 0.0,
+			"frame": 930,
+			"label": "ak-47 ready API release",
+			"ready": 0.0,
+			"support_m": 0.000614681048318744,
+			"trigger_m": 0.0000307550726574846
+		},
+		{
+			"fire": 0.0,
+			"frame": 933,
+			"label": "ak-47 ready API release",
+			"ready": 0.0,
+			"support_m": 0.000614681048318744,
+			"trigger_m": 0.0000431610060331877
+		},
+		{
+			"fire": 0.0,
+			"frame": 935,
+			"label": "ak-47 ready API release",
+			"ready": 0.0,
+			"support_m": 0.000589252333156765,
+			"trigger_m": 0.0000691727254888974
+		},
+		{
+			"fire": 0.0,
+			"frame": 938,
+			"label": "ak-47 ready API release",
+			"ready": 0.0,
+			"support_m": 0.000605620385613292,
+			"trigger_m": 0.0000966410952969454
+		},
+		{
+			"fire": 0.0,
+			"frame": 940,
+			"label": "ak-47 ready API release",
+			"ready": 0.0,
+			"support_m": 0.000605277658905834,
+			"trigger_m": 0.0000305408539134078
+		},
+		{
+			"fire": 0.0,
+			"frame": 943,
+			"label": "ak-47 ready API release",
+			"ready": 0.0,
+			"support_m": 0.000598604441620409,
+			"trigger_m": 0.0000306105685012881
+		},
+		{
+			"fire": 0.0,
+			"frame": 945,
+			"label": "ak-47 ready API release",
+			"ready": 0.0,
+			"support_m": 0.000588331138715148,
+			"trigger_m": 0.000086423366155941
+		},
+		{
+			"fire": 0.0,
+			"frame": 947,
+			"label": "ak-47 ready API release",
+			"ready": 0.0,
+			"support_m": 0.000604346161708236,
+			"trigger_m": 0.00000405311584472656
+		},
+		{
+			"fire": 0.0,
+			"frame": 950,
+			"label": "ak-47 ready API release",
+			"ready": 0.0,
+			"support_m": 0.000604771834332496,
+			"trigger_m": 0.0000305929206660949
+		},
+		{
+			"fire": 0.0,
+			"frame": 952,
+			"label": "ak-47 ready API release",
+			"ready": 0.0,
+			"support_m": 0.000575829762965441,
+			"trigger_m": 0.0000689529624651186
+		},
+		{
+			"fire": 0.0,
+			"frame": 955,
+			"label": "ak-47 ready API release",
+			"ready": 0.0,
+			"support_m": 0.000579968385864049,
+			"trigger_m": 0.000196743727428839
+		},
+		{
+			"fire": 0.0,
+			"frame": 957,
+			"label": "ak-47 ready API release",
+			"ready": 0.0,
+			"support_m": 0.000604676606599241,
+			"trigger_m": 0.0000684593542246148
+		},
+		{
+			"fire": 0.0,
+			"frame": 960,
+			"label": "ak-47 ready API release",
+			"ready": 0.0,
+			"support_m": 0.000641051505226642,
+			"trigger_m": 0.0000305259600281715
+		},
+		{
+			"fire": 0.0,
+			"frame": 962,
+			"label": "ak-47 ready API release",
+			"ready": 0.0,
+			"support_m": 0.000621998682618141,
+			"trigger_m": 0.0000310276373056695
+		},
+		{
+			"fire": 0.0,
+			"frame": 964,
+			"label": "ak-47 ready API release",
+			"ready": 0.0,
+			"support_m": 0.000599363062065095,
+			"trigger_m": 0.0000686008788761683
+		},
+		{
+			"fire": 0.0,
+			"frame": 967,
+			"label": "ak-47 ready API release",
+			"ready": 0.0,
+			"support_m": 0.000599387916736305,
+			"trigger_m": 0.0000965712970355526
+		},
+		{
+			"fire": 0.0,
+			"frame": 969,
+			"label": "ak-47 ready API release",
+			"ready": 0.0,
+			"support_m": 0.000641281309071928,
+			"trigger_m": 0.0000305408539134078
+		},
+		{
+			"fire": 0.0,
+			"frame": 972,
+			"label": "ak-47 ready API release",
+			"ready": 0.0,
+			"support_m": 0.000581528001930565,
+			"trigger_m": 0.0000306513938994613
+		},
+		{
+			"fire": 0.0,
+			"frame": 974,
+			"label": "ak-47 ready API release",
+			"ready": 0.0,
+			"support_m": 0.000582155771553516,
+			"trigger_m": 0.0000610380666330457
+		},
+		{
+			"fire": 0.0,
+			"frame": 977,
+			"label": "ak-47 ready API release",
+			"ready": 0.0,
+			"support_m": 0.000581450469326228,
+			"trigger_m": 0.00004344782064436
+		},
+		{
+			"fire": 0.0,
+			"frame": 979,
+			"label": "ak-47 ready API release",
+			"ready": 0.0,
+			"support_m": 0.000618942372966558,
+			"trigger_m": 0.0000431642984040082
+		},
+		{
+			"fire": 0.0,
+			"frame": 981,
+			"label": "ak-47 ready API release",
+			"ready": 0.0,
+			"support_m": 0.000623440137133002,
+			"trigger_m": 0.000179367198143154
+		},
+		{
+			"fire": 0.0,
+			"frame": 984,
+			"label": "ak-47 ready API release",
+			"ready": 0.0,
+			"support_m": 0.00062331889057532,
+			"trigger_m": 0.0000612500298302621
+		},
+		{
+			"fire": 0.0,
+			"frame": 986,
+			"label": "ak-47 ready API release",
+			"ready": 0.0,
+			"support_m": 0.000623537518549711,
+			"trigger_m": 0.0000316378864226863
+		},
+		{
+			"fire": 0.0,
+			"frame": 989,
+			"label": "ak-47 ready API release",
+			"ready": 0.0,
+			"support_m": 0.000605892797466367,
+			"trigger_m": 0.0000696028146194294
+		},
+		{
+			"fire": 0.0,
+			"frame": 991,
+			"label": "ak-47 ready API release",
+			"ready": 0.0,
+			"support_m": 0.000581373111344874,
+			"trigger_m": 0.0000611078721703961
+		},
+		{
+			"fire": 0.0,
+			"frame": 993,
+			"label": "ak-47 ready API release",
+			"ready": 0.0,
+			"support_m": 0.000647409993689507,
+			"trigger_m": 0.0000875136684044264
+		},
+		{
+			"fire": 0.0,
+			"frame": 996,
+			"label": "ak-47 ready API release",
+			"ready": 0.0,
+			"support_m": 0.000590839714277536,
+			"trigger_m": 0.0000682597819832154
+		},
+		{
+			"fire": 0.0,
+			"frame": 998,
+			"label": "ak-47 ready API release",
+			"ready": 0.0,
+			"support_m": 0.000616146309766918,
+			"trigger_m": 0.0000610426068305969
+		},
+		{
+			"fire": 0.0,
+			"frame": 1001,
+			"label": "ak-47 ready API release",
+			"ready": 0.0,
+			"support_m": 0.000589455652516335,
+			"trigger_m": 0.0000305364301311783
+		},
+		{
+			"fire": 0.0,
+			"frame": 1003,
+			"label": "ak-47 ready API release",
+			"ready": 0.0,
+			"support_m": 0.000615119934082031,
+			"trigger_m": 0.000043162490328541
+		}
+	],
+	"trigger_max_m": 0.000541796849574894
+}

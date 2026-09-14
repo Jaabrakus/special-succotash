@@ -109,6 +109,18 @@ func update_tight_space_state(delta: float) -> void:
         rig.framing_mode = "OUTDOOR TACTICAL"
 
 func update_dynamic_fov(delta: float) -> void:
+    if rig.source_camera_match.lens_active_for(rig.target, rig.yaw, rig.pitch):
+        # Source default is horizontal70; the saved hybrid has its own fixed
+        # horizontal lens. Neither number is a vertical FOV. Keep the current
+        # vertical projection convention for cursor, VRC and server sight math.
+        # Source scoped projection is not decoded/activated here; this is the
+        # existing ordinary third-person mode (which has no ADS camera).
+        rig.current_fov = rig.source_camera_match.lens_vertical_degrees(
+            rig.get_viewport().get_visible_rect().size,
+            rig.profile.vertical_fov
+        )
+        rig.camera.fov = rig.current_fov
+        return
     var target_fov: float = lerpf(
         rig.profile.vertical_fov,
         rig.profile.downward_fov,

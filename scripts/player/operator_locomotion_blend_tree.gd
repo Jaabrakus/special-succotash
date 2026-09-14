@@ -8,10 +8,18 @@ static var source_clip_classification_cache: Dictionary = {}
 const ModernRouteBuilder := preload("res://scripts/player/operator_locomotion_route_builder.gd")
 const SourceLocomotionPolicy := preload("res://scripts/player/operator_source_locomotion_policy.gd")
 const GaitPhaseSync := preload("res://scripts/player/operator_gait_phase_sync.gd")
+const SourceAnimationRuntime := preload("res://scripts/player/operator_source_animation_runtime.gd")
+var source_animation_runtime := SourceAnimationRuntime.new()
+const SourceTransitionSnapshot := preload("res://scripts/player/operator_source_transition_snapshot.gd")
+var source_transition_snapshot := SourceTransitionSnapshot.new()
+const SourceLoopPhaseTransfer := preload("res://scripts/player/operator_source_loop_phase_transfer.gd")
+var source_loop_phase_transfer := SourceLoopPhaseTransfer.new()
+var source_snapshot_owner: WeakRef
 var source_policy := SourceLocomotionPolicy.new()
 var source_animation_player: AnimationPlayer
 var gait_phase_sync := GaitPhaseSync.new()
 var source_controller_active := false
+var source_pistol_phase_active := false
 var jog_gait_weight := 0.0
 var source_grounded_clip: StringName = &""
 var grounded_idle_clips: Dictionary = {}
@@ -119,6 +127,7 @@ var animation_tree: AnimationTree
 var legacy_transition: AnimationNodeTransition
 var modern_transition: AnimationNodeTransition
 var source_idle_blend_times: Dictionary = {}
+var source_standing_entry_seconds := -1.0
 var modern_state_indices: Dictionary = {}
 var legacy_clip_indices: Dictionary = {}
 var modern_clip_time_scale_paths: Dictionary = {}
@@ -187,6 +196,13 @@ func build(
 	gait_phase_sync = GaitPhaseSync.new()
 	modern_enabled = use_modern
 	_configure_source_controller(available_clips)
+	source_loop_phase_transfer.prepare(animation_player,
+		source_controller_active and bool(profile.locomotion.get("source_runtime_timing", false))
+		and bool(source_animation_runtime.settings.get("grounded_idle_phase_transfer_enabled", false)))
+	source_snapshot_owner = weakref(owner)
+	source_transition_snapshot.prepare(animation_player, owner.get("skeleton") as Skeleton3D,
+		source_controller_active and bool(profile.locomotion.get("source_runtime_timing", false))
+		and bool(source_animation_runtime.settings.get("grounded_idle_snapshot_enabled", false)))
 	source_cardinal_spaces.clear()
 	source_standing_fire_split = false
 	source_standing_fire_weight = 0.0
@@ -237,6 +253,8 @@ func build(
 	owner.add_child(animation_tree)
 	animation_tree.anim_player = animation_tree.get_path_to(animation_player)
 	animation_tree.tree_root = root
+	source_transition_snapshot.bind(animation_tree, _source_snapshot_safe)
+	source_loop_phase_transfer.bind(animation_tree)
 	animation_tree.active = true
 	_bind_jump_source_frame(owner.get("skeleton") as Skeleton3D, animation_player)
 	set_modern_enabled(use_modern)
@@ -246,6 +264,8 @@ func build(
 
 func set_modern_enabled(enabled: bool) -> void:
 	modern_enabled = enabled
+	if not enabled: source_transition_snapshot.release()
+	if not enabled: source_loop_phase_transfer.cancel_pending()
 	if animation_tree != null:
 		animation_tree.set("parameters/route_blend/blend_amount", 1.0 if enabled else 0.0)
 		if not enabled and jump_lower_body_clip != &"":
@@ -382,26 +402,32 @@ func update_locomotion(
 			direction_alignment
 		)
 	shared_phase = fmod(shared_phase + delta * playback_rate, 1.0)
-	animation_tree.set("parameters/walk_space/blend_position", rendered_direction)
-	animation_tree.set("parameters/full_space/blend_position", rendered_direction)
+	var standing_coordinate := source_policy.source_blend_coordinate(rendered_direction) if source_controller_active and source_policy.use_source_angles else rendered_direction
+	animation_tree.set("parameters/walk_space/blend_position", standing_coordinate)
+	animation_tree.set("parameters/full_space/blend_position", standing_coordinate)
 	if source_controller_active:
-		animation_tree.set("parameters/jog_space/blend_position", rendered_direction)
+		animation_tree.set("parameters/jog_space/blend_position", standing_coordinate)
 		animation_tree.set("parameters/source_walk_jog/blend_amount", jog_gait_weight)
 	animation_tree.set("parameters/crouch_space/blend_position", rendered_direction)
 	if source_firing_enabled():
-		for space_name in ["firing_walk_space", "firing_run_space", "firing_crouch_space"]:
-			animation_tree.set("parameters/%s/blend_position" % space_name, rendered_direction)
+		for space_name in ["firing_walk_space", "firing_run_space"]:
+			animation_tree.set("parameters/%s/blend_position" % space_name, standing_coordinate)
+		animation_tree.set("parameters/firing_crouch_space/blend_position", rendered_direction)
 		animation_tree.set("parameters/firing_speed_blend/blend_amount", full_gait_weight)
 		if source_controller_active:
-			animation_tree.set("parameters/firing_jog_space/blend_position", rendered_direction)
+			animation_tree.set("parameters/firing_jog_space/blend_position", standing_coordinate)
 			animation_tree.set("parameters/source_firing_walk_jog/blend_amount", jog_gait_weight)
-	if source_controller_active:
+	if source_controller_active or source_pistol_phase_active:
 		var walk_weight := (1.0 - full_gait_weight) * (1.0 - jog_gait_weight)
 		var jog_weight := (1.0 - full_gait_weight) * jog_gait_weight
 		# Match the evaluated locomotion blend, not the independent idle firing fade.
 		var fire_weight := float(animation_tree.get("parameters/standing_source_ready/blend_amount")) if source_firing_enabled() else 0.0
 		var crouch_ready := float(animation_tree.get("parameters/crouch_source_ready/blend_amount")) if source_firing_enabled() else 0.0
 		var standing_weights: Array[float] = [walk_weight * (1.0-fire_weight), jog_weight * (1.0-fire_weight), full_gait_weight * (1.0-fire_weight), walk_weight * fire_weight, jog_weight * fire_weight, full_gait_weight * fire_weight]
+		if source_pistol_phase_active:
+			# Native pistol retains its existing two-tier selection. Share only
+			# the clock, not the rifle's inferred jog bands or six-entry weights.
+			standing_weights = [(1.0-full_gait_weight) * (1.0-fire_weight), full_gait_weight * (1.0-fire_weight), (1.0-full_gait_weight) * fire_weight, full_gait_weight * fire_weight]
 		var crouch_weights: Array[float] = [1.0-crouch_ready, crouch_ready]
 		gait_phase_sync.apply(animation_tree, &"standing", standing_weights)
 		gait_phase_sync.apply(animation_tree, &"crouched", crouch_weights)
@@ -555,8 +581,8 @@ func source_grounded_blend_seconds(from_state: StringName, to_state: StringName,
 	if not bool(profile.locomotion.get("source_idle_blending", false)) \
 			or weapon_handling_profile.get("family", "") != "TWO_HAND_RIFLE":
 		return fallback
-	# This first pass only interprets the destination idle's BlendTime. Do not
-	# infer missing gait timings, playback enums, action exits or PS2 blend curves.
+	# Only a verified destination BlendTime changes the duration. Other action
+	# exits keep their own timing; the decoded curve is selected independently.
 	if from_state not in [&"standing", &"idle", &"crouch", &"idle_crouch"]:
 		return fallback
 	var seconds := float(source_idle_blend_times.get(to_state, -1.0))
@@ -570,6 +596,7 @@ func request_modern_state(state_name: StringName, blend_seconds: float = -1.0) -
 	var actual_state := StringName(
 		animation_tree.get("parameters/modern_transition/current_state")
 	)
+	var source_standing_entry := _use_source_standing_entry(actual_state, state_name)
 	var dynamic_hold: Dictionary = weapon_handling_profile.get("dynamic_hold", {})
 	var preserve_ready_handoff: bool = (
 		modern_enabled
@@ -608,13 +635,81 @@ func request_modern_state(state_name: StringName, blend_seconds: float = -1.0) -
 		# fallback, or turn a reload-to-idle fade into a grounded-to-idle fade.
 		if not source_policy or actual_state != state_name:
 			modern_transition.xfade_time = maxf(source_grounded_blend_seconds(actual_state, state_name, blend_seconds), 0.0)
+	if source_standing_entry:
+		modern_transition.xfade_time = source_standing_entry_seconds
 	# Continuous locomotion calls this every driver pass. A same-state request is
 	# not a new animation event and must not touch the active playhead.
 	if actual_state == state_name:
+		# A later same-frame request can supersede this feature's pending arrival.
+		# Do not cancel unrelated queued actions: require its unconsumed idle seek.
+		if source_loop_phase_transfer.has_pending():
+			source_loop_phase_transfer.cancel_pending()
+			animation_tree.set("parameters/modern_transition/transition_request", &"")
+			source_transition_snapshot.release()
 		current_state = state_name
 		return true
+	# Change curve only on a NEW request. A repeated idle request after a reload
+	# must not retroactively turn its action-exit fade into a source-grounded one.
+	var source_grounded_arrival := bool(profile.locomotion.get("source_runtime_timing", false)) \
+		and source_grounded_blend_seconds(actual_state, state_name, -1.0) >= 0.0
+	modern_transition.xfade_curve = source_animation_runtime.grounded_curve() if source_grounded_arrival or source_standing_entry else null
+	source_loop_phase_transfer.request(actual_state, state_name,
+		source_grounded_arrival and _source_grounded_transition_safe() and source_standing_fire_weight <= .001)
+	source_transition_snapshot.request(actual_state, state_name,
+		source_grounded_arrival and _source_snapshot_safe() and modern_transition.xfade_time > 0.0)
 	current_state = state_name
 	animation_tree.set("parameters/modern_transition/transition_request", state_name)
+	return true
+
+
+func _use_source_standing_entry(from_state: StringName, to_state: StringName) -> bool:
+	if from_state != &"idle" or to_state != &"standing" or source_standing_entry_seconds < 0.0 \
+			or not bool(profile.locomotion.get("source_idle_blending", false)) \
+			or weapon_handling_profile.get("family", "") != "TWO_HAND_RIFLE" or not source_firing_enabled() \
+			or not bool(source_animation_runtime.settings.get("standing_entry_blend_enabled", false)) \
+			or source_animation_runtime.grounded_curve() == null:
+		return false
+	if float(animation_tree.get("parameters/modern_transition/prev_xfading")) > 0.0: return false
+	# Existing grounded/action/fire guard retains the protected owner boundaries.
+	# Do not include this route in source_grounded_arrival: that also enables
+	# outgoing snapshots and idle-destination seeks, outside this timing repair.
+	return _source_grounded_transition_safe() and source_standing_fire_weight <= .001 \
+		and float(animation_tree.get("parameters/standing_source_ready/blend_amount")) <= .001
+
+
+func _source_snapshot_safe() -> bool:
+	return bool(source_animation_runtime.settings.get("grounded_idle_snapshot_enabled", false)) \
+		and _source_grounded_transition_safe()
+
+
+func _source_grounded_transition_safe() -> bool:
+	if not modern_enabled or not source_controller_active or source_snapshot_owner == null \
+			or not bool(profile.locomotion.get("source_runtime_timing", false)):
+		return false
+	var raw: Variant = source_snapshot_owner.get_ref()
+	if not is_instance_valid(raw): return false
+	var owner := raw as Node
+	if owner == null or StringName(owner.get("requested_action")) != &"" \
+			or bool(owner.get("death_presentation_active")) or bool(owner.get("traversal_presentation_active")) \
+			or bool(owner.get("traversal_recovery_pending")) or traversal_equip.active \
+			or jump_lower_body_weight > 0.001:
+		return false
+	if owner.has_method("_fire_upper_body_selected") and bool(owner.call("_fire_upper_body_selected")): return false
+	if StringName(owner.get("movement_state")) in [&"AIRBORNE", &"LANDING", &"DIVING", &"ROLLING"]:
+		return false
+	if not owner.has_method("_get_player"): return false
+	var actor: Variant = owner.call("_get_player")
+	if not is_instance_valid(actor) or not actor is CharacterBody3D or not actor.is_on_floor(): return false
+	for layer: String in ["fire_layer", "standing_reload_layer", "crouched_reload_layer"]:
+		if (animation_tree.tree_root as AnimationNodeBlendTree).has_node(StringName(layer)) \
+				and bool(animation_tree.get("parameters/%s/active" % layer)):
+			return false
+	var state := StringName(animation_tree.get("parameters/modern_transition/current_state"))
+	if state not in [&"standing", &"idle", &"crouch", &"idle_crouch"]: return false
+	var previous_index := int(animation_tree.get("parameters/modern_transition/prev_index"))
+	if float(animation_tree.get("parameters/modern_transition/prev_xfading")) > 0.0 and previous_index >= 0:
+		var previous := StringName(modern_transition.get_input_name(previous_index))
+		if previous not in [&"standing", &"idle", &"crouch", &"idle_crouch"]: return false
 	return true
 
 
@@ -624,7 +719,7 @@ func _build_jump_lower_body_layer(root: AnimationNodeBlendTree, available_clips:
 	if not bool(settings.get("enabled", false)) or selected == &"" or not available_clips.has(selected):
 		return &"route_blend"
 	jump_lower_body_clip = selected
-	root.add_node(&"jump_lower_body_animation", _animation_node(selected), Vector2(980.0, -170.0))
+	root.add_node(&"jump_lower_body_animation", _animation_node(selected, false), Vector2(980.0, -170.0))
 	root.add_node(&"jump_lower_body_seek", AnimationNodeTimeSeek.new(), Vector2(1140.0, -170.0))
 	root.connect_node(&"jump_lower_body_seek", 0, &"jump_lower_body_animation")
 	var legs := AnimationNodeBlend2.new()
@@ -923,7 +1018,10 @@ func cancel_reload_layers() -> void:
 
 func get_debug_state() -> Dictionary:
 	return {
+		"source_transition_snapshot": source_transition_snapshot.diagnostics(),
+		"source_loop_phase_transfer": source_loop_phase_transfer.diagnostics(),
 		"source_controller_active": source_controller_active,
+		"source_pistol_phase_active": source_pistol_phase_active,
 		"source_grounded_clip": source_grounded_clip,
 		"jog_gait_weight": jog_gait_weight,
 		"modern_enabled": modern_enabled,
@@ -963,7 +1061,7 @@ func _build_crouched_reload_layer(
 		return
 	if profile.state_layer(crouched_reload_clip) != "UPPER_BODY":
 		return
-	crouched_reload_animation_node = _animation_node(crouched_reload_clip)
+	crouched_reload_animation_node = _animation_node(crouched_reload_clip, false)
 	root.add_node(
 		&"crouched_reload_animation",
 		crouched_reload_animation_node,
@@ -996,7 +1094,7 @@ func _build_standing_reload_layer(
 		return
 	if profile.state_layer(standing_reload_clip) != "UPPER_BODY":
 		return
-	standing_reload_animation_node = _animation_node(standing_reload_clip)
+	standing_reload_animation_node = _animation_node(standing_reload_clip, false)
 	root.add_node(
 		&"standing_reload_animation",
 		standing_reload_animation_node,
@@ -1055,7 +1153,7 @@ func _build_fire_layer(
 		fire_transition.set_input_name(index, posture_name)
 		root.add_node(
 			node_name,
-			_animation_node(StringName(fire_clips_by_posture[posture_name])),
+			_animation_node(StringName(fire_clips_by_posture[posture_name]), false),
 			Vector2(650.0, 300.0 + index * 70.0)
 		)
 		root.connect_node(&"fire_transition", index, node_name)
@@ -1106,7 +1204,7 @@ func _build_legacy_route(root: AnimationNodeBlendTree, available_clips: Dictiona
 		var node_name := StringName("legacy_%s" % clip_name)
 		var source_name := node_name
 		legacy_transition.set_input_name(index, clip_name)
-		root.add_node(node_name, _animation_node(clip_name), Vector2(-900.0, -500.0 + index * 30.0))
+		root.add_node(node_name, _animation_node(clip_name, false), Vector2(-900.0, -500.0 + index * 30.0))
 		if String(clip_name).begins_with("traversal_") or String(clip_name) in combo_profile.clips.values() or String(clip_name) in combo_profile.crouch_clips.values() or String(clip_name) in [death_profile.standing_clip, death_profile.crouched_clip, death_profile.prone_clip]:
 			var seek_name := StringName("%s_combo_seek" % node_name)
 			root.add_node(seek_name, AnimationNodeTimeSeek.new(), Vector2(-760.0, -500.0 + index * 30.0))
@@ -1179,6 +1277,8 @@ func _configure_source_controller(available_clips: Dictionary) -> void:
 	# Validate before choosing graph topology, so incomplete metadata really
 	# retains the previous controller rather than a half-enabled source graph.
 	source_controller_active = false
+	source_pistol_phase_active = false
+	source_standing_entry_seconds = -1.0
 	source_policy = SourceLocomotionPolicy.new()
 	source_grounded_clip = &""
 	jog_gait_weight = 0.0
@@ -1194,6 +1294,39 @@ func _configure_source_controller(available_clips: Dictionary) -> void:
 			if available_clips.has(clip) and is_source_clip(path):
 				source_policy.register(prefix, suffix, clip, path)
 	source_controller_active = source_policy.complete()
+	source_policy.use_source_angles = source_controller_active and source_animation_runtime.settings.get("standing_direction_blend", "") == "source_angular"
+	if source_controller_active and source_animation_player != null:
+		var entry_clip := _weapon_locomotion_clip("walk_forward", &"walk_forward", available_clips, false, false)
+		if source_animation_player.has_animation(entry_clip):
+			source_standing_entry_seconds = SourceAnimationRuntime.standing_entry_seconds(source_animation_player.get_animation(entry_clip))
+
+
+func configure_source_phase_sync(root: AnimationNodeBlendTree) -> void:
+	# Phase sharing is independent of the rifle-only three-tier policy.
+	var standing_spaces: Array[StringName] = [&"walk_space", &"jog_space", &"full_space", &"firing_walk_space", &"firing_jog_space", &"firing_run_space"]
+	var crouch_spaces: Array[StringName] = [&"crouch_space", &"firing_crouch_space"]
+	source_pistol_phase_active = false
+	if not source_controller_active:
+		if not modern_enabled or not source_firing_enabled() or weapon_handling_profile.get("family", "") != "TWO_HAND_PISTOL":
+			return
+		standing_spaces = [&"walk_space", &"full_space", &"firing_walk_space", &"firing_run_space"]
+		for name: StringName in standing_spaces + crouch_spaces:
+			if not root.has_node(name): return
+			var space := root.get_node(name) as AnimationNodeBlendSpace2D
+			if space == null: return
+			for cardinal: StringName in [&"forward", &"backward", &"left", &"right"]:
+				var index := space.find_blend_point_by_name(cardinal)
+				if index < 0: return
+				var point := space.get_blend_point_node(index) as AnimationNodeAnimation
+				if point == null or not is_source_clip(String(profile.clip_paths.get(point.animation, ""))): return
+		source_pistol_phase_active = true
+	var leaf_frequency := source_controller_active and source_policy.use_source_angles \
+		and bool(profile.locomotion.get("source_runtime_timing", false)) \
+		and bool(source_animation_runtime.settings.get("standing_leaf_frequency_enabled", false))
+	for prefix: String in ["walk", "jog", "run", "walk_firing", "jog_firing", "run_firing"]:
+		leaf_frequency = leaf_frequency and bool(source_cardinal_spaces.get(prefix, false))
+	gait_phase_sync.bind(root, &"standing", standing_spaces, 0.6333333, source_animation_player, leaf_frequency)
+	gait_phase_sync.bind(root, &"crouched", crouch_spaces, 0.6333333, source_animation_player)
 
 
 func _direction_space(prefix: StringName, available_clips: Dictionary, firing := false) -> AnimationNodeBlendSpace2D:
@@ -1283,9 +1416,21 @@ func _prone_direction_space(available_clips: Dictionary) -> AnimationNodeBlendSp
 	space.value_label = "Prone travel"
 	var forward_clip := _fallback_clip(&"prone_forward", available_clips)
 	var backward_clip := _fallback_clip(&"prone_backward", available_clips)
+	var backward_node := _animation_node(backward_clip)
+	# Original ZSeal 583720 requests the same Prone crawl action27 for either
+	# longitudinal sign; 583900..583928 supplies negative playback when backing
+	# up. Keep this decision in the existing AnimationTree, never in body motion.
+	var source_backward: Variant = profile.locomotion.get("source_prone_backward", false)
+	if source_backward is bool and source_backward:
+		var source_path := String(profile.clip_paths.get(forward_clip, ""))
+		if is_source_clip(source_path):
+			var source_animation := load(source_path) as Animation
+			if source_animation != null and source_animation.get_meta("source_name", "") == "seal_prone_crawl":
+				backward_node = _animation_node(forward_clip)
+				backward_node.play_mode = AnimationNodeAnimation.PLAY_MODE_BACKWARD
 	# One node per authored cycle guarantees that lateral steering cannot create
 	# another playhead. Direction changes blend between matching normalized times.
-	space.add_blend_point(_animation_node(backward_clip), -1.0, -1, &"backward")
+	space.add_blend_point(backward_node, -1.0, -1, &"backward")
 	space.add_blend_point(_animation_node(forward_clip), 1.0, -1, &"forward")
 	return space
 
@@ -1310,7 +1455,7 @@ func _is_jump_mobility_clip(clip_name: StringName) -> bool:
 	return clip_name in [&"jump_up", &"jump_loop", &"jump_down"]
 
 
-func _animation_node(clip_name: StringName) -> AnimationNodeAnimation:
+func _animation_node(clip_name: StringName, allow_source_period: bool = true) -> AnimationNodeAnimation:
 	var node := AnimationNodeAnimation.new()
 	node.animation = clip_name
 	if source_jump_clip(clip_name):
@@ -1318,6 +1463,9 @@ func _animation_node(clip_name: StringName) -> AnimationNodeAnimation:
 		node.stretch_time_scale = false
 		node.timeline_length = float(profile.source_jump.clips[String(clip_name)].end_seconds)
 		node.loop_mode = Animation.LOOP_NONE
+	elif allow_source_period and bool(profile.locomotion.get("source_runtime_timing", false)) \
+		and source_animation_player != null and source_animation_player.has_animation(clip_name):
+		source_animation_runtime.configure_node(node, source_animation_player.get_animation(clip_name))
 	return node
 
 

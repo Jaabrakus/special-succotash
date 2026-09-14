@@ -85,6 +85,10 @@ func build(
 	_attach_wearable_backpack()
 	_attach_reload_magazine_visual()
 	_build_animation_library()
+	animation_library = preload("res://scripts/player/operator_source_pose_height.gd").adapt(animation_library, skeleton)
+	animation_library = preload("res://scripts/player/operator_source_camera_channels.gd").augment(animation_library, skeleton)
+	animation_player.remove_animation_library("")
+	animation_player.add_animation_library("", animation_library)
 	return get_runtime()
 
 
@@ -332,6 +336,9 @@ func _attach_calibrated_weapon(config: Dictionary) -> bool:
 	weapon_node.name = "Attached_%s" % String(config.get("weapon_id", "Weapon"))
 	weapon_node.set_meta("weapon_id", StringName(config.get("weapon_id", "")))
 	weapon_node.set_meta("rig_config", String(config.get("_rig_config_path", "")))
+	# Equip is atomic for local and replicated actors: the final pose/finger
+	# owners must not wait for a different animation clip to get this policy.
+	weapon_node.set_meta("support_hand_pose", config.get("support_hand_pose", {}).duplicate(true))
 	var inverse_scale := 1.0 / operator_scale
 	var mount: Dictionary = config.get("operator_mount", {})
 	weapon_node.position = _vector3_from_map(
@@ -428,6 +435,7 @@ func _attach_calibrated_weapon(config: Dictionary) -> bool:
 	)
 
 	calibrated_pivot.add_child(weapon_model)
+	preload("res://scripts/player/operator_grip_surface_contact.gd").attach(calibrated_pivot, weapon_node, config)
 	weapon_node.add_child(calibrated_pivot)
 	weapon_attachment.add_child(weapon_node)
 	_cache_weapon_map_baseline()
@@ -734,6 +742,7 @@ func _make_jump_clips_local() -> void:
 		var clip := animation_library.get_animation(name)
 		if profile.source_jump.get("clips", {}).has(String(name)):
 			clip = clip.duplicate() as Animation
+			clip.set_meta("operator_mutable_jump", true)
 		local.add_animation(name, clip)
 	animation_player.remove_animation_library("")
 	animation_player.add_animation_library("", local)

@@ -1,0 +1,299 @@
+{
+	"ammo_spec": {
+		"impact_damage": 2.3,
+		"piercing": 8.0,
+		"stun": 4.0,
+		"type": "7.62 x 51mm"
+	},
+	"animation_frame_pose_keys": {},
+	"animation_hand_maps": {},
+	"armory_eligible": true,
+	"ballistics": {
+		"base_spread_deg": 0.429,
+		"bloom_per_shot_deg": 1.0,
+		"bloom_recovery_speed": 17.5,
+		"damage": 37.0,
+		"directional_torso_modifiers_enabled": false,
+		"effective_range_m": 1200.0,
+		"fire_rate_rpm": 399.999984105429,
+		"full_gait_spread_deg": 1.543,
+		"headshot_multiplier": 3.5,
+		"is_silenced": false,
+		"magazine_capacity": 20,
+		"max_range_m": 1700.0,
+		"max_recoil_bloom_deg": 2.6,
+		"moving_spread_deg": 1.029,
+		"muzzle_velocity_mps": 853.0,
+		"reload_duration_seconds": 3.0,
+		"reserve_ammo": 60
+	},
+	"burst_size": 3.0,
+	"catalog_source": "SOCOM II MP1 WEAP extraction / SOCOM-141 family gameplay adaptation",
+	"catalog_weapon_id": "s2_sr25",
+	"category": "Sniper Rifles",
+	"competitive_eligible": false,
+	"coordinate_space": {
+		"grip_offset": "weapon_root_local_meters",
+		"weapon_sockets": "weapon_pivot_local_meters"
+	},
+	"default_fire_mode": "semi",
+	"display_name": "SOCOM II · SR-25",
+	"encumbrance": 1.0,
+	"fire_modes": [
+		"semi"
+	],
+	"grip_offset": {
+		"pos_x": 0.0798392296,
+		"pos_y": -0.0417042524,
+		"pos_z": 0.0082135201,
+		"rot_x": 4.55,
+		"rot_y": 3.0,
+		"rot_z": 79.05
+	},
+	"gun_placement_line": {
+		"runtime_enabled": false
+	},
+	"handling_profile": {
+		"dynamic_hold": {
+			"animation_carry_limit_m": 0.025,
+			"animation_carry_weight": 0.4,
+			"animation_drives_ready_hands": true,
+			"authored_shoulder_stock_enabled": true,
+			"buttstock_constraint": {
+				"enabled": false
+			},
+			"fire_saved_joint_rotations_enabled": false,
+			"fire_spine_ccdik_enabled": false,
+			"hand_owned_aim_correction_limit_deg": 32.0,
+			"hand_socket_ik_enabled": false,
+			"locomotion_ready_carry_weight": 1.0,
+			"ready_locomotion_inheritance": 0.0,
+			"ready_shoulder_pocket": {
+				"downward_m": 0.03,
+				"right_wrist_roll_degrees": -15.0
+			},
+			"relaxed_idle_upper_body_weight": 0.0,
+			"reload_return_blend_seconds": 0.18,
+			"right_hand_owns_weapon": true,
+			"standing_idle_square_pelvis": true,
+			"strafe_carry": {
+				"left_elbow_flare_degrees": 12.0,
+				"right_hip_follow_weight": 1.0,
+				"right_stock_release_frame": "chest_forward",
+				"right_stock_release_m": 0.33
+			},
+			"support_hand_ik_blend_seconds": 0.25,
+			"support_hand_socket_ik_enabled": true
+		},
+		"family": "LONG_GUN",
+		"locomotion_family": "RIFLE",
+		"locomotion_slots": {
+			"crouch_left": "crouch_lateral_left",
+			"crouch_right": "crouch_lateral_right",
+			"run_left": "run_lateral_left",
+			"run_right": "run_lateral_right"
+		},
+		"ready_aim": {
+			"fire_hold_seconds": 1.2,
+			"fire_terminal_pose_hold_seconds": 0.12
+		},
+		"support_hand_required": true
+	},
+	"model_fbx": "res://assets/weapons/socom2_arsenal/s2_sr25.scn",
+	"model_rotation_degrees": {
+		"x": 0.0,
+		"y": 0.0,
+		"z": 0.0
+	},
+	"normalized_scale": 1.0,
+	"operator_mount": {
+		"attachment_mode": "trigger_hand_socket",
+		"bone_name": "mixamorig_RightHand",
+		"position": {
+			"x": -0.02,
+			"y": 0.08,
+			"z": 0.05
+		},
+		"rotation_degrees": {
+			"x": -90.0,
+			"y": 180.0,
+			"z": 0.0
+		}
+	},
+	"presentation_status": "Extracted mesh and textures; source markers retained; adapted surface contacts and family animation.",
+	"reticle": {
+		"base_gap_px": 5.1,
+		"cadence_driven_return": false,
+		"max_gap_px": 41.6,
+		"maximum_shot_kick_px": 60.0,
+		"response_speed": 26.2,
+		"shot_kick_px": 30.0,
+		"shot_kick_return": 40.0,
+		"vrc_return_speed_px_per_second": 40.0
+	},
+	"schema_version": 3,
+	"socket_contract_authored": true,
+	"socom_original_id": 106.0,
+	"source_asset": {
+		"base_profile": "sr-25",
+		"gameplay_status": "project family tuning with source cadence/ammo/range; not original damage parity",
+		"left_contact_source_m": {
+			"x": 0.200000002980232,
+			"y": 0.0649999976158142,
+			"z": -0.015927255153656
+		},
+		"manifest": "res://config/source_weapon_arsenal.json",
+		"model": "stoner_sr25",
+		"notes": "",
+		"parts": [
+			"stoner_sr25__N000_sr25_high_v0100.glb",
+			"stoner_sr25__N002_scope_v0100.glb"
+		],
+		"right_contact_source_m": {
+			"x": -0.0399999991059303,
+			"y": -0.0199999995529652,
+			"z": 0.0100000202655792
+		},
+		"source_manifest_sha256": "4a579256855bbb84d27e0861c975f840c6c5eb8e4787f14d784b6c4f641f2ee1",
+		"source_name": "SR-25",
+		"source_settings": {
+			"display_name": "SR-25",
+			"mode_flags": [],
+			"name": "SR-25",
+			"numeric": {
+				"Ammo_Capacity": 20.0,
+				"Damage_Modifier": 0.400000005960464,
+				"Effective_Range": 1200.0,
+				"Encumbrance": 1.0,
+				"FireWait": 0.150000005960464,
+				"ID": 106.0,
+				"ImpactRadius": 15.0,
+				"MaxFireMode": 1.0,
+				"Maximum_Range": 1700.0,
+				"Muzzle_Velocity": 853.0,
+				"NumMags": 3.0,
+				"NumZoomModes": 2.0,
+				"RecoilPct": 0.200000002980232,
+				"Sound_Radius": 130.0,
+				"ZoomMode0": 1.5,
+				"ZoomMode1": 8.0
+			},
+			"stances": {
+				"STANCE_CROUCH": {
+					"FireRifleKickBaseDist": 0.0270000007003546,
+					"FireRifleKickRandomDist": 0.0149999996647239,
+					"FireRifleKickRate": 0.280000001192093,
+					"FireRifleKickReturnRate": 0.0700000002980232,
+					"KnockCount": 1.0,
+					"ReticuleKnock": 26.0,
+					"ReticuleKnockMax": 60.0,
+					"ReticuleKnockReturn": 45.0,
+					"SniperDecayRate": -0.0750000029802322,
+					"SniperDistLimitX": 16.0,
+					"SniperDistLimitY": 16.0,
+					"SniperDistPPFrameX": 12.0,
+					"SniperDistPPFrameY": 8.0,
+					"TargetConstrict": 43.0,
+					"TargetDilateUponFire": 27.0,
+					"TargetDilateUponMovement": 1.70000004768372,
+					"TargetDilateUponMovementMult": 13.0,
+					"TargetMax": 61.0,
+					"TargetMin": 41.0
+				},
+				"STANCE_PRONE": {
+					"FireRifleKickBaseDist": 0.0230000000447035,
+					"FireRifleKickRandomDist": 0.0149999996647239,
+					"FireRifleKickRate": 0.280000001192093,
+					"FireRifleKickReturnRate": 0.0700000002980232,
+					"KnockCount": 1.0,
+					"ReticuleKnock": 20.0,
+					"ReticuleKnockMax": 60.0,
+					"ReticuleKnockReturn": 48.0,
+					"SniperDecayRate": -0.200000002980232,
+					"SniperDistLimitX": 10.0,
+					"SniperDistLimitY": 10.0,
+					"SniperDistPPFrameX": 9.0,
+					"SniperDistPPFrameY": 9.0,
+					"TargetConstrict": 43.0,
+					"TargetDilateUponFire": 27.0,
+					"TargetDilateUponMovement": 1.70000004768372,
+					"TargetDilateUponMovementMult": 63.0,
+					"TargetMax": 57.0,
+					"TargetMin": 37.0
+				},
+				"STANCE_STAND": {
+					"FireRifleKickBaseDist": 0.0299999993294477,
+					"FireRifleKickRandomDist": 0.0149999996647239,
+					"FireRifleKickRate": 0.280000001192093,
+					"FireRifleKickReturnRate": 0.0700000002980232,
+					"KnockCount": 1.0,
+					"ReticuleKnock": 30.0,
+					"ReticuleKnockMax": 60.0,
+					"ReticuleKnockReturn": 40.0,
+					"SniperDecayRate": 0.0,
+					"SniperDistLimitX": 20.0,
+					"SniperDistLimitY": 20.0,
+					"SniperDistPPFrameX": 15.0,
+					"SniperDistPPFrameY": 10.0,
+					"TargetConstrict": 43.0,
+					"TargetDilateUponFire": 30.0,
+					"TargetDilateUponMovement": 1.70000004768372,
+					"TargetMax": 65.0,
+					"TargetMin": 45.0
+				}
+			}
+		}
+	},
+	"stances": {},
+	"support_hand_pose": {
+		"finger_basis": "dual_source_rest",
+		"finger_curl": 1.0,
+		"palm_pitch_deg": -24.35,
+		"palm_roll_deg": 104.75,
+		"palm_yaw_deg": 0.75,
+		"source_support_contact": true,
+		"support_regrip_seconds": 0.12,
+		"thumb_wrap": 0.7
+	},
+	"training_only": false,
+	"user_scale_multiplier": 1.0,
+	"visual_rig_schema_version": 1.0,
+	"weapon_id": "s2_sr25",
+	"weapon_sockets": {
+		"barrel_base_socket": {
+			"x": 0.00999999232590199,
+			"y": 0.0965128540992737,
+			"z": 0.636999905109406
+		},
+		"buttstock_socket": {
+			"x": 0.0100000342354178,
+			"y": 0.0515128560364246,
+			"z": -0.322800010442734
+		},
+		"ejection_port": {
+			"x": -0.0148500697687268,
+			"y": 0.0996859073638916,
+			"z": 0.105769947171211
+		},
+		"left_hand_ik_target": {
+			"x": 0.0259272642433643,
+			"y": 0.0849999934434891,
+			"z": 0.240000009536743
+		},
+		"muzzle_socket": {
+			"x": 0.00999998766928911,
+			"y": 0.0965128540992737,
+			"z": 0.736999928951263
+		},
+		"optic_rail": {
+			"x": 0.0100000184029341,
+			"y": 0.125999987125397,
+			"z": 0.0399999991059303
+		},
+		"right_hand_grip_target": {
+			"x": 0.0,
+			"y": 0.0,
+			"z": 0.0
+		}
+	}
+}

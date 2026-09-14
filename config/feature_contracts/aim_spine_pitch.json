@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "feature_id": "aim_spine_pitch",
+  "player_intent": "Looking up and down bends the upper spine while preserving the source base pose and weapon contact.",
+  "acceptance_rule": "Main source poses replace legacy local-axis pitch with a bounded world-aim-right upper-spine pass. Standing, crouched and prone have distinct saved gains and limits; unsafe actions suppress it; hips/feet and all authoritative owners remain unchanged.",
+  "canonical_scene": "res://main.tscn",
+  "ownership": {"pose": "SocomOperatorPostureLayer"},
+  "nodes": [{"id":"pose", "type":"Node3D", "owner":"SocomOperatorPostureLayer", "role":"Canonical driver coordinates the existing upper-body posture owner before weapon contact", "scene_path":"res://main.tscn", "node_path":"Player/Mannequin/ProductionAnimation"}],
+  "data_contracts": [{"path":"res://config/look_pitch_presentation.json", "writer":"res://docs/AIM_SPINE_PITCH.md", "readers":["res://scripts/player/operator_posture_layer.gd", "res://scripts/player/operator_aim_spine_pitch.gd", "res://scripts/player/operator_animation_driver_runtime.gd"]}],
+  "must_not_change": ["camera aim intent", "CharacterBody movement and collision", "weapon contact ownership", "server shot/damage", "source animation assets and timing", "reload duration"],
+  "proof_scripts": ["res://tools/aim_spine_pitch_regression.gd", "res://tools/aim_spine_pitch_main_regression.gd"],
+  "visual_check": "Inspect actual selected-character standing/crouched/prone up-neutral-down and fire transitions from side and rear; headless contact measurements alone do not prove visual quality.",
+  "system_delta": {
+    "decision":"MERGE",
+    "reason":"Replace local-axis source torso pitch and fill source-pistol omission within the same posture owner; retain downstream contact and legacy fallback.",
+    "current":{"system":"Legacy ready-weighted local-axis pitch", "correctness":2, "ownership_clarity":4, "runtime_parity":4, "editor_usability":2, "performance":4, "regression_coverage":2, "evidence_paths":["res://scripts/player/operator_posture_layer.gd"]},
+    "candidate":{"system":"Source-aware stance-bounded upper-spine aim pitch", "correctness":4, "ownership_clarity":4, "runtime_parity":4, "editor_usability":3, "performance":4, "regression_coverage":4, "evidence_paths":["res://scripts/player/operator_aim_spine_pitch.gd", "res://tools/aim_spine_pitch_regression.gd", "res://tools/aim_spine_pitch_main_regression.gd"]}
+  }
+}

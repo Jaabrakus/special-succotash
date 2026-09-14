@@ -21,6 +21,10 @@ class Hurtbox extends Area3D:
 	func is_anatomical_hurtbox() -> bool:
 		return true
 
+class MovementReceiver extends CharacterBody3D:
+	func take_bullet_damage_region() -> void:
+		assert(false, "Query helper cannot apply damage")
+
 
 func _initialize() -> void:
 	_run.call_deferred()
@@ -84,6 +88,33 @@ func _run() -> void:
 		expect(collateral[0].receiver == first and collateral[1].receiver == second, "ordered distinct receivers")
 		expect(collateral[0].source_material == "PERSON" and collateral[1].source_material == "PERSON", "anatomical material explicit")
 		expect(collateral[1].range_limit == Trace.reduced_range(100.0, 0.0, MATERIALS.PERSON), "person reduction applied once")
+	await _reset()
+	var movement := MovementReceiver.new()
+	movement.position = Vector3(0, 0, -2.0)
+	_shape(movement)
+	scene.add_child(movement)
+	var anatomy := Hurtbox.new()
+	anatomy.receiver = movement
+	anatomy.collision_layer = 4
+	anatomy.position = Vector3(0, 0, -0.5)
+	_shape(anatomy)
+	movement.add_child(anatomy)
+	var farther_person := _person(5.0)
+	await _sync()
+	var body_trace := _trace()
+	expect(body_trace.size() == 2, "movement body is excluded without replacing hurtbox")
+	if body_trace.size() == 2:
+		expect(body_trace[0].collider == anatomy and body_trace[0].receiver == movement, "actual animated anatomy wins")
+		expect(body_trace[0].range_limit == 100.0 and body_trace[1].receiver == farther_person, "capsule consumes no range and permits collateral")
+	await _reset()
+	var plain_body := CharacterBody3D.new()
+	plain_body.position = Vector3(0, 0, -2)
+	_shape(plain_body)
+	scene.add_child(plain_body)
+	_person(5)
+	await _sync()
+	var solid_body_trace := _trace()
+	expect(solid_body_trace.size() == 1 and solid_body_trace[0].collider == plain_body, "unclassified body stays opaque")
 	# A second contact at 30 is only 10m after the wall, but is outside global 25m.
 	for distance: float in [24.9, 25.0, 25.1, 30.0]:
 		await _reset()

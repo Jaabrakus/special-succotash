@@ -152,7 +152,7 @@ func request_warmup_weapon(weapon_id: String) -> void:
 func _server_choose_warmup_weapon(peer_id: int, weapon_id: String) -> bool:
 	if not multiplayer.is_server() or not is_lobby_warmup_active() or not lobby.players.has(peer_id) or not operators.has(peer_id):
 		return false
-	if not operators[peer_id].alive or not RoundWeaponRules.firearm_pool().has(weapon_id):
+	if not operators[peer_id].alive or not ArmoryRules.is_armory_weapon(ArmoryRules.weapon_record(weapon_id)):
 		return false
 	var now := Time.get_ticks_msec() / 1000.0
 	if now - float(warmup_weapon_changed_at.get(peer_id, -100.0)) < float(warmup_profile.get("weapon_change_cooldown_seconds", 0.5)):
@@ -203,7 +203,7 @@ func receive_warmup_loadout(assignments: Dictionary, loadouts: Dictionary = {}) 
 	for raw_id: Variant in assignments:
 		var peer_id := int(raw_id)
 		var weapon_id := String(assignments[raw_id])
-		if not RoundWeaponRules.firearm_pool().has(weapon_id):
+		if not ArmoryRules.is_armory_weapon(ArmoryRules.weapon_record(weapon_id)):
 			continue
 		server_equipped_weapon_id[peer_id] = weapon_id
 		var config := _weapon_config_for_peer(peer_id)

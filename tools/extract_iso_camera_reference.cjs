@@ -66,7 +66,8 @@ function openIso(file) {
       }
       return entries(current);
     }
-    return {find, list, close: () => fs.closeSync(fd), size, volume: pvd.toString('ascii', 40, 72).trim()};
+    // Large archives are inspected in bounded chunks, never via an unbounded find().
+    return {find, list, readRange: read, close: () => fs.closeSync(fd), size, volume: pvd.toString('ascii', 40, 72).trim()};
   } catch (error) { fs.closeSync(fd); throw error; }
 }
 

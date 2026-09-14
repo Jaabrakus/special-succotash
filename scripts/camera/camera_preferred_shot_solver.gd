@@ -10,6 +10,9 @@ func configure(camera_rig) -> void:
     rig = camera_rig
 
 func preferred_position() -> Vector3:
+    var source := source_preference()
+    if not source.is_empty():
+        return source.position
     var prone_amount := prone_stance_amount()
     var peek_amount: float = 0.0
     if rig.target != null and rig.target.has_method("get_peek_amount"):
@@ -157,12 +160,18 @@ func composed_view_pitch() -> float:
     )
 
 func look_target_from(camera_position: Vector3) -> Vector3:
+    var source := source_preference()
+    if not source.is_empty():
+        return source.far_target
     if (
         rig.aim_point != Vector3.ZERO
         and camera_position.distance_to(rig.aim_point) > 0.1
     ):
         return rig.aim_point
     return camera_position + forward_direction() * rig.profile.look_ahead_distance
+
+func source_preference() -> Dictionary:
+    return rig.source_camera_match.world_preference(rig.target, rig.yaw, rig.pitch)
 
 func close_wall_aim_point(look_ahead: float) -> Vector3:
     return (

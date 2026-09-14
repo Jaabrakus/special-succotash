@@ -1,10 +1,13 @@
 extends "res://scripts/player/operator_weapon_pose_kinematics.gd"
 
-func present_traversal_equip() -> void:
+func present_traversal_equip(reset_source_contact: bool = true) -> void:
 	# Authored AGLS draw owns both arms. The existing weapon presentation owner
 	# follows its evaluated trigger palm; no support IK pulls the reaching hand
 	# back onto a rifle that is still on the sling.
 	if weapon_node == null or weapon_presentation_owner == null: return
+	source_support_contact_active = false
+	source_support_reach_limited = false
+	if reset_source_contact: source_support_contact_weight = 0.0
 	_finish_action_weapon_follow()
 	_release_trigger_hand_grip_lock()
 	_release_support_hand_grip_lock()

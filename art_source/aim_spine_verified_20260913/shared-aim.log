@@ -1,0 +1,23 @@
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+ERROR: Condition "ret != noErr" is true. Returning: ""
+   at: get_system_ca_certificates (platform/macos/os_macos.mm:1035)
+SHARED_AIM_CHECK PASS main scene loads
+SHARED_AIM_CHECK PASS live aim chain is wired
+SHARED_AIM_CHECK PASS torso yaw comes from the shared target
+SHARED_AIM_CHECK PASS torso pitch comes from the shared target
+SHARED_AIM_CHECK PASS rifle presentation consumes the shared target
+SHARED_AIM_CHECK PASS reticle stays centered
+SHARED_AIM_CHECK PASS network aim intent reports the stable standing origin
+SHARED_AIM_CHECK PASS stable network aim intent converges on the shared target
+SHARED_AIM_CHECK PASS authoritative weapon accepts the shot
+SHARED_AIM_CHECK PASS authoritative shot starts at the visible muzzle
+SHARED_AIM_FIRE_PLACEMENT_METRIC optic_delta=0.1155 trigger_error=0.0002 support_error=0.0006 aim_error=0.007 right_elbow=79.87 left_elbow=99.74
+SHARED_AIM_CHECK PASS accepted fire keeps hand IK detached without live blue-line relocation
+SHARED_AIM_CHECK PASS fire leaves both hand solvers stopped
+SHARED_AIM_CHECK PASS fire keeps the rendered rail on the live aim line
+SHARED_AIM_CHECK PASS held-fire cadence accepts the next shot
+SHARED_AIM_CHECK PASS held fire leaves both hand solvers stopped
+SHARED_AIM_CHECK PASS held fire keeps the rail aligned
+SHARED_AIM_CHECK PASS held fire never starts live blue-line relocation
+SHARED_AIM_CHAIN_REGRESSION PASS

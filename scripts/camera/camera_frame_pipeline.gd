@@ -241,7 +241,20 @@ func step(delta: float) -> void:
     collision_crane_active = false
 
     preferred_camera_position = rig._preferred_position()
-    var composed_position: Vector3 = rig._solve_framing(preferred_camera_position)
+    # Source preferred pose already includes its animated stance/pitch pivot.
+    # Reapplying authored head-marker framing defeats that exact clear shot.
+    # Physical collision and its post-solve validation remain authoritative.
+    var source_preference_active: bool = not rig.preferred_shot_solver.source_preference().is_empty()
+    if source_preference_active and rig.source_camera_match.hybrid_enabled():
+        # Guard is part of the preferred seed, not an excursion from an unsafe
+        # below-feet seed that _limit_excursion could pull downward again.
+        preferred_camera_position = rig.source_camera_match.compose_hybrid(preferred_camera_position, preferred_camera_position, target.global_position, pitch)
+    var composed_position: Vector3 = preferred_camera_position if source_preference_active else rig._solve_framing(preferred_camera_position)
+    if source_preference_active and rig.source_camera_match.hybrid_enabled():
+        var framed_position: Vector3 = preferred_camera_position
+        if rig.source_camera_match.framing_weight(pitch) > 0.0:
+            framed_position = rig._solve_framing(preferred_camera_position)
+        composed_position = rig.source_camera_match.compose_hybrid(preferred_camera_position, framed_position, target.global_position, pitch)
     var bounded_position: Vector3 = rig._limit_excursion(composed_position)
     # The virtual lens always follows input. Collision may constrain only the
     # rendered lens; it must never rewrite or stall this desired position.

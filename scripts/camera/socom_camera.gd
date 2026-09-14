@@ -11,6 +11,7 @@ const CameraInputControllerScript := preload("res://scripts/camera/camera_input_
 const CameraInputPresenterScript := preload("res://scripts/camera/camera_input_presenter.gd")
 const CameraProfileScript := preload("res://scripts/camera/camera_profile.gd")
 const SourceHybrid := preload("res://scripts/camera/camera_source_hybrid.gd")
+const SourceGameplayCameraPolicy := preload("res://scripts/camera/source_gameplay_camera.gd")
 const CameraPreferredShotSolverScript := preload("res://scripts/camera/camera_preferred_shot_solver.gd")
 const CameraRecoverySolverScript := preload("res://scripts/camera/camera_recovery_solver.gd")
 const CameraRuntimeSupportScript := preload("res://scripts/camera/camera_runtime_support.gd")
@@ -53,6 +54,7 @@ var torso_marker: Node3D
 var pelvis_marker: Node3D
 var feet_marker: Node3D
 var profile := CameraProfileScript.new()
+var source_camera_match := SourceGameplayCameraPolicy.new()
 ## Session UI can create a camera behind a lobby without requesting pointer lock.
 var capture_mouse_on_ready := true
 
@@ -227,12 +229,16 @@ func _init() -> void:
 
 func _ready() -> void:
     SourceHybrid.configure(profile, OS.get_cmdline_user_args().has("--source-camera-hybrid"))
+    if OS.get_cmdline_user_args().has("--source-camera-match"):
+        source_camera_match.settings.enabled = true
     add_to_group("socom_camera_rig")
     camera = Camera3D.new()
     camera.name = "Camera3D"
     camera.current = true
     camera.fov = profile.vertical_fov
     camera.keep_aspect = Camera3D.KEEP_HEIGHT
+    if source_camera_match.lens_active_for(target, yaw, pitch):
+        camera.fov = source_camera_match.lens_vertical_degrees(get_viewport().get_visible_rect().size, profile.vertical_fov)
     camera.near = 0.08
     add_child(camera)
     tactical_perception_sensor = TacticalPerceptionSensorScript.new()
@@ -241,7 +247,7 @@ func _ready() -> void:
     tactical_perception_sensor.configure(camera, target)
     camera.set_cull_mask_value(VIRTUAL_WALL_OBSERVER_LAYER, false)
     camera_collision_shape.radius = profile.camera_collision_radius
-    current_fov = profile.vertical_fov
+    current_fov = camera.fov
     orbit_input_enabled = not OS.get_cmdline_user_args().has("--automated-test")
     orbit_drag_enabled = (
         profile.orbit_trail_enabled

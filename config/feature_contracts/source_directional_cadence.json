@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "feature_id": "source_directional_cadence",
+  "player_intent": "Preserve original per-clip cycle timing while source rifles blend diagonal movement and firing.",
+  "acceptance_rule": "Saved opt-in standing source-angular rifle spaces combine branch_weight * cardinal_weight / native_period in one AnimationTree cycle. Original instruction vectors and actual main playheads agree; no seeks, input change or new clock. Ineligible graphs, disabled settings, crouch and pistol retain their prior policy. This is clock-combination parity, not complete original state-selection or visual parity.",
+  "canonical_scene": "res://main.tscn",
+  "ownership": {"animation": "ProductionAnimation"},
+  "nodes": [{"id": "animation_driver", "type": "Node3D", "owner": "ProductionAnimation", "role": "Existing single AnimationTree owner consumes movement and accepted fire", "scene_path": "res://scenes/player/operator_player.tscn", "node_path": "Mannequin/ProductionAnimation"}],
+  "data_contracts": [{"path": "res://config/source_animation_runtime.json", "writer": "res://docs/SOURCE_DIRECTIONAL_CADENCE.md", "readers": ["res://scripts/player/operator_source_animation_runtime.gd", "res://scripts/player/operator_locomotion_blend_tree.gd"]}],
+  "must_not_change": ["CharacterBody movement/collision/speed", "Camera/reticle aim and input", "Server shot/damage/reload/action clocks", "Source assets", "Weapon/hand pose ownership", "Pistol/crouch/prone cadence", "Speed-band selection"],
+  "proof_scripts": ["res://tools/source_directional_cadence_regression.gd", "res://tools/source_directional_cadence_main_regression.gd", "res://tools/source_blend_runtime_audit.cjs", "res://tools/source_gait_phase_regression.gd", "res://tools/source_pistol_phase_regression.gd"],
+  "visual_check": "Canonical main unequal-diagonal relaxed and accepted-fire movement; early/middle/late rear and side captures. Check hand attachment and finite posed body. Full source foot-contact/retarget equivalence is not implied.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Use the proven per-leaf frequency equation on the already-verified cardinal diamond; retain all other graph ownership and routing.",
+    "current": {"system": "Frequency between spaces but averaged periods within directions", "correctness": 3, "ownership_clarity": 5, "runtime_parity": 3, "editor_usability": 4, "performance": 5, "regression_coverage": 3, "evidence_paths": ["res://docs/SOURCE_ANIMATION_RUNTIME_GAPS.md", "res://docs/SOURCE_DIRECTIONAL_CADENCE.md"]},
+    "candidate": {"system": "One shared period from individual standing rifle leaf frequencies", "correctness": 4, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 4, "regression_coverage": 5, "evidence_paths": ["res://scripts/player/operator_gait_phase_sync.gd", "res://tools/source_directional_cadence_regression.gd", "res://tools/source_directional_cadence_main_regression.gd"]}
+  }
+}

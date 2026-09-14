@@ -1,5 +1,12 @@
 {
   "enabled": true,
   "relaxed_torso_weight": 0.4,
-  "response": 12.0
+  "response": 12.0,
+  "spine_aim": {
+    "enabled": true,
+    "response": 12.0,
+    "standing": {"gain": 0.65, "up_limit_deg": 18.0, "down_limit_deg": 32.0},
+    "crouched": {"gain": 0.5, "up_limit_deg": 14.0, "down_limit_deg": 24.0},
+    "prone": {"gain": 0.25, "up_limit_deg": 8.0, "down_limit_deg": 4.0}
+  }
 }

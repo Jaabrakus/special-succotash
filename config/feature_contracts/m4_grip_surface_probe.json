@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "feature_id": "m4_grip_surface_probe",
+  "player_intent": "Prepare collision-aware support fingers on a held rifle without physics fighting animation.",
+  "acceptance_rule": "Only the exact saved AGLS M4 model may acquire this isolated CapsuleShape3D. The migrated public ISO M4 MUST NOT acquire the legacy surface. Saved correction stays OFF. Geometry unit tests cover the candidate limiter; the current main regression proves model isolation, not finished source hand contact. Historical AGLS captures are not current runtime proof.",
+  "canonical_scene": "res://main.tscn",
+  "ownership": {
+    "finger_pose": "SocomOperatorWeaponGripContact",
+    "surface_construction": "SocomOperatorAssetRuntime",
+    "contact_eligibility": "Existing operator animation driver action/traversal state"
+  },
+  "nodes": [
+    {
+      "id": "grip_contact_area", "type": "Area3D", "owner": "SocomOperatorAssetRuntime",
+      "role": "Holds presentation-only shape on the existing calibrated weapon mount; no world collision layer.",
+      "source_script": "res://scripts/player/operator_grip_surface_contact.gd",
+      "code_symbols": ["Area3D.new()", "GripContactSurface", "area.collision_layer = 0", "area.collision_mask = 0"]
+    },
+    {
+      "id": "fore_end_shape", "type": "CollisionShape3D", "owner": "SocomOperatorAssetRuntime",
+      "role": "Instance-private capsule, queried by the existing finger owner without additional physics bodies.",
+      "source_script": "res://scripts/player/operator_grip_surface_contact.gd",
+      "code_symbols": ["CollisionShape3D.new()", "collider.shape = profile.shape.duplicate()"]
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://config/weapon_grip_surfaces/m4a1.tres",
+      "writer": "res://scripts/player/weapon_grip_surface_profile.gd",
+      "readers": ["res://scripts/player/operator_grip_surface_contact.gd", "res://scripts/player/operator_asset_runtime.gd", "res://scripts/player/operator_weapon_grip_contact.gd"]
+    }
+  ],
+  "must_not_change": ["CharacterBody3D movement", "camera and aim", "server weapon shots/damage", "rifle/wrist attachment", "source animation selection and timing", "right hand and thumb", "other guns"],
+  "proof_scripts": ["res://tools/grip_surface_contact_regression.gd", "res://tools/m4_grip_surface_main_regression.gd"],
+  "visual_check": "PARTIAL: inspect actual main early/middle/late standing/crouch/prone fire and movement from both sides. Candidate correction failed: several open chains intersect the proxy and wrist/thumb skin remains wrong. Do not enable correction or claim finished physical hands. Show shape with Godot Debug > Visible Collision Shapes.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Merge isolated geometry and diagnostics, not the failed automatic correction. Current contact data now identifies embedded chains without redirecting the gun or posing an arm. Automatic curl promotion is REJECTED until base grip and surface fit are corrected and rendered transitions pass.",
+    "current": {
+      "system": "Authored finger curl with no surface test", "correctness": 2, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 3, "performance": 5, "regression_coverage": 2,
+      "evidence_paths": ["res://scripts/player/operator_weapon_grip_contact.gd", "res://docs/SOURCE_RIFLE_WRIST_AUDIT.md"]
+    },
+    "candidate": {
+      "system": "Saved observation-only shape plus unpromoted bounded-curl experiment", "correctness": 2, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 4, "regression_coverage": 4,
+      "evidence_paths": ["res://scripts/player/weapon_grip_surface_profile.gd", "res://scripts/player/operator_grip_surface_contact.gd", "res://tools/grip_surface_contact_regression.gd", "res://tools/m4_grip_surface_main_regression.gd"]
+    }
+  }
+}

@@ -1,0 +1,8 @@
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+ERROR: Condition "ret != noErr" is true. Returning: ""
+   at: get_system_ca_certificates (platform/macos/os_macos.mm:1035)
+SNAPSHOT_BASE raw=(0.0, 2.0, 0.0) root=(0.0, 2.0, 0.0) coverage=1.0
+SNAPSHOT_FROZEN raw=(0.0, 2.0, 0.0) root=(0.0, 2.0, 0.0) coverage=1.0
+SNAPSHOT_INTERRUPT before=(0.0, 2.00101, 0.0) after=(0.0, 2.00401, 0.0) remaining=0.5
+SOURCE_TRANSITION_SNAPSHOT PASS checks=24 []

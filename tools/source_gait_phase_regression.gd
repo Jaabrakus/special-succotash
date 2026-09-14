@@ -23,7 +23,8 @@ func _run() -> void:
 	_check(old_gap > 0.1, "fixture detects independent walk/run and relaxed/firing phase drift")
 	_check(shared_gap < 0.000001, "all direction/gait/readiness playheads retain one normalized phase")
 	_check_crouch_pair()
-	_check(completed_cases == 9, "all cases finish without an interrupted GDScript call")
+	_check_original_frequency_vectors()
+	_check(completed_cases == 12, "all cases finish without an interrupted GDScript call")
 	print("SOURCE_GAIT_PHASE_REGRESSION ", "PASS" if failures.is_empty() else "FAIL", " old_max_gap=", old_gap, " shared_max_gap=", shared_gap, " ", failures)
 	quit(0 if failures.is_empty() else 1)
 
@@ -193,6 +194,45 @@ func _check_crouch_pair() -> void:
 func _phase_distance(a: float, b: float) -> float:
 	var distance := absf(a - b)
 	return minf(distance, 1.0 - distance)
+
+
+func _check_original_frequency_vectors() -> void:
+	# Original instructions: FTSCore 0x28c4f0; weights normalized at 0x28bdf0.
+	# FTSCore SHA256 cf09a7fabaf59a1d68f01411bd1db9e859af054df1f2fbc4775d8c221785f836.
+	# Float32 golden outputs; common outer playback speed is one in these cases.
+	var vectors := [
+		{"periods":[0.5, 1.0], "weights":[0.5, 0.5], "delta":0.10000000149011612, "phase":0.15000000596046448},
+		{"periods":[0.6333333253860474, 0.8333333134651184], "weights":[0.5, 0.5], "delta":0.01666666753590107, "phase":0.023157896474003792},
+		{"periods":[0.6000000238418579, 0.8999999761581421], "weights":[0.25, 0.75], "delta":0.20000000298023224, "phase":0.25},
+	]
+	for vector: Dictionary in vectors:
+		var fixture := _fixture(false)
+		var graph: AnimationNodeBlendTree = fixture.graph
+		var tree: AnimationTree = fixture.tree
+		var spaces: Array[StringName] = [&"walk_space", &"jog_space"]
+		for index in spaces.size():
+			var space := graph.get_node(spaces[index]) as AnimationNodeBlendSpace2D
+			for point_index in space.get_blend_point_count():
+				var point := space.get_blend_point_node(point_index) as AnimationNodeAnimation
+				point.use_custom_timeline = true
+				point.timeline_length = float(vector.periods[index])
+				point.loop_mode = Animation.LOOP_LINEAR
+		var sync := PhaseSync.new()
+		sync.bind(graph, &"verified", spaces, 0.7, fixture.owner.get_node("AnimationPlayer") as AnimationPlayer)
+		_publish(tree, float(vector.weights[1]), 0.0, 0.0)
+		var weights: Array[float] = [float(vector.weights[0]), float(vector.weights[1])]
+		var period := sync.apply(tree, &"verified", weights)
+		_check(absf(float(vector.delta) / period - float(vector.phase)) < .0000001, "original instruction weighted-frequency golden vector")
+		_check(absf(sync.apply(tree, &"verified", [weights[0] * 3.0, weights[1] * 3.0]) - period) < .0000001, "unnormalized adapter weights normalize without cadence change")
+		tree.advance(0.0)
+		period = sync.apply(tree, &"verified", weights)
+		_check(absf(float(vector.delta) / period - float(vector.phase)) < .0000001, "evaluated custom timelines retain source period")
+		tree.advance(float(vector.delta))
+		for index in spaces.size():
+			var phase := float(tree.get("parameters/%s/forward/current_position" % spaces[index])) / float(vector.periods[index])
+			_check(absf(phase - float(vector.phase)) < .0000001, "actual AnimationTree phase matches original clock fixture")
+		fixture.owner.free()
+		completed_cases += 1
 
 
 func _check(condition: bool, label: String) -> void:

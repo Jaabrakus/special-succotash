@@ -1,0 +1,168 @@
+{
+	"checks": 58,
+	"failures": [],
+	"rows": [
+		{
+			"frame": 392,
+			"from": "standing",
+			"leaves": 3,
+			"phase": 0.393317737753177,
+			"samples": [
+				{
+					"path": "parameters/source_standing_alert/current_position",
+					"phase": 0.393317737753177
+				},
+				{
+					"path": "parameters/standing_idle_base/current_position",
+					"phase": 0.393317737753177
+				},
+				{
+					"path": "parameters/modern_aim_idle/current_position",
+					"phase": 0.393317737753177
+				}
+			],
+			"source_period": 0.56666666,
+			"source_position": 0.222880048771349,
+			"to": "idle"
+		},
+		{
+			"frame": 698,
+			"from": "standing",
+			"leaves": 3,
+			"phase": 0.878874045475742,
+			"samples": [
+				{
+					"path": "parameters/source_standing_alert/current_position",
+					"phase": 0.878874045475742
+				},
+				{
+					"path": "parameters/standing_idle_base/current_position",
+					"phase": 0.878874045475742
+				},
+				{
+					"path": "parameters/modern_aim_idle/current_position",
+					"phase": 0.878874045475742
+				}
+			],
+			"source_period": 0.56666666,
+			"source_position": 0.498028619910427,
+			"to": "idle"
+		},
+		{
+			"frame": 1013,
+			"from": "standing",
+			"leaves": 3,
+			"phase": 0.355005883942153,
+			"samples": [
+				{
+					"path": "parameters/source_standing_alert/current_position",
+					"phase": 0.355005883942153
+				},
+				{
+					"path": "parameters/standing_idle_base/current_position",
+					"phase": 0.355005883942153
+				},
+				{
+					"path": "parameters/modern_aim_idle/current_position",
+					"phase": 0.355005883942153
+				}
+			],
+			"source_period": 0.56666666,
+			"source_position": 0.201169998533847,
+			"to": "idle"
+		},
+		{
+			"frame": 1155,
+			"from": "idle",
+			"leaves": 3,
+			"phase": 0.641246323336093,
+			"samples": [
+				{
+					"path": "parameters/modern_idle_crouch/current_position",
+					"phase": 0.641246323336093
+				},
+				{
+					"path": "parameters/crouch_idle_aim_frame_source/current_position",
+					"phase": 0.641246323336093
+				},
+				{
+					"path": "parameters/crouch_idle_aim_idle/current_position",
+					"phase": 0.641246323336093
+				}
+			],
+			"source_period": 6.0,
+			"source_position": 3.84747794001656,
+			"to": "idle_crouch"
+		},
+		{
+			"frame": 1309,
+			"from": "crouch",
+			"leaves": 3,
+			"phase": 0.843614684401982,
+			"samples": [
+				{
+					"path": "parameters/modern_idle_crouch/current_position",
+					"phase": 0.843614684401982
+				},
+				{
+					"path": "parameters/crouch_idle_aim_frame_source/current_position",
+					"phase": 0.843614684401982
+				},
+				{
+					"path": "parameters/crouch_idle_aim_idle/current_position",
+					"phase": 0.843614684401982
+				}
+			],
+			"source_period": 0.933333337306976,
+			"source_position": 0.787373708794074,
+			"to": "idle_crouch"
+		},
+		{
+			"frame": 1551,
+			"from": "crouch",
+			"leaves": 3,
+			"phase": 0.479765796198366,
+			"samples": [
+				{
+					"path": "parameters/modern_idle_crouch/current_position",
+					"phase": 0.479765796198366
+				},
+				{
+					"path": "parameters/crouch_idle_aim_frame_source/current_position",
+					"phase": 0.479765796198366
+				},
+				{
+					"path": "parameters/crouch_idle_aim_idle/current_position",
+					"phase": 0.479765796198366
+				}
+			],
+			"source_period": 0.933333337306976,
+			"source_position": 0.44778141169156,
+			"to": "idle_crouch"
+		},
+		{
+			"frame": 1844,
+			"from": "crouch",
+			"leaves": 3,
+			"phase": 0.217767439357238,
+			"samples": [
+				{
+					"path": "parameters/modern_idle_crouch/current_position",
+					"phase": 0.217767439357238
+				},
+				{
+					"path": "parameters/crouch_idle_aim_frame_source/current_position",
+					"phase": 0.217767439357238
+				},
+				{
+					"path": "parameters/crouch_idle_aim_idle/current_position",
+					"phase": 0.217767439357238
+				}
+			],
+			"source_period": 0.933333337306976,
+			"source_position": 0.203249610932085,
+			"to": "idle_crouch"
+		}
+	],
+	"transfers": 7
+}

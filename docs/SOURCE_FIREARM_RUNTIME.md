@@ -1,5 +1,22 @@
 # Verified source firearm policy
 
+## Current checkpoint — 2026-09-13
+
+The dated sections below describe the **earlier** bounded query integration.
+Their retained-damage/eight-pellet/material statements and test counts are
+historical, not the current runtime. The subsequent user request for exact
+source behavior superseded those tuning protections. See
+`docs/SOURCE_COMBAT_PARITY_20260913.md` for the current translation cards,
+authoritative damage/RNG/material pipeline, verification and limitations.
+
+Current source-linked profiles use original damage/falloff, six MP region
+health/armor pools, the original RNG algorithm and four 12-gauge pellets.
+Source material continuation uses explicit saved material identity, not the
+legacy thickness/HP-loss algorithm. Unsupported profiles retain legacy tuning.
+Full accuracy timing/projection, original global RNG call ordering, triangle
+collision ordering and special projectile/material behavior are not yet 1:1.
+The dated rendered images below likewise predate the current damage model.
+
 ## Translation card — 2026-09-12, bounded ONE_FRAME integration
 
 - Player intent: actually use decoded original firearm behavior in the main

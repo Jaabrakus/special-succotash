@@ -41,6 +41,15 @@ static func trace(
 		var normal: Vector3 = hit.get("normal", Vector3(INF, INF, INF))
 		if not position.is_finite() or not normal.is_finite():
 			break
+		var collider := hit.get("collider") as Node
+		var rid: RID = hit.get("rid", RID())
+		if not is_instance_valid(collider) or not rid.is_valid() or local_exclude.has(rid):
+			break
+		local_exclude.append(rid)
+		# Movement capsules are not anatomy. Keep the first actual hurtbox;
+		# do not reintroduce the legacy arm-to-core arbitration here.
+		if collider is PhysicsBody3D and collider.has_method("take_bullet_damage_region") and not collider.has_method("get_hit_region"):
+			continue
 		var offset := position - origin
 		var distance_squared := offset.length_squared()
 		# Original candidate ordering: strictly farther and strictly inside R².
@@ -48,11 +57,6 @@ static func trace(
 			break
 		if distance_squared <= previous_distance_squared or distance_squared >= _f32(range_limit * range_limit):
 			break
-		var collider := hit.get("collider") as Node
-		var rid: RID = hit.get("rid", RID())
-		if not is_instance_valid(collider) or not rid.is_valid() or local_exclude.has(rid):
-			break
-		local_exclude.append(rid)
 		previous_distance_squared = distance_squared
 		var receiver := _anatomical_receiver(collider)
 		if receiver != null and hit_receivers.has(receiver.get_instance_id()):

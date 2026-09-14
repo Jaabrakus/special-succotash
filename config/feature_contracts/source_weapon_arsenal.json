@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "feature_id": "source_weapon_arsenal",
+  "player_intent": "Select all extracted SOCOM II firearm meshes with their original textures while retaining the existing calibrated weapons.",
+  "acceptance_rule": "43 explicit selections cover 39 distinct extracted firearm models; all 59 library models are accounted for including exclusions. Armory, Gunsmith, canonical equipment and remote profile loading agree. The existing twelve competitive IDs remain unchanged.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://gun_calibration_lab.tscn",
+  "ownership": {"catalog":"SocomWeaponCatalog", "weapon_presentation":"OperatorAssetRuntime", "shots_damage":"Existing authoritative weapon"},
+  "nodes": [
+    {"id":"player", "type":"CharacterBody3D", "role":"Unchanged canonical equipment consumer", "owner":"SocomPlayerController", "scene_path":"res://scenes/player/operator_player.tscn", "node_path":"."},
+    {"id":"weapon_mesh", "type":"Node3D", "role":"Instantiates the saved source scene under the existing attachment owner", "owner":"OperatorAssetRuntime", "source_script":"res://scripts/player/operator_asset_runtime.gd", "code_symbols":["weapon_model.name = \"WeaponMesh\"", "calibrated_pivot.add_child(weapon_model)"]}
+  ],
+  "data_contracts": [
+    {"path":"res://config/source_weapon_arsenal.json", "writer":"res://config/source_weapon_arsenal.json", "readers":["res://scripts/weapons/socom_weapon_catalog.gd", "res://tools/build_source_weapon_arsenal.gd"]},
+    {"path":"res://config/weapons/s2_m4a1.json", "writer":"res://scripts/labs/gunsmith/gunsmith_weapon_profile_repository.gd", "readers":["res://scripts/weapons/weapon_rig_contract.gd", "res://scripts/labs/gunsmith/gunsmith_recom_catalog_adapter.gd"]}
+  ],
+  "must_not_change": ["Existing weapon profiles/loadout", "Twelve-weapon competitive pool", "Movement and camera", "Animation and shot/damage authority", "Raw source extraction"],
+  "proof_scripts": ["res://tools/source_weapon_arsenal_regression.gd", "res://tools/source_weapon_arsenal_network_regression.gd", "res://tools/source_weapon_arsenal_visual_proof.gd", "res://tools/core_weapon_roster_regression.gd", "res://tools/armory_loadout_selection_regression.gd"],
+  "visual_check": "Inspect source model sheet plus held representative rifle, pistol, SMG, shotgun and sniper from side/rear. Surface contacts are adapted; finger/action parity remains a separate task.",
+  "system_delta": {
+    "decision":"MERGE",
+    "reason":"Publish extracted visual assets through the existing saved weapon and catalog contracts; no new runtime transform or damage writer.",
+    "current":{"system":"Converted files disconnected from selectable equipment", "correctness":1,"ownership_clarity":5,"runtime_parity":1,"editor_usability":2,"performance":5,"regression_coverage":2,"evidence_paths":["res://assets/weapons/socom2_source/v2/manifest.json","res://scripts/weapons/socom_weapon_catalog.gd"]},
+    "candidate":{"system":"Explicit selectable source asset variants", "correctness":4,"ownership_clarity":5,"runtime_parity":5,"editor_usability":4,"performance":5,"regression_coverage":4,"evidence_paths":["res://scripts/weapons/socom_weapon_catalog.gd","res://tools/build_source_weapon_arsenal.gd","res://tools/source_weapon_arsenal_regression.gd"]}
+  }
+}

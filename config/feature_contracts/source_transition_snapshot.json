@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "feature_id": "source_grounded_transition_snapshot",
+  "player_intent": "A grounded rifle stop blends from its last evaluated pose without continued outgoing gait deformation.",
+  "acceptance_rule": "Native eligible rifle-to-idle arrivals select one private raw snapshot inside the existing AnimationTree. Outgoing keys stay constant, destination advances, existing transition owns curve and completion, camera root/coverage remain coherent, and interruption restores old selectors. Disabled, pistol, action, traversal and unsafe captures retain fallback. This is a raw graph adapter, not complete original procedural-wrapper parity.",
+  "canonical_scene": "res://main.tscn",
+  "ownership": {"animation": "ProductionAnimation"},
+  "nodes": [{"id":"animation", "type":"Node3D", "owner":"ProductionAnimation", "role":"Single animation owner with private constant graph branches", "scene_path":"res://scenes/player/operator_player.tscn", "node_path":"Mannequin/ProductionAnimation"}],
+  "data_contracts": [{"path":"res://config/source_animation_runtime.json", "writer":"res://docs/SOURCE_TRANSITION_SNAPSHOT.md", "readers":["res://scripts/player/operator_source_animation_runtime.gd", "res://scripts/player/operator_locomotion_blend_tree.gd"]}],
+  "must_not_change": ["CharacterBody movement/collision", "camera aim/transform writer", "source animation resources", "weapon attachment/shot/damage authority", "reload and action timing", "aim-spine post-animation ownership", "live graph topology"],
+  "proof_scripts": ["res://tools/source_transition_snapshot_regression.gd", "res://tools/source_transition_snapshot_main_regression.gd", "res://tools/source_pistol_phase_regression.gd"],
+  "visual_check": "Actual main rifle running stop: inspect early/middle/late in rear and side views for stable body/root, continued destination, hands and feet. Verify action/fire interruption does not retain a frozen selector.",
+  "system_delta": {"decision":"MERGE", "reason":"Keep the original departing raw pose inside the existing graph instead of a second timer or post-IK writer. Guard unsupported cases.", "current":{"system":"Live outgoing gait under source transition curve", "correctness":2,"ownership_clarity":5,"runtime_parity":3,"editor_usability":4,"performance":5,"regression_coverage":2,"evidence_paths":["res://scripts/player/operator_locomotion_blend_tree.gd","res://tools/source_blend_runtime_audit.cjs"]},"candidate":{"system":"Private constant outgoing branch with mixer-applied raw observation", "correctness":4,"ownership_clarity":5,"runtime_parity":4,"editor_usability":4,"performance":4,"regression_coverage":5,"evidence_paths":["res://scripts/player/operator_source_transition_snapshot.gd","res://tools/source_transition_snapshot_regression.gd","res://tools/source_transition_snapshot_main_regression.gd"]}}
+}

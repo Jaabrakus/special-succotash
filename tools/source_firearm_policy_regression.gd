@@ -54,7 +54,7 @@ func _run() -> void:
 			expect(is_equal_approx(result.query_range_scale, 1.1), file + " padded query")
 		else:
 			expect(result == Policy.legacy(), file + " unsupported resets")
-	expect(supported == 32 and total == 45, "32 explicit profiles; no inferred equipment")
+	expect(supported == 32 and total == 45 + SocomWeaponCatalog.source_arsenal_ids().size(), "32 explicit policy profiles; new source asset variants remain project-tuned")
 	var m4 := profile("m4a1")
 	var bad_identity := m4.duplicate(true)
 	bad_identity.reticle.socom2_source_name = "UNVERIFIED"

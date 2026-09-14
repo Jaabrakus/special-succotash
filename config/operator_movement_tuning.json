@@ -7,6 +7,9 @@
   "animation": {
     "dive_trim_seconds": 0.4,
     "operator_scale": 64.0,
+    "operator_scale_by_scene": {
+      "res://assets/characters/modern_soldier/modern_soldier_iso.scn": 60.48790231
+    },
     "roll_trim_seconds": 0.62,
     "state_blend_seconds": 0.17
   },

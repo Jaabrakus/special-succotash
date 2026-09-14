@@ -44,3 +44,6 @@ static func _add_box_parts(body: StaticBody3D, size: Vector3, object: Dictionary
 static func _set_object_meta(node: Node, object: Dictionary) -> void:
 	node.set_meta("map_object_id", String(object.get("id", "")))
 	node.set_meta("map_object_type", StringName(object.get("type", "")))
+	var properties: Dictionary = object.get("properties", {})
+	if properties.get("source_material") is String:
+		node.set_meta("source_material", properties.source_material)

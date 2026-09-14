@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "feature_id": "source_direction_blend",
+  "player_intent": "Use original angular proportions between native standing rifle directional takes.",
+  "acceptance_rule": "The saved source_angular policy maps eased standing rifle headings to diamond-edge coordinates consumed by all six actual BlendSpaces; source instruction fixtures and actual engine evaluations agree on unequal diagonal proportions. Preserve protected owners and all nonstanding routing. Not a full source gait-controller parity claim.",
+  "canonical_scene": "res://main.tscn",
+  "ownership": {"animation": "ProductionAnimation"},
+  "nodes": [{"id": "animation_driver", "type": "Node3D", "owner": "ProductionAnimation", "role": "Existing sole animation owner", "scene_path": "res://scenes/player/operator_player.tscn", "node_path": "Mannequin/ProductionAnimation"}],
+  "data_contracts": [{"path": "res://config/source_animation_runtime.json", "writer": "res://docs/SOURCE_DIRECTION_BLEND.md", "readers": ["res://scripts/player/operator_source_animation_runtime.gd", "res://scripts/player/operator_locomotion_blend_tree.gd"]}],
+  "must_not_change": ["CharacterBody movement and collision", "Camera and reticle aim", "Shot damage and accepted action timing", "Source assets", "Crouch reversal center route", "Pistol routing", "Existing heading smoothing"],
+  "proof_scripts": ["res://tools/source_direction_blend_regression.gd", "res://tools/source_direction_blend_main_regression.gd", "res://tools/source_locomotion_policy_regression.gd"],
+  "visual_check": "Canonical main unequal-diagonal movement and accepted fire, early/middle/late rear and side views. Verify finite body, trigger contact and no bind pose. Full original pose parity remains separate.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Replace implicit BlendSpace projection with the recovered angular proportion inside the existing owner; retain the separately-labeled speed adapter.",
+    "current": {"system": "Projected unit-circle coordinate and separately inferred L1 weights", "correctness": 2, "ownership_clarity": 5, "runtime_parity": 3, "editor_usability": 4, "performance": 5, "regression_coverage": 3, "evidence_paths": ["res://scripts/player/operator_source_locomotion_policy.gd", "res://docs/SOURCE_DIRECTION_BLEND.md"]},
+    "candidate": {"system": "Source angular partition consumed by actual standing rifle spaces", "correctness": 4, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 5, "regression_coverage": 5, "evidence_paths": ["res://tools/source_gait_weight_audit.cjs", "res://tools/source_direction_blend_regression.gd", "res://tools/source_direction_blend_main_regression.gd"]}
+  }
+}

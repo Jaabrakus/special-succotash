@@ -1,5 +1,17 @@
 # Source locomotion controller — first integration stage
 
+## Current follow-up (2026-09-13)
+
+The stage report below records the earlier implementation. The shared phase
+helper now combines participating spaces by normalized weighted frequency
+(`period = sum(weights) / sum(weight / period)`), supported by original-code
+execution, instead of the earlier arithmetic period mean. Existing pistol
+directional/firing siblings also share phase; no nonexistent pistol jog tier was
+added. Reader-defined idle periods are integrated separately. See
+[current implementation and proof](SOURCE_ANIMATION_MATCH_PASS_20260913.md) and
+[remaining runtime gaps](SOURCE_ANIMATION_RUNTIME_GAPS.md). Directional blend
+weights and the current speed adapter are still not a recovered 1:1 controller.
+
 ## Translation card
 
 Player intent: restore the SOCOM II locomotion and action feel in the canonical

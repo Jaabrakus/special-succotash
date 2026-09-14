@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "feature_id": "source_weapon_alignment",
+  "player_intent": "Hold the extracted guns by their grips, including two-handed pistol support, without sticking hands to the weapon during other actions.",
+  "acceptance_rule": "43 saved source profiles use native finger flex. Canonical settled standing/crouched/prone idle and fire palms are within 1 cm of their saved contacts. Opted-in source holds release for actions or physically unreachable carry and regain support when reachable; original profiles remain opt-out. Native close-ups are reviewed separately from numerical contact proof.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://gun_calibration_lab.tscn",
+  "ownership": {"arm_contact":"OperatorWeaponPoseSolver", "fingers":"OperatorWeaponGripContact", "movement":"CharacterBody3D", "aim":"Existing SOCOM camera", "shots_damage":"Existing authoritative weapon"},
+  "nodes": [
+    {"id":"pose_owner", "type":"Node3D", "role":"Existing final weapon/arm presentation owner", "owner":"OperatorWeaponPoseSolver", "source_script":"res://scripts/player/operator_weapon_pose_ready.gd", "code_symbols":["_apply_saved_source_support_contact", "_solve_socket_arm(left_hand_ik"]},
+    {"id":"player", "type":"CharacterBody3D", "role":"Unchanged canonical movement/collision owner", "owner":"SocomPlayerController", "scene_path":"res://scenes/player/operator_player.tscn", "node_path":"."}
+  ],
+  "data_contracts": [
+    {"path":"res://config/source_weapon_arsenal.json", "writer":"res://config/source_weapon_arsenal.json", "readers":["res://tools/build_source_weapon_arsenal.gd"]},
+    {"path":"res://config/weapons/s2_mark_23.json", "writer":"res://scripts/labs/gunsmith/gunsmith_weapon_profile_repository.gd", "readers":["res://scripts/weapons/weapon_rig_contract.gd", "res://scripts/labs/gunsmith/gunsmith_recom_catalog_adapter.gd"]},
+    {"path":"res://config/weapons/s2_870.json", "writer":"res://tools/build_source_weapon_arsenal.gd", "readers":["res://scripts/weapons/weapon_rig_contract.gd"]}
+  ],
+  "must_not_change": ["Existing non-source weapon profiles", "Camera/reticle aim", "Player movement/collision", "Server shots/damage", "Source animations and mesh proportions", "Multiplayer authority"],
+  "proof_scripts": ["res://tools/source_weapon_alignment_regression.gd", "res://tools/source_weapon_arsenal_regression.gd", "res://tools/source_weapon_arsenal_network_regression.gd", "res://tools/source_pistol_finger_regression.gd", "res://tools/main_pistol_source_attachment_regression.gd"],
+  "visual_check": "Native canonical-main side and front three-quarter hand close-ups of source pistol, rifle, shotgun, sniper and SMG; no assertion that matching palm markers proves perfect fingers.",
+  "system_delta": {
+    "decision":"MERGE",
+    "reason":"Opt-in saved contact policy reuses the existing support arm and finger stages; no new transform writer or shot owner.",
+    "current":{"system":"Source pistol support bypass and generic long-gun finger flex", "correctness":2,"ownership_clarity":5,"runtime_parity":5,"editor_usability":4,"performance":5,"regression_coverage":2,"evidence_paths":["res://scripts/player/operator_weapon_pose_ready.gd","res://scripts/player/operator_weapon_grip_contact.gd"]},
+    "candidate":{"system":"Saved source contact and native finger policy", "correctness":4,"ownership_clarity":5,"runtime_parity":5,"editor_usability":4,"performance":4,"regression_coverage":4,"evidence_paths":["res://tools/source_weapon_alignment_regression.gd","res://tools/build_source_weapon_arsenal.gd","res://config/weapons/s2_mark_23.json"]}
+  }
+}

@@ -23,7 +23,9 @@ static func apply(pose: Node3D) -> void:
 			var basis: Basis = pose.support_hand_target.global_basis.orthonormalized()
 			var long_axis := (basis * palm_local).normalized()
 			var current_up := (basis * normal_local).slide(long_axis)
-			var desired_up: Vector3 = pose.weapon_node.global_basis.y.normalized().slide(long_axis)
+			# The weapon mesh/sockets have their own calibrated child rotation.
+			# Parent weapon_node Y can point nearly along the barrel, not gun-up.
+			var desired_up := physical_weapon_up(pose.trigger_socket, pose.barrel_base_socket, pose.muzzle_socket).slide(long_axis)
 			if current_up.length_squared() > 0.00001 and desired_up.length_squared() > 0.00001:
 				var roll := current_up.normalized().signed_angle_to(desired_up.normalized(), long_axis)
 				pose.support_hand_target.global_basis = Basis(long_axis, roll) * basis
@@ -41,6 +43,24 @@ static func apply(pose: Node3D) -> void:
 		# contact point; never rotate the hand in place and detach the palm.
 		SocketIK.solve(sk, pose.bone_indices, pose.left_hand_ik, pose.support_hand_target,
 			pose.left_elbow_pole, &"mixamorig_LeftHand", pose.left_palm_anchor_local, true, 1.0)
+
+static func physical_weapon_up(trigger: Node3D, barrel_base: Node3D, muzzle: Node3D) -> Vector3:
+	if not is_instance_valid(trigger) or not is_instance_valid(barrel_base) or not is_instance_valid(muzzle):
+		return Vector3.ZERO
+	return physical_up_from_points(trigger.global_position, barrel_base.global_position, muzzle.global_position)
+
+
+static func physical_up_from_points(trigger: Vector3, barrel_base: Vector3, muzzle: Vector3) -> Vector3:
+	if not trigger.is_finite() or not barrel_base.is_finite() or not muzzle.is_finite():
+		return Vector3.ZERO
+	var bore := muzzle - barrel_base
+	if bore.length_squared() <= 0.000000000001:
+		return Vector3.ZERO
+	var up := (barrel_base - trigger).slide(bore.normalized())
+	if not up.is_finite() or up.length_squared() <= 0.000000000001:
+		return Vector3.ZERO
+	return up.normalized()
+
 
 static func constrain_basis(hand: Basis, palm_local: Vector3, forearm: Vector3, maximum: float) -> Basis:
 	if not hand.is_finite() or not palm_local.is_finite() or not forearm.is_finite() or not is_finite(maximum): return hand

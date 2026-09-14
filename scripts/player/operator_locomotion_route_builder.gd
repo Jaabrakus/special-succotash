@@ -63,11 +63,7 @@ static func build(graph: RefCounted, root: AnimationNodeBlendTree, available_cli
 	var prone_scale := AnimationNodeTimeScale.new()
 	root.add_node(&"prone_time_scale", prone_scale, Vector2(-40.0, 610.0))
 	root.connect_node(&"prone_time_scale", 0, &"prone_space")
-	if graph.source_controller_active:
-		var standing_spaces: Array[StringName] = [&"walk_space", &"jog_space", &"full_space", &"firing_walk_space", &"firing_jog_space", &"firing_run_space"]
-		var crouch_spaces: Array[StringName] = [&"crouch_space", &"firing_crouch_space"]
-		graph.gait_phase_sync.bind(root, &"standing", standing_spaces, 0.6333333, graph.source_animation_player)
-		graph.gait_phase_sync.bind(root, &"crouched", crouch_spaces, 0.6333333, graph.source_animation_player)
+	graph.configure_source_phase_sync(root)
 
 	var is_pistol_family: bool = (
 		graph.weapon_handling_profile.get("locomotion_family", "") == "PISTOL"
@@ -156,8 +152,8 @@ static func build(graph: RefCounted, root: AnimationNodeBlendTree, available_cli
 	for bone_name: StringName in graph.AIM_FRAME_BONES:
 		crouch_idle_aim_frame.set_filter_path(NodePath(".:%s" % bone_name), true)
 	root.add_node(&"crouch_idle_aim_frame", crouch_idle_aim_frame, Vector2(120.0, 345.0))
-	root.connect_node(&"crouch_idle_aim_frame", 0, &"modern_idle_crouch")
-	root.connect_node(&"crouch_idle_aim_frame", 1, &"crouch_idle_aim_frame_source")
+	root.connect_node(&"crouch_idle_aim_frame", 0, graph.source_loop_phase_transfer.wrap_idle_leaf(root, &"idle_crouch", &"modern_idle_crouch"))
+	root.connect_node(&"crouch_idle_aim_frame", 1, graph.source_loop_phase_transfer.wrap_idle_leaf(root, &"idle_crouch", &"crouch_idle_aim_frame_source"))
 	var crouch_idle_upper_body := AnimationNodeBlend2.new()
 	crouch_idle_upper_body.sync = true
 	crouch_idle_upper_body.filter_enabled = true
@@ -165,7 +161,7 @@ static func build(graph: RefCounted, root: AnimationNodeBlendTree, available_cli
 		crouch_idle_upper_body.set_filter_path(NodePath(".:%s" % bone_name), true)
 	root.add_node(&"crouch_idle_upper_body", crouch_idle_upper_body, Vector2(400.0, 360.0))
 	root.connect_node(&"crouch_idle_upper_body", 0, &"crouch_idle_aim_frame")
-	root.connect_node(&"crouch_idle_upper_body", 1, &"crouch_idle_aim_idle")
+	root.connect_node(&"crouch_idle_upper_body", 1, graph.source_loop_phase_transfer.wrap_idle_leaf(root, &"idle_crouch", &"crouch_idle_aim_idle"))
 	var standing_upper_ready_blend := AnimationNodeBlend2.new()
 	standing_upper_ready_blend.sync = true
 	root.add_node(&"standing_upper_ready_blend", standing_upper_ready_blend, Vector2(-40.0, 230.0))
@@ -209,7 +205,7 @@ static func build(graph: RefCounted, root: AnimationNodeBlendTree, available_cli
 		var ready_fire := AnimationNodeBlend2.new()
 		ready_fire.sync = true
 		root.add_node(&"standing_idle_aim_frame_source", ready_fire)
-		root.connect_node(&"standing_idle_aim_frame_source", 0, &"source_standing_alert")
+		root.connect_node(&"standing_idle_aim_frame_source", 0, graph.source_loop_phase_transfer.wrap_idle_leaf(root, &"idle", &"source_standing_alert"))
 		root.connect_node(&"standing_idle_aim_frame_source", 1, &"source_standing_fire")
 		graph.source_standing_fire_split = true
 	else:
@@ -220,8 +216,8 @@ static func build(graph: RefCounted, root: AnimationNodeBlendTree, available_cli
 	for bone_name: StringName in graph.AIM_FRAME_BONES:
 		standing_idle_aim_frame.set_filter_path(NodePath(".:%s" % bone_name), true)
 	root.add_node(&"standing_idle_aim_frame", standing_idle_aim_frame, Vector2(120.0, -90.0))
-	root.connect_node(&"standing_idle_aim_frame", 0, &"standing_idle_base")
-	root.connect_node(&"standing_idle_aim_frame", 1, &"standing_idle_aim_frame_source")
+	root.connect_node(&"standing_idle_aim_frame", 0, graph.source_loop_phase_transfer.wrap_idle_leaf(root, &"idle", &"standing_idle_base"))
+	root.connect_node(&"standing_idle_aim_frame", 1, graph.source_loop_phase_transfer.wrap_idle_leaf(root, &"idle", &"standing_idle_aim_frame_source") if not graph.source_standing_fire_split else &"standing_idle_aim_frame_source")
 	var standing_idle_upper_body := AnimationNodeBlend2.new()
 	standing_idle_upper_body.sync = true
 	standing_idle_upper_body.filter_enabled = true
@@ -229,7 +225,11 @@ static func build(graph: RefCounted, root: AnimationNodeBlendTree, available_cli
 		standing_idle_upper_body.set_filter_path(NodePath(".:%s" % bone_name), true)
 	root.add_node(&"standing_idle_upper_body", standing_idle_upper_body, Vector2(400.0, -160.0))
 	root.connect_node(&"standing_idle_upper_body", 0, &"standing_idle_aim_frame")
-	root.connect_node(&"standing_idle_upper_body", 1, &"modern_aim_idle")
+	root.connect_node(&"standing_idle_upper_body", 1, graph.source_loop_phase_transfer.wrap_idle_leaf(root, &"idle", &"modern_aim_idle"))
+	graph.source_loop_phase_transfer.bind_clock(&"idle", "standing_idle_base", root.get_node(&"standing_idle_base"))
+	graph.source_loop_phase_transfer.bind_clock(&"idle_crouch", "modern_idle_crouch", root.get_node(&"modern_idle_crouch"))
+	graph.source_loop_phase_transfer.bind_gait_clock(root, &"standing", &"walk_space")
+	graph.source_loop_phase_transfer.bind_gait_clock(root, &"crouch", &"crouch_space")
 
 	var state_sources: Dictionary = {
 		&"idle": &"standing_idle_upper_body",
@@ -253,7 +253,7 @@ static func build(graph: RefCounted, root: AnimationNodeBlendTree, available_cli
 			continue
 		var node_name := StringName("modern_state_%s" % clip_name)
 		var source_name := node_name
-		root.add_node(node_name, graph._animation_node(clip_name), Vector2(40.0, 540.0 + state_sources.size() * 42.0))
+		root.add_node(node_name, graph._animation_node(clip_name, false), Vector2(40.0, 540.0 + state_sources.size() * 42.0))
 		if graph.source_jump_clip(clip_name):
 			var jump_seek := StringName("%s_source_jump_seek" % node_name)
 			root.add_node(jump_seek, AnimationNodeTimeSeek.new())
@@ -350,6 +350,7 @@ static func build(graph: RefCounted, root: AnimationNodeBlendTree, available_cli
 				&"idle_prone", &"prone",
 			]
 		)
-		root.connect_node(&"modern_transition", state_index, StringName(state_sources[state_name]))
+		var state_source: StringName = graph.source_transition_snapshot.wrap(root, state_name, StringName(state_sources[state_name]))
+		root.connect_node(&"modern_transition", state_index, state_source)
 		graph.modern_state_indices[state_name] = state_index
 		state_index += 1

@@ -162,11 +162,14 @@ func _sample(state: String) -> void:
 		player.force_update_transform()
 		_flush_capture_transforms(driver.get("weapon_node") as Node3D)
 		var focus := player.global_position + Vector3.UP * (1.10 if int(player.get("posture")) == 0 else 0.80)
+		var whole_body := "--whole-body-proof" in OS.get_cmdline_user_args()
+		if whole_body: focus.y -= 0.15
 		var close_hands := "--hands-closeup" in OS.get_cmdline_user_args()
 		if close_hands:
 			focus = driver.weapon_pose_solver.trigger_socket.global_position.lerp(driver.weapon_pose_solver.support_socket.global_position, 0.5)
 		for view: String in ["rear", "side"]:
 			var offset := Vector3(1.45, 0.60, 2.65) if view == "rear" else Vector3(2.85, 0.40, 0.15)
+			if whole_body: offset *= 1.15
 			if close_hands:
 				offset = Vector3(-0.65, 0.35, -0.7) if view == "rear" else Vector3(0.8, 0.25, -0.05)
 			camera.global_position = focus + player.global_basis * offset

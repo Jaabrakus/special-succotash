@@ -1,0 +1,101 @@
+{
+  "schema_version": 1,
+  "entries": [
+    {
+      "id": "870",
+      "source_id": "s2_870",
+      "rig_id": "iso_public_870_v1",
+      "previous_resolved_rig_id": "family_shotgun_2_directional_v1",
+      "old_model": "res://assets/weapons/modular_pack/Shotgun_2.fbx",
+      "new_model": "res://assets/weapons/socom2_arsenal/s2_870.scn"
+    },
+    {
+      "id": "mark_23",
+      "source_id": "s2_mark_23",
+      "rig_id": "iso_public_mark_23_v1",
+      "previous_resolved_rig_id": "",
+      "old_model": "res://assets/weapons/modular_pack/Pistol_2.fbx",
+      "new_model": "res://assets/weapons/socom2_arsenal/s2_mark_23.scn"
+    },
+    {
+      "id": "de__50",
+      "source_id": "s2_de_50",
+      "rig_id": "iso_public_de__50_v1",
+      "previous_resolved_rig_id": "family_pistol_4_v5",
+      "old_model": "res://assets/weapons/modular_pack/Pistol_4.fbx",
+      "new_model": "res://assets/weapons/socom2_arsenal/s2_de_50.scn"
+    },
+    {
+      "id": "m9",
+      "source_id": "s2_m9",
+      "rig_id": "iso_public_m9_v1",
+      "previous_resolved_rig_id": "family_pistol_5_v3",
+      "old_model": "res://assets/weapons/modular_pack/Pistol_5.fbx",
+      "new_model": "res://assets/weapons/socom2_arsenal/s2_m9.scn"
+    },
+    {
+      "id": "m4a1",
+      "source_id": "s2_m4a1",
+      "rig_id": "iso_public_m4a1_v1",
+      "previous_resolved_rig_id": "m4a1_agls_v10",
+      "old_model": "res://assets/external/agls_intake/imported/weapons/m4a1/m4a1.scn",
+      "new_model": "res://assets/weapons/socom2_arsenal/s2_m4a1.scn"
+    },
+    {
+      "id": "m16a2",
+      "source_id": "s2_m16a2",
+      "rig_id": "iso_public_m16a2_v1",
+      "previous_resolved_rig_id": "m16a2_directional_v1",
+      "old_model": "res://assets/weapons/modular_pack/AssaultRifle_1.fbx",
+      "new_model": "res://assets/weapons/socom2_arsenal/s2_m16a2.scn"
+    },
+    {
+      "id": "ak-47",
+      "source_id": "s2_ak47",
+      "rig_id": "iso_public_ak_47_v1",
+      "previous_resolved_rig_id": "",
+      "old_model": "res://assets/external/agls_intake/imported/weapons/ak47/ak47.glb",
+      "new_model": "res://assets/weapons/socom2_arsenal/s2_ak47.scn"
+    },
+    {
+      "id": "aks-74",
+      "source_id": "s2_aks74",
+      "rig_id": "iso_public_aks_74_v1",
+      "previous_resolved_rig_id": "family_rifle_aks74_v1",
+      "old_model": "res://assets/weapons/modular_pack/AssaultRifle2_3.fbx",
+      "new_model": "res://assets/weapons/socom2_arsenal/s2_aks74.scn"
+    },
+    {
+      "id": "hk5",
+      "source_id": "s2_hk5",
+      "rig_id": "iso_public_hk5_v1",
+      "previous_resolved_rig_id": "family_smg_1_v1",
+      "old_model": "res://assets/weapons/modular_pack/SubmachineGun_1.fbx",
+      "new_model": "res://assets/weapons/socom2_arsenal/s2_hk5.scn"
+    },
+    {
+      "id": "m14",
+      "source_id": "s2_m14",
+      "rig_id": "iso_public_m14_v1",
+      "previous_resolved_rig_id": "family_rifle_m14_v1",
+      "old_model": "res://assets/weapons/modular_pack/AssaultRifle2_4.fbx",
+      "new_model": "res://assets/weapons/socom2_arsenal/s2_m14.scn"
+    },
+    {
+      "id": "m40a1",
+      "source_id": "s2_m40a1",
+      "rig_id": "iso_public_m40a1_v1",
+      "previous_resolved_rig_id": "m40a1_directional_v3",
+      "old_model": "res://assets/weapons/modular_pack/AssaultRifle_1.fbx",
+      "new_model": "res://assets/weapons/socom2_arsenal/s2_m40a1.scn"
+    },
+    {
+      "id": "m60e3",
+      "source_id": "s2_m60e3",
+      "rig_id": "iso_public_m60e3_v1",
+      "previous_resolved_rig_id": "family_rifle_552_directional_v1",
+      "old_model": "res://assets/weapons/modular_pack/AssaultRifle2_1.fbx",
+      "new_model": "res://assets/weapons/socom2_arsenal/s2_m60e3.scn"
+    }
+  ]
+}

@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "feature_id": "source_firearm_policy",
-  "player_intent": "Use verified original ONE_FRAME firearm geometry and signed-square direction sampling in the playable game without inventing bullet-flight damage.",
-  "acceptance_rule": "32 explicitly linked source weapon profiles share the same local/server policy; padded queries never expand terminal damage range. Original signed-square direction vectors match and actual shots stay inside the existing authored envelope. Unsupported profiles retain existing behavior.",
+  "player_intent": "Use verified original ONE_FRAME firearm geometry, RNG and signed-square direction sampling through the existing shot owner.",
+  "acceptance_rule": "32 explicitly linked source weapon profiles share the same local/server policy; padded queries never expand terminal damage range. Original seed/draw/state and signed-square direction fixtures match. Actual shots retain the authored accuracy envelope pending source lifecycle/projection integration. Unsupported profiles retain existing behavior. Damage and material behavior have their own source_firearm_damage and source_firearm_materials contracts.",
   "canonical_scene": "res://main.tscn",
   "ownership": {"shot": "SocomWeaponBallistics", "aim": "SocomCameraRig", "damage": "existing authoritative weapon adapters"},
   "nodes": [
@@ -18,7 +18,7 @@
   "visual_check": "Separate actual main.tscn boot and accepted firing with source-linked rifle, pistol and shotgun; current open game and old browser ZIP are not assumed updated.",
   "system_delta": {
     "decision": "MERGE",
-    "reason": "Original executable fixtures establish ONE_FRAME dispatch, 1.1 range query, strict terminal cutoff and signed-square direction reaching projectile creation. Fit verified sampling to existing authored envelope and keep synchronous authority, seed and project penetration response.",
+    "reason": "Original executable fixtures establish ONE_FRAME dispatch, 1.1 range query, strict terminal cutoff, the 64-bit LCG and signed-square direction reaching projectile creation. Fit verified sampling to the existing authored envelope and preserve synchronous authority and accepted-shot seed ownership. Subsequent separately contracted source damage/material adapters supersede the earlier retained project response.",
     "current": {"system": "project hitscan without source terminal guard", "correctness": 2, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 4, "regression_coverage": 3, "evidence_paths": ["res://scripts/weapons/weapon_ballistics.gd"]},
     "candidate": {"system": "source-verified ONE_FRAME query/cutoff adapted to existing collision owner", "correctness": 4, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 4, "regression_coverage": 5, "evidence_paths": ["res://scripts/weapons/source_firearm_policy.gd", "res://tools/source_firearm_policy_regression.gd", "res://docs/SOURCE_FIREARM_RUNTIME.md"]}
   }

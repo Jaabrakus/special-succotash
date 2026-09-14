@@ -1,0 +1,446 @@
+{
+	"ammo_spec": {
+		"impact_damage": 2.15,
+		"piercing": 2.0,
+		"stun": 3.0,
+		"type": "5.56 x 45mm NATO SD"
+	},
+	"animation_frame_pose_keys": {},
+	"animation_hand_maps": {},
+	"arm_rig_pose": {
+		"left_elbow": {
+			"bend": 0.0,
+			"twist": 0.0
+		},
+		"left_shoulder": {
+			"pitch": 0.0,
+			"roll": 0.0,
+			"yaw": 0.0
+		},
+		"left_wrist": {
+			"pitch": 0.0,
+			"roll": 0.0,
+			"yaw": 0.0
+		}
+	},
+	"armory_eligible": true,
+	"ballistics": {
+		"base_spread_deg": 0.429,
+		"bloom_per_shot_deg": 1.0,
+		"bloom_recovery_speed": 17.5,
+		"damage": 34.0,
+		"effective_range_m": 550.0,
+		"fire_rate_rpm": 428.571426746797,
+		"full_gait_spread_deg": 1.543,
+		"headshot_multiplier": 3.5,
+		"is_silenced": true,
+		"magazine_capacity": 30,
+		"max_range_m": 800.0,
+		"max_recoil_bloom_deg": 2.6,
+		"moving_spread_deg": 1.029,
+		"muzzle_velocity_mps": 900.0,
+		"reserve_ammo": 90
+	},
+	"burst_size": 3.0,
+	"camo_skin": "Factory Classic (Wood & Steel)",
+	"catalog_source": "SOCOM II MP1 WEAP extraction / SOCOM-141 family gameplay adaptation",
+	"catalog_weapon_id": "s2_m4a1_sd",
+	"category": "Assault Rifles",
+	"competitive_eligible": false,
+	"coordinate_space": {
+		"grip_offset": "weapon_root_local_meters",
+		"weapon_sockets": "weapon_pivot_local_meters"
+	},
+	"default_fire_mode": "semi",
+	"display_name": "SOCOM II · M4A1 SD",
+	"elbow_poles": {
+		"by_stance": {
+			"CROUCHED": {
+				"left": {
+					"x": 0.0,
+					"y": 0.0,
+					"z": 0.0
+				},
+				"right": {
+					"x": 0.0987921953201294,
+					"y": -0.17975127696991,
+					"z": -0.109185189008713
+				}
+			},
+			"PRONE": {
+				"left": {
+					"x": 0.0,
+					"y": 0.0,
+					"z": 0.0
+				},
+				"right": {
+					"x": 0.0,
+					"y": 0.0,
+					"z": 0.0
+				}
+			},
+			"STANDING": {
+				"left": {
+					"x": 0.300000011920929,
+					"y": -0.18940544128418,
+					"z": -0.202089607715607
+				},
+				"right": {
+					"x": 0.245000004768372,
+					"y": -0.26656174659729,
+					"z": 0.0799999982118607
+				}
+			}
+		}
+	},
+	"encumbrance": 1.0,
+	"fire_modes": [
+		"semi",
+		"auto"
+	],
+	"grip_offset": {
+		"pos_x": 0.175363540649414,
+		"pos_y": -0.0308870058506727,
+		"pos_z": -0.0479508340358734,
+		"rot_x": 4.55000019073486,
+		"rot_y": 3.0,
+		"rot_z": 79.0499801635742
+	},
+	"gun_placement_line": {
+		"runtime_enabled": false
+	},
+	"handling_profile": {
+		"animation_slots": {
+			"fire_crouched": "crouch_fire",
+			"fire_prone": "prone_fire",
+			"fire_standing": "combat_fire",
+			"idle_crouched": "idle_crouch",
+			"idle_prone": "idle_prone",
+			"idle_standing": "aim_idle",
+			"reload_crouched": "crouch_reload",
+			"reload_prone": "prone_reload",
+			"reload_standing": "reload"
+		},
+		"crouched_fire_uses_aim_idle": false,
+		"dynamic_hold": {
+			"animation_carry_limit_m": 0.035,
+			"animation_carry_weight": 0.65,
+			"animation_drives_ready_hands": true,
+			"authored_shoulder_stock_enabled": true,
+			"buttstock_constraint": {
+				"by_stance": {
+					"PRONE": {
+						"downward_offset_m": 0.12,
+						"forward_offset_m": -0.03,
+						"inward_offset_m": 0.055
+					}
+				},
+				"downward_offset_m": -0.02,
+				"enabled": true,
+				"forward_offset_m": 0.015,
+				"inward_offset_m": 0.055,
+				"maximum_correction_m": 0.4
+			},
+			"fire_saved_joint_rotations_enabled": false,
+			"fire_spine_ccdik_enabled": false,
+			"hand_owned_aim_correction_limit_deg": 32.0,
+			"hand_socket_ik_enabled": false,
+			"locomotion_ready_carry_weight": 1.0,
+			"ready_locomotion_inheritance": 0.0,
+			"ready_shoulder_pocket": {
+				"downward_m": 0.065,
+				"right_wrist_roll_degrees": -15.0
+			},
+			"relaxed_idle_upper_body_weight": 0.0,
+			"reload_return_blend_seconds": 0.18,
+			"right_hand_owns_weapon": true,
+			"standing_idle_square_pelvis": true,
+			"strafe_carry": {
+				"left_elbow_flare_degrees": 12.0,
+				"right_hip_follow_weight": 1.0,
+				"right_stock_release_frame": "chest_forward",
+				"right_stock_release_m": 0.33
+			}
+		},
+		"family": "TWO_HAND_RIFLE",
+		"locomotion_family": "RIFLE",
+		"locomotion_slots": {
+			"crouch_left": "crouch_lateral_left",
+			"crouch_right": "crouch_lateral_right",
+			"crouch_to_stand": "crouch_to_stand",
+			"jump": "jump_loop",
+			"run_back_left": "run_back_left",
+			"run_back_right": "run_back_right",
+			"run_backward": "run_backward",
+			"run_forward": "run_forward",
+			"run_forward_left": "run_forward_left",
+			"run_forward_right": "run_forward_right",
+			"run_left": "run_lateral_left",
+			"run_right": "run_lateral_right",
+			"stand_to_crouch": "crouch_start",
+			"walk_back_left": "walk_back_left",
+			"walk_back_right": "walk_back_right",
+			"walk_backward": "walk_backward",
+			"walk_forward": "walk_forward",
+			"walk_forward_left": "walk_forward_left",
+			"walk_forward_right": "walk_forward_right",
+			"walk_left": "walk_left",
+			"walk_right": "walk_right"
+		},
+		"mapping_version": 1.0,
+		"ready_aim": {
+			"fire_hold_seconds": 1.2,
+			"fire_terminal_pose_hold_seconds": 0.12
+		},
+		"reload_duration_seconds": 1.75,
+		"reload_visuals": {
+			"reload_standing": {
+				"events": {
+					"magazine_in": 75.0,
+					"magazine_out": 20.0,
+					"new_magazine_ready": 51.0,
+					"old_magazine_away": 40.0,
+					"support_regrip": 91.0
+				},
+				"magazine_hand_offset": {
+					"position": {
+						"x": 0.0,
+						"y": -0.075,
+						"z": 0.018
+					},
+					"rotation_degrees": {
+						"x": 8.0,
+						"y": 0.0,
+						"z": 90.0
+					}
+				}
+			}
+		},
+		"standing_fire_uses_aim_idle": false,
+		"support_hand_required": true
+	},
+	"model_fbx": "res://assets/weapons/socom2_arsenal/s2_m4a1_sd.scn",
+	"model_rotation_degrees": {
+		"x": 0.0,
+		"y": 0.0,
+		"z": 0.0
+	},
+	"normalized_scale": 1.0,
+	"operator_mount": {
+		"position": {
+			"x": -0.0199999995529652,
+			"y": 0.0799999982118607,
+			"z": 0.0500000007450581
+		},
+		"rotation_degrees": {
+			"x": -90.0,
+			"y": -179.999984741211,
+			"z": 0.0
+		}
+	},
+	"presentation_status": "Extracted mesh and textures; source markers retained; adapted surface contacts and family animation.",
+	"reticle": {
+		"base_gap_px": 5.1,
+		"cadence_driven_return": false,
+		"max_gap_px": 41.6,
+		"maximum_shot_kick_px": 45.0,
+		"response_speed": 26.2,
+		"shot_kick_px": 12.0,
+		"shot_kick_return": 70.0,
+		"vrc_return_speed_px_per_second": 70.0
+	},
+	"schema_version": 3,
+	"scope_attachment": "None",
+	"silencer_attachment": "None",
+	"socket_contract_authored": true,
+	"socom_original_id": 62.0,
+	"socom_recom_data": {
+		"ammo_spec": {
+			"impact_damage": 2.3,
+			"piercing": 3.0,
+			"stun": 3.0,
+			"type": "5.56 x 45mm"
+		},
+		"encumbrance": 1.0,
+		"original_name": "M16A2"
+	},
+	"source_asset": {
+		"base_profile": "m4a1_sd",
+		"gameplay_status": "project family tuning with source cadence/ammo/range; not original damage parity",
+		"left_contact_source_m": {
+			"x": 0.200000002980232,
+			"y": 0.0649999976158142,
+			"z": -0.025644063949585
+		},
+		"manifest": "res://config/source_weapon_arsenal.json",
+		"model": "m4Acarbine_sd",
+		"notes": "",
+		"parts": [
+			"m4Acarbine_sd__N000_m4_high_v0100.glb"
+		],
+		"right_contact_source_m": {
+			"x": -0.0399999991059303,
+			"y": -0.0350000001490116,
+			"z": 0.0081000030040741
+		},
+		"source_manifest_sha256": "4a579256855bbb84d27e0861c975f840c6c5eb8e4787f14d784b6c4f641f2ee1",
+		"source_name": "M4A1 SD",
+		"source_settings": {
+			"display_name": "M4A1 SD",
+			"mode_flags": [],
+			"name": "M4A1 SD",
+			"numeric": {
+				"AccBurstCnt_Max": 10.0,
+				"AccBurstCnt_Min": 5.0,
+				"AccScalar_Max": 0.0,
+				"AccScalar_Min": 0.0,
+				"Ammo_Capacity": 30.0,
+				"Damage_Modifier": 0.150000005960464,
+				"Effective_Range": 550.0,
+				"Encumbrance": 1.0,
+				"FireWait": 0.140000000596046,
+				"ID": 62.0,
+				"ImpactRadius": 25.0,
+				"MaxFireMode": 3.0,
+				"Maximum_Range": 800.0,
+				"Muzzle_Velocity": 900.0,
+				"NumMags": 3.0,
+				"NumZoomModes": 2.0,
+				"RecoilPct": 0.200000002980232,
+				"Sound_Radius": 10.0,
+				"ZoomMode0": 1.5,
+				"ZoomMode1": 3.0
+			},
+			"stances": {
+				"STANCE_CROUCH": {
+					"AccuracyBurstCnt_Max": 8.0,
+					"AccuracyBurstCnt_Min": 1.0,
+					"AccuracyScalar_Max": 0.00499999988824129,
+					"AccuracyScalar_Min": 0.0,
+					"FireRifleKickBaseDist": 0.0799999982118607,
+					"FireRifleKickRandomDist": 0.0149999996647239,
+					"FireRifleKickRate": 0.5,
+					"FireRifleKickReturnRate": 0.180000007152557,
+					"KnockCount": 1.0,
+					"KnockEntryStrength": 0.400000005960464,
+					"ReticuleKnock": 11.0,
+					"ReticuleKnockMax": 45.0,
+					"ReticuleKnockReturn": 75.0,
+					"SniperDecayRate": -0.0500000007450581,
+					"SniperDistLimitX": 16.0,
+					"SniperDistLimitY": 19.0,
+					"SniperDistPPFrameX": 5.0,
+					"SniperDistPPFrameY": 5.0,
+					"TargetConstrict": 55.0,
+					"TargetDilateUponFire": 7.0,
+					"TargetDilateUponMovement": 1.0,
+					"TargetDilateUponMovementMult": 13.0,
+					"TargetMax": 25.0,
+					"TargetMin": 0.75
+				},
+				"STANCE_PRONE": {
+					"AccuracyBurstCnt_Max": 8.0,
+					"AccuracyBurstCnt_Min": 1.0,
+					"AccuracyScalar_Max": 0.00499999988824129,
+					"AccuracyScalar_Min": 0.0,
+					"FireRifleKickBaseDist": 0.0599999986588955,
+					"FireRifleKickRandomDist": 0.0149999996647239,
+					"FireRifleKickRate": 0.5,
+					"FireRifleKickReturnRate": 0.180000007152557,
+					"KnockCount": 1.0,
+					"KnockEntryStrength": 0.400000005960464,
+					"ReticuleKnock": 10.0,
+					"ReticuleKnockMax": 20.0,
+					"ReticuleKnockReturn": 75.0,
+					"SniperDecayRate": -0.200000002980232,
+					"SniperDistLimitX": 12.0,
+					"SniperDistLimitY": 15.0,
+					"SniperDistPPFrameX": 4.0,
+					"SniperDistPPFrameY": 4.0,
+					"TargetConstrict": 50.0,
+					"TargetDilateUponFire": 7.0,
+					"TargetDilateUponMovement": 1.0,
+					"TargetDilateUponMovementMult": 63.0,
+					"TargetMax": 24.0,
+					"TargetMin": 1.0
+				},
+				"STANCE_STAND": {
+					"AccuracyBurstCnt_Max": 8.0,
+					"AccuracyBurstCnt_Min": 1.0,
+					"AccuracyScalar_Max": 0.00499999988824129,
+					"AccuracyScalar_Min": 0.0,
+					"FireRifleKickBaseDist": 0.0900000035762787,
+					"FireRifleKickRandomDist": 0.0149999996647239,
+					"FireRifleKickRate": 0.5,
+					"FireRifleKickReturnRate": 0.180000007152557,
+					"KnockCount": 1.0,
+					"KnockEntryStrength": 0.400000005960464,
+					"ReticuleKnock": 12.0,
+					"ReticuleKnockMax": 45.0,
+					"ReticuleKnockReturn": 70.0,
+					"SniperDecayRate": -0.0399999991059303,
+					"SniperDistLimitX": 20.0,
+					"SniperDistLimitY": 24.0,
+					"SniperDistPPFrameX": 6.0,
+					"SniperDistPPFrameY": 6.0,
+					"TargetConstrict": 50.0,
+					"TargetDilateUponFire": 7.0,
+					"TargetDilateUponMovement": 1.0,
+					"TargetMax": 26.0,
+					"TargetMin": 1.0
+				}
+			}
+		}
+	},
+	"stances": {},
+	"support_hand_pose": {
+		"finger_basis": "dual_source_rest",
+		"finger_curl": 1.0,
+		"palm_pitch_deg": -24.35,
+		"palm_roll_deg": 104.75,
+		"palm_yaw_deg": -3.25,
+		"source_support_contact": true,
+		"support_regrip_seconds": 0.12,
+		"thumb_wrap": 0.7
+	},
+	"training_only": false,
+	"user_scale_multiplier": 1.0,
+	"weapon_id": "s2_m4a1_sd",
+	"weapon_sockets": {
+		"barrel_base_socket": {
+			"x": 0.00809997227042913,
+			"y": 0.118375509977341,
+			"z": 0.695900022983551
+		},
+		"buttstock_socket": {
+			"x": 0.00810001604259014,
+			"y": 0.0733755081892014,
+			"z": -0.307000011205673
+		},
+		"ejection_port": {
+			"x": 0.00632427865639329,
+			"y": 0.042029682546854,
+			"z": 0.138171717524529
+		},
+		"left_hand_ik_target": {
+			"x": 0.0337440557777882,
+			"y": 0.0999999940395355,
+			"z": 0.240000009536743
+		},
+		"muzzle_socket": {
+			"x": 0.00809996854513884,
+			"y": 0.118375509977341,
+			"z": 0.795900046825409
+		},
+		"optic_rail": {
+			"x": 0.00810000114142895,
+			"y": 0.194400012493134,
+			"z": 0.0399999991059303
+		},
+		"right_hand_grip_target": {
+			"x": 0.0,
+			"y": 0.0,
+			"z": 0.0
+		}
+	}
+}

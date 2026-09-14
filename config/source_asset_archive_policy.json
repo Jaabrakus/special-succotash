@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "scope": "offline raw asset recovery, not a runtime feature",
+  "chunk_bytes": 4194304,
+  "max_directory_bytes": 16777216,
+  "max_records": 250000,
+  "max_archive_depth": 12,
+  "max_recovery_bytes": 1610612736,
+  "minimum_free_bytes": 4294967296,
+  "include_movies": false,
+  "output_name": "sha256.raw",
+  "require_fresh_directory": true,
+  "verify_existing_exports": true,
+  "preserve_original_iso": true,
+  "automatic_runtime_promotion": false
+}

@@ -12,6 +12,9 @@ const DEFAULT_ANIMATION_OWNED_AIM_ALIGNMENT_ENABLED := false
 const DEFAULT_SUPPORT_HAND_IK_BLEND_SECONDS := 0.35
 
 func bind(target_skeleton: Skeleton3D, attached_weapon: Node3D) -> void:
+	source_support_contact_weight = 0.0
+	source_support_contact_active = false
+	source_support_reach_limited = false
 	grounded_support_wrist_valid = false
 	source_jump_grip_weight = 0.0
 	skeleton = target_skeleton
@@ -74,6 +77,9 @@ func bind(target_skeleton: Skeleton3D, attached_weapon: Node3D) -> void:
 
 
 func rebind_weapon(attached_weapon: Node3D) -> void:
+	source_support_contact_weight = 0.0
+	source_support_contact_active = false
+	source_support_reach_limited = false
 	grounded_support_wrist_valid = false
 	source_jump_grip_weight = 0.0
 	_stop_socket_ik()

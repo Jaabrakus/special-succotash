@@ -48,7 +48,8 @@ func _run() -> void:
 				var long_local := sk.get_bone_rest(finger).origin.normalized()
 				var across := sk.get_bone_rest(sk.find_bone("mixamorig_LeftHandIndex1")).origin - sk.get_bone_rest(sk.find_bone("mixamorig_LeftHandPinky1")).origin
 				var palm_normal: Vector3 = (sk.global_basis * sk.get_bone_global_pose(hand).basis * long_local.cross(across).normalized()).normalized()
-				var up_dot: float = palm_normal.dot(pose.weapon_node.global_basis.y.normalized())
+				var physical_up: Vector3 = preload("res://scripts/player/operator_support_wrist.gd").physical_weapon_up(pose.trigger_socket, pose.barrel_base_socket, pose.muzzle_socket)
+				var up_dot: float = palm_normal.dot(physical_up)
 				var bend: float = rad_to_deg(arm_axis.angle_to(palm_axis))
 				print("SUPPORT_WRIST ", gun, " ", stance, " ready=", ready, " bend=", bend, " contact=", pose.support_hand_error_m, " aim=", pose.weapon_aim_error_deg, " palm_up=", up_dot)
 				_expect(pose.support_hand_error_m < 0.02, "left palm contact " + gun + str(stance))

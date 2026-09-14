@@ -3,10 +3,18 @@ extends SceneTree
 const Timeline = preload("res://scripts/player/operator_source_jump_timeline.gd")
 const Driver = preload("res://scripts/player/operator_animation_driver.gd")
 const Weapons = preload("res://scripts/weapons/weapon_rig_contract.gd")
+const AnimationCache = preload("res://scripts/player/operator_animation_library_cache.gd")
 var failures: Array[String] = []
+var saved_map_hash := ""
 
 func _initialize() -> void:
+	saved_map_hash = FileAccess.get_sha256("res://config/operator_animation_map.json")
 	ProjectSettings.set_setting("socom/playtest/use_active_bundle", false)
+	if "--without-source-runtime-timing" in OS.get_cmdline_user_args():
+		var map: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://config/operator_animation_map.json"))
+		map.locomotion.source_runtime_timing = false
+		ProjectSettings.set_setting("socom/playtest/active_bundle", {"states": {"animation_map": map}})
+		ProjectSettings.set_setting("socom/playtest/use_active_bundle", true)
 	_run.call_deferred()
 
 func _run() -> void:
@@ -25,6 +33,10 @@ func _run() -> void:
 	root.add_child(driver)
 	await process_frame
 	driver.set_process(false)
+	var timing_enabled := bool(driver.animation_profile.locomotion.source_runtime_timing)
+	check(timing_enabled == not ("--without-source-runtime-timing" in OS.get_cmdline_user_args()), "process-local timing selection")
+	print("SOURCE_JUMP_TIMING source_runtime_timing=", timing_enabled)
+	var build_anchor := _build_time_jump_anchor(driver)
 	var hybrid: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://config/animation_presets/seal_pistol_hybrid.json"))
 	check(driver.animation_profile.source_jump == hybrid.source_jump, "main/preset timing parity")
 	var running: Animation = driver.animation_player.get_animation(&"jump_up")
@@ -63,11 +75,8 @@ func _run() -> void:
 			var hip_track := source.find_track(NodePath(".:mixamorig_Hips"),Animation.TYPE_POSITION_3D)
 			check(hip_track>=0, clip_name + " has anchored hip track")
 			if hip_track>=0:
-				var reference: Animation = driver.animation_player.get_animation(&"seal_stand_alert02")
-				var ref_track := reference.find_track(NodePath(".:mixamorig_Hips"),Animation.TYPE_POSITION_3D)
-				var anchor := reference.position_track_interpolate(ref_track,0)
 				for key in source.track_get_key_count(hip_track):
-					check(source.track_get_key_value(hip_track,key).is_equal_approx(anchor),clip_name + " no duplicate jump translation")
+					check(source.track_get_key_value(hip_track,key).is_equal_approx(build_anchor),clip_name + " no duplicate jump translation")
 			check(source.has_meta("source_asset"), clip_name + " copied source provenance")
 		for pair in [["jump_up", "jump_running_air"], ["jump_up_standing", "jump_loop"], ["pistol_jump", "jump_running_air"], ["jump_running_air", "jump_running_land"], ["jump_loop", "jump_down"], ["jump_loop", "pistol_jump_down"]]:
 			var before: Animation = driver.animation_player.get_animation(pair[0])
@@ -98,8 +107,34 @@ func _run() -> void:
 	other.queue_free()
 	driver.queue_free()
 	await process_frame
+	check(FileAccess.get_sha256("res://config/operator_animation_map.json") == saved_map_hash, "process-local test never changes saved profile")
 	print("SOURCE_JUMP_REGRESSION ", "PASS" if failures.is_empty() else "FAIL", " ", failures)
 	quit(0 if failures.is_empty() else 1)
+
+func _build_time_jump_anchor(driver: Node3D) -> Vector3:
+	# _anchor_source_jump_hips runs in the canonical library before the selected
+	# rig proportions and stationary source_pose_height adapter. Mutable jumps
+	# intentionally skip that later idle-height adapter; live takeoff separately
+	# captures the actual evaluated hips, tested below for both player instances.
+	var fingerprint := AnimationCache.new().fingerprint_for(driver.animation_profile)
+	var canonical := AnimationCache.shared_libraries.get(fingerprint) as AnimationLibrary
+	check(canonical != null, "canonical pre-height jump anchor library exists")
+	if canonical == null: return Vector3.INF
+	var reference_name := StringName(driver.animation_profile.source_jump.anchor_hips_to_clip)
+	var reference := canonical.get_animation(reference_name)
+	var track := reference.find_track(NodePath(".:mixamorig_Hips"), Animation.TYPE_POSITION_3D)
+	check(track >= 0 and not reference.has_meta("source_pose_height"), "jump anchor reference precedes stationary height adaptation")
+	if track < 0: return Vector3.INF
+	var anchor := reference.position_track_interpolate(track, 0.0)
+	var old_rests: Array = driver.skeleton.get_meta("canonical_rest_before_proportions", [])
+	if not old_rests.is_empty():
+		var hip: int = driver.skeleton.find_bone("mixamorig_Hips")
+		var previous: Vector3 = old_rests[hip].origin
+		var current: Vector3 = driver.skeleton.get_bone_rest(hip).origin
+		anchor.y *= current.y / previous.y if absf(previous.y) > 0.00001 else 1.0
+	var adapted: Animation = driver.animation_player.get_animation(reference_name)
+	print("SOURCE_JUMP_ANCHOR build=", anchor, " final_idle=", adapted.position_track_interpolate(track, 0.0), " stationary_height_adapted=", adapted.has_meta("source_pose_height"))
+	return anchor
 
 func check(ok: bool, message: String) -> void:
 	if not ok: failures.append(message)

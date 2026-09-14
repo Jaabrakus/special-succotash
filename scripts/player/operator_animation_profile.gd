@@ -246,6 +246,8 @@ var family_animation_slots: Dictionary = {}
 var locomotion: Dictionary = {
 	"source_three_tier": false,
 	"source_idle_blending": false,
+	"source_runtime_timing": false,
+	"source_prone_backward": false,
 	"source_pose_only": false,
 	"source_pistol_attachment": false,
 	"source_pistol_palm_offset_m": [0.0, 0.0, 0.0],
@@ -298,6 +300,8 @@ var warnings: Array[String] = []
 func load_project_map(path: String = MAP_PATH) -> void:
 	locomotion["source_three_tier"] = false
 	locomotion["source_idle_blending"] = false
+	locomotion["source_runtime_timing"] = false
+	locomotion["source_prone_backward"] = false
 	locomotion["lean_stop_grace_seconds"] = 0.0
 	# Older presets omit this opt-in. Reusing a workshop profile must not carry
 	# source-only presentation into a subsequently loaded historical preset.

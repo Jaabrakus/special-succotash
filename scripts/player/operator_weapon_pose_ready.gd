@@ -65,13 +65,13 @@ func _present_source_pose_only(aim_yaw: float, aim_pitch: float, posture: String
 		body: Node3D, delta: float) -> void:
 	if skeleton == null or weapon_node == null or weapon_presentation_owner == null or body == null:
 		return
-	# Retire the previous solver's persistent pins; do not solve either arm or
-	# manufacture a support grip. The source clip owns both wrist trajectories.
+	# Retire previous pins. The source clip owns the right wrist/weapon; only
+	# explicitly opted-in saved profiles may refine the support contact below.
 	fire_recoil.advance(delta)
 	_stop_socket_ik()
 	skeleton.clear_bones_global_pose_override()
 	skeleton.force_update_all_bone_transforms()
-	present_traversal_equip() # existing rigid right-palm mount, no bone writes
+	present_traversal_equip(false) # existing rigid right-palm mount, no bone writes
 	source_rifle_aim_applied_degrees = 0.0
 	if source_pistol_attachment and action == &"":
 		SourcePistolAttachment.aim_upper_body(self, aim_yaw, aim_pitch,
@@ -86,6 +86,7 @@ func _present_source_pose_only(aim_yaw: float, aim_pitch: float, posture: String
 	last_movement_state = movement
 	last_requested_action = action
 	last_ready_weight = ready
+	_apply_saved_source_support_contact(action, movement, delta)
 	last_reload_support_regrip = false
 	animation_owned_aim_alignment_active = false
 	authored_shoulder_stock_active = false
@@ -97,10 +98,45 @@ func _present_source_pose_only(aim_yaw: float, aim_pitch: float, posture: String
 	if muzzle_socket != null and barrel_base_socket != null:
 		weapon_aim_error_deg = rad_to_deg((muzzle_socket.global_position - barrel_base_socket.global_position).normalized().angle_to(last_aim_direction))
 	trigger_hand_error_m = trigger_socket.global_position.distance_to(_right_hand_grip_world_transform().origin) if trigger_socket != null else 0.0
-	# Diagnostic only: a free support hand is not a failed grip.
+	# A deliberately free action hand is not a failed held-grip diagnostic.
 	support_hand_error_m = support_socket.global_position.distance_to(_left_hand_grip_world_transform().origin) if support_socket != null else 0.0
 	right_elbow_angle_deg = _current_elbow_angle(&"right")
 	left_elbow_angle_deg = _current_elbow_angle(&"left")
+
+func _apply_saved_source_support_contact(action: StringName, movement: StringName, delta: float) -> void:
+	source_support_contact_active = false
+	source_support_reach_limited = false
+	var raw: Variant = weapon_node.get_meta("support_hand_pose", {})
+	var profile: Dictionary = raw if raw is Dictionary else {}
+	if not bool(profile.get("source_support_contact", false)) or action != &"" or movement not in [&"LOCOMOTION", &"STANDING", &"CROUCHED", &"PRONE"] or not weapon_node.visible or support_socket == null:
+		source_support_contact_weight = 0.0
+		return
+	var held_basis := WeaponContactSolver.support_contact_basis(support_socket.global_basis, profile)
+	var held_contact := Transform3D(held_basis, support_socket.global_position)
+	var wrist := WeaponContactSolver.wrist_target_for_contact(skeleton, held_contact, left_palm_anchor_local)
+	# Some source carry clips deliberately extend the pistol past the opposite
+	# arm's reach. Keep their free arm instead of stretching bones or dragging
+	# the weapon off its right palm. Regrip starts afresh once reachable.
+	if _bone_world_position(&"mixamorig_LeftArm").distance_to(wrist.origin) > _arm_length(&"left") * 0.98:
+		source_support_reach_limited = true
+		source_support_contact_weight = 0.0
+		return
+	# Reuse the existing support-arm solve; never move the right hand, weapon,
+	# camera target, source torso, or authored socket to hide a contact residual.
+	var seconds := clampf(float(profile.get("support_regrip_seconds", 0.12)), 0.04, 0.3)
+	source_support_contact_weight = move_toward(source_support_contact_weight, 1.0, maxf(delta, 0.0) / seconds)
+	var palm := _left_hand_grip_world_transform()
+	support_hand_target.global_transform = palm
+	support_hand_target.global_basis = Basis(palm.basis.get_rotation_quaternion().slerp(held_basis.get_rotation_quaternion(), source_support_contact_weight))
+	support_hand_target.global_position = palm.origin.lerp(support_socket.global_position, source_support_contact_weight)
+	left_hand_ik.override_tip_basis = true
+	support_hand_grip_locked = true
+	current_weight = 1.0
+	_update_support_contact_elbow_pole(support_hand_target.global_position)
+	_solve_socket_arm(left_hand_ik, support_hand_target, left_elbow_pole, &"mixamorig_LeftHand")
+	skeleton.force_update_all_bone_transforms()
+	support_hand_mode = WeaponOwnershipContract.SUPPORT_IK_TO_WEAPON
+	source_support_contact_active = true
 
 func _elbow_presentation_angle(
 	posture: StringName, movement_state: StringName, ready_weight: float,

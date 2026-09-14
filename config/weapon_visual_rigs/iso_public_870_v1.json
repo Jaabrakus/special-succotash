@@ -1,0 +1,241 @@
+{
+  "schema_version": 1,
+  "visual_rig_id": "iso_public_870_v1",
+  "revision": 1,
+  "status": "published",
+  "family": "LONG_GUN",
+  "source_model_fbx": "res://assets/weapons/socom2_arsenal/s2_870.scn",
+  "visual": {
+    "model_fbx": "res://assets/weapons/socom2_arsenal/s2_870.scn",
+    "normalized_scale": 1,
+    "user_scale_multiplier": 1,
+    "model_rotation_degrees": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "operator_mount": {
+      "attachment_mode": "trigger_hand_socket",
+      "bone_name": "mixamorig_RightHand",
+      "position": {
+        "x": -0.02,
+        "y": 0.08,
+        "z": 0.05
+      },
+      "rotation_degrees": {
+        "x": -90,
+        "y": 180,
+        "z": 0
+      }
+    },
+    "grip_offset": {
+      "pos_x": 0.0798392296,
+      "pos_y": -0.0417042524,
+      "pos_z": 0.0082135201,
+      "rot_x": 4.55,
+      "rot_y": 3,
+      "rot_z": 79.05
+    },
+    "weapon_sockets": {
+      "barrel_base_socket": {
+        "x": 0.00510734366253018,
+        "y": 0.0980284363031387,
+        "z": 0.554100036621094
+      },
+      "buttstock_socket": {
+        "x": 0.010107378475368,
+        "y": 0.0530284382402897,
+        "z": -0.232799977064133
+      },
+      "ejection_port": {
+        "x": -0.0289295725524426,
+        "y": 0.0801994800567627,
+        "z": 0.234485417604446
+      },
+      "left_hand_ik_target": {
+        "x": 0.026626804843545,
+        "y": 0.0450000017881393,
+        "z": 0.450000017881393
+      },
+      "muzzle_socket": {
+        "x": 0.0051073394715786,
+        "y": 0.0980284363031387,
+        "z": 0.654100060462952
+      },
+      "optic_rail": {
+        "x": 0.0101073645055294,
+        "y": 0.12610000371933,
+        "z": 0.0900000035762787
+      },
+      "right_hand_grip_target": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      }
+    },
+    "support_hand_pose": {
+      "finger_basis": "dual_source_rest",
+      "finger_curl": 1,
+      "palm_pitch_deg": -24.35,
+      "palm_roll_deg": 104.75,
+      "palm_yaw_deg": 0.75,
+      "source_support_contact": true,
+      "support_regrip_seconds": 0.12,
+      "thumb_wrap": 0.7
+    },
+    "elbow_poles": {},
+    "stances": {},
+    "animation_hand_maps": {},
+    "animation_frame_pose_keys": {},
+    "gun_placement_line": {
+      "runtime_enabled": false
+    },
+    "handling_profile": {
+      "dynamic_hold": {
+        "authored_shoulder_stock_enabled": true,
+        "locomotion_ready_carry_weight": 1,
+        "standing_idle_square_pelvis": true,
+        "ready_shoulder_pocket": {
+          "downward_m": 0.05,
+          "right_wrist_roll_degrees": -15
+        },
+        "strafe_carry": {
+          "right_hip_follow_weight": 1,
+          "left_elbow_flare_degrees": 12,
+          "right_stock_release_m": 0.33,
+          "right_stock_release_frame": "chest_forward"
+        },
+        "animation_carry_limit_m": 0.025,
+        "animation_carry_weight": 0.4,
+        "animation_drives_ready_hands": true,
+        "buttstock_constraint": {
+          "enabled": false
+        },
+        "fire_saved_joint_rotations_enabled": false,
+        "fire_spine_ccdik_enabled": false,
+        "hand_owned_aim_correction_limit_deg": 32,
+        "hand_socket_ik_enabled": false,
+        "ready_locomotion_inheritance": 0,
+        "relaxed_idle_upper_body_weight": 0,
+        "reload_return_blend_seconds": 0.18,
+        "right_hand_owns_weapon": true,
+        "support_hand_ik_blend_seconds": 0.25,
+        "support_hand_socket_ik_enabled": true
+      },
+      "family": "LONG_GUN",
+      "locomotion_family": "RIFLE",
+      "locomotion_slots": {
+        "run_left": "run_lateral_left",
+        "run_right": "run_lateral_right",
+        "crouch_left": "crouch_lateral_left",
+        "crouch_right": "crouch_lateral_right"
+      },
+      "ready_aim": {
+        "fire_hold_seconds": 1.2,
+        "fire_terminal_pose_hold_seconds": 0.12
+      },
+      "support_hand_required": true
+    }
+  },
+  "certification": {
+    "required_stances": [
+      "STANDING",
+      "CROUCHED",
+      "PRONE"
+    ],
+    "required_actions": [
+      "aim_idle",
+      "combat_fire",
+      "reload"
+    ],
+    "maximum_palm_error_m": 0.01,
+    "published_by": "public_iso_migration"
+  },
+  "migration": {
+    "source_profile": "res://config/weapons/s2_870.json",
+    "previous_resolved_rig_id": "family_shotgun_2_directional_v1",
+    "source_asset": {
+      "base_profile": "870",
+      "gameplay_status": "project family tuning with source cadence/ammo/range; not original damage parity",
+      "left_contact_source_m": {
+        "x": 0.360000014305115,
+        "y": 0.0500000007450581,
+        "z": -0.0165194571018219
+      },
+      "manifest": "res://config/source_weapon_arsenal.json",
+      "model": "remington870",
+      "notes": "",
+      "parts": [
+        "remington870__N000_870_high_v0100.glb"
+      ],
+      "right_contact_source_m": {
+        "x": -0.0900000035762787,
+        "y": 0.00499999988824129,
+        "z": 0.0101073682308197
+      },
+      "source_manifest_sha256": "4a579256855bbb84d27e0861c975f840c6c5eb8e4787f14d784b6c4f641f2ee1",
+      "source_name": "870",
+      "source_settings": {
+        "display_name": "12 GAUGE PUMP",
+        "mode_flags": [],
+        "name": "870",
+        "numeric": {
+          "Ammo_Capacity": 8,
+          "Effective_Range": 41,
+          "Encumbrance": 1,
+          "FireWait": 0.75,
+          "ID": 84,
+          "ImpactRadius": 25,
+          "MaxFireMode": 1,
+          "Maximum_Range": 84,
+          "Muzzle_Velocity": 393,
+          "NumMags": 5,
+          "NumZoomModes": 1,
+          "RecoilPct": 0.200000002980232,
+          "ReloadAfterShotDelay": 0.800000011920929,
+          "ReloadDelay": 1,
+          "Sound_Radius": 65,
+          "ZoomMode0": 1.5
+        },
+        "stances": {
+          "STANCE_CROUCH": {
+            "KnockCount": 1,
+            "ReticuleKnock": 8,
+            "ReticuleKnockMax": 70,
+            "ReticuleKnockReturn": 40,
+            "TargetConstrict": 45,
+            "TargetDilateUponFire": 7,
+            "TargetDilateUponMovement": 2.5,
+            "TargetDilateUponMovementMult": 13,
+            "TargetMax": 52,
+            "TargetMin": 21
+          },
+          "STANCE_PRONE": {
+            "KnockCount": 1,
+            "ReticuleKnock": 8,
+            "ReticuleKnockMax": 70,
+            "ReticuleKnockReturn": 40,
+            "TargetConstrict": 45,
+            "TargetDilateUponFire": 7,
+            "TargetDilateUponMovement": 2.5,
+            "TargetDilateUponMovementMult": 63,
+            "TargetMax": 51,
+            "TargetMin": 20
+          },
+          "STANCE_STAND": {
+            "KnockCount": 1,
+            "ReticuleKnock": 8,
+            "ReticuleKnockMax": 70,
+            "ReticuleKnockReturn": 40,
+            "TargetConstrict": 45,
+            "TargetDilateUponFire": 7,
+            "TargetDilateUponMovement": 3,
+            "TargetDilateUponMovementMult": 2,
+            "TargetMax": 52,
+            "TargetMin": 25
+          }
+        }
+      }
+    }
+  }
+}

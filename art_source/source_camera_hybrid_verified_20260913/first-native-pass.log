@@ -1,0 +1,7 @@
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+OpenGL API 4.1 Metal - 90.5 - Compatibility - Using Device: Apple - Apple M4
+
+MAIN_SOURCE_GAMEPLAY_CAMERA sampled standing
+MAIN_SOURCE_GAMEPLAY_CAMERA sampled crouched
+MAIN_SOURCE_GAMEPLAY_CAMERA sampled prone
+MAIN_SOURCE_GAMEPLAY_CAMERA PASS rows=12 failures=[] output=/private/tmp/hybrid-readable-native

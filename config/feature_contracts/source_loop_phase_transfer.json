@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "feature_id": "source_grounded_idle_phase_transfer",
+  "player_intent": "Entering a source rifle idle or ready pose inherits outgoing loop progress rather than a stale dormant idle playhead.",
+  "acceptance_rule": "Only new eligible grounded standing/crouch idle arrivals publish one finite source-validated phase request to continuous idle leaves. Actual AnimationTree clocks are used, snapshots remain independent, and same-state/first-state/active-fade/action/fire/reload/traversal/nonsource/disabled requests do not seek. Moving destinations remain unchanged and are not claimed source-identical.",
+  "canonical_scene": "res://main.tscn",
+  "ownership": {"animation":"ProductionAnimation"},
+  "nodes": [{"id":"animation", "type":"Node3D", "owner":"ProductionAnimation", "role":"Canonical AnimationTree clock and pose writer", "scene_path":"res://scenes/player/operator_player.tscn", "node_path":"Mannequin/ProductionAnimation"}],
+  "data_contracts": [{"path":"res://config/source_animation_runtime.json", "writer":"res://docs/SOURCE_LOOP_PHASE_TRANSFER_AUDIT.md", "readers":["res://scripts/player/operator_source_animation_runtime.gd", "res://scripts/player/operator_locomotion_blend_tree.gd"]}],
+  "must_not_change": ["CharacterBody movement/collision", "camera and aim", "weapon/contact/damage ownership", "source animation resources", "reload/fire/action clocks", "source gait frequencies and directional weights", "existing snapshot fade timing"],
+  "proof_scripts": ["res://tools/source_loop_phase_transfer_regression.gd", "res://tools/source_loop_phase_main_regression.gd", "res://tools/source_transition_snapshot_regression.gd"],
+  "visual_check": "Inspect real main standing/crouched rifle stops at early/middle/late: phase entry must not break feet, hands, source camera channels, or frozen outgoing pose. Headless proof is not full original motion parity.",
+  "system_delta": {"decision":"MERGE", "reason":"Seed validated incoming idle leaf clocks once in the existing AnimationTree, preserving all protected clocks and rejecting unsafe whole-gait seeking.", "current":{"system":"Dormant independent idle playheads", "correctness":2,"ownership_clarity":5,"runtime_parity":3,"editor_usability":3,"performance":5,"regression_coverage":3,"evidence_paths":["res://scripts/player/operator_locomotion_route_builder.gd","res://tools/source_blend_runtime_audit.cjs"]}, "candidate":{"system":"Guarded event-time source idle phase transfer", "correctness":4,"ownership_clarity":5,"runtime_parity":4,"editor_usability":4,"performance":5,"regression_coverage":5,"evidence_paths":["res://scripts/player/operator_source_loop_phase_transfer.gd","res://tools/source_loop_phase_transfer_regression.gd","res://tools/source_loop_phase_main_regression.gd"]}}
+}

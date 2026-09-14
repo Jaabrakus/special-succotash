@@ -2,17 +2,17 @@
   "schema_version": 1,
   "feature_id": "support_wrist",
   "player_intent": "Keep a believable left wrist while gripping two-handed long guns.",
-  "acceptance_rule": "M4 and AK stationary carry/aim in standing, crouch and prone keep palm error below 2cm and wrist bend below 57 degrees; ready bore error stays below 0.1 degrees. Actions, pistols and mobility keep their prior owners.",
+  "acceptance_rule": "Underhand roll uses physical up from trigger/barrel-base/muzzle sockets, never parent mount Y. Missing, nonfinite or collinear sockets skip roll refinement. M4/AK stationary carry/aim retain palm error below2cm, wrist bend below57degrees and ready bore below0.1degrees. Actions, pistols, mobility, mounts and finger curves retain prior owners.",
   "canonical_scene": "res://main.tscn",
   "ownership": {"support_hand": "Existing SEAL weapon-pose strategy and socket IK"},
   "nodes": [{"id": "support_wrist_consumer", "type": "Node3D", "owner": "Canonical weapon-pose solver", "role": "Refines the existing support solve without moving the gun or adding a bone writer.", "source_script": "res://scripts/player/operator_seal_weapon_pose.gd", "code_symbols": ["Wrist.apply(pose)"]}],
   "data_contracts": [{"path": "res://config/support_wrist.json", "writer": "res://docs/SUPPORT_WRIST.md", "readers": ["res://scripts/player/operator_support_wrist.gd", "res://scripts/player/operator_weapon_grip_contact.gd"]}, {"path": "res://config/weapons/m4a1.json", "writer": "res://docs/SUPPORT_WRIST.md", "readers": ["res://scripts/player/operator_asset_runtime.gd"]}, {"path": "res://config/weapons/ak-47.json", "writer": "res://docs/SUPPORT_WRIST.md", "readers": ["res://scripts/player/operator_asset_runtime.gd"]}],
   "must_not_change": ["CharacterBody movement", "Camera aim", "Weapon transform owner and non-support sockets", "Right-hand solve", "Server shot and damage", "Source animations"],
-  "proof_scripts": ["res://tools/main_support_wrist_regression.gd", "res://tools/support_wrist_geometry_regression.gd"],
+  "proof_scripts": ["res://tools/main_support_wrist_regression.gd", "res://tools/support_wrist_geometry_regression.gd", "res://tools/source_rifle_wrist_audit.gd"],
   "visual_check": "Close-up M4/AK carry and aim from both sides; palm supports underneath the fore-end, fingers wrap and wrist does not fold backward. Inspect skin, not only socket error.",
   "system_delta": {
-    "decision": "MERGE", "reason": "Preserved hand rotation creates a 120–128-degree standing bend. Add a contact-preserving bound inside the same solve.",
-    "current": {"system": "Unbounded source support wrist", "correctness": 1, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 2, "performance": 5, "regression_coverage": 2, "evidence_paths": ["res://scripts/player/operator_seal_weapon_pose.gd"]},
-    "candidate": {"system": "Shared bounded support wrist", "correctness": 4, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 4, "regression_coverage": 4, "evidence_paths": ["res://scripts/player/operator_support_wrist.gd", "res://tools/main_support_wrist_regression.gd"]}
+    "decision": "MERGE", "reason": "Parent mount Y differs from physical gun-up by about85degrees on M4/AK. Derive underhand roll from existing physical sockets while preserving the bounded contact solve and all source/mount/finger assets. Socket distance alone does not prove skin grip.",
+    "current": {"system": "Bounded support wrist using parent mount Y", "correctness": 2, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 3, "performance": 5, "regression_coverage": 2, "evidence_paths": ["res://scripts/player/operator_seal_weapon_pose.gd", "res://docs/SOURCE_RIFLE_WRIST_AUDIT.md"]},
+    "candidate": {"system": "Same bounded support wrist using physical socket frame", "correctness": 4, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 5, "regression_coverage": 4, "evidence_paths": ["res://scripts/player/operator_support_wrist.gd", "res://tools/main_support_wrist_regression.gd", "res://tools/source_rifle_wrist_audit.gd"]}
   }
 }

@@ -16,6 +16,7 @@ var traversal_stow := TraversalStow.new()
 var source_pose_only := false
 var source_pistol_attachment := false
 var source_rifle_attachment := false
+var source_spine_pitch_evaluated_action: StringName = &""
 
 func _ready() -> void:
 	process_priority = 100
@@ -134,6 +135,8 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	if animation_tree == null:
 		return
+	posture_layer.aim_spine_pitch.retire(skeleton)
+	source_spine_pitch_evaluated_action = &""
 	source_pistol_attachment = bool(animation_profile.locomotion.get("source_pistol_attachment", false)) and equipped_weapon_family == &"TWO_HAND_PISTOL"
 	source_rifle_attachment = bool(animation_profile.locomotion.get("source_rifle_attachment", false)) and equipped_weapon_family == &"TWO_HAND_RIFLE"
 	source_pose_only = bool(animation_profile.locomotion.get("source_pose_only", false)) or source_pistol_attachment or source_rifle_attachment
@@ -150,6 +153,7 @@ func _process(delta: float) -> void:
 			if offset.is_finite(): weapon_pose_solver.source_pistol_palm_offset_m = offset.limit_length(0.05)
 		weapon_pose_solver.source_pistol_aim_limit_degrees = float(animation_profile.locomotion.get("source_pistol_aim_limit_degrees", 85.0))
 	if _advance_death_presentation(delta):
+		posture_layer.aim_spine_pitch.smoothed_pitch = 0.0
 		return
 	var evaluated_jump_frame: Vector2 = locomotion_graph.get_evaluated_jump_source_frame()
 	# Read the pose that the tree actually evaluated, before this pass requests
@@ -161,6 +165,7 @@ func _process(delta: float) -> void:
 	if not _explicit_visual_inputs:
 		_pull_player_inputs()
 	if _advance_traversal_presentation(delta):
+		posture_layer.aim_spine_pitch.smoothed_pitch = 0.0
 		return
 	_advance_traversal_equipment(delta)
 	var upper_body_action_override := (
@@ -350,6 +355,9 @@ func _process(delta: float) -> void:
 	posture_layer.preserve_authored_body = seal_source_clip or bool(
 		animation_profile.locomotion.get("preserve_source_locomotion", false)
 	)
+	var source_spine_pitch_owns: bool = posture_layer.source_spine_pitch_enabled() and (source_pose_only or posture_layer.preserve_authored_body)
+	source_spine_pitch_evaluated_action = weapon_presentation_action
+	var source_spine_pitch_allowed: bool = source_spine_pitch_owns and not action_owns_upper_body_rotation and weapon_presentation_action == &"" and not mobility_owns_full_body and evaluated_source_jump_weight < 0.001 and _presentation_posture == posture
 	# The old pistol torso still contributes during jump entry/exit crossfades.
 	# Its pelvis-frame correction must follow that evaluated weight, not vanish
 	# a frame before the graph has even begun to replace the grounded source.
@@ -393,7 +401,7 @@ func _process(delta: float) -> void:
 		posture_layer.visual_peek_amount = 0.0
 	posture_layer.apply(
 		0.0 if combat_ready_ccdik_weight > 0.001 else posture_aim_yaw,
-		0.0 if combat_ready_ccdik_weight > 0.001 else posture_aim_pitch,
+		0.0 if combat_ready_ccdik_weight > 0.001 or source_spine_pitch_owns else posture_aim_pitch,
 		0.0 if combat_ready_ccdik_weight > 0.001 else posture_ready_weight,
 		presentation_obstruction,
 		0.0,
@@ -425,6 +433,9 @@ func _process(delta: float) -> void:
 		_rifle_movement_stability_weight(),
 		_standing_idle_pelvis_weight()
 	)
+	# Replace legacy bone-local torso pitch for source poses; contact remains the
+	# existing downstream weapon owner's work. Unsafe one-shot poses opt out.
+	posture_layer.apply_source_spine_pitch(aim_pitch_rad, _presentation_posture, source_spine_pitch_allowed, visual_aim_target, delta)
 	# Rebase the same graph-owned jump legs against the finalized pelvis frame.
 	# Posture may finish an airborne hip correction; consume that result before
 	# the independent upper-body weapon pass, without changing hips or physics.
@@ -481,6 +492,8 @@ func _process(delta: float) -> void:
 		if weapon_pose_solver != null:
 			var wrist_gap: float = weapon_pose_solver._bone_world_position(&"mixamorig_RightHand").distance_to(weapon_pose_solver._bone_world_position(&"mixamorig_LeftHand"))
 			close_support = wrist_gap < weapon_pose_solver._arm_length(&"left") * 0.30 and requested_action == &""
+			if bool(equipped_weapon_config.get("support_hand_pose", {}).get("source_support_contact", false)):
+				close_support = weapon_pose_solver.source_support_contact_active and weapon_pose_solver.source_support_contact_weight >= 0.95
 		weapon_grip_contact.apply_source_pistol(visible_pistol, close_support)
 	elif weapon_grip_contact != null and (not source_pose_only or source_rifle_attachment):
 		var owner_state: Dictionary = (
@@ -501,7 +514,9 @@ func _process(delta: float) -> void:
 			owner_state.get("owner", &"RELAXED_RIFLE_LOCOMOTION")
 		)
 		weapon_grip_contact.source_rifle_grip = weapon_pose_solver != null and weapon_pose_solver.seal_source_pose_active and equipped_weapon_family == &"TWO_HAND_RIFLE"
-		weapon_grip_contact.apply(current_owner, support_mode, weapon_vis)
+		weapon_grip_contact.apply(current_owner, support_mode, weapon_vis,
+			requested_action == &"" and not locomotion_graph.traversal_equip.active
+			and movement_state not in [&"AIRBORNE", &"LANDING", &"DIVING", &"ROLLING", &"VAULTING"])
 	posture_layer.apply_movement_head_level(
 		not posture_layer.preserve_authored_body and (_locomotion_active or posture == &"CROUCHED") and posture in [&"STANDING", &"CROUCHED"]
 		and movement_state not in [&"DIVING", &"ROLLING", &"AIRBORNE", &"LANDING", &"VAULTING"]

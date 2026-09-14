@@ -2,6 +2,9 @@ extends Node3D
 
 var seal_source_pose_active := false
 var source_pose_only := false
+var source_support_contact_weight := 0.0
+var source_support_contact_active := false
+var source_support_reach_limited := false
 var source_pistol_attachment := false
 var source_pistol_palm_offset_m := Vector3.ZERO
 var source_rifle_attachment := false

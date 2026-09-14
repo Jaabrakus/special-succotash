@@ -22,7 +22,8 @@ func _run() -> void:
 			continue
 		check(graph.source_standing_fire_split, "rifle split enabled")
 		check(graph.is_source_clip(String(driver.animation_profile.clip_paths[&"seal_stand_alert02"])), "ready preserves source weapon strategy")
-		check(tree.get_node(&"standing_idle_base").animation == &"seal_stand_alert02", "actual standing carry uses ready")
+		check(tree.get_node(&"standing_idle_base").animation == &"idle_rifle", "unready standing uses original default Stand")
+		check(driver.animation_player.get_animation(&"idle_rifle").get_meta("source_name", "") == "seal_stand", "idle resource retains original default provenance")
 		check(tree.get_node(&"source_standing_alert").animation == &"seal_stand_alert02", "ready source")
 		check(tree.get_node(&"source_standing_fire").animation == &"seal_fp_stand", "separate fire source")
 		check(graph.source_standing_fire_weight == 0.0, "equip clears blend")

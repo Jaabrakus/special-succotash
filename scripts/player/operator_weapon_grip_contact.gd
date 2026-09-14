@@ -10,6 +10,7 @@ extends RefCounted
 const FINGER_SEGMENT_WEIGHTS := [0.45, 0.35, 0.20]
 const FINGER_NAMES := ["Index", "Middle", "Ring", "Pinky"]
 const SupportWrist := preload("res://scripts/player/operator_support_wrist.gd")
+const SurfaceContact := preload("res://scripts/player/operator_grip_surface_contact.gd")
 
 var skeleton: Skeleton3D
 var weapon: Node3D
@@ -20,6 +21,8 @@ var source_rifle_grip: bool = false
 var source_pistol_grip: bool = false
 var _desired_global_poses: Dictionary = {}
 var _source_pistol_owned_bones: Array[int] = []
+var surface_results: Dictionary = {}
+var _surface_contact_allowed := false
 
 
 func bind(target_skeleton: Skeleton3D, attached_weapon: Node3D) -> void:
@@ -31,17 +34,22 @@ func bind(target_skeleton: Skeleton3D, attached_weapon: Node3D) -> void:
 	applied_bone_count = 0
 	source_pistol_grip = false
 	_desired_global_poses.clear()
+	surface_results.clear()
+	_surface_contact_allowed = false
 
 
 func rebind_weapon(attached_weapon: Node3D) -> void:
 	_release_source_pistol_overrides()
 	weapon = attached_weapon
+	surface_results.clear()
+	_surface_contact_allowed = false
 
 
 func apply(
 	weapon_owner: StringName,
 	support_hand_mode: StringName,
-	weapon_visible: bool
+	weapon_visible: bool,
+	allow_surface_contact: bool = false
 ) -> void:
 	_release_source_pistol_overrides()
 	source_pistol_grip = false
@@ -49,12 +57,15 @@ func apply(
 	applied_left = false
 	applied_bone_count = 0
 	_desired_global_poses.clear()
+	surface_results.clear()
+	_surface_contact_allowed = allow_surface_contact
 	if skeleton == null or weapon == null or not weapon_visible:
 		return
 	if weapon_owner == &"GRENADE_ACTION":
 		return
 	var raw_pose: Variant = weapon.get_meta("support_hand_pose", {})
 	var pose: Dictionary = raw_pose if raw_pose is Dictionary else {}
+	var native_fingers := source_rifle_grip or String(pose.get("finger_basis", "")) == "dual_source_rest"
 	var curl := clampf(float(pose.get("finger_curl", 0.72)), 0.0, 1.0)
 	var thumb := clampf(float(pose.get("thumb_wrap", 0.64)), 0.0, 1.0)
 	if not source_rifle_grip and curl <= 0.001 and thumb <= 0.001:
@@ -64,13 +75,13 @@ func apply(
 	# The trigger palm remains attached for every rifle state except grenade.
 	# Keep its index finger comparatively open while the other fingers retain
 	# the pistol grip. This changes only the skinned fingers, never shot input.
-	if source_rifle_grip:
+	if native_fingers:
 		_apply_source_hand("Right", curl, thumb)
 	else:
 		_apply_hand("Right", curl, thumb, -1.0, 0.38)
 	applied_right = true
 	if support_hand_mode == &"IK_TO_WEAPON":
-		if source_rifle_grip:
+		if native_fingers:
 			var support: Dictionary = SupportWrist.profile
 			var underhand: bool = bool(support.get("enabled", false)) and bool(support.get("palm_under_fore_end", false))
 			_apply_source_hand("Left", clampf(float(support.get("finger_curl", curl)), 0.0, 1.0) if underhand else curl,
@@ -89,6 +100,8 @@ func apply_source_pistol(weapon_visible: bool, close_support: bool) -> void:
 	applied_bone_count = 0
 	source_pistol_grip = false
 	_desired_global_poses.clear()
+	surface_results.clear()
+	_surface_contact_allowed = false
 	if not is_instance_valid(skeleton) or not is_instance_valid(weapon) or not weapon_visible:
 		return
 	var raw_pose: Variant = weapon.get_meta("support_hand_pose", {})
@@ -124,6 +137,7 @@ func snapshot() -> Dictionary:
 		"bone_count": applied_bone_count,
 		"source_rifle_grip": source_rifle_grip,
 		"source_pistol_grip": source_pistol_grip,
+		"surface_contact": surface_results.duplicate(true),
 	}
 
 
@@ -134,12 +148,17 @@ func _apply_source_hand(side: String, curl: float, thumb: float) -> void:
 	# fist on top of it; keep the existing saved Gunsmith curl/wrap controls.
 	for finger in FINGER_NAMES:
 		var angles := Vector3(55.0, 75.0, 45.0)
+		var contact_curl := curl
+		if side == "Left" and source_rifle_grip and _surface_contact_allowed:
+			var result := SurfaceContact.limit_curl(skeleton, weapon, finger, curl)
+			surface_results[finger] = result
+			contact_curl = float(result.curl)
 		if side == "Right" and finger == "Index":
 			angles = Vector3(12.0, 30.0, 20.0)
 		for segment in range(1, 4):
 			var index := skeleton.find_bone("mixamorig_%sHand%s%d" % [side, finger, segment])
 			if index >= 0:
-				_apply_bone_delta(index, Quaternion(Vector3.RIGHT, deg_to_rad(angles[segment - 1] * curl)), true)
+				_apply_bone_delta(index, Quaternion(Vector3.RIGHT, deg_to_rad(angles[segment - 1] * contact_curl)), true)
 	# Oppose the thumb toward the middle finger rather than spreading it away.
 	var opposition := 1.0 if side == "Right" else -1.0
 	for segment in range(1, 4):

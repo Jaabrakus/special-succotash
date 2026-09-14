@@ -93,6 +93,9 @@ static func capture(source) -> Dictionary:
 		"action_trigger_contact_error_m": source.action_trigger_contact_error_m,
 		"action_support_contact_error_m": source.action_support_contact_error_m,
 		"support_hand_mode": source.support_hand_mode,
+		"source_support_contact_active": source.source_support_contact_active,
+		"source_support_contact_weight": source.source_support_contact_weight,
+		"source_support_reach_limited": source.source_support_reach_limited,
 		"pose_owners": pose_owners,
 		"ownership_conflicts": WeaponOwnershipContract.ownership_conflicts(
 			pose_owners,

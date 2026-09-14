@@ -417,7 +417,7 @@
     },
     "TWO_HAND_RIFLE": {
       "firing_standing": "seal_fp_stand",
-      "idle_standing": "seal_stand_alert02",
+      "idle_standing": "idle_rifle",
       "locomotion/walk_forward": "source_walk_alert",
       "locomotion/jog_forward": "jog_forward",
       "locomotion/jog_backward": "jog_backward",
@@ -459,7 +459,9 @@
   },
   "locomotion": {
     "source_three_tier": true,
+    "source_prone_backward": false,
     "source_idle_blending": true,
+    "source_runtime_timing": true,
     "m4_source_elbow_transport_max_degrees": 35.0,
     "grounded_gait_alignment": true,
     "forward_run_hip_balance": true,

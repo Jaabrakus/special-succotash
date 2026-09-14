@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "feature_id": "source_pose_height",
+  "player_intent": "Use original stationary stance pelvis height on the selected source-proportioned soldier without compensating with camera or scale.",
+  "acceptance_rule": "Canonical main consumes the 21-source saved height profile through the existing asset builder. Approved hip Y keys match independent source FK while all rotations, XZ, other keys, timestamps, visual scale and collision remain unchanged. Unsupported, malformed and private jump clips remain untouched.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://main.tscn",
+  "ownership": {"animation_resource_build": "SocomOperatorAssetRuntime", "bone_pose_playback": "existing operator AnimationTree"},
+  "nodes": [
+    {"id": "canonical_operator", "type": "Node3D", "role": "Existing player presentation owner builds the shared library; no additional pose writer.", "owner": "SocomOperatorAssetRuntime", "scene_path": "res://scenes/player/operator_player.tscn", "node_path": "Mannequin/ProductionAnimation"},
+    {"id": "height_resource_adapter", "type": "AnimationLibrary", "role": "Build-time Y-only adaptation before the existing library is installed for AnimationTree playback.", "owner": "SocomOperatorAssetRuntime", "source_script": "res://scripts/player/operator_asset_runtime.gd", "code_symbols": ["_build_animation_library()", "preload(\"res://scripts/player/operator_source_pose_height.gd\").adapt(animation_library, skeleton)", "animation_player.add_animation_library(\"\", animation_library)"]}
+  ],
+  "data_contracts": [
+    {"path": "res://config/source_pose_heights.json", "writer": "res://tools/build_source_pose_heights.cjs", "readers": ["res://scripts/player/operator_source_pose_height.gd"]},
+    {"path": "res://config/operator_animation_map.json", "writer": "res://scripts/player/operator_animation_profile.gd", "readers": ["res://scripts/player/operator_asset_runtime.gd"]}
+  ],
+  "must_not_change": ["CharacterBody movement and collision", "camera and aim", "server weapon and damage", "original animation assets", "65-bone skeleton and rest transforms", "rotation and XZ keys", "key timing", "jump, traversal, ladder and reload", "saved source visual scale"],
+  "proof_scripts": ["res://tools/source_pose_height_regression.gd", "res://tools/source_pose_height_main_regression.gd", "res://tools/source_rifle_default_idle_regression.gd"],
+  "visual_check": "Inspect actual main standing/ready/fire, crouch and prone on the selected skinned character. Parent camera render pass provides display-backed proof; numerical height parity alone is not full pose or skin parity.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Connect independently proven original pelvis heights at the existing canonical asset-build boundary, without a second pose writer or camera compensation.",
+    "current": {"system": "Validated offline stationary height adapter", "correctness": 4, "ownership_clarity": 5, "runtime_parity": 1, "editor_usability": 3, "performance": 5, "regression_coverage": 4, "evidence_paths": ["res://scripts/player/operator_source_pose_height.gd", "res://tools/source_pose_height_regression.gd", "res://docs/SOURCE_POSE_HEIGHT_ADAPTER.md"]},
+    "candidate": {"system": "Canonical asset-build height adaptation", "correctness": 4, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 3, "performance": 5, "regression_coverage": 5, "evidence_paths": ["res://scripts/player/operator_asset_runtime.gd", "res://config/source_pose_heights.json", "res://tools/source_pose_height_main_regression.gd", "res://tools/source_rifle_default_idle_regression.gd"]}
+  }
+}

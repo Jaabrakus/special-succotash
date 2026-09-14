@@ -1,5 +1,16 @@
 # Source-informed grounded blending, first pass
 
+## Current follow-up (2026-09-13)
+
+The first-pass interpretation below is historical. Executing the original reader
+and blend instructions now verifies idle `playback` as a period in seconds when
+`max_velocity < 0`, and the transition weight as quadratic ease-in/out. The
+canonical AnimationTree now consumes those rules. See
+[current implementation and proof](SOURCE_ANIMATION_MATCH_PASS_20260913.md) and
+[original instruction fixtures](SOURCE_BLEND_RUNTIME_AUDIT.md). The update does
+not establish full state-selection, procedural-pose or camera equality; the
+remaining historical limitations are not silently promoted to verified facts.
+
 Translation card (2026-09-12): begin matching source motion, without claiming a
 complete port of the original controller. Acceptance: actual standing rifle idle
 uses its recorded BlendTime (0.5 seconds); 6.5 m/s running plays at 1x; releasing

@@ -6,6 +6,7 @@ extends RefCounted
 
 const CATALOG_PATH := "res://config/weapons/recom_weapons_catalog.json"
 const EXTENSIONS_PATH := "res://config/weapon_roster_extensions.json"
+const SOURCE_ARSENAL_PATH := "res://config/source_weapon_arsenal.json"
 
 static var _cached_catalog: Dictionary = {}
 
@@ -23,7 +24,44 @@ static func get_catalog() -> Dictionary:
 	if parsed is Dictionary:
 		_cached_catalog = parsed as Dictionary
 		_append_registered_profiles(_cached_catalog)
+		_append_source_arsenal(_cached_catalog)
 	return _cached_catalog
+
+
+static func source_arsenal_ids() -> Array[String]:
+	var result: Array[String] = []
+	if not FileAccess.file_exists(SOURCE_ARSENAL_PATH): return result
+	var registry: Variant = JSON.parse_string(FileAccess.get_file_as_string(SOURCE_ARSENAL_PATH))
+	if not registry is Dictionary or int(registry.get("schema_version", 0)) != 1: return result
+	for entry: Dictionary in registry.get("entries", []):
+		var id := String(entry.get("id", ""))
+		if id.begins_with("s2_") and id.get_file() == id and "." not in id and not result.has(id):
+			result.append(id)
+	return result
+
+
+static func _append_source_arsenal(catalog: Dictionary) -> void:
+	# Explicit standalone asset variants. Do not expand the competitive pool or
+	# overwrite existing calibrated IDs through the curated roster's filter.
+	var records: Array = catalog.get("weapons", [])
+	var categories: Dictionary = catalog.get("categories", {})
+	var names: Dictionary = catalog.get("public_display_names", {})
+	for id: String in source_arsenal_ids():
+		var path := "res://config/weapons/%s.json" % id
+		var profile: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
+		if not profile is Dictionary or String(profile.get("weapon_id", "")) != id or not profile.has("source_asset"):
+			push_error("Invalid extracted arsenal profile: " + path)
+			continue
+		profile["armory_eligible"] = true
+		profile["competitive_eligible"] = false
+		records.append(profile)
+		names[id] = String(profile.display_name)
+		var category := String(profile.category)
+		categories[category] = int(categories.get(category, 0)) + 1
+	catalog["weapons"] = records
+	catalog["categories"] = categories
+	catalog["public_display_names"] = names
+	catalog["total_items"] = records.size()
 
 
 static func _append_registered_profiles(catalog: Dictionary) -> void:

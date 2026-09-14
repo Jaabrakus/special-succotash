@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "feature_id": "source_firearm_materials",
+  "player_intent": "Verified source firearms pass explicitly classified thin cover, stop on unknown cover, and damage each anatomical receiver once per pellet using the original health equations.",
+  "acceptance_rule": "The shared saved material coefficients reach both shot owners. Actual main-scene M4 shots continue through WOOD_THIN to ordered targets, while UNKNOWN blocks damage. Receiver pools equal source-equation replay without a cover HP multiplier. Saved map source_material properties reach primitive and imported collision bodies; absent or malformed tags remain unknown.",
+  "canonical_scene": "res://main.tscn",
+  "translation_card": {
+    "intent": "Finish tests and contract for the source material adapter. A failing main proof exposed lost primitive tags; the runtime owner separately fixed that gap under the card in docs/SOURCE_COMBAT_PARITY_20260913.md.",
+    "acceptance": "Headless real-main material shots, per-pellet receiver deduplication, exact receiver health-pool replay, map metadata propagation, trace, server authority and muzzle-obstruction regressions pass.",
+    "system_owner": "SocomWeaponBallistics delegates ordered geometry queries to SourceFirearmTrace; existing local/server adapters alone apply damage.",
+    "must_not_change": "No weapon profile, animation, camera, movement, live process, deployed build or saved map edits. Only the existing map builder's missing metadata handoff changes under the separately recorded root-owned card.",
+    "focused_proof": "Extend only tools/source_firearm_main_regression.gd; add this contract and run its listed proof scripts. A separate proof scene instance does not update the user's open game."
+  },
+  "ownership": {
+    "shot": "SocomWeaponBallistics",
+    "geometry_query": "SourceFirearmTrace, stateless helper called by the shot owner",
+    "damage": "existing authoritative weapon and receiver adapters",
+    "map_collision": "SocomMapRuntime and its existing builders"
+  },
+  "nodes": [
+    {
+      "id": "ballistics",
+      "type": "Node",
+      "owner": "SocomWeaponBallistics",
+      "role": "Consume the saved source policy and material coefficients for each source projectile",
+      "source_script": "res://scripts/weapons/weapon_ballistics.gd",
+      "code_symbols": ["source_materials = SourceFirearmPolicy.material_coefficients()", "SourceTrace.trace(space, muzzle, direction, max_range, combat.piercing, excludes, source_materials)", "damage_impacts"]
+    },
+    {
+      "id": "local_damage_adapter",
+      "type": "Node",
+      "owner": "SocomWeaponController",
+      "role": "Apply each returned receiver impact once without legacy cover damage scaling",
+      "source_script": "res://scripts/weapons/socom_weapon_controller.gd",
+      "code_symbols": ["for impact: Dictionary in projectile.damage_impacts:", "_apply_projectile_damage(impact.hit_collider, impact, 1.0, muzzle)"]
+    },
+    {
+      "id": "server_damage_adapter",
+      "type": "Node",
+      "owner": "SocomMultiplayerSession",
+      "role": "Consume material contacts under existing receiver/team authority and apply original damage once",
+      "source_script": "res://scripts/network/socom_multiplayer_combat.gd",
+      "code_symbols": ["for contact: Dictionary in contacts: shot_candidates.append(contact)", "_shot_can_damage_peer(peer_id, int(receiver.network_peer_id))", "receiver.take_source_bullet_damage(projectile.source_combat, StringName(impact.region), peer_id)"]
+    },
+    {
+      "id": "canonical_map_collider",
+      "type": "StaticBody3D",
+      "owner": "SocomMapRuntime",
+      "role": "Route ordinary primitive map collision owners through the same saved metadata handoff",
+      "source_script": "res://scripts/maps/socom_map_runtime.gd",
+      "code_symbols": ["Geometry._set_object_meta(body, object)"]
+    },
+    {
+      "id": "primitive_map_collider",
+      "type": "StaticBody3D",
+      "owner": "SocomMapRuntime",
+      "role": "Preserve explicit saved source material metadata on primitive collision owners",
+      "source_script": "res://scripts/maps/socom_map_geometry.gd",
+      "code_symbols": ["if properties.get(\"source_material\") is String:", "node.set_meta(\"source_material\", properties.source_material)"]
+    },
+    {
+      "id": "imported_map_collider",
+      "type": "StaticBody3D",
+      "owner": "SocomMapRuntime",
+      "role": "Propagate an explicitly uniform source material to imported collision bodies",
+      "source_script": "res://scripts/maps/socom_imported_map_asset_builder.gd",
+      "code_symbols": ["body.set_meta(\"source_material\", properties.source_material)", "collider.set_meta(\"source_material\", properties.source_material)"]
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://config/source_firearm_policy.json",
+      "writer": "res://tools/build_source_firearm_policy.cjs",
+      "readers": ["res://scripts/weapons/source_firearm_policy.gd", "res://scripts/weapons/weapon_ballistics.gd"]
+    },
+    {
+      "path": "res://config/maps/current_map.json",
+      "writer": "res://scripts/maps/socom_map_document.gd",
+      "readers": ["res://scripts/maps/socom_map_runtime.gd", "res://scripts/maps/socom_map_geometry.gd", "res://scripts/maps/socom_imported_map_asset_builder.gd"]
+    }
+  ],
+  "must_not_change": ["CharacterBody3D movement/collision ownership", "camera/reticle aim ownership", "server shot and damage authority", "ammunition/cadence", "untagged surfaces remain blocking", "live user processes", "weapon models and animation"],
+  "proof_scripts": ["res://tools/source_firearm_trace_regression.gd", "res://tools/source_firearm_main_regression.gd", "res://tools/source_damage_authority_regression.gd", "res://tools/muzzle_obstruction_regression.gd"],
+  "visual_check": "Optional separate main-scene capture shows only actual render output. Numeric material/damage checks do not establish animation quality or complete original collision ordering.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "The existing source trace has executable-equation and physics fixtures. Main proof exposed ordinary primitive tags being dropped; route the canonical builder through its existing metadata helper, then verify cover/receiver and map-data behavior without altering owners. Closest-hit/exclusion geometry is still a documented Godot adapter, not the original engine's full contact ordering.",
+    "current": {"system": "Integrated source trace with fixture coverage", "correctness": 4, "ownership_clarity": 5, "runtime_parity": 4, "editor_usability": 3, "performance": 4, "regression_coverage": 3, "evidence_paths": ["res://scripts/combat/source_firearm_trace.gd", "res://tools/source_firearm_trace_regression.gd", "res://docs/SOURCE_FIREARM_TRACE_ADAPTER.md"]},
+    "candidate": {"system": "Same runtime plus main-scene cover, health-pool, metadata and deduplication proof", "correctness": 4, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 4, "regression_coverage": 5, "evidence_paths": ["res://scripts/combat/source_firearm_trace.gd", "res://tools/source_firearm_main_regression.gd", "res://tools/source_damage_authority_regression.gd"]}
+  }
+}

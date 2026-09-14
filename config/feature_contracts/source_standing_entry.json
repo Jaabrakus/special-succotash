@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "feature_id": "source_standing_entry",
+  "player_intent": "Relaxed standing rifle idle enters movement with the original SOCOM II blend duration and curve.",
+  "acceptance_rule": "Eligible settled idle-to-standing entry uses the proven Walk default 0.4s and original quadratic curve through the existing AnimationTree. Repeated input does not reset it. No movement delay, pose freeze or phase seek is added. All other modes and action owners retain prior behavior; this is a bounded timing correction, not full game parity.",
+  "canonical_scene": "res://main.tscn",
+  "ownership": {"animation": "ProductionAnimation"},
+  "nodes": [{"id": "animation_driver", "type": "Node3D", "owner": "ProductionAnimation", "role": "Single AnimationTree owner consumes actual movement state", "scene_path": "res://scenes/player/operator_player.tscn", "node_path": "Mannequin/ProductionAnimation"}],
+  "data_contracts": [{"path": "res://config/source_animation_runtime.json", "writer": "res://docs/SOURCE_STANDING_ENTRY_INTEGRATION.md", "readers": ["res://scripts/player/operator_source_animation_runtime.gd", "res://scripts/player/operator_locomotion_blend_tree.gd"]}],
+  "must_not_change": ["CharacterBody movement and collision", "Camera and aim", "Server shots/damage and action clocks", "Original assets", "Readiness and speed selection", "Snapshot and phase-transfer scope", "Other stance/action entries"],
+  "proof_scripts": ["res://tools/source_standing_entry_audit.cjs", "res://tools/source_standing_entry_regression.gd", "res://tools/source_standing_entry_main_regression.gd", "res://tools/source_grounded_blending_regression.gd", "res://tools/source_pistol_phase_regression.gd"],
+  "visual_check": "Native main forward and diagonal movement entry early/middle/late, rear and side views; check finite posed body and attached rifle. Stills alone cannot prove original blending.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Decode the independently proven default-mode Walk duration and curve without replacing any runtime owner.",
+    "current": {"system": "Generic standing entry fade", "correctness": 2, "ownership_clarity": 5, "runtime_parity": 3, "editor_usability": 4, "performance": 5, "regression_coverage": 3, "evidence_paths": ["res://docs/SOURCE_STANDING_ENTRY_AUDIT.md"]},
+    "candidate": {"system": "Source-proven bounded standing entry fade", "correctness": 4, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 5, "regression_coverage": 5, "evidence_paths": ["res://scripts/player/operator_locomotion_blend_tree.gd", "res://tools/source_standing_entry_regression.gd", "res://tools/source_standing_entry_main_regression.gd"]}
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "feature_id": "source_animation_runtime",
+  "player_intent": "Match decoded native animation periods and the original grounded idle blend curve in the playable game.",
+  "acceptance_rule": "Intact source loops consume verified reader periods through AnimationTree custom timelines without changing source files. Rifle idle is6 seconds, crouch5, pistol idle5. Source-grounded rifle idle arrivals use quadratic ease-in/out. Actions, held clips and source jump windows retain their existing clocks; old presets opt out. This is period and curve parity, not frozen outgoing pose or universal source-selection parity.",
+  "canonical_scene": "res://main.tscn",
+  "ownership": {"animation": "ProductionAnimation"},
+  "nodes": [{"id": "animation_driver", "type": "Node3D", "owner": "ProductionAnimation", "role": "Sole animation graph consumes source timing after authoritative movement input", "scene_path": "res://scenes/player/operator_player.tscn", "node_path": "Mannequin/ProductionAnimation"}],
+  "data_contracts": [
+    {"path": "res://config/source_animation_runtime.json", "writer": "res://docs/SOURCE_ANIMATION_MATCH_PASS_20260913.md", "readers": ["res://scripts/player/operator_source_animation_runtime.gd", "res://scripts/player/operator_locomotion_blend_tree.gd"]},
+    {"path": "res://config/operator_animation_map.json", "writer": "res://scripts/player/operator_animation_profile.gd", "readers": ["res://scripts/player/operator_animation_profile.gd", "res://scripts/player/operator_locomotion_blend_tree.gd"]}
+  ],
+  "must_not_change": ["CharacterBody movement/collision", "Hybrid camera/reticle aim", "Server shot/damage/reload timing", "Source asset values/key times", "Traversal/jump/action clock ownership"],
+  "proof_scripts": ["res://tools/source_animation_runtime_regression.gd", "res://tools/source_animation_runtime_main_regression.gd", "res://tools/source_blend_runtime_audit.cjs"],
+  "visual_check": "Native main movement-to-idle early/middle/late snapshots with current skinned character; fire and reload return. Source curve alone must not be claimed a frozen outgoing pose.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Pinned original instruction fixtures establish reader periods and quadratic weights. Configure existing AnimationTree resources; no new clock or Skeleton writer.",
+    "current": {"system": "Raw-duration source loops and linear fades", "correctness": 2, "ownership_clarity": 5, "runtime_parity": 3, "editor_usability": 3, "performance": 5, "regression_coverage": 3, "evidence_paths": ["res://docs/SOURCE_GROUNDED_BLENDING.md"]},
+    "candidate": {"system": "Decoded loop periods and curve in canonical graph", "correctness": 4, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 5, "regression_coverage": 5, "evidence_paths": ["res://scripts/player/operator_source_animation_runtime.gd", "res://tools/source_animation_runtime_regression.gd", "res://tools/source_blend_runtime_audit.cjs"]}
+  }
+}

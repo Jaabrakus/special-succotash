@@ -1,5 +1,6 @@
 .godot/
 .DS_Store
+._*
 tmp/
 tools/apple_mocap/apple_mocap_extract
 
@@ -37,3 +38,8 @@ counter-strike-urban/
 
 # Generated UID for a removed one-off diagnostic script.
 tools/tmp_head_rotation_diagnostic.gd.uid
+
+# Local full-disc recovery: keep source bytes out of accidental GitHub pushes.
+/art_source/socom2_complete_raw_20260913/
+/art_source/socom2_complete_motion_20260913/
+/art_source/socom2_motion_raw_20260913/

@@ -2,10 +2,15 @@ extends SceneTree
 
 const MultiplayerScene := preload("res://multiplayer_slice.tscn")
 const NetworkOperator := preload("res://scripts/network/socom_network_operator.gd")
+const SourcePolicy := preload("res://scripts/weapons/source_firearm_policy.gd")
+const SourceDamage := preload("res://scripts/combat/source_firearm_damage.gd")
 
 var failures: Array[String] = []
 var shot_signal_count := 0
 var last_shot_origin := Vector3.ZERO
+var last_shot_impact := Vector3.ZERO
+var checks := 0
+var completed_material_cases := 0
 
 
 func _initialize() -> void:
@@ -143,8 +148,109 @@ func _run() -> void:
 		last_shot_origin.distance_to(clear_server_muzzle) < 0.001,
 		"server ballistics trace starts at the authoritative muzzle"
 	)
+	# This collision fixture has no floor. Hold its actors stationary during the
+	# added cadence waits instead of letting test-only free fall move the lane.
+	shooter.set_physics_process(false)
+	target.set_physics_process(false)
+	await _cover_packet(slice, peer_id, shooter, target, ballistics, source_config, server_direction, "WOOD_THIN", 3)
+	await _cover_packet(slice, peer_id, shooter, target, ballistics, source_config, server_direction, "UNKNOWN", 4)
 
 	_finish(slice)
+
+
+func _cover_packet(slice: Node, peer_id: int, shooter: SocomNetworkOperator, target: SocomNetworkOperator,
+		ballistics: Node, source_config: Dictionary, direction: Vector3, material_name: String, sequence: int) -> void:
+	var label := "server material " + material_name
+	# Retain the real fire interval and let its existing owner advance it.
+	for _frame in 120:
+		if float(ballistics.get("fire_cooldown")) <= 0.0: break
+		await physics_frame
+	_expect(float(ballistics.get("fire_cooldown")) <= 0.0, label + " waits for authoritative cadence")
+	target.respawn_at(target.global_position)
+	var muzzle := (shooter.mannequin.get_active_muzzle_marker() as Node3D).global_position
+	var wall := _make_cover_beyond(muzzle, direction, material_name)
+	slice.add_child(wall)
+	_align_target_torso(target, muzzle + direction * 8.0)
+	await physics_frame
+	await physics_frame
+	muzzle = (shooter.mannequin.get_active_muzzle_marker() as Node3D).global_position
+	wall.global_transform = Transform3D(Basis.looking_at(direction, Vector3.UP), muzzle + direction * 3.0)
+	wall.force_update_transform()
+	_align_target_torso(target, muzzle + direction * 8.0)
+	_expect((wall.global_position - muzzle).dot(direction) > 2.5,
+		label + " cover remains safely beyond muzzle, not between anchor and muzzle")
+	if slice.get("operator_state_history") != null: slice.operator_state_history.clear()
+	var anchor: Vector3 = slice.call("_authoritative_shot_report_anchor", shooter)
+	var packet := _aim_packet(sequence, anchor, direction)
+	var ammo_before := int(slice.server_magazine_ammo.get(peer_id, -1))
+	var signals_before := shot_signal_count
+	var diagnostic_excludes: Array[RID] = [shooter.get_rid()]
+	if shooter.hurtbox_rig: diagnostic_excludes.append_array(shooter.hurtbox_rig.get_hurtbox_rids())
+	var diagnostic: Dictionary = ballistics.call("_trace_source_projectile", muzzle, direction,
+		slice.get_world_3d().direct_space_state, diagnostic_excludes)
+	var diagnostic_rows: Array = []
+	for contact: Dictionary in diagnostic.get("penetrations", []):
+		diagnostic_rows.append({"collider": String(contact.collider.name), "material": contact.source_material,
+			"distance": muzzle.distance_to(contact.entry_pos), "range_after": contact.range_after,
+			"region": String(contact.collider.call("get_hit_region")) if contact.collider.has_method("get_hit_region") else ""})
+	print("SERVER_MATERIAL_QUERY ", material_name, " contacts=", diagnostic_rows,
+		" can_damage=", slice.call("_shot_can_damage_peer", peer_id, target.network_peer_id),
+		" receiver_alive=", target.alive, " history=", slice.operator_state_history.size(),
+		" torso=", target.hurtbox_rig.get_region_area(&"TORSO").global_position,
+		" desired=", muzzle + direction * 8.0, " enabled=", target.hurtbox_rig.enabled,
+		" layer=", target.hurtbox_rig.get_region_area(&"TORSO").collision_layer)
+	slice.call("_server_process_shot", peer_id, packet)
+	_expect(String(slice.last_rejected_shot_reason.get(peer_id, "not processed")) == "",
+		label + " accepted packet with unobstructed muzzle")
+	_expect(int(slice.server_magazine_ammo.get(peer_id, -1)) == ammo_before - 1,
+		label + " consumes exactly one authoritative round")
+	_expect(shot_signal_count == signals_before + 1, label + " one ballistics signal")
+	_expect(last_shot_origin.distance_to(muzzle) < 0.001, label + " actual authoritative muzzle origin")
+	_expect(absf((last_shot_impact - wall.global_position).dot(direction)) <= 0.06,
+		label + " first physical impact is on the cover plane")
+	if material_name == "WOOD_THIN":
+		var expected := SourceDamage.new()
+		_expect(expected.initialize(SourcePolicy.multiplayer_defaults()), label + " source MP fixture initializes")
+		var combat: Dictionary = SourcePolicy.resolve(source_config).combat
+		_expect(float(combat.effective_range_m) > 8.0, label + " close target is inside effective range")
+		expected.apply_projectile(combat.impact_damage, combat.damage_modifier, combat.piercing,
+			8.0, combat.effective_range_m, combat.maximum_range_m, &"body")
+		_expect(target.source_health != null, label + " actual server target uses source pools")
+		if target.source_health != null:
+			_expect(target.source_health.snapshot() == expected.snapshot(),
+				label + " exact one-body-hit six pools; no cover HP multiplier or duplicate damage")
+		_expect(is_equal_approx(target.current_health, target.max_health * expected.weighted_health_ratio()),
+			label + " authoritative health equals original source equation")
+	else:
+		_expect(target.current_health == target.max_health, label + " unknown cover blocks all target damage")
+		_expect(target.source_health == null, label + " unknown cover allocates no source damage state")
+	var health_after := target.current_health
+	var pools_after: Dictionary = target.source_health.snapshot() if target.source_health != null else {}
+	slice.call("_server_process_shot", peer_id, packet)
+	_expect(String(slice.last_rejected_shot_reason.get(peer_id, "")) == "STALE_SEQUENCE",
+		label + " replay rejected")
+	_expect(int(slice.server_magazine_ammo.get(peer_id, -1)) == ammo_before - 1 \
+		and shot_signal_count == signals_before + 1, label + " replay cannot spend/fire twice")
+	_expect(target.current_health == health_after \
+		and (target.source_health.snapshot() if target.source_health != null else {}) == pools_after,
+		label + " replay leaves every health/armor pool unchanged")
+	wall.queue_free()
+	await physics_frame
+	await physics_frame
+	completed_material_cases += 1
+
+
+func _make_cover_beyond(muzzle: Vector3, direction: Vector3, material_name: String) -> StaticBody3D:
+	var wall := StaticBody3D.new()
+	wall.name = "AuthoritativeMaterialCover_" + material_name
+	wall.set_meta("source_material", material_name)
+	var shape_node := CollisionShape3D.new()
+	var shape := BoxShape3D.new()
+	shape.size = Vector3(2.0, 2.0, 0.1)
+	shape_node.shape = shape
+	wall.add_child(shape_node)
+	wall.transform = Transform3D(Basis.looking_at(direction, Vector3.UP), muzzle + direction * 3.0)
+	return wall
 
 
 func _aim_packet(sequence: int, reported_anchor: Vector3, direction: Vector3) -> Dictionary:
@@ -189,12 +295,14 @@ func _make_wall_between(anchor: Vector3, muzzle: Vector3) -> StaticBody3D:
 	return wall
 
 
-func _on_server_shot_fired(origin: Vector3, _impact: Vector3, _hit: bool) -> void:
+func _on_server_shot_fired(origin: Vector3, impact: Vector3, _hit: bool) -> void:
 	shot_signal_count += 1
 	last_shot_origin = origin
+	last_shot_impact = impact
 
 
 func _expect(condition: bool, message: String) -> void:
+	checks += 1
 	if condition:
 		print("MUZZLE_OBSTRUCTION_CHECK PASS: %s" % message)
 	else:
@@ -203,10 +311,12 @@ func _expect(condition: bool, message: String) -> void:
 
 
 func _finish(slice: Node) -> void:
+	_expect(completed_material_cases == 2, "both authoritative material packet cases completed")
 	if slice != null:
 		slice.queue_free()
+	await create_timer(0.15).timeout # Let the audio thread release its queued playbacks.
 	if failures.is_empty():
-		print("MUZZLE_OBSTRUCTION_REGRESSION PASS")
+		print("MUZZLE_OBSTRUCTION_REGRESSION PASS checks=", checks)
 		quit(0)
 	else:
 		print("MUZZLE_OBSTRUCTION_REGRESSION FAIL: %d issue(s)" % failures.size())

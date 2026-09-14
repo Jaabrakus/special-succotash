@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "feature_id": "public_iso_weapon_visuals",
+  "player_intent": "Use the matching extracted SOCOM II weapons in the default and public loadouts.",
+  "acceptance_rule": "Twelve existing public weapon IDs resolve through Gunsmith to matching source meshes and sockets, visible on equip and fire in main.tscn. IDs, roster, stats, firearm policy and authored handling clocks remain unchanged. This is a visual migration, not a claim of source damage or perfect skinned grips.",
+  "canonical_scene": "res://main.tscn",
+  "ownership": {"visual_assignment": "GunsLab2VisualRigResolver", "held_object": "SocomOperatorAssetRuntime"},
+  "nodes": [{"id": "held_weapon", "type": "Node3D", "owner": "SocomOperatorAssetRuntime", "role": "Existing held weapon mount consumes the resolved source model.", "source_script": "res://scripts/player/operator_asset_runtime.gd", "code_symbols": ["CalibratedWeaponPivot", "WeaponMesh"]}],
+  "data_contracts": [{"path": "res://config/public_iso_weapon_migration.json", "writer": "res://tools/prepare_public_iso_weapon_migration.cjs", "readers": ["res://tools/public_iso_weapon_migration_regression.gd"]}, {"path": "res://config/weapons/m4a1.json", "writer": "res://scripts/labs/gunsmith/gunsmith_recom_catalog_adapter.gd", "readers": ["res://scripts/weapons/weapon_rig_contract.gd"]}, {"path": "res://config/weapon_visual_rigs/iso_public_m4a1_v1.json", "writer": "res://scripts/labs/gunsmith2/weapon_visual_rig_contract.gd", "readers": ["res://scripts/labs/gunsmith2/weapon_visual_rig_resolver.gd"]}],
+  "must_not_change": ["CharacterBody movement", "camera/aim", "server damage", "public IDs and round pool", "reload timing", "animation slots"],
+  "proof_scripts": ["res://tools/public_iso_weapon_migration_regression.gd", "res://tools/source_weapon_arsenal_regression.gd", "res://tools/core_weapon_roster_regression.gd"],
+  "visual_check": "Inspect early/middle/late standing, crouched and prone fire for migrated M4, AK and Mark 23 from rear and side; distinguish visible source geometry from unverified skin contacts.",
+  "system_delta": {"decision": "MERGE", "reason": "Use existing visual resolver instead of adding a competing model override; preserve old rigs for comparison.", "current": {"system": "Source selections alongside legacy public visuals", "correctness": 2, "ownership_clarity": 5, "runtime_parity": 3, "editor_usability": 4, "performance": 5, "regression_coverage": 3, "evidence_paths": ["res://docs/SOURCE_WEAPON_ARSENAL.md", "res://config/weapons/operator_loadout.json"]}, "candidate": {"system": "Explicit source visual assignments for existing public IDs", "correctness": 4, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 5, "regression_coverage": 4, "evidence_paths": ["res://config/public_iso_weapon_migration.json", "res://tools/public_iso_weapon_migration_regression.gd"]}}
+}

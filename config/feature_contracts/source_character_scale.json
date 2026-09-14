@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "feature_id": "source_character_scale",
+  "player_intent": "Match the selected ISO-proportioned soldier skeleton to verified source-world size without resizing other characters or gameplay collision.",
+  "acceptance_rule": "Actual main modern_soldier_iso uses uniform visual scale60.48790231 and source rest head-to-ankle span1.652060843m; exact-scene overrides and editor save round trips preserve other models/global64 and malformed entries fall back safely. Movement capsule and camera remain unchanged.",
+  "canonical_scene": "res://main.tscn",
+  "editor_scene": "res://main.tscn",
+  "ownership": {
+    "saved_visual_scale": "SocomOperatorTuningProfile",
+    "visual_transform": "SocomOperatorAssetRuntime"
+  },
+  "nodes": [
+    {
+      "id": "production_visual",
+      "type": "Node3D",
+      "role": "Existing model-scale owner receives resolved character-specific tuning.",
+      "owner": "SocomOperatorAssetRuntime",
+      "source_script": "res://scripts/player/operator_asset_runtime.gd",
+      "code_symbols": ["func set_operator_scale", "model_root.scale = Vector3.ONE * operator_scale"]
+    },
+    {
+      "id": "scale_editor",
+      "type": "HSlider",
+      "role": "Existing studio slider displays and saves the same selected model override.",
+      "owner": "SocomOperatorTuningProfile",
+      "source_script": "res://scripts/runtime/main_animation_studio.gd",
+      "code_symbols": ["var scale_slider := HSlider.new()", "TuningProfile.set_operator_scale", "TuningProfile.operator_scale"]
+    }
+  ],
+  "data_contracts": [
+    {
+      "path": "res://config/operator_movement_tuning.json",
+      "writer": "res://scripts/runtime/main_animation_studio.gd",
+      "readers": ["res://scripts/runtime/operator_tuning_profile.gd"]
+    }
+  ],
+  "must_not_change": ["CharacterBody movement", "collision capsule", "camera aim", "weapon damage", "network authority", "source meshes and skins"],
+  "proof_scripts": ["res://tools/source_character_scale_regression.gd", "res://tools/source_character_scale_audit.gd"],
+  "visual_check": "Inspect main-game standing, crouch, prone and weapon contacts from two angles. Known below-ground crouch/prone skin remains a separate failure; resized modern artwork is not the original mesh or complete camera parity.",
+  "system_delta": {
+    "decision": "MERGE",
+    "reason": "Apply measured source-unit correction through the same saved scale path, scoped to the actual selected scene, without a new transform writer or resizing unrelated models.",
+    "current": {"system": "Global64 visual scale", "correctness": 2, "ownership_clarity": 5, "runtime_parity": 4, "editor_usability": 3, "performance": 5, "regression_coverage": 2, "evidence_paths": ["res://scripts/runtime/operator_tuning_profile.gd", "res://docs/SOURCE_CHARACTER_SCALE_AUDIT.md"]},
+    "candidate": {"system": "Measured per-scene scale in shared tuning", "correctness": 4, "ownership_clarity": 5, "runtime_parity": 5, "editor_usability": 4, "performance": 5, "regression_coverage": 4, "evidence_paths": ["res://config/operator_movement_tuning.json", "res://scripts/runtime/operator_tuning_profile.gd", "res://scripts/runtime/main_animation_studio.gd", "res://tools/source_character_scale_regression.gd"]}
+  }
+}

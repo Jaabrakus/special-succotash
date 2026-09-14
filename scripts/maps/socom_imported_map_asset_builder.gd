@@ -66,6 +66,11 @@ static func build(object: Dictionary, editor_preview: bool) -> Node3D:
 			var mesh_instance := found as MeshInstance3D
 			if mesh_instance.mesh != null:
 				mesh_instance.create_trimesh_collision()
+	# Explicit saved uniform-collider material only. No texture/name inference.
+	if properties.get("source_material") is String:
+		body.set_meta("source_material", properties.source_material)
+		for collider: Node in content.find_children("*", "StaticBody3D", true, false):
+			collider.set_meta("source_material", properties.source_material)
 	return body
 
 

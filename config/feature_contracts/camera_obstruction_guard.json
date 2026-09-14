@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "feature_id": "camera_obstruction_guard",
+  "player_intent": "Camera release remains stable and error-free when an obstructing wall is removed.",
+  "acceptance_rule": "The existing short release guard retains its legal endpoint and timing. The state consumer validates retained collider and cutout Variants before casting: freed, missing and non-Node3D values become null, live nodes retain identity, and all remaining result fields finish updating without changing aim.",
+  "canonical_scene": "res://main.tscn",
+  "ownership": {"camera_collision_and_state": "SocomCameraRig"},
+  "nodes": [
+    {"id":"camera", "type":"Node3D", "owner":"SocomCameraRig", "role":"Existing camera owns collision, obstruction release and state consumption", "scene_path":"res://main.tscn", "node_path":"IndependentCameraRig"}
+  ],
+  "data_contracts": [
+    {"path":"res://scripts/camera/camera_profile.gd", "writer":"res://docs/CAMERA_OBSTRUCTION_LIFETIME.md", "readers":["res://scripts/camera/camera_frame_pipeline.gd", "res://scripts/camera/camera_state_controller.gd"]}
+  ],
+  "must_not_change": ["physical collision validation", "obstruction release duration", "camera framing and source math", "aim intent", "CharacterBody movement", "animation", "server shot and damage authority"],
+  "proof_scripts": ["res://tools/camera_obstruction_guard_regression.gd", "res://tools/main_source_gameplay_camera_regression.gd"],
+  "visual_check": "Through main.tscn, obstruct the camera with a real temporary wall, remove that wall, and confirm legal held-to-clear release without a freed-object script error or aim changes.",
+  "system_delta": {
+    "decision":"MERGE",
+    "reason":"Native main wall-removal proof reproduced a stale retained Object cast. Validate only the two optional object references at the existing consumer; preserve collision result positions and timing.",
+    "current":{"system":"Retained obstruction dictionary with unguarded node cast", "correctness":2, "ownership_clarity":5, "runtime_parity":5, "editor_usability":4, "performance":5, "regression_coverage":3, "evidence_paths":["res://scripts/camera/camera_state_controller.gd", "res://scripts/camera/camera_frame_pipeline.gd"]},
+    "candidate":{"system":"Lifetime-safe retained collision result consumer", "correctness":5, "ownership_clarity":5, "runtime_parity":5, "editor_usability":4, "performance":5, "regression_coverage":5, "evidence_paths":["res://scripts/camera/camera_state_controller.gd", "res://tools/camera_obstruction_guard_regression.gd"]}
+  }
+}

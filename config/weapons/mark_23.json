@@ -1,4 +1,6 @@
 {
+  "visual_rig_id": "iso_public_mark_23_v1",
+  "visual_rig_schema_version": 1,
   "ammo_spec": {
     "impact_damage": 3.0,
     "piercing": 4.0,

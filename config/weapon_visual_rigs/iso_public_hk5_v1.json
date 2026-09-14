@@ -1,0 +1,290 @@
+{
+  "schema_version": 1,
+  "visual_rig_id": "iso_public_hk5_v1",
+  "revision": 1,
+  "status": "published",
+  "family": "TWO_HAND_RIFLE",
+  "source_model_fbx": "res://assets/weapons/socom2_arsenal/s2_hk5.scn",
+  "visual": {
+    "model_fbx": "res://assets/weapons/socom2_arsenal/s2_hk5.scn",
+    "normalized_scale": 1,
+    "user_scale_multiplier": 1,
+    "model_rotation_degrees": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "operator_mount": {
+      "position": {
+        "x": -0.0199999995529652,
+        "y": 0.0799999982118607,
+        "z": 0.0500000007450581
+      },
+      "rotation_degrees": {
+        "x": -90,
+        "y": -179.999984741211,
+        "z": 0
+      }
+    },
+    "grip_offset": {
+      "pos_x": 0.175363540649414,
+      "pos_y": -0.0308870058506727,
+      "pos_z": -0.0479508340358734,
+      "rot_x": 4.55000019073486,
+      "rot_y": 3,
+      "rot_z": 79.0499801635742
+    },
+    "weapon_sockets": {
+      "barrel_base_socket": {
+        "x": 0.00818421319127083,
+        "y": 0.111533746123314,
+        "z": 0.281000107526779
+      },
+      "buttstock_socket": {
+        "x": 0.00809998344630003,
+        "y": 0.0665337443351746,
+        "z": -0.23309999704361
+      },
+      "ejection_port": {
+        "x": -0.0187309272587299,
+        "y": 0.133226826786995,
+        "z": 0.119598098099232
+      },
+      "left_hand_ik_target": {
+        "x": 0.0248670466244221,
+        "y": 0.114999994635582,
+        "z": 0.254999995231628
+      },
+      "muzzle_socket": {
+        "x": 0.00818420853465796,
+        "y": 0.111533746123314,
+        "z": 0.381000101566315
+      },
+      "optic_rail": {
+        "x": 0.00809997040778399,
+        "y": 0.185399994254112,
+        "z": 0.0549999997019768
+      },
+      "right_hand_grip_target": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      }
+    },
+    "support_hand_pose": {
+      "finger_basis": "dual_source_rest",
+      "finger_curl": 1,
+      "palm_pitch_deg": -24.35,
+      "palm_roll_deg": 104.75,
+      "palm_yaw_deg": -3.25,
+      "source_support_contact": true,
+      "support_regrip_seconds": 0.12,
+      "thumb_wrap": 0.7
+    },
+    "elbow_poles": {
+      "by_stance": {
+        "CROUCHED": {
+          "left": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "right": {
+            "x": 0.0987921953201294,
+            "y": -0.17975127696991,
+            "z": -0.109185189008713
+          }
+        },
+        "PRONE": {
+          "left": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "right": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          }
+        },
+        "STANDING": {
+          "left": {
+            "x": 0.300000011920929,
+            "y": -0.18940544128418,
+            "z": -0.202089607715607
+          },
+          "right": {
+            "x": 0.245000004768372,
+            "y": -0.26656174659729,
+            "z": 0.0799999982118607
+          }
+        }
+      }
+    },
+    "stances": {},
+    "animation_hand_maps": {},
+    "animation_frame_pose_keys": {},
+    "gun_placement_line": {
+      "runtime_enabled": false
+    },
+    "camo_skin": "Factory Classic (Wood & Steel)",
+    "scope_attachment": "None",
+    "silencer_attachment": "None",
+    "handling_profile": {
+      "dynamic_hold": {
+        "animation_carry_limit_m": 0.025,
+        "animation_carry_weight": 0.4,
+        "animation_drives_ready_hands": true,
+        "buttstock_constraint": {
+          "enabled": false
+        },
+        "fire_saved_joint_rotations_enabled": false,
+        "fire_spine_ccdik_enabled": false,
+        "hand_owned_aim_correction_limit_deg": 32,
+        "hand_socket_ik_enabled": false,
+        "ready_locomotion_inheritance": 0,
+        "relaxed_idle_upper_body_weight": 0,
+        "reload_return_blend_seconds": 0.18,
+        "right_hand_owns_weapon": true,
+        "support_hand_ik_blend_seconds": 0.25,
+        "support_hand_socket_ik_enabled": true
+      },
+      "family": "TWO_HAND_RIFLE",
+      "locomotion_family": "RIFLE",
+      "ready_aim": {
+        "fire_hold_seconds": 1.2,
+        "fire_terminal_pose_hold_seconds": 0.12
+      },
+      "support_hand_required": true
+    }
+  },
+  "certification": {
+    "required_stances": [
+      "STANDING",
+      "CROUCHED",
+      "PRONE"
+    ],
+    "required_actions": [
+      "aim_idle",
+      "combat_fire",
+      "reload"
+    ],
+    "maximum_palm_error_m": 0.01,
+    "published_by": "public_iso_migration"
+  },
+  "migration": {
+    "source_profile": "res://config/weapons/s2_hk5.json",
+    "previous_resolved_rig_id": "family_smg_1_v1",
+    "source_asset": {
+      "base_profile": "hk5",
+      "gameplay_status": "project family tuning with source cadence/ammo/range; not original damage parity",
+      "left_contact_source_m": {
+        "x": 0.200000002980232,
+        "y": 0.0799999982118607,
+        "z": -0.0167670845985413
+      },
+      "manifest": "res://config/source_weapon_arsenal.json",
+      "model": "mp5",
+      "notes": "",
+      "parts": [
+        "mp5__N000_mp5_high_v0100.glb"
+      ],
+      "right_contact_source_m": {
+        "x": -0.0549999997019768,
+        "y": -0.0350000001490116,
+        "z": 0.00809997320175171
+      },
+      "source_manifest_sha256": "4a579256855bbb84d27e0861c975f840c6c5eb8e4787f14d784b6c4f641f2ee1",
+      "source_name": "HK5",
+      "source_settings": {
+        "display_name": "HK5",
+        "mode_flags": [],
+        "name": "HK5",
+        "numeric": {
+          "AccBurstCnt_Max": 20,
+          "AccBurstCnt_Min": 5,
+          "AccScalar_Max": 0.0500000007450581,
+          "AccScalar_Min": 0,
+          "Ammo_Capacity": 30,
+          "Effective_Range": 150,
+          "Encumbrance": 1,
+          "FireWait": 0.100000001490116,
+          "ID": 31,
+          "ImpactRadius": 20,
+          "MaxFireMode": 3,
+          "Maximum_Range": 300,
+          "Muzzle_Velocity": 375,
+          "NumMags": 4,
+          "NumZoomModes": 1,
+          "RecoilPct": 0.200000002980232,
+          "Sound_Radius": 70,
+          "ZoomMode0": 1.5
+        },
+        "stances": {
+          "STANCE_CROUCH": {
+            "FireRifleKickBaseDist": 0.0350000001490116,
+            "FireRifleKickRandomDist": 0.0149999996647239,
+            "FireRifleKickRate": 0.280000001192093,
+            "FireRifleKickReturnRate": 0.0700000002980232,
+            "KnockCount": 1,
+            "ReticuleKnock": 11,
+            "ReticuleKnockMax": 20,
+            "ReticuleKnockReturn": 50,
+            "SniperDecayRate": -0.150000005960464,
+            "SniperDistLimitX": 16,
+            "SniperDistLimitY": 8,
+            "SniperDistPPFrameX": 10,
+            "SniperDistPPFrameY": 9,
+            "TargetConstrict": 30,
+            "TargetDilateUponFire": 4,
+            "TargetDilateUponMovement": 0.25,
+            "TargetDilateUponMovementMult": 13,
+            "TargetMax": 18,
+            "TargetMin": 4
+          },
+          "STANCE_PRONE": {
+            "FireRifleKickBaseDist": 0.0350000001490116,
+            "FireRifleKickRandomDist": 0.0149999996647239,
+            "FireRifleKickRate": 0.280000001192093,
+            "FireRifleKickReturnRate": 0.0700000002980232,
+            "KnockCount": 1,
+            "ReticuleKnock": 11,
+            "ReticuleKnockMax": 20,
+            "ReticuleKnockReturn": 50,
+            "SniperDecayRate": -0.150000005960464,
+            "SniperDistLimitX": 16,
+            "SniperDistLimitY": 8,
+            "SniperDistPPFrameX": 10,
+            "SniperDistPPFrameY": 9,
+            "TargetConstrict": 30,
+            "TargetDilateUponFire": 4,
+            "TargetDilateUponMovement": 0.25,
+            "TargetDilateUponMovementMult": 63,
+            "TargetMax": 20,
+            "TargetMin": 5
+          },
+          "STANCE_STAND": {
+            "FireRifleKickBaseDist": 0.0350000001490116,
+            "FireRifleKickRandomDist": 0.0149999996647239,
+            "FireRifleKickRate": 0.280000001192093,
+            "FireRifleKickReturnRate": 0.0700000002980232,
+            "KnockCount": 1,
+            "ReticuleKnock": 11,
+            "ReticuleKnockMax": 20,
+            "ReticuleKnockReturn": 50,
+            "SniperDecayRate": -0.150000005960464,
+            "SniperDistLimitX": 16,
+            "SniperDistLimitY": 8,
+            "SniperDistPPFrameX": 10,
+            "SniperDistPPFrameY": 9,
+            "TargetConstrict": 30,
+            "TargetDilateUponFire": 4,
+            "TargetDilateUponMovement": 0.25,
+            "TargetMax": 20,
+            "TargetMin": 5
+          }
+        }
+      }
+    }
+  }
+}

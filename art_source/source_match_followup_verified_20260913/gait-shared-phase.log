@@ -1,0 +1,5 @@
+Godot Engine v4.7.1.stable.official.a13da4feb - https://godotengine.org
+
+ERROR: Condition "ret != noErr" is true. Returning: ""
+   at: get_system_ca_certificates (platform/macos/os_macos.mm:1035)
+SOURCE_GAIT_PHASE_REGRESSION PASS old_max_gap=0.49996627948107 shared_max_gap=0.0 []

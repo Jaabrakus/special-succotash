@@ -24,7 +24,8 @@ function strings(b, pattern) {
 }
 // Same 92-byte outer ZDB record layout as the existing map-assets/zdb.cjs.
 // This is not the different inner ZAR key-tree layout.
-function zdbEntries(b) {
+function zdbEntries(b, totalSize = b.length) {
+  assert(Number.isSafeInteger(totalSize) && totalSize >= b.length, 'invalid ZDB size');
   assert(b.length >= 160 && b.readUInt32LE(0) === 252 && b.readUInt32LE(4) === 1, 'unsupported ZDB');
   const count = b.readUInt32LE(152), stride = b.readUInt32LE(156);
   assert(stride === 92 && count < 10000 && 160 + count * stride <= b.length, 'ZDB table bounds');
@@ -32,7 +33,7 @@ function zdbEntries(b) {
     const p = 160 + i * stride, end = b.indexOf(0, p + 4);
     assert(b.readUInt32LE(p) === 92 && end >= p + 4 && end < p + 68, 'ZDB name/record bounds');
     const offset = b.readUInt32LE(p + 68), size = b.readUInt32LE(p + 72);
-    assert(offset >= 160 + count * stride && offset + size <= b.length, 'ZDB payload bounds');
+    assert(offset >= 160 + count * stride && offset + size <= totalSize, 'ZDB payload bounds');
     return {name:b.toString('ascii',p + 4,end), offset,size};
   });
 }

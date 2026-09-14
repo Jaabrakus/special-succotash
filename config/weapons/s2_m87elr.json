@@ -1,0 +1,301 @@
+{
+	"ammo_spec": {
+		"impact_damage": 9.0,
+		"piercing": 7.0,
+		"stun": 4.0,
+		"type": ".50 Cal"
+	},
+	"animation_frame_pose_keys": {},
+	"animation_hand_maps": {},
+	"armory_eligible": true,
+	"ballistics": {
+		"base_spread_deg": 0.429,
+		"bloom_per_shot_deg": 1.0,
+		"bloom_recovery_speed": 17.5,
+		"damage": 110.0,
+		"directional_torso_modifiers_enabled": false,
+		"effective_range_m": 1800.0,
+		"fire_rate_rpm": 85.7142871739913,
+		"full_gait_spread_deg": 1.543,
+		"headshot_multiplier": 3.5,
+		"is_silenced": false,
+		"magazine_capacity": 10,
+		"max_range_m": 2400.0,
+		"max_recoil_bloom_deg": 2.6,
+		"moving_spread_deg": 1.029,
+		"muzzle_velocity_mps": 853.0,
+		"reload_duration_seconds": 3.5,
+		"reserve_ammo": 30
+	},
+	"burst_size": 3.0,
+	"catalog_source": "SOCOM II MP1 WEAP extraction / SOCOM-141 family gameplay adaptation",
+	"catalog_weapon_id": "s2_m87elr",
+	"category": "Sniper Rifles",
+	"competitive_eligible": false,
+	"coordinate_space": {
+		"grip_offset": "weapon_root_local_meters",
+		"weapon_sockets": "weapon_pivot_local_meters"
+	},
+	"default_fire_mode": "semi",
+	"display_name": "SOCOM II · M87ELR",
+	"encumbrance": 1.0,
+	"fire_modes": [
+		"semi"
+	],
+	"grip_offset": {
+		"pos_x": 0.0798392296,
+		"pos_y": -0.0417042524,
+		"pos_z": 0.0082135201,
+		"rot_x": 4.55,
+		"rot_y": 3.0,
+		"rot_z": 79.05
+	},
+	"gun_placement_line": {
+		"runtime_enabled": false
+	},
+	"handling_profile": {
+		"dynamic_hold": {
+			"animation_carry_limit_m": 0.025,
+			"animation_carry_weight": 0.4,
+			"animation_drives_ready_hands": true,
+			"authored_shoulder_stock_enabled": true,
+			"buttstock_constraint": {
+				"enabled": false
+			},
+			"fire_saved_joint_rotations_enabled": false,
+			"fire_spine_ccdik_enabled": false,
+			"hand_owned_aim_correction_limit_deg": 32.0,
+			"hand_socket_ik_enabled": false,
+			"locomotion_ready_carry_weight": 1.0,
+			"ready_locomotion_inheritance": 0.0,
+			"ready_shoulder_pocket": {
+				"downward_m": 0.03,
+				"right_wrist_roll_degrees": -15.0
+			},
+			"relaxed_idle_upper_body_weight": 0.0,
+			"reload_return_blend_seconds": 0.18,
+			"right_hand_owns_weapon": true,
+			"standing_idle_square_pelvis": true,
+			"strafe_carry": {
+				"left_elbow_flare_degrees": 12.0,
+				"right_hip_follow_weight": 1.0,
+				"right_stock_release_frame": "chest_forward",
+				"right_stock_release_m": 0.33
+			},
+			"support_hand_ik_blend_seconds": 0.25,
+			"support_hand_socket_ik_enabled": true
+		},
+		"family": "LONG_GUN",
+		"locomotion_family": "RIFLE",
+		"locomotion_slots": {
+			"crouch_left": "crouch_lateral_left",
+			"crouch_right": "crouch_lateral_right",
+			"run_left": "run_lateral_left",
+			"run_right": "run_lateral_right"
+		},
+		"ready_aim": {
+			"fire_hold_seconds": 1.2,
+			"fire_terminal_pose_hold_seconds": 0.12
+		},
+		"support_hand_required": true
+	},
+	"model_fbx": "res://assets/weapons/socom2_arsenal/s2_m87elr.scn",
+	"model_rotation_degrees": {
+		"x": 0.0,
+		"y": 0.0,
+		"z": 0.0
+	},
+	"normalized_scale": 1.0,
+	"operator_mount": {
+		"attachment_mode": "trigger_hand_socket",
+		"bone_name": "mixamorig_RightHand",
+		"position": {
+			"x": -0.02,
+			"y": 0.08,
+			"z": 0.05
+		},
+		"rotation_degrees": {
+			"x": -90.0,
+			"y": 180.0,
+			"z": 0.0
+		}
+	},
+	"presentation_status": "Extracted mesh and textures; source markers retained; adapted surface contacts and family animation.",
+	"reticle": {
+		"base_gap_px": 5.1,
+		"cadence_driven_return": false,
+		"max_gap_px": 41.6,
+		"maximum_shot_kick_px": 60.0,
+		"response_speed": 26.2,
+		"shot_kick_px": 50.0,
+		"shot_kick_return": 25.0,
+		"vrc_return_speed_px_per_second": 25.0
+	},
+	"schema_version": 3,
+	"socket_contract_authored": true,
+	"socom_original_id": 103.0,
+	"source_asset": {
+		"base_profile": "m87elr",
+		"gameplay_status": "project family tuning with source cadence/ammo/range; not original damage parity",
+		"left_contact_source_m": {
+			"x": 0.200000002980232,
+			"y": 0.0500000007450581,
+			"z": -0.0271953046321869
+		},
+		"manifest": "res://config/source_weapon_arsenal.json",
+		"model": "mcmillanM87",
+		"notes": "",
+		"parts": [
+			"mcmillanM87__N000_mac_high_v0100.glb",
+			"mcmillanM87__N003_scope_v0100.glb"
+		],
+		"right_contact_source_m": {
+			"x": -0.0700000002980232,
+			"y": -0.0350000001490116,
+			"z": 0.00938236713409424
+		},
+		"source_manifest_sha256": "4a579256855bbb84d27e0861c975f840c6c5eb8e4787f14d784b6c4f641f2ee1",
+		"source_name": "M87ELR",
+		"source_settings": {
+			"display_name": "M87ELR",
+			"mode_flags": [],
+			"name": "M87ELR",
+			"numeric": {
+				"Ammo_Capacity": 10.0,
+				"Effective_Range": 1800.0,
+				"Encumbrance": 1.0,
+				"FireWait": 0.699999988079071,
+				"ID": 103.0,
+				"ImpactRadius": 25.0,
+				"MaxFireMode": 1.0,
+				"Maximum_Range": 2400.0,
+				"Muzzle_Velocity": 853.0,
+				"NumMags": 3.0,
+				"NumZoomModes": 3.0,
+				"RecoilPct": 0.200000002980232,
+				"ReloadDelayAfterShot": 0.5,
+				"Sound_Radius": 175.0,
+				"ZoomMode0": 1.5,
+				"ZoomMode1": 8.0,
+				"ZoomMode2": 16.0
+			},
+			"stances": {
+				"STANCE_CROUCH": {
+					"FireRifleKickBaseDist": 0.0649999976158142,
+					"FireRifleKickRandomDist": 0.0149999996647239,
+					"FireRifleKickRate": 0.479999989271164,
+					"FireRifleKickReturnRate": 0.0474999994039536,
+					"KnockCount": 1.0,
+					"ReticuleKnock": 40.0,
+					"ReticuleKnockMax": 60.0,
+					"ReticuleKnockReturn": 25.0,
+					"SniperDecayRate": 0.0,
+					"SniperDistLimitX": 40.0,
+					"SniperDistLimitY": 35.0,
+					"SniperDistPPFrameX": 14.0,
+					"SniperDistPPFrameY": 14.0,
+					"TargetConstrict": 22.0,
+					"TargetDilateUponFire": 30.0,
+					"TargetDilateUponMovement": 2.29999995231628,
+					"TargetDilateUponMovementMult": 13.0,
+					"TargetMax": 96.0,
+					"TargetMin": 44.0
+				},
+				"STANCE_PRONE": {
+					"FireRifleKickBaseDist": 0.0450000017881393,
+					"FireRifleKickRandomDist": 0.0149999996647239,
+					"FireRifleKickRate": 0.479999989271164,
+					"FireRifleKickReturnRate": 0.0474999994039536,
+					"KnockCount": 1.0,
+					"ReticuleKnock": 35.0,
+					"ReticuleKnockMax": 60.0,
+					"ReticuleKnockReturn": 25.0,
+					"SniperDecayRate": -0.0799999982118607,
+					"SniperDistLimitX": 30.0,
+					"SniperDistLimitY": 25.0,
+					"SniperDistPPFrameX": 10.0,
+					"SniperDistPPFrameY": 10.0,
+					"TargetConstrict": 22.0,
+					"TargetDilateUponFire": 25.0,
+					"TargetDilateUponMovement": 2.29999995231628,
+					"TargetDilateUponMovementMult": 63.0,
+					"TargetMax": 92.0,
+					"TargetMin": 40.0
+				},
+				"STANCE_STAND": {
+					"FireRifleKickBaseDist": 0.0900000035762787,
+					"FireRifleKickRandomDist": 0.0149999996647239,
+					"FireRifleKickRate": 0.479999989271164,
+					"FireRifleKickReturnRate": 0.0474999994039536,
+					"KnockCount": 1.0,
+					"ReticuleKnock": 50.0,
+					"ReticuleKnockMax": 60.0,
+					"ReticuleKnockReturn": 25.0,
+					"SniperDecayRate": 0.0,
+					"SniperDistLimitX": 60.0,
+					"SniperDistLimitY": 50.0,
+					"SniperDistPPFrameX": 18.0,
+					"SniperDistPPFrameY": 18.0,
+					"TargetConstrict": 22.0,
+					"TargetDilateUponFire": 30.0,
+					"TargetDilateUponMovement": 2.29999995231628,
+					"TargetDilateUponMovementMult": 2.0,
+					"TargetMax": 100.0,
+					"TargetMin": 50.0
+				}
+			}
+		}
+	},
+	"stances": {},
+	"support_hand_pose": {
+		"finger_basis": "dual_source_rest",
+		"finger_curl": 1.0,
+		"palm_pitch_deg": -24.35,
+		"palm_roll_deg": 104.75,
+		"palm_yaw_deg": 0.75,
+		"source_support_contact": true,
+		"support_regrip_seconds": 0.12,
+		"thumb_wrap": 0.7
+	},
+	"training_only": false,
+	"user_scale_multiplier": 1.0,
+	"visual_rig_schema_version": 1.0,
+	"weapon_id": "s2_m87elr",
+	"weapon_sockets": {
+		"barrel_base_socket": {
+			"x": 0.00912900734692812,
+			"y": 0.12449087202549,
+			"z": 0.870199978351593
+		},
+		"buttstock_socket": {
+			"x": 0.00938237924128771,
+			"y": 0.0794908702373505,
+			"z": -0.281300008296967
+		},
+		"ejection_port": {
+			"x": -0.00148588395677507,
+			"y": 0.128200054168701,
+			"z": 0.164500251412392
+		},
+		"left_hand_ik_target": {
+			"x": 0.0365776605904102,
+			"y": 0.0850000008940697,
+			"z": 0.270000010728836
+		},
+		"muzzle_socket": {
+			"x": 0.00912900269031525,
+			"y": 0.12449087202549,
+			"z": 0.970200002193451
+		},
+		"optic_rail": {
+			"x": 0.00938236434012651,
+			"y": 0.136499986052513,
+			"z": 0.0700000002980232
+		},
+		"right_hand_grip_target": {
+			"x": 0.0,
+			"y": 0.0,
+			"z": 0.0
+		}
+	}
+}

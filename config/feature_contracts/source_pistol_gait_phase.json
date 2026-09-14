@@ -1,0 +1,14 @@
+{
+  "schema_version":1,
+  "feature_id":"source_pistol_gait_phase",
+  "player_intent":"Pistol movement keeps its foot cycle continuous when changing direction or firing.",
+  "acceptance_rule":"Complete source pistol cardinal spaces share one period across relaxed/firing siblings without enabling rifle jog tiers. Sibling periods combine by verified original weighted frequency, preserving each evaluated native/custom timeline and common outer speed. Actual main commands and accepted shots preserve equal normalized phase, contact and body ownership; missing source spaces retain fallback and rifle tier selection remains unchanged. This does not certify original diagonal leaf selection.",
+  "canonical_scene":"res://main.tscn",
+  "ownership":{"animation":"SocomOperatorLocomotionBlendTree"},
+  "nodes":[{"id":"animation", "type":"Node3D", "owner":"ProductionAnimation", "role":"Existing animation driver owns its AnimationTree and phase helper", "scene_path":"res://main.tscn", "node_path":"Player/Mannequin/ProductionAnimation"}],
+  "data_contracts":[{"path":"res://config/operator_animation_map.json", "writer":"res://scripts/runtime/main_animation_studio.gd", "readers":["res://scripts/player/operator_animation_profile.gd", "res://scripts/player/operator_locomotion_blend_tree.gd", "res://scripts/player/operator_locomotion_route_builder.gd"]}],
+  "must_not_change":["source clip choices", "pistol jog thresholds", "CharacterBody movement/collision", "camera and aim-spine", "weapon contact ownership", "reload and combat timing", "source assets"],
+  "proof_scripts":["res://tools/source_pistol_phase_regression.gd", "res://tools/source_gait_phase_regression.gd", "res://tools/source_locomotion_controller_regression.gd"],
+  "visual_check":"In main, run/strafe and crouch with Mark 23, then fire while moving. Inspect early/middle/late readiness and direction transitions; equal numerical phase does not certify original foot planting.",
+  "system_delta":{"decision":"MERGE", "reason":"Separate source pistol sibling-phase sharing from rifle-only three-tier selection. Keep one AnimationTree clock and existing source choices.", "current":{"system":"Independent pistol relaxed/firing periods", "correctness":2, "ownership_clarity":5, "runtime_parity":3, "editor_usability":4, "performance":5, "regression_coverage":3, "evidence_paths":["res://scripts/player/operator_locomotion_blend_tree.gd", "res://scripts/player/operator_gait_phase_sync.gd"]}, "candidate":{"system":"Validated four-branch pistol phase group and crouch pair", "correctness":4, "ownership_clarity":5, "runtime_parity":5, "editor_usability":4, "performance":5, "regression_coverage":5, "evidence_paths":["res://scripts/player/operator_locomotion_route_builder.gd", "res://tools/source_pistol_phase_regression.gd"]}}
+}

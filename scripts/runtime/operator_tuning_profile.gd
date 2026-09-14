@@ -117,6 +117,49 @@ static func save_document(document: Dictionary, path: String) -> bool:
 	return true
 
 
+static func operator_scale(document: Dictionary, driver: Object) -> float:
+	var animation: Variant = document.get("animation", {})
+	if not animation is Dictionary:
+		return 62.0
+	var fallback: Variant = animation.get("operator_scale", 62.0)
+	if not _valid_operator_scale(fallback):
+		fallback = 62.0
+	var overrides: Variant = animation.get("operator_scale_by_scene", {})
+	var path := _operator_scene_path(driver)
+	if not path.is_empty() and overrides is Dictionary:
+		var candidate: Variant = overrides.get(path)
+		if _valid_operator_scale(candidate):
+			return float(candidate)
+	return float(fallback)
+
+
+static func set_operator_scale(document: Dictionary, driver: Object, new_scale: float) -> bool:
+	if not _valid_operator_scale(new_scale):
+		return false
+	var animation: Variant = document.get("animation", {})
+	var path := _operator_scene_path(driver)
+	if animation is Dictionary:
+		var overrides: Variant = animation.get("operator_scale_by_scene", {})
+		if not path.is_empty() and overrides is Dictionary and overrides.has(path):
+			var saved_animation: Dictionary = animation.duplicate(true)
+			saved_animation.operator_scale_by_scene[path] = new_scale
+			document["animation"] = saved_animation
+			return true
+	set_value(document, "animation", "operator_scale", new_scale)
+	return true
+
+
+static func _operator_scene_path(driver: Object) -> String:
+	if driver == null:
+		return ""
+	var model: Variant = driver.get("model_root")
+	return model.scene_file_path if model is Node3D and is_instance_valid(model) else ""
+
+
+static func _valid_operator_scale(candidate: Variant) -> bool:
+	return (candidate is int or candidate is float) and is_finite(float(candidate)) and float(candidate) > 0.0
+
+
 static func apply(document: Dictionary, player: Object, driver: Object) -> void:
 	if player != null:
 		player.set("move_speed", value(document, "movement", "move_speed", 6.5))
@@ -179,5 +222,5 @@ static func apply(document: Dictionary, player: Object, driver: Object) -> void:
 	if driver.has_method("set_trooper_scale"):
 		driver.call(
 			"set_trooper_scale",
-			value(document, "animation", "operator_scale", 62.0)
+			operator_scale(document, driver)
 		)

@@ -1,5 +1,11 @@
 # Source-port checkpoint — 2026-09-12
 
+Historical checkpoint. For the later 2026-09-13 source damage/armor, four-pellet
+shotguns, RNG and material integration, see
+`docs/SOURCE_COMBAT_PARITY_20260913.md`. Its camera/character-scale work is also
+separate from the earlier animation/asset acceptance below. Do not interpret
+the old retained-damage/eight-pellet statements or renders as current runtime.
+
 This is a partial source-port checkpoint, not a claim that every original game
 system is running one-for-one in Godot. Project workflow/Godot ownership rules
 kept unverified executable behavior separate from active gameplay changes.

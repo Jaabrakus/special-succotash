@@ -18,12 +18,12 @@ func apply_collision_result(result: Dictionary) -> void:
     rig.collision_camera_position = result.position
     rig.collision_active = result.collided
     rig.collision_name = result.collider_name
-    rig.collision_blocker_node = result.get("collider_node") as Node3D
+    rig.collision_blocker_node = _live_node_3d(result.get("collider_node"))
     rig.wall_escape_active = result.escaped
     rig.wall_escape_angle_deg = result.escape_angle_deg
     rig.local_cutout_active = result.local_cutout
     rig.local_cutout_center = result.cutout_center
-    rig.local_cutout_node = result.cutout_node
+    rig.local_cutout_node = _live_node_3d(result.get("cutout_node"))
     rig.collision_crane_active = bool(result.get("crane_active", false))
     rig.surface_slide_active = bool(result.get("surface_slide_active", false))
     rig.surface_slide_normal = result.get("surface_slide_normal", Vector3.ZERO)
@@ -33,6 +33,13 @@ func apply_collision_result(result: Dictionary) -> void:
             "crane_look_ahead",
             rig.profile.close_wall_crane_default_look_ahead
         ))
+
+func _live_node_3d(value: Variant) -> Node3D:
+    # Release guards retain result dictionaries after a wall may be freed.
+    # Validate the Variant before any cast or subtype check dereferences it.
+    if typeof(value) != TYPE_OBJECT or not is_instance_valid(value):
+        return null
+    return value as Node3D if value is Node3D else null
 
 func update_collision_crane_view(delta: float) -> void:
     var view_target: float = 1.0 if rig.collision_crane_active else 0.0

@@ -812,7 +812,7 @@
     "thumb_wrap": 0.7
   },
   "user_scale_multiplier": 0.94,
-  "visual_rig_id": "m16a2_directional_v1",
+  "visual_rig_id": "iso_public_m16a2_v1",
   "visual_rig_schema_version": 1,
   "weapon_id": "m16a2",
   "weapon_sockets": {

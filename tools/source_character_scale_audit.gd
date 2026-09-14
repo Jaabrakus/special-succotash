@@ -22,7 +22,12 @@ func _run() -> void:
 	player.set_local_input_enabled(false)
 	scene.get_node("IndependentCameraRig").orbit_input_enabled = false
 	await _frames(90)
-	scene.get_node("WeaponController").set_input_enabled(false)
+	var weapon := scene.get_node_or_null("WeaponController")
+	if weapon == null:
+		push_error("Canonical main did not initialize its weapon owner; audit cannot continue")
+		quit(1)
+		return
+	weapon.set_input_enabled(false)
 	driver = player.get_node("Mannequin/ProductionAnimation")
 	skeleton = driver.skeleton
 	var model: Node3D = driver.model_root
@@ -41,8 +46,12 @@ func _run() -> void:
 	var iso: Dictionary = skeleton.get_meta("iso_proportions", {})
 	report["iso_metadata"] = iso
 	if not iso.is_empty():
-		var ratio: float = SOURCE_METRES_PER_UNIT / float(iso.metres_per_source_unit)
+		# Builder metadata explicitly reports metres at its canonical outer62.
+		# Main can subsequently override that model scale (currently64).
+		var effective_units: float = float(iso.metres_per_source_unit) * model.global_basis.get_scale().x / 62.0
+		var ratio: float = SOURCE_METRES_PER_UNIT / effective_units
 		report["source_unit_scale"] = SOURCE_METRES_PER_UNIT
+		report["current_effective_metres_per_source_unit"] = effective_units
 		report["verified_skeleton_uniform_scale_ratio"] = ratio
 		report["candidate_model_scale_if_only_this_discrepancy_corrected"] = model.scale.x * ratio
 	for stance in [0, 1, 2]:

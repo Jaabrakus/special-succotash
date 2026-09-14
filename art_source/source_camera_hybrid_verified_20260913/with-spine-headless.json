@@ -1,0 +1,722 @@
+{
+  "failures": [],
+  "framing_mode": "hybrid",
+  "horizontal_fov_degrees": 74.0,
+  "lean_rows": [
+    {
+      "aim_pitch": 0.0,
+      "aim_yaw": 0.0,
+      "camera_offset": "(-0.499969, 2.14843, 2.799866)",
+      "lateral_delta": -0.499969482421875,
+      "lean": -1.0,
+      "maximum_rendered_step_m": 0.108299531042576,
+      "stance": "standing",
+      "state": "left"
+    },
+    {
+      "aim_pitch": 0.0,
+      "aim_yaw": 0.0,
+      "camera_offset": "(0.559998, 2.148438, 2.799988)",
+      "lateral_delta": 0.55999755859375,
+      "lean": 1.0,
+      "maximum_rendered_step_m": 0.133300840854645,
+      "stance": "standing",
+      "state": "right"
+    },
+    {
+      "aim_pitch": 0.0,
+      "aim_yaw": 0.0,
+      "camera_offset": "(0.0, 2.148438, 2.799988)",
+      "lateral_delta": 0.0,
+      "lean": 0.0,
+      "maximum_rendered_step_m": 0.14935302734375,
+      "stance": "standing",
+      "state": "neutral"
+    },
+    {
+      "aim_pitch": 0.0,
+      "aim_yaw": 0.0,
+      "camera_offset": "(-0.5, 1.537787, 2.799988)",
+      "lateral_delta": -0.5,
+      "lean": -1.0,
+      "maximum_rendered_step_m": 0.108292177319527,
+      "stance": "crouched",
+      "state": "left"
+    },
+    {
+      "aim_pitch": 0.0,
+      "aim_yaw": 0.0,
+      "camera_offset": "(0.559998, 1.537787, 2.799988)",
+      "lateral_delta": 0.55999755859375,
+      "lean": 1.0,
+      "maximum_rendered_step_m": 0.133331298828125,
+      "stance": "crouched",
+      "state": "right"
+    },
+    {
+      "aim_pitch": 0.0,
+      "aim_yaw": 0.0,
+      "camera_offset": "(0.0, 1.537787, 2.799988)",
+      "lateral_delta": 0.0,
+      "lean": 0.0,
+      "maximum_rendered_step_m": 0.14935302734375,
+      "stance": "crouched",
+      "state": "neutral"
+    }
+  ],
+  "lens_parity": "fixed saved hybrid lens or source70HFOV mapped to viewport; original raster/zoom not claimed",
+  "position_parity": "Source-based hybrid constant-radius preference and existing pitch framing/collision/trailing",
+  "rows": [
+    {
+      "actual_mesh_chest_normalized": [
+        0.504455029964447,
+        0.906123697757721
+      ],
+      "actual_mesh_head_normalized": [
+        0.518718063831329,
+        0.787622034549713
+      ],
+      "actual_stance": "standing",
+      "body_aim": "(0.0, -0.298346)",
+      "camera": "(500.0, 3.920638, 502.0245)",
+      "camera_collision_active": false,
+      "candidate": true,
+      "head_projection": "(921.4587, 805.0522)",
+      "horizontal_fov": 73.9999983080848,
+      "native_root_bone_missing": true,
+      "observer_coverage": 1.0,
+      "observer_root": "(1.464844, 11.48438, -1.03125)",
+      "pitch_degrees": -30.0,
+      "preferred_position": "(500.0, 3.549167, 502.0249)",
+      "source_position_active": true,
+      "stance": "standing",
+      "vertical_fov": 50.438175201416,
+      "viewport": "(1828.572, 1142.857)",
+      "yaw_degrees": 0.0
+    },
+    {
+      "actual_mesh_chest_normalized": [
+        0.504136979579926,
+        0.905904829502106
+      ],
+      "actual_mesh_head_normalized": [
+        0.517650783061981,
+        0.786958992481232
+      ],
+      "actual_stance": "standing",
+      "body_aim": "(1.134464, -0.298328)",
+      "camera": "(501.835, 3.920872, 500.8557)",
+      "camera_collision_active": false,
+      "candidate": true,
+      "head_projection": "(921.1554, 805.0312)",
+      "horizontal_fov": 73.9999983080848,
+      "native_root_bone_missing": true,
+      "observer_coverage": 1.0,
+      "observer_root": "(1.464844, 11.48438, -1.03125)",
+      "pitch_degrees": -30.0,
+      "preferred_position": "(501.8351, 3.549167, 500.8557)",
+      "source_position_active": true,
+      "stance": "standing",
+      "vertical_fov": 50.438175201416,
+      "viewport": "(1828.572, 1142.857)",
+      "yaw_degrees": 65.0
+    },
+    {
+      "actual_mesh_chest_normalized": [
+        0.50424063205719,
+        0.790638208389282
+      ],
+      "actual_mesh_head_normalized": [
+        0.517360270023346,
+        0.651617467403412
+      ],
+      "actual_stance": "standing",
+      "body_aim": "(0.0, 0.002825)",
+      "camera": "(500.0, 2.149167, 502.8)",
+      "camera_collision_active": false,
+      "candidate": true,
+      "head_projection": "(920.6569, 574.2554)",
+      "horizontal_fov": 73.9999983080848,
+      "native_root_bone_missing": true,
+      "observer_coverage": 1.0,
+      "observer_root": "(1.464844, 11.48438, -1.03125)",
+      "pitch_degrees": 0.0,
+      "preferred_position": "(500.0, 2.149167, 502.8)",
+      "source_position_active": true,
+      "stance": "standing",
+      "vertical_fov": 50.438175201416,
+      "viewport": "(1828.572, 1142.857)",
+      "yaw_degrees": 0.0
+    },
+    {
+      "actual_mesh_chest_normalized": [
+        0.504308640956879,
+        0.790611088275909
+      ],
+      "actual_mesh_head_normalized": [
+        0.51741898059845,
+        0.651618778705597
+      ],
+      "actual_stance": "standing",
+      "body_aim": "(1.134464, 0.002825)",
+      "camera": "(502.5377, 2.149167, 501.1833)",
+      "camera_collision_active": false,
+      "candidate": true,
+      "head_projection": "(920.4418, 574.2368)",
+      "horizontal_fov": 73.9999983080848,
+      "native_root_bone_missing": true,
+      "observer_coverage": 1.0,
+      "observer_root": "(1.464844, 11.48438, -1.03125)",
+      "pitch_degrees": 0.0,
+      "preferred_position": "(502.5377, 2.149167, 501.1833)",
+      "source_position_active": true,
+      "stance": "standing",
+      "vertical_fov": 50.438175201416,
+      "viewport": "(1828.572, 1142.857)",
+      "yaw_degrees": 65.0
+    },
+    {
+      "actual_mesh_chest_normalized": [
+        0.505089938640594,
+        0.852894067764282
+      ],
+      "actual_mesh_head_normalized": [
+        0.519315600395203,
+        0.698854029178619
+      ],
+      "actual_stance": "standing",
+      "body_aim": "(0.0, 0.438532)",
+      "camera": "(500.0, 1.075383, 502.6645)",
+      "camera_collision_active": false,
+      "candidate": true,
+      "head_projection": "(920.0801, 634.4729)",
+      "horizontal_fov": 73.9999983080848,
+      "native_root_bone_missing": true,
+      "observer_coverage": 1.0,
+      "observer_root": "(1.464844, 11.48438, -1.03125)",
+      "pitch_degrees": 25.0,
+      "preferred_position": "(500.0, 0.965836, 502.6645)",
+      "source_position_active": true,
+      "stance": "standing",
+      "vertical_fov": 50.438175201416,
+      "viewport": "(1828.572, 1142.857)",
+      "yaw_degrees": 0.0
+    },
+    {
+      "actual_mesh_chest_normalized": [
+        0.505337834358215,
+        0.852910041809082
+      ],
+      "actual_mesh_head_normalized": [
+        0.520061194896698,
+        0.69888436794281
+      ],
+      "actual_stance": "standing",
+      "body_aim": "(1.134464, 0.438532)",
+      "camera": "(502.4148, 1.075359, 501.126)",
+      "camera_collision_active": false,
+      "candidate": true,
+      "head_projection": "(920.4117, 634.4797)",
+      "horizontal_fov": 73.9999983080848,
+      "native_root_bone_missing": true,
+      "observer_coverage": 1.0,
+      "observer_root": "(1.464844, 11.48438, -1.03125)",
+      "pitch_degrees": 25.0,
+      "preferred_position": "(502.4148, 0.965836, 501.126)",
+      "source_position_active": true,
+      "stance": "standing",
+      "vertical_fov": 50.438175201416,
+      "viewport": "(1828.572, 1142.857)",
+      "yaw_degrees": 65.0
+    },
+    {
+      "actual_mesh_chest_normalized": [
+        0.505552053451538,
+        0.850017845630646
+      ],
+      "actual_mesh_head_normalized": [
+        0.52052515745163,
+        0.694833517074585
+      ],
+      "actual_stance": "standing",
+      "body_aim": "(0.0, 0.490933)",
+      "camera": "(500.0, 0.936104, 502.6131)",
+      "camera_collision_active": false,
+      "candidate": true,
+      "head_projection": "(920.1286, 635.296)",
+      "horizontal_fov": 73.9999983080848,
+      "native_root_bone_missing": true,
+      "observer_coverage": 1.0,
+      "observer_root": "(1.464844, 11.48438, -1.03125)",
+      "pitch_degrees": 28.0,
+      "preferred_position": "(500.0, 0.834646, 502.6131)",
+      "source_position_active": true,
+      "stance": "standing",
+      "vertical_fov": 50.438175201416,
+      "viewport": "(1828.572, 1142.857)",
+      "yaw_degrees": 0.0
+    },
+    {
+      "actual_mesh_chest_normalized": [
+        0.505807995796204,
+        0.849989652633667
+      ],
+      "actual_mesh_head_normalized": [
+        0.521840155124664,
+        0.694777011871338
+      ],
+      "actual_stance": "standing",
+      "body_aim": "(1.134464, 0.490933)",
+      "camera": "(502.3682, 0.936049, 501.1043)",
+      "camera_collision_active": false,
+      "candidate": true,
+      "head_projection": "(920.6557, 635.3235)",
+      "horizontal_fov": 73.9999983080848,
+      "native_root_bone_missing": true,
+      "observer_coverage": 1.0,
+      "observer_root": "(1.464844, 11.48438, -1.03125)",
+      "pitch_degrees": 28.0,
+      "preferred_position": "(502.3683, 0.834646, 501.1043)",
+      "source_position_active": true,
+      "stance": "standing",
+      "vertical_fov": 50.438175201416,
+      "viewport": "(1828.572, 1142.857)",
+      "yaw_degrees": 65.0
+    },
+    {
+      "actual_mesh_chest_normalized": [
+        0.51248961687088,
+        0.908147096633911
+      ],
+      "actual_mesh_head_normalized": [
+        0.538877487182617,
+        0.791828632354736
+      ],
+      "actual_stance": "crouched",
+      "body_aim": "(0.0, -0.359818)",
+      "camera": "(500.0, 3.426004, 502.0249)",
+      "camera_collision_active": false,
+      "candidate": true,
+      "head_projection": "(922.3239, 829.5567)",
+      "horizontal_fov": 73.9999983080848,
+      "native_root_bone_missing": true,
+      "observer_coverage": 1.0,
+      "observer_root": "(-0.386719, 5.503906, 7.488281)",
+      "pitch_degrees": -30.0,
+      "preferred_position": "(500.0, 2.937357, 502.0249)",
+      "source_position_active": true,
+      "stance": "crouched",
+      "vertical_fov": 50.438175201416,
+      "viewport": "(1828.572, 1142.857)",
+      "yaw_degrees": 0.0
+    },
+    {
+      "actual_mesh_chest_normalized": [
+        0.513016402721405,
+        0.909503817558289
+      ],
+      "actual_mesh_head_normalized": [
+        0.539893388748169,
+        0.793336987495422
+      ],
+      "actual_stance": "crouched",
+      "body_aim": "(1.134459, -0.359841)",
+      "camera": "(501.8348, 3.425627, 500.8556)",
+      "camera_collision_active": false,
+      "candidate": true,
+      "head_projection": "(922.4267, 829.598)",
+      "horizontal_fov": 73.9999983080848,
+      "native_root_bone_missing": true,
+      "observer_coverage": 1.0,
+      "observer_root": "(-0.386719, 5.503906, 7.488281)",
+      "pitch_degrees": -30.0,
+      "preferred_position": "(501.8351, 2.937357, 500.8557)",
+      "source_position_active": true,
+      "stance": "crouched",
+      "vertical_fov": 50.438175201416,
+      "viewport": "(1828.572, 1142.857)",
+      "yaw_degrees": 65.0
+    },
+    {
+      "actual_mesh_chest_normalized": [
+        0.514149010181427,
+        0.790557444095612
+      ],
+      "actual_mesh_head_normalized": [
+        0.541906714439392,
+        0.679208040237427
+      ],
+      "actual_stance": "crouched",
+      "body_aim": "(0.0, 0.000351)",
+      "camera": "(500.0, 1.538153, 502.7946)",
+      "camera_collision_active": false,
+      "candidate": true,
+      "head_projection": "(922.0, 557.4349)",
+      "horizontal_fov": 73.9999983080848,
+      "native_root_bone_missing": true,
+      "observer_coverage": 1.0,
+      "observer_root": "(-0.386719, 5.503906, 7.488281)",
+      "pitch_degrees": 0.0,
+      "preferred_position": "(500.0, 1.537357, 502.8)",
+      "source_position_active": true,
+      "stance": "crouched",
+      "vertical_fov": 50.438175201416,
+      "viewport": "(1828.572, 1142.857)",
+      "yaw_degrees": 0.0
+    },
+    {
+      "actual_mesh_chest_normalized": [
+        0.514421284198761,
+        0.789383769035339
+      ],
+      "actual_mesh_head_normalized": [
+        0.54267805814743,
+        0.678544700145721
+      ],
+      "actual_stance": "crouched",
+      "body_aim": "(1.134464, 0.000355)",
+      "camera": "(502.5375, 1.537375, 501.1833)",
+      "camera_collision_active": false,
+      "candidate": true,
+      "head_projection": "(922.0807, 557.1344)",
+      "horizontal_fov": 73.9999983080848,
+      "native_root_bone_missing": true,
+      "observer_coverage": 1.0,
+      "observer_root": "(-0.386719, 5.503906, 7.488281)",
+      "pitch_degrees": 0.0,
+      "preferred_position": "(502.5377, 1.537357, 501.1833)",
+      "source_position_active": true,
+      "stance": "crouched",
+      "vertical_fov": 50.438175201416,
+      "viewport": "(1828.572, 1142.857)",
+      "yaw_degrees": 65.0
+    },
+    {
+      "actual_mesh_chest_normalized": [
+        0.516042709350586,
+        0.940762877464294
+      ],
+      "actual_mesh_head_normalized": [
+        0.546384930610657,
+        0.817902207374573
+      ],
+      "actual_stance": "crouched",
+      "body_aim": "(0.0, 0.435363)",
+      "camera": "(500.0, 0.641705, 502.6624)",
+      "camera_collision_active": false,
+      "candidate": true,
+      "head_projection": "(921.9728, 693.436)",
+      "horizontal_fov": 73.9999983080848,
+      "native_root_bone_missing": true,
+      "observer_coverage": 1.0,
+      "observer_root": "(-0.386719, 5.503906, 7.488281)",
+      "pitch_degrees": 25.0,
+      "preferred_position": "(500.0, 0.354026, 502.6645)",
+      "source_position_active": true,
+      "stance": "crouched",
+      "vertical_fov": 50.438175201416,
+      "viewport": "(1828.572, 1142.857)",
+      "yaw_degrees": 0.0
+    },
+    {
+      "actual_mesh_chest_normalized": [
+        0.516185224056244,
+        0.938673317432404
+      ],
+      "actual_mesh_head_normalized": [
+        0.547096848487854,
+        0.817358493804932
+      ],
+      "actual_stance": "crouched",
+      "body_aim": "(1.134464, 0.435363)",
+      "camera": "(502.4147, 0.640787, 501.126)",
+      "camera_collision_active": false,
+      "candidate": true,
+      "head_projection": "(922.0659, 693.3056)",
+      "horizontal_fov": 73.9999983080848,
+      "native_root_bone_missing": true,
+      "observer_coverage": 1.0,
+      "observer_root": "(-0.386719, 5.503906, 7.488281)",
+      "pitch_degrees": 25.0,
+      "preferred_position": "(502.4148, 0.354026, 501.126)",
+      "source_position_active": true,
+      "stance": "crouched",
+      "vertical_fov": 50.438175201416,
+      "viewport": "(1828.572, 1142.857)",
+      "yaw_degrees": 65.0
+    },
+    {
+      "actual_mesh_chest_normalized": [
+        0.516150236129761,
+        0.954161942005157
+      ],
+      "actual_mesh_head_normalized": [
+        0.54692155122757,
+        0.830815136432648
+      ],
+      "actual_stance": "crouched",
+      "body_aim": "(0.0, 0.487671)",
+      "camera": "(500.0, 0.53541, 502.6131)",
+      "camera_collision_active": false,
+      "candidate": true,
+      "head_projection": "(922.0074, 706.8815)",
+      "horizontal_fov": 73.9999983080848,
+      "native_root_bone_missing": true,
+      "observer_coverage": 1.0,
+      "observer_root": "(-0.386719, 5.503906, 7.488281)",
+      "pitch_degrees": 28.0,
+      "preferred_position": "(500.0, 0.222837, 502.6131)",
+      "source_position_active": true,
+      "stance": "crouched",
+      "vertical_fov": 50.438175201416,
+      "viewport": "(1828.572, 1142.857)",
+      "yaw_degrees": 0.0
+    },
+    {
+      "actual_mesh_chest_normalized": [
+        0.516853094100952,
+        0.956642329692841
+      ],
+      "actual_mesh_head_normalized": [
+        0.548259854316711,
+        0.831104815006256
+      ],
+      "actual_stance": "crouched",
+      "body_aim": "(1.134464, 0.487671)",
+      "camera": "(502.3681, 0.535507, 501.1043)",
+      "camera_collision_active": false,
+      "candidate": true,
+      "head_projection": "(922.1083, 706.8711)",
+      "horizontal_fov": 73.9999983080848,
+      "native_root_bone_missing": true,
+      "observer_coverage": 1.0,
+      "observer_root": "(-0.386719, 5.503906, 7.488281)",
+      "pitch_degrees": 28.0,
+      "preferred_position": "(502.3683, 0.222837, 501.1043)",
+      "source_position_active": true,
+      "stance": "crouched",
+      "vertical_fov": 50.438175201416,
+      "viewport": "(1828.572, 1142.857)",
+      "yaw_degrees": 65.0
+    },
+    {
+      "actual_mesh_chest_normalized": [
+        0.507805645465851,
+        0.782021820545197
+      ],
+      "actual_mesh_head_normalized": [
+        0.529192626476288,
+        0.68918240070343
+      ],
+      "actual_stance": "prone",
+      "body_aim": "(0.0, -0.261376)",
+      "camera": "(500.0, 2.523732, 502.0249)",
+      "camera_collision_active": false,
+      "candidate": true,
+      "head_projection": "(921.2403, 829.1563)",
+      "horizontal_fov": 73.9999983080848,
+      "native_root_bone_missing": true,
+      "observer_coverage": 1.0,
+      "observer_root": "(0.664062, 2.167969, -1.164062)",
+      "pitch_degrees": -30.0,
+      "preferred_position": "(500.0, 2.166368, 502.0249)",
+      "source_position_active": true,
+      "stance": "prone",
+      "vertical_fov": 50.438175201416,
+      "viewport": "(1828.572, 1142.857)",
+      "yaw_degrees": 0.0
+    },
+    {
+      "actual_mesh_chest_normalized": [
+        0.508377611637115,
+        0.782204806804657
+      ],
+      "actual_mesh_head_normalized": [
+        0.530512571334839,
+        0.689572691917419
+      ],
+      "actual_stance": "prone",
+      "body_aim": "(1.134463, -0.261372)",
+      "camera": "(501.8346, 2.523399, 500.8555)",
+      "camera_collision_active": false,
+      "candidate": true,
+      "head_projection": "(922.2267, 829.2853)",
+      "horizontal_fov": 73.9999983080848,
+      "native_root_bone_missing": true,
+      "observer_coverage": 1.0,
+      "observer_root": "(0.664062, 2.167969, -1.164062)",
+      "pitch_degrees": -30.0,
+      "preferred_position": "(501.8351, 2.166368, 500.8557)",
+      "source_position_active": true,
+      "stance": "prone",
+      "vertical_fov": 50.438175201416,
+      "viewport": "(1828.572, 1142.857)",
+      "yaw_degrees": 65.0
+    },
+    {
+      "actual_mesh_chest_normalized": [
+        0.507988929748535,
+        0.674217760562897
+      ],
+      "actual_mesh_head_normalized": [
+        0.529179990291595,
+        0.630073606967926
+      ],
+      "actual_stance": "prone",
+      "body_aim": "(0.0, 0.000558)",
+      "camera": "(500.0, 0.772506, 502.7855)",
+      "camera_collision_active": false,
+      "candidate": true,
+      "head_projection": "(921.1238, 677.8749)",
+      "horizontal_fov": 73.9999983080848,
+      "native_root_bone_missing": true,
+      "observer_coverage": 1.0,
+      "observer_root": "(0.664062, 2.167969, -1.164062)",
+      "pitch_degrees": 0.0,
+      "preferred_position": "(500.0, 0.766367, 502.8)",
+      "source_position_active": true,
+      "stance": "prone",
+      "vertical_fov": 50.438175201416,
+      "viewport": "(1828.572, 1142.857)",
+      "yaw_degrees": 0.0
+    },
+    {
+      "actual_mesh_chest_normalized": [
+        0.508529782295227,
+        0.671356856822968
+      ],
+      "actual_mesh_head_normalized": [
+        0.530361294746399,
+        0.627725481987
+      ],
+      "actual_stance": "prone",
+      "body_aim": "(1.134464, 0.000593)",
+      "camera": "(502.5374, 0.76647, 501.1832)",
+      "camera_collision_active": false,
+      "candidate": true,
+      "head_projection": "(922.0492, 675.0027)",
+      "horizontal_fov": 73.9999983080848,
+      "native_root_bone_missing": true,
+      "observer_coverage": 1.0,
+      "observer_root": "(0.664062, 2.167969, -1.164062)",
+      "pitch_degrees": 0.0,
+      "preferred_position": "(502.5377, 0.766367, 501.1833)",
+      "source_position_active": true,
+      "stance": "prone",
+      "vertical_fov": 50.438175201416,
+      "viewport": "(1828.572, 1142.857)",
+      "yaw_degrees": 65.0
+    },
+    {
+      "actual_mesh_chest_normalized": [
+        0.508983075618744,
+        0.92819732427597
+      ],
+      "actual_mesh_head_normalized": [
+        0.532300114631653,
+        0.888577580451965
+      ],
+      "actual_stance": "prone",
+      "body_aim": "(0.0, 0.4341)",
+      "camera": "(500.0, 0.151222, 502.662)",
+      "camera_collision_active": false,
+      "candidate": true,
+      "head_projection": "(921.7089, 955.1831)",
+      "horizontal_fov": 73.9999983080848,
+      "native_root_bone_missing": true,
+      "observer_coverage": 1.0,
+      "observer_root": "(0.664062, 2.167969, -1.164062)",
+      "pitch_degrees": 25.0,
+      "preferred_position": "(500.0, 0.14957, 502.6645)",
+      "source_position_active": true,
+      "stance": "prone",
+      "vertical_fov": 50.438175201416,
+      "viewport": "(1828.572, 1142.857)",
+      "yaw_degrees": 0.0
+    },
+    {
+      "actual_mesh_chest_normalized": [
+        0.509628415107727,
+        0.927559018135071
+      ],
+      "actual_mesh_head_normalized": [
+        0.533729076385498,
+        0.888050198554993
+      ],
+      "actual_stance": "prone",
+      "body_aim": "(1.134464, 0.434103)",
+      "camera": "(502.4147, 0.14961, 501.126)",
+      "camera_collision_active": false,
+      "candidate": true,
+      "head_projection": "(922.7454, 954.5729)",
+      "horizontal_fov": 73.9999983080848,
+      "native_root_bone_missing": true,
+      "observer_coverage": 1.0,
+      "observer_root": "(0.664062, 2.167969, -1.164062)",
+      "pitch_degrees": 25.0,
+      "preferred_position": "(502.4148, 0.14957, 501.126)",
+      "source_position_active": true,
+      "stance": "prone",
+      "vertical_fov": 50.438175201416,
+      "viewport": "(1828.572, 1142.857)",
+      "yaw_degrees": 65.0
+    },
+    {
+      "actual_mesh_chest_normalized": [
+        0.509336709976196,
+        0.990603268146515
+      ],
+      "actual_mesh_head_normalized": [
+        0.533437073230743,
+        0.947241187095642
+      ],
+      "actual_stance": "prone",
+      "body_aim": "(0.0, 0.485899)",
+      "camera": "(500.0, 0.14957, 502.6131)",
+      "camera_collision_active": false,
+      "candidate": true,
+      "head_projection": "(921.9626, 1021.154)",
+      "horizontal_fov": 73.9999983080848,
+      "native_root_bone_missing": true,
+      "observer_coverage": 1.0,
+      "observer_root": "(0.664062, 2.167969, -1.164062)",
+      "pitch_degrees": 28.0,
+      "preferred_position": "(500.0, 0.14957, 502.6131)",
+      "source_position_active": true,
+      "stance": "prone",
+      "vertical_fov": 50.438175201416,
+      "viewport": "(1828.572, 1142.857)",
+      "yaw_degrees": 0.0
+    },
+    {
+      "actual_mesh_chest_normalized": [
+        0.510016202926636,
+        0.990605294704437
+      ],
+      "actual_mesh_head_normalized": [
+        0.534950256347656,
+        0.947264611721039
+      ],
+      "actual_stance": "prone",
+      "body_aim": "(1.134464, 0.485899)",
+      "camera": "(502.3683, 0.14957, 501.1043)",
+      "camera_collision_active": false,
+      "candidate": true,
+      "head_projection": "(923.0454, 1021.141)",
+      "horizontal_fov": 73.9999983080848,
+      "native_root_bone_missing": true,
+      "observer_coverage": 1.0,
+      "observer_root": "(0.664062, 2.167969, -1.164062)",
+      "pitch_degrees": 28.0,
+      "preferred_position": "(502.3683, 0.14957, 501.1043)",
+      "source_position_active": true,
+      "stance": "prone",
+      "vertical_fov": 50.438175201416,
+      "viewport": "(1828.572, 1142.857)",
+      "yaw_degrees": 65.0
+    }
+  ],
+  "source_default": true,
+  "visual_limits": "Level-aim head/chest visibility checked; not complete original collision or mesh parity",
+  "visual_quick": false
+}

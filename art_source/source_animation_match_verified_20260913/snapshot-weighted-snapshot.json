@@ -1,0 +1,9 @@
+{
+	"checks": 1857,
+	"failures": [
+		"actual fade early/middle/late sampled"
+	],
+	"frames": 181,
+	"freezes": 7,
+	"rows": []
+}

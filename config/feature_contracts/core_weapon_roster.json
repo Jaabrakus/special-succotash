@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "feature_id": "core_weapon_roster",
-  "player_intent": "Show twelve approved weapons including the restored Desert Eagle under original codenames and hide the remaining weapons without deleting their data.",
-  "acceptance_rule": "Menu and tournament pool contain exactly the same twelve IDs including de__50; canonical HUD names agree; hidden IDs fail normal selection validation while source records remain intact.",
+  "player_intent": "Retain twelve approved competitive weapons and their codenames while allowing the explicitly added extracted source arsenal in equipment selection.",
+  "acceptance_rule": "Tournament pool contains the original twelve IDs including de__50. Equipment adds only the explicit source arsenal IDs. Canonical HUD names agree; other hidden IDs fail validation and archive records remain intact.",
   "canonical_scene": "res://main.tscn",
   "editor_scene": "res://gun_calibration_lab.tscn",
   "ownership": {"public_roster_metadata": "SocomWeaponCatalog"},

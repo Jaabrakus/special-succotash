@@ -15,7 +15,7 @@ func _initialize() -> void:
 
 func _run() -> void:
 	_expect(FileAccess.get_sha256(Catalog.CATALOG_PATH) == ARCHIVE_SHA256, "all archived source data remains byte-identical")
-	_expect(Catalog.get_all_weapons().size() == 63, "60 archive records and 3 prototypes retained")
+	_expect(Catalog.get_all_weapons().size() == 63 + Catalog.source_arsenal_ids().size(), "archive/prototypes retained alongside source arsenal")
 	_expect(Catalog.get_weapon("m40a1").category == "Sniper Rifles", "M40A1 runtime category")
 	var saved_m40: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://config/weapons/m40a1.json"))
 	_expect(saved_m40.category == "Sniper Rifles", "M40A1 canonical profile category")
@@ -36,7 +36,7 @@ func _run() -> void:
 			var id := String(record.weapon_id)
 			eligible_ids.append(id)
 			_expect(not EXCLUDED.has(id), id + " is a handheld selection")
-	_expect(eligible_ids.size() == 12, "12 visible training firearms; prototypes retained but hidden")
+	_expect(eligible_ids.size() == 12 + Catalog.source_arsenal_ids().size(), "core weapons plus explicit source arsenal visible")
 	var verdict := Validator.validate("m40a1", context)
 	_expect(bool(verdict.ok) and int(verdict.cost) == 0 and verdict.slot == "primary", "M40A1 equips with zero cash")
 	context["cash"] = -100
@@ -66,7 +66,7 @@ func _run() -> void:
 			_expect(not String(row.text).contains("$"), "actual row has no price: " + id)
 			if id == "m40a1":
 				_expect(category == "Sniper Rifles", "actual M40A1 row under sniper category only")
-	_expect(row_ids.size() == 12 and row_ids.count("m40a1") == 1 and row_ids.count("de__50") == 1, "actual menu has all 12 core firearms exactly once")
+	_expect(row_ids.size() == 12 + Catalog.source_arsenal_ids().size() and row_ids.count("m40a1") == 1 and row_ids.count("de__50") == 1, "actual menu has core and source firearms exactly once")
 	var all_text := _visible_text(menu)
 	_expect(all_text.contains("EQUIP WEAPON") and not all_text.contains("PURCHASE") and not all_text.contains("CASH") and not all_text.contains("$"), "actual menu is equipment picker, not store")
 	for id in ["m4a1", "mark_23", "m40a1", "m9"]:

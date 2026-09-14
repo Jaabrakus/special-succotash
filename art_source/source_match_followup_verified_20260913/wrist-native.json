@@ -1,0 +1,4408 @@
+{
+	"errors": [],
+	"measurements": [
+		{
+			"clip": "idle_rifle",
+			"final_wrist_world": "[X: (42.43939, -7.450341, 42.45205), Y: (16.51415, -52.21998, -25.67383), Z: (39.81165, 29.60329, -34.6044), O: (500.057, 1.267708, 499.5893)]",
+			"graph": {
+				"active_fire_clip": "",
+				"crouched_reload_clip": "iso_rifle_reload_crouched",
+				"crouched_reload_layer_available": true,
+				"crouched_reload_trigger_count": 0,
+				"fire_layer_available": true,
+				"fire_trigger_count": 0,
+				"full_gait_weight": 0.0,
+				"jog_gait_weight": 0.0,
+				"locomotion_carry_weight": 0.0,
+				"modern_enabled": true,
+				"modern_state": "idle",
+				"playback_rate": 0.0,
+				"presentation_mode": "RELAXED_RIFLE",
+				"prone_travel_blend": -1.0,
+				"rendered_direction": "(-0.0, -1.0)",
+				"shared_phase": 0.0,
+				"smoothed_direction": "(-0.0, -1.0)",
+				"source_controller_active": true,
+				"source_grounded_clip": "walk_backward",
+				"source_loop_phase_transfer": {
+					"clock_states": [],
+					"destination_states": [],
+					"enabled": false,
+					"last_transfer": {},
+					"transfers": 0
+				},
+				"source_pistol_phase_active": false,
+				"source_transition_snapshot": {
+					"bone_count": 65,
+					"enabled": true,
+					"freezes": 0,
+					"frozen_state": "",
+					"latest_valid": true,
+					"raw_captures": 300,
+					"releases": 0,
+					"target_state": ""
+				},
+				"standing_reload_clip": "iso_rifle_reload_standing",
+				"standing_reload_layer_available": true,
+				"standing_reload_trigger_count": 0,
+				"upper_body_ready_blend": 0.0
+			},
+			"grip": {
+				"bone_count": 30,
+				"left_grip_applied": true,
+				"right_grip_applied": true,
+				"source_pistol_grip": false,
+				"source_rifle_grip": true
+			},
+			"label": "m4a1_0_idle",
+			"middle3_above_support_socket_m": 0.00963799189776182,
+			"middle3_motion_dot_profile_normal_m": 0.0383651554584503,
+			"middle3_motion_handlocal_m": [
+				0.00538240792229772,
+				-0.06665950268507,
+				0.0419757403433323
+			],
+			"middle3_weaponlocal_m": [
+				0.09130859375,
+				0.343505859375,
+				-0.0187835693359375
+			],
+			"middle_flex_degrees": [
+				39.5999853925353,
+				54.0000117479707,
+				32.3999892902905
+			],
+			"palm_long_local": [
+				0.217877611517906,
+				0.972041428089142,
+				0.0875494331121445
+			],
+			"palm_normal_dot_bore": 0.435845017433167,
+			"palm_normal_dot_physical_socket_up": 0.584999740123749,
+			"profile_normal_dot_weapon_up": 0.509826838970184,
+			"profile_palm_normal_local": [
+				-0.335837066173553,
+				-0.00955613050609827,
+				0.941871702671051
+			],
+			"raw_tree_snapshot": {
+				"available": true,
+				"hand_rotation_changed_degrees": 74.4103142899775,
+				"hand_translation_changed_m": 0.101408794522285,
+				"process_frame_age": 1
+			},
+			"raw_wrist_world": "[X: (42.43938, -7.450341, 42.45205), Y: (16.51414, -52.21996, -25.67382), Z: (39.81165, 29.60329, -34.6044), O: (500.057, 1.267708, 499.5893)]",
+			"socket_contact_m": 0.000458006135886535,
+			"socket_weaponlocal_m": [
+				0.064788818359375,
+				0.3232421875,
+				0.034088134765625
+			],
+			"source_pose_only": false,
+			"source_rifle_attachment": false,
+			"source_weapon_strategy": true,
+			"support_mode": "IK_TO_WEAPON",
+			"weapon_node_up_dot_physical_socket_up": 0.0889391228556633,
+			"weapon_owner": "RELAXED_RIFLE_LOCOMOTION",
+			"wrist_bend_degrees": 53.4650030302836,
+			"wrist_override_displacement_m": 0.000000119209289550781,
+			"wrist_override_rotation_degrees": 0.0,
+			"wrist_weaponlocal_m": [
+				0.111167907714844,
+				0.312255859375,
+				0.100418090820312
+			]
+		},
+		{
+			"clip": "run_forward",
+			"final_wrist_world": "[X: (54.99334, -21.10129, 13.75699), Y: (0.666088, -31.8049, -51.44696), Z: (25.18084, 46.92516, -28.68345), O: (499.6896, 1.219933, 493.141)]",
+			"graph": {
+				"active_fire_clip": "",
+				"crouched_reload_clip": "iso_rifle_reload_crouched",
+				"crouched_reload_layer_available": true,
+				"crouched_reload_trigger_count": 0,
+				"fire_layer_available": true,
+				"fire_trigger_count": 0,
+				"full_gait_weight": 0.999992683771413,
+				"jog_gait_weight": 0.999995109473796,
+				"locomotion_carry_weight": 0.0,
+				"modern_enabled": true,
+				"modern_state": "standing",
+				"playback_rate": 1.0,
+				"presentation_mode": "RELAXED_RIFLE",
+				"prone_travel_blend": 0.999999842475498,
+				"rendered_direction": "(-0.000881, 1.0)",
+				"shared_phase": 0.0254351306721764,
+				"smoothed_direction": "(-0.000001, 1.0)",
+				"source_controller_active": true,
+				"source_grounded_clip": "run_forward",
+				"source_loop_phase_transfer": {
+					"clock_states": [],
+					"destination_states": [],
+					"enabled": false,
+					"last_transfer": {},
+					"transfers": 0
+				},
+				"source_pistol_phase_active": false,
+				"source_transition_snapshot": {
+					"bone_count": 65,
+					"enabled": true,
+					"freezes": 0,
+					"frozen_state": "",
+					"latest_valid": true,
+					"raw_captures": 407,
+					"releases": 0,
+					"target_state": ""
+				},
+				"standing_reload_clip": "iso_rifle_reload_standing",
+				"standing_reload_layer_available": true,
+				"standing_reload_trigger_count": 0,
+				"upper_body_ready_blend": 0.0
+			},
+			"grip": {
+				"bone_count": 30,
+				"left_grip_applied": true,
+				"right_grip_applied": true,
+				"source_pistol_grip": false,
+				"source_rifle_grip": true
+			},
+			"label": "m4a1_0_forward",
+			"middle3_above_support_socket_m": 0.0316621400415897,
+			"middle3_motion_dot_profile_normal_m": 0.0383650325238705,
+			"middle3_motion_handlocal_m": [
+				0.00538246426731348,
+				-0.06665950268507,
+				0.0419756285846233
+			],
+			"middle3_weaponlocal_m": [
+				0.112258911132812,
+				0.32586669921875,
+				-0.0068817138671875
+			],
+			"middle_flex_degrees": [
+				39.6000058831028,
+				53.9999946724977,
+				32.3999995355743
+			],
+			"palm_long_local": [
+				0.217877611517906,
+				0.972041428089142,
+				0.0875494331121445
+			],
+			"palm_normal_dot_bore": 0.147911995649338,
+			"palm_normal_dot_physical_socket_up": 0.850649535655975,
+			"profile_normal_dot_weapon_up": 0.240570336580276,
+			"profile_palm_normal_local": [
+				-0.335837066173553,
+				-0.00955613050609827,
+				0.941871702671051
+			],
+			"raw_tree_snapshot": {
+				"available": true,
+				"hand_rotation_changed_degrees": 51.5614532142631,
+				"hand_translation_changed_m": 0.114243507385254,
+				"process_frame_age": 1
+			},
+			"raw_wrist_world": "[X: (54.99334, -21.10129, 13.75699), Y: (0.666087, -31.8049, -51.44696), Z: (25.18084, 46.92516, -28.68345), O: (499.6896, 1.219933, 493.141)]",
+			"socket_contact_m": 0.000251220335485414,
+			"socket_weaponlocal_m": [
+				0.064788818359375,
+				0.32318115234375,
+				0.0341033935546875
+			],
+			"source_pose_only": false,
+			"source_rifle_attachment": false,
+			"source_weapon_strategy": true,
+			"support_mode": "IK_TO_WEAPON",
+			"weapon_node_up_dot_physical_socket_up": 0.0889364555478096,
+			"weapon_owner": "RELAXED_RIFLE_LOCOMOTION",
+			"wrist_bend_degrees": 52.0166272658365,
+			"wrist_override_displacement_m": 0.0,
+			"wrist_override_rotation_degrees": 0.0,
+			"wrist_weaponlocal_m": [
+				0.0812225341796875,
+				0.31719970703125,
+				0.11376953125
+			]
+		},
+		{
+			"clip": "run_forward",
+			"final_wrist_world": "[X: (11.06848, -41.42924, 42.66007), Y: (19.92931, -38.29905, -42.36485), Z: (56.02754, 21.8077, 6.641749), O: (499.8995, 1.232155, 492.1201)]",
+			"graph": {
+				"active_fire_clip": "combat_fire",
+				"crouched_reload_clip": "iso_rifle_reload_crouched",
+				"crouched_reload_layer_available": true,
+				"crouched_reload_trigger_count": 0,
+				"fire_layer_available": true,
+				"fire_trigger_count": 1,
+				"full_gait_weight": 0.999993380002616,
+				"jog_gait_weight": 0.999995574868897,
+				"locomotion_carry_weight": 0.0,
+				"modern_enabled": true,
+				"modern_state": "standing",
+				"playback_rate": 1.0,
+				"presentation_mode": "RELAXED_RIFLE",
+				"prone_travel_blend": 0.999999862138758,
+				"rendered_direction": "(-0.000825, 1.0)",
+				"shared_phase": 0.0337684640055097,
+				"smoothed_direction": "(-0.000001, 1.0)",
+				"source_controller_active": true,
+				"source_grounded_clip": "run_forward",
+				"source_loop_phase_transfer": {
+					"clock_states": [],
+					"destination_states": [],
+					"enabled": false,
+					"last_transfer": {},
+					"transfers": 0
+				},
+				"source_pistol_phase_active": false,
+				"source_transition_snapshot": {
+					"bone_count": 65,
+					"enabled": true,
+					"freezes": 0,
+					"frozen_state": "",
+					"latest_valid": false,
+					"raw_captures": 407,
+					"releases": 0,
+					"target_state": ""
+				},
+				"standing_reload_clip": "iso_rifle_reload_standing",
+				"standing_reload_layer_available": true,
+				"standing_reload_trigger_count": 0,
+				"upper_body_ready_blend": 0.0
+			},
+			"grip": {
+				"bone_count": 30,
+				"left_grip_applied": true,
+				"right_grip_applied": true,
+				"source_pistol_grip": false,
+				"source_rifle_grip": true
+			},
+			"label": "m4a1_0_fire_early",
+			"middle3_above_support_socket_m": 0.00473855016753078,
+			"middle3_motion_dot_profile_normal_m": 0.0383651219308376,
+			"middle3_motion_handlocal_m": [
+				0.00538235204294324,
+				-0.0666595548391342,
+				0.0419756844639778
+			],
+			"middle3_weaponlocal_m": [
+				0.088134765625,
+				0.3358154296875,
+				-0.02252197265625
+			],
+			"middle_flex_degrees": [
+				39.5999819774407,
+				54.0000049177815,
+				32.3999961204797
+			],
+			"palm_long_local": [
+				0.217877611517906,
+				0.972041428089142,
+				0.0875494331121445
+			],
+			"palm_normal_dot_bore": 0.129284411668777,
+			"palm_normal_dot_physical_socket_up": 0.575119078159332,
+			"profile_normal_dot_weapon_up": 0.208138048648834,
+			"profile_palm_normal_local": [
+				-0.335837066173553,
+				-0.00955613050609827,
+				0.941871702671051
+			],
+			"raw_tree_snapshot": {
+				"available": false
+			},
+			"raw_wrist_world": "[X: (11.06848, -41.42924, 42.66007), Y: (19.92931, -38.29904, -42.36485), Z: (56.02754, 21.8077, 6.641747), O: (499.8995, 1.232155, 492.1201)]",
+			"socket_contact_m": 0.000806900148745626,
+			"socket_weaponlocal_m": [
+				0.06475830078125,
+				0.32318115234375,
+				0.03411865234375
+			],
+			"source_pose_only": false,
+			"source_rifle_attachment": false,
+			"source_weapon_strategy": true,
+			"support_mode": "IK_TO_WEAPON",
+			"weapon_node_up_dot_physical_socket_up": 0.0889138728380203,
+			"weapon_owner": "READY_SOLVER",
+			"wrist_bend_degrees": 54.999247932976,
+			"wrist_override_displacement_m": 0.0,
+			"wrist_override_rotation_degrees": 0.0395646811852521,
+			"wrist_weaponlocal_m": [
+				0.112319946289062,
+				0.285797119140625,
+				0.089324951171875
+			]
+		},
+		{
+			"clip": "run_forward",
+			"final_wrist_world": "[X: (33.56665, -30.141, 40.29372), Y: (36.86816, -18.2329, -44.3518), Z: (34.24618, 49.17179, 8.253316), O: (500.1366, 1.345447, 490.5413)]",
+			"graph": {
+				"active_fire_clip": "combat_fire",
+				"crouched_reload_clip": "iso_rifle_reload_crouched",
+				"crouched_reload_layer_available": true,
+				"crouched_reload_trigger_count": 0,
+				"fire_layer_available": true,
+				"fire_trigger_count": 1,
+				"full_gait_weight": 0.999999910362814,
+				"jog_gait_weight": 0.999999940082106,
+				"locomotion_carry_weight": 0.0,
+				"modern_enabled": true,
+				"modern_state": "standing",
+				"playback_rate": 1.0,
+				"presentation_mode": "READY_AIM",
+				"prone_travel_blend": 0.999999999555079,
+				"rendered_direction": "(-0.000047, 1.0)",
+				"shared_phase": 0.392275130672176,
+				"smoothed_direction": "(-0.0, 1.0)",
+				"source_controller_active": true,
+				"source_grounded_clip": "run_forward",
+				"source_loop_phase_transfer": {
+					"clock_states": [],
+					"destination_states": [],
+					"enabled": false,
+					"last_transfer": {},
+					"transfers": 0
+				},
+				"source_pistol_phase_active": false,
+				"source_transition_snapshot": {
+					"bone_count": 65,
+					"enabled": true,
+					"freezes": 0,
+					"frozen_state": "",
+					"latest_valid": false,
+					"raw_captures": 407,
+					"releases": 0,
+					"target_state": ""
+				},
+				"standing_reload_clip": "iso_rifle_reload_standing",
+				"standing_reload_layer_available": true,
+				"standing_reload_trigger_count": 0,
+				"upper_body_ready_blend": 0.0
+			},
+			"grip": {
+				"bone_count": 30,
+				"left_grip_applied": true,
+				"right_grip_applied": true,
+				"source_pistol_grip": false,
+				"source_rifle_grip": true
+			},
+			"label": "m4a1_0_fire_middle",
+			"middle3_above_support_socket_m": 0.0392922572791576,
+			"middle3_motion_dot_profile_normal_m": 0.0383650325238705,
+			"middle3_motion_handlocal_m": [
+				0.00538246426731348,
+				-0.06665950268507,
+				0.0419756285846233
+			],
+			"middle3_weaponlocal_m": [
+				0.116378784179688,
+				0.338470458984375,
+				0.001373291015625
+			],
+			"middle_flex_degrees": [
+				39.600012713292,
+				53.9999707668356,
+				32.3999995355743
+			],
+			"palm_long_local": [
+				0.217877611517906,
+				0.972041428089142,
+				0.0875494331121445
+			],
+			"palm_normal_dot_bore": 0.090338297188282,
+			"palm_normal_dot_physical_socket_up": 0.935640096664429,
+			"profile_normal_dot_weapon_up": 0.185078829526901,
+			"profile_palm_normal_local": [
+				-0.335837066173553,
+				-0.00955613050609827,
+				0.941871702671051
+			],
+			"raw_tree_snapshot": {
+				"available": false
+			},
+			"raw_wrist_world": "[X: (33.56665, -30.141, 40.29372), Y: (36.86816, -18.2329, -44.3518), Z: (34.24617, 49.17179, 8.253318), O: (500.1366, 1.345447, 490.5413)]",
+			"socket_contact_m": 0.0000403941885451786,
+			"socket_weaponlocal_m": [
+				0.064788818359375,
+				0.32318115234375,
+				0.03411865234375
+			],
+			"source_pose_only": false,
+			"source_rifle_attachment": false,
+			"source_weapon_strategy": true,
+			"support_mode": "IK_TO_WEAPON",
+			"weapon_node_up_dot_physical_socket_up": 0.0889167860150337,
+			"weapon_owner": "READY_SOLVER",
+			"wrist_bend_degrees": 54.7566601042247,
+			"wrist_override_displacement_m": 0.0,
+			"wrist_override_rotation_degrees": 0.0,
+			"wrist_weaponlocal_m": [
+				0.0726165771484375,
+				0.27947998046875,
+				0.10235595703125
+			]
+		},
+		{
+			"clip": "run_forward",
+			"final_wrist_world": "[X: (31.73435, -27.5777, 43.48777), Y: (41.8746, -15.91047, -40.64677), Z: (29.97054, 51.43065, 10.74424), O: (500.2048, 1.338428, 487.9858)]",
+			"graph": {
+				"active_fire_clip": "combat_fire",
+				"crouched_reload_clip": "iso_rifle_reload_crouched",
+				"crouched_reload_layer_available": true,
+				"crouched_reload_trigger_count": 0,
+				"fire_layer_available": true,
+				"fire_trigger_count": 1,
+				"full_gait_weight": 0.999999999261039,
+				"jog_gait_weight": 0.999999999506042,
+				"locomotion_carry_weight": 0.0,
+				"modern_enabled": true,
+				"modern_state": "standing",
+				"playback_rate": 1.0,
+				"presentation_mode": "READY_AIM",
+				"prone_travel_blend": 0.999999999999259,
+				"rendered_direction": "(-0.000002, 1.0)",
+				"shared_phase": 0.792131797338843,
+				"smoothed_direction": "(-0.0, 1.0)",
+				"source_controller_active": true,
+				"source_grounded_clip": "run_forward",
+				"source_loop_phase_transfer": {
+					"clock_states": [],
+					"destination_states": [],
+					"enabled": false,
+					"last_transfer": {},
+					"transfers": 0
+				},
+				"source_pistol_phase_active": false,
+				"source_transition_snapshot": {
+					"bone_count": 65,
+					"enabled": true,
+					"freezes": 0,
+					"frozen_state": "",
+					"latest_valid": false,
+					"raw_captures": 407,
+					"releases": 0,
+					"target_state": ""
+				},
+				"standing_reload_clip": "iso_rifle_reload_standing",
+				"standing_reload_layer_available": true,
+				"standing_reload_trigger_count": 0,
+				"upper_body_ready_blend": 0.0
+			},
+			"grip": {
+				"bone_count": 30,
+				"left_grip_applied": true,
+				"right_grip_applied": true,
+				"source_pistol_grip": false,
+				"source_rifle_grip": true
+			},
+			"label": "m4a1_0_fire",
+			"middle3_above_support_socket_m": 0.0424919053912163,
+			"middle3_motion_dot_profile_normal_m": 0.0383649654686451,
+			"middle3_motion_handlocal_m": [
+				0.00538235204294324,
+				-0.0666594430804253,
+				0.0419755168259144
+			],
+			"middle3_weaponlocal_m": [
+				0.119140625,
+				0.3348388671875,
+				0.004150390625
+			],
+			"middle_flex_degrees": [
+				39.5999956378191,
+				53.9999946724977,
+				32.3999995355743
+			],
+			"palm_long_local": [
+				0.217877611517906,
+				0.972041428089142,
+				0.0875494331121445
+			],
+			"palm_normal_dot_bore": 0.069815531373024,
+			"palm_normal_dot_physical_socket_up": 0.95619523525238,
+			"profile_normal_dot_weapon_up": 0.164475679397583,
+			"profile_palm_normal_local": [
+				-0.335837066173553,
+				-0.00955613050609827,
+				0.941871702671051
+			],
+			"raw_tree_snapshot": {
+				"available": false
+			},
+			"raw_wrist_world": "[X: (31.73435, -27.5777, 43.48777), Y: (41.8746, -15.91047, -40.64677), Z: (29.97054, 51.43065, 10.74423), O: (500.2048, 1.338428, 487.9858)]",
+			"socket_contact_m": 0.0001047171317623,
+			"socket_weaponlocal_m": [
+				0.0647735595703125,
+				0.3232421875,
+				0.0340576171875
+			],
+			"source_pose_only": false,
+			"source_rifle_attachment": false,
+			"source_weapon_strategy": true,
+			"support_mode": "IK_TO_WEAPON",
+			"weapon_node_up_dot_physical_socket_up": 0.0889039039611816,
+			"weapon_owner": "READY_SOLVER",
+			"wrist_bend_degrees": 54.7220583658894,
+			"wrist_override_displacement_m": 0.0,
+			"wrist_override_rotation_degrees": 0.0,
+			"wrist_weaponlocal_m": [
+				0.0664520263671875,
+				0.285125732421875,
+				0.10589599609375
+			]
+		},
+		{
+			"clip": "idle_crouch",
+			"final_wrist_world": "[X: (-12.13227, -28.82179, 51.7774), Y: (38.42212, -44.06266, -15.52449), Z: (45.1147, 29.77538, 27.14549), O: (500.2274, 0.651812, 487.7892)]",
+			"graph": {
+				"active_fire_clip": "combat_fire",
+				"crouched_reload_clip": "iso_rifle_reload_crouched",
+				"crouched_reload_layer_available": true,
+				"crouched_reload_trigger_count": 0,
+				"fire_layer_available": true,
+				"fire_trigger_count": 1,
+				"full_gait_weight": 0.00000000000000000836388427971716,
+				"jog_gait_weight": 0.00000000000000000836388428157134,
+				"locomotion_carry_weight": 0.0,
+				"modern_enabled": true,
+				"modern_state": "idle_crouch",
+				"playback_rate": 0.0,
+				"presentation_mode": "RELAXED_RIFLE",
+				"prone_travel_blend": 1.0,
+				"rendered_direction": "(-0.0, 1.0)",
+				"shared_phase": 0.800465130672176,
+				"smoothed_direction": "(-0.0, 1.0)",
+				"source_controller_active": true,
+				"source_grounded_clip": "source_walk_alert",
+				"source_loop_phase_transfer": {
+					"clock_states": [],
+					"destination_states": [],
+					"enabled": false,
+					"last_transfer": {},
+					"transfers": 0
+				},
+				"source_pistol_phase_active": false,
+				"source_transition_snapshot": {
+					"bone_count": 65,
+					"enabled": true,
+					"freezes": 1,
+					"frozen_state": "",
+					"latest_valid": true,
+					"raw_captures": 739,
+					"releases": 1,
+					"target_state": ""
+				},
+				"standing_reload_clip": "iso_rifle_reload_standing",
+				"standing_reload_layer_available": true,
+				"standing_reload_trigger_count": 0,
+				"upper_body_ready_blend": 0.0
+			},
+			"grip": {
+				"bone_count": 30,
+				"left_grip_applied": true,
+				"right_grip_applied": true,
+				"source_pistol_grip": false,
+				"source_rifle_grip": true
+			},
+			"label": "m4a1_1_idle",
+			"middle3_above_support_socket_m": 0.00666918512433767,
+			"middle3_motion_dot_profile_normal_m": 0.0383650064468384,
+			"middle3_motion_handlocal_m": [
+				0.00538246426731348,
+				-0.066659539937973,
+				0.0419756025075912
+			],
+			"middle3_weaponlocal_m": [
+				0.09173583984375,
+				0.2979736328125,
+				-0.0167236328125
+			],
+			"middle_flex_degrees": [
+				39.5999990529136,
+				53.9999946724977,
+				32.3999995355743
+			],
+			"palm_long_local": [
+				0.217877611517906,
+				0.972041428089142,
+				0.0875494331121445
+			],
+			"palm_normal_dot_bore": -0.304863601922989,
+			"palm_normal_dot_physical_socket_up": 0.596709012985229,
+			"profile_normal_dot_weapon_up": -0.224429115653038,
+			"profile_palm_normal_local": [
+				-0.335837066173553,
+				-0.00955613050609827,
+				0.941871702671051
+			],
+			"raw_tree_snapshot": {
+				"available": true,
+				"hand_rotation_changed_degrees": 55.2193815148309,
+				"hand_translation_changed_m": 0.102958157658577,
+				"process_frame_age": 1
+			},
+			"raw_wrist_world": "[X: (-12.13227, -28.82179, 51.7774), Y: (38.42212, -44.06265, -15.52448), Z: (45.1147, 29.77538, 27.14548), O: (500.2274, 0.651812, 487.7892)]",
+			"socket_contact_m": 0.000314266100758687,
+			"socket_weaponlocal_m": [
+				0.0647735595703125,
+				0.3232421875,
+				0.03411865234375
+			],
+			"source_pose_only": false,
+			"source_rifle_attachment": false,
+			"source_weapon_strategy": true,
+			"support_mode": "IK_TO_WEAPON",
+			"weapon_node_up_dot_physical_socket_up": 0.0889160931110382,
+			"weapon_owner": "RELAXED_RIFLE_LOCOMOTION",
+			"wrist_bend_degrees": 54.2390683689211,
+			"wrist_override_displacement_m": 0.0,
+			"wrist_override_rotation_degrees": 0.0,
+			"wrist_weaponlocal_m": [
+				0.106185913085938,
+				0.3248291015625,
+				0.1043701171875
+			]
+		},
+		{
+			"clip": "crouch_forward",
+			"final_wrist_world": "[X: (42.67683, -10.16239, 41.64392), Y: (9.30093, -55.16838, -22.9944), Z: (41.84475, 22.62691, -37.36098), O: (500.2673, 0.970246, 484.8867)]",
+			"graph": {
+				"active_fire_clip": "combat_fire",
+				"crouched_reload_clip": "iso_rifle_reload_crouched",
+				"crouched_reload_layer_available": true,
+				"crouched_reload_trigger_count": 0,
+				"fire_layer_available": true,
+				"fire_trigger_count": 1,
+				"full_gait_weight": 0.000000000000552139780617853,
+				"jog_gait_weight": 0.1445776185355,
+				"locomotion_carry_weight": 0.0,
+				"modern_enabled": true,
+				"modern_state": "crouch",
+				"playback_rate": 0.999999963320219,
+				"presentation_mode": "RELAXED_RIFLE",
+				"prone_travel_blend": 1.0,
+				"rendered_direction": "(-0.0, 1.0)",
+				"shared_phase": 0.823420365877673,
+				"smoothed_direction": "(-0.0, 1.0)",
+				"source_controller_active": true,
+				"source_grounded_clip": "source_walk_alert",
+				"source_loop_phase_transfer": {
+					"clock_states": [],
+					"destination_states": [],
+					"enabled": false,
+					"last_transfer": {},
+					"transfers": 0
+				},
+				"source_pistol_phase_active": false,
+				"source_transition_snapshot": {
+					"bone_count": 65,
+					"enabled": true,
+					"freezes": 1,
+					"frozen_state": "",
+					"latest_valid": true,
+					"raw_captures": 846,
+					"releases": 1,
+					"target_state": ""
+				},
+				"standing_reload_clip": "iso_rifle_reload_standing",
+				"standing_reload_layer_available": true,
+				"standing_reload_trigger_count": 0,
+				"upper_body_ready_blend": 0.0
+			},
+			"grip": {
+				"bone_count": 30,
+				"left_grip_applied": true,
+				"right_grip_applied": true,
+				"source_pistol_grip": false,
+				"source_rifle_grip": true
+			},
+			"label": "m4a1_1_forward",
+			"middle3_above_support_socket_m": 0.00752756698057055,
+			"middle3_motion_dot_profile_normal_m": 0.0383651368319988,
+			"middle3_motion_handlocal_m": [
+				0.00538246426731348,
+				-0.066659614443779,
+				0.0419757403433323
+			],
+			"middle3_weaponlocal_m": [
+				0.0814056396484375,
+				0.369964599609375,
+				-0.00372314453125
+			],
+			"middle_flex_degrees": [
+				39.5999922227245,
+				53.9999707668356,
+				32.3999756299122
+			],
+			"palm_long_local": [
+				0.217877611517906,
+				0.972041428089142,
+				0.0875494331121445
+			],
+			"palm_normal_dot_bore": 0.726022839546204,
+			"palm_normal_dot_physical_socket_up": 0.562923848628998,
+			"profile_normal_dot_weapon_up": 0.786583542823792,
+			"profile_palm_normal_local": [
+				-0.335837066173553,
+				-0.00955613050609827,
+				0.941871702671051
+			],
+			"raw_tree_snapshot": {
+				"available": true,
+				"hand_rotation_changed_degrees": 86.911534395771,
+				"hand_translation_changed_m": 0.12908636033535,
+				"process_frame_age": 1
+			},
+			"raw_wrist_world": "[X: (42.67683, -10.1624, 41.64392), Y: (9.300933, -55.16838, -22.99441), Z: (41.84474, 22.62691, -37.36098), O: (500.2673, 0.970246, 484.8867)]",
+			"socket_contact_m": 0.000618779973592609,
+			"socket_weaponlocal_m": [
+				0.0647735595703125,
+				0.32318115234375,
+				0.03399658203125
+			],
+			"source_pose_only": false,
+			"source_rifle_attachment": false,
+			"source_weapon_strategy": true,
+			"support_mode": "IK_TO_WEAPON",
+			"weapon_node_up_dot_physical_socket_up": 0.0889008641242981,
+			"weapon_owner": "RELAXED_RIFLE_LOCOMOTION",
+			"wrist_bend_degrees": 54.9991762159897,
+			"wrist_override_displacement_m": 0.0,
+			"wrist_override_rotation_degrees": 0.0395646811852521,
+			"wrist_weaponlocal_m": [
+				0.120185852050781,
+				0.29119873046875,
+				0.0850830078125
+			]
+		},
+		{
+			"clip": "crouch_forward",
+			"final_wrist_world": "[X: (43.58307, -15.18258, 39.09977), Y: (11.2428, -50.09419, -31.98369), Z: (40.40918, 30.31248, -33.27217), O: (500.2665, 1.008654, 484.5464)]",
+			"graph": {
+				"active_fire_clip": "crouch_fire",
+				"crouched_reload_clip": "iso_rifle_reload_crouched",
+				"crouched_reload_layer_available": true,
+				"crouched_reload_trigger_count": 0,
+				"fire_layer_available": true,
+				"fire_trigger_count": 2,
+				"full_gait_weight": 0.000000000000516888414845229,
+				"jog_gait_weight": 0.144577682716037,
+				"locomotion_carry_weight": 0.0,
+				"modern_enabled": true,
+				"modern_state": "crouch",
+				"playback_rate": 0.999999963320219,
+				"presentation_mode": "RELAXED_RIFLE",
+				"prone_travel_blend": 1.0,
+				"rendered_direction": "(-0.0, 1.0)",
+				"shared_phase": 0.831753698905341,
+				"smoothed_direction": "(-0.0, 1.0)",
+				"source_controller_active": true,
+				"source_grounded_clip": "source_walk_alert",
+				"source_loop_phase_transfer": {
+					"clock_states": [],
+					"destination_states": [],
+					"enabled": false,
+					"last_transfer": {},
+					"transfers": 0
+				},
+				"source_pistol_phase_active": false,
+				"source_transition_snapshot": {
+					"bone_count": 65,
+					"enabled": true,
+					"freezes": 1,
+					"frozen_state": "",
+					"latest_valid": false,
+					"raw_captures": 846,
+					"releases": 1,
+					"target_state": ""
+				},
+				"standing_reload_clip": "iso_rifle_reload_standing",
+				"standing_reload_layer_available": true,
+				"standing_reload_trigger_count": 0,
+				"upper_body_ready_blend": 0.0
+			},
+			"grip": {
+				"bone_count": 30,
+				"left_grip_applied": true,
+				"right_grip_applied": true,
+				"source_pistol_grip": false,
+				"source_rifle_grip": true
+			},
+			"label": "m4a1_1_fire_early",
+			"middle3_above_support_socket_m": 0.00808181427419186,
+			"middle3_motion_dot_profile_normal_m": 0.038365051150322,
+			"middle3_motion_handlocal_m": [
+				0.00538240792229772,
+				-0.06665950268507,
+				0.0419756285846233
+			],
+			"middle3_weaponlocal_m": [
+				0.08221435546875,
+				0.36981201171875,
+				-0.00421142578125
+			],
+			"middle_flex_degrees": [
+				39.5999990529136,
+				53.999984427214,
+				32.3999995355743
+			],
+			"palm_long_local": [
+				0.217877611517906,
+				0.972041428089142,
+				0.0875494331121445
+			],
+			"palm_normal_dot_bore": 0.732233941555023,
+			"palm_normal_dot_physical_socket_up": 0.560539722442627,
+			"profile_normal_dot_weapon_up": 0.792253315448761,
+			"profile_palm_normal_local": [
+				-0.335837066173553,
+				-0.00955613050609827,
+				0.941871702671051
+			],
+			"raw_tree_snapshot": {
+				"available": false
+			},
+			"raw_wrist_world": "[X: (43.58307, -15.18258, 39.09977), Y: (11.2428, -50.0942, -31.98368), Z: (40.40917, 30.31247, -33.27217), O: (500.2665, 1.008654, 484.5464)]",
+			"socket_contact_m": 0.000196778622921556,
+			"socket_weaponlocal_m": [
+				0.064788818359375,
+				0.323211669921875,
+				0.034088134765625
+			],
+			"source_pose_only": false,
+			"source_rifle_attachment": false,
+			"source_weapon_strategy": true,
+			"support_mode": "IK_TO_WEAPON",
+			"weapon_node_up_dot_physical_socket_up": 0.088888131082058,
+			"weapon_owner": "READY_SOLVER",
+			"wrist_bend_degrees": 54.998844951815,
+			"wrist_override_displacement_m": 0.0,
+			"wrist_override_rotation_degrees": 0.0,
+			"wrist_weaponlocal_m": [
+				0.118621826171875,
+				0.293548583984375,
+				0.08770751953125
+			]
+		},
+		{
+			"clip": "crouch_forward",
+			"final_wrist_world": "[X: (30.23327, -23.2799, 46.93373), Y: (27.80284, -38.79856, -37.15446), Z: (44.40417, 40.14346, -8.692), O: (500.328, 1.148204, 483.9261)]",
+			"graph": {
+				"active_fire_clip": "crouch_fire",
+				"crouched_reload_clip": "iso_rifle_reload_crouched",
+				"crouched_reload_layer_available": true,
+				"crouched_reload_trigger_count": 0,
+				"fire_layer_available": true,
+				"fire_trigger_count": 2,
+				"full_gait_weight": 0.0000000000000244945421140966,
+				"jog_gait_weight": 0.144578284821832,
+				"locomotion_carry_weight": 0.0,
+				"modern_enabled": true,
+				"modern_state": "crouch",
+				"playback_rate": 0.999999963320219,
+				"presentation_mode": "READY_AIM",
+				"prone_travel_blend": 1.0,
+				"rendered_direction": "(-0.0, 1.0)",
+				"shared_phase": 0.191468685711074,
+				"smoothed_direction": "(-0.0, 1.0)",
+				"source_controller_active": true,
+				"source_grounded_clip": "source_walk_alert",
+				"source_loop_phase_transfer": {
+					"clock_states": [],
+					"destination_states": [],
+					"enabled": false,
+					"last_transfer": {},
+					"transfers": 0
+				},
+				"source_pistol_phase_active": false,
+				"source_transition_snapshot": {
+					"bone_count": 65,
+					"enabled": true,
+					"freezes": 1,
+					"frozen_state": "",
+					"latest_valid": false,
+					"raw_captures": 846,
+					"releases": 1,
+					"target_state": ""
+				},
+				"standing_reload_clip": "iso_rifle_reload_standing",
+				"standing_reload_layer_available": true,
+				"standing_reload_trigger_count": 0,
+				"upper_body_ready_blend": 0.0
+			},
+			"grip": {
+				"bone_count": 30,
+				"left_grip_applied": true,
+				"right_grip_applied": true,
+				"source_pistol_grip": false,
+				"source_rifle_grip": true
+			},
+			"label": "m4a1_1_fire_middle",
+			"middle3_above_support_socket_m": 0.0220983978360891,
+			"middle3_motion_dot_profile_normal_m": 0.0383651740849018,
+			"middle3_motion_handlocal_m": [
+				0.00538235204294324,
+				-0.0666595548391342,
+				0.0419757403433323
+			],
+			"middle3_weaponlocal_m": [
+				0.1007080078125,
+				0.349853515625,
+				-0.0093994140625
+			],
+			"middle_flex_degrees": [
+				39.5999853925353,
+				54.0000185781598,
+				32.3999995355743
+			],
+			"palm_long_local": [
+				0.217877611517906,
+				0.972041428089142,
+				0.0875494331121445
+			],
+			"palm_normal_dot_bore": 0.392171591520309,
+			"palm_normal_dot_physical_socket_up": 0.759285688400269,
+			"profile_normal_dot_weapon_up": 0.476081013679504,
+			"profile_palm_normal_local": [
+				-0.335837066173553,
+				-0.00955613050609827,
+				0.941871702671051
+			],
+			"raw_tree_snapshot": {
+				"available": false
+			},
+			"raw_wrist_world": "[X: (30.23326, -23.2799, 46.93372), Y: (27.80284, -38.79856, -37.15446), Z: (44.40416, 40.14346, -8.692), O: (500.328, 1.148204, 483.9261)]",
+			"socket_contact_m": 0.000633928168099374,
+			"socket_weaponlocal_m": [
+				0.064788818359375,
+				0.323211669921875,
+				0.034088134765625
+			],
+			"source_pose_only": false,
+			"source_rifle_attachment": false,
+			"source_weapon_strategy": true,
+			"support_mode": "IK_TO_WEAPON",
+			"weapon_node_up_dot_physical_socket_up": 0.0889309495687485,
+			"weapon_owner": "READY_SOLVER",
+			"wrist_bend_degrees": 54.9369292869888,
+			"wrist_override_displacement_m": 0.0,
+			"wrist_override_rotation_degrees": 0.0395646811852521,
+			"wrist_weaponlocal_m": [
+				0.09967041015625,
+				0.290771484375,
+				0.1005859375
+			]
+		},
+		{
+			"clip": "crouch_forward",
+			"final_wrist_world": "[X: (29.70691, -22.50699, 47.64157), Y: (32.46727, -35.25611, -36.90077), Z: (41.49891, 43.69471, -5.234252), O: (500.3396, 1.195011, 482.9016)]",
+			"graph": {
+				"active_fire_clip": "crouch_fire",
+				"crouched_reload_clip": "iso_rifle_reload_crouched",
+				"crouched_reload_layer_available": true,
+				"crouched_reload_trigger_count": 0,
+				"fire_layer_available": true,
+				"fire_trigger_count": 2,
+				"full_gait_weight": 0.00000000000000110243689984983,
+				"jog_gait_weight": 0.144578292898359,
+				"locomotion_carry_weight": 0.0,
+				"modern_enabled": true,
+				"modern_state": "crouch",
+				"playback_rate": 0.999999963320219,
+				"presentation_mode": "READY_AIM",
+				"prone_travel_blend": 1.0,
+				"rendered_direction": "(-0.0, 1.0)",
+				"shared_phase": 0.590841004395517,
+				"smoothed_direction": "(-0.0, 1.0)",
+				"source_controller_active": true,
+				"source_grounded_clip": "source_walk_alert",
+				"source_loop_phase_transfer": {
+					"clock_states": [],
+					"destination_states": [],
+					"enabled": false,
+					"last_transfer": {},
+					"transfers": 0
+				},
+				"source_pistol_phase_active": false,
+				"source_transition_snapshot": {
+					"bone_count": 65,
+					"enabled": true,
+					"freezes": 1,
+					"frozen_state": "",
+					"latest_valid": false,
+					"raw_captures": 846,
+					"releases": 1,
+					"target_state": ""
+				},
+				"standing_reload_clip": "iso_rifle_reload_standing",
+				"standing_reload_layer_available": true,
+				"standing_reload_trigger_count": 0,
+				"upper_body_ready_blend": 0.0
+			},
+			"grip": {
+				"bone_count": 30,
+				"left_grip_applied": true,
+				"right_grip_applied": true,
+				"source_pistol_grip": false,
+				"source_rifle_grip": true
+			},
+			"label": "m4a1_1_fire",
+			"middle3_above_support_socket_m": 0.0270496997982264,
+			"middle3_motion_dot_profile_normal_m": 0.0383650325238705,
+			"middle3_motion_handlocal_m": [
+				0.00538246426731348,
+				-0.0666594132781029,
+				0.0419756285846233
+			],
+			"middle3_weaponlocal_m": [
+				0.105514526367188,
+				0.34722900390625,
+				-0.007293701171875
+			],
+			"middle_flex_degrees": [
+				39.5999956378191,
+				53.9999878423086,
+				32.3999756299122
+			],
+			"palm_long_local": [
+				0.217877611517906,
+				0.972041428089142,
+				0.0875494331121445
+			],
+			"palm_normal_dot_bore": 0.342356443405151,
+			"palm_normal_dot_physical_socket_up": 0.809787213802338,
+			"profile_normal_dot_weapon_up": 0.429486095905304,
+			"profile_palm_normal_local": [
+				-0.335837066173553,
+				-0.00955613050609827,
+				0.941871702671051
+			],
+			"raw_tree_snapshot": {
+				"available": false
+			},
+			"raw_wrist_world": "[X: (29.7069, -22.50698, 47.64156), Y: (32.46726, -35.25611, -36.90076), Z: (41.4989, 43.69469, -5.23425), O: (500.3396, 1.195011, 482.9016)]",
+			"socket_contact_m": 0.000163284566951916,
+			"socket_weaponlocal_m": [
+				0.064788818359375,
+				0.323211669921875,
+				0.03411865234375
+			],
+			"source_pose_only": false,
+			"source_rifle_attachment": false,
+			"source_weapon_strategy": true,
+			"support_mode": "IK_TO_WEAPON",
+			"weapon_node_up_dot_physical_socket_up": 0.0889190509915352,
+			"weapon_owner": "READY_SOLVER",
+			"wrist_bend_degrees": 54.9112204549529,
+			"wrist_override_displacement_m": 0.0,
+			"wrist_override_rotation_degrees": 0.0,
+			"wrist_weaponlocal_m": [
+				0.0928955078125,
+				0.29150390625,
+				0.103729248046875
+			]
+		},
+		{
+			"clip": "idle_rifle",
+			"final_wrist_world": "[X: (41.21233, -9.076449, 43.33534), Y: (7.873707, -56.75721, -19.37558), Z: (43.56993, 18.84216, -37.48899), O: (500.0578, 1.214116, 483.3338)]",
+			"graph": {
+				"active_fire_clip": "",
+				"crouched_reload_clip": "iso_rifle_reload_crouched",
+				"crouched_reload_layer_available": true,
+				"crouched_reload_trigger_count": 0,
+				"fire_layer_available": true,
+				"fire_trigger_count": 0,
+				"full_gait_weight": 0.0,
+				"jog_gait_weight": 0.0,
+				"locomotion_carry_weight": 0.0,
+				"modern_enabled": true,
+				"modern_state": "idle",
+				"playback_rate": 0.0,
+				"presentation_mode": "RELAXED_RIFLE",
+				"prone_travel_blend": -1.0,
+				"rendered_direction": "(-0.0, -1.0)",
+				"shared_phase": 0.0,
+				"smoothed_direction": "(-0.0, -1.0)",
+				"source_controller_active": true,
+				"source_grounded_clip": "walk_backward",
+				"source_loop_phase_transfer": {
+					"clock_states": [],
+					"destination_states": [],
+					"enabled": false,
+					"last_transfer": {},
+					"transfers": 0
+				},
+				"source_pistol_phase_active": false,
+				"source_transition_snapshot": {
+					"bone_count": 65,
+					"enabled": true,
+					"freezes": 1,
+					"frozen_state": "",
+					"latest_valid": true,
+					"raw_captures": 288,
+					"releases": 1,
+					"target_state": ""
+				},
+				"standing_reload_clip": "iso_rifle_reload_standing",
+				"standing_reload_layer_available": true,
+				"standing_reload_trigger_count": 0,
+				"upper_body_ready_blend": 0.0
+			},
+			"grip": {
+				"bone_count": 30,
+				"left_grip_applied": true,
+				"right_grip_applied": true,
+				"source_pistol_grip": false,
+				"source_rifle_grip": true
+			},
+			"label": "ak-47_0_idle",
+			"middle3_above_support_socket_m": -0.00266309268772602,
+			"middle3_motion_dot_profile_normal_m": 0.0383650958538055,
+			"middle3_motion_handlocal_m": [
+				0.00538243632763624,
+				-0.0666595548391342,
+				0.0419756844639778
+			],
+			"middle3_weaponlocal_m": [
+				0.0292816162109375,
+				0.32086181640625,
+				-0.041717529296875
+			],
+			"middle_flex_degrees": [
+				39.6000058831028,
+				53.9999707668356,
+				32.3999995355743
+			],
+			"palm_long_local": [
+				0.217877611517906,
+				0.972041428089142,
+				0.0875494331121445
+			],
+			"palm_normal_dot_bore": 0.43600332736969,
+			"palm_normal_dot_physical_socket_up": 0.426524043083191,
+			"profile_normal_dot_weapon_up": 0.493149876594543,
+			"profile_palm_normal_local": [
+				-0.335837066173553,
+				-0.00955613050609827,
+				0.941871702671051
+			],
+			"raw_tree_snapshot": {
+				"available": true,
+				"hand_rotation_changed_degrees": 80.9951357442467,
+				"hand_translation_changed_m": 0.119305238127708,
+				"process_frame_age": 1
+			},
+			"raw_wrist_world": "[X: (41.21232, -9.07645, 43.33534), Y: (7.873708, -56.75721, -19.37559), Z: (43.56992, 18.84215, -37.48899), O: (500.0578, 1.214116, 483.3338)]",
+			"socket_contact_m": 0.000623733329121023,
+			"socket_weaponlocal_m": [
+				0.01373291015625,
+				0.3026123046875,
+				0.0158843994140625
+			],
+			"source_pose_only": false,
+			"source_rifle_attachment": false,
+			"source_weapon_strategy": true,
+			"support_mode": "IK_TO_WEAPON",
+			"weapon_node_up_dot_physical_socket_up": 0.0722508728504181,
+			"weapon_owner": "RELAXED_RIFLE_LOCOMOTION",
+			"wrist_bend_degrees": 54.5297919558481,
+			"wrist_override_displacement_m": 0.0,
+			"wrist_override_rotation_degrees": 0.0,
+			"wrist_weaponlocal_m": [
+				0.0721664428710938,
+				0.29425048828125,
+				0.072509765625
+			]
+		},
+		{
+			"clip": "run_forward",
+			"final_wrist_world": "[X: (53.39981, -22.18376, 17.75179), Y: (-1.231096, -39.5638, -45.73813), Z: (28.38537, 40.01716, -35.37913), O: (499.6982, 1.166785, 476.8768)]",
+			"graph": {
+				"active_fire_clip": "",
+				"crouched_reload_clip": "iso_rifle_reload_crouched",
+				"crouched_reload_layer_available": true,
+				"crouched_reload_trigger_count": 0,
+				"fire_layer_available": true,
+				"fire_trigger_count": 0,
+				"full_gait_weight": 0.999992824164089,
+				"jog_gait_weight": 0.999995255504844,
+				"locomotion_carry_weight": 0.0,
+				"modern_enabled": true,
+				"modern_state": "standing",
+				"playback_rate": 1.0,
+				"presentation_mode": "RELAXED_RIFLE",
+				"prone_travel_blend": 0.999999849291674,
+				"rendered_direction": "(-0.000863, 1.0)",
+				"shared_phase": 0.0283413160076967,
+				"smoothed_direction": "(-0.000001, 1.0)",
+				"source_controller_active": true,
+				"source_grounded_clip": "run_forward",
+				"source_loop_phase_transfer": {
+					"clock_states": [],
+					"destination_states": [],
+					"enabled": false,
+					"last_transfer": {},
+					"transfers": 0
+				},
+				"source_pistol_phase_active": false,
+				"source_transition_snapshot": {
+					"bone_count": 65,
+					"enabled": true,
+					"freezes": 1,
+					"frozen_state": "",
+					"latest_valid": true,
+					"raw_captures": 394,
+					"releases": 1,
+					"target_state": ""
+				},
+				"standing_reload_clip": "iso_rifle_reload_standing",
+				"standing_reload_layer_available": true,
+				"standing_reload_trigger_count": 0,
+				"upper_body_ready_blend": 0.0
+			},
+			"grip": {
+				"bone_count": 30,
+				"left_grip_applied": true,
+				"right_grip_applied": true,
+				"source_pistol_grip": false,
+				"source_rifle_grip": true
+			},
+			"label": "ak-47_0_forward",
+			"middle3_above_support_socket_m": 0.0219900999218225,
+			"middle3_motion_dot_profile_normal_m": 0.0383651368319988,
+			"middle3_motion_handlocal_m": [
+				0.00538246426731348,
+				-0.0666594728827477,
+				0.0419757403433323
+			],
+			"middle3_weaponlocal_m": [
+				0.0538711547851562,
+				0.302734375,
+				-0.0330352783203125
+			],
+			"middle_flex_degrees": [
+				39.6000092981974,
+				53.999984427214,
+				32.3999892902905
+			],
+			"palm_long_local": [
+				0.217877611517906,
+				0.972041428089142,
+				0.0875494331121445
+			],
+			"palm_normal_dot_bore": 0.134117126464844,
+			"palm_normal_dot_physical_socket_up": 0.750388741493225,
+			"profile_normal_dot_weapon_up": 0.210576251149178,
+			"profile_palm_normal_local": [
+				-0.335837066173553,
+				-0.00955613050609827,
+				0.941871702671051
+			],
+			"raw_tree_snapshot": {
+				"available": true,
+				"hand_rotation_changed_degrees": 60.4728898168379,
+				"hand_translation_changed_m": 0.129690483212471,
+				"process_frame_age": 1
+			},
+			"raw_wrist_world": "[X: (53.39981, -22.18377, 17.75179), Y: (-1.231093, -39.56379, -45.73813), Z: (28.38536, 40.01716, -35.37912), O: (499.6982, 1.166785, 476.8768)]",
+			"socket_contact_m": 0.00027669090195559,
+			"socket_weaponlocal_m": [
+				0.0137252807617188,
+				0.30267333984375,
+				0.015899658203125
+			],
+			"source_pose_only": false,
+			"source_rifle_attachment": false,
+			"source_weapon_strategy": true,
+			"support_mode": "IK_TO_WEAPON",
+			"weapon_node_up_dot_physical_socket_up": 0.0722200348973274,
+			"weapon_owner": "RELAXED_RIFLE_LOCOMOTION",
+			"wrist_bend_degrees": 52.6099521386572,
+			"wrist_override_displacement_m": 0.000000119209289550781,
+			"wrist_override_rotation_degrees": 0.0,
+			"wrist_weaponlocal_m": [
+				0.0435714721679688,
+				0.2991943359375,
+				0.0913543701171875
+			]
+		},
+		{
+			"clip": "run_forward",
+			"final_wrist_world": "[X: (5.437797, -38.07962, 46.68136), Y: (19.71135, -43.16648, -37.50855), Z: (56.92685, 18.58418, 8.528511), O: (499.9003, 1.178238, 475.8648)]",
+			"graph": {
+				"active_fire_clip": "combat_fire",
+				"crouched_reload_clip": "iso_rifle_reload_crouched",
+				"crouched_reload_layer_available": true,
+				"crouched_reload_trigger_count": 0,
+				"fire_layer_available": true,
+				"fire_trigger_count": 1,
+				"full_gait_weight": 0.999993507035162,
+				"jog_gait_weight": 0.999995707003253,
+				"locomotion_carry_weight": 0.0,
+				"modern_enabled": true,
+				"modern_state": "standing",
+				"playback_rate": 1.0,
+				"presentation_mode": "RELAXED_RIFLE",
+				"prone_travel_blend": 0.999999868104094,
+				"rendered_direction": "(-0.000807, 1.0)",
+				"shared_phase": 0.03667464934103,
+				"smoothed_direction": "(-0.000001, 1.0)",
+				"source_controller_active": true,
+				"source_grounded_clip": "run_forward",
+				"source_loop_phase_transfer": {
+					"clock_states": [],
+					"destination_states": [],
+					"enabled": false,
+					"last_transfer": {},
+					"transfers": 0
+				},
+				"source_pistol_phase_active": false,
+				"source_transition_snapshot": {
+					"bone_count": 65,
+					"enabled": true,
+					"freezes": 1,
+					"frozen_state": "",
+					"latest_valid": false,
+					"raw_captures": 394,
+					"releases": 1,
+					"target_state": ""
+				},
+				"standing_reload_clip": "iso_rifle_reload_standing",
+				"standing_reload_layer_available": true,
+				"standing_reload_trigger_count": 0,
+				"upper_body_ready_blend": 0.0
+			},
+			"grip": {
+				"bone_count": 30,
+				"left_grip_applied": true,
+				"right_grip_applied": true,
+				"source_pistol_grip": false,
+				"source_rifle_grip": true
+			},
+			"label": "ak-47_0_fire_early",
+			"middle3_above_support_socket_m": -0.000215464271605015,
+			"middle3_motion_dot_profile_normal_m": 0.0383650995790958,
+			"middle3_motion_handlocal_m": [
+				0.00538235204294324,
+				-0.0666595324873924,
+				0.0419756583869457
+			],
+			"middle3_weaponlocal_m": [
+				0.0331573486328125,
+				0.311187744140625,
+				-0.043060302734375
+			],
+			"middle_flex_degrees": [
+				39.5999990529136,
+				53.9999878423086,
+				32.3999927053851
+			],
+			"palm_long_local": [
+				0.217877611517906,
+				0.972041428089142,
+				0.0875494331121445
+			],
+			"palm_normal_dot_bore": 0.122669130563736,
+			"palm_normal_dot_physical_socket_up": 0.507139146327972,
+			"profile_normal_dot_weapon_up": 0.188790291547775,
+			"profile_palm_normal_local": [
+				-0.335837066173553,
+				-0.00955613050609827,
+				0.941871702671051
+			],
+			"raw_tree_snapshot": {
+				"available": false
+			},
+			"raw_wrist_world": "[X: (5.437797, -38.07962, 46.68136), Y: (19.71135, -43.16648, -37.50854), Z: (56.92685, 18.58418, 8.528506), O: (499.9003, 1.178238, 475.8648)]",
+			"socket_contact_m": 0.000616153294686228,
+			"socket_weaponlocal_m": [
+				0.0137176513671875,
+				0.3026123046875,
+				0.015899658203125
+			],
+			"source_pose_only": false,
+			"source_rifle_attachment": false,
+			"source_weapon_strategy": true,
+			"support_mode": "IK_TO_WEAPON",
+			"weapon_node_up_dot_physical_socket_up": 0.0722128674387932,
+			"weapon_owner": "READY_SOLVER",
+			"wrist_bend_degrees": 54.9993845367594,
+			"wrist_override_displacement_m": 0.0,
+			"wrist_override_rotation_degrees": 0.0395646811852521,
+			"wrist_weaponlocal_m": [
+				0.0662384033203125,
+				0.272674560546875,
+				0.071014404296875
+			]
+		},
+		{
+			"clip": "run_forward",
+			"final_wrist_world": "[X: (28.67937, -30.21261, 43.85744), Y: (36.22319, -25.44944, -41.21882), Z: (39.04047, 45.80731, 6.026387), O: (500.1367, 1.296941, 474.173)]",
+			"graph": {
+				"active_fire_clip": "combat_fire",
+				"crouched_reload_clip": "iso_rifle_reload_crouched",
+				"crouched_reload_layer_available": true,
+				"crouched_reload_trigger_count": 0,
+				"fire_layer_available": true,
+				"fire_trigger_count": 1,
+				"full_gait_weight": 0.999999927162237,
+				"jog_gait_weight": 0.999999951841372,
+				"locomotion_carry_weight": 0.0,
+				"modern_enabled": true,
+				"modern_state": "standing",
+				"playback_rate": 1.0,
+				"presentation_mode": "READY_AIM",
+				"prone_travel_blend": 0.99999999966878,
+				"rendered_direction": "(-0.00004, 1.0)",
+				"shared_phase": 0.410861316007697,
+				"smoothed_direction": "(-0.0, 1.0)",
+				"source_controller_active": true,
+				"source_grounded_clip": "run_forward",
+				"source_loop_phase_transfer": {
+					"clock_states": [],
+					"destination_states": [],
+					"enabled": false,
+					"last_transfer": {},
+					"transfers": 0
+				},
+				"source_pistol_phase_active": false,
+				"source_transition_snapshot": {
+					"bone_count": 65,
+					"enabled": true,
+					"freezes": 1,
+					"frozen_state": "",
+					"latest_valid": false,
+					"raw_captures": 394,
+					"releases": 1,
+					"target_state": ""
+				},
+				"standing_reload_clip": "iso_rifle_reload_standing",
+				"standing_reload_layer_available": true,
+				"standing_reload_trigger_count": 0,
+				"upper_body_ready_blend": 0.0
+			},
+			"grip": {
+				"bone_count": 30,
+				"left_grip_applied": true,
+				"right_grip_applied": true,
+				"source_pistol_grip": false,
+				"source_rifle_grip": true
+			},
+			"label": "ak-47_0_fire_middle",
+			"middle3_above_support_socket_m": 0.033018171787262,
+			"middle3_motion_dot_profile_normal_m": 0.0383651368319988,
+			"middle3_motion_handlocal_m": [
+				0.00538246426731348,
+				-0.0666595548391342,
+				0.0419757403433323
+			],
+			"middle3_weaponlocal_m": [
+				0.060882568359375,
+				0.31781005859375,
+				-0.022796630859375
+			],
+			"middle_flex_degrees": [
+				39.600012713292,
+				53.9999775970248,
+				32.3999927053851
+			],
+			"palm_long_local": [
+				0.217877611517906,
+				0.972041428089142,
+				0.0875494331121445
+			],
+			"palm_normal_dot_bore": 0.148693442344666,
+			"palm_normal_dot_physical_socket_up": 0.884115755558014,
+			"profile_normal_dot_weapon_up": 0.227584719657898,
+			"profile_palm_normal_local": [
+				-0.335837066173553,
+				-0.00955613050609827,
+				0.941871702671051
+			],
+			"raw_tree_snapshot": {
+				"available": false
+			},
+			"raw_wrist_world": "[X: (28.67937, -30.21261, 43.85744), Y: (36.22319, -25.44944, -41.21882), Z: (39.04047, 45.80731, 6.026387), O: (500.1367, 1.296941, 474.173)]",
+			"socket_contact_m": 0.000169132064911537,
+			"socket_weaponlocal_m": [
+				0.0137481689453125,
+				0.302642822265625,
+				0.01593017578125
+			],
+			"source_pose_only": false,
+			"source_rifle_attachment": false,
+			"source_weapon_strategy": true,
+			"support_mode": "IK_TO_WEAPON",
+			"weapon_node_up_dot_physical_socket_up": 0.0722250640392303,
+			"weapon_owner": "READY_SOLVER",
+			"wrist_bend_degrees": 54.9022899826131,
+			"wrist_override_displacement_m": 0.000000119209289550781,
+			"wrist_override_rotation_degrees": 0.0395646811852521,
+			"wrist_weaponlocal_m": [
+				0.0304718017578125,
+				0.26409912109375,
+				0.08575439453125
+			]
+		},
+		{
+			"clip": "run_forward",
+			"final_wrist_world": "[X: (25.95532, -28.21535, 46.78677), Y: (42.40692, -22.25607, -36.94735), Z: (34.4494, 48.6554, 10.23118), O: (500.2008, 1.276102, 471.5145)]",
+			"graph": {
+				"active_fire_clip": "combat_fire",
+				"crouched_reload_clip": "iso_rifle_reload_crouched",
+				"crouched_reload_layer_available": true,
+				"crouched_reload_trigger_count": 0,
+				"fire_layer_available": true,
+				"fire_trigger_count": 1,
+				"full_gait_weight": 0.999999999518113,
+				"jog_gait_weight": 0.999999999681388,
+				"locomotion_carry_weight": 0.0,
+				"modern_enabled": true,
+				"modern_state": "standing",
+				"playback_rate": 1.0,
+				"presentation_mode": "READY_AIM",
+				"prone_travel_blend": 0.999999999999589,
+				"rendered_direction": "(-0.000002, 1.0)",
+				"shared_phase": 0.829051316007696,
+				"smoothed_direction": "(-0.0, 1.0)",
+				"source_controller_active": true,
+				"source_grounded_clip": "run_forward",
+				"source_loop_phase_transfer": {
+					"clock_states": [],
+					"destination_states": [],
+					"enabled": false,
+					"last_transfer": {},
+					"transfers": 0
+				},
+				"source_pistol_phase_active": false,
+				"source_transition_snapshot": {
+					"bone_count": 65,
+					"enabled": true,
+					"freezes": 1,
+					"frozen_state": "",
+					"latest_valid": false,
+					"raw_captures": 394,
+					"releases": 1,
+					"target_state": ""
+				},
+				"standing_reload_clip": "iso_rifle_reload_standing",
+				"standing_reload_layer_available": true,
+				"standing_reload_trigger_count": 0,
+				"upper_body_ready_blend": 0.0
+			},
+			"grip": {
+				"bone_count": 30,
+				"left_grip_applied": true,
+				"right_grip_applied": true,
+				"source_pistol_grip": false,
+				"source_rifle_grip": true
+			},
+			"label": "ak-47_0_fire",
+			"middle3_above_support_socket_m": 0.0368756391108036,
+			"middle3_motion_dot_profile_normal_m": 0.0383651740849018,
+			"middle3_motion_handlocal_m": [
+				0.00538235204294324,
+				-0.0666594430804253,
+				0.0419757403433323
+			],
+			"middle3_weaponlocal_m": [
+				0.0642852783203125,
+				0.31195068359375,
+				-0.01953125
+			],
+			"middle_flex_degrees": [
+				39.6000092981974,
+				53.9999878423086,
+				32.3999927053851
+			],
+			"palm_long_local": [
+				0.217877611517906,
+				0.972041428089142,
+				0.0875494331121445
+			],
+			"palm_normal_dot_bore": 0.0969613865017891,
+			"palm_normal_dot_physical_socket_up": 0.917644262313843,
+			"profile_normal_dot_weapon_up": 0.176420092582703,
+			"profile_palm_normal_local": [
+				-0.335837066173553,
+				-0.00955613050609827,
+				0.941871702671051
+			],
+			"raw_tree_snapshot": {
+				"available": false
+			},
+			"raw_wrist_world": "[X: (25.95532, -28.21535, 46.78678), Y: (42.40691, -22.25607, -36.94735), Z: (34.44939, 48.6554, 10.23118), O: (500.2008, 1.276102, 471.5145)]",
+			"socket_contact_m": 0.000609176990110427,
+			"socket_weaponlocal_m": [
+				0.01373291015625,
+				0.30267333984375,
+				0.015899658203125
+			],
+			"source_pose_only": false,
+			"source_rifle_attachment": false,
+			"source_weapon_strategy": true,
+			"support_mode": "IK_TO_WEAPON",
+			"weapon_node_up_dot_physical_socket_up": 0.0722256153821945,
+			"weapon_owner": "READY_SOLVER",
+			"wrist_bend_degrees": 54.9741708934383,
+			"wrist_override_displacement_m": 0.0,
+			"wrist_override_rotation_degrees": 0.0,
+			"wrist_weaponlocal_m": [
+				0.0223846435546875,
+				0.270294189453125,
+				0.090484619140625
+			]
+		},
+		{
+			"clip": "idle_crouch",
+			"final_wrist_world": "[X: (-20.86419, -23.88979, 51.50485), Y: (32.64854, -49.94078, -9.938654), Z: (46.44938, 24.37175, 30.12075), O: (500.2438, 0.604146, 471.3169)]",
+			"graph": {
+				"active_fire_clip": "combat_fire",
+				"crouched_reload_clip": "iso_rifle_reload_crouched",
+				"crouched_reload_layer_available": true,
+				"crouched_reload_trigger_count": 0,
+				"fire_layer_available": true,
+				"fire_trigger_count": 1,
+				"full_gait_weight": 0.0000000000000000086973960255994,
+				"jog_gait_weight": 0.00000000000000000869739602688432,
+				"locomotion_carry_weight": 0.0,
+				"modern_enabled": true,
+				"modern_state": "idle_crouch",
+				"playback_rate": 0.0,
+				"presentation_mode": "RELAXED_RIFLE",
+				"prone_travel_blend": 1.0,
+				"rendered_direction": "(-0.0, 1.0)",
+				"shared_phase": 0.83738464934103,
+				"smoothed_direction": "(-0.0, 1.0)",
+				"source_controller_active": true,
+				"source_grounded_clip": "source_walk_alert",
+				"source_loop_phase_transfer": {
+					"clock_states": [],
+					"destination_states": [],
+					"enabled": false,
+					"last_transfer": {},
+					"transfers": 0
+				},
+				"source_pistol_phase_active": false,
+				"source_transition_snapshot": {
+					"bone_count": 65,
+					"enabled": true,
+					"freezes": 2,
+					"frozen_state": "",
+					"latest_valid": true,
+					"raw_captures": 739,
+					"releases": 2,
+					"target_state": ""
+				},
+				"standing_reload_clip": "iso_rifle_reload_standing",
+				"standing_reload_layer_available": true,
+				"standing_reload_trigger_count": 0,
+				"upper_body_ready_blend": 0.0
+			},
+			"grip": {
+				"bone_count": 30,
+				"left_grip_applied": true,
+				"right_grip_applied": true,
+				"source_pistol_grip": false,
+				"source_rifle_grip": true
+			},
+			"label": "ak-47_1_idle",
+			"middle3_above_support_socket_m": -0.000642489409074187,
+			"middle3_motion_dot_profile_normal_m": 0.0383650436997414,
+			"middle3_motion_handlocal_m": [
+				0.00538252061232924,
+				-0.0666594877839088,
+				0.0419756583869457
+			],
+			"middle3_weaponlocal_m": [
+				0.0331573486328125,
+				0.2724609375,
+				-0.035888671875
+			],
+			"middle_flex_degrees": [
+				39.6000229585757,
+				53.999967351741,
+				32.3999995355743
+			],
+			"palm_long_local": [
+				0.217877611517906,
+				0.972041428089142,
+				0.0875494331121445
+			],
+			"palm_normal_dot_bore": -0.336459368467331,
+			"palm_normal_dot_physical_socket_up": 0.488163411617279,
+			"profile_normal_dot_weapon_up": -0.271917402744293,
+			"profile_palm_normal_local": [
+				-0.335837066173553,
+				-0.00955613050609827,
+				0.941871702671051
+			],
+			"raw_tree_snapshot": {
+				"available": true,
+				"hand_rotation_changed_degrees": 63.7290595602365,
+				"hand_translation_changed_m": 0.116038598120213,
+				"process_frame_age": 1
+			},
+			"raw_wrist_world": "[X: (-20.8642, -23.88978, 51.50486), Y: (32.64854, -49.94078, -9.938656), Z: (46.44938, 24.37175, 30.12074), O: (500.2438, 0.604146, 471.3169)]",
+			"socket_contact_m": 0.000159635543241166,
+			"socket_weaponlocal_m": [
+				0.013763427734375,
+				0.3026123046875,
+				0.015838623046875
+			],
+			"source_pose_only": false,
+			"source_rifle_attachment": false,
+			"source_weapon_strategy": true,
+			"support_mode": "IK_TO_WEAPON",
+			"weapon_node_up_dot_physical_socket_up": 0.0722334831953049,
+			"weapon_owner": "RELAXED_RIFLE_LOCOMOTION",
+			"wrist_bend_degrees": 54.7749957470516,
+			"wrist_override_displacement_m": 0.000000119209289550781,
+			"wrist_override_rotation_degrees": 0.0,
+			"wrist_weaponlocal_m": [
+				0.0654144287109375,
+				0.3115234375,
+				0.0782470703125
+			]
+		},
+		{
+			"clip": "crouch_forward",
+			"final_wrist_world": "[X: (40.34613, -9.958165, 43.95236), Y: (4.390921, -57.8434, -17.13607), Z: (44.85193, 14.62054, -37.85935), O: (500.266, 0.919886, 468.4244)]",
+			"graph": {
+				"active_fire_clip": "combat_fire",
+				"crouched_reload_clip": "iso_rifle_reload_crouched",
+				"crouched_reload_layer_available": true,
+				"crouched_reload_trigger_count": 0,
+				"fire_layer_available": true,
+				"fire_trigger_count": 1,
+				"full_gait_weight": 0.00000000000054467866191552,
+				"jog_gait_weight": 0.144577632194622,
+				"locomotion_carry_weight": 0.0,
+				"modern_enabled": true,
+				"modern_state": "crouch",
+				"playback_rate": 0.999999963320219,
+				"presentation_mode": "RELAXED_RIFLE",
+				"prone_travel_blend": 1.0,
+				"rendered_direction": "(-0.0, 1.0)",
+				"shared_phase": 0.862044945090044,
+				"smoothed_direction": "(-0.0, 1.0)",
+				"source_controller_active": true,
+				"source_grounded_clip": "source_walk_alert",
+				"source_loop_phase_transfer": {
+					"clock_states": [],
+					"destination_states": [],
+					"enabled": false,
+					"last_transfer": {},
+					"transfers": 0
+				},
+				"source_pistol_phase_active": false,
+				"source_transition_snapshot": {
+					"bone_count": 65,
+					"enabled": true,
+					"freezes": 2,
+					"frozen_state": "",
+					"latest_valid": true,
+					"raw_captures": 846,
+					"releases": 2,
+					"target_state": ""
+				},
+				"standing_reload_clip": "iso_rifle_reload_standing",
+				"standing_reload_layer_available": true,
+				"standing_reload_trigger_count": 0,
+				"upper_body_ready_blend": 0.0
+			},
+			"grip": {
+				"bone_count": 30,
+				"left_grip_applied": true,
+				"right_grip_applied": true,
+				"source_pistol_grip": false,
+				"source_rifle_grip": true
+			},
+			"label": "ak-47_1_forward",
+			"middle3_above_support_socket_m": -0.00172037584707141,
+			"middle3_motion_dot_profile_normal_m": 0.0383650697767735,
+			"middle3_motion_handlocal_m": [
+				0.00538235204294324,
+				-0.06665950268507,
+				0.0419756285846233
+			],
+			"middle3_weaponlocal_m": [
+				0.0229339599609375,
+				0.34771728515625,
+				-0.026153564453125
+			],
+			"middle_flex_degrees": [
+				39.6000195434812,
+				53.9999707668356,
+				32.4000029506689
+			],
+			"palm_long_local": [
+				0.217877611517906,
+				0.972041428089142,
+				0.0875494331121445
+			],
+			"palm_normal_dot_bore": 0.767341792583466,
+			"palm_normal_dot_physical_socket_up": 0.438014835119247,
+			"profile_normal_dot_weapon_up": 0.812901258468628,
+			"profile_palm_normal_local": [
+				-0.335837066173553,
+				-0.00955613050609827,
+				0.941871702671051
+			],
+			"raw_tree_snapshot": {
+				"available": true,
+				"hand_rotation_changed_degrees": 91.2238699509069,
+				"hand_translation_changed_m": 0.130425065755844,
+				"process_frame_age": 1
+			},
+			"raw_wrist_world": "[X: (40.34613, -9.95817, 43.95235), Y: (4.390922, -57.8434, -17.13608), Z: (44.85193, 14.62055, -37.85934), O: (500.266, 0.919887, 468.4244)]",
+			"socket_contact_m": 0.000694913091138005,
+			"socket_weaponlocal_m": [
+				0.0137481689453125,
+				0.3026123046875,
+				0.015869140625
+			],
+			"source_pose_only": false,
+			"source_rifle_attachment": false,
+			"source_weapon_strategy": true,
+			"support_mode": "IK_TO_WEAPON",
+			"weapon_node_up_dot_physical_socket_up": 0.0722161903977394,
+			"weapon_owner": "RELAXED_RIFLE_LOCOMOTION",
+			"wrist_bend_degrees": 55.0009520651739,
+			"wrist_override_displacement_m": 0.000000119209289550781,
+			"wrist_override_rotation_degrees": 0.0,
+			"wrist_weaponlocal_m": [
+				0.0761566162109375,
+				0.2783203125,
+				0.06298828125
+			]
+		},
+		{
+			"clip": "crouch_forward",
+			"final_wrist_world": "[X: (40.3637, -17.15646, 41.65582), Y: (3.051059, -54.76043, -25.51017), Z: (44.94711, 19.12416, -35.67639), O: (500.2772, 0.953177, 468.0671)]",
+			"graph": {
+				"active_fire_clip": "crouch_fire",
+				"crouched_reload_clip": "iso_rifle_reload_crouched",
+				"crouched_reload_layer_available": true,
+				"crouched_reload_trigger_count": 0,
+				"fire_layer_available": true,
+				"fire_trigger_count": 2,
+				"full_gait_weight": 0.000000000000509903325085849,
+				"jog_gait_weight": 0.144577695075322,
+				"locomotion_carry_weight": 0.0,
+				"modern_enabled": true,
+				"modern_state": "crouch",
+				"playback_rate": 0.999999963320219,
+				"presentation_mode": "RELAXED_RIFLE",
+				"prone_travel_blend": 1.0,
+				"rendered_direction": "(-0.0, 1.0)",
+				"shared_phase": 0.870378278117713,
+				"smoothed_direction": "(-0.0, 1.0)",
+				"source_controller_active": true,
+				"source_grounded_clip": "source_walk_alert",
+				"source_loop_phase_transfer": {
+					"clock_states": [],
+					"destination_states": [],
+					"enabled": false,
+					"last_transfer": {},
+					"transfers": 0
+				},
+				"source_pistol_phase_active": false,
+				"source_transition_snapshot": {
+					"bone_count": 65,
+					"enabled": true,
+					"freezes": 2,
+					"frozen_state": "",
+					"latest_valid": false,
+					"raw_captures": 846,
+					"releases": 2,
+					"target_state": ""
+				},
+				"standing_reload_clip": "iso_rifle_reload_standing",
+				"standing_reload_layer_available": true,
+				"standing_reload_trigger_count": 0,
+				"upper_body_ready_blend": 0.0
+			},
+			"grip": {
+				"bone_count": 30,
+				"left_grip_applied": true,
+				"right_grip_applied": true,
+				"source_pistol_grip": false,
+				"source_rifle_grip": true
+			},
+			"label": "ak-47_1_fire_early",
+			"middle3_above_support_socket_m": -0.00441839778795838,
+			"middle3_motion_dot_profile_normal_m": 0.0383651368319988,
+			"middle3_motion_handlocal_m": [
+				0.00538246426731348,
+				-0.0666595324873924,
+				0.0419757403433323
+			],
+			"middle3_weaponlocal_m": [
+				0.0203399658203125,
+				0.347564697265625,
+				-0.026885986328125
+			],
+			"middle_flex_degrees": [
+				39.5999853925353,
+				54.0000117479707,
+				32.3999927053851
+			],
+			"palm_long_local": [
+				0.217877611517906,
+				0.972041428089142,
+				0.0875494331121445
+			],
+			"palm_normal_dot_bore": 0.784052968025208,
+			"palm_normal_dot_physical_socket_up": 0.397701948881149,
+			"profile_normal_dot_weapon_up": 0.826924264431,
+			"profile_palm_normal_local": [
+				-0.335837066173553,
+				-0.00955613050609827,
+				0.941871702671051
+			],
+			"raw_tree_snapshot": {
+				"available": false
+			},
+			"raw_wrist_world": "[X: (40.36371, -17.15646, 41.65582), Y: (3.051062, -54.76042, -25.51016), Z: (44.94711, 19.12415, -35.67638), O: (500.2772, 0.953177, 468.0671)]",
+			"socket_contact_m": 0.000626815715804696,
+			"socket_weaponlocal_m": [
+				0.0137176513671875,
+				0.302642822265625,
+				0.015869140625
+			],
+			"source_pose_only": false,
+			"source_rifle_attachment": false,
+			"source_weapon_strategy": true,
+			"support_mode": "IK_TO_WEAPON",
+			"weapon_node_up_dot_physical_socket_up": 0.0721932649612427,
+			"weapon_owner": "READY_SOLVER",
+			"wrist_bend_degrees": 55.0003100273919,
+			"wrist_override_displacement_m": 0.000000119209289550781,
+			"wrist_override_rotation_degrees": 0.0,
+			"wrist_weaponlocal_m": [
+				0.0778656005859375,
+				0.2813720703125,
+				0.06201171875
+			]
+		},
+		{
+			"clip": "crouch_forward",
+			"final_wrist_world": "[X: (25.28474, -22.80796, 49.99265), Y: (23.48775, -45.26468, -32.53033), Z: (49.67692, 33.01052, -10.06482), O: (500.3338, 1.095192, 467.4489)]",
+			"graph": {
+				"active_fire_clip": "crouch_fire",
+				"crouched_reload_clip": "iso_rifle_reload_crouched",
+				"crouched_reload_layer_available": true,
+				"crouched_reload_trigger_count": 0,
+				"fire_layer_available": true,
+				"fire_trigger_count": 2,
+				"full_gait_weight": 0.0000000000000245914607129515,
+				"jog_gait_weight": 0.144578284976329,
+				"locomotion_carry_weight": 0.0,
+				"modern_enabled": true,
+				"modern_state": "crouch",
+				"playback_rate": 0.999999963320219,
+				"presentation_mode": "READY_AIM",
+				"prone_travel_blend": 1.0,
+				"rendered_direction": "(-0.0, 1.0)",
+				"shared_phase": 0.229984264927444,
+				"smoothed_direction": "(-0.0, 1.0)",
+				"source_controller_active": true,
+				"source_grounded_clip": "source_walk_alert",
+				"source_loop_phase_transfer": {
+					"clock_states": [],
+					"destination_states": [],
+					"enabled": false,
+					"last_transfer": {},
+					"transfers": 0
+				},
+				"source_pistol_phase_active": false,
+				"source_transition_snapshot": {
+					"bone_count": 65,
+					"enabled": true,
+					"freezes": 2,
+					"frozen_state": "",
+					"latest_valid": false,
+					"raw_captures": 846,
+					"releases": 2,
+					"target_state": ""
+				},
+				"standing_reload_clip": "iso_rifle_reload_standing",
+				"standing_reload_layer_available": true,
+				"standing_reload_trigger_count": 0,
+				"upper_body_ready_blend": 0.0
+			},
+			"grip": {
+				"bone_count": 30,
+				"left_grip_applied": true,
+				"right_grip_applied": true,
+				"source_pistol_grip": false,
+				"source_rifle_grip": true
+			},
+			"label": "ak-47_1_fire_middle",
+			"middle3_above_support_socket_m": 0.0126244677230716,
+			"middle3_motion_dot_profile_normal_m": 0.0383651740849018,
+			"middle3_motion_handlocal_m": [
+				0.00538235204294324,
+				-0.066659614443779,
+				0.0419757403433323
+			],
+			"middle3_weaponlocal_m": [
+				0.04229736328125,
+				0.32794189453125,
+				-0.033782958984375
+			],
+			"middle_flex_degrees": [
+				39.6000263736703,
+				53.999967351741,
+				32.3999961204797
+			],
+			"palm_long_local": [
+				0.217877611517906,
+				0.972041428089142,
+				0.0875494331121445
+			],
+			"palm_normal_dot_bore": 0.433117836713791,
+			"palm_normal_dot_physical_socket_up": 0.64454597234726,
+			"profile_normal_dot_weapon_up": 0.50033438205719,
+			"profile_palm_normal_local": [
+				-0.335837066173553,
+				-0.00955613050609827,
+				0.941871702671051
+			],
+			"raw_tree_snapshot": {
+				"available": false
+			},
+			"raw_wrist_world": "[X: (25.28474, -22.80796, 49.99265), Y: (23.48775, -45.26468, -32.53033), Z: (49.67692, 33.01052, -10.06482), O: (500.3338, 1.095192, 467.4489)]",
+			"socket_contact_m": 0.000356347998604178,
+			"socket_weaponlocal_m": [
+				0.01373291015625,
+				0.3026123046875,
+				0.015899658203125
+			],
+			"source_pose_only": false,
+			"source_rifle_attachment": false,
+			"source_weapon_strategy": true,
+			"support_mode": "IK_TO_WEAPON",
+			"weapon_node_up_dot_physical_socket_up": 0.0722136422991753,
+			"weapon_owner": "READY_SOLVER",
+			"wrist_bend_degrees": 54.9821451392943,
+			"wrist_override_displacement_m": 0.0,
+			"wrist_override_rotation_degrees": 0.0,
+			"wrist_weaponlocal_m": [
+				0.058685302734375,
+				0.27734375,
+				0.079132080078125
+			]
+		},
+		{
+			"clip": "crouch_forward",
+			"final_wrist_world": "[X: (25.16836, -22.0347, 50.39654), Y: (28.47121, -42.20024, -32.66978), Z: (47.06091, 37.31482, -7.187518), O: (500.3451, 1.140916, 466.4251)]",
+			"graph": {
+				"active_fire_clip": "crouch_fire",
+				"crouched_reload_clip": "iso_rifle_reload_crouched",
+				"crouched_reload_layer_available": true,
+				"crouched_reload_trigger_count": 0,
+				"fire_layer_available": true,
+				"fire_trigger_count": 2,
+				"full_gait_weight": 0.00000000000000109182754398583,
+				"jog_gait_weight": 0.144578292900106,
+				"locomotion_carry_weight": 0.0,
+				"modern_enabled": true,
+				"modern_state": "crouch",
+				"playback_rate": 0.999999963320219,
+				"presentation_mode": "READY_AIM",
+				"prone_travel_blend": 1.0,
+				"rendered_direction": "(-0.0, 1.0)",
+				"shared_phase": 0.629945583590283,
+				"smoothed_direction": "(-0.0, 1.0)",
+				"source_controller_active": true,
+				"source_grounded_clip": "source_walk_alert",
+				"source_loop_phase_transfer": {
+					"clock_states": [],
+					"destination_states": [],
+					"enabled": false,
+					"last_transfer": {},
+					"transfers": 0
+				},
+				"source_pistol_phase_active": false,
+				"source_transition_snapshot": {
+					"bone_count": 65,
+					"enabled": true,
+					"freezes": 2,
+					"frozen_state": "",
+					"latest_valid": false,
+					"raw_captures": 846,
+					"releases": 2,
+					"target_state": ""
+				},
+				"standing_reload_clip": "iso_rifle_reload_standing",
+				"standing_reload_layer_available": true,
+				"standing_reload_trigger_count": 0,
+				"upper_body_ready_blend": 0.0
+			},
+			"grip": {
+				"bone_count": 30,
+				"left_grip_applied": true,
+				"right_grip_applied": true,
+				"source_pistol_grip": false,
+				"source_rifle_grip": true
+			},
+			"label": "ak-47_1_fire",
+			"middle3_above_support_socket_m": 0.0180261321365833,
+			"middle3_motion_dot_profile_normal_m": 0.0383651368319988,
+			"middle3_motion_handlocal_m": [
+				0.00538246426731348,
+				-0.06665950268507,
+				0.0419757403433323
+			],
+			"middle3_weaponlocal_m": [
+				0.0474090576171875,
+				0.325531005859375,
+				-0.031524658203125
+			],
+			"middle_flex_degrees": [
+				39.600012713292,
+				53.999984427214,
+				32.4000097808581
+			],
+			"palm_long_local": [
+				0.217877611517906,
+				0.972041428089142,
+				0.0875494331121445
+			],
+			"palm_normal_dot_bore": 0.388257265090942,
+			"palm_normal_dot_physical_socket_up": 0.708301603794098,
+			"profile_normal_dot_weapon_up": 0.458818733692169,
+			"profile_palm_normal_local": [
+				-0.335837066173553,
+				-0.00955613050609827,
+				0.941871702671051
+			],
+			"raw_tree_snapshot": {
+				"available": false
+			},
+			"raw_wrist_world": "[X: (25.16836, -22.0347, 50.39654), Y: (28.4712, -42.20024, -32.66977), Z: (47.0609, 37.31482, -7.187524), O: (500.3451, 1.140916, 466.4251)]",
+			"socket_contact_m": 0.000523464928846806,
+			"socket_weaponlocal_m": [
+				0.0137176513671875,
+				0.3026123046875,
+				0.015899658203125
+			],
+			"source_pose_only": false,
+			"source_rifle_attachment": false,
+			"source_weapon_strategy": true,
+			"support_mode": "IK_TO_WEAPON",
+			"weapon_node_up_dot_physical_socket_up": 0.0722058191895485,
+			"weapon_owner": "READY_SOLVER",
+			"wrist_bend_degrees": 54.9746285161127,
+			"wrist_override_displacement_m": 0.0,
+			"wrist_override_rotation_degrees": 0.0,
+			"wrist_weaponlocal_m": [
+				0.0519561767578125,
+				0.276885986328125,
+				0.0833740234375
+			]
+		}
+	],
+	"passed": true,
+	"profile_sha256": "c4c7704e4f34840ca122d277df5d829b0a0804c70cf60803aaad304dd08f155a",
+	"render_samples": [
+		{
+			"body_position": "(500.0, 0.000729, 500.0)",
+			"capture_preserved_source": true,
+			"capture_process_frame": 431,
+			"current_clip": "idle_rifle",
+			"fire_recoil_weight": 0.0,
+			"fire_upper_body_latch": {
+				"accepted_shot_count": 0,
+				"action_override_active": false,
+				"grace_duration_seconds": 1.2,
+				"grace_remaining_seconds": 0.0,
+				"owner_state": "BASE",
+				"posture": "STANDING",
+				"selected": false
+			},
+			"head_height_m": 1.73775128275156,
+			"horizontal_speed_mps": 0.0,
+			"images": {
+				"rear": "/private/tmp/source-rifle-wrist-native-v1-m4a1_0_idle-rear.png",
+				"side": "/private/tmp/source-rifle-wrist-native-v1-m4a1_0_idle-side.png"
+			},
+			"left_elbow_angle_deg": 99.9575970934313,
+			"locomotion": {
+				"active_fire_clip": "",
+				"crouched_reload_clip": "iso_rifle_reload_crouched",
+				"crouched_reload_layer_available": true,
+				"crouched_reload_trigger_count": 0,
+				"fire_layer_available": true,
+				"fire_trigger_count": 0,
+				"full_gait_weight": 0.0,
+				"jog_gait_weight": 0.0,
+				"locomotion_carry_weight": 0.0,
+				"modern_enabled": true,
+				"modern_state": "idle",
+				"playback_rate": 0.0,
+				"presentation_mode": "RELAXED_RIFLE",
+				"prone_travel_blend": -1.0,
+				"rendered_direction": "(-0.0, -1.0)",
+				"shared_phase": 0.0,
+				"smoothed_direction": "(-0.0, -1.0)",
+				"source_controller_active": true,
+				"source_grounded_clip": "walk_backward",
+				"source_loop_phase_transfer": {
+					"clock_states": [],
+					"destination_states": [],
+					"enabled": false,
+					"last_transfer": {},
+					"transfers": 0
+				},
+				"source_pistol_phase_active": false,
+				"source_transition_snapshot": {
+					"bone_count": 65,
+					"enabled": true,
+					"freezes": 0,
+					"frozen_state": "",
+					"latest_valid": true,
+					"raw_captures": 300,
+					"releases": 0,
+					"target_state": ""
+				},
+				"standing_reload_clip": "iso_rifle_reload_standing",
+				"standing_reload_layer_available": true,
+				"standing_reload_trigger_count": 0,
+				"upper_body_ready_blend": 0.0
+			},
+			"motion_state": 0,
+			"physical": {
+				"aim_target_world": "(500.0, 2.149167, 252.8)",
+				"bore_to_reticle_degrees": 27.8010931485267,
+				"muzzle_to_target_m": 246.49723815918,
+				"pocket_world": "(500.1569, 1.538478, 500.0755)",
+				"shoulder_square_error_degrees": 32.209326960671,
+				"stock_forward_release_m": 0.0,
+				"stock_height_relative_to_pocket_m": -0.265817999839783,
+				"stock_to_expected_carry_m": 0.318355798721313,
+				"stock_to_pocket_m": 0.318355798721313,
+				"stock_world": "(500.3196, 1.27266, 500.0107)",
+				"support_contact_m": 0.000458006135886535,
+				"trigger_contact_m": 0.0000305699213640764
+			},
+			"physics_frame": 264,
+			"posture": 0,
+			"presentation_ready_weight": 0.0,
+			"requested_action": "",
+			"right_elbow_angle_deg": 85.9296567017763,
+			"source_take": "authored:idle_rifle.tres",
+			"spine_height_m": 1.14843491464853,
+			"state": "m4a1_0_idle",
+			"support_contact_error_m": 0.000458006135886535,
+			"trigger_contact_error_m": 0.0000305699213640764,
+			"weapon": "m4a1",
+			"weapon_aim_error_deg": 27.8010931485267,
+			"weapon_owner": "RELAXED_RIFLE_LOCOMOTION"
+		},
+		{
+			"body_position": "(500.0, 0.000845, 493.7005)",
+			"capture_preserved_source": true,
+			"capture_process_frame": 538,
+			"current_clip": "run_forward",
+			"fire_recoil_weight": 0.0,
+			"fire_upper_body_latch": {
+				"accepted_shot_count": 0,
+				"action_override_active": false,
+				"grace_duration_seconds": 1.2,
+				"grace_remaining_seconds": 0.0,
+				"owner_state": "BASE",
+				"posture": "STANDING",
+				"selected": false
+			},
+			"head_height_m": 1.44846743345261,
+			"horizontal_speed_mps": 6.5,
+			"images": {
+				"rear": "/private/tmp/source-rifle-wrist-native-v1-m4a1_0_move_forward-rear.png",
+				"side": "/private/tmp/source-rifle-wrist-native-v1-m4a1_0_move_forward-side.png"
+			},
+			"left_elbow_angle_deg": 87.4943336779488,
+			"locomotion": {
+				"active_fire_clip": "",
+				"crouched_reload_clip": "iso_rifle_reload_crouched",
+				"crouched_reload_layer_available": true,
+				"crouched_reload_trigger_count": 0,
+				"fire_layer_available": true,
+				"fire_trigger_count": 0,
+				"full_gait_weight": 0.999992683771413,
+				"jog_gait_weight": 0.999995109473796,
+				"locomotion_carry_weight": 0.0,
+				"modern_enabled": true,
+				"modern_state": "standing",
+				"playback_rate": 1.0,
+				"presentation_mode": "RELAXED_RIFLE",
+				"prone_travel_blend": 0.999999842475498,
+				"rendered_direction": "(-0.000881, 1.0)",
+				"shared_phase": 0.0254351306721764,
+				"smoothed_direction": "(-0.000001, 1.0)",
+				"source_controller_active": true,
+				"source_grounded_clip": "run_forward",
+				"source_loop_phase_transfer": {
+					"clock_states": [],
+					"destination_states": [],
+					"enabled": false,
+					"last_transfer": {},
+					"transfers": 0
+				},
+				"source_pistol_phase_active": false,
+				"source_transition_snapshot": {
+					"bone_count": 65,
+					"enabled": true,
+					"freezes": 0,
+					"frozen_state": "",
+					"latest_valid": true,
+					"raw_captures": 407,
+					"releases": 0,
+					"target_state": ""
+				},
+				"standing_reload_clip": "iso_rifle_reload_standing",
+				"standing_reload_layer_available": true,
+				"standing_reload_trigger_count": 0,
+				"upper_body_ready_blend": 0.0
+			},
+			"motion_state": 0,
+			"physical": {
+				"aim_target_world": "(500.0, 2.031279, 246.6088)",
+				"bore_to_reticle_degrees": 65.8718196764637,
+				"muzzle_to_target_m": 246.342193603516,
+				"pocket_world": "(500.1173, 1.332387, 493.4953)",
+				"shoulder_square_error_degrees": 7.29056857098758,
+				"stock_forward_release_m": 0.0,
+				"stock_height_relative_to_pocket_m": -0.169353723526001,
+				"stock_to_expected_carry_m": 0.278495371341705,
+				"stock_to_pocket_m": 0.278495371341705,
+				"stock_world": "(500.1707, 1.163033, 493.2808)",
+				"support_contact_m": 0.000251265621045604,
+				"trigger_contact_m": 0.0000721673204679973
+			},
+			"physics_frame": 326,
+			"posture": 0,
+			"presentation_ready_weight": 0.0,
+			"requested_action": "",
+			"right_elbow_angle_deg": 79.7089955123291,
+			"source_take": "authored:run_forward.tres",
+			"spine_height_m": 0.936199605464935,
+			"state": "m4a1_0_move_forward",
+			"support_contact_error_m": 0.000251220335485414,
+			"trigger_contact_error_m": 0.0000721673204679973,
+			"weapon": "m4a1",
+			"weapon_aim_error_deg": 65.8717582047612,
+			"weapon_owner": "RELAXED_RIFLE_LOCOMOTION"
+		},
+		{
+			"body_position": "(500.0, 0.000845, 492.8339)",
+			"capture_preserved_source": true,
+			"capture_process_frame": 539,
+			"current_clip": "run_forward",
+			"fire_recoil_weight": 0.143073102256776,
+			"fire_upper_body_latch": {
+				"accepted_shot_count": 1,
+				"action_override_active": false,
+				"grace_duration_seconds": 1.2,
+				"grace_remaining_seconds": 1.19166666666667,
+				"owner_state": "FIRE_RECOVERY",
+				"posture": "STANDING",
+				"selected": true
+			},
+			"head_height_m": 1.44898888317402,
+			"horizontal_speed_mps": 6.5,
+			"images": {
+				"rear": "/private/tmp/source-rifle-wrist-native-v1-m4a1_0_fire_early-rear.png",
+				"side": "/private/tmp/source-rifle-wrist-native-v1-m4a1_0_fire_early-side.png"
+			},
+			"left_elbow_angle_deg": 135.083598892888,
+			"locomotion": {
+				"active_fire_clip": "combat_fire",
+				"crouched_reload_clip": "iso_rifle_reload_crouched",
+				"crouched_reload_layer_available": true,
+				"crouched_reload_trigger_count": 0,
+				"fire_layer_available": true,
+				"fire_trigger_count": 1,
+				"full_gait_weight": 0.999993380002616,
+				"jog_gait_weight": 0.999995574868897,
+				"locomotion_carry_weight": 0.0,
+				"modern_enabled": true,
+				"modern_state": "standing",
+				"playback_rate": 1.0,
+				"presentation_mode": "RELAXED_RIFLE",
+				"prone_travel_blend": 0.999999862138758,
+				"rendered_direction": "(-0.000825, 1.0)",
+				"shared_phase": 0.0337684640055097,
+				"smoothed_direction": "(-0.000001, 1.0)",
+				"source_controller_active": true,
+				"source_grounded_clip": "run_forward",
+				"source_loop_phase_transfer": {
+					"clock_states": [],
+					"destination_states": [],
+					"enabled": false,
+					"last_transfer": {},
+					"transfers": 0
+				},
+				"source_pistol_phase_active": false,
+				"source_transition_snapshot": {
+					"bone_count": 65,
+					"enabled": true,
+					"freezes": 0,
+					"frozen_state": "",
+					"latest_valid": false,
+					"raw_captures": 407,
+					"releases": 0,
+					"target_state": ""
+				},
+				"standing_reload_clip": "iso_rifle_reload_standing",
+				"standing_reload_layer_available": true,
+				"standing_reload_trigger_count": 0,
+				"upper_body_ready_blend": 0.0
+			},
+			"motion_state": 0,
+			"physical": {
+				"aim_target_world": "(500.0, 2.031288, 246.5005)",
+				"bore_to_reticle_degrees": 0.0181449127958746,
+				"muzzle_to_target_m": 245.275573730469,
+				"pocket_world": "(500.1164, 1.333054, 492.6293)",
+				"shoulder_square_error_degrees": 6.55047577164209,
+				"stock_forward_release_m": 0.0,
+				"stock_height_relative_to_pocket_m": -0.16913914680481,
+				"stock_to_expected_carry_m": 0.250626415014267,
+				"stock_to_pocket_m": 0.250626415014267,
+				"stock_world": "(499.9374, 1.163915, 492.5825)",
+				"support_contact_m": 0.000806900148745626,
+				"trigger_contact_m": 0.000461733172414824
+			},
+			"physics_frame": 334,
+			"posture": 0,
+			"presentation_ready_weight": 0.181269246922018,
+			"requested_action": "",
+			"right_elbow_angle_deg": 74.2558424247062,
+			"source_take": "authored:run_forward.tres",
+			"spine_height_m": 0.937347678816877,
+			"state": "m4a1_0_fire_early",
+			"support_contact_error_m": 0.000806900148745626,
+			"trigger_contact_error_m": 0.000461700750747696,
+			"weapon": "m4a1",
+			"weapon_aim_error_deg": 0.0186333830458162,
+			"weapon_owner": "READY_SOLVER"
+		},
+		{
+			"body_position": "(500.0, 0.000845, 491.3174)",
+			"capture_preserved_source": true,
+			"capture_process_frame": 550,
+			"current_clip": "run_forward",
+			"fire_recoil_weight": 0.0,
+			"fire_upper_body_latch": {
+				"accepted_shot_count": 1,
+				"action_override_active": false,
+				"grace_duration_seconds": 1.2,
+				"grace_remaining_seconds": 0.83316,
+				"owner_state": "FIRE_RECOVERY",
+				"posture": "STANDING",
+				"selected": true
+			},
+			"head_height_m": 1.40708560700295,
+			"horizontal_speed_mps": 6.5,
+			"images": {
+				"rear": "/private/tmp/source-rifle-wrist-native-v1-m4a1_0_fire_middle-rear.png",
+				"side": "/private/tmp/source-rifle-wrist-native-v1-m4a1_0_fire_middle-side.png"
+			},
+			"left_elbow_angle_deg": 105.284575470745,
+			"locomotion": {
+				"active_fire_clip": "combat_fire",
+				"crouched_reload_clip": "iso_rifle_reload_crouched",
+				"crouched_reload_layer_available": true,
+				"crouched_reload_trigger_count": 0,
+				"fire_layer_available": true,
+				"fire_trigger_count": 1,
+				"full_gait_weight": 0.999999910362814,
+				"jog_gait_weight": 0.999999940082106,
+				"locomotion_carry_weight": 0.0,
+				"modern_enabled": true,
+				"modern_state": "standing",
+				"playback_rate": 1.0,
+				"presentation_mode": "READY_AIM",
+				"prone_travel_blend": 0.999999999555079,
+				"rendered_direction": "(-0.000047, 1.0)",
+				"shared_phase": 0.392275130672176,
+				"smoothed_direction": "(-0.0, 1.0)",
+				"source_controller_active": true,
+				"source_grounded_clip": "run_forward",
+				"source_loop_phase_transfer": {
+					"clock_states": [],
+					"destination_states": [],
+					"enabled": false,
+					"last_transfer": {},
+					"transfers": 0
+				},
+				"source_pistol_phase_active": false,
+				"source_transition_snapshot": {
+					"bone_count": 65,
+					"enabled": true,
+					"freezes": 0,
+					"frozen_state": "",
+					"latest_valid": false,
+					"raw_captures": 407,
+					"releases": 0,
+					"target_state": ""
+				},
+				"standing_reload_clip": "iso_rifle_reload_standing",
+				"standing_reload_layer_available": true,
+				"standing_reload_trigger_count": 0,
+				"upper_body_ready_blend": 0.0
+			},
+			"motion_state": 0,
+			"physical": {
+				"aim_target_world": "(500.0, 2.023089, 244.2257)",
+				"bore_to_reticle_degrees": 0.0359995992479299,
+				"muzzle_to_target_m": 245.96875,
+				"pocket_world": "(500.1649, 1.346774, 491.1353)",
+				"shoulder_square_error_degrees": 31.2753624667663,
+				"stock_forward_release_m": 0.0,
+				"stock_height_relative_to_pocket_m": -0.0352035760879517,
+				"stock_to_expected_carry_m": 0.142871201038361,
+				"stock_to_pocket_m": 0.142871201038361,
+				"stock_world": "(500.2003, 1.31157, 491.0014)",
+				"support_contact_m": 0.0000403941885451786,
+				"trigger_contact_m": 0.0000684406695654616
+			},
+			"physics_frame": 348,
+			"posture": 0,
+			"presentation_ready_weight": 0.986732859349149,
+			"requested_action": "",
+			"right_elbow_angle_deg": 70.4032859543563,
+			"source_take": "authored:run_forward.tres",
+			"spine_height_m": 0.926584253262263,
+			"state": "m4a1_0_fire_middle",
+			"support_contact_error_m": 0.0000403941885451786,
+			"trigger_contact_error_m": 0.0000684406695654616,
+			"weapon": "m4a1",
+			"weapon_aim_error_deg": 0.0359130846301275,
+			"weapon_owner": "READY_SOLVER"
+		},
+		{
+			"body_position": "(500.0, 0.000845, 488.7177)",
+			"capture_preserved_source": true,
+			"capture_process_frame": 580,
+			"current_clip": "run_forward",
+			"fire_recoil_weight": 0.0,
+			"fire_upper_body_latch": {
+				"accepted_shot_count": 1,
+				"action_override_active": false,
+				"grace_duration_seconds": 1.2,
+				"grace_remaining_seconds": 0.433303333333333,
+				"owner_state": "FIRE_RECOVERY",
+				"posture": "STANDING",
+				"selected": true
+			},
+			"head_height_m": 1.38476940471446,
+			"horizontal_speed_mps": 6.5,
+			"images": {
+				"rear": "/private/tmp/source-rifle-wrist-native-v1-m4a1_0_fire-rear.png",
+				"side": "/private/tmp/source-rifle-wrist-native-v1-m4a1_0_fire-side.png"
+			},
+			"left_elbow_angle_deg": 104.067033834918,
+			"locomotion": {
+				"active_fire_clip": "combat_fire",
+				"crouched_reload_clip": "iso_rifle_reload_crouched",
+				"crouched_reload_layer_available": true,
+				"crouched_reload_trigger_count": 0,
+				"fire_layer_available": true,
+				"fire_trigger_count": 1,
+				"full_gait_weight": 0.999999999261039,
+				"jog_gait_weight": 0.999999999506042,
+				"locomotion_carry_weight": 0.0,
+				"modern_enabled": true,
+				"modern_state": "standing",
+				"playback_rate": 1.0,
+				"presentation_mode": "READY_AIM",
+				"prone_travel_blend": 0.999999999999259,
+				"rendered_direction": "(-0.000002, 1.0)",
+				"shared_phase": 0.792131797338843,
+				"smoothed_direction": "(-0.0, 1.0)",
+				"source_controller_active": true,
+				"source_grounded_clip": "run_forward",
+				"source_loop_phase_transfer": {
+					"clock_states": [],
+					"destination_states": [],
+					"enabled": false,
+					"last_transfer": {},
+					"transfers": 0
+				},
+				"source_pistol_phase_active": false,
+				"source_transition_snapshot": {
+					"bone_count": 65,
+					"enabled": true,
+					"freezes": 0,
+					"frozen_state": "",
+					"latest_valid": false,
+					"raw_captures": 407,
+					"releases": 0,
+					"target_state": ""
+				},
+				"standing_reload_clip": "iso_rifle_reload_standing",
+				"standing_reload_layer_available": true,
+				"standing_reload_trigger_count": 0,
+				"upper_body_ready_blend": 0.0
+			},
+			"motion_state": 0,
+			"physical": {
+				"aim_target_world": "(500.0, 2.002796, 241.626)",
+				"bore_to_reticle_degrees": 0.03743183789005,
+				"muzzle_to_target_m": 246.019195556641,
+				"pocket_world": "(500.1807, 1.334927, 488.5771)",
+				"shoulder_square_error_degrees": 37.0714498621426,
+				"stock_forward_release_m": 0.0,
+				"stock_height_relative_to_pocket_m": -0.0262602567672729,
+				"stock_to_expected_carry_m": 0.158105105161667,
+				"stock_to_pocket_m": 0.158105105161667,
+				"stock_world": "(500.2739, 1.308666, 488.4521)",
+				"support_contact_m": 0.0001047171317623,
+				"trigger_contact_m": 0.0000968549647950567
+			},
+			"physics_frame": 372,
+			"posture": 0,
+			"presentation_ready_weight": 0.999999098336935,
+			"requested_action": "",
+			"right_elbow_angle_deg": 70.5364957919836,
+			"source_take": "authored:run_forward.tres",
+			"spine_height_m": 0.891708935087081,
+			"state": "m4a1_0_fire",
+			"support_contact_error_m": 0.0001047171317623,
+			"trigger_contact_error_m": 0.0000968549647950567,
+			"weapon": "m4a1",
+			"weapon_aim_error_deg": 0.0373635359983498,
+			"weapon_owner": "READY_SOLVER"
+		},
+		{
+			"body_position": "(500.0, 0.00084, 488.4178)",
+			"capture_preserved_source": true,
+			"capture_process_frame": 940,
+			"current_clip": "idle_crouch",
+			"fire_recoil_weight": 0.0,
+			"fire_upper_body_latch": {
+				"accepted_shot_count": 1,
+				"action_override_active": false,
+				"grace_duration_seconds": 1.2,
+				"grace_remaining_seconds": 0.0,
+				"owner_state": "BASE",
+				"posture": "CROUCHED",
+				"selected": false
+			},
+			"head_height_m": 1.01194633194245,
+			"horizontal_speed_mps": 0.0,
+			"images": {
+				"rear": "/private/tmp/source-rifle-wrist-native-v1-m4a1_1_idle-rear.png",
+				"side": "/private/tmp/source-rifle-wrist-native-v1-m4a1_1_idle-side.png"
+			},
+			"left_elbow_angle_deg": 108.028779859615,
+			"locomotion": {
+				"active_fire_clip": "combat_fire",
+				"crouched_reload_clip": "iso_rifle_reload_crouched",
+				"crouched_reload_layer_available": true,
+				"crouched_reload_trigger_count": 0,
+				"fire_layer_available": true,
+				"fire_trigger_count": 1,
+				"full_gait_weight": 0.00000000000000000836388427971716,
+				"jog_gait_weight": 0.00000000000000000836388428157134,
+				"locomotion_carry_weight": 0.0,
+				"modern_enabled": true,
+				"modern_state": "idle_crouch",
+				"playback_rate": 0.0,
+				"presentation_mode": "RELAXED_RIFLE",
+				"prone_travel_blend": 1.0,
+				"rendered_direction": "(-0.0, 1.0)",
+				"shared_phase": 0.800465130672176,
+				"smoothed_direction": "(-0.0, 1.0)",
+				"source_controller_active": true,
+				"source_grounded_clip": "source_walk_alert",
+				"source_loop_phase_transfer": {
+					"clock_states": [],
+					"destination_states": [],
+					"enabled": false,
+					"last_transfer": {},
+					"transfers": 0
+				},
+				"source_pistol_phase_active": false,
+				"source_transition_snapshot": {
+					"bone_count": 65,
+					"enabled": true,
+					"freezes": 1,
+					"frozen_state": "",
+					"latest_valid": true,
+					"raw_captures": 739,
+					"releases": 1,
+					"target_state": ""
+				},
+				"standing_reload_clip": "iso_rifle_reload_standing",
+				"standing_reload_layer_available": true,
+				"standing_reload_trigger_count": 0,
+				"upper_body_ready_blend": 0.0
+			},
+			"motion_state": 1,
+			"physical": {
+				"aim_target_world": "(500.0, 1.538604, 241.2176)",
+				"bore_to_reticle_degrees": 10.0826159697461,
+				"muzzle_to_target_m": 246.274826049805,
+				"pocket_world": "(500.2424, 0.929671, 488.2577)",
+				"shoulder_square_error_degrees": 30.5208495419482,
+				"stock_forward_release_m": 0.0,
+				"stock_height_relative_to_pocket_m": -0.281968832015991,
+				"stock_to_expected_carry_m": 0.299492508172989,
+				"stock_to_pocket_m": 0.299492508172989,
+				"stock_world": "(500.3392, 0.647702, 488.2864)",
+				"support_contact_m": 0.000314266100758687,
+				"trigger_contact_m": 0.0000610889474046417
+			},
+			"physics_frame": 569,
+			"posture": 1,
+			"presentation_ready_weight": 0.0,
+			"requested_action": "",
+			"right_elbow_angle_deg": 77.8097350105434,
+			"source_take": "authored:idle_crouch.tres",
+			"spine_height_m": 0.557419490301982,
+			"state": "m4a1_1_idle",
+			"support_contact_error_m": 0.000314266100758687,
+			"trigger_contact_error_m": 0.0000610889474046417,
+			"weapon": "m4a1",
+			"weapon_aim_error_deg": 10.0826159697461,
+			"weapon_owner": "RELAXED_RIFLE_LOCOMOTION"
+		},
+		{
+			"body_position": "(500.0, 0.000845, 485.731)",
+			"capture_preserved_source": true,
+			"capture_process_frame": 1047,
+			"current_clip": "crouch_forward",
+			"fire_recoil_weight": 0.0,
+			"fire_upper_body_latch": {
+				"accepted_shot_count": 1,
+				"action_override_active": false,
+				"grace_duration_seconds": 1.2,
+				"grace_remaining_seconds": 0.0,
+				"owner_state": "BASE",
+				"posture": "CROUCHED",
+				"selected": false
+			},
+			"head_height_m": 1.240523896995,
+			"horizontal_speed_mps": 2.59999990463257,
+			"images": {
+				"rear": "/private/tmp/source-rifle-wrist-native-v1-m4a1_1_move_forward-rear.png",
+				"side": "/private/tmp/source-rifle-wrist-native-v1-m4a1_1_move_forward-side.png"
+			},
+			"left_elbow_angle_deg": 139.299934455809,
+			"locomotion": {
+				"active_fire_clip": "combat_fire",
+				"crouched_reload_clip": "iso_rifle_reload_crouched",
+				"crouched_reload_layer_available": true,
+				"crouched_reload_trigger_count": 0,
+				"fire_layer_available": true,
+				"fire_trigger_count": 1,
+				"full_gait_weight": 0.000000000000552139780617853,
+				"jog_gait_weight": 0.1445776185355,
+				"locomotion_carry_weight": 0.0,
+				"modern_enabled": true,
+				"modern_state": "crouch",
+				"playback_rate": 0.999999963320219,
+				"presentation_mode": "RELAXED_RIFLE",
+				"prone_travel_blend": 1.0,
+				"rendered_direction": "(-0.0, 1.0)",
+				"shared_phase": 0.823420365877673,
+				"smoothed_direction": "(-0.0, 1.0)",
+				"source_controller_active": true,
+				"source_grounded_clip": "source_walk_alert",
+				"source_loop_phase_transfer": {
+					"clock_states": [],
+					"destination_states": [],
+					"enabled": false,
+					"last_transfer": {},
+					"transfers": 0
+				},
+				"source_pistol_phase_active": false,
+				"source_transition_snapshot": {
+					"bone_count": 65,
+					"enabled": true,
+					"freezes": 1,
+					"frozen_state": "",
+					"latest_valid": true,
+					"raw_captures": 846,
+					"releases": 1,
+					"target_state": ""
+				},
+				"standing_reload_clip": "iso_rifle_reload_standing",
+				"standing_reload_layer_available": true,
+				"standing_reload_trigger_count": 0,
+				"upper_body_ready_blend": 0.0
+			},
+			"motion_state": 1,
+			"physical": {
+				"aim_target_world": "(500.0, 1.933658, 238.5743)",
+				"bore_to_reticle_degrees": 11.0982932738573,
+				"muzzle_to_target_m": 245.994338989258,
+				"pocket_world": "(500.2661, 1.184434, 485.4665)",
+				"shoulder_square_error_degrees": 24.8249659438614,
+				"stock_forward_release_m": 0.0,
+				"stock_height_relative_to_pocket_m": -0.198688924312592,
+				"stock_to_expected_carry_m": 0.226558104157448,
+				"stock_to_pocket_m": 0.226558104157448,
+				"stock_world": "(500.2882, 0.985745, 485.3599)",
+				"support_contact_m": 0.000618779973592609,
+				"trigger_contact_m": 0.000196594963199459
+			},
+			"physics_frame": 631,
+			"posture": 1,
+			"presentation_ready_weight": 0.0,
+			"requested_action": "",
+			"right_elbow_angle_deg": 82.3540701178447,
+			"source_take": "authored:crouch_forward.tres",
+			"spine_height_m": 0.887195430579595,
+			"state": "m4a1_1_move_forward",
+			"support_contact_error_m": 0.000618779973592609,
+			"trigger_contact_error_m": 0.000196594963199459,
+			"weapon": "m4a1",
+			"weapon_aim_error_deg": 11.0982471700804,
+			"weapon_owner": "RELAXED_RIFLE_LOCOMOTION"
+		},
+		{
+			"body_position": "(500.0, 0.000839, 485.3843)",
+			"capture_preserved_source": true,
+			"capture_process_frame": 1048,
+			"current_clip": "crouch_forward",
+			"fire_recoil_weight": 0.143073102256776,
+			"fire_upper_body_latch": {
+				"accepted_shot_count": 2,
+				"action_override_active": false,
+				"grace_duration_seconds": 1.2,
+				"grace_remaining_seconds": 1.19166666666667,
+				"owner_state": "FIRE_RECOVERY",
+				"posture": "CROUCHED",
+				"selected": true
+			},
+			"head_height_m": 1.24147262691986,
+			"horizontal_speed_mps": 2.59999990463257,
+			"images": {
+				"rear": "/private/tmp/source-rifle-wrist-native-v1-m4a1_1_fire_early-rear.png",
+				"side": "/private/tmp/source-rifle-wrist-native-v1-m4a1_1_fire_early-side.png"
+			},
+			"left_elbow_angle_deg": 129.81580105862,
+			"locomotion": {
+				"active_fire_clip": "crouch_fire",
+				"crouched_reload_clip": "iso_rifle_reload_crouched",
+				"crouched_reload_layer_available": true,
+				"crouched_reload_trigger_count": 0,
+				"fire_layer_available": true,
+				"fire_trigger_count": 2,
+				"full_gait_weight": 0.000000000000516888414845229,
+				"jog_gait_weight": 0.144577682716037,
+				"locomotion_carry_weight": 0.0,
+				"modern_enabled": true,
+				"modern_state": "crouch",
+				"playback_rate": 0.999999963320219,
+				"presentation_mode": "RELAXED_RIFLE",
+				"prone_travel_blend": 1.0,
+				"rendered_direction": "(-0.0, 1.0)",
+				"shared_phase": 0.831753698905341,
+				"smoothed_direction": "(-0.0, 1.0)",
+				"source_controller_active": true,
+				"source_grounded_clip": "source_walk_alert",
+				"source_loop_phase_transfer": {
+					"clock_states": [],
+					"destination_states": [],
+					"enabled": false,
+					"last_transfer": {},
+					"transfers": 0
+				},
+				"source_pistol_phase_active": false,
+				"source_transition_snapshot": {
+					"bone_count": 65,
+					"enabled": true,
+					"freezes": 1,
+					"frozen_state": "",
+					"latest_valid": false,
+					"raw_captures": 846,
+					"releases": 1,
+					"target_state": ""
+				},
+				"standing_reload_clip": "iso_rifle_reload_standing",
+				"standing_reload_layer_available": true,
+				"standing_reload_trigger_count": 0,
+				"upper_body_ready_blend": 0.0
+			},
+			"motion_state": 1,
+			"physical": {
+				"aim_target_world": "(500.0, 1.933658, 238.531)",
+				"bore_to_reticle_degrees": 0.0278725829376405,
+				"muzzle_to_target_m": 245.678955078125,
+				"pocket_world": "(500.2668, 1.185441, 485.1203)",
+				"shoulder_square_error_degrees": 24.8948192884897,
+				"stock_forward_release_m": 0.0,
+				"stock_height_relative_to_pocket_m": -0.251495063304901,
+				"stock_to_expected_carry_m": 0.274540275335312,
+				"stock_to_pocket_m": 0.274540275335312,
+				"stock_world": "(500.3015, 0.933946, 485.0158)",
+				"support_contact_m": 0.000196778622921556,
+				"trigger_contact_m": 0.0000610563656664453
+			},
+			"physics_frame": 639,
+			"posture": 1,
+			"presentation_ready_weight": 0.181269246922018,
+			"requested_action": "",
+			"right_elbow_angle_deg": 87.1153146378084,
+			"source_take": "authored:crouch_forward.tres",
+			"spine_height_m": 0.887972320313565,
+			"state": "m4a1_1_fire_early",
+			"support_contact_error_m": 0.000196778622921556,
+			"trigger_contact_error_m": 0.0000610548304393888,
+			"weapon": "m4a1",
+			"weapon_aim_error_deg": 0.0281757976465588,
+			"weapon_owner": "READY_SOLVER"
+		},
+		{
+			"body_position": "(500.0, 0.000845, 484.7776)",
+			"capture_preserved_source": true,
+			"capture_process_frame": 1058,
+			"current_clip": "crouch_forward",
+			"fire_recoil_weight": 0.0,
+			"fire_upper_body_latch": {
+				"accepted_shot_count": 2,
+				"action_override_active": false,
+				"grace_duration_seconds": 1.2,
+				"grace_remaining_seconds": 0.831951666666667,
+				"owner_state": "FIRE_RECOVERY",
+				"posture": "CROUCHED",
+				"selected": true
+			},
+			"head_height_m": 1.18849297898123,
+			"horizontal_speed_mps": 2.59999990463257,
+			"images": {
+				"rear": "/private/tmp/source-rifle-wrist-native-v1-m4a1_1_fire_middle-rear.png",
+				"side": "/private/tmp/source-rifle-wrist-native-v1-m4a1_1_fire_middle-side.png"
+			},
+			"left_elbow_angle_deg": 128.286499351845,
+			"locomotion": {
+				"active_fire_clip": "crouch_fire",
+				"crouched_reload_clip": "iso_rifle_reload_crouched",
+				"crouched_reload_layer_available": true,
+				"crouched_reload_trigger_count": 0,
+				"fire_layer_available": true,
+				"fire_trigger_count": 2,
+				"full_gait_weight": 0.0000000000000244945421140966,
+				"jog_gait_weight": 0.144578284821832,
+				"locomotion_carry_weight": 0.0,
+				"modern_enabled": true,
+				"modern_state": "crouch",
+				"playback_rate": 0.999999963320219,
+				"presentation_mode": "READY_AIM",
+				"prone_travel_blend": 1.0,
+				"rendered_direction": "(-0.0, 1.0)",
+				"shared_phase": 0.191468685711074,
+				"smoothed_direction": "(-0.0, 1.0)",
+				"source_controller_active": true,
+				"source_grounded_clip": "source_walk_alert",
+				"source_loop_phase_transfer": {
+					"clock_states": [],
+					"destination_states": [],
+					"enabled": false,
+					"last_transfer": {},
+					"transfers": 0
+				},
+				"source_pistol_phase_active": false,
+				"source_transition_snapshot": {
+					"bone_count": 65,
+					"enabled": true,
+					"freezes": 1,
+					"frozen_state": "",
+					"latest_valid": false,
+					"raw_captures": 846,
+					"releases": 1,
+					"target_state": ""
+				},
+				"standing_reload_clip": "iso_rifle_reload_standing",
+				"standing_reload_layer_available": true,
+				"standing_reload_trigger_count": 0,
+				"upper_body_ready_blend": 0.0
+			},
+			"motion_state": 1,
+			"physical": {
+				"aim_target_world": "(500.0, 1.933658, 237.6209)",
+				"bore_to_reticle_degrees": 0.020889374851857,
+				"muzzle_to_target_m": 245.967391967773,
+				"pocket_world": "(500.2521, 1.172392, 484.5434)",
+				"shoulder_square_error_degrees": 33.5896221080368,
+				"stock_forward_release_m": 0.0,
+				"stock_height_relative_to_pocket_m": -0.0845842361450195,
+				"stock_to_expected_carry_m": 0.214474529027939,
+				"stock_to_pocket_m": 0.214474529027939,
+				"stock_world": "(500.3813, 1.087808, 484.3947)",
+				"support_contact_m": 0.000633928168099374,
+				"trigger_contact_m": 0.000110169246909209
+			},
+			"physics_frame": 653,
+			"posture": 1,
+			"presentation_ready_weight": 0.983577926903076,
+			"requested_action": "",
+			"right_elbow_angle_deg": 80.2113950274782,
+			"source_take": "authored:crouch_forward.tres",
+			"spine_height_m": 0.848588670662139,
+			"state": "m4a1_1_fire_middle",
+			"support_contact_error_m": 0.000633928168099374,
+			"trigger_contact_error_m": 0.000110169246909209,
+			"weapon": "m4a1",
+			"weapon_aim_error_deg": 0.0208974940391296,
+			"weapon_owner": "READY_SOLVER"
+		},
+		{
+			"body_position": "(500.0, 0.000839, 483.7376)",
+			"capture_preserved_source": true,
+			"capture_process_frame": 1088,
+			"current_clip": "crouch_forward",
+			"fire_recoil_weight": 0.0,
+			"fire_upper_body_latch": {
+				"accepted_shot_count": 2,
+				"action_override_active": false,
+				"grace_duration_seconds": 1.2,
+				"grace_remaining_seconds": 0.432579333333333,
+				"owner_state": "FIRE_RECOVERY",
+				"posture": "CROUCHED",
+				"selected": true
+			},
+			"head_height_m": 1.23669522575801,
+			"horizontal_speed_mps": 2.59999990463257,
+			"images": {
+				"rear": "/private/tmp/source-rifle-wrist-native-v1-m4a1_1_fire-rear.png",
+				"side": "/private/tmp/source-rifle-wrist-native-v1-m4a1_1_fire-side.png"
+			},
+			"left_elbow_angle_deg": 122.951667069643,
+			"locomotion": {
+				"active_fire_clip": "crouch_fire",
+				"crouched_reload_clip": "iso_rifle_reload_crouched",
+				"crouched_reload_layer_available": true,
+				"crouched_reload_trigger_count": 0,
+				"fire_layer_available": true,
+				"fire_trigger_count": 2,
+				"full_gait_weight": 0.00000000000000110243689984983,
+				"jog_gait_weight": 0.144578292898359,
+				"locomotion_carry_weight": 0.0,
+				"modern_enabled": true,
+				"modern_state": "crouch",
+				"playback_rate": 0.999999963320219,
+				"presentation_mode": "READY_AIM",
+				"prone_travel_blend": 1.0,
+				"rendered_direction": "(-0.0, 1.0)",
+				"shared_phase": 0.590841004395517,
+				"smoothed_direction": "(-0.0, 1.0)",
+				"source_controller_active": true,
+				"source_grounded_clip": "source_walk_alert",
+				"source_loop_phase_transfer": {
+					"clock_states": [],
+					"destination_states": [],
+					"enabled": false,
+					"last_transfer": {},
+					"transfers": 0
+				},
+				"source_pistol_phase_active": false,
+				"source_transition_snapshot": {
+					"bone_count": 65,
+					"enabled": true,
+					"freezes": 1,
+					"frozen_state": "",
+					"latest_valid": false,
+					"raw_captures": 846,
+					"releases": 1,
+					"target_state": ""
+				},
+				"standing_reload_clip": "iso_rifle_reload_standing",
+				"standing_reload_layer_available": true,
+				"standing_reload_trigger_count": 0,
+				"upper_body_ready_blend": 0.0
+			},
+			"motion_state": 1,
+			"physical": {
+				"aim_target_world": "(500.0, 1.933656, 236.5809)",
+				"bore_to_reticle_degrees": 0.0211722207227109,
+				"muzzle_to_target_m": 245.984161376953,
+				"pocket_world": "(500.2416, 1.226727, 483.5092)",
+				"shoulder_square_error_degrees": 37.0242549470221,
+				"stock_forward_release_m": 0.0,
+				"stock_height_relative_to_pocket_m": -0.0867782831192017,
+				"stock_to_expected_carry_m": 0.225831776857376,
+				"stock_to_pocket_m": 0.225831776857376,
+				"stock_world": "(500.3982, 1.139948, 483.3715)",
+				"support_contact_m": 0.000163284566951916,
+				"trigger_contact_m": 0.000130186366732232
+			},
+			"physics_frame": 677,
+			"posture": 1,
+			"presentation_ready_weight": 0.999998870872027,
+			"requested_action": "",
+			"right_elbow_angle_deg": 80.8657253016843,
+			"source_take": "authored:crouch_forward.tres",
+			"spine_height_m": 0.89102863840526,
+			"state": "m4a1_1_fire",
+			"support_contact_error_m": 0.000163284566951916,
+			"trigger_contact_error_m": 0.000130186366732232,
+			"weapon": "m4a1",
+			"weapon_aim_error_deg": 0.0211996298583035,
+			"weapon_owner": "READY_SOLVER"
+		},
+		{
+			"body_position": "(500.0, 0.000839, 483.7376)",
+			"capture_preserved_source": true,
+			"capture_process_frame": 1575,
+			"current_clip": "idle_rifle",
+			"fire_recoil_weight": 0.0,
+			"fire_upper_body_latch": {
+				"accepted_shot_count": 2,
+				"action_override_active": false,
+				"grace_duration_seconds": 1.2,
+				"grace_remaining_seconds": 0.0,
+				"owner_state": "BASE",
+				"posture": "STANDING",
+				"selected": false
+			},
+			"head_height_m": 1.73789065651363,
+			"horizontal_speed_mps": 0.0,
+			"images": {
+				"rear": "/private/tmp/source-rifle-wrist-native-v1-ak-47_0_idle-rear.png",
+				"side": "/private/tmp/source-rifle-wrist-native-v1-ak-47_0_idle-side.png"
+			},
+			"left_elbow_angle_deg": 111.209060603632,
+			"locomotion": {
+				"active_fire_clip": "",
+				"crouched_reload_clip": "iso_rifle_reload_crouched",
+				"crouched_reload_layer_available": true,
+				"crouched_reload_trigger_count": 0,
+				"fire_layer_available": true,
+				"fire_trigger_count": 0,
+				"full_gait_weight": 0.0,
+				"jog_gait_weight": 0.0,
+				"locomotion_carry_weight": 0.0,
+				"modern_enabled": true,
+				"modern_state": "idle",
+				"playback_rate": 0.0,
+				"presentation_mode": "RELAXED_RIFLE",
+				"prone_travel_blend": -1.0,
+				"rendered_direction": "(-0.0, -1.0)",
+				"shared_phase": 0.0,
+				"smoothed_direction": "(-0.0, -1.0)",
+				"source_controller_active": true,
+				"source_grounded_clip": "walk_backward",
+				"source_loop_phase_transfer": {
+					"clock_states": [],
+					"destination_states": [],
+					"enabled": false,
+					"last_transfer": {},
+					"transfers": 0
+				},
+				"source_pistol_phase_active": false,
+				"source_transition_snapshot": {
+					"bone_count": 65,
+					"enabled": true,
+					"freezes": 1,
+					"frozen_state": "",
+					"latest_valid": true,
+					"raw_captures": 288,
+					"releases": 1,
+					"target_state": ""
+				},
+				"standing_reload_clip": "iso_rifle_reload_standing",
+				"standing_reload_layer_available": true,
+				"standing_reload_trigger_count": 0,
+				"upper_body_ready_blend": 0.0
+			},
+			"motion_state": 0,
+			"physical": {
+				"aim_target_world": "(500.0, 2.149288, 236.5374)",
+				"bore_to_reticle_degrees": 30.6054663688964,
+				"muzzle_to_target_m": 246.496688842773,
+				"pocket_world": "(500.1574, 1.539772, 483.8057)",
+				"shoulder_square_error_degrees": 30.163651510614,
+				"stock_forward_release_m": 0.0,
+				"stock_height_relative_to_pocket_m": -0.303717732429504,
+				"stock_to_expected_carry_m": 0.378579407930374,
+				"stock_to_pocket_m": 0.378579407930374,
+				"stock_world": "(500.381, 1.236054, 483.8383)",
+				"support_contact_m": 0.000623733329121023,
+				"trigger_contact_m": 0.0000431585358455777
+			},
+			"physics_frame": 943,
+			"posture": 0,
+			"presentation_ready_weight": 0.0,
+			"requested_action": "",
+			"right_elbow_angle_deg": 85.9706235931549,
+			"source_take": "authored:idle_rifle.tres",
+			"spine_height_m": 1.14843493275112,
+			"state": "ak-47_0_idle",
+			"support_contact_error_m": 0.000623733329121023,
+			"trigger_contact_error_m": 0.0000431585358455777,
+			"weapon": "ak-47",
+			"weapon_aim_error_deg": 30.6054663688964,
+			"weapon_owner": "RELAXED_RIFLE_LOCOMOTION"
+		},
+		{
+			"body_position": "(500.0, 0.000845, 477.4381)",
+			"capture_preserved_source": true,
+			"capture_process_frame": 1681,
+			"current_clip": "run_forward",
+			"fire_recoil_weight": 0.0,
+			"fire_upper_body_latch": {
+				"accepted_shot_count": 2,
+				"action_override_active": false,
+				"grace_duration_seconds": 1.2,
+				"grace_remaining_seconds": 0.0,
+				"owner_state": "BASE",
+				"posture": "STANDING",
+				"selected": false
+			},
+			"head_height_m": 1.44851143687265,
+			"horizontal_speed_mps": 6.5,
+			"images": {
+				"rear": "/private/tmp/source-rifle-wrist-native-v1-ak-47_0_move_forward-rear.png",
+				"side": "/private/tmp/source-rifle-wrist-native-v1-ak-47_0_move_forward-side.png"
+			},
+			"left_elbow_angle_deg": 92.6576557352682,
+			"locomotion": {
+				"active_fire_clip": "",
+				"crouched_reload_clip": "iso_rifle_reload_crouched",
+				"crouched_reload_layer_available": true,
+				"crouched_reload_trigger_count": 0,
+				"fire_layer_available": true,
+				"fire_trigger_count": 0,
+				"full_gait_weight": 0.999992824164089,
+				"jog_gait_weight": 0.999995255504844,
+				"locomotion_carry_weight": 0.0,
+				"modern_enabled": true,
+				"modern_state": "standing",
+				"playback_rate": 1.0,
+				"presentation_mode": "RELAXED_RIFLE",
+				"prone_travel_blend": 0.999999849291674,
+				"rendered_direction": "(-0.000863, 1.0)",
+				"shared_phase": 0.0283413160076967,
+				"smoothed_direction": "(-0.000001, 1.0)",
+				"source_controller_active": true,
+				"source_grounded_clip": "run_forward",
+				"source_loop_phase_transfer": {
+					"clock_states": [],
+					"destination_states": [],
+					"enabled": false,
+					"last_transfer": {},
+					"transfers": 0
+				},
+				"source_pistol_phase_active": false,
+				"source_transition_snapshot": {
+					"bone_count": 65,
+					"enabled": true,
+					"freezes": 1,
+					"frozen_state": "",
+					"latest_valid": true,
+					"raw_captures": 394,
+					"releases": 1,
+					"target_state": ""
+				},
+				"standing_reload_clip": "iso_rifle_reload_standing",
+				"standing_reload_layer_available": true,
+				"standing_reload_trigger_count": 0,
+				"upper_body_ready_blend": 0.0
+			},
+			"motion_state": 0,
+			"physical": {
+				"aim_target_world": "(500.0, 2.031285, 230.3464)",
+				"bore_to_reticle_degrees": 66.7650035142263,
+				"muzzle_to_target_m": 246.34553527832,
+				"pocket_world": "(500.1172, 1.332436, 477.2329)",
+				"shoulder_square_error_degrees": 7.24686872213144,
+				"stock_forward_release_m": 0.0,
+				"stock_height_relative_to_pocket_m": -0.226804494857788,
+				"stock_to_expected_carry_m": 0.326432794332504,
+				"stock_to_pocket_m": 0.326432794332504,
+				"stock_world": "(500.2741, 1.105632, 477.0583)",
+				"support_contact_m": 0.00027669090195559,
+				"trigger_contact_m": 0.0000703654004610144
+			},
+			"physics_frame": 1005,
+			"posture": 0,
+			"presentation_ready_weight": 0.0,
+			"requested_action": "",
+			"right_elbow_angle_deg": 79.8751662071086,
+			"source_take": "authored:run_forward.tres",
+			"spine_height_m": 0.93629504769342,
+			"state": "ak-47_0_move_forward",
+			"support_contact_error_m": 0.00027669090195559,
+			"trigger_contact_error_m": 0.0000703654004610144,
+			"weapon": "ak-47",
+			"weapon_aim_error_deg": 66.7649488727129,
+			"weapon_owner": "RELAXED_RIFLE_LOCOMOTION"
+		},
+		{
+			"body_position": "(500.0, 0.000845, 476.5715)",
+			"capture_preserved_source": true,
+			"capture_process_frame": 1682,
+			"current_clip": "run_forward",
+			"fire_recoil_weight": 0.143073102256776,
+			"fire_upper_body_latch": {
+				"accepted_shot_count": 3,
+				"action_override_active": false,
+				"grace_duration_seconds": 1.2,
+				"grace_remaining_seconds": 1.19166666666667,
+				"owner_state": "FIRE_RECOVERY",
+				"posture": "STANDING",
+				"selected": true
+			},
+			"head_height_m": 1.44895547482884,
+			"horizontal_speed_mps": 6.5,
+			"images": {
+				"rear": "/private/tmp/source-rifle-wrist-native-v1-ak-47_0_fire_early-rear.png",
+				"side": "/private/tmp/source-rifle-wrist-native-v1-ak-47_0_fire_early-side.png"
+			},
+			"left_elbow_angle_deg": 138.879271896234,
+			"locomotion": {
+				"active_fire_clip": "combat_fire",
+				"crouched_reload_clip": "iso_rifle_reload_crouched",
+				"crouched_reload_layer_available": true,
+				"crouched_reload_trigger_count": 0,
+				"fire_layer_available": true,
+				"fire_trigger_count": 1,
+				"full_gait_weight": 0.999993507035162,
+				"jog_gait_weight": 0.999995707003253,
+				"locomotion_carry_weight": 0.0,
+				"modern_enabled": true,
+				"modern_state": "standing",
+				"playback_rate": 1.0,
+				"presentation_mode": "RELAXED_RIFLE",
+				"prone_travel_blend": 0.999999868104094,
+				"rendered_direction": "(-0.000807, 1.0)",
+				"shared_phase": 0.03667464934103,
+				"smoothed_direction": "(-0.000001, 1.0)",
+				"source_controller_active": true,
+				"source_grounded_clip": "run_forward",
+				"source_loop_phase_transfer": {
+					"clock_states": [],
+					"destination_states": [],
+					"enabled": false,
+					"last_transfer": {},
+					"transfers": 0
+				},
+				"source_pistol_phase_active": false,
+				"source_transition_snapshot": {
+					"bone_count": 65,
+					"enabled": true,
+					"freezes": 1,
+					"frozen_state": "",
+					"latest_valid": false,
+					"raw_captures": 394,
+					"releases": 1,
+					"target_state": ""
+				},
+				"standing_reload_clip": "iso_rifle_reload_standing",
+				"standing_reload_layer_available": true,
+				"standing_reload_trigger_count": 0,
+				"upper_body_ready_blend": 0.0
+			},
+			"motion_state": 0,
+			"physical": {
+				"aim_target_world": "(500.0, 2.031289, 230.2381)",
+				"bore_to_reticle_degrees": 0.0108314327137039,
+				"muzzle_to_target_m": 245.271530151367,
+				"pocket_world": "(500.1163, 1.333179, 476.367)",
+				"shoulder_square_error_degrees": 6.49636781551309,
+				"stock_forward_release_m": 0.0,
+				"stock_height_relative_to_pocket_m": -0.220584034919739,
+				"stock_to_expected_carry_m": 0.293432056903839,
+				"stock_to_pocket_m": 0.293432056903839,
+				"stock_world": "(499.9363, 1.112595, 476.4379)",
+				"support_contact_m": 0.000616153294686228,
+				"trigger_contact_m": 0.000193160842172801
+			},
+			"physics_frame": 1013,
+			"posture": 0,
+			"presentation_ready_weight": 0.181269246922018,
+			"requested_action": "",
+			"right_elbow_angle_deg": 72.9133968383598,
+			"source_take": "authored:run_forward.tres",
+			"spine_height_m": 0.937349139188882,
+			"state": "ak-47_0_fire_early",
+			"support_contact_error_m": 0.000616153294686228,
+			"trigger_contact_error_m": 0.000193160842172801,
+			"weapon": "ak-47",
+			"weapon_aim_error_deg": 0.0114235680930724,
+			"weapon_owner": "READY_SOLVER"
+		},
+		{
+			"body_position": "(500.0, 0.000839, 474.9465)",
+			"capture_preserved_source": true,
+			"capture_process_frame": 1695,
+			"current_clip": "run_forward",
+			"fire_recoil_weight": 0.0,
+			"fire_upper_body_latch": {
+				"accepted_shot_count": 3,
+				"action_override_active": false,
+				"grace_duration_seconds": 1.2,
+				"grace_remaining_seconds": 0.81748,
+				"owner_state": "FIRE_RECOVERY",
+				"posture": "STANDING",
+				"selected": true
+			},
+			"head_height_m": 1.40640466409968,
+			"horizontal_speed_mps": 6.5,
+			"images": {
+				"rear": "/private/tmp/source-rifle-wrist-native-v1-ak-47_0_fire_middle-rear.png",
+				"side": "/private/tmp/source-rifle-wrist-native-v1-ak-47_0_fire_middle-side.png"
+			},
+			"left_elbow_angle_deg": 105.911798420487,
+			"locomotion": {
+				"active_fire_clip": "combat_fire",
+				"crouched_reload_clip": "iso_rifle_reload_crouched",
+				"crouched_reload_layer_available": true,
+				"crouched_reload_trigger_count": 0,
+				"fire_layer_available": true,
+				"fire_trigger_count": 1,
+				"full_gait_weight": 0.999999927162237,
+				"jog_gait_weight": 0.999999951841372,
+				"locomotion_carry_weight": 0.0,
+				"modern_enabled": true,
+				"modern_state": "standing",
+				"playback_rate": 1.0,
+				"presentation_mode": "READY_AIM",
+				"prone_travel_blend": 0.99999999966878,
+				"rendered_direction": "(-0.00004, 1.0)",
+				"shared_phase": 0.410861316007697,
+				"smoothed_direction": "(-0.0, 1.0)",
+				"source_controller_active": true,
+				"source_grounded_clip": "run_forward",
+				"source_loop_phase_transfer": {
+					"clock_states": [],
+					"destination_states": [],
+					"enabled": false,
+					"last_transfer": {},
+					"transfers": 0
+				},
+				"source_pistol_phase_active": false,
+				"source_transition_snapshot": {
+					"bone_count": 65,
+					"enabled": true,
+					"freezes": 1,
+					"frozen_state": "",
+					"latest_valid": false,
+					"raw_captures": 394,
+					"releases": 1,
+					"target_state": ""
+				},
+				"standing_reload_clip": "iso_rifle_reload_standing",
+				"standing_reload_layer_available": true,
+				"standing_reload_trigger_count": 0,
+				"upper_body_ready_blend": 0.0
+			},
+			"motion_state": 0,
+			"physical": {
+				"aim_target_world": "(500.0, 3.013384, 227.8569)",
+				"bore_to_reticle_degrees": 0.0375870879564822,
+				"muzzle_to_target_m": 245.959808349609,
+				"pocket_world": "(500.1624, 1.344004, 474.7652)",
+				"shoulder_square_error_degrees": 30.9096230918671,
+				"stock_forward_release_m": 0.0,
+				"stock_height_relative_to_pocket_m": -0.0846394300460815,
+				"stock_to_expected_carry_m": 0.0954308807849884,
+				"stock_to_pocket_m": 0.0954308807849884,
+				"stock_world": "(500.1989, 1.259364, 474.7404)",
+				"support_contact_m": 0.000169132064911537,
+				"trigger_contact_m": 0.000369744433555752
+			},
+			"physics_frame": 1028,
+			"posture": 0,
+			"presentation_ready_weight": 0.987651750027086,
+			"requested_action": "",
+			"right_elbow_angle_deg": 70.4634345856999,
+			"source_take": "authored:run_forward.tres",
+			"spine_height_m": 0.924398114264477,
+			"state": "ak-47_0_fire_middle",
+			"support_contact_error_m": 0.000169132064911537,
+			"trigger_contact_error_m": 0.000369744433555752,
+			"weapon": "ak-47",
+			"weapon_aim_error_deg": 0.0374407057967897,
+			"weapon_owner": "READY_SOLVER"
+		},
+		{
+			"body_position": "(500.0, 0.000845, 472.2384)",
+			"capture_preserved_source": true,
+			"capture_process_frame": 1729,
+			"current_clip": "run_forward",
+			"fire_recoil_weight": 0.0,
+			"fire_upper_body_latch": {
+				"accepted_shot_count": 3,
+				"action_override_active": false,
+				"grace_duration_seconds": 1.2,
+				"grace_remaining_seconds": 0.39929,
+				"owner_state": "FIRE_RECOVERY",
+				"posture": "STANDING",
+				"selected": true
+			},
+			"head_height_m": 1.38110026845243,
+			"horizontal_speed_mps": 6.5,
+			"images": {
+				"rear": "/private/tmp/source-rifle-wrist-native-v1-ak-47_0_fire-rear.png",
+				"side": "/private/tmp/source-rifle-wrist-native-v1-ak-47_0_fire-side.png"
+			},
+			"left_elbow_angle_deg": 99.8952917057903,
+			"locomotion": {
+				"active_fire_clip": "combat_fire",
+				"crouched_reload_clip": "iso_rifle_reload_crouched",
+				"crouched_reload_layer_available": true,
+				"crouched_reload_trigger_count": 0,
+				"fire_layer_available": true,
+				"fire_trigger_count": 1,
+				"full_gait_weight": 0.999999999518113,
+				"jog_gait_weight": 0.999999999681388,
+				"locomotion_carry_weight": 0.0,
+				"modern_enabled": true,
+				"modern_state": "standing",
+				"playback_rate": 1.0,
+				"presentation_mode": "READY_AIM",
+				"prone_travel_blend": 0.999999999999589,
+				"rendered_direction": "(-0.000002, 1.0)",
+				"shared_phase": 0.829051316007696,
+				"smoothed_direction": "(-0.0, 1.0)",
+				"source_controller_active": true,
+				"source_grounded_clip": "run_forward",
+				"source_loop_phase_transfer": {
+					"clock_states": [],
+					"destination_states": [],
+					"enabled": false,
+					"last_transfer": {},
+					"transfers": 0
+				},
+				"source_pistol_phase_active": false,
+				"source_transition_snapshot": {
+					"bone_count": 65,
+					"enabled": true,
+					"freezes": 1,
+					"frozen_state": "",
+					"latest_valid": false,
+					"raw_captures": 394,
+					"releases": 1,
+					"target_state": ""
+				},
+				"standing_reload_clip": "iso_rifle_reload_standing",
+				"standing_reload_layer_available": true,
+				"standing_reload_trigger_count": 0,
+				"upper_body_ready_blend": 0.0
+			},
+			"motion_state": 0,
+			"physical": {
+				"aim_target_world": "(500.0, 2.002797, 225.1467)",
+				"bore_to_reticle_degrees": 0.00551686060286133,
+				"muzzle_to_target_m": 246.013458251953,
+				"pocket_world": "(500.1842, 1.329901, 472.1024)",
+				"shoulder_square_error_degrees": 37.9037198660865,
+				"stock_forward_release_m": 0.0,
+				"stock_height_relative_to_pocket_m": -0.0838069915771484,
+				"stock_to_expected_carry_m": 0.120864413678646,
+				"stock_to_pocket_m": 0.120864413678646,
+				"stock_world": "(500.2703, 1.246094, 472.0889)",
+				"support_contact_m": 0.000609176990110427,
+				"trigger_contact_m": 0.000182583840796724
+			},
+			"physics_frame": 1053,
+			"posture": 0,
+			"presentation_ready_weight": 0.999999459516068,
+			"requested_action": "",
+			"right_elbow_angle_deg": 70.4686363495759,
+			"source_take": "authored:run_forward.tres",
+			"spine_height_m": 0.886900158016942,
+			"state": "ak-47_0_fire",
+			"support_contact_error_m": 0.000609176990110427,
+			"trigger_contact_error_m": 0.000182583840796724,
+			"weapon": "ak-47",
+			"weapon_aim_error_deg": 0.00556699604232381,
+			"weapon_owner": "READY_SOLVER"
+		},
+		{
+			"body_position": "(500.0, 0.00084, 471.9384)",
+			"capture_preserved_source": true,
+			"capture_process_frame": 2105,
+			"current_clip": "idle_crouch",
+			"fire_recoil_weight": 0.0,
+			"fire_upper_body_latch": {
+				"accepted_shot_count": 3,
+				"action_override_active": false,
+				"grace_duration_seconds": 1.2,
+				"grace_remaining_seconds": 0.0,
+				"owner_state": "BASE",
+				"posture": "CROUCHED",
+				"selected": false
+			},
+			"head_height_m": 1.01174673531204,
+			"horizontal_speed_mps": 0.0,
+			"images": {
+				"rear": "/private/tmp/source-rifle-wrist-native-v1-ak-47_1_idle-rear.png",
+				"side": "/private/tmp/source-rifle-wrist-native-v1-ak-47_1_idle-side.png"
+			},
+			"left_elbow_angle_deg": 119.402209649209,
+			"locomotion": {
+				"active_fire_clip": "combat_fire",
+				"crouched_reload_clip": "iso_rifle_reload_crouched",
+				"crouched_reload_layer_available": true,
+				"crouched_reload_trigger_count": 0,
+				"fire_layer_available": true,
+				"fire_trigger_count": 1,
+				"full_gait_weight": 0.0000000000000000086973960255994,
+				"jog_gait_weight": 0.00000000000000000869739602688432,
+				"locomotion_carry_weight": 0.0,
+				"modern_enabled": true,
+				"modern_state": "idle_crouch",
+				"playback_rate": 0.0,
+				"presentation_mode": "RELAXED_RIFLE",
+				"prone_travel_blend": 1.0,
+				"rendered_direction": "(-0.0, 1.0)",
+				"shared_phase": 0.83738464934103,
+				"smoothed_direction": "(-0.0, 1.0)",
+				"source_controller_active": true,
+				"source_grounded_clip": "source_walk_alert",
+				"source_loop_phase_transfer": {
+					"clock_states": [],
+					"destination_states": [],
+					"enabled": false,
+					"last_transfer": {},
+					"transfers": 0
+				},
+				"source_pistol_phase_active": false,
+				"source_transition_snapshot": {
+					"bone_count": 65,
+					"enabled": true,
+					"freezes": 2,
+					"frozen_state": "",
+					"latest_valid": true,
+					"raw_captures": 739,
+					"releases": 2,
+					"target_state": ""
+				},
+				"standing_reload_clip": "iso_rifle_reload_standing",
+				"standing_reload_layer_available": true,
+				"standing_reload_trigger_count": 0,
+				"upper_body_ready_blend": 0.0
+			},
+			"motion_state": 1,
+			"physical": {
+				"aim_target_world": "(500.0, 1.538603, 224.7383)",
+				"bore_to_reticle_degrees": 9.24614575398309,
+				"muzzle_to_target_m": 246.264953613281,
+				"pocket_world": "(500.2426, 0.926547, 471.7832)",
+				"shoulder_square_error_degrees": 31.0276521141522,
+				"stock_forward_release_m": 0.0,
+				"stock_height_relative_to_pocket_m": -0.326393008232117,
+				"stock_to_expected_carry_m": 0.374058187007904,
+				"stock_to_pocket_m": 0.374058187007904,
+				"stock_world": "(500.36, 0.600154, 471.9232)",
+				"support_contact_m": 0.000159635543241166,
+				"trigger_contact_m": 0.000043180141801713
+			},
+			"physics_frame": 1250,
+			"posture": 1,
+			"presentation_ready_weight": 0.0,
+			"requested_action": "",
+			"right_elbow_angle_deg": 77.7906149622623,
+			"source_take": "authored:idle_crouch.tres",
+			"spine_height_m": 0.552731961943209,
+			"state": "ak-47_1_idle",
+			"support_contact_error_m": 0.000159635543241166,
+			"trigger_contact_error_m": 0.000043180141801713,
+			"weapon": "ak-47",
+			"weapon_aim_error_deg": 9.24614575398309,
+			"weapon_owner": "RELAXED_RIFLE_LOCOMOTION"
+		},
+		{
+			"body_position": "(500.0, 0.000839, 469.2517)",
+			"capture_preserved_source": true,
+			"capture_process_frame": 2212,
+			"current_clip": "crouch_forward",
+			"fire_recoil_weight": 0.0,
+			"fire_upper_body_latch": {
+				"accepted_shot_count": 3,
+				"action_override_active": false,
+				"grace_duration_seconds": 1.2,
+				"grace_remaining_seconds": 0.0,
+				"owner_state": "BASE",
+				"posture": "CROUCHED",
+				"selected": false
+			},
+			"head_height_m": 1.24049916438526,
+			"horizontal_speed_mps": 2.59999990463257,
+			"images": {
+				"rear": "/private/tmp/source-rifle-wrist-native-v1-ak-47_1_move_forward-rear.png",
+				"side": "/private/tmp/source-rifle-wrist-native-v1-ak-47_1_move_forward-side.png"
+			},
+			"left_elbow_angle_deg": 144.225095022067,
+			"locomotion": {
+				"active_fire_clip": "combat_fire",
+				"crouched_reload_clip": "iso_rifle_reload_crouched",
+				"crouched_reload_layer_available": true,
+				"crouched_reload_trigger_count": 0,
+				"fire_layer_available": true,
+				"fire_trigger_count": 1,
+				"full_gait_weight": 0.00000000000054467866191552,
+				"jog_gait_weight": 0.144577632194622,
+				"locomotion_carry_weight": 0.0,
+				"modern_enabled": true,
+				"modern_state": "crouch",
+				"playback_rate": 0.999999963320219,
+				"presentation_mode": "RELAXED_RIFLE",
+				"prone_travel_blend": 1.0,
+				"rendered_direction": "(-0.0, 1.0)",
+				"shared_phase": 0.862044945090044,
+				"smoothed_direction": "(-0.0, 1.0)",
+				"source_controller_active": true,
+				"source_grounded_clip": "source_walk_alert",
+				"source_loop_phase_transfer": {
+					"clock_states": [],
+					"destination_states": [],
+					"enabled": false,
+					"last_transfer": {},
+					"transfers": 0
+				},
+				"source_pistol_phase_active": false,
+				"source_transition_snapshot": {
+					"bone_count": 65,
+					"enabled": true,
+					"freezes": 2,
+					"frozen_state": "",
+					"latest_valid": true,
+					"raw_captures": 846,
+					"releases": 2,
+					"target_state": ""
+				},
+				"standing_reload_clip": "iso_rifle_reload_standing",
+				"standing_reload_layer_available": true,
+				"standing_reload_trigger_count": 0,
+				"upper_body_ready_blend": 0.0
+			},
+			"motion_state": 1,
+			"physical": {
+				"aim_target_world": "(500.0, 1.933652, 222.095)",
+				"bore_to_reticle_degrees": 10.6835121072617,
+				"muzzle_to_target_m": 245.992080688477,
+				"pocket_world": "(500.2661, 1.184401, 468.9872)",
+				"shoulder_square_error_degrees": 24.8220537656222,
+				"stock_forward_release_m": 0.0,
+				"stock_height_relative_to_pocket_m": -0.229479432106018,
+				"stock_to_expected_carry_m": 0.231223940849304,
+				"stock_to_pocket_m": 0.231223940849304,
+				"stock_world": "(500.2874, 0.954922, 469.0059)",
+				"support_contact_m": 0.000694913091138005,
+				"trigger_contact_m": 0.000392569083487615
+			},
+			"physics_frame": 1312,
+			"posture": 1,
+			"presentation_ready_weight": 0.0,
+			"requested_action": "",
+			"right_elbow_angle_deg": 80.6709349704561,
+			"source_take": "authored:crouch_forward.tres",
+			"spine_height_m": 0.887175168318208,
+			"state": "ak-47_1_move_forward",
+			"support_contact_error_m": 0.000694913091138005,
+			"trigger_contact_error_m": 0.000392569083487615,
+			"weapon": "ak-47",
+			"weapon_aim_error_deg": 10.6834668572585,
+			"weapon_owner": "RELAXED_RIFLE_LOCOMOTION"
+		},
+		{
+			"body_position": "(500.0, 0.000845, 468.905)",
+			"capture_preserved_source": true,
+			"capture_process_frame": 2213,
+			"current_clip": "crouch_forward",
+			"fire_recoil_weight": 0.143073102256776,
+			"fire_upper_body_latch": {
+				"accepted_shot_count": 4,
+				"action_override_active": false,
+				"grace_duration_seconds": 1.2,
+				"grace_remaining_seconds": 1.19166666666667,
+				"owner_state": "FIRE_RECOVERY",
+				"posture": "CROUCHED",
+				"selected": true
+			},
+			"head_height_m": 1.24141447147122,
+			"horizontal_speed_mps": 2.59999990463257,
+			"images": {
+				"rear": "/private/tmp/source-rifle-wrist-native-v1-ak-47_1_fire_early-rear.png",
+				"side": "/private/tmp/source-rifle-wrist-native-v1-ak-47_1_fire_early-side.png"
+			},
+			"left_elbow_angle_deg": 143.381564913637,
+			"locomotion": {
+				"active_fire_clip": "crouch_fire",
+				"crouched_reload_clip": "iso_rifle_reload_crouched",
+				"crouched_reload_layer_available": true,
+				"crouched_reload_trigger_count": 0,
+				"fire_layer_available": true,
+				"fire_trigger_count": 2,
+				"full_gait_weight": 0.000000000000509903325085849,
+				"jog_gait_weight": 0.144577695075322,
+				"locomotion_carry_weight": 0.0,
+				"modern_enabled": true,
+				"modern_state": "crouch",
+				"playback_rate": 0.999999963320219,
+				"presentation_mode": "RELAXED_RIFLE",
+				"prone_travel_blend": 1.0,
+				"rendered_direction": "(-0.0, 1.0)",
+				"shared_phase": 0.870378278117713,
+				"smoothed_direction": "(-0.0, 1.0)",
+				"source_controller_active": true,
+				"source_grounded_clip": "source_walk_alert",
+				"source_loop_phase_transfer": {
+					"clock_states": [],
+					"destination_states": [],
+					"enabled": false,
+					"last_transfer": {},
+					"transfers": 0
+				},
+				"source_pistol_phase_active": false,
+				"source_transition_snapshot": {
+					"bone_count": 65,
+					"enabled": true,
+					"freezes": 2,
+					"frozen_state": "",
+					"latest_valid": false,
+					"raw_captures": 846,
+					"releases": 2,
+					"target_state": ""
+				},
+				"standing_reload_clip": "iso_rifle_reload_standing",
+				"standing_reload_layer_available": true,
+				"standing_reload_trigger_count": 0,
+				"upper_body_ready_blend": 0.0
+			},
+			"motion_state": 1,
+			"physical": {
+				"aim_target_world": "(500.0, 1.933652, 222.0517)",
+				"bore_to_reticle_degrees": 0.0250667408930939,
+				"muzzle_to_target_m": 245.668502807617,
+				"pocket_world": "(500.2668, 1.185388, 468.641)",
+				"shoulder_square_error_degrees": 24.8948192884897,
+				"stock_forward_release_m": 0.0,
+				"stock_height_relative_to_pocket_m": -0.307044804096222,
+				"stock_to_expected_carry_m": 0.309089958667755,
+				"stock_to_pocket_m": 0.309089958667755,
+				"stock_world": "(500.3016, 0.878343, 468.6477)",
+				"support_contact_m": 0.000626815715804696,
+				"trigger_contact_m": 0.0000432116830779705
+			},
+			"physics_frame": 1320,
+			"posture": 1,
+			"presentation_ready_weight": 0.181269246922018,
+			"requested_action": "",
+			"right_elbow_angle_deg": 86.9456143446254,
+			"source_take": "authored:crouch_forward.tres",
+			"spine_height_m": 0.887914760911372,
+			"state": "ak-47_1_fire_early",
+			"support_contact_error_m": 0.000626815715804696,
+			"trigger_contact_error_m": 0.0000432116830779705,
+			"weapon": "ak-47",
+			"weapon_aim_error_deg": 0.025374721393186,
+			"weapon_owner": "READY_SOLVER"
+		},
+		{
+			"body_position": "(500.0, 0.000839, 468.2983)",
+			"capture_preserved_source": true,
+			"capture_process_frame": 2224,
+			"current_clip": "crouch_forward",
+			"fire_recoil_weight": 0.0,
+			"fire_upper_body_latch": {
+				"accepted_shot_count": 4,
+				"action_override_active": false,
+				"grace_duration_seconds": 1.2,
+				"grace_remaining_seconds": 0.832060666666665,
+				"owner_state": "FIRE_RECOVERY",
+				"posture": "CROUCHED",
+				"selected": true
+			},
+			"head_height_m": 1.18886055896292,
+			"horizontal_speed_mps": 2.59999990463257,
+			"images": {
+				"rear": "/private/tmp/source-rifle-wrist-native-v1-ak-47_1_fire_middle-rear.png",
+				"side": "/private/tmp/source-rifle-wrist-native-v1-ak-47_1_fire_middle-side.png"
+			},
+			"left_elbow_angle_deg": 131.089878757376,
+			"locomotion": {
+				"active_fire_clip": "crouch_fire",
+				"crouched_reload_clip": "iso_rifle_reload_crouched",
+				"crouched_reload_layer_available": true,
+				"crouched_reload_trigger_count": 0,
+				"fire_layer_available": true,
+				"fire_trigger_count": 2,
+				"full_gait_weight": 0.0000000000000245914607129515,
+				"jog_gait_weight": 0.144578284976329,
+				"locomotion_carry_weight": 0.0,
+				"modern_enabled": true,
+				"modern_state": "crouch",
+				"playback_rate": 0.999999963320219,
+				"presentation_mode": "READY_AIM",
+				"prone_travel_blend": 1.0,
+				"rendered_direction": "(-0.0, 1.0)",
+				"shared_phase": 0.229984264927444,
+				"smoothed_direction": "(-0.0, 1.0)",
+				"source_controller_active": true,
+				"source_grounded_clip": "source_walk_alert",
+				"source_loop_phase_transfer": {
+					"clock_states": [],
+					"destination_states": [],
+					"enabled": false,
+					"last_transfer": {},
+					"transfers": 0
+				},
+				"source_pistol_phase_active": false,
+				"source_transition_snapshot": {
+					"bone_count": 65,
+					"enabled": true,
+					"freezes": 2,
+					"frozen_state": "",
+					"latest_valid": false,
+					"raw_captures": 846,
+					"releases": 2,
+					"target_state": ""
+				},
+				"standing_reload_clip": "iso_rifle_reload_standing",
+				"standing_reload_layer_available": true,
+				"standing_reload_trigger_count": 0,
+				"upper_body_ready_blend": 0.0
+			},
+			"motion_state": 1,
+			"physical": {
+				"aim_target_world": "(500.0, 2.832406, 221.1432)",
+				"bore_to_reticle_degrees": 0.0212224432904409,
+				"muzzle_to_target_m": 245.960678100586,
+				"pocket_world": "(500.2521, 1.172637, 468.0648)",
+				"shoulder_square_error_degrees": 33.6580488305723,
+				"stock_forward_release_m": 0.0,
+				"stock_height_relative_to_pocket_m": -0.141069650650024,
+				"stock_to_expected_carry_m": 0.194586649537086,
+				"stock_to_pocket_m": 0.194586649537086,
+				"stock_world": "(500.3807, 1.031567, 468.027)",
+				"support_contact_m": 0.000356347998604178,
+				"trigger_contact_m": 0.000126293962239288
+			},
+			"physics_frame": 1334,
+			"posture": 1,
+			"presentation_ready_weight": 0.987240011834659,
+			"requested_action": "",
+			"right_elbow_angle_deg": 80.1987386087379,
+			"source_take": "authored:crouch_forward.tres",
+			"spine_height_m": 0.848478102183435,
+			"state": "ak-47_1_fire_middle",
+			"support_contact_error_m": 0.000356347998604178,
+			"trigger_contact_error_m": 0.000126283775898628,
+			"weapon": "ak-47",
+			"weapon_aim_error_deg": 0.0212381230435576,
+			"weapon_owner": "READY_SOLVER"
+		},
+		{
+			"body_position": "(500.0, 0.000845, 467.2583)",
+			"capture_preserved_source": true,
+			"capture_process_frame": 2252,
+			"current_clip": "crouch_forward",
+			"fire_recoil_weight": 0.0,
+			"fire_upper_body_latch": {
+				"accepted_shot_count": 4,
+				"action_override_active": false,
+				"grace_duration_seconds": 1.2,
+				"grace_remaining_seconds": 0.432099333333331,
+				"owner_state": "FIRE_RECOVERY",
+				"posture": "CROUCHED",
+				"selected": true
+			},
+			"head_height_m": 1.2366911629797,
+			"horizontal_speed_mps": 2.59999990463257,
+			"images": {
+				"rear": "/private/tmp/source-rifle-wrist-native-v1-ak-47_1_fire-rear.png",
+				"side": "/private/tmp/source-rifle-wrist-native-v1-ak-47_1_fire-side.png"
+			},
+			"left_elbow_angle_deg": 124.69684921528,
+			"locomotion": {
+				"active_fire_clip": "crouch_fire",
+				"crouched_reload_clip": "iso_rifle_reload_crouched",
+				"crouched_reload_layer_available": true,
+				"crouched_reload_trigger_count": 0,
+				"fire_layer_available": true,
+				"fire_trigger_count": 2,
+				"full_gait_weight": 0.00000000000000109182754398583,
+				"jog_gait_weight": 0.144578292900106,
+				"locomotion_carry_weight": 0.0,
+				"modern_enabled": true,
+				"modern_state": "crouch",
+				"playback_rate": 0.999999963320219,
+				"presentation_mode": "READY_AIM",
+				"prone_travel_blend": 1.0,
+				"rendered_direction": "(-0.0, 1.0)",
+				"shared_phase": 0.629945583590283,
+				"smoothed_direction": "(-0.0, 1.0)",
+				"source_controller_active": true,
+				"source_grounded_clip": "source_walk_alert",
+				"source_loop_phase_transfer": {
+					"clock_states": [],
+					"destination_states": [],
+					"enabled": false,
+					"last_transfer": {},
+					"transfers": 0
+				},
+				"source_pistol_phase_active": false,
+				"source_transition_snapshot": {
+					"bone_count": 65,
+					"enabled": true,
+					"freezes": 2,
+					"frozen_state": "",
+					"latest_valid": false,
+					"raw_captures": 846,
+					"releases": 2,
+					"target_state": ""
+				},
+				"standing_reload_clip": "iso_rifle_reload_standing",
+				"standing_reload_layer_available": true,
+				"standing_reload_trigger_count": 0,
+				"upper_body_ready_blend": 0.0
+			},
+			"motion_state": 1,
+			"physical": {
+				"aim_target_world": "(500.0, 1.93365, 220.1016)",
+				"bore_to_reticle_degrees": 0.019488702489275,
+				"muzzle_to_target_m": 245.973754882812,
+				"pocket_world": "(500.2416, 1.226738, 467.0299)",
+				"shoulder_square_error_degrees": 37.0214588205389,
+				"stock_forward_release_m": 0.0,
+				"stock_height_relative_to_pocket_m": -0.142224311828613,
+				"stock_to_expected_carry_m": 0.213238701224327,
+				"stock_to_pocket_m": 0.213238701224327,
+				"stock_world": "(500.3983, 1.084513, 467.0035)",
+				"support_contact_m": 0.000523464928846806,
+				"trigger_contact_m": 0.000154532448505051
+			},
+			"physics_frame": 1358,
+			"posture": 1,
+			"presentation_ready_weight": 0.999999134979758,
+			"requested_action": "",
+			"right_elbow_angle_deg": 80.8317757435043,
+			"source_take": "authored:crouch_forward.tres",
+			"spine_height_m": 0.891045973694418,
+			"state": "ak-47_1_fire",
+			"support_contact_error_m": 0.000523464928846806,
+			"trigger_contact_error_m": 0.000154532448505051,
+			"weapon": "ak-47",
+			"weapon_aim_error_deg": 0.0195063699341618,
+			"weapon_owner": "READY_SOLVER"
+		}
+	],
+	"rig_metadata": {
+		"landmarks": {
+			"mixamorig_Head": [
+				-0.00476144114509225,
+				17.629467010498,
+				0.140922784805298
+			],
+			"mixamorig_Hips": [
+				-0.00278900004923344,
+				11.6703643798828,
+				0.536364018917084
+			],
+			"mixamorig_LeftArm": [
+				-2.00283694267273,
+				15.8971834182739,
+				0.913994371891022
+			],
+			"mixamorig_LeftFoot": [
+				-2.02179479598999,
+				1.10979604721069,
+				1.05923938751221
+			],
+			"mixamorig_LeftForeArm": [
+				-4.65156173706055,
+				13.8590812683105,
+				1.32121586799622
+			],
+			"mixamorig_LeftHand": [
+				-6.87941932678223,
+				12.1340503692627,
+				1.00695466995239
+			],
+			"mixamorig_LeftLeg": [
+				-1.56552600860596,
+				5.72896099090576,
+				-0.103904664516449
+			],
+			"mixamorig_LeftShoulder": [
+				-0.0033606041688472,
+				15.6497688293457,
+				0.692177414894104
+			],
+			"mixamorig_LeftToeBase": [
+				-2.01090908050537,
+				0.451450526714325,
+				-0.567724704742432
+			],
+			"mixamorig_LeftUpLeg": [
+				-1.16145598888397,
+				10.0133371353149,
+				0.390164315700531
+			],
+			"mixamorig_Neck": [
+				-0.00388205843046308,
+				16.73415184021,
+				0.319891363382339
+			],
+			"mixamorig_RightArm": [
+				1.99660527706146,
+				15.8986892700195,
+				0.910458385944366
+			],
+			"mixamorig_RightFoot": [
+				2.01637268066406,
+				1.1079216003418,
+				1.0517669916153
+			],
+			"mixamorig_RightForeArm": [
+				4.65447330474854,
+				13.8528022766113,
+				1.30998456478119
+			],
+			"mixamorig_RightHand": [
+				6.87435245513916,
+				12.1331424713135,
+				0.993555903434753
+			],
+			"mixamorig_RightLeg": [
+				1.56489515304565,
+				5.73015308380127,
+				-0.106298208236694
+			],
+			"mixamorig_RightShoulder": [
+				-0.0028814785182476,
+				15.6493911743164,
+				0.692250430583954
+			],
+			"mixamorig_RightToeBase": [
+				2.01372647285461,
+				0.450458288192749,
+				-0.575545191764832
+			],
+			"mixamorig_RightUpLeg": [
+				1.1682037115097,
+				10.0132293701172,
+				0.390756011009216
+			],
+			"mixamorig_Spine": [
+				-0.00278900121338665,
+				11.670337677002,
+				0.536364018917084
+			],
+			"mixamorig_Spine2": [
+				-0.0031155701726675,
+				13.986011505127,
+				0.704339861869812
+			]
+		},
+		"metres_per_source_unit": 0.102499836420227,
+		"reference": "seal_A_arc",
+		"scope": "21 recovered body landmarks; modern head volume, fingers and surface detail retained",
+		"skin_fit": {
+			"method": "continuous_anatomical_trunk_independent_of_control_pivots",
+			"neck_anchor_error_m": 0.000000000116415321826935,
+			"revision": 2,
+			"shoulder_scale": 1.07823461967205,
+			"torso_scale_y": 1.15892279148102
+		},
+		"source_sha256": "26e991e38bb09147c54ce3062116466fef3225e76b5e6771da619d56e625c551",
+		"units": "source units uniformly normalized to existing head-to-ankle height"
+	},
+	"schema_version": 1,
+	"scope": "Read-only actual main observations; no contact/visual quality acceptance",
+	"selected_model": "res://assets/characters/modern_soldier/modern_soldier_iso.scn",
+	"source_inventory": {
+		"clips": {
+			"seal_fp_run": {
+				"sha256": "15d43216df6a85b112e152ac470aba9f1d3153a357ffb42b1679c9a751e645a9",
+				"tracks": [
+					"skel_root",
+					"hips",
+					"do_not_use",
+					"aimnodes",
+					"spinelo",
+					"spinehi",
+					"lbicep",
+					"lforearm",
+					"lhand",
+					"rbicep",
+					"rforearm",
+					"rhand",
+					"rifle",
+					"rshoulder_wgt",
+					"lshoulder_wgt",
+					"lscap",
+					"rscap",
+					"neck",
+					"head",
+					"lthigh",
+					"lcalf",
+					"lfoot",
+					"ltoe",
+					"rthigh",
+					"rcalf",
+					"rfoot",
+					"rtoe"
+				]
+			},
+			"seal_fp_stand": {
+				"sha256": "5de394f9cde35c69c855e88263c4234c0f77596fa0854cd8ecac04abf1b236a4",
+				"tracks": [
+					"skel_root",
+					"hips",
+					"aimnodes",
+					"spinelo",
+					"spinehi",
+					"lbicep",
+					"lforearm",
+					"lhand",
+					"rbicep",
+					"rforearm",
+					"rhand",
+					"rifle",
+					"rshoulder_wgt",
+					"lshoulder_wgt",
+					"lscap",
+					"rscap",
+					"neck",
+					"head",
+					"lthigh",
+					"lcalf",
+					"lfoot",
+					"ltoe",
+					"rthigh",
+					"rcalf",
+					"rfoot",
+					"rtoe"
+				]
+			},
+			"seal_run": {
+				"sha256": "303edaa186f788ffd50bb3aed138fc081e44639d68850a05765ea6ab045d79f3",
+				"tracks": [
+					"skel_root",
+					"hips",
+					"aimnodes",
+					"spinelo",
+					"spinehi",
+					"lbicep",
+					"lforearm",
+					"lhand",
+					"rbicep",
+					"rforearm",
+					"rhand",
+					"rifle",
+					"rshoulder_wgt",
+					"lshoulder_wgt",
+					"lscap",
+					"rscap",
+					"neck",
+					"head",
+					"lthigh",
+					"lcalf",
+					"lfoot",
+					"ltoe",
+					"rthigh",
+					"rcalf",
+					"rfoot",
+					"rtoe"
+				]
+			},
+			"seal_stand": {
+				"sha256": "8d212af6190c65e3f2dc83046605a80aab407d5dc3d69324de955da8a4c0c9f3",
+				"tracks": [
+					"skel_root",
+					"hips",
+					"do_not_use",
+					"aimnodes",
+					"spinelo",
+					"spinehi",
+					"lbicep",
+					"lforearm",
+					"lhand",
+					"rbicep",
+					"rforearm",
+					"rhand",
+					"rifle",
+					"rshoulder_wgt",
+					"lshoulder_wgt",
+					"lscap",
+					"rscap",
+					"neck",
+					"head",
+					"lthigh",
+					"lcalf",
+					"lfoot",
+					"ltoe",
+					"rthigh",
+					"rcalf",
+					"rfoot",
+					"rtoe"
+				]
+			},
+			"seal_stand_alert02": {
+				"sha256": "3e6099df02ee437ef6e486d10e4f408a89c93545e40458a1d86b7070d34fbfcf",
+				"tracks": [
+					"skel_root",
+					"hips",
+					"aimnodes",
+					"spinelo",
+					"spinehi",
+					"neck",
+					"head",
+					"lshoulder_wgt",
+					"lscap",
+					"rscap",
+					"rshoulder_wgt",
+					"rbicep",
+					"rforearm",
+					"rhand",
+					"rifle",
+					"lbicep",
+					"lforearm",
+					"lhand",
+					"rthigh",
+					"rcalf",
+					"rfoot",
+					"rtoe",
+					"lthigh",
+					"lcalf",
+					"lfoot",
+					"ltoe"
+				]
+			}
+		},
+		"nodes": [
+			"seal_A_arc",
+			"skel_root",
+			"hips",
+			"rthigh",
+			"rcalf",
+			"rfoot",
+			"rtoe",
+			"lthigh",
+			"lcalf",
+			"lfoot",
+			"ltoe",
+			"aimnodes",
+			"spinelo",
+			"spinehi",
+			"rshoulder_wgt",
+			"rscap",
+			"rbicep",
+			"rforearm",
+			"rhand",
+			"neck",
+			"head",
+			"lshoulder_wgt",
+			"lscap",
+			"lbicep",
+			"lforearm",
+			"lhand",
+			"body"
+		],
+		"skeleton_sha256": "26e991e38bb09147c54ce3062116466fef3225e76b5e6771da619d56e625c551"
+	}
+}

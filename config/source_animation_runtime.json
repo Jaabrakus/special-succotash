@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "loop_periods_enabled": true,
+  "grounded_idle_curve": "source_quadratic_in_out",
+  "grounded_idle_snapshot_enabled": true,
+  "grounded_idle_phase_transfer_enabled": true,
+  "standing_direction_blend": "source_angular",
+  "standing_leaf_frequency_enabled": true,
+  "standing_entry_blend_enabled": true,
+  "source_evidence": {
+    "reader": "FTSCore 0x2879b8",
+    "curve": "FTSCore 0x2874f0",
+    "blend_timer": "ZSealEtc 0x576898",
+    "direction_weights": "ZSealEtc 0x583350; res://tools/source_gait_weight_audit.cjs",
+    "leaf_frequency": "FTSCore 0x28c4f0; res://tools/source_blend_runtime_audit.cjs",
+    "fixtures": "res://tools/source_blend_runtime_audit.cjs"
+  },
+  "notes": "Source looping playback is period seconds when max_velocity is negative; otherwise native duration/playback. Only intact native loops are adapted. One-shot, held/windowed and traversal/action clocks are excluded. Grounded rifle-to-idle snapshots are a guarded raw AnimationTree adapter, not a recreation of the original procedural-pose wrapper."
+}

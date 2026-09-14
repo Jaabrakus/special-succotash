@@ -138,10 +138,24 @@ func _build_camera_workbench(layer: CanvasLayer) -> void:
     tuning_title.add_theme_font_size_override("font_size", 14)
     tuning_stack.add_child(tuning_title)
 
-    _add_workbench_slider(tuning_stack, "Open distance", &"distance", 2.0, 5.5, 0.05)
-    _add_workbench_slider(tuning_stack, "Open height", &"height", 0.8, 3.5, 0.05)
-    _add_workbench_slider(tuning_stack, "Vertical FOV", &"vertical_fov", 45.0, 80.0, 0.5)
-    _add_workbench_slider(tuning_stack, "Head screen Y", &"desired_head_y", 0.55, 0.90, 0.005)
+    var source_position_mode: bool = camera_rig.source_camera_match.lens_enabled() and bool(camera_rig.source_camera_match.settings.preferred_position_enabled)
+    if source_position_mode:
+        var source_position_label := Label.new()
+        source_position_label.text = "Hybrid: source framing + our pitch/wall handling" if camera_rig.source_camera_match.hybrid_enabled() else "Source framing: animated pivot · 2.8m level boom"
+        source_position_label.tooltip_text = "Saved camera_source_match.json chooses source/hybrid. Hybrid preserves level framing and adds our height correction with pitch. Open height/distance sliders are inactive; physical wall controls still apply."
+        tuning_stack.add_child(source_position_label)
+    else:
+        _add_workbench_slider(tuning_stack, "Open distance", &"distance", 2.0, 5.5, 0.05)
+        _add_workbench_slider(tuning_stack, "Open height", &"height", 0.8, 3.5, 0.05)
+    if camera_rig.source_camera_match.lens_enabled():
+        var source_lens_label := Label.new()
+        source_lens_label.name = "SourceFixedLensLabel"
+        source_lens_label.text = "%s lens: %.0f° horizontal (fixed)" % ["Hybrid" if camera_rig.source_camera_match.hybrid_enabled() else "Source",camera_rig.source_camera_match.active_horizontal_fov()]
+        source_lens_label.tooltip_text = "Saved policy: config/camera_source_match.json. Vertical FOV is derived from viewport aspect; the authored vertical slider is inactive in source lens mode."
+        tuning_stack.add_child(source_lens_label)
+    else:
+        _add_workbench_slider(tuning_stack, "Vertical FOV", &"vertical_fov", 45.0, 80.0, 0.5)
+    _add_workbench_slider(tuning_stack, "Pitch / wall head Y" if source_position_mode else "Head screen Y", &"desired_head_y", 0.55, 0.90, 0.005)
     _add_workbench_slider(tuning_stack, "Bullet zero distance", &"minimum_ballistic_convergence_distance", 6.0, 60.0, 0.5)
     _add_workbench_slider(tuning_stack, "Max zero angle", &"maximum_convergence_angle_deg", 1.0, 12.0, 0.25)
     _add_workbench_slider(tuning_stack, "Wall lens radius", &"camera_collision_radius", 0.09, 0.24, 0.005)
